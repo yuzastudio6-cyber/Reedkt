@@ -580,6 +580,8 @@
     "track-a:visual-review-2c-outcome:diagnostics": "node scripts/validation/track-a-visual-review-2c-outcome-diagnostics.mjs",
     "track-a:visual-gap-closure-1:diagnostics": "node scripts/validation/track-a-visual-gap-closure-1-diagnostics.mjs",
     "track-a:caption-quality-1:diagnostics": "node scripts/validation/track-a-caption-quality-1-diagnostics.mjs",
+    "track-a:missing-visual-evidence-1": "node scripts/validation/track-a-missing-visual-evidence-1.mjs",
+    "track-a:missing-visual-evidence-1:diagnostics": "node scripts/validation/track-a-missing-visual-evidence-1-diagnostics.mjs",
     "activation:model-orchestration-qwen-auth-repair:plan": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-plan.ts",
     "activation:model-orchestration-qwen-auth-repair": "tsx server/cli/activation-model-orchestration-qwen-auth-repair.ts",
     "activation:model-orchestration-qwen-auth-repair:report": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-report.ts",

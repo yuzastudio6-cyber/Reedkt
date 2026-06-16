@@ -1,24 +1,40 @@
 # AI_TOOLS_CREATIVE_GRAPHICS Batch 3 Allowed / Blocked Scope
 
-Decision: `ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings`
+Decision: `approved_with_warnings_for_ai_graphics_batch_3`
 
-## Allowed Next
+## Allowed In This Packet
 
-Batch 3 may be prepared only as a QA review or another small approval packet. Good candidates after Batch 2 are:
+- Read PR #437 Batch 2 QA evidence.
+- Select Batch 3 packages.
+- Define future import/manifest-only validation.
+- Document excluded tools and runtime boundaries.
+- Add docs and static diagnostics.
+- Update present owner-lane trackers.
 
-- Batch 2 QA review for `satori`, `@svgdotjs/svg.js`, `@viz-js/viz`, and `lottie-web`.
-- Later optional `animejs` metadata/import-only review.
-- Legacy creative-graphics gap review for remaining owner-assigned packages.
+## Approved For A Later Batch 3 Execution Prompt Only
 
-## Still Blocked
+- `futureDependencyInstallApproved`: `true`
+- `packageLockMutationApproved`: `true`
+- `futureImportSmokeApproved`: `true`
+- `futureSyntheticFixtureApproved`: `true`
 
-- `@resvg/resvg-js` rasterization.
-- Remotion final render/export.
-- Browser/WebGL/canvas runtime packages.
-- Lottie browser/player execution.
-- Route execution, worker execution, and actual tool execution.
-- Provider/model calls.
-- Supabase mutation, SQL, GCS/storage transfer, signed URLs, and public artifacts.
-- Media/audio processing, map rendering, raw prompt execution, internal beta, external beta, and production.
+## Blocked Now
 
-No route execution, worker execution, provider/model call, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, browser runtime, WebGL runtime, Remotion render/export, resvg rasterization, media/audio processing, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.
+- `batch3ExecutionApprovedNow`: `false`
+- actual tool execution: `false`
+- route execution: `false`
+- worker execution: `false`
+- provider/model runtime: `false`
+- render/export: `false`
+- media/audio runtime: `false`
+- browser runtime: `false`
+- WebGL runtime: `false`
+- canvas runtime: `false`
+- Supabase mutation: `false`
+- GCS upload/storage transfer: `false`
+- public artifacts: `false`
+- signed URLs: `false`
+- raw prompt execution: `false`
+- internal beta, external beta, and production: `false`
+
+No dependency install, package-lock mutation, Batch 3 import smoke, Batch 3 synthetic fixture proof, browser/WebGL/canvas runtime, actual tool execution, route execution, worker execution, provider/model call, Remotion render/export, resvg rasterization, map rendering, media/audio processing, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.

@@ -71,3 +71,12 @@ browser/WebGL behavior, Lottie player behavior, Remotion render/export, resvg
 rasterization, Supabase mutation, GCS/storage transfer, signed URLs, public
 artifacts, internal beta, external beta, paid production, and production remain
 blocked.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 3 approval decision
+`approved_with_warnings_for_ai_graphics_batch_3` is future-only for later
+install/import/manifest proof of `animejs`, `three`, `pixi.js`, `konva`, and
+`babylonjs`. It does not install dependencies now, mutate package-lock now, run
+Batch 3 imports or fixtures now, or approve route/tool/worker/provider runtime,
+browser/WebGL/canvas runtime, Remotion render/export, resvg rasterization,
+Supabase mutation, GCS/storage transfer, signed URLs, public artifacts,
+internal beta, external beta, paid production, or production readiness.

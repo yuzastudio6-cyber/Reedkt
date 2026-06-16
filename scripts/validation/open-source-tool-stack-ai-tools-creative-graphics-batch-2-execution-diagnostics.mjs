@@ -13,6 +13,7 @@ const allowedDecisions = new Set([
   'blocked_batch_2_synthetic_fixture_failed',
   'blocked_batch_2_runtime_boundary_review',
   'blocked_batch_2_unrelated_dependency_churn_detected',
+  'approved_with_warnings_for_ai_graphics_batch_3',
 ])
 const approvedDependencies = ['satori', '@svgdotjs/svg.js', '@viz-js/viz', 'lottie-web']
 const blockedDependencies = ['animejs', '@resvg/resvg-js', 'remotion', '@remotion/renderer', 'three', 'pixi.js', 'konva', 'babylonjs']

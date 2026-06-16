@@ -1,19 +1,19 @@
 # Track A Missing Visual Evidence 1 Gap Map
 
-Status: `gap_map_recorded`
+Status: `gap_map_recorded_after_confirmed_bundle_attempt`
 
 ## Current Gaps
 
-| gap | blocker | next required input |
-| --- | --- | --- |
-| BiRefNet stronger proof | `birefnet_stronger_visual_proof` | exact matte/cutout/composite side-by-side and edge closeup refs |
-| Real-ESRGAN before/after proof | `real_esrgan_before_after_proof` | exact before/after enhancement comparison and detail crop refs |
-| OpenColorIO/OpenImageIO stronger proof | `opencolorio_openimageio_stronger_proof` | upload/review of exact contact sheet or allowed copied files |
-| OTIO/full private E2E proof | `otio_full_private_e2e_proof` | exact timeline consistency visual proof and full private E2E review clip/contact sheet |
+| gap | blocker | copied files | next required input |
+| --- | --- | --- | --- |
+| BiRefNet stronger proof | `birefnet_stronger_visual_proof` | `1` | upload copied file if present, otherwise provide exact matte/cutout/composite side-by-side and edge closeup refs |
+| Real-ESRGAN before/after proof | `real_esrgan_before_after_proof` | `0` | upload copied file if present, otherwise provide exact before/after enhancement comparison or detail crop refs |
+| OpenColorIO/OpenImageIO stronger proof | `opencolorio_openimageio_stronger_proof` | `1` | upload/review copied contact sheet or allowed visual files |
+| OTIO/full private E2E proof | `otio_full_private_e2e_proof` | `3` | upload/review copied visual proof or provide full private E2E review clip/contact sheet |
 
 ## Next Phase
 
-TRACKA-MISSING-VISUAL-EVIDENCE-2 readiness: blocked_pending_missing_visual_evidence_access_confirmation
+TRACKA-MISSING-VISUAL-EVIDENCE-2 readiness: ready_after_upload_of_copied_visual_files
 
 TRACKA-CAPTION-QUALITY-2 readiness: ready_for_future_burnin_revalidation_planning
 

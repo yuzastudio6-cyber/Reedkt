@@ -41,8 +41,6 @@ const requiredTerms = [
   "real_esrgan_before_after_proof",
   "opencolorio_openimageio_stronger_proof",
   "otio_full_private_e2e_proof",
-  "blocked_pending_missing_visual_evidence_access_confirmation",
-  "TRACKA-MISSING-VISUAL-EVIDENCE-2 readiness: blocked_pending_missing_visual_evidence_access_confirmation",
   "TRACKA-CAPTION-QUALITY-2 readiness: ready_for_future_burnin_revalidation_planning",
   "TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: blocked_pending_missing_visual_evidence_review_and_caption_revalidation",
   "Internal beta readiness: blocked_pending_tracka_missing_visual_evidence_review_and_caption_revalidation",
@@ -52,7 +50,6 @@ const requiredTerms = [
   "trackAFinalDeliveryReady: false",
   "productionReady: false",
   "externalBetaReady: false",
-  "not_created_confirmation_absent",
   "docs_only",
 ];
 
@@ -86,6 +83,40 @@ for (const term of requiredTerms) {
   if (!allText.includes(term)) {
     failures.push(`Missing required term: ${term}`);
   }
+}
+
+const statusAlternatives = [
+  {
+    name: "unconfirmed_blocked",
+    terms: [
+      "blocked_pending_missing_visual_evidence_access_confirmation",
+      "TRACKA-MISSING-VISUAL-EVIDENCE-2 readiness: blocked_pending_missing_visual_evidence_access_confirmation",
+      "not_created_confirmation_absent",
+    ],
+  },
+  {
+    name: "confirmed_copied_bundle",
+    terms: [
+      "completed_with_missing_visual_evidence_bundle",
+      "TRACKA-MISSING-VISUAL-EVIDENCE-2 readiness: ready_after_upload_of_copied_visual_files",
+      "pending_human_upload",
+    ],
+  },
+  {
+    name: "confirmed_no_files_blocked",
+    terms: [
+      "blocked_no_missing_visual_evidence_artifacts_found",
+      "TRACKA-MISSING-VISUAL-EVIDENCE-2 readiness: blocked_no_missing_visual_evidence_artifacts_found",
+    ],
+  },
+];
+
+if (!statusAlternatives.some((alternative) => alternative.terms.every((term) => allText.includes(term)))) {
+  failures.push(
+    `Missing valid execution/readiness status combination. Expected one of: ${statusAlternatives
+      .map((alternative) => alternative.name)
+      .join(", ")}`,
+  );
 }
 
 const packageJson = readRequired("package.json");

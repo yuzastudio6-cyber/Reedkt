@@ -1,46 +1,63 @@
 # Track A Missing Visual Evidence 1 Discovery Results
 
-Status: `discovery_recorded_access_blocked`
+Status: `completed_with_missing_visual_evidence_bundle`
 
 ## Discovery Mode
 
 Discovery source: GitHub PR body metadata and committed docs only.
 
-Private artifact access: not_attempted
+Private artifact access: bounded_confirmed_metadata_list_read_copy
 
-GCS metadata/list/read/copy: not_attempted
+GCS metadata/list/read/copy: bounded_confirmed_for_allowlisted_refs_only
 
-Execution blocker: `blocked_pending_missing_visual_evidence_access_confirmation`
+Execution result: `completed_with_missing_visual_evidence_bundle`
 
-## Historical PR Body Scan
+Bundle ID: `tracka-missing-visual-evidence1-20260616T015436`
 
-| PR | State at discovery | Result |
-| --- | --- | --- |
-| #25 Phase 33D real video BiRefNet frame mask test | open | no exact `gs://` refs found in PR body |
-| #26 Phase 33E text-behind-subject frame preview | open | no exact `gs://` refs found in PR body |
-| #30 Phase 34D real video enhancement sample | open | no exact `gs://` refs found in PR body |
-| #34 Phase 34E Real-ESRGAN policy decision | open | found phase33d representative frame PNG; not Real-ESRGAN before/after proof |
-| #65 Phase 40B pro color image generated fixture runtime | open | found narrow pro-color-image generated-assets prefix and report metadata |
-| #67 Phase 40C real video pro color image sample | open | found Phase 32 export, pro-color-image generated/previews prefixes, and report metadata |
-| #68 Phase 40D pro color image private feature E2E | open | found exact pro color/image contact sheet PNG and metadata refs |
-| #77 Phase 45C OpenTimelineIO validation | open | found exact libass/remotion previews, timeline JSON, report metadata, and Phase 32 export |
-| #80 Phase 45D FFmpeg FFprobe final render hardening | open | found exact hardened review export MP4 and metadata refs |
-| #82 Phase 45E full visual video private E2E | open | found exact hardened review export MP4, Phase 32 export, E2E manifest, and report metadata |
-| #83 Phase 45F Track A visual video readiness closure | open | found readiness/evidence metadata refs only |
-| #390 Track A current-source evidence packet | merged | no direct `gs://` refs in PR body |
-| #411 exact visual artifact bundle | merged | no direct `gs://` refs in PR body |
-| #419 AI-assisted visual review outcome | merged | no direct `gs://` refs in PR body |
-| #422 gap closure packet | merged | no direct `gs://` refs in PR body |
-| #426 caption quality packet | merged | no direct `gs://` refs in PR body |
+Local bundle path: `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436`
+
+Copied visual artifacts: `5`
+
+Skipped refs during confirmed copy: `5`
+
+Total copied bytes: `8950978`
+
+## Discovery Summary
+
+| classification | count |
+| --- | --- |
+| `exact_nonvisual_metadata_ref` | `16` |
+| `exact_visual_object_candidate` | `10` |
+| `narrow_visual_prefix_candidate` | `3` |
+
+## Copied Visual Artifacts
+
+| blocker | source PR | source ref | local file | size bytes | sha256 | status |
+| --- | --- | --- | --- | --- | --- | --- |
+| `birefnet_stronger_visual_proof` | #34 | `gs://reeditpro-staging-reeditpro-generated-assets/activation-real-video/phase33d/phase33d-20260528T161056/representative-frame/frame.png` | `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436/tracka-missing-birefnet-stronger-proof-frame.png` | `5477828` | `cad684ff1fa07ebd4f5b69fecf246eb49e3db8606fff90982cad8df87a81f6d4` | copied |
+| `opencolorio_openimageio_stronger_proof` | #68 | `gs://reeditpro-staging-reeditpro-previews/activation-pro-color-image/phase40d/phase40d-20260531T12493/contact-sheet/pro-color-image-feature-contact-sheet.png` | `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436/tracka-missing-pro-color-image-proof-pro-color-image-feature-contact-sheet.png` | `451844` | `6c0ad6aa7f4f0be2bf89655c966c2dcae5a3686a490d8a379a8a8d4a6bba28af` | copied |
+| `otio_full_private_e2e_proof` | #77 | `gs://reeditpro-staging-reeditpro-previews/activation-render-hardening/phase45a/phase45a-20260531T19033/preview/libass-burnin-preview.mp4` | `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436/tracka-missing-otio-private-e2e-proof-libass-burnin-preview.mp4` | `548136` | `99ade85fc6668d5983fe66bd6bb90deb4cb221b21464942818247822a4d21a73` | copied |
+| `otio_full_private_e2e_proof` | #77 | `gs://reeditpro-staging-reeditpro-previews/activation-render-hardening/phase45b/phase45b-20260531T19552/preview/remotion-render-preview.mp4` | `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436/tracka-missing-otio-private-e2e-proof-remotion-render-preview.mp4` | `1463324` | `d5fa23fcf5ea67e9e0ef524e397e63aecbc19c5356ac7f86cfbcebdbc4cfc33b` | copied |
+| `otio_full_private_e2e_proof` | #80 | `gs://reeditpro-staging-reeditpro-final-exports/activation-render-hardening/phase45d/phase45d-20260531T22235/review/hardened-review-export.mp4` | `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436/tracka-missing-otio-private-e2e-proof-hardened-review-export.mp4` | `1009846` | `758b42ab7e99102802b6cd9307d872b8a9b4dafa08a2991fea48c0ac2c14c084` | copied |
+
+## Skipped Or Rejected During Confirmed Copy
+
+| blocker | source PR | source ref | source prefix | reason |
+| --- | --- | --- | --- | --- |
+| `opencolorio_openimageio_stronger_proof` | #67 | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` | none | `file_too_large` |
+| `opencolorio_openimageio_stronger_proof` | #77 | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` | none | `file_too_large` |
+| `opencolorio_openimageio_stronger_proof` | #80 | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` | none | `file_too_large` |
+| `opencolorio_openimageio_stronger_proof` | #82 | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` | none | `file_too_large` |
+| `otio_full_private_e2e_proof` | #82 | `gs://reeditpro-staging-reeditpro-final-exports/activation-render-hardening/phase45d/phase45d-20260531T22235/review/hardened-review-export.mp4` | none | `group_copy_cap_reached` |
 
 ## Discovery Result By Blocker
 
-| blocker | discovery result | current limitation |
-| --- | --- | --- |
-| `birefnet_stronger_visual_proof` | one representative frame ref found through #34 | matte/cutout/composite side-by-side and edge closeup still need exact refs |
-| `real_esrgan_before_after_proof` | no exact before/after visual proof found | needs exact before/after comparison or detail crop ref |
-| `opencolorio_openimageio_stronger_proof` | exact Phase 40D contact sheet and narrow Phase 40B/40C prefixes found | review outcome still required in TRACKA-MISSING-VISUAL-EVIDENCE-2 |
-| `otio_full_private_e2e_proof` | OTIO timeline JSON, hardened export MP4, E2E manifest JSON, and metadata found | full private E2E contact sheet or exact review clip still needs review outcome |
+| blocker | copied files | skipped refs | current limitation |
+| --- | --- | --- | --- |
+| `birefnet_stronger_visual_proof` | `1` | `0` | not closed until TRACKA-MISSING-VISUAL-EVIDENCE-2 visual review |
+| `real_esrgan_before_after_proof` | `0` | `0` | not closed until TRACKA-MISSING-VISUAL-EVIDENCE-2 visual review |
+| `opencolorio_openimageio_stronger_proof` | `1` | `4` | not closed until TRACKA-MISSING-VISUAL-EVIDENCE-2 visual review |
+| `otio_full_private_e2e_proof` | `3` | `1` | not closed until TRACKA-MISSING-VISUAL-EVIDENCE-2 visual review |
 
 ## No-Scope Statement
 

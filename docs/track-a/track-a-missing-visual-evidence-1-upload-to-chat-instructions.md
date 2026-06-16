@@ -1,24 +1,28 @@
 # Track A Missing Visual Evidence 1 Upload-To-Chat Instructions
 
-Status: `not_created`
+Status: `ready_after_upload_of_copied_visual_files`
 
-No local visual bundle was created because private artifact access confirmation is absent.
+## Local Bundle
 
-## Human Action Required
+bundleId: `tracka-missing-visual-evidence1-20260616T015436`
 
-Provide one of the following:
+localBundlePath: `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436`
 
-1. Run the local runner later with inline confirmation:
+copiedVisualArtifacts: `5`
 
-```bash
-REEDITPRO_CONFIRM_TRACKA_MISSING_VISUAL_EVIDENCE_BUNDLE=true npm run track-a:missing-visual-evidence-1 -- --execute
-```
+## Upload Instructions
 
-2. Provide exact review-safe visual artifact refs for the blockers that still need evidence.
+Upload only the copied visual files listed below from `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436`, then run TRACKA-MISSING-VISUAL-EVIDENCE-2 to record the review outcome.
 
-3. Upload representative frames/contact sheets/clips directly for review.
+| blocker | local file | sha256 | upload status |
+| --- | --- | --- | --- |
+| `birefnet_stronger_visual_proof` | `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436/tracka-missing-birefnet-stronger-proof-frame.png` | `cad684ff1fa07ebd4f5b69fecf246eb49e3db8606fff90982cad8df87a81f6d4` | pending_human_upload |
+| `opencolorio_openimageio_stronger_proof` | `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436/tracka-missing-pro-color-image-proof-pro-color-image-feature-contact-sheet.png` | `6c0ad6aa7f4f0be2bf89655c966c2dcae5a3686a490d8a379a8a8d4a6bba28af` | pending_human_upload |
+| `otio_full_private_e2e_proof` | `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436/tracka-missing-otio-private-e2e-proof-libass-burnin-preview.mp4` | `99ade85fc6668d5983fe66bd6bb90deb4cb221b21464942818247822a4d21a73` | pending_human_upload |
+| `otio_full_private_e2e_proof` | `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436/tracka-missing-otio-private-e2e-proof-remotion-render-preview.mp4` | `d5fa23fcf5ea67e9e0ef524e397e63aecbc19c5356ac7f86cfbcebdbc4cfc33b` | pending_human_upload |
+| `otio_full_private_e2e_proof` | `/tmp/reeditpro-tracka-missing-visual-evidence-1/tracka-missing-visual-evidence1-20260616T015436/tracka-missing-otio-private-e2e-proof-hardened-review-export.mp4` | `758b42ab7e99102802b6cd9307d872b8a9b4dafa08a2991fea48c0ac2c14c084` | pending_human_upload |
 
-## Upload Requirements After A Future Bundle Exists
+## Upload Requirements
 
 - upload copied visual files only from the local bundle path.
 - include the checksum table from `docs/track-a/track-a-missing-visual-evidence-1-checksums.md`.

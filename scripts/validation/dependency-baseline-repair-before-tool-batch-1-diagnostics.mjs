@@ -162,6 +162,19 @@ function gitShow(path) {
 }
 
 function repairBaselineRef() {
+  const repairMergeCommit = execFileSync('git', ['log', '--format=%H', '--grep=Merge pull request #427', '-n', '1', 'HEAD'], {
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    encoding: 'utf8',
+  }).trim()
+  if (repairMergeCommit) {
+    const mergeLine = execFileSync('git', ['rev-list', '--parents', '-n', '1', repairMergeCommit], {
+      env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+      encoding: 'utf8',
+    }).trim()
+    const [, mergeFirstParent] = mergeLine.split(/\s+/)
+    if (mergeFirstParent) return mergeFirstParent
+  }
+
   const line = execFileSync('git', ['rev-list', '--parents', '-n', '1', 'HEAD'], {
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
     encoding: 'utf8',

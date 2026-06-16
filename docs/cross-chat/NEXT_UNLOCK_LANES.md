@@ -89,11 +89,11 @@ Next unlock lane:
 - Broad tools, real routes, workers, providers, media/audio/render/image/browser/map, Supabase/GCS writes, public artifacts, signed URLs, external beta, paid production, and production remain blocked.
 
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:start -->
-DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1:
+OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN:
 
-- Decision: `dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun`.
-- The central `@emnapi/*` lock metadata mismatch is repaired and validated with `npm ci --ignore-scripts --no-audit --no-fund`.
-- Batch 1 install/proof execution remains blocked pending a separate approval rerun.
-- Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN_AFTER_DEPENDENCY_REPAIR`.
+- Decision: `approved_for_future_open_source_tool_stack_batch_1_install_proof_execution`.
+- The central `@emnapi/*` lock metadata mismatch is repaired and Batch 1 rerun approval is complete.
+- Next lane is a separate no-install, no-lock-mutation proof execution packet for the eight selected Batch 1 candidates.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1`.
 - Real tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->

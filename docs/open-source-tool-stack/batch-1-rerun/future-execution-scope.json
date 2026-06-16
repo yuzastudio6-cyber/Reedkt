@@ -1,0 +1,110 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Rerun.futureExecutionScope.v1",
+  "generatedAt": "2026-06-15T16:30:00.000Z",
+  "decision": "approved_for_future_open_source_tool_stack_batch_1_install_proof_execution",
+  "futureExecutionRequiresSeparatePrompt": true,
+  "futureExecutionPrompt": "OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1",
+  "approvedFutureCommands": [
+    {
+      "candidateId": "duckdb_metadata_query_proof",
+      "commandClass": "python_import_version_and_in_memory_metadata_query",
+      "dependencyInstallAllowed": false,
+      "packageLockMutationAllowed": false,
+      "failClosedIfImportMissing": true
+    },
+    {
+      "candidateId": "polars_metadata_dataframe_proof",
+      "commandClass": "python_import_version_and_synthetic_metadata_dataframe",
+      "dependencyInstallAllowed": false,
+      "packageLockMutationAllowed": false,
+      "failClosedIfImportMissing": true
+    },
+    {
+      "candidateId": "sharp_libvips_import_version_probe",
+      "commandClass": "node_import_version_only",
+      "dependencyInstallAllowed": false,
+      "packageLockMutationAllowed": false,
+      "imageProcessingAllowed": false,
+      "failClosedIfImportMissing": true
+    },
+    {
+      "candidateId": "ffmpeg_version_probe",
+      "commandClass": "system_binary_version_only",
+      "systemInstallAllowed": false,
+      "mediaProcessingAllowed": false,
+      "failClosedIfBinaryMissing": true
+    },
+    {
+      "candidateId": "ffprobe_version_probe",
+      "commandClass": "system_binary_version_only",
+      "systemInstallAllowed": false,
+      "mediaProcessingAllowed": false,
+      "failClosedIfBinaryMissing": true
+    },
+    {
+      "candidateId": "route_capability_manifest_validation",
+      "commandClass": "metadata_validator_only",
+      "dependencyInstallAllowed": false,
+      "packageLockMutationAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "candidateId": "fixture_report_validation_harness",
+      "commandClass": "committed_report_validator_only",
+      "dependencyInstallAllowed": false,
+      "packageLockMutationAllowed": false,
+      "runtimeExecutionAllowed": false
+    },
+    {
+      "candidateId": "open_source_tool_inventory_validator",
+      "commandClass": "inventory_matrix_validator_only",
+      "dependencyInstallAllowed": false,
+      "packageLockMutationAllowed": false,
+      "toolExecutionAllowed": false
+    }
+  ],
+  "blockedFutureActions": [
+    "dependency installation",
+    "package-lock mutation",
+    "new JS tool dependencies",
+    "system binary installation",
+    "real media processing",
+    "Sharp image-buffer proof",
+    "route execution",
+    "worker execution",
+    "provider execution",
+    "Supabase writes",
+    "SQL",
+    "GCS upload",
+    "public artifacts",
+    "signed URLs",
+    "raw prompt execution",
+    "beta unlock",
+    "production unlock"
+  ],
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

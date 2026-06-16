@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Execution.sideEffectAndLockIntegrity.v1",
+  "generatedAt": "2026-06-16T14:10:44.854Z",
+  "packageLockChanged": false,
+  "packageJsonChanged": true,
+  "packageJsonChangeExpectedForScriptsOnly": true,
+  "trackedNodeModules": [],
+  "trackedBuildOutputs": [],
+  "trackedMedia": [],
+  "nodeModulesCommitted": false,
+  "buildOutputsCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "secretsDetectedInChangedFiles": false,
+  "supabaseSideEffects": false,
+  "gcsSideEffects": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "nonSelectedToolRan": false,
+  "passed": true
+}

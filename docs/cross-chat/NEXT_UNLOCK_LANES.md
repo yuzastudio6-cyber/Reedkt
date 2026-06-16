@@ -97,3 +97,12 @@ OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN:
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1`.
 - Real tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->
+
+<!-- OPEN_SOURCE_BATCH_1_EXECUTION_STATUS:start -->
+OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1:
+
+- Decision: `open_source_tool_stack_batch_1_execution_passed_with_missing_optional_tools`.
+- Next lane: `OPEN_SOURCE_TOOL_STACK_BATCH_1_QA_REVIEW`.
+- Missing optional tools require a separate install/proof review before they can count as locally available.
+- Broad tool execution, route execution, workers, providers, media/audio/render/image/browser/map work, Supabase/GCS writes, public artifacts, signed URLs, raw prompts, external beta, paid production, and production remain blocked.
+<!-- OPEN_SOURCE_BATCH_1_EXECUTION_STATUS:end -->

@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Execution.fixture_report_validation_harness.v1",
+  "generatedAt": "2026-06-16T14:10:44.854Z",
+  "targetId": "fixture_report_validation_harness",
+  "passed": true,
+  "status": "passed",
+  "commandClass": "committed_fixture_report_metadata_only",
+  "evidencePaths": [
+    "docs/activation-tool-route-dry-run-approval-reports/tool_route_synthetic_approved_plan_snapshot_fixtures.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_fixture_validation_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/sound_music_audio_metadata_route_fixture_report.json"
+  ],
+  "missingPaths": [],
+  "installAttempted": false,
+  "packageLockMutationAttempted": false,
+  "routeExecutionAttempted": false,
+  "workerExecutionAttempted": false,
+  "toolExecutionAttempted": false,
+  "blocker": null
+}

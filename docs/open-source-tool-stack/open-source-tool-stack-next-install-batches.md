@@ -252,3 +252,25 @@ The reviewed Batch 1 candidates are DuckDB, Polars, Sharp/libvips, FFmpeg, FFpro
 
 Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1`.
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->
+
+<!-- OPEN_SOURCE_BATCH_1_EXECUTION_STATUS:start -->
+## Batch 1 Execution Result
+
+Decision: `open_source_tool_stack_batch_1_execution_passed_with_missing_optional_tools`.
+
+Passed without installing dependencies or mutating `package-lock.json`:
+
+- Sharp/libvips import/version proof.
+- Route/capability manifest validation.
+- Fixture/report validation.
+- Open-source inventory/proof matrix validation.
+
+Missing optional targets recorded without install attempts:
+
+- DuckDB local module.
+- Polars local module.
+- FFmpeg system binary.
+- FFprobe system binary.
+
+Next prompt: `OPEN_SOURCE_TOOL_STACK_BATCH_1_QA_REVIEW`.
+<!-- OPEN_SOURCE_BATCH_1_EXECUTION_STATUS:end -->

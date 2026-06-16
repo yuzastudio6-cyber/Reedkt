@@ -78,3 +78,7 @@ OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN:
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1`.
 - Real tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->
+
+<!-- OPEN_SOURCE_BATCH_1_EXECUTION_STATUS:start -->
+The Batch 1 proof execution does not unblock missing optional tools or broad runtime. DuckDB, Polars, FFmpeg, and FFprobe remain unavailable in this environment until a separate install/proof review approves and lands them. Broad tool execution, route execution, worker execution, provider/model calls, real media/audio/render/image/browser/map work, Supabase/GCS writes, public artifacts, signed URLs, raw prompts, dependency mutation, external beta, paid production, and production remain blocked.
+<!-- OPEN_SOURCE_BATCH_1_EXECUTION_STATUS:end -->

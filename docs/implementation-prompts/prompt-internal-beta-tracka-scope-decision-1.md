@@ -12,6 +12,7 @@ Record the first restricted internal beta Track A scope decision after corrected
 - #429 merged missing visual evidence bundle.
 - #434 missing visual evidence review outcome.
 - TRACKA-CAPTION-QUALITY-2 burn-in revalidation planning packet.
+- TRACKA-CAPTION-QUALITY-3 guarded burn-in revalidation execution packet.
 
 ## Required Decisions
 
@@ -24,6 +25,8 @@ Record the first restricted internal beta Track A scope decision after corrected
 
 TRACKA-CAPTION-QUALITY-3 readiness: ready_for_burnin_revalidation_execution_packet
 
+TRACKA-CAPTION-QUALITY-3R readiness: ready_for_guarded_execution
+
 TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: blocked_pending_caption_burnin_revalidation_execution_and_scope_decision
 
 INTERNAL-BETA readiness: blocked_pending_caption_burnin_revalidation_and_scope_decision
@@ -32,8 +35,8 @@ TRACKA-MISSING-VISUAL-EVIDENCE-3 readiness: optional_scope_expansion_only
 
 ## Blocked Claims
 
-This prompt must not claim internal beta readiness, external beta readiness, production readiness, final delivery readiness, runtime readiness, public artifact readiness, or signed URL readiness.
+This prompt must not claim internal beta readiness, external beta readiness, production readiness, final delivery readiness, runtime readiness, public artifact readiness, or signed URL readiness. It must also preserve `execution: blocked_pending_caption_burnin_execution_confirmation` unless a later guarded TRACKA-CAPTION-QUALITY-3R run explicitly confirms and records execution.
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Track A caption burn-in runtime execution remains blocked unless explicitly confirmed with REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true.

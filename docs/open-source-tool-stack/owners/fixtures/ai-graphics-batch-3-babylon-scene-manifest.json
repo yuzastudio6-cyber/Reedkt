@@ -1,0 +1,65 @@
+{
+  "fixtureId": "ai_graphics_batch_3_babylon_scene_manifest",
+  "packageName": "babylonjs",
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "dataClassification": "synthetic_only",
+  "proofScope": "scene_manifest_only_no_engine_webgl_runtime",
+  "sceneManifest": {
+    "engine": {
+      "webglContextRequired": false,
+      "engineConstructed": false,
+      "outputWritten": false
+    },
+    "nodes": [
+      {
+        "nodeId": "synthetic_camera_metadata",
+        "type": "camera_metadata",
+        "position": [0, 2, -8]
+      },
+      {
+        "nodeId": "synthetic_light_metadata",
+        "type": "hemispheric_light_metadata",
+        "intensity": 0.65
+      },
+      {
+        "nodeId": "synthetic_mesh_metadata",
+        "type": "box_mesh_metadata",
+        "position": [0, 0, 0]
+      }
+    ]
+  },
+  "blockedUses": [
+    "browser_runtime",
+    "webgl_runtime",
+    "canvas_runtime",
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "render_export",
+    "media_processing",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "webglRuntimeApprovedNow": false,
+    "canvasRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

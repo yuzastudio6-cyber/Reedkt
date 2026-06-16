@@ -1,0 +1,74 @@
+{
+  "fixtureId": "ai_graphics_batch_3_konva_layer_manifest",
+  "packageName": "konva",
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "dataClassification": "synthetic_only",
+  "proofScope": "layer_shape_manifest_only_no_browser_canvas",
+  "layerShapeManifest": {
+    "stage": {
+      "width": 1080,
+      "height": 1080,
+      "browserCanvasRequired": false,
+      "outputWritten": false
+    },
+    "layers": [
+      {
+        "layerId": "synthetic_background_grid",
+        "shapes": [
+          {
+            "shapeId": "synthetic_panel_rect",
+            "type": "rect_metadata",
+            "x": 80,
+            "y": 120,
+            "width": 920,
+            "height": 620
+          }
+        ]
+      },
+      {
+        "layerId": "synthetic_foreground_callout",
+        "shapes": [
+          {
+            "shapeId": "synthetic_arrow",
+            "type": "line_metadata",
+            "points": [240, 740, 520, 600, 760, 640]
+          }
+        ]
+      }
+    ]
+  },
+  "blockedUses": [
+    "browser_runtime",
+    "webgl_runtime",
+    "canvas_runtime",
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "render_export",
+    "media_processing",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "webglRuntimeApprovedNow": false,
+    "canvasRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

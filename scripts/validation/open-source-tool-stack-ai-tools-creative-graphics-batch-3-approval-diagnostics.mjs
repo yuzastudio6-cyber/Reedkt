@@ -14,6 +14,7 @@ const allowedDecisions = new Set([
   'blocked_pending_package_risk_review',
 ])
 const selectedPackages = ['animejs', 'three', 'pixi.js', 'konva', 'babylonjs']
+const batch3ExecutionDecision = 'ai_graphics_batch_3_install_import_manifest_proof_passed_with_warnings'
 const excludedTokens = [
   '@resvg/resvg-js',
   'Remotion',
@@ -96,6 +97,11 @@ const forbiddenPatterns = [
 const failures = []
 const env = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const git = (args) => execFileSync('git', args, { env, encoding: 'utf8' }).trim()
+const batch3ExecutionContext =
+  existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-readiness-decision.md') &&
+  readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-readiness-decision.md', 'utf8').includes(
+    batch3ExecutionDecision,
+  )
 const readJson = (path) => {
   try {
     return JSON.parse(readFileSync(path, 'utf8'))
@@ -171,12 +177,23 @@ const basePackageJson = JSON.parse(git(['show', `${diffBase}:package.json`]))
 for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
   const currentSection = packageJson?.[section] ?? {}
   const baseSection = basePackageJson?.[section] ?? {}
-  if (JSON.stringify(currentSection) !== JSON.stringify(baseSection)) failures.push(`package_section_changed:${section}`)
+  if (JSON.stringify(currentSection) !== JSON.stringify(baseSection)) {
+    const added = Object.keys(currentSection).filter((name) => !baseSection[name])
+    const removed = Object.keys(baseSection).filter((name) => !currentSection[name])
+    const changed = Object.keys(currentSection).filter((name) => baseSection[name] && baseSection[name] !== currentSection[name])
+    const approvedExecutionDependencyChange =
+      batch3ExecutionContext &&
+      section === 'dependencies' &&
+      removed.length === 0 &&
+      changed.length === 0 &&
+      added.every((name) => selectedPackages.includes(name))
+    if (!approvedExecutionDependencyChange) failures.push(`package_section_changed:${section}`)
+  }
 }
 const changedFiles = new Set(
   [...git(['diff', '--name-only']).split('\n'), ...git(['diff', '--cached', '--name-only']).split('\n')].filter(Boolean),
 )
-if (changedFiles.has('package-lock.json')) failures.push('package_lock_changed')
+if (changedFiles.has('package-lock.json') && !batch3ExecutionContext) failures.push('package_lock_changed')
 
 const trackedLocalArtifacts = git(['ls-files', '.local-artifacts'])
 if (trackedLocalArtifacts) failures.push(`local_artifacts_tracked:${trackedLocalArtifacts}`)

@@ -1,0 +1,73 @@
+{
+  "fixtureId": "ai_graphics_batch_3_three_scene_manifest",
+  "packageName": "three",
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "dataClassification": "synthetic_only",
+  "proofScope": "scene_manifest_only_no_webgl_context",
+  "sceneManifest": {
+    "unit": "synthetic_unit",
+    "camera": {
+      "type": "orthographic_metadata",
+      "position": [0, 0, 10],
+      "lookAt": [0, 0, 0]
+    },
+    "objects": [
+      {
+        "objectId": "synthetic_product_box",
+        "type": "box_mesh_metadata",
+        "position": [-1, 0, 0],
+        "material": "synthetic_flat_teal"
+      },
+      {
+        "objectId": "synthetic_metric_disc",
+        "type": "circle_mesh_metadata",
+        "position": [1, 0.25, 0],
+        "material": "synthetic_flat_gold"
+      },
+      {
+        "objectId": "synthetic_axis_label",
+        "type": "text_label_metadata",
+        "position": [0, -1.25, 0],
+        "material": "synthetic_flat_ink"
+      }
+    ],
+    "renderer": {
+      "webglContextRequired": false,
+      "outputWritten": false
+    }
+  },
+  "blockedUses": [
+    "browser_runtime",
+    "webgl_runtime",
+    "canvas_runtime",
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "render_export",
+    "media_processing",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "webglRuntimeApprovedNow": false,
+    "canvasRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

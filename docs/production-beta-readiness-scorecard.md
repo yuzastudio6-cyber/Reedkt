@@ -80,3 +80,12 @@ Batch 3 imports or fixtures now, or approve route/tool/worker/provider runtime,
 browser/WebGL/canvas runtime, Remotion render/export, resvg rasterization,
 Supabase mutation, GCS/storage transfer, signed URLs, public artifacts,
 internal beta, external beta, paid production, or production readiness.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 3 install/import/manifest proof decision
+`ai_graphics_batch_3_install_import_manifest_proof_passed_with_warnings`
+accepts owner-lane package proof for `animejs`, `three`, `pixi.js`, `konva`,
+and `babylonjs` with warnings. It is not E2E production proof and does not
+approve browser/WebGL/canvas runtime, route/tool/worker/provider runtime,
+Remotion render/export, resvg rasterization, Supabase mutation, GCS/storage
+transfer, signed URLs, public artifacts, internal beta, external beta, paid
+production, or production readiness.

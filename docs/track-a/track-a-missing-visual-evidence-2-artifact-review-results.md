@@ -2,7 +2,7 @@
 
 Status: `artifact_review_results_recorded`
 
-Source: operator-provided AI-assisted review outcome for five uploaded/local visual files from open #429 evidence at `ce872be9`.
+Source: operator-provided AI-assisted review outcome for five uploaded/local visual files from merged #429 TRACKA-MISSING-VISUAL-EVIDENCE-1 evidence at `e4ccb582aadaa9e32607e5a1ae2bbec0719ddc1f`.
 
 ## Results
 

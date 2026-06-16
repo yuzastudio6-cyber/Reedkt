@@ -39,7 +39,9 @@ finalDeliveryReady: false
 - #419 merged at `01e19cf6bd975b6ac9168c2d226638d211849886`
 - #422 merged at `cc49487f56e2c30f8f77af84b856da0453a07e1d`
 - #426 merged at `58a3f87a6fc07e3afc6fb699c40c8b744cc75eab`
-- #429 open evidence at `ce872be9`; not assumed merged
+- #429 TRACKA-MISSING-VISUAL-EVIDENCE-1 is merged
+- #429 merge SHA: `e4ccb582aadaa9e32607e5a1ae2bbec0719ddc1f`
+- #429 provides the merged missing visual evidence artifact bundle source for this review outcome
 
 ## Artifact Review Results
 
@@ -62,7 +64,7 @@ finalDeliveryReady: false
 
 TRACKA-CAPTION-QUALITY-2 readiness: ready_for_burnin_revalidation_planning
 
-TRACKA-MISSING-VISUAL-EVIDENCE-1 readiness: merge_ready_if_not_merged
+TRACKA-MISSING-VISUAL-EVIDENCE-1 readiness: merged_source_evidence
 
 TRACKA-MISSING-VISUAL-EVIDENCE-3 readiness: ready_only_if_owner_wants_to_pursue_BiRefNet_or_Real_ESRGAN_before_internal_beta
 

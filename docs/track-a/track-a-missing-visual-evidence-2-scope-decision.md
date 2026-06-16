@@ -25,7 +25,7 @@ For fastest restricted internal beta:
 
 TRACKA-CAPTION-QUALITY-2 readiness: ready_for_burnin_revalidation_planning
 
-TRACKA-MISSING-VISUAL-EVIDENCE-1 readiness: merge_ready_if_not_merged
+TRACKA-MISSING-VISUAL-EVIDENCE-1 readiness: merged_source_evidence
 
 TRACKA-MISSING-VISUAL-EVIDENCE-3 readiness: ready_only_if_owner_wants_to_pursue_BiRefNet_or_Real_ESRGAN_before_internal_beta
 

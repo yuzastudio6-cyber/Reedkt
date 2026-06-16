@@ -4,7 +4,7 @@ Status: `next_phase_plan_recorded`
 
 ## Next Recommended Work
 
-1. Merge or otherwise preserve TRACKA-MISSING-VISUAL-EVIDENCE-1 evidence from #429 if it is not already merged.
+1. Preserve the merged TRACKA-MISSING-VISUAL-EVIDENCE-1 artifact bundle source from #429 at `e4ccb582aadaa9e32607e5a1ae2bbec0719ddc1f`.
 2. Run TRACKA-CAPTION-QUALITY-2 burn-in revalidation planning.
 3. Decide whether first restricted internal beta excludes BiRefNet/text-behind-subject and Real-ESRGAN/enhancement.
 4. Run TRACKA-PRIVATE-E2E-REVALIDATION-1 planning after caption burn-in revalidation and scope decision.
@@ -13,7 +13,7 @@ Status: `next_phase_plan_recorded`
 
 TRACKA-CAPTION-QUALITY-2 readiness: ready_for_burnin_revalidation_planning
 
-TRACKA-MISSING-VISUAL-EVIDENCE-1 readiness: merge_ready_if_not_merged
+TRACKA-MISSING-VISUAL-EVIDENCE-1 readiness: merged_source_evidence
 
 TRACKA-MISSING-VISUAL-EVIDENCE-3 readiness: ready_only_if_owner_wants_to_pursue_BiRefNet_or_Real_ESRGAN_before_internal_beta
 

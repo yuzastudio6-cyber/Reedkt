@@ -28,8 +28,8 @@ Decision: `approved_with_warnings_for_ai_graphics_batch_3`
 | changed-file secret scan | passed after reviewing expected regex-literal false positives and existing `mask-*` script-name false positives |
 | `git diff --cached --check` | passed before staging |
 | package-lock status | unchanged |
-| PR link | pending |
-| PR check rollup | pending |
+| PR link | https://github.com/yuzastudio6-cyber/Reedkt/pull/438 |
+| PR check rollup | empty when checked after PR creation; PR #438 was draft/open/mergeable clean at implementation commit `4110ed843d5ae94d6accc7e695bf2b154f8fa2bb` |
 
 ## Supabase Classification
 

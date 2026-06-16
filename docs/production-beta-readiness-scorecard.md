@@ -89,3 +89,11 @@ approve browser/WebGL/canvas runtime, route/tool/worker/provider runtime,
 Remotion render/export, resvg rasterization, Supabase mutation, GCS/storage
 transfer, signed URLs, public artifacts, internal beta, external beta, paid
 production, or production readiness.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 3 QA decision
+`ai_graphics_batch_3_qa_passed_with_warnings` accepts the Batch 3
+install/import/manifest proof for owner-lane planning only. Batch 4 approval
+may be prepared, but browser/WebGL/canvas runtime, route/tool/worker/provider
+runtime, Remotion render/export, resvg rasterization, Supabase mutation,
+GCS/storage transfer, signed URLs, public artifacts, internal beta, external
+beta, paid production, and production remain blocked.

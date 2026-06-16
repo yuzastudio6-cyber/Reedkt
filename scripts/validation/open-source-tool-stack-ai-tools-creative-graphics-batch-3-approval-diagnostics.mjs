@@ -12,6 +12,7 @@ const allowedDecisions = new Set([
   'blocked_pending_browser_runtime_boundary_review',
   'blocked_pending_license_or_runtime_review',
   'blocked_pending_package_risk_review',
+  'ai_graphics_batch_3_qa_passed_with_warnings',
 ])
 const selectedPackages = ['animejs', 'three', 'pixi.js', 'konva', 'babylonjs']
 const batch3ExecutionDecision = 'ai_graphics_batch_3_install_import_manifest_proof_passed_with_warnings'

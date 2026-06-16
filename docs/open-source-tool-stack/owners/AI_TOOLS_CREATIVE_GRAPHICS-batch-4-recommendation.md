@@ -1,22 +1,27 @@
 # AI_TOOLS_CREATIVE_GRAPHICS Batch 4 Recommendation
 
-Decision: `approved_with_warnings_for_ai_graphics_batch_3`
+Decision: `ai_graphics_batch_3_qa_passed_with_warnings`
 
 ## Recommended Next Step
 
-If Batch 3 execution later passes, prepare Batch 4 as a QA review for `animejs`, `three`, `pixi.js`, `konva`, and `babylonjs`.
+Prepare `AI_TOOLS_CREATIVE_GRAPHICS_OPEN_SOURCE_TOOL_STACK_BATCH_4_APPROVAL_PACKET`.
 
-If Batch 3 execution is blocked, use a targeted Batch 3 fix prompt for install failure, import-smoke failure, manifest-fixture failure, browser-runtime boundary ambiguity, or unrelated dependency churn.
+Batch 4 should be an approval packet, not immediate execution. It should decide whether the next owner-lane step is:
 
-## Still Deferred After Batch 3 Approval
+- `@resvg/resvg-js` fallback review or Linux-only proof planning, without rasterization execution unless separately approved;
+- Remotion / Track A handoff review, without final render/export execution;
+- route/tool manifest integration readiness for already-proven Batch 1, Batch 2, and Batch 3 packages;
+- remaining AI graphics candidates from the owner audit that are not yet assigned to a batch.
 
+## Still Deferred After Batch 3 QA
+
+- Browser/WebGL/canvas runtime execution for `three`, `pixi.js`, `konva`, and `babylonjs`.
+- Anime browser animation playback and motion runtime execution.
+- Lottie browser/player execution.
 - `@resvg/resvg-js` rasterization.
 - Remotion final render/export.
-- Browser/WebGL/canvas runtime execution.
-- Lottie browser/player execution.
-- Route execution, worker execution, and actual tool execution.
-- Provider/model calls.
+- Route execution, worker execution, actual tool execution, and provider/model calls.
 - Supabase mutation, SQL, GCS/storage transfer, signed URLs, and public artifacts.
-- Media/audio processing, map rendering, raw prompt execution, internal beta, external beta, and production.
+- Media/audio processing, map rendering, raw prompt execution, internal beta, external beta, paid production, and production.
 
-No dependency install, package-lock mutation, Batch 3 import smoke, Batch 3 synthetic fixture proof, browser/WebGL/canvas runtime, actual tool execution, route execution, worker execution, provider/model call, Remotion render/export, resvg rasterization, map rendering, media/audio processing, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.
+No browser runtime, WebGL runtime, canvas runtime, actual tool execution, route execution, worker execution, provider/model calls, Remotion render/export, resvg rasterization, map rendering, media/audio processing, Supabase mutation, SQL, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.

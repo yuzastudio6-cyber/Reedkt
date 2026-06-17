@@ -80,3 +80,7 @@ The `TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION` approval packet does not unblo
 <!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_QA_STATUS -->
 
 The `TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION` QA review does not unblock real execution. It accepts metadata-only Tool Route intake with warnings and recommends local fixture planning next. Dependency mutation, package-lock mutation, imports, fixture execution, actual tool execution, route execution, worker execution, provider/model calls, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase writes, SQL, GCS upload, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_PLAN_STATUS -->
+
+The `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_PLAN` packet does not unblock real execution. It plans docs-only metadata fixture templates and case ids. Dependency mutation, package-lock mutation, imports, local fixture execution, actual tool execution, route execution, worker execution, provider/model calls, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase writes, SQL, GCS upload, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.

@@ -156,3 +156,14 @@ browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export,
 Supabase mutation, GCS/storage transfer, signed URLs, public artifacts,
 internal beta, external beta, paid production, and production readiness remain
 blocked.
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_PLAN decision
+`approved_with_warnings_for_tool_route_ai_graphics_metadata_local_fixture_plan`
+accepts metadata-only local fixture planning for the 13 AI graphics tools.
+The next recommended lane is
+`TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_APPROVAL`; local
+fixture execution, route execution, actual tool execution, worker execution,
+provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization,
+Remotion render/export, Supabase mutation, GCS/storage transfer, signed URLs,
+public artifacts, internal beta, external beta, paid production, and
+production readiness remain blocked.

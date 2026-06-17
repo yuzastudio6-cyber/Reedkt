@@ -1,0 +1,23 @@
+{
+  "templateType": "ai_graphics_metadata_local_fixture_invalid_template",
+  "executionApproved": false,
+  "fixtureCaseId": "<INVALID_FIXTURE_CASE_ID>",
+  "expectedResult": "fail_closed_missing_required_placeholder",
+  "missingRequiredFields": [
+    "planSnapshotId",
+    "scopedToolCallManifestId",
+    "privateArtifactRef",
+    "checksumRef"
+  ],
+  "fallbackAllowed": false,
+  "blockedUses": [
+    "unapproved_prompt_text_fallback",
+    "route_execution",
+    "actual_tool_execution",
+    "worker_execution",
+    "provider_model_runtime",
+    "browser_webgl_canvas_runtime",
+    "unsafe_delivery_link_creation",
+    "public_delivery_output_creation"
+  ]
+}

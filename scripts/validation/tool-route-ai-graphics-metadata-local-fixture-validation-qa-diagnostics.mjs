@@ -246,7 +246,8 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
   .filter((line) => !line.includes('worker:ai-graphics-metadata-handoff-approval:diagnostics') &&
-  !line.includes('worker:ai-graphics-metadata-handoff-qa:diagnostics'))
+  !line.includes('worker:ai-graphics-metadata-handoff-qa:diagnostics') &&
+  !line.includes('worker:ai-graphics-metadata-job-payload-shape-approval:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-validation-qa:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-owner-approval:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-gate-status:diagnostics'))

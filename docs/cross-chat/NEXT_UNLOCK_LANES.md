@@ -185,3 +185,15 @@ OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_SYSTEM_BINARY_REVIEW:
 - Next prompt: `TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_MERGE`.
 - Supabase classification: no write / none / none / no.
 <!-- OPEN_SOURCE_FFMPEG_FFPROBE_SYSTEM_BINARY_REVIEW_STATUS:end -->
+
+<!-- TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_STATUS:start -->
+TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_MERGE:
+
+- Decision: `tracka_ffmpeg_ffprobe_source_of_truth_reconciliation_passed_ready_for_version_probe_approval`.
+- Reconciliation method: `docs_only_central_reconciliation`.
+- PR #463 remains non-central Track A reference evidence; its diff was not replayed or cherry-picked.
+- Central branch has `docker/prod/render-worker/Dockerfile`, but PR #463 Track A runtime-path reports/scripts are recorded as absent unless a later owner merge/replay lands them.
+- FFmpeg and FFprobe remain not installed/proven centrally; future version probes are not approved by this phase.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL`.
+- Supabase classification: no write / none / none / no.
+<!-- TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_STATUS:end -->

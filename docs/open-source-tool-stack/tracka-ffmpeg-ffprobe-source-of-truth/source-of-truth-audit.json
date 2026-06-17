@@ -1,0 +1,252 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaFfmpegFfprobeSourceOfTruth.sourceAudit.v1",
+  "generatedAt": "2026-06-17T22:18:31.197Z",
+  "phase": "TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_MERGE",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceSha": "a12d11fd4638c40b345d837b200784f8853a0faa",
+  "expectedMinimumSourceSha": "a12d11fd4638c40b345d837b200784f8853a0faa",
+  "branch": "codex/rp-tracka-ffmpeg-ffprobe-source-of-truth-merge",
+  "packageState": {
+    "packageJsonHash": "04dbec8e767ebd076ed458eee3d49579f3bb2b33c57c5ad61c716220aba94528",
+    "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    "packageLockGitStatus": "",
+    "packageJsonGitStatus": "M package.json",
+    "dependencySections": {
+      "dependencies": {
+        "@deck.gl/core": "^9.3.3",
+        "@deck.gl/layers": "^9.3.3",
+        "@deck.gl/mapbox": "^9.3.3",
+        "@google-cloud/storage": "^7.19.0",
+        "@mozilla/readability": "^0.6.0",
+        "@supabase/supabase-js": "^2.106.1",
+        "@turf/turf": "^7.3.5",
+        "cesium": "^1.142.0",
+        "cors": "^2.8.6",
+        "dotenv": "^17.4.2",
+        "duckdb": "1.4.4",
+        "express": "^5.2.1",
+        "jsdom": "^29.1.1",
+        "lucide-react": "^1.14.0",
+        "maplibre-gl": "^5.24.0",
+        "nodejs-polars": "0.25.1",
+        "playwright": "^1.60.0",
+        "react": "^19.2.6",
+        "react-dom": "^19.2.6",
+        "react-router-dom": "^7.15.0",
+        "sharp": "^0.34.5",
+        "zod": "^4.4.3"
+      },
+      "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.6",
+        "@types/jsdom": "^28.0.3",
+        "@types/node": "^24.12.3",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^6.0.1",
+        "eslint": "^10.3.0",
+        "eslint-plugin-react-hooks": "^7.1.1",
+        "eslint-plugin-react-refresh": "^0.5.2",
+        "globals": "^17.6.0",
+        "tsx": "^4.22.3",
+        "typescript": "~6.0.2",
+        "typescript-eslint": "^8.59.2",
+        "vite": "^8.0.12"
+      },
+      "optionalDependencies": {}
+    }
+  },
+  "predecessorPrs": [
+    472,
+    469,
+    466,
+    460,
+    455,
+    448,
+    444,
+    439,
+    435,
+    430,
+    427,
+    421,
+    416,
+    412,
+    407,
+    402,
+    399,
+    394,
+    388,
+    387
+  ],
+  "referenceOnlyPrs": [
+    463,
+    428,
+    425,
+    432,
+    423,
+    420,
+    417,
+    401,
+    384
+  ],
+  "pr472CentralMergeEvidence": {
+    "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+    "headRefName": "codex/rp-open-source-tool-stack-ffmpeg-ffprobe-system-binary-review",
+    "headRefOid": "9bc26b0aecd6fc5e5de6e7ecd794143e1cdd9f83",
+    "isDraft": false,
+    "mergeStateStatus": "UNKNOWN",
+    "mergedAt": "2026-06-17T21:45:45Z",
+    "number": 472,
+    "state": "MERGED",
+    "title": "[tools] Open-source tool stack FFmpeg FFprobe system-binary review",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/472"
+  },
+  "pr463MergedReferenceEvidence": {
+    "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+    "headRefName": "codex/rp-tracka-caption-quality-3r2-runtime-path-1",
+    "headRefOid": "81145ae352830c274f73b9bd905f6b8e0ebe1e4d",
+    "isDraft": false,
+    "mergeStateStatus": "UNKNOWN",
+    "mergedAt": "2026-06-17T21:08:46Z",
+    "number": 463,
+    "state": "MERGED",
+    "title": "[track-a] Caption burn-in runtime path resolution",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/463"
+  },
+  "pr463CommitAncestorOfCentral": false,
+  "pr463DiffReview": {
+    "changedFilesCount": 15,
+    "containsDockerfileChange": false,
+    "containsDockerignoreChange": true,
+    "containsPackageJsonChange": true,
+    "containsGeneratedAssets": false,
+    "containsMediaOrBinaries": false
+  },
+  "centralPresenceSummary": {
+    "dockerfilePresent": true,
+    "trackaRuntimePathReportsPresent": false,
+    "trackaRuntimePathScriptsPresent": false,
+    "dockerignoreDiffersFromPr463Branch": true
+  },
+  "duplicateSearches": {
+    "trackaSourceTruth": [
+      {
+        "baseRefName": "codex/track-a-sound-0-final-composition-handoff-audit",
+        "headRefName": "codex/track-b-sound-0-media-processing-handoff-audit",
+        "isDraft": false,
+        "mergeStateStatus": "CLEAN",
+        "number": 273,
+        "state": "OPEN",
+        "title": "TRACK_B_SOUND media processing handoff audit",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/273"
+      },
+      {
+        "baseRefName": "codex/track-b-sound-0-media-processing-handoff-audit",
+        "headRefName": "codex/sound-supabase-accept-0-sound-scope-acceptance",
+        "isDraft": false,
+        "mergeStateStatus": "CLEAN",
+        "number": 275,
+        "state": "OPEN",
+        "title": "SOUND_SUPABASE local SQL scope acceptance",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/275"
+      },
+      {
+        "baseRefName": "codex/supabase-sound-4-harness-fix-local-setup",
+        "headRefName": "codex/supabase-sound-4-harness-config-plan",
+        "isDraft": false,
+        "mergeStateStatus": "CLEAN",
+        "number": 301,
+        "state": "OPEN",
+        "title": "SUPABASE_SOUND local harness config plan",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/301"
+      },
+      {
+        "baseRefName": "codex/supabase-sound-4-harness-config-plan",
+        "headRefName": "codex/supabase-sound-4-harness-config-create",
+        "isDraft": false,
+        "mergeStateStatus": "CLEAN",
+        "number": 303,
+        "state": "OPEN",
+        "title": "SUPABASE_SOUND safe local harness config",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/303"
+      },
+      {
+        "baseRefName": "codex/rp-foundation-12-tool-call-foundation",
+        "headRefName": "codex/rp-foundation-13-tool-readiness-worker-runtime-checks",
+        "isDraft": false,
+        "mergeStateStatus": "CLEAN",
+        "number": 99,
+        "state": "OPEN",
+        "title": "[foundation] Prompt 13 tool readiness worker runtime checks",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/99"
+      },
+      {
+        "baseRefName": "codex/supabase-sound-4-retry-harness-3-local-validation",
+        "headRefName": "codex/supabase-sound-4-harness-ports-fix",
+        "isDraft": true,
+        "mergeStateStatus": "CLEAN",
+        "number": 316,
+        "state": "OPEN",
+        "title": "SUPABASE_SOUND local harness ports fix",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/316"
+      },
+      {
+        "baseRefName": "codex/worker-runtime-sound-0-audio-fixture-payload-audit",
+        "headRefName": "codex/provider-gateway-sound-0-fixture-boundary-audit",
+        "isDraft": false,
+        "mergeStateStatus": "CLEAN",
+        "number": 261,
+        "state": "OPEN",
+        "title": "PROVIDER_GATEWAY_SOUND fixture boundary audit",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/261"
+      },
+      {
+        "baseRefName": "codex/rp-activation-37d-controlled-real-video-ocr-safe-zone-gate",
+        "headRefName": "codex/rp-activation-37d-controlled-real-video-ocr-safe-zone-execution",
+        "isDraft": false,
+        "mergeStateStatus": "CLEAN",
+        "number": 59,
+        "state": "OPEN",
+        "title": "[activation] Phase 37D OCR safe-zone execution",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/59"
+      }
+    ],
+    "versionProbe": []
+  },
+  "absentBroadProductionDocs": [
+    "docs/beta-readiness-scorecard.md",
+    "docs/production-beta-blocker-inventory.md",
+    "PRODUCTION_FOUNDATION_STATUS.md"
+  ],
+  "executionScope": {
+    "ffmpegVersionProbeAllowed": false,
+    "ffprobeVersionProbeAllowed": false,
+    "dockerBuildAllowed": false,
+    "dockerContainerMutationAllowed": false,
+    "mediaProcessingAllowed": false,
+    "captionBurnInAllowed": false,
+    "renderExportAllowed": false,
+    "npmInstallAllowed": false,
+    "npmRebuildAllowed": false,
+    "duckdbProofRerunAllowed": false,
+    "polarsProofRerunAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "betaUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

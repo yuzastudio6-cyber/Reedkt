@@ -1,0 +1,18 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaFfmpegFfprobeSourceOfTruth.centralEvidence.v1",
+  "generatedAt": "2026-06-17T22:18:31.197Z",
+  "ffmpegPath": "docker://docker/prod/render-worker/Dockerfile#ffmpeg",
+  "ffprobePath": "docker://docker/prod/render-worker/Dockerfile#ffprobe",
+  "libassSubtitlesEvidence": "present_in_pr_463_tracka_reference_reports",
+  "dockerfileProvenance": "docker/prod/render-worker/Dockerfile",
+  "dockerfilePresentInCentral": true,
+  "trackaRuntimePathReportsPresentInCentral": false,
+  "trackaRuntimePathScriptsPresentInCentral": false,
+  "centralEvidenceStatus": "reference_reconciled_not_version_proven",
+  "ffmpegAcceptedAsInstalledAndProven": false,
+  "ffprobeAcceptedAsInstalledAndProven": false,
+  "versionProbeRunInThisPhase": false,
+  "mediaProcessingRunInThisPhase": false,
+  "dockerBuildRunInThisPhase": false,
+  "renderExportRunInThisPhase": false
+}

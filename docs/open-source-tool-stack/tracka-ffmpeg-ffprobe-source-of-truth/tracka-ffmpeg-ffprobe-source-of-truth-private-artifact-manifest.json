@@ -1,0 +1,10 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaFfmpegFfprobeSourceOfTruth.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-17T22:18:31.197Z",
+  "privatePayloadsAccessed": false,
+  "privatePayloadsPrinted": false,
+  "privatePayloadsCommitted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "reportDirectory": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth"
+}

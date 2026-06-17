@@ -1,0 +1,15 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaFfmpegFfprobeSourceOfTruth.reconciliationMethod.v1",
+  "generatedAt": "2026-06-17T22:18:31.197Z",
+  "method": "docs_only_central_reconciliation",
+  "pr463ReplayCherryPickUsed": false,
+  "pr463DiffReplayed": false,
+  "dockerfileMutated": false,
+  "dockerignoreMutated": false,
+  "packageJsonMutatedForTrackaScripts": false,
+  "trackaRuntimeFilesCopied": false,
+  "reason": "Central branch lacks PR #463 Track A runtime-path reports/scripts, so this packet records PR #463 as reference evidence and leaves exact file replay for a later explicit owner phase.",
+  "replayWouldNeedSeparateApproval": true,
+  "centralSourceOfTruthOwnsRuntimePathFilesDirectly": false,
+  "futureVersionProbeRemainsBlockedUntilApproval": true
+}

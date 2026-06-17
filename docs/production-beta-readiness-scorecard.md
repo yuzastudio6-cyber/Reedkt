@@ -117,3 +117,12 @@ resvg rasterization, Remotion render/export, route/tool/worker/provider
 execution, Supabase mutation, GCS/storage transfer, signed URLs, public
 artifacts, internal beta, external beta, paid production, and production
 remain blocked.
+
+AI_TOOLS_CREATIVE_GRAPHICS route-manifest integration approval decision
+`approved_with_warnings_for_ai_graphics_route_manifest_integration` approves
+future metadata-only route-manifest and scoped tool-call manifest planning for
+Batch 1-3 accepted AI graphics tools. It does not approve route execution,
+actual tool execution, worker execution, provider/model runtime, browser/WebGL
+/canvas runtime, resvg rasterization, Remotion render/export, Supabase
+mutation, GCS/storage transfer, signed URLs, public artifacts, internal beta,
+external beta, paid production, or production readiness.

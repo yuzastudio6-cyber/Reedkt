@@ -1,55 +1,62 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
-const baseRef = 'origin/codex/rp-ai-tools-creative-graphics-batch-4-approval-packet'
-const expectedDecision = 'ai_graphics_batch_4_policy_qa_passed_with_warnings'
+const baseRef = 'origin/codex/rp-ai-tools-creative-graphics-batch-4-policy-qa-review'
+const expectedDecision = 'approved_with_warnings_for_ai_graphics_route_manifest_integration'
 const allowedDecisions = new Set([
   expectedDecision,
-  'blocked_pending_resvg_policy_fixes',
-  'blocked_pending_tracka_handoff_fixes',
-  'blocked_pending_route_manifest_readiness_fixes',
-  'blocked_pending_ai_graphics_batch_4_policy_qa_fixes',
+  'approved_for_ai_graphics_route_manifest_integration_metadata_only',
+  'blocked_pending_route_manifest_scope_fixes',
+  'blocked_pending_tool_route_owner_review',
+  'blocked_pending_worker_handoff_review',
+  'blocked_pending_tracka_handoff_review',
 ])
 const requiredDocs = [
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-policy-qa-review.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-policy-acceptance-matrix.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-resvg-policy-qa.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-svg-raster-fallback-qa.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-remotion-tracka-handoff-qa.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-route-manifest-readiness-qa.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-warning-blocker-register.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-next-lane-recommendation.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-qa-decision.md',
-  'docs/prompt-ai-tools-creative-graphics-batch-4-policy-qa-review-validation-results.md',
-  'docs/implementation-prompts/prompt-ai-tools-creative-graphics-batch-4-policy-qa-review.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-manifest-integration-approval.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-manifest-source-evidence-lockfile.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-eligibility-matrix.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-scoped-tool-call-manifest-shape.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-artifact-scope-policy.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-owner-handoff-contract.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-blocked-use-register.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-validation-plan.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-allowed-blocked-scope.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-manifest-approval-decision.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-next-lane-recommendation.md',
+  'docs/prompt-ai-tools-creative-graphics-route-manifest-integration-approval-validation-results.md',
+  'docs/implementation-prompts/prompt-ai-tools-creative-graphics-route-manifest-integration-approval.md',
 ]
 const sourceDocs = [
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-approval-decision.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-resvg-policy.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-svg-raster-fallback-policy.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-remotion-tracka-handoff-policy.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-route-manifest-readiness-plan.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-5-recommendation.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-policy-qa-review.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-route-manifest-readiness-qa.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-qa-decision.md',
 ]
-const acceptanceAreas = [
-  '@resvg/resvg-js',
-  'SVG raster fallback',
-  'Remotion / Track A',
-  'Route-manifest readiness plan',
-  'Batch 5 recommendation',
-]
-const allowedFutureScriptDiffs = [
-  'open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-approval:diagnostics',
+const requiredTools = [
+  'd3',
+  'echarts',
+  'vega-lite',
+  'vega',
+  'satori',
+  '@svgdotjs/svg.js',
+  '@viz-js/viz',
+  'lottie-web',
+  'animejs',
+  'three',
+  'pixi.js',
+  'konva',
+  'babylonjs',
 ]
 const requiredTokens = [
-  'PR #446',
-  '80d7ed52502a808cb0c27ae6d55a6667dd6ee5a4',
-  'approved_with_warnings_for_ai_graphics_batch_4_policy_and_handoff_review',
-  'AI_TOOLS_CREATIVE_GRAPHICS_ROUTE_MANIFEST_INTEGRATION_APPROVAL_PACKET',
-  '@resvg/resvg-js',
-  'SVG raster fallback',
-  'Remotion / Track A',
-  'route-manifest readiness',
+  'PR #449',
+  '0f8b658f28981088f5744b5ccf7991ba3deb7c62',
+  'ai_graphics_batch_4_policy_qa_passed_with_warnings',
+  'PR #164',
+  '1553d50118919bf013d35bbc23a534af9d86c8ae',
+  'approved plan snapshot',
+  'scoped tool-call manifest',
+  'private artifact',
+  'fail_closed_return_blocked_reason_never_fallback_to_raw_execution',
+  'AI_TOOLS_CREATIVE_GRAPHICS_ROUTE_MANIFEST_INTEGRATION_QA_REVIEW',
   'no write',
   'docs_only',
   'environment touched: `none`',
@@ -58,29 +65,20 @@ const requiredTokens = [
   'milestone sync: `not_performed`',
 ]
 const requiredTrueBooleans = [
-  'batch4PolicyAccepted',
-  'batch4PolicyAcceptedWithWarnings',
-  'readyForResvgLinuxImportProofApproval',
-  'readyForRouteManifestIntegrationApproval',
-  'readyForTrackAHandoffReview',
+  'futureRouteManifestMetadataIntegrationApproved',
+  'futureScopedToolCallManifestApproved',
 ]
 const requiredFalseBooleans = [
-  'futureDependencyInstallApproved',
-  'packageLockMutationApproved',
-  'futureImportSmokeApproved',
-  'futureSyntheticFixtureApproved',
-  'futureResvgLinuxImportProofApproved',
-  'futureResvgRasterizationApproved',
-  'futureRemotionRenderExportApproved',
-  'batch4ExecutionApprovedNow',
-  'actualToolExecutionApprovedNow',
   'routeExecutionApprovedNow',
+  'actualToolExecutionApprovedNow',
   'workerExecutionApprovedNow',
   'providerRuntimeApprovedNow',
   'renderExportApprovedNow',
   'browserRuntimeApprovedNow',
   'webglRuntimeApprovedNow',
   'canvasRuntimeApprovedNow',
+  'resvgRasterizationApprovedNow',
+  'remotionRenderExportApprovedNow',
   'supabaseMutationApprovedNow',
   'gcsUploadApprovedNow',
   'publicArtifactsApproved',
@@ -90,6 +88,12 @@ const requiredFalseBooleans = [
   'externalBetaApproved',
   'productionApproved',
 ]
+const allowedEligibilityStates = new Set([
+  'eligible_metadata_only',
+  'eligible_manifest_only',
+  'blocked_pending_runtime_review',
+  'blocked_pending_owner_handoff',
+])
 const forbiddenPatterns = [
   ['dependency_install_claim', /\b(?:dependency install|npm install)\b[^.\n]*(?:performed|executed|enabled|approved now|true|passed)\b/i],
   ['package_lock_mutation_claim', /\bpackage-lock (?:mutation|change)\b[^.\n]*(?:performed|executed|enabled|approved now|true|passed)\b/i],
@@ -142,7 +146,7 @@ const unsafeClaimText = docsText
   .split('\n')
   .filter(
     (line) =>
-      !/\b(?:No|no|not|blocked|unapproved|does not approve|do not approve|remains|stays|false|future-only|policy only|planning-only|handoff-only|separately gated|without|warning|warnings|defer|deferred|none)\b/i.test(
+      !/\b(?:No|no|not|blocked|unapproved|does not approve|do not approve|remains|stays|false|future|metadata-only|manifest-only|policy context|context only|planning|handoff|separately gated|without|warning|warnings|defer|deferred|none)\b/i.test(
         line,
       ),
   )
@@ -158,15 +162,15 @@ if (!decisions.includes(expectedDecision)) failures.push(`expected_decision_miss
 for (const decision of decisions) {
   if (
     !allowedDecisions.has(decision) &&
-    !decision.startsWith('approved_with_warnings_for_ai_graphics_batch_4') &&
-    !decision.startsWith('ai_graphics_batch_3_')
+    !decision.startsWith('ai_graphics_batch_4_') &&
+    !decision.startsWith('approved_with_warnings_for_ai_graphics_batch_4')
   ) {
     failures.push(`invalid_decision:${decision}`)
   }
 }
 
-const decisionDoc = existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-qa-decision.md')
-  ? readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-qa-decision.md', 'utf8')
+const decisionDoc = existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-manifest-approval-decision.md')
+  ? readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-manifest-approval-decision.md', 'utf8')
   : ''
 for (const field of requiredTrueBooleans) {
   if (!new RegExp(`\\|\\s*${field}\\s*\\|\\s*\`true\`\\s*\\|`).test(decisionDoc)) {
@@ -182,13 +186,19 @@ for (const token of requiredTokens) {
   if (!docsText.includes(token)) failures.push(`required_token_missing:${token}`)
 }
 
-const acceptanceMatrix = existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-policy-acceptance-matrix.md')
-  ? readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-policy-acceptance-matrix.md', 'utf8')
+const matrix = existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-eligibility-matrix.md')
+  ? readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-route-eligibility-matrix.md', 'utf8')
   : ''
-for (const area of acceptanceAreas) {
-  const row = acceptanceMatrix.split('\n').find((line) => line.includes(area))
-  if (!row) failures.push(`acceptance_row_missing:${area}`)
-  else if (!row.includes('`accepted_with_warnings`')) failures.push(`acceptance_not_with_warnings:${area}`)
+for (const tool of requiredTools) {
+  const row = matrix.split('\n').find((line) => line.includes(`\`${tool}\``))
+  if (!row) failures.push(`route_matrix_tool_missing:${tool}`)
+  else {
+    const stateMatch = row.match(/`(eligible_metadata_only|eligible_manifest_only|blocked_pending_runtime_review|blocked_pending_owner_handoff)`/)
+    if (!stateMatch || !allowedEligibilityStates.has(stateMatch[1])) failures.push(`route_matrix_invalid_state:${tool}`)
+    for (const requiredPhrase of ['Batch', 'private']) {
+      if (!row.includes(requiredPhrase)) failures.push(`route_matrix_row_missing_${requiredPhrase}:${tool}`)
+    }
+  }
 }
 
 const packageJson = readJson('package.json')
@@ -201,17 +211,11 @@ const basePackageJson = (() => {
   }
 })()
 if (
-  packageJson?.scripts?.['open-source-tool-stack:ai-tools-creative-graphics:batch-4-policy-qa:diagnostics'] !==
-  'node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-4-policy-qa-diagnostics.mjs'
+  packageJson?.scripts?.['open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-approval:diagnostics'] !==
+  'node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-route-manifest-integration-approval-diagnostics.mjs'
 ) {
-  failures.push('missing_package_script:open-source-tool-stack:ai-tools-creative-graphics:batch-4-policy-qa:diagnostics')
+  failures.push('missing_package_script:open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-approval:diagnostics')
 }
-const packageJsonDiff = `${git(['diff', '--', 'package.json'])}\n${git(['diff', '--cached', '--', 'package.json'])}`
-const unexpectedPackageJsonDiff = packageJsonDiff
-  .split('\n')
-  .filter((line) => /^[+-]\s*"/.test(line))
-  .filter((line) => !allowedFutureScriptDiffs.some((scriptName) => line.includes(scriptName)))
-if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies', 'overrides']) {
   const current = JSON.stringify(packageJson?.[section] ?? {})
   const base = JSON.stringify(basePackageJson?.[section] ?? {})
@@ -233,22 +237,11 @@ if (changedGeneratedOutputs.length > 0) failures.push(`generated_media_or_render
 const result = {
   status: failures.length === 0 ? 'passed' : 'blocked',
   decisionState: expectedDecision,
-  sourcePr: '#446',
-  sourceHead: '80d7ed52502a808cb0c27ae6d55a6667dd6ee5a4',
-  policyAreasReviewed: acceptanceAreas,
-  batch4PolicyAccepted: true,
-  batch4PolicyAcceptedWithWarnings: true,
-  readyForResvgLinuxImportProofApproval: true,
-  readyForRouteManifestIntegrationApproval: true,
-  readyForTrackAHandoffReview: true,
-  futureDependencyInstallApproved: false,
-  packageLockMutationApproved: false,
-  futureImportSmokeApproved: false,
-  futureSyntheticFixtureApproved: false,
-  futureResvgLinuxImportProofApproved: false,
-  futureResvgRasterizationApproved: false,
-  futureRemotionRenderExportApproved: false,
-  batch4ExecutionApprovedNow: false,
+  sourcePr: '#449',
+  sourceHead: '0f8b658f28981088f5744b5ccf7991ba3deb7c62',
+  acceptedToolCount: requiredTools.length,
+  futureRouteManifestMetadataIntegrationApproved: true,
+  futureScopedToolCallManifestApproved: true,
   routeExecutionApprovedNow: false,
   actualToolExecutionApprovedNow: false,
   workerExecutionApprovedNow: false,
@@ -256,6 +249,8 @@ const result = {
   browserRuntimeApprovedNow: false,
   webglRuntimeApprovedNow: false,
   canvasRuntimeApprovedNow: false,
+  resvgRasterizationApprovedNow: false,
+  remotionRenderExportApprovedNow: false,
   supabaseUpdateRequired: 'no write',
   supabaseStatus: 'docs_only',
   environmentTouched: 'none',

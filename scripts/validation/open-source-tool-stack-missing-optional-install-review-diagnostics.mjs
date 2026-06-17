@@ -60,6 +60,17 @@ const forbiddenPatterns = [
 
 const failures = []
 
+function hasApprovedPostPr455PackageState() {
+  const path = 'docs/open-source-tool-stack/missing-optional-package-binary-execution/package-binary-execution-decision.json'
+  if (!existsSync(path)) return false
+  try {
+    const document = JSON.parse(readFileSync(path, 'utf8'))
+    return document.decision === 'missing_optional_package_install_passed_import_proof_blocked_by_ignored_scripts'
+  } catch {
+    return false
+  }
+}
+
 function readJson(path) {
   try {
     return JSON.parse(readFileSync(path, 'utf8'))
@@ -163,8 +174,10 @@ if (packageJson) {
     '@ffmpeg/ffmpeg',
     '@ffmpeg/core',
   ]
+  const approvedPostPr455Deps = hasApprovedPostPr455PackageState() ? new Set(['duckdb', 'nodejs-polars']) : new Set()
   for (const section of sections) {
     for (const dep of forbiddenDeps) {
+      if (section === 'dependencies' && approvedPostPr455Deps.has(dep)) continue
       if (packageJson[section]?.[dep]) failures.push(`forbidden_dependency_present:${section}:${dep}`)
     }
   }

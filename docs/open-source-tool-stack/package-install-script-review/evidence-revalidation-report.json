@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.packageInstallScriptReview.evidenceRevalidation.v1",
+  "generatedAt": "2026-06-17T18:04:39.901Z",
+  "passed": true,
+  "pr455Decision": "missing_optional_package_install_passed_import_proof_blocked_by_ignored_scripts",
+  "pr455NextPrompt": "OPEN_SOURCE_TOOL_STACK_PACKAGE_INSTALL_SCRIPT_REVIEW",
+  "packageInstallStatus": "passed",
+  "duckdbStatus": "blocked_by_ignored_scripts",
+  "polarsStatus": "passed",
+  "ffmpegStatus": "missing_system_binary",
+  "ffprobeStatus": "missing_system_binary",
+  "directPackagesVerified": {
+    "duckdb": true,
+    "nodejs-polars": true
+  },
+  "lifecycleScriptsRunInThisPhase": false,
+  "duckdbImportOrQueryRunInThisPhase": false,
+  "polarsProofRerunInThisPhase": false,
+  "ffmpegFfprobeProbeRunInThisPhase": false
+}

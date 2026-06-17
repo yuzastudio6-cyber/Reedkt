@@ -120,3 +120,15 @@ OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_PACKAGE_AND_BINARY_APPROVAL:
 <!-- OPEN_SOURCE_MISSING_OPTIONAL_PACKAGE_BINARY_EXECUTION_STATUS:start -->
 The missing optional package/binary execution does not unblock broad runtime. DuckDB remains unproven until a separate package-install-script/native-binding review passes. FFmpeg and FFprobe remain missing system binaries until a separate system-binary or worker-container owner review passes. Media processing, worker execution, route execution, provider calls, Docker/container mutation, Supabase/GCS writes, public artifacts, signed URLs, raw prompts, dependency-script execution, external beta, paid production, and production remain blocked.
 <!-- OPEN_SOURCE_MISSING_OPTIONAL_PACKAGE_BINARY_EXECUTION_STATUS:end -->
+
+<!-- OPEN_SOURCE_PACKAGE_INSTALL_SCRIPT_REVIEW_STATUS:start -->
+OPEN_SOURCE_TOOL_STACK_PACKAGE_INSTALL_SCRIPT_REVIEW:
+
+- Decision: `package_install_script_review_passed_ready_for_duckdb_native_rebuild_execution`.
+- Future DuckDB-only command, still not executed in this phase: `npm rebuild duckdb --ignore-scripts=false --no-audit --no-fund`.
+- Polars remains accepted from PR #455 and was not rerun here.
+- DuckDB remains unproven until the native rebuild execution passes.
+- FFmpeg/FFprobe remain separate system-binary review items.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_DUCKDB_NATIVE_REBUILD_EXECUTION`.
+- Runtime/product scopes remain blocked. Supabase classification: no write / none / none / no.
+<!-- OPEN_SOURCE_PACKAGE_INSTALL_SCRIPT_REVIEW_STATUS:end -->

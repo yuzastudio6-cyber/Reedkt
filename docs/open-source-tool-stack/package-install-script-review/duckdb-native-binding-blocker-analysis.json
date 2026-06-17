@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.openSourceToolStack.packageInstallScriptReview.duckdbNativeBindingBlockerAnalysis.v1",
+  "generatedAt": "2026-06-17T18:04:39.901Z",
+  "packageName": "duckdb",
+  "packageVersion": "1.4.4",
+  "installedWithScriptsIgnored": true,
+  "packageLockEntryPresent": true,
+  "packageJsonPresentInNodeModules": true,
+  "lifecycleScripts": {
+    "install": "node-pre-gyp install --fallback-to-build",
+    "pretest": "node test/support/createdb.js",
+    "test": "mocha -R spec --timeout 480000 --expose-gc",
+    "test-path": "mocha -R spec --timeout 480000 --expose-gc --exclude 'test/*.ts'",
+    "pack": "node-pre-gyp package"
+  },
+  "binaryMetadata": {
+    "module_name": "duckdb",
+    "module_path": "./lib/binding/",
+    "host": "https://npm.duckdb.org/duckdb"
+  },
+  "missingBindingPath": "node_modules/duckdb/lib/binding/duckdb.node",
+  "bindingExists": false,
+  "pr455DuckdbProofStatus": "blocked_by_ignored_scripts",
+  "reasonImportCannotPassYet": "Native binding is absent because package lifecycle scripts were intentionally ignored.",
+  "likelyFutureAction": "npm rebuild duckdb --ignore-scripts=false --no-audit --no-fund",
+  "alternatePackageReviewNeeded": false,
+  "lifecycleScriptsExecutedInThisReview": false
+}

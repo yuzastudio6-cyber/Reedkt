@@ -145,6 +145,17 @@ const secretPattern = new RegExp(
 
 const failures = []
 
+function hasApprovedPostPr455PackageState() {
+  const path = 'docs/open-source-tool-stack/missing-optional-package-binary-execution/package-binary-execution-decision.json'
+  if (!existsSync(path)) return false
+  try {
+    const document = JSON.parse(readFileSync(path, 'utf8'))
+    return document.decision === 'missing_optional_package_install_passed_import_proof_blocked_by_ignored_scripts'
+  } catch {
+    return false
+  }
+}
+
 function readJson(path) {
   try {
     return JSON.parse(readFileSync(path, 'utf8'))
@@ -187,6 +198,11 @@ function stable(value) {
   return JSON.stringify(value)
 }
 
+function stableSortedObject(value) {
+  const entries = Object.entries(value ?? {}).sort(([left], [right]) => left.localeCompare(right))
+  return JSON.stringify(Object.fromEntries(entries))
+}
+
 function changedPackageLockKeys() {
   const before = JSON.parse(gitShow('package-lock.json'))
   const after = JSON.parse(readFileSync('package-lock.json', 'utf8'))
@@ -202,15 +218,23 @@ function changedPackageLockKeys() {
 }
 
 function assertExactPackageLockRepair() {
-  const changedKeys = changedPackageLockKeys()
   const expectedKeys = Object.keys(expectedEmnapiEntries).sort()
-  if (stable(changedKeys) !== stable(expectedKeys)) {
-    failures.push(`package_lock_diff_not_exact:${changedKeys.join(',')}`)
+  if (!hasApprovedPostPr455PackageState()) {
+    const changedKeys = changedPackageLockKeys()
+    if (stable(changedKeys) !== stable(expectedKeys)) {
+      failures.push(`package_lock_diff_not_exact:${changedKeys.join(',')}`)
+    }
   }
 
   const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'))
   for (const [key, expectedEntry] of Object.entries(expectedEmnapiEntries)) {
     if (stable(lock.packages?.[key]) !== stable(expectedEntry)) failures.push(`emnapi_entry_mismatch:${key}`)
+  }
+  if (hasApprovedPostPr455PackageState()) {
+    if (lock.packages?.['node_modules/duckdb']?.version !== '1.4.4') failures.push('approved_duckdb_lock_entry_missing')
+    if (lock.packages?.['node_modules/nodejs-polars']?.version !== '0.25.1') {
+      failures.push('approved_nodejs_polars_lock_entry_missing')
+    }
   }
 }
 
@@ -218,10 +242,24 @@ function assertPackageJsonDependencySectionsUnchanged() {
   const before = JSON.parse(gitShow('package.json'))
   const after = JSON.parse(readFileSync('package.json', 'utf8'))
   for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
+    if (section === 'dependencies' && hasApprovedPostPr455PackageState()) {
+      const expectedDependencies = {
+        ...(before[section] ?? {}),
+        duckdb: '1.4.4',
+        'nodejs-polars': '0.25.1',
+      }
+      if (stableSortedObject(expectedDependencies) !== stableSortedObject(after[section] ?? {})) {
+        failures.push(`package_json_dependency_section_changed:${section}`)
+      }
+      continue
+    }
     if (stable(before[section] ?? {}) !== stable(after[section] ?? {})) failures.push(`package_json_dependency_section_changed:${section}`)
   }
   for (const name of forbiddenDependencyNames) {
     for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
+      if (section === 'dependencies' && hasApprovedPostPr455PackageState() && ['duckdb', 'nodejs-polars'].includes(name)) {
+        continue
+      }
       if (after[section]?.[name] && before[section]?.[name] !== after[section][name]) failures.push(`new_forbidden_dependency:${section}:${name}`)
     }
   }

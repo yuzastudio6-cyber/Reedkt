@@ -1,0 +1,98 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaFfmpegFfprobeSourceOfTruth.pr463DiffReview.v1",
+  "generatedAt": "2026-06-17T22:18:31.197Z",
+  "prNumber": 463,
+  "state": "MERGED",
+  "mergedAt": "2026-06-17T21:08:46Z",
+  "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "headRefName": "codex/rp-tracka-caption-quality-3r2-runtime-path-1",
+  "headRefOid": "81145ae352830c274f73b9bd905f6b8e0ebe1e4d",
+  "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/463",
+  "changedFiles": [
+    {
+      "file": ".dockerignore",
+      "category": "dockerignore_config",
+      "centralPresence": true
+    },
+    {
+      "file": "docs/activation-phase-tracka-caption-runtime-path-1-results.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "docs/implementation-prompts/prompt-internal-beta-tracka-scope-decision-1.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "docs/implementation-prompts/prompt-tracka-caption-quality-3r3-burnin-revalidation-execution.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "docs/implementation-prompts/prompt-tracka-private-e2e-revalidation-1-planning.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "docs/track-a/track-a-caption-quality-3r2-runtime-path-1.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "docs/track-a/track-a-caption-runtime-path-approval-contract.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "docs/track-a/track-a-caption-runtime-path-blocked-scope-register.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "docs/track-a/track-a-caption-runtime-path-candidate-matrix.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "docs/track-a/track-a-caption-runtime-path-metadata-check-results.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "docs/track-a/track-a-caption-runtime-path-next-phase-plan.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "docs/track-a/track-a-caption-runtime-path-qa-gate-map.md",
+      "category": "docs_or_reports",
+      "centralPresence": false
+    },
+    {
+      "file": "package.json",
+      "category": "package_script_metadata",
+      "centralPresence": true
+    },
+    {
+      "file": "scripts/validation/track-a-caption-runtime-path-1-diagnostics.mjs",
+      "category": "diagnostics_source",
+      "centralPresence": false
+    },
+    {
+      "file": "scripts/validation/track-a-caption-runtime-path-1.mjs",
+      "category": "diagnostics_source",
+      "centralPresence": false
+    }
+  ],
+  "changedFilesCount": 15,
+  "containsDockerfileChange": false,
+  "containsDockerignoreChange": true,
+  "containsPackageJsonChange": true,
+  "containsGeneratedAssets": false,
+  "containsMediaOrBinaries": false,
+  "replayCherryPickSafeNow": false,
+  "docsOnlyCentralReconciliationSafer": true,
+  "referenceOnly": true,
+  "reason": "PR #463 is merged outside the central source-of-truth branch and includes package/script and .dockerignore differences. This phase records its evidence centrally without replaying that diff."
+}

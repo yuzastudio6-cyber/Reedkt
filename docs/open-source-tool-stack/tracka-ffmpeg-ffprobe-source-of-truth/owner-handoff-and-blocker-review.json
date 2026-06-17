@@ -1,0 +1,18 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaFfmpegFfprobeSourceOfTruth.ownerHandoff.v1",
+  "generatedAt": "2026-06-17T22:18:31.197Z",
+  "trackaOwnerStatus": "pr_463_reference_evidence_reconciled_into_central_metadata",
+  "centralOpenSourceLaneStatus": "ready_for_future_version_probe_approval_packet",
+  "workerRuntimeHandoffStatus": "blocked_until_version_probe_and_worker_owner_approval",
+  "soundMusicAudioImplications": "none_in_this_phase",
+  "versionProbeApprovalOwner": "central_open_source_tool_stack_with_tracka_source_context",
+  "blockersBeforeRealMediaCaptionRenderExecution": [
+    "future_version_probe_approval",
+    "future_version_probe_execution",
+    "Track A media/caption/render owner approval",
+    "worker/runtime approval",
+    "artifact/source-of-truth policy approval"
+  ],
+  "reconciliationMethod": "docs_only_central_reconciliation",
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL"
+}

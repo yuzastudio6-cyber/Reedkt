@@ -1,0 +1,9 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaFfmpegFfprobeSourceOfTruth.readiness.v1",
+  "generatedAt": "2026-06-17T22:18:31.197Z",
+  "readiness": true,
+  "decision": "tracka_ffmpeg_ffprobe_source_of_truth_reconciliation_passed_ready_for_version_probe_approval",
+  "readyForVersionProbeApprovalPacket": true,
+  "readyForVersionProbeExecution": false,
+  "blockers": []
+}

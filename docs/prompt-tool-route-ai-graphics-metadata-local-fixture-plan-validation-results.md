@@ -67,8 +67,11 @@ Secret scan notes:
 ## PR Status
 
 - Branch: `codex/rp-tool-route-ai-graphics-metadata-local-fixture-plan`
-- PR: `pending`
-- Draft state: `pending`
-- Check rollup: `pending`
+- PR: #458, `https://github.com/yuzastudio6-cyber/Reedkt/pull/458`
+- Draft state: `draft`
+- State: `OPEN`
+- Mergeability: `MERGEABLE` / `CLEAN`
+- Head: `909412e1b94a3f7f54e94c42eea52a41646ddc65`
+- Check rollup: `empty`
 
-No npm install, new dependency addition, package-lock mutation, import smoke execution, synthetic fixture execution, local fixture execution, rasterization, Remotion render/export, browser runtime, WebGL runtime, canvas runtime, actual tool execution, route execution, worker execution, provider/model calls, Supabase mutation, SQL, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.
+No npm install, new dependency addition, package-lock mutation, new import smoke execution, new synthetic fixture execution, local fixture execution, rasterization, Remotion render/export, browser runtime, WebGL runtime, canvas runtime, actual tool execution, route execution, worker execution, provider/model calls, Supabase mutation, SQL, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.

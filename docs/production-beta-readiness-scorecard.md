@@ -126,3 +126,13 @@ actual tool execution, worker execution, provider/model runtime, browser/WebGL
 /canvas runtime, resvg rasterization, Remotion render/export, Supabase
 mutation, GCS/storage transfer, signed URLs, public artifacts, internal beta,
 external beta, paid production, or production readiness.
+
+AI_TOOLS_CREATIVE_GRAPHICS route-manifest integration QA decision
+`ai_graphics_route_manifest_integration_qa_passed_with_warnings` accepts PR
+#451 route-manifest metadata and scoped-manifest readiness with warnings. The
+next recommended lane is
+`TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_APPROVAL`; route execution, actual
+tool execution, worker execution, provider/model runtime, browser/WebGL/canvas
+runtime, resvg rasterization, Remotion render/export, Supabase mutation,
+GCS/storage transfer, signed URLs, public artifacts, internal beta, external
+beta, paid production, and production remain blocked.

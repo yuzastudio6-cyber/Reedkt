@@ -45,6 +45,7 @@ const allowedFutureScriptDiffs = [
   'open-source-tool-stack:ai-tools-creative-graphics:batch-4-approval:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-4-policy-qa:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-approval:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-qa:diagnostics',
 ]
 const requiredTrueBooleans = [
   'batch1Accepted',

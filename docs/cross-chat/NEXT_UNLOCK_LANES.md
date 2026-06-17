@@ -103,3 +103,11 @@ TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION next lane:
 - `TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_QA_REVIEW` may review the metadata-only Tool Route intake packet after this approval branch is accepted.
 - Future-only approvals are limited to Tool Route metadata registry intake, scoped tool-call manifest intake, and Worker Runtime handoff planning.
 - Route execution, actual tool execution, worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase/GCS writes, signed URLs, public artifacts, beta, and production remain blocked.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_QA_STATUS -->
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION QA next lane:
+
+- `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_PLAN` may plan metadata-only local fixtures for the 13 accepted AI graphics tools.
+- Future-only approvals remain limited to Tool Route metadata registry intake and scoped tool-call manifest intake.
+- Route execution, actual tool execution, worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase/GCS writes, signed URLs, public artifacts, beta, and production remain blocked.

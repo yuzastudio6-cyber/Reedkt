@@ -133,3 +133,14 @@ TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION approval packet:
 - Future-only approvals: metadata route registry intake, scoped tool-call manifest intake, and Worker Runtime handoff planning.
 - Real route/tool/worker/provider/browser/WebGL/canvas/Supabase/GCS/public/signed URL/beta/production scopes remain blocked.
 - Next prompt: `TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_QA_REVIEW`.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_QA_STATUS -->
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION QA review:
+
+- Decision: `tool_route_ai_graphics_metadata_integration_qa_passed_with_warnings`.
+- Source evidence: PR #456 / Tool Route AI graphics metadata integration approval at `36efdcd678fc6bd69fe7569268af9bb4a81a6aa8`.
+- QA accepted all 13 AI graphics tools as metadata/manifest-only `accepted_with_warnings`.
+- Future-only approvals remain limited to Tool Route metadata registry intake and scoped tool-call manifest intake.
+- Real route/tool/worker/provider/browser/WebGL/canvas/Supabase/GCS/public/signed URL/beta/production scopes remain blocked.
+- Next prompt: `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_PLAN`.

@@ -236,3 +236,16 @@ provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization,
 Remotion render/export, Supabase mutation, GCS/storage transfer, signed URLs,
 public artifacts, internal beta, external beta, paid production, or production
 readiness.
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_GATE_STATUS_OWNER_APPROVAL decision
+`tool_route_ai_graphics_metadata_local_fixture_gate_status_owner_approved_with_warnings`
+accepts PR #473 gate-status QA evidence with warnings for all 13 accepted AI
+graphics metadata tools. It recommends
+`WORKER_AI_GRAPHICS_METADATA_HANDOFF_APPROVAL` next. It sets
+`ownerApprovedFutureLocalFixtureGateStatusQaAccepted` true while keeping local
+fixture gate execution, local fixture validation execution, actual local
+fixture execution, route execution, actual tool execution, worker execution,
+provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization,
+Remotion render/export, Supabase mutation, GCS/storage transfer, signed URLs,
+public artifacts, internal beta, external beta, paid production, and production
+readiness blocked.

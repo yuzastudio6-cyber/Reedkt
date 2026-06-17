@@ -43,6 +43,7 @@
     "tool-route:ai-graphics-metadata-local-fixture-owner-approval:diagnostics": "node scripts/validation/tool-route-ai-graphics-metadata-local-fixture-owner-approval-diagnostics.mjs",
     "tool-route:ai-graphics-metadata-local-fixture-gate-status:diagnostics": "node scripts/validation/tool-route-ai-graphics-metadata-local-fixture-gate-status-diagnostics.mjs",
     "tool-route:ai-graphics-metadata-local-fixture-gate-status-qa:diagnostics": "node scripts/validation/tool-route-ai-graphics-metadata-local-fixture-gate-status-qa-diagnostics.mjs",
+    "tool-route:ai-graphics-metadata-local-fixture-gate-status-owner-approval:diagnostics": "node scripts/validation/tool-route-ai-graphics-metadata-local-fixture-gate-status-owner-approval-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

@@ -21,7 +21,7 @@ captionVisualBurnInRevalidationRequired: `true`
 
 ## Sidecar Artifact
 
-localSidecarPath: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-corrected-caption.ass`
+localSidecarPath: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221/tracka-caption-quality-3r3-corrected-caption.ass`
 
 sidecarSha256: `97e6891ed389716bdf3da1aba6d65a862f9efa9d19c103093aa15d593678c787`
 

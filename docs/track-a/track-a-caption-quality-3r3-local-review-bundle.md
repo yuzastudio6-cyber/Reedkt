@@ -1,24 +1,24 @@
 # TRACKA-CAPTION-QUALITY-3R3 Local Review Bundle
 
-Status: `not_created_or_metadata_only`
+Status: `created_with_private_preview`
 
-localBundlePath: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541`
+localBundlePath: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221`
 
-approvedSourceCopy: `not_created`
+approvedSourceCopy: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221/tracka-caption-quality-3r3-approved-source.mp4`
 
-correctedAssSidecar: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-corrected-caption.ass`
+correctedAssSidecar: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221/tracka-caption-quality-3r3-corrected-caption.ass`
 
-correctedCaptionPreview: `not_created`
+correctedCaptionPreview: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221/tracka-caption-quality-3r3-corrected-caption-preview.mp4`
 
-ffprobeJson: `not_created`
+ffprobeJson: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221/tracka-caption-quality-3r3-ffprobe.json`
 
-qaReportJson: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-qa-report.json`
+qaReportJson: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221/tracka-caption-quality-3r3-qa-report.json`
 
-artifactManifestJson: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-artifact-manifest.json`
+artifactManifestJson: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221/tracka-caption-quality-3r3-artifact-manifest.json`
 
-localReviewBundleVisualFiles: `0`
+localReviewBundleVisualFiles: `1`
 
-uploadableVisualFiles: `0`
+uploadableVisualFiles: `1`
 
 The approved source copy remains private local input evidence and must not be uploaded as review output unless a future owner explicitly asks for source provenance. The corrected-caption preview MP4 is the review artifact for TRACKA-CAPTION-QUALITY-4.
 

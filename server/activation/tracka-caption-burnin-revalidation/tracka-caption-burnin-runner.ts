@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync, statSync } from 'node:fs'
+import { closeSync, existsSync, openSync, readFileSync, statSync, unlinkSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import {
@@ -52,6 +52,10 @@ function sha256File(filePath: string): string {
   return createHash('sha256').update(readFileSync(filePath)).digest('hex')
 }
 
+function md5FileBase64(filePath: string): string {
+  return createHash('md5').update(readFileSync(filePath)).digest('base64')
+}
+
 function readOptional(filePath: string): string {
   return existsSync(filePath) ? readFileSync(filePath, 'utf8') : ''
 }
@@ -68,6 +72,27 @@ function runCommand(command: string, args: string[], cwd = process.cwd()): Comma
     exitCode,
     stdout: result.stdout ?? '',
     stderr: result.stderr ?? result.error?.message ?? '',
+  }
+}
+
+function runCommandToFile(command: string, args: string[], outputPath: string, cwd = process.cwd()): CommandResult {
+  const outputFd = openSync(outputPath, 'w')
+  try {
+    const result = spawnSync(command, args, {
+      cwd,
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      stdio: ['ignore', outputFd, 'pipe'],
+    })
+    const exitCode = result.status ?? null
+    return {
+      status: exitCode === 0 ? 'passed' : 'failed',
+      exitCode,
+      stdout: '',
+      stderr: result.stderr ?? result.error?.message ?? '',
+    }
+  } finally {
+    closeSync(outputFd)
   }
 }
 
@@ -106,6 +131,11 @@ function classifyGcsFailure(output: string): TrackaCaptionGcsAccessStatus {
     return 'blocked_source_object_missing'
   }
   return 'blocked_source_metadata_check_failed'
+}
+
+function isGcloudCrc32cHelperFailure(output: string): boolean {
+  const text = output.toLowerCase()
+  return text.includes('gcloud-crc32c') && text.includes('bad cpu type')
 }
 
 function dockerArgsFor(filePath: string): string[] {
@@ -468,11 +498,27 @@ async function maybeCopyApprovedSource(input: {
   const localPath = path.join(input.localBundlePath, 'tracka-caption-quality-3r3-approved-source.mp4')
   const copy = runCommand('gcloud', ['storage', 'cp', TRACKA_CAPTION_APPROVED_SOURCE_REF, localPath])
   if (copy.status !== 'passed' || !existsSync(localPath)) {
+    const copyOutput = copy.stderr || copy.stdout
+    if (isGcloudCrc32cHelperFailure(copyOutput)) {
+      if (existsSync(localPath)) unlinkSync(localPath)
+      const gcloudTempPath = `${localPath}_.gstmp`
+      if (existsSync(gcloudTempPath)) unlinkSync(gcloudTempPath)
+      const cat = runCommandToFile('gcloud', ['storage', 'cat', TRACKA_CAPTION_APPROVED_SOURCE_REF], localPath)
+      if (cat.status !== 'passed' || !existsSync(localPath)) {
+        const status = classifyGcsFailure(cat.stderr || cat.stdout)
+        return {
+          created: false,
+          artifactType: 'approved_private_source_copy',
+          blocker: `${status === 'blocked_source_metadata_check_failed' ? 'blocked_approved_source_ref_access_failed' : status}:gcloud_storage_cat_fallback_failed:${compactOutput(cat.stderr || cat.stdout)}`,
+        }
+      }
+    } else {
     const status = classifyGcsFailure(copy.stderr || copy.stdout)
     return {
       created: false,
       artifactType: 'approved_private_source_copy',
       blocker: `${status === 'blocked_source_metadata_check_failed' ? 'blocked_approved_source_ref_access_failed' : status}:${compactOutput(copy.stderr || copy.stdout)}`,
+    }
     }
   }
 
@@ -485,6 +531,17 @@ async function maybeCopyApprovedSource(input: {
       sizeBytes: stat.size,
       sha256: sha256File(localPath),
       blocker: `blocked_approved_source_ref_access_failed:size_mismatch_expected_${TRACKA_CAPTION_APPROVED_SOURCE_METADATA.size}_actual_${stat.size}`,
+    }
+  }
+  const md5 = md5FileBase64(localPath)
+  if (md5 !== TRACKA_CAPTION_APPROVED_SOURCE_METADATA.md5) {
+    return {
+      created: false,
+      artifactType: 'approved_private_source_copy',
+      localPath,
+      sizeBytes: stat.size,
+      sha256: sha256File(localPath),
+      blocker: `blocked_approved_source_ref_access_failed:md5_mismatch_expected_${TRACKA_CAPTION_APPROVED_SOURCE_METADATA.md5}_actual_${md5}`,
     }
   }
 

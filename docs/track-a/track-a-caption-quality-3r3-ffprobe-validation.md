@@ -1,18 +1,18 @@
 # TRACKA-CAPTION-QUALITY-3R3 FFprobe Validation
 
-Status: `not_run`
+Status: `completed`
 
-ffprobeValidationExecuted: false
+ffprobeValidationExecuted: true
 
-ffmpegValidationExecuted: false
+ffmpegValidationExecuted: true
 
-privatePreviewArtifact: `not_created`
+privatePreviewArtifact: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221/tracka-caption-quality-3r3-corrected-caption-preview.mp4`
 
-ffprobeJsonPath: `not_created`
+ffprobeJsonPath: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221/tracka-caption-quality-3r3-ffprobe.json`
 
-ffprobeSha256: `not_created`
+ffprobeSha256: `e2f2976859033261ffc83fa2a87acdd86c884e37afbc20de4f477c678e902562`
 
-ffprobeSizeBytes: `not_created`
+ffprobeSizeBytes: `4337`
 
 ## No-Scope Statement
 

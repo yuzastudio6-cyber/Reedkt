@@ -1,10 +1,10 @@
 # TRACKA-CAPTION-QUALITY-3R3 Next Phase Plan
 
-Status: `blocked_pending_review_safe_visual_artifact`
+Status: `ready_after_upload_of_corrected_caption_preview`
 
 ## Readiness
 
-TRACKA-CAPTION-QUALITY-4 readiness: `blocked_pending_review_safe_visual_artifact`
+TRACKA-CAPTION-QUALITY-4 readiness: `ready_after_upload_of_corrected_caption_preview`
 
 TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_visual_review_and_scope_decision`
 

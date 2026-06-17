@@ -1,12 +1,12 @@
 # TRACKA-CAPTION-QUALITY-3R3 Burn-In Revalidation Execution
 
-Status: `blocked_gcloud_auth_refresh_required`
+Status: `completed_with_corrected_caption_burnin_revalidation`
 
 ## Execution
 
-Run ID: `tracka-caption-quality-3r3-gcs-auth1-20260617T221541`
+Run ID: `tracka-caption-quality-3r3-gcs-auth1-20260617T225221`
 
-Execution: `blocked_gcloud_auth_refresh_required`
+Execution: `completed_with_corrected_caption_burnin_revalidation`
 
 Confirmation env: `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true`
 
@@ -22,7 +22,7 @@ sourceGcsReadConfirmationProvided: true
 
 gcsAccessRepairConfirmationProvided: true
 
-gcsMetadataCheckStatus: `blocked_gcloud_auth_refresh_required`
+gcsMetadataCheckStatus: `completed`
 
 approvedSourceRef: `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`
 
@@ -32,29 +32,29 @@ approvedRuntimePath: `repo_owned_render_worker_ffmpeg_libass_runtime_path`
 
 runtimePathApproved: true
 
-captionBurninRevalidationExecuted: false
+captionBurninRevalidationExecuted: true
 
-correctedCaptionVisualPreviewCreated: false
+correctedCaptionVisualPreviewCreated: true
 
 assSidecarCreated: true
 
-approvedSourceCopied: false
+approvedSourceCopied: true
 
-libassBurninExecuted: false
+libassBurninExecuted: true
 
 remotionPreviewExecuted: false
 
-ffmpegValidationExecuted: false
+ffmpegValidationExecuted: true
 
-ffprobeValidationExecuted: false
+ffprobeValidationExecuted: true
 
 privateArtifactsCreated: true
 
-privateVisualArtifactsCreated: false
+privateVisualArtifactsCreated: true
 
-gcsAccess: false
+gcsAccess: true
 
-gcsAccessMode: `none`
+gcsAccessMode: `exact_private_source_read_copy_only`
 
 ## GCS Source Access Classification
 
@@ -62,13 +62,13 @@ gcsAccessMode: `none`
 | --- | --- |
 | confirmationProvided | `true` |
 | metadataCheckExecuted | `true` |
-| status | `blocked_gcloud_auth_refresh_required` |
+| status | `completed` |
 | approvedSourceRef | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` |
-| objectMetadataMatched | `false` |
+| objectMetadataMatched | `true` |
 | gcloudAccount | `aiediting@reeditpro.com` |
 | gcloudProject | `reeditpro` |
 | activeAccount | `aiediting@reeditpro.com` |
-| detail | `ERROR: (gcloud.storage.ls) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use.` |
+| detail | `exact approved source metadata check passed` |
 
 signedUrlsCreated: false
 
@@ -100,7 +100,7 @@ externalBetaReady: false
 
 ## Result
 
-The guarded run failed closed with `blocked_gcloud_auth_refresh_required`. It did not create a usable corrected-caption visual review artifact unless the artifact table explicitly lists a corrected-caption preview MP4 as created.
+The guarded run used the approved #452 private source ref, the approved #426 controlled-test caption copy, and the approved #463 repo-owned Docker FFmpeg/libass runtime path to create a private corrected-caption preview and FFprobe metadata. The preview is private review evidence only and is not final delivery, internal beta, external beta, or production readiness.
 
 ## No-Scope Statement
 

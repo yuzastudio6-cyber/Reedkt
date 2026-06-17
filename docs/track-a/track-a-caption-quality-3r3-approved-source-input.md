@@ -8,11 +8,11 @@ approvedSourceRef: `gs://reeditpro-staging-reeditpro-final-exports/activation-re
 
 metadataEvidencePath: `docs/activation-phase-tracka-caption-source-ref-1-results.md`
 
-sourceLocalCopyPath: `not_created`
+sourceLocalCopyPath: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T225221/tracka-caption-quality-3r3-approved-source.mp4`
 
-sourceLocalCopySha256: `not_created`
+sourceLocalCopySha256: `78bd798602d221b894a60dfa34ed1528602c9ece7f657e3f9bbea7fd071cc7fa`
 
-sourceLocalCopySizeBytes: `not_created`
+sourceLocalCopySizeBytes: `94522751`
 
 ## #452 Metadata
 
@@ -33,13 +33,13 @@ sourceLocalCopySizeBytes: `not_created`
 | --- | --- |
 | confirmationProvided | `true` |
 | metadataCheckExecuted | `true` |
-| status | `blocked_gcloud_auth_refresh_required` |
+| status | `completed` |
 | approvedSourceRef | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` |
-| objectMetadataMatched | `false` |
+| objectMetadataMatched | `true` |
 | gcloudAccount | `aiediting@reeditpro.com` |
 | gcloudProject | `reeditpro` |
 | activeAccount | `aiediting@reeditpro.com` |
-| detail | `ERROR: (gcloud.storage.ls) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use.` |
+| detail | `exact approved source metadata check passed` |
 
 ## Source Rules
 

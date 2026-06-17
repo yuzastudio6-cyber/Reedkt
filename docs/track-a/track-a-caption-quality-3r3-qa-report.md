@@ -1,6 +1,6 @@
 # TRACKA-CAPTION-QUALITY-3R3 QA Report
 
-Status: `blocked_gcloud_auth_refresh_required`
+Status: `completed_with_corrected_caption_burnin_revalidation`
 
 ## QA Gates
 
@@ -9,17 +9,17 @@ Status: `blocked_gcloud_auth_refresh_required`
 | `confirmation_envs_present` | `passed` | REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true, REEDITPRO_CONFIRM_TRACKA_CAPTION_APPROVED_SOURCE_GCS_READ=true, and REEDITPRO_CONFIRM_TRACKA_CAPTION_GCS_ACCESS_REPAIR=true are required. |
 | `approved_caption_source_loaded` | `passed` | docs/track-a/track-a-caption-quality-3-approved-caption-input-manifest.md |
 | `approved_private_source_ref_loaded` | `passed` | gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4 |
-| `approved_private_source_metadata_check` | `blocked` | ERROR: (gcloud.storage.ls) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. |
-| `approved_private_source_exact_copy` | `blocked` | blocked_gcloud_auth_refresh_required |
+| `approved_private_source_metadata_check` | `passed` | exact approved source metadata check passed |
+| `approved_private_source_exact_copy` | `passed` | 78bd798602d221b894a60dfa34ed1528602c9ece7f657e3f9bbea7fd071cc7fa |
 | `transcript_accuracy_false` | `passed` | transcriptAccuracyClaim remains false. |
 | `old_caption_rejected` | `passed` | Rejected #419 caption text is not written to 3R3 sidecar/report/manifest artifacts. |
 | `corrected_sidecar_checksum` | `passed` | 97e6891ed389716bdf3da1aba6d65a862f9efa9d19c103093aa15d593678c787 |
 | `approved_caption_burnin_runtime_path` | `passed` | Repo-owned render-worker Docker FFmpeg/libass runtime path is approved by #463 metadata. |
-| `corrected_caption_private_preview` | `blocked` | blocked until burn-in completes. |
-| `ffprobe_validation` | `blocked` | blocked until preview exists. |
+| `corrected_caption_private_preview` | `passed` | ad3557848ae1b23d6767b99a6e27ffa40bdd4ba5bb47c15a13c1e0f74e1b947b |
+| `ffprobe_validation` | `passed` | e2f2976859033261ffc83fa2a87acdd86c884e37afbc20de4f477c678e902562 |
 | `no_public_or_signed_artifacts` | `passed` | signedUrlsCreated=false and publicArtifactsCreated=false. |
 | `no_supabase_mutation` | `passed` | Supabase classification remains docs_only; SQL executed none. |
-| `caption_readability_pending_visual_review` | `blocked` | Corrected-caption visual review remains blocked until a review-safe preview exists. |
+| `caption_readability_pending_visual_review` | `passed` | Corrected-caption preview exists and must be uploaded before TRACKA-CAPTION-QUALITY-4 records visual review. |
 
 ## GCS Source Access Classification
 
@@ -27,13 +27,13 @@ Status: `blocked_gcloud_auth_refresh_required`
 | --- | --- |
 | confirmationProvided | `true` |
 | metadataCheckExecuted | `true` |
-| status | `blocked_gcloud_auth_refresh_required` |
+| status | `completed` |
 | approvedSourceRef | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` |
-| objectMetadataMatched | `false` |
+| objectMetadataMatched | `true` |
 | gcloudAccount | `aiediting@reeditpro.com` |
 | gcloudProject | `reeditpro` |
 | activeAccount | `aiediting@reeditpro.com` |
-| detail | `ERROR: (gcloud.storage.ls) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use.` |
+| detail | `exact approved source metadata check passed` |
 
 ## Runtime
 
@@ -53,7 +53,7 @@ Status: `blocked_gcloud_auth_refresh_required`
 
 Corrected-caption visual review remains incomplete until TRACKA-CAPTION-QUALITY-4 records the visual review outcome from the generated private preview.
 
-TRACKA-CAPTION-QUALITY-4 readiness: `blocked_pending_review_safe_visual_artifact`
+TRACKA-CAPTION-QUALITY-4 readiness: `ready_after_upload_of_corrected_caption_preview`
 
 TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_visual_review_and_scope_decision`
 

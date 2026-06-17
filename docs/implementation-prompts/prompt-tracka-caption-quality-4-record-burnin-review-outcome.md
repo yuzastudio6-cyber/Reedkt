@@ -6,7 +6,7 @@ Record the human or AI-assisted review outcome for a corrected-caption burn-in p
 
 ## Current Source Status
 
-TRACKA-CAPTION-QUALITY-3R3 currently records `blocked_approved_source_ref_access_failed`.
+TRACKA-CAPTION-QUALITY-3R3 currently records `blocked_gcloud_auth_refresh_required`.
 
 Approved #452 source ref: `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`.
 
@@ -14,7 +14,7 @@ Approved #463 runtime path: `repo_owned_render_worker_ffmpeg_libass_runtime_path
 
 Corrected ASS sidecar status: `created`.
 
-Corrected-caption visual preview status: `blocked_approved_source_ref_access_failed`.
+Corrected-caption visual preview status: `blocked_gcloud_auth_refresh_required`.
 
 ## Required Inputs
 

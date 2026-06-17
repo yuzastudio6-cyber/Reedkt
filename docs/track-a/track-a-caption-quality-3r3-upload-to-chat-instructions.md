@@ -8,16 +8,16 @@ Status: `blocked_pending_review_safe_visual_artifact`
 | --- | --- | --- |
 | `not_created` | no | corrected-caption visual review artifact |
 | `not_created` | optional metadata | validates private preview container/streams |
-| `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-20260617T214049/tracka-caption-quality-3r3-qa-report.json` | optional metadata | records QA gate status |
-| `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-20260617T214049/tracka-caption-quality-3r3-artifact-manifest.json` | optional metadata | records checksums and provenance |
-| `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-20260617T214049/tracka-caption-quality-3r3-corrected-caption.ass` | optional metadata | proves approved corrected caption text |
+| `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-qa-report.json` | optional metadata | records QA gate status |
+| `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-artifact-manifest.json` | optional metadata | records checksums and provenance |
+| `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-corrected-caption.ass` | optional metadata | proves approved corrected caption text |
 | `not_created` | no | approved private source input, not review output |
 
 Do not upload signed URLs, public artifacts, production files, final delivery exports, or unrelated source media as source of truth.
 
 ## Preview Status
 
-correctedCaptionPreview: `blocked_approved_source_ref_access_failed`
+correctedCaptionPreview: `blocked_gcloud_auth_refresh_required`
 
 previewSha256: `not_created`
 

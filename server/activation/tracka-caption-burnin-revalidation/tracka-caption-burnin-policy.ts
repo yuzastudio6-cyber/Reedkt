@@ -3,6 +3,7 @@ export const TRACKA_CAPTION_BURNIN_BRANCH = 'codex/rp-tracka-caption-quality-3r3
 export const TRACKA_CAPTION_BURNIN_BASE_BRANCH = 'codex/rp-model-orchestration-qwen-schema-timeout-target-calibration'
 export const TRACKA_CAPTION_BURNIN_PR_TITLE = '[track-a] Guarded corrected caption burn-in revalidation'
 export const TRACKA_CAPTION_BURNIN_CONFIRM_ENV = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION'
+export const TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_GCS_ACCESS_REPAIR'
 export const TRACKA_CAPTION_SOURCE_GCS_READ_CONFIRM_ENV = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_APPROVED_SOURCE_GCS_READ'
 export const TRACKA_CAPTION_RUNTIME_IMAGE_BUILD_CONFIRM_ENV = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD'
 export const TRACKA_CAPTION_BURNIN_RUN_ID_ENV = 'REEDITPRO_TRACKA_CAPTION_BURNIN_RUN_ID'
@@ -87,6 +88,10 @@ export function getTrackaCaptionBurninRunId(): string {
 
 export function isTrackaCaptionBurninConfirmed(): boolean {
   return process.env[TRACKA_CAPTION_BURNIN_CONFIRM_ENV] === 'true'
+}
+
+export function isTrackaCaptionGcsAccessRepairConfirmed(): boolean {
+  return process.env[TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV] === 'true'
 }
 
 export function isTrackaCaptionSourceGcsReadConfirmed(): boolean {

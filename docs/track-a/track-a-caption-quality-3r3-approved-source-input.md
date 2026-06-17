@@ -27,9 +27,24 @@ sourceLocalCopySizeBytes: `not_created`
 | `crc32c` | `/HiYtQ==` |
 | `md5` | `3QrjneF4xbmU8d/OlswU+Q==` |
 
+## GCS Metadata Check
+
+| Field | Value |
+| --- | --- |
+| confirmationProvided | `true` |
+| metadataCheckExecuted | `true` |
+| status | `blocked_gcloud_auth_refresh_required` |
+| approvedSourceRef | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` |
+| objectMetadataMatched | `false` |
+| gcloudAccount | `aiediting@reeditpro.com` |
+| gcloudProject | `reeditpro` |
+| activeAccount | `aiediting@reeditpro.com` |
+| detail | `ERROR: (gcloud.storage.ls) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use.` |
+
 ## Source Rules
 
 - exact private `gs://` object only.
+- exact metadata/copy checks require `REEDITPRO_CONFIRM_TRACKA_CAPTION_GCS_ACCESS_REPAIR=true`.
 - no public URL.
 - no signed URL.
 - no prefix-only ref.

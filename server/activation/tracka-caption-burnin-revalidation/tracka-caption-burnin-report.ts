@@ -8,6 +8,7 @@ import {
   TRACKA_CAPTION_BURNIN_CONFIRM_ENV,
   TRACKA_CAPTION_BURNIN_CORRECTED_LINES,
   TRACKA_CAPTION_BURNIN_DOC_PATHS,
+  TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV,
   TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT,
   TRACKA_CAPTION_BURNIN_PHASE,
   TRACKA_CAPTION_BURNIN_PR_TITLE,
@@ -58,6 +59,22 @@ function runtimeTable(): string {
     `| assFilterPresent | \`${bool(TRACKA_CAPTION_APPROVED_RUNTIME.assFilterPresent)}\` |`,
     `| subtitlesFilterPresent | \`${bool(TRACKA_CAPTION_APPROVED_RUNTIME.subtitlesFilterPresent)}\` |`,
     `| libassIndicated | \`${bool(TRACKA_CAPTION_APPROVED_RUNTIME.libassIndicated)}\` |`,
+  ].join('\n')
+}
+
+function gcsAccessTable(bundle: TrackaCaptionBurninBundle): string {
+  return [
+    '| Field | Value |',
+    '| --- | --- |',
+    `| confirmationProvided | \`${bool(bundle.gcsAccessCheck.confirmationProvided)}\` |`,
+    `| metadataCheckExecuted | \`${bool(bundle.gcsAccessCheck.metadataCheckExecuted)}\` |`,
+    `| status | \`${bundle.gcsAccessCheck.status}\` |`,
+    `| approvedSourceRef | \`${bundle.gcsAccessCheck.approvedSourceRef}\` |`,
+    `| objectMetadataMatched | \`${bool(bundle.gcsAccessCheck.objectMetadataMatched)}\` |`,
+    `| gcloudAccount | \`${bundle.gcsAccessCheck.gcloudAccount}\` |`,
+    `| gcloudProject | \`${bundle.gcsAccessCheck.gcloudProject}\` |`,
+    `| activeAccount | \`${bundle.gcsAccessCheck.activeAccount}\` |`,
+    `| detail | \`${bundle.gcsAccessCheck.detail.replace(/\|/g, '/')}\` |`,
   ].join('\n')
 }
 
@@ -114,11 +131,17 @@ Confirmation env: \`${TRACKA_CAPTION_BURNIN_CONFIRM_ENV}=true\`
 
 Source GCS read env: \`${TRACKA_CAPTION_SOURCE_GCS_READ_CONFIRM_ENV}=true\`
 
+GCS access repair env: \`${TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV}=true\`
+
 Optional runtime image build env: \`${TRACKA_CAPTION_RUNTIME_IMAGE_BUILD_CONFIRM_ENV}=true\`
 
 confirmationProvided: ${bool(bundle.summary.confirmationProvided)}
 
 sourceGcsReadConfirmationProvided: ${bool(bundle.summary.sourceGcsReadConfirmationProvided)}
+
+gcsAccessRepairConfirmationProvided: ${bool(bundle.summary.gcsAccessRepairConfirmationProvided)}
+
+gcsMetadataCheckStatus: \`${bundle.summary.gcsMetadataCheckStatus}\`
 
 approvedSourceRef: \`${bundle.summary.approvedSourceRef}\`
 
@@ -151,6 +174,10 @@ privateVisualArtifactsCreated: ${bool(bundle.summary.privateVisualArtifactsCreat
 gcsAccess: ${bool(bundle.summary.gcsAccess)}
 
 gcsAccessMode: \`${bundle.summary.gcsAccessMode}\`
+
+## GCS Source Access Classification
+
+${gcsAccessTable(bundle)}
 
 signedUrlsCreated: ${bool(bundle.summary.signedUrlsCreated)}
 
@@ -196,9 +223,14 @@ sourceLocalCopySizeBytes: \`${bundle.sourceArtifact.sizeBytes ?? 'not_created'}\
 
 ${metadataTable()}
 
+## GCS Metadata Check
+
+${gcsAccessTable(bundle)}
+
 ## Source Rules
 
 - exact private \`gs://\` object only.
+- exact metadata/copy checks require \`${TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV}=true\`.
 - no public URL.
 - no signed URL.
 - no prefix-only ref.
@@ -265,6 +297,10 @@ gcsAccess: ${bool(bundle.summary.gcsAccess)}
 
 gcsAccessMode: \`${bundle.summary.gcsAccessMode}\`
 
+## GCS Source Access Classification
+
+${gcsAccessTable(bundle)}
+
 signedUrlsCreated: ${bool(bundle.summary.signedUrlsCreated)}
 
 publicArtifactsCreated: ${bool(bundle.summary.publicArtifactsCreated)}
@@ -292,6 +328,10 @@ Status: \`${execution}\`
 ## QA Gates
 
 ${qaTable(bundle)}
+
+## GCS Source Access Classification
+
+${gcsAccessTable(bundle)}
 
 ## Runtime
 
@@ -438,6 +478,14 @@ approvedSourceRef: \`${bundle.summary.approvedSourceRef}\`
 sourceRefApproved: ${bool(bundle.summary.sourceRefApproved)}
 
 sourceLocalCopyPath: \`${bundle.sourceArtifact.localPath ?? 'not_created'}\`
+
+gcsAccessRepairConfirmationProvided: ${bool(bundle.summary.gcsAccessRepairConfirmationProvided)}
+
+gcsMetadataCheckStatus: \`${bundle.summary.gcsMetadataCheckStatus}\`
+
+## GCS Source Access Classification
+
+${gcsAccessTable(bundle)}
 
 ## Approved Runtime Path
 

@@ -8,9 +8,9 @@ Base: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibratio
 
 Patch type: Track A corrected-caption burn-in revalidation execution with approved private source ref and approved FFmpeg/libass runtime.
 
-Run ID: `tracka-caption-quality-3r3-20260617T214049`
+Run ID: `tracka-caption-quality-3r3-gcs-auth1-20260617T221541`
 
-Execution: `blocked_approved_source_ref_access_failed`
+Execution: `blocked_gcloud_auth_refresh_required`
 
 ## Source-Of-Truth Audit
 
@@ -35,6 +35,24 @@ approvedSourceRef: `gs://reeditpro-staging-reeditpro-final-exports/activation-re
 sourceRefApproved: true
 
 sourceLocalCopyPath: `not_created`
+
+gcsAccessRepairConfirmationProvided: true
+
+gcsMetadataCheckStatus: `blocked_gcloud_auth_refresh_required`
+
+## GCS Source Access Classification
+
+| Field | Value |
+| --- | --- |
+| confirmationProvided | `true` |
+| metadataCheckExecuted | `true` |
+| status | `blocked_gcloud_auth_refresh_required` |
+| approvedSourceRef | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` |
+| objectMetadataMatched | `false` |
+| gcloudAccount | `aiediting@reeditpro.com` |
+| gcloudProject | `reeditpro` |
+| activeAccount | `aiediting@reeditpro.com` |
+| detail | `ERROR: (gcloud.storage.ls) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use.` |
 
 ## Approved Runtime Path
 
@@ -91,12 +109,12 @@ Upload-to-chat instructions: `docs/track-a/track-a-caption-quality-3r3-upload-to
 
 | Artifact | Path | SHA-256 | Size bytes | Status |
 | --- | --- | --- | --- | --- |
-| approved source local copy | `not_created` | `not_created` | `not_created` | `blocked_approved_source_ref_access_failed:.. ERROR: (gcloud.storage.cp) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use.` |
-| corrected ASS sidecar | `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-20260617T214049/tracka-caption-quality-3r3-corrected-caption.ass` | `97e6891ed389716bdf3da1aba6d65a862f9efa9d19c103093aa15d593678c787` | `1026` | `created` |
+| approved source local copy | `not_created` | `not_created` | `not_created` | `blocked_gcloud_auth_refresh_required` |
+| corrected ASS sidecar | `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-corrected-caption.ass` | `97e6891ed389716bdf3da1aba6d65a862f9efa9d19c103093aa15d593678c787` | `1026` | `created` |
 | corrected-caption preview MP4 | `not_created` | `not_created` | `not_created` | `not_created` |
 | FFprobe metadata JSON | `not_created` | `not_created` | `not_created` | `not_created` |
-| QA report JSON | `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-20260617T214049/tracka-caption-quality-3r3-qa-report.json` | `3149584b331c247666da5a584ef5763687d16e02a05d9033129e2af872db02f9` | `9551` | `created` |
-| artifact manifest JSON | `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-20260617T214049/tracka-caption-quality-3r3-artifact-manifest.json` | `5bdd2ad9aa6fae12afd812d84df7d894ccb70adb64dc7a8c42b5275ecdcc387b` | `3751` | `created` |
+| QA report JSON | `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-qa-report.json` | `3011058e20f98e75dd033851709744b8f30435f6434d7f91df70936d17b7b485` | `10030` | `created` |
+| artifact manifest JSON | `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-artifact-manifest.json` | `e74ecd50fd1688a29bb98850032679108a2909484bd5e8d3c57b75beba0935f0` | `4262` | `created` |
 
 ## Readiness
 

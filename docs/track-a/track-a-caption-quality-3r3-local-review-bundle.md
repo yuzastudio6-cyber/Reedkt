@@ -2,19 +2,19 @@
 
 Status: `not_created_or_metadata_only`
 
-localBundlePath: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-20260617T214049`
+localBundlePath: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541`
 
 approvedSourceCopy: `not_created`
 
-correctedAssSidecar: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-20260617T214049/tracka-caption-quality-3r3-corrected-caption.ass`
+correctedAssSidecar: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-corrected-caption.ass`
 
 correctedCaptionPreview: `not_created`
 
 ffprobeJson: `not_created`
 
-qaReportJson: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-20260617T214049/tracka-caption-quality-3r3-qa-report.json`
+qaReportJson: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-qa-report.json`
 
-artifactManifestJson: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-20260617T214049/tracka-caption-quality-3r3-artifact-manifest.json`
+artifactManifestJson: `/tmp/reeditpro-tracka-caption-quality-3r3/tracka-caption-quality-3r3-gcs-auth1-20260617T221541/tracka-caption-quality-3r3-artifact-manifest.json`
 
 localReviewBundleVisualFiles: `0`
 

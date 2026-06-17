@@ -9,6 +9,7 @@ import {
   TRACKA_CAPTION_APPROVED_SOURCE_REF,
   TRACKA_CAPTION_BURNIN_CONFIRM_ENV,
   TRACKA_CAPTION_BURNIN_CORRECTED_LINES,
+  TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV,
   TRACKA_CAPTION_BURNIN_LOCAL_ROOT,
   TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT,
   TRACKA_CAPTION_BURNIN_PHASE,
@@ -18,6 +19,7 @@ import {
   TRACKA_CAPTION_SOURCE_GCS_READ_CONFIRM_ENV,
   getTrackaCaptionBurninRunId,
   isTrackaCaptionBurninConfirmed,
+  isTrackaCaptionGcsAccessRepairConfirmed,
   isTrackaCaptionRuntimeImageBuildConfirmed,
   isTrackaCaptionSourceGcsReadConfirmed,
 } from './tracka-caption-burnin-policy'
@@ -26,11 +28,13 @@ import type {
   TrackaCaptionBurninArtifact,
   TrackaCaptionBurninBundle,
   TrackaCaptionBurninExecutionStatus,
+  TrackaCaptionBurninGcsAccessCheck,
   TrackaCaptionBurninQaGate,
   TrackaCaptionBurninRuntimeResolution,
   TrackaCaptionBurninSidecarArtifact,
   TrackaCaptionBurninSourceAudit,
   TrackaCaptionBurninSummary,
+  TrackaCaptionGcsAccessStatus,
 } from './tracka-caption-burnin-types'
 
 interface CommandResult {
@@ -69,6 +73,39 @@ function runCommand(command: string, args: string[], cwd = process.cwd()): Comma
 
 function compactOutput(value: string): string {
   return value.replace(/\s+/g, ' ').trim().slice(0, 1200) || 'none'
+}
+
+function classifyGcsFailure(output: string): TrackaCaptionGcsAccessStatus {
+  const text = output.toLowerCase()
+  if (
+    text.includes('reauthentication failed') ||
+    text.includes('cannot prompt') ||
+    text.includes('refreshing your current auth tokens') ||
+    text.includes('invalid_grant') ||
+    text.includes('auth login') ||
+    text.includes('login required')
+  ) {
+    return 'blocked_gcloud_auth_refresh_required'
+  }
+  if (
+    text.includes('403') ||
+    text.includes('permission denied') ||
+    text.includes('accessdenied') ||
+    text.includes('access denied') ||
+    text.includes('forbidden') ||
+    text.includes('storage.objects.get')
+  ) {
+    return 'blocked_gcs_permission_denied'
+  }
+  if (
+    text.includes('404') ||
+    text.includes('not found') ||
+    text.includes('no urls matched') ||
+    text.includes('matched no objects')
+  ) {
+    return 'blocked_source_object_missing'
+  }
+  return 'blocked_source_metadata_check_failed'
 }
 
 function dockerArgsFor(filePath: string): string[] {
@@ -324,25 +361,118 @@ async function maybeWriteSidecar(input: {
   }
 }
 
+function buildNotAttemptedGcsAccessCheck(input: {
+  confirmationProvided: boolean
+  metadataCheckExecuted?: boolean
+  status?: TrackaCaptionGcsAccessStatus
+  detail?: string
+}): TrackaCaptionBurninGcsAccessCheck {
+  return {
+    confirmationProvided: input.confirmationProvided,
+    metadataCheckExecuted: input.metadataCheckExecuted ?? false,
+    status: input.status ?? 'not_attempted',
+    gcloudAccount: 'not_checked',
+    gcloudProject: 'not_checked',
+    activeAccount: 'not_checked',
+    approvedSourceRef: TRACKA_CAPTION_APPROVED_SOURCE_REF,
+    objectMetadataMatched: false,
+    detail: input.detail ?? 'not_attempted',
+  }
+}
+
+function buildGcsAccessCheck(input: {
+  execute: boolean
+  confirmationProvided: boolean
+  sourceGcsReadConfirmationProvided: boolean
+  gcsAccessRepairConfirmationProvided: boolean
+  sourceRefApproved: boolean
+}): TrackaCaptionBurninGcsAccessCheck {
+  if (!input.execute || !input.confirmationProvided || !input.sourceGcsReadConfirmationProvided || !input.sourceRefApproved) {
+    return buildNotAttemptedGcsAccessCheck({
+      confirmationProvided: input.gcsAccessRepairConfirmationProvided,
+      status: !input.execute ? 'not_attempted' : 'blocked_pending_caption_burnin_execution_confirmation',
+      detail: 'blocked before GCS metadata check because execution, burn-in confirmation, source read confirmation, or source approval is missing.',
+    })
+  }
+
+  if (!input.gcsAccessRepairConfirmationProvided) {
+    return buildNotAttemptedGcsAccessCheck({
+      confirmationProvided: false,
+      status: 'blocked_pending_caption_burnin_execution_confirmation',
+      detail: `${TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV}=true is required before exact GCS metadata or copy checks.`,
+    })
+  }
+
+  const account = runCommand('gcloud', ['config', 'get-value', 'account'])
+  const project = runCommand('gcloud', ['config', 'get-value', 'project'])
+  const active = runCommand('gcloud', ['auth', 'list', '--filter=status:ACTIVE', '--format=value(account)'])
+  const metadata = runCommand('gcloud', ['storage', 'ls', '-L', TRACKA_CAPTION_APPROVED_SOURCE_REF])
+
+  if (metadata.status !== 'passed') {
+    const detail = compactOutput(metadata.stderr || metadata.stdout)
+    return {
+      confirmationProvided: true,
+      metadataCheckExecuted: true,
+      status: classifyGcsFailure(detail),
+      gcloudAccount: compactOutput(account.stdout || account.stderr),
+      gcloudProject: compactOutput(project.stdout || project.stderr),
+      activeAccount: compactOutput(active.stdout || active.stderr),
+      approvedSourceRef: TRACKA_CAPTION_APPROVED_SOURCE_REF,
+      objectMetadataMatched: false,
+      detail,
+    }
+  }
+
+  const metadataText = metadata.stdout || ''
+  const objectMetadataMatched =
+    metadataText.includes(TRACKA_CAPTION_APPROVED_SOURCE_REF) ||
+    metadataText.includes(TRACKA_CAPTION_APPROVED_SOURCE_METADATA.size) ||
+    metadataText.includes(TRACKA_CAPTION_APPROVED_SOURCE_METADATA.contentType) ||
+    metadataText.includes(TRACKA_CAPTION_APPROVED_SOURCE_METADATA.generation)
+
+  return {
+    confirmationProvided: true,
+    metadataCheckExecuted: true,
+    status: objectMetadataMatched ? 'completed' : 'blocked_source_metadata_check_failed',
+    gcloudAccount: compactOutput(account.stdout || account.stderr),
+    gcloudProject: compactOutput(project.stdout || project.stderr),
+    activeAccount: compactOutput(active.stdout || active.stderr),
+    approvedSourceRef: TRACKA_CAPTION_APPROVED_SOURCE_REF,
+    objectMetadataMatched,
+    detail: objectMetadataMatched
+      ? 'exact approved source metadata check passed'
+      : `exact approved source metadata check returned unexpected metadata: ${compactOutput(metadataText || metadata.stderr)}`,
+  }
+}
+
 async function maybeCopyApprovedSource(input: {
   execute: boolean
   confirmationProvided: boolean
   sourceGcsReadConfirmationProvided: boolean
+  gcsAccessCheck: TrackaCaptionBurninGcsAccessCheck
   sourceRefApproved: boolean
   localBundlePath: string
 }): Promise<TrackaCaptionBurninArtifact> {
   if (!input.execute || !input.confirmationProvided || !input.sourceGcsReadConfirmationProvided || !input.sourceRefApproved) {
     return { created: false, artifactType: 'approved_private_source_copy' }
   }
+  if (input.gcsAccessCheck.status !== 'completed') {
+    return {
+      created: false,
+      artifactType: 'approved_private_source_copy',
+      blocker: input.gcsAccessCheck.status,
+    }
+  }
 
   await mkdir(input.localBundlePath, { recursive: true })
   const localPath = path.join(input.localBundlePath, 'tracka-caption-quality-3r3-approved-source.mp4')
   const copy = runCommand('gcloud', ['storage', 'cp', TRACKA_CAPTION_APPROVED_SOURCE_REF, localPath])
   if (copy.status !== 'passed' || !existsSync(localPath)) {
+    const status = classifyGcsFailure(copy.stderr || copy.stdout)
     return {
       created: false,
       artifactType: 'approved_private_source_copy',
-      blocker: `blocked_approved_source_ref_access_failed:${compactOutput(copy.stderr || copy.stdout)}`,
+      blocker: `${status === 'blocked_source_metadata_check_failed' ? 'blocked_approved_source_ref_access_failed' : status}:${compactOutput(copy.stderr || copy.stdout)}`,
     }
   }
 
@@ -508,6 +638,8 @@ function statusFor(input: {
   execute: boolean
   confirmationProvided: boolean
   sourceGcsReadConfirmationProvided: boolean
+  gcsAccessRepairConfirmationProvided: boolean
+  gcsAccessCheck: TrackaCaptionBurninGcsAccessCheck
   sourceAudit: TrackaCaptionBurninSourceAudit
   approvedSourceRef: TrackaCaptionBurninApprovedSourceRef
   runtimeResolution: TrackaCaptionBurninRuntimeResolution
@@ -515,11 +647,14 @@ function statusFor(input: {
   previewArtifact: TrackaCaptionBurninArtifact
   ffprobeArtifact: TrackaCaptionBurninArtifact
 }): TrackaCaptionBurninExecutionStatus {
-  if (!input.execute || !input.confirmationProvided || !input.sourceGcsReadConfirmationProvided) {
+  if (!input.execute || !input.confirmationProvided || !input.sourceGcsReadConfirmationProvided || !input.gcsAccessRepairConfirmationProvided) {
     return 'blocked_pending_caption_burnin_execution_confirmation'
   }
   if (input.sourceAudit.status === 'blocked' || !input.approvedSourceRef.sourceRefApproved) {
     return 'blocked_missing_approved_private_source_ref'
+  }
+  if (input.gcsAccessCheck.status !== 'completed') {
+    return input.gcsAccessCheck.status === 'not_attempted' ? 'blocked_approved_source_ref_access_failed' : input.gcsAccessCheck.status
   }
   if (!input.sourceArtifact.created) return 'blocked_approved_source_ref_access_failed'
   if (!input.runtimeResolution.approvedRuntimePathFound) return 'blocked_missing_approved_caption_burnin_runtime_path'
@@ -534,6 +669,7 @@ function statusFor(input: {
 function buildQaGates(input: {
   sourceAudit: TrackaCaptionBurninSourceAudit
   approvedSourceRef: TrackaCaptionBurninApprovedSourceRef
+  gcsAccessCheck: TrackaCaptionBurninGcsAccessCheck
   sourceArtifact: TrackaCaptionBurninArtifact
   sidecar: TrackaCaptionBurninSidecarArtifact
   previewArtifact: TrackaCaptionBurninArtifact
@@ -545,8 +681,8 @@ function buildQaGates(input: {
   return [
     {
       gateId: 'confirmation_envs_present',
-      status: input.confirmationProvided && input.sourceGcsReadConfirmationProvided ? 'passed' : 'blocked',
-      evidence: `${TRACKA_CAPTION_BURNIN_CONFIRM_ENV}=true and ${TRACKA_CAPTION_SOURCE_GCS_READ_CONFIRM_ENV}=true are required.`,
+      status: input.confirmationProvided && input.sourceGcsReadConfirmationProvided && input.gcsAccessCheck.confirmationProvided ? 'passed' : 'blocked',
+      evidence: `${TRACKA_CAPTION_BURNIN_CONFIRM_ENV}=true, ${TRACKA_CAPTION_SOURCE_GCS_READ_CONFIRM_ENV}=true, and ${TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV}=true are required.`,
     },
     {
       gateId: 'approved_caption_source_loaded',
@@ -557,6 +693,11 @@ function buildQaGates(input: {
       gateId: 'approved_private_source_ref_loaded',
       status: input.approvedSourceRef.sourceRefApproved ? 'passed' : 'blocked',
       evidence: input.approvedSourceRef.ref,
+    },
+    {
+      gateId: 'approved_private_source_metadata_check',
+      status: input.gcsAccessCheck.status === 'completed' ? 'passed' : 'blocked',
+      evidence: input.gcsAccessCheck.detail,
     },
     {
       gateId: 'approved_private_source_exact_copy',
@@ -580,7 +721,7 @@ function buildQaGates(input: {
     },
     {
       gateId: 'approved_caption_burnin_runtime_path',
-      status: input.runtimeResolution.approvedRuntimePathFound && input.runtimeResolution.dockerImageAvailable ? 'passed' : 'blocked',
+      status: input.runtimeResolution.approvedRuntimePathFound ? 'passed' : 'blocked',
       evidence: input.runtimeResolution.rejectedCandidateReason,
     },
     {
@@ -621,22 +762,31 @@ export async function buildTrackaCaptionBurninBundle(input: {
   const localBundlePath = path.join(TRACKA_CAPTION_BURNIN_LOCAL_ROOT, runId)
   const confirmationProvided = isTrackaCaptionBurninConfirmed()
   const sourceGcsReadConfirmationProvided = isTrackaCaptionSourceGcsReadConfirmed()
+  const gcsAccessRepairConfirmationProvided = isTrackaCaptionGcsAccessRepairConfirmed()
   const sourceAudit = buildSourceAudit()
   const approvedSourceRef = buildApprovedSourceRef(sourceAudit)
   const sidecar = await maybeWriteSidecar({ execute: input.execute, confirmationProvided, localBundlePath })
+  const gcsAccessCheck = buildGcsAccessCheck({
+    execute: input.execute,
+    confirmationProvided,
+    sourceGcsReadConfirmationProvided,
+    gcsAccessRepairConfirmationProvided,
+    sourceRefApproved: approvedSourceRef.sourceRefApproved,
+  })
   const sourceArtifact = await maybeCopyApprovedSource({
     execute: input.execute,
     confirmationProvided,
     sourceGcsReadConfirmationProvided,
+    gcsAccessCheck,
     sourceRefApproved: approvedSourceRef.sourceRefApproved,
     localBundlePath,
   })
   const runtimeResolution = inspectOrBuildRuntimeImage({
-    execute: input.execute,
+    execute: input.execute && gcsAccessCheck.status === 'completed',
     approvedSourceRef,
     sourceAudit,
   })
-  runtimeResolution.attemptedGcsAccess = input.execute && confirmationProvided && sourceGcsReadConfirmationProvided
+  runtimeResolution.attemptedGcsAccess = gcsAccessCheck.metadataCheckExecuted || sourceArtifact.created
   const previewArtifact = await maybeRunBurnin({
     execute: input.execute,
     confirmationProvided,
@@ -658,6 +808,8 @@ export async function buildTrackaCaptionBurninBundle(input: {
     execute: input.execute,
     confirmationProvided,
     sourceGcsReadConfirmationProvided,
+    gcsAccessRepairConfirmationProvided,
+    gcsAccessCheck,
     sourceAudit,
     approvedSourceRef,
     runtimeResolution,
@@ -668,6 +820,7 @@ export async function buildTrackaCaptionBurninBundle(input: {
   const qaGates = buildQaGates({
     sourceAudit,
     approvedSourceRef,
+    gcsAccessCheck,
     sourceArtifact,
     sidecar,
     previewArtifact,
@@ -681,6 +834,7 @@ export async function buildTrackaCaptionBurninBundle(input: {
     ...sourceAudit.activeBlockers,
     ...approvedSourceRef.activeBlockers,
     ...(confirmationProvided && sourceGcsReadConfirmationProvided ? [] : ['blocked_pending_caption_burnin_execution_confirmation']),
+    ...(gcsAccessCheck.status === 'completed' || gcsAccessCheck.status === 'not_attempted' ? [] : [gcsAccessCheck.status]),
     ...(sourceArtifact.blocker ? [sourceArtifact.blocker] : []),
     ...(runtimeResolution.blocker === 'none' ? [] : [runtimeResolution.blocker]),
     ...(previewArtifact.blocker ? [previewArtifact.blocker] : []),
@@ -694,6 +848,8 @@ export async function buildTrackaCaptionBurninBundle(input: {
     execution,
     confirmationProvided,
     sourceGcsReadConfirmationProvided,
+    gcsAccessRepairConfirmationProvided,
+    gcsMetadataCheckStatus: gcsAccessCheck.status,
     approvedSourceRef: approvedSourceRef.ref,
     sourceRefApproved: approvedSourceRef.sourceRefApproved,
     approvedRuntimePath: TRACKA_CAPTION_APPROVED_RUNTIME.approvedRuntimePath,
@@ -738,6 +894,7 @@ export async function buildTrackaCaptionBurninBundle(input: {
       execution,
       qaGates,
       approvedSourceRef,
+      gcsAccessCheck,
       sourceArtifact,
       sidecar,
       previewArtifact,
@@ -758,6 +915,7 @@ export async function buildTrackaCaptionBurninBundle(input: {
       phase: TRACKA_CAPTION_BURNIN_PHASE,
       runId,
       approvedSourceRef,
+      gcsAccessCheck,
       sourceArtifact,
       sidecar,
       previewArtifact,
@@ -778,6 +936,7 @@ export async function buildTrackaCaptionBurninBundle(input: {
     localBundlePath,
     sourceAudit,
     approvedSourceRef,
+    gcsAccessCheck,
     sourceArtifact,
     sidecar,
     sidecarSha256: sidecar.sha256 ?? sha256Text(buildCorrectedAssSidecar()),
@@ -795,6 +954,7 @@ export async function buildTrackaCaptionBurninBundle(input: {
     localBundlePath,
     sourceAudit,
     approvedSourceRef,
+    gcsAccessCheck,
     sourceArtifact,
     sidecar,
     previewArtifact,

@@ -1,22 +1,28 @@
 # TRACKA-CAPTION-QUALITY-3R3 Burn-In Revalidation Execution
 
-Status: `blocked_approved_source_ref_access_failed`
+Status: `blocked_gcloud_auth_refresh_required`
 
 ## Execution
 
-Run ID: `tracka-caption-quality-3r3-20260617T214049`
+Run ID: `tracka-caption-quality-3r3-gcs-auth1-20260617T221541`
 
-Execution: `blocked_approved_source_ref_access_failed`
+Execution: `blocked_gcloud_auth_refresh_required`
 
 Confirmation env: `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true`
 
 Source GCS read env: `REEDITPRO_CONFIRM_TRACKA_CAPTION_APPROVED_SOURCE_GCS_READ=true`
+
+GCS access repair env: `REEDITPRO_CONFIRM_TRACKA_CAPTION_GCS_ACCESS_REPAIR=true`
 
 Optional runtime image build env: `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD=true`
 
 confirmationProvided: true
 
 sourceGcsReadConfirmationProvided: true
+
+gcsAccessRepairConfirmationProvided: true
+
+gcsMetadataCheckStatus: `blocked_gcloud_auth_refresh_required`
 
 approvedSourceRef: `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`
 
@@ -50,6 +56,20 @@ gcsAccess: false
 
 gcsAccessMode: `none`
 
+## GCS Source Access Classification
+
+| Field | Value |
+| --- | --- |
+| confirmationProvided | `true` |
+| metadataCheckExecuted | `true` |
+| status | `blocked_gcloud_auth_refresh_required` |
+| approvedSourceRef | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` |
+| objectMetadataMatched | `false` |
+| gcloudAccount | `aiediting@reeditpro.com` |
+| gcloudProject | `reeditpro` |
+| activeAccount | `aiediting@reeditpro.com` |
+| detail | `ERROR: (gcloud.storage.ls) There was a problem refreshing your current auth tokens: Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use.` |
+
 signedUrlsCreated: false
 
 publicArtifactsCreated: false
@@ -80,7 +100,7 @@ externalBetaReady: false
 
 ## Result
 
-The guarded run failed closed with `blocked_approved_source_ref_access_failed`. It did not create a usable corrected-caption visual review artifact unless the artifact table explicitly lists a corrected-caption preview MP4 as created.
+The guarded run failed closed with `blocked_gcloud_auth_refresh_required`. It did not create a usable corrected-caption visual review artifact unless the artifact table explicitly lists a corrected-caption preview MP4 as created.
 
 ## No-Scope Statement
 

@@ -1,0 +1,6 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildQaReview.blockerReport.v1",
+  "generatedAt": "2026-06-17T20:39:26.105Z",
+  "decision": "duckdb_native_rebuild_qa_passed_ready_for_ffmpeg_ffprobe_system_binary_review",
+  "blockers": []
+}

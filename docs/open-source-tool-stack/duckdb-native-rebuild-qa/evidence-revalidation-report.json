@@ -1,0 +1,80 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildQaReview.evidenceRevalidation.v1",
+  "generatedAt": "2026-06-17T20:39:26.105Z",
+  "requiredEvidence": [
+    {
+      "id": "executionDecision",
+      "file": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-decision.json",
+      "exists": true
+    },
+    {
+      "id": "nativeRebuild",
+      "file": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-report.json",
+      "exists": true
+    },
+    {
+      "id": "importProof",
+      "file": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-import-proof-report.json",
+      "exists": true
+    },
+    {
+      "id": "queryProof",
+      "file": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-synthetic-query-report.json",
+      "exists": true
+    },
+    {
+      "id": "integrity",
+      "file": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/package-lock-native-artifact-integrity-report.json",
+      "exists": true
+    },
+    {
+      "id": "ffmpegFfprobe",
+      "file": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/ffmpeg-ffprobe-follow-up-report.json",
+      "exists": true
+    },
+    {
+      "id": "sideEffectSafety",
+      "file": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/side-effect-safety-report.json",
+      "exists": true
+    },
+    {
+      "id": "readiness",
+      "file": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-readiness-report.json",
+      "exists": true
+    },
+    {
+      "id": "pr455Decision",
+      "file": "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-binary-execution-decision.json",
+      "exists": true
+    },
+    {
+      "id": "pr455Polars",
+      "file": "docs/open-source-tool-stack/missing-optional-package-binary-execution/polars-proof-report.json",
+      "exists": true
+    }
+  ],
+  "safeValidationCommands": [
+    "npm ci --ignore-scripts --no-audit --no-fund",
+    "npm run smoke:open-source-tool-stack-duckdb-native-rebuild",
+    "npm run open-source-tool-stack:duckdb-native-rebuild:report",
+    "npm run open-source-tool-stack:duckdb-native-rebuild:summary",
+    "npm run open-source-tool-stack:duckdb-native-rebuild:diagnostics",
+    "npm run open-source-tool-stack:package-install-script-review:diagnostics",
+    "npm run open-source-tool-stack:missing-optional-package-binary-execution:diagnostics",
+    "npm run open-source-tool-stack:batch-1:qa-review:diagnostics",
+    "npm run dependency-baseline:repair-before-tool-batch-1:diagnostics",
+    "npm run open-source-tool-stack:audit:diagnostics"
+  ],
+  "forbiddenRerunCommands": [
+    "npm install",
+    "npm rebuild",
+    "DuckDB import/query proof rerun",
+    "Polars proof rerun",
+    "ffmpeg -version",
+    "ffprobe -version"
+  ],
+  "evidenceDecision": "duckdb_native_rebuild_execution_passed_ffmpeg_ffprobe_still_missing",
+  "evidenceDecisionValid": true,
+  "readinessValid": true,
+  "passed": true
+}

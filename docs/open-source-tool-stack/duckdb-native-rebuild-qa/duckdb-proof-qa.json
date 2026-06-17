@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildQaReview.duckdbProofQa.v1",
+  "generatedAt": "2026-06-17T20:39:26.105Z",
+  "rebuildEvidencePath": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-report.json",
+  "importProofPath": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-import-proof-report.json",
+  "queryProofPath": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-synthetic-query-report.json",
+  "rebuildPassed": true,
+  "importApiProofPassed": true,
+  "inMemoryQueryProofPassed": true,
+  "deterministic": true,
+  "synthetic": true,
+  "noFileDatabase": true,
+  "noNetwork": true,
+  "noPrivateData": true,
+  "noSupabase": true,
+  "noGcs": true,
+  "noMedia": true,
+  "packageLockImpact": {
+    "packageJsonChanged": false,
+    "packageLockChanged": false
+  },
+  "nativeArtifactCommitStatus": {
+    "nativeArtifactsCommitted": false,
+    "nodeModulesCommitted": false
+  },
+  "accepted": true,
+  "warnings": [],
+  "followUp": "Count DuckDB as installed/proven for local metadata/query validation."
+}

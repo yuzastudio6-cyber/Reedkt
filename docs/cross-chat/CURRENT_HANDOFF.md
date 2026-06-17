@@ -188,3 +188,14 @@ OPEN_SOURCE_TOOL_STACK_PACKAGE_INSTALL_SCRIPT_REVIEW:
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_DUCKDB_NATIVE_REBUILD_EXECUTION`.
 - Runtime/product scopes remain blocked. Supabase classification: no write / none / none / no.
 <!-- OPEN_SOURCE_PACKAGE_INSTALL_SCRIPT_REVIEW_STATUS:end -->
+
+<!-- OPEN_SOURCE_DUCKDB_NATIVE_REBUILD_QA_STATUS:start -->
+OPEN_SOURCE_TOOL_STACK_DUCKDB_NATIVE_REBUILD_QA_REVIEW:
+
+- Decision: `duckdb_native_rebuild_qa_passed_ready_for_ffmpeg_ffprobe_system_binary_review`.
+- DuckDB is accepted as installed/proven from PR #466 native rebuild, import/API, and in-memory query evidence.
+- Polars remains accepted/proven from PR #455 and was not rerun in PR #466 or this QA phase.
+- FFmpeg and FFprobe remain missing/unproven and route to `OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_SYSTEM_BINARY_REVIEW`.
+- No npm install, npm rebuild, lifecycle script, proof rerun, version probe, tool/worker/route/provider/media, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is enabled.
+- Supabase classification: no write / none / none / no.
+<!-- OPEN_SOURCE_DUCKDB_NATIVE_REBUILD_QA_STATUS:end -->

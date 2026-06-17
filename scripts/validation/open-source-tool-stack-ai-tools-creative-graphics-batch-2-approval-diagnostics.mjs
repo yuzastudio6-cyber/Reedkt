@@ -244,6 +244,7 @@ const packageJsonDiff = `${git(['diff', '--', 'package.json'])}\n${git(['diff', 
 const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
+  .filter((line) => !line.includes('worker:ai-graphics-metadata-handoff-approval:diagnostics'))
   .filter((line) => !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics'))
   .filter((line) => {
     if (!batch2ExecutionContext) return true

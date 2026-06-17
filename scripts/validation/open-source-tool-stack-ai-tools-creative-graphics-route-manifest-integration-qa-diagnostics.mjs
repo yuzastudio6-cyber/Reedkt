@@ -224,6 +224,7 @@ const packageJsonDiff = `${git(['diff', '--', 'package.json'])}\n${git(['diff', 
 const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
+  .filter((line) => !line.includes('worker:ai-graphics-metadata-handoff-approval:diagnostics'))
   .filter((line) => !line.includes('open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-qa:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-integration-approval:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-integration-qa:diagnostics'))

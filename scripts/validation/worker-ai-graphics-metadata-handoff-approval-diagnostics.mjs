@@ -1,35 +1,35 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
-const baseRef = 'origin/codex/rp-tool-route-ai-graphics-metadata-local-fixture-gate-status-qa-review'
-const expectedDecision = 'tool_route_ai_graphics_metadata_local_fixture_gate_status_owner_approved_with_warnings'
+const baseRef = 'origin/codex/rp-tool-route-ai-graphics-metadata-local-fixture-gate-status-owner-approval'
+const expectedDecision = 'worker_ai_graphics_metadata_handoff_approved_with_warnings'
 const allowedDecisions = new Set([
-  'tool_route_ai_graphics_metadata_local_fixture_gate_status_owner_approved_with_warnings',
-  'tool_route_ai_graphics_metadata_local_fixture_gate_status_owner_approved',
-  'blocked_pending_ai_graphics_gate_status_owner_fixes',
-  'blocked_pending_dry_run_claim_owner_review',
-  'blocked_pending_generated_local_fixture_claim_owner_review',
-  'blocked_pending_worker_handoff_review',
+  'worker_ai_graphics_metadata_handoff_approved_with_warnings',
+  'worker_ai_graphics_metadata_handoff_approved',
+  'blocked_pending_worker_ai_graphics_handoff_fixes',
+  'blocked_pending_plan_snapshot_mapping_review',
+  'blocked_pending_scoped_manifest_review',
+  'blocked_pending_claim_lease_boundary_review',
+  'blocked_pending_artifact_scope_review',
 ])
 
 const requiredDocs = [
-  'docs/tool-route-execution/ai-graphics-metadata-local-fixture-gate-status-owner-approval.md',
-  'docs/tool-route-execution/ai-graphics-local-fixture-gate-status-owner-approval-source-lockfile.md',
-  'docs/tool-route-execution/ai-graphics-local-fixture-gate-status-owner-approval-matrix.md',
-  'docs/tool-route-execution/ai-graphics-valid-case-gate-status-owner-approval.md',
-  'docs/tool-route-execution/ai-graphics-invalid-case-gate-status-owner-approval.md',
-  'docs/tool-route-execution/ai-graphics-blocked-case-gate-status-owner-approval.md',
-  'docs/tool-route-execution/ai-graphics-scoped-manifest-gate-status-owner-approval.md',
-  'docs/tool-route-execution/ai-graphics-private-artifact-gate-status-owner-approval.md',
-  'docs/tool-route-execution/ai-graphics-fail-closed-gate-status-owner-approval.md',
-  'docs/tool-route-execution/ai-graphics-no-execution-proof-gate-status-owner-approval.md',
-  'docs/tool-route-execution/ai-graphics-worker-handoff-gate-status-owner-approval.md',
-  'docs/tool-route-execution/ai-graphics-dry-run-generated-local-claim-owner-approval.md',
-  'docs/tool-route-execution/ai-graphics-local-fixture-gate-status-owner-approval-blocked-use-register.md',
-  'docs/tool-route-execution/ai-graphics-local-fixture-gate-status-owner-approval-decision.md',
-  'docs/tool-route-execution/ai-graphics-local-fixture-gate-status-owner-approval-next-lane-recommendation.md',
-  'docs/prompt-tool-route-ai-graphics-metadata-local-fixture-gate-status-owner-approval-results.md',
-  'docs/implementation-prompts/prompt-tool-route-ai-graphics-metadata-local-fixture-gate-status-owner-approval.md',
+  'docs/worker-runtime/ai-graphics-metadata-handoff-approval.md',
+  'docs/worker-runtime/ai-graphics-metadata-handoff-source-lockfile.md',
+  'docs/worker-runtime/ai-graphics-worker-intake-matrix.md',
+  'docs/worker-runtime/ai-graphics-worker-job-payload-requirements.md',
+  'docs/worker-runtime/ai-graphics-approved-plan-snapshot-requirements.md',
+  'docs/worker-runtime/ai-graphics-scoped-tool-call-manifest-requirements.md',
+  'docs/worker-runtime/ai-graphics-private-artifact-ref-requirements.md',
+  'docs/worker-runtime/ai-graphics-claim-lease-boundary.md',
+  'docs/worker-runtime/ai-graphics-queue-boundary.md',
+  'docs/worker-runtime/ai-graphics-no-execution-proof-requirements.md',
+  'docs/worker-runtime/ai-graphics-observability-audit-requirements.md',
+  'docs/worker-runtime/ai-graphics-worker-blocked-use-register.md',
+  'docs/worker-runtime/ai-graphics-worker-handoff-approval-decision.md',
+  'docs/worker-runtime/ai-graphics-worker-handoff-next-lane-recommendation.md',
+  'docs/prompt-worker-ai-graphics-metadata-handoff-approval-results.md',
+  'docs/implementation-prompts/prompt-worker-ai-graphics-metadata-handoff-approval.md',
 ]
 
 const requiredTools = [
@@ -48,48 +48,53 @@ const requiredTools = [
   'babylonjs',
 ]
 
-const requiredTrueBooleans = ['ownerApprovedFutureLocalFixtureGateStatusQaAccepted']
+const requiredTrueBooleans = [
+  'workerApprovedFutureMetadataHandoff',
+  'workerApprovedFutureJobPayloadShape',
+  'workerApprovedFuturePlanSnapshotMapping',
+  'workerApprovedFutureScopedManifestMapping',
+  'workerApprovedFuturePrivateArtifactRefs',
+  'workerApprovedFutureObservabilityAudit',
+]
 
 const requiredFalseBooleans = [
-  'ownerApprovedFutureLocalFixtureGateExecution',
-  'ownerApprovedFutureLocalFixtureValidationExecution',
-  'ownerApprovedFutureLocalFixtureExecution',
-  'ownerApprovedFutureRouteExecution',
-  'ownerApprovedFutureActualToolExecution',
-  'ownerApprovedFutureWorkerExecution',
-  'ownerApprovedFutureProviderRuntime',
-  'ownerApprovedFutureBrowserRuntime',
-  'ownerApprovedFutureWebglRuntime',
-  'ownerApprovedFutureCanvasRuntime',
-  'ownerApprovedFutureResvgRasterization',
-  'ownerApprovedFutureRemotionRenderExport',
-  'ownerApprovedFutureSupabaseMutation',
-  'ownerApprovedFutureGcsUpload',
-  'ownerApprovedFuturePublicArtifacts',
-  'ownerApprovedFutureSignedUrls',
-  'ownerApprovedFutureRawPromptExecution',
-  'ownerApprovedFutureInternalBeta',
-  'ownerApprovedFutureExternalBeta',
-  'ownerApprovedFutureProduction',
+  'workerExecutionApprovedNow',
+  'workerJobClaimApprovedNow',
+  'workerLeaseMutationApprovedNow',
+  'queueExecutionApprovedNow',
+  'routeExecutionApprovedNow',
+  'actualToolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserRuntimeApprovedNow',
+  'webglRuntimeApprovedNow',
+  'canvasRuntimeApprovedNow',
+  'resvgRasterizationApprovedNow',
+  'remotionRenderExportApprovedNow',
+  'supabaseMutationApprovedNow',
+  'gcsUploadApprovedNow',
+  'publicArtifactsApproved',
+  'signedUrlsApproved',
+  'rawPromptExecutionApproved',
+  'internalBetaApproved',
+  'externalBetaApproved',
+  'productionApproved',
   'dryRunPassedClaimed',
-  'dryRunPassedClaimAccepted',
   'generatedLocalFixturePassedClaimed',
-  'generatedLocalFixturePassedClaimAccepted',
 ]
 
 const requiredTokens = [
+  'PR #476',
+  '51207f974ea35f6ab4f46b2465110d743ecc36fa',
+  'tool_route_ai_graphics_metadata_local_fixture_gate_status_owner_approved_with_warnings',
   'PR #473',
   'aa34de316565a5f5a3579576d16a064b8467f142',
   'tool_route_ai_graphics_metadata_local_fixture_gate_status_qa_passed_with_warnings',
   'PR #471',
   'd1484a4860b96fc349b6613dc77753b8dcad3dbb',
-  'tool_route_ai_graphics_metadata_local_fixture_gate_status_ready_with_warnings',
   'PR #468',
   'a617420ae197ca983ceb97dc3cd352047ba78e50',
-  'tool_route_ai_graphics_metadata_local_fixture_owner_approved_with_warnings',
   'PR #467',
   'abf3e1ae20f1670d2ca0f9c2ca4b5a8670c0018e',
-  'tool_route_ai_graphics_metadata_local_fixture_validation_qa_passed_with_warnings',
   'PR #464',
   '8b6274f6a17027b5e52eeaf44e0af287d1986a55',
   'tool_route_ai_graphics_metadata_local_fixture_validation_passed_with_warnings',
@@ -104,7 +109,7 @@ const requiredTokens = [
   'PR #404',
   'PR #398',
   'PR #164',
-  'WORKER_AI_GRAPHICS_METADATA_HANDOFF_APPROVAL',
+  'WORKER_AI_GRAPHICS_METADATA_HANDOFF_QA_REVIEW',
   'no write',
   'docs_only',
   'environment touched: `none`',
@@ -116,11 +121,12 @@ const requiredTokens = [
 const forbiddenPatterns = [
   ['snake_dry_run_pass_claim', /\bdry_run_passed\b/i],
   ['snake_generated_fixture_pass_claim', /\bgenerated_local_fixture_passed\b/i],
-  ['local_fixture_validation_execution_claim', /\blocal fixture validation execution\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
-  ['local_fixture_execution_claim', /\b(?:actual )?local fixture execution\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
-  ['route_execution_claim', /\broute execution\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed|readiness)\b/i],
-  ['tool_execution_claim', /\b(?:actual tool execution|tool execution)\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
   ['worker_execution_claim', /\bworker execution\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
+  ['job_claim_claim', /\bjob claim\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
+  ['lease_mutation_claim', /\blease mutation\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
+  ['queue_execution_claim', /\bqueue execution\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
+  ['route_execution_claim', /\broute execution\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
+  ['tool_execution_claim', /\b(?:actual tool execution|tool execution)\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
   ['provider_runtime_claim', /\bprovider\/?model (?:calls?|runtime|execution)\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
   ['browser_webgl_canvas_claim', /\b(?:browser|WebGL|canvas) runtime\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
   ['resvg_claim', /\bresvg rasterization\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
@@ -130,8 +136,8 @@ const forbiddenPatterns = [
   ['signed_url_claim', /\bsigned URLs?\b[^.\n|]*(?:created|enabled|approved now|approved with|true|passed)\b/i],
   ['public_artifact_claim', /\bpublic artifacts?\b[^.\n|]*(?:created|enabled|approved now|approved with|true|passed)\b/i],
   ['raw_prompt_claim', /\braw prompt\b[^.\n|]*(?:executed|enabled|approved now|approved with|true|passed)\b/i],
-  ['beta_claim', /\b(?:internal beta|external beta)\b[^.\n|]*(?:unlocked|enabled|approved now|approved with|true|passed|readiness)\b/i],
-  ['production_claim', /\bproduction\b[^.\n|]*(?:unlocked|enabled|approved now|approved with|true|passed|readiness)\b/i],
+  ['beta_claim', /\b(?:internal beta|external beta)\b[^.\n|]*(?:unlocked|enabled|approved now|approved with|true|passed)\b/i],
+  ['production_claim', /\bproduction\b[^.\n|]*(?:unlocked|enabled|approved now|approved with|true|passed)\b/i],
   ['broad_service_role_claim', /\bbroad service-role handler\b[^.\n|]*(?:enabled|approved|true|passed)\b/i],
   [
     'secret_material',
@@ -170,8 +176,8 @@ function readJson(path) {
 for (const path of requiredDocs) read(path)
 
 const docsText = requiredDocs.map(read).join('\n')
-const decisionDoc = read('docs/tool-route-execution/ai-graphics-local-fixture-gate-status-owner-approval-decision.md')
-const matrixDoc = read('docs/tool-route-execution/ai-graphics-local-fixture-gate-status-owner-approval-matrix.md')
+const decisionDoc = read('docs/worker-runtime/ai-graphics-worker-handoff-approval-decision.md')
+const matrixDoc = read('docs/worker-runtime/ai-graphics-worker-intake-matrix.md')
 
 const decisions = [...docsText.matchAll(/Decision:\s*`([^`]+)`/g)].map((match) => match[1])
 if (!decisions.includes(expectedDecision)) failures.push(`expected_decision_missing:${expectedDecision}`)
@@ -185,18 +191,21 @@ for (const token of requiredTokens) {
 
 for (const tool of requiredTools) {
   const row = matrixDoc.split('\n').find((line) => line.includes(`\`${tool}\``))
-  if (!row) failures.push(`owner_matrix_tool_missing:${tool}`)
+  if (!row) failures.push(`worker_intake_matrix_tool_missing:${tool}`)
   else {
     for (const requiredCell of [
       'accepted_with_warnings',
       '<APPROVED_PLAN_SNAPSHOT_FIXTURE>',
       '<SCOPED_TOOL_CALL_MANIFEST_REF>',
       '<PRIVATE_ARTIFACT_MANIFEST_REF>',
+      '<CHECKSUM_REF>',
+      'no job claim or lease mutation',
+      'no queue execution',
     ]) {
-      if (!row.includes(requiredCell)) failures.push(`owner_matrix_cell_missing:${tool}:${requiredCell}`)
+      if (!row.includes(requiredCell)) failures.push(`worker_intake_matrix_cell_missing:${tool}:${requiredCell}`)
     }
   }
-  if (!docsText.includes(`\`${tool}\``)) failures.push(`tool_missing_from_owner_docs:${tool}`)
+  if (!docsText.includes(`\`${tool}\``)) failures.push(`tool_missing_from_worker_docs:${tool}`)
 }
 
 for (const field of requiredTrueBooleans) {
@@ -213,7 +222,7 @@ const unsafeClaimText = docsText
   .split('\n')
   .filter(
     (line) =>
-      !/\b(?:No|no|not|blocked|unapproved|does not approve|do not approve|must not|remains|remain|stays|false|owner approval|approval only|metadata-only|metadata handoff|static|separately gated|without|warning|warnings|defer|deferred|none|placeholder|required|source evidence|source chain|context only|policy context|not source of truth|review remains|pending|later|future handoff|future lane|future worker|accepted_with_warnings)\b/i.test(
+      !/\b(?:No|no|not|blocked|unapproved|does not approve|do not approve|must not|may not|remains|remain|stays|false|metadata-only|static|separately gated|without|warning|warnings|defer|deferred|none|placeholder|required|source evidence|source chain|context only|policy context|not source of truth|review remains|pending|later|future|planning|accepted_with_warnings|base gap|absent)\b/i.test(
         line,
       ),
   )
@@ -228,13 +237,9 @@ if (/\bdry_run_passed\b/i.test(docsText)) failures.push('forbidden_claim:dry_run
 if (/\bgenerated_local_fixture_passed\b/i.test(docsText)) failures.push('forbidden_claim:generated_local_fixture_passed_token')
 
 const packageJson = readJson('package.json')
-const expectedScript =
-  'node scripts/validation/tool-route-ai-graphics-metadata-local-fixture-gate-status-owner-approval-diagnostics.mjs'
-if (
-  packageJson?.scripts?.['tool-route:ai-graphics-metadata-local-fixture-gate-status-owner-approval:diagnostics'] !==
-  expectedScript
-) {
-  failures.push('missing_package_script:tool-route:ai-graphics-metadata-local-fixture-gate-status-owner-approval:diagnostics')
+const expectedScript = 'node scripts/validation/worker-ai-graphics-metadata-handoff-approval-diagnostics.mjs'
+if (packageJson?.scripts?.['worker:ai-graphics-metadata-handoff-approval:diagnostics'] !== expectedScript) {
+  failures.push('missing_package_script:worker:ai-graphics-metadata-handoff-approval:diagnostics')
 }
 
 const basePackageJson = (() => {
@@ -257,7 +262,6 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
   .filter((line) => !line.includes('worker:ai-graphics-metadata-handoff-approval:diagnostics'))
-  .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-gate-status-owner-approval:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 if (git(['diff', '--name-only', `${baseRef}...HEAD`, '--', 'package-lock.json']).trim()) failures.push('package_lock_changed')
@@ -273,14 +277,14 @@ for (const file of changedFiles) {
   if (/\.(png|jpe?g|webp|gif|mp4|mov|webm|pdf)$/i.test(file)) failures.push(`generated_binary_output_changed:${file}`)
 }
 
-if (!docsText.includes('No local fixture validation execution, actual local fixture execution')) {
+if (!docsText.includes('No worker execution, job claim, lease mutation, queue execution')) {
   failures.push('no_scope_statement_missing')
 }
 
 if (failures.length > 0) {
-  console.error('TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_GATE_STATUS_OWNER_APPROVAL diagnostics failed:')
+  console.error('WORKER_AI_GRAPHICS_METADATA_HANDOFF_APPROVAL diagnostics failed:')
   for (const failure of failures) console.error(`- ${failure}`)
   process.exit(1)
 }
 
-console.log('TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_GATE_STATUS_OWNER_APPROVAL diagnostics passed.')
+console.log('WORKER_AI_GRAPHICS_METADATA_HANDOFF_APPROVAL diagnostics passed.')

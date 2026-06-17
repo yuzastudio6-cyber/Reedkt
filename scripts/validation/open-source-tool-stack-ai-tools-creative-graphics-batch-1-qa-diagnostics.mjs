@@ -32,6 +32,7 @@ const requiredEvidenceDocs = [
   'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-synthetic-fixture-evidence.md',
 ]
 const allowedFutureScriptDiffs = [
+  'worker:ai-graphics-metadata-handoff-approval:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-import-smoke',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-synthetic-fixtures',

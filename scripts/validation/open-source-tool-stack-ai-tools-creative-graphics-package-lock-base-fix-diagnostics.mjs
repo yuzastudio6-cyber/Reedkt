@@ -54,6 +54,7 @@ const approvedBatch3ExecutionDependencyNames = ['animejs', 'three', 'pixi.js', '
 const batch2ExecutionDecision = 'ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings'
 const batch3ExecutionDecision = 'ai_graphics_batch_3_install_import_manifest_proof_passed_with_warnings'
 const allowedFutureScriptDiffs = [
+  'worker:ai-graphics-metadata-handoff-approval:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-import-smoke',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-synthetic-fixtures',

@@ -164,3 +164,15 @@ OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_PACKAGE_AND_BINARY_APPROVAL:
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_PACKAGE_AND_BINARY_EXECUTION`.
 - Real installs, package-lock mutation, import smoke, version probes, fixture proofs, system binary installation, container mutation, tool/route/worker/provider execution, media/audio/render/image/browser/map work, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
 <!-- OPEN_SOURCE_MISSING_OPTIONAL_PACKAGE_BINARY_APPROVAL_STATUS:end -->
+
+<!-- OPEN_SOURCE_MISSING_OPTIONAL_PACKAGE_BINARY_EXECUTION_STATUS:start -->
+OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_PACKAGE_AND_BINARY_EXECUTION:
+
+- Decision: `missing_optional_package_install_passed_import_proof_blocked_by_ignored_scripts`.
+- Approved package command completed with only `duckdb@1.4.4` and `nodejs-polars@0.25.1` added.
+- Polars import/version and tiny in-memory dataframe metadata proof passed.
+- DuckDB import/query proof is blocked by the ignored lifecycle/native binding path; do not run package scripts or postinstall without a separate review.
+- FFmpeg and FFprobe remain missing system binaries and were not installed.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_PACKAGE_INSTALL_SCRIPT_REVIEW`.
+- Real media processing, worker execution, route execution, provider calls, Docker/container mutation, Supabase/GCS mutation, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+<!-- OPEN_SOURCE_MISSING_OPTIONAL_PACKAGE_BINARY_EXECUTION_STATUS:end -->

@@ -1,0 +1,83 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryExecution.decision.v1",
+  "generatedAt": "2026-06-17T15:12:20.527Z",
+  "decision": "missing_optional_package_install_passed_import_proof_blocked_by_ignored_scripts",
+  "readiness": true,
+  "approvedPackageCommand": "npm install duckdb nodejs-polars --save-exact --ignore-scripts --no-audit --no-fund",
+  "approvedPackages": [
+    "duckdb",
+    "nodejs-polars"
+  ],
+  "packageInstallExitCode": 0,
+  "packageInstallStatus": "passed",
+  "packageInstallAttempted": true,
+  "packageLockMutationScoped": true,
+  "packageJsonDependencyMutationScoped": true,
+  "installedPackageTargets": [
+    "polars_metadata_dataframe_proof"
+  ],
+  "missingBinaryTargets": [
+    "ffmpeg_version_probe",
+    "ffprobe_version_probe"
+  ],
+  "passedBinaryTargets": [],
+  "blockers": [
+    "duckdb_blocked_by_ignored_scripts"
+  ],
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_PACKAGE_INSTALL_SCRIPT_REVIEW",
+  "packageInstallAllowedOnlyForApprovedPackages": true,
+  "unapprovedPackageInstallAttempted": false,
+  "systemBinaryInstallAttempted": false,
+  "containerMutationAttempted": false,
+  "mediaProcessingAttempted": false,
+  "routeExecutionAttempted": false,
+  "workerExecutionAttempted": false,
+  "providerCallsAttempted": false,
+  "supabaseWritesAttempted": false,
+  "sqlExecuted": false,
+  "gcsUploadAttempted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "rawPromptsExecuted": false,
+  "betaProductionUnlocked": false,
+  "secretPolicy": {
+    "refsOnly": true,
+    "payloadAccessed": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "executionScope": {
+    "broadToolExecutionAllowed": false,
+    "realToolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "systemBinaryInstallAllowed": false,
+    "containerMutationAllowed": false,
+    "dockerMutationAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryExecution.ffprobe_version_probe.v1",
+  "generatedAt": "2026-06-17T15:12:20.527Z",
+  "targetId": "ffprobe_version_probe",
+  "targetName": "FFprobe",
+  "status": "missing_system_binary",
+  "passed": false,
+  "commandClass": "system_binary_version_only_if_present",
+  "stdoutPreview": "",
+  "stderrPreview": "",
+  "blocker": "missing_system_binary",
+  "installAttempted": false,
+  "systemBinaryInstallAttempted": false,
+  "mediaProcessingAttempted": false,
+  "details": {
+    "privateDataUsed": false,
+    "mediaInputUsed": false,
+    "mediaOutputCreated": false,
+    "networkUsedByProof": false,
+    "supabaseUsed": false,
+    "gcsUsed": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "rawPromptsExecuted": false,
+    "binaryPresent": false,
+    "installAttempted": false,
+    "commandVExitCode": 1
+  }
+}

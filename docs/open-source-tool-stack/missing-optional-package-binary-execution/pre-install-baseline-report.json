@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryExecution.preInstallBaseline.v1",
+  "generatedAt": "2026-06-17T15:12:20.527Z",
+  "command": "npm ci --ignore-scripts --no-audit --no-fund",
+  "npmCiRun": true,
+  "npmCiExitCode": 0,
+  "npmCiStatus": "passed",
+  "stdoutPreview": "added 608 packages in 4s",
+  "stderrPreview": "npm warn deprecated uuid@8.3.2: uuid@10 and below is no longer supported. For ESM codebases, update to uuid@latest. For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028). npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported. For ESM codebases, update to uuid@latest. For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028). npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported. For ESM codebases, update to uuid@latest. For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).",
+  "beforePackageJsonHash": "f3631a89c6f1e922f30cf68b5675af4fc181ddb3f1eeebd761e70a2103b9a2e5",
+  "beforePackageLockHash": "8cf1ab99bdaa1a86f884ea49bdd3db5938d9b2cf9ddac9cafb1efae89aebdb72",
+  "afterPackageJsonHash": "f3631a89c6f1e922f30cf68b5675af4fc181ddb3f1eeebd761e70a2103b9a2e5",
+  "afterPackageLockHash": "8cf1ab99bdaa1a86f884ea49bdd3db5938d9b2cf9ddac9cafb1efae89aebdb72",
+  "sourcePackageJsonHash": "f3631a89c6f1e922f30cf68b5675af4fc181ddb3f1eeebd761e70a2103b9a2e5",
+  "sourcePackageLockHash": "8cf1ab99bdaa1a86f884ea49bdd3db5938d9b2cf9ddac9cafb1efae89aebdb72",
+  "packageJsonChanged": false,
+  "packageLockChanged": false,
+  "nodeModulesCommitted": false,
+  "baselineClean": true,
+  "scriptsIgnored": true,
+  "installAttempted": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

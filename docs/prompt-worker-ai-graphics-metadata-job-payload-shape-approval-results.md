@@ -38,7 +38,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_shape_approved_with_warnings`
 - Changed-file secret scan: pending final run.
 - `package-lock.json`: unchanged.
 - `.local-artifacts/`: not staged and no local artifact outputs were created.
-- PR link/check status: pending PR creation follow-up.
+- PR link/check status: [PR #482](https://github.com/yuzastudio6-cyber/Reedkt/pull/482), open draft, mergeable clean, empty check rollup at head `6e1f08b23cfe892bebb63f6ccadf7ace1d677a09`.
 
 ## Supabase
 

@@ -21,7 +21,7 @@ Create a docs/static-diagnostics-only Worker Runtime approval packet from `origi
 - Branch: `codex/rp-worker-ai-graphics-metadata-job-payload-shape-approval`.
 - Decision: `worker_ai_graphics_metadata_job_payload_shape_approved_with_warnings`.
 - Next lane: `WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_SHAPE_QA_REVIEW`.
-- PR link/check status: pending PR creation follow-up.
+- PR link/check status: [PR #482](https://github.com/yuzastudio6-cyber/Reedkt/pull/482), open draft, mergeable clean, empty check rollup at head `6e1f08b23cfe892bebb63f6ccadf7ace1d677a09`.
 
 ## Scope Boundary
 

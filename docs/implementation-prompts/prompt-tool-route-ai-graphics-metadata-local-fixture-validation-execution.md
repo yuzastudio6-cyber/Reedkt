@@ -26,4 +26,6 @@ Supabase remains `no write` / `docs_only`; environment touched: `none`; SQL exec
 
 No local fixture execution, route execution, actual tool execution, worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.
 
-PR link: pending follow-up commit after draft PR creation.
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/464
+
+PR status after creation: open draft, mergeable clean, empty check rollup.

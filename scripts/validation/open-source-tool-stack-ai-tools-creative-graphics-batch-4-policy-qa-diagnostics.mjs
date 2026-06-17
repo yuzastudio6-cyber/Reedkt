@@ -47,6 +47,7 @@ const allowedFutureScriptDiffs = [
   'tool-route:ai-graphics-metadata-local-fixture-validation-approval:diagnostics',
   'tool-route:ai-graphics-metadata-local-fixture-validation:execute',
   'tool-route:ai-graphics-metadata-local-fixture-validation:diagnostics',
+  'tool-route:ai-graphics-metadata-local-fixture-validation-qa:diagnostics',
 ]
 const requiredTokens = [
   'PR #446',

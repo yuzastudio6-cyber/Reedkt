@@ -231,6 +231,7 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-validation-approval:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-validation:execute'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-validation:diagnostics'))
+  .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-validation-qa:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies', 'overrides']) {
   const current = JSON.stringify(packageJson?.[section] ?? {})

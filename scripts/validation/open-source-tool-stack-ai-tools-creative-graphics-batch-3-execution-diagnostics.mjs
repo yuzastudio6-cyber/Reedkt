@@ -13,6 +13,7 @@ const allowedDecisions = new Set([
   'blocked_batch_3_manifest_fixture_failed',
   'blocked_batch_3_browser_webgl_canvas_runtime_boundary_failed',
   'blocked_batch_3_unrelated_dependency_churn_detected',
+  'approved_with_warnings_for_ai_graphics_batch_4_policy_and_handoff_review',
 ])
 const approvedDependencies = ['animejs', 'three', 'pixi.js', 'konva', 'babylonjs']
 const blockedDependencies = ['@resvg/resvg-js', 'remotion', '@remotion/renderer']

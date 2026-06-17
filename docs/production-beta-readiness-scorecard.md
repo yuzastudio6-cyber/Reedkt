@@ -97,3 +97,14 @@ may be prepared, but browser/WebGL/canvas runtime, route/tool/worker/provider
 runtime, Remotion render/export, resvg rasterization, Supabase mutation,
 GCS/storage transfer, signed URLs, public artifacts, internal beta, external
 beta, paid production, and production remain blocked.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 4 approval decision
+`approved_with_warnings_for_ai_graphics_batch_4_policy_and_handoff_review`
+approves policy and handoff planning only for `@resvg/resvg-js`, SVG raster
+fallbacks, Remotion / Track A handoff requirements, and Batch 1-3
+route-manifest readiness. It does not install dependencies, mutate
+package-lock, run Batch 4 imports or fixtures, approve resvg rasterization,
+approve Remotion render/export, or unlock browser/WebGL/canvas runtime,
+route/tool/worker/provider runtime, Supabase mutation, GCS/storage transfer,
+signed URLs, public artifacts, internal beta, external beta, paid production,
+or production readiness.

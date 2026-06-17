@@ -47,6 +47,12 @@ oldAwkwardCaptionRejected: `true`
 
 Corrected ASS sidecar: `created`
 
+Corrected ASS sidecar SHA-256: `d378e153fe621ec42e77ed5dfe0534622466342a8b3a1171c7185c44feb8bbaa`
+
+Artifact manifest JSON SHA-256: `439c81ab21ee01343d71dbd29108ed83a26ee35b3a8c67f836bd1a5de539c8ca`
+
+QA report JSON SHA-256: `42ad1f55b3fcd9f78cc142745851fbe4d5c7985e19fa9303370432dbe9158f30`
+
 libass burn-in result: `not_run_source_ref_blocked`
 
 Remotion preview result: `not_run_source_ref_blocked`

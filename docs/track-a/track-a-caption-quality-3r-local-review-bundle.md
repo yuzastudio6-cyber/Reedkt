@@ -6,6 +6,16 @@ localBundlePath: `/tmp/reeditpro-tracka-caption-quality-3r/tracka-caption-qualit
 
 correctedAssSidecar: `/tmp/reeditpro-tracka-caption-quality-3r/tracka-caption-quality-3r-20260617T020429/tracka-caption-quality-3r-corrected-caption.ass`
 
+correctedAssSidecarSha256: `d378e153fe621ec42e77ed5dfe0534622466342a8b3a1171c7185c44feb8bbaa`
+
+artifactManifestJson: `/tmp/reeditpro-tracka-caption-quality-3r/tracka-caption-quality-3r-20260617T020429/tracka-caption-quality-3r-artifact-manifest.json`
+
+artifactManifestJsonSha256: `439c81ab21ee01343d71dbd29108ed83a26ee35b3a8c67f836bd1a5de539c8ca`
+
+qaReportJson: `/tmp/reeditpro-tracka-caption-quality-3r/tracka-caption-quality-3r-20260617T020429/tracka-caption-quality-3r-qa-report.json`
+
+qaReportJsonSha256: `42ad1f55b3fcd9f78cc142745851fbe4d5c7985e19fa9303370432dbe9158f30`
+
 correctedCaptionPreview: `not_created`
 
 localReviewBundleVisualFiles: `0`

@@ -11,6 +11,8 @@ Status: `blocked_missing_approved_private_source_ref`
 | `transcript_accuracy_false` | `passed` | transcriptAccuracyClaim remains false. |
 | `old_caption_rejected` | `passed` | Rejected #419 caption text is not written to 3R sidecar/report artifacts. |
 | `corrected_sidecar_checksum` | `passed` | d378e153fe621ec42e77ed5dfe0534622466342a8b3a1171c7185c44feb8bbaa |
+| `artifact_manifest_json_checksum` | `passed` | 439c81ab21ee01343d71dbd29108ed83a26ee35b3a8c67f836bd1a5de539c8ca |
+| `qa_report_json_checksum` | `passed` | 42ad1f55b3fcd9f78cc142745851fbe4d5c7985e19fa9303370432dbe9158f30 |
 | `approved_private_source_ref` | `blocked` | Merged evidence contains old-caption visual samples and private review artifacts, but no clean approved private controlled-test source ref for corrected-caption burn-in. |
 | `no_public_or_signed_artifacts` | `passed` | signedUrlsCreated=false and publicArtifactsCreated=false. |
 | `no_supabase_mutation` | `passed` | Supabase classification remains docs_only; SQL executed none. |

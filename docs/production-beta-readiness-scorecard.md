@@ -209,3 +209,18 @@ worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg
 rasterization, Remotion render/export, Supabase mutation, GCS/storage transfer,
 signed URLs, public artifacts, internal beta, external beta, paid production,
 or production readiness.
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_GATE_STATUS_PACKET decision
+`tool_route_ai_graphics_metadata_local_fixture_gate_status_ready_with_warnings`
+records gate status for the PR #468 owner-approved metadata local fixture lane.
+It sets `localFixtureGateStatusReady` and
+`localFixtureGateStatusReadyWithWarnings` to true while keeping
+`dryRunPassedClaimed` and `generatedLocalFixturePassedClaimed` false. The next
+recommended lane is
+`TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_GATE_STATUS_QA_REVIEW`; local
+fixture validation execution, actual local fixture execution, route execution,
+actual tool execution, worker execution, provider/model runtime,
+browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export,
+Supabase mutation, GCS/storage transfer, signed URLs, public artifacts,
+internal beta, external beta, paid production, and production readiness remain
+blocked.

@@ -37,8 +37,8 @@ Decision: `approved_with_warnings_for_ai_graphics_route_manifest_integration`
 | lint/typecheck/build | `passed`: `npm run lint`, `npm run typecheck:server`, `npx tsc -b`, `npm run build`, and `npm run build:server`. |
 | changed-file secret scan | `passed` across 20 changed/untracked files. |
 | package-lock / artifact staging review | `passed`; `package-lock.json` unchanged and `.local-artifacts/` not tracked. |
-| PR link | `pending` |
-| GitHub checks | `pending` |
+| PR link | [#451](https://github.com/yuzastudio6-cyber/Reedkt/pull/451). |
+| GitHub checks | empty check rollup at PR creation; PR is draft/open/mergeable clean at `a4aab7aab45e84892753dc7bbda2b8adce084d7d`. |
 
 ## Supabase Classification
 

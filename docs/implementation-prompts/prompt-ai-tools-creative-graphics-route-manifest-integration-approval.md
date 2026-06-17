@@ -18,9 +18,10 @@ Create a docs/static-diagnostics-only approval packet after Batch 4 policy QA to
 ## PR Metadata
 
 - Branch: `codex/rp-ai-tools-creative-graphics-route-manifest-integration-approval`
-- PR: `pending`
+- PR: [#451](https://github.com/yuzastudio6-cyber/Reedkt/pull/451)
 - Draft: `true`
 - Base: `codex/rp-ai-tools-creative-graphics-batch-4-policy-qa-review`
+- GitHub status at creation: `OPEN`, draft, mergeable clean, empty check rollup.
 
 ## Supabase Classification
 

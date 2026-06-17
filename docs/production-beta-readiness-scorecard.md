@@ -188,3 +188,14 @@ provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization,
 Remotion render/export, Supabase mutation, GCS/storage transfer, signed URLs,
 public artifacts, internal beta, external beta, paid production, or production
 readiness.
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_QA_REVIEW decision
+`tool_route_ai_graphics_metadata_local_fixture_validation_qa_passed_with_warnings`
+accepts PR #464 static validation evidence with warnings for all 13 accepted
+AI graphics tools. It recommends
+`TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_OWNER_APPROVAL` next. It does
+not approve local fixture execution, route execution, actual tool execution,
+worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg
+rasterization, Remotion render/export, Supabase mutation, GCS/storage transfer,
+signed URLs, public artifacts, internal beta, external beta, paid production,
+or production readiness.

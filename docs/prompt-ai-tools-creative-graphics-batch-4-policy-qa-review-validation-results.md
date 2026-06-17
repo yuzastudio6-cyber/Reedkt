@@ -35,8 +35,8 @@ Decision: `ai_graphics_batch_4_policy_qa_passed_with_warnings`
 | lint/typecheck/build | `passed`: `npm run lint`, `npm run typecheck:server`, `npx tsc -b`, `npm run build`, and `npm run build:server`. |
 | changed-file secret scan | `passed`; broad scan found only expected regex literals/`mask-*` false positives, refined changed-file scan passed across 17 changed/untracked files. |
 | package-lock / artifact staging review | `passed`; `package-lock.json` unchanged and `.local-artifacts/` not tracked. |
-| PR link | `pending` |
-| GitHub checks | `pending` |
+| PR link | [#449](https://github.com/yuzastudio6-cyber/Reedkt/pull/449). |
+| GitHub checks | empty check rollup at PR creation; PR is draft/open/mergeable clean at `997aebcebbfcc7fe04b488c53aa3e217a654f4e6`. |
 
 ## Base Gaps
 

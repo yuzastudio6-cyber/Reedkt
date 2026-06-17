@@ -15,9 +15,10 @@ Create a QA/review-only branch from `origin/codex/rp-ai-tools-creative-graphics-
 ## PR Metadata
 
 - Branch: `codex/rp-ai-tools-creative-graphics-batch-4-policy-qa-review`
-- PR: `pending`
+- PR: [#449](https://github.com/yuzastudio6-cyber/Reedkt/pull/449)
 - Draft: `true`
 - Base: `codex/rp-ai-tools-creative-graphics-batch-4-approval-packet`
+- GitHub status at creation: `OPEN`, draft, mergeable clean, empty check rollup.
 
 ## Supabase Classification
 

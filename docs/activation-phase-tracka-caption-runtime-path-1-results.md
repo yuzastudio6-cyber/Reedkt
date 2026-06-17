@@ -8,17 +8,25 @@ Base: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibratio
 
 Patch type: Track A caption burn-in runtime path resolution.
 
-Run ID: `tracka-caption-runtime-path-1r2-20260617T201136`
+Run ID: `tracka-caption-runtime-path-1r3-20260617T203338`
 
-Execution: `blocked_homebrew_ffmpeg_lacks_libass_filter_support`
+Implementation phase: `TRACKA-CAPTION-RUNTIME-PATH-1R3`
 
-Runtime path status: `blocked_homebrew_ffmpeg_lacks_libass_filter_support`
+Execution: `blocked_runtime_image_build_failed`
+
+Runtime path status: `blocked_runtime_image_build_failed`
 
 Approved runtime path: `none`
 
 Provisioning: `not_needed`
 
-Libass repair: `completed_homebrew_ffmpeg_libass_repair`
+Libass repair: `not_needed`
+
+Repo-owned Docker runtime: `blocked_runtime_image_build_failed`
+
+Repo-owned Dockerfile: `docker/prod/render-worker/Dockerfile`
+
+Repo-owned image tag: `reeditpro-tracka-caption-runtime-path-1r3:local`
 
 ## Source-Of-Truth Audit
 
@@ -31,34 +39,46 @@ Libass repair: `completed_homebrew_ffmpeg_libass_repair`
 
 ## Candidate Runtime Path Matrix
 
-- local_ffmpeg_libass_runtime_path: `blocked_homebrew_ffmpeg_lacks_libass_filter_support`
+- local_ffmpeg_libass_runtime_path: `blocked_runtime_image_build_failed`
 - host_homebrew_ffmpeg_runtime_path: `not_needed`
-- homebrew_core_ffmpeg_libass_repair_path: `completed_homebrew_ffmpeg_libass_repair`
+- homebrew_core_ffmpeg_libass_repair_path: `not_needed`
+- repo_owned_tracka_libass_runtime_path: `blocked_runtime_image_build_failed`
+- repo_owned_tool_readiness_metadata_path: `supporting_metadata_only_not_burnin_approval`
 - existing_tracka_caption_burnin_activation_module: `available_for_future_guarded_execution_only`
 - remotion_preview_runtime_path: `optional_not_required`
-- docker_cloudrun_runtime_path: `blocked_no_build_no_deploy`
-- missing_runtime_path: `blocked_homebrew_ffmpeg_lacks_libass_filter_support`
+- docker_cloudrun_runtime_path: `blocked_no_push_no_deploy`
+- missing_runtime_path: `blocked_runtime_image_build_failed`
 
 ## Metadata Check
 
 | field | value |
 | --- | --- |
-| execution | `blocked_homebrew_ffmpeg_lacks_libass_filter_support` |
-| runtimePathStatus | `blocked_homebrew_ffmpeg_lacks_libass_filter_support` |
+| execution | `blocked_runtime_image_build_failed` |
+| runtimePathStatus | `blocked_runtime_image_build_failed` |
 | approvedRuntimePath | `none` |
 | metadataCheck | `blocked` |
-| blocker | `blocked_homebrew_ffmpeg_lacks_libass_filter_support` |
+| blocker | `blocked_runtime_image_build_failed` |
 | runtimePathConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true` |
-| provisioningConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PROVISIONING=true` |
+| provisioningConfirmation | `absent_or_not_true` |
 | provisioningStatus | `not_needed` |
 | provisioningAttempted | `false` |
 | provisioningPackageManager | `none` |
 | provisioningFailureSummary | `none` |
-| libassRepairConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_FFMPEG_LIBASS_REPAIR=true` |
-| libassRepairStatus | `completed_homebrew_ffmpeg_libass_repair` |
-| libassRepairAttempted | `true` |
-| libassRepairPackageManager | `homebrew` |
+| libassRepairConfirmation | `absent_or_not_true` |
+| libassRepairStatus | `not_needed` |
+| libassRepairAttempted | `false` |
+| libassRepairPackageManager | `none` |
 | libassRepairFailureSummary | `none` |
+| imageReuseConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_REUSE=true` |
+| imageBuildConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD=true` |
+| dockerRuntimeStatus | `blocked_runtime_image_build_failed` |
+| dockerRuntimeBlocker | `blocked_runtime_image_build_failed` |
+| dockerRuntimeDockerfile | `docker/prod/render-worker/Dockerfile` |
+| dockerRuntimeSupportingDockerfile | `docker/prod/tool-readiness-worker/Dockerfile` |
+| dockerRuntimeImageTag | `reeditpro-tracka-caption-runtime-path-1r3:local` |
+| dockerRuntimeBuildStatus | `blocked_runtime_image_build_failed` |
+| dockerRuntimeBuildArtifactsStatus | `passed` |
+| dockerRuntimeBuildArtifactsBlocker | `none` |
 | ffmpegPath | `/opt/homebrew/bin/ffmpeg` |
 | ffprobePath | `/opt/homebrew/bin/ffprobe` |
 | ffmpegVersion | `ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers` |
@@ -104,7 +124,7 @@ Future execution confirmation: `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDA
 - SQL executed: none
 - Migration deployed: no
 - Evidence docs: TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 docs packet
-- Blockers: `blocked_homebrew_ffmpeg_lacks_libass_filter_support`
+- Blockers: `blocked_runtime_image_build_failed`
 - Next Supabase action: none
 
 ## Cross-Chat Impact
@@ -118,4 +138,4 @@ Future execution confirmation: `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDA
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level Homebrew FFmpeg/FFprobe/libass provisioning were allowed; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.

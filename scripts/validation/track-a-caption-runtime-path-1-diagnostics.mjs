@@ -16,6 +16,7 @@ const requiredFiles = [
 
 const requiredTokens = [
   'TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1',
+  'TRACKA-CAPTION-RUNTIME-PATH-1R3',
   '#459',
   '1a52c5a604b175bbd95c8e96294d963636ee8db0',
   '#452',
@@ -30,7 +31,14 @@ const requiredTokens = [
   'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true',
   'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PROVISIONING=true',
   'REEDITPRO_CONFIRM_TRACKA_CAPTION_FFMPEG_LIBASS_REPAIR=true',
+  'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_REUSE=true',
+  'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD=true',
   'local_ffmpeg_libass_runtime_path',
+  'repo_owned_ffmpeg_libass_runtime_path',
+  'repo_owned_tracka_libass_runtime_path',
+  'repo_owned_tool_readiness_metadata_path',
+  'docker/prod/render-worker/Dockerfile',
+  'docker/prod/tool-readiness-worker/Dockerfile',
   'host_homebrew_ffmpeg_runtime_path',
   'homebrew_core_ffmpeg_libass_repair_path',
   'existing_tracka_caption_burnin_activation_module',
@@ -44,8 +52,11 @@ const requiredTokens = [
   'Internal beta readiness: `blocked_pending_caption_burnin_visual_review_and_scope_decision`',
   'provisioningStatus',
   'libassRepairStatus',
+  'dockerRuntimeStatus',
+  'dockerRuntimeDockerfile',
+  'dockerRuntimeImageTag',
   'packageLockChanged',
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level Homebrew FFmpeg/FFprobe/libass provisioning were allowed; no media input or output was used.',
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.',
 ]
 
 function fail(message) {
@@ -68,7 +79,9 @@ for (const token of requiredTokens) {
   if (!docsText.includes(token)) fail(`missing required token: ${token}`)
 }
 
-const approved = /runtimePathStatus:\s*`approved_local_ffmpeg_libass_metadata_only`/i.test(docsText)
+const approvedLocal = /runtimePathStatus:\s*`approved_local_ffmpeg_libass_metadata_only`/i.test(docsText)
+const approvedRepoOwned = /runtimePathStatus:\s*`approved_repo_owned_ffmpeg_libass_metadata_only`/i.test(docsText)
+const approved = approvedLocal || approvedRepoOwned
 const blockedMissing = /runtimePathStatus:\s*`blocked_missing_local_ffmpeg_libass_runtime`/i.test(docsText)
 const blockedPending = /runtimePathStatus:\s*`blocked_pending_confirmation`/i.test(docsText)
 const blockedProvisioning = /runtimePathStatus:\s*`blocked_runtime_provisioning_failed`/i.test(docsText)
@@ -79,6 +92,11 @@ const blockedFilters = /runtimePathStatus:\s*`blocked_ffmpeg_missing_ass_subtitl
 const blockedHomebrewNoLibass = /runtimePathStatus:\s*`blocked_homebrew_ffmpeg_lacks_libass_filter_support`/i.test(docsText)
 const blockedLibassRepairFailed = /runtimePathStatus:\s*`blocked_ffmpeg_libass_repair_failed`/i.test(docsText)
 const blockedNoHomebrewRepair = /runtimePathStatus:\s*`blocked_no_supported_homebrew_runtime_repair_path`/i.test(docsText)
+const blockedNoRepoOwnedRuntime = /runtimePathStatus:\s*`blocked_no_repo_owned_ffmpeg_libass_runtime_path`/i.test(docsText)
+const blockedRuntimeImageBuildConfirmation = /runtimePathStatus:\s*`blocked_runtime_image_build_confirmation_absent`/i.test(docsText)
+const blockedRepoOwnedMissingFilters = /runtimePathStatus:\s*`blocked_repo_owned_runtime_image_missing_ass_subtitles_filter`/i.test(docsText)
+const blockedRuntimeImageBuildFailed = /runtimePathStatus:\s*`blocked_runtime_image_build_failed`/i.test(docsText)
+const blockedNoApprovedRuntime = /runtimePathStatus:\s*`blocked_no_approved_caption_burnin_runtime_available`/i.test(docsText)
 
 if (
   !approved &&
@@ -91,12 +109,17 @@ if (
   !blockedFilters &&
   !blockedHomebrewNoLibass &&
   !blockedLibassRepairFailed &&
-  !blockedNoHomebrewRepair
+  !blockedNoHomebrewRepair &&
+  !blockedNoRepoOwnedRuntime &&
+  !blockedRuntimeImageBuildConfirmation &&
+  !blockedRepoOwnedMissingFilters &&
+  !blockedRuntimeImageBuildFailed &&
+  !blockedNoApprovedRuntime
 ) {
   fail('missing approved or explicit blocked runtime path status')
 }
 
-if (approved) {
+if (approvedLocal) {
   const approvedPatterns = [
     /execution(?:\s*\||:)\s*`completed_runtime_path_metadata_approval`/i,
     /approvedRuntimePath(?:\s*\||:)\s*`local_ffmpeg_libass_runtime_path`/i,
@@ -104,6 +127,18 @@ if (approved) {
   ]
   for (const pattern of approvedPatterns) {
     if (!pattern.test(docsText)) fail(`missing approved-state pattern: ${pattern}`)
+  }
+}
+
+if (approvedRepoOwned) {
+  const approvedPatterns = [
+    /execution(?:\s*\||:)\s*`completed_runtime_path_metadata_approval`/i,
+    /approvedRuntimePath(?:\s*\||:)\s*`repo_owned_ffmpeg_libass_runtime_path`/i,
+    /TRACKA-CAPTION-QUALITY-3R3 readiness:\s*`ready_for_guarded_burnin_execution_with_approved_ffmpeg_libass_runtime`/i,
+    /dockerRuntimeStatus(?:\s*\||:)\s*`approved_repo_owned_ffmpeg_libass_metadata_only`/i,
+  ]
+  for (const pattern of approvedPatterns) {
+    if (!pattern.test(docsText)) fail(`missing repo-owned approved-state pattern: ${pattern}`)
   }
 }
 
@@ -116,7 +151,12 @@ if (
   blockedFilters ||
   blockedHomebrewNoLibass ||
   blockedLibassRepairFailed ||
-  blockedNoHomebrewRepair
+  blockedNoHomebrewRepair ||
+  blockedNoRepoOwnedRuntime ||
+  blockedRuntimeImageBuildConfirmation ||
+  blockedRepoOwnedMissingFilters ||
+  blockedRuntimeImageBuildFailed ||
+  blockedNoApprovedRuntime
 ) {
   const blockedPatterns = [
     /execution(?:\s*\||:)\s*`blocked_[^`]+`/i,
@@ -174,7 +214,9 @@ console.log(
       phase: 'TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1',
       requiredFiles: requiredFiles.length,
       runtimePathStatus: approved
-        ? 'approved_local_ffmpeg_libass_metadata_only'
+        ? approvedRepoOwned
+          ? 'approved_repo_owned_ffmpeg_libass_metadata_only'
+          : 'approved_local_ffmpeg_libass_metadata_only'
         : blockedMissing
           ? 'blocked_missing_local_ffmpeg_libass_runtime'
           : blockedProvisioning
@@ -193,7 +235,17 @@ console.log(
                         ? 'blocked_ffmpeg_libass_repair_failed'
                         : blockedNoHomebrewRepair
                           ? 'blocked_no_supported_homebrew_runtime_repair_path'
-                          : 'blocked_pending_confirmation',
+                          : blockedNoRepoOwnedRuntime
+                            ? 'blocked_no_repo_owned_ffmpeg_libass_runtime_path'
+                            : blockedRuntimeImageBuildConfirmation
+                              ? 'blocked_runtime_image_build_confirmation_absent'
+                              : blockedRepoOwnedMissingFilters
+                                ? 'blocked_repo_owned_runtime_image_missing_ass_subtitles_filter'
+                                : blockedRuntimeImageBuildFailed
+                                  ? 'blocked_runtime_image_build_failed'
+                                  : blockedNoApprovedRuntime
+                                    ? 'blocked_no_approved_caption_burnin_runtime_available'
+                                    : 'blocked_pending_confirmation',
       noBurnInExecution: true,
       noMediaInputOutput: true,
       noGcsAccess: true,

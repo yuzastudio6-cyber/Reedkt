@@ -2,25 +2,29 @@
 
 ## Summary
 
-Run only after TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 records `runtimePathStatus: approved_local_ffmpeg_libass_metadata_only` and `approvedRuntimePath: local_ffmpeg_libass_runtime_path`.
+Run only after TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 records an approved runtime path, either `runtimePathStatus: approved_local_ffmpeg_libass_metadata_only` with `approvedRuntimePath: local_ffmpeg_libass_runtime_path` or `runtimePathStatus: approved_repo_owned_ffmpeg_libass_metadata_only` with `approvedRuntimePath: repo_owned_ffmpeg_libass_runtime_path`.
 
 ## Required Inputs
 
 - #426 approved controlled-test caption copy.
 - #452 approved private source ref: `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`.
 - #459 corrected ASS sidecar evidence and source-ref wiring.
-- TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 metadata approval for local FFmpeg/FFprobe ASS/subtitles support.
+- TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 metadata approval for local host FFmpeg/FFprobe ASS/subtitles support or repo-owned render-worker Docker FFmpeg/FFprobe ASS/subtitles support.
 - explicit future execution confirmation: `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true`.
 
 ## Current Runtime Path Status
 
-runtimePathStatus: `blocked_homebrew_ffmpeg_lacks_libass_filter_support`
+runtimePathStatus: `blocked_runtime_image_build_failed`
 
 approvedRuntimePath: `none`
 
 provisioningStatus: `not_needed`
 
-libassRepairStatus: `completed_homebrew_ffmpeg_libass_repair`
+libassRepairStatus: `not_needed`
+
+dockerRuntimeStatus: `blocked_runtime_image_build_failed`
+
+dockerRuntimeDockerfile: `docker/prod/render-worker/Dockerfile`
 
 ## Blocked Unless
 
@@ -47,4 +51,4 @@ libassRepairStatus: `completed_homebrew_ffmpeg_libass_repair`
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level Homebrew FFmpeg/FFprobe/libass provisioning were allowed; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.

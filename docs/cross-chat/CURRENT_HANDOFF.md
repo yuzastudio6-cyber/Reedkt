@@ -144,3 +144,14 @@ TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION QA review:
 - Future-only approvals remain limited to Tool Route metadata registry intake and scoped tool-call manifest intake.
 - Real route/tool/worker/provider/browser/WebGL/canvas/Supabase/GCS/public/signed URL/beta/production scopes remain blocked.
 - Next prompt: `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_PLAN`.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_PLAN_STATUS -->
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_PLAN:
+
+- Decision: `approved_with_warnings_for_tool_route_ai_graphics_metadata_local_fixture_plan`.
+- Source evidence: PR #457 / Tool Route AI graphics metadata integration QA at `add9d8bb74afd697e281726d7434c1a200b58b48`.
+- Fixture planning covers all 13 accepted AI graphics tools with valid, invalid, and blocked metadata-only case ids.
+- Future-only approvals remain limited to local fixture planning, future local fixture validation approval, scoped manifest fixture planning, and Worker Runtime handoff review planning.
+- Real local fixture execution, route/tool/worker/provider/browser/WebGL/canvas/Supabase/GCS/public/signed URL/beta/production scopes remain blocked.
+- Next prompt: `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_APPROVAL`.

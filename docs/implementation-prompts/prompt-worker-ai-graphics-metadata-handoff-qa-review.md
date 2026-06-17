@@ -20,7 +20,7 @@ Create a QA/review-only Worker Runtime handoff packet from `origin/codex/rp-work
 - Branch: `codex/rp-worker-ai-graphics-metadata-handoff-qa-review`.
 - Decision: `worker_ai_graphics_metadata_handoff_qa_passed_with_warnings`.
 - Next lane: `WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_SHAPE_APPROVAL`.
-- PR link/check status: pending PR creation follow-up.
+- PR link/check status: [PR #480](https://github.com/yuzastudio6-cyber/Reedkt/pull/480), open draft, mergeable clean, empty check rollup at head `0a5d96738b2c72234ffd665d4fabd57bc6c3ddd8`.
 
 ## Scope Boundary
 

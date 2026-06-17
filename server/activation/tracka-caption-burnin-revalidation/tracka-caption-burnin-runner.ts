@@ -4,16 +4,22 @@ import { existsSync, readFileSync, statSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import {
+  TRACKA_CAPTION_APPROVED_RUNTIME,
   TRACKA_CAPTION_APPROVED_SOURCE_METADATA,
   TRACKA_CAPTION_APPROVED_SOURCE_REF,
+  TRACKA_CAPTION_BURNIN_CONFIRM_ENV,
   TRACKA_CAPTION_BURNIN_CORRECTED_LINES,
   TRACKA_CAPTION_BURNIN_LOCAL_ROOT,
   TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT,
   TRACKA_CAPTION_BURNIN_PHASE,
   TRACKA_CAPTION_BURNIN_REJECTED_TEXT,
   TRACKA_CAPTION_BURNIN_SOURCE_CHAIN,
+  TRACKA_CAPTION_RUNTIME_IMAGE_BUILD_CONFIRM_ENV,
+  TRACKA_CAPTION_SOURCE_GCS_READ_CONFIRM_ENV,
   getTrackaCaptionBurninRunId,
   isTrackaCaptionBurninConfirmed,
+  isTrackaCaptionRuntimeImageBuildConfirmed,
+  isTrackaCaptionSourceGcsReadConfirmed,
 } from './tracka-caption-burnin-policy'
 import type {
   TrackaCaptionBurninApprovedSourceRef,
@@ -27,6 +33,13 @@ import type {
   TrackaCaptionBurninSummary,
 } from './tracka-caption-burnin-types'
 
+interface CommandResult {
+  status: 'passed' | 'failed'
+  exitCode: number | null
+  stdout: string
+  stderr: string
+}
+
 function sha256Text(value: string): string {
   return createHash('sha256').update(value).digest('hex')
 }
@@ -39,9 +52,27 @@ function readOptional(filePath: string): string {
   return existsSync(filePath) ? readFileSync(filePath, 'utf8') : ''
 }
 
-function commandPath(command: string): string {
-  const result = spawnSync('sh', ['-lc', `command -v ${command} || true`], { encoding: 'utf8' })
-  return result.stdout.trim() || 'not_found'
+function runCommand(command: string, args: string[], cwd = process.cwd()): CommandResult {
+  const result = spawnSync(command, args, {
+    cwd,
+    encoding: 'utf8',
+    maxBuffer: 20 * 1024 * 1024,
+  })
+  const exitCode = result.status ?? null
+  return {
+    status: exitCode === 0 ? 'passed' : 'failed',
+    exitCode,
+    stdout: result.stdout ?? '',
+    stderr: result.stderr ?? result.error?.message ?? '',
+  }
+}
+
+function compactOutput(value: string): string {
+  return value.replace(/\s+/g, ' ').trim().slice(0, 1200) || 'none'
+}
+
+function dockerArgsFor(filePath: string): string[] {
+  return ['run', '--rm', '-v', `${filePath}:/work`, TRACKA_CAPTION_APPROVED_RUNTIME.imageTag]
 }
 
 export function buildCorrectedAssSidecar(): string {
@@ -54,7 +85,7 @@ export function buildCorrectedAssSidecar(): string {
   }).join('\n')
 
   const ass = `[Script Info]
-Title: TRACKA-CAPTION-QUALITY-3R2 Corrected Controlled Test Captions
+Title: TRACKA-CAPTION-QUALITY-3R3 Corrected Controlled Test Captions
 ScriptType: v4.00+
 WrapStyle: 0
 ScaledBorderAndShadow: yes
@@ -79,9 +110,15 @@ function buildSourceAudit(): TrackaCaptionBurninSourceAudit {
   const approvedCaptionManifestPath = 'docs/track-a/track-a-caption-quality-3-approved-caption-input-manifest.md'
   const executionPacketPath = 'docs/track-a/track-a-caption-quality-3-execution-result.md'
   const sourceRefPath = 'docs/track-a/track-a-caption-source-ref-1.md'
+  const runtimePathEvidencePath = TRACKA_CAPTION_APPROVED_RUNTIME.metadataEvidencePath
   const approvedCaptionManifest = readOptional(approvedCaptionManifestPath)
   const executionPacket = readOptional(executionPacketPath)
   const sourceRefDoc = readOptional(sourceRefPath)
+  const runtimeDoc = [
+    readOptional(runtimePathEvidencePath),
+    readOptional('docs/track-a/track-a-caption-runtime-path-next-phase-plan.md'),
+    readOptional('docs/track-a/track-a-caption-quality-3r2-runtime-path-1.md'),
+  ].join('\n')
   const activeBlockers: string[] = []
 
   for (const line of TRACKA_CAPTION_BURNIN_CORRECTED_LINES) {
@@ -107,6 +144,18 @@ function buildSourceAudit(): TrackaCaptionBurninSourceAudit {
   for (const value of Object.values(TRACKA_CAPTION_APPROVED_SOURCE_METADATA)) {
     if (!sourceRefDoc.includes(value)) activeBlockers.push(`missing_source_ref_metadata:${value}`)
   }
+  for (const token of [
+    TRACKA_CAPTION_APPROVED_RUNTIME.status,
+    TRACKA_CAPTION_APPROVED_RUNTIME.approvedRuntimePath,
+    TRACKA_CAPTION_APPROVED_RUNTIME.dockerfile,
+    TRACKA_CAPTION_APPROVED_RUNTIME.imageTag,
+    'assFilterPresent | `true`',
+    'subtitlesFilterPresent | `true`',
+    'libassIndicated | `true`',
+    'TRACKA-CAPTION-QUALITY-3R3 readiness: `ready_for_guarded_burnin_execution_with_approved_ffmpeg_libass_runtime`',
+  ]) {
+    if (!runtimeDoc.includes(token)) activeBlockers.push(`missing_runtime_path_metadata:${token}`)
+  }
 
   return {
     status: activeBlockers.length > 0 ? 'blocked' : 'passed',
@@ -115,7 +164,9 @@ function buildSourceAudit(): TrackaCaptionBurninSourceAudit {
     approvedCaptionSourcePath: approvedCaptionManifestPath,
     executionPacketPath,
     sourceRefPath,
+    runtimePathEvidencePath,
     sourceRefApproved: activeBlockers.every((blocker) => !blocker.includes('source_ref')),
+    runtimePathApproved: activeBlockers.every((blocker) => !blocker.includes('runtime_path_metadata')),
     oldCaptionRejected: true,
     activeBlockers,
   }
@@ -133,45 +184,119 @@ function buildApprovedSourceRef(sourceAudit: TrackaCaptionBurninSourceAudit): Tr
   }
 }
 
-function resolveRuntimePath(approvedSourceRef: TrackaCaptionBurninApprovedSourceRef): TrackaCaptionBurninRuntimeResolution {
-  const localFfmpegPath = commandPath('ffmpeg')
-  const localFfprobePath = commandPath('ffprobe')
+function inspectOrBuildRuntimeImage(input: {
+  execute: boolean
+  approvedSourceRef: TrackaCaptionBurninApprovedSourceRef
+  sourceAudit: TrackaCaptionBurninSourceAudit
+}): TrackaCaptionBurninRuntimeResolution {
   const evidencePaths = [
+    TRACKA_CAPTION_APPROVED_RUNTIME.metadataEvidencePath,
+    'docs/track-a/track-a-caption-runtime-path-approval-contract.md',
     'docs/track-a/track-a-caption-quality-3-command-plan.md',
     'docs/track-a/track-a-caption-quality-3-libass-burnin-execution-contract.md',
     'docs/track-a/track-a-caption-quality-3-ffmpeg-ffprobe-validation-contract.md',
-    'docs/track-a/track-a-caption-source-ref-approval-contract.md',
   ]
 
-  if (!approvedSourceRef.sourceRefApproved) {
-    return {
-      approvedPrivateSourceRefFound: false,
-      approvedRuntimePathFound: false,
-      localFfmpegPath,
-      localFfprobePath,
-      attemptedGcsAccess: false,
-      attemptedFfmpeg: false,
-      attemptedFfprobe: false,
-      attemptedRemotion: false,
-      blocker: 'blocked_missing_approved_private_source_ref',
-      rejectedCandidateReason: 'The approved #452 source ref evidence was not present or did not match the exact Phase 32 private object contract.',
-      evidencePaths,
-    }
-  }
-
-  return {
-    approvedPrivateSourceRefFound: true,
-    approvedRuntimePathFound: false,
-    localFfmpegPath,
-    localFfprobePath,
+  const base: TrackaCaptionBurninRuntimeResolution = {
+    approvedPrivateSourceRefFound: input.approvedSourceRef.sourceRefApproved,
+    approvedRuntimePathFound: input.sourceAudit.runtimePathApproved,
+    approvedRuntimePath: TRACKA_CAPTION_APPROVED_RUNTIME.approvedRuntimePath,
+    runtimeSourceProvenance: TRACKA_CAPTION_APPROVED_RUNTIME.dockerfile,
+    runtimeImageTag: TRACKA_CAPTION_APPROVED_RUNTIME.imageTag,
+    ffmpegPath: TRACKA_CAPTION_APPROVED_RUNTIME.ffmpegPath,
+    ffprobePath: TRACKA_CAPTION_APPROVED_RUNTIME.ffprobePath,
+    assFilterPresent: TRACKA_CAPTION_APPROVED_RUNTIME.assFilterPresent,
+    subtitlesFilterPresent: TRACKA_CAPTION_APPROVED_RUNTIME.subtitlesFilterPresent,
+    libassIndicated: TRACKA_CAPTION_APPROVED_RUNTIME.libassIndicated,
+    dockerImageAvailable: false,
+    dockerImageBuildAttempted: false,
+    dockerImageBuildStatus: 'not_attempted',
     attemptedGcsAccess: false,
     attemptedFfmpeg: false,
     attemptedFfprobe: false,
     attemptedRemotion: false,
-    blocker: 'blocked_missing_approved_caption_burnin_runtime_path',
-    rejectedCandidateReason:
-      'The #452 source ref is approved, but this branch has no approved local caption burn-in runtime path. No FFmpeg, FFprobe, libass, Remotion, media processing, or GCS copy was run.',
+    blocker: 'none',
+    rejectedCandidateReason: 'Repo-owned render-worker Docker FFmpeg/libass runtime path is approved by #463 metadata.',
     evidencePaths,
+  }
+
+  if (!input.approvedSourceRef.sourceRefApproved) {
+    return {
+      ...base,
+      approvedRuntimePathFound: false,
+      blocker: 'blocked_missing_approved_private_source_ref',
+      rejectedCandidateReason: 'The approved #452 source ref evidence was not present or did not match the exact Phase 32 private object contract.',
+    }
+  }
+
+  if (!input.sourceAudit.runtimePathApproved) {
+    return {
+      ...base,
+      blocker: 'blocked_missing_approved_caption_burnin_runtime_path',
+      rejectedCandidateReason: 'The approved #463 repo-owned Docker FFmpeg/libass runtime metadata was not present on the source branch.',
+    }
+  }
+
+  if (!input.execute) return { ...base, dockerImageBuildStatus: 'not_needed' }
+
+  const inspectBefore = runCommand('docker', ['image', 'inspect', TRACKA_CAPTION_APPROVED_RUNTIME.imageTag])
+  if (inspectBefore.status === 'passed') {
+    return { ...base, dockerImageAvailable: true, dockerImageBuildStatus: 'not_needed' }
+  }
+
+  if (!isTrackaCaptionRuntimeImageBuildConfirmed()) {
+    return {
+      ...base,
+      dockerImageBuildStatus: 'not_attempted',
+      blocker: 'blocked_approved_runtime_image_failed',
+      rejectedCandidateReason: `${TRACKA_CAPTION_APPROVED_RUNTIME.imageTag} is not locally available and ${TRACKA_CAPTION_RUNTIME_IMAGE_BUILD_CONFIRM_ENV}=true was not provided.`,
+    }
+  }
+
+  const requiredBuildArtifacts = [
+    { path: 'dist-server', script: 'build:server' },
+    { path: 'dist-remotion-worker', script: 'build:remotion-worker:mock' },
+    { path: 'dist-staging-fixture-worker', script: 'build:staging-fixture-worker' },
+    { path: 'dist-staging-real-video-export-worker', script: 'build:staging-real-video-export-worker' },
+  ]
+  for (const artifact of requiredBuildArtifacts) {
+    if (!existsSync(artifact.path)) {
+      const buildResult = runCommand('npm', ['run', artifact.script])
+      if (buildResult.status !== 'passed') {
+        return {
+          ...base,
+          dockerImageBuildAttempted: true,
+          dockerImageBuildStatus: 'failed',
+          blocker: 'blocked_approved_runtime_image_failed',
+          rejectedCandidateReason: `Required Docker build artifact script ${artifact.script} failed: ${compactOutput(buildResult.stderr || buildResult.stdout)}`,
+        }
+      }
+    }
+  }
+
+  const build = runCommand('docker', [
+    'build',
+    '-f',
+    TRACKA_CAPTION_APPROVED_RUNTIME.dockerfile,
+    '-t',
+    TRACKA_CAPTION_APPROVED_RUNTIME.imageTag,
+    '.',
+  ])
+  if (build.status !== 'passed') {
+    return {
+      ...base,
+      dockerImageBuildAttempted: true,
+      dockerImageBuildStatus: 'failed',
+      blocker: 'blocked_approved_runtime_image_failed',
+      rejectedCandidateReason: `Approved Docker runtime image build failed: ${compactOutput(build.stderr || build.stdout)}`,
+    }
+  }
+
+  return {
+    ...base,
+    dockerImageAvailable: true,
+    dockerImageBuildAttempted: true,
+    dockerImageBuildStatus: 'passed',
   }
 }
 
@@ -186,7 +311,7 @@ async function maybeWriteSidecar(input: {
 
   const ass = buildCorrectedAssSidecar()
   await mkdir(input.localBundlePath, { recursive: true })
-  const localPath = path.join(input.localBundlePath, 'tracka-caption-quality-3r2-corrected-caption.ass')
+  const localPath = path.join(input.localBundlePath, 'tracka-caption-quality-3r3-corrected-caption.ass')
   await writeFile(localPath, ass)
   const stat = statSync(localPath)
   return {
@@ -196,6 +321,158 @@ async function maybeWriteSidecar(input: {
     sha256: sha256File(localPath),
     sizeBytes: stat.size,
     lineCount: TRACKA_CAPTION_BURNIN_CORRECTED_LINES.length,
+  }
+}
+
+async function maybeCopyApprovedSource(input: {
+  execute: boolean
+  confirmationProvided: boolean
+  sourceGcsReadConfirmationProvided: boolean
+  sourceRefApproved: boolean
+  localBundlePath: string
+}): Promise<TrackaCaptionBurninArtifact> {
+  if (!input.execute || !input.confirmationProvided || !input.sourceGcsReadConfirmationProvided || !input.sourceRefApproved) {
+    return { created: false, artifactType: 'approved_private_source_copy' }
+  }
+
+  await mkdir(input.localBundlePath, { recursive: true })
+  const localPath = path.join(input.localBundlePath, 'tracka-caption-quality-3r3-approved-source.mp4')
+  const copy = runCommand('gcloud', ['storage', 'cp', TRACKA_CAPTION_APPROVED_SOURCE_REF, localPath])
+  if (copy.status !== 'passed' || !existsSync(localPath)) {
+    return {
+      created: false,
+      artifactType: 'approved_private_source_copy',
+      blocker: `blocked_approved_source_ref_access_failed:${compactOutput(copy.stderr || copy.stdout)}`,
+    }
+  }
+
+  const stat = statSync(localPath)
+  if (String(stat.size) !== TRACKA_CAPTION_APPROVED_SOURCE_METADATA.size) {
+    return {
+      created: false,
+      artifactType: 'approved_private_source_copy',
+      localPath,
+      sizeBytes: stat.size,
+      sha256: sha256File(localPath),
+      blocker: `blocked_approved_source_ref_access_failed:size_mismatch_expected_${TRACKA_CAPTION_APPROVED_SOURCE_METADATA.size}_actual_${stat.size}`,
+    }
+  }
+
+  return {
+    created: true,
+    artifactType: 'approved_private_source_copy',
+    localPath,
+    sha256: sha256File(localPath),
+    sizeBytes: stat.size,
+  }
+}
+
+async function maybeRunBurnin(input: {
+  execute: boolean
+  confirmationProvided: boolean
+  sourceGcsReadConfirmationProvided: boolean
+  runtimeResolution: TrackaCaptionBurninRuntimeResolution
+  sourceArtifact: TrackaCaptionBurninArtifact
+  sidecar: TrackaCaptionBurninSidecarArtifact
+  localBundlePath: string
+}): Promise<TrackaCaptionBurninArtifact> {
+  if (
+    !input.execute ||
+    !input.confirmationProvided ||
+    !input.sourceGcsReadConfirmationProvided ||
+    !input.runtimeResolution.approvedRuntimePathFound ||
+    !input.runtimeResolution.dockerImageAvailable ||
+    !input.sourceArtifact.created ||
+    !input.sourceArtifact.localPath ||
+    !input.sidecar.created ||
+    !input.sidecar.localPath
+  ) {
+    return { created: false, artifactType: 'corrected_caption_private_preview' }
+  }
+
+  const outputPath = path.join(input.localBundlePath, 'tracka-caption-quality-3r3-corrected-caption-preview.mp4')
+  const burnin = runCommand('docker', [
+    ...dockerArgsFor(input.localBundlePath),
+    'ffmpeg',
+    '-hide_banner',
+    '-y',
+    '-i',
+    '/work/tracka-caption-quality-3r3-approved-source.mp4',
+    '-t',
+    '15',
+    '-vf',
+    'ass=/work/tracka-caption-quality-3r3-corrected-caption.ass',
+    '-c:v',
+    'libx264',
+    '-preset',
+    'veryfast',
+    '-crf',
+    '23',
+    '-c:a',
+    'copy',
+    '-movflags',
+    '+faststart',
+    '/work/tracka-caption-quality-3r3-corrected-caption-preview.mp4',
+  ])
+
+  if (burnin.status !== 'passed' || !existsSync(outputPath)) {
+    return {
+      created: false,
+      artifactType: 'corrected_caption_private_preview',
+      blocker: `blocked_caption_burnin_runtime_failed:${compactOutput(burnin.stderr || burnin.stdout)}`,
+    }
+  }
+
+  const stat = statSync(outputPath)
+  return {
+    created: true,
+    artifactType: 'corrected_caption_private_preview',
+    localPath: outputPath,
+    sha256: sha256File(outputPath),
+    sizeBytes: stat.size,
+  }
+}
+
+async function maybeRunFfprobe(input: {
+  execute: boolean
+  confirmationProvided: boolean
+  previewArtifact: TrackaCaptionBurninArtifact
+  localBundlePath: string
+}): Promise<TrackaCaptionBurninArtifact> {
+  if (!input.execute || !input.confirmationProvided || !input.previewArtifact.created) {
+    return { created: false, artifactType: 'ffprobe_metadata_json' }
+  }
+
+  const ffprobe = runCommand('docker', [
+    ...dockerArgsFor(input.localBundlePath),
+    'ffprobe',
+    '-hide_banner',
+    '-v',
+    'error',
+    '-show_format',
+    '-show_streams',
+    '-print_format',
+    'json',
+    '/work/tracka-caption-quality-3r3-corrected-caption-preview.mp4',
+  ])
+  if (ffprobe.status !== 'passed' || !ffprobe.stdout.trim()) {
+    return {
+      created: false,
+      artifactType: 'ffprobe_metadata_json',
+      blocker: `blocked_ffprobe_validation_failed:${compactOutput(ffprobe.stderr || ffprobe.stdout)}`,
+    }
+  }
+
+  await mkdir(input.localBundlePath, { recursive: true })
+  const localPath = path.join(input.localBundlePath, 'tracka-caption-quality-3r3-ffprobe.json')
+  await writeFile(localPath, ffprobe.stdout.trim().endsWith('\n') ? ffprobe.stdout : `${ffprobe.stdout.trim()}\n`)
+  const stat = statSync(localPath)
+  return {
+    created: true,
+    artifactType: 'ffprobe_metadata_json',
+    localPath,
+    sha256: sha256File(localPath),
+    sizeBytes: stat.size,
   }
 }
 
@@ -212,7 +489,11 @@ async function writeJsonArtifact(input: {
   }
   await mkdir(input.localBundlePath, { recursive: true })
   const localPath = path.join(input.localBundlePath, input.fileName)
-  await writeFile(localPath, `${JSON.stringify(input.value, null, 2)}\n`)
+  const text = `${JSON.stringify(input.value, null, 2)}\n`
+  if (text.includes(TRACKA_CAPTION_BURNIN_REJECTED_TEXT)) {
+    throw new Error('Rejected #419 caption text leaked into JSON artifact.')
+  }
+  await writeFile(localPath, text)
   const stat = statSync(localPath)
   return {
     created: true,
@@ -223,18 +504,49 @@ async function writeJsonArtifact(input: {
   }
 }
 
+function statusFor(input: {
+  execute: boolean
+  confirmationProvided: boolean
+  sourceGcsReadConfirmationProvided: boolean
+  sourceAudit: TrackaCaptionBurninSourceAudit
+  approvedSourceRef: TrackaCaptionBurninApprovedSourceRef
+  runtimeResolution: TrackaCaptionBurninRuntimeResolution
+  sourceArtifact: TrackaCaptionBurninArtifact
+  previewArtifact: TrackaCaptionBurninArtifact
+  ffprobeArtifact: TrackaCaptionBurninArtifact
+}): TrackaCaptionBurninExecutionStatus {
+  if (!input.execute || !input.confirmationProvided || !input.sourceGcsReadConfirmationProvided) {
+    return 'blocked_pending_caption_burnin_execution_confirmation'
+  }
+  if (input.sourceAudit.status === 'blocked' || !input.approvedSourceRef.sourceRefApproved) {
+    return 'blocked_missing_approved_private_source_ref'
+  }
+  if (!input.sourceArtifact.created) return 'blocked_approved_source_ref_access_failed'
+  if (!input.runtimeResolution.approvedRuntimePathFound) return 'blocked_missing_approved_caption_burnin_runtime_path'
+  if (!input.runtimeResolution.dockerImageAvailable || input.runtimeResolution.blocker === 'blocked_approved_runtime_image_failed') {
+    return 'blocked_approved_runtime_image_failed'
+  }
+  if (!input.previewArtifact.created) return 'blocked_caption_burnin_runtime_failed'
+  if (!input.ffprobeArtifact.created) return 'blocked_ffprobe_validation_failed'
+  return 'completed_with_corrected_caption_burnin_revalidation'
+}
+
 function buildQaGates(input: {
   sourceAudit: TrackaCaptionBurninSourceAudit
   approvedSourceRef: TrackaCaptionBurninApprovedSourceRef
+  sourceArtifact: TrackaCaptionBurninArtifact
   sidecar: TrackaCaptionBurninSidecarArtifact
+  previewArtifact: TrackaCaptionBurninArtifact
+  ffprobeArtifact: TrackaCaptionBurninArtifact
   runtimeResolution: TrackaCaptionBurninRuntimeResolution
   confirmationProvided: boolean
+  sourceGcsReadConfirmationProvided: boolean
 }): TrackaCaptionBurninQaGate[] {
   return [
     {
-      gateId: 'confirmation_env_present',
-      status: input.confirmationProvided ? 'passed' : 'blocked',
-      evidence: 'REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true required for guarded execution.',
+      gateId: 'confirmation_envs_present',
+      status: input.confirmationProvided && input.sourceGcsReadConfirmationProvided ? 'passed' : 'blocked',
+      evidence: `${TRACKA_CAPTION_BURNIN_CONFIRM_ENV}=true and ${TRACKA_CAPTION_SOURCE_GCS_READ_CONFIRM_ENV}=true are required.`,
     },
     {
       gateId: 'approved_caption_source_loaded',
@@ -247,6 +559,11 @@ function buildQaGates(input: {
       evidence: input.approvedSourceRef.ref,
     },
     {
+      gateId: 'approved_private_source_exact_copy',
+      status: input.sourceArtifact.created ? 'passed' : 'blocked',
+      evidence: input.sourceArtifact.sha256 ?? input.sourceArtifact.blocker ?? 'blocked until confirmed execution.',
+    },
+    {
       gateId: 'transcript_accuracy_false',
       status: input.sourceAudit.activeBlockers.some((item) => item.includes('transcriptAccuracyClaim')) ? 'blocked' : 'passed',
       evidence: 'transcriptAccuracyClaim remains false.',
@@ -254,7 +571,7 @@ function buildQaGates(input: {
     {
       gateId: 'old_caption_rejected',
       status: input.sourceAudit.oldCaptionRejected ? 'passed' : 'blocked',
-      evidence: 'Rejected #419 caption text is not written to 3R2 sidecar/report artifacts.',
+      evidence: 'Rejected #419 caption text is not written to 3R3 sidecar/report/manifest artifacts.',
     },
     {
       gateId: 'corrected_sidecar_checksum',
@@ -263,8 +580,18 @@ function buildQaGates(input: {
     },
     {
       gateId: 'approved_caption_burnin_runtime_path',
-      status: input.runtimeResolution.approvedRuntimePathFound ? 'passed' : 'blocked',
+      status: input.runtimeResolution.approvedRuntimePathFound && input.runtimeResolution.dockerImageAvailable ? 'passed' : 'blocked',
       evidence: input.runtimeResolution.rejectedCandidateReason,
+    },
+    {
+      gateId: 'corrected_caption_private_preview',
+      status: input.previewArtifact.created ? 'passed' : 'blocked',
+      evidence: input.previewArtifact.sha256 ?? input.previewArtifact.blocker ?? 'blocked until burn-in completes.',
+    },
+    {
+      gateId: 'ffprobe_validation',
+      status: input.ffprobeArtifact.created ? 'passed' : 'blocked',
+      evidence: input.ffprobeArtifact.sha256 ?? input.ffprobeArtifact.blocker ?? 'blocked until preview exists.',
     },
     {
       gateId: 'no_public_or_signed_artifacts',
@@ -278,25 +605,12 @@ function buildQaGates(input: {
     },
     {
       gateId: 'caption_readability_pending_visual_review',
-      status: 'blocked',
-      evidence: 'Corrected-caption visual review remains blocked until a review-safe preview exists.',
+      status: input.previewArtifact.created ? 'passed' : 'blocked',
+      evidence: input.previewArtifact.created
+        ? 'Corrected-caption preview exists and must be uploaded before TRACKA-CAPTION-QUALITY-4 records visual review.'
+        : 'Corrected-caption visual review remains blocked until a review-safe preview exists.',
     },
   ]
-}
-
-function statusFor(input: {
-  execute: boolean
-  confirmationProvided: boolean
-  sourceAudit: TrackaCaptionBurninSourceAudit
-  approvedSourceRef: TrackaCaptionBurninApprovedSourceRef
-  runtimeResolution: TrackaCaptionBurninRuntimeResolution
-}): TrackaCaptionBurninExecutionStatus {
-  if (!input.execute || !input.confirmationProvided) return 'blocked_pending_caption_burnin_execution_confirmation'
-  if (input.sourceAudit.status === 'blocked' || !input.approvedSourceRef.sourceRefApproved) {
-    return 'blocked_missing_approved_private_source_ref'
-  }
-  if (!input.runtimeResolution.approvedRuntimePathFound) return 'blocked_missing_approved_caption_burnin_runtime_path'
-  return 'completed_with_corrected_caption_burnin_revalidation'
 }
 
 export async function buildTrackaCaptionBurninBundle(input: {
@@ -306,18 +620,71 @@ export async function buildTrackaCaptionBurninBundle(input: {
   const runId = input.runId ?? getTrackaCaptionBurninRunId()
   const localBundlePath = path.join(TRACKA_CAPTION_BURNIN_LOCAL_ROOT, runId)
   const confirmationProvided = isTrackaCaptionBurninConfirmed()
+  const sourceGcsReadConfirmationProvided = isTrackaCaptionSourceGcsReadConfirmed()
   const sourceAudit = buildSourceAudit()
   const approvedSourceRef = buildApprovedSourceRef(sourceAudit)
-  const runtimeResolution = resolveRuntimePath(approvedSourceRef)
   const sidecar = await maybeWriteSidecar({ execute: input.execute, confirmationProvided, localBundlePath })
-  const execution = statusFor({ execute: input.execute, confirmationProvided, sourceAudit, approvedSourceRef, runtimeResolution })
-  const qaGates = buildQaGates({ sourceAudit, approvedSourceRef, sidecar, runtimeResolution, confirmationProvided })
+  const sourceArtifact = await maybeCopyApprovedSource({
+    execute: input.execute,
+    confirmationProvided,
+    sourceGcsReadConfirmationProvided,
+    sourceRefApproved: approvedSourceRef.sourceRefApproved,
+    localBundlePath,
+  })
+  const runtimeResolution = inspectOrBuildRuntimeImage({
+    execute: input.execute,
+    approvedSourceRef,
+    sourceAudit,
+  })
+  runtimeResolution.attemptedGcsAccess = input.execute && confirmationProvided && sourceGcsReadConfirmationProvided
+  const previewArtifact = await maybeRunBurnin({
+    execute: input.execute,
+    confirmationProvided,
+    sourceGcsReadConfirmationProvided,
+    runtimeResolution,
+    sourceArtifact,
+    sidecar,
+    localBundlePath,
+  })
+  runtimeResolution.attemptedFfmpeg = input.execute && confirmationProvided && sourceGcsReadConfirmationProvided && sourceArtifact.created && runtimeResolution.dockerImageAvailable
+  const ffprobeArtifact = await maybeRunFfprobe({
+    execute: input.execute,
+    confirmationProvided,
+    previewArtifact,
+    localBundlePath,
+  })
+  runtimeResolution.attemptedFfprobe = input.execute && confirmationProvided && previewArtifact.created
+  const execution = statusFor({
+    execute: input.execute,
+    confirmationProvided,
+    sourceGcsReadConfirmationProvided,
+    sourceAudit,
+    approvedSourceRef,
+    runtimeResolution,
+    sourceArtifact,
+    previewArtifact,
+    ffprobeArtifact,
+  })
+  const qaGates = buildQaGates({
+    sourceAudit,
+    approvedSourceRef,
+    sourceArtifact,
+    sidecar,
+    previewArtifact,
+    ffprobeArtifact,
+    runtimeResolution,
+    confirmationProvided,
+    sourceGcsReadConfirmationProvided,
+  })
 
   const activeBlockers = [
     ...sourceAudit.activeBlockers,
     ...approvedSourceRef.activeBlockers,
-    ...(confirmationProvided ? [] : ['blocked_pending_caption_burnin_execution_confirmation']),
+    ...(confirmationProvided && sourceGcsReadConfirmationProvided ? [] : ['blocked_pending_caption_burnin_execution_confirmation']),
+    ...(sourceArtifact.blocker ? [sourceArtifact.blocker] : []),
     ...(runtimeResolution.blocker === 'none' ? [] : [runtimeResolution.blocker]),
+    ...(previewArtifact.blocker ? [previewArtifact.blocker] : []),
+    ...(ffprobeArtifact.blocker ? [ffprobeArtifact.blocker] : []),
     ...qaGates.filter((gate) => gate.status === 'blocked').map((gate) => `qa_gate_blocked:${gate.gateId}`),
   ].filter((value, index, list) => list.indexOf(value) === index)
 
@@ -326,18 +693,23 @@ export async function buildTrackaCaptionBurninBundle(input: {
     runId,
     execution,
     confirmationProvided,
+    sourceGcsReadConfirmationProvided,
     approvedSourceRef: approvedSourceRef.ref,
     sourceRefApproved: approvedSourceRef.sourceRefApproved,
+    approvedRuntimePath: TRACKA_CAPTION_APPROVED_RUNTIME.approvedRuntimePath,
+    runtimePathApproved: runtimeResolution.approvedRuntimePathFound,
     captionBurninRevalidationExecuted: execution === 'completed_with_corrected_caption_burnin_revalidation',
-    correctedCaptionVisualPreviewCreated: false,
+    correctedCaptionVisualPreviewCreated: previewArtifact.created,
     assSidecarCreated: sidecar.created,
-    libassBurninExecuted: false,
+    approvedSourceCopied: sourceArtifact.created,
+    libassBurninExecuted: previewArtifact.created,
     remotionPreviewExecuted: false,
-    ffmpegValidationExecuted: false,
-    ffprobeValidationExecuted: false,
-    privateArtifactsCreated: sidecar.created,
-    privateVisualArtifactsCreated: false,
-    gcsAccess: false,
+    ffmpegValidationExecuted: previewArtifact.created,
+    ffprobeValidationExecuted: ffprobeArtifact.created,
+    privateArtifactsCreated: sidecar.created || sourceArtifact.created || previewArtifact.created || ffprobeArtifact.created,
+    privateVisualArtifactsCreated: previewArtifact.created,
+    gcsAccess: sourceArtifact.created,
+    gcsAccessMode: sourceArtifact.created ? 'exact_private_source_read_copy_only' : 'none',
     signedUrlsCreated: false,
     publicArtifactsCreated: false,
     finalDeliveryReady: false,
@@ -358,7 +730,7 @@ export async function buildTrackaCaptionBurninBundle(input: {
     execute: input.execute,
     confirmationProvided,
     localBundlePath,
-    fileName: 'tracka-caption-quality-3r2-qa-report.json',
+    fileName: 'tracka-caption-quality-3r3-qa-report.json',
     artifactType: 'qa_report_json',
     value: {
       phase: TRACKA_CAPTION_BURNIN_PHASE,
@@ -366,7 +738,12 @@ export async function buildTrackaCaptionBurninBundle(input: {
       execution,
       qaGates,
       approvedSourceRef,
+      sourceArtifact,
+      sidecar,
+      previewArtifact,
+      ffprobeArtifact,
       runtimeResolution,
+      summary,
       noScopeStatement: TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT,
     },
   })
@@ -375,31 +752,36 @@ export async function buildTrackaCaptionBurninBundle(input: {
     execute: input.execute,
     confirmationProvided,
     localBundlePath,
-    fileName: 'tracka-caption-quality-3r2-artifact-manifest.json',
+    fileName: 'tracka-caption-quality-3r3-artifact-manifest.json',
     artifactType: 'artifact_manifest_json',
     value: {
       phase: TRACKA_CAPTION_BURNIN_PHASE,
       runId,
-      sidecar,
-      qaReportArtifact,
       approvedSourceRef,
+      sourceArtifact,
+      sidecar,
+      previewArtifact,
+      ffprobeArtifact,
+      qaReportArtifact,
       runtimeResolution,
-      privateVisualArtifactsCreated: false,
+      privateArtifactsCreated: summary.privateArtifactsCreated,
+      privateVisualArtifactsCreated: summary.privateVisualArtifactsCreated,
       publicArtifactsCreated: false,
       signedUrlsCreated: false,
       finalDeliveryReady: false,
+      internalBetaReady: false,
     },
   })
-
-  const ffprobeArtifact: TrackaCaptionBurninArtifact = { created: false, artifactType: 'ffprobe_metadata_json' }
 
   const report = {
     ...summary,
     localBundlePath,
     sourceAudit,
     approvedSourceRef,
+    sourceArtifact,
     sidecar,
     sidecarSha256: sidecar.sha256 ?? sha256Text(buildCorrectedAssSidecar()),
+    previewArtifact,
     qaReportArtifact,
     artifactManifestArtifact,
     ffprobeArtifact,
@@ -413,7 +795,9 @@ export async function buildTrackaCaptionBurninBundle(input: {
     localBundlePath,
     sourceAudit,
     approvedSourceRef,
+    sourceArtifact,
     sidecar,
+    previewArtifact,
     qaReportArtifact,
     artifactManifestArtifact,
     ffprobeArtifact,

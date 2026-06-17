@@ -34,6 +34,7 @@
     "open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-approval:diagnostics": "node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-route-manifest-integration-approval-diagnostics.mjs",
     "open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-qa:diagnostics": "node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-route-manifest-integration-qa-diagnostics.mjs",
     "tool-route:ai-graphics-metadata-integration-approval:diagnostics": "node scripts/validation/tool-route-ai-graphics-metadata-integration-approval-diagnostics.mjs",
+    "tool-route:ai-graphics-metadata-integration-qa:diagnostics": "node scripts/validation/tool-route-ai-graphics-metadata-integration-qa-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

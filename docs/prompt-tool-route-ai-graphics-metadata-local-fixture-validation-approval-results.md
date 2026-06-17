@@ -31,7 +31,7 @@ Decision: `approved_with_warnings_for_tool_route_ai_graphics_metadata_local_fixt
 - changed-file secret scan: passed; matches were expected safety terms and diagnostic literals only.
 - `git diff --cached --check`: passed.
 - PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/462
-- PR status after creation: draft/open, mergeable clean, empty check rollup, head `9d9bc1eebc61680c84c790b151c36552521fbf07`.
+- PR status after creation: draft/open, mergeable clean, empty check rollup.
 
 ## Supabase Classification
 

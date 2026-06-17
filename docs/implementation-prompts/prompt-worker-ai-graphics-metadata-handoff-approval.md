@@ -19,7 +19,7 @@ Create a docs/static-diagnostics-only Worker Runtime handoff approval packet fro
 - Branch: `codex/rp-worker-ai-graphics-metadata-handoff-approval`.
 - Decision: `worker_ai_graphics_metadata_handoff_approved_with_warnings`.
 - Next lane: `WORKER_AI_GRAPHICS_METADATA_HANDOFF_QA_REVIEW`.
-- PR link/check status: pending PR creation follow-up.
+- PR link/check status: PR #478 `https://github.com/yuzastudio6-cyber/Reedkt/pull/478`; draft/open/mergeable clean at `23a8d35586a90d7bce4a68c029c1c13c515205ba`; check rollup empty at follow-up record time.
 - Base gap: `docs/worker-runtime/` absent on the source branch.
 
 ## Scope Boundary

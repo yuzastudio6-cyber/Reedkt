@@ -30,7 +30,7 @@ Decision: `worker_ai_graphics_metadata_handoff_approved_with_warnings`
 - `npm run build:server`: passed.
 - Changed-file secret scan: passed; raw matches were detector regex literals in diagnostics and were excluded on the verification rerun.
 - AppleDouble sidecar cleanup: no `._*` files found.
-- PR link/check status: pending PR creation follow-up.
+- PR link/check status: PR #478 `https://github.com/yuzastudio6-cyber/Reedkt/pull/478`; draft/open/mergeable clean at `23a8d35586a90d7bce4a68c029c1c13c515205ba`; check rollup empty at follow-up record time.
 
 ## Base Gaps
 

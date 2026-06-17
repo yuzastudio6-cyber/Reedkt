@@ -1,14 +1,28 @@
-export const TRACKA_CAPTION_BURNIN_PHASE = 'TRACKA-CAPTION-QUALITY-3R'
-export const TRACKA_CAPTION_BURNIN_BRANCH = 'codex/rp-tracka-caption-quality-3r-burnin-revalidation-execution'
+export const TRACKA_CAPTION_BURNIN_PHASE = 'TRACKA-CAPTION-QUALITY-3R2'
+export const TRACKA_CAPTION_BURNIN_BRANCH = 'codex/rp-tracka-caption-quality-3r2-burnin-revalidation-with-approved-source'
 export const TRACKA_CAPTION_BURNIN_BASE_BRANCH = 'codex/rp-model-orchestration-qwen-schema-timeout-target-calibration'
-export const TRACKA_CAPTION_BURNIN_PR_TITLE = '[track-a] Corrected caption burn-in revalidation execution'
+export const TRACKA_CAPTION_BURNIN_PR_TITLE = '[track-a] Corrected caption burn-in revalidation with approved source'
 export const TRACKA_CAPTION_BURNIN_CONFIRM_ENV = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION'
 export const TRACKA_CAPTION_BURNIN_RUN_ID_ENV = 'REEDITPRO_TRACKA_CAPTION_BURNIN_RUN_ID'
-export const TRACKA_CAPTION_BURNIN_DEFAULT_RUN_ID = 'tracka-caption-quality-3r-20260617T020429'
-export const TRACKA_CAPTION_BURNIN_LOCAL_ROOT = '/tmp/reeditpro-tracka-caption-quality-3r'
+export const TRACKA_CAPTION_BURNIN_DEFAULT_RUN_ID = 'tracka-caption-quality-3r2-20260617T000000'
+export const TRACKA_CAPTION_BURNIN_LOCAL_ROOT = '/tmp/reeditpro-tracka-caption-quality-3r2'
+
+export const TRACKA_CAPTION_APPROVED_SOURCE_REF =
+  'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4'
+
+export const TRACKA_CAPTION_APPROVED_SOURCE_METADATA = {
+  size: '94522751',
+  contentType: 'video/mp4',
+  generation: '1779975269726662',
+  metageneration: '1',
+  storageClass: 'STANDARD',
+  updated: '2026-05-28T13:34:29Z',
+  crc32c: '/HiYtQ==',
+  md5: '3QrjneF4xbmU8d/OlswU+Q==',
+} as const
 
 export const TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT =
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Bounded Track A corrected-caption burn-in revalidation was allowed only when REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true and only for private review artifacts.'
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Bounded Track A corrected-caption burn-in revalidation was allowed only with REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true, using the approved #452 private source ref, and producing private review artifacts only.'
 
 export const TRACKA_CAPTION_BURNIN_CORRECTED_LINES = [
   'Hey everyone — welcome to this ReEditPro visual review.',
@@ -28,18 +42,21 @@ export const TRACKA_CAPTION_BURNIN_SOURCE_CHAIN = [
   { pr: 434, sha: '2bb01b188aeb636c4234ecd4a9bf6a12ad87eee3', summary: 'missing visual evidence review outcome partial_pass_with_warnings' },
   { pr: 440, sha: 'ea238ad8ffc28c277ea36ba66b8488cb37cf66cc', summary: 'caption burn-in revalidation planning' },
   { pr: 443, sha: 'e268a9e8afd5360df91653e9d2c060c05e270e43', summary: 'guarded burn-in execution packet ready_for_guarded_execution' },
+  { pr: 447, sha: 'ce4b2feac22247581ba361e71df33feb1e667507', summary: '3R failed closed on blocked_missing_approved_private_source_ref' },
+  { pr: 452, sha: '422bbcade670646963257f5b7b2ddc6681748f0b', summary: 'approved exact private controlled-test source ref' },
 ] as const
 
 export const TRACKA_CAPTION_BURNIN_DOC_PATHS = {
-  execution: 'docs/track-a/track-a-caption-quality-3r-burnin-revalidation-execution.md',
-  sidecar: 'docs/track-a/track-a-caption-quality-3r-approved-caption-sidecar.md',
-  artifactManifest: 'docs/track-a/track-a-caption-quality-3r-private-artifact-manifest.md',
-  qaReport: 'docs/track-a/track-a-caption-quality-3r-qa-report.md',
-  ffprobe: 'docs/track-a/track-a-caption-quality-3r-ffprobe-validation.md',
-  localBundle: 'docs/track-a/track-a-caption-quality-3r-local-review-bundle.md',
-  uploadInstructions: 'docs/track-a/track-a-caption-quality-3r-upload-to-chat-instructions.md',
-  nextPhase: 'docs/track-a/track-a-caption-quality-3r-next-phase-plan.md',
-  activationResults: 'docs/activation-phase-tracka-caption-quality-3r-results.md',
+  execution: 'docs/track-a/track-a-caption-quality-3r2-burnin-revalidation-with-approved-source.md',
+  approvedSource: 'docs/track-a/track-a-caption-quality-3r2-approved-source-input.md',
+  sidecar: 'docs/track-a/track-a-caption-quality-3r2-corrected-ass-sidecar.md',
+  artifactManifest: 'docs/track-a/track-a-caption-quality-3r2-private-artifact-manifest.md',
+  qaReport: 'docs/track-a/track-a-caption-quality-3r2-qa-report.md',
+  ffprobe: 'docs/track-a/track-a-caption-quality-3r2-ffprobe-validation.md',
+  localBundle: 'docs/track-a/track-a-caption-quality-3r2-local-review-bundle.md',
+  uploadInstructions: 'docs/track-a/track-a-caption-quality-3r2-upload-to-chat-instructions.md',
+  nextPhase: 'docs/track-a/track-a-caption-quality-3r2-next-phase-plan.md',
+  activationResults: 'docs/activation-phase-tracka-caption-quality-3r2-results.md',
   nextPrompt: 'docs/implementation-prompts/prompt-tracka-caption-quality-4-record-burnin-review-outcome.md',
 } as const
 

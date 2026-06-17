@@ -14,9 +14,11 @@ assert(!ass.includes('Hey guys, I saw how you guys doing today is going to do go
 
 const bundle = await buildTrackaCaptionBurninBundle({ execute: false })
 
+assert(bundle.summary.phase === 'TRACKA-CAPTION-QUALITY-3R2', 'phase must be 3R2')
 assert(bundle.sourceAudit.status === 'passed', 'source audit must pass')
+assert(bundle.approvedSourceRef.sourceRefApproved === true, 'approved #452 source ref must load')
 assert(bundle.summary.execution === 'blocked_pending_caption_burnin_execution_confirmation', 'dry smoke must remain confirmation-blocked')
-assert(bundle.runtimeResolution.blocker === 'blocked_missing_approved_private_source_ref', 'missing approved source blocker must be explicit')
+assert(bundle.runtimeResolution.blocker === 'blocked_missing_approved_caption_burnin_runtime_path', 'missing approved runtime path blocker must be explicit')
 assert(bundle.summary.libassBurninExecuted === false, 'libass must not run in smoke')
 assert(bundle.summary.remotionPreviewExecuted === false, 'Remotion must not run in smoke')
 assert(bundle.summary.ffmpegValidationExecuted === false, 'FFmpeg must not run in smoke')
@@ -30,6 +32,8 @@ console.log(JSON.stringify({
   phase: bundle.summary.phase,
   runId: bundle.runId,
   execution: bundle.summary.execution,
+  approvedSourceRef: bundle.summary.approvedSourceRef,
+  sourceRefApproved: bundle.summary.sourceRefApproved,
   sourceAudit: bundle.sourceAudit.status,
   expectedGuardedBlocker: bundle.runtimeResolution.blocker,
   libassBurninExecuted: false,

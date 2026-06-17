@@ -20,14 +20,16 @@ TRACKA-CAPTION-QUALITY-2 records corrected-caption burn-in revalidation planning
 
 TRACKA-CAPTION-QUALITY-3 records the guarded corrected-caption burn-in execution packet and defaults to `execution: blocked_pending_caption_burnin_execution_confirmation` until `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true` is explicitly set.
 
-TRACKA-CAPTION-QUALITY-3R is the guarded execution follow-up. It must record either corrected-caption private visual proof or an exact fail-closed blocker such as `blocked_missing_approved_private_source_ref`. Private E2E revalidation remains blocked until TRACKA-CAPTION-QUALITY-3R produces a review-safe corrected-caption visual artifact and TRACKA-CAPTION-QUALITY-4 records the visual outcome.
+TRACKA-CAPTION-SOURCE-REF-1 is merged as #452 at `422bbcade670646963257f5b7b2ddc6681748f0b` and approves the exact private Phase 32 controlled-test source ref for corrected-caption burn-in revalidation.
+
+TRACKA-CAPTION-QUALITY-3R2 is the guarded execution follow-up with the approved #452 source ref. It must record either corrected-caption private visual proof or an exact fail-closed blocker such as `blocked_missing_approved_caption_burnin_runtime_path`. Private E2E revalidation remains blocked until TRACKA-CAPTION-QUALITY-3R2 produces a review-safe corrected-caption visual artifact and TRACKA-CAPTION-QUALITY-4 records the visual outcome.
 
 ## Required Precondition
 
 Complete guarded caption burn-in revalidation execution and confirm the remaining first-internal-beta scope decision:
 
 - use #426 approved controlled-test caption source.
-- provide corrected-caption burn-in review evidence from TRACKA-CAPTION-QUALITY-3R plus TRACKA-CAPTION-QUALITY-4.
+- provide corrected-caption burn-in review evidence from TRACKA-CAPTION-QUALITY-3R2 plus TRACKA-CAPTION-QUALITY-4.
 - provide one clean private E2E review clip or contact sheet.
 - provide timeline consistency proof.
 - provide final composition polish checklist.

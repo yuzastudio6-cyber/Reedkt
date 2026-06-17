@@ -1,51 +1,38 @@
 # TRACKA-CAPTION-SOURCE-REF-1 Metadata Check Plan
 
-Status: `blocked_pending_metadata_confirmation`
+Status: `approved`
 
-metadataConfirmationCurrentState: `absent_or_not_true`
+metadataConfirmationCurrentState: `true`
 
-gcsAccess: false
+gcsAccess: `metadata_stat_only`
 
-metadataCheckExecuted: false
+metadataCheckExecuted: true
+
+gcloudExecuted: true
 
 ## Current Run
 
-This run did not call `gcloud`, access GCS, stat objects, list prefixes, copy objects, download objects, create signed URLs, or mutate buckets.
+This run used metadata/stat only for the exact preferred candidate when confirmation was present. It did not copy, download, upload, list broad prefixes, create signed URLs, mutate buckets, mutate IAM, mutate objects, or process media.
 
-## Future Confirmed Check
-
-If a later run explicitly sets `REEDITPRO_CONFIRM_TRACKA_CAPTION_SOURCE_REF_CHECK=true`, the check may stat only exact candidate object refs already recorded in this packet.
-
-Allowed future operation:
+Exact metadata command shape:
 
 ```bash
 gcloud storage ls -L gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4
 ```
 
-Blocked future operations:
+## Metadata Fields
 
-- no `gcloud storage cp`.
-- no download.
-- no upload.
-- no signed URL creation.
-- no object mutation.
-- no IAM mutation.
-- no bucket-wide listing.
-- no broad prefix listing.
-- no public URL usage.
-- no media processing.
-
-## Expected Metadata Fields
-
-- exact object URI.
-- generation/metageneration if available.
-- content type.
-- object size.
-- updated timestamp.
-- md5 or crc32c if available.
-- storage class if available.
-- privacy boundary from bucket/object metadata.
-- duration remains future-required unless an approved metadata-only extractor is separately authorized.
+| field | value |
+| --- | --- |
+| objectUri | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` |
+| size | `94522751` |
+| contentType | `video/mp4` |
+| generation | `1779975269726662` |
+| metageneration | `1` |
+| storageClass | `STANDARD` |
+| updated | `2026-05-28T13:34:29Z` |
+| crc32c | `/HiYtQ==` |
+| md5 | `3QrjneF4xbmU8d/OlswU+Q==` |
 
 ## Outcomes
 
@@ -53,7 +40,10 @@ Blocked future operations:
 | --- | --- |
 | confirmation absent | `blocked_pending_metadata_confirmation` |
 | exact candidate stat passes | `approved` |
-| exact candidate missing, inaccessible, public, signed-only, too broad, or not clean source | `blocked_no_clean_source_ref` |
+| exact candidate access denied | `blocked_access_denied` |
+| exact candidate missing | `blocked_missing_exact_object` |
+| metadata command fails | `blocked_metadata_check_failed` |
+| public, signed-only, prefix-only, or not clean source | `blocked_no_clean_source_ref` |
 
 ## No-Scope Statement
 

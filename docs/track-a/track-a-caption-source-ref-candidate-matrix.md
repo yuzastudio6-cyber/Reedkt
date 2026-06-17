@@ -1,12 +1,12 @@
 # TRACKA-CAPTION-SOURCE-REF-1 Candidate Matrix
 
-Status: `blocked_pending_metadata_confirmation`
+Status: `approved`
 
 ## Candidate Matrix
 
 | candidateId | source PRs | ref | classification | decision | rationale |
 | --- | --- | --- | --- | --- | --- |
-| `phase32_color_corrected_source_export` | #67, #75, #77, #80, #82 | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` | exact private `gs://` object candidate | `preferred_pending_metadata_confirmation` | repeatedly cited as the approved Phase 32 source; needs metadata confirmation before approval |
+| `phase32_color_corrected_source_export` | #67, #75, #77, #80, #82 | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` | exact private `gs://` object candidate | `approved_after_metadata_stat` | repeatedly cited as the approved Phase 32 source; metadata/stat result recorded in this packet |
 | `phase45a_libass_burnin_preview` | #75, #77, #429 | `gs://reeditpro-staging-reeditpro-previews/activation-render-hardening/phase45a/phase45a-20260531T19033/preview/libass-burnin-preview.mp4` | old-caption rendered output | `rejected_old_caption_burned_output` | already contains historical caption burn-in evidence and must not be used as corrected-caption source |
 | `phase45b_remotion_render_preview` | #75, #77, #429 | `gs://reeditpro-staging-reeditpro-previews/activation-render-hardening/phase45b/phase45b-20260531T19552/preview/remotion-render-preview.mp4` | old-caption rendered output | `rejected_old_caption_burned_output` | rendered preview evidence, not a clean source sample |
 | `phase45d_hardened_review_export` | #80, #82, #429 | `gs://reeditpro-staging-reeditpro-final-exports/activation-render-hardening/phase45d/phase45d-20260531T22235/review/hardened-review-export.mp4` | old-caption/private review export | `rejected_old_caption_burned_output` | review export evidence, not a clean corrected-caption source input |
@@ -27,11 +27,13 @@ Status: `blocked_pending_metadata_confirmation`
 
 ## Candidate Status
 
-approvedPrivateSourceRefStatus: `blocked_pending_metadata_confirmation`
+approvedPrivateSourceRefStatus: `approved`
 
 preferredCandidate: `phase32_color_corrected_source_export`
 
-selectedApprovedCandidate: `none`
+selectedApprovedCandidate: `phase32_color_corrected_source_export`
+
+sourceRefApproved: true
 
 ## No-Scope Statement
 

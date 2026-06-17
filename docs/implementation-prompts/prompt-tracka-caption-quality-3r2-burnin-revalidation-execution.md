@@ -2,7 +2,7 @@
 
 ## Summary
 
-Run this prompt only after TRACKA-CAPTION-SOURCE-REF-1 records an approved private controlled-test source ref. If source ref status is still `blocked_pending_metadata_confirmation` or `blocked_no_clean_source_ref`, stop and report the blocker.
+Run this prompt only after TRACKA-CAPTION-SOURCE-REF-1 records an approved private controlled-test source ref. If source ref status is still `blocked_pending_metadata_confirmation`, `blocked_access_denied`, `blocked_missing_exact_object`, `blocked_metadata_check_failed`, or `blocked_no_clean_source_ref`, stop and report the blocker.
 
 ## Required Inputs
 
@@ -10,6 +10,16 @@ Run this prompt only after TRACKA-CAPTION-SOURCE-REF-1 records an approved priva
 - #426 approved controlled-test caption copy.
 - #447 corrected ASS sidecar evidence and fail-closed execution result.
 - Metadata confirmation evidence for the source ref.
+
+## Approved Source Ref Status
+
+approvedPrivateSourceRefStatus: `approved`
+
+selectedCandidate: `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`
+
+sourceRefApproved: true
+
+TRACKA-CAPTION-QUALITY-3R2 readiness: `ready_for_guarded_execution_with_approved_private_source_ref`
 
 ## Execution Boundary
 
@@ -35,7 +45,7 @@ Blocked unless explicitly confirmed:
 
 The source ref must be exact, private, controlled Track A provenance, not public, not signed, not arbitrary user media, not old-caption-burned output, and suitable for corrected-caption private revalidation.
 
-Preferred pending candidate from TRACKA-CAPTION-SOURCE-REF-1:
+Preferred candidate from TRACKA-CAPTION-SOURCE-REF-1:
 
 `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`
 

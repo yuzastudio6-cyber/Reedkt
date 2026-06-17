@@ -8,29 +8,47 @@ Base: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibratio
 
 Patch type: Track A approved private controlled-test source ref resolution.
 
+Run ID: `tracka-caption-source-ref-1r-20260617T145432`
+
 ## Result
 
-approvedPrivateSourceRefStatus: `blocked_pending_metadata_confirmation`
+approvedPrivateSourceRefStatus: `approved`
 
-selectedCandidate: `none_approved`
+selectedCandidate: `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`
 
-preferredCandidatePendingMetadataConfirmation: `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`
+preferredCandidate: `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`
 
 metadataConfirmationRequired: `REEDITPRO_CONFIRM_TRACKA_CAPTION_SOURCE_REF_CHECK=true`
 
-metadataConfirmationCurrentState: `absent_or_not_true`
+metadataConfirmationCurrentState: `true`
 
-metadataCheckExecuted: false
+metadataCheckExecuted: true
 
-gcsAccess: false
+gcsAccess: `metadata_stat_only`
 
-gcloudExecuted: false
+gcloudExecuted: true
 
 signedUrlsCreated: false
 
 publicArtifactsCreated: false
 
-sourceRefApproved: false
+sourceRefApproved: true
+
+blocker: `none`
+
+## Metadata Summary
+
+| field | value |
+| --- | --- |
+| objectUri | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` |
+| size | `94522751` |
+| contentType | `video/mp4` |
+| generation | `1779975269726662` |
+| metageneration | `1` |
+| storageClass | `STANDARD` |
+| updated | `2026-05-28T13:34:29Z` |
+| crc32c | `/HiYtQ==` |
+| md5 | `3QrjneF4xbmU8d/OlswU+Q==` |
 
 ## Source-Of-Truth
 
@@ -55,7 +73,7 @@ Validation commands are recorded in the PR body after implementation.
 
 ## Readiness
 
-TRACKA-CAPTION-QUALITY-3R2 readiness: `blocked_pending_source_ref_metadata_confirmation`
+TRACKA-CAPTION-QUALITY-3R2 readiness: `ready_for_guarded_execution_with_approved_private_source_ref`
 
 TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_visual_review_and_scope_decision`
 

@@ -1,0 +1,23 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryApproval.systemBinaryWorkerContainerPolicy.v1",
+  "generatedAt": "2026-06-17T03:39:30.998Z",
+  "targets": [
+    "ffmpeg",
+    "ffprobe"
+  ],
+  "currentPhaseSystemBinaryInstallAttempted": false,
+  "currentPhaseDockerfileMutationAttempted": false,
+  "currentPhaseCloudBuildMutationAttempted": false,
+  "currentPhaseCloudRunMutationAttempted": false,
+  "approvedCurrentLane": "check_only_commands_for_existing_binaries",
+  "workerContainerOwnerApprovalRequiredIfAbsent": true,
+  "futureOwnerApprovalMustDefine": [
+    "binary source and runtime image boundary",
+    "license flags and LGPL/GPL/nonfree review",
+    "version-only proof commands",
+    "no-media validation boundary",
+    "rollback and cache policy"
+  ],
+  "packageLockMutationExpected": false,
+  "passed": true
+}

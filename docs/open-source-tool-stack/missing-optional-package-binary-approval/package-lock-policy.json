@@ -1,0 +1,36 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryApproval.packageLockPolicy.v1",
+  "generatedAt": "2026-06-17T03:39:30.998Z",
+  "packageLockGitStatus": "",
+  "packageLockUnchangedInThisApproval": true,
+  "currentPhasePackageJsonDependencySectionsChanged": false,
+  "currentPhasePackageLockMutationAttempted": false,
+  "currentPhasePackageInstallAttempted": false,
+  "currentDependencyPresence": {
+    "duckdb": [],
+    "nodejs-polars": [],
+    "ffmpeg": [],
+    "ffprobe": [],
+    "fluent-ffmpeg": [],
+    "@ffmpeg/ffmpeg": [],
+    "@ffmpeg/core": []
+  },
+  "futureAllowedDependencyEntries": [
+    "duckdb",
+    "nodejs-polars"
+  ],
+  "futureAllowedPackageLockMutation": "only duckdb and nodejs-polars direct dependency entries plus their package-lock transitive metadata",
+  "futureBlockedPackageLockMutation": [
+    "FFmpeg npm wrappers",
+    "FFprobe npm wrappers",
+    "D3/ECharts/Vega/Vega-Lite additions",
+    "unrelated open-source tool additions",
+    "lockfile churn outside selected package transitive metadata"
+  ],
+  "failClosedRules": [
+    "block if package-lock changes in this approval packet",
+    "block if package.json dependency sections change in this approval packet",
+    "block future execution if any unrelated dependency or transitive lockfile churn appears"
+  ],
+  "passed": true
+}

@@ -2,8 +2,9 @@ export type TrackaCaptionBurninExecutionStatus =
   | 'blocked_pending_caption_burnin_execution_confirmation'
   | 'blocked_missing_approved_private_source_ref'
   | 'blocked_missing_approved_caption_burnin_runtime_path'
+  | 'blocked_approved_source_ref_access_failed'
   | 'blocked_caption_burnin_runtime_failed'
-  | 'completed_with_guarded_caption_burnin_revalidation'
+  | 'completed_with_corrected_caption_burnin_revalidation'
 
 export interface TrackaCaptionBurninSourceAudit {
   status: 'passed' | 'blocked'
@@ -11,26 +12,53 @@ export interface TrackaCaptionBurninSourceAudit {
   sourcePrs: Array<{ pr: number; sha: string; summary: string }>
   approvedCaptionSourcePath: string
   executionPacketPath: string
+  sourceRefPath: string
+  sourceRefApproved: boolean
   oldCaptionRejected: boolean
   activeBlockers: string[]
 }
 
-export interface TrackaCaptionBurninSidecarArtifact {
+export interface TrackaCaptionBurninApprovedSourceRef {
+  status: 'approved' | 'blocked'
+  ref: string
+  metadata: {
+    size: string
+    contentType: string
+    generation: string
+    metageneration: string
+    storageClass: string
+    updated: string
+    crc32c: string
+    md5: string
+  }
+  metadataEvidencePath: string
+  sourceRefApproved: boolean
+  activeBlockers: string[]
+}
+
+export interface TrackaCaptionBurninArtifact {
   created: boolean
+  artifactType: string
   localPath?: string
   sha256?: string
   sizeBytes?: number
+}
+
+export interface TrackaCaptionBurninSidecarArtifact extends TrackaCaptionBurninArtifact {
+  artifactType: 'ass_sidecar'
   lineCount: number
 }
 
 export interface TrackaCaptionBurninRuntimeResolution {
   approvedPrivateSourceRefFound: boolean
   approvedRuntimePathFound: boolean
+  localFfmpegPath: string
+  localFfprobePath: string
   attemptedGcsAccess: false
   attemptedFfmpeg: false
   attemptedFfprobe: false
   attemptedRemotion: false
-  blocker: 'blocked_missing_approved_private_source_ref' | 'blocked_missing_approved_caption_burnin_runtime_path'
+  blocker: 'none' | 'blocked_missing_approved_private_source_ref' | 'blocked_missing_approved_caption_burnin_runtime_path'
   rejectedCandidateReason: string
   evidencePaths: string[]
 }
@@ -42,11 +70,14 @@ export interface TrackaCaptionBurninQaGate {
 }
 
 export interface TrackaCaptionBurninSummary {
-  phase: 'TRACKA-CAPTION-QUALITY-3R'
+  phase: 'TRACKA-CAPTION-QUALITY-3R2'
   runId: string
   execution: TrackaCaptionBurninExecutionStatus
   confirmationProvided: boolean
+  approvedSourceRef: string
+  sourceRefApproved: boolean
   captionBurninRevalidationExecuted: boolean
+  correctedCaptionVisualPreviewCreated: boolean
   assSidecarCreated: boolean
   libassBurninExecuted: boolean
   remotionPreviewExecuted: boolean
@@ -72,7 +103,11 @@ export interface TrackaCaptionBurninBundle {
   runId: string
   localBundlePath: string
   sourceAudit: TrackaCaptionBurninSourceAudit
+  approvedSourceRef: TrackaCaptionBurninApprovedSourceRef
   sidecar: TrackaCaptionBurninSidecarArtifact
+  qaReportArtifact: TrackaCaptionBurninArtifact
+  artifactManifestArtifact: TrackaCaptionBurninArtifact
+  ffprobeArtifact: TrackaCaptionBurninArtifact
   runtimeResolution: TrackaCaptionBurninRuntimeResolution
   qaGates: TrackaCaptionBurninQaGate[]
   summary: TrackaCaptionBurninSummary

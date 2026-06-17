@@ -30,7 +30,8 @@ Decision: `approved_with_warnings_for_tool_route_ai_graphics_metadata_local_fixt
 - `build:server`: passed.
 - changed-file secret scan: passed; matches were expected safety terms and diagnostic literals only.
 - `git diff --cached --check`: passed.
-- PR link/check status: pending PR creation.
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/462
+- PR status after creation: draft/open, mergeable clean, empty check rollup, head `4199a121dbf37c90e89ab20b797518892c4cfa5d`.
 
 ## Supabase Classification
 

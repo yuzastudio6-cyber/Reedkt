@@ -96,3 +96,7 @@ The `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_EXECUTION` packet 
 <!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_QA_STATUS -->
 
 The `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_QA_REVIEW` packet accepts static validation evidence with warnings only. Local fixture execution, route execution, actual tool execution, worker execution, provider/model calls, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase writes, SQL, GCS upload, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_OWNER_APPROVAL_STATUS -->
+
+The `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_OWNER_APPROVAL` packet approves only a future metadata gate-status packet. Local fixture validation execution, local fixture execution, route execution, actual tool execution, worker execution, provider/model calls, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase writes, SQL, GCS upload, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.

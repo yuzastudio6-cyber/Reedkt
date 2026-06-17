@@ -23,7 +23,7 @@ No dependency install, package-lock mutation, import smoke, synthetic fixture pr
 - PR: [#446](https://github.com/yuzastudio6-cyber/Reedkt/pull/446)
 - Draft: `true`
 - Base: `codex/rp-ai-tools-creative-graphics-batch-3-qa-review`
-- PR state: `OPEN`, `MERGEABLE`, `CLEAN`, empty check rollup at `4b04dd3a2f9d0e92b0b8c3305e084475391a5249`
+- PR state: `OPEN`, `MERGEABLE`, `CLEAN`, empty check rollup after the PR-link follow-up update.
 
 ## Validation
 

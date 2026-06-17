@@ -249,3 +249,15 @@ provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization,
 Remotion render/export, Supabase mutation, GCS/storage transfer, signed URLs,
 public artifacts, internal beta, external beta, paid production, and production
 readiness blocked.
+
+WORKER_AI_GRAPHICS_METADATA_HANDOFF_APPROVAL decision
+`worker_ai_graphics_metadata_handoff_approved_with_warnings` accepts PR #476
+Tool Route owner approval as metadata-only Worker Runtime handoff input for
+all 13 accepted AI graphics metadata tools. It permits future planning of job
+payload shape, approved plan snapshot mapping, scoped manifest mapping, private
+artifact refs, and observability audit requirements only. Worker execution,
+job claim, lease mutation, queue execution, route execution, actual tool
+execution, provider/model runtime, browser/WebGL/canvas runtime, resvg
+rasterization, Remotion render/export, Supabase mutation, GCS/storage transfer,
+signed URLs, public artifacts, internal beta, external beta, paid production,
+and production readiness remain blocked.

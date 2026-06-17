@@ -41,6 +41,7 @@ const acceptanceAreas = [
 const allowedFutureScriptDiffs = [
   'open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-approval:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-qa:diagnostics',
+  'tool-route:ai-graphics-metadata-integration-approval:diagnostics',
 ]
 const requiredTokens = [
   'PR #446',

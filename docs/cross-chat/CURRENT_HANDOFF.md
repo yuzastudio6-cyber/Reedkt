@@ -122,3 +122,14 @@ AI_TOOLS_CREATIVE_GRAPHICS open-source tool stack owner audit:
 - Supabase classification: `no write` / `docs_only`; environment `none`; SQL `none`; migration `no`; milestone sync `not_performed`.
 - Real dependency mutation, tool execution, route execution, worker execution, provider/model calls, media/audio/render/browser/map execution, Supabase writes, GCS upload, public artifacts, signed URLs, raw prompt execution, beta, and production remain blocked.
 - Next prompt: `AI_TOOLS_CREATIVE_GRAPHICS_OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1`.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_APPROVAL_STATUS -->
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION approval packet:
+
+- Decision: `approved_with_warnings_for_tool_route_ai_graphics_metadata_integration`.
+- Source evidence: PR #454 / AI graphics route-manifest integration QA at `03ad9b668e22f69c347cb0874d754453f44b9404`.
+- Tool Route context: merged PR #404 and PR #398; Track B policy context: PR #164.
+- Future-only approvals: metadata route registry intake, scoped tool-call manifest intake, and Worker Runtime handoff planning.
+- Real route/tool/worker/provider/browser/WebGL/canvas/Supabase/GCS/public/signed URL/beta/production scopes remain blocked.
+- Next prompt: `TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_QA_REVIEW`.

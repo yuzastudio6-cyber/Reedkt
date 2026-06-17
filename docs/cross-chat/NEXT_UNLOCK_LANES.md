@@ -95,3 +95,11 @@ AI_TOOLS_CREATIVE_GRAPHICS next owner-lane phase:
 - `AI_TOOLS_CREATIVE_GRAPHICS_OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1` may prepare a future approval packet only after the owner audit diagnostics pass.
 - Current owner audit decision: `owner_tool_stack_audit_completed_ready_for_install_proof_approval`.
 - No dependency install, package-lock mutation, import probe, synthetic proof execution, broad tool execution, route execution, worker execution, provider/model call, Supabase/GCS write, signed URL, public artifact, beta, or production unlock is approved by this owner audit.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_APPROVAL_STATUS -->
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION next lane:
+
+- `TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_QA_REVIEW` may review the metadata-only Tool Route intake packet after this approval branch is accepted.
+- Future-only approvals are limited to Tool Route metadata registry intake, scoped tool-call manifest intake, and Worker Runtime handoff planning.
+- Route execution, actual tool execution, worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase/GCS writes, signed URLs, public artifacts, beta, and production remain blocked.

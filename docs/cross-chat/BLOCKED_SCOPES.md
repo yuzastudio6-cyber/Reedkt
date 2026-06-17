@@ -72,3 +72,7 @@ The second controlled candidate dry-run did not unblock real execution. Broad to
 <!-- AI_TOOLS_CREATIVE_GRAPHICS_OPEN_SOURCE_TOOL_STACK_OWNER_AUDIT_STATUS -->
 
 The `AI_TOOLS_CREATIVE_GRAPHICS` open-source tool stack owner audit does not unblock real execution. Dependency mutation, package-lock mutation, import probes, E2E synthetic proof execution, model-weight download, model execution, tool execution, route execution, worker execution, provider/model calls, media/audio/render/export/image/browser/map work, Supabase writes, SQL, GCS upload, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION_APPROVAL_STATUS -->
+
+The `TOOL_ROUTE_AI_GRAPHICS_METADATA_INTEGRATION` approval packet does not unblock real execution. It approves future metadata-only route registry intake, scoped tool-call manifest intake, and Worker Runtime handoff planning only. Dependency mutation, package-lock mutation, import probes, synthetic fixture execution, actual tool execution, route execution, worker execution, provider/model calls, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase writes, SQL, GCS upload, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.

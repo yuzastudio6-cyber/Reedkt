@@ -1,0 +1,38 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryExecution.polars_metadata_dataframe_proof.v1",
+  "generatedAt": "2026-06-17T15:12:20.527Z",
+  "targetId": "polars_metadata_dataframe_proof",
+  "targetName": "Polars",
+  "status": "passed",
+  "passed": true,
+  "commandClass": "node_import_version_and_synthetic_metadata_dataframe",
+  "stdoutPreview": "{\"version\":\"0.25.1\",\"shape\":[1,2],\"columns\":[\"candidate\",\"mode\"],\"rowCount\":1,\"mediaInputsUsed\":false}",
+  "stderrPreview": "",
+  "blocker": null,
+  "installAttempted": true,
+  "systemBinaryInstallAttempted": false,
+  "mediaProcessingAttempted": false,
+  "details": {
+    "privateDataUsed": false,
+    "mediaInputUsed": false,
+    "mediaOutputCreated": false,
+    "networkUsedByProof": false,
+    "supabaseUsed": false,
+    "gcsUsed": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "rawPromptsExecuted": false,
+    "version": "0.25.1",
+    "shape": [
+      1,
+      2
+    ],
+    "columns": [
+      "candidate",
+      "mode"
+    ],
+    "rowCount": 1,
+    "mediaInputsUsed": false
+  },
+  "version": "0.25.1"
+}

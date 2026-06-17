@@ -1,0 +1,44 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryExecution.packageLockIntegrity.v1",
+  "generatedAt": "2026-06-17T15:12:20.527Z",
+  "beforePackageJsonHash": "f3631a89c6f1e922f30cf68b5675af4fc181ddb3f1eeebd761e70a2103b9a2e5",
+  "beforePackageLockHash": "8cf1ab99bdaa1a86f884ea49bdd3db5938d9b2cf9ddac9cafb1efae89aebdb72",
+  "afterPackageJsonHash": "b415aa9dc709225eb6f1d57fc0b4e1a8803f0da6f50638ba6a4f6954fbe82c7f",
+  "afterPackageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "packageJsonChanged": true,
+  "packageLockChanged": true,
+  "packageInstallReportExitCode": 0,
+  "directDependencyAdditions": [
+    "duckdb",
+    "nodejs-polars"
+  ],
+  "approvedDirectDependencyAdditions": [
+    "duckdb",
+    "nodejs-polars"
+  ],
+  "packageJsonHasOnlyApprovedDirectAdditions": true,
+  "packageLockHasApprovedPackages": true,
+  "packageLockPackages": {
+    "matchedPackageKeys": [
+      "node_modules/duckdb",
+      "node_modules/nodejs-polars"
+    ],
+    "directPackagesPresent": [
+      true,
+      true
+    ],
+    "total": 2
+  },
+  "npmLifecycleScriptsSkipped": true,
+  "noUnexpectedDependencyChurn": true,
+  "nodeModulesCommitted": false,
+  "buildOutputsCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "dockerOrContainerFilesChanged": false,
+  "trackedNodeModules": [],
+  "trackedBuildOutputs": [],
+  "trackedMedia": [],
+  "dockerChanges": [],
+  "passed": true,
+  "blocker": null
+}

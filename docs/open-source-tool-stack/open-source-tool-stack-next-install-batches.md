@@ -1,5 +1,15 @@
 # Next Install/Proof Batches
 
+Current missing optional package/binary execution status:
+
+- Decision: `missing_optional_package_install_passed_import_proof_blocked_by_ignored_scripts`.
+- Approved packages added: `duckdb@1.4.4` and `nodejs-polars@0.25.1`.
+- Proven: `nodejs-polars` import/version plus an in-memory metadata dataframe check.
+- Blocked: DuckDB import/query proof, because `--ignore-scripts` left the native binding unavailable.
+- Missing: FFmpeg and FFprobe system binaries; neither was installed.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_PACKAGE_INSTALL_SCRIPT_REVIEW`.
+- Media processing, worker/route/provider execution, Docker/container mutation, Supabase/GCS mutation, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+
 The first recommended next phase is `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1`. This document does not run installation or execution; it records the approved future proof scope after the dependency baseline repair and Batch 1 rerun approval.
 
 ## backlog_ai_vision_alternate_review

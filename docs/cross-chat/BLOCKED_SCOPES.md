@@ -116,3 +116,7 @@ OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_PACKAGE_AND_BINARY_APPROVAL:
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_PACKAGE_AND_BINARY_EXECUTION`.
 - Real installs, package-lock mutation, import smoke, version probes, fixture proofs, system binary installation, container mutation, tool/route/worker/provider execution, media/audio/render/image/browser/map work, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
 <!-- OPEN_SOURCE_MISSING_OPTIONAL_PACKAGE_BINARY_APPROVAL_STATUS:end -->
+
+<!-- OPEN_SOURCE_MISSING_OPTIONAL_PACKAGE_BINARY_EXECUTION_STATUS:start -->
+The missing optional package/binary execution does not unblock broad runtime. DuckDB remains unproven until a separate package-install-script/native-binding review passes. FFmpeg and FFprobe remain missing system binaries until a separate system-binary or worker-container owner review passes. Media processing, worker execution, route execution, provider calls, Docker/container mutation, Supabase/GCS writes, public artifacts, signed URLs, raw prompts, dependency-script execution, external beta, paid production, and production remain blocked.
+<!-- OPEN_SOURCE_MISSING_OPTIONAL_PACKAGE_BINARY_EXECUTION_STATUS:end -->

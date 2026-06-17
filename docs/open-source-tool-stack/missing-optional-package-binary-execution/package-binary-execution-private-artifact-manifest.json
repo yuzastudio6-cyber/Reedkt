@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryExecution.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-17T15:12:20.527Z",
+  "artifactScope": "repo_committed_code_json_markdown_reports_and_package_lock_only",
+  "reportDirectory": "docs/open-source-tool-stack/missing-optional-package-binary-execution",
+  "reports": [
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/source-of-truth-audit.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/pre-install-baseline-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/pre-install-baseline-report.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-install-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-install-report.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/post-install-npm-ci-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/duckdb-proof-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/polars-proof-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/ffmpeg-version-check-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/ffprobe-version-check-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-lock-integrity-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-lock-integrity-report.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/side-effect-safety-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-binary-execution-decision.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-binary-execution-decision.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-binary-execution-readiness-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-binary-execution-private-artifact-manifest.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-binary-execution-validation-results.md"
+  ],
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "mediaArtifactsCommitted": false,
+  "privatePayloadsCommitted": false,
+  "nodeModulesCommitted": false,
+  "buildOutputsCommitted": false
+}

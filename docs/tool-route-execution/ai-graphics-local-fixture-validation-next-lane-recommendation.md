@@ -1,19 +1,9 @@
 # AI Graphics Local Fixture Validation Next Lane Recommendation
 
-Decision: `approved_with_warnings_for_tool_route_ai_graphics_metadata_local_fixture_validation`
+Decision: `tool_route_ai_graphics_metadata_local_fixture_validation_passed_with_warnings`
 
-## Recommended Next Prompt
+Recommended next lane: `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_QA_REVIEW`.
 
-`TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_EXECUTION`
+The next lane should review the committed execution evidence, the ignored local evidence path, the 13-tool validation matrix, fail-closed behavior, no-execution proof, private artifact policy, scoped manifest policy, and worker handoff readiness.
 
-## Rationale
-
-PR #458 fixture planning is accepted with warnings, and this packet approves the next validation lane without executing it. The next safest step is a controlled local/static validation execution over committed placeholder templates and inventory docs only.
-
-## Not Recommended Yet
-
-- `WORKER_AI_GRAPHICS_METADATA_HANDOFF_APPROVAL`: wait until local fixture validation execution passes.
-- `TRACKA_AI_GRAPHICS_HANDOFF_REVIEW`: useful later for render/export ownership, but not required before metadata validation.
-- `AI_TOOLS_CREATIVE_GRAPHICS_RESVG_LINUX_IMPORT_PROOF_APPROVAL`: separate owner lane and not needed before local metadata fixture validation.
-
-Route execution, actual tool execution, rasterization, render/export, worker execution, browser/WebGL/canvas runtime, Supabase mutation, GCS/storage transfer, signed URLs, public artifacts, beta, and production remain blocked.
+This packet does not advance route/tool/worker/provider runtime readiness. Local fixture execution, route execution, actual tool execution, worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase mutation, GCS upload, signed URLs, public artifacts, beta, and production remain separately gated.

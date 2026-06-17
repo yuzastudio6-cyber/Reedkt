@@ -177,3 +177,14 @@ provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization,
 Remotion render/export, Supabase mutation, GCS/storage transfer, signed URLs,
 public artifacts, internal beta, external beta, paid production, or production
 readiness.
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_EXECUTION decision
+`tool_route_ai_graphics_metadata_local_fixture_validation_passed_with_warnings`
+accepts local/static metadata validation over committed docs-only fixture
+templates for all 13 accepted AI graphics tools. It writes ignored local JSON
+evidence only and commits sanitized summaries. It does not approve local
+fixture execution, route execution, actual tool execution, worker execution,
+provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization,
+Remotion render/export, Supabase mutation, GCS/storage transfer, signed URLs,
+public artifacts, internal beta, external beta, paid production, or production
+readiness.

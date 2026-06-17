@@ -50,6 +50,8 @@ const allowedFutureScriptDiffs = [
   'tool-route:ai-graphics-metadata-integration-qa:diagnostics',
   'tool-route:ai-graphics-metadata-local-fixture-plan:diagnostics',
   'tool-route:ai-graphics-metadata-local-fixture-validation-approval:diagnostics',
+  'tool-route:ai-graphics-metadata-local-fixture-validation:execute',
+  'tool-route:ai-graphics-metadata-local-fixture-validation:diagnostics',
 ]
 const requiredTrueBooleans = [
   'batch1Accepted',

@@ -365,3 +365,15 @@ TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_MERGE:
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL`.
 - Supabase classification: no write / none / none / no.
 <!-- TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_STATUS:end -->
+
+<!-- OPEN_SOURCE_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL_STATUS:start -->
+OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL:
+
+- Decision: `ffmpeg_ffprobe_version_probe_approval_passed_ready_for_tracka_container_probe_execution`.
+- Selected future runtime path: `tracka_repo_owned_render_worker_container` using `docker/prod/render-worker/Dockerfile`.
+- Approved future commands for a separate execution packet: `ffmpeg -version` and `ffprobe -version`.
+- Local host probing is not approved; FFmpeg/FFprobe are still not version-proven by this phase.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION`.
+- No FFmpeg/FFprobe probe, Docker build/run, Docker/container mutation, media processing, caption burn-in, render/export, npm install/rebuild, DuckDB/Polars proof rerun, worker/route/provider execution, Supabase/GCS mutation, public artifact, signed URL, raw prompt, beta, or production scope is enabled.
+- Supabase classification: no write / none / none / no.
+<!-- OPEN_SOURCE_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL_STATUS:end -->

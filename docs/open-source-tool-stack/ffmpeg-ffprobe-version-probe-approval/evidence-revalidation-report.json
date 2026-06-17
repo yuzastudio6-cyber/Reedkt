@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ffmpegFfprobeVersionProbeApproval.evidenceRevalidation.v1",
+  "generatedAt": "2026-06-17T23:30:04.065Z",
+  "passed": true,
+  "checks": {
+    "pr477Merged": true,
+    "pr463MergedReference": true,
+    "trackaDecisionReady": true,
+    "centralEvidenceReconciled": true,
+    "centralDockerfilePresent": true,
+    "trackaFutureApprovalReady": true,
+    "systemBinaryReviewReady": true,
+    "duckdbAccepted": true,
+    "polarsAccepted": true,
+    "ffmpegNotProven": true,
+    "ffprobeNotProven": true
+  },
+  "pr463ReferenceOnly": true,
+  "pr463CentralCanonical": false,
+  "ffmpegAcceptedAsInstalledAndProven": false,
+  "ffprobeAcceptedAsInstalledAndProven": false,
+  "versionProbeRunInThisPhase": false,
+  "evidenceFiles": {
+    "trackaDecision": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/tracka-ffmpeg-ffprobe-source-of-truth-decision.json",
+    "trackaCentralEvidence": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/ffmpeg-ffprobe-central-evidence.json",
+    "trackaFutureBoundary": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/future-version-probe-boundary.json",
+    "trackaCentralPresence": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/central-presence-check.json",
+    "systemBinaryReviewDecision": "docs/open-source-tool-stack/ffmpeg-ffprobe-system-binary-review/ffmpeg-ffprobe-system-binary-review-decision.json",
+    "duckdbQaDecision": "docs/open-source-tool-stack/duckdb-native-rebuild-qa/duckdb-native-rebuild-qa-decision.json",
+    "polarsProof": "docs/open-source-tool-stack/missing-optional-package-binary-execution/polars-proof-report.json"
+  }
+}

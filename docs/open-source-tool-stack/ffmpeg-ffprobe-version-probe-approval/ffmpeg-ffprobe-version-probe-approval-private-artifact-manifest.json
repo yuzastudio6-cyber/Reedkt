@@ -1,0 +1,10 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ffmpegFfprobeVersionProbeApproval.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-17T23:30:04.065Z",
+  "privatePayloadsAccessed": false,
+  "privatePayloadsPrinted": false,
+  "privatePayloadsCommitted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "reportDirectory": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval"
+}

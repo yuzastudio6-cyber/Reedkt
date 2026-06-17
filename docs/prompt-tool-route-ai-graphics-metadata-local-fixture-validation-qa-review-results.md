@@ -57,8 +57,9 @@ Decision: `tool_route_ai_graphics_metadata_local_fixture_validation_qa_passed_wi
 - Changed-file secret scan: passed with no matches.
 - `.local-artifacts` staged: no.
 - Generated `dist/` and `dist-server/` build outputs: ignored/untracked, not staged.
-- `git diff --cached --check`: pending staging.
+- `git diff --cached --check`: passed before first commit.
+- Draft PR: [#467](https://github.com/yuzastudio6-cyber/Reedkt/pull/467), open/draft/mergeable clean, head `6326bfe45a290bdbada4579c883a8e562a950fe9`, empty check rollup at creation.
 
 No local fixture execution, route execution, actual tool execution, worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.
 
-PR link: pending follow-up commit after draft PR creation.
+PR link: [#467](https://github.com/yuzastudio6-cyber/Reedkt/pull/467).

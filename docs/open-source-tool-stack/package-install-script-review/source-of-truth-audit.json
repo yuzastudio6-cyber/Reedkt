@@ -1,0 +1,153 @@
+{
+  "schema": "reeditpro.openSourceToolStack.packageInstallScriptReview.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-17T18:04:39.901Z",
+  "branch": "codex/rp-open-source-tool-stack-package-install-script-review",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "ecc94e78a89890597d02eea1206193b6a22041ca",
+  "sourceBranchContainsPr455Evidence": true,
+  "predecessorPrs": [
+    {
+      "number": 455,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 448,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 444,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 439,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 435,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 430,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 427,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 421,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 416,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 412,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 407,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 402,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 399,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 394,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 388,
+      "expectedState": "MERGED"
+    },
+    {
+      "number": 387,
+      "expectedState": "MERGED"
+    }
+  ],
+  "referenceOnlyPrs": [
+    {
+      "number": 428,
+      "canonical": false
+    },
+    {
+      "number": 425,
+      "canonical": false
+    },
+    {
+      "number": 432,
+      "canonical": false
+    },
+    {
+      "number": 423,
+      "canonical": false
+    },
+    {
+      "number": 420,
+      "canonical": false
+    },
+    {
+      "number": 417,
+      "canonical": false
+    },
+    {
+      "number": 401,
+      "canonical": false
+    },
+    {
+      "number": 384,
+      "canonical": false
+    }
+  ],
+  "approvedDirectDependencies": {
+    "duckdb": "1.4.4",
+    "nodejs-polars": "0.25.1"
+  },
+  "packageJsonHash": "a7f2034d2208ef1c670caf74a7e4f9ac0212b96c13416038d31b08ef1655dbc5",
+  "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "noScopeConfirmation": {
+    "lifecycleScriptExecutionAllowedNow": false,
+    "nativeBindingRebuildAllowedNow": false,
+    "duckdbImportSmokeAllowedNow": false,
+    "duckdbSyntheticMetadataQueryAllowedNow": false,
+    "polarsProofRerunAllowedNow": false,
+    "ffmpegVersionProbeAllowedNow": false,
+    "ffprobeVersionProbeAllowedNow": false,
+    "dependencyInstallAllowedNow": false,
+    "packageLockMutationAllowedNow": false,
+    "systemBinaryInstallAllowedNow": false,
+    "containerImageMutationAllowedNow": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExportAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

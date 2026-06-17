@@ -39,8 +39,8 @@ Decision: `ai_graphics_route_manifest_integration_qa_passed_with_warnings`
 | lint/typecheck/build | `passed`: `npm run lint`, `npm run typecheck:server`, `npx tsc -b`, `npm run build`, and `npm run build:server`; client build retained the existing Vite chunk-size warning. |
 | changed-file secret scan | `passed` across 18 modified/untracked files; boundary-aware key scan ignored the diagnostic's own regex definitions and existing `mask-*` package-script names. |
 | package-lock / artifact staging review | `passed`; `package-lock.json` unchanged, dependency sections unchanged, `.local-artifacts/` absent from tracked files, and generated `dist/`, `dist-server/`, and `node_modules/` are ignored. |
-| PR link | `pending` |
-| GitHub checks | `pending` |
+| PR link | [#454](https://github.com/yuzastudio6-cyber/Reedkt/pull/454). |
+| GitHub checks | empty check rollup at PR creation; PR is draft/open/mergeable clean at `b3a1ea01915e28674ca51e583c2781a844088254`. |
 
 ## Supabase Classification
 

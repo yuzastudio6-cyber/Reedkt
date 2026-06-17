@@ -36,6 +36,7 @@
     "tool-route:ai-graphics-metadata-integration-approval:diagnostics": "node scripts/validation/tool-route-ai-graphics-metadata-integration-approval-diagnostics.mjs",
     "tool-route:ai-graphics-metadata-integration-qa:diagnostics": "node scripts/validation/tool-route-ai-graphics-metadata-integration-qa-diagnostics.mjs",
     "tool-route:ai-graphics-metadata-local-fixture-plan:diagnostics": "node scripts/validation/tool-route-ai-graphics-metadata-local-fixture-plan-diagnostics.mjs",
+    "tool-route:ai-graphics-metadata-local-fixture-validation-approval:diagnostics": "node scripts/validation/tool-route-ai-graphics-metadata-local-fixture-validation-approval-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

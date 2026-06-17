@@ -2,56 +2,36 @@
 
 ## Goal
 
-Plan a future private Track A E2E revalidation packet after TRACKA-VISUAL-GAP-CLOSURE-1, TRACKA-CAPTION-QUALITY-1, TRACKA-MISSING-VISUAL-EVIDENCE-2, TRACKA-CAPTION-QUALITY-2, and TRACKA-CAPTION-QUALITY-3 have bounded the caption-quality, corrected-caption burn-in, and missing-evidence blockers from #419.
+Plan a future private Track A E2E revalidation packet after the caption-quality and missing-evidence chain has produced corrected-caption visual proof and a first internal-beta scope decision.
 
 ## Current Blocker
 
-TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_revalidation_execution_and_scope_decision`
+TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_visual_review_and_scope_decision`
 
 #419 recorded `pass_with_warnings_sample_level` for uploaded samples and `fullTrackAVisualClosurePassed: false`.
 
 #426 closed controlled-test caption text quality, but caption visual burn-in revalidation remains required.
 
-TRACKA-MISSING-VISUAL-EVIDENCE-1 is merged as #429 at `e4ccb582aadaa9e32607e5a1ae2bbec0719ddc1f`, records the missing visual evidence bundle, and copied 5 visual artifacts without closing blockers by itself.
+#429 is merged and provides the missing visual evidence artifact bundle. #434 records `overallDecision: partial_pass_with_warnings`, keeps `fullMissingVisualEvidenceClosurePassed: false`, and keeps `fullTrackAVisualClosurePassed: false`.
 
-TRACKA-MISSING-VISUAL-EVIDENCE-2 records `overallDecision: partial_pass_with_warnings`, keeps `fullMissingVisualEvidenceClosurePassed: false`, and keeps `fullTrackAVisualClosurePassed: false`.
+#440 and #443 record the corrected-caption burn-in planning and guarded execution packet. #447 failed closed before burn-in because the approved source ref was missing. #452 approves the exact private Phase 32 controlled-test source ref. #459 wires the approved #452 source ref into the guarded burn-in activation and records `blocked_missing_approved_caption_burnin_runtime_path`.
 
-TRACKA-CAPTION-QUALITY-2 records corrected-caption burn-in revalidation planning, keeps corrected-caption visual burn-in unexecuted, and sets `TRACKA-CAPTION-QUALITY-3 readiness: ready_for_burnin_revalidation_execution_packet`.
-
-TRACKA-CAPTION-QUALITY-3 records the guarded corrected-caption burn-in execution packet and defaults to `execution: blocked_pending_caption_burnin_execution_confirmation` until `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true` is explicitly set.
-
-TRACKA-CAPTION-SOURCE-REF-1 is merged as #452 at `422bbcade670646963257f5b7b2ddc6681748f0b` and approves the exact private Phase 32 controlled-test source ref for corrected-caption burn-in revalidation.
-
-TRACKA-CAPTION-QUALITY-3R2 is the guarded execution follow-up with the approved #452 source ref. It must record either corrected-caption private visual proof or an exact fail-closed blocker such as `blocked_missing_approved_caption_burnin_runtime_path`. Private E2E revalidation remains blocked until TRACKA-CAPTION-QUALITY-3R2 produces a review-safe corrected-caption visual artifact and TRACKA-CAPTION-QUALITY-4 records the visual outcome.
+TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 records runtime path status: `blocked_missing_local_ffmpeg_libass_runtime`. Private E2E revalidation remains blocked until a future guarded burn-in execution creates a review-safe corrected-caption visual artifact and TRACKA-CAPTION-QUALITY-4 records the visual outcome.
 
 ## Required Precondition
 
-Complete guarded caption burn-in revalidation execution and confirm the remaining first-internal-beta scope decision:
-
-- use #426 approved controlled-test caption source.
-- provide corrected-caption burn-in review evidence from TRACKA-CAPTION-QUALITY-3R2 plus TRACKA-CAPTION-QUALITY-4.
-- provide one clean private E2E review clip or contact sheet.
-- provide timeline consistency proof.
-- provide final composition polish checklist.
-- decide whether BiRefNet/text-behind-subject and Real-ESRGAN/enhancement are excluded from first restricted internal beta or need TRACKA-MISSING-VISUAL-EVIDENCE-3 first.
-- keep internal beta blocked until corrected-caption burn-in visual review and scope decision are recorded.
-
-## Allowed Future Scope
-
-- define a private revalidation checklist.
-- define required representative visual artifacts.
-- define QA criteria and owner approvals.
-- record whether private E2E can proceed after gap closure.
+- approved source ref: `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`.
+- approved runtime path: `none`.
+- corrected-caption private visual proof from a future guarded burn-in execution.
+- one clean private E2E review clip or contact sheet.
+- timeline consistency proof.
+- final composition polish checklist.
+- first internal-beta scope decision for BiRefNet/text-behind-subject and Real-ESRGAN/enhancement.
 
 ## Blocked Scope
 
-- no Track A runtime execution.
-- no FFmpeg/FFprobe, Remotion, libass, OTIO, OpenColorIO, OpenImageIO, Kornia, BiRefNet, SAM2, Real-ESRGAN, or FILM execution.
-- no media processing, frame extraction, or contact sheet generation.
-- no GCS upload or signed URL creation.
-- no Supabase mutation or SQL.
-- no beta, production, final delivery, or broad media unlock.
+No Track A runtime execution, FFmpeg/FFprobe, Remotion, libass, OTIO, OpenColorIO, OpenImageIO, Kornia, BiRefNet, SAM2, Real-ESRGAN, FILM execution, media processing, GCS upload, signed URL creation, Supabase mutation, SQL, beta, production, final delivery, or broad media unlock.
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Track A caption burn-in runtime execution remains blocked unless explicitly confirmed with REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks were allowed when REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true; no media input or output was used.

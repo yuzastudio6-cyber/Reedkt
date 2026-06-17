@@ -65,6 +65,7 @@ const allowedFutureScriptDiffs = [
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-execution:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-qa:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-4-approval:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-4-policy-qa:diagnostics',
 ]
 const diffBase = process.env.AI_TOOLS_CREATIVE_GRAPHICS_PACKAGE_LOCK_BASE_FIX_DIFF_BASE ?? 'origin/codex/rp-ai-tools-creative-graphics-install-proof-approval-batch-1'
 

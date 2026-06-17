@@ -108,3 +108,12 @@ approve Remotion render/export, or unlock browser/WebGL/canvas runtime,
 route/tool/worker/provider runtime, Supabase mutation, GCS/storage transfer,
 signed URLs, public artifacts, internal beta, external beta, paid production,
 or production readiness.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 4 policy QA decision
+`ai_graphics_batch_4_policy_qa_passed_with_warnings` accepts the Batch 4
+policy and handoff packet with warnings. The next recommended approval packet
+is `AI_TOOLS_CREATIVE_GRAPHICS_ROUTE_MANIFEST_INTEGRATION_APPROVAL_PACKET`;
+resvg rasterization, Remotion render/export, route/tool/worker/provider
+execution, Supabase mutation, GCS/storage transfer, signed URLs, public
+artifacts, internal beta, external beta, paid production, and production
+remain blocked.

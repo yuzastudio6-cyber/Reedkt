@@ -27,6 +27,7 @@ const allowedExecutionScripts = [
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-execution:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-qa:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-4-approval:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-4-policy-qa:diagnostics',
 ]
 const deferredPackages = ['animejs']
 const excludedTokens = [

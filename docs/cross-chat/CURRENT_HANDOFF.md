@@ -165,3 +165,15 @@ TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_APPROVAL:
 - Future-only approvals cover valid, invalid, and blocked metadata fixture validation, scoped manifest validation, private artifact validation, and Worker Runtime handoff validation.
 - Real local fixture validation execution, local fixture execution, route/tool/worker/provider/browser/WebGL/canvas/Supabase/GCS/public/signed URL/beta/production scopes remain blocked.
 - Next prompt: `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_EXECUTION`.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_EXECUTION_STATUS -->
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_EXECUTION:
+
+- Decision: `tool_route_ai_graphics_metadata_local_fixture_validation_passed_with_warnings`.
+- Source evidence: PR #462 / Tool Route AI graphics metadata local fixture validation approval at `333083ebe48e31b5ede94cf72e6810d2297e7d4b`.
+- Local/static run id: `ai-graphics-local-fixture-validation-local-static`.
+- Static validation covered all 13 accepted AI graphics metadata tools across valid, invalid, blocked, scoped manifest, private artifact, fail-closed, no-execution, and worker handoff checks.
+- Local evidence is ignored under `.local-artifacts/tool-route/ai-graphics-metadata-local-fixture-validation/ai-graphics-local-fixture-validation-local-static/`; sanitized summaries only are committed.
+- Real local fixture execution, route/tool/worker/provider/browser/WebGL/canvas/Supabase/GCS/public/signed URL/beta/production scopes remain blocked.
+- Next prompt: `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_QA_REVIEW`.

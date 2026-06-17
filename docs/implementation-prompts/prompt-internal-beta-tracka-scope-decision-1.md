@@ -13,6 +13,7 @@ Record the first restricted internal beta Track A scope decision after corrected
 - #434 missing visual evidence review outcome.
 - TRACKA-CAPTION-QUALITY-2 burn-in revalidation planning packet.
 - TRACKA-CAPTION-QUALITY-3 guarded burn-in revalidation execution packet.
+- TRACKA-CAPTION-QUALITY-3R guarded corrected-caption burn-in execution result and, if available, TRACKA-CAPTION-QUALITY-4 visual outcome.
 
 ## Required Decisions
 
@@ -27,15 +28,15 @@ TRACKA-CAPTION-QUALITY-3 readiness: ready_for_burnin_revalidation_execution_pack
 
 TRACKA-CAPTION-QUALITY-3R readiness: ready_for_guarded_execution
 
-TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: blocked_pending_caption_burnin_revalidation_execution_and_scope_decision
+TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: blocked_pending_caption_burnin_visual_review_and_scope_decision
 
-INTERNAL-BETA readiness: blocked_pending_caption_burnin_revalidation_and_scope_decision
+INTERNAL-BETA readiness: blocked_pending_caption_burnin_visual_review_and_scope_decision
 
 TRACKA-MISSING-VISUAL-EVIDENCE-3 readiness: optional_scope_expansion_only
 
 ## Blocked Claims
 
-This prompt must not claim internal beta readiness, external beta readiness, production readiness, final delivery readiness, runtime readiness, public artifact readiness, or signed URL readiness. It must also preserve `execution: blocked_pending_caption_burnin_execution_confirmation` unless a later guarded TRACKA-CAPTION-QUALITY-3R run explicitly confirms and records execution.
+This prompt must not claim internal beta readiness, external beta readiness, production readiness, final delivery readiness, runtime readiness, public artifact readiness, or signed URL readiness. It must preserve the TRACKA-CAPTION-QUALITY-3R execution status exactly, including any fail-closed blocker such as `blocked_missing_approved_private_source_ref`, unless a later guarded run creates and reviews a corrected-caption private visual artifact.
 
 ## No-Scope Statement
 

@@ -1,0 +1,19 @@
+# TRACKA-CAPTION-QUALITY-3R Local Review Bundle
+
+Status: `created_sidecar_only`
+
+localBundlePath: `/tmp/reeditpro-tracka-caption-quality-3r/tracka-caption-quality-3r-20260617T020429`
+
+correctedAssSidecar: `/tmp/reeditpro-tracka-caption-quality-3r/tracka-caption-quality-3r-20260617T020429/tracka-caption-quality-3r-corrected-caption.ass`
+
+correctedCaptionPreview: `not_created`
+
+localReviewBundleVisualFiles: `0`
+
+uploadableVisualFiles: `0`
+
+The local bundle contains only corrected sidecar/report metadata when the guarded command is run. It does not contain a corrected-caption visual preview because execution is blocked by `blocked_missing_approved_private_source_ref`.
+
+## No-Scope Statement
+
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Bounded Track A corrected-caption burn-in revalidation was allowed only when REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true and only for private review artifacts.

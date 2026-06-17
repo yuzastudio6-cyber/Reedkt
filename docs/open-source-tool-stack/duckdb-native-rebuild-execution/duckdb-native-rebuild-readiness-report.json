@@ -1,0 +1,14 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildExecution.readinessReport.v1",
+  "generatedAt": "2026-06-17T19:58:40.927Z",
+  "readiness": true,
+  "decision": "duckdb_native_rebuild_execution_passed_ffmpeg_ffprobe_still_missing",
+  "preRebuildBaselinePassed": true,
+  "nativeRebuildPassed": true,
+  "duckdbImportProofPassed": true,
+  "duckdbSyntheticQueryPassed": true,
+  "packageLockNativeArtifactIntegrityPassed": true,
+  "sideEffectSafetyPassed": true,
+  "ffmpegFfprobeStillMissing": true,
+  "blockers": []
+}

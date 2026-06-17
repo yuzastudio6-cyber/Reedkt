@@ -14,11 +14,13 @@ Run only after TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 records `runtimePathSta
 
 ## Current Runtime Path Status
 
-runtimePathStatus: `blocked_ffmpeg_missing_ass_subtitles_filter`
+runtimePathStatus: `blocked_homebrew_ffmpeg_lacks_libass_filter_support`
 
 approvedRuntimePath: `none`
 
-provisioningStatus: `completed_host_runtime_provisioning`
+provisioningStatus: `not_needed`
+
+libassRepairStatus: `completed_homebrew_ffmpeg_libass_repair`
 
 ## Blocked Unless
 
@@ -45,4 +47,4 @@ provisioningStatus: `completed_host_runtime_provisioning`
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level FFmpeg/FFprobe provisioning were allowed; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level Homebrew FFmpeg/FFprobe/libass provisioning were allowed; no media input or output was used.

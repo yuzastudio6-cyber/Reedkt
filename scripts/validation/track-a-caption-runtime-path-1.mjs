@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 
-const phase = 'TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1R'
+const phase = 'TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1R2'
 const branch = 'codex/rp-tracka-caption-quality-3r2-runtime-path-1'
 const base =
   'origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration at 1a52c5a604b175bbd95c8e96294d963636ee8db0'
@@ -9,8 +9,9 @@ const sourceRef =
   'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4'
 const runtimeCheckEnv = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true'
 const provisioningEnv = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PROVISIONING=true'
+const libassRepairEnv = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_FFMPEG_LIBASS_REPAIR=true'
 const noScope =
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level FFmpeg/FFprobe provisioning were allowed; no media input or output was used.'
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level Homebrew FFmpeg/FFprobe/libass provisioning were allowed; no media input or output was used.'
 const captionLines = [
   'Hey everyone — welcome to this ReEditPro visual review.',
   'Today we are testing captions, overlays, and private render quality.',
@@ -31,10 +32,11 @@ function timestamp() {
   return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, '')
 }
 
-const runId = process.env.REEDITPRO_TRACKA_CAPTION_RUNTIME_PATH_1_ID || `tracka-caption-runtime-path-1r-${timestamp()}`
+const runId = process.env.REEDITPRO_TRACKA_CAPTION_RUNTIME_PATH_1_ID || `tracka-caption-runtime-path-1r2-${timestamp()}`
 const checkRequested = process.argv.includes('--check-metadata')
 const confirmationProvided = process.env.REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK === 'true'
 const provisioningConfirmed = process.env.REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PROVISIONING === 'true'
+const libassRepairConfirmed = process.env.REEDITPRO_CONFIRM_TRACKA_CAPTION_FFMPEG_LIBASS_REPAIR === 'true'
 
 function runCommand(label, command, args, options = {}) {
   if (!options.enabled) {
@@ -105,6 +107,95 @@ function summarizeProvisioningFailure(commands) {
   if (/permission denied|not permitted|operation not permitted/i.test(text)) return 'permission_denied'
   if (/failed/i.test(text)) return 'package_manager_failed'
   return 'not_reported'
+}
+
+function brewShell(label, command, enabled) {
+  return shell(label, `HOMEBREW_NO_AUTO_UPDATE=1 ${command}`, enabled)
+}
+
+function collectHomebrewMetadata(enabled) {
+  return [
+    shell('uname', 'uname -a', enabled),
+    brewShell('brew_version', 'brew --version', enabled),
+    brewShell('brew_info_ffmpeg', 'brew info ffmpeg || true', enabled),
+    brewShell('brew_info_libass', 'brew info libass || true', enabled),
+    brewShell('brew_list_versions_ffmpeg', 'brew list --versions ffmpeg || true', enabled),
+    brewShell('brew_list_versions_libass', 'brew list --versions libass || true', enabled),
+    brewShell('brew_deps_installed_ffmpeg', 'brew deps --installed ffmpeg || true', enabled),
+  ]
+}
+
+function repairLibassIfNeeded({ ffmpegFound, ffprobeFound, assFilterPresent, subtitlesFilterPresent }) {
+  const needsRepair =
+    checkRequested &&
+    confirmationProvided &&
+    provisioningConfirmed &&
+    ffmpegFound &&
+    ffprobeFound &&
+    !assFilterPresent &&
+    !subtitlesFilterPresent
+
+  if (!needsRepair) {
+    return {
+      status: 'not_needed',
+      attempted: false,
+      packageManager: 'none',
+      blocker: 'none',
+      failureSummary: 'none',
+      commands: [],
+    }
+  }
+
+  if (!libassRepairConfirmed) {
+    return {
+      status: 'blocked_ffmpeg_missing_ass_subtitles_filter',
+      attempted: false,
+      packageManager: 'none',
+      blocker: 'blocked_ffmpeg_missing_ass_subtitles_filter',
+      failureSummary: 'missing_REEDITPRO_CONFIRM_TRACKA_CAPTION_FFMPEG_LIBASS_REPAIR',
+      commands: [],
+    }
+  }
+
+  const uname = shell('repair_uname', 'uname -a', true)
+  const brewPath = commandOutput('command -v brew || true').stdout.trim()
+
+  if (!/Darwin/i.test(uname.stdout) || !brewPath) {
+    return {
+      status: 'blocked_no_supported_homebrew_runtime_repair_path',
+      attempted: false,
+      packageManager: 'none',
+      blocker: 'blocked_no_supported_homebrew_runtime_repair_path',
+      failureSummary: 'homebrew_core_runtime_repair_path_not_available',
+      commands: [uname],
+    }
+  }
+
+  const commands = [
+    uname,
+    brewShell('repair_brew_version', 'brew --version', true),
+    brewShell('repair_brew_info_ffmpeg_before', 'brew info ffmpeg || true', true),
+    brewShell('repair_brew_info_libass_before', 'brew info libass || true', true),
+    brewShell('repair_brew_list_versions_ffmpeg_before', 'brew list --versions ffmpeg || true', true),
+    brewShell('repair_brew_list_versions_libass_before', 'brew list --versions libass || true', true),
+    brewShell('repair_brew_install_libass', 'brew install libass', true),
+    brewShell('repair_brew_reinstall_ffmpeg', 'brew reinstall ffmpeg', true),
+    shell('repair_refresh_shell_hash', 'hash -r || true', true),
+    brewShell('repair_brew_list_versions_ffmpeg_after', 'brew list --versions ffmpeg || true', true),
+    brewShell('repair_brew_list_versions_libass_after', 'brew list --versions libass || true', true),
+  ]
+  const installLibass = commands.find((entry) => entry.label === 'repair_brew_install_libass')
+  const reinstallFfmpeg = commands.find((entry) => entry.label === 'repair_brew_reinstall_ffmpeg')
+  const passed = installLibass?.status === 'passed' && reinstallFfmpeg?.status === 'passed'
+
+  return {
+    status: passed ? 'completed_homebrew_ffmpeg_libass_repair' : 'blocked_ffmpeg_libass_repair_failed',
+    attempted: true,
+    packageManager: 'homebrew',
+    blocker: passed ? 'none' : 'blocked_ffmpeg_libass_repair_failed',
+    failureSummary: passed ? 'none' : summarizeProvisioningFailure(commands),
+    commands,
+  }
 }
 
 function provisionIfNeeded(ffmpegPath, ffprobePath) {
@@ -202,30 +293,65 @@ function buildMetadataResult() {
   const firstSearch = inspectExistingPaths()
   const provisioning = provisionIfNeeded(firstSearch.ffmpegPath, firstSearch.ffprobePath)
   const secondSearch = provisioning.status === 'completed_host_runtime_provisioning' ? inspectExistingPaths() : firstSearch
-  const ffmpegPath = secondSearch.ffmpegPath
-  const ffprobePath = secondSearch.ffprobePath
-  const ffmpegFound = ffmpegPath !== 'not_checked' && ffmpegPath !== 'not_found'
-  const ffprobeFound = ffprobePath !== 'not_checked' && ffprobePath !== 'not_found'
-  const commands = [...firstSearch.commands, ...provisioning.commands]
-
-  const ffmpegVersion = runCommand('ffmpeg_version', 'ffmpeg', ['-hide_banner', '-version'], {
-    enabled: checkRequested && confirmationProvided && ffmpegFound,
-  })
-  const ffprobeVersion = runCommand('ffprobe_version', 'ffprobe', ['-hide_banner', '-version'], {
-    enabled: checkRequested && confirmationProvided && ffprobeFound,
-  })
-  const ffmpegFilters = runCommand('ffmpeg_filters', 'ffmpeg', ['-hide_banner', '-filters'], {
-    enabled: checkRequested && confirmationProvided && ffmpegFound,
-  })
-  commands.push(ffmpegVersion, ffprobeVersion, ffmpegFilters)
-
-  const filterOutput = `${ffmpegFilters.stdout}\n${ffmpegFilters.stderr}`
-  const versionOutput = `${ffmpegVersion.stdout}\n${ffmpegVersion.stderr}`
-  const assFilterPresent = hasFilter(filterOutput, 'ass')
-  const subtitlesFilterPresent = hasFilter(filterOutput, 'subtitles')
-  const libassIndicated = /--enable-libass|libass/i.test(`${versionOutput}\n${filterOutput}`)
   const metadataCheckExecuted = checkRequested && confirmationProvided
-  const approved = metadataCheckExecuted && ffmpegFound && ffprobeFound && (assFilterPresent || subtitlesFilterPresent)
+  const commands = [...firstSearch.commands, ...provisioning.commands, ...collectHomebrewMetadata(metadataCheckExecuted)]
+
+  function runMetadata(labelPrefix, searchResult) {
+    const ffmpegPath = searchResult.ffmpegPath
+    const ffprobePath = searchResult.ffprobePath
+    const ffmpegFound = ffmpegPath !== 'not_checked' && ffmpegPath !== 'not_found'
+    const ffprobeFound = ffprobePath !== 'not_checked' && ffprobePath !== 'not_found'
+    const ffmpegCommand = ffmpegFound ? ffmpegPath : 'ffmpeg'
+    const ffprobeCommand = ffprobeFound ? ffprobePath : 'ffprobe'
+    const ffmpegVersion = runCommand(`${labelPrefix}_ffmpeg_version`, ffmpegCommand, ['-hide_banner', '-version'], {
+      enabled: metadataCheckExecuted && ffmpegFound,
+    })
+    const ffmpegBuildconf = runCommand(`${labelPrefix}_ffmpeg_buildconf`, ffmpegCommand, ['-hide_banner', '-buildconf'], {
+      enabled: metadataCheckExecuted && ffmpegFound,
+    })
+    const ffprobeVersion = runCommand(`${labelPrefix}_ffprobe_version`, ffprobeCommand, ['-hide_banner', '-version'], {
+      enabled: metadataCheckExecuted && ffprobeFound,
+    })
+    const ffmpegFilters = runCommand(`${labelPrefix}_ffmpeg_filters`, ffmpegCommand, ['-hide_banner', '-filters'], {
+      enabled: metadataCheckExecuted && ffmpegFound,
+    })
+    commands.push(ffmpegVersion, ffmpegBuildconf, ffprobeVersion, ffmpegFilters)
+    const filterOutput = `${ffmpegFilters.stdout}\n${ffmpegFilters.stderr}`
+    const versionOutput = `${ffmpegVersion.stdout}\n${ffmpegVersion.stderr}`
+    const buildconfOutput = `${ffmpegBuildconf.stdout}\n${ffmpegBuildconf.stderr}`
+    const assFilterPresent = hasFilter(filterOutput, 'ass')
+    const subtitlesFilterPresent = hasFilter(filterOutput, 'subtitles')
+    const libassIndicated = /--enable-libass|libass/i.test(`${versionOutput}\n${buildconfOutput}\n${filterOutput}`)
+    return {
+      ffmpegPath,
+      ffprobePath,
+      ffmpegFound,
+      ffprobeFound,
+      ffmpegVersion,
+      ffmpegBuildconf,
+      ffprobeVersion,
+      ffmpegFilters,
+      assFilterPresent,
+      subtitlesFilterPresent,
+      libassIndicated,
+    }
+  }
+
+  let metadata = runMetadata('initial', secondSearch)
+  const repair = repairLibassIfNeeded(metadata)
+  commands.push(...repair.commands)
+  if (repair.status === 'completed_homebrew_ffmpeg_libass_repair') {
+    const repairedSearch = inspectExistingPaths()
+    commands.push(...repairedSearch.commands)
+    commands.push(...collectHomebrewMetadata(metadataCheckExecuted))
+    metadata = runMetadata('post_repair', repairedSearch)
+  }
+
+  const approved =
+    metadataCheckExecuted &&
+    metadata.ffmpegFound &&
+    metadata.ffprobeFound &&
+    (metadata.assFilterPresent || metadata.subtitlesFilterPresent)
 
   if (!metadataCheckExecuted) {
     return {
@@ -235,8 +361,8 @@ function buildMetadataResult() {
       readiness: 'blocked_pending_runtime_path_check',
       metadataCheck: 'not_attempted',
       blocker: 'blocked_pending_caption_runtime_path_check_confirmation',
-      ffmpegPath,
-      ffprobePath,
+      ffmpegPath: metadata.ffmpegPath,
+      ffprobePath: metadata.ffprobePath,
       ffmpegVersion: 'not_checked',
       ffprobeVersion: 'not_checked',
       assFilterPresent: false,
@@ -244,6 +370,7 @@ function buildMetadataResult() {
       libassIndicated: false,
       commands,
       provisioning,
+      libassRepair: repair,
       confirmationProvided,
       checkRequested,
     }
@@ -255,10 +382,22 @@ function buildMetadataResult() {
     if (provisioning.blocker !== 'none') {
       runtimePathStatus = provisioning.blocker
       blocker = provisioning.blocker
-    } else if (ffmpegFound && !ffprobeFound) {
+    } else if (repair.blocker !== 'none') {
+      runtimePathStatus = repair.blocker
+      blocker = repair.blocker
+    } else if (metadata.ffmpegFound && !metadata.ffprobeFound) {
       runtimePathStatus = 'blocked_ffmpeg_found_but_ffprobe_missing'
       blocker = 'blocked_ffmpeg_found_but_ffprobe_missing'
-    } else if (ffmpegFound && ffprobeFound && !assFilterPresent && !subtitlesFilterPresent) {
+    } else if (
+      repair.status === 'completed_homebrew_ffmpeg_libass_repair' &&
+      metadata.ffmpegFound &&
+      metadata.ffprobeFound &&
+      !metadata.assFilterPresent &&
+      !metadata.subtitlesFilterPresent
+    ) {
+      runtimePathStatus = 'blocked_homebrew_ffmpeg_lacks_libass_filter_support'
+      blocker = 'blocked_homebrew_ffmpeg_lacks_libass_filter_support'
+    } else if (metadata.ffmpegFound && metadata.ffprobeFound && !metadata.assFilterPresent && !metadata.subtitlesFilterPresent) {
       runtimePathStatus = 'blocked_ffmpeg_missing_ass_subtitles_filter'
       blocker = 'blocked_ffmpeg_missing_ass_subtitles_filter'
     } else {
@@ -276,15 +415,16 @@ function buildMetadataResult() {
       : runtimePathStatus,
     metadataCheck: approved ? 'completed' : 'blocked',
     blocker,
-    ffmpegPath,
-    ffprobePath,
-    ffmpegVersion: extractVersion(ffmpegVersion.stdout || ffmpegVersion.stderr, 'ffmpeg'),
-    ffprobeVersion: extractVersion(ffprobeVersion.stdout || ffprobeVersion.stderr, 'ffprobe'),
-    assFilterPresent,
-    subtitlesFilterPresent,
-    libassIndicated,
+    ffmpegPath: metadata.ffmpegPath,
+    ffprobePath: metadata.ffprobePath,
+    ffmpegVersion: extractVersion(metadata.ffmpegVersion.stdout || metadata.ffmpegVersion.stderr, 'ffmpeg'),
+    ffprobeVersion: extractVersion(metadata.ffprobeVersion.stdout || metadata.ffprobeVersion.stderr, 'ffprobe'),
+    assFilterPresent: metadata.assFilterPresent,
+    subtitlesFilterPresent: metadata.subtitlesFilterPresent,
+    libassIndicated: metadata.libassIndicated,
     commands,
     provisioning,
+    libassRepair: repair,
     confirmationProvided,
     checkRequested,
   }
@@ -303,6 +443,11 @@ function runtimeRows(result) {
     ['provisioningAttempted', String(result.provisioning.attempted)],
     ['provisioningPackageManager', result.provisioning.packageManager],
     ['provisioningFailureSummary', result.provisioning.failureSummary || 'none'],
+    ['libassRepairConfirmation', libassRepairConfirmed ? libassRepairEnv : 'absent_or_not_true'],
+    ['libassRepairStatus', result.libassRepair.status],
+    ['libassRepairAttempted', String(result.libassRepair.attempted)],
+    ['libassRepairPackageManager', result.libassRepair.packageManager],
+    ['libassRepairFailureSummary', result.libassRepair.failureSummary || 'none'],
     ['ffmpegPath', result.ffmpegPath],
     ['ffprobePath', result.ffprobePath],
     ['ffmpegVersion', result.ffmpegVersion],
@@ -405,6 +550,7 @@ Status: \`${result.runtimePathStatus}\`
 | --- | --- | --- | --- | --- |
 | \`local_ffmpeg_libass_runtime_path\` | preferred minimal local runtime path | ffmpeg=\`${result.ffmpegPath}\`; ffprobe=\`${result.ffprobePath}\`; ass=\`${result.assFilterPresent}\`; subtitles=\`${result.subtitlesFilterPresent}\`; libass=\`${result.libassIndicated}\` | \`${result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ? 'approved_metadata_only' : result.runtimePathStatus}\` | approval is metadata-only; no media input or output was used |
 | \`host_homebrew_ffmpeg_runtime_path\` | explicitly confirmed host provisioning path | provisioningStatus=\`${result.provisioning.status}\`; packageManager=\`${result.provisioning.packageManager}\`; failure=\`${result.provisioning.failureSummary || 'none'}\` | \`${result.provisioning.status}\` | no repo dependency or package-lock change |
+| \`homebrew_core_ffmpeg_libass_repair_path\` | explicitly confirmed Homebrew core libass repair path | libassRepairStatus=\`${result.libassRepair.status}\`; packageManager=\`${result.libassRepair.packageManager}\`; failure=\`${result.libassRepair.failureSummary || 'none'}\` | \`${result.libassRepair.status}\` | no third-party taps, random binaries, source compilation, repo dependency, or package-lock change |
 | \`existing_tracka_caption_burnin_activation_module\` | guarded activation packet | existing #459 module remains source-of-truth | \`available_for_future_guarded_execution_only\` | must stay behind \`REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true\` |
 | \`remotion_preview_runtime_path\` | optional preview path | package metadata only | \`not_required_for_runtime_path_approval\` | no Remotion render was run |
 | \`docker_cloudrun_runtime_path\` | deployment/runtime path | not inspected beyond docs | \`blocked_no_build_no_deploy\` | Docker/Cloud Run build/deploy remains out of scope |
@@ -430,15 +576,23 @@ Runtime path check confirmation required: \`${runtimeCheckEnv}\`
 
 Runtime provisioning confirmation required: \`${provisioningEnv}\`
 
+FFmpeg libass repair confirmation required: \`${libassRepairEnv}\`
+
 confirmationProvided: ${result.confirmationProvided}
 
 provisioningConfirmationProvided: ${provisioningConfirmed}
+
+libassRepairConfirmationProvided: ${libassRepairConfirmed}
 
 metadataCheckExecuted: ${result.metadataCheck !== 'not_attempted'}
 
 provisioningStatus: \`${result.provisioning.status}\`
 
 provisioningFailureSummary: \`${result.provisioning.failureSummary || 'none'}\`
+
+libassRepairStatus: \`${result.libassRepair.status}\`
+
+libassRepairFailureSummary: \`${result.libassRepair.failureSummary || 'none'}\`
 
 ## Command Results
 
@@ -480,6 +634,7 @@ Status: \`${result.runtimePathStatus}\`
 | required binary | \`ffprobe\` | \`${result.ffprobePath}\` |
 | required filters | \`ass\` or \`subtitles\` | ass=\`${result.assFilterPresent}\`; subtitles=\`${result.subtitlesFilterPresent}\` |
 | host provisioning | explicit confirmation only | \`${result.provisioning.status}\` |
+| Homebrew core libass repair | explicit confirmation only | \`${result.libassRepair.status}\` |
 | allowed input | #452 approved source ref only | \`${sourceRef}\` |
 | allowed caption | #426 approved controlled-test caption copy only | preserved |
 | future execution confirmation | \`REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true\` | required for 3R3 |
@@ -521,6 +676,7 @@ Status: \`${result.runtimePathStatus}\`
 | \`corrected_caption_copy_present\` | passed | #426 four-line caption copy preserved |
 | \`old_caption_rejected\` | passed | old #419 awkward text rejected and not reused |
 | \`host_runtime_provisioning\` | \`${result.provisioning.status}\` | packageManager=\`${result.provisioning.packageManager}\`; failure=\`${result.provisioning.failureSummary || 'none'}\` |
+| \`homebrew_core_libass_repair\` | \`${result.libassRepair.status}\` | packageManager=\`${result.libassRepair.packageManager}\`; failure=\`${result.libassRepair.failureSummary || 'none'}\` |
 | \`ffmpeg_binary_metadata\` | \`${result.ffmpegPath === 'not_found' || result.ffmpegPath === 'not_checked' ? 'blocked_or_not_checked' : 'passed'}\` | \`${result.ffmpegPath}\` |
 | \`ffprobe_binary_metadata\` | \`${result.ffprobePath === 'not_found' || result.ffprobePath === 'not_checked' ? 'blocked_or_not_checked' : 'passed'}\` | \`${result.ffprobePath}\` |
 | \`caption_filter_metadata\` | \`${result.assFilterPresent || result.subtitlesFilterPresent ? 'passed' : 'blocked_or_not_checked'}\` | ass=\`${result.assFilterPresent}\`; subtitles=\`${result.subtitlesFilterPresent}\` |
@@ -574,6 +730,10 @@ provisioningStatus: \`${result.provisioning.status}\`
 
 provisioningFailureSummary: \`${result.provisioning.failureSummary || 'none'}\`
 
+libassRepairStatus: \`${result.libassRepair.status}\`
+
+libassRepairFailureSummary: \`${result.libassRepair.failureSummary || 'none'}\`
+
 ## No-Scope Statement
 
 ${noScope}
@@ -598,7 +758,7 @@ Production/external beta/final delivery: \`blocked\`
 
 ## Human Action Required
 
-${result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ? 'none for runtime path approval; 3R3 still requires explicit guarded burn-in execution confirmation.' : 'fix the host FFmpeg/FFprobe runtime provisioning path, then rerun the metadata-only runtime path check with both confirmations.'}
+${result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ? 'none for runtime path approval; 3R3 still requires explicit guarded burn-in execution confirmation.' : result.runtimePathStatus === 'blocked_homebrew_ffmpeg_lacks_libass_filter_support' ? 'Homebrew core ffmpeg still lacks libass-backed ass/subtitles filters after approved libass repair; obtain explicit approval for a different approved local FFmpeg build path before rerunning metadata checks.' : 'fix the host FFmpeg/FFprobe/libass runtime provisioning path, then rerun the metadata-only runtime path check with all three confirmations.'}
 
 ## No-Scope Statement
 
@@ -624,6 +784,8 @@ Approved runtime path: \`${result.approvedRuntimePath}\`
 
 Provisioning: \`${result.provisioning.status}\`
 
+Libass repair: \`${result.libassRepair.status}\`
+
 ## Source-Of-Truth Audit
 
 | PR | Status | Evidence |
@@ -634,6 +796,7 @@ ${sourceAudit}
 
 - local_ffmpeg_libass_runtime_path: \`${result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ? 'approved_metadata_only' : result.runtimePathStatus}\`
 - host_homebrew_ffmpeg_runtime_path: \`${result.provisioning.status}\`
+- homebrew_core_ffmpeg_libass_repair_path: \`${result.libassRepair.status}\`
 - existing_tracka_caption_burnin_activation_module: \`available_for_future_guarded_execution_only\`
 - remotion_preview_runtime_path: \`optional_not_required\`
 - docker_cloudrun_runtime_path: \`blocked_no_build_no_deploy\`
@@ -707,6 +870,8 @@ runtimePathStatus: \`${result.runtimePathStatus}\`
 approvedRuntimePath: \`${result.approvedRuntimePath}\`
 
 provisioningStatus: \`${result.provisioning.status}\`
+
+libassRepairStatus: \`${result.libassRepair.status}\`
 
 ## Blocked Unless
 
@@ -850,6 +1015,9 @@ console.log(
       provisioning: result.provisioning.status,
       provisioningPackageManager: result.provisioning.packageManager,
       provisioningFailureSummary: result.provisioning.failureSummary || 'none',
+      libassRepair: result.libassRepair.status,
+      libassRepairPackageManager: result.libassRepair.packageManager,
+      libassRepairFailureSummary: result.libassRepair.failureSummary || 'none',
       readiness: result.readiness,
       mediaInputUsed: false,
       mediaOutputCreated: false,

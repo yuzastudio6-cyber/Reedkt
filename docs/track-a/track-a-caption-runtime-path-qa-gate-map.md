@@ -1,6 +1,6 @@
 # Track A Caption Runtime Path QA Gate Map
 
-Status: `blocked_ffmpeg_missing_ass_subtitles_filter`
+Status: `blocked_homebrew_ffmpeg_lacks_libass_filter_support`
 
 | gateId | status | evidence |
 | --- | --- | --- |
@@ -8,7 +8,8 @@ Status: `blocked_ffmpeg_missing_ass_subtitles_filter`
 | `approved_source_ref_present` | passed | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` |
 | `corrected_caption_copy_present` | passed | #426 four-line caption copy preserved |
 | `old_caption_rejected` | passed | old #419 awkward text rejected and not reused |
-| `host_runtime_provisioning` | `completed_host_runtime_provisioning` | packageManager=`homebrew`; failure=`none` |
+| `host_runtime_provisioning` | `not_needed` | packageManager=`none`; failure=`none` |
+| `homebrew_core_libass_repair` | `completed_homebrew_ffmpeg_libass_repair` | packageManager=`homebrew`; failure=`none` |
 | `ffmpeg_binary_metadata` | `passed` | `/opt/homebrew/bin/ffmpeg` |
 | `ffprobe_binary_metadata` | `passed` | `/opt/homebrew/bin/ffprobe` |
 | `caption_filter_metadata` | `blocked_or_not_checked` | ass=`false`; subtitles=`false` |
@@ -20,4 +21,4 @@ Status: `blocked_ffmpeg_missing_ass_subtitles_filter`
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level FFmpeg/FFprobe provisioning were allowed; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level Homebrew FFmpeg/FFprobe/libass provisioning were allowed; no media input or output was used.

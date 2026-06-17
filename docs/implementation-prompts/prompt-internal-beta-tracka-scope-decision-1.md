@@ -16,7 +16,7 @@ Record the first restricted internal beta Track A scope decision after corrected
 - #447 fail-closed corrected-caption execution attempt.
 - #452 approved private source ref.
 - #459 guarded corrected-caption burn-in revalidation with approved source result.
-- TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 runtime path status: `blocked_ffmpeg_missing_ass_subtitles_filter`.
+- TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 runtime path status: `blocked_homebrew_ffmpeg_lacks_libass_filter_support`.
 
 ## Required Decisions
 
@@ -27,7 +27,7 @@ Record the first restricted internal beta Track A scope decision after corrected
 
 ## Current Required Statuses
 
-TRACKA-CAPTION-QUALITY-3R3 readiness: `blocked_ffmpeg_missing_ass_subtitles_filter`
+TRACKA-CAPTION-QUALITY-3R3 readiness: `blocked_homebrew_ffmpeg_lacks_libass_filter_support`
 
 TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_visual_review_and_scope_decision`
 
@@ -41,4 +41,4 @@ This prompt must not claim internal beta readiness, external beta readiness, pro
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level FFmpeg/FFprobe provisioning were allowed; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level Homebrew FFmpeg/FFprobe/libass provisioning were allowed; no media input or output was used.

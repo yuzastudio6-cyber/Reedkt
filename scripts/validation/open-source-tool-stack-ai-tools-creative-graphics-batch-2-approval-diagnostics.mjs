@@ -33,6 +33,7 @@ const allowedExecutionScripts = [
   'tool-route:ai-graphics-metadata-integration-approval:diagnostics',
   'tool-route:ai-graphics-metadata-integration-qa:diagnostics',
   'tool-route:ai-graphics-metadata-local-fixture-plan:diagnostics',
+  'tool-route:ai-graphics-metadata-local-fixture-validation-approval:diagnostics',
 ]
 const deferredPackages = ['animejs']
 const excludedTokens = [

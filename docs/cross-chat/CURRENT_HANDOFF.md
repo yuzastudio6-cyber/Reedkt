@@ -155,3 +155,13 @@ TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_PLAN:
 - Future-only approvals remain limited to local fixture planning, future local fixture validation approval, scoped manifest fixture planning, and Worker Runtime handoff review planning.
 - Real local fixture execution, route/tool/worker/provider/browser/WebGL/canvas/Supabase/GCS/public/signed URL/beta/production scopes remain blocked.
 - Next prompt: `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_APPROVAL`.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_APPROVAL_STATUS -->
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_APPROVAL:
+
+- Decision: `approved_with_warnings_for_tool_route_ai_graphics_metadata_local_fixture_validation`.
+- Source evidence: PR #458 / Tool Route AI graphics metadata local fixture plan at `7dc6afdd4188f9d629910db88c1b3ed148876ed7`.
+- Future-only approvals cover valid, invalid, and blocked metadata fixture validation, scoped manifest validation, private artifact validation, and Worker Runtime handoff validation.
+- Real local fixture validation execution, local fixture execution, route/tool/worker/provider/browser/WebGL/canvas/Supabase/GCS/public/signed URL/beta/production scopes remain blocked.
+- Next prompt: `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_EXECUTION`.

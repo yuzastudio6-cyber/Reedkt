@@ -71,6 +71,7 @@ const allowedFutureScriptDiffs = [
   'tool-route:ai-graphics-metadata-integration-approval:diagnostics',
   'tool-route:ai-graphics-metadata-integration-qa:diagnostics',
   'tool-route:ai-graphics-metadata-local-fixture-plan:diagnostics',
+  'tool-route:ai-graphics-metadata-local-fixture-validation-approval:diagnostics',
 ]
 const diffBase = process.env.AI_TOOLS_CREATIVE_GRAPHICS_PACKAGE_LOCK_BASE_FIX_DIFF_BASE ?? 'origin/codex/rp-ai-tools-creative-graphics-install-proof-approval-batch-1'
 

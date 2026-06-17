@@ -119,3 +119,11 @@ TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_PLAN next lane:
 - `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_APPROVAL` may approve a later static validation packet for the committed placeholder fixture templates.
 - Future-only approvals remain limited to fixture planning, future fixture validation approval, scoped manifest fixture planning, and Worker Runtime handoff review planning.
 - Local fixture execution, route execution, actual tool execution, worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase/GCS writes, signed URLs, public artifacts, beta, and production remain blocked.
+
+<!-- TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_APPROVAL_STATUS -->
+
+TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_APPROVAL next lane:
+
+- `TOOL_ROUTE_AI_GRAPHICS_METADATA_LOCAL_FIXTURE_VALIDATION_EXECUTION` may run only a later approved local/static metadata validation over committed PR #458 fixture plan docs and placeholder templates.
+- Future-only approvals cover valid, invalid, blocked, scoped manifest, private artifact, fail-closed, no-execution, and worker handoff validation.
+- Local fixture execution, route execution, actual tool execution, worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase/GCS writes, signed URLs, public artifacts, beta, and production remain blocked.

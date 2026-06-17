@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ffmpegFfprobeVersionProbeApproval.futureProbeCommandApproval.v1",
+  "generatedAt": "2026-06-17T23:30:04.065Z",
+  "approvalScope": "future_separate_execution_packet_only",
+  "executionEnvironment": "tracka_repo_owned_render_worker_container",
+  "commandsApprovedForFutureSeparateExecution": [
+    "ffmpeg -version",
+    "ffprobe -version"
+  ],
+  "exactCommandClasses": [
+    "ffmpeg_version_output_only",
+    "ffprobe_version_output_only"
+  ],
+  "timeoutSeconds": 15,
+  "stdoutPolicy": "capture_bounded_private_report_preview_only",
+  "stderrPolicy": "capture_bounded_private_report_preview_only",
+  "mediaInputAllowed": false,
+  "fileProbeAllowed": false,
+  "decodeAllowed": false,
+  "encodeAllowed": false,
+  "captionBurnInAllowed": false,
+  "renderExportAllowed": false,
+  "outputFilesAllowed": false,
+  "privateDataMountsAllowed": false,
+  "publicArtifactsAllowed": false,
+  "signedUrlsAllowed": false,
+  "versionProbeRunInThisPhase": false,
+  "stopOnFirstFailure": true
+}

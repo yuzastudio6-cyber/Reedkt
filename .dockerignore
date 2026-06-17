@@ -21,6 +21,15 @@ dist
 dist-server
 dist-remotion-worker
 dist-staging-fixture-worker
+# Allow repo-owned render-worker metadata builds to include required prebuilt worker outputs.
+!dist-server
+!dist-server/**
+!dist-remotion-worker
+!dist-remotion-worker/**
+!dist-staging-fixture-worker
+!dist-staging-fixture-worker/**
+!dist-staging-real-video-export-worker
+!dist-staging-real-video-export-worker/**
 **/.venv
 **/venv
 **/__pycache__

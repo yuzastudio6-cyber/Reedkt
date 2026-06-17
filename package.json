@@ -33,6 +33,7 @@
     "sound-oss-tools-5:diagnostics": "node scripts/validation/sound-oss-tools-5-synthetic-fixture-plan-diagnostics.mjs",
     "sound-oss-tools-6:diagnostics": "node scripts/validation/sound-oss-tools-6-synthetic-fixture-validation-diagnostics.mjs",
     "sound-oss-tools-7:diagnostics": "node scripts/validation/sound-oss-tools-7-synthetic-fixture-owner-review-diagnostics.mjs",
+    "sound-oss-tools-8:diagnostics": "node scripts/validation/sound-oss-tools-8-synthetic-fixture-gate-status-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",
     "tool-route-execution-unlock-0:report": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs --report",

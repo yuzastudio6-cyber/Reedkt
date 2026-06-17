@@ -31,4 +31,4 @@ Tool Route accepts the AI graphics metadata integration approval with warnings. 
 - migration deployed: `no`
 - milestone sync: `not_performed`
 
-No dependency install, package-lock mutation, import smoke execution, synthetic fixture execution, resvg rasterization, Remotion render/export, browser runtime, WebGL runtime, canvas runtime, actual tool execution, route execution, worker execution, provider/model calls, Supabase mutation, SQL, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.
+No npm install, new dependency addition, package-lock mutation, import smoke execution, synthetic fixture execution, resvg rasterization, Remotion render/export, browser runtime, WebGL runtime, canvas runtime, actual tool execution, route execution, worker execution, provider/model calls, Supabase mutation, SQL, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.

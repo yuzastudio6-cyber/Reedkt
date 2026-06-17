@@ -19,7 +19,7 @@ This is status-only. Do not run validation execution, local fixtures, routes, to
 - Validation status before PR creation: `npm ci`, gate-status diagnostics, inherited Tool Route and AI graphics diagnostics, inherited Batch 1-3 import/synthetic proof scripts, readiness summaries, lint, server typecheck, TypeScript build, client build, and server build passed. `npm ci` reported existing audit findings and allow-scripts notices. Production/external beta remained blocked by existing global readiness blockers.
 - `package-lock.json` remained unchanged.
 - `.local-artifacts` was not staged.
-- Draft PR: pending.
+- Draft PR: [#471](https://github.com/yuzastudio6-cyber/Reedkt/pull/471), open/draft/mergeable clean, head `42a28beecd2481d84e2293f55dba3e99243199b3`, empty check rollup at creation.
 
 ## Safety Record
 
@@ -27,4 +27,4 @@ This packet records gate status from PR #468 owner approval, PR #467 QA evidence
 
 Supabase remains `no write` / `docs_only`; environment touched: `none`; SQL executed: `none`; migration deployed: `no`; milestone sync: `not_performed`.
 
-PR link: pending.
+PR link: [#471](https://github.com/yuzastudio6-cyber/Reedkt/pull/471).

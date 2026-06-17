@@ -60,9 +60,9 @@ Duplicate exact gate-status PR/head branch at start: none found.
 - `package-lock.json`: unchanged.
 - `.local-artifacts` staged: no.
 - Generated `dist/` and `dist-server/` build outputs: ignored/untracked, not staged.
-- `git diff --cached --check`: pending before first commit.
-- Draft PR: pending.
+- `git diff --cached --check`: passed before first commit.
+- Draft PR: [#471](https://github.com/yuzastudio6-cyber/Reedkt/pull/471), open/draft/mergeable clean, head `42a28beecd2481d84e2293f55dba3e99243199b3`, empty check rollup at creation.
 
 No local fixture validation execution, actual local fixture execution, route execution, actual tool execution, worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.
 
-PR link: pending.
+PR link: [#471](https://github.com/yuzastudio6-cyber/Reedkt/pull/471).

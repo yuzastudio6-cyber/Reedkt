@@ -60,8 +60,8 @@ Duplicate exact QA PR/head branch at start: none found.
 - `package-lock.json`: unchanged.
 - `.local-artifacts` staged: not staged and not tracked.
 - `git diff --cached --check`: passed before staging.
-- Draft PR: pending.
+- Draft PR: [#473](https://github.com/yuzastudio6-cyber/Reedkt/pull/473), open draft, mergeable clean, empty check rollup at `d37c881d954c900787cd9e2b5addf8008da44d06`.
 
 No local fixture validation execution, actual local fixture execution, route execution, actual tool execution, worker execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.
 
-PR link: pending.
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/473

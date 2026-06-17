@@ -19,7 +19,7 @@ This is QA/review only. Do not run validation execution, actual local fixtures, 
 - Git workaround: plain `git` hit the local Apple/Xcode shim; validation used `DEVELOPER_DIR=/Library/Developer/CommandLineTools` for Git checks.
 - `package-lock.json` remained unchanged: verified.
 - `.local-artifacts` staged: not staged and not tracked.
-- Draft PR: pending.
+- Draft PR: [#473](https://github.com/yuzastudio6-cyber/Reedkt/pull/473), open draft, mergeable clean, empty check rollup at `d37c881d954c900787cd9e2b5addf8008da44d06`.
 
 ## Safety Record
 
@@ -27,4 +27,4 @@ This QA packet reviews committed PR #471 gate-status evidence only. It does not 
 
 Supabase remains `no write` / `docs_only`; environment touched: `none`; SQL executed: `none`; migration deployed: `no`; milestone sync: `not_performed`.
 
-PR link: pending.
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/473

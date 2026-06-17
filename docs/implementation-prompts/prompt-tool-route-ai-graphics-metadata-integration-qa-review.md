@@ -53,9 +53,12 @@ Warnings recorded:
 
 ## PR Status
 
-- PR: `pending`
-- Draft state: `pending`
-- Check rollup: `pending`
+- PR: #457, `https://github.com/yuzastudio6-cyber/Reedkt/pull/457`
+- Draft state: `draft`
+- State: `OPEN`
+- Mergeability: `MERGEABLE` / `CLEAN`
+- Head: `b16cc3725b81c48b53f4a5e70dcf6c781cc6367f`
+- Check rollup: `empty`
 
 ## Supabase Classification
 

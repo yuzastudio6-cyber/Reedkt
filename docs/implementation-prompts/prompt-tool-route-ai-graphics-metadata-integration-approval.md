@@ -55,9 +55,10 @@ Notes: `npm ci` reported existing audit and allow-scripts warnings. Production r
 
 ## PR Status
 
-- PR: `pending`
-- Draft state: `pending`
-- Check rollup: `pending`
+- PR: `https://github.com/yuzastudio6-cyber/Reedkt/pull/456`
+- Draft state: `true`
+- Mergeability: `MERGEABLE` / `CLEAN`
+- Check rollup: empty at creation time
 
 ## Supabase Classification
 

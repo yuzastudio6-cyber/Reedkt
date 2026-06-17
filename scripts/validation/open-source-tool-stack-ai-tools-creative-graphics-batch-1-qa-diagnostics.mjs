@@ -42,6 +42,7 @@ const allowedFutureScriptDiffs = [
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-synthetic-fixtures',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-execution:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-qa:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-4-approval:diagnostics',
 ]
 const requiredTrueBooleans = [
   'batch1Accepted',

@@ -1,21 +1,25 @@
 # AI_TOOLS_CREATIVE_GRAPHICS Batch 4 Allowed / Blocked Scope
 
-Decision: `ai_graphics_batch_3_install_import_manifest_proof_passed_with_warnings`
+Decision: `approved_with_warnings_for_ai_graphics_batch_4_policy_and_handoff_review`
 
-## Recommended Next Step
+## Allowed
 
-Prepare `AI_TOOLS_CREATIVE_GRAPHICS_OPEN_SOURCE_TOOL_STACK_BATCH_3_QA_REVIEW` to review the Batch 3 install/import/manifest proof for `animejs`, `three`, `pixi.js`, `konva`, and `babylonjs`.
+- Source evidence review from PR #416 through PR #445.
+- Policy documentation for `@resvg/resvg-js` host/runtime boundaries.
+- SVG raster fallback planning without output generation.
+- Remotion / Track A documentation handoff planning.
+- Route-manifest readiness planning for Batch 1-3 proven tools.
+- Static diagnostics and tracker updates.
 
-## Allowed For Batch 4
+## Blocked
 
-- Review committed Batch 3 package, import-smoke, and manifest-fixture evidence.
-- Classify each Batch 3 package as accepted, accepted with warnings, or blocked.
-- Keep browser/WebGL/canvas/runtime boundaries explicit.
-- Update owner-lane trackers and validation records.
+- Dependency install or package-lock mutation.
+- Import smoke or synthetic fixture execution for Batch 4.
+- `@resvg/resvg-js` rasterization or SVG-to-image output.
+- Remotion renderer import, render, export, or final composition execution.
+- Browser/WebGL/canvas runtime.
+- Actual tool execution, route execution, worker execution, provider/model runtime.
+- Supabase mutation, SQL, GCS/storage transfer, signed URL creation, public artifact creation.
+- Raw prompt execution, internal beta, external beta, paid production, or production.
 
-## Still Blocked
-
-- Browser runtime, WebGL runtime, canvas runtime, Pixi renderer execution, Three WebGL context, Konva browser canvas rendering, Babylon engine/WebGL rendering, and Anime browser animation execution.
-- Actual tool execution, route execution, worker execution, provider/model calls, Remotion render/export, resvg rasterization, map rendering, media/audio processing, Supabase mutation, SQL, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta, external beta, and production.
-
-No browser runtime, WebGL runtime, canvas runtime, actual tool execution, route execution, worker execution, provider/model calls, Remotion render/export, resvg rasterization, map rendering, media/audio processing, Supabase mutation, SQL, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.
+No Batch 4 dependency install, package-lock mutation, import smoke, synthetic fixture proof, resvg rasterization, Remotion render/export, browser runtime, WebGL runtime, canvas runtime, actual tool execution, route execution, worker execution, provider/model calls, Supabase mutation, SQL, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.

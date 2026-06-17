@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildQaReview.packageLockNativeArtifactQa.v1",
+  "generatedAt": "2026-06-17T20:39:26.105Z",
+  "sourceEvidencePath": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/package-lock-native-artifact-integrity-report.json",
+  "packageJsonChanged": false,
+  "packageLockChanged": false,
+  "nodeModulesCommitted": false,
+  "nativeArtifactsCommitted": false,
+  "npmCacheCommitted": false,
+  "buildOutputsCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "secretsDetected": false,
+  "privatePayloadsCommitted": false,
+  "statusPreview": [
+    "M package.json",
+    "?? scripts/validation/open-source-tool-stack-duckdb-native-rebuild-qa-diagnostics.mjs",
+    "?? server/activation/open-source-tool-stack-duckdb-native-rebuild-qa-review/",
+    "?? server/cli/open-source-tool-stack-duckdb-native-rebuild-qa-review-plan.ts",
+    "?? server/cli/open-source-tool-stack-duckdb-native-rebuild-qa-review-report.ts",
+    "?? server/cli/open-source-tool-stack-duckdb-native-rebuild-qa-review-summary.ts",
+    "?? server/cli/open-source-tool-stack-duckdb-native-rebuild-qa-review.ts",
+    "?? server/smoke/open-source-tool-stack-duckdb-native-rebuild-qa-review-smoke.ts"
+  ],
+  "passed": true
+}

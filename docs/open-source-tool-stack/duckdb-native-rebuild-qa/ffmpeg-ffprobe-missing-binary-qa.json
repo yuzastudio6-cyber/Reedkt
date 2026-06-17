@@ -1,0 +1,22 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildQaReview.ffmpegFfprobeMissingBinaryQa.v1",
+  "generatedAt": "2026-06-17T20:39:26.105Z",
+  "sourceEvidencePath": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/ffmpeg-ffprobe-follow-up-report.json",
+  "ffmpegStatus": "missing_system_binary",
+  "ffprobeStatus": "missing_system_binary",
+  "ffmpegMissing": true,
+  "ffprobeMissing": true,
+  "ffmpegProbeRunInPr466": false,
+  "ffprobeProbeRunInPr466": false,
+  "probeRunInThisPhase": false,
+  "installAttempted": false,
+  "mediaProcessingApproved": false,
+  "systemBinaryReviewRequired": true,
+  "nextRecommendedLane": "OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_SYSTEM_BINARY_REVIEW",
+  "ownerHandoffCandidates": [
+    "TRACK_A_RENDER_EXPORT",
+    "SOUND_MUSIC_AUDIO",
+    "WORKER_RUNTIME_JOBS"
+  ],
+  "passed": true
+}

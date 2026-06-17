@@ -100,3 +100,15 @@ OPEN_SOURCE_TOOL_STACK_DUCKDB_NATIVE_REBUILD_QA_REVIEW:
 - No npm install, npm rebuild, lifecycle script, proof rerun, version probe, tool/worker/route/provider/media, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is enabled.
 - Supabase classification: no write / none / none / no.
 <!-- OPEN_SOURCE_DUCKDB_NATIVE_REBUILD_QA_STATUS:end -->
+
+<!-- OPEN_SOURCE_FFMPEG_FFPROBE_SYSTEM_BINARY_REVIEW_STATUS:start -->
+OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_SYSTEM_BINARY_REVIEW:
+
+- Decision: `ffmpeg_ffprobe_system_binary_review_passed_ready_for_tracka_source_of_truth_merge`.
+- DuckDB remains accepted/proven from PR #466 evidence; Polars remains accepted/proven from PR #455 evidence.
+- FFmpeg and FFprobe remain missing/unproven in the central lane.
+- PR #463 is relevant Track A FFmpeg/FFprobe/libass runtime-path evidence, but it is not present on the central source-of-truth branch and must be reconciled before central version-probe approval.
+- Future FFmpeg/FFprobe version probes are not approved by this phase.
+- Next prompt: `TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_MERGE`.
+- Supabase classification: no write / none / none / no.
+<!-- OPEN_SOURCE_FFMPEG_FFPROBE_SYSTEM_BINARY_REVIEW_STATUS:end -->

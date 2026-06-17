@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ffmpegFfprobeSystemBinaryReview.internalBetaImpact.v1",
+  "generatedAt": "2026-06-17T21:23:02.115Z",
+  "internalBetaCanRelyOn": [
+    "DuckDB from PR #466 evidence",
+    "Polars from PR #455 evidence",
+    "Sharp/libvips from Batch 1 evidence",
+    "manifest/report validators"
+  ],
+  "internalBetaCannotRelyOnYet": [
+    "FFmpeg",
+    "FFprobe",
+    "real media processing",
+    "render/export execution",
+    "audio processing"
+  ],
+  "blockedBetaPathsUntilSystemBinaryProof": [
+    "media probing",
+    "caption burn-in runtime execution",
+    "final render/export",
+    "audio loudness or normalization processing"
+  ],
+  "externalBetaAllowed": false,
+  "paidProductionAllowed": false
+}

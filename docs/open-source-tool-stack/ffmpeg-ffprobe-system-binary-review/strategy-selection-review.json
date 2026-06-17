@@ -1,0 +1,66 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ffmpegFfprobeSystemBinaryReview.strategySelection.v1",
+  "generatedAt": "2026-06-17T21:23:02.115Z",
+  "strategies": [
+    {
+      "strategy": "central_local_system_binary",
+      "owner": "OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF",
+      "evidence": "central branch only records missing_system_binary for FFmpeg and FFprobe",
+      "risks": [
+        "host-specific binary drift",
+        "not tied to worker/runtime source-of-truth"
+      ],
+      "packageLockImpact": "none",
+      "dockerContainerImpact": "none",
+      "mediaProcessingRisk": "low only for future version probes; high if expanded beyond version probes",
+      "internalBetaUsefulness": "limited until source-of-truth owner path is reconciled",
+      "recommended": false,
+      "reason": "Central source-of-truth does not yet contain enough FFmpeg/FFprobe binary provenance."
+    },
+    {
+      "strategy": "repo_owned_render_worker_dockerfile_path",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "evidence": "PR #463 reference evidence reports Dockerfile FFmpeg/FFprobe/libass metadata",
+      "risks": [
+        "merged outside central source-of-truth branch",
+        "requires Track A reconciliation before central proof"
+      ],
+      "packageLockImpact": "none",
+      "dockerContainerImpact": "metadata-only in this phase; future container proof requires separate approval",
+      "mediaProcessingRisk": "blocked in this phase",
+      "internalBetaUsefulness": "highest once central source-of-truth contains Track A runtime path evidence",
+      "recommended": true,
+      "reason": "Relevant Track A evidence exists but must be reconciled into central source-of-truth first."
+    },
+    {
+      "strategy": "worker_container_image",
+      "owner": "WORKER_RUNTIME_JOBS",
+      "evidence": "worker execution remains blocked; no central worker-container binary proof",
+      "risks": [
+        "worker execution boundary not approved",
+        "container mutation not allowed in this phase"
+      ],
+      "packageLockImpact": "none",
+      "dockerContainerImpact": "future owner handoff only",
+      "mediaProcessingRisk": "blocked",
+      "internalBetaUsefulness": "useful after Track A and worker ownership converge",
+      "recommended": false,
+      "reason": "Worker/container ownership should follow Track A source-of-truth reconciliation."
+    },
+    {
+      "strategy": "sound_music_audio_owner_lane",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "evidence": "Sound/Music/Audio owns audio planning lanes but not central FFmpeg/FFprobe binary source in this phase",
+      "risks": [
+        "owner ambiguity for render/export binary path"
+      ],
+      "packageLockImpact": "none",
+      "dockerContainerImpact": "none",
+      "mediaProcessingRisk": "audio processing remains blocked",
+      "internalBetaUsefulness": "future audio-specific FFmpeg policy may be needed",
+      "recommended": false,
+      "reason": "Sound handoff is informative, not the central next blocker."
+    }
+  ],
+  "recommendedStrategy": "repo_owned_render_worker_dockerfile_path_after_tracka_source_of_truth_merge"
+}

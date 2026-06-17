@@ -18,7 +18,7 @@ This is owner approval only. Do not execute local fixture validation, actual loc
 - Validation status before PR creation: passed with warnings recorded in the validation results.
 - `package-lock.json` remained unchanged: verified.
 - `.local-artifacts` staged: not staged and not tracked.
-- Draft PR: pending.
+- Draft PR: [#476](https://github.com/yuzastudio6-cyber/Reedkt/pull/476), open draft, mergeable clean, empty check rollup at `2a4da68acefaf04944bcd124fa16514919e8fdcd`.
 
 ## Safety Record
 
@@ -26,4 +26,4 @@ This owner approval packet accepts committed PR #473 gate-status QA evidence onl
 
 Supabase remains `no write` / `docs_only`; environment touched: `none`; SQL executed: `none`; migration deployed: `no`; milestone sync: `not_performed`.
 
-PR link: pending.
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/476

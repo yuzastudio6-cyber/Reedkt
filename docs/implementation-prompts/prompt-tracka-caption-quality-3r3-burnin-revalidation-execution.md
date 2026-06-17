@@ -12,6 +12,14 @@ Run only after TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 records `runtimePathSta
 - TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 metadata approval for local FFmpeg/FFprobe ASS/subtitles support.
 - explicit future execution confirmation: `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true`.
 
+## Current Runtime Path Status
+
+runtimePathStatus: `blocked_ffmpeg_missing_ass_subtitles_filter`
+
+approvedRuntimePath: `none`
+
+provisioningStatus: `completed_host_runtime_provisioning`
+
 ## Blocked Unless
 
 - runtime path is metadata-approved.
@@ -37,4 +45,4 @@ Run only after TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 records `runtimePathSta
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks were allowed when REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level FFmpeg/FFprobe provisioning were allowed; no media input or output was used.

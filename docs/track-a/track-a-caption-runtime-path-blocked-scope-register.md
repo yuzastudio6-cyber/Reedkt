@@ -1,6 +1,6 @@
 # Track A Caption Runtime Path Blocked Scope Register
 
-Status: `blocked_missing_local_ffmpeg_libass_runtime`
+Status: `blocked_ffmpeg_missing_ass_subtitles_filter`
 
 Blocked in this phase:
 
@@ -25,13 +25,19 @@ Blocked in this phase:
 - billing/credit mutation.
 - dependency mutation.
 - package-lock mutation.
+- committed binaries.
+- Docker/Cloud Run build/push/deploy.
 
 ## Current Blocker
 
-runtimePathStatus: `blocked_missing_local_ffmpeg_libass_runtime`
+runtimePathStatus: `blocked_ffmpeg_missing_ass_subtitles_filter`
 
-blocker: `blocked_missing_local_ffmpeg_libass_runtime`
+blocker: `blocked_ffmpeg_missing_ass_subtitles_filter`
+
+provisioningStatus: `completed_host_runtime_provisioning`
+
+provisioningFailureSummary: `none`
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks were allowed when REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level FFmpeg/FFprobe provisioning were allowed; no media input or output was used.

@@ -8,13 +8,15 @@ Base: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibratio
 
 Patch type: Track A caption burn-in runtime path resolution.
 
-Run ID: `tracka-caption-runtime-path-1-20260617T193055`
+Run ID: `tracka-caption-runtime-path-1r-20260617T194200`
 
-Execution: `blocked_missing_approved_caption_burnin_runtime_path`
+Execution: `blocked_ffmpeg_missing_ass_subtitles_filter`
 
-Runtime path status: `blocked_missing_local_ffmpeg_libass_runtime`
+Runtime path status: `blocked_ffmpeg_missing_ass_subtitles_filter`
 
 Approved runtime path: `none`
+
+Provisioning: `completed_host_runtime_provisioning`
 
 ## Source-Of-Truth Audit
 
@@ -27,26 +29,32 @@ Approved runtime path: `none`
 
 ## Candidate Runtime Path Matrix
 
-- local_ffmpeg_libass_runtime_path: `blocked_missing_local_ffmpeg_libass_runtime`
+- local_ffmpeg_libass_runtime_path: `blocked_ffmpeg_missing_ass_subtitles_filter`
+- host_homebrew_ffmpeg_runtime_path: `completed_host_runtime_provisioning`
 - existing_tracka_caption_burnin_activation_module: `available_for_future_guarded_execution_only`
 - remotion_preview_runtime_path: `optional_not_required`
 - docker_cloudrun_runtime_path: `blocked_no_build_no_deploy`
-- missing_runtime_path: `blocked_missing_local_ffmpeg_libass_runtime`
+- missing_runtime_path: `blocked_ffmpeg_missing_ass_subtitles_filter`
 
 ## Metadata Check
 
 | field | value |
 | --- | --- |
-| execution | `blocked_missing_approved_caption_burnin_runtime_path` |
-| runtimePathStatus | `blocked_missing_local_ffmpeg_libass_runtime` |
+| execution | `blocked_ffmpeg_missing_ass_subtitles_filter` |
+| runtimePathStatus | `blocked_ffmpeg_missing_ass_subtitles_filter` |
 | approvedRuntimePath | `none` |
 | metadataCheck | `blocked` |
-| blocker | `blocked_missing_local_ffmpeg_libass_runtime` |
-| confirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true` |
-| ffmpegPath | `not_found` |
-| ffprobePath | `not_found` |
-| ffmpegVersion | `not_reported` |
-| ffprobeVersion | `not_reported` |
+| blocker | `blocked_ffmpeg_missing_ass_subtitles_filter` |
+| runtimePathConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true` |
+| provisioningConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PROVISIONING=true` |
+| provisioningStatus | `completed_host_runtime_provisioning` |
+| provisioningAttempted | `true` |
+| provisioningPackageManager | `homebrew` |
+| provisioningFailureSummary | `none` |
+| ffmpegPath | `/opt/homebrew/bin/ffmpeg` |
+| ffprobePath | `/opt/homebrew/bin/ffprobe` |
+| ffmpegVersion | `ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers` |
+| ffprobeVersion | `ffprobe version 8.1.1 Copyright (c) 2007-2026 the FFmpeg developers` |
 | assFilterPresent | `false` |
 | subtitlesFilterPresent | `false` |
 | libassIndicated | `false` |
@@ -55,6 +63,7 @@ Approved runtime path: `none`
 | gcsAccess | `false` |
 | signedUrlsCreated | `false` |
 | publicArtifactsCreated | `false` |
+| packageLockChanged | `false` |
 | internalBetaReady | `false` |
 | productionReady | `false` |
 | externalBetaReady | `false` |
@@ -77,6 +86,7 @@ Future execution confirmation: `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDA
 - private artifact manifest: not created in this phase.
 - no public artifact: passed.
 - no signed URL: passed.
+- package-lock unchanged: passed.
 
 ## Supabase Update Classification
 
@@ -86,7 +96,7 @@ Future execution confirmation: `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDA
 - SQL executed: none
 - Migration deployed: no
 - Evidence docs: TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 docs packet
-- Blockers: `blocked_missing_local_ffmpeg_libass_runtime`
+- Blockers: `blocked_ffmpeg_missing_ass_subtitles_filter`
 - Next Supabase action: none
 
 ## Cross-Chat Impact
@@ -100,4 +110,4 @@ Future execution confirmation: `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDA
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks were allowed when REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level FFmpeg/FFprobe provisioning were allowed; no media input or output was used.

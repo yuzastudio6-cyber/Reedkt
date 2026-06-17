@@ -28,7 +28,9 @@ const requiredTokens = [
   'Review this sample for timing, polish, and visual clarity.',
   'blocked_missing_approved_caption_burnin_runtime_path',
   'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true',
+  'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PROVISIONING=true',
   'local_ffmpeg_libass_runtime_path',
+  'host_homebrew_ffmpeg_runtime_path',
   'existing_tracka_caption_burnin_activation_module',
   'remotion_preview_runtime_path',
   'docker_cloudrun_runtime_path',
@@ -38,7 +40,9 @@ const requiredTokens = [
   'TRACKA-CAPTION-QUALITY-3R3 readiness',
   'TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_visual_review_and_scope_decision`',
   'Internal beta readiness: `blocked_pending_caption_burnin_visual_review_and_scope_decision`',
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks were allowed when REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true; no media input or output was used.',
+  'provisioningStatus',
+  'packageLockChanged',
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level FFmpeg/FFprobe provisioning were allowed; no media input or output was used.',
 ]
 
 function fail(message) {
@@ -64,8 +68,22 @@ for (const token of requiredTokens) {
 const approved = /runtimePathStatus:\s*`approved_local_ffmpeg_libass_metadata_only`/i.test(docsText)
 const blockedMissing = /runtimePathStatus:\s*`blocked_missing_local_ffmpeg_libass_runtime`/i.test(docsText)
 const blockedPending = /runtimePathStatus:\s*`blocked_pending_confirmation`/i.test(docsText)
+const blockedProvisioning = /runtimePathStatus:\s*`blocked_runtime_provisioning_failed`/i.test(docsText)
+const blockedUnsupportedProvisioning = /runtimePathStatus:\s*`blocked_no_supported_runtime_provisioning_path`/i.test(docsText)
+const blockedPendingProvisioning = /runtimePathStatus:\s*`blocked_pending_runtime_provisioning_confirmation`/i.test(docsText)
+const blockedFfprobe = /runtimePathStatus:\s*`blocked_ffmpeg_found_but_ffprobe_missing`/i.test(docsText)
+const blockedFilters = /runtimePathStatus:\s*`blocked_ffmpeg_missing_ass_subtitles_filter`/i.test(docsText)
 
-if (!approved && !blockedMissing && !blockedPending) {
+if (
+  !approved &&
+  !blockedMissing &&
+  !blockedPending &&
+  !blockedProvisioning &&
+  !blockedUnsupportedProvisioning &&
+  !blockedPendingProvisioning &&
+  !blockedFfprobe &&
+  !blockedFilters
+) {
   fail('missing approved or explicit blocked runtime path status')
 }
 
@@ -80,14 +98,14 @@ if (approved) {
   }
 }
 
-if (blockedMissing) {
+if (blockedMissing || blockedProvisioning || blockedUnsupportedProvisioning || blockedPendingProvisioning || blockedFfprobe || blockedFilters) {
   const blockedPatterns = [
-    /execution(?:\s*\||:)\s*`blocked_missing_approved_caption_burnin_runtime_path`/i,
+    /execution(?:\s*\||:)\s*`blocked_[^`]+`/i,
     /approvedRuntimePath(?:\s*\||:)\s*`none`/i,
-    /TRACKA-CAPTION-QUALITY-3R3 readiness:\s*`blocked_missing_runtime_path`/i,
+    /TRACKA-CAPTION-QUALITY-3R3 readiness:\s*`blocked_[^`]+`/i,
   ]
   for (const pattern of blockedPatterns) {
-    if (!pattern.test(docsText)) fail(`missing blocked-missing-state pattern: ${pattern}`)
+    if (!pattern.test(docsText)) fail(`missing blocked-state pattern: ${pattern}`)
   }
 }
 
@@ -140,7 +158,17 @@ console.log(
         ? 'approved_local_ffmpeg_libass_metadata_only'
         : blockedMissing
           ? 'blocked_missing_local_ffmpeg_libass_runtime'
-          : 'blocked_pending_confirmation',
+          : blockedProvisioning
+            ? 'blocked_runtime_provisioning_failed'
+            : blockedUnsupportedProvisioning
+              ? 'blocked_no_supported_runtime_provisioning_path'
+              : blockedPendingProvisioning
+                ? 'blocked_pending_runtime_provisioning_confirmation'
+                : blockedFfprobe
+                  ? 'blocked_ffmpeg_found_but_ffprobe_missing'
+                  : blockedFilters
+                    ? 'blocked_ffmpeg_missing_ass_subtitles_filter'
+                    : 'blocked_pending_confirmation',
       noBurnInExecution: true,
       noMediaInputOutput: true,
       noGcsAccess: true,

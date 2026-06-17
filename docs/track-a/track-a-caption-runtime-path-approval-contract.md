@@ -1,21 +1,23 @@
 # Track A Caption Runtime Path Approval Contract
 
-Status: `blocked_missing_local_ffmpeg_libass_runtime`
+Status: `blocked_ffmpeg_missing_ass_subtitles_filter`
 
 ## Contract
 
 | gate | required value | current result |
 | --- | --- | --- |
 | approvedRuntimePathId | `local_ffmpeg_libass_runtime_path` | `none` |
-| required binary | `ffmpeg` | `not_found` |
-| required binary | `ffprobe` | `not_found` |
+| required binary | `ffmpeg` | `/opt/homebrew/bin/ffmpeg` |
+| required binary | `ffprobe` | `/opt/homebrew/bin/ffprobe` |
 | required filters | `ass` or `subtitles` | ass=`false`; subtitles=`false` |
+| host provisioning | explicit confirmation only | `completed_host_runtime_provisioning` |
 | allowed input | #452 approved source ref only | `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4` |
 | allowed caption | #426 approved controlled-test caption copy only | preserved |
 | future execution confirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true` | required for 3R3 |
 | media processing in this phase | none | passed |
 | media output in this phase | none | passed |
 | signed/public output | none | passed |
+| package-lock mutation | none | passed |
 
 ## Disallowed
 
@@ -28,6 +30,8 @@ Status: `blocked_missing_local_ffmpeg_libass_runtime`
 - non-Track-A source.
 - GCS read/copy/download/upload.
 - bucket/IAM/object mutation.
+- committed binaries.
+- npm dependency or package-lock mutation.
 
 ## Future Output Contract
 
@@ -35,4 +39,4 @@ The future 3R3 execution may create private review artifacts only if this runtim
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks were allowed when REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level FFmpeg/FFprobe provisioning were allowed; no media input or output was used.

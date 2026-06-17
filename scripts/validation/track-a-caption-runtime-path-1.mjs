@@ -1,14 +1,16 @@
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 
-const phase = 'TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1'
+const phase = 'TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1R'
 const branch = 'codex/rp-tracka-caption-quality-3r2-runtime-path-1'
-const base = 'origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration at 1a52c5a604b175bbd95c8e96294d963636ee8db0'
+const base =
+  'origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration at 1a52c5a604b175bbd95c8e96294d963636ee8db0'
 const sourceRef =
   'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4'
-const confirmationEnv = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true'
+const runtimeCheckEnv = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true'
+const provisioningEnv = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PROVISIONING=true'
 const noScope =
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks were allowed when REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true; no media input or output was used.'
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed host-level FFmpeg/FFprobe provisioning were allowed; no media input or output was used.'
 const captionLines = [
   'Hey everyone — welcome to this ReEditPro visual review.',
   'Today we are testing captions, overlays, and private render quality.',
@@ -16,20 +18,32 @@ const captionLines = [
   'Review this sample for timing, polish, and visual clarity.',
 ]
 const oldCaption = 'Hey guys, I saw how you guys doing today is going to do going to be the first'
+const standardPaths = [
+  '/opt/homebrew/bin/ffmpeg',
+  '/opt/homebrew/bin/ffprobe',
+  '/usr/local/bin/ffmpeg',
+  '/usr/local/bin/ffprobe',
+  '/usr/bin/ffmpeg',
+  '/usr/bin/ffprobe',
+]
 
 function timestamp() {
   return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, '')
 }
 
-const runId = process.env.REEDITPRO_TRACKA_CAPTION_RUNTIME_PATH_1_ID || `tracka-caption-runtime-path-1-${timestamp()}`
+const runId = process.env.REEDITPRO_TRACKA_CAPTION_RUNTIME_PATH_1_ID || `tracka-caption-runtime-path-1r-${timestamp()}`
 const checkRequested = process.argv.includes('--check-metadata')
 const confirmationProvided = process.env.REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK === 'true'
+const provisioningConfirmed = process.env.REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PROVISIONING === 'true'
 
 function runCommand(label, command, args, options = {}) {
   if (!options.enabled) {
     return { label, command: [command, ...args].join(' '), status: 'not_run', stdout: '', stderr: '', exitCode: null }
   }
-  const result = spawnSync(command, args, { encoding: 'utf8' })
+  const result = spawnSync(command, args, {
+    encoding: 'utf8',
+    shell: options.shell === true,
+  })
   return {
     label,
     command: [command, ...args].join(' '),
@@ -40,10 +54,126 @@ function runCommand(label, command, args, options = {}) {
   }
 }
 
-function commandPath(command) {
+function shell(label, command, enabled) {
+  return runCommand(label, command, [], { enabled, shell: true })
+}
+
+function commandOutput(command) {
+  const result = spawnSync('sh', ['-lc', command], { encoding: 'utf8' })
+  return {
+    status: result.status === 0 ? 'passed' : 'failed',
+    stdout: String(result.stdout ?? ''),
+    stderr: String(result.stderr ?? ''),
+    exitCode: result.status,
+  }
+}
+
+function existingPath(binary) {
   if (!checkRequested || !confirmationProvided) return 'not_checked'
-  const result = spawnSync('sh', ['-lc', `command -v ${command} || true`], { encoding: 'utf8' })
-  return result.stdout.trim() || 'not_found'
+  const commandPath = commandOutput(`command -v ${binary} || true`).stdout.trim()
+  if (commandPath) return commandPath
+  const whichPath = commandOutput(`which ${binary} || true`).stdout.trim()
+  if (whichPath) return whichPath
+  const foundStandardPath = standardPaths.find((candidate) => candidate.endsWith(`/${binary}`) && existsSync(candidate))
+  return foundStandardPath || 'not_found'
+}
+
+function inspectExistingPaths() {
+  const enabled = checkRequested && confirmationProvided
+  const commands = [
+    shell('command_v_ffmpeg', 'command -v ffmpeg || true', enabled),
+    shell('command_v_ffprobe', 'command -v ffprobe || true', enabled),
+    shell('which_ffmpeg', 'which ffmpeg || true', enabled),
+    shell('which_ffprobe', 'which ffprobe || true', enabled),
+    shell(
+      'standard_path_search',
+      'ls -l /opt/homebrew/bin/ffmpeg /opt/homebrew/bin/ffprobe /usr/local/bin/ffmpeg /usr/local/bin/ffprobe /usr/bin/ffmpeg /usr/bin/ffprobe 2>/dev/null || true',
+      enabled,
+    ),
+  ]
+  return {
+    ffmpegPath: existingPath('ffmpeg'),
+    ffprobePath: existingPath('ffprobe'),
+    commands,
+  }
+}
+
+function summarizeProvisioningFailure(commands) {
+  const text = commands.map((entry) => `${entry.stdout}\n${entry.stderr}`).join('\n')
+  if (/Bad CPU type in executable/i.test(text)) return 'homebrew_portable_ruby_bad_cpu_type'
+  if (/command not found|not found/i.test(text)) return 'package_manager_not_found'
+  if (/permission denied|not permitted|operation not permitted/i.test(text)) return 'permission_denied'
+  if (/failed/i.test(text)) return 'package_manager_failed'
+  return 'not_reported'
+}
+
+function provisionIfNeeded(ffmpegPath, ffprobePath) {
+  const needProvisioning = checkRequested && confirmationProvided && (ffmpegPath === 'not_found' || ffprobePath === 'not_found')
+  if (!needProvisioning) {
+    return {
+      status: 'not_needed',
+      attempted: false,
+      packageManager: 'none',
+      blocker: 'none',
+      commands: [],
+    }
+  }
+  if (!provisioningConfirmed) {
+    return {
+      status: 'blocked_pending_runtime_provisioning_confirmation',
+      attempted: false,
+      packageManager: 'none',
+      blocker: 'blocked_pending_runtime_provisioning_confirmation',
+      commands: [],
+    }
+  }
+
+  const uname = shell('uname', 'uname -a', true)
+  const brewPath = commandOutput('command -v brew || true').stdout.trim()
+  const aptPath = commandOutput('command -v apt-get || true').stdout.trim()
+
+  if (/Darwin/i.test(uname.stdout) && brewPath) {
+    const commands = [
+      uname,
+      shell('brew_version', 'brew --version', true),
+      shell('brew_list_ffmpeg', 'brew list ffmpeg || true', true),
+      shell('brew_install_ffmpeg', 'brew install ffmpeg', true),
+    ]
+    const install = commands.at(-1)
+    return {
+      status: install?.status === 'passed' ? 'completed_host_runtime_provisioning' : 'blocked_runtime_provisioning_failed',
+      attempted: true,
+      packageManager: 'homebrew',
+      blocker: install?.status === 'passed' ? 'none' : 'blocked_runtime_provisioning_failed',
+      failureSummary: install?.status === 'passed' ? 'none' : summarizeProvisioningFailure(commands),
+      commands,
+    }
+  }
+
+  if (/Linux/i.test(uname.stdout) && aptPath) {
+    const commands = [
+      uname,
+      shell('apt_get_update', 'sudo apt-get update', true),
+      shell('apt_get_install_ffmpeg', 'sudo apt-get install -y ffmpeg', true),
+    ]
+    const install = commands.at(-1)
+    return {
+      status: install?.status === 'passed' ? 'completed_host_runtime_provisioning' : 'blocked_runtime_provisioning_failed',
+      attempted: true,
+      packageManager: 'apt',
+      blocker: install?.status === 'passed' ? 'none' : 'blocked_runtime_provisioning_failed',
+      failureSummary: install?.status === 'passed' ? 'none' : summarizeProvisioningFailure(commands),
+      commands,
+    }
+  }
+
+  return {
+    status: 'blocked_no_supported_runtime_provisioning_path',
+    attempted: false,
+    packageManager: 'none',
+    blocker: 'blocked_no_supported_runtime_provisioning_path',
+    commands: [uname],
+  }
 }
 
 function extractVersion(output, binaryName) {
@@ -61,36 +191,22 @@ function hasFilter(filtersOutput, filterName) {
 
 function summarizeCommands(commands) {
   return commands
-    .map(
-      (entry) =>
-        `| \`${entry.label}\` | \`${entry.command}\` | \`${entry.status}\` | \`${entry.exitCode ?? 'not_run'}\` |`,
-    )
+    .map((entry) => {
+      const detail = `${entry.stdout}\n${entry.stderr}`.replace(/\s+/g, ' ').trim().slice(0, 180) || 'none'
+      return `| \`${entry.label}\` | \`${entry.command}\` | \`${entry.status}\` | \`${entry.exitCode ?? 'not_run'}\` | \`${detail}\` |`
+    })
     .join('\n')
 }
 
 function buildMetadataResult() {
-  const ffmpegPath = commandPath('ffmpeg')
-  const ffprobePath = commandPath('ffprobe')
+  const firstSearch = inspectExistingPaths()
+  const provisioning = provisionIfNeeded(firstSearch.ffmpegPath, firstSearch.ffprobePath)
+  const secondSearch = provisioning.status === 'completed_host_runtime_provisioning' ? inspectExistingPaths() : firstSearch
+  const ffmpegPath = secondSearch.ffmpegPath
+  const ffprobePath = secondSearch.ffprobePath
   const ffmpegFound = ffmpegPath !== 'not_checked' && ffmpegPath !== 'not_found'
   const ffprobeFound = ffprobePath !== 'not_checked' && ffprobePath !== 'not_found'
-  const commands = [
-    {
-      label: 'command_v_ffmpeg',
-      command: 'command -v ffmpeg',
-      status: checkRequested && confirmationProvided ? (ffmpegFound ? 'passed' : 'missing') : 'not_run',
-      stdout: ffmpegPath,
-      stderr: '',
-      exitCode: null,
-    },
-    {
-      label: 'command_v_ffprobe',
-      command: 'command -v ffprobe',
-      status: checkRequested && confirmationProvided ? (ffprobeFound ? 'passed' : 'missing') : 'not_run',
-      stdout: ffprobePath,
-      stderr: '',
-      exitCode: null,
-    },
-  ]
+  const commands = [...firstSearch.commands, ...provisioning.commands]
 
   const ffmpegVersion = runCommand('ffmpeg_version', 'ffmpeg', ['-hide_banner', '-version'], {
     enabled: checkRequested && confirmationProvided && ffmpegFound,
@@ -110,7 +226,6 @@ function buildMetadataResult() {
   const libassIndicated = /--enable-libass|libass/i.test(`${versionOutput}\n${filterOutput}`)
   const metadataCheckExecuted = checkRequested && confirmationProvided
   const approved = metadataCheckExecuted && ffmpegFound && ffprobeFound && (assFilterPresent || subtitlesFilterPresent)
-  const blockedAfterCheck = metadataCheckExecuted && !approved
 
   if (!metadataCheckExecuted) {
     return {
@@ -128,22 +243,39 @@ function buildMetadataResult() {
       subtitlesFilterPresent: false,
       libassIndicated: false,
       commands,
+      provisioning,
       confirmationProvided,
       checkRequested,
     }
   }
 
+  let runtimePathStatus = 'approved_local_ffmpeg_libass_metadata_only'
+  let blocker = 'none'
+  if (!approved) {
+    if (provisioning.blocker !== 'none') {
+      runtimePathStatus = provisioning.blocker
+      blocker = provisioning.blocker
+    } else if (ffmpegFound && !ffprobeFound) {
+      runtimePathStatus = 'blocked_ffmpeg_found_but_ffprobe_missing'
+      blocker = 'blocked_ffmpeg_found_but_ffprobe_missing'
+    } else if (ffmpegFound && ffprobeFound && !assFilterPresent && !subtitlesFilterPresent) {
+      runtimePathStatus = 'blocked_ffmpeg_missing_ass_subtitles_filter'
+      blocker = 'blocked_ffmpeg_missing_ass_subtitles_filter'
+    } else {
+      runtimePathStatus = 'blocked_missing_local_ffmpeg_libass_runtime'
+      blocker = 'blocked_missing_local_ffmpeg_libass_runtime'
+    }
+  }
+
   return {
-    execution: approved ? 'completed_runtime_path_metadata_approval' : 'blocked_missing_approved_caption_burnin_runtime_path',
-    runtimePathStatus: approved
-      ? 'approved_local_ffmpeg_libass_metadata_only'
-      : 'blocked_missing_local_ffmpeg_libass_runtime',
+    execution: approved ? 'completed_runtime_path_metadata_approval' : runtimePathStatus,
+    runtimePathStatus,
     approvedRuntimePath: approved ? 'local_ffmpeg_libass_runtime_path' : 'none',
     readiness: approved
       ? 'ready_for_guarded_burnin_execution_with_local_ffmpeg_libass_runtime'
-      : 'blocked_missing_runtime_path',
-    metadataCheck: blockedAfterCheck ? 'blocked' : 'completed',
-    blocker: approved ? 'none' : 'blocked_missing_local_ffmpeg_libass_runtime',
+      : runtimePathStatus,
+    metadataCheck: approved ? 'completed' : 'blocked',
+    blocker,
     ffmpegPath,
     ffprobePath,
     ffmpegVersion: extractVersion(ffmpegVersion.stdout || ffmpegVersion.stderr, 'ffmpeg'),
@@ -152,6 +284,7 @@ function buildMetadataResult() {
     subtitlesFilterPresent,
     libassIndicated,
     commands,
+    provisioning,
     confirmationProvided,
     checkRequested,
   }
@@ -164,7 +297,12 @@ function runtimeRows(result) {
     ['approvedRuntimePath', result.approvedRuntimePath],
     ['metadataCheck', result.metadataCheck],
     ['blocker', result.blocker],
-    ['confirmation', result.confirmationProvided ? confirmationEnv : 'absent_or_not_true'],
+    ['runtimePathConfirmation', result.confirmationProvided ? runtimeCheckEnv : 'absent_or_not_true'],
+    ['provisioningConfirmation', provisioningConfirmed ? provisioningEnv : 'absent_or_not_true'],
+    ['provisioningStatus', result.provisioning.status],
+    ['provisioningAttempted', String(result.provisioning.attempted)],
+    ['provisioningPackageManager', result.provisioning.packageManager],
+    ['provisioningFailureSummary', result.provisioning.failureSummary || 'none'],
     ['ffmpegPath', result.ffmpegPath],
     ['ffprobePath', result.ffprobePath],
     ['ffmpegVersion', result.ffmpegVersion],
@@ -177,6 +315,7 @@ function runtimeRows(result) {
     ['gcsAccess', 'false'],
     ['signedUrlsCreated', 'false'],
     ['publicArtifactsCreated', 'false'],
+    ['packageLockChanged', 'false'],
     ['internalBetaReady', 'false'],
     ['productionReady', 'false'],
     ['externalBetaReady', 'false'],
@@ -195,8 +334,8 @@ function docs(result) {
 | #452 | merged at \`422bbcade670646963257f5b7b2ddc6681748f0b\` | approved exact private Phase 32 source ref |
 | #459 | merged at \`1a52c5a604b175bbd95c8e96294d963636ee8db0\` | wired approved #452 source ref into guarded 3R2 and records \`blocked_missing_approved_caption_burnin_runtime_path\` |`
   const correctedCaption = captionLines.map((line, index) => `${index + 1}. "${line}"`).join('\n')
-  const commandTable = `| check | command | status | exitCode |
-| --- | --- | --- | --- |
+  const commandTable = `| check | command | status | exitCode | detail |
+| --- | --- | --- | --- | --- |
 ${summarizeCommands(result.commands)}`
 
   return {
@@ -216,7 +355,7 @@ Run ID: \`${runId}\`
 
 This packet resolves the #459 blocker \`blocked_missing_approved_caption_burnin_runtime_path\` by checking whether the current local environment has a metadata-approved FFmpeg/FFprobe/libass runtime path for future corrected-caption burn-in revalidation.
 
-This packet does not burn captions, render previews, inspect media inputs, create media outputs, access GCS, create signed URLs, create public artifacts, mutate Supabase, run SQL, or unlock beta/production/final delivery.
+This packet does not burn captions, render previews, inspect media inputs, create media outputs, access GCS, create signed URLs, create public artifacts, mutate Supabase, run SQL, commit binaries, mutate package-lock, or unlock beta/production/final delivery.
 
 ## Source-Of-Truth Audit
 
@@ -262,9 +401,10 @@ ${noScope}
 
 Status: \`${result.runtimePathStatus}\`
 
-| candidateId | classification | metadata result | decision | notes |
+| candidateId | classification | metadata/provisioning result | decision | notes |
 | --- | --- | --- | --- | --- |
 | \`local_ffmpeg_libass_runtime_path\` | preferred minimal local runtime path | ffmpeg=\`${result.ffmpegPath}\`; ffprobe=\`${result.ffprobePath}\`; ass=\`${result.assFilterPresent}\`; subtitles=\`${result.subtitlesFilterPresent}\`; libass=\`${result.libassIndicated}\` | \`${result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ? 'approved_metadata_only' : result.runtimePathStatus}\` | approval is metadata-only; no media input or output was used |
+| \`host_homebrew_ffmpeg_runtime_path\` | explicitly confirmed host provisioning path | provisioningStatus=\`${result.provisioning.status}\`; packageManager=\`${result.provisioning.packageManager}\`; failure=\`${result.provisioning.failureSummary || 'none'}\` | \`${result.provisioning.status}\` | no repo dependency or package-lock change |
 | \`existing_tracka_caption_burnin_activation_module\` | guarded activation packet | existing #459 module remains source-of-truth | \`available_for_future_guarded_execution_only\` | must stay behind \`REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true\` |
 | \`remotion_preview_runtime_path\` | optional preview path | package metadata only | \`not_required_for_runtime_path_approval\` | no Remotion render was run |
 | \`docker_cloudrun_runtime_path\` | deployment/runtime path | not inspected beyond docs | \`blocked_no_build_no_deploy\` | Docker/Cloud Run build/deploy remains out of scope |
@@ -286,11 +426,19 @@ Status: \`${result.metadataCheck}\`
 
 Run ID: \`${runId}\`
 
-Confirmation required: \`${confirmationEnv}\`
+Runtime path check confirmation required: \`${runtimeCheckEnv}\`
+
+Runtime provisioning confirmation required: \`${provisioningEnv}\`
 
 confirmationProvided: ${result.confirmationProvided}
 
+provisioningConfirmationProvided: ${provisioningConfirmed}
+
 metadataCheckExecuted: ${result.metadataCheck !== 'not_attempted'}
+
+provisioningStatus: \`${result.provisioning.status}\`
+
+provisioningFailureSummary: \`${result.provisioning.failureSummary || 'none'}\`
 
 ## Command Results
 
@@ -313,6 +461,7 @@ ${runtimeRows(result)}
 - gcsAccess: false
 - signedUrlsCreated: false
 - publicArtifactsCreated: false
+- packageLockChanged: false
 
 ## No-Scope Statement
 
@@ -330,12 +479,14 @@ Status: \`${result.runtimePathStatus}\`
 | required binary | \`ffmpeg\` | \`${result.ffmpegPath}\` |
 | required binary | \`ffprobe\` | \`${result.ffprobePath}\` |
 | required filters | \`ass\` or \`subtitles\` | ass=\`${result.assFilterPresent}\`; subtitles=\`${result.subtitlesFilterPresent}\` |
+| host provisioning | explicit confirmation only | \`${result.provisioning.status}\` |
 | allowed input | #452 approved source ref only | \`${sourceRef}\` |
 | allowed caption | #426 approved controlled-test caption copy only | preserved |
 | future execution confirmation | \`REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true\` | required for 3R3 |
 | media processing in this phase | none | passed |
 | media output in this phase | none | passed |
 | signed/public output | none | passed |
+| package-lock mutation | none | passed |
 
 ## Disallowed
 
@@ -348,6 +499,8 @@ Status: \`${result.runtimePathStatus}\`
 - non-Track-A source.
 - GCS read/copy/download/upload.
 - bucket/IAM/object mutation.
+- committed binaries.
+- npm dependency or package-lock mutation.
 
 ## Future Output Contract
 
@@ -367,12 +520,14 @@ Status: \`${result.runtimePathStatus}\`
 | \`approved_source_ref_present\` | passed | \`${sourceRef}\` |
 | \`corrected_caption_copy_present\` | passed | #426 four-line caption copy preserved |
 | \`old_caption_rejected\` | passed | old #419 awkward text rejected and not reused |
+| \`host_runtime_provisioning\` | \`${result.provisioning.status}\` | packageManager=\`${result.provisioning.packageManager}\`; failure=\`${result.provisioning.failureSummary || 'none'}\` |
 | \`ffmpeg_binary_metadata\` | \`${result.ffmpegPath === 'not_found' || result.ffmpegPath === 'not_checked' ? 'blocked_or_not_checked' : 'passed'}\` | \`${result.ffmpegPath}\` |
 | \`ffprobe_binary_metadata\` | \`${result.ffprobePath === 'not_found' || result.ffprobePath === 'not_checked' ? 'blocked_or_not_checked' : 'passed'}\` | \`${result.ffprobePath}\` |
 | \`caption_filter_metadata\` | \`${result.assFilterPresent || result.subtitlesFilterPresent ? 'passed' : 'blocked_or_not_checked'}\` | ass=\`${result.assFilterPresent}\`; subtitles=\`${result.subtitlesFilterPresent}\` |
 | \`no_media_input_output\` | passed | no media input or output was used |
 | \`no_public_or_signed_artifacts\` | passed | no signed URLs or public artifacts |
 | \`no_supabase_or_sql\` | passed | docs/status only |
+| \`no_package_lock_or_dependency_mutation\` | passed | package-lock unchanged |
 | \`no_beta_or_final_delivery\` | passed | internal beta and final delivery remain blocked |
 
 ## No-Scope Statement
@@ -406,12 +561,18 @@ Blocked in this phase:
 - billing/credit mutation.
 - dependency mutation.
 - package-lock mutation.
+- committed binaries.
+- Docker/Cloud Run build/push/deploy.
 
 ## Current Blocker
 
 runtimePathStatus: \`${result.runtimePathStatus}\`
 
 blocker: \`${result.blocker}\`
+
+provisioningStatus: \`${result.provisioning.status}\`
+
+provisioningFailureSummary: \`${result.provisioning.failureSummary || 'none'}\`
 
 ## No-Scope Statement
 
@@ -437,7 +598,7 @@ Production/external beta/final delivery: \`blocked\`
 
 ## Human Action Required
 
-${result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ? 'none for runtime path approval; 3R3 still requires explicit guarded burn-in execution confirmation.' : 'install or expose an approved local FFmpeg/FFprobe build with ASS/subtitles filter support, then rerun the metadata-only runtime path check.'}
+${result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ? 'none for runtime path approval; 3R3 still requires explicit guarded burn-in execution confirmation.' : 'fix the host FFmpeg/FFprobe runtime provisioning path, then rerun the metadata-only runtime path check with both confirmations.'}
 
 ## No-Scope Statement
 
@@ -461,6 +622,8 @@ Runtime path status: \`${result.runtimePathStatus}\`
 
 Approved runtime path: \`${result.approvedRuntimePath}\`
 
+Provisioning: \`${result.provisioning.status}\`
+
 ## Source-Of-Truth Audit
 
 | PR | Status | Evidence |
@@ -470,6 +633,7 @@ ${sourceAudit}
 ## Candidate Runtime Path Matrix
 
 - local_ffmpeg_libass_runtime_path: \`${result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ? 'approved_metadata_only' : result.runtimePathStatus}\`
+- host_homebrew_ffmpeg_runtime_path: \`${result.provisioning.status}\`
 - existing_tracka_caption_burnin_activation_module: \`available_for_future_guarded_execution_only\`
 - remotion_preview_runtime_path: \`optional_not_required\`
 - docker_cloudrun_runtime_path: \`blocked_no_build_no_deploy\`
@@ -496,6 +660,7 @@ Future execution confirmation: \`REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALID
 - private artifact manifest: not created in this phase.
 - no public artifact: passed.
 - no signed URL: passed.
+- package-lock unchanged: passed.
 
 ## Supabase Update Classification
 
@@ -534,6 +699,14 @@ Run only after TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 records \`runtimePathSt
 - #459 corrected ASS sidecar evidence and source-ref wiring.
 - TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 metadata approval for local FFmpeg/FFprobe ASS/subtitles support.
 - explicit future execution confirmation: \`REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true\`.
+
+## Current Runtime Path Status
+
+runtimePathStatus: \`${result.runtimePathStatus}\`
+
+approvedRuntimePath: \`${result.approvedRuntimePath}\`
+
+provisioningStatus: \`${result.provisioning.status}\`
 
 ## Blocked Unless
 
@@ -594,7 +767,7 @@ TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 records runtime path status: \`${resul
 
 ## Blocked Scope
 
-No Track A runtime execution, FFmpeg/FFprobe, Remotion, libass, OTIO, OpenColorIO, OpenImageIO, Kornia, BiRefNet, SAM2, Real-ESRGAN, FILM execution, media processing, GCS upload, signed URL creation, Supabase mutation, SQL, beta, production, final delivery, or broad media unlock.
+No Track A runtime execution, FFmpeg/FFprobe media processing, Remotion, libass media processing, OTIO, OpenColorIO, OpenImageIO, Kornia, BiRefNet, SAM2, Real-ESRGAN, FILM execution, media processing, GCS upload, signed URL creation, Supabase mutation, SQL, beta, production, final delivery, or broad media unlock.
 
 ## No-Scope Statement
 
@@ -674,12 +847,16 @@ console.log(
       assFilterPresent: result.assFilterPresent,
       subtitlesFilterPresent: result.subtitlesFilterPresent,
       libassIndicated: result.libassIndicated,
+      provisioning: result.provisioning.status,
+      provisioningPackageManager: result.provisioning.packageManager,
+      provisioningFailureSummary: result.provisioning.failureSummary || 'none',
       readiness: result.readiness,
       mediaInputUsed: false,
       mediaOutputCreated: false,
       gcsAccess: false,
       signedUrlsCreated: false,
       publicArtifactsCreated: false,
+      packageLockChanged: false,
       internalBetaReady: false,
       productionReady: false,
       finalDeliveryReady: false,

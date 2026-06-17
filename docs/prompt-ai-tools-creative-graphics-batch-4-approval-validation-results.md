@@ -20,8 +20,8 @@ Decision: `approved_with_warnings_for_ai_graphics_batch_4_policy_and_handoff_rev
 | readiness summaries | `passed command execution`; production readiness remains globally `blocked` by existing launch tool/model-weight blockers, while beta summary remains `internal_testing_ready` with external beta and paid production blocked. |
 | lint/typecheck/build | `passed`: `npm run lint`, `npm run typecheck:server`, `npx tsc -b`, `npm run build`, and `npm run build:server`. |
 | changed-file secret scan | `passed`; 21 modified/untracked files scanned with no secret-like values. |
-| PR link | `pending` |
-| GitHub checks | `pending` |
+| PR link | [#446](https://github.com/yuzastudio6-cyber/Reedkt/pull/446) |
+| GitHub checks | `empty_check_rollup`; PR #446 is draft/open/mergeable clean at `4b04dd3a2f9d0e92b0b8c3305e084475391a5249`. |
 
 ## Base Gaps
 

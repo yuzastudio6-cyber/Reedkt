@@ -1,6 +1,6 @@
 # TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 Runtime Path Resolution
 
-Status: `blocked_runtime_image_build_failed`
+Status: `approved_repo_owned_ffmpeg_libass_metadata_only`
 
 Patch type: Track A approved caption burn-in runtime path resolution packet.
 
@@ -8,9 +8,9 @@ Branch: `codex/rp-tracka-caption-quality-3r2-runtime-path-1`
 
 Base: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration at 1a52c5a604b175bbd95c8e96294d963636ee8db0`
 
-Run ID: `tracka-caption-runtime-path-1r3-20260617T203338`
+Run ID: `tracka-caption-runtime-path-1r4-20260617T205616`
 
-Implementation phase: `TRACKA-CAPTION-RUNTIME-PATH-1R3`
+Implementation phase: `TRACKA-CAPTION-RUNTIME-PATH-1R4`
 
 ## Purpose
 
@@ -52,11 +52,11 @@ rejectedOldCaptionText: `Hey guys, I saw how you guys doing today is going to do
 
 | field | value |
 | --- | --- |
-| execution | `blocked_runtime_image_build_failed` |
-| runtimePathStatus | `blocked_runtime_image_build_failed` |
-| approvedRuntimePath | `none` |
-| metadataCheck | `blocked` |
-| blocker | `blocked_runtime_image_build_failed` |
+| execution | `completed_runtime_path_metadata_approval` |
+| runtimePathStatus | `approved_repo_owned_ffmpeg_libass_metadata_only` |
+| approvedRuntimePath | `repo_owned_render_worker_ffmpeg_libass_runtime_path` |
+| metadataCheck | `completed` |
+| blocker | `none` |
 | runtimePathConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true` |
 | provisioningConfirmation | `absent_or_not_true` |
 | provisioningStatus | `not_needed` |
@@ -70,21 +70,26 @@ rejectedOldCaptionText: `Hey guys, I saw how you guys doing today is going to do
 | libassRepairFailureSummary | `none` |
 | imageReuseConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_REUSE=true` |
 | imageBuildConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD=true` |
-| dockerRuntimeStatus | `blocked_runtime_image_build_failed` |
-| dockerRuntimeBlocker | `blocked_runtime_image_build_failed` |
+| dockerDaemonStartConfirmation | `REEDITPRO_CONFIRM_TRACKA_LOCAL_DOCKER_DAEMON_START=true` |
+| dockerDaemonStatus | `docker_daemon_ready` |
+| dockerDaemonReady | `true` |
+| dockerDaemonStartAttempted | `false` |
+| dockerDaemonFailureSummary | `none` |
+| dockerRuntimeStatus | `approved_repo_owned_ffmpeg_libass_metadata_only` |
+| dockerRuntimeBlocker | `none` |
 | dockerRuntimeDockerfile | `docker/prod/render-worker/Dockerfile` |
 | dockerRuntimeSupportingDockerfile | `docker/prod/tool-readiness-worker/Dockerfile` |
-| dockerRuntimeImageTag | `reeditpro-tracka-caption-runtime-path-1r3:local` |
-| dockerRuntimeBuildStatus | `blocked_runtime_image_build_failed` |
+| dockerRuntimeImageTag | `reeditpro-tracka-caption-runtime-path-check:local` |
+| dockerRuntimeBuildStatus | `passed` |
 | dockerRuntimeBuildArtifactsStatus | `passed` |
 | dockerRuntimeBuildArtifactsBlocker | `none` |
-| ffmpegPath | `/opt/homebrew/bin/ffmpeg` |
-| ffprobePath | `/opt/homebrew/bin/ffprobe` |
-| ffmpegVersion | `ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers` |
-| ffprobeVersion | `ffprobe version 8.1.1 Copyright (c) 2007-2026 the FFmpeg developers` |
-| assFilterPresent | `false` |
-| subtitlesFilterPresent | `false` |
-| libassIndicated | `false` |
+| ffmpegPath | `docker://docker/prod/render-worker/Dockerfile#ffmpeg` |
+| ffprobePath | `docker://docker/prod/render-worker/Dockerfile#ffprobe` |
+| ffmpegVersion | `ffmpeg version 5.1.9-0+deb12u1 Copyright (c) 2000-2026 the FFmpeg developers` |
+| ffprobeVersion | `ffprobe version 5.1.9-0+deb12u1 Copyright (c) 2007-2026 the FFmpeg developers` |
+| assFilterPresent | `true` |
+| subtitlesFilterPresent | `true` |
+| libassIndicated | `true` |
 | mediaInputUsed | `false` |
 | mediaOutputCreated | `false` |
 | gcsAccess | `false` |
@@ -98,7 +103,7 @@ rejectedOldCaptionText: `Hey guys, I saw how you guys doing today is going to do
 
 ## Decision
 
-TRACKA-CAPTION-QUALITY-3R3 readiness: `blocked_runtime_image_build_failed`
+TRACKA-CAPTION-QUALITY-3R3 readiness: `ready_for_guarded_burnin_execution_with_approved_ffmpeg_libass_runtime`
 
 TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_visual_review_and_scope_decision`
 
@@ -106,4 +111,4 @@ Internal beta readiness: `blocked_pending_caption_burnin_visual_review_and_scope
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local Docker daemon readiness checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.

@@ -16,7 +16,7 @@ const requiredFiles = [
 
 const requiredTokens = [
   'TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1',
-  'TRACKA-CAPTION-RUNTIME-PATH-1R3',
+  'TRACKA-CAPTION-RUNTIME-PATH-1R4',
   '#459',
   '1a52c5a604b175bbd95c8e96294d963636ee8db0',
   '#452',
@@ -33,8 +33,9 @@ const requiredTokens = [
   'REEDITPRO_CONFIRM_TRACKA_CAPTION_FFMPEG_LIBASS_REPAIR=true',
   'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_REUSE=true',
   'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD=true',
+  'REEDITPRO_CONFIRM_TRACKA_LOCAL_DOCKER_DAEMON_START=true',
   'local_ffmpeg_libass_runtime_path',
-  'repo_owned_ffmpeg_libass_runtime_path',
+  'repo_owned_render_worker_ffmpeg_libass_runtime_path',
   'repo_owned_tracka_libass_runtime_path',
   'repo_owned_tool_readiness_metadata_path',
   'docker/prod/render-worker/Dockerfile',
@@ -55,8 +56,9 @@ const requiredTokens = [
   'dockerRuntimeStatus',
   'dockerRuntimeDockerfile',
   'dockerRuntimeImageTag',
+  'dockerDaemonStatus',
   'packageLockChanged',
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.',
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local Docker daemon readiness checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.',
 ]
 
 function fail(message) {
@@ -97,6 +99,9 @@ const blockedRuntimeImageBuildConfirmation = /runtimePathStatus:\s*`blocked_runt
 const blockedRepoOwnedMissingFilters = /runtimePathStatus:\s*`blocked_repo_owned_runtime_image_missing_ass_subtitles_filter`/i.test(docsText)
 const blockedRuntimeImageBuildFailed = /runtimePathStatus:\s*`blocked_runtime_image_build_failed`/i.test(docsText)
 const blockedNoApprovedRuntime = /runtimePathStatus:\s*`blocked_no_approved_caption_burnin_runtime_available`/i.test(docsText)
+const blockedDockerDaemonUnavailable = /runtimePathStatus:\s*`blocked_docker_daemon_unavailable`/i.test(docsText)
+const blockedDockerNotInstalled = /runtimePathStatus:\s*`blocked_docker_not_installed_or_not_accessible`/i.test(docsText)
+const blockedRepoOwnedMissingFfmpeg = /runtimePathStatus:\s*`blocked_repo_owned_runtime_image_missing_ffmpeg_or_ffprobe`/i.test(docsText)
 
 if (
   !approved &&
@@ -114,7 +119,10 @@ if (
   !blockedRuntimeImageBuildConfirmation &&
   !blockedRepoOwnedMissingFilters &&
   !blockedRuntimeImageBuildFailed &&
-  !blockedNoApprovedRuntime
+  !blockedNoApprovedRuntime &&
+  !blockedDockerDaemonUnavailable &&
+  !blockedDockerNotInstalled &&
+  !blockedRepoOwnedMissingFfmpeg
 ) {
   fail('missing approved or explicit blocked runtime path status')
 }
@@ -133,7 +141,7 @@ if (approvedLocal) {
 if (approvedRepoOwned) {
   const approvedPatterns = [
     /execution(?:\s*\||:)\s*`completed_runtime_path_metadata_approval`/i,
-    /approvedRuntimePath(?:\s*\||:)\s*`repo_owned_ffmpeg_libass_runtime_path`/i,
+    /approvedRuntimePath(?:\s*\||:)\s*`repo_owned_render_worker_ffmpeg_libass_runtime_path`/i,
     /TRACKA-CAPTION-QUALITY-3R3 readiness:\s*`ready_for_guarded_burnin_execution_with_approved_ffmpeg_libass_runtime`/i,
     /dockerRuntimeStatus(?:\s*\||:)\s*`approved_repo_owned_ffmpeg_libass_metadata_only`/i,
   ]
@@ -156,7 +164,10 @@ if (
   blockedRuntimeImageBuildConfirmation ||
   blockedRepoOwnedMissingFilters ||
   blockedRuntimeImageBuildFailed ||
-  blockedNoApprovedRuntime
+  blockedNoApprovedRuntime ||
+  blockedDockerDaemonUnavailable ||
+  blockedDockerNotInstalled ||
+  blockedRepoOwnedMissingFfmpeg
 ) {
   const blockedPatterns = [
     /execution(?:\s*\||:)\s*`blocked_[^`]+`/i,
@@ -245,7 +256,13 @@ console.log(
                                   ? 'blocked_runtime_image_build_failed'
                                   : blockedNoApprovedRuntime
                                     ? 'blocked_no_approved_caption_burnin_runtime_available'
-                                    : 'blocked_pending_confirmation',
+                                    : blockedDockerDaemonUnavailable
+                                      ? 'blocked_docker_daemon_unavailable'
+                                      : blockedDockerNotInstalled
+                                        ? 'blocked_docker_not_installed_or_not_accessible'
+                                        : blockedRepoOwnedMissingFfmpeg
+                                          ? 'blocked_repo_owned_runtime_image_missing_ffmpeg_or_ffprobe'
+                                          : 'blocked_pending_confirmation',
       noBurnInExecution: true,
       noMediaInputOutput: true,
       noGcsAccess: true,

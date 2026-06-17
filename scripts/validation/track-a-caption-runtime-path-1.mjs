@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 
-const phase = 'TRACKA-CAPTION-RUNTIME-PATH-1R3'
+const phase = 'TRACKA-CAPTION-RUNTIME-PATH-1R4'
 const branch = 'codex/rp-tracka-caption-quality-3r2-runtime-path-1'
 const base =
   'origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration at 1a52c5a604b175bbd95c8e96294d963636ee8db0'
@@ -12,11 +12,12 @@ const provisioningEnv = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PROVISIONING=t
 const libassRepairEnv = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_FFMPEG_LIBASS_REPAIR=true'
 const imageReuseEnv = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_REUSE=true'
 const imageBuildEnv = 'REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD=true'
+const dockerDaemonStartEnv = 'REEDITPRO_CONFIRM_TRACKA_LOCAL_DOCKER_DAEMON_START=true'
 const renderWorkerDockerfile = 'docker/prod/render-worker/Dockerfile'
 const toolReadinessDockerfile = 'docker/prod/tool-readiness-worker/Dockerfile'
-const runtimeImageTag = 'reeditpro-tracka-caption-runtime-path-1r3:local'
+const runtimeImageTag = 'reeditpro-tracka-caption-runtime-path-check:local'
 const noScope =
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.'
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local Docker daemon readiness checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.'
 const captionLines = [
   'Hey everyone — welcome to this ReEditPro visual review.',
   'Today we are testing captions, overlays, and private render quality.',
@@ -37,13 +38,14 @@ function timestamp() {
   return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, '')
 }
 
-const runId = process.env.REEDITPRO_TRACKA_CAPTION_RUNTIME_PATH_1_ID || `tracka-caption-runtime-path-1r3-${timestamp()}`
+const runId = process.env.REEDITPRO_TRACKA_CAPTION_RUNTIME_PATH_1_ID || `tracka-caption-runtime-path-1r4-${timestamp()}`
 const checkRequested = process.argv.includes('--check-metadata')
 const confirmationProvided = process.env.REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK === 'true'
 const provisioningConfirmed = process.env.REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PROVISIONING === 'true'
 const libassRepairConfirmed = process.env.REEDITPRO_CONFIRM_TRACKA_CAPTION_FFMPEG_LIBASS_REPAIR === 'true'
 const imageReuseConfirmed = process.env.REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_REUSE === 'true'
 const imageBuildConfirmed = process.env.REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD === 'true'
+const dockerDaemonStartConfirmed = process.env.REEDITPRO_CONFIRM_TRACKA_LOCAL_DOCKER_DAEMON_START === 'true'
 const buildArtifacts = [
   { dir: 'dist-server', script: 'build:server' },
   { dir: 'dist-remotion-worker', script: 'build:remotion-worker:mock' },
@@ -258,6 +260,98 @@ function buildArtifactStatus(enabled) {
   }
 }
 
+function checkDockerDaemonReadiness(enabled) {
+  if (!enabled) {
+    return {
+      status: 'not_needed',
+      blocker: 'none',
+      startAttempted: false,
+      ready: false,
+      failureSummary: 'none',
+      commands: [],
+    }
+  }
+
+  const commands = []
+  const dockerVersion = shell('docker_version', 'docker --version', true)
+  commands.push(dockerVersion)
+  if (dockerVersion.status !== 'passed') {
+    return {
+      status: 'blocked_docker_not_installed_or_not_accessible',
+      blocker: 'blocked_docker_not_installed_or_not_accessible',
+      startAttempted: false,
+      ready: false,
+      failureSummary: 'docker_cli_not_available',
+      commands,
+    }
+  }
+
+  const initialInfo = shell('docker_info_initial', 'docker info --format "{{.ServerVersion}}"', true)
+  commands.push(initialInfo)
+  if (initialInfo.status === 'passed') {
+    return {
+      status: 'docker_daemon_ready',
+      blocker: 'none',
+      startAttempted: false,
+      ready: true,
+      failureSummary: 'none',
+      commands,
+    }
+  }
+
+  if (!dockerDaemonStartConfirmed) {
+    return {
+      status: 'blocked_docker_daemon_unavailable',
+      blocker: 'blocked_docker_daemon_unavailable',
+      startAttempted: false,
+      ready: false,
+      failureSummary: 'missing_REEDITPRO_CONFIRM_TRACKA_LOCAL_DOCKER_DAEMON_START',
+      commands,
+    }
+  }
+
+  const uname = shell('docker_daemon_uname', 'uname -a', true)
+  commands.push(uname)
+  if (!/Darwin/i.test(uname.stdout)) {
+    return {
+      status: 'blocked_docker_daemon_unavailable',
+      blocker: 'blocked_docker_daemon_unavailable',
+      startAttempted: false,
+      ready: false,
+      failureSummary: 'daemon_unavailable_and_non_macos_auto_start_not_allowed',
+      commands,
+    }
+  }
+
+  const openDocker = shell('docker_daemon_open_docker_desktop', 'open -a Docker || true', true)
+  commands.push(openDocker)
+  for (let attempt = 1; attempt <= 18; attempt += 1) {
+    const sleepCommand = shell(`docker_daemon_wait_${attempt}`, 'sleep 10', true)
+    commands.push(sleepCommand)
+    const info = shell(`docker_info_poll_${attempt}`, 'docker info --format "{{.ServerVersion}}"', true)
+    commands.push(info)
+    if (info.status === 'passed') {
+      return {
+        status: 'docker_daemon_ready',
+        blocker: 'none',
+        startAttempted: true,
+        ready: true,
+        failureSummary: 'none',
+        commands,
+      }
+    }
+  }
+
+  return {
+    status: 'blocked_docker_daemon_unavailable',
+    blocker: 'blocked_docker_daemon_unavailable',
+    startAttempted: true,
+    ready: false,
+    failureSummary: 'docker_info_failed_after_180_seconds',
+    commands,
+  }
+}
+
 function runDockerMetadata(imageTag) {
   const commands = []
   const ffmpegVersion = runCommand('docker_ffmpeg_version', 'docker', ['run', '--rm', imageTag, 'ffmpeg', '-hide_banner', '-version'], {
@@ -302,6 +396,14 @@ function inspectRepoOwnedDockerRuntime(needed) {
   const metadataCheckExecuted = checkRequested && confirmationProvided
   const dockerfilePresent = existsSync(renderWorkerDockerfile)
   const toolReadinessPresent = existsSync(toolReadinessDockerfile)
+  const dockerDaemonSkipped = {
+    status: 'not_needed',
+    blocker: 'none',
+    startAttempted: false,
+    ready: false,
+    failureSummary: 'none',
+    commands: [],
+  }
 
   if (!needed || !metadataCheckExecuted) {
     return {
@@ -315,6 +417,7 @@ function inspectRepoOwnedDockerRuntime(needed) {
       imageBuildConfirmed,
       buildArtifacts: { status: 'not_needed', blocker: 'none', commands: [] },
       buildStatus: 'not_needed',
+      dockerDaemon: dockerDaemonSkipped,
       metadata: null,
       commands,
     }
@@ -332,6 +435,7 @@ function inspectRepoOwnedDockerRuntime(needed) {
       imageBuildConfirmed,
       buildArtifacts: { status: 'not_needed', blocker: 'none', commands: [] },
       buildStatus: 'not_needed',
+      dockerDaemon: dockerDaemonSkipped,
       metadata: null,
       commands,
     }
@@ -349,13 +453,31 @@ function inspectRepoOwnedDockerRuntime(needed) {
       imageBuildConfirmed,
       buildArtifacts: { status: 'not_needed', blocker: 'none', commands: [] },
       buildStatus: 'not_needed',
+      dockerDaemon: dockerDaemonSkipped,
       metadata: null,
       commands,
     }
   }
 
-  commands.push(shell('docker_version', 'docker --version', true))
-  commands.push(shell('docker_info', 'docker info --format "{{.ServerVersion}}"', true))
+  const dockerDaemon = checkDockerDaemonReadiness(true)
+  commands.push(...dockerDaemon.commands)
+  if (dockerDaemon.blocker !== 'none') {
+    return {
+      status: dockerDaemon.blocker,
+      blocker: dockerDaemon.blocker,
+      approved: false,
+      dockerfile: renderWorkerDockerfile,
+      supportingDockerfile: toolReadinessPresent ? toolReadinessDockerfile : 'missing',
+      imageTag: runtimeImageTag,
+      imageReuseConfirmed,
+      imageBuildConfirmed,
+      buildArtifacts: { status: 'not_needed', blocker: 'none', commands: [] },
+      buildStatus: 'not_attempted',
+      dockerDaemon,
+      metadata: null,
+      commands,
+    }
+  }
   const imageInspectBefore = shell('docker_image_inspect_before', `docker image inspect ${runtimeImageTag} >/dev/null 2>&1`, true)
   commands.push(imageInspectBefore)
   let imageAvailable = imageInspectBefore.status === 'passed'
@@ -376,6 +498,7 @@ function inspectRepoOwnedDockerRuntime(needed) {
         imageBuildConfirmed,
         buildArtifacts,
         buildStatus,
+        dockerDaemon,
         metadata: null,
         commands,
       }
@@ -392,6 +515,7 @@ function inspectRepoOwnedDockerRuntime(needed) {
         imageBuildConfirmed,
         buildArtifacts,
         buildStatus: 'blocked_runtime_image_build_failed',
+        dockerDaemon,
         metadata: null,
         commands,
       }
@@ -416,6 +540,7 @@ function inspectRepoOwnedDockerRuntime(needed) {
         imageBuildConfirmed,
         buildArtifacts,
         buildStatus,
+        dockerDaemon,
         metadata: null,
         commands,
       }
@@ -437,6 +562,7 @@ function inspectRepoOwnedDockerRuntime(needed) {
       imageBuildConfirmed,
       buildArtifacts,
       buildStatus: 'blocked_runtime_image_build_failed',
+      dockerDaemon,
       metadata: null,
       commands,
     }
@@ -445,7 +571,11 @@ function inspectRepoOwnedDockerRuntime(needed) {
   const metadata = runDockerMetadata(runtimeImageTag)
   commands.push(...metadata.commands)
   const approved = metadata.ffmpegFound && metadata.ffprobeFound && (metadata.assFilterPresent || metadata.subtitlesFilterPresent)
-  const status = approved ? 'approved_repo_owned_ffmpeg_libass_metadata_only' : 'blocked_repo_owned_runtime_image_missing_ass_subtitles_filter'
+  const status = approved
+    ? 'approved_repo_owned_ffmpeg_libass_metadata_only'
+    : !metadata.ffmpegFound || !metadata.ffprobeFound
+      ? 'blocked_repo_owned_runtime_image_missing_ffmpeg_or_ffprobe'
+      : 'blocked_repo_owned_runtime_image_missing_ass_subtitles_filter'
 
   return {
     status,
@@ -458,6 +588,7 @@ function inspectRepoOwnedDockerRuntime(needed) {
     imageBuildConfirmed,
     buildArtifacts,
     buildStatus,
+    dockerDaemon,
     metadata,
     commands,
   }
@@ -656,7 +787,7 @@ function buildMetadataResult() {
   let approvedRuntimePath = hostApproved
     ? 'local_ffmpeg_libass_runtime_path'
     : dockerRuntime.approved
-      ? 'repo_owned_ffmpeg_libass_runtime_path'
+      ? 'repo_owned_render_worker_ffmpeg_libass_runtime_path'
       : 'none'
   let readiness = hostApproved
     ? 'ready_for_guarded_burnin_execution_with_local_ffmpeg_libass_runtime'
@@ -733,6 +864,22 @@ function runtimeRows(result) {
       imageReuseConfirmed: false,
       imageBuildConfirmed: false,
       buildArtifacts: { status: 'not_recorded', blocker: 'not_recorded' },
+      dockerDaemon: {
+        status: 'not_recorded',
+        blocker: 'not_recorded',
+        ready: false,
+        startAttempted: false,
+        failureSummary: 'not_recorded',
+      },
+    }
+  const dockerDaemon =
+    dockerRuntime.dockerDaemon ||
+    {
+      status: 'not_recorded',
+      blocker: 'not_recorded',
+      ready: false,
+      startAttempted: false,
+      failureSummary: 'not_recorded',
     }
   const rows = [
     ['execution', result.execution],
@@ -753,6 +900,11 @@ function runtimeRows(result) {
     ['libassRepairFailureSummary', result.libassRepair.failureSummary || 'none'],
     ['imageReuseConfirmation', dockerRuntime.imageReuseConfirmed ? imageReuseEnv : 'absent_or_not_true'],
     ['imageBuildConfirmation', dockerRuntime.imageBuildConfirmed ? imageBuildEnv : 'absent_or_not_true'],
+    ['dockerDaemonStartConfirmation', dockerDaemonStartConfirmed ? dockerDaemonStartEnv : 'absent_or_not_true'],
+    ['dockerDaemonStatus', dockerDaemon.status],
+    ['dockerDaemonReady', String(dockerDaemon.ready)],
+    ['dockerDaemonStartAttempted', String(dockerDaemon.startAttempted)],
+    ['dockerDaemonFailureSummary', dockerDaemon.failureSummary],
     ['dockerRuntimeStatus', dockerRuntime.status],
     ['dockerRuntimeBlocker', dockerRuntime.blocker],
     ['dockerRuntimeDockerfile', dockerRuntime.dockerfile],
@@ -796,19 +948,25 @@ function docs(result) {
 | --- | --- | --- | --- | --- |
 ${summarizeCommands(result.commands)}`
   const approvedRuntimeRequirement =
-    result.approvedRuntimePath === 'repo_owned_ffmpeg_libass_runtime_path'
-      ? '`repo_owned_ffmpeg_libass_runtime_path`'
-      : '`local_ffmpeg_libass_runtime_path` or `repo_owned_ffmpeg_libass_runtime_path`'
+    result.approvedRuntimePath === 'repo_owned_render_worker_ffmpeg_libass_runtime_path'
+      ? '`repo_owned_render_worker_ffmpeg_libass_runtime_path`'
+      : '`local_ffmpeg_libass_runtime_path` or `repo_owned_render_worker_ffmpeg_libass_runtime_path`'
   const humanAction =
     result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ||
-    result.approvedRuntimePath === 'repo_owned_ffmpeg_libass_runtime_path'
+    result.approvedRuntimePath === 'repo_owned_render_worker_ffmpeg_libass_runtime_path'
       ? 'none for runtime path approval; 3R3 still requires explicit guarded burn-in execution confirmation.'
       : result.runtimePathStatus === 'blocked_homebrew_ffmpeg_lacks_libass_filter_support'
         ? 'Homebrew core ffmpeg still lacks libass-backed ass/subtitles filters after approved libass repair; use an explicitly approved repo-owned Docker runtime path or another approved runtime source before rerunning metadata checks.'
+        : result.runtimePathStatus === 'blocked_docker_daemon_unavailable'
+          ? 'start Docker Desktop or repair the local Docker daemon, then rerun the metadata-only check with all Docker confirmations.'
+          : result.runtimePathStatus === 'blocked_docker_not_installed_or_not_accessible'
+            ? 'install or repair local Docker CLI/Desktop access before rerunning the metadata-only check.'
         : result.runtimePathStatus === 'blocked_runtime_image_build_confirmation_absent'
           ? 'rerun with `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD=true` if owner approves a local repo-owned render-worker image build.'
           : result.runtimePathStatus === 'blocked_runtime_image_build_failed'
             ? 'repair the repo-owned render-worker Docker build prerequisites, then rerun metadata checks without media inputs.'
+            : result.runtimePathStatus === 'blocked_repo_owned_runtime_image_missing_ffmpeg_or_ffprobe'
+              ? 'the repo-owned render-worker image did not expose FFmpeg and FFprobe; update the approved Dockerfile path in a future docs/metadata phase before burn-in execution.'
             : result.runtimePathStatus === 'blocked_repo_owned_runtime_image_missing_ass_subtitles_filter'
               ? 'the repo-owned render-worker image did not expose `ass` or `subtitles`; update the approved Dockerfile path in a future docs/metadata phase before burn-in execution.'
               : 'fix the host or repo-owned FFmpeg/FFprobe/libass runtime metadata path, then rerun the metadata-only runtime path check with explicit confirmations.'
@@ -883,7 +1041,7 @@ Status: \`${result.runtimePathStatus}\`
 | \`local_ffmpeg_libass_runtime_path\` | preferred minimal local runtime path | ffmpeg=\`${result.ffmpegPath}\`; ffprobe=\`${result.ffprobePath}\`; ass=\`${result.assFilterPresent}\`; subtitles=\`${result.subtitlesFilterPresent}\`; libass=\`${result.libassIndicated}\` | \`${result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ? 'approved_metadata_only' : result.runtimePathStatus}\` | approval is metadata-only; no media input or output was used |
 | \`host_homebrew_ffmpeg_runtime_path\` | explicitly confirmed host provisioning path | provisioningStatus=\`${result.provisioning.status}\`; packageManager=\`${result.provisioning.packageManager}\`; failure=\`${result.provisioning.failureSummary || 'none'}\` | \`${result.provisioning.status}\` | no repo dependency or package-lock change |
 | \`homebrew_core_ffmpeg_libass_repair_path\` | explicitly confirmed Homebrew core libass repair path | libassRepairStatus=\`${result.libassRepair.status}\`; packageManager=\`${result.libassRepair.packageManager}\`; failure=\`${result.libassRepair.failureSummary || 'none'}\` | \`${result.libassRepair.status}\` | no third-party taps, random binaries, source compilation, repo dependency, or package-lock change |
-| \`repo_owned_tracka_libass_runtime_path\` | approved repo-owned local Docker metadata path | dockerfile=\`${result.dockerRuntime.dockerfile}\`; imageTag=\`${result.dockerRuntime.imageTag}\`; status=\`${result.dockerRuntime.status}\`; build=\`${result.dockerRuntime.buildStatus}\` | \`${result.approvedRuntimePath === 'repo_owned_ffmpeg_libass_runtime_path' ? 'approved_metadata_only' : result.dockerRuntime.status}\` | uses \`${renderWorkerDockerfile}\`; local metadata-only Docker build/run; no media mounts, no image push, no deploy |
+| \`repo_owned_tracka_libass_runtime_path\` | approved repo-owned local Docker metadata path | dockerfile=\`${result.dockerRuntime.dockerfile}\`; imageTag=\`${result.dockerRuntime.imageTag}\`; daemon=\`${result.dockerRuntime.dockerDaemon.status}\`; status=\`${result.dockerRuntime.status}\`; build=\`${result.dockerRuntime.buildStatus}\` | \`${result.approvedRuntimePath === 'repo_owned_render_worker_ffmpeg_libass_runtime_path' ? 'approved_metadata_only' : result.dockerRuntime.status}\` | uses \`${renderWorkerDockerfile}\`; local metadata-only Docker build/run; no media mounts, no image push, no deploy |
 | \`repo_owned_tool_readiness_metadata_path\` | supporting repo-owned metadata path only | dockerfile=\`${result.dockerRuntime.supportingDockerfile}\` | \`supporting_metadata_only_not_burnin_approval\` | \`${toolReadinessDockerfile}\` cannot approve corrected-caption burn-in by itself |
 | \`existing_tracka_caption_burnin_activation_module\` | guarded activation packet | existing #459 module remains source-of-truth | \`available_for_future_guarded_execution_only\` | must stay behind \`REEDITPRO_CONFIRM_TRACKA_CAPTION_BURNIN_REVALIDATION=true\` |
 | \`remotion_preview_runtime_path\` | optional preview path | package metadata only | \`not_required_for_runtime_path_approval\` | no Remotion render was run |
@@ -916,6 +1074,8 @@ Repo-owned Docker runtime image reuse confirmation required: \`${imageReuseEnv}\
 
 Repo-owned Docker runtime image build confirmation required: \`${imageBuildEnv}\`
 
+Local Docker daemon start confirmation required: \`${dockerDaemonStartEnv}\`
+
 confirmationProvided: ${result.confirmationProvided}
 
 provisioningConfirmationProvided: ${provisioningConfirmed}
@@ -925,6 +1085,8 @@ libassRepairConfirmationProvided: ${libassRepairConfirmed}
 imageReuseConfirmationProvided: ${imageReuseConfirmed}
 
 imageBuildConfirmationProvided: ${imageBuildConfirmed}
+
+dockerDaemonStartConfirmationProvided: ${dockerDaemonStartConfirmed}
 
 metadataCheckExecuted: ${result.metadataCheck !== 'not_attempted'}
 
@@ -949,6 +1111,14 @@ dockerRuntimeImageTag: \`${result.dockerRuntime.imageTag}\`
 dockerRuntimeBuildStatus: \`${result.dockerRuntime.buildStatus}\`
 
 dockerRuntimeBuildArtifactsStatus: \`${result.dockerRuntime.buildArtifacts.status}\`
+
+dockerDaemonStatus: \`${result.dockerRuntime.dockerDaemon.status}\`
+
+dockerDaemonReady: ${result.dockerRuntime.dockerDaemon.ready}
+
+dockerDaemonStartAttempted: ${result.dockerRuntime.dockerDaemon.startAttempted}
+
+dockerDaemonFailureSummary: \`${result.dockerRuntime.dockerDaemon.failureSummary}\`
 
 ## Command Results
 
@@ -993,6 +1163,7 @@ Status: \`${result.runtimePathStatus}\`
 | Homebrew core libass repair | explicit confirmation only | \`${result.libassRepair.status}\` |
 | repo-owned render-worker Dockerfile | \`${renderWorkerDockerfile}\` | \`${result.dockerRuntime.dockerfile}\` |
 | repo-owned local Docker metadata image | reuse/build explicit confirmation only | status=\`${result.dockerRuntime.status}\`; imageTag=\`${result.dockerRuntime.imageTag}\`; build=\`${result.dockerRuntime.buildStatus}\` |
+| local Docker daemon readiness | \`${dockerDaemonStartEnv}\` when daemon start is needed | status=\`${result.dockerRuntime.dockerDaemon.status}\`; ready=\`${result.dockerRuntime.dockerDaemon.ready}\`; startAttempted=\`${result.dockerRuntime.dockerDaemon.startAttempted}\` |
 | supporting tool-readiness Dockerfile | metadata support only, not burn-in approval | \`${result.dockerRuntime.supportingDockerfile}\` |
 | allowed input | #452 approved source ref only | \`${sourceRef}\` |
 | allowed caption | #426 approved controlled-test caption copy only | preserved |
@@ -1039,6 +1210,7 @@ Status: \`${result.runtimePathStatus}\`
 | \`host_runtime_provisioning\` | \`${result.provisioning.status}\` | packageManager=\`${result.provisioning.packageManager}\`; failure=\`${result.provisioning.failureSummary || 'none'}\` |
 | \`homebrew_core_libass_repair\` | \`${result.libassRepair.status}\` | packageManager=\`${result.libassRepair.packageManager}\`; failure=\`${result.libassRepair.failureSummary || 'none'}\` |
 | \`repo_owned_render_worker_metadata_path\` | \`${result.dockerRuntime.status}\` | dockerfile=\`${result.dockerRuntime.dockerfile}\`; imageTag=\`${result.dockerRuntime.imageTag}\`; build=\`${result.dockerRuntime.buildStatus}\` |
+| \`local_docker_daemon_readiness\` | \`${result.dockerRuntime.dockerDaemon.status}\` | ready=\`${result.dockerRuntime.dockerDaemon.ready}\`; startAttempted=\`${result.dockerRuntime.dockerDaemon.startAttempted}\`; failure=\`${result.dockerRuntime.dockerDaemon.failureSummary}\` |
 | \`repo_owned_tool_readiness_support\` | \`supporting_metadata_only_not_burnin_approval\` | dockerfile=\`${result.dockerRuntime.supportingDockerfile}\` |
 | \`ffmpeg_binary_metadata\` | \`${result.ffmpegPath === 'not_found' || result.ffmpegPath === 'not_checked' ? 'blocked_or_not_checked' : 'passed'}\` | \`${result.ffmpegPath}\` |
 | \`ffprobe_binary_metadata\` | \`${result.ffprobePath === 'not_found' || result.ffprobePath === 'not_checked' ? 'blocked_or_not_checked' : 'passed'}\` | \`${result.ffprobePath}\` |
@@ -1106,6 +1278,10 @@ dockerRuntimeStatus: \`${result.dockerRuntime.status}\`
 dockerRuntimeBlocker: \`${result.dockerRuntime.blocker}\`
 
 dockerRuntimeBuildStatus: \`${result.dockerRuntime.buildStatus}\`
+
+dockerDaemonStatus: \`${result.dockerRuntime.dockerDaemon.status}\`
+
+dockerDaemonFailureSummary: \`${result.dockerRuntime.dockerDaemon.failureSummary}\`
 
 ## No-Scope Statement
 
@@ -1178,7 +1354,7 @@ ${sourceAudit}
 - local_ffmpeg_libass_runtime_path: \`${result.approvedRuntimePath === 'local_ffmpeg_libass_runtime_path' ? 'approved_metadata_only' : result.runtimePathStatus}\`
 - host_homebrew_ffmpeg_runtime_path: \`${result.provisioning.status}\`
 - homebrew_core_ffmpeg_libass_repair_path: \`${result.libassRepair.status}\`
-- repo_owned_tracka_libass_runtime_path: \`${result.approvedRuntimePath === 'repo_owned_ffmpeg_libass_runtime_path' ? 'approved_metadata_only' : result.dockerRuntime.status}\`
+- repo_owned_tracka_libass_runtime_path: \`${result.approvedRuntimePath === 'repo_owned_render_worker_ffmpeg_libass_runtime_path' ? 'approved_metadata_only' : result.dockerRuntime.status}\`
 - repo_owned_tool_readiness_metadata_path: \`supporting_metadata_only_not_burnin_approval\`
 - existing_tracka_caption_burnin_activation_module: \`available_for_future_guarded_execution_only\`
 - remotion_preview_runtime_path: \`optional_not_required\`
@@ -1236,7 +1412,7 @@ ${noScope}
 
 ## Summary
 
-Run only after TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 records an approved runtime path, either \`runtimePathStatus: approved_local_ffmpeg_libass_metadata_only\` with \`approvedRuntimePath: local_ffmpeg_libass_runtime_path\` or \`runtimePathStatus: approved_repo_owned_ffmpeg_libass_metadata_only\` with \`approvedRuntimePath: repo_owned_ffmpeg_libass_runtime_path\`.
+Run only after TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 records an approved runtime path, either \`runtimePathStatus: approved_local_ffmpeg_libass_metadata_only\` with \`approvedRuntimePath: local_ffmpeg_libass_runtime_path\` or \`runtimePathStatus: approved_repo_owned_ffmpeg_libass_metadata_only\` with \`approvedRuntimePath: repo_owned_render_worker_ffmpeg_libass_runtime_path\`.
 
 ## Required Inputs
 
@@ -1259,6 +1435,8 @@ libassRepairStatus: \`${result.libassRepair.status}\`
 dockerRuntimeStatus: \`${result.dockerRuntime.status}\`
 
 dockerRuntimeDockerfile: \`${result.dockerRuntime.dockerfile}\`
+
+dockerDaemonStatus: \`${result.dockerRuntime.dockerDaemon.status}\`
 
 ## Blocked Unless
 
@@ -1412,6 +1590,10 @@ console.log(
       dockerRuntimeImageTag: result.dockerRuntime.imageTag,
       dockerRuntimeBuildStatus: result.dockerRuntime.buildStatus,
       dockerRuntimeBuildArtifactsStatus: result.dockerRuntime.buildArtifacts.status,
+      dockerDaemon: result.dockerRuntime.dockerDaemon.status,
+      dockerDaemonReady: result.dockerRuntime.dockerDaemon.ready,
+      dockerDaemonStartAttempted: result.dockerRuntime.dockerDaemon.startAttempted,
+      dockerDaemonFailureSummary: result.dockerRuntime.dockerDaemon.failureSummary,
       readiness: result.readiness,
       mediaInputUsed: false,
       mediaOutputCreated: false,

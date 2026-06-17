@@ -1,8 +1,8 @@
 # Track A Caption Runtime Path Metadata Check Results
 
-Status: `blocked`
+Status: `completed`
 
-Run ID: `tracka-caption-runtime-path-1r3-20260617T203338`
+Run ID: `tracka-caption-runtime-path-1r4-20260617T205616`
 
 Runtime path check confirmation required: `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true`
 
@@ -14,6 +14,8 @@ Repo-owned Docker runtime image reuse confirmation required: `REEDITPRO_CONFIRM_
 
 Repo-owned Docker runtime image build confirmation required: `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD=true`
 
+Local Docker daemon start confirmation required: `REEDITPRO_CONFIRM_TRACKA_LOCAL_DOCKER_DAEMON_START=true`
+
 confirmationProvided: true
 
 provisioningConfirmationProvided: false
@@ -23,6 +25,8 @@ libassRepairConfirmationProvided: false
 imageReuseConfirmationProvided: true
 
 imageBuildConfirmationProvided: true
+
+dockerDaemonStartConfirmationProvided: true
 
 metadataCheckExecuted: true
 
@@ -34,19 +38,27 @@ libassRepairStatus: `not_needed`
 
 libassRepairFailureSummary: `none`
 
-dockerRuntimeStatus: `blocked_runtime_image_build_failed`
+dockerRuntimeStatus: `approved_repo_owned_ffmpeg_libass_metadata_only`
 
-dockerRuntimeBlocker: `blocked_runtime_image_build_failed`
+dockerRuntimeBlocker: `none`
 
 dockerRuntimeDockerfile: `docker/prod/render-worker/Dockerfile`
 
 dockerRuntimeSupportingDockerfile: `docker/prod/tool-readiness-worker/Dockerfile`
 
-dockerRuntimeImageTag: `reeditpro-tracka-caption-runtime-path-1r3:local`
+dockerRuntimeImageTag: `reeditpro-tracka-caption-runtime-path-check:local`
 
-dockerRuntimeBuildStatus: `blocked_runtime_image_build_failed`
+dockerRuntimeBuildStatus: `passed`
 
 dockerRuntimeBuildArtifactsStatus: `passed`
+
+dockerDaemonStatus: `docker_daemon_ready`
+
+dockerDaemonReady: true
+
+dockerDaemonStartAttempted: false
+
+dockerDaemonFailureSummary: `none`
 
 ## Command Results
 
@@ -69,23 +81,28 @@ dockerRuntimeBuildArtifactsStatus: `passed`
 | `initial_ffprobe_version` | `/opt/homebrew/bin/ffprobe -hide_banner -version` | `passed` | `0` | `ffprobe version 8.1.1 Copyright (c) 2007-2026 the FFmpeg developers built with Apple clang version 21.0.0 (clang-2100.0.123.102) configuration: --prefix=/opt/homebrew/Cellar/ffmpeg` |
 | `initial_ffmpeg_filters` | `/opt/homebrew/bin/ffmpeg -hide_banner -filters` | `passed` | `0` | `Filters: T.. = Timeline support .S. = Slice threading A = Audio input/output V = Video input/output N = Dynamic number and/or type of input/output | = Source or sink filter ------ ` |
 | `docker_version` | `docker --version` | `passed` | `0` | `Docker version 29.5.2, build 79eb04c` |
-| `docker_info` | `docker info --format "{{.ServerVersion}}"` | `failed` | `1` | `failed to connect to the docker API at unix:///Users/macuser/.docker/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /Users/macuser/.docker/ru` |
-| `docker_image_inspect_before` | `docker image inspect reeditpro-tracka-caption-runtime-path-1r3:local >/dev/null 2>&1` | `failed` | `1` | `none` |
+| `docker_info_initial` | `docker info --format "{{.ServerVersion}}"` | `passed` | `0` | `29.5.2` |
+| `docker_image_inspect_before` | `docker image inspect reeditpro-tracka-caption-runtime-path-check:local >/dev/null 2>&1` | `failed` | `1` | `none` |
 | `build_artifact_dist-server` | `npm run build:server` | `passed` | `not_run` | `dist-server already exists` |
-| `build_artifact_dist-remotion-worker` | `npm run build:remotion-worker:mock` | `passed` | `0` | `> reeditpro@0.0.0 build:remotion-worker:mock > npm run typecheck:server && vite build --config vite.remotion-worker.config.ts > reeditpro@0.0.0 typecheck:server > tsc -p tsconfig.s` |
-| `build_artifact_dist-staging-fixture-worker` | `npm run build:staging-fixture-worker` | `passed` | `0` | `> reeditpro@0.0.0 build:staging-fixture-worker > npm run typecheck:server && vite build --config vite.staging-fixture-worker.config.ts > reeditpro@0.0.0 typecheck:server > tsc -p t` |
-| `build_artifact_dist-staging-real-video-export-worker` | `npm run build:staging-real-video-export-worker` | `passed` | `0` | `> reeditpro@0.0.0 build:staging-real-video-export-worker > npm run typecheck:server && vite build --config vite.staging-real-video-export-worker.config.ts > reeditpro@0.0.0 typeche` |
-| `docker_build_render_worker_metadata_image` | `docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-tracka-caption-runtime-path-1r3:local .` | `failed` | `1` | `ERROR: failed to connect to the docker API at unix:///Users/macuser/.docker/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /Users/macuser/.do` |
+| `build_artifact_dist-remotion-worker` | `npm run build:remotion-worker:mock` | `passed` | `not_run` | `dist-remotion-worker already exists` |
+| `build_artifact_dist-staging-fixture-worker` | `npm run build:staging-fixture-worker` | `passed` | `not_run` | `dist-staging-fixture-worker already exists` |
+| `build_artifact_dist-staging-real-video-export-worker` | `npm run build:staging-real-video-export-worker` | `passed` | `not_run` | `dist-staging-real-video-export-worker already exists` |
+| `docker_build_render_worker_metadata_image` | `docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-tracka-caption-runtime-path-check:local .` | `passed` | `0` | `#0 building with "desktop-linux" instance using docker driver #1 [internal] load build definition from Dockerfile #1 transferring dockerfile: 1.55kB done #1 DONE 0.0s #2 resolve im` |
+| `docker_image_inspect_after` | `docker image inspect reeditpro-tracka-caption-runtime-path-check:local >/dev/null 2>&1` | `passed` | `0` | `none` |
+| `docker_ffmpeg_version` | `docker run --rm reeditpro-tracka-caption-runtime-path-check:local ffmpeg -hide_banner -version` | `passed` | `0` | `ffmpeg version 5.1.9-0+deb12u1 Copyright (c) 2000-2026 the FFmpeg developers built with gcc 12 (Debian 12.2.0-14+deb12u1) configuration: --prefix=/usr --extra-version=0+deb12u1 --t` |
+| `docker_ffmpeg_buildconf` | `docker run --rm reeditpro-tracka-caption-runtime-path-check:local ffmpeg -hide_banner -buildconf` | `passed` | `0` | `configuration: --prefix=/usr --extra-version=0+deb12u1 --toolchain=hardened --libdir=/usr/lib/aarch64-linux-gnu --incdir=/usr/include/aarch64-linux-gnu --arch=arm64 --enable-gpl --` |
+| `docker_ffprobe_version` | `docker run --rm reeditpro-tracka-caption-runtime-path-check:local ffprobe -hide_banner -version` | `passed` | `0` | `ffprobe version 5.1.9-0+deb12u1 Copyright (c) 2007-2026 the FFmpeg developers built with gcc 12 (Debian 12.2.0-14+deb12u1) configuration: --prefix=/usr --extra-version=0+deb12u1 --` |
+| `docker_ffmpeg_filters` | `docker run --rm reeditpro-tracka-caption-runtime-path-check:local ffmpeg -hide_banner -filters` | `passed` | `0` | `Filters: T.. = Timeline support .S. = Slice threading ..C = Command support A = Audio input/output V = Video input/output N = Dynamic number and/or type of input/output | = Source ` |
 
 ## Parsed Metadata
 
 | field | value |
 | --- | --- |
-| execution | `blocked_runtime_image_build_failed` |
-| runtimePathStatus | `blocked_runtime_image_build_failed` |
-| approvedRuntimePath | `none` |
-| metadataCheck | `blocked` |
-| blocker | `blocked_runtime_image_build_failed` |
+| execution | `completed_runtime_path_metadata_approval` |
+| runtimePathStatus | `approved_repo_owned_ffmpeg_libass_metadata_only` |
+| approvedRuntimePath | `repo_owned_render_worker_ffmpeg_libass_runtime_path` |
+| metadataCheck | `completed` |
+| blocker | `none` |
 | runtimePathConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_PATH_CHECK=true` |
 | provisioningConfirmation | `absent_or_not_true` |
 | provisioningStatus | `not_needed` |
@@ -99,21 +116,26 @@ dockerRuntimeBuildArtifactsStatus: `passed`
 | libassRepairFailureSummary | `none` |
 | imageReuseConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_REUSE=true` |
 | imageBuildConfirmation | `REEDITPRO_CONFIRM_TRACKA_CAPTION_RUNTIME_IMAGE_BUILD=true` |
-| dockerRuntimeStatus | `blocked_runtime_image_build_failed` |
-| dockerRuntimeBlocker | `blocked_runtime_image_build_failed` |
+| dockerDaemonStartConfirmation | `REEDITPRO_CONFIRM_TRACKA_LOCAL_DOCKER_DAEMON_START=true` |
+| dockerDaemonStatus | `docker_daemon_ready` |
+| dockerDaemonReady | `true` |
+| dockerDaemonStartAttempted | `false` |
+| dockerDaemonFailureSummary | `none` |
+| dockerRuntimeStatus | `approved_repo_owned_ffmpeg_libass_metadata_only` |
+| dockerRuntimeBlocker | `none` |
 | dockerRuntimeDockerfile | `docker/prod/render-worker/Dockerfile` |
 | dockerRuntimeSupportingDockerfile | `docker/prod/tool-readiness-worker/Dockerfile` |
-| dockerRuntimeImageTag | `reeditpro-tracka-caption-runtime-path-1r3:local` |
-| dockerRuntimeBuildStatus | `blocked_runtime_image_build_failed` |
+| dockerRuntimeImageTag | `reeditpro-tracka-caption-runtime-path-check:local` |
+| dockerRuntimeBuildStatus | `passed` |
 | dockerRuntimeBuildArtifactsStatus | `passed` |
 | dockerRuntimeBuildArtifactsBlocker | `none` |
-| ffmpegPath | `/opt/homebrew/bin/ffmpeg` |
-| ffprobePath | `/opt/homebrew/bin/ffprobe` |
-| ffmpegVersion | `ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers` |
-| ffprobeVersion | `ffprobe version 8.1.1 Copyright (c) 2007-2026 the FFmpeg developers` |
-| assFilterPresent | `false` |
-| subtitlesFilterPresent | `false` |
-| libassIndicated | `false` |
+| ffmpegPath | `docker://docker/prod/render-worker/Dockerfile#ffmpeg` |
+| ffprobePath | `docker://docker/prod/render-worker/Dockerfile#ffprobe` |
+| ffmpegVersion | `ffmpeg version 5.1.9-0+deb12u1 Copyright (c) 2000-2026 the FFmpeg developers` |
+| ffprobeVersion | `ffprobe version 5.1.9-0+deb12u1 Copyright (c) 2007-2026 the FFmpeg developers` |
+| assFilterPresent | `true` |
+| subtitlesFilterPresent | `true` |
+| libassIndicated | `true` |
 | mediaInputUsed | `false` |
 | mediaOutputCreated | `false` |
 | gcsAccess | `false` |
@@ -142,4 +164,4 @@ dockerRuntimeBuildArtifactsStatus: `passed`
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local runtime path checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Only metadata-only local Docker daemon readiness checks and explicitly confirmed repo-owned Docker FFmpeg/ffprobe/libass runtime inspection were allowed; no media input or output was used.

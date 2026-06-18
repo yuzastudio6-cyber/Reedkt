@@ -71,6 +71,7 @@ const allowedFutureScriptDiffs = [
   'worker:ai-graphics-metadata-job-payload-dry-run-gate-status-owner-approval:diagnostics',
   'worker:ai-graphics-metadata-job-payload-dry-run-runtime-gate:diagnostics',
   'worker:ai-graphics-metadata-job-payload-dry-run-runtime-gate-qa:diagnostics',
+  'worker:ai-graphics-metadata-job-payload-dry-run-runtime-gate-owner-approval:diagnostics',
   'worker:ai-graphics-metadata-handoff-qa:diagnostics',
   'worker:ai-graphics-metadata-handoff-approval:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics',

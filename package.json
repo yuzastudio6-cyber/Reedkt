@@ -596,6 +596,7 @@
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",
+    "worker-runtime:transactional-contract-1:diagnostics": "node scripts/validation/worker-runtime-transactional-contract-1-diagnostics.mjs",
     "tool-route:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/tool-route-tracka-private-e2e-gate-1-diagnostics.mjs",
     "tool-route:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/tool-route-tracka-private-e2e-gate-2-diagnostics.mjs",
     "track-a:caption-runtime-path-1": "node scripts/validation/track-a-caption-runtime-path-1.mjs",

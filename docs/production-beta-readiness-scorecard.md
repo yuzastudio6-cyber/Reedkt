@@ -328,3 +328,15 @@ execution, actual tool execution, provider/model runtime, browser/WebGL/canvas
 runtime, resvg rasterization, Remotion render/export, Supabase mutation,
 GCS/storage transfer, signed URLs, public artifacts, internal beta, external
 beta, paid production, or production readiness.
+
+WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_OWNER_APPROVAL decision
+`worker_ai_graphics_metadata_job_payload_owner_approved_with_warnings`
+accepts PR #493 schema validation QA evidence with warnings for all 13
+accepted AI graphics metadata tools. It recommends
+`WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_APPROVAL` next. It approves
+only a future dry-run approval packet while keeping worker execution, job
+claim, lease mutation, queue execution, route execution, actual tool execution,
+provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization,
+Remotion render/export, Supabase mutation, GCS/storage transfer, signed URLs,
+public artifacts, internal beta, external beta, paid production, and
+production readiness blocked.

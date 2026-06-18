@@ -331,3 +331,14 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - Primary next prompt: `OPEN_SOURCE_TOOL_STACK_BATCH_2_PLANNING_AFTER_BATCH_1_ROLLUP`
 - Secondary next prompt: `PRODUCT_INTERNAL_BETA_READINESS_AGGREGATION_AFTER_OPEN_SOURCE_BATCH_1`
 - Supabase: no write / environment none / SQL none / migration no.
+
+<!-- OPEN_SOURCE_BATCH_2_PLANNING_AFTER_BATCH_1_ROLLUP_STATUS:start -->
+## Open-Source Batch 2 Planning After Batch 1 Rollup
+
+- Decision: `open_source_tool_stack_batch2_planning_passed_ready_for_owner_lane_reconciliation`.
+- Batch 1 is centrally rolled up; FFmpeg/FFprobe are version-proven only for the Track A container path at `5.1.9-0+deb12u1`.
+- Next primary prompt: `OPEN_SOURCE_TOOL_STACK_OWNER_LANE_RECONCILIATION_AFTER_BATCH_1_ROLLUP`.
+- Secondary prompts: `OPEN_SOURCE_TOOL_STACK_BATCH_2_INSTALL_PROOF_APPROVAL`, `PRODUCT_INTERNAL_BETA_READINESS_AGGREGATION_AFTER_OPEN_SOURCE_BATCH_1`, `E2E_VALIDATION_QUEUE_BLOCKER_RESOLUTION_AFTER_OPEN_SOURCE_BATCH_1`.
+- Media processing, render/export, worker/route/provider execution, Supabase/GCS/public artifact/signed URL delivery, beta, and production remain blocked.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- OPEN_SOURCE_BATCH_2_PLANNING_AFTER_BATCH_1_ROLLUP_STATUS:end -->

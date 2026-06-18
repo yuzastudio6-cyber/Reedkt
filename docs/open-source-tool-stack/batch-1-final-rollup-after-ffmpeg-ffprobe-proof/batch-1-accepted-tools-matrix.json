@@ -1,0 +1,162 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1FinalRollup.acceptedToolsMatrix.v1",
+  "generatedAt": "2026-06-18T18:13:56.633Z",
+  "status": "accepted",
+  "accepted": true,
+  "warnings": [
+    "media_processing_render_export_external_beta_and_production_remain_blocked"
+  ],
+  "blockers": [],
+  "details": {
+    "rows": [
+      {
+        "toolName": "Sharp/libvips",
+        "normalizedId": "sharp_libvips_import_version_probe",
+        "category": "image_processing_metadata",
+        "status": "accepted_proven",
+        "accepted": true,
+        "owner": "OPEN_SOURCE_TOOL_STACK",
+        "details": {
+          "accepted": true,
+          "proofBoundary": "import_version_only_no_image_processing",
+          "version": "0.34.5",
+          "evidence": "docs/open-source-tool-stack/batch-1-execution/sharp-libvips-proof-report.json",
+          "mediaProcessingAccepted": false
+        }
+      },
+      {
+        "toolName": "DuckDB",
+        "normalizedId": "duckdb_native_rebuild_import_query_proof",
+        "category": "metadata_query",
+        "status": "accepted_proven",
+        "accepted": true,
+        "owner": "OPEN_SOURCE_TOOL_STACK",
+        "details": {
+          "accepted": true,
+          "proofBoundary": "native_rebuild_import_api_shape_in_memory_query",
+          "version": "1.4.4",
+          "evidence": [
+            "docs/open-source-tool-stack/duckdb-native-rebuild-qa/duckdb-native-rebuild-qa-decision.json",
+            "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-decision.json"
+          ],
+          "mediaProcessingAccepted": false
+        }
+      },
+      {
+        "toolName": "Polars",
+        "normalizedId": "polars_metadata_dataframe_proof",
+        "category": "metadata_dataframe",
+        "status": "accepted_proven",
+        "accepted": true,
+        "owner": "OPEN_SOURCE_TOOL_STACK",
+        "details": {
+          "accepted": true,
+          "proofBoundary": "import_version_in_memory_dataframe_metadata",
+          "version": "0.25.1",
+          "evidence": [
+            "docs/open-source-tool-stack/duckdb-native-rebuild-qa/duckdb-native-rebuild-qa-decision.json",
+            "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-binary-execution-decision.json",
+            "docs/open-source-tool-stack/missing-optional-package-binary-execution/polars-proof-report.json"
+          ],
+          "mediaProcessingAccepted": false
+        }
+      },
+      {
+        "toolName": "FFmpeg",
+        "normalizedId": "ffmpeg_tracka_container_version_probe",
+        "category": "tracka_container_version_only",
+        "status": "accepted_proven",
+        "accepted": true,
+        "owner": "TRACK_A_RENDER_EXPORT",
+        "details": {
+          "accepted": true,
+          "proofBoundary": "tracka_container_version_only_no_media_processing",
+          "version": "5.1.9-0+deb12u1",
+          "evidence": [
+            "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa-decision.json",
+            "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-rerun/ffmpeg-container-version-probe-report.json"
+          ],
+          "mediaProcessingAccepted": false,
+          "containerPathOnly": true
+        }
+      },
+      {
+        "toolName": "FFprobe",
+        "normalizedId": "ffprobe_tracka_container_version_probe",
+        "category": "tracka_container_version_only",
+        "status": "accepted_proven",
+        "accepted": true,
+        "owner": "TRACK_A_RENDER_EXPORT",
+        "details": {
+          "accepted": true,
+          "proofBoundary": "tracka_container_version_only_no_media_file_probe",
+          "version": "5.1.9-0+deb12u1",
+          "evidence": [
+            "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa-decision.json",
+            "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-rerun/ffprobe-container-version-probe-report.json"
+          ],
+          "mediaFileProbingAccepted": false,
+          "containerPathOnly": true
+        }
+      },
+      {
+        "toolName": "Route/capability manifest validation",
+        "normalizedId": "route_capability_manifest_validation",
+        "category": "committed_metadata_validation",
+        "status": "accepted_proven",
+        "accepted": true,
+        "owner": "OPEN_SOURCE_TOOL_STACK",
+        "details": {
+          "accepted": true,
+          "proofBoundary": "committed_docs_and_reports_only",
+          "evidence": "docs/open-source-tool-stack/batch-1-execution/route-capability-manifest-validation-report.json"
+        }
+      },
+      {
+        "toolName": "Fixture/report validation",
+        "normalizedId": "fixture_report_validation",
+        "category": "committed_report_validation",
+        "status": "accepted_proven",
+        "accepted": true,
+        "owner": "OPEN_SOURCE_TOOL_STACK",
+        "details": {
+          "accepted": true,
+          "proofBoundary": "committed_fixture_report_validation_only",
+          "evidence": "docs/open-source-tool-stack/batch-1-execution/fixture-report-validation-report.json"
+        }
+      },
+      {
+        "toolName": "Open-source inventory/proof matrix validation",
+        "normalizedId": "open_source_inventory_proof_matrix_validation",
+        "category": "committed_inventory_validation",
+        "status": "accepted_proven",
+        "accepted": true,
+        "owner": "OPEN_SOURCE_TOOL_STACK",
+        "details": {
+          "accepted": true,
+          "proofBoundary": "committed_inventory_and_proof_matrix_only",
+          "evidence": [
+            "docs/open-source-tool-stack/batch-1-execution/inventory-proof-matrix-validation-report.json",
+            "docs/open-source-tool-stack/open-source-tool-stack-inventory.json",
+            "docs/open-source-tool-stack/open-source-tool-stack-proof-matrix.md"
+          ]
+        }
+      }
+    ],
+    "acceptedToolIds": [
+      "sharp_libvips_import_version_probe",
+      "duckdb_native_rebuild_import_query_proof",
+      "polars_metadata_dataframe_proof",
+      "ffmpeg_tracka_container_version_probe",
+      "ffprobe_tracka_container_version_probe",
+      "route_capability_manifest_validation",
+      "fixture_report_validation",
+      "open_source_inventory_proof_matrix_validation"
+    ],
+    "ffmpegFfprobeVersion": "5.1.9-0+deb12u1",
+    "ffmpegContainerPathOnly": true,
+    "ffprobeContainerPathOnly": true,
+    "mediaProcessingAccepted": false,
+    "mediaFileProbingAccepted": false
+  }
+}

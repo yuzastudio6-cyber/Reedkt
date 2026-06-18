@@ -320,3 +320,14 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - Media processing, caption burn-in, render/export, worker execution, route execution, provider calls, public delivery, beta, and production remain blocked.
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF`
 - Supabase: no write / environment none / SQL none / migration no.
+
+## Open-Source Tool Stack Batch 1 Final Rollup After FFmpeg/FFprobe Proof
+
+- Source SHA: `aed2a8ecc06b7a68a4139d38d3bb5f568a949ffc`
+- Decision: `open_source_tool_stack_batch1_final_rollup_passed_media_processing_still_blocked_ready_for_batch2_planning`
+- Accepted/proven Batch 1 targets: Sharp/libvips, DuckDB, Polars, route/capability manifest validation, fixture/report validation, and open-source inventory/proof matrix validation.
+- FFmpeg and FFprobe: version-proven only for the Track A container path at `5.1.9-0+deb12u1`.
+- Media processing, media file probing, caption burn-in, render/export, workers, routes, providers, Supabase/GCS, public delivery, beta, and production remain blocked.
+- Primary next prompt: `OPEN_SOURCE_TOOL_STACK_BATCH_2_PLANNING_AFTER_BATCH_1_ROLLUP`
+- Secondary next prompt: `PRODUCT_INTERNAL_BETA_READINESS_AGGREGATION_AFTER_OPEN_SOURCE_BATCH_1`
+- Supabase: no write / environment none / SQL none / migration no.

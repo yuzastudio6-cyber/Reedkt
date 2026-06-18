@@ -26,7 +26,7 @@ Create a QA/review-only Worker Runtime packet from
 - Branch: `codex/rp-worker-ai-graphics-metadata-job-payload-shape-qa-review`.
 - Decision: `worker_ai_graphics_metadata_job_payload_shape_qa_passed_with_warnings`.
 - Next lane: `WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_SCHEMA_VALIDATION_APPROVAL`.
-- PR link/check status: pending PR creation.
+- PR link/check status: [PR #485](https://github.com/yuzastudio6-cyber/Reedkt/pull/485), open draft, mergeable clean, empty check rollup at head `fd10668d37e7fa3686499bb6412eb08d55254de1`.
 
 ## Scope Boundary
 

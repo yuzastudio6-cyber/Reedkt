@@ -11,6 +11,8 @@ Audit or plan the Tool Route gate required before any future Track A private E2E
 - #492 caption layout policy.
 - #452 approved private source ref.
 - #463 runtime path evidence.
+- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
+- Worker runtime execution readiness: `blocked_pending_worker_runtime_transactional_execution_gate`.
 - Tool Route docs and blocked-use registers.
 - Track A render/export tool study.
 
@@ -25,6 +27,14 @@ Audit or plan the Tool Route gate required before any future Track A private E2E
 - no public artifacts.
 - no signed URL source-of-truth.
 - no final delivery/export.
+
+## Readiness To Preserve
+
+TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 readiness: `ready_for_repo_audit_or_gate_planning`
+
+TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_tool_route_gate`
+
+trackAInternalBetaUnlocked: false
 
 ## No-Scope Statement
 

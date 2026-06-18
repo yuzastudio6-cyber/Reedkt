@@ -2,7 +2,7 @@
 
 ## Goal
 
-Create the guarded execution packet for the restricted Track A private E2E scope planned by TRACKA-PRIVATE-E2E-REVALIDATION-1. Do not execute private E2E unless the future prompt explicitly authorizes execution and the Worker Runtime and Tool Route gates are ready.
+Create the guarded execution packet for the restricted Track A private E2E scope planned by TRACKA-PRIVATE-E2E-REVALIDATION-1. Do not execute private E2E unless a future prompt explicitly authorizes execution and the Worker Runtime transactional gate plus Tool Route gate are ready.
 
 ## Required Source Evidence
 
@@ -13,10 +13,12 @@ Create the guarded execution packet for the restricted Track A private E2E scope
 - #463 approved repo-owned FFmpeg/libass runtime path.
 - #475/#488 corrected-caption evidence.
 - #434 missing visual evidence review context.
+- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
+- Worker runtime execution readiness: `blocked_pending_worker_runtime_transactional_execution_gate`.
 
 ## Required Gate Checks
 
-- Worker Runtime execution gate status.
+- Worker Runtime Gate 2 transactional runtime status.
 - Tool Route execution gate status.
 - private artifact manifest requirement.
 - checksum requirement.
@@ -27,6 +29,14 @@ Create the guarded execution packet for the restricted Track A private E2E scope
 - signed URL source-of-truth blocked.
 - final delivery blocked.
 - internal beta unlock false.
+
+## Current Blocker
+
+TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_tool_route_gate`
+
+WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `ready_for_transactional_runtime_gate_planning`
+
+TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 readiness: `ready_for_repo_audit_or_gate_planning`
 
 ## Blocked Scope
 

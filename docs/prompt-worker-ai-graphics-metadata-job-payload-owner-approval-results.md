@@ -18,6 +18,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_owner_approved_with_warnings`
 - PR #414, PR #409, PR #404, and PR #398: merged Tool Route context.
 - PR #164: open non-draft Track B policy context only.
 - Duplicate PR search for `codex/rp-worker-ai-graphics-metadata-job-payload-owner-approval`: none at implementation start.
+- PR #496: open draft, mergeable clean at `86f8b5f530ae8aa550d5dca0b222d87076c30688`; empty check rollup at PR creation; URL: `https://github.com/yuzastudio6-cyber/Reedkt/pull/496`.
 
 ## Validation Status
 
@@ -38,7 +39,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_owner_approved_with_warnings`
 - Changed-file secret scan: passed with no matches.
 - `package-lock.json`: unchanged.
 - `.local-artifacts/`: not staged.
-- PR link/check status: pending PR creation.
+- PR link/check status: PR #496 open draft, mergeable clean, empty check rollup at PR creation.
 
 ## Owner Approval Booleans
 

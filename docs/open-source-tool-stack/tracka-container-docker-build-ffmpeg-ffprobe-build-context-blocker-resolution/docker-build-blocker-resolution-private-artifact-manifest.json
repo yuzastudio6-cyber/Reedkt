@@ -1,0 +1,14 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerDockerBuildBlockerResolution.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-18T13:43:06.375Z",
+  "reportDirectory": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-build-context-blocker-resolution",
+  "generatedDistOutputsCreated": false,
+  "dockerImagesBuilt": false,
+  "dockerImagesPushed": false,
+  "mediaArtifactsCreated": false,
+  "privatePayloadsAccessed": false,
+  "privatePayloadsPrinted": false,
+  "privatePayloadsCommitted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false
+}

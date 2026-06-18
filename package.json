@@ -39,6 +39,7 @@
     "sound-oss-tools-11:diagnostics": "node scripts/validation/sound-oss-tools-11-downstream-status-sync-diagnostics.mjs",
     "sound-oss-tools-12:diagnostics": "node scripts/validation/sound-oss-tools-12-downstream-status-sync-owner-review-diagnostics.mjs",
     "sound-oss-tools-13:diagnostics": "node scripts/validation/sound-oss-tools-13-final-scoped-evidence-rollup-diagnostics.mjs",
+    "sound-oss-tools-14:diagnostics": "node scripts/validation/sound-oss-tools-14-final-rollup-owner-archive-review-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",
     "tool-route-execution-unlock-0:report": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs --report",

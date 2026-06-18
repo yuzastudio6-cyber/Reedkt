@@ -1,0 +1,39 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeRerun.decision.v1",
+  "generatedAt": "2026-06-18T16:26:34.067Z",
+  "decision": "tracka_container_docker_build_ffmpeg_ffprobe_version_probe_rerun_passed_media_processing_still_blocked",
+  "readiness": true,
+  "readyForQaReview": true,
+  "mediaProcessingStillBlocked": true,
+  "selectedRuntimePath": "tracka_repo_owned_render_worker_container",
+  "imageTag": "reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8",
+  "approvedCommands": {
+    "dockerBuildCommand": "docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 .",
+    "dockerFfmpegCommand": "docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version",
+    "dockerFfprobeCommand": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version"
+  },
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_QA_REVIEW",
+  "nextPromptFile": "docs/implementation-prompts/prompt-open-source-tool-stack-tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa-review.md",
+  "blockers": [],
+  "buildContextGenerationRun": true,
+  "dockerBuildRun": true,
+  "dockerRunRun": true,
+  "ffmpegProbeRun": true,
+  "ffprobeProbeRun": true,
+  "localHostProbingRun": false,
+  "mediaInputUsed": false,
+  "mediaProcessingRun": false,
+  "renderExportRun": false,
+  "dockerImagePushRun": false,
+  "generatedDistOutputsCommitted": false,
+  "generatedDistOutputsCleaned": true,
+  "generatedArtifactScanPassed": true,
+  "sideEffectArtifactSafetyPassed": true,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "not_applicable",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

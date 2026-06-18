@@ -1,0 +1,81 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeRerun.sideEffectArtifactSafety.v1",
+  "generatedAt": "2026-06-18T16:26:34.067Z",
+  "checks": [
+    {
+      "id": "no_generated_dist_outputs_present",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "no_generated_dist_outputs_staged",
+      "passed": true
+    },
+    {
+      "id": "package_lock_unchanged",
+      "passed": true
+    },
+    {
+      "id": "dockerfile_unchanged",
+      "passed": true
+    },
+    {
+      "id": "dockerignore_unchanged",
+      "passed": true
+    },
+    {
+      "id": "generated_output_cleanup_passed",
+      "passed": true
+    },
+    {
+      "id": "docker_image_not_pushed",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "buildContextGenerationRun": true,
+  "dockerBuildRun": true,
+  "dockerRunRun": true,
+  "ffmpegProbeRun": true,
+  "ffprobeProbeRun": true,
+  "localHostProbingRun": false,
+  "dockerImagePushRun": false,
+  "dockerfileMutationRun": false,
+  "dockerignoreMutationRun": false,
+  "containerDefinitionMutationRun": false,
+  "mediaInputUsed": false,
+  "mediaProbeRun": false,
+  "mediaDecodeEncodeRun": false,
+  "captionBurnInRun": false,
+  "renderExportRun": false,
+  "outputMediaCreated": false,
+  "npmInstallRun": false,
+  "npmRebuildRun": false,
+  "packageLifecycleScriptsBeyondApprovedBuildsRun": false,
+  "duckdbProofRerun": false,
+  "polarsProofRerun": false,
+  "workerExecutionRun": false,
+  "routeExecutionRun": false,
+  "providerModelCallsRun": false,
+  "browserCaptureRun": false,
+  "mapRenderingRun": false,
+  "supabaseWritesRun": false,
+  "sqlRun": false,
+  "gcsUploadRun": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "betaProductionUnlocked": false,
+  "rawPromptsRun": false,
+  "prMergesRun": false,
+  "secretsPrinted": false,
+  "secretsCommitted": false,
+  "generatedDistOutputsCommitted": false,
+  "packageLockMutationAttempted": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "not_applicable",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

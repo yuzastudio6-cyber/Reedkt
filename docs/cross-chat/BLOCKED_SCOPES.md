@@ -252,3 +252,11 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - Docker build/run and FFmpeg/FFprobe probes remain blocked: true
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_RERUN`
 - Supabase: no write / environment none / SQL none / migration no
+
+## Track A Container Docker Build FFmpeg/FFprobe Version-Probe Rerun - 2026-06-18T16:26:34.067Z
+
+- Decision: `tracka_container_docker_build_ffmpeg_ffprobe_version_probe_rerun_passed_media_processing_still_blocked`.
+- Image tag: `reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8`.
+- Build-context outputs were local-only and must not be committed.
+- Local-host probing, media processing, caption burn-in, render/export, Supabase/GCS, public artifact, signed URL, beta, and production scopes remain blocked.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_QA_REVIEW`.

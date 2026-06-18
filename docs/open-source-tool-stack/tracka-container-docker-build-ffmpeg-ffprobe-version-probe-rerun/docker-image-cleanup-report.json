@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeRerun.dockerImageCleanup.v1",
+  "generatedAt": "2026-06-18T16:26:34.067Z",
+  "id": "docker_image_cleanup",
+  "command": "docker image rm reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8",
+  "run": true,
+  "exactApprovedCommand": true,
+  "exitCode": 0,
+  "status": "passed",
+  "stdoutPreview": "Untagged: reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8\nDeleted: sha256:b3492ad5290a5a8be005c58c27acb051fc9e98a3761fa5611f3a63b35154551e\n",
+  "stderrPreview": "",
+  "errorMessage": null,
+  "timedOut": false,
+  "imageTag": "reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8",
+  "attempted": true,
+  "dockerImagePushRun": false,
+  "unrelatedImageMutationRun": false,
+  "passed": true
+}

@@ -1,0 +1,34 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationApproval.generatedArtifactPolicy.v1",
+  "generatedAt": "2026-06-18T14:31:44.675Z",
+  "outputDirectories": [
+    "dist-server",
+    "dist-remotion-worker",
+    "dist-staging-fixture-worker",
+    "dist-staging-real-video-export-worker"
+  ],
+  "futurePhaseMayCreateGeneratedOutputsLocally": true,
+  "currentPhaseGeneratedOutputsCreated": false,
+  "generatedOutputsMayBeCommitted": false,
+  "generatedOutputsMustBeScannedBeforeCleanup": true,
+  "generatedOutputsMustNotContainSecrets": true,
+  "generatedOutputsMustNotContainDbUrls": true,
+  "generatedOutputsMustNotContainApiKeys": true,
+  "generatedOutputsMustNotContainServiceKeys": true,
+  "generatedOutputsMustNotContainSignedUrls": true,
+  "generatedOutputsMustNotContainPrivatePayloads": true,
+  "generatedOutputsMustNotContainMediaArtifacts": true,
+  "generatedOutputsMustNotContainPublicArtifacts": true,
+  "exactCleanupCommand": "rm -rf dist-server dist-remotion-worker dist-staging-fixture-worker dist-staging-real-video-export-worker",
+  "cleanupTargetsOnly": [
+    "dist-server",
+    "dist-remotion-worker",
+    "dist-staging-fixture-worker",
+    "dist-staging-real-video-export-worker"
+  ],
+  "gitStatusGuard": "git status --short must show no tracked or staged dist-* output before commit",
+  "gitignoreMutationAllowed": false,
+  "dockerfileMutationAllowed": false,
+  "packageLockMutationAllowed": false,
+  "cleanupPolicyDefined": true
+}

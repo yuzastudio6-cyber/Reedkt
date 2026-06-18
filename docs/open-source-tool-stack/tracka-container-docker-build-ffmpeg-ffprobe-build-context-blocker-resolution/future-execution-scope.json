@@ -1,0 +1,24 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerDockerBuildBlockerResolution.futureExecutionScope.v1",
+  "generatedAt": "2026-06-18T13:43:06.375Z",
+  "nextPhase": "OPEN_SOURCE_TOOL_STACK_TRACKA_BUILD_CONTEXT_GENERATION_APPROVAL",
+  "exactNextPhaseCommands": [
+    "npm run build:server",
+    "npm run build:remotion-worker:mock",
+    "npm run build:staging-fixture-worker",
+    "npm run build:staging-real-video-export-worker"
+  ],
+  "buildContextGenerationIncludedInNextPhaseApproval": true,
+  "dockerBuildIncludedInNextPhaseApproval": false,
+  "ffmpegFfprobeProbesIncludedInNextPhaseApproval": false,
+  "noMediaInput": true,
+  "noMediaOutput": true,
+  "noMediaProcessing": true,
+  "noRenderExport": true,
+  "noCaptionBurnIn": true,
+  "noDockerImagePush": true,
+  "noDockerfileMutation": true,
+  "noPackageLockMutation": true,
+  "noSupabaseGcsPublicArtifacts": true,
+  "stopOnFirstFailure": true
+}

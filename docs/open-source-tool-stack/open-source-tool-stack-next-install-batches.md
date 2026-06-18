@@ -415,3 +415,15 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION`.
 - Supabase classification: no write / none / none / no.
 <!-- OPEN_SOURCE_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:end -->
+
+<!-- tracka-docker-build-context-blocker-resolution:start -->
+## Track A Docker Build Context Blocker Resolution
+
+- Decision: `docker_build_blocker_resolution_passed_ready_for_build_context_generation_approval`
+- PR #494 blocker: missing Docker build-context directories for render-worker image COPY steps.
+- Derived future build-context commands: `npm run build:server`, `npm run build:remotion-worker:mock`, `npm run build:staging-fixture-worker`, `npm run build:staging-real-video-export-worker`.
+- Docker build/run and FFmpeg/FFprobe probes remain blocked until later separately approved phases.
+- Generated `dist-*` outputs must remain uncommitted; `dist-staging-real-video-export-worker` is not ignored by current `.gitignore`, so future execution must remove or guard it explicitly.
+- Supabase classification: no write / environment none / SQL none / migration no.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_BUILD_CONTEXT_GENERATION_APPROVAL`.
+<!-- tracka-docker-build-context-blocker-resolution:end -->

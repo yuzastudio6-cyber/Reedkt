@@ -1,0 +1,44 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerDockerBuildBlockerResolution.dockerBuildStrategyReview.v1",
+  "generatedAt": "2026-06-18T13:43:06.375Z",
+  "strategies": [
+    {
+      "id": "generate_existing_build_context_then_rerun_approved_docker_build",
+      "risk": "medium",
+      "owner": "OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF with Track A awareness",
+      "exactCommandAvailability": "available_for_future_approval",
+      "artifactPolicy": "generated dist outputs are local-only and uncommitted",
+      "allowedNext": true,
+      "reason": "Committed package scripts and Vite configs map exactly to every Dockerfile COPY directory."
+    },
+    {
+      "id": "slim_version_probe_only_dockerfile",
+      "risk": "medium",
+      "owner": "TRACK_A_RENDER_EXPORT plus Docker/container owner",
+      "exactCommandAvailability": "not_currently_approved",
+      "artifactPolicy": "would require Dockerfile policy review and source mutation approval",
+      "allowedNext": false,
+      "reason": "Safer for version-only probing, but this phase must not mutate Dockerfiles."
+    },
+    {
+      "id": "tracka_worker_image_handoff",
+      "risk": "low",
+      "owner": "TRACK_A_RENDER_EXPORT and WORKER_RUNTIME_JOBS",
+      "exactCommandAvailability": "not_required_before_next_approval",
+      "artifactPolicy": "future image source-of-truth can supersede local build if approved",
+      "allowedNext": false,
+      "reason": "Useful later if build-context generation policy changes, but exact commands are already derivable."
+    },
+    {
+      "id": "block_pending_source_policy",
+      "risk": "low",
+      "owner": "OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF",
+      "exactCommandAvailability": "not_needed",
+      "artifactPolicy": "no generated output",
+      "allowedNext": false,
+      "reason": "Not selected because exact build-context commands are now available."
+    }
+  ],
+  "selectedStrategy": "generate_existing_build_context_then_rerun_approved_docker_build",
+  "selectedDecision": "docker_build_blocker_resolution_passed_ready_for_build_context_generation_approval"
+}

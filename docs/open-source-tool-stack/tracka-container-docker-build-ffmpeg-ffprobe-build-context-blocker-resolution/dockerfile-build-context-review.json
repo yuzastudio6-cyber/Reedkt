@@ -1,0 +1,56 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerDockerBuildBlockerResolution.dockerfileBuildContextReview.v1",
+  "generatedAt": "2026-06-18T13:43:06.375Z",
+  "dockerfilePath": "docker/prod/render-worker/Dockerfile",
+  "dockerignorePath": ".dockerignore",
+  "dockerfileUnchanged": true,
+  "dockerignoreUnchanged": true,
+  "copyRequirements": [
+    {
+      "directory": "dist-server",
+      "dockerfileCopyLine": "COPY dist-server ./dist-server",
+      "dockerfileRequiresDirectory": true,
+      "existsInCurrentCheckout": true,
+      "dockerignoreBlocksDirectory": false,
+      "gitignoreBlocksDirectory": true,
+      "generatedByPackageScript": "build:server",
+      "generatedOutputMayBeCommitted": false
+    },
+    {
+      "directory": "dist-remotion-worker",
+      "dockerfileCopyLine": "COPY dist-remotion-worker ./dist-remotion-worker",
+      "dockerfileRequiresDirectory": true,
+      "existsInCurrentCheckout": false,
+      "dockerignoreBlocksDirectory": false,
+      "gitignoreBlocksDirectory": true,
+      "generatedByPackageScript": "build:remotion-worker:mock",
+      "generatedOutputMayBeCommitted": false
+    },
+    {
+      "directory": "dist-staging-fixture-worker",
+      "dockerfileCopyLine": "COPY dist-staging-fixture-worker ./dist-staging-fixture-worker",
+      "dockerfileRequiresDirectory": true,
+      "existsInCurrentCheckout": false,
+      "dockerignoreBlocksDirectory": false,
+      "gitignoreBlocksDirectory": true,
+      "generatedByPackageScript": "build:staging-fixture-worker",
+      "generatedOutputMayBeCommitted": false
+    },
+    {
+      "directory": "dist-staging-real-video-export-worker",
+      "dockerfileCopyLine": "COPY dist-staging-real-video-export-worker ./dist-staging-real-video-export-worker",
+      "dockerfileRequiresDirectory": true,
+      "existsInCurrentCheckout": false,
+      "dockerignoreBlocksDirectory": false,
+      "gitignoreBlocksDirectory": false,
+      "generatedByPackageScript": "build:staging-real-video-export-worker",
+      "generatedOutputMayBeCommitted": false
+    }
+  ],
+  "allRequiredDirectoriesAbsent": false,
+  "dockerignoreAllowsBuildOutputs": true,
+  "dockerfileTooBroadForVersionProbeOnly": true,
+  "slimProbeDockerfileWouldBeSafer": true,
+  "slimmingRequiresSeparatePolicyReview": true,
+  "mutationOccurred": false
+}

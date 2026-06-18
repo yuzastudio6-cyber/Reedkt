@@ -1,0 +1,9 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerDockerBuildBlockerResolution.blockers.v1",
+  "generatedAt": "2026-06-18T13:43:06.375Z",
+  "priorBlocker": "blocked_pending_docker_build",
+  "resolvedForApprovalOnly": true,
+  "blockers": [],
+  "remainingBlockedScope": "Build-context generation, Docker build, Docker run, and FFmpeg/FFprobe version probes remain future separate phases.",
+  "blockedScopesPreserved": true
+}

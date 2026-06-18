@@ -200,7 +200,7 @@ try {
     const working = JSON.stringify(workingPackage[section] ?? {})
     if (head !== working) failures.push(`package_json_dependency_section_changed:${section}`)
   }
-  if (packageJsonStatus && !/^ M package\.json$/.test(packageJsonStatus)) {
+  if (packageJsonStatus && !/^( M|M) package\.json$/.test(packageJsonStatus)) {
     failures.push(`unexpected_package_json_status:${packageJsonStatus}`)
   }
 } catch (error) {

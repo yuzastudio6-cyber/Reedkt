@@ -15,6 +15,8 @@ Create the guarded execution packet for the restricted Track A private E2E scope
 - #434 missing visual evidence review context.
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
 - Worker runtime execution readiness: `blocked_pending_worker_runtime_transactional_execution_gate`.
+- TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
+- Tool Route execution readiness: `blocked_pending_tool_route_contract_dry_run_gate`.
 
 ## Required Gate Checks
 
@@ -32,11 +34,11 @@ Create the guarded execution packet for the restricted Track A private E2E scope
 
 ## Current Blocker
 
-TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_tool_route_gate`
+TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_tool_route_gate_2`
 
 WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `ready_for_transactional_runtime_gate_planning`
 
-TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 readiness: `ready_for_repo_audit_or_gate_planning`
+TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `ready_for_route_contract_dry_run_gate_planning`
 
 ## Blocked Scope
 

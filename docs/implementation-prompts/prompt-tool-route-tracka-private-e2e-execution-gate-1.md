@@ -13,6 +13,7 @@ Audit or plan the Tool Route gate required before any future Track A private E2E
 - #463 runtime path evidence.
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
 - Worker runtime execution readiness: `blocked_pending_worker_runtime_transactional_execution_gate`.
+- #505 Worker Runtime Track A Gate 1 merge.
 - Tool Route docs and blocked-use registers.
 - Track A render/export tool study.
 
@@ -32,7 +33,13 @@ Audit or plan the Tool Route gate required before any future Track A private E2E
 
 TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 readiness: `ready_for_repo_audit_or_gate_planning`
 
-TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_tool_route_gate`
+TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`
+
+Tool Route execution readiness: `blocked_pending_tool_route_contract_dry_run_gate`
+
+TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `ready_for_route_contract_dry_run_gate_planning`
+
+TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_tool_route_gate_2`
 
 trackAInternalBetaUnlocked: false
 

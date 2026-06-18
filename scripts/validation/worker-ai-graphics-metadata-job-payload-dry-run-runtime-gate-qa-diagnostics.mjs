@@ -1,20 +1,21 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
-const baseRef = 'origin/codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-gate-status-owner-approval'
-const expectedDecision = 'worker_ai_graphics_metadata_job_payload_dry_run_runtime_gate_ready_with_warnings'
+const baseRef = 'origin/codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-packet'
+const expectedDecision = 'worker_ai_graphics_metadata_job_payload_dry_run_runtime_gate_qa_passed_with_warnings'
 const expectedScript =
-  'node scripts/validation/worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-diagnostics.mjs'
-const packageScriptName = 'worker:ai-graphics-metadata-job-payload-dry-run-runtime-gate:diagnostics'
+  'node scripts/validation/worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-qa-diagnostics.mjs'
+const packageScriptName = 'worker:ai-graphics-metadata-job-payload-dry-run-runtime-gate-qa:diagnostics'
 
 const allowedDecisions = new Set([
   expectedDecision,
-  'worker_ai_graphics_metadata_job_payload_dry_run_runtime_gate_ready',
-  'blocked_pending_worker_ai_graphics_runtime_gate_scope_fixes',
-  'blocked_pending_worker_ai_graphics_claim_lease_runtime_scope_review',
-  'blocked_pending_worker_ai_graphics_queue_runtime_scope_review',
-  'blocked_pending_worker_ai_graphics_supabase_storage_scope_review',
-  'blocked_pending_worker_ai_graphics_observability_runtime_review',
+  'worker_ai_graphics_metadata_job_payload_dry_run_runtime_gate_qa_passed',
+  'blocked_pending_worker_ai_graphics_runtime_gate_qa_fixes',
+  'blocked_pending_worker_ai_graphics_claim_lease_runtime_scope_qa',
+  'blocked_pending_worker_ai_graphics_queue_runtime_scope_qa',
+  'blocked_pending_worker_ai_graphics_supabase_storage_scope_qa',
+  'blocked_pending_worker_ai_graphics_observability_runtime_qa',
+  'worker_ai_graphics_metadata_job_payload_dry_run_runtime_gate_ready_with_warnings',
   'worker_ai_graphics_metadata_job_payload_dry_run_gate_status_owner_approved_with_warnings',
   'worker_ai_graphics_metadata_job_payload_dry_run_gate_status_qa_passed_with_warnings',
   'worker_ai_graphics_metadata_job_payload_dry_run_gate_status_ready_with_warnings',
@@ -25,41 +26,42 @@ const allowedDecisions = new Set([
 ])
 
 const requiredDocs = [
-  'docs/worker-runtime/ai-graphics-metadata-job-payload-dry-run-runtime-gate-packet.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-source-lockfile.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-scope.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-preconditions.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-controlled-noop-policy.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-scoped-pass-claim-policy.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-generic-claim-rejection.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-worker-intake-matrix.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-plan-snapshot-policy.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-scoped-manifest-policy.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-private-artifact-policy.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-claim-lease-boundary.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-queue-boundary.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-route-tool-boundary.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-provider-boundary.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-supabase-storage-boundary.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-observability-audit-policy.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-fail-closed-policy.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-rollback-cleanup-policy.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-blocked-use-register.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-decision.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-next-lane-recommendation.md',
-  'docs/prompt-worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-packet-results.md',
-  'docs/implementation-prompts/prompt-worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-packet.md',
+  'docs/worker-runtime/ai-graphics-metadata-job-payload-dry-run-runtime-gate-qa-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-qa-source-lockfile.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-scope-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-controlled-noop-policy-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-scoped-pass-claim-policy-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-generic-claim-rejection-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-preconditions-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-worker-intake-matrix-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-plan-snapshot-policy-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-scoped-manifest-policy-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-private-artifact-policy-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-claim-lease-boundary-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-queue-boundary-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-route-tool-boundary-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-provider-boundary-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-supabase-storage-boundary-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-observability-audit-policy-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-fail-closed-policy-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-rollback-cleanup-policy-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-qa-blocked-use-register.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-qa-decision.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-qa-next-lane-recommendation.md',
+  'docs/prompt-worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-qa-results.md',
+  'docs/implementation-prompts/prompt-worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-qa-review.md',
 ]
 
 const sourceEvidenceDocs = [
+  'docs/worker-runtime/ai-graphics-metadata-job-payload-dry-run-runtime-gate-packet.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-source-lockfile.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-decision.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-worker-intake-matrix.md',
   'docs/worker-runtime/ai-graphics-metadata-job-payload-dry-run-gate-status-owner-approval.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-gate-status-owner-approval-source-lockfile.md',
   'docs/worker-runtime/ai-graphics-job-payload-dry-run-gate-status-owner-approval-decision.md',
   'docs/worker-runtime/ai-graphics-metadata-job-payload-dry-run-gate-status-qa-review.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-gate-status-qa-source-lockfile.md',
   'docs/worker-runtime/ai-graphics-job-payload-dry-run-gate-status-qa-decision.md',
   'docs/worker-runtime/ai-graphics-metadata-job-payload-dry-run-gate-status-packet.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-gate-status-source-lockfile.md',
   'docs/worker-runtime/ai-graphics-job-payload-dry-run-gate-status-decision.md',
   'docs/worker-runtime/ai-graphics-metadata-job-payload-owner-review-after-dry-run.md',
   'docs/worker-runtime/ai-graphics-job-payload-owner-review-after-dry-run-decision.md',
@@ -86,25 +88,29 @@ const requiredTools = [
 ]
 
 const requiredTrueBooleans = [
-  'runtimeGatePacketReady',
-  'runtimeGatePacketReadyWithWarnings',
+  'runtimeGateQaAccepted',
+  'runtimeGateQaAcceptedWithWarnings',
+  'runtimeGatePacketAccepted',
   'futureControlledNoopWorkerGatePacketCandidate',
-  'futureWorkerRuntimeGateQaReviewReady',
+  'readyForControlledNoopWorkerGateApproval',
+  'futureWorkerRuntimeGateOwnerApprovalReady',
   'workerAiGraphicsMetadataJobPayloadDryRunPassed',
   'scopedPassClaimAccepted',
-  'runtimeGateScopeAccepted',
-  'controlledNoopPolicyAccepted',
-  'planSnapshotRuntimeGateAccepted',
-  'scopedManifestRuntimeGateAccepted',
-  'privateArtifactRuntimeGateAccepted',
-  'claimLeaseRuntimeBoundaryAccepted',
-  'queueRuntimeBoundaryAccepted',
-  'routeToolRuntimeBoundaryAccepted',
-  'providerRuntimeBoundaryAccepted',
-  'supabaseStorageRuntimeBoundaryAccepted',
-  'observabilityAuditRuntimeGateAccepted',
-  'failClosedRuntimeGateAccepted',
-  'rollbackCleanupRuntimeGateAccepted',
+  'runtimeGateScopeQaAccepted',
+  'controlledNoopPolicyQaAccepted',
+  'preconditionsQaAccepted',
+  'workerIntakeMatrixQaAccepted',
+  'planSnapshotPolicyQaAccepted',
+  'scopedManifestPolicyQaAccepted',
+  'privateArtifactPolicyQaAccepted',
+  'claimLeaseBoundaryQaAccepted',
+  'queueBoundaryQaAccepted',
+  'routeToolBoundaryQaAccepted',
+  'providerBoundaryQaAccepted',
+  'supabaseStorageBoundaryQaAccepted',
+  'observabilityAuditPolicyQaAccepted',
+  'failClosedPolicyQaAccepted',
+  'rollbackCleanupPolicyQaAccepted',
 ]
 
 const requiredFalseBooleans = [
@@ -139,6 +145,9 @@ const requiredFalseBooleans = [
 ]
 
 const requiredTokens = [
+  'PR #517',
+  'fa7f3d13bba56f18267c7e1e894984da2eba9322',
+  'worker_ai_graphics_metadata_job_payload_dry_run_runtime_gate_ready_with_warnings',
   'PR #515',
   '37e6b724517d1ed61ed79cc5a8034cc04da3a4a3',
   'worker_ai_graphics_metadata_job_payload_dry_run_gate_status_owner_approved_with_warnings',
@@ -179,12 +188,13 @@ const requiredTokens = [
   'PR #478',
   'PR #476',
   'PR #464',
+  'ai-graphics-local-fixture-validation-local-static',
   'PR #414',
   'PR #409',
   'PR #404',
   'PR #398',
   'PR #164',
-  'WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_RUNTIME_GATE_QA_REVIEW',
+  'WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_RUNTIME_GATE_OWNER_APPROVAL',
   'no write',
   'docs_only',
   'environment touched: `none`',
@@ -259,11 +269,10 @@ const forbiddenClaimPatterns = [
     /\braw prompt\b[^.\n|]*(?:executed|enabled|approved now|approved with|ready|true|passed)\b/i,
   ],
   [
-    'beta_claim',
-    /\b(?:internal beta|external beta)\b[^.\n|]*(?:ready|readiness|unlocked|enabled|approved now|approved with|true|passed)\b/i,
+    'beta_production_claim',
+    /\b(?:internal beta|external beta|production)\b[^.\n|]*(?:unlocked|enabled|approved now|approved with|ready|true|passed)\b/i,
   ],
-  ['production_claim', /\bproduction\b[^.\n|]*(?:unlocked|enabled|approved now|approved with|true|passed)\b/i],
-  ['broad_service_role_claim', /\bbroad service-role handler\b[^.\n|]*(?:enabled|approved now|approved with|true|passed)\b/i],
+  ['broad_service_role_claim', /\bbroad service-role handler\b[^.\n|]*(?:enabled|approved now|true|passed)\b/i],
   [
     'secret_material',
     /\b(sk-[A-Za-z0-9_-]{32,}|Bearer\s+[A-Za-z0-9._~+/-]{32,}|postgres(?:ql)?:\/\/|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|X-Goog-Signature=|X-Amz-Signature=)\b/i,
@@ -303,8 +312,8 @@ for (const path of [...requiredDocs, ...sourceEvidenceDocs]) read(path)
 
 const docsText = requiredDocs.map(read).join('\n')
 const allEvidenceText = `${docsText}\n${sourceEvidenceDocs.map(read).join('\n')}`
-const decisionDoc = read('docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-decision.md')
-const matrixDoc = read('docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-worker-intake-matrix.md')
+const decisionDoc = read('docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-qa-decision.md')
+const matrixDoc = read('docs/worker-runtime/ai-graphics-job-payload-dry-run-runtime-gate-worker-intake-matrix-qa.md')
 
 const decisions = [...docsText.matchAll(/Decision:\s*`([^`]+)`/g)].map((match) => match[1])
 if (!decisions.includes(expectedDecision)) failures.push(`expected_decision_missing:${expectedDecision}`)
@@ -318,23 +327,19 @@ for (const token of requiredTokens) {
 
 for (const tool of requiredTools) {
   const row = matrixDoc.split('\n').find((line) => line.includes(`\`${tool}\``))
-  if (!row) failures.push(`runtime_gate_matrix_tool_missing:${tool}`)
+  if (!row) failures.push(`runtime_gate_qa_matrix_tool_missing:${tool}`)
   else {
     for (const requiredCell of [
-      'ready_with_warnings',
+      'accepted_with_warnings',
+      'worker_ai_graphics_metadata_job_payload_dry_run_runtime_gate_ready_with_warnings',
       'workerAiGraphicsMetadataJobPayloadDryRunPassed',
       'generic claims rejected',
-      '<APPROVED_PLAN_SNAPSHOT_FIXTURE>',
-      '<SCOPED_TOOL_CALL_MANIFEST_REF>',
-      '<PRIVATE_ARTIFACT_MANIFEST_REF>',
-      '<CHECKSUM_REF>',
       'placeholder only; no job claim or lease mutation',
       'placeholder only; no queue execution',
       'blocked',
-      'docs_only/no write; no storage transfer',
-      'accepted_with_warnings',
+      'no write',
     ]) {
-      if (!row.includes(requiredCell)) failures.push(`runtime_gate_matrix_cell_missing:${tool}:${requiredCell}`)
+      if (!row.includes(requiredCell)) failures.push(`runtime_gate_qa_matrix_cell_missing:${tool}:${requiredCell}`)
     }
   }
 }
@@ -353,7 +358,7 @@ const unsafeClaimText = docsText
   .split('\n')
   .filter(
     (line) =>
-      !/\b(?:No|no|not|blocked|unapproved|does not|do not|must not|may not|remains|remain|stays|false|metadata-only|static|separately gated|without|warning|warnings|defer|deferred|none|placeholder|required|source evidence|source chain|context only|policy context|not source truth|pending|later|future|planning|accepted_with_warnings|rejected|rejects|reject|fail-closed|docs_only|no write|passed_with_warnings|scoped|blocked uses|scope)\b/i.test(
+      !/\b(?:No|no|not|blocked|unapproved|does not|do not|must not|may not|remains|remain|stays|false|metadata-only|static|separately gated|without|warning|warnings|defer|deferred|none|placeholder|required|source evidence|source chain|context only|policy context|not source truth|pending|later|future|planning|accepted_with_warnings|rejected|rejects|reject|fail-closed|QA|docs_only|no write|passed_with_warnings|scoped|owner review|only|unlock, or broad service-role handler was enabled)\b/i.test(
         line,
       ),
   )
@@ -389,7 +394,6 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
   .filter((line) => !line.includes(packageScriptName))
-  .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-runtime-gate-qa:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 if (git(['diff', '--name-only', `${baseRef}...HEAD`, '--', 'package-lock.json']).trim()) failures.push('package_lock_changed')
@@ -418,9 +422,9 @@ if (!docsText.includes('No worker execution, job claim, lease mutation, queue ex
 }
 
 if (failures.length > 0) {
-  console.error('WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_RUNTIME_GATE diagnostics failed:')
+  console.error('WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_RUNTIME_GATE_QA diagnostics failed:')
   for (const failure of failures) console.error(`- ${failure}`)
   process.exit(1)
 }
 
-console.log('WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_RUNTIME_GATE diagnostics passed.')
+console.log('WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_RUNTIME_GATE_QA diagnostics passed.')

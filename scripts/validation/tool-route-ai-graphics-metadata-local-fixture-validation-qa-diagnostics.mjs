@@ -263,6 +263,7 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-gate-status:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-gate-status-qa:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-gate-status-owner-approval:diagnostics'))
+.filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-owner-review-after-dry-run:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 if (git(['diff', '--name-only', `${baseRef}...HEAD`, '--', 'package-lock.json']).trim()) {

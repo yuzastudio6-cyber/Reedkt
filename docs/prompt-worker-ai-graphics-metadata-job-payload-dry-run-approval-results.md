@@ -6,6 +6,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_dry_run_approved_with_warning
 
 - Branch: `codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-approval`.
 - Base branch: `origin/codex/rp-worker-ai-graphics-metadata-job-payload-owner-approval`.
+- PR #498: open draft, mergeable clean at `11cbbe325b9afd51a0d984f714f78c1a5d9ac4ea`; empty check rollup at PR creation; URL: `https://github.com/yuzastudio6-cyber/Reedkt/pull/498`.
 - PR #496: open draft, mergeable clean at `ce204a63fc08412af212609eecf0c8201ae88794`; `worker_ai_graphics_metadata_job_payload_owner_approved_with_warnings`.
 - Duplicate PR search for the exact dry-run approval branch: none.
 - Target worktree path and target remote branch were absent before implementation.
@@ -87,7 +88,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_dry_run_approved_with_warning
 - `npm run build`: passed with the existing Vite large-chunk warning.
 - `npm run build:server`: passed.
 - Changed-file secret scan: passed after excluding the diagnostic regex self-match for `sk-` scanner text.
-- PR link/check status: pending until PR creation.
+- PR link/check status: PR #498 open draft, mergeable clean, empty check rollup at PR creation.
 - `package-lock.json`: unchanged.
 - `.local-artifacts/`: not staged or committed.
 

@@ -341,6 +341,7 @@ const packageDiff = sh(['git', 'diff', '--', 'package.json'])
   .split('\n')
   .filter((line) => /^[+-]\s{4}"/.test(line))
   .filter((line) => !line.includes(packageScriptName))
+  .filter((line) => !line.includes('worker:ai-graphics-metadata-controlled-noop-worker-gate-approval:diagnostics'))
 if (packageDiff.length > 0) fail(`unexpected package.json dependency/script drift: ${packageDiff.join(' | ')}`)
 
 if (sh(['git', 'diff', '--name-only', '--', 'package-lock.json'])) fail('package-lock.json changed')

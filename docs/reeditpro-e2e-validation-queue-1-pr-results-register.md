@@ -54,14 +54,28 @@ This register records the live-inspected validation batch selected from PR #519'
       "commandsRun": [
         {"command": "node --version", "result": "passed", "output": "v26.3.0"},
         {"command": "npm --version", "result": "passed", "output": "11.16.0"},
-        {"command": "npm ci", "result": "blocked", "exitCode": 130, "blockerCategory": "validation_blocked_npm_ci_failed"}
+        {"command": "npm ci", "result": "blocked", "exitCode": 130, "blockerCategory": "validation_blocked_npm_ci_failed"},
+        {
+          "command": "npm ci",
+          "runContext": "fresh_pr_305_fix_worktree",
+          "result": "blocked",
+          "exitCode": 130,
+          "blockerCategory": "pr_305_validation_blocked_npm_ci_failed"
+        },
+        {"command": "git diff --check", "runContext": "fresh_pr_305_fix_worktree", "result": "passed"},
+        {
+          "command": "git diff --check origin/codex/rp-gd-10-group-b-controlled-local-fixture-execution...HEAD",
+          "runContext": "fresh_pr_305_fix_worktree",
+          "result": "passed"
+        },
+        {"command": "git diff --cached --check", "runContext": "fresh_pr_305_fix_worktree", "result": "passed"}
       ],
       "packageLockStatus": "unchanged",
       "packageJsonStatus": "unchanged",
       "nodeModulesStatus": "present_unstaged_in_disposable_validation_worktree_only",
-      "safetyScanResult": "blocked_no_runtime_or_secret_claim_found_before_hydration_blocker",
+      "safetyScanResult": "passed_no_runtime_or_secret_claim_found_after_fresh_retry",
       "decision": "validation_blocked_npm_ci_failed",
-      "mergeReadinessRecommendation": "not_ready_fix_dependency_hydration_first"
+      "mergeReadinessRecommendation": "not_ready_repeated_dependency_hydration_blocker"
     },
     {
       "prNumber": 300,

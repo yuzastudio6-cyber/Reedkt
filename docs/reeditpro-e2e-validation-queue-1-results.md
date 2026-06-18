@@ -51,12 +51,33 @@ This validation-only batch consumes merged PR #519 and attempts the first small 
     "prNumber": 305,
     "category": "validation_blocked_npm_ci_failed",
     "command": "npm ci",
-    "result": "interrupted_after_extended_no_exit",
+    "result": "reproduced_in_fresh_fix_worktree_after_extended_no_exit",
     "exitCode": 130,
     "packageLockStatus": "unchanged",
     "packageJsonStatus": "unchanged",
     "nodeModulesStatus": "present_unstaged_in_disposable_validation_worktree_only",
-    "reason": "Dependency hydration did not complete, so no dependency-backed validation pass can be claimed."
+    "reason": "Dependency hydration did not complete in the original validation batch or the fresh PR #305 fix worktree, so no dependency-backed validation pass can be claimed.",
+    "freshFixEvidence": {
+      "worktree": "/Volumes/backup/codex-worktrees/reeditpro-pr-305-validation-fix",
+      "head": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+      "decision": "pr_305_validation_blocked_npm_ci_failed",
+      "nodeVersion": "v26.3.0",
+      "npmVersion": "11.16.0",
+      "packageLockStatus": "unchanged",
+      "packageJsonStatus": "unchanged",
+      "toolBinariesAfterInterruptedHydration": {
+        "tsx": "missing",
+        "eslint": "missing",
+        "tsc": "missing",
+        "vite": "missing"
+      },
+      "gitOnlyChecks": {
+        "gitDiffCheck": "passed",
+        "gitDiffCheckAgainstBase": "passed",
+        "gitDiffCachedCheck": "passed"
+      },
+      "safetyScan": "passed"
+    }
   },
   "runtimeGates": {
     "supabaseMutationAllowed": false,
@@ -100,7 +121,8 @@ This validation-only batch consumes merged PR #519 and attempts the first small 
     "nextSupabaseAction": "none"
   },
   "nextPrompts": {
-    "blockerFix": "REEDITPRO-E2E-VALIDATION-PR-305-FIX: fix dependency hydration blocker, no execution",
+    "priorBlockerFix": "REEDITPRO-E2E-VALIDATION-PR-305-FIX: fix dependency hydration blocker, no execution",
+    "blockerFix": "REEDITPRO-E2E-VALIDATION-PR-305-FIX-2: resolve repeated npm ci hydration blocker, no execution",
     "afterFix": "REEDITPRO-E2E-VALIDATION-QUEUE-2: run next batch, no execution",
     "mergeHygieneAfterValidatedPasses": "REEDITPRO-E2E-MERGE-HYGIENE-3: merge validated PRs, no execution"
   },

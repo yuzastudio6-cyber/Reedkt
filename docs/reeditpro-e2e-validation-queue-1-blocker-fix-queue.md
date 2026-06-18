@@ -12,13 +12,27 @@ This queue records blockers found during validation batch 1. It does not authori
       "prNumber": 305,
       "blockerCategory": "validation_blocked_npm_ci_failed",
       "command": "npm ci",
-      "observedResult": "Command remained active without completing and was interrupted with exit code 130.",
+      "observedResult": "Command remained active without completing and was interrupted with exit code 130 in the original batch and again in a fresh PR #305 fix worktree.",
       "packageLockStatus": "unchanged",
       "trackedFileMutation": false,
       "nodeModulesScope": "disposable_validation_worktree_only",
       "owner": "TRACK_A_RENDER_EXPORT",
-      "recommendedPrompt": "REEDITPRO-E2E-VALIDATION-PR-305-FIX: fix dependency hydration blocker, no execution",
+      "recommendedPrompt": "REEDITPRO-E2E-VALIDATION-PR-305-FIX-2: resolve repeated npm ci hydration blocker, no execution",
       "executionAllowedNow": false,
+      "freshFixEvidence": {
+        "worktree": "/Volumes/backup/codex-worktrees/reeditpro-pr-305-validation-fix",
+        "head": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+        "decision": "pr_305_validation_blocked_npm_ci_failed",
+        "packageLockStatus": "unchanged",
+        "packageJsonStatus": "unchanged",
+        "toolBinariesAfterInterruptedHydration": {
+          "tsx": "missing",
+          "eslint": "missing",
+          "tsc": "missing",
+          "vite": "missing"
+        },
+        "safetyScan": "passed"
+      },
       "clearingEvidenceRequired": [
         "Clean isolated PR #305 checkout at exact head 757686f49d85cb7d346b55a1712e1d34a6bdde03.",
         "npm ci completes or a no-mutation dependency-hydration reason is documented.",

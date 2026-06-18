@@ -1,11 +1,15 @@
 {
   "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.readiness.v1",
-  "generatedAt": "2026-06-18T00:20:25.117Z",
+  "generatedAt": "2026-06-18T02:19:28.389Z",
   "readiness": false,
-  "decision": "blocked_pending_exact_probe_command_source",
+  "decision": "blocked_pending_docker_build",
   "readyForQaReview": false,
-  "readyForBlockerResolution": true,
+  "readyForDockerRuntimeFix": false,
+  "readyForDockerBuildFix": true,
+  "readyForFfmpegProbeFix": false,
+  "readyForFfprobeProbeFix": false,
   "blockers": [
-    "blocked_pending_exact_probe_command_source"
-  ]
+    "blocked_pending_docker_build"
+  ],
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION"
 }

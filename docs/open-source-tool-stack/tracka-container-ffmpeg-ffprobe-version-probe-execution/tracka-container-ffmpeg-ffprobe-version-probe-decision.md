@@ -1,7 +1,13 @@
-# Track A Container FFmpeg/FFprobe Version-Probe Decision
+# Track A Container Docker Build Then FFmpeg/FFprobe Version-Probe Decision
 
-Decision: `blocked_pending_exact_probe_command_source`
+Decision: `blocked_pending_docker_build`
 
-Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION`
+Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION`
 
-The version probes were not run. PR #481 approves the Track A render-worker/container path and the inner commands `ffmpeg -version` and `ffprobe -version`, but it does not provide an exact container invocation. Local host probing remains disallowed.
+- Docker build attempted: `true`
+- Docker build exit code: `1`
+- FFmpeg probe run: `false`
+- FFprobe probe run: `false`
+- Local host probing used: `false`
+- Media processing attempted: `false`
+- Supabase update: `no write`

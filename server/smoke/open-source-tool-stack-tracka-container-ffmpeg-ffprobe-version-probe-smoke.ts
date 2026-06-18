@@ -27,12 +27,20 @@ const requiredReports = [
   'tracka-container-ffmpeg-ffprobe-version-probe-validation-results.md',
 ]
 
-assert.equal(plan.mode, 'blocked_before_probe_until_exact_container_invocation_source_exists')
-assert.equal(reports.decision.decision, 'blocked_pending_exact_probe_command_source')
+assert.equal(plan.mode, 'exact_tracka_render_worker_docker_build_then_container_version_probes')
+assert.equal(plan.sourceSha, '2f6ab6463870dc12d6837dc71f816ad5eefcd88f')
 assert.equal(reports.exactCommandSourceReview.selectedRuntimePath, 'tracka_repo_owned_render_worker_container')
-assert.equal(reports.exactCommandSourceReview.exactContainerInvocationPresent, false)
+assert.equal(reports.exactCommandSourceReview.imageTag, 'reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f')
+assert.equal(reports.exactCommandSourceReview.exactContainerInvocationPresent, true)
+assert.equal(
+  reports.exactCommandSourceReview.approvedDockerBuildCommand,
+  'docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f .',
+)
+assert.equal(reports.dockerContainerReadinessReport.dockerBuildRun, false)
 assert.equal(reports.ffmpegVersionProbeReport.probeRun, false)
 assert.equal(reports.ffprobeVersionProbeReport.probeRun, false)
+assert.equal(reports.ffmpegVersionProbeReport.noLocalHostProbe, true)
+assert.equal(reports.ffprobeVersionProbeReport.noMediaInput, true)
 assert.equal(reports.sideEffectArtifactSafetyReport.passed, true)
 
 for (const report of requiredReports) {

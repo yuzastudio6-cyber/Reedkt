@@ -1,7 +1,8 @@
 # Pre-Execution Validation
 
-Blocked-packet validation passed: `true`
+Probe execution validation passed: `true`
 
-Probe execution validation passed: `false`
-
-This report confirms source evidence is present while preserving the stop-before-probe blocker.
+Exact commands:
+- `docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f .`
+- `docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f -version`
+- `docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f -version`

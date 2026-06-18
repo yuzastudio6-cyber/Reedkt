@@ -400,3 +400,18 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION:
 - Current phase execution: no FFmpeg/FFprobe, Docker build/run, local host probe, media processing, render/export, workers, routes, providers, Supabase, GCS, public artifacts, signed URLs, beta, or production.
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION`.
 <!-- Track A Container FFmpeg/FFprobe Probe Blocker Resolution:end -->
+
+<!-- OPEN_SOURCE_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:start -->
+OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION:
+
+- Decision: `blocked_pending_docker_build`.
+- Selected runtime path: `tracka_repo_owned_render_worker_container`.
+- Image tag: `reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f`.
+- Docker build run / exit: `true` / `1`.
+- FFmpeg probe run / exit / version: `false` / `null` / `null`.
+- FFprobe probe run / exit / version: `false` / `null` / `null`.
+- Local host probing remains not approved and was not used.
+- Media processing, caption burn-in, render/export, Docker image push, Dockerfile/container mutation, npm install/rebuild, DuckDB/Polars proof rerun, worker/route/provider execution, Supabase/GCS mutation, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION`.
+- Supabase classification: no write / none / none / no.
+<!-- OPEN_SOURCE_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:end -->

@@ -1,19 +1,22 @@
 {
   "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.sourceAudit.v1",
-  "generatedAt": "2026-06-18T00:20:25.117Z",
-  "phase": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION",
-  "branch": "codex/rp-open-source-tool-stack-tracka-container-ffmpeg-ffprobe-version-probe-execution",
+  "generatedAt": "2026-06-18T02:19:28.389Z",
+  "phase": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION",
+  "branch": "codex/rp-open-source-tool-stack-tracka-container-docker-build-then-ffmpeg-ffprobe-version-probe-execution",
   "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
-  "sourceSha": "adfb8f98b5ba618205c59327d06615e28e9b6b7f",
-  "expectedMinimumSourceSha": "adfb8f98b5ba618205c59327d06615e28e9b6b7f",
+  "sourceSha": "2f6ab6463870dc12d6837dc71f816ad5eefcd88f",
+  "expectedMinimumSourceSha": "2f6ab6463870dc12d6837dc71f816ad5eefcd88f",
   "packageState": {
-    "packageJsonHash": "1432406233a1eccba063775520fe69ff470aa49cb2961339738986ff579d9a49",
+    "packageJsonHash": "a45d388579ea56b5033c31f5f7dcda0929b55e67f6872bfaee88b7dc776bd10d",
     "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
-    "packageJsonChanged": true,
+    "dockerfileHash": "5c74565f21853301c2ad159d7dccdb0dfb48e1d33d39ab55fe330f6a409310e9",
+    "packageJsonChanged": false,
     "packageLockChanged": false,
     "dockerfileChanged": false
   },
   "predecessorPrs": [
+    490,
+    486,
     481,
     477,
     472,
@@ -40,14 +43,19 @@
     401,
     384
   ],
+  "pr490CommandResolutionEvidence": {
+    "decision": "exact_probe_command_blocker_resolution_passed_ready_for_docker_build_then_version_probe_execution",
+    "mergedState": "MERGED",
+    "mergedAt": "2026-06-18T01:51:23Z",
+    "headRefOid": "fc0e7bd4eced0e863e96eb460d68287033675bf1",
+    "mergeCommit": {
+      "oid": "2f6ab6463870dc12d6837dc71f816ad5eefcd88f"
+    }
+  },
   "pr481ApprovalEvidence": {
     "decision": "ffmpeg_ffprobe_version_probe_approval_passed_ready_for_tracka_container_probe_execution",
     "mergedState": "MERGED",
-    "mergedAt": "2026-06-17T23:57:47Z",
-    "headRefOid": "a35aec598f3f23a869697c74335288b73014a986",
-    "mergeCommit": {
-      "oid": "adfb8f98b5ba618205c59327d06615e28e9b6b7f"
-    }
+    "mergedAt": "2026-06-17T23:57:47Z"
   },
   "pr477TrackaSourceEvidence": {
     "decision": "tracka_ffmpeg_ffprobe_source_of_truth_reconciliation_passed_ready_for_version_probe_approval",
@@ -63,24 +71,25 @@
   "duplicateSearches": {
     "exactPhase": [],
     "title": [],
-    "commands": [
+    "imageTag": [
       {
-        "baseRefName": "codex/rp-activation-40b-pro-color-image-generated-fixture-runtime",
-        "headRefName": "codex/rp-activation-40c-real-video-pro-color-image-sample",
+        "baseRefName": "codex/rp-activation-52h-cross-workstream-handoff-tracking",
+        "headRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
         "isDraft": false,
-        "number": 67,
-        "title": "[activation] Phase 40C real video pro color image sample",
-        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/67"
+        "number": 350,
+        "title": "[coordination] GitHub merge hygiene open PR stack audit",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/350"
       }
     ]
   },
   "evidenceFiles": {
+    "blockerResolutionDecision": "docs/open-source-tool-stack/tracka-container-ffmpeg-ffprobe-version-probe-blocker-resolution/exact-probe-command-blocker-resolution-decision.json",
+    "blockerResolutionCommands": "docs/open-source-tool-stack/tracka-container-ffmpeg-ffprobe-version-probe-blocker-resolution/exact-future-probe-commands.json",
     "approvalDecision": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/ffmpeg-ffprobe-version-probe-approval-decision.json",
     "approvalFutureCommands": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/future-probe-command-approval.json",
     "approvalRuntimePath": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/runtime-path-selection.json",
     "approvalArtifactPolicy": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/package-docker-artifact-policy.json",
     "trackaSourceDecision": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/tracka-ffmpeg-ffprobe-source-of-truth-decision.json",
-    "trackaFutureBoundary": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/future-version-probe-boundary.json",
     "trackaCentralEvidence": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/ffmpeg-ffprobe-central-evidence.json",
     "systemBinaryReviewDecision": "docs/open-source-tool-stack/ffmpeg-ffprobe-system-binary-review/ffmpeg-ffprobe-system-binary-review-decision.json",
     "duckdbQaDecision": "docs/open-source-tool-stack/duckdb-native-rebuild-qa/duckdb-native-rebuild-qa-decision.json",
@@ -88,6 +97,7 @@
     "polarsProof": "docs/open-source-tool-stack/missing-optional-package-binary-execution/polars-proof-report.json"
   },
   "sourceEvidenceSummary": {
+    "blockerResolutionDecision": "exact_probe_command_blocker_resolution_passed_ready_for_docker_build_then_version_probe_execution",
     "approvalDecision": "ffmpeg_ffprobe_version_probe_approval_passed_ready_for_tracka_container_probe_execution",
     "trackaDecision": "tracka_ffmpeg_ffprobe_source_of_truth_reconciliation_passed_ready_for_version_probe_approval",
     "systemBinaryReviewDecision": "ffmpeg_ffprobe_system_binary_review_passed_ready_for_tracka_source_of_truth_merge",
@@ -96,11 +106,7 @@
     "polarsProofStatus": "passed"
   },
   "noScopeConfirmation": {
-    "ffmpegProbeAllowedWithoutExactContainerInvocation": false,
-    "ffprobeProbeAllowedWithoutExactContainerInvocation": false,
     "localHostSystemBinaryProbeAllowed": false,
-    "dockerBuildAllowed": false,
-    "dockerRunAllowed": false,
     "dockerImagePushAllowed": false,
     "dockerfileMutationAllowed": false,
     "containerDefinitionMutationAllowed": false,

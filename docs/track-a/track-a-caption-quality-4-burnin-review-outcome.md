@@ -4,11 +4,15 @@
 
 inputClassification: `corrected_caption_preview_available`
 
-sourceEvidence: `open_execution_evidence`
+sourceEvidence: `merged_execution_evidence`
 
 sourceEvidencePR: `#475`
 
 sourceEvidenceHead: `642460611fa345753d013cd45826c7fc2fa82fc8`
+
+sourceEvidenceMergeSha: `374e1795d0a7a74d88517591349984ff1727429d`
+
+sourceEvidenceStatus: `#475 source-of-truth corrected-caption burn-in execution evidence`
 
 reviewedArtifact: `tracka-caption-quality-3r3-corrected-caption-preview.mp4`
 

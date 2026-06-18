@@ -20,7 +20,7 @@ Execution: `completed`
 | #452 | `merged` | approved private controlled-test source ref |
 | #459 | `merged` | 3R2 approved-source execution attempt |
 | #463 | `merged` | approved repo-owned FFmpeg/libass runtime path |
-| #475 | `open_execution_evidence` | completed corrected-caption burn-in revalidation at `642460611fa345753d013cd45826c7fc2fa82fc8` |
+| #475 | `merged_execution_evidence` | source-of-truth corrected-caption burn-in execution evidence; head `642460611fa345753d013cd45826c7fc2fa82fc8`; merge SHA `374e1795d0a7a74d88517591349984ff1727429d` |
 
 ## Review Outcome
 
@@ -56,7 +56,7 @@ Caption layout quality passed: false
 - `caption_text_quality`: `pass_controlled_test_copy`
 - `caption_visual_burnin_revalidation`: `fail_caption_layout_quality`
 - `libass_caption_burnin`: `technical_render_created_but_visual_layout_failed`
-- `ffmpeg_ffprobe_validation`: `execution_evidence_present_from_475_if_merged_or_open`
+- `ffmpeg_ffprobe_validation`: `execution_evidence_present_from_475_merged`
 - `track_a_private_e2e_revalidation`: `blocked_pending_caption_layout_fix`
 - `internal_beta_readiness`: `blocked_pending_caption_layout_fix`
 

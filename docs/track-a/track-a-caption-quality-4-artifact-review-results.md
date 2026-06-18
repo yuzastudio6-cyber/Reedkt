@@ -6,8 +6,10 @@
 | --- | --- |
 | file | `tracka-caption-quality-3r3-corrected-caption-preview.mp4` |
 | source PR | `#475` |
-| source state | `open_execution_evidence` |
+| source state | `merged_execution_evidence` |
 | source head | `642460611fa345753d013cd45826c7fc2fa82fc8` |
+| source merge SHA | `374e1795d0a7a74d88517591349984ff1727429d` |
+| source status | `#475 source-of-truth corrected-caption burn-in execution evidence` |
 | sha256 | `ad3557848ae1b23d6767b99a6e27ffa40bdd4ba5bb47c15a13c1e0f74e1b947b` |
 | capability | `caption_visual_burnin_revalidation` |
 | copy quality | `pass` |

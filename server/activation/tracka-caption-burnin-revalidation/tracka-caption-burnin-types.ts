@@ -2,9 +2,36 @@ export type TrackaCaptionBurninExecutionStatus =
   | 'blocked_pending_caption_burnin_execution_confirmation'
   | 'blocked_missing_approved_private_source_ref'
   | 'blocked_missing_approved_caption_burnin_runtime_path'
+  | 'blocked_gcloud_auth_refresh_required'
+  | 'blocked_gcs_permission_denied'
+  | 'blocked_source_object_missing'
+  | 'blocked_source_metadata_check_failed'
   | 'blocked_approved_source_ref_access_failed'
+  | 'blocked_approved_runtime_image_failed'
   | 'blocked_caption_burnin_runtime_failed'
+  | 'blocked_ffprobe_validation_failed'
   | 'completed_with_corrected_caption_burnin_revalidation'
+
+export type TrackaCaptionGcsAccessStatus =
+  | 'not_attempted'
+  | 'completed'
+  | 'blocked_pending_caption_burnin_execution_confirmation'
+  | 'blocked_gcloud_auth_refresh_required'
+  | 'blocked_gcs_permission_denied'
+  | 'blocked_source_object_missing'
+  | 'blocked_source_metadata_check_failed'
+
+export interface TrackaCaptionBurninGcsAccessCheck {
+  confirmationProvided: boolean
+  metadataCheckExecuted: boolean
+  status: TrackaCaptionGcsAccessStatus
+  gcloudAccount: string
+  gcloudProject: string
+  activeAccount: string
+  approvedSourceRef: string
+  objectMetadataMatched: boolean
+  detail: string
+}
 
 export interface TrackaCaptionBurninSourceAudit {
   status: 'passed' | 'blocked'
@@ -13,7 +40,9 @@ export interface TrackaCaptionBurninSourceAudit {
   approvedCaptionSourcePath: string
   executionPacketPath: string
   sourceRefPath: string
+  runtimePathEvidencePath: string
   sourceRefApproved: boolean
+  runtimePathApproved: boolean
   oldCaptionRejected: boolean
   activeBlockers: string[]
 }
@@ -42,6 +71,7 @@ export interface TrackaCaptionBurninArtifact {
   localPath?: string
   sha256?: string
   sizeBytes?: number
+  blocker?: string
 }
 
 export interface TrackaCaptionBurninSidecarArtifact extends TrackaCaptionBurninArtifact {
@@ -52,13 +82,26 @@ export interface TrackaCaptionBurninSidecarArtifact extends TrackaCaptionBurninA
 export interface TrackaCaptionBurninRuntimeResolution {
   approvedPrivateSourceRefFound: boolean
   approvedRuntimePathFound: boolean
-  localFfmpegPath: string
-  localFfprobePath: string
-  attemptedGcsAccess: false
-  attemptedFfmpeg: false
-  attemptedFfprobe: false
+  approvedRuntimePath: string
+  runtimeSourceProvenance: string
+  runtimeImageTag: string
+  ffmpegPath: string
+  ffprobePath: string
+  assFilterPresent: boolean
+  subtitlesFilterPresent: boolean
+  libassIndicated: boolean
+  dockerImageAvailable: boolean
+  dockerImageBuildAttempted: boolean
+  dockerImageBuildStatus: 'passed' | 'failed' | 'not_needed' | 'not_attempted'
+  attemptedGcsAccess: boolean
+  attemptedFfmpeg: boolean
+  attemptedFfprobe: boolean
   attemptedRemotion: false
-  blocker: 'none' | 'blocked_missing_approved_private_source_ref' | 'blocked_missing_approved_caption_burnin_runtime_path'
+  blocker:
+    | 'none'
+    | 'blocked_missing_approved_private_source_ref'
+    | 'blocked_missing_approved_caption_burnin_runtime_path'
+    | 'blocked_approved_runtime_image_failed'
   rejectedCandidateReason: string
   evidencePaths: string[]
 }
@@ -70,15 +113,21 @@ export interface TrackaCaptionBurninQaGate {
 }
 
 export interface TrackaCaptionBurninSummary {
-  phase: 'TRACKA-CAPTION-QUALITY-3R2'
+  phase: 'TRACKA-CAPTION-QUALITY-3R3'
   runId: string
   execution: TrackaCaptionBurninExecutionStatus
   confirmationProvided: boolean
+  sourceGcsReadConfirmationProvided: boolean
+  gcsAccessRepairConfirmationProvided: boolean
+  gcsMetadataCheckStatus: TrackaCaptionGcsAccessStatus
   approvedSourceRef: string
   sourceRefApproved: boolean
+  approvedRuntimePath: string
+  runtimePathApproved: boolean
   captionBurninRevalidationExecuted: boolean
   correctedCaptionVisualPreviewCreated: boolean
   assSidecarCreated: boolean
+  approvedSourceCopied: boolean
   libassBurninExecuted: boolean
   remotionPreviewExecuted: boolean
   ffmpegValidationExecuted: boolean
@@ -86,6 +135,7 @@ export interface TrackaCaptionBurninSummary {
   privateArtifactsCreated: boolean
   privateVisualArtifactsCreated: boolean
   gcsAccess: boolean
+  gcsAccessMode: 'none' | 'exact_private_source_read_copy_only'
   signedUrlsCreated: boolean
   publicArtifactsCreated: boolean
   finalDeliveryReady: boolean
@@ -104,7 +154,10 @@ export interface TrackaCaptionBurninBundle {
   localBundlePath: string
   sourceAudit: TrackaCaptionBurninSourceAudit
   approvedSourceRef: TrackaCaptionBurninApprovedSourceRef
+  sourceArtifact: TrackaCaptionBurninArtifact
+  gcsAccessCheck: TrackaCaptionBurninGcsAccessCheck
   sidecar: TrackaCaptionBurninSidecarArtifact
+  previewArtifact: TrackaCaptionBurninArtifact
   qaReportArtifact: TrackaCaptionBurninArtifact
   artifactManifestArtifact: TrackaCaptionBurninArtifact
   ffprobeArtifact: TrackaCaptionBurninArtifact

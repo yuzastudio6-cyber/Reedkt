@@ -44,6 +44,7 @@ const allowedFutureScriptDiffs = [
   'worker:ai-graphics-metadata-job-payload-schema-validation-approval:diagnostics',
   'worker:ai-graphics-metadata-job-payload-schema-validation:execute',
   'worker:ai-graphics-metadata-job-payload-schema-validation:diagnostics',
+  'worker:ai-graphics-metadata-job-payload-schema-validation-qa:diagnostics',
   'worker:ai-graphics-metadata-handoff-qa:diagnostics',
   'worker:ai-graphics-metadata-handoff-approval:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:route-manifest-integration-approval:diagnostics',

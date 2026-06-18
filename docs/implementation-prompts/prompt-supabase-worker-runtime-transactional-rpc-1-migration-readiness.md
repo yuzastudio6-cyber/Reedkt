@@ -23,6 +23,23 @@ Plan the Supabase migration/RLS/RPC readiness path for the Worker Runtime transa
 - Private artifact manifest/checksum/QA references without public artifacts or signed URL source-of-truth.
 - Secret Manager credential rule and no payload exposure.
 
+## Required Completion Values
+
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-1 decision: `completed_migration_readiness_planning_blocked_pending_migration_safety_packet`.
+- Supabase update required: `future_migration_required`.
+- Supabase update status: `planning_only`.
+- Worker runtime transactional contract readiness: `blocked_pending_supabase_worker_rpc_migration_safety_packet`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 readiness: `ready_for_migration_safety_packet`.
+- WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_supabase_rpc_schema_safety_packet`.
+- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_supabase_rpc_schema_implementation`.
+- TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_transactional_contract`.
+- INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_transactional_contract`.
+- Internal beta unlocked: false.
+
+## Next Prompt
+
+SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 -- Migration safety packet
+
 ## No-Scope Statement
 
 No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.

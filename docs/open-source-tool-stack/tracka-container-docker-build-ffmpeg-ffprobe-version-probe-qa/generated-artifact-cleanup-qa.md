@@ -1,0 +1,59 @@
+# Generated Artifact Cleanup QA
+
+```json
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeQa.generatedArtifactCleanup.v1",
+  "generatedAt": "2026-06-18T17:20:38.139Z",
+  "status": "accepted",
+  "accepted": true,
+  "details": {
+    "directoryChecks": [
+      {
+        "directory": "dist-server",
+        "present": false,
+        "staged": false
+      },
+      {
+        "directory": "dist-remotion-worker",
+        "present": false,
+        "staged": false
+      },
+      {
+        "directory": "dist-staging-fixture-worker",
+        "present": false,
+        "staged": false
+      },
+      {
+        "directory": "dist-staging-real-video-export-worker",
+        "present": false,
+        "staged": false
+      },
+      {
+        "directory": "dist",
+        "present": false,
+        "staged": false
+      }
+    ],
+    "nodeModulesStaged": false,
+    "nodeModulesCommitAllowed": false,
+    "generatedArtifactScanPassed": true,
+    "forbiddenFindingsCount": 0,
+    "expectedStaticPngWarningsOnly": true,
+    "cleanupPassed": true,
+    "generatedOutputsCommitted": false,
+    "rawGeneratedFileContentsCommitted": false
+  },
+  "warnings": [
+    "media_processing_render_export_and_production_scope_remain_blocked"
+  ],
+  "blockers": [],
+  "followUp": "OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "not_applicable",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}
+```

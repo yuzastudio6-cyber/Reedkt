@@ -1,0 +1,8 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeQa.readiness.v1",
+  "generatedAt": "2026-06-18T17:20:38.139Z",
+  "readiness": true,
+  "decision": "tracka_container_docker_build_ffmpeg_ffprobe_version_probe_qa_passed_media_processing_still_blocked_ready_for_batch1_rollup",
+  "blockers": [],
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF"
+}

@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeQa.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-18T17:20:38.139Z",
+  "reportDirectory": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa",
+  "rawGeneratedFileContentsCommitted": false,
+  "dockerBuildRunInThisPhase": false,
+  "dockerRunRunInThisPhase": false,
+  "ffmpegProbeRunInThisPhase": false,
+  "ffprobeProbeRunInThisPhase": false,
+  "generatedDistOutputsCreatedInThisPhase": false,
+  "mediaArtifactsCreated": false,
+  "privatePayloadsAccessed": false,
+  "secretsAccessed": false,
+  "secretsPrinted": false,
+  "secretsCommitted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "not_applicable",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

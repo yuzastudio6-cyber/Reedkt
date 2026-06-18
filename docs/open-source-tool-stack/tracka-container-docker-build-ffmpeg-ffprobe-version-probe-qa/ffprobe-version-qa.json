@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeQa.ffprobeVersion.v1",
+  "generatedAt": "2026-06-18T17:20:38.139Z",
+  "status": "accepted",
+  "accepted": true,
+  "details": {
+    "expectedCommand": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version",
+    "actualCommand": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version",
+    "status": "passed",
+    "exitCode": 0,
+    "version": "5.1.9-0+deb12u1",
+    "versionLine": "ffprobe version 5.1.9-0+deb12u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "containerOnlyProbe": true,
+    "localHostProbing": false,
+    "mediaFileProbing": false,
+    "mediaInput": false,
+    "outputMedia": false,
+    "networkNone": true
+  },
+  "warnings": [
+    "media_processing_render_export_and_production_scope_remain_blocked"
+  ],
+  "blockers": [],
+  "followUp": "OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "not_applicable",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

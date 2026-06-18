@@ -255,7 +255,8 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   !line.includes('worker:ai-graphics-metadata-job-payload-owner-approval:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-approval:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:execute') &&
-  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:diagnostics'))
+  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:diagnostics') &&
+  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-qa:diagnostics'))
   .filter((line) => !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics'))
   .filter((line) => {
     if (!batch2ExecutionContext) return true

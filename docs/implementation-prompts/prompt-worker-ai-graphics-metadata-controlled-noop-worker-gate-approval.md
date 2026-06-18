@@ -22,7 +22,7 @@ Draft PR title:
 - Added `scripts/validation/worker-ai-graphics-metadata-controlled-noop-worker-gate-approval-diagnostics.mjs`.
 - Added package script `worker:ai-graphics-metadata-controlled-noop-worker-gate-approval:diagnostics`.
 - Updated only present status trackers.
-- Draft PR link/check status: pending until PR creation follow-up.
+- Draft PR link/check status: PR #526, `https://github.com/yuzastudio6-cyber/Reedkt/pull/526`; open draft, mergeable, head `3857339a797d262f346ca70adb4f86d9696ba7f3`, empty check rollup at creation follow-up.
 
 Decision: `worker_ai_graphics_metadata_controlled_noop_worker_gate_approved_with_warnings`
 

@@ -34,7 +34,7 @@ Decision: `worker_ai_graphics_metadata_controlled_noop_worker_gate_approved_with
 - `npm run build`: passed with inherited Vite large chunk warning.
 - `npm run build:server || true`: passed.
 - Changed-file secret scan: no credential values found; matches were limited to expected diagnostic denial regex text for broad service-role handling.
-- Draft PR link/check status: pending until PR creation follow-up.
+- Draft PR link/check status: PR #526, `https://github.com/yuzastudio6-cyber/Reedkt/pull/526`; open draft, mergeable, head `3857339a797d262f346ca70adb4f86d9696ba7f3`, empty check rollup at creation follow-up.
 
 No worker execution, job claim, lease mutation, queue execution, route
 execution, actual tool execution, provider/model runtime, browser/WebGL/canvas

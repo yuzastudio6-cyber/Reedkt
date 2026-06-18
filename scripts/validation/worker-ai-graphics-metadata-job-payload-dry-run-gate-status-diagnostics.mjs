@@ -301,6 +301,7 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
   .filter((line) => !line.includes(packageScriptName))
+  .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-runtime-gate:diagnostics'))
   .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-gate-status-qa:diagnostics'))
   .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-gate-status-owner-approval:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)

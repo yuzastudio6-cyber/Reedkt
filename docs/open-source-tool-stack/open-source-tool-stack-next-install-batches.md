@@ -440,3 +440,13 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - Absent broad production docs recorded as audit facts: `docs/beta-readiness-scorecard.md`, `docs/production-beta-blocker-inventory.md`, `PRODUCTION_FOUNDATION_STATUS.md`.
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_BUILD_CONTEXT_GENERATION_EXECUTION`.
 <!-- tracka-build-context-generation-approval:end -->
+
+<!-- TRACKA_BUILD_CONTEXT_GENERATION_EXECUTION_STATUS -->
+
+## Track A Build-Context Generation Execution
+
+- Decision: `build_context_generation_execution_passed_ready_for_docker_build_probe_execution`
+- Generated directories scanned and removed before commit: true
+- Docker build/run and FFmpeg/FFprobe probes remain blocked: true
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_RERUN`
+- Supabase: no write / environment none / SQL none / migration no

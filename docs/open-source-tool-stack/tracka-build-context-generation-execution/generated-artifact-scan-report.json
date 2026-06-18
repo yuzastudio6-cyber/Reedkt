@@ -1,0 +1,159 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.generatedArtifactScan.v1",
+  "generatedAt": "2026-06-18T15:19:01.102Z",
+  "scannedDirectories": [
+    "dist-server",
+    "dist-remotion-worker",
+    "dist-staging-fixture-worker",
+    "dist-staging-real-video-export-worker"
+  ],
+  "scannedFileCount": 16,
+  "scannedTotalSizeBytes": 9962379,
+  "fileHashes": [
+    {
+      "path": "dist-server/brand/reeditpro-logo-source.png",
+      "sizeBytes": 903967,
+      "sha256": "922e3518b5eb9eba6b6329821ae72e3842a49d4806d7a22ec7d10044c17a8229"
+    },
+    {
+      "path": "dist-server/brand/reeditpro-mark.png",
+      "sizeBytes": 219469,
+      "sha256": "4b98a9a3d76e93a3bdfc3ac35dc29e96ec726a856be7d211ddbd65ff98571e31"
+    },
+    {
+      "path": "dist-server/favicon.png",
+      "sizeBytes": 15842,
+      "sha256": "cb1ac2f2f886e4b647e1eb1c6a088abde7d5c7e0fd2aa5a230bbd2931ac9b987"
+    },
+    {
+      "path": "dist-server/server.js",
+      "sizeBytes": 1760604,
+      "sha256": "a1a70757387f16b7da266c571563e9aa0727ee7cb552dbe41fb9df7d78588d59"
+    },
+    {
+      "path": "dist-remotion-worker/brand/reeditpro-logo-source.png",
+      "sizeBytes": 903967,
+      "sha256": "922e3518b5eb9eba6b6329821ae72e3842a49d4806d7a22ec7d10044c17a8229"
+    },
+    {
+      "path": "dist-remotion-worker/brand/reeditpro-mark.png",
+      "sizeBytes": 219469,
+      "sha256": "4b98a9a3d76e93a3bdfc3ac35dc29e96ec726a856be7d211ddbd65ff98571e31"
+    },
+    {
+      "path": "dist-remotion-worker/favicon.png",
+      "sizeBytes": 15842,
+      "sha256": "cb1ac2f2f886e4b647e1eb1c6a088abde7d5c7e0fd2aa5a230bbd2931ac9b987"
+    },
+    {
+      "path": "dist-remotion-worker/remotion-worker-cli.js",
+      "sizeBytes": 33741,
+      "sha256": "9a0ec647acf2c9518673c7ac0da7a1ad124ef4555578755a8a9e7cb97211d025"
+    },
+    {
+      "path": "dist-staging-fixture-worker/brand/reeditpro-logo-source.png",
+      "sizeBytes": 903967,
+      "sha256": "922e3518b5eb9eba6b6329821ae72e3842a49d4806d7a22ec7d10044c17a8229"
+    },
+    {
+      "path": "dist-staging-fixture-worker/brand/reeditpro-mark.png",
+      "sizeBytes": 219469,
+      "sha256": "4b98a9a3d76e93a3bdfc3ac35dc29e96ec726a856be7d211ddbd65ff98571e31"
+    },
+    {
+      "path": "dist-staging-fixture-worker/favicon.png",
+      "sizeBytes": 15842,
+      "sha256": "cb1ac2f2f886e4b647e1eb1c6a088abde7d5c7e0fd2aa5a230bbd2931ac9b987"
+    },
+    {
+      "path": "dist-staging-fixture-worker/staging-fixture-worker-cli.js",
+      "sizeBytes": 1777382,
+      "sha256": "950046f9fd1c776e6d9c2c2723260628d26535dab87f2a0aef5304726a45ed33"
+    },
+    {
+      "path": "dist-staging-real-video-export-worker/brand/reeditpro-logo-source.png",
+      "sizeBytes": 903967,
+      "sha256": "922e3518b5eb9eba6b6329821ae72e3842a49d4806d7a22ec7d10044c17a8229"
+    },
+    {
+      "path": "dist-staging-real-video-export-worker/brand/reeditpro-mark.png",
+      "sizeBytes": 219469,
+      "sha256": "4b98a9a3d76e93a3bdfc3ac35dc29e96ec726a856be7d211ddbd65ff98571e31"
+    },
+    {
+      "path": "dist-staging-real-video-export-worker/favicon.png",
+      "sizeBytes": 15842,
+      "sha256": "cb1ac2f2f886e4b647e1eb1c6a088abde7d5c7e0fd2aa5a230bbd2931ac9b987"
+    },
+    {
+      "path": "dist-staging-real-video-export-worker/staging-real-video-export-worker-cli.js",
+      "sizeBytes": 1833540,
+      "sha256": "70ede403202fdc03adef9503a110a72187b9a3ee9f0d95bdae633f9efba36170"
+    }
+  ],
+  "warnings": [
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-server/brand/reeditpro-logo-source.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-server/brand/reeditpro-mark.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-server/favicon.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-remotion-worker/brand/reeditpro-logo-source.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-remotion-worker/brand/reeditpro-mark.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-remotion-worker/favicon.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-staging-fixture-worker/brand/reeditpro-logo-source.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-staging-fixture-worker/brand/reeditpro-mark.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-staging-fixture-worker/favicon.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-staging-real-video-export-worker/brand/reeditpro-logo-source.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-staging-real-video-export-worker/brand/reeditpro-mark.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_static_asset_copied_to_build_context",
+      "path": "dist-staging-real-video-export-worker/favicon.png",
+      "extension": ".png"
+    }
+  ],
+  "forbiddenFindings": [],
+  "passed": true,
+  "rawGeneratedFileContentsCommitted": false
+}

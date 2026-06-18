@@ -12,6 +12,9 @@ Create the internal beta readiness rollup only after TRACKA-PRIVATE-E2E-REVALIDA
 - TRACKA-PRIVATE-E2E-REVALIDATION-2 guarded execution packet result, when available.
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 status.
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 transactional runtime gate status: `blocked_pending_transactional_runtime_contract_completion`.
+- WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 decision: `completed_contract_completion_plan_blocked_pending_rpc_schema_implementation`.
+- Worker runtime transactional contract readiness: `blocked_pending_supabase_worker_rpc_schema_readiness`.
+- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_transactional_contract_implementation`.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 status.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 route contract dry-run gate status.
 - #492 caption layout policy: `user_configurable_default_one_line` with default preset `one_line_bottom_safe_area`.
@@ -55,17 +58,22 @@ Current Worker Runtime evidence:
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 decision: `blocked_pending_transactional_runtime_contract_completion`.
 - Worker runtime execution readiness: `blocked_pending_transactional_backend_or_rpc_contract`.
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `blocked_pending_transactional_runtime_contract_completion`.
+- WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 decision: `completed_contract_completion_plan_blocked_pending_rpc_schema_implementation`.
+- Worker runtime transactional contract readiness: `blocked_pending_supabase_worker_rpc_schema_readiness`.
+- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_transactional_contract_implementation`.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 decision: `completed_route_contract_dry_run_gate_planning`.
 - Tool Route execution readiness: `blocked_pending_future_guarded_execution_packet_and_worker_gate_2`.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `completed`.
-- TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_completion`.
+- TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_transactional_contract`.
 
-INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_runtime_gate_2`
+INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_transactional_contract`
 
 Internal beta unlocked: false
 
-The rollup remains blocked because Worker Runtime Gate 2 found insufficient transactional claim/lease/backend RPC coverage.
+The rollup remains blocked because WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 found that the worker transactional contract is blocked pending Supabase worker RPC/schema readiness.
+
+Explicit blocker: missing transactional backend/RPC claim path, service-role runtime boundary, and persistent event/lease enforcement.
 
 ## No-Scope Statement
 

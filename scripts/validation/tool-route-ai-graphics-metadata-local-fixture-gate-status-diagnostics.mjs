@@ -249,7 +249,9 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   !line.includes('worker:ai-graphics-metadata-handoff-qa:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-shape-approval:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-shape-qa:diagnostics') &&
-  !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation-approval:diagnostics'))
+  !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation-approval:diagnostics') &&
+  !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation:execute') &&
+  !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-gate-status:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-gate-status-qa:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-gate-status-owner-approval:diagnostics'))

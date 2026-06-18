@@ -46,7 +46,9 @@ Implement `WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_RUNTIME_GATE_PACKET` 
 - `git diff --cached --check`: passed before staging.
 - Package lock status: unchanged.
 - `.local-artifacts/` status: not staged or tracked.
-- Draft PR link/check status: pending PR creation.
+- Draft PR link/check status: PR #517
+  (`https://github.com/yuzastudio6-cyber/Reedkt/pull/517`) is open, draft,
+  mergeable, and had an empty check rollup when created.
 
 Supabase classification: `no write` / `docs_only`; environment touched: `none`; SQL executed: `none`; migration deployed: `no`; milestone sync: `not_performed`.
 

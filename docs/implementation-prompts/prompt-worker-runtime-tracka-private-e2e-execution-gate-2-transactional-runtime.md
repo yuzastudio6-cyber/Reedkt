@@ -30,15 +30,23 @@ Plan the transactional Worker Runtime path required before any future restricted
 - explicit final-render block when required assets are missing.
 - confirmation that public artifacts, signed URL source-of-truth, final delivery/export, internal beta, external beta, paid production, and production remain blocked.
 
-## Readiness To Preserve
+## Gate 2 Result To Preserve
 
-WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `ready_for_transactional_runtime_gate_planning`
+WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 decision: `blocked_pending_transactional_runtime_contract_completion`
 
-TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_guarded_execution_packet`
+Worker runtime execution readiness: `blocked_pending_transactional_backend_or_rpc_contract`
 
-INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_tracka_private_e2e_execution_packet_and_worker_tool_route_gates`
+WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `blocked_pending_transactional_runtime_contract_completion`
+
+TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_completion`
+
+INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_runtime_gate_2`
 
 trackAInternalBetaUnlocked: false
+
+Current source does not yet provide enough transactional claim/lease/backend RPC coverage to allow Track A guarded execution packet planning to proceed.
+
+Next prompt: `prompt-supabase-tracka-worker-runtime-milestone-sync-if-needed.md`
 
 ## No-Scope Statement
 

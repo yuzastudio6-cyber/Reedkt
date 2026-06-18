@@ -43,7 +43,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_dry_run_qa_passed_with_warnin
 - Changed-file secret scan: passed after excluding scanner-regex self-matches for blocked signature marker patterns.
 - `package-lock.json`: unchanged by this packet.
 - `.local-artifacts/`: not staged or tracked.
-- PR link/check status: pending.
+- PR link/check status: PR #503 open draft, mergeable clean, empty check rollup at PR creation; URL: `https://github.com/yuzastudio6-cyber/Reedkt/pull/503`.
 
 Supabase classification: `no write` / `docs_only`; environment touched: `none`; SQL executed: `none`; migration deployed: `no`; milestone sync: `not_performed`.
 

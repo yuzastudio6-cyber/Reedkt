@@ -1,0 +1,100 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeBlockerResolution.commandSourceInventory.v1",
+  "generatedAt": "2026-06-18T01:15:52.818Z",
+  "sourceFilesInspected": [
+    "docs/open-source-tool-stack/tracka-container-ffmpeg-ffprobe-version-probe-execution/tracka-container-ffmpeg-ffprobe-version-probe-decision.json",
+    "docs/open-source-tool-stack/tracka-container-ffmpeg-ffprobe-version-probe-execution/exact-command-source-review.json",
+    "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/ffmpeg-ffprobe-version-probe-approval-decision.json",
+    "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/future-probe-command-approval.json",
+    "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/runtime-path-selection.json",
+    "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/package-docker-artifact-policy.json",
+    "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/tracka-ffmpeg-ffprobe-source-of-truth-decision.json",
+    "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/ffmpeg-ffprobe-central-evidence.json",
+    "docs/open-source-tool-stack/ffmpeg-ffprobe-system-binary-review/ffmpeg-ffprobe-system-binary-review-decision.json",
+    "docker/prod/render-worker/Dockerfile",
+    "scripts/docker/prod/04-build-render-worker-image.example.sh",
+    "scripts/docker/prod/10-run-container-readiness-render.example.sh",
+    "scripts/docker/prod/00-print-image-config.sh",
+    "server/workers/readiness-validation/container-readiness-command-builder.ts"
+  ],
+  "candidateCommands": [
+    {
+      "source": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/future-probe-command-approval.json",
+      "command": "ffmpeg -version",
+      "commandKind": "inner_command",
+      "exactEnoughForFutureExecution": false,
+      "reason": "Approved by PR #481 as an inner command only; PR #486 confirmed no container wrapper existed.",
+      "dockerBuildRequired": false,
+      "dockerRunRequired": false,
+      "localHostBinaryUsed": false,
+      "mediaFilesReferenced": false
+    },
+    {
+      "source": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/future-probe-command-approval.json",
+      "command": "ffprobe -version",
+      "commandKind": "inner_command",
+      "exactEnoughForFutureExecution": false,
+      "reason": "Approved by PR #481 as an inner command only; PR #486 confirmed no container wrapper existed.",
+      "dockerBuildRequired": false,
+      "dockerRunRequired": false,
+      "localHostBinaryUsed": false,
+      "mediaFilesReferenced": false
+    },
+    {
+      "source": "scripts/docker/prod/04-build-render-worker-image.example.sh",
+      "command": "docker build -f docker/prod/render-worker/Dockerfile -t \"$(image_name reeditpro-render-worker)\" .",
+      "commandKind": "build_wrapper_pattern",
+      "exactEnoughForFutureExecution": false,
+      "reason": "Source-of-truth build pattern requires environment-derived image tags; this packet freezes a local, no-push probe tag template instead.",
+      "dockerBuildRequired": true,
+      "dockerRunRequired": false,
+      "localHostBinaryUsed": false,
+      "mediaFilesReferenced": false
+    },
+    {
+      "source": "scripts/docker/prod/10-run-container-readiness-render.example.sh",
+      "command": "docker run --rm --env REEDITPRO_READINESS_MODE=container_runtime --env REEDITPRO_CONTAINER_IMAGE_ROLE=render_worker \"${REEDITPRO_RENDER_WORKER_IMAGE}\" npm run prod:readiness:summary -- --mode=static_only",
+      "commandKind": "docker_run_wrapper_pattern",
+      "exactEnoughForFutureExecution": false,
+      "reason": "Useful container run safety pattern, but it runs static readiness and not FFmpeg/FFprobe version commands.",
+      "dockerBuildRequired": false,
+      "dockerRunRequired": true,
+      "localHostBinaryUsed": false,
+      "mediaFilesReferenced": false
+    },
+    {
+      "source": "this_blocker_resolution_packet",
+      "command": "docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-<source-sha> .",
+      "commandKind": "future_exact_build_command",
+      "exactEnoughForFutureExecution": true,
+      "dockerBuildRequired": true,
+      "dockerRunRequired": false,
+      "localHostBinaryUsed": false,
+      "mediaFilesReferenced": false
+    },
+    {
+      "source": "this_blocker_resolution_packet",
+      "command": "docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-<source-sha> -version",
+      "commandKind": "future_exact_container_probe_command",
+      "exactEnoughForFutureExecution": true,
+      "dockerBuildRequired": false,
+      "dockerRunRequired": true,
+      "localHostBinaryUsed": false,
+      "mediaFilesReferenced": false
+    },
+    {
+      "source": "this_blocker_resolution_packet",
+      "command": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-<source-sha> -version",
+      "commandKind": "future_exact_container_probe_command",
+      "exactEnoughForFutureExecution": true,
+      "dockerBuildRequired": false,
+      "dockerRunRequired": true,
+      "localHostBinaryUsed": false,
+      "mediaFilesReferenced": false
+    }
+  ],
+  "exactFutureCommandsDefined": true,
+  "currentPhaseCommandsRun": false,
+  "localHostBinariesSelected": false,
+  "mediaReferencedByFutureCommands": false
+}

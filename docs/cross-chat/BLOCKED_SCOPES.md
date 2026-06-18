@@ -192,3 +192,13 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION:
 - No FFmpeg/FFprobe probe, Docker build/run, Docker/container mutation, media input/probe/decode/encode, caption burn-in, render/export, npm install/rebuild, DuckDB/Polars proof rerun, worker/route/provider execution, Supabase/GCS mutation, public artifact, signed URL, raw prompt, beta, or production scope is enabled.
 - Supabase classification: no write / none / none / no.
 <!-- OPEN_SOURCE_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:end -->
+
+<!-- Track A Container FFmpeg/FFprobe Probe Blocker Resolution:start -->
+## Track A Container FFmpeg/FFprobe Probe Blocker Resolution
+
+- Decision: `exact_probe_command_blocker_resolution_passed_ready_for_docker_build_then_version_probe_execution`
+- Prior blocker `blocked_pending_exact_probe_command_source` is resolved by defining exact future build-then-version-probe commands.
+- Future path: Track A repo-owned render-worker Dockerfile, local no-push image tag, then container-only `ffmpeg -version` and `ffprobe -version`.
+- Current phase execution: no FFmpeg/FFprobe, Docker build/run, local host probe, media processing, render/export, workers, routes, providers, Supabase, GCS, public artifacts, signed URLs, beta, or production.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION`.
+<!-- Track A Container FFmpeg/FFprobe Probe Blocker Resolution:end -->

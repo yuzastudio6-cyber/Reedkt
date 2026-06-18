@@ -286,6 +286,7 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:execute') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-qa:diagnostics'))
+  .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-runtime-gate-owner-approval:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 if (git(['diff', '--name-only', `${baseRef}...HEAD`, '--', 'package-lock.json']).trim()) failures.push('package_lock_changed')

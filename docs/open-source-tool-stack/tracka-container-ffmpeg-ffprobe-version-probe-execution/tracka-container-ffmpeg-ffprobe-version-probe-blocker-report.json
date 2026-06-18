@@ -1,0 +1,9 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.blockers.v1",
+  "generatedAt": "2026-06-18T00:20:25.117Z",
+  "blockers": [
+    "blocked_pending_exact_probe_command_source"
+  ],
+  "exactProbeCommandSourceMissing": true,
+  "blockedScopesPreserved": true
+}

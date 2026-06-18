@@ -1,0 +1,140 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.sourceAudit.v1",
+  "generatedAt": "2026-06-18T00:20:25.117Z",
+  "phase": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION",
+  "branch": "codex/rp-open-source-tool-stack-tracka-container-ffmpeg-ffprobe-version-probe-execution",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceSha": "adfb8f98b5ba618205c59327d06615e28e9b6b7f",
+  "expectedMinimumSourceSha": "adfb8f98b5ba618205c59327d06615e28e9b6b7f",
+  "packageState": {
+    "packageJsonHash": "1432406233a1eccba063775520fe69ff470aa49cb2961339738986ff579d9a49",
+    "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    "packageJsonChanged": true,
+    "packageLockChanged": false,
+    "dockerfileChanged": false
+  },
+  "predecessorPrs": [
+    481,
+    477,
+    472,
+    463,
+    469,
+    466,
+    455,
+    448,
+    444,
+    439,
+    435,
+    430,
+    427,
+    421,
+    416
+  ],
+  "referenceOnlyPrs": [
+    428,
+    425,
+    432,
+    423,
+    420,
+    417,
+    401,
+    384
+  ],
+  "pr481ApprovalEvidence": {
+    "decision": "ffmpeg_ffprobe_version_probe_approval_passed_ready_for_tracka_container_probe_execution",
+    "mergedState": "MERGED",
+    "mergedAt": "2026-06-17T23:57:47Z",
+    "headRefOid": "a35aec598f3f23a869697c74335288b73014a986",
+    "mergeCommit": {
+      "oid": "adfb8f98b5ba618205c59327d06615e28e9b6b7f"
+    }
+  },
+  "pr477TrackaSourceEvidence": {
+    "decision": "tracka_ffmpeg_ffprobe_source_of_truth_reconciliation_passed_ready_for_version_probe_approval",
+    "mergedState": "MERGED",
+    "mergedAt": "2026-06-17T22:51:22Z"
+  },
+  "pr463ReferenceEvidence": {
+    "state": "MERGED",
+    "mergedAt": "2026-06-17T21:08:46Z",
+    "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+    "centralCanonical": false
+  },
+  "duplicateSearches": {
+    "exactPhase": [],
+    "title": [],
+    "commands": [
+      {
+        "baseRefName": "codex/rp-activation-40b-pro-color-image-generated-fixture-runtime",
+        "headRefName": "codex/rp-activation-40c-real-video-pro-color-image-sample",
+        "isDraft": false,
+        "number": 67,
+        "title": "[activation] Phase 40C real video pro color image sample",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/67"
+      }
+    ]
+  },
+  "evidenceFiles": {
+    "approvalDecision": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/ffmpeg-ffprobe-version-probe-approval-decision.json",
+    "approvalFutureCommands": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/future-probe-command-approval.json",
+    "approvalRuntimePath": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/runtime-path-selection.json",
+    "approvalArtifactPolicy": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/package-docker-artifact-policy.json",
+    "trackaSourceDecision": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/tracka-ffmpeg-ffprobe-source-of-truth-decision.json",
+    "trackaFutureBoundary": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/future-version-probe-boundary.json",
+    "trackaCentralEvidence": "docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/ffmpeg-ffprobe-central-evidence.json",
+    "systemBinaryReviewDecision": "docs/open-source-tool-stack/ffmpeg-ffprobe-system-binary-review/ffmpeg-ffprobe-system-binary-review-decision.json",
+    "duckdbQaDecision": "docs/open-source-tool-stack/duckdb-native-rebuild-qa/duckdb-native-rebuild-qa-decision.json",
+    "duckdbExecutionDecision": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-decision.json",
+    "polarsProof": "docs/open-source-tool-stack/missing-optional-package-binary-execution/polars-proof-report.json"
+  },
+  "sourceEvidenceSummary": {
+    "approvalDecision": "ffmpeg_ffprobe_version_probe_approval_passed_ready_for_tracka_container_probe_execution",
+    "trackaDecision": "tracka_ffmpeg_ffprobe_source_of_truth_reconciliation_passed_ready_for_version_probe_approval",
+    "systemBinaryReviewDecision": "ffmpeg_ffprobe_system_binary_review_passed_ready_for_tracka_source_of_truth_merge",
+    "duckdbQaDecision": "duckdb_native_rebuild_qa_passed_ready_for_ffmpeg_ffprobe_system_binary_review",
+    "duckdbExecutionDecision": "duckdb_native_rebuild_execution_passed_ffmpeg_ffprobe_still_missing",
+    "polarsProofStatus": "passed"
+  },
+  "noScopeConfirmation": {
+    "ffmpegProbeAllowedWithoutExactContainerInvocation": false,
+    "ffprobeProbeAllowedWithoutExactContainerInvocation": false,
+    "localHostSystemBinaryProbeAllowed": false,
+    "dockerBuildAllowed": false,
+    "dockerRunAllowed": false,
+    "dockerImagePushAllowed": false,
+    "dockerfileMutationAllowed": false,
+    "containerDefinitionMutationAllowed": false,
+    "mediaInputAllowed": false,
+    "mediaFileProbeAllowed": false,
+    "decodeAllowed": false,
+    "encodeAllowed": false,
+    "captionBurnInAllowed": false,
+    "renderExportAllowed": false,
+    "outputFilesAllowed": false,
+    "npmInstallAllowed": false,
+    "npmRebuildAllowed": false,
+    "packageLifecycleScriptsAllowed": false,
+    "packageLockMutationAllowed": false,
+    "duckdbProofRerunAllowed": false,
+    "polarsProofRerunAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "betaUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.ffmpegVersionProbe.v1",
+  "generatedAt": "2026-06-18T00:20:25.117Z",
+  "binary": "ffmpeg",
+  "approvedInnerCommand": "ffmpeg -version",
+  "exactContainerInvocationPresent": false,
+  "probeRun": false,
+  "exitCode": null,
+  "stdoutPreview": "",
+  "stderrPreview": "",
+  "versionDetected": null,
+  "noMediaInput": true,
+  "noFileProbe": true,
+  "noDecode": true,
+  "noEncode": true,
+  "noOutputFiles": true,
+  "blockedBeforeProbe": true,
+  "blocker": "blocked_pending_ffmpeg_version_probe",
+  "rootBlocker": "blocked_pending_exact_probe_command_source"
+}

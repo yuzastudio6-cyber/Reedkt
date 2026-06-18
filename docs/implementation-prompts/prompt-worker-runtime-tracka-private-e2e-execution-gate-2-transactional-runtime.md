@@ -46,7 +46,13 @@ trackAInternalBetaUnlocked: false
 
 Current source does not yet provide enough transactional claim/lease/backend RPC coverage to allow Track A guarded execution packet planning to proceed.
 
-Next prompt: `prompt-supabase-tracka-worker-runtime-milestone-sync-if-needed.md`
+Explicit blocker: missing transactional backend/RPC claim path, service-role runtime boundary, and persistent event/lease enforcement.
+
+Next prompt: `WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 -- Track A private E2E worker claim/lease/RPC contract completion plan`
+
+Prompt file: `docs/implementation-prompts/prompt-worker-runtime-transactional-contract-1.md`
+
+Supporting handoff: `prompt-supabase-tracka-worker-runtime-milestone-sync-if-needed.md`
 
 ## No-Scope Statement
 

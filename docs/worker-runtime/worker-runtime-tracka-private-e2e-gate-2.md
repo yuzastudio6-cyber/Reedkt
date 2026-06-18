@@ -50,6 +50,8 @@ Track A final delivery: blocked
 
 Current source does not yet provide enough transactional claim/lease/backend RPC coverage to allow Track A guarded execution packet planning to proceed.
 
+Explicit blocker: missing transactional backend/RPC claim path, service-role runtime boundary, and persistent event/lease enforcement.
+
 #343 was dry-run/simulated only. Real claim/lease execution remains blocked by `blocked_until_future_transactional_backend_runtime`.
 
 The current source evidence still requires a future transactional backend or RPC claim path, service-role boundary, event-log persistence, idempotency enforcement, lease/heartbeat enforcement, retry/backoff handling, and cancellation handling before worker runtime execution can be considered.
@@ -165,9 +167,11 @@ Next Supabase action: none in this phase; future sync may be required to plan a 
 - Workstream updated: WORKER_RUNTIME_JOBS
 - Other workstreams affected: TRACK_A_RENDER_EXPORT, TOOL_ROUTE_COORDINATION, INTERNAL_BETA_READINESS, SUPABASE_RLS_STORAGE_DATABASE, OBSERVABILITY_AUDIT_COST, COMPLIANCE_SECURITY, FRONTEND_PRODUCT_UX, BILLING_STRIPE_CREDITS
 - Contracts changed: Worker Runtime Track A private E2E transactional runtime gate planning records a blocked decision
-- Handoff needed: Supabase/Worker Runtime milestone sync for transactional backend/RPC contract, then Worker Runtime Gate 3 if needed
+- Handoff needed: WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 for Track A private E2E worker claim/lease/RPC contract completion plan
+- Supporting context: Supabase/Worker Runtime milestone sync may be needed for future transactional backend/RPC contract planning
 - Duplicate risk: low
-- Next owner/prompt: WORKER_RUNTIME_JOBS and SUPABASE_RLS_STORAGE_DATABASE / `prompt-supabase-tracka-worker-runtime-milestone-sync-if-needed.md`
+- Next prompt: `WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 -- Track A private E2E worker claim/lease/RPC contract completion plan`
+- Prompt file: `docs/implementation-prompts/prompt-worker-runtime-transactional-contract-1.md`
 
 ## Human Action Required
 

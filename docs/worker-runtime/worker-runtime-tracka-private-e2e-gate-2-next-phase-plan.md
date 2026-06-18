@@ -6,15 +6,21 @@ This plan records the next work needed after Gate 2 found insufficient transacti
 
 ## Next Prompts
 
-Primary next prompt: `SUPABASE-TRACKA-WORKER-RUNTIME-MILESTONE-SYNC-IF-NEEDED -- Transactional backend/RPC contract planning`
+Primary next prompt: `WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 -- Track A private E2E worker claim/lease/RPC contract completion plan`
 
-Prompt file: `docs/implementation-prompts/prompt-supabase-tracka-worker-runtime-milestone-sync-if-needed.md`
+Prompt file: `docs/implementation-prompts/prompt-worker-runtime-transactional-contract-1.md`
+
+Supporting handoff prompt: `SUPABASE-TRACKA-WORKER-RUNTIME-MILESTONE-SYNC-IF-NEEDED -- Transactional backend/RPC contract planning`
+
+Supporting handoff file: `docs/implementation-prompts/prompt-supabase-tracka-worker-runtime-milestone-sync-if-needed.md`
 
 Follow-up prompt if the contract gap is resolved: `WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-3-IF-NEEDED -- Post-contract readiness review`
 
 Prompt file: `docs/implementation-prompts/prompt-worker-runtime-tracka-private-e2e-execution-gate-3-if-needed.md`
 
 ## Required Future Work
+
+Explicit blocker: missing transactional backend/RPC claim path, service-role runtime boundary, and persistent event/lease enforcement.
 
 - Decide whether the transactional claim path is a Supabase RPC, backend claim service, or another approved service-role backend path.
 - Define idempotency enforcement.

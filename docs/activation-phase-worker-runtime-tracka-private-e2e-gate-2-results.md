@@ -42,6 +42,8 @@ Production/external beta/broad media/final delivery: `blocked`
 
 Current source does not yet provide enough transactional claim/lease/backend RPC coverage to allow Track A guarded execution packet planning to proceed. The Worker Runtime evidence remains simulated/dry-run only and points to `blocked_until_future_transactional_backend_runtime`.
 
+Explicit blocker: missing transactional backend/RPC claim path, service-role runtime boundary, and persistent event/lease enforcement.
+
 ## Claim Lease Contract
 
 workerJobFamily: `tracka_private_e2e_revalidation`
@@ -120,7 +122,9 @@ Next Supabase action: none in this phase; future milestone sync may be required 
 - Workstream updated: WORKER_RUNTIME_JOBS
 - Other workstreams affected: TRACK_A_RENDER_EXPORT, TOOL_ROUTE_COORDINATION, INTERNAL_BETA_READINESS, SUPABASE_RLS_STORAGE_DATABASE, OBSERVABILITY_AUDIT_COST, COMPLIANCE_SECURITY, FRONTEND_PRODUCT_UX, BILLING_STRIPE_CREDITS
 - Contracts changed: Worker Runtime Gate 2 records a blocked transactional runtime decision
-- Handoff needed: `prompt-supabase-tracka-worker-runtime-milestone-sync-if-needed.md`
+- Next prompt: `WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 -- Track A private E2E worker claim/lease/RPC contract completion plan`
+- Prompt file: `docs/implementation-prompts/prompt-worker-runtime-transactional-contract-1.md`
+- Supporting handoff: `prompt-supabase-tracka-worker-runtime-milestone-sync-if-needed.md`
 - Follow-up if needed: `prompt-worker-runtime-tracka-private-e2e-execution-gate-3-if-needed.md`
 
 ## Human Action Required

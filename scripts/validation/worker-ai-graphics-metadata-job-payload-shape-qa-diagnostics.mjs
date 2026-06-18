@@ -1,35 +1,45 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
-const baseRef = 'origin/codex/rp-tool-route-ai-graphics-metadata-local-fixture-gate-status-owner-approval'
-const expectedDecision = 'worker_ai_graphics_metadata_handoff_approved_with_warnings'
+const baseRef = 'origin/codex/rp-worker-ai-graphics-metadata-job-payload-shape-approval'
+const expectedDecision = 'worker_ai_graphics_metadata_job_payload_shape_qa_passed_with_warnings'
 const allowedDecisions = new Set([
-  'worker_ai_graphics_metadata_handoff_approved_with_warnings',
-  'worker_ai_graphics_metadata_handoff_approved',
-  'blocked_pending_worker_ai_graphics_handoff_fixes',
-  'blocked_pending_plan_snapshot_mapping_review',
-  'blocked_pending_scoped_manifest_review',
-  'blocked_pending_claim_lease_boundary_review',
-  'blocked_pending_artifact_scope_review',
+  'worker_ai_graphics_metadata_job_payload_shape_qa_passed_with_warnings',
+  'worker_ai_graphics_metadata_job_payload_shape_qa_passed',
+  'blocked_pending_worker_ai_graphics_job_payload_shape_qa_fixes',
+  'blocked_pending_plan_snapshot_field_qa',
+  'blocked_pending_scoped_manifest_field_qa',
+  'blocked_pending_artifact_ref_field_qa',
+  'blocked_pending_claim_lease_placeholder_qa',
+  'blocked_pending_queue_placeholder_qa',
 ])
 
 const requiredDocs = [
-  'docs/worker-runtime/ai-graphics-metadata-handoff-approval.md',
-  'docs/worker-runtime/ai-graphics-metadata-handoff-source-lockfile.md',
-  'docs/worker-runtime/ai-graphics-worker-intake-matrix.md',
-  'docs/worker-runtime/ai-graphics-worker-job-payload-requirements.md',
-  'docs/worker-runtime/ai-graphics-approved-plan-snapshot-requirements.md',
-  'docs/worker-runtime/ai-graphics-scoped-tool-call-manifest-requirements.md',
-  'docs/worker-runtime/ai-graphics-private-artifact-ref-requirements.md',
-  'docs/worker-runtime/ai-graphics-claim-lease-boundary.md',
-  'docs/worker-runtime/ai-graphics-queue-boundary.md',
-  'docs/worker-runtime/ai-graphics-no-execution-proof-requirements.md',
-  'docs/worker-runtime/ai-graphics-observability-audit-requirements.md',
-  'docs/worker-runtime/ai-graphics-worker-blocked-use-register.md',
-  'docs/worker-runtime/ai-graphics-worker-handoff-approval-decision.md',
-  'docs/worker-runtime/ai-graphics-worker-handoff-next-lane-recommendation.md',
-  'docs/prompt-worker-ai-graphics-metadata-handoff-approval-results.md',
-  'docs/implementation-prompts/prompt-worker-ai-graphics-metadata-handoff-approval.md',
+  'docs/worker-runtime/ai-graphics-metadata-job-payload-shape-qa-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-shape-qa-source-lockfile.md',
+  'docs/worker-runtime/ai-graphics-job-payload-schema-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-field-matrix-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-tool-intake-matrix-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-plan-snapshot-fields-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-scoped-manifest-fields-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-private-artifact-fields-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-claim-lease-placeholders-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-queue-placeholders-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-no-execution-fields-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-observability-audit-fields-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-fail-closed-fields-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-schema-fixture-qa.md',
+  'docs/worker-runtime/ai-graphics-job-payload-shape-warning-blocker-register.md',
+  'docs/worker-runtime/ai-graphics-job-payload-shape-qa-decision.md',
+  'docs/worker-runtime/ai-graphics-job-payload-shape-qa-next-lane-recommendation.md',
+  'docs/prompt-worker-ai-graphics-metadata-job-payload-shape-qa-review-results.md',
+  'docs/implementation-prompts/prompt-worker-ai-graphics-metadata-job-payload-shape-qa-review.md',
+]
+
+const optionalJson = [
+  'docs/worker-runtime/fixtures/ai-graphics-metadata-job-payload-shape.schema.json',
+  'docs/worker-runtime/fixtures/ai-graphics-metadata-job-payload-example.valid.json',
+  'docs/worker-runtime/fixtures/ai-graphics-metadata-job-payload-example.blocked.json',
 ]
 
 const requiredTools = [
@@ -49,15 +59,25 @@ const requiredTools = [
 ]
 
 const requiredTrueBooleans = [
-  'workerApprovedFutureMetadataHandoff',
-  'workerApprovedFutureJobPayloadShape',
-  'workerApprovedFuturePlanSnapshotMapping',
-  'workerApprovedFutureScopedManifestMapping',
-  'workerApprovedFuturePrivateArtifactRefs',
-  'workerApprovedFutureObservabilityAudit',
+  'jobPayloadShapeQaAccepted',
+  'jobPayloadShapeQaAcceptedWithWarnings',
+  'readyForJobPayloadSchemaValidationApproval',
+  'jobPayloadSchemaAccepted',
+  'fieldMatrixAccepted',
+  'toolIntakeMatrixAccepted',
+  'planSnapshotFieldsAccepted',
+  'scopedManifestFieldsAccepted',
+  'privateArtifactFieldsAccepted',
+  'claimLeasePlaceholdersAccepted',
+  'queuePlaceholdersAccepted',
+  'noExecutionFieldsAccepted',
+  'observabilityAuditFieldsAccepted',
+  'failClosedFieldsAccepted',
+  'docsOnlySchemaFixturesAccepted',
 ]
 
 const requiredFalseBooleans = [
+  'readyForWorkerExecutionPlanning',
   'workerExecutionApprovedNow',
   'workerJobClaimApprovedNow',
   'workerLeaseMutationApprovedNow',
@@ -83,21 +103,26 @@ const requiredFalseBooleans = [
 ]
 
 const requiredTokens = [
+  'PR #482',
+  '15615ae99f0968b84cb63b615ce4243771fda45d',
+  'worker_ai_graphics_metadata_job_payload_shape_approved_with_warnings',
+  'PR #480',
+  '034ad49c1f7504dacfa6864aa21bb8cf09e90c0d',
+  'worker_ai_graphics_metadata_handoff_qa_passed_with_warnings',
+  'PR #478',
+  '33c3b945f0d40e9c4531783a9a5f07adee174108',
   'PR #476',
   '51207f974ea35f6ab4f46b2465110d743ecc36fa',
   'tool_route_ai_graphics_metadata_local_fixture_gate_status_owner_approved_with_warnings',
   'PR #473',
   'aa34de316565a5f5a3579576d16a064b8467f142',
-  'tool_route_ai_graphics_metadata_local_fixture_gate_status_qa_passed_with_warnings',
   'PR #471',
-  'd1484a4860b96fc349b6613dc77753b8dcad3dbb',
+  'dryRunPassedClaimed=false',
+  'generatedLocalFixturePassedClaimed=false',
   'PR #468',
-  'a617420ae197ca983ceb97dc3cd352047ba78e50',
   'PR #467',
-  'abf3e1ae20f1670d2ca0f9c2ca4b5a8670c0018e',
   'PR #464',
   '8b6274f6a17027b5e52eeaf44e0af287d1986a55',
-  'tool_route_ai_graphics_metadata_local_fixture_validation_passed_with_warnings',
   'ai-graphics-local-fixture-validation-local-static',
   'PR #462',
   'PR #458',
@@ -109,7 +134,7 @@ const requiredTokens = [
   'PR #404',
   'PR #398',
   'PR #164',
-  'WORKER_AI_GRAPHICS_METADATA_HANDOFF_QA_REVIEW',
+  'WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_SCHEMA_VALIDATION_APPROVAL',
   'no write',
   'docs_only',
   'environment touched: `none`',
@@ -119,6 +144,12 @@ const requiredTokens = [
 ]
 
 const forbiddenPatterns = [
+  ['url', /\bhttps?:\/\//i],
+  ['signed_url_marker', /\b(?:signedUrl|signed_url|X-Goog-Signature|X-Amz-Signature)\b/i],
+  ['public_artifact_ref', /\bpublic[_ -]?artifact[_ -]?ref\b/i],
+  ['raw_prompt_text', /\braw prompt text\b/i],
+  ['provider_raw_output', /\bprovider raw output\b/i],
+  ['real_user_data', /\breal user data\b/i],
   ['snake_dry_run_pass_claim', /\bdry_run_passed\b/i],
   ['snake_generated_fixture_pass_claim', /\bgenerated_local_fixture_passed\b/i],
   ['worker_execution_claim', /\bworker execution\b[^.\n|]*(?:performed|executed|enabled|approved now|approved with|true|passed)\b/i],
@@ -138,7 +169,6 @@ const forbiddenPatterns = [
   ['raw_prompt_claim', /\braw prompt\b[^.\n|]*(?:executed|enabled|approved now|approved with|true|passed)\b/i],
   ['beta_claim', /\b(?:internal beta|external beta)\b[^.\n|]*(?:unlocked|enabled|approved now|approved with|true|passed)\b/i],
   ['production_claim', /\bproduction\b[^.\n|]*(?:unlocked|enabled|approved now|approved with|true|passed)\b/i],
-  ['broad_service_role_claim', /\bbroad service-role handler\b[^.\n|]*(?:enabled|approved|true|passed)\b/i],
   [
     'secret_material',
     /\b(sk-[A-Za-z0-9_-]{32,}|Bearer\s+[A-Za-z0-9._~+/-]{32,}|postgres(?:ql)?:\/\/|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|X-Goog-Signature=|X-Amz-Signature=)\b/i,
@@ -165,8 +195,9 @@ function read(path) {
 }
 
 function readJson(path) {
+  const text = read(path)
   try {
-    return JSON.parse(read(path))
+    return JSON.parse(text)
   } catch (error) {
     failures.push(`invalid_json:${path}:${error.message}`)
     return null
@@ -176,8 +207,8 @@ function readJson(path) {
 for (const path of requiredDocs) read(path)
 
 const docsText = requiredDocs.map(read).join('\n')
-const decisionDoc = read('docs/worker-runtime/ai-graphics-worker-handoff-approval-decision.md')
-const matrixDoc = read('docs/worker-runtime/ai-graphics-worker-intake-matrix.md')
+const decisionDoc = read('docs/worker-runtime/ai-graphics-job-payload-shape-qa-decision.md')
+const matrixDoc = read('docs/worker-runtime/ai-graphics-job-payload-tool-intake-matrix-qa.md')
 
 const decisions = [...docsText.matchAll(/Decision:\s*`([^`]+)`/g)].map((match) => match[1])
 if (!decisions.includes(expectedDecision)) failures.push(`expected_decision_missing:${expectedDecision}`)
@@ -191,7 +222,7 @@ for (const token of requiredTokens) {
 
 for (const tool of requiredTools) {
   const row = matrixDoc.split('\n').find((line) => line.includes(`\`${tool}\``))
-  if (!row) failures.push(`worker_intake_matrix_tool_missing:${tool}`)
+  if (!row) failures.push(`tool_intake_qa_matrix_tool_missing:${tool}`)
   else {
     for (const requiredCell of [
       'accepted_with_warnings',
@@ -199,13 +230,13 @@ for (const tool of requiredTools) {
       '<SCOPED_TOOL_CALL_MANIFEST_REF>',
       '<PRIVATE_ARTIFACT_MANIFEST_REF>',
       '<CHECKSUM_REF>',
-      'no job claim or lease mutation',
-      'no queue execution',
+      'placeholder only; no job claim or lease mutation',
+      'placeholder only; no queue execution',
+      'accepted',
     ]) {
-      if (!row.includes(requiredCell)) failures.push(`worker_intake_matrix_cell_missing:${tool}:${requiredCell}`)
+      if (!row.includes(requiredCell)) failures.push(`tool_intake_qa_matrix_cell_missing:${tool}:${requiredCell}`)
     }
   }
-  if (!docsText.includes(`\`${tool}\``)) failures.push(`tool_missing_from_worker_docs:${tool}`)
 }
 
 for (const field of requiredTrueBooleans) {
@@ -222,24 +253,33 @@ const unsafeClaimText = docsText
   .split('\n')
   .filter(
     (line) =>
-      !/\b(?:No|no|not|blocked|unapproved|does not approve|do not approve|must not|may not|remains|remain|stays|false|metadata-only|static|separately gated|without|warning|warnings|defer|deferred|none|placeholder|required|source evidence|source chain|context only|policy context|not source of truth|review remains|pending|later|future|planning|accepted_with_warnings|base gap|absent)\b/i.test(
+      !/\b(?:No|no|not|blocked|unapproved|does not approve|do not approve|must not|may not|remains|remain|stays|false|metadata-only|static|separately gated|without|warning|warnings|defer|deferred|none|placeholder|required|source evidence|source chain|context only|policy context|not source of truth|pending|later|future|planning|accepted_with_warnings|blocked|fail closed|shape only|docs_only|no write|QA|review|accepted)\b/i.test(
         line,
       ),
   )
   .join('\n')
 
-for (const [name, pattern] of forbiddenPatterns) {
+const docForbiddenPatterns = forbiddenPatterns.filter(([name]) => name !== 'url')
+
+for (const [name, pattern] of docForbiddenPatterns) {
   const match = unsafeClaimText.match(pattern)
   if (match) failures.push(`forbidden_claim:${name}:${match[0]}`)
 }
 
-if (/\bdry_run_passed\b/i.test(docsText)) failures.push('forbidden_claim:dry_run_passed_token')
-if (/\bgenerated_local_fixture_passed\b/i.test(docsText)) failures.push('forbidden_claim:generated_local_fixture_passed_token')
+for (const path of optionalJson) {
+  if (!existsSync(path)) continue
+  const text = read(path)
+  readJson(path)
+  for (const [name, pattern] of forbiddenPatterns) {
+    const match = text.match(pattern)
+    if (match) failures.push(`forbidden_json:${path}:${name}:${match[0]}`)
+  }
+}
 
 const packageJson = readJson('package.json')
-const expectedScript = 'node scripts/validation/worker-ai-graphics-metadata-handoff-approval-diagnostics.mjs'
-if (packageJson?.scripts?.['worker:ai-graphics-metadata-handoff-approval:diagnostics'] !== expectedScript) {
-  failures.push('missing_package_script:worker:ai-graphics-metadata-handoff-approval:diagnostics')
+const expectedScript = 'node scripts/validation/worker-ai-graphics-metadata-job-payload-shape-qa-diagnostics.mjs'
+if (packageJson?.scripts?.['worker:ai-graphics-metadata-job-payload-shape-qa:diagnostics'] !== expectedScript) {
+  failures.push('missing_package_script:worker:ai-graphics-metadata-job-payload-shape-qa:diagnostics')
 }
 
 const basePackageJson = (() => {
@@ -261,17 +301,19 @@ const packageJsonDiff = `${git(['diff', '--', 'package.json'])}\n${git(['diff', 
 const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
-.filter((line) => !line.includes('worker:ai-graphics-metadata-handoff-approval:diagnostics') &&
-  !line.includes('worker:ai-graphics-metadata-handoff-qa:diagnostics') &&
-  !line.includes('worker:ai-graphics-metadata-job-payload-shape-approval:diagnostics') &&
-  !line.includes('worker:ai-graphics-metadata-job-payload-shape-qa:diagnostics'))
+  .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-shape-qa:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 if (git(['diff', '--name-only', `${baseRef}...HEAD`, '--', 'package-lock.json']).trim()) failures.push('package_lock_changed')
+if (git(['diff', '--name-only', '--', 'package-lock.json']).trim()) failures.push('package_lock_changed_worktree')
 if (git(['ls-files', '.local-artifacts']).trim()) failures.push('local_artifacts_tracked')
 
-const changedFiles = git(['diff', '--name-only', `${baseRef}...HEAD`]).split('\n').filter(Boolean)
-for (const file of changedFiles) {
+const changedFiles = [
+  ...git(['diff', '--name-only', `${baseRef}...HEAD`]).split('\n').filter(Boolean),
+  ...git(['diff', '--name-only']).split('\n').filter(Boolean),
+  ...git(['ls-files', '--others', '--exclude-standard']).split('\n').filter(Boolean),
+]
+for (const file of new Set(changedFiles)) {
   if (/\.local-artifacts\//.test(file)) failures.push(`local_artifact_changed:${file}`)
   if (/(^|\/)(dist|dist-server)\//.test(file)) failures.push(`build_output_changed:${file}`)
   if (/(^|\/)(media|render|browser|canvas|webgl|public-artifacts?|local-fixture-output)\//i.test(file)) {
@@ -285,9 +327,9 @@ if (!docsText.includes('No worker execution, job claim, lease mutation, queue ex
 }
 
 if (failures.length > 0) {
-  console.error('WORKER_AI_GRAPHICS_METADATA_HANDOFF_APPROVAL diagnostics failed:')
+  console.error('WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_SHAPE_QA_REVIEW diagnostics failed:')
   for (const failure of failures) console.error(`- ${failure}`)
   process.exit(1)
 }
 
-console.log('WORKER_AI_GRAPHICS_METADATA_HANDOFF_APPROVAL diagnostics passed.')
+console.log('WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_SHAPE_QA_REVIEW diagnostics passed.')

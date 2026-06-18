@@ -13,6 +13,10 @@ import {
   TRACKA_CAPTION_BURNIN_PHASE,
   TRACKA_CAPTION_BURNIN_PR_TITLE,
   TRACKA_CAPTION_BURNIN_SOURCE_CHAIN,
+  TRACKA_CAPTION_LAYOUT_FIXED_LINES,
+  TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE,
+  TRACKA_CAPTION_LAYOUT_FIX_CONFIRM_ENV,
+  TRACKA_CAPTION_LAYOUT_FIX_PROFILE_ID,
   TRACKA_CAPTION_RUNTIME_IMAGE_BUILD_CONFIRM_ENV,
   TRACKA_CAPTION_SOURCE_GCS_READ_CONFIRM_ENV,
   getTrackaCaptionBurninRunId,
@@ -36,6 +40,30 @@ function captionLinesList(): string {
   return TRACKA_CAPTION_BURNIN_CORRECTED_LINES
     .map((line, index) => `${index + 1}. "${line}"`)
     .join('\n')
+}
+
+function layoutFixedCaptionLinesList(): string {
+  return TRACKA_CAPTION_LAYOUT_FIXED_LINES
+    .map((line, index) => `${index + 1}. "${line.replace(/\\N/g, '\\n')}"`)
+    .join('\n')
+}
+
+function layoutProfileTable(): string {
+  return [
+    '| Field | Value |',
+    '| --- | --- |',
+    `| layoutProfile | \`${TRACKA_CAPTION_LAYOUT_FIX_PROFILE_ID}\` |`,
+    `| PlayResX | \`${TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE.playResX}\` |`,
+    `| PlayResY | \`${TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE.playResY}\` |`,
+    `| Alignment | \`${TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE.alignment}\` |`,
+    `| MarginL | \`${TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE.marginL}\` |`,
+    `| MarginR | \`${TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE.marginR}\` |`,
+    `| MarginV | \`${TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE.marginV}\` |`,
+    `| Fontsize | \`${TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE.fontSize}\` |`,
+    `| Outline | \`${TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE.outline}\` |`,
+    `| Shadow | \`${TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE.shadow}\` |`,
+    `| Max lines | \`${TRACKA_CAPTION_LAYOUT_FIX_ASS_PROFILE.maxLines}\` |`,
+  ].join('\n')
 }
 
 function metadataTable(): string {
@@ -96,7 +124,7 @@ function artifactRows(bundle: TrackaCaptionBurninBundle): string {
     '| --- | --- | --- | --- | --- |',
     artifactRow('approved source local copy', bundle.sourceArtifact),
     artifactRow('corrected ASS sidecar', bundle.sidecar),
-    artifactRow('corrected-caption preview MP4', bundle.previewArtifact),
+    artifactRow('layout-fixed corrected-caption preview MP4', bundle.previewArtifact),
     artifactRow('FFprobe metadata JSON', bundle.ffprobeArtifact),
     artifactRow('QA report JSON', bundle.qaReportArtifact),
     artifactRow('artifact manifest JSON', bundle.artifactManifestArtifact),
@@ -104,11 +132,11 @@ function artifactRows(bundle: TrackaCaptionBurninBundle): string {
 }
 
 function executionNarrative(bundle: TrackaCaptionBurninBundle): string {
-  if (bundle.summary.execution === 'completed_with_corrected_caption_burnin_revalidation') {
-    return 'The guarded run used the approved #452 private source ref, the approved #426 controlled-test caption copy, and the approved #463 repo-owned Docker FFmpeg/libass runtime path to create a private corrected-caption preview and FFprobe metadata. The preview is private review evidence only and is not final delivery, internal beta, external beta, or production readiness.'
+  if (bundle.summary.execution === 'completed_with_caption_layout_fix_revalidation') {
+    return 'The guarded run used the approved #452 private source ref, the approved #426 controlled-test caption copy, and the approved #463 repo-owned Docker FFmpeg/libass runtime path to create a private layout-fixed corrected-caption preview and FFprobe metadata. The preview is private review evidence only and is not final delivery, internal beta, external beta, or production readiness.'
   }
 
-  return `The guarded run failed closed with \`${bundle.summary.execution}\`. It did not create a usable corrected-caption visual review artifact unless the artifact table explicitly lists a corrected-caption preview MP4 as created.`
+  return `The guarded run failed closed with \`${bundle.summary.execution}\`. It did not create a usable caption layout visual review artifact unless the artifact table explicitly lists a layout-fixed corrected-caption preview MP4 as created.`
 }
 
 function docsFor(bundle: TrackaCaptionBurninBundle): Record<string, string> {
@@ -117,7 +145,7 @@ function docsFor(bundle: TrackaCaptionBurninBundle): Record<string, string> {
   const ffprobeStatus = bundle.ffprobeArtifact.created ? 'completed' : bundle.ffprobeArtifact.blocker ?? 'not_run'
 
   return {
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.execution]: `# TRACKA-CAPTION-QUALITY-3R3 Burn-In Revalidation Execution
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.execution]: `# TRACKA-CAPTION-QUALITY-5 Burn-In Revalidation Execution
 
 Status: \`${execution}\`
 
@@ -129,13 +157,17 @@ Execution: \`${execution}\`
 
 Confirmation env: \`${TRACKA_CAPTION_BURNIN_CONFIRM_ENV}=true\`
 
+Layout fix confirmation env: \`${TRACKA_CAPTION_LAYOUT_FIX_CONFIRM_ENV}=true\`
+
 Source GCS read env: \`${TRACKA_CAPTION_SOURCE_GCS_READ_CONFIRM_ENV}=true\`
 
-GCS access repair env: \`${TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV}=true\`
+GCS access repair env: \`${TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV}=true\` (optional legacy repair context)
 
 Optional runtime image build env: \`${TRACKA_CAPTION_RUNTIME_IMAGE_BUILD_CONFIRM_ENV}=true\`
 
 confirmationProvided: ${bool(bundle.summary.confirmationProvided)}
+
+layoutFixConfirmationProvided: ${bool(bundle.summary.layoutFixConfirmationProvided)}
 
 sourceGcsReadConfirmationProvided: ${bool(bundle.summary.sourceGcsReadConfirmationProvided)}
 
@@ -199,11 +231,41 @@ ${sourceChainTable()}
 
 ${executionNarrative(bundle)}
 
+## Layout Fix Profile
+
+${layoutProfileTable()}
+
 ## No-Scope Statement
 
 ${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
 `,
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.approvedSource]: `# TRACKA-CAPTION-QUALITY-3R3 Approved Source Input
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.layoutStyleContract]: `# TRACKA-CAPTION-QUALITY-5 Layout Style Contract
+
+Status: \`${bundle.summary.captionLayoutFixProfileApplied ? 'applied' : 'not_applied'}\`
+
+## Profile
+
+${layoutProfileTable()}
+
+## Requirements
+
+- bottom-center subtitle-style placement.
+- no absolute top/left positioning.
+- safe margins encoded in ASS style.
+- no more than two caption lines.
+- readable white text with dark outline/shadow.
+- no old #419 caption text.
+- no transcript accuracy claim.
+
+## Layout-Fixed Caption Lines
+
+${layoutFixedCaptionLinesList()}
+
+## No-Scope Statement
+
+${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
+`,
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.approvedSource]: `# TRACKA-CAPTION-QUALITY-5 Approved Source Input
 
 Status: \`${bundle.approvedSourceRef.status}\`
 
@@ -230,7 +292,7 @@ ${gcsAccessTable(bundle)}
 ## Source Rules
 
 - exact private \`gs://\` object only.
-- exact metadata/copy checks require \`${TRACKA_CAPTION_GCS_ACCESS_REPAIR_CONFIRM_ENV}=true\`.
+- exact metadata/copy checks require the CQ5 layout-fix, burn-in, and source-read confirmations.
 - no public URL.
 - no signed URL.
 - no prefix-only ref.
@@ -243,7 +305,7 @@ ${gcsAccessTable(bundle)}
 
 ${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
 `,
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.sidecar]: `# TRACKA-CAPTION-QUALITY-3R3 Corrected ASS Sidecar
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.sidecar]: `# TRACKA-CAPTION-QUALITY-5 Corrected ASS Sidecar
 
 Status: \`${bundle.sidecar.created ? 'created' : 'not_created'}\`
 
@@ -261,6 +323,14 @@ captionVisualBurnInRevalidationRequired: \`true\`
 
 ${captionLinesList()}
 
+## Layout-Fixed Caption Lines
+
+${layoutFixedCaptionLinesList()}
+
+## Layout Fix Profile
+
+${layoutProfileTable()}
+
 ## Sidecar Artifact
 
 localSidecarPath: \`${bundle.sidecar.localPath ?? 'not_created'}\`
@@ -270,6 +340,8 @@ sidecarSha256: \`${bundle.sidecar.sha256 ?? 'not_created'}\`
 sidecarSizeBytes: \`${bundle.sidecar.sizeBytes ?? 'not_created'}\`
 
 lineCount: \`${bundle.sidecar.lineCount}\`
+
+layoutProfile: \`${bundle.sidecar.layoutProfile ?? 'not_applied'}\`
 
 oldAwkwardCaptionRejected: \`true\`
 
@@ -281,7 +353,7 @@ The sidecar is a private local review artifact for guarded revalidation only. It
 
 ${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
 `,
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.artifactManifest]: `# TRACKA-CAPTION-QUALITY-3R3 Private Artifact Manifest
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.artifactManifest]: `# TRACKA-CAPTION-QUALITY-5 Private Artifact Manifest
 
 Status: \`${execution}\`
 
@@ -321,7 +393,7 @@ ${artifactRows(bundle)}
 
 ${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
 `,
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.qaReport]: `# TRACKA-CAPTION-QUALITY-3R3 QA Report
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.qaReport]: `# TRACKA-CAPTION-QUALITY-5 QA Report
 
 Status: \`${execution}\`
 
@@ -339,9 +411,9 @@ ${runtimeTable()}
 
 ## Required Follow-Up
 
-Corrected-caption visual review remains incomplete until TRACKA-CAPTION-QUALITY-4 records the visual review outcome from the generated private preview.
+Caption layout visual review remains incomplete until TRACKA-CAPTION-QUALITY-6 records the visual review outcome from the generated private preview.
 
-TRACKA-CAPTION-QUALITY-4 readiness: \`${bundle.summary.trackaCaptionQuality4Readiness}\`
+TRACKA-CAPTION-QUALITY-6 readiness: \`${bundle.summary.trackaCaptionQuality6Readiness}\`
 
 TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: \`${bundle.summary.trackaPrivateE2eRevalidation1Readiness}\`
 
@@ -351,7 +423,7 @@ Internal beta readiness: \`${bundle.summary.internalBetaReadiness}\`
 
 ${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
 `,
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.ffprobe]: `# TRACKA-CAPTION-QUALITY-3R3 FFprobe Validation
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.ffprobe]: `# TRACKA-CAPTION-QUALITY-5 FFprobe Validation
 
 Status: \`${ffprobeStatus}\`
 
@@ -371,7 +443,7 @@ ffprobeSizeBytes: \`${bundle.ffprobeArtifact.sizeBytes ?? 'not_created'}\`
 
 ${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
 `,
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.localBundle]: `# TRACKA-CAPTION-QUALITY-3R3 Local Review Bundle
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.localBundle]: `# TRACKA-CAPTION-QUALITY-5 Local Review Bundle
 
 Status: \`${bundle.previewArtifact.created ? 'created_with_private_preview' : 'not_created_or_metadata_only'}\`
 
@@ -393,21 +465,21 @@ localReviewBundleVisualFiles: \`${bundle.previewArtifact.created ? '1' : '0'}\`
 
 uploadableVisualFiles: \`${bundle.previewArtifact.created ? '1' : '0'}\`
 
-The approved source copy remains private local input evidence and must not be uploaded as review output unless a future owner explicitly asks for source provenance. The corrected-caption preview MP4 is the review artifact for TRACKA-CAPTION-QUALITY-4.
+The approved source copy remains private local input evidence and must not be uploaded as review output unless a future owner explicitly asks for source provenance. The layout-fixed corrected-caption preview MP4 is the review artifact for TRACKA-CAPTION-QUALITY-6.
 
 ## No-Scope Statement
 
 ${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
 `,
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.uploadInstructions]: `# TRACKA-CAPTION-QUALITY-3R3 Upload-To-Chat Instructions
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.uploadInstructions]: `# TRACKA-CAPTION-QUALITY-5 Upload-To-Chat Instructions
 
-Status: \`${bundle.previewArtifact.created ? 'ready_after_upload_of_corrected_caption_preview' : 'blocked_pending_review_safe_visual_artifact'}\`
+Status: \`${bundle.summary.trackaCaptionQuality6Readiness}\`
 
 ## Upload Candidate Files
 
 | File | Upload? | Reason |
 | --- | --- | --- |
-| \`${bundle.previewArtifact.localPath ?? 'not_created'}\` | ${bundle.previewArtifact.created ? 'yes' : 'no'} | corrected-caption visual review artifact |
+| \`${bundle.previewArtifact.localPath ?? 'not_created'}\` | ${bundle.previewArtifact.created ? 'yes' : 'no'} | caption layout visual review artifact |
 | \`${bundle.ffprobeArtifact.localPath ?? 'not_created'}\` | optional metadata | validates private preview container/streams |
 | \`${bundle.qaReportArtifact.localPath ?? 'not_created'}\` | optional metadata | records QA gate status |
 | \`${bundle.artifactManifestArtifact.localPath ?? 'not_created'}\` | optional metadata | records checksums and provenance |
@@ -426,13 +498,13 @@ previewSha256: \`${bundle.previewArtifact.sha256 ?? 'not_created'}\`
 
 ${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
 `,
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.nextPhase]: `# TRACKA-CAPTION-QUALITY-3R3 Next Phase Plan
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.nextPhase]: `# TRACKA-CAPTION-QUALITY-5 Next Phase Plan
 
-Status: \`${bundle.summary.trackaCaptionQuality4Readiness}\`
+Status: \`${bundle.summary.trackaCaptionQuality6Readiness}\`
 
 ## Readiness
 
-TRACKA-CAPTION-QUALITY-4 readiness: \`${bundle.summary.trackaCaptionQuality4Readiness}\`
+TRACKA-CAPTION-QUALITY-6 readiness: \`${bundle.summary.trackaCaptionQuality6Readiness}\`
 
 TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: \`${bundle.summary.trackaPrivateE2eRevalidation1Readiness}\`
 
@@ -440,11 +512,11 @@ Internal beta readiness: \`${bundle.summary.internalBetaReadiness}\`
 
 ## Next Prompt
 
-\`TRACKA-CAPTION-QUALITY-4 — Record burn-in review outcome\`
+\`TRACKA-CAPTION-QUALITY-6 — Record layout review outcome\`
 
-## Required Before TRACKA-CAPTION-QUALITY-4
+## Required Before TRACKA-CAPTION-QUALITY-6
 
-- upload the corrected-caption preview MP4 if it was created.
+- upload the layout-fixed corrected-caption preview MP4 if it was created.
 - include FFprobe/QA metadata when available.
 - record whether captions are readable, timed acceptably for the controlled sample, and free of rejected #419 caption text.
 - keep full Track A closure, private E2E closure, internal beta, external beta, production, and final delivery blocked unless a later owner packet explicitly records those outcomes.
@@ -453,15 +525,15 @@ Internal beta readiness: \`${bundle.summary.internalBetaReadiness}\`
 
 ${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
 `,
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.activationResults]: `# Activation Phase TRACKA-CAPTION-QUALITY-3R3 Results
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.activationResults]: `# Activation Phase TRACKA-CAPTION-QUALITY-5 Results
 
 Branch: \`${TRACKA_CAPTION_BURNIN_BRANCH}\`
 
 PR title: \`${TRACKA_CAPTION_BURNIN_PR_TITLE}\`
 
-Base: \`origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration\` at or after #463 merge \`c2d40f1b6e32330142d5d6b74f18ee37050b4fe3\`
+Base: \`origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration\` at or after #484 merge \`cb974c7fe8c8350cfa7522ec7e736140af58583a\`
 
-Patch type: Track A corrected-caption burn-in revalidation execution with approved private source ref and approved FFmpeg/libass runtime.
+Patch type: Track A caption layout fix and corrected-caption burn-in revalidation.
 
 Run ID: \`${bundle.runId}\`
 
@@ -505,6 +577,12 @@ Corrected controlled-test caption copy:
 
 ${captionLinesList()}
 
+Layout-fixed caption copy:
+
+${layoutFixedCaptionLinesList()}
+
+Layout fix profile: \`${TRACKA_CAPTION_LAYOUT_FIX_PROFILE_ID}\`
+
 oldAwkwardCaptionRejected: \`true\`
 
 ## Execution Results
@@ -531,7 +609,7 @@ ${artifactRows(bundle)}
 
 ## Readiness
 
-TRACKA-CAPTION-QUALITY-4 readiness: \`${bundle.summary.trackaCaptionQuality4Readiness}\`
+TRACKA-CAPTION-QUALITY-6 readiness: \`${bundle.summary.trackaCaptionQuality6Readiness}\`
 
 TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: \`${bundle.summary.trackaPrivateE2eRevalidation1Readiness}\`
 
@@ -548,8 +626,8 @@ Track A final delivery: \`blocked\`
 - Supabase environment touched: none
 - SQL executed: none
 - Migration deployed: no
-- Evidence docs: TRACKA-CAPTION-QUALITY-3R3 docs packet
-- Blockers: corrected-caption visual review, private E2E scope decision
+- Evidence docs: TRACKA-CAPTION-QUALITY-5 docs packet
+- Blockers: caption layout visual review, private E2E scope decision
 - Next Supabase action: none
 
 ## Cross-Chat Impact
@@ -557,27 +635,27 @@ Track A final delivery: \`blocked\`
 - Workstream updated: TRACK_A_RENDER_EXPORT
 - Other workstreams affected: TRACK_B_MEDIA_PROCESSING, WORKER_RUNTIME_JOBS, COMPLIANCE_SECURITY, OBSERVABILITY_AUDIT_COST
 - Contracts changed: corrected caption burn-in revalidation private review artifact contract only
-- Handoff needed: upload corrected-caption preview, then run TRACKA-CAPTION-QUALITY-4
-- Duplicate risk: low; branch is dedicated to TRACKA-CAPTION-QUALITY-3R3
-- Next owner/prompt: TRACKA-CAPTION-QUALITY-4 — Record burn-in review outcome
+- Handoff needed: upload layout-fixed corrected-caption preview, then run TRACKA-CAPTION-QUALITY-6
+- Duplicate risk: low; branch is dedicated to TRACKA-CAPTION-QUALITY-5
+- Next owner/prompt: TRACKA-CAPTION-QUALITY-6 — Record layout review outcome
 
 ## Known Limitations
 
-Corrected-caption visual review is not complete until TRACKA-CAPTION-QUALITY-4 records the visual outcome from generated review artifacts.
+Caption layout visual review is not complete until TRACKA-CAPTION-QUALITY-6 records the visual outcome from generated review artifacts.
 
 ## No-Scope Statement
 
 ${TRACKA_CAPTION_BURNIN_NO_SCOPE_STATEMENT}
 `,
-    [TRACKA_CAPTION_BURNIN_DOC_PATHS.nextPrompt]: `# TRACKA-CAPTION-QUALITY-4 Record Corrected-Caption Burn-In Review Outcome
+    [TRACKA_CAPTION_BURNIN_DOC_PATHS.nextPrompt]: `# TRACKA-CAPTION-QUALITY-6 Record Caption Layout Review Outcome
 
 ## Goal
 
-Record the human or AI-assisted review outcome for a corrected-caption burn-in preview generated from TRACKA-CAPTION-QUALITY-3R3.
+Record the human or AI-assisted review outcome for a corrected-caption burn-in preview generated from TRACKA-CAPTION-QUALITY-5.
 
 ## Current Source Status
 
-TRACKA-CAPTION-QUALITY-3R3 currently records \`${execution}\`.
+TRACKA-CAPTION-QUALITY-5 currently records \`${execution}\`.
 
 Approved #452 source ref: \`${bundle.summary.approvedSourceRef}\`.
 
@@ -589,7 +667,7 @@ Corrected-caption visual preview status: \`${previewStatus}\`.
 
 ## Required Inputs
 
-- corrected-caption preview file generated from the #426 controlled-test caption copy and #452 approved source ref.
+- layout-fixed corrected-caption preview file generated from the #426 controlled-test caption copy and #452 approved source ref.
 - QA/FFprobe metadata for that preview.
 - checksum and provenance for the corrected ASS sidecar and preview.
 - visual review notes confirming whether corrected captions are readable, safe, and free of rejected #419 caption wording.
@@ -643,6 +721,6 @@ export function readTrackaCaptionBurninSummary(): Record<string, unknown> {
   return {
     phase: TRACKA_CAPTION_BURNIN_PHASE,
     runId: getTrackaCaptionBurninRunId(),
-    execution: 'blocked_pending_caption_burnin_execution_confirmation',
+    execution: 'blocked_caption_layout_fix_confirmation_missing',
   }
 }

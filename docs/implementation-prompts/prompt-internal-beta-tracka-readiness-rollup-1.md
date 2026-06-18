@@ -13,6 +13,7 @@ Create the internal beta readiness rollup only after TRACKA-PRIVATE-E2E-REVALIDA
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 status.
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 transactional runtime gate status.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 status.
+- TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 route contract dry-run gate status.
 - #492 caption layout policy: `user_configurable_default_one_line` with default preset `one_line_bottom_safe_area`.
 
 ## Scope Boundary
@@ -53,7 +54,10 @@ Current Worker Runtime evidence:
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
 - Worker runtime execution readiness: `blocked_pending_worker_runtime_transactional_execution_gate`.
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `ready_for_transactional_runtime_gate_planning`.
-- TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_tool_route_gate`.
+- TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
+- Tool Route execution readiness: `blocked_pending_tool_route_contract_dry_run_gate`.
+- TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `ready_for_route_contract_dry_run_gate_planning`.
+- TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_tool_route_gate_2`.
 
 INTERNAL-BETA-READINESS-ROLLUP readiness remains `blocked_pending_tracka_private_e2e_execution_packet_and_worker_tool_route_gates` until the guarded execution packet, Worker Runtime transactional gate, and Tool Route gate are resolved.
 

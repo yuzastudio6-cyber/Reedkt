@@ -45,7 +45,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_dry_run_gate_status_qa_passed
 - `git diff --cached --check`: passed before staging.
 - `package-lock.json`: unchanged.
 - `.local-artifacts/`, generated media/render/browser/canvas/WebGL/public artifacts, signed URLs, dependency mutations, dry-run outputs, and local fixture outputs: not staged.
-- Draft PR: [#511](https://github.com/yuzastudio6-cyber/Reedkt/pull/511), open draft, mergeable, head `ae0be8b6fe2ad6f2b952fc19822741c0acd93939`, empty check rollup at creation.
+- Draft PR: [#511](https://github.com/yuzastudio6-cyber/Reedkt/pull/511), open draft, mergeable, empty check rollup after follow-up record update.
 
 Supabase classification: `no write` / `docs_only`; environment touched: `none`; SQL executed: `none`; migration deployed: `no`; milestone sync: `not_performed`.
 

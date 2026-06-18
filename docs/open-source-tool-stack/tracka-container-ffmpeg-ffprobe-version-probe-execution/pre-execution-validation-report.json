@@ -1,0 +1,30 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.preExecutionValidation.v1",
+  "generatedAt": "2026-06-18T00:20:25.117Z",
+  "checks": {
+    "pr481ApprovalDecision": true,
+    "pr477SourceDecision": true,
+    "pr472ReviewDecision": true,
+    "duckdbQaAccepted": true,
+    "duckdbExecutionPassed": true,
+    "polarsProofPresent": true,
+    "dockerfilePresent": true,
+    "localHostProbeBlocked": true,
+    "exactContainerInvocationMissing": true
+  },
+  "passedForBlockedPacket": true,
+  "passedForProbeExecution": false,
+  "validationCommandsRequiredExternally": [
+    "npm ci --ignore-scripts --no-audit --no-fund",
+    "npm run open-source-tool-stack:ffmpeg-ffprobe-version-probe-approval:diagnostics",
+    "npm run tracka:ffmpeg-ffprobe-source-of-truth:diagnostics",
+    "npm run open-source-tool-stack:ffmpeg-ffprobe-system-binary-review:diagnostics",
+    "npm run open-source-tool-stack:duckdb-native-rebuild:qa:diagnostics",
+    "npm run open-source-tool-stack:duckdb-native-rebuild:diagnostics",
+    "npm run open-source-tool-stack:missing-optional-package-binary-execution:diagnostics",
+    "npm run open-source-tool-stack:batch-1:qa-review:diagnostics",
+    "npm run open-source-tool-stack:batch-1:execution:diagnostics",
+    "npm run dependency-baseline:repair-before-tool-batch-1:diagnostics",
+    "npm run open-source-tool-stack:audit:diagnostics"
+  ]
+}

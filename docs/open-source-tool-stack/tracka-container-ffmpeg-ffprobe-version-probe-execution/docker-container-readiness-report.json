@@ -1,0 +1,13 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.dockerContainerReadiness.v1",
+  "generatedAt": "2026-06-18T00:20:25.117Z",
+  "dockerRuntimeCheckRun": false,
+  "dockerBuildRun": false,
+  "dockerRunRun": false,
+  "dockerImagePushRun": false,
+  "dockerfileMutationRun": false,
+  "containerDefinitionMutationRun": false,
+  "readinessStatus": "not_checked_blocked_before_runtime",
+  "blockedBeforeDockerReadiness": true,
+  "blocker": "blocked_pending_exact_probe_command_source"
+}

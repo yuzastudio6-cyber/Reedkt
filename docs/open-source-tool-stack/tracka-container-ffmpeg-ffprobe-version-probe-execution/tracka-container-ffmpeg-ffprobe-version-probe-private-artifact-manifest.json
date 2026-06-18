@@ -1,0 +1,12 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-18T00:20:25.117Z",
+  "privatePayloadsAccessed": false,
+  "privatePayloadsPrinted": false,
+  "privatePayloadsCommitted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "mediaArtifactsCreated": false,
+  "dockerImagesPushed": false,
+  "reportDirectory": "docs/open-source-tool-stack/tracka-container-ffmpeg-ffprobe-version-probe-execution"
+}

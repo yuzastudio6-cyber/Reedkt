@@ -179,3 +179,16 @@ OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL:
 - No FFmpeg/FFprobe probe, Docker build/run, Docker/container mutation, media processing, caption burn-in, render/export, npm install/rebuild, DuckDB/Polars proof rerun, worker/route/provider execution, Supabase/GCS mutation, public artifact, signed URL, raw prompt, beta, or production scope is enabled.
 - Supabase classification: no write / none / none / no.
 <!-- OPEN_SOURCE_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL_STATUS:end -->
+
+<!-- OPEN_SOURCE_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:start -->
+OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION:
+
+- Decision: `blocked_pending_exact_probe_command_source`.
+- Selected runtime path: `tracka_repo_owned_render_worker_container`.
+- Approved inner commands from PR #481: `ffmpeg -version` and `ffprobe -version`.
+- Exact container invocation source: missing, so FFmpeg/FFprobe probes were not run.
+- Local host probing remains not approved.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION`.
+- No FFmpeg/FFprobe probe, Docker build/run, Docker/container mutation, media input/probe/decode/encode, caption burn-in, render/export, npm install/rebuild, DuckDB/Polars proof rerun, worker/route/provider execution, Supabase/GCS mutation, public artifact, signed URL, raw prompt, beta, or production scope is enabled.
+- Supabase classification: no write / none / none / no.
+<!-- OPEN_SOURCE_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:end -->

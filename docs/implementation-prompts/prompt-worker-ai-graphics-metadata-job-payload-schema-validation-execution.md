@@ -16,7 +16,7 @@ Execute approved local/static schema validation for Worker AI graphics metadata 
 - New diagnostic script: `scripts/validation/worker-ai-graphics-metadata-job-payload-schema-validation-execution-diagnostics.mjs`.
 - Validation: local/static execution, new diagnostics, inherited Worker diagnostics, inherited Tool Route diagnostics, inherited AI graphics diagnostics/proof scripts, lint, typecheck, TypeScript build, app build, and server build passed. Production readiness remains globally blocked by existing launch-core/model-weight blockers; beta summary keeps external beta and paid production blocked.
 - Local Git workaround: `DEVELOPER_DIR=/Library/Developer/CommandLineTools` was used after the Apple/Xcode shim reported a missing Xcode developer path.
-- PR link/check status: pending PR creation.
+- PR link/check status: draft PR #491 opened at https://github.com/yuzastudio6-cyber/Reedkt/pull/491; open, draft, mergeable, empty check rollup at creation.
 
 Supabase classification: `no write` / `docs_only`; environment touched: `none`; SQL executed: `none`; migration deployed: `no`; milestone sync: `not_performed`.
 

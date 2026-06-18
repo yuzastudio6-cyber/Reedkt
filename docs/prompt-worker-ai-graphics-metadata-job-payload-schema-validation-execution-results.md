@@ -42,7 +42,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_schema_validation_passed_with
 - AppleDouble sidecar cleanup: no `._*` files found.
 - `package-lock.json`: unchanged.
 - `.local-artifacts/`: ignored and not staged.
-- PR link/check status: pending PR creation.
+- PR link/check status: draft PR #491 opened at https://github.com/yuzastudio6-cyber/Reedkt/pull/491; open, draft, mergeable, empty check rollup at creation.
 
 ## Result Booleans
 

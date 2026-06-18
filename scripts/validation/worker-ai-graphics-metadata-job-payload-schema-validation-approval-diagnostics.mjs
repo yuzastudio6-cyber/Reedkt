@@ -319,10 +319,13 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .filter(
     (line) =>
       !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation-approval:diagnostics') &&
-  !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation:execute') &&
+      !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation:execute') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation-qa:diagnostics') &&
-  !line.includes('worker:ai-graphics-metadata-job-payload-owner-approval:diagnostics'),
+  !line.includes('worker:ai-graphics-metadata-job-payload-owner-approval:diagnostics') &&
+  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-approval:diagnostics') &&
+  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:execute') &&
+  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:diagnostics'),
   )
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 

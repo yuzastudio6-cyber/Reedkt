@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeBlockerResolution.exactFutureProbeCommands.v1",
+  "generatedAt": "2026-06-18T01:15:52.818Z",
+  "commandTemplateToken": "<source-sha>",
+  "sourceSha": "31dbf3d26c18b550b0dad7e712d194982b497bf4",
+  "resolvedForCurrentSourceSha": {
+    "futureBuildCommand": "docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-31dbf3d26c18 .",
+    "futureFfmpegRunCommand": "docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-31dbf3d26c18 -version",
+    "futureFfprobeRunCommand": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-31dbf3d26c18 -version",
+    "futureImageTag": "reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-31dbf3d26c18"
+  },
+  "futureBuildCommand": "docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-<source-sha> .",
+  "futureFfmpegRunCommand": "docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-<source-sha> -version",
+  "futureFfprobeRunCommand": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-<source-sha> -version",
+  "expectedOutputClassification": "bounded_private_version_text_report_only",
+  "localHostProbingNotUsedReason": "PR #481 selected the Track A repo-owned render-worker/container path and explicitly blocked local host probing.",
+  "noMediaTouchedReason": "Commands use only version flags and have no media path arguments or mounts.",
+  "futureReportPaths": [
+    "docs/open-source-tool-stack/tracka-container-ffmpeg-ffprobe-version-probe-execution/ffmpeg-version-probe-report.json",
+    "docs/open-source-tool-stack/tracka-container-ffmpeg-ffprobe-version-probe-execution/ffprobe-version-probe-report.json"
+  ],
+  "currentPhaseVersionProbeRun": false,
+  "currentPhaseDockerBuildRun": false,
+  "currentPhaseDockerRun": false
+}

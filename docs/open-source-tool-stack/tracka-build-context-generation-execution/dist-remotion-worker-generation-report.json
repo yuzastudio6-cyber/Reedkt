@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.generationReport.v1",
+  "generatedAt": "2026-06-18T15:19:01.102Z",
+  "targetId": "remotion_worker_bundle",
+  "command": "npm run build:remotion-worker:mock",
+  "expectedDirectory": "dist-remotion-worker",
+  "expectedEntry": "remotion-worker-cli.js",
+  "run": true,
+  "exactApprovedCommand": true,
+  "exitCode": 0,
+  "status": "passed",
+  "directoryExists": true,
+  "expectedEntryExists": true,
+  "fileCount": 4,
+  "totalSizeBytes": 1173019,
+  "sha256": "002f03d20ca9c8c75b10f544c0eab05c990d2dc2bb72c00f9aba655c40c9a5bc",
+  "stdoutPreview": "\n> reeditpro@0.0.0 build:remotion-worker:mock\n> npm run typecheck:server && vite build --config vite.remotion-worker.config.ts\n\n\n> reeditpro@0.0.0 typecheck:server\n> tsc -p tsconfig.server.json --noEmit\n\nvite v8.0.12 building ssr environment for production...\n\u001b[2K\rtransforming...✓ 9 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist-remotion-worker/remotion-worker-cli.js  33.74 kB │ gzip: 8.01 kB\n\n✓ built in 10ms",
+  "stderrPreview": "",
+  "errorMessage": null
+}

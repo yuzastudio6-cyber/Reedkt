@@ -1,0 +1,8 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.readiness.v1",
+  "generatedAt": "2026-06-18T15:19:01.102Z",
+  "readiness": true,
+  "decision": "build_context_generation_execution_passed_ready_for_docker_build_probe_execution",
+  "blockers": [],
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_RERUN"
+}

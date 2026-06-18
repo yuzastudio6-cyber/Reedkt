@@ -1,0 +1,42 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.packageDockerfileIntegrity.v1",
+  "generatedAt": "2026-06-18T15:19:01.102Z",
+  "checks": [
+    {
+      "id": "package_lock_unchanged_during_generation",
+      "passed": true
+    },
+    {
+      "id": "package_json_direct_dependencies_unchanged",
+      "passed": true
+    },
+    {
+      "id": "dockerfile_unchanged",
+      "passed": true
+    },
+    {
+      "id": "dockerignore_unchanged",
+      "passed": true
+    },
+    {
+      "id": "dist_outputs_not_staged_or_present",
+      "passed": true
+    },
+    {
+      "id": "node_modules_not_staged",
+      "passed": true
+    },
+    {
+      "id": "media_artifacts_not_staged",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "packageJsonName": "reeditpro",
+  "packageLockHashBeforeGeneration": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "packageLockHashAfterGeneration": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "dockerfileHashBeforeGeneration": "5c74565f21853301c2ad159d7dccdb0dfb48e1d33d39ab55fe330f6a409310e9",
+  "dockerfileHashAfterGeneration": "5c74565f21853301c2ad159d7dccdb0dfb48e1d33d39ab55fe330f6a409310e9",
+  "dockerignoreHashBeforeGeneration": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91",
+  "dockerignoreHashAfterGeneration": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91"
+}

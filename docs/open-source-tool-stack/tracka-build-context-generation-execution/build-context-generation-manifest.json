@@ -1,0 +1,58 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.manifest.v1",
+  "generatedAt": "2026-06-18T15:19:01.102Z",
+  "directories": [
+    {
+      "directory": "dist-server",
+      "generated": true,
+      "expectedEntry": "server.js",
+      "expectedEntryExists": true,
+      "fileCount": 4,
+      "totalSizeBytes": 2899882,
+      "sha256": "d6c712b1d48a3c42e037cd34c2eeab9677ee0e29cfd3fc013e9988990b5f2033",
+      "scanPassed": true,
+      "cleanupRequired": true,
+      "commitAllowed": false
+    },
+    {
+      "directory": "dist-remotion-worker",
+      "generated": true,
+      "expectedEntry": "remotion-worker-cli.js",
+      "expectedEntryExists": true,
+      "fileCount": 4,
+      "totalSizeBytes": 1173019,
+      "sha256": "002f03d20ca9c8c75b10f544c0eab05c990d2dc2bb72c00f9aba655c40c9a5bc",
+      "scanPassed": true,
+      "cleanupRequired": true,
+      "commitAllowed": false
+    },
+    {
+      "directory": "dist-staging-fixture-worker",
+      "generated": true,
+      "expectedEntry": "staging-fixture-worker-cli.js",
+      "expectedEntryExists": true,
+      "fileCount": 4,
+      "totalSizeBytes": 2916660,
+      "sha256": "c6cf5be7e11ed568d159399e132832e3a06a4814279af1ad3217dcae51f35866",
+      "scanPassed": true,
+      "cleanupRequired": true,
+      "commitAllowed": false
+    },
+    {
+      "directory": "dist-staging-real-video-export-worker",
+      "generated": true,
+      "expectedEntry": "staging-real-video-export-worker-cli.js",
+      "expectedEntryExists": true,
+      "fileCount": 4,
+      "totalSizeBytes": 2972818,
+      "sha256": "2bb7d2e8ae8014cb9cf18cc788ea646ff1298cb2165282832470cd673757d794",
+      "scanPassed": true,
+      "cleanupRequired": true,
+      "commitAllowed": false
+    }
+  ],
+  "allGenerated": true,
+  "scanPassed": true,
+  "cleanupRequired": true,
+  "commitAllowed": false
+}

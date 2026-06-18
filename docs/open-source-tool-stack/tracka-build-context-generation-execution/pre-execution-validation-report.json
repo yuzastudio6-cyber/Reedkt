@@ -1,0 +1,53 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.preExecutionValidation.v1",
+  "generatedAt": "2026-06-18T15:19:01.102Z",
+  "checks": [
+    {
+      "id": "pr504_approval_decision",
+      "passed": true
+    },
+    {
+      "id": "pr499_blocker_resolution_decision",
+      "passed": true
+    },
+    {
+      "id": "pr494_blocked_docker_build_decision",
+      "passed": true
+    },
+    {
+      "id": "pr490_exact_command_resolution_decision",
+      "passed": true
+    },
+    {
+      "id": "package_scripts_match_expected_commands",
+      "passed": true
+    },
+    {
+      "id": "protected_hashes_captured",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "buildContextGenerationOnly": true,
+  "approvedCommands": [
+    "npm run build:server",
+    "npm run build:remotion-worker:mock",
+    "npm run build:staging-fixture-worker",
+    "npm run build:staging-real-video-export-worker"
+  ],
+  "prohibitedCommands": [
+    "docker build",
+    "docker run",
+    "ffmpeg -version",
+    "ffprobe -version",
+    "npm install",
+    "npm rebuild"
+  ],
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "not_applicable",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

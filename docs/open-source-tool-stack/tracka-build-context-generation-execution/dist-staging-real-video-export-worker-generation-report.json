@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.generationReport.v1",
+  "generatedAt": "2026-06-18T15:19:01.102Z",
+  "targetId": "staging_real_video_export_worker_bundle",
+  "command": "npm run build:staging-real-video-export-worker",
+  "expectedDirectory": "dist-staging-real-video-export-worker",
+  "expectedEntry": "staging-real-video-export-worker-cli.js",
+  "run": true,
+  "exactApprovedCommand": true,
+  "exitCode": 0,
+  "status": "passed",
+  "directoryExists": true,
+  "expectedEntryExists": true,
+  "fileCount": 4,
+  "totalSizeBytes": 2972818,
+  "sha256": "2bb7d2e8ae8014cb9cf18cc788ea646ff1298cb2165282832470cd673757d794",
+  "stdoutPreview": "\n> reeditpro@0.0.0 build:staging-real-video-export-worker\n> npm run typecheck:server && vite build --config vite.staging-real-video-export-worker.config.ts\n\n\n> reeditpro@0.0.0 typecheck:server\n> tsc -p tsconfig.server.json --noEmit\n\nvite v8.0.12 building ssr environment for production...\n\u001b[2K\rtransforming...✓ 266 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist-staging-real-video-export-worker/staging-real-video-export-worker-cli.js  1,833.54 kB │ gzip: 511.41 kB\n\n✓ built in 72ms",
+  "stderrPreview": "",
+  "errorMessage": null
+}

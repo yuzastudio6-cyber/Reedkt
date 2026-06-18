@@ -6,6 +6,8 @@ const expectedDecision = 'worker_ai_graphics_metadata_job_payload_dry_run_approv
 const allowedDecisions = new Set([
   'worker_ai_graphics_metadata_job_payload_dry_run_approved_with_warnings',
   'worker_ai_graphics_metadata_job_payload_dry_run_approved',
+  'worker_ai_graphics_metadata_job_payload_dry_run_passed_with_warnings',
+  'worker_ai_graphics_metadata_job_payload_dry_run_passed',
   'blocked_pending_worker_ai_graphics_dry_run_scope_fixes',
   'blocked_pending_worker_ai_graphics_dry_run_fixture_case_fixes',
   'blocked_pending_worker_ai_graphics_claim_lease_placeholder_review',
@@ -280,6 +282,8 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
   .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-approval:diagnostics'))
+  .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:execute'))
+  .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 if (git(['diff', '--name-only', `${baseRef}...HEAD`, '--', 'package-lock.json']).trim()) failures.push('package_lock_changed')

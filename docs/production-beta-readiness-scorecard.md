@@ -352,3 +352,16 @@ provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization,
 Remotion render/export, Supabase mutation, GCS/storage transfer, signed URLs,
 public artifacts, internal beta, external beta, paid production, or production
 readiness.
+
+WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_EXECUTION decision
+`worker_ai_graphics_metadata_job_payload_dry_run_passed_with_warnings`
+executes the local/static Worker Runtime metadata job payload dry-run for all
+13 accepted AI graphics metadata tools using run id
+`ai-graphics-job-payload-dry-run-local-static`. It records the scoped pass
+claim `workerAiGraphicsMetadataJobPayloadDryRunPassed` and recommends
+`WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_QA_REVIEW` next. It does not
+approve worker execution, job claim, lease mutation, queue execution, route
+execution, actual tool execution, provider/model runtime, browser/WebGL/canvas
+runtime, resvg rasterization, Remotion render/export, Supabase mutation,
+GCS/storage transfer, signed URLs, public artifacts, internal beta, external
+beta, paid production, or production readiness.

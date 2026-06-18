@@ -18,3 +18,14 @@ Model orchestration plan snapshot dry-run validation status: plan_snapshot_dry_r
 Worker runtime repo audit status: repo_audit_passed_ready_for_worker_dry_run_approval. Audit is metadata-only; worker/tool/route/provider execution, Supabase writes, Docker, Cloud Run, public artifacts, signed URLs, external beta, paid production, and production remain blocked.
 
 Worker runtime dry-run approval status: approved_for_future_worker_noop_dry_run_execution. Approval is metadata-only; worker/tool/route/provider execution, Docker, Cloud Run, Cloud Build, Supabase writes, media processing, public artifacts, signed URLs, external beta, paid production, and production remain blocked.
+
+## SOUND_MUSIC_AUDIO / SOUND OSS scoped status
+
+- `sound_oss_tools_synthetic_fixture_validation_passed_with_warnings`
+- Meaning: SOUND OSS scoped synthetic fixture validation passed with warnings.
+- Scope: SOUND OSS metadata/status only.
+- Not project-wide `generated_local_fixture_passed`.
+- Not `dry_run_passed`.
+- Not runtime readiness.
+- Not media processing readiness.
+- Blockers remain: `audioread` file-open, `pydub` media operations / FFmpeg warning, FFmpeg/ffprobe, Demucs/RNNoise/Essentia/Rubber Band, workers/routes/providers, Supabase/SQL, signed URLs/public artifacts, beta/production.

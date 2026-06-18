@@ -591,6 +591,7 @@
     "track-a:caption-quality-3r3:diagnostics": "node scripts/validation/track-a-caption-quality-3r3-diagnostics.mjs",
     "track-a:caption-quality-4:diagnostics": "node scripts/validation/track-a-caption-quality-4-diagnostics.mjs",
     "track-a:caption-quality-5:diagnostics": "node scripts/validation/track-a-caption-quality-5-diagnostics.mjs",
+    "track-a:caption-quality-6:diagnostics": "node scripts/validation/track-a-caption-quality-6-diagnostics.mjs",
     "track-a:caption-runtime-path-1": "node scripts/validation/track-a-caption-runtime-path-1.mjs",
     "track-a:caption-runtime-path-1:diagnostics": "node scripts/validation/track-a-caption-runtime-path-1-diagnostics.mjs",
     "track-a:caption-source-ref-1": "node scripts/validation/track-a-caption-source-ref-1.mjs",

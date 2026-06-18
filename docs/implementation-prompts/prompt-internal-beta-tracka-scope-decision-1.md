@@ -19,8 +19,9 @@ Record the first restricted internal beta Track A scope decision after corrected
 - TRACKA-CAPTION-QUALITY-3R2-RUNTIME-PATH-1 runtime path status: `approved_repo_owned_ffmpeg_libass_metadata_only`.
 - #475 TRACKA-CAPTION-QUALITY-3R3 guarded burn-in revalidation execution result using the #426 caption copy, #452 approved source ref, and #463 approved runtime path.
 - #484 TRACKA-CAPTION-QUALITY-4 layout review outcome: `fail_caption_layout_quality`.
-- TRACKA-CAPTION-QUALITY-5 layout fix and revalidation result using `tracka_caption_layout_fix_v1`.
-- TRACKA-CAPTION-QUALITY-6 layout-fixed preview visual outcome.
+- #488 TRACKA-CAPTION-QUALITY-5 layout fix and revalidation result using `tracka_caption_layout_fix_v1`.
+- TRACKA-CAPTION-QUALITY-6 layout-fixed preview visual outcome: `accepted_for_restricted_internal_beta_scope_with_configurable_caption_policy`.
+- TRACKA-CAPTION-QUALITY-6 caption layout policy: `user_configurable_default_one_line`.
 
 ## Required Decisions
 
@@ -31,18 +32,18 @@ Record the first restricted internal beta Track A scope decision after corrected
 
 ## Current Required Statuses
 
-TRACKA-CAPTION-QUALITY-6 readiness: `ready_after_upload_of_layout_fixed_caption_preview` if TRACKA-CAPTION-QUALITY-5 completes with a private layout-fixed corrected-caption preview; otherwise blocked on the exact CQ5 fail-closed blocker.
+TRACKA-CAPTION-QUALITY-6 readiness: `completed`
 
-TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_layout_visual_review_and_scope_decision`
+TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `ready_for_planning_after_scope_decision`
 
-INTERNAL-BETA readiness: `blocked_pending_caption_layout_visual_review_and_scope_decision`
+INTERNAL-BETA readiness: `blocked_pending_tracka_scope_decision_and_private_e2e_revalidation`
 
 TRACKA-MISSING-VISUAL-EVIDENCE-3 readiness: `optional_scope_expansion_only`
 
 ## Blocked Claims
 
-This prompt must not claim internal beta readiness, external beta readiness, production readiness, final delivery readiness, runtime readiness, public artifact readiness, or signed URL readiness.
+This prompt may record INTERNAL-BETA-TRACKA-SCOPE-DECISION-1 readiness: `ready`, but must not claim internal beta readiness, external beta readiness, production readiness, final delivery readiness, runtime readiness, public artifact readiness, or signed URL readiness.
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Bounded Track A caption layout fix revalidation used only the approved #452 source ref, the approved #426 caption copy, and the approved #463 repo-owned FFmpeg/libass runtime path, producing private review artifacts only.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.

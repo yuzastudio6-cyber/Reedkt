@@ -1,0 +1,255 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1FinalRollup.stillBlockedScopeMatrix.v1",
+  "generatedAt": "2026-06-18T18:13:56.633Z",
+  "status": "accepted",
+  "accepted": true,
+  "warnings": [
+    "media_processing_render_export_external_beta_and_production_remain_blocked"
+  ],
+  "blockers": [],
+  "details": {
+    "rows": [
+      {
+        "scope": "media_processing",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa-decision.json"
+      },
+      {
+        "scope": "media_file_probing",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa-decision.json"
+      },
+      {
+        "scope": "decode_encode",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "caption_burn_in",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "render_export",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa-decision.json"
+      },
+      {
+        "scope": "real_worker_jobs",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "app_route_execution",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "provider_model_calls",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "browser_capture",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "map_rendering",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa-decision.json"
+      },
+      {
+        "scope": "supabase_writes",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "sql",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "gcs_upload",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "public_artifacts",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "signed_urls",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "external_beta",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "paid_production",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "production",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      },
+      {
+        "scope": "raw_prompts",
+        "blocked": true,
+        "acceptedForBatch1": false,
+        "source": "rollup_policy"
+      }
+    ],
+    "fieldChecks": [
+      {
+        "field": "mediaProcessingAccepted",
+        "passed": true
+      },
+      {
+        "field": "captionBurnInAccepted",
+        "passed": true
+      },
+      {
+        "field": "renderExportAccepted",
+        "passed": true
+      },
+      {
+        "field": "dockerBuildRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "dockerRunRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "ffmpegProbeRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "ffprobeProbeRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "buildContextGenerationRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "npmInstallRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "npmRebuildRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "workerExecutionRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "routeExecutionRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "providerCallsRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "supabaseWritesRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "gcsUploadRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "publicArtifactsCreatedInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "signedUrlsCreatedInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "betaProductionUnlockedInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "rawPromptsRunInThisPhase",
+        "passed": true
+      },
+      {
+        "field": "secretsPrintedInThisPhase",
+        "passed": true
+      }
+    ],
+    "outputIntegrity": {
+      "schema": "reeditpro.openSourceToolStack.batch1FinalRollup.outputIntegrity.v1",
+      "outputs": [
+        {
+          "path": "dist",
+          "exists": false,
+          "gitStatus": "",
+          "validationOnlyDependencyDirectory": false
+        },
+        {
+          "path": "dist-server",
+          "exists": false,
+          "gitStatus": "",
+          "validationOnlyDependencyDirectory": false
+        },
+        {
+          "path": "dist-remotion-worker",
+          "exists": false,
+          "gitStatus": "",
+          "validationOnlyDependencyDirectory": false
+        },
+        {
+          "path": "dist-staging-fixture-worker",
+          "exists": false,
+          "gitStatus": "",
+          "validationOnlyDependencyDirectory": false
+        },
+        {
+          "path": "dist-staging-real-video-export-worker",
+          "exists": false,
+          "gitStatus": "",
+          "validationOnlyDependencyDirectory": false
+        },
+        {
+          "path": "node_modules",
+          "exists": true,
+          "gitStatus": "",
+          "validationOnlyDependencyDirectory": true
+        }
+      ],
+      "passed": true
+    },
+    "externalBetaUnlocked": false,
+    "paidProductionUnlocked": false,
+    "productionUnlocked": false
+  }
+}

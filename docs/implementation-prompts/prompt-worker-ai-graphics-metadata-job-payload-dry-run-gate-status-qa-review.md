@@ -38,7 +38,7 @@ Implement `WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_GATE_STATUS_QA_REVIEW
 - Changed-file secret scan: passed after filtering diagnostic self-test regex literals; no credential-like values remain.
 - `package-lock.json`: unchanged.
 - `.local-artifacts/`, generated media/render/browser/canvas/WebGL/public artifacts, signed URLs, dependency mutations, dry-run outputs, and local fixture outputs: not staged.
-- Draft PR link: pending until PR creation.
+- Draft PR: [#511](https://github.com/yuzastudio6-cyber/Reedkt/pull/511), open draft, mergeable, head `ae0be8b6fe2ad6f2b952fc19822741c0acd93939`, empty check rollup at creation.
 
 Supabase classification: `no write` / `docs_only`; environment touched: `none`; SQL executed: `none`; migration deployed: `no`; milestone sync: `not_performed`.
 

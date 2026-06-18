@@ -427,3 +427,16 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - Supabase classification: no write / environment none / SQL none / migration no.
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_BUILD_CONTEXT_GENERATION_APPROVAL`.
 <!-- tracka-docker-build-context-blocker-resolution:end -->
+
+<!-- tracka-build-context-generation-approval:start -->
+## Track A Build Context Generation Approval
+
+- Decision: `build_context_generation_approval_passed_ready_for_generation_execution`
+- Approved next lane: build-context generation execution only.
+- Future commands: `npm run build:server` -> `dist-server`, `npm run build:remotion-worker:mock` -> `dist-remotion-worker`, `npm run build:staging-fixture-worker` -> `dist-staging-fixture-worker`, `npm run build:staging-real-video-export-worker` -> `dist-staging-real-video-export-worker`.
+- Generated outputs must be scanned, must remain uncommitted, and must be removed with `rm -rf dist-server dist-remotion-worker dist-staging-fixture-worker dist-staging-real-video-export-worker` before commit.
+- Docker build/run and FFmpeg/FFprobe probes remain blocked until later separately approved phases.
+- Supabase classification: no write / environment none / SQL none / migration no.
+- Absent broad production docs recorded as audit facts: `docs/beta-readiness-scorecard.md`, `docs/production-beta-blocker-inventory.md`, `PRODUCTION_FOUNDATION_STATUS.md`.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_BUILD_CONTEXT_GENERATION_EXECUTION`.
+<!-- tracka-build-context-generation-approval:end -->

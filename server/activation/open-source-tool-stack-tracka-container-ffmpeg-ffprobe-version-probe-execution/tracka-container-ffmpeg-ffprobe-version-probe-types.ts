@@ -1,7 +1,9 @@
 export type TrackaContainerFfmpegFfprobeVersionProbeDecision =
   | 'tracka_container_ffmpeg_ffprobe_version_probe_passed_ready_for_qa'
   | 'tracka_container_ffmpeg_ffprobe_version_probe_passed_media_processing_still_blocked'
+  | 'tracka_container_docker_build_then_ffmpeg_ffprobe_version_probe_passed_media_processing_still_blocked'
   | 'blocked_pending_exact_probe_command_source'
+  | 'blocked_pending_docker_build'
   | 'blocked_pending_docker_runtime_availability'
   | 'blocked_pending_ffmpeg_version_probe'
   | 'blocked_pending_ffprobe_version_probe'

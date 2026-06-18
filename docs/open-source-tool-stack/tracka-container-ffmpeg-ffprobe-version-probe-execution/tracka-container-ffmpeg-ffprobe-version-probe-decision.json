@@ -1,28 +1,31 @@
 {
   "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.decision.v1",
-  "generatedAt": "2026-06-18T00:20:25.117Z",
-  "decision": "blocked_pending_exact_probe_command_source",
+  "generatedAt": "2026-06-18T02:19:28.389Z",
+  "decision": "blocked_pending_docker_build",
   "readiness": false,
-  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION",
-  "nextPromptFile": "docs/implementation-prompts/prompt-open-source-tool-stack-tracka-container-ffmpeg-ffprobe-version-probe-blocker-resolution.md",
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION",
+  "nextPromptFile": "docs/implementation-prompts/prompt-open-source-tool-stack-tracka-container-docker-build-then-ffmpeg-ffprobe-version-probe-blocker-resolution.md",
   "blockers": [
-    "blocked_pending_exact_probe_command_source"
+    "blocked_pending_docker_build"
   ],
   "selectedRuntimePath": "tracka_repo_owned_render_worker_container",
-  "approvedInnerCommands": [
-    "ffmpeg -version",
-    "ffprobe -version"
-  ],
-  "exactContainerInvocationPresent": false,
+  "imageTag": "reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f",
+  "approvedCommands": {
+    "dockerBuildCommand": "docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f .",
+    "dockerFfmpegCommand": "docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f -version",
+    "dockerFfprobeCommand": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f -version"
+  },
+  "exactContainerInvocationPresent": true,
   "ffmpegAcceptedAsInstalledAndProven": false,
   "ffprobeAcceptedAsInstalledAndProven": false,
   "ffmpegProbeRun": false,
   "ffprobeProbeRun": false,
-  "localHostSystemBinaryProbeUsed": false,
-  "dockerAvailabilityChecked": false,
-  "dockerBuildAttempted": false,
+  "dockerAvailabilityChecked": true,
+  "dockerBuildAttempted": true,
+  "dockerBuildExitCode": 1,
   "dockerRunAttempted": false,
   "dockerImagePushAttempted": false,
+  "localHostSystemBinaryProbeUsed": false,
   "dockerfileMutationAttempted": false,
   "containerDefinitionMutationAttempted": false,
   "mediaProcessingAttempted": false,
@@ -50,11 +53,7 @@
   "rawPromptsExecuted": false,
   "betaProductionUnlocked": false,
   "executionScope": {
-    "ffmpegProbeAllowedWithoutExactContainerInvocation": false,
-    "ffprobeProbeAllowedWithoutExactContainerInvocation": false,
     "localHostSystemBinaryProbeAllowed": false,
-    "dockerBuildAllowed": false,
-    "dockerRunAllowed": false,
     "dockerImagePushAllowed": false,
     "dockerfileMutationAllowed": false,
     "containerDefinitionMutationAllowed": false,

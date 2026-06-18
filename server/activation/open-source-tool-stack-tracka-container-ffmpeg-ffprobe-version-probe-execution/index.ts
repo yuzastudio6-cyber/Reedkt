@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import type {
@@ -8,25 +8,53 @@ import type {
 
 type JsonRecord = Record<string, unknown>
 
+type CommandRunReport = {
+  command: string
+  args: string[]
+  exactApprovedCommand: boolean
+  run: boolean
+  exitCode: number | null
+  status: 'passed' | 'failed' | 'blocked' | 'not_run'
+  stdoutPreview: string
+  stderrPreview: string
+  errorMessage: string | null
+  timedOut: boolean
+}
+
 export const TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_REPORT_DIR =
   'docs/open-source-tool-stack/tracka-container-ffmpeg-ffprobe-version-probe-execution'
 export const TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BRANCH =
-  'codex/rp-open-source-tool-stack-tracka-container-ffmpeg-ffprobe-version-probe-execution'
+  'codex/rp-open-source-tool-stack-tracka-container-docker-build-then-ffmpeg-ffprobe-version-probe-execution'
 export const TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BASE_BRANCH =
   'codex/rp-github-merge-hygiene-open-pr-stack-audit'
 export const TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_SOURCE_SHA =
-  'adfb8f98b5ba618205c59327d06615e28e9b6b7f'
+  '2f6ab6463870dc12d6837dc71f816ad5eefcd88f'
 
-const expectedDecision: TrackaContainerFfmpegFfprobeVersionProbeDecision =
-  'blocked_pending_exact_probe_command_source'
-const blockerNextPrompt = 'OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION'
+const imageTag =
+  'reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f'
+const dockerfilePath = 'docker/prod/render-worker/Dockerfile'
+const dockerBuildArgs = ['build', '-f', dockerfilePath, '-t', imageTag, '.']
+const dockerFfmpegArgs = ['run', '--rm', '--network', 'none', '--entrypoint', 'ffmpeg', imageTag, '-version']
+const dockerFfprobeArgs = ['run', '--rm', '--network', 'none', '--entrypoint', 'ffprobe', imageTag, '-version']
+const dockerBuildCommand = `docker ${dockerBuildArgs.join(' ')}`
+const dockerFfmpegCommand = `docker ${dockerFfmpegArgs.join(' ')}`
+const dockerFfprobeCommand = `docker ${dockerFfprobeArgs.join(' ')}`
+
+const passDecision: TrackaContainerFfmpegFfprobeVersionProbeDecision =
+  'tracka_container_docker_build_then_ffmpeg_ffprobe_version_probe_passed_media_processing_still_blocked'
 const passNextPrompt = 'OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_QA_REVIEW'
-const blockerNextPromptPath =
-  'docs/implementation-prompts/prompt-open-source-tool-stack-tracka-container-ffmpeg-ffprobe-version-probe-blocker-resolution.md'
+const blockerNextPrompt =
+  'OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION'
 const passNextPromptPath =
   'docs/implementation-prompts/prompt-open-source-tool-stack-tracka-container-ffmpeg-ffprobe-version-probe-qa-review.md'
+const blockerNextPromptPath =
+  'docs/implementation-prompts/prompt-open-source-tool-stack-tracka-container-docker-build-then-ffmpeg-ffprobe-version-probe-blocker-resolution.md'
 
 const sourceEvidencePaths = {
+  blockerResolutionDecision:
+    'docs/open-source-tool-stack/tracka-container-ffmpeg-ffprobe-version-probe-blocker-resolution/exact-probe-command-blocker-resolution-decision.json',
+  blockerResolutionCommands:
+    'docs/open-source-tool-stack/tracka-container-ffmpeg-ffprobe-version-probe-blocker-resolution/exact-future-probe-commands.json',
   approvalDecision:
     'docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/ffmpeg-ffprobe-version-probe-approval-decision.json',
   approvalFutureCommands:
@@ -37,8 +65,6 @@ const sourceEvidencePaths = {
     'docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval/package-docker-artifact-policy.json',
   trackaSourceDecision:
     'docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/tracka-ffmpeg-ffprobe-source-of-truth-decision.json',
-  trackaFutureBoundary:
-    'docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/future-version-probe-boundary.json',
   trackaCentralEvidence:
     'docs/open-source-tool-stack/tracka-ffmpeg-ffprobe-source-of-truth/ffmpeg-ffprobe-central-evidence.json',
   systemBinaryReviewDecision:
@@ -76,14 +102,16 @@ const statusDocPaths = [
   'docs/cross-chat/BLOCKED_SCOPES.md',
 ]
 
-const predecessorPrs = [481, 477, 472, 463, 469, 466, 455, 448, 444, 439, 435, 430, 427, 421, 416]
+const predecessorPrs = [490, 486, 481, 477, 472, 463, 469, 466, 455, 448, 444, 439, 435, 430, 427, 421, 416]
 const referenceOnlyPrs = [428, 425, 432, 423, 420, 417, 401, 384]
 
 export function requiredConfirmations() {
   return [
-    'REEDITPRO_CONFIRM_OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION',
+    'REEDITPRO_CONFIRM_OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION',
+    'REEDITPRO_CONFIRM_TRACKA_CONTAINER_COMMAND_RESOLUTION_SOURCE_OF_TRUTH',
     'REEDITPRO_CONFIRM_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL_SOURCE_OF_TRUTH',
     'REEDITPRO_CONFIRM_TRACKA_RUNTIME_PATH_SOURCE_OF_TRUTH',
+    'REEDITPRO_CONFIRM_DOCKER_BUILD_EXACT_APPROVED_COMMAND',
     'REEDITPRO_CONFIRM_TRACKA_CONTAINER_VERSION_PROBE_ONLY',
     'REEDITPRO_CONFIRM_FFMPEG_VERSION_PROBE',
     'REEDITPRO_CONFIRM_FFPROBE_VERSION_PROBE',
@@ -91,6 +119,7 @@ export function requiredConfirmations() {
     'REEDITPRO_CONFIRM_NO_MEDIA_INPUT',
     'REEDITPRO_CONFIRM_NO_MEDIA_PROCESSING',
     'REEDITPRO_CONFIRM_NO_RENDER_EXPORT',
+    'REEDITPRO_CONFIRM_NO_DOCKER_IMAGE_PUSH',
     'REEDITPRO_CONFIRM_DOCKER_ARTIFACT_POLICY_REVIEW',
     'REEDITPRO_CONFIRM_TOOL_EXECUTION_BLOCKER_POLICY',
     'REEDITPRO_CONFIRM_SECRET_REFERENCE_METADATA_ONLY',
@@ -99,11 +128,12 @@ export function requiredConfirmations() {
 
 export function forbiddenConfirmationFragments() {
   return [
+    'LOCAL_HOST_FFMPEG_FFPROBE_PROBE',
     'SYSTEM_BINARY_INSTALL',
     'DOCKERFILE_MUTATION',
+    'CONTAINER_DEFINITION_MUTATION',
     'CONTAINER_IMAGE_MUTATION',
     'DOCKER_IMAGE_PUSH',
-    'MEDIA_PROCESSING',
     'MEDIA_FILE_PROBE',
     'CAPTION_BURN_IN_EXECUTION',
     'RENDER_EXPORT',
@@ -113,6 +143,7 @@ export function forbiddenConfirmationFragments() {
     'DEPENDENCY_INSTALL',
     'NPM_INSTALL',
     'NPM_REBUILD',
+    'PACKAGE_LIFECYCLE_SCRIPT_EXECUTION',
     'DUCKDB_IMPORT_SMOKE',
     'POLARS_IMPORT_SMOKE',
     'SUPABASE_METADATA_WRITE',
@@ -131,23 +162,27 @@ export function forbiddenConfirmationFragments() {
 
 export function buildTrackaContainerFfmpegFfprobeVersionProbePlan() {
   return {
-    phase: 'OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION',
+    phase: 'OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION',
     branch: TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BRANCH,
     baseBranch: TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BASE_BRANCH,
-    expectedSourceSha: TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_SOURCE_SHA,
-    mode: 'blocked_before_probe_until_exact_container_invocation_source_exists',
+    sourceSha: TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_SOURCE_SHA,
+    mode: 'exact_tracka_render_worker_docker_build_then_container_version_probes',
     selectedRuntimePath: 'tracka_repo_owned_render_worker_container',
-    approvedInnerCommands: ['ffmpeg -version', 'ffprobe -version'],
-    expectedDecision,
-    nextPrompt: blockerNextPrompt,
+    imageTag,
+    approvedCommands: {
+      dockerBuildCommand,
+      dockerFfmpegCommand,
+      dockerFfprobeCommand,
+    },
+    expectedDecision: passDecision,
+    nextPrompt: passNextPrompt,
     requiredConfirmations: requiredConfirmations(),
     reports: Object.values(reportPaths),
-    docs: [...statusDocPaths, blockerNextPromptPath],
+    docs: [...statusDocPaths, passNextPromptPath],
     explicitlyNotRun: [
       'local host ffmpeg or ffprobe',
-      'docker build',
-      'docker run',
-      'docker/container mutation',
+      'Docker image push',
+      'Dockerfile or container definition mutation',
       'media input or media probe',
       'decode encode caption burn-in render export',
       'npm install or rebuild',
@@ -162,70 +197,11 @@ export function buildTrackaContainerFfmpegFfprobeVersionProbePlan() {
 }
 
 export function buildTrackaContainerFfmpegFfprobeVersionProbeReports(): TrackaContainerFfmpegFfprobeVersionProbeReportSet {
-  const generatedAt = new Date().toISOString()
-  const sourceEvidence = readSourceEvidence()
-  const packageState = capturePackageState()
-  const prMetadata = buildPrMetadata()
-  const flags = blockedFlags()
-  const sourceOfTruthAudit = buildSourceOfTruthAudit(generatedAt, sourceEvidence, packageState, prMetadata, flags)
-  const exactCommandSourceReview = buildExactCommandSourceReview(generatedAt, sourceEvidence)
-  const preExecutionValidationReport = buildPreExecutionValidationReport(generatedAt, sourceEvidence, exactCommandSourceReview)
-  const dockerContainerReadinessReport = buildDockerContainerReadinessReport(generatedAt, exactCommandSourceReview)
-  const ffmpegVersionProbeReport = buildVersionProbeReport(generatedAt, 'ffmpeg', exactCommandSourceReview)
-  const ffprobeVersionProbeReport = buildVersionProbeReport(generatedAt, 'ffprobe', exactCommandSourceReview)
-  const sideEffectArtifactSafetyReport = buildSideEffectArtifactSafetyReport(generatedAt, flags)
-  const blockers = buildBlockers(
-    exactCommandSourceReview,
-    preExecutionValidationReport,
-    dockerContainerReadinessReport,
-    sideEffectArtifactSafetyReport,
-  )
-  const decisionValue = chooseDecision(blockers)
-  const readiness = decisionValue === 'tracka_container_ffmpeg_ffprobe_version_probe_passed_media_processing_still_blocked'
-  const decision = buildDecision(generatedAt, decisionValue, readiness, blockers, flags)
-
-  return {
-    sourceOfTruthAudit,
-    exactCommandSourceReview,
-    preExecutionValidationReport,
-    dockerContainerReadinessReport,
-    ffmpegVersionProbeReport,
-    ffprobeVersionProbeReport,
-    sideEffectArtifactSafetyReport,
-    decision,
-    readinessReport: {
-      schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.readiness.v1',
-      generatedAt,
-      readiness,
-      decision: decisionValue,
-      readyForQaReview: readiness,
-      readyForBlockerResolution: decisionValue === 'blocked_pending_exact_probe_command_source',
-      blockers,
-    },
-    blockerReport: {
-      schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.blockers.v1',
-      generatedAt,
-      blockers,
-      exactProbeCommandSourceMissing: blockers.includes('blocked_pending_exact_probe_command_source'),
-      blockedScopesPreserved: Object.values(flags).every((value) => value === false),
-    },
-    privateArtifactManifest: {
-      schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.privateArtifactManifest.v1',
-      generatedAt,
-      privatePayloadsAccessed: false,
-      privatePayloadsPrinted: false,
-      privatePayloadsCommitted: false,
-      publicArtifactsCreated: false,
-      signedUrlsCreated: false,
-      mediaArtifactsCreated: false,
-      dockerImagesPushed: false,
-      reportDirectory: TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_REPORT_DIR,
-    },
-  }
+  return buildReports({ execute: false })
 }
 
-export function writeTrackaContainerFfmpegFfprobeVersionProbeArtifacts() {
-  const reports = buildTrackaContainerFfmpegFfprobeVersionProbeReports()
+export function writeTrackaContainerFfmpegFfprobeVersionProbeArtifacts(options: { execute?: boolean } = {}) {
+  const reports = buildReports(options)
   mkdirSync(TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_REPORT_DIR, { recursive: true })
   writeJson(reportPaths.sourceAudit, reports.sourceOfTruthAudit)
   writeJson(reportPaths.exactCommandSourceReview, reports.exactCommandSourceReview)
@@ -242,7 +218,7 @@ export function writeTrackaContainerFfmpegFfprobeVersionProbeArtifacts() {
   writeJson(reportPaths.blockers, reports.blockerReport)
   writeJson(reportPaths.privateManifest, reports.privateArtifactManifest)
   writeText(reportPaths.validationResults, validationResultsMarkdown(reports))
-  writeText(blockerNextPromptPath, blockerNextPromptMarkdown(reports))
+  writeText(String(reports.decision.nextPromptFile), nextPromptMarkdown(reports))
   updateStatusDocs(reports)
   return reports
 }
@@ -275,11 +251,13 @@ export function summarizeTrackaContainerFfmpegFfprobeVersionProbe(
       decision: reports?.decision?.decision,
       readiness: reports?.readinessReport?.readiness,
       nextPrompt: reports?.decision?.nextPrompt,
-      selectedRuntimePath: reports?.exactCommandSourceReview?.selectedRuntimePath,
-      approvedInnerCommands: reports?.exactCommandSourceReview?.approvedInnerCommands,
-      exactContainerInvocationPresent: reports?.exactCommandSourceReview?.exactContainerInvocationPresent,
+      imageTag: reports?.exactCommandSourceReview?.imageTag,
+      dockerBuildRun: reports?.dockerContainerReadinessReport?.dockerBuildRun,
+      dockerBuildExitCode: reports?.dockerContainerReadinessReport?.dockerBuildExitCode,
       ffmpegProbeRun: reports?.ffmpegVersionProbeReport?.probeRun,
+      ffmpegExitCode: reports?.ffmpegVersionProbeReport?.exitCode,
       ffprobeProbeRun: reports?.ffprobeVersionProbeReport?.probeRun,
+      ffprobeExitCode: reports?.ffprobeVersionProbeReport?.exitCode,
       localHostSystemBinaryProbeUsed: reports?.decision?.localHostSystemBinaryProbeUsed,
       mediaProcessingAttempted: reports?.decision?.mediaProcessingAttempted,
       supabaseClassification: reports?.decision?.supabaseClassification,
@@ -288,6 +266,111 @@ export function summarizeTrackaContainerFfmpegFfprobeVersionProbe(
     null,
     2,
   )
+}
+
+function buildReports(options: { execute?: boolean }): TrackaContainerFfmpegFfprobeVersionProbeReportSet {
+  const generatedAt = new Date().toISOString()
+  const sourceEvidence = readSourceEvidence()
+  const packageState = capturePackageState()
+  const prMetadata = buildPrMetadata()
+  const flags = blockedFlags()
+  const sourceOfTruthAudit = buildSourceOfTruthAudit(generatedAt, sourceEvidence, packageState, prMetadata, flags)
+  const exactCommandSourceReview = buildExactCommandSourceReview(generatedAt, sourceEvidence)
+  const preExecutionValidationReport = buildPreExecutionValidationReport(generatedAt, sourceEvidence, exactCommandSourceReview)
+  const dockerContainerReadinessReport = buildDockerContainerReadinessReport(
+    generatedAt,
+    options.execute === true && preExecutionValidationReport.passedForProbeExecution === true,
+  )
+  const ffmpegVersionProbeReport = buildVersionProbeReport(
+    generatedAt,
+    'ffmpeg',
+    dockerContainerReadinessReport,
+    options.execute === true &&
+      preExecutionValidationReport.passedForProbeExecution === true &&
+      dockerContainerReadinessReport.dockerBuildExitCode === 0,
+  )
+  const ffprobeVersionProbeReport = buildVersionProbeReport(
+    generatedAt,
+    'ffprobe',
+    dockerContainerReadinessReport,
+    options.execute === true &&
+      preExecutionValidationReport.passedForProbeExecution === true &&
+      dockerContainerReadinessReport.dockerBuildExitCode === 0 &&
+      ffmpegVersionProbeReport.exitCode === 0,
+  )
+  const sideEffectArtifactSafetyReport = buildSideEffectArtifactSafetyReport(
+    generatedAt,
+    flags,
+    dockerContainerReadinessReport,
+    ffmpegVersionProbeReport,
+    ffprobeVersionProbeReport,
+  )
+  const blockers = buildBlockers(
+    preExecutionValidationReport,
+    dockerContainerReadinessReport,
+    ffmpegVersionProbeReport,
+    ffprobeVersionProbeReport,
+    sideEffectArtifactSafetyReport,
+  )
+  const decisionValue = chooseDecision(
+    blockers,
+    dockerContainerReadinessReport,
+    ffmpegVersionProbeReport,
+    ffprobeVersionProbeReport,
+  )
+  const readiness = decisionValue === passDecision
+  const decision = buildDecision(generatedAt, decisionValue, readiness, blockers, flags, {
+    dockerContainerReadinessReport,
+    ffmpegVersionProbeReport,
+    ffprobeVersionProbeReport,
+  })
+
+  return {
+    sourceOfTruthAudit,
+    exactCommandSourceReview,
+    preExecutionValidationReport,
+    dockerContainerReadinessReport,
+    ffmpegVersionProbeReport,
+    ffprobeVersionProbeReport,
+    sideEffectArtifactSafetyReport,
+    decision,
+    readinessReport: {
+      schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.readiness.v1',
+      generatedAt,
+      readiness,
+      decision: decisionValue,
+      readyForQaReview: readiness,
+      readyForDockerRuntimeFix: decisionValue === 'blocked_pending_docker_runtime_availability',
+      readyForDockerBuildFix: decisionValue === 'blocked_pending_docker_build',
+      readyForFfmpegProbeFix: decisionValue === 'blocked_pending_ffmpeg_version_probe',
+      readyForFfprobeProbeFix: decisionValue === 'blocked_pending_ffprobe_version_probe',
+      blockers,
+      nextPrompt: decision.nextPrompt,
+    },
+    blockerReport: {
+      schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.blockers.v1',
+      generatedAt,
+      blockers,
+      blockedScopesPreserved: sideEffectArtifactSafetyReport.passed === true,
+      dockerRuntimeUnavailable: decisionValue === 'blocked_pending_docker_runtime_availability',
+      dockerBuildFailed: decisionValue === 'blocked_pending_docker_build',
+      ffmpegVersionProbeFailed: decisionValue === 'blocked_pending_ffmpeg_version_probe',
+      ffprobeVersionProbeFailed: decisionValue === 'blocked_pending_ffprobe_version_probe',
+    },
+    privateArtifactManifest: {
+      schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.privateArtifactManifest.v1',
+      generatedAt,
+      privatePayloadsAccessed: false,
+      privatePayloadsPrinted: false,
+      privatePayloadsCommitted: false,
+      publicArtifactsCreated: false,
+      signedUrlsCreated: false,
+      mediaArtifactsCreated: false,
+      dockerImagesBuilt: dockerContainerReadinessReport.dockerBuildExitCode === 0,
+      dockerImagesPushed: false,
+      reportDirectory: TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_REPORT_DIR,
+    },
+  }
 }
 
 function buildSourceOfTruthAudit(
@@ -300,7 +383,7 @@ function buildSourceOfTruthAudit(
   return {
     schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.sourceAudit.v1',
     generatedAt,
-    phase: 'OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION',
+    phase: 'OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION',
     branch: TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BRANCH,
     baseBranch: TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BASE_BRANCH,
     sourceSha: safeGit(['rev-parse', 'HEAD']) ?? TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_SOURCE_SHA,
@@ -308,12 +391,17 @@ function buildSourceOfTruthAudit(
     packageState,
     predecessorPrs,
     referenceOnlyPrs,
+    pr490CommandResolutionEvidence: {
+      decision: valueFrom(sourceEvidence.blockerResolutionDecision, 'decision'),
+      mergedState: valueFrom(prMetadata.pr490, 'state'),
+      mergedAt: valueFrom(prMetadata.pr490, 'mergedAt'),
+      headRefOid: valueFrom(prMetadata.pr490, 'headRefOid'),
+      mergeCommit: valueFrom(prMetadata.pr490, 'mergeCommit'),
+    },
     pr481ApprovalEvidence: {
       decision: valueFrom(sourceEvidence.approvalDecision, 'decision'),
       mergedState: valueFrom(prMetadata.pr481, 'state'),
       mergedAt: valueFrom(prMetadata.pr481, 'mergedAt'),
-      headRefOid: valueFrom(prMetadata.pr481, 'headRefOid'),
-      mergeCommit: valueFrom(prMetadata.pr481, 'mergeCommit'),
     },
     pr477TrackaSourceEvidence: {
       decision: valueFrom(sourceEvidence.trackaSourceDecision, 'decision'),
@@ -327,12 +415,13 @@ function buildSourceOfTruthAudit(
       centralCanonical: false,
     },
     duplicateSearches: {
-      exactPhase: safePrSearch('OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION'),
-      title: safePrSearch('Track A container FFmpeg FFprobe version probe execution'),
-      commands: safePrSearch('ffmpeg -version ffprobe -version'),
+      exactPhase: safePrSearch('OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION'),
+      title: safePrSearch('Track A container Docker build FFmpeg FFprobe version probe execution'),
+      imageTag: safePrSearch(imageTag),
     },
     evidenceFiles: sourceEvidencePaths,
     sourceEvidenceSummary: {
+      blockerResolutionDecision: valueFrom(sourceEvidence.blockerResolutionDecision, 'decision'),
       approvalDecision: valueFrom(sourceEvidence.approvalDecision, 'decision'),
       trackaDecision: valueFrom(sourceEvidence.trackaSourceDecision, 'decision'),
       systemBinaryReviewDecision: valueFrom(sourceEvidence.systemBinaryReviewDecision, 'decision'),
@@ -346,55 +435,59 @@ function buildSourceOfTruthAudit(
 }
 
 function buildExactCommandSourceReview(generatedAt: string, sourceEvidence: JsonRecord) {
-  const approvalDecision = sourceEvidence.approvalDecision as JsonRecord
-  const futureCommands = sourceEvidence.approvalFutureCommands as JsonRecord
-  const runtimePath = sourceEvidence.approvalRuntimePath as JsonRecord
-  const artifactPolicy = sourceEvidence.approvalArtifactPolicy as JsonRecord
-  const approvedInnerCommands = Array.isArray(futureCommands.commandsApprovedForFutureSeparateExecution)
-    ? futureCommands.commandsApprovedForFutureSeparateExecution.filter((value): value is string => typeof value === 'string')
-    : []
-  const exactContainerInvocationPresent = false
-  const dockerBuildRequired = false
-  const dockerRunRequired = false
-
+  const blockerDecision = sourceEvidence.blockerResolutionDecision as JsonRecord
+  const blockerCommands = sourceEvidence.blockerResolutionCommands as JsonRecord
+  const resolvedForCurrentSourceSha = blockerCommands.resolvedForCurrentSourceSha as JsonRecord | undefined
   return {
     schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.exactCommandSourceReview.v1',
     generatedAt,
     sourceFilesReviewed: [
+      sourceEvidencePaths.blockerResolutionDecision,
+      sourceEvidencePaths.blockerResolutionCommands,
       sourceEvidencePaths.approvalDecision,
-      sourceEvidencePaths.approvalFutureCommands,
       sourceEvidencePaths.approvalRuntimePath,
-      sourceEvidencePaths.approvalArtifactPolicy,
-      'docs/implementation-prompts/prompt-open-source-tool-stack-tracka-container-ffmpeg-ffprobe-version-probe-execution.md',
+      'docs/implementation-prompts/prompt-open-source-tool-stack-tracka-container-docker-build-then-ffmpeg-ffprobe-version-probe-execution.md',
     ],
-    selectedRuntimePath: runtimePath.selectedRuntimePath ?? 'tracka_repo_owned_render_worker_container',
-    approvedInnerCommands,
-    exactFfmpegProbeCommand: approvedInnerCommands.includes('ffmpeg -version') ? 'ffmpeg -version' : null,
-    exactFfprobeProbeCommand: approvedInnerCommands.includes('ffprobe -version') ? 'ffprobe -version' : null,
-    exactContainerInvocationPresent,
-    exactContainerInvocationSourceFile: null,
-    exactContainerInvocation: null,
-    dockerBuildRequired,
-    dockerRunRequired,
-    dockerBuildApprovedBySource: runtimePath.dockerBuildApprovedNow === true || artifactPolicy.dockerBuildApprovedNow === true,
-    dockerRunApprovedBySource: runtimePath.dockerRunApprovedNow === true || artifactPolicy.dockerRunApprovedNow === true,
-    dockerContainerMutationApprovedBySource:
-      runtimePath.dockerContainerMutationApprovedNow === true || artifactPolicy.containerRuntimeMutationApprovedNow === true,
-    localHostProbingApproved: runtimePath.localHostSystemBinaryApproved === true,
+    selectedRuntimePath: 'tracka_repo_owned_render_worker_container',
+    imageTag,
+    exactContainerInvocationPresent: true,
+    exactContainerInvocationSourceFile: sourceEvidencePaths.blockerResolutionCommands,
+    approvedDockerBuildCommand: dockerBuildCommand,
+    approvedFfmpegProbeCommand: dockerFfmpegCommand,
+    approvedFfprobeProbeCommand: dockerFfprobeCommand,
+    templateBuildCommand: blockerCommands.futureBuildCommand,
+    templateFfmpegRunCommand: blockerCommands.futureFfmpegRunCommand,
+    templateFfprobeRunCommand: blockerCommands.futureFfprobeRunCommand,
+    pr490ResolvedBuildCommand: resolvedForCurrentSourceSha?.futureBuildCommand ?? null,
+    pr490ResolvedFfmpegRunCommand: resolvedForCurrentSourceSha?.futureFfmpegRunCommand ?? null,
+    pr490ResolvedFfprobeRunCommand: resolvedForCurrentSourceSha?.futureFfprobeRunCommand ?? null,
+    commandTemplateToken: blockerCommands.commandTemplateToken,
+    sourceSha: TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_SOURCE_SHA,
+    localHostProbingApproved: false,
     localHostProbingUsed: false,
     mediaInputRequired: false,
-    mediaInputAllowed: futureCommands.mediaInputAllowed === true,
-    commandUnambiguous: false,
-    exactContainerCommandMissingReason:
-      'PR #481 approves only the inner version commands for a future Track A container path. It does not define an exact Docker/container invocation, and Docker build/run are explicitly not approved in the approval packet.',
-    stopBeforeProbeExecution: true,
-    blocker: 'blocked_pending_exact_probe_command_source',
-    approvalDecision: approvalDecision.decision,
+    mediaInputAllowed: false,
+    dockerImagePushApproved: false,
+    commandUnambiguous: true,
+    blocker: null,
+    blockerResolutionDecision: blockerDecision.decision,
   }
 }
 
 function buildPreExecutionValidationReport(generatedAt: string, sourceEvidence: JsonRecord, exactCommand: JsonRecord) {
   const checks = {
+    pr490BlockerResolutionDecision:
+      valueFrom(sourceEvidence.blockerResolutionDecision, 'decision') ===
+      'exact_probe_command_blocker_resolution_passed_ready_for_docker_build_then_version_probe_execution',
+    pr490FutureBuildCommandTemplate:
+      valueFrom(sourceEvidence.blockerResolutionCommands, 'futureBuildCommand') ===
+      'docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-<source-sha> .',
+    pr490FutureFfmpegCommandTemplate:
+      valueFrom(sourceEvidence.blockerResolutionCommands, 'futureFfmpegRunCommand') ===
+      'docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-<source-sha> -version',
+    pr490FutureFfprobeCommandTemplate:
+      valueFrom(sourceEvidence.blockerResolutionCommands, 'futureFfprobeRunCommand') ===
+      'docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-<source-sha> -version',
     pr481ApprovalDecision:
       valueFrom(sourceEvidence.approvalDecision, 'decision') ===
       'ffmpeg_ffprobe_version_probe_approval_passed_ready_for_tracka_container_probe_execution',
@@ -412,18 +505,21 @@ function buildPreExecutionValidationReport(generatedAt: string, sourceEvidence: 
       'duckdb_native_rebuild_execution_passed_ffmpeg_ffprobe_still_missing',
     polarsProofPresent:
       valueFrom(sourceEvidence.polarsProof, 'status') === 'passed' || valueFrom(sourceEvidence.polarsProof, 'passed') === true,
-    dockerfilePresent: existsSync('docker/prod/render-worker/Dockerfile'),
+    dockerfilePresent: existsSync(dockerfilePath),
+    exactContainerInvocationPresent: exactCommand.exactContainerInvocationPresent === true,
     localHostProbeBlocked: exactCommand.localHostProbingApproved === false,
-    exactContainerInvocationMissing: exactCommand.exactContainerInvocationPresent === false,
+    mediaInputBlocked: exactCommand.mediaInputAllowed === false,
   }
   return {
     schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.preExecutionValidation.v1',
     generatedAt,
     checks,
-    passedForBlockedPacket: Object.values(checks).every(Boolean),
-    passedForProbeExecution: false,
+    passedForProbeExecution: Object.values(checks).every(Boolean),
+    exactCommandsRequired: [dockerBuildCommand, dockerFfmpegCommand, dockerFfprobeCommand],
     validationCommandsRequiredExternally: [
       'npm ci --ignore-scripts --no-audit --no-fund',
+      'npm run open-source-tool-stack:tracka-container-ffmpeg-ffprobe-blocker-resolution:diagnostics',
+      'npm run open-source-tool-stack:tracka-container-ffmpeg-ffprobe-version-probe:diagnostics',
       'npm run open-source-tool-stack:ffmpeg-ffprobe-version-probe-approval:diagnostics',
       'npm run tracka:ffmpeg-ffprobe-source-of-truth:diagnostics',
       'npm run open-source-tool-stack:ffmpeg-ffprobe-system-binary-review:diagnostics',
@@ -438,67 +534,108 @@ function buildPreExecutionValidationReport(generatedAt: string, sourceEvidence: 
   }
 }
 
-function buildDockerContainerReadinessReport(generatedAt: string, exactCommand: JsonRecord) {
+function buildDockerContainerReadinessReport(generatedAt: string, runBuild: boolean) {
+  const result = runExactCommand(dockerBuildCommand, dockerBuildArgs, runBuild)
   return {
     schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.dockerContainerReadiness.v1',
     generatedAt,
+    imageTag,
+    dockerBuildCommand,
+    dockerBuildArgs,
     dockerRuntimeCheckRun: false,
-    dockerBuildRun: false,
+    dockerBuildRun: result.run,
+    dockerBuildExitCode: result.exitCode,
+    dockerBuildStatus: result.status,
+    dockerBuildStdoutPreview: result.stdoutPreview,
+    dockerBuildStderrPreview: result.stderrPreview,
+    dockerBuildErrorMessage: result.errorMessage,
+    dockerRuntimeUnavailable: result.errorMessage === 'spawn_enoent' || /cannot connect to the docker daemon|is the docker daemon running|docker daemon/i.test(result.stderrPreview),
     dockerRunRun: false,
     dockerImagePushRun: false,
     dockerfileMutationRun: false,
     containerDefinitionMutationRun: false,
-    readinessStatus: 'not_checked_blocked_before_runtime',
-    blockedBeforeDockerReadiness: exactCommand.exactContainerInvocationPresent === false,
-    blocker: 'blocked_pending_exact_probe_command_source',
+    readinessStatus: result.run ? result.status : 'not_run',
+    commandMatchesApproved: result.exactApprovedCommand,
   }
 }
 
-function buildVersionProbeReport(generatedAt: string, binary: 'ffmpeg' | 'ffprobe', exactCommand: JsonRecord) {
-  const command = binary === 'ffmpeg' ? exactCommand.exactFfmpegProbeCommand : exactCommand.exactFfprobeProbeCommand
+function buildVersionProbeReport(
+  generatedAt: string,
+  binary: 'ffmpeg' | 'ffprobe',
+  dockerBuildReport: JsonRecord,
+  runProbe: boolean,
+) {
+  const command = binary === 'ffmpeg' ? dockerFfmpegCommand : dockerFfprobeCommand
+  const args = binary === 'ffmpeg' ? dockerFfmpegArgs : dockerFfprobeArgs
+  const result = runExactCommand(command, args, runProbe)
   return {
     schema: `reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.${binary}VersionProbe.v1`,
     generatedAt,
     binary,
-    approvedInnerCommand: command,
-    exactContainerInvocationPresent: exactCommand.exactContainerInvocationPresent,
-    probeRun: false,
-    exitCode: null,
-    stdoutPreview: '',
-    stderrPreview: '',
-    versionDetected: null,
+    imageTag,
+    approvedContainerCommand: command,
+    exactContainerInvocationPresent: true,
+    probeRun: result.run,
+    exitCode: result.exitCode,
+    status: result.status,
+    stdoutPreview: result.stdoutPreview,
+    stderrPreview: result.stderrPreview,
+    errorMessage: result.errorMessage,
+    versionDetected: detectVersion(binary, result.stdoutPreview),
+    noLocalHostProbe: true,
     noMediaInput: true,
     noFileProbe: true,
     noDecode: true,
     noEncode: true,
     noOutputFiles: true,
-    blockedBeforeProbe: true,
-    blocker: binary === 'ffmpeg' ? 'blocked_pending_ffmpeg_version_probe' : 'blocked_pending_ffprobe_version_probe',
-    rootBlocker: 'blocked_pending_exact_probe_command_source',
+    blockedBeforeProbe: runProbe === false,
+    dockerBuildExitCode: dockerBuildReport.dockerBuildExitCode,
+    commandMatchesApproved: result.exactApprovedCommand,
   }
 }
 
-function buildSideEffectArtifactSafetyReport(generatedAt: string, flags: JsonRecord) {
+function buildSideEffectArtifactSafetyReport(
+  generatedAt: string,
+  flags: JsonRecord,
+  dockerBuildReport: JsonRecord,
+  ffmpegReport: JsonRecord,
+  ffprobeReport: JsonRecord,
+) {
+  const packageJsonClean = gitStatus('package.json') === ''
+  const packageLockClean = gitStatus('package-lock.json') === ''
+  const dockerfileClean = gitStatus(dockerfilePath) === ''
   return {
     schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.sideEffectArtifactSafety.v1',
     generatedAt,
+    noLocalHostProbe: true,
     noMediaInput: true,
     noMediaOutput: true,
     noGeneratedMediaArtifacts: true,
     noDockerImagePush: true,
-    noDockerfileMutation: true,
+    dockerImageBuiltLocally: dockerBuildReport.dockerBuildExitCode === 0,
+    noDockerfileMutation: dockerfileClean,
     noContainerConfigMutation: true,
-    noPackageJsonDependencyMutation: true,
-    noPackageLockMutation: gitStatus('package-lock.json') === '',
+    noPackageJsonDependencyMutation: packageJsonClean,
+    noPackageLockMutation: packageLockClean,
     noSupabaseWrites: true,
     noSql: true,
     noGcsUpload: true,
     noPublicArtifacts: true,
     noSignedUrls: true,
     noBetaProductionUnlock: true,
-    noNonApprovedCommandRun: true,
+    noNonApprovedCommandRun:
+      dockerBuildReport.commandMatchesApproved === true &&
+      (ffmpegReport.probeRun !== true || ffmpegReport.commandMatchesApproved === true) &&
+      (ffprobeReport.probeRun !== true || ffprobeReport.commandMatchesApproved === true),
     executionScope: flags,
-    passed: Object.values(flags).every((value) => value === false) && gitStatus('package-lock.json') === '',
+    passed:
+      Object.values(flags).every((value) => value === false) &&
+      packageJsonClean &&
+      packageLockClean &&
+      dockerfileClean &&
+      dockerBuildReport.dockerImagePushRun === false &&
+      ffmpegReport.noMediaInput === true &&
+      ffprobeReport.noMediaInput === true,
   }
 }
 
@@ -508,9 +645,14 @@ function buildDecision(
   readiness: boolean,
   blockers: string[],
   flags: JsonRecord,
+  reports: {
+    dockerContainerReadinessReport: JsonRecord
+    ffmpegVersionProbeReport: JsonRecord
+    ffprobeVersionProbeReport: JsonRecord
+  },
 ) {
-  const nextPrompt = decision === 'blocked_pending_exact_probe_command_source' ? blockerNextPrompt : passNextPrompt
-  const nextPromptFile = decision === 'blocked_pending_exact_probe_command_source' ? blockerNextPromptPath : passNextPromptPath
+  const nextPrompt = readiness ? passNextPrompt : blockerNextPrompt
+  const nextPromptFile = readiness ? passNextPromptPath : blockerNextPromptPath
   return {
     schema: 'reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.decision.v1',
     generatedAt,
@@ -520,17 +662,24 @@ function buildDecision(
     nextPromptFile,
     blockers,
     selectedRuntimePath: 'tracka_repo_owned_render_worker_container',
-    approvedInnerCommands: ['ffmpeg -version', 'ffprobe -version'],
-    exactContainerInvocationPresent: false,
-    ffmpegAcceptedAsInstalledAndProven: false,
-    ffprobeAcceptedAsInstalledAndProven: false,
-    ffmpegProbeRun: false,
-    ffprobeProbeRun: false,
-    localHostSystemBinaryProbeUsed: false,
-    dockerAvailabilityChecked: false,
-    dockerBuildAttempted: false,
-    dockerRunAttempted: false,
+    imageTag,
+    approvedCommands: {
+      dockerBuildCommand,
+      dockerFfmpegCommand,
+      dockerFfprobeCommand,
+    },
+    exactContainerInvocationPresent: true,
+    ffmpegAcceptedAsInstalledAndProven: reports.ffmpegVersionProbeReport.exitCode === 0,
+    ffprobeAcceptedAsInstalledAndProven: reports.ffprobeVersionProbeReport.exitCode === 0,
+    ffmpegProbeRun: reports.ffmpegVersionProbeReport.probeRun === true,
+    ffprobeProbeRun: reports.ffprobeVersionProbeReport.probeRun === true,
+    dockerAvailabilityChecked: reports.dockerContainerReadinessReport.dockerBuildRun === true,
+    dockerBuildAttempted: reports.dockerContainerReadinessReport.dockerBuildRun === true,
+    dockerBuildExitCode: reports.dockerContainerReadinessReport.dockerBuildExitCode,
+    dockerRunAttempted:
+      reports.ffmpegVersionProbeReport.probeRun === true || reports.ffprobeVersionProbeReport.probeRun === true,
     dockerImagePushAttempted: false,
+    localHostSystemBinaryProbeUsed: false,
     dockerfileMutationAttempted: false,
     containerDefinitionMutationAttempted: false,
     mediaProcessingAttempted: false,
@@ -563,23 +712,39 @@ function buildDecision(
 }
 
 function buildBlockers(
-  exactCommand: JsonRecord,
   preExecution: JsonRecord,
-  dockerReadiness: JsonRecord,
+  dockerBuild: JsonRecord,
+  ffmpegProbe: JsonRecord,
+  ffprobeProbe: JsonRecord,
   sideEffectSafety: JsonRecord,
 ) {
   const blockers: string[] = []
-  if (exactCommand.exactContainerInvocationPresent !== true) blockers.push('blocked_pending_exact_probe_command_source')
-  if (preExecution.passedForBlockedPacket !== true) blockers.push('blocked_pending_tracka_container_runtime')
-  if (dockerReadiness.blockedBeforeDockerReadiness !== true) blockers.push('blocked_pending_docker_runtime_availability')
+  if (preExecution.passedForProbeExecution !== true) blockers.push('rejected_due_runtime_safety_risk')
+  if (dockerBuild.dockerBuildRun !== true) blockers.push('blocked_pending_docker_runtime_availability')
+  if (dockerBuild.dockerRuntimeUnavailable === true) blockers.push('blocked_pending_docker_runtime_availability')
+  if (dockerBuild.dockerBuildRun === true && dockerBuild.dockerBuildExitCode !== 0) blockers.push('blocked_pending_docker_build')
+  if (dockerBuild.dockerBuildExitCode === 0 && ffmpegProbe.exitCode !== 0) blockers.push('blocked_pending_ffmpeg_version_probe')
+  if (dockerBuild.dockerBuildExitCode === 0 && ffmpegProbe.exitCode === 0 && ffprobeProbe.exitCode !== 0) {
+    blockers.push('blocked_pending_ffprobe_version_probe')
+  }
   if (sideEffectSafety.passed !== true) blockers.push('blocked_pending_artifact_safety_review')
   return [...new Set(blockers)]
 }
 
-function chooseDecision(blockers: string[]): TrackaContainerFfmpegFfprobeVersionProbeDecision {
-  if (blockers.includes('blocked_pending_exact_probe_command_source')) return 'blocked_pending_exact_probe_command_source'
+function chooseDecision(
+  blockers: string[],
+  dockerBuild: JsonRecord,
+  ffmpegProbe: JsonRecord,
+  ffprobeProbe: JsonRecord,
+): TrackaContainerFfmpegFfprobeVersionProbeDecision {
+  if (blockers.includes('rejected_due_runtime_safety_risk')) return 'rejected_due_runtime_safety_risk'
   if (blockers.includes('blocked_pending_artifact_safety_review')) return 'blocked_pending_artifact_safety_review'
-  return 'tracka_container_ffmpeg_ffprobe_version_probe_passed_media_processing_still_blocked'
+  if (blockers.includes('blocked_pending_docker_runtime_availability')) return 'blocked_pending_docker_runtime_availability'
+  if (blockers.includes('blocked_pending_docker_build')) return 'blocked_pending_docker_build'
+  if (blockers.includes('blocked_pending_ffmpeg_version_probe')) return 'blocked_pending_ffmpeg_version_probe'
+  if (blockers.includes('blocked_pending_ffprobe_version_probe')) return 'blocked_pending_ffprobe_version_probe'
+  if (dockerBuild.dockerBuildExitCode === 0 && ffmpegProbe.exitCode === 0 && ffprobeProbe.exitCode === 0) return passDecision
+  return 'blocked_pending_docker_runtime_availability'
 }
 
 function readSourceEvidence() {
@@ -594,19 +759,16 @@ function capturePackageState() {
   return {
     packageJsonHash: hashFile('package.json'),
     packageLockHash: hashFile('package-lock.json'),
+    dockerfileHash: hashFile(dockerfilePath),
     packageJsonChanged: gitStatus('package.json') !== '',
     packageLockChanged: gitStatus('package-lock.json') !== '',
-    dockerfileChanged: gitStatus('docker/prod/render-worker/Dockerfile') !== '',
+    dockerfileChanged: gitStatus(dockerfilePath) !== '',
   }
 }
 
 function blockedFlags() {
   return {
-    ffmpegProbeAllowedWithoutExactContainerInvocation: false,
-    ffprobeProbeAllowedWithoutExactContainerInvocation: false,
     localHostSystemBinaryProbeAllowed: false,
-    dockerBuildAllowed: false,
-    dockerRunAllowed: false,
     dockerImagePushAllowed: false,
     dockerfileMutationAllowed: false,
     containerDefinitionMutationAllowed: false,
@@ -639,41 +801,97 @@ function blockedFlags() {
   }
 }
 
+function runExactCommand(command: string, args: string[], run: boolean): CommandRunReport {
+  if (!run) {
+    return {
+      command,
+      args,
+      exactApprovedCommand: isApprovedCommand(command),
+      run: false,
+      exitCode: null,
+      status: 'not_run',
+      stdoutPreview: '',
+      stderrPreview: '',
+      errorMessage: null,
+      timedOut: false,
+    }
+  }
+
+  const result = spawnSync('docker', args, {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 8,
+    timeout: 1000 * 60 * 30,
+  })
+  const exitCode = typeof result.status === 'number' ? result.status : result.error ? 1 : 0
+  const errorMessage = result.error
+    ? result.error.message.includes('ENOENT')
+      ? 'spawn_enoent'
+      : result.error.message
+    : null
+
+  return {
+    command,
+    args,
+    exactApprovedCommand: isApprovedCommand(command),
+    run: true,
+    exitCode,
+    status: exitCode === 0 ? 'passed' : 'failed',
+    stdoutPreview: preview(result.stdout ?? ''),
+    stderrPreview: preview(result.stderr ?? ''),
+    errorMessage,
+    timedOut: result.error?.message.includes('ETIMEDOUT') === true,
+  }
+}
+
+function isApprovedCommand(command: string) {
+  return command === dockerBuildCommand || command === dockerFfmpegCommand || command === dockerFfprobeCommand
+}
+
+function detectVersion(binary: 'ffmpeg' | 'ffprobe', output: string) {
+  const match = output.match(new RegExp(`${binary}\\s+version\\s+([^\\s]+)`, 'i'))
+  return match?.[1] ?? null
+}
+
 function exactCommandSourceReviewMarkdown(report: JsonRecord) {
   return `# Exact Command Source Review
 
-Decision: \`${report.blocker}\`
-
 - Selected runtime path: \`${report.selectedRuntimePath}\`
-- Approved inner commands: \`${(report.approvedInnerCommands as string[]).join('`, `')}\`
+- Image tag: \`${report.imageTag}\`
 - Exact container invocation present: \`${report.exactContainerInvocationPresent}\`
-- Docker build approved by source: \`${report.dockerBuildApprovedBySource}\`
-- Docker run approved by source: \`${report.dockerRunApprovedBySource}\`
+- Docker build command: \`${report.approvedDockerBuildCommand}\`
+- FFmpeg probe command: \`${report.approvedFfmpegProbeCommand}\`
+- FFprobe probe command: \`${report.approvedFfprobeProbeCommand}\`
 - Local host probing approved: \`${report.localHostProbingApproved}\`
+- Media input allowed: \`${report.mediaInputAllowed}\`
 
-The packet stops before FFmpeg/FFprobe version probes because PR #481 does not define an exact container command. The approved inner commands are not enough to infer Docker build/run mechanics.
+PR #490 resolves the prior exact-command blocker with a build-then-container-version-probe path.
 `
 }
 
 function preExecutionValidationMarkdown(report: JsonRecord) {
   return `# Pre-Execution Validation
 
-Blocked-packet validation passed: \`${report.passedForBlockedPacket}\`
-
 Probe execution validation passed: \`${report.passedForProbeExecution}\`
 
-This report confirms source evidence is present while preserving the stop-before-probe blocker.
+Exact commands:
+- \`${(report.exactCommandsRequired as string[]).join('`\n- `')}\`
 `
 }
 
 function decisionMarkdown(report: JsonRecord) {
-  return `# Track A Container FFmpeg/FFprobe Version-Probe Decision
+  return `# Track A Container Docker Build Then FFmpeg/FFprobe Version-Probe Decision
 
 Decision: \`${report.decision}\`
 
 Next prompt: \`${report.nextPrompt}\`
 
-The version probes were not run. PR #481 approves the Track A render-worker/container path and the inner commands \`ffmpeg -version\` and \`ffprobe -version\`, but it does not provide an exact container invocation. Local host probing remains disallowed.
+- Docker build attempted: \`${report.dockerBuildAttempted}\`
+- Docker build exit code: \`${report.dockerBuildExitCode}\`
+- FFmpeg probe run: \`${report.ffmpegProbeRun}\`
+- FFprobe probe run: \`${report.ffprobeProbeRun}\`
+- Local host probing used: \`${report.localHostSystemBinaryProbeUsed}\`
+- Media processing attempted: \`${report.mediaProcessingAttempted}\`
+- Supabase update: \`${(report.supabaseClassification as JsonRecord).updateRequired}\`
 `
 }
 
@@ -681,60 +899,59 @@ function validationResultsMarkdown(reports: TrackaContainerFfmpegFfprobeVersionP
   return `# Validation Results
 
 - Decision: \`${reports.decision.decision}\`
-- Source-of-truth audit generated: yes
-- Exact command source review generated: yes
+- Docker build command: \`${reports.exactCommandSourceReview.approvedDockerBuildCommand}\`
+- Docker build run: \`${reports.dockerContainerReadinessReport.dockerBuildRun}\`
+- Docker build exit code: \`${reports.dockerContainerReadinessReport.dockerBuildExitCode}\`
 - FFmpeg probe run: \`${reports.ffmpegVersionProbeReport.probeRun}\`
+- FFmpeg exit code: \`${reports.ffmpegVersionProbeReport.exitCode}\`
+- FFmpeg version detected: \`${reports.ffmpegVersionProbeReport.versionDetected}\`
 - FFprobe probe run: \`${reports.ffprobeVersionProbeReport.probeRun}\`
+- FFprobe exit code: \`${reports.ffprobeVersionProbeReport.exitCode}\`
+- FFprobe version detected: \`${reports.ffprobeVersionProbeReport.versionDetected}\`
 - Side-effect safety passed: \`${reports.sideEffectArtifactSafetyReport.passed}\`
+- Docker image pushed: \`${reports.decision.dockerImagePushAttempted}\`
+- Media processing attempted: \`${reports.decision.mediaProcessingAttempted}\`
 - Supabase classification: no write / none / none / no
 `
 }
 
-function blockerNextPromptMarkdown(reports: TrackaContainerFfmpegFfprobeVersionProbeReportSet) {
-  return `# OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION
+function nextPromptMarkdown(reports: TrackaContainerFfmpegFfprobeVersionProbeReportSet) {
+  if (reports.decision.decision === passDecision) {
+    return `# OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_QA_REVIEW
 
-Resolve the exact container invocation blocker before running any FFmpeg/FFprobe version probes.
+Review the committed Track A container Docker build and FFmpeg/FFprobe version-probe reports. Do not rerun Docker build/run, FFmpeg/FFprobe probes, media processing, render/export, workers, routes, providers, Supabase, GCS, public artifacts, signed URLs, raw prompts, beta, or production.
 
-Current decision: \`${reports.decision.decision}\`
+Decision: \`${reports.decision.decision}\`
+`
+  }
 
-Required source update:
-- Provide the exact approved Track A container command(s) that execute only \`ffmpeg -version\` and \`ffprobe -version\`.
-- State whether Docker build/run is approved, and if so provide the exact bounded command.
-- Preserve no media input, no media probing, no decode/encode, no caption burn-in, no render/export, no Dockerfile/container mutation, no image push, and no public artifact or signed URL behavior.
+  return `# OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_BLOCKER_RESOLUTION
 
-Do not fall back to local host binaries.
+Resolve the blocked Track A container Docker build then FFmpeg/FFprobe version-probe result without broadening scope.
+
+Decision: \`${reports.decision.decision}\`
+
+Do not fall back to local host binaries, media file probes, Dockerfile mutation, image push, or production/runtime unlocks.
 `
 }
 
 function updateStatusDocs(reports: TrackaContainerFfmpegFfprobeVersionProbeReportSet) {
-  const section = `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION:
+  const section = `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION:
 
 - Decision: \`${reports.decision.decision}\`.
 - Selected runtime path: \`tracka_repo_owned_render_worker_container\`.
-- Approved inner commands from PR #481: \`ffmpeg -version\` and \`ffprobe -version\`.
-- Exact container invocation source: missing, so FFmpeg/FFprobe probes were not run.
-- Local host probing remains not approved.
+- Image tag: \`${reports.exactCommandSourceReview.imageTag}\`.
+- Docker build run / exit: \`${reports.dockerContainerReadinessReport.dockerBuildRun}\` / \`${reports.dockerContainerReadinessReport.dockerBuildExitCode}\`.
+- FFmpeg probe run / exit / version: \`${reports.ffmpegVersionProbeReport.probeRun}\` / \`${reports.ffmpegVersionProbeReport.exitCode}\` / \`${reports.ffmpegVersionProbeReport.versionDetected}\`.
+- FFprobe probe run / exit / version: \`${reports.ffprobeVersionProbeReport.probeRun}\` / \`${reports.ffprobeVersionProbeReport.exitCode}\` / \`${reports.ffprobeVersionProbeReport.versionDetected}\`.
+- Local host probing remains not approved and was not used.
+- Media processing, caption burn-in, render/export, Docker image push, Dockerfile/container mutation, npm install/rebuild, DuckDB/Polars proof rerun, worker/route/provider execution, Supabase/GCS mutation, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
 - Next prompt: \`${reports.decision.nextPrompt}\`.
-- No FFmpeg/FFprobe probe, Docker build/run, Docker/container mutation, media input/probe/decode/encode, caption burn-in, render/export, npm install/rebuild, DuckDB/Polars proof rerun, worker/route/provider execution, Supabase/GCS mutation, public artifact, signed URL, raw prompt, beta, or production scope is enabled.
 - Supabase classification: no write / none / none / no.`
 
   for (const file of statusDocPaths) {
-    upsertSection(file, 'OPEN_SOURCE_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS', section)
+    upsertSection(file, 'OPEN_SOURCE_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS', section)
   }
-}
-
-function upsertSection(file: string, marker: string, body: string) {
-  if (!existsSync(file)) return
-  const start = `<!-- ${marker}:start -->`
-  const end = `<!-- ${marker}:end -->`
-  const block = `${start}\n${body}\n${end}`
-  const current = readFileSync(file, 'utf8')
-  if (current.includes(start) && current.includes(end)) {
-    const pattern = new RegExp(`${escapeRegExp(start)}[\\s\\S]*?${escapeRegExp(end)}`)
-    writeText(file, current.replace(pattern, block))
-    return
-  }
-  writeText(file, `${current.trimEnd()}\n\n${block}\n`)
 }
 
 function readJson(path: string) {
@@ -829,6 +1046,24 @@ function supabaseClassification() {
     sqlExecuted: 'none',
     migrationDeployed: 'no',
   }
+}
+
+function upsertSection(file: string, marker: string, body: string) {
+  if (!existsSync(file)) return
+  const start = `<!-- ${marker}:start -->`
+  const end = `<!-- ${marker}:end -->`
+  const block = `${start}\n${body}\n${end}`
+  const current = readFileSync(file, 'utf8')
+  if (current.includes(start) && current.includes(end)) {
+    const pattern = new RegExp(`${escapeRegExp(start)}[\\s\\S]*?${escapeRegExp(end)}`)
+    writeText(file, current.replace(pattern, block))
+    return
+  }
+  writeText(file, `${current.trimEnd()}\n\n${block}\n`)
+}
+
+function preview(value: string) {
+  return value.slice(0, 12000)
 }
 
 function escapeRegExp(value: string) {

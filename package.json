@@ -48,6 +48,7 @@
     "worker:ai-graphics-metadata-handoff-qa:diagnostics": "node scripts/validation/worker-ai-graphics-metadata-handoff-qa-diagnostics.mjs",
     "worker:ai-graphics-metadata-job-payload-shape-approval:diagnostics": "node scripts/validation/worker-ai-graphics-metadata-job-payload-shape-approval-diagnostics.mjs",
     "worker:ai-graphics-metadata-job-payload-shape-qa:diagnostics": "node scripts/validation/worker-ai-graphics-metadata-job-payload-shape-qa-diagnostics.mjs",
+    "worker:ai-graphics-metadata-job-payload-schema-validation-approval:diagnostics": "node scripts/validation/worker-ai-graphics-metadata-job-payload-schema-validation-approval-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

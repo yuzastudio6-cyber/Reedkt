@@ -34,6 +34,7 @@ const requiredEvidenceDocs = [
 const allowedFutureScriptDiffs = [
   'worker:ai-graphics-metadata-job-payload-shape-approval:diagnostics',
   'worker:ai-graphics-metadata-job-payload-shape-qa:diagnostics',
+  'worker:ai-graphics-metadata-job-payload-schema-validation-approval:diagnostics',
   'worker:ai-graphics-metadata-handoff-qa:diagnostics',
   'worker:ai-graphics-metadata-handoff-approval:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics',

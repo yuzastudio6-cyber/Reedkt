@@ -48,7 +48,9 @@ Decision: `worker_ai_graphics_metadata_job_payload_dry_run_runtime_gate_qa_passe
 - `npx tsc -b`: passed.
 - `npm run build`: passed with the inherited large chunk warning.
 - `npm run build:server || true`: passed.
-- Draft PR link/check status: pending until PR creation follow-up.
+- Draft PR: [#521](https://github.com/yuzastudio6-cyber/Reedkt/pull/521).
+- Draft PR status after creation: open, draft, mergeable; head
+  `ba9b3bcc478bec9262e529736707f9b7d31d9f73`; check rollup empty.
 
 Supabase classification: `no write` / `docs_only`; environment touched:
 `none`; SQL executed: `none`; migration deployed: `no`; milestone sync:

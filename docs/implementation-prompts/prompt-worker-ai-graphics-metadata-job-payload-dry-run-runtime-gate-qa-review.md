@@ -43,7 +43,9 @@ and open draft PR
 - Known inherited warnings remain: npm audit/deprecation/allow-scripts review
   output, production readiness hard blockers for future launch/tool/model
   gates, and the Vite large chunk warning.
-- Draft PR link/check status: pending until PR creation follow-up.
+- Draft PR: [#521](https://github.com/yuzastudio6-cyber/Reedkt/pull/521).
+- Draft PR status after creation: open, draft, mergeable; head
+  `ba9b3bcc478bec9262e529736707f9b7d31d9f73`; check rollup empty.
 
 Supabase classification: `no write` / `docs_only`; environment touched:
 `none`; SQL executed: `none`; migration deployed: `no`; milestone sync:

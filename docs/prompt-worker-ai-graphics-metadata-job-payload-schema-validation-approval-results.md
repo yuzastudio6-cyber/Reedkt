@@ -52,7 +52,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_schema_validation_approved_wi
 - Changed-file secret scan: reviewed expected secret-pattern regex literals inside validation scripts; non-validator changed-file scan passed with no real secret-like values.
 - `package-lock.json`: unchanged.
 - `.local-artifacts/`: not staged and not tracked.
-- PR link/check status: pending PR creation.
+- PR link/check status: [PR #487](https://github.com/yuzastudio6-cyber/Reedkt/pull/487), open draft, mergeable clean, empty check rollup at head `eac715c62edda8aea604280720b2748d75e20f4b`.
 
 ## Decision Booleans
 

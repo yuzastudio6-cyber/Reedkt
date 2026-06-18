@@ -15,7 +15,7 @@ Create a docs/static-diagnostics-only approval branch from `origin/codex/rp-work
 - Optional invalid fixture: `docs/worker-runtime/fixtures/ai-graphics-metadata-job-payload-example.invalid.json`.
 - New diagnostic: `scripts/validation/worker-ai-graphics-metadata-job-payload-schema-validation-approval-diagnostics.mjs`.
 - New package script: `worker:ai-graphics-metadata-job-payload-schema-validation-approval:diagnostics`.
-- PR link/check status: pending PR creation.
+- PR link/check status: [PR #487](https://github.com/yuzastudio6-cyber/Reedkt/pull/487), open draft, mergeable clean, empty check rollup at head `eac715c62edda8aea604280720b2748d75e20f4b`.
 
 ## Boundaries
 

@@ -319,7 +319,8 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-schema-validation-qa:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-owner-approval:diagnostics') &&
-  !line.includes('worker:ai-graphics-metadata-job-payload-owner-review-after-dry-run:diagnostics') &&
+
+  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-gate-status:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-approval:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:execute') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:diagnostics') &&

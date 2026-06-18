@@ -1,59 +1,56 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
-const baseRef = 'origin/codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-execution'
-const expectedDecision = 'worker_ai_graphics_metadata_job_payload_dry_run_qa_passed_with_warnings'
+const baseRef = 'origin/codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-qa-review'
+const expectedDecision = 'worker_ai_graphics_metadata_job_payload_owner_review_after_dry_run_passed_with_warnings'
 const allowedDecisions = new Set([
-  'worker_ai_graphics_metadata_job_payload_dry_run_qa_passed_with_warnings',
-  'worker_ai_graphics_metadata_job_payload_dry_run_qa_passed',
-  'blocked_pending_worker_ai_graphics_dry_run_qa_fixes',
-  'blocked_pending_worker_ai_graphics_dry_run_fixture_safety_qa',
-  'blocked_pending_worker_ai_graphics_dry_run_artifact_scope_qa',
-  'blocked_pending_worker_ai_graphics_dry_run_fail_closed_qa',
+  'worker_ai_graphics_metadata_job_payload_owner_review_after_dry_run_passed_with_warnings',
+  'worker_ai_graphics_metadata_job_payload_owner_review_after_dry_run_passed',
+  'blocked_pending_worker_ai_graphics_owner_review_after_dry_run_fixes',
+  'blocked_pending_worker_ai_graphics_dry_run_claim_review',
+  'blocked_pending_worker_ai_graphics_worker_execution_scope_review',
+  'blocked_pending_worker_ai_graphics_claim_lease_scope_review',
+  'blocked_pending_worker_ai_graphics_queue_scope_review',
 ])
 
 const requiredDocs = [
-  'docs/worker-runtime/ai-graphics-metadata-job-payload-dry-run-qa-review.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-qa-source-lockfile.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-qa-run-results.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-scoped-pass-claim-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-valid-case-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-blocked-case-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-invalid-case-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-static-executor-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-plan-snapshot-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-scoped-manifest-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-private-artifact-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-claim-lease-placeholder-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-queue-placeholder-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-no-execution-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-observability-audit-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-fail-closed-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-worker-intake-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-cleanup-qa.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-warning-blocker-register.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-qa-decision.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-qa-next-lane-recommendation.md',
-  'docs/prompt-worker-ai-graphics-metadata-job-payload-dry-run-qa-review-results.md',
-  'docs/implementation-prompts/prompt-worker-ai-graphics-metadata-job-payload-dry-run-qa-review.md',
+  'docs/worker-runtime/ai-graphics-metadata-job-payload-owner-review-after-dry-run.md',
+  'docs/worker-runtime/ai-graphics-job-payload-owner-review-after-dry-run-source-lockfile.md',
+  'docs/worker-runtime/ai-graphics-job-payload-owner-review-after-dry-run-matrix.md',
+  'docs/worker-runtime/ai-graphics-job-payload-scoped-pass-claim-owner-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-generic-claim-owner-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-valid-dry-run-owner-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-blocked-dry-run-owner-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-invalid-dry-run-owner-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-static-executor-owner-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-plan-snapshot-owner-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-scoped-manifest-owner-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-private-artifact-owner-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-claim-lease-owner-review-after-dry-run.md',
+  'docs/worker-runtime/ai-graphics-job-payload-queue-owner-review-after-dry-run.md',
+  'docs/worker-runtime/ai-graphics-job-payload-no-execution-owner-review.md',
+  'docs/worker-runtime/ai-graphics-job-payload-observability-audit-owner-review-after-dry-run.md',
+  'docs/worker-runtime/ai-graphics-job-payload-fail-closed-owner-review-after-dry-run.md',
+  'docs/worker-runtime/ai-graphics-job-payload-worker-intake-owner-review-after-dry-run.md',
+  'docs/worker-runtime/ai-graphics-job-payload-owner-review-after-dry-run-blocked-use-register.md',
+  'docs/worker-runtime/ai-graphics-job-payload-owner-review-after-dry-run-decision.md',
+  'docs/worker-runtime/ai-graphics-job-payload-owner-review-after-dry-run-next-lane-recommendation.md',
+  'docs/prompt-worker-ai-graphics-metadata-job-payload-owner-review-after-dry-run-results.md',
+  'docs/implementation-prompts/prompt-worker-ai-graphics-metadata-job-payload-owner-review-after-dry-run.md',
 ]
 
 const requiredScripts = [
-  'scripts/validation/worker-ai-graphics-metadata-job-payload-dry-run-qa-diagnostics.mjs',
+  'scripts/validation/worker-ai-graphics-metadata-job-payload-owner-review-after-dry-run-diagnostics.mjs',
 ]
 
 const sourceEvidenceDocs = [
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-qa-decision.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-qa-run-results.md',
+  'docs/worker-runtime/ai-graphics-job-payload-dry-run-worker-intake-qa.md',
   'docs/worker-runtime/ai-graphics-job-payload-dry-run-readiness-decision.md',
   'docs/worker-runtime/ai-graphics-job-payload-dry-run-run-results.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-worker-intake-evidence.md',
-  'docs/worker-runtime/ai-graphics-job-payload-dry-run-cleanup-evidence.md',
-]
-
-const jsonFixtures = [
-  'docs/worker-runtime/fixtures/ai-graphics-metadata-job-payload-shape.schema.json',
-  'docs/worker-runtime/fixtures/ai-graphics-metadata-job-payload-example.valid.json',
-  'docs/worker-runtime/fixtures/ai-graphics-metadata-job-payload-example.blocked.json',
-  'docs/worker-runtime/fixtures/ai-graphics-metadata-job-payload-example.invalid.json',
+  'docs/worker-runtime/ai-graphics-job-payload-owner-approval-decision.md',
+  'docs/worker-runtime/ai-graphics-job-payload-schema-validation-readiness-decision.md',
 ]
 
 const requiredTools = [
@@ -73,11 +70,11 @@ const requiredTools = [
 ]
 
 const requiredTrueBooleans = [
-  'dryRunQaAccepted',
-  'dryRunQaAcceptedWithWarnings',
+  'ownerReviewAfterDryRunAccepted',
+  'ownerReviewAfterDryRunAcceptedWithWarnings',
   'workerAiGraphicsMetadataJobPayloadDryRunAccepted',
-  'readyForWorkerJobPayloadDryRunOwnerReview',
-  'dryRunExecutionAccepted',
+  'ownerApprovedFutureWorkerDryRunGateStatusPacket',
+  'scopedPassClaimAccepted',
   'validDryRunCaseAccepted',
   'blockedDryRunCaseAccepted',
   'invalidDryRunCaseAccepted',
@@ -91,11 +88,16 @@ const requiredTrueBooleans = [
   'observabilityAuditDryRunAccepted',
   'failClosedDryRunAccepted',
   'workerIntakeDryRunAccepted',
-  'cleanupQaAccepted',
 ]
 
 const requiredFalseBooleans = [
   'readyForWorkerExecutionPlanning',
+  'genericDryRunPassedClaimed',
+  'genericDryRunPassedClaimAccepted',
+  'dryRunPassedClaimed',
+  'dryRunPassedClaimAccepted',
+  'generatedLocalFixturePassedClaimed',
+  'generatedLocalFixturePassedClaimAccepted',
   'liveWorkerExecutionApprovedNow',
   'workerExecutionApprovedNow',
   'workerJobClaimApprovedNow',
@@ -117,20 +119,18 @@ const requiredFalseBooleans = [
   'internalBetaApproved',
   'externalBetaApproved',
   'productionApproved',
-  'genericDryRunPassedClaimed',
-  'dryRunPassedClaimed',
-  'generatedLocalFixturePassedClaimed',
 ]
 
 const requiredTokens = [
+  'PR #503',
+  'd189f8be0634eaff62baacb8e18c842f997fa3dd',
+  'worker_ai_graphics_metadata_job_payload_dry_run_qa_passed_with_warnings',
   'PR #500',
   '3e4a4f6900a26c22972d8e0859f1f8c3391063c1',
   'worker_ai_graphics_metadata_job_payload_dry_run_passed_with_warnings',
   'ai-graphics-job-payload-dry-run-local-static',
-  '.local-artifacts/worker-runtime/ai-graphics-job-payload-dry-run/ai-graphics-job-payload-dry-run-local-static/',
   'workerAiGraphicsMetadataJobPayloadDryRunPassed',
   'PR #498',
-  '23017a7f35a088de2fc77fd0c1427378fd7aa373',
   'worker_ai_graphics_metadata_job_payload_dry_run_approved_with_warnings',
   'PR #496',
   'worker_ai_graphics_metadata_job_payload_owner_approved_with_warnings',
@@ -143,6 +143,7 @@ const requiredTokens = [
   'PR #485',
   'PR #482',
   'PR #480',
+  'PR #478',
   'PR #476',
   'PR #464',
   'PR #414',
@@ -150,10 +151,9 @@ const requiredTokens = [
   'PR #404',
   'PR #398',
   'PR #164',
-  'genericDryRunPassedClaimed=false',
-  'dryRunPassedClaimed=false',
-  'generatedLocalFixturePassedClaimed=false',
-  'WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_OWNER_REVIEW_AFTER_DRY_RUN',
+  'dry_run_passed',
+  'generated_local_fixture_passed',
+  'WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_GATE_STATUS_PACKET',
   'no write',
   'docs_only',
   'environment touched: `none`',
@@ -228,12 +228,11 @@ function readJson(path) {
 }
 
 for (const path of [...requiredDocs, ...requiredScripts, ...sourceEvidenceDocs]) read(path)
-for (const path of jsonFixtures) readJson(path)
 
 const docsText = requiredDocs.map(read).join('\n')
 const allEvidenceText = `${docsText}\n${sourceEvidenceDocs.map(read).join('\n')}`
-const decisionDoc = read('docs/worker-runtime/ai-graphics-job-payload-dry-run-qa-decision.md')
-const workerIntakeDoc = read('docs/worker-runtime/ai-graphics-job-payload-dry-run-worker-intake-qa.md')
+const decisionDoc = read('docs/worker-runtime/ai-graphics-job-payload-owner-review-after-dry-run-decision.md')
+const matrixDoc = read('docs/worker-runtime/ai-graphics-job-payload-owner-review-after-dry-run-matrix.md')
 
 const decisions = [...docsText.matchAll(/Decision:\s*`([^`]+)`/g)].map((match) => match[1])
 if (!decisions.includes(expectedDecision)) failures.push(`expected_decision_missing:${expectedDecision}`)
@@ -246,11 +245,12 @@ for (const token of requiredTokens) {
 }
 
 for (const tool of requiredTools) {
-  const row = workerIntakeDoc.split('\n').find((line) => line.includes(`\`${tool}\``))
-  if (!row) failures.push(`worker_intake_qa_tool_missing:${tool}`)
+  const row = matrixDoc.split('\n').find((line) => line.includes(`\`${tool}\``))
+  if (!row) failures.push(`owner_review_matrix_tool_missing:${tool}`)
   else {
     for (const requiredCell of [
       'workerAiGraphicsMetadataJobPayloadDryRunPassed',
+      'generic claims rejected',
       '<APPROVED_PLAN_SNAPSHOT_FIXTURE>',
       '<SCOPED_TOOL_CALL_MANIFEST_REF>',
       '<PRIVATE_ARTIFACT_MANIFEST_REF>',
@@ -259,7 +259,7 @@ for (const tool of requiredTools) {
       'placeholder only; no queue execution',
       'accepted_with_warnings',
     ]) {
-      if (!row.includes(requiredCell)) failures.push(`worker_intake_qa_tool_cell_missing:${tool}:${requiredCell}`)
+      if (!row.includes(requiredCell)) failures.push(`owner_review_matrix_tool_cell_missing:${tool}:${requiredCell}`)
     }
   }
 }
@@ -274,19 +274,11 @@ for (const field of requiredFalseBooleans) {
   if (!pattern.test(decisionDoc)) failures.push(`required_false_boolean_missing:${field}`)
 }
 
-for (const path of jsonFixtures) {
-  const text = read(path)
-  for (const [name, pattern] of forbiddenFixturePatterns) {
-    const match = text.match(pattern)
-    if (match) failures.push(`forbidden_json:${path}:${name}:${match[0]}`)
-  }
-}
-
 const unsafeClaimText = docsText
   .split('\n')
   .filter(
     (line) =>
-      !/\b(?:No|no|not|blocked|unapproved|does not approve|do not approve|must not|may not|remains|remain|stays|false|metadata-only|static|separately gated|without|warning|warnings|defer|deferred|none|placeholder|required|source evidence|source chain|context only|policy context|not source of truth|pending|later|future|planning|accepted_with_warnings|blocked|fail closed|dry-run|local\/static|ignored|cleanup|docs_only|no write|passed_with_warnings|scoped|broad service-role|review-only)\b/i.test(
+      !/\b(?:No|no|not|blocked|unapproved|does not approve|do not approve|must not|may not|remains|remain|stays|false|metadata-only|static|separately gated|without|warning|warnings|defer|deferred|none|placeholder|required|source evidence|source chain|context only|policy context|not source of truth|pending|later|future|planning|accepted_with_warnings|blocked|fail closed|dry-run|local\/static|ignored|cleanup|docs_only|no write|passed_with_warnings|scoped|broad service-role|review-only|rejected|rejects|reject|Blocked snake-case tokens)\b/i.test(
         line,
       ),
   )
@@ -301,10 +293,10 @@ if (docsText.includes('/private/tmp/') || docsText.includes('/Volumes/backup/'))
 
 const packageJson = readJson('package.json')
 if (
-  packageJson?.scripts?.['worker:ai-graphics-metadata-job-payload-dry-run-qa:diagnostics'] !==
-  'node scripts/validation/worker-ai-graphics-metadata-job-payload-dry-run-qa-diagnostics.mjs'
+  packageJson?.scripts?.['worker:ai-graphics-metadata-job-payload-owner-review-after-dry-run:diagnostics'] !==
+  'node scripts/validation/worker-ai-graphics-metadata-job-payload-owner-review-after-dry-run-diagnostics.mjs'
 ) {
-  failures.push('missing_package_script:worker:ai-graphics-metadata-job-payload-dry-run-qa:diagnostics')
+  failures.push('missing_package_script:worker:ai-graphics-metadata-job-payload-owner-review-after-dry-run:diagnostics')
 }
 
 const basePackageJson = (() => {
@@ -326,7 +318,6 @@ const packageJsonDiff = `${git(['diff', '--', 'package.json'])}\n${git(['diff', 
 const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
-  .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-qa:diagnostics'))
   .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-owner-review-after-dry-run:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
@@ -353,9 +344,9 @@ if (!docsText.includes('No worker execution, job claim, lease mutation, queue ex
 }
 
 if (failures.length > 0) {
-  console.error('WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_QA_REVIEW diagnostics failed:')
+  console.error('WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_OWNER_REVIEW_AFTER_DRY_RUN diagnostics failed:')
   for (const failure of failures) console.error(`- ${failure}`)
   process.exit(1)
 }
 
-console.log('WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_QA_REVIEW diagnostics passed.')
+console.log('WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_OWNER_REVIEW_AFTER_DRY_RUN diagnostics passed.')

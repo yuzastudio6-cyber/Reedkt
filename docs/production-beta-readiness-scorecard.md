@@ -379,3 +379,17 @@ route execution, actual tool execution, provider/model runtime,
 browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export,
 Supabase mutation, GCS/storage transfer, signed URLs, public artifacts,
 internal beta, external beta, paid production, or production readiness.
+
+WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_OWNER_REVIEW_AFTER_DRY_RUN decision
+`worker_ai_graphics_metadata_job_payload_owner_review_after_dry_run_passed_with_warnings`
+accepts PR #503 dry-run QA evidence with warnings for all 13 accepted AI
+graphics metadata tools. It accepts only the scoped pass claim
+`workerAiGraphicsMetadataJobPayloadDryRunPassed`, rejects generic dry-run and
+generated-local fixture pass claims, and recommends
+`WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_DRY_RUN_GATE_STATUS_PACKET` next. It
+approves only a future gate-status packet while keeping worker execution, job
+claim, lease mutation, queue execution, route execution, actual tool execution,
+provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization,
+Remotion render/export, Supabase mutation, GCS/storage transfer, signed URLs,
+public artifacts, internal beta, external beta, paid production, and
+production readiness blocked.

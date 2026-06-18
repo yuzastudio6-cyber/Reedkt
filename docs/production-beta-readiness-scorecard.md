@@ -317,3 +317,14 @@ route execution, actual tool execution, provider/model runtime,
 browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export,
 Supabase mutation, GCS/storage transfer, signed URLs, public artifacts,
 internal beta, external beta, paid production, or production readiness.
+
+WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_SCHEMA_VALIDATION_QA_REVIEW decision
+`worker_ai_graphics_metadata_job_payload_schema_validation_qa_passed_with_warnings`
+accepts PR #491 local/static schema validation evidence with warnings for all
+13 accepted AI graphics metadata tools. It recommends
+`WORKER_AI_GRAPHICS_METADATA_JOB_PAYLOAD_OWNER_APPROVAL` next. It does not
+approve worker execution, job claim, lease mutation, queue execution, route
+execution, actual tool execution, provider/model runtime, browser/WebGL/canvas
+runtime, resvg rasterization, Remotion render/export, Supabase mutation,
+GCS/storage transfer, signed URLs, public artifacts, internal beta, external
+beta, paid production, or production readiness.

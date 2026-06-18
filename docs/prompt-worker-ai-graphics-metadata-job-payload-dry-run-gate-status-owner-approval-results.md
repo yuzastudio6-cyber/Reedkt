@@ -47,7 +47,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_dry_run_gate_status_owner_app
 - `package-lock.json`: unchanged.
 - `.local-artifacts/`: not staged or committed.
 - Generated media/render/browser/canvas/WebGL/public artifacts, signed URLs, secrets, dependency mutations, dry-run outputs, and local fixture outputs: not staged.
-- Draft PR link/status: pending until PR creation follow-up commit.
+- Draft PR: [#515](https://github.com/yuzastudio6-cyber/Reedkt/pull/515), open draft, mergeable, empty check rollup at creation.
 
 Supabase classification: `no write` / `docs_only`; environment touched: `none`; SQL executed: `none`; migration deployed: `no`; milestone sync: `not_performed`.
 

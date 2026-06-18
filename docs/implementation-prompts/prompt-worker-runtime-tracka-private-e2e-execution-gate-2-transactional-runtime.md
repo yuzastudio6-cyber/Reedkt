@@ -12,8 +12,9 @@ Plan the transactional Worker Runtime path required before any future restricted
 - #502 restricted Track A private E2E planning packet.
 - #334 PLAN-SNAPSHOT-1 candidate approved-plan snapshot contract.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
-- Tool Route execution readiness: `blocked_pending_tool_route_contract_dry_run_gate`.
-- TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `ready_for_route_contract_dry_run_gate_planning`.
+- TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 decision: `completed_route_contract_dry_run_gate_planning`.
+- Tool Route execution readiness: `blocked_pending_future_guarded_execution_packet_and_worker_gate_2`.
+- TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `completed`.
 
 ## Required Planning Outputs
 
@@ -33,7 +34,7 @@ Plan the transactional Worker Runtime path required before any future restricted
 
 WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `ready_for_transactional_runtime_gate_planning`
 
-TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_tool_route_gate_2`
+TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_runtime_gate_2_and_guarded_execution_packet`
 
 INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_tracka_private_e2e_execution_packet_and_worker_tool_route_gates`
 

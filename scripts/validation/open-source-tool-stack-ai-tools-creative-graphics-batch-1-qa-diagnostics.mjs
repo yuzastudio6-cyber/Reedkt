@@ -225,7 +225,8 @@ const unexpectedPackageJsonDiff = packageJsonDiff
       !(batch3ExecutionContext && approvedBatch3Dependencies.some((dependencyName) => line.includes(`"${dependencyName}"`)))
     )
   })
-.filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-owner-review-after-dry-run:diagnostics'))
+
+  .filter((line) => !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-gate-status:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 const trackedLocalArtifacts = git(['ls-files', '.local-artifacts'])

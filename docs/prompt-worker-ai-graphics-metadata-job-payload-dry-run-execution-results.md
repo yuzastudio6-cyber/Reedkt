@@ -44,7 +44,7 @@ Decision: `worker_ai_graphics_metadata_job_payload_dry_run_passed_with_warnings`
 - `npm run build`: passed with the existing Vite large-chunk warning.
 - `npm run build:server`: passed.
 - Changed-file secret scan: passed after excluding scanner-regex self-matches for blocked signature marker patterns.
-- PR link/check status: pending PR creation.
+- PR link/check status: PR #500 open draft, mergeable clean at `8c6333381f18a133291cada8f310ed4fd376ea56`, empty check rollup at PR creation; URL: `https://github.com/yuzastudio6-cyber/Reedkt/pull/500`.
 - `package-lock.json`: unchanged by this packet.
 - `.local-artifacts/`: ignored local evidence only, not staged.
 

@@ -1,4 +1,5 @@
 export type TrackaCaptionBurninExecutionStatus =
+  | 'blocked_caption_layout_fix_confirmation_missing'
   | 'blocked_pending_caption_burnin_execution_confirmation'
   | 'blocked_missing_approved_private_source_ref'
   | 'blocked_missing_approved_caption_burnin_runtime_path'
@@ -11,10 +12,12 @@ export type TrackaCaptionBurninExecutionStatus =
   | 'blocked_caption_burnin_runtime_failed'
   | 'blocked_ffprobe_validation_failed'
   | 'completed_with_corrected_caption_burnin_revalidation'
+  | 'completed_with_caption_layout_fix_revalidation'
 
 export type TrackaCaptionGcsAccessStatus =
   | 'not_attempted'
   | 'completed'
+  | 'blocked_caption_layout_fix_confirmation_missing'
   | 'blocked_pending_caption_burnin_execution_confirmation'
   | 'blocked_gcloud_auth_refresh_required'
   | 'blocked_gcs_permission_denied'
@@ -77,6 +80,7 @@ export interface TrackaCaptionBurninArtifact {
 export interface TrackaCaptionBurninSidecarArtifact extends TrackaCaptionBurninArtifact {
   artifactType: 'ass_sidecar'
   lineCount: number
+  layoutProfile?: string
 }
 
 export interface TrackaCaptionBurninRuntimeResolution {
@@ -113,9 +117,10 @@ export interface TrackaCaptionBurninQaGate {
 }
 
 export interface TrackaCaptionBurninSummary {
-  phase: 'TRACKA-CAPTION-QUALITY-3R3'
+  phase: 'TRACKA-CAPTION-QUALITY-5'
   runId: string
   execution: TrackaCaptionBurninExecutionStatus
+  layoutFixConfirmationProvided: boolean
   confirmationProvided: boolean
   sourceGcsReadConfirmationProvided: boolean
   gcsAccessRepairConfirmationProvided: boolean
@@ -142,7 +147,9 @@ export interface TrackaCaptionBurninSummary {
   internalBetaReady: boolean
   productionReady: boolean
   externalBetaReady: boolean
+  captionLayoutFixProfileApplied: boolean
   trackaCaptionQuality4Readiness: string
+  trackaCaptionQuality6Readiness: string
   trackaPrivateE2eRevalidation1Readiness: string
   internalBetaReadiness: string
   activeBlockers: string[]

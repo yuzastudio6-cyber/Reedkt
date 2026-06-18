@@ -325,7 +325,8 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   !line.includes('worker:ai-graphics-metadata-job-payload-owner-approval:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-approval:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:execute') &&
-  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:diagnostics'),
+  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:diagnostics') &&
+  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-qa:diagnostics'),
   )
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 

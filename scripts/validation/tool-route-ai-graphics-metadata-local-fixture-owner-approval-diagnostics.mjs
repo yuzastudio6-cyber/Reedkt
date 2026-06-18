@@ -246,7 +246,8 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   !line.includes('worker:ai-graphics-metadata-job-payload-owner-approval:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-approval:diagnostics') &&
   !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:execute') &&
-  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:diagnostics'))
+  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run:diagnostics') &&
+  !line.includes('worker:ai-graphics-metadata-job-payload-dry-run-qa:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-owner-approval:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-gate-status:diagnostics'))
   .filter((line) => !line.includes('tool-route:ai-graphics-metadata-local-fixture-gate-status-qa:diagnostics'))

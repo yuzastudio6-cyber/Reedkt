@@ -8,7 +8,10 @@ Create the internal beta readiness rollup only after TRACKA-PRIVATE-E2E-REVALIDA
 
 - INTERNAL-BETA-TRACKA-SCOPE-DECISION-1 decision: `trackARestrictedInternalBetaScopeDecision: approved_for_private_e2e_revalidation_planning`.
 - INTERNAL-BETA-TRACKA-SCOPE-DECISION-1 status: `trackAInternalBetaUnlocked: false`.
-- TRACKA-PRIVATE-E2E-REVALIDATION-1 result for included restricted scope.
+- TRACKA-PRIVATE-E2E-REVALIDATION-1 planning packet for included restricted scope.
+- TRACKA-PRIVATE-E2E-REVALIDATION-2 guarded execution packet result, when available.
+- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 status.
+- TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 status.
 - #492 caption layout policy: `user_configurable_default_one_line` with default preset `one_line_bottom_safe_area`.
 
 ## Scope Boundary
@@ -43,6 +46,8 @@ Excluded by default:
 ## Blocked Claims
 
 This prompt must not assume internal beta is unlocked. It must perform a rollup from completed evidence and keep production, external beta, final delivery, public artifacts, signed URLs, broad media, and paid production blocked unless separately approved.
+
+INTERNAL-BETA-READINESS-ROLLUP readiness remains `blocked_pending_tracka_private_e2e_execution_packet_and_worker_tool_route_gates` until the guarded execution packet and both execution gates are resolved.
 
 ## No-Scope Statement
 

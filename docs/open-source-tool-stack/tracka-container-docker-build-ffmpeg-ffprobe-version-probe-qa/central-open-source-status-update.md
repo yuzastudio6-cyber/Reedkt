@@ -1,0 +1,36 @@
+# Central Open-Source Status Update
+
+```json
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeQa.centralStatusUpdate.v1",
+  "generatedAt": "2026-06-18T17:20:38.139Z",
+  "status": "accepted",
+  "accepted": true,
+  "details": {
+    "duckdb": "accepted_installed_and_proven_from_pr466_and_pr469",
+    "polars": "accepted_installed_and_proven_from_pr455_and_pr469",
+    "sharpLibvips": "accepted_proven_from_batch_1",
+    "ffmpeg": "version_proven_for_tracka_container_path_only",
+    "ffprobe": "version_proven_for_tracka_container_path_only",
+    "ffmpegVersion": "5.1.9-0+deb12u1",
+    "ffprobeVersion": "5.1.9-0+deb12u1",
+    "mediaProcessingAccepted": false,
+    "captionBurnInAccepted": false,
+    "renderExportAccepted": false,
+    "internalBetaStatus": "evidence_improved_internal_testing_only_external_beta_blocked",
+    "nextPrompt": "OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF"
+  },
+  "warnings": [
+    "media_processing_render_export_and_production_scope_remain_blocked"
+  ],
+  "blockers": [],
+  "followUp": "OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "not_applicable",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}
+```

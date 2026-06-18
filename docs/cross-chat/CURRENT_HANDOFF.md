@@ -316,3 +316,33 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - Build-context outputs were local-only and must not be committed.
 - Local-host probing, media processing, caption burn-in, render/export, Supabase/GCS, public artifact, signed URL, beta, and production scopes remain blocked.
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_QA_REVIEW`.
+
+## Track A Container FFmpeg/FFprobe Version-Probe QA Review
+
+- Source SHA: `a0ad97abce12f7b8265feeaefa30390a41de03e4`
+- Decision: `blocked_pending_docker_build_evidence_review`
+- FFmpeg: accepted as version-proven for the Track A container path only (`5.1.9-0+deb12u1`).
+- FFprobe: accepted as version-proven for the Track A container path only (`5.1.9-0+deb12u1`).
+- Media processing, caption burn-in, render/export, worker execution, route execution, provider calls, public delivery, beta, and production remain blocked.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_QA_BLOCKER_RESOLUTION`
+- Supabase: no write / environment none / SQL none / migration no.
+
+## Track A Container FFmpeg/FFprobe Version-Probe QA Review
+
+- Source SHA: `a0ad97abce12f7b8265feeaefa30390a41de03e4`
+- Decision: `rejected_due_runtime_safety_risk`
+- FFmpeg: accepted as version-proven for the Track A container path only (`5.1.9-0+deb12u1`).
+- FFprobe: accepted as version-proven for the Track A container path only (`5.1.9-0+deb12u1`).
+- Media processing, caption burn-in, render/export, worker execution, route execution, provider calls, public delivery, beta, and production remain blocked.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_QA_BLOCKER_RESOLUTION`
+- Supabase: no write / environment none / SQL none / migration no.
+
+## Track A Container FFmpeg/FFprobe Version-Probe QA Review
+
+- Source SHA: `a0ad97abce12f7b8265feeaefa30390a41de03e4`
+- Decision: `tracka_container_docker_build_ffmpeg_ffprobe_version_probe_qa_passed_media_processing_still_blocked_ready_for_batch1_rollup`
+- FFmpeg: accepted as version-proven for the Track A container path only (`5.1.9-0+deb12u1`).
+- FFprobe: accepted as version-proven for the Track A container path only (`5.1.9-0+deb12u1`).
+- Media processing, caption burn-in, render/export, worker execution, route execution, provider calls, public delivery, beta, and production remain blocked.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF`
+- Supabase: no write / environment none / SQL none / migration no.

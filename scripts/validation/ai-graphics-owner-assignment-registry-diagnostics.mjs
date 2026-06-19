@@ -14,6 +14,8 @@ const requiredDocs = [
   'docs/open-source-tool-stack/ownership/ai-graphics-implementation-responsibility.md',
   'docs/open-source-tool-stack/ownership/ai-graphics-next-proof-plan.md',
   'docs/open-source-tool-stack/ownership/ai-graphics-owner-assignment-decision.md',
+  'docs/open-source-tool-stack/ownership/ai-graphics-trackb-conflict-sync.md',
+  'docs/open-source-tool-stack/ownership/ai-graphics-trackb-conflict-sync.json',
   'docs/prompt-ai-graphics-owner-assignment-registry-results.md',
   'docs/implementation-prompts/prompt-ai-graphics-owner-assignment-registry.md',
 ]
@@ -47,6 +49,25 @@ const expectedTools = [
   'pixi_js',
   'konva',
   'babylonjs',
+]
+
+const expectedTrackBTools = [
+  'ffmpeg',
+  'ffprobe',
+  'sharp_libvips',
+  'duckdb',
+  'polars',
+  'opencv',
+  'pyav',
+  'pyscenedetect',
+  'paddleocr',
+  'paddlepaddle',
+  'mediainfo',
+  'exiftool',
+  'imagemagick_graphicsmagick',
+  'tesseract',
+  'opencolorio',
+  'openimageio',
 ]
 
 const forbiddenAssignedIds = [
@@ -91,10 +112,16 @@ const requiredTrueBooleans = [
   'crossChatFilesUpdated',
   'duplicateRiskFound',
   'pendingDuplicateReview',
+  'trackBConflictSyncPerformed',
 ]
 
 const requiredFalseBooleans = [
   'exclusiveOwnershipClaimed',
+  'trackBOwnershipClaimedByAtlas',
+  'trackBInstallAuthorityClaimedByAtlas',
+  'trackBProofAuthorityClaimedByAtlas',
+  'trackBExecutionAuthorityClaimedByAtlas',
+  'trackAOwnershipClaimedByAtlas',
   'runtimeReadyNow',
   'internalBetaReadyNow',
   'externalBetaReadyNow',
@@ -154,7 +181,7 @@ const docsText = [...requiredDocs, ...crossChatDocs, 'docs/production-beta-readi
   .map((path) => `\n--- ${path} ---\n${readFileSync(path, 'utf8')}`)
   .join('\n')
 
-if (!docsText.includes('ai_graphics_owner_assignment_registered_pending_duplicate_review')) {
+if (!docsText.includes('ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings')) {
   failures.push('missing_expected_decision')
 }
 
@@ -167,6 +194,12 @@ for (const required of [
   'PR #534',
   'PR #536',
   'PR #532',
+  'PR #543',
+  'PR #544',
+  'TRACK_B_MEDIA_OSS_STEWARD',
+  'Track B Media OSS Steward',
+  'TRACK_B_MEDIA_PROCESSING',
+  'Atlas may reference Track B evidence but cannot claim, install, prove, or execute Track B tools.',
   'exclusiveOwnershipClaimed',
   'duplicateRiskFound',
 ]) {
@@ -176,10 +209,12 @@ for (const required of [
 let assignment = {}
 let matrix = {}
 let registry = {}
+let trackBSync = {}
 try {
   assignment = readJson('docs/open-source-tool-stack/ownership/ai-graphics-owner-assignment.json')
   matrix = readJson('docs/open-source-tool-stack/ownership/ai-graphics-owned-tool-matrix.json')
   registry = readJson('docs/open-source-tool-stack/ownership/owner-assignment-registry.json')
+  trackBSync = readJson('docs/open-source-tool-stack/ownership/ai-graphics-trackb-conflict-sync.json')
 } catch (error) {
   failures.push(`json_parse_failed:${error.message}`)
 }
@@ -189,6 +224,12 @@ if (assignment.ownerId !== 'atlas_ai_graphics_worker_owner') failures.push('inva
 if (assignment.ownerLane !== 'AI_TOOLS_CREATIVE_GRAPHICS') failures.push('invalid_owner_lane')
 if (assignment.assignmentStatus !== 'pending_duplicate_review') failures.push('invalid_assignment_status')
 if (registry.assignments?.[0]?.ownerId !== 'atlas_ai_graphics_worker_owner') failures.push('registry_missing_owner_id')
+if (trackBSync.decision !== 'ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings') failures.push('invalid_trackb_sync_decision')
+if (trackBSync.trackBOwnerRule?.ownerId !== 'TRACK_B_MEDIA_OSS_STEWARD') failures.push('invalid_trackb_owner_id')
+if (trackBSync.trackBOwnerRule?.ownerName !== 'Track B Media OSS Steward') failures.push('invalid_trackb_owner_name')
+if (trackBSync.trackBOwnerRule?.lane !== 'TRACK_B_MEDIA_PROCESSING') failures.push('invalid_trackb_owner_lane')
+if (trackBSync.trackAOwnershipClaimedByAtlas !== false) failures.push('tracka_ownership_claimed_by_atlas')
+if (trackBSync.trackBOwnershipClaimedByAtlas !== false) failures.push('trackb_ownership_claimed_by_atlas')
 
 const assignedTools = matrix.tools?.map((tool) => tool.toolId).sort() ?? []
 if (JSON.stringify(assignedTools) !== JSON.stringify([...expectedTools].sort())) {
@@ -197,6 +238,15 @@ if (JSON.stringify(assignedTools) !== JSON.stringify([...expectedTools].sort()))
 
 for (const tool of expectedTools) {
   if (!docsText.includes(tool)) failures.push(`missing_tool_in_docs:${tool}`)
+}
+
+const notOwnedTrackBTools = trackBSync.trackBToolsNotOwnedByAtlas?.map((tool) => tool.toolId).sort() ?? []
+if (JSON.stringify(notOwnedTrackBTools) !== JSON.stringify([...expectedTrackBTools].sort())) {
+  failures.push(`unexpected_trackb_not_owned_tool_set:${notOwnedTrackBTools.join(',')}`)
+}
+
+for (const tool of expectedTrackBTools) {
+  if (!docsText.includes(tool)) failures.push(`missing_trackb_exclusion_tool:${tool}`)
 }
 
 for (const forbidden of forbiddenAssignedIds) {

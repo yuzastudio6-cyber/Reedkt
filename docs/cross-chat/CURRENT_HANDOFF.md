@@ -380,9 +380,18 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 
 ## AI Graphics Owner Assignment Registry
 
-- Decision: `ai_graphics_owner_assignment_registered_pending_duplicate_review`.
+- Decision: `ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings`.
 - Owner: `atlas_ai_graphics_worker_owner` / Atlas — AI Graphics & Worker Metadata Owner.
 - Canonical source: PR #416; refreshed source: PR #534 and PR #536; latest Worker evidence: PR #532.
 - Duplicate-risk result: existing AI graphics lane/backlog and Worker metadata references require review; `exclusiveOwnershipClaimed:false`.
 - Runtime-ready now: `false`; internal beta-ready now: `false`; external beta-ready now: `false`; production-ready now: `false`.
 - No worker execution, job claim, lease mutation, queue execution, route execution, actual tool execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.
+
+## AI Graphics Owner Assignment Track B Conflict Sync
+
+- Decision: `ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings`.
+- PR #543 remains the updated draft PR for `atlas_ai_graphics_worker_owner`.
+- Track B owner: `TRACK_B_MEDIA_OSS_STEWARD` / Track B Media OSS Steward in `TRACK_B_MEDIA_PROCESSING`.
+- Track B exclusion: Atlas does not own FFmpeg, FFprobe, Sharp/libvips, DuckDB, Polars / nodejs-polars, OpenCV, PyAV, PySceneDetect, PaddleOCR, PaddlePaddle, MediaInfo, ExifTool, ImageMagick / GraphicsMagick, Tesseract, OpenColorIO, or OpenImageIO.
+- PR #544 is Track A context only; Atlas does not claim Track A visual/render/export ownership.
+- Runtime-ready now: `false`; internal beta-ready now: `false`; production-ready now: `false`.

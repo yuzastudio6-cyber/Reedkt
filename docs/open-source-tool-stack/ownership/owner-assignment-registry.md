@@ -1,6 +1,6 @@
 # Owner Assignment Registry
 
-Decision: `ai_graphics_owner_assignment_registered_pending_duplicate_review`
+Decision: `ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings`
 
 This registry adds one pending owner assignment for the AI graphics / Worker metadata coordination lane. It records assignment intent only and does not claim exclusive ownership while duplicate review is open.
 
@@ -24,3 +24,9 @@ This registry adds one pending owner assignment for the AI graphics / Worker met
 The central ownership registry is created in `docs/open-source-tool-stack/ownership/`. Existing cross-chat coordination files were present and are updated to point to this pending assignment. Existing lane/backlog mentions create duplicate-review risk, but no concrete conflicting named owner was found during implementation.
 
 No Track A tools, Track B tools, Sound/Music tools, Map/Geospatial tools, or Provider Gateway tools are assigned to this owner.
+
+## Track B Conflict Sync
+
+Track B tools are explicitly not owned by Atlas. `TRACK_B_MEDIA_OSS_STEWARD` / Track B Media OSS Steward owns FFmpeg, FFprobe, Sharp/libvips, DuckDB, Polars / nodejs-polars, OpenCV, PyAV, PySceneDetect, PaddleOCR, PaddlePaddle, MediaInfo, ExifTool, ImageMagick / GraphicsMagick, Tesseract, OpenColorIO, and OpenImageIO.
+
+Atlas may reference Track B evidence, but cannot claim, install, prove, or execute Track B tools. PR #544 is Track A owner context only; Atlas AI graphics does not claim Track A render/export ownership.

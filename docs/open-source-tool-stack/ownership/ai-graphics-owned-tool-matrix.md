@@ -27,3 +27,11 @@ All entries are pending duplicate review. They assign responsibility for proof p
 | `pixi_js` | PixiJS | `pixi.js` | `draft_import_manifest_proof_pending_merge` | Import/manifest proof, no canvas/WebGL runtime until approved |
 | `konva` | Konva | `konva` | `draft_import_manifest_proof_pending_merge` | Import/manifest proof, no canvas runtime until approved |
 | `babylonjs` | Babylon.js | `babylonjs` | `draft_import_manifest_proof_pending_merge` | Import/manifest proof, no WebGL runtime until approved |
+
+## Not Owned By Atlas: Track B
+
+These tools are owned by `TRACK_B_MEDIA_OSS_STEWARD` in `TRACK_B_MEDIA_PROCESSING`, not by Atlas:
+
+`ffmpeg`, `ffprobe`, `sharp_libvips`, `duckdb`, `polars`, `opencv`, `pyav`, `pyscenedetect`, `paddleocr`, `paddlepaddle`, `mediainfo`, `exiftool`, `imagemagick_graphicsmagick`, `tesseract`, `opencolorio`, and `openimageio`.
+
+Atlas may reference Track B evidence but cannot claim, install, prove, or execute these tools.

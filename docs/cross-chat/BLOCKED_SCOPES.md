@@ -170,6 +170,8 @@ TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_MERGE:
 ## AI Graphics Owner Assignment Registry Blocked Scopes
 
 The `atlas_ai_graphics_worker_owner` assignment is docs/diagnostics-only and pending duplicate review. It does not unblock tool execution, worker execution, route execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, media processing, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta, external beta, or production.
+
+Track B conflict sync keeps FFmpeg, FFprobe, Sharp/libvips, DuckDB, Polars / nodejs-polars, OpenCV, PyAV, PySceneDetect, PaddleOCR, PaddlePaddle, MediaInfo, ExifTool, ImageMagick / GraphicsMagick, Tesseract, OpenColorIO, and OpenImageIO outside Atlas ownership. Atlas cannot claim, install, prove, or execute these Track B tools.
 <!-- TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_STATUS:end -->
 
 <!-- OPEN_SOURCE_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL_STATUS:start -->

@@ -11,3 +11,5 @@ Do not install dependencies, mutate `package-lock.json`, execute tools/workers/r
 Implementation PR: #543, https://github.com/yuzastudio6-cyber/Reedkt/pull/543
 
 PR status at creation: open / draft / mergeable, empty check rollup.
+
+Track B conflict sync update: preserve PR #543 and add decision `ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings`. Track B tools are owned by `TRACK_B_MEDIA_OSS_STEWARD`, not Atlas. PR #544 is Track A context only; Atlas does not claim Track A visual/render/export ownership.

@@ -1,6 +1,6 @@
 {
   "schema": "reeditpro.openSourceToolStack.ownerAssignmentRegistry.v1",
-  "decision": "ai_graphics_owner_assignment_registered_pending_duplicate_review",
+  "decision": "ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings",
   "generatedFromBranch": "codex/rp-ai-graphics-owner-assignment-registry",
   "baseBranch": "codex/rp-open-source-tool-stack-refresh-after-ai-graphics-worker-qa-review",
   "assignments": [
@@ -17,7 +17,10 @@
       "canonicalSource": "PR #416 central open-source tool stack audit",
       "refreshedSource": "PR #534 / PR #536 open-source tool stack refresh and QA",
       "latestWorkerEvidence": "PR #532 controlled no-op owner review",
+      "trackAOwnerContext": "PR #544",
       "exclusiveOwnershipClaimed": false,
+      "trackBOwnershipClaimedByAtlas": false,
+      "trackAOwnershipClaimedByAtlas": false,
       "runtimeReadyNow": false,
       "internalBetaReadyNow": false,
       "externalBetaReadyNow": false,

@@ -1,6 +1,6 @@
 {
   "schema": "reeditpro.openSourceToolStack.aiGraphicsOwnerAssignment.v1",
-  "decision": "ai_graphics_owner_assignment_registered_pending_duplicate_review",
+  "decision": "ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings",
   "ownerDisplayName": "Atlas — AI Graphics & Worker Metadata Owner",
   "ownerId": "atlas_ai_graphics_worker_owner",
   "ownerLane": "AI_TOOLS_CREATIVE_GRAPHICS",
@@ -13,8 +13,16 @@
   "sourceEvidence": {
     "canonicalSource": "PR #416 central open-source tool stack audit",
     "refreshedSource": "PR #534 / PR #536 open-source tool stack refresh and QA",
-    "latestWorkerEvidence": "PR #532 controlled no-op owner review"
+    "latestWorkerEvidence": "PR #532 controlled no-op owner review",
+    "aiGraphicsOwnerAssignmentPr": "PR #543",
+    "trackAOwnerContextPr": "PR #544"
   },
+  "trackBOwnerRule": {
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "ownerName": "Track B Media OSS Steward",
+    "lane": "TRACK_B_MEDIA_PROCESSING"
+  },
+  "trackBCoordinationRule": "Atlas may reference Track B evidence but cannot claim, install, prove, or execute Track B tools.",
   "booleans": {
     "ownerAssignmentCreated": true,
     "ownerIdRegistered": true,
@@ -23,6 +31,12 @@
     "duplicateRiskFound": true,
     "exclusiveOwnershipClaimed": false,
     "pendingDuplicateReview": true,
+    "trackBConflictSyncPerformed": true,
+    "trackBOwnershipClaimedByAtlas": false,
+    "trackBInstallAuthorityClaimedByAtlas": false,
+    "trackBProofAuthorityClaimedByAtlas": false,
+    "trackBExecutionAuthorityClaimedByAtlas": false,
+    "trackAOwnershipClaimedByAtlas": false,
     "runtimeReadyNow": false,
     "internalBetaReadyNow": false,
     "externalBetaReadyNow": false,

@@ -4,6 +4,29 @@
   "ownerLane": "AI_TOOLS_CREATIVE_GRAPHICS",
   "assignmentStatus": "pending_duplicate_review",
   "exclusiveOwnershipClaimed": false,
+  "trackBOwnerRule": {
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "ownerName": "Track B Media OSS Steward",
+    "lane": "TRACK_B_MEDIA_PROCESSING"
+  },
+  "trackBToolsNotOwnedByAtlas": [
+    "ffmpeg",
+    "ffprobe",
+    "sharp_libvips",
+    "duckdb",
+    "polars",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "paddleocr",
+    "paddlepaddle",
+    "mediainfo",
+    "exiftool",
+    "imagemagick_graphicsmagick",
+    "tesseract",
+    "opencolorio",
+    "openimageio"
+  ],
   "tools": [
     {"toolId": "torch_torchvision", "displayName": "Torch/TorchVision", "packageNames": ["torch", "torchvision"], "purpose": "ML/CV tensor and model runtime foundation", "currentStatus": "package_declared_smoke_only", "responsibility": "import/version proof, model-weight boundary, future runtime policy"},
     {"toolId": "transformers", "displayName": "Transformers", "packageNames": ["transformers"], "purpose": "model/runtime utility layer", "currentStatus": "package_declared_docs_only", "responsibility": "import/version proof, no model downloads without approval"},

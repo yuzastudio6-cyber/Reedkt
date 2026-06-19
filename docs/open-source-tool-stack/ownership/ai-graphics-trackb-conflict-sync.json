@@ -1,0 +1,38 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsTrackBConflictSync.v1",
+  "decision": "ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings",
+  "atlasOwnerId": "atlas_ai_graphics_worker_owner",
+  "trackBOwnerRule": {
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "ownerName": "Track B Media OSS Steward",
+    "lane": "TRACK_B_MEDIA_PROCESSING"
+  },
+  "sourceEvidence": {
+    "aiGraphicsOwnerAssignmentPr": "PR #543",
+    "trackAOwnerContextPr": "PR #544"
+  },
+  "coordinationRule": "Atlas may reference Track B evidence but cannot claim, install, prove, or execute Track B tools.",
+  "trackBToolsNotOwnedByAtlas": [
+    {"toolId": "ffmpeg", "displayName": "FFmpeg", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "ffprobe", "displayName": "FFprobe", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "sharp_libvips", "displayName": "Sharp/libvips", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "duckdb", "displayName": "DuckDB", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "polars", "displayName": "Polars / nodejs-polars", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "opencv", "displayName": "OpenCV", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "pyav", "displayName": "PyAV", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "pyscenedetect", "displayName": "PySceneDetect", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "paddleocr", "displayName": "PaddleOCR", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "paddlepaddle", "displayName": "PaddlePaddle", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "mediainfo", "displayName": "MediaInfo", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "exiftool", "displayName": "ExifTool", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "imagemagick_graphicsmagick", "displayName": "ImageMagick / GraphicsMagick", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "tesseract", "displayName": "Tesseract", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "opencolorio", "displayName": "OpenColorIO", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"},
+    {"toolId": "openimageio", "displayName": "OpenImageIO", "ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasStatus": "not_owned_by_atlas"}
+  ],
+  "trackAOwnershipClaimedByAtlas": false,
+  "trackBOwnershipClaimedByAtlas": false,
+  "runtimeReadyNow": false,
+  "internalBetaReadyNow": false,
+  "productionReadyNow": false
+}

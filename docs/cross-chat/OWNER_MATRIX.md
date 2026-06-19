@@ -20,3 +20,4 @@
 | Workstream | Current owner action | Merge hygiene note |
 | --- | --- | --- |
 | AI_TOOLS_CREATIVE_GRAPHICS | `atlas_ai_graphics_worker_owner` / Atlas — AI Graphics & Worker Metadata Owner registered as `pending_duplicate_review` | Coordinates AI graphics and Worker metadata ownership only; `exclusiveOwnershipClaimed:false`, runtime/beta/production remain blocked |
+| TRACK_B_MEDIA_PROCESSING | `TRACK_B_MEDIA_OSS_STEWARD` / Track B Media OSS Steward owns Track B media tools | Atlas may reference Track B evidence but cannot claim, install, prove, or execute FFmpeg, FFprobe, Sharp/libvips, DuckDB, Polars/nodejs-polars, OpenCV, PyAV, PySceneDetect, PaddleOCR, PaddlePaddle, MediaInfo, ExifTool, ImageMagick/GraphicsMagick, Tesseract, OpenColorIO, or OpenImageIO |

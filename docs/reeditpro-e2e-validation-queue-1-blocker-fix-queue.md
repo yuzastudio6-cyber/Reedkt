@@ -10,14 +10,14 @@ This queue records blockers found during validation batch 1. It does not authori
     {
       "blockerId": "validation_queue_1_pr305_npm_ci_no_exit",
       "prNumber": 305,
-      "blockerCategory": "validation_blocked_npm_ci_native_optional_package",
-      "command": "npm ci --ignore-scripts --no-audit --no-fund --prefer-offline --timing --loglevel=verbose",
-      "observedResult": "The original batch and first fresh fix worktree blocked on npm ci. The second fresh fix worktree narrowed the blocker: ignore-scripts hydration advanced through npm reify/native package handling, did not complete or link tool binaries before termination, and exposed sharp native install evidence after timeout.",
+      "blockerCategory": "environment_owner_blocked_native_optional_hydration",
+      "command": "npm ci --omit=optional --ignore-scripts --no-audit --no-fund --prefer-offline --timing --loglevel=verbose",
+      "observedResult": "The original batch and first fresh fix worktree blocked on npm ci. The second fresh fix worktree narrowed the blocker to npm reify/native package handling. The final fix-3 omit-optional diagnostic also did not complete or link tool binaries, so PR #305 is parked as environment/owner-blocked and the deferred queue may continue.",
       "packageLockStatus": "unchanged",
       "trackedFileMutation": false,
       "nodeModulesScope": "disposable_validation_worktree_only",
       "owner": "TRACK_A_RENDER_EXPORT",
-      "recommendedPrompt": "REEDITPRO-E2E-VALIDATION-PR-305-FIX-3: resolve PR #305 native optional npm hydration blocker, no execution",
+      "recommendedPrompt": "REEDITPRO-E2E-VALIDATION-QUEUE-2: run next batch, no execution",
       "executionAllowedNow": false,
       "freshFixEvidence": {
         "worktree": "/Volumes/backup/codex-worktrees/reeditpro-pr-305-validation-fix",
@@ -56,20 +56,43 @@ This queue records blockers found during validation batch 1. It does not authori
         },
         "safetyScan": "passed"
       },
+      "freshFix3Evidence": {
+        "worktree": "/Volumes/backup/codex-worktrees/reeditpro-pr-305-validation-fix-3",
+        "head": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+        "decision": "pr_305_validation_blocked_hydration_not_limited_to_optional_deps",
+        "bucket": "environment_owner_blocked_native_optional_hydration",
+        "exitCode": 143,
+        "optionalNativeBlockerConfirmed": false,
+        "hydrationBlockerNotLimitedToOptionalDeps": true,
+        "packageLockStatus": "unchanged",
+        "packageJsonStatus": "unchanged",
+        "toolBinariesAfterInterruptedHydration": {
+          "tsx": "missing",
+          "eslint": "missing",
+          "tsc": "missing",
+          "vite": "missing"
+        },
+        "safetyScan": "passed"
+      },
       "clearingEvidenceRequired": [
-        "Clean isolated PR #305 checkout at exact head 757686f49d85cb7d346b55a1712e1d34a6bdde03.",
-        "npm ci completes or a no-mutation native optional dependency hydration reason is documented.",
-        "package-lock.json remains unchanged.",
-        "Required diagnostics, lint, typecheck, build, readiness summaries, diff checks, and safety scan complete or are explicitly classified."
+        "Owner-approved environment or dependency-hydration policy for PR #305.",
+        "Standard dependency hydration completes, or a documented policy allows an alternate validation route for this review-only docs/status PR.",
+        "package-lock.json remains unchanged unless a later explicit dependency-fix prompt authorizes lockfile work.",
+        "Required diagnostics, lint, typecheck, readiness summaries, diff checks, and safety scan complete or are explicitly classified."
       ]
     }
   ],
   "deferredPrs": [
-    {"prNumber": 300, "reason": "Deferred after PR #305 hydration blocker."},
-    {"prNumber": 264, "reason": "Deferred after PR #305 hydration blocker."},
-    {"prNumber": 263, "reason": "Deferred after PR #305 hydration blocker."},
-    {"prNumber": 245, "reason": "Deferred after PR #305 hydration blocker."}
+    {"prNumber": 300, "reason": "May continue in validation queue 2 after PR #305 was moved to environment/owner-blocked status."},
+    {"prNumber": 264, "reason": "May continue in validation queue 2 after PR #305 was moved to environment/owner-blocked status."},
+    {"prNumber": 263, "reason": "May continue in validation queue 2 after PR #305 was moved to environment/owner-blocked status."},
+    {"prNumber": 245, "reason": "May continue in validation queue 2 after PR #305 was moved to environment/owner-blocked status."}
   ],
+  "queueContinuation": {
+    "canContinueWithDeferredPrs": true,
+    "nextPrompt": "REEDITPRO-E2E-VALIDATION-QUEUE-2: run next batch, no execution",
+    "blockedPrsExcludedFromNextBatch": [305]
+  },
   "runtimeGates": {
     "supabaseMutationAllowed": false,
     "sqlExecutionAllowed": false,

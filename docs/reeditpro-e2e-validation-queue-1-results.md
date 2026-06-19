@@ -2,7 +2,7 @@
 
 Decision: `reeditpro_e2e_validation_queue_1_blocked_validation_failures`
 
-This validation-only batch consumes merged PR #519 and attempts the first small dependency-backed validation queue slice. The batch is blocked because PR #305 did not complete dependency hydration. A second fix pass narrowed the repeated blocker to npm reify/native package handling: even `npm ci --ignore-scripts --no-audit --no-fund --prefer-offline --timing --loglevel=verbose` did not complete or link tool binaries before termination.
+This validation-only batch consumes merged PR #519 and attempts the first small dependency-backed validation queue slice. The batch is blocked because PR #305 did not complete dependency hydration. A final fix pass tried one omit-optional diagnostic install; it also failed to complete or link tool binaries, so PR #305 is parked in the durable environment/owner-blocked queue and validation may continue with PRs #300, #264, #263, and #245.
 
 ```json reeditpro-e2e-validation-queue-1-results
 {
@@ -49,14 +49,14 @@ This validation-only batch consumes merged PR #519 and attempts the first small 
   },
   "primaryBlocker": {
     "prNumber": 305,
-    "category": "validation_blocked_npm_ci_native_optional_package",
-    "command": "npm ci --ignore-scripts --no-audit --no-fund --prefer-offline --timing --loglevel=verbose",
-    "result": "reproduced_in_fresh_fix_2_worktree_during_reify_native_package_handling",
+    "category": "environment_owner_blocked_native_optional_hydration",
+    "command": "npm ci --omit=optional --ignore-scripts --no-audit --no-fund --prefer-offline --timing --loglevel=verbose",
+    "result": "final_fix_3_omit_optional_diagnostic_also_blocked_before_tool_binaries_linked",
     "exitCode": 143,
     "packageLockStatus": "unchanged",
     "packageJsonStatus": "unchanged",
     "nodeModulesStatus": "present_unstaged_in_disposable_validation_worktree_only",
-    "reason": "Dependency hydration did not complete in the original validation batch, the fresh PR #305 fix worktree, or the fresh PR #305 fix-2 worktree, so no dependency-backed validation pass can be claimed.",
+    "reason": "Dependency hydration did not complete in the original validation batch, the fresh PR #305 fix worktree, the fresh PR #305 fix-2 worktree, or the fresh PR #305 fix-3 omit-optional diagnostic, so no dependency-backed validation pass can be claimed. PR #305 is moved to environment/owner-blocked status so the deferred queue can continue.",
     "freshFixEvidence": {
       "worktree": "/Volumes/backup/codex-worktrees/reeditpro-pr-305-validation-fix",
       "head": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
@@ -101,7 +101,32 @@ This validation-only batch consumes merged PR #519 and attempts the first small 
         "vite": "missing"
       },
       "safetyScan": "passed"
+    },
+    "freshFix3Evidence": {
+      "worktree": "/Volumes/backup/codex-worktrees/reeditpro-pr-305-validation-fix-3",
+      "head": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+      "decision": "pr_305_validation_blocked_hydration_not_limited_to_optional_deps",
+      "bucket": "environment_owner_blocked_native_optional_hydration",
+      "diagnosticCommand": "npm ci --omit=optional --ignore-scripts --no-audit --no-fund --prefer-offline --timing --loglevel=verbose",
+      "exitCode": 143,
+      "optionalNativeBlockerConfirmed": false,
+      "hydrationBlockerNotLimitedToOptionalDeps": true,
+      "packageLockStatus": "unchanged",
+      "packageJsonStatus": "unchanged",
+      "toolBinariesAfterInterruptedHydration": {
+        "tsx": "missing",
+        "eslint": "missing",
+        "tsc": "missing",
+        "vite": "missing"
+      },
+      "safetyScan": "passed"
     }
+  },
+  "queueContinuation": {
+    "pr305Bucket": "environment_owner_blocked_native_optional_hydration",
+    "canContinueWithDeferredPrs": true,
+    "deferredPrs": [300, 264, 263, 245],
+    "nextPrompt": "REEDITPRO-E2E-VALIDATION-QUEUE-2: run next batch, no execution"
   },
   "runtimeGates": {
     "supabaseMutationAllowed": false,
@@ -147,7 +172,7 @@ This validation-only batch consumes merged PR #519 and attempts the first small 
   "nextPrompts": {
     "priorBlockerFix": "REEDITPRO-E2E-VALIDATION-PR-305-FIX: fix dependency hydration blocker, no execution",
     "blockerFix": "REEDITPRO-E2E-VALIDATION-PR-305-FIX-2: resolve repeated npm ci hydration blocker, no execution",
-    "recommendedFollowUp": "REEDITPRO-E2E-VALIDATION-PR-305-FIX-3: resolve PR #305 native optional npm hydration blocker, no execution",
+    "finalClassification": "REEDITPRO-E2E-VALIDATION-PR-305-FIX-3: final classify or bypass PR #305 native optional npm hydration blocker, no execution",
     "afterFix": "REEDITPRO-E2E-VALIDATION-QUEUE-2: run next batch, no execution",
     "mergeHygieneAfterValidatedPasses": "REEDITPRO-E2E-MERGE-HYGIENE-3: merge validated PRs, no execution"
   },

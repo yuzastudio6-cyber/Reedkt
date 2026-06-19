@@ -79,7 +79,19 @@ This register records the live-inspected validation batch selected from PR #519'
           "result": "passed"
         },
         {"command": "git diff --cached --check", "runContext": "fresh_pr_305_fix_worktree", "result": "passed"},
-        {"command": "git diff --cached --check", "runContext": "fresh_pr_305_fix_2_worktree", "result": "passed"}
+        {"command": "git diff --cached --check", "runContext": "fresh_pr_305_fix_2_worktree", "result": "passed"},
+        {"command": "npm config list --json", "runContext": "fresh_pr_305_fix_3_worktree", "result": "passed"},
+        {"command": "native optional lockfile grep", "runContext": "fresh_pr_305_fix_3_worktree", "result": "passed"},
+        {"command": "npm ls --depth=0 --package-lock-only", "runContext": "fresh_pr_305_fix_3_worktree", "result": "passed"},
+        {
+          "command": "npm ci --omit=optional --ignore-scripts --no-audit --no-fund --prefer-offline --timing --loglevel=verbose",
+          "runContext": "fresh_pr_305_fix_3_worktree",
+          "result": "blocked",
+          "exitCode": 143,
+          "blockerCategory": "pr_305_validation_blocked_hydration_not_limited_to_optional_deps"
+        },
+        {"command": "git diff --check", "runContext": "fresh_pr_305_fix_3_worktree", "result": "passed"},
+        {"command": "git diff --cached --check", "runContext": "fresh_pr_305_fix_3_worktree", "result": "passed"}
       ],
       "packageLockStatus": "unchanged",
       "packageJsonStatus": "unchanged",
@@ -103,8 +115,26 @@ This register records the live-inspected validation batch selected from PR #519'
           "vite": "missing"
         }
       },
-      "decision": "validation_blocked_npm_ci_native_optional_package",
-      "mergeReadinessRecommendation": "not_ready_native_optional_dependency_hydration_blocker"
+      "fix3Evidence": {
+        "worktree": "/Volumes/backup/codex-worktrees/reeditpro-pr-305-validation-fix-3",
+        "decision": "pr_305_validation_blocked_hydration_not_limited_to_optional_deps",
+        "bucket": "environment_owner_blocked_native_optional_hydration",
+        "diagnosticCommand": "npm ci --omit=optional --ignore-scripts --no-audit --no-fund --prefer-offline --timing --loglevel=verbose",
+        "exitCode": 143,
+        "optionalNativeBlockerConfirmed": false,
+        "hydrationBlockerNotLimitedToOptionalDeps": true,
+        "toolBinariesAfterInterruptedHydration": {
+          "tsx": "missing",
+          "eslint": "missing",
+          "tsc": "missing",
+          "vite": "missing"
+        },
+        "packageLockStatus": "unchanged",
+        "packageJsonStatus": "unchanged",
+        "safetyScan": "passed"
+      },
+      "decision": "environment_owner_blocked_native_optional_hydration",
+      "mergeReadinessRecommendation": "not_ready_owner_environment_blocked_queue2_may_continue"
     },
     {
       "prNumber": 300,
@@ -132,13 +162,13 @@ This register records the live-inspected validation batch selected from PR #519'
         "supabaseSqlChanged": false,
         "mediaArtifactChanged": false
       },
-      "validationCommands": ["not_run_after_pr305_hydration_blocker"],
+      "validationCommands": ["deferred_to_validation_queue_2_after_pr305_environment_owner_block"],
       "commandsRun": [],
       "packageLockStatus": "not_touched",
       "packageJsonStatus": "not_touched",
       "safetyScanResult": "live_scope_reviewed_no_disallowed_path_in_reported_files",
-      "decision": "skipped_after_batch_blocker",
-      "mergeReadinessRecommendation": "defer_to_next_validation_batch_after_dependency_hydration_fix"
+      "decision": "deferred_to_validation_queue_2",
+      "mergeReadinessRecommendation": "eligible_for_queue_2_requery_and_validation"
     },
     {
       "prNumber": 264,
@@ -166,13 +196,13 @@ This register records the live-inspected validation batch selected from PR #519'
         "supabaseSqlChanged": false,
         "mediaArtifactChanged": false
       },
-      "validationCommands": ["not_run_after_pr305_hydration_blocker"],
+      "validationCommands": ["deferred_to_validation_queue_2_after_pr305_environment_owner_block"],
       "commandsRun": [],
       "packageLockStatus": "not_touched",
       "packageJsonStatus": "not_touched",
       "safetyScanResult": "live_scope_reviewed_no_disallowed_path_in_reported_files",
-      "decision": "skipped_after_batch_blocker",
-      "mergeReadinessRecommendation": "defer_to_next_validation_batch_after_dependency_hydration_fix"
+      "decision": "deferred_to_validation_queue_2",
+      "mergeReadinessRecommendation": "eligible_for_queue_2_requery_and_validation"
     },
     {
       "prNumber": 263,
@@ -200,13 +230,13 @@ This register records the live-inspected validation batch selected from PR #519'
         "supabaseSqlChanged": false,
         "mediaArtifactChanged": false
       },
-      "validationCommands": ["not_run_after_pr305_hydration_blocker"],
+      "validationCommands": ["deferred_to_validation_queue_2_after_pr305_environment_owner_block"],
       "commandsRun": [],
       "packageLockStatus": "not_touched",
       "packageJsonStatus": "not_touched",
       "safetyScanResult": "live_scope_reviewed_no_disallowed_path_in_reported_files",
-      "decision": "skipped_after_batch_blocker",
-      "mergeReadinessRecommendation": "defer_to_next_validation_batch_after_dependency_hydration_fix"
+      "decision": "deferred_to_validation_queue_2",
+      "mergeReadinessRecommendation": "eligible_for_queue_2_requery_and_validation"
     },
     {
       "prNumber": 245,
@@ -234,13 +264,13 @@ This register records the live-inspected validation batch selected from PR #519'
         "supabaseSqlChanged": false,
         "mediaArtifactChanged": false
       },
-      "validationCommands": ["not_run_after_pr305_hydration_blocker"],
+      "validationCommands": ["deferred_to_validation_queue_2_after_pr305_environment_owner_block"],
       "commandsRun": [],
       "packageLockStatus": "not_touched",
       "packageJsonStatus": "not_touched",
       "safetyScanResult": "live_scope_reviewed_no_disallowed_path_in_reported_files",
-      "decision": "skipped_after_batch_blocker",
-      "mergeReadinessRecommendation": "defer_to_next_validation_batch_after_dependency_hydration_fix"
+      "decision": "deferred_to_validation_queue_2",
+      "mergeReadinessRecommendation": "eligible_for_queue_2_requery_and_validation"
     }
   ],
   "noScopeStatement": "No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, or broad service-role handler was enabled."

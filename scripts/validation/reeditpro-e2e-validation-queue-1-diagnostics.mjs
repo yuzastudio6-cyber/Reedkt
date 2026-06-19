@@ -25,6 +25,7 @@ const expectedBlocks = [
   ],
   ['docs/reeditpro-e2e-validation-pr-305-fix-results.md', 'reeditpro-e2e-validation-pr-305-fix-results'],
   ['docs/reeditpro-e2e-validation-pr-305-fix-2-results.md', 'reeditpro-e2e-validation-pr-305-fix-2-results'],
+  ['docs/reeditpro-e2e-validation-pr-305-fix-3-results.md', 'reeditpro-e2e-validation-pr-305-fix-3-results'],
   [
     'docs/implementation-prompts/prompt-reeditpro-e2e-validation-pr-305-fix-2.md',
     'reeditpro-e2e-validation-pr-305-fix-2',
@@ -82,11 +83,13 @@ const mergePrompt = parsed['reeditpro-e2e-merge-hygiene-3-merge-validated-prs'];
 const nextBatchPrompt = parsed['reeditpro-e2e-validation-queue-2-run-next-batch'];
 const pr305Fix = parsed['reeditpro-e2e-validation-pr-305-fix-results'];
 const pr305Fix2 = parsed['reeditpro-e2e-validation-pr-305-fix-2-results'];
+const pr305Fix3 = parsed['reeditpro-e2e-validation-pr-305-fix-3-results'];
 const pr305Fix2Prompt = parsed['reeditpro-e2e-validation-pr-305-fix-2'];
 
 const nonQueueDecisionLabels = new Set([
   'reeditpro-e2e-validation-pr-305-fix-results',
   'reeditpro-e2e-validation-pr-305-fix-2-results',
+  'reeditpro-e2e-validation-pr-305-fix-3-results',
 ]);
 for (const [label, value] of Object.entries(parsed)) {
   if (nonQueueDecisionLabels.has(label)) continue;
@@ -124,7 +127,7 @@ if (JSON.stringify(register?.selectedPrs) !== JSON.stringify(expectedSelected)) 
 if (!Array.isArray(register?.records) || register.records.length !== expectedSelected.length) fail('Register record count mismatch.');
 
 const pr305 = register?.records?.find((record) => record.prNumber === 305);
-if (pr305?.decision !== 'validation_blocked_npm_ci_native_optional_package') fail('PR #305 refined blocker decision missing.');
+if (pr305?.decision !== 'environment_owner_blocked_native_optional_hydration') fail('PR #305 final blocker bucket missing.');
 if (pr305?.packageLockStatus !== 'unchanged') fail('PR #305 package-lock status mismatch.');
 if (!pr305?.commandsRun?.some((entry) => entry.command === 'npm ci' && entry.result === 'blocked' && entry.exitCode === 130)) {
   fail('PR #305 npm ci blocked command evidence missing.');
@@ -145,25 +148,47 @@ if (
 if (pr305?.fix2Evidence?.decision !== 'pr_305_validation_blocked_npm_ci_native_optional_package') {
   fail('PR #305 fix-2 evidence decision missing in register.');
 }
+if (
+  !pr305?.commandsRun?.some(
+    (entry) =>
+      entry.runContext === 'fresh_pr_305_fix_3_worktree' &&
+      entry.blockerCategory === 'pr_305_validation_blocked_hydration_not_limited_to_optional_deps' &&
+      entry.exitCode === 143,
+  )
+) {
+  fail('Fresh PR #305 fix-3 omit-optional blocker evidence missing in register.');
+}
+if (pr305?.fix3Evidence?.bucket !== 'environment_owner_blocked_native_optional_hydration') {
+  fail('PR #305 fix-3 owner/environment bucket missing in register.');
+}
 for (const prNumber of [300, 264, 263, 245]) {
   const record = register?.records?.find((item) => item.prNumber === prNumber);
-  if (record?.decision !== 'skipped_after_batch_blocker') fail(`PR #${prNumber} skip decision missing.`);
+  if (record?.decision !== 'deferred_to_validation_queue_2') fail(`PR #${prNumber} queue-2 defer decision missing.`);
   if (record?.packageLockStatus !== 'not_touched') fail(`PR #${prNumber} package-lock status mismatch.`);
 }
 
 if (results?.validationSummary?.mergeReadyAfterValidation !== 0) fail('Results merge-ready count must be zero.');
+if (results?.queueContinuation?.canContinueWithDeferredPrs !== true) fail('Queue continuation evidence missing in results.');
+if (results?.queueContinuation?.pr305Bucket !== 'environment_owner_blocked_native_optional_hydration') {
+  fail('PR #305 owner/environment bucket missing in results.');
+}
 if (mergeReady?.mergeReadyAfterValidationCount !== 0) fail('Merge-ready doc count must be zero.');
 if (Array.isArray(mergeReady?.mergeReadyPrs) && mergeReady.mergeReadyPrs.length !== 0) fail('Merge-ready PR list must be empty.');
+if (mergeReady?.queueContinuation?.canContinueWithDeferredPrs !== true) fail('Merge-ready queue continuation evidence missing.');
 if (blockerQueue?.blockerFixCount !== 1) fail('Blocker fix count mismatch.');
 if (blockerQueue?.blockers?.[0]?.executionAllowedNow !== false) fail('Blocker execution must remain false.');
-if (blockerQueue?.blockers?.[0]?.blockerCategory !== 'validation_blocked_npm_ci_native_optional_package') {
-  fail('Blocker queue refined category mismatch.');
+if (blockerQueue?.blockers?.[0]?.blockerCategory !== 'environment_owner_blocked_native_optional_hydration') {
+  fail('Blocker queue owner/environment bucket mismatch.');
 }
-if (blockerQueue?.blockers?.[0]?.recommendedPrompt !== 'REEDITPRO-E2E-VALIDATION-PR-305-FIX-3: resolve PR #305 native optional npm hydration blocker, no execution') {
+if (blockerQueue?.blockers?.[0]?.recommendedPrompt !== 'REEDITPRO-E2E-VALIDATION-QUEUE-2: run next batch, no execution') {
   fail('Blocker queue follow-up prompt mismatch.');
 }
+if (blockerQueue?.queueContinuation?.canContinueWithDeferredPrs !== true) fail('Blocker queue continuation evidence missing.');
 if (mergePrompt?.currentMergeReadyCount !== 0) fail('Merge prompt must remain blocked with zero merge-ready PRs.');
 if (nextBatchPrompt?.currentPrerequisiteDecision !== decision) fail('Next batch prompt prerequisite mismatch.');
+if (!nextBatchPrompt?.excludedPrs?.some((entry) => entry.prNumber === 305 && entry.bucket === 'environment_owner_blocked_native_optional_hydration')) {
+  fail('Next batch prompt must exclude PR #305 as owner/environment blocked.');
+}
 if (pr305Fix?.decision !== 'pr_305_validation_blocked_npm_ci_failed') fail('PR #305 fix decision mismatch.');
 if (pr305Fix?.targetPr?.headRefOid !== '757686f49d85cb7d346b55a1712e1d34a6bdde03') fail('PR #305 fix target head mismatch.');
 if (pr305Fix?.hydrationRetry?.packageLockStatus !== 'unchanged') fail('PR #305 fix package-lock status mismatch.');
@@ -179,6 +204,19 @@ if (pr305Fix2?.hydrationRetry?.observedPhase !== 'npm reifyNode extraction and n
 }
 if (pr305Fix2?.mergeQueueDecision?.canMovePr305ToMergeQueue !== false) fail('PR #305 fix-2 must not be merge-ready.');
 if (pr305Fix2?.safetyScan?.result !== 'passed') fail('PR #305 fix-2 safety scan must pass.');
+if (pr305Fix3?.decision !== 'pr_305_validation_blocked_hydration_not_limited_to_optional_deps') fail('PR #305 fix-3 decision mismatch.');
+if (pr305Fix3?.targetPr?.headRefOid !== '757686f49d85cb7d346b55a1712e1d34a6bdde03') fail('PR #305 fix-3 target head mismatch.');
+if (pr305Fix3?.omitOptionalDiagnostic?.packageLockStatus !== 'unchanged') fail('PR #305 fix-3 package-lock status mismatch.');
+if (pr305Fix3?.omitOptionalDiagnostic?.exitCode !== 143) fail('PR #305 fix-3 npm ci exit code mismatch.');
+if (pr305Fix3?.omitOptionalDiagnostic?.hydrationBlockerNotLimitedToOptionalDeps !== true) {
+  fail('PR #305 fix-3 not-limited-to-optional evidence missing.');
+}
+if (pr305Fix3?.mergeQueueDecision?.canMovePr305ToMergeQueue !== false) fail('PR #305 fix-3 must not be merge-ready.');
+if (pr305Fix3?.mergeQueueDecision?.bucket !== 'environment_owner_blocked_native_optional_hydration') {
+  fail('PR #305 fix-3 owner/environment bucket mismatch.');
+}
+if (pr305Fix3?.queueContinuationDecision?.canContinueWithDeferredPrs !== true) fail('PR #305 fix-3 queue continuation missing.');
+if (pr305Fix3?.safetyScan?.result !== 'passed') fail('PR #305 fix-3 safety scan must pass.');
 if (pr305Fix2Prompt?.prompt !== 'REEDITPRO-E2E-VALIDATION-PR-305-FIX-2: resolve repeated npm ci hydration blocker, no execution') {
   fail('PR #305 fix-2 prompt mismatch.');
 }
@@ -215,8 +253,10 @@ if (
 for (const required of [
   'REEDITPRO-E2E-VALIDATION-PR-305-FIX: fix dependency hydration blocker, no execution',
   'REEDITPRO-E2E-VALIDATION-PR-305-FIX-2: resolve repeated npm ci hydration blocker, no execution',
-  'REEDITPRO-E2E-VALIDATION-PR-305-FIX-3: resolve PR #305 native optional npm hydration blocker, no execution',
+  'REEDITPRO-E2E-VALIDATION-PR-305-FIX-3: final classify or bypass PR #305 native optional npm hydration blocker, no execution',
   'pr_305_validation_blocked_npm_ci_native_optional_package',
+  'pr_305_validation_blocked_hydration_not_limited_to_optional_deps',
+  'environment_owner_blocked_native_optional_hydration',
   'REEDITPRO-E2E-VALIDATION-QUEUE-2: run next batch, no execution',
   'REEDITPRO-E2E-MERGE-HYGIENE-3: merge validated PRs, no execution',
   noScopeStatement,

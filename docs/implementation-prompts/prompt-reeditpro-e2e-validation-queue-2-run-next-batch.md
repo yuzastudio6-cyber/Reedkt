@@ -1,13 +1,20 @@
 # REEDITPRO-E2E-VALIDATION-QUEUE-2: Run Next Batch, No Execution
 
-Use this prompt after the PR #305 dependency hydration blocker is fixed or intentionally bypassed by owner-approved batch reselection.
+Use this prompt after PR #305 is moved to the durable `environment_owner_blocked_native_optional_hydration` bucket by FIX-3. This prompt continues dependency-backed validation with the deferred PRs while keeping PR #305 excluded until an owner/environment policy clears its hydration blocker.
 
 ```json reeditpro-e2e-validation-queue-2-run-next-batch
 {
   "prompt": "REEDITPRO-E2E-VALIDATION-QUEUE-2: run next batch, no execution",
   "sourcePrerequisite": "REEDITPRO-E2E-VALIDATION-QUEUE-1",
   "currentPrerequisiteDecision": "reeditpro_e2e_validation_queue_1_blocked_validation_failures",
-  "recommendedFirstAction": "Resolve or skip PR #305 through an explicit validation-fix prompt before running another dependency-backed batch.",
+  "recommendedFirstAction": "Re-query and validate deferred PRs #300, #264, #263, and #245 while keeping PR #305 excluded as environment/owner-blocked.",
+  "excludedPrs": [
+    {
+      "prNumber": 305,
+      "bucket": "environment_owner_blocked_native_optional_hydration",
+      "reason": "FIX-3 omit-optional diagnostic did not complete or link validation binaries; owner/environment policy is required before another PR #305 merge-readiness attempt."
+    }
+  ],
   "candidateDeferredPrs": [300, 264, 263, 245],
   "selectionRules": [
     "Re-query PR #519 evidence and all candidate PRs immediately before validation.",

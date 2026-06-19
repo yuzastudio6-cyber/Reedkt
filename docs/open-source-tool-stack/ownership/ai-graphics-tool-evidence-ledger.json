@@ -1,0 +1,516 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsToolEvidenceLedger.v1",
+  "decision": "ai_graphics_implementation_state_scan_completed_ready_for_draft_proof_promotion_review",
+  "ownerDisplayName": "Atlas — AI Graphics & Worker Metadata Owner",
+  "ownerId": "atlas_ai_graphics_worker_owner",
+  "ownerLane": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "generatedFromBranch": "codex/rp-ai-graphics-implementation-state-scan-cloud-milestone-plan",
+  "baseBranch": "codex/rp-ai-graphics-owner-assignment-registry",
+  "sourceEvidence": {
+    "pr543": {
+      "state": "open/draft/mergeable",
+      "head": "37fea25846987323d1de04098c701816fa24a237",
+      "role": "AI graphics owner assignment registry and Track B conflict sync"
+    },
+    "pr536": {
+      "state": "open/draft/mergeable",
+      "head": "cc762b22d517e8042eed1e655a3c0708848b28f5",
+      "role": "open-source tool stack refresh QA"
+    },
+    "pr534": {
+      "state": "open/draft/mergeable",
+      "head": "3f00f57004adbd4f382420f2faea08726f1822d8",
+      "role": "open-source tool stack refresh packet"
+    },
+    "pr416": {
+      "state": "merged",
+      "head": "85a02dce4a64a99927c8e30c68bd75d3d9736390",
+      "role": "canonical central open-source tool stack audit"
+    },
+    "pr425": {
+      "state": "open/draft/mergeable",
+      "head": "4e79f14a03a441c0a6d9c8adaef55b7c8b693c12",
+      "role": "AI graphics batch 1 package proof draft evidence"
+    },
+    "pr433": {
+      "state": "open/draft/mergeable",
+      "head": "5d7921f9d79e19641a9453440a6f9abe6272ea04",
+      "role": "AI graphics batch 2 package proof draft evidence"
+    },
+    "pr441": {
+      "state": "open/draft/mergeable",
+      "head": "92c1a52b53c4836a642ab6be8885aa8fb994e9c8",
+      "role": "AI graphics batch 3 package proof draft evidence"
+    },
+    "pr532": {
+      "state": "open/draft/mergeable",
+      "head": "4a04ca2601e1b2f1e90fa2560b11d1e35ee09c26",
+      "role": "latest Worker AI graphics metadata controlled no-op owner review draft evidence"
+    },
+    "pr542": {
+      "state": "merged",
+      "head": "c2007f6bb20bc5cfae35d9e4eaef03feeca3218f",
+      "role": "Track B media OSS steward owner registry"
+    },
+    "pr544": {
+      "state": "merged",
+      "head": "318415fa8a9dbe33a4ac5f0f8a767ab761b73a4d",
+      "role": "Track A visual render/export owner registry"
+    }
+  },
+  "duplicateSearchResult": "no exact implementation-state PR, remote branch, or worktree existed before implementation",
+  "trackBOwnerRule": {
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "ownerName": "Track B Media OSS Steward",
+    "lane": "TRACK_B_MEDIA_PROCESSING",
+    "sourcePr": "PR #542 merged"
+  },
+  "trackBToolsExcluded": [
+    "ffmpeg",
+    "ffprobe",
+    "sharp_libvips",
+    "duckdb",
+    "polars",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "paddleocr",
+    "paddlepaddle",
+    "mediainfo",
+    "exiftool",
+    "imagemagick_graphicsmagick",
+    "tesseract",
+    "opencolorio",
+    "openimageio"
+  ],
+  "trackAOwnerContext": {
+    "sourcePr": "PR #544 merged",
+    "excludedTools": [
+      "remotion",
+      "film",
+      "libass",
+      "opentimelineio",
+      "hyperframe",
+      "gstreamer",
+      "bento4_mp4box",
+      "mkvtoolnix",
+      "vapoursynth",
+      "revideo"
+    ],
+    "atlasOwnsTrackARenderExport": false
+  },
+  "booleans": {
+    "implementationStateScanCompleted": true,
+    "all21ToolsScanned": true,
+    "duplicateOwnerConflictFound": false,
+    "trackBToolsExcluded": true,
+    "trackAToolsExcluded": true,
+    "exclusiveOwnershipClaimed": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "modelWeightDownloadPerformed": false,
+    "supabaseMutationPerformed": false,
+    "sqlExecutionPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "noScope": "No dependency install, package-lock mutation, tool execution, worker execution, route execution, provider/model runtime, browser/WebGL/canvas runtime, GPU runtime, model weight download, media processing, Remotion render/export, resvg rasterization, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.",
+  "nextPrompt": "AI_GRAPHICS_DRAFT_PACKAGE_PROOF_PROMOTION_REVIEW",
+  "evidenceLedger": [
+    {
+      "toolId": "torch_torchvision",
+      "displayName": "Torch/TorchVision",
+      "packageName": [
+        "torch",
+        "torchvision"
+      ],
+      "canonicalStatusFromPr416": "package_declared_smoke_only_from_pr416",
+      "draftEvidencePrs": [],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "not_applicable_for_current_batch",
+      "workerEvidence": "future worker review only",
+      "currentInstallState": "not_installed_on_source_branch",
+      "currentProofState": "not_proven_on_source_branch"
+    },
+    {
+      "toolId": "transformers",
+      "displayName": "Transformers",
+      "packageName": [
+        "transformers"
+      ],
+      "canonicalStatusFromPr416": "package_declared_docs_only_from_pr416",
+      "draftEvidencePrs": [],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "not_applicable_for_current_batch",
+      "workerEvidence": "future worker review only",
+      "currentInstallState": "not_installed_on_source_branch",
+      "currentProofState": "not_proven_on_source_branch"
+    },
+    {
+      "toolId": "sam2",
+      "displayName": "SAM2",
+      "packageName": [
+        "sam2"
+      ],
+      "canonicalStatusFromPr416": "package_declared_smoke_only_from_pr416",
+      "draftEvidencePrs": [],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "not_applicable_for_current_batch",
+      "workerEvidence": "future worker review only",
+      "currentInstallState": "not_installed_on_source_branch",
+      "currentProofState": "model_path_policy_not_proven"
+    },
+    {
+      "toolId": "birefnet",
+      "displayName": "BiRefNet",
+      "packageName": [
+        "birefnet"
+      ],
+      "canonicalStatusFromPr416": "package_declared_smoke_only_from_pr416",
+      "draftEvidencePrs": [],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "not_applicable_for_current_batch",
+      "workerEvidence": "future worker review only",
+      "currentInstallState": "not_installed_on_source_branch",
+      "currentProofState": "model_path_policy_not_proven"
+    },
+    {
+      "toolId": "real_esrgan",
+      "displayName": "Real-ESRGAN",
+      "packageName": [
+        "real-esrgan"
+      ],
+      "canonicalStatusFromPr416": "package_declared_smoke_only_from_pr416",
+      "draftEvidencePrs": [],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "not_applicable_for_current_batch",
+      "workerEvidence": "future worker review only",
+      "currentInstallState": "not_installed_on_source_branch",
+      "currentProofState": "model_path_policy_not_proven"
+    },
+    {
+      "toolId": "kornia",
+      "displayName": "Kornia",
+      "packageName": [
+        "kornia"
+      ],
+      "canonicalStatusFromPr416": "package_declared_docs_only_from_pr416",
+      "draftEvidencePrs": [],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "not_applicable_for_current_batch",
+      "workerEvidence": "future worker review only",
+      "currentInstallState": "not_installed_on_source_branch",
+      "currentProofState": "not_proven_on_source_branch"
+    },
+    {
+      "toolId": "rembg",
+      "displayName": "rembg",
+      "packageName": [
+        "rembg"
+      ],
+      "canonicalStatusFromPr416": "docs_only_not_proven_from_pr416",
+      "draftEvidencePrs": [],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "not_applicable_for_current_batch",
+      "workerEvidence": "future worker review only",
+      "currentInstallState": "not_installed_on_source_branch",
+      "currentProofState": "not_proven"
+    },
+    {
+      "toolId": "transparent_background",
+      "displayName": "transparent-background",
+      "packageName": [
+        "transparent-background"
+      ],
+      "canonicalStatusFromPr416": "docs_only_not_proven_from_pr416",
+      "draftEvidencePrs": [],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "not_applicable_for_current_batch",
+      "workerEvidence": "future worker review only",
+      "currentInstallState": "not_installed_on_source_branch",
+      "currentProofState": "not_proven"
+    },
+    {
+      "toolId": "d3",
+      "displayName": "D3",
+      "packageName": [
+        "d3"
+      ],
+      "canonicalStatusFromPr416": "canonical_ai_graphics_tool_from_pr416",
+      "draftEvidencePrs": [
+        "PR #425"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_install_import_fixture_proof_pending_merge"
+    },
+    {
+      "toolId": "echarts",
+      "displayName": "ECharts",
+      "packageName": [
+        "echarts"
+      ],
+      "canonicalStatusFromPr416": "canonical_ai_graphics_tool_from_pr416",
+      "draftEvidencePrs": [
+        "PR #425"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_install_import_fixture_proof_pending_merge"
+    },
+    {
+      "toolId": "vega_lite",
+      "displayName": "Vega-Lite",
+      "packageName": [
+        "vega-lite"
+      ],
+      "canonicalStatusFromPr416": "canonical_ai_graphics_tool_from_pr416",
+      "draftEvidencePrs": [
+        "PR #425"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_install_import_fixture_proof_pending_merge"
+    },
+    {
+      "toolId": "vega",
+      "displayName": "Vega",
+      "packageName": [
+        "vega"
+      ],
+      "canonicalStatusFromPr416": "draft_pending_only_not_canonical_pr416_named",
+      "draftEvidencePrs": [
+        "PR #425"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_install_import_fixture_proof_pending_merge"
+    },
+    {
+      "toolId": "satori",
+      "displayName": "Satori",
+      "packageName": [
+        "satori"
+      ],
+      "canonicalStatusFromPr416": "draft_pending_only_not_canonical_pr416_named",
+      "draftEvidencePrs": [
+        "PR #433"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_install_import_fixture_proof_pending_merge"
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "displayName": "@svgdotjs/svg.js",
+      "packageName": [
+        "@svgdotjs/svg.js"
+      ],
+      "canonicalStatusFromPr416": "draft_pending_only_not_canonical_pr416_named",
+      "draftEvidencePrs": [
+        "PR #433"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_install_import_fixture_proof_pending_merge"
+    },
+    {
+      "toolId": "viz_js",
+      "displayName": "@viz-js/viz",
+      "packageName": [
+        "@viz-js/viz"
+      ],
+      "canonicalStatusFromPr416": "draft_pending_only_not_canonical_pr416_named",
+      "draftEvidencePrs": [
+        "PR #433"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_node_only_static_proof_pending_merge"
+    },
+    {
+      "toolId": "lottie_web",
+      "displayName": "lottie-web",
+      "packageName": [
+        "lottie-web"
+      ],
+      "canonicalStatusFromPr416": "canonical_ai_graphics_tool_from_pr416",
+      "draftEvidencePrs": [
+        "PR #433"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_manifest_metadata_proof_pending_merge"
+    },
+    {
+      "toolId": "animejs",
+      "displayName": "Anime.js",
+      "packageName": [
+        "animejs"
+      ],
+      "canonicalStatusFromPr416": "draft_pending_only_not_canonical_pr416_named",
+      "draftEvidencePrs": [
+        "PR #441"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_import_manifest_proof_pending_merge"
+    },
+    {
+      "toolId": "three_js",
+      "displayName": "Three.js",
+      "packageName": [
+        "three"
+      ],
+      "canonicalStatusFromPr416": "canonical_ai_graphics_tool_from_pr416",
+      "draftEvidencePrs": [
+        "PR #441"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_import_manifest_proof_pending_merge"
+    },
+    {
+      "toolId": "pixi_js",
+      "displayName": "PixiJS",
+      "packageName": [
+        "pixi.js"
+      ],
+      "canonicalStatusFromPr416": "canonical_ai_graphics_tool_from_pr416",
+      "draftEvidencePrs": [
+        "PR #441"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_import_manifest_proof_pending_merge"
+    },
+    {
+      "toolId": "konva",
+      "displayName": "Konva",
+      "packageName": [
+        "konva"
+      ],
+      "canonicalStatusFromPr416": "canonical_ai_graphics_tool_from_pr416",
+      "draftEvidencePrs": [
+        "PR #441"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_import_manifest_proof_pending_merge"
+    },
+    {
+      "toolId": "babylonjs",
+      "displayName": "Babylon.js",
+      "packageName": [
+        "babylonjs"
+      ],
+      "canonicalStatusFromPr416": "canonical_ai_graphics_tool_from_pr416",
+      "draftEvidencePrs": [
+        "PR #441"
+      ],
+      "packageJsonEvidence": "not_declared_on_owner_assignment_source_branch",
+      "packageLockEvidence": "package_lock_unchanged_on_owner_assignment_source_branch",
+      "scriptEvidence": "no_tool_runtime_script_added",
+      "diagnosticEvidence": "covered_by_ai_graphics_implementation_state_scan_diagnostics",
+      "toolRouteEvidence": "draft Tool Route metadata evidence through PR #532; not canonical runtime proof",
+      "workerEvidence": "draft Worker metadata/static evidence through PR #532; no live worker execution",
+      "currentInstallState": "draft_proven_pending_merge_not_current_branch",
+      "currentProofState": "draft_import_manifest_proof_pending_merge"
+    }
+  ]
+}

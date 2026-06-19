@@ -76,5 +76,53 @@
     ],
     "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION",
     "executionRunInThisPhase": false
+  },
+  "milestone1Execution": {
+    "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval",
+    "reportKey": "trackb_milestone_1_execution_reports",
+    "tools": [
+      {
+        "id": "exiftool",
+        "available": false,
+        "version_proven": false,
+        "fixture_proven": false,
+        "packaging_required": true,
+        "accepted_proven": false,
+        "blocker": "missing_system_binary"
+      },
+      {
+        "id": "mediainfo",
+        "available": false,
+        "version_proven": false,
+        "fixture_proven": false,
+        "packaging_required": true,
+        "accepted_proven": false,
+        "blocker": "missing_system_binary"
+      },
+      {
+        "id": "tesseract",
+        "available": false,
+        "version_proven": false,
+        "fixture_proven": false,
+        "packaging_required": true,
+        "accepted_proven": false,
+        "blocker": "missing_system_binary"
+      },
+      {
+        "id": "imagemagick_graphicsmagick",
+        "available": false,
+        "version_proven": false,
+        "fixture_proven": false,
+        "packaging_required": true,
+        "accepted_proven": false,
+        "blocker": "missing_system_binary"
+      }
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL",
+    "executionScope": "cpu_only_synthetic_fixtures_only",
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "betaProductionAccepted": false
   }
 }

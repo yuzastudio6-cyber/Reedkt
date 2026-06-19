@@ -71,3 +71,10 @@ preserves the later stack order PR #425 -> PR #433 -> PR #441. It does not mark
 drafts ready, merge source PRs, promote canonical proof, or change runtime,
 internal beta, external beta, production, provider, Supabase/GCS, signed URL, or
 public artifact readiness.
+
+AI graphics draft package proof draft-ready approval authorizes only a future
+draft-ready execution lane for PR #425 after a fresh live recheck. PR #433 and
+PR #441 remain deferred, and no source PR was marked ready, merged, retargeted,
+or promoted. Runtime-ready tools, internal beta, external beta, production,
+provider execution, Supabase/GCS, signed URLs, and public artifacts remain
+blocked.

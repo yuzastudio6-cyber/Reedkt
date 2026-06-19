@@ -1,0 +1,302 @@
+{
+  "schema": "reeditpro.openSourceToolStack.stagedOwnerMergePlanAfterBatch1Rollup.stagedPlan.v1",
+  "generatedAt": "2026-06-19T01:45:16.519Z",
+  "status": "accepted",
+  "accepted": true,
+  "warnings": [
+    "This phase plans source-of-truth work only; no owner PR is merged here."
+  ],
+  "blockers": [],
+  "details": {
+    "stages": [
+      {
+        "order": 0,
+        "id": "central_source_hygiene_and_duplicate_avoidance",
+        "objective": "Confirm PR #529/#527/#522/#416 central evidence and no duplicate staged owner plan.",
+        "sourcePrs": [
+          529,
+          527,
+          522,
+          416
+        ],
+        "currentState": "Clean central branch; no package-lock/Docker/.dockerignore diff.",
+        "prerequisites": [
+          "source-of-truth branch clean",
+          "package-lock unchanged",
+          "reference-only PRs remain non-canonical",
+          "forbidden runtime/product scopes remain false"
+        ],
+        "forbiddenScopes": [
+          "github_pr_merge",
+          "dependency_install",
+          "package_lock_mutation",
+          "docker_build_or_run",
+          "ffmpeg_ffprobe_probe",
+          "build_context_generation",
+          "media_processing",
+          "caption_burn_in",
+          "render_export",
+          "worker_route_provider_execution",
+          "browser_capture",
+          "map_rendering",
+          "supabase_sql_gcs_mutation",
+          "public_artifact_or_signed_url",
+          "raw_prompt_execution",
+          "beta_or_production_unlock"
+        ],
+        "expectedOutput": "source audit and duplicate-risk facts",
+        "stopConditions": "Duplicate central staged owner plan, source drift, or forbidden scope.",
+        "owner": "staged-owner merge planner",
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP"
+      },
+      {
+        "order": 1,
+        "id": "e2e_validation_pr305_hydration_blocker_resolution",
+        "objective": "Resolve or isolate PR #523 blocker before beta claims.",
+        "sourcePrs": [
+          519,
+          523,
+          305
+        ],
+        "currentState": "PR #523 state=OPEN draft=true.",
+        "prerequisites": [
+          "source-of-truth branch clean",
+          "package-lock unchanged",
+          "reference-only PRs remain non-canonical",
+          "forbidden runtime/product scopes remain false"
+        ],
+        "forbiddenScopes": [
+          "github_pr_merge",
+          "dependency_install",
+          "package_lock_mutation",
+          "docker_build_or_run",
+          "ffmpeg_ffprobe_probe",
+          "build_context_generation",
+          "media_processing",
+          "caption_burn_in",
+          "render_export",
+          "worker_route_provider_execution",
+          "browser_capture",
+          "map_rendering",
+          "supabase_sql_gcs_mutation",
+          "public_artifact_or_signed_url",
+          "raw_prompt_execution",
+          "beta_or_production_unlock"
+        ],
+        "expectedOutput": "blocker-resolution packet only",
+        "stopConditions": "PR #523 still open draft or PR #305 hydration blocker persists.",
+        "owner": "E2E validation owner",
+        "nextPrompt": "E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION"
+      },
+      {
+        "order": 2,
+        "id": "ai_graphics_worker_source_review",
+        "objective": "Review AI graphics worker chain without centralizing runtime proof.",
+        "sourcePrs": [
+          491,
+          493,
+          496,
+          498,
+          500,
+          503,
+          506,
+          509,
+          511,
+          515,
+          517,
+          521,
+          524
+        ],
+        "currentState": "Draft/open chain remains metadata dry-run scoped.",
+        "prerequisites": [
+          "source-of-truth branch clean",
+          "package-lock unchanged",
+          "reference-only PRs remain non-canonical",
+          "forbidden runtime/product scopes remain false"
+        ],
+        "forbiddenScopes": [
+          "github_pr_merge",
+          "dependency_install",
+          "package_lock_mutation",
+          "docker_build_or_run",
+          "ffmpeg_ffprobe_probe",
+          "build_context_generation",
+          "media_processing",
+          "caption_burn_in",
+          "render_export",
+          "worker_route_provider_execution",
+          "browser_capture",
+          "map_rendering",
+          "supabase_sql_gcs_mutation",
+          "public_artifact_or_signed_url",
+          "raw_prompt_execution",
+          "beta_or_production_unlock"
+        ],
+        "expectedOutput": "AI graphics source review PR",
+        "stopConditions": "Worker execution, browser/WebGL/canvas runtime, provider/model calls, or beta claims.",
+        "owner": "AI graphics worker owner",
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_AI_GRAPHICS_WORKER_SOURCE_REVIEW_AFTER_BATCH_1"
+      },
+      {
+        "order": 3,
+        "id": "sound_oss_source_reconciliation",
+        "objective": "Reconcile Sound OSS scoped evidence as metadata/synthetic-fixture only.",
+        "sourcePrs": [
+          495,
+          507
+        ],
+        "currentState": "PR #495/#507 merged outside central open-source branch context.",
+        "prerequisites": [
+          "source-of-truth branch clean",
+          "package-lock unchanged",
+          "reference-only PRs remain non-canonical",
+          "forbidden runtime/product scopes remain false"
+        ],
+        "forbiddenScopes": [
+          "github_pr_merge",
+          "dependency_install",
+          "package_lock_mutation",
+          "docker_build_or_run",
+          "ffmpeg_ffprobe_probe",
+          "build_context_generation",
+          "media_processing",
+          "caption_burn_in",
+          "render_export",
+          "worker_route_provider_execution",
+          "browser_capture",
+          "map_rendering",
+          "supabase_sql_gcs_mutation",
+          "public_artifact_or_signed_url",
+          "raw_prompt_execution",
+          "beta_or_production_unlock"
+        ],
+        "expectedOutput": "Sound scoped reconciliation packet",
+        "stopConditions": "Real audio/media processing, provider calls, or production claims.",
+        "owner": "Sound/Music/Audio owner",
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_SOUND_OSS_SOURCE_RECONCILIATION_AFTER_BATCH_1"
+      },
+      {
+        "order": 4,
+        "id": "tracka_private_e2e_source_reconciliation",
+        "objective": "Reconcile Track A private E2E context while runtime remains blocked.",
+        "sourcePrs": [
+          497,
+          502,
+          505,
+          510,
+          513,
+          516,
+          520
+        ],
+        "currentState": "Track A planning/gates are merged in owner lanes.",
+        "prerequisites": [
+          "source-of-truth branch clean",
+          "package-lock unchanged",
+          "reference-only PRs remain non-canonical",
+          "forbidden runtime/product scopes remain false"
+        ],
+        "forbiddenScopes": [
+          "github_pr_merge",
+          "dependency_install",
+          "package_lock_mutation",
+          "docker_build_or_run",
+          "ffmpeg_ffprobe_probe",
+          "build_context_generation",
+          "media_processing",
+          "caption_burn_in",
+          "render_export",
+          "worker_route_provider_execution",
+          "browser_capture",
+          "map_rendering",
+          "supabase_sql_gcs_mutation",
+          "public_artifact_or_signed_url",
+          "raw_prompt_execution",
+          "beta_or_production_unlock"
+        ],
+        "expectedOutput": "Track A source reconciliation packet",
+        "stopConditions": "Render/export, worker execution, route execution, media processing, beta unlock.",
+        "owner": "Track A owner",
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_TRACKA_PRIVATE_E2E_SOURCE_RECONCILIATION_AFTER_BATCH_1"
+      },
+      {
+        "order": 5,
+        "id": "batch2_install_proof_readiness_decision",
+        "objective": "Decide if central Batch 2 install/proof approval can start after owner reconciliation.",
+        "sourcePrs": [
+          527,
+          522,
+          416
+        ],
+        "currentState": "71-candidate inventory and Batch 1 bounded proof are present.",
+        "prerequisites": [
+          "source-of-truth branch clean",
+          "package-lock unchanged",
+          "reference-only PRs remain non-canonical",
+          "forbidden runtime/product scopes remain false"
+        ],
+        "forbiddenScopes": [
+          "github_pr_merge",
+          "dependency_install",
+          "package_lock_mutation",
+          "docker_build_or_run",
+          "ffmpeg_ffprobe_probe",
+          "build_context_generation",
+          "media_processing",
+          "caption_burn_in",
+          "render_export",
+          "worker_route_provider_execution",
+          "browser_capture",
+          "map_rendering",
+          "supabase_sql_gcs_mutation",
+          "public_artifact_or_signed_url",
+          "raw_prompt_execution",
+          "beta_or_production_unlock"
+        ],
+        "expectedOutput": "Batch 2 approval packet if owner gates are clear",
+        "stopConditions": "Owner-lane ambiguity, unresolved E2E blocker, or runtime/product scope drift.",
+        "owner": "Open-source tool stack owner",
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_BATCH_2_INSTALL_PROOF_APPROVAL_AFTER_OWNER_RECONCILIATION"
+      },
+      {
+        "order": 6,
+        "id": "product_internal_beta_readiness_aggregation",
+        "objective": "Aggregate internal beta readiness only after blockers are explicitly acknowledged.",
+        "sourcePrs": [
+          529,
+          527,
+          522,
+          523
+        ],
+        "currentState": "Internal beta remains secondary and warning-bound.",
+        "prerequisites": [
+          "source-of-truth branch clean",
+          "package-lock unchanged",
+          "reference-only PRs remain non-canonical",
+          "forbidden runtime/product scopes remain false"
+        ],
+        "forbiddenScopes": [
+          "github_pr_merge",
+          "dependency_install",
+          "package_lock_mutation",
+          "docker_build_or_run",
+          "ffmpeg_ffprobe_probe",
+          "build_context_generation",
+          "media_processing",
+          "caption_burn_in",
+          "render_export",
+          "worker_route_provider_execution",
+          "browser_capture",
+          "map_rendering",
+          "supabase_sql_gcs_mutation",
+          "public_artifact_or_signed_url",
+          "raw_prompt_execution",
+          "beta_or_production_unlock"
+        ],
+        "expectedOutput": "blocked or limited internal beta aggregation packet",
+        "stopConditions": "External beta, real media beta, paid production, Supabase/GCS/public delivery unlocks.",
+        "owner": "Product/internal beta owner",
+        "nextPrompt": "PRODUCT_INTERNAL_BETA_READINESS_AGGREGATION_AFTER_OPEN_SOURCE_OWNER_RECONCILIATION"
+      }
+    ]
+  }
+}

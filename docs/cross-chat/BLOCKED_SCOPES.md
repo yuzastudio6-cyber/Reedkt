@@ -321,3 +321,15 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - End-to-end product-ready tools remain `0`; do not claim 40+ tools are installed/proven end-to-end.
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP`.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+<!-- OPEN_SOURCE_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP:start -->
+## Staged Owner Merge Plan After Batch 1 Rollup
+
+Decision: `staged_owner_merge_plan_passed_ready_for_e2e_validation_pr305_hydration_blocker_resolution`.
+
+Primary next prompt: `E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION`.
+
+The staged plan keeps 71 candidates inventoried, Batch 1 bounded proof only, 13 AI graphics tools accepted-with-warnings in worker metadata dry-run scope only, and 0 end-to-end product-ready tools.
+
+Do not claim 40+ tools are installed/proven end-to-end. Worker runtime, media processing, render/export, Supabase/GCS/public delivery, beta, and production remain blocked.
+<!-- OPEN_SOURCE_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP:end -->

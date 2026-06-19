@@ -1,0 +1,77 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ownerRegistry.v1",
+  "generatedAt": "2026-06-19T17:30:00Z",
+  "decision": "trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceSha": "1893ac00814971c7d2a05958dd6971052193f4e6",
+  "sourceEvidence": {
+    "batch2PlanningPr": 527,
+    "batch1FinalRollupPr": 522,
+    "ownerLaneReconciliationPr": 529,
+    "inventoryPr": 416,
+    "inventoryCandidateCount": 71,
+    "aiGraphicsAcceptedWithWarningsCount": 13,
+    "endToEndProductReadyTools": 0,
+    "fortyPlusEndToEndClaimAllowed": false
+  },
+  "owners": [
+    {
+      "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+      "ownerName": "Track B Media OSS Steward",
+      "lane": "TRACK_B_MEDIA_PROCESSING",
+      "scopeType": "local_professional_open_source_tools_only",
+      "responsibility": "Central/local OSS media-processing tool install-proof, status tracking, duplicate prevention, and source-of-truth reporting.",
+      "ownedToolCount": 16,
+      "acceptedProvenBoundedCount": 5,
+      "blockedNotInstalledProvenCount": 11,
+      "endToEndProductReadyToolCount": 0,
+      "ownedTools": [
+        "ffmpeg",
+        "ffprobe",
+        "sharp_libvips",
+        "duckdb",
+        "polars_nodejs_polars",
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "paddleocr",
+        "paddlepaddle",
+        "mediainfo",
+        "exiftool",
+        "imagemagick_graphicsmagick",
+        "tesseract",
+        "opencolorio",
+        "openimageio"
+      ],
+      "notOwnerOf": [
+        "ai_graphics_worker_tools",
+        "sound_music_audio_tools",
+        "track_a_render_export_runtime_tools",
+        "provider_api_tools",
+        "supabase_gcs_public_delivery",
+        "beta_or_production_unlock"
+      ],
+      "nextPrompt": "TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN"
+    }
+  ],
+  "blockedScopes": {
+    "mediaProcessingApproved": false,
+    "renderExportApproved": false,
+    "workerRuntimeApproved": false,
+    "routeRuntimeApproved": false,
+    "providerRuntimeApproved": false,
+    "supabaseMutationApproved": false,
+    "gcsMutationApproved": false,
+    "publicArtifactApproved": false,
+    "signedUrlApproved": false,
+    "rawPromptExecutionApproved": false,
+    "betaUnlockApproved": false,
+    "productionUnlockApproved": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

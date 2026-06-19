@@ -1,0 +1,166 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ownerRegistry.trackBMediaOssSteward.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "ownerName": "Track B Media OSS Steward",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "decision": "trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan",
+  "scopeType": "local_professional_open_source_tools_only",
+  "responsibility": "Central/local OSS media-processing tool install-proof, status tracking, duplicate prevention, and source-of-truth reporting.",
+  "ownershipBoundary": {
+    "owns": [
+      "Track B media-processing open-source tool install-proof status",
+      "bounded source-of-truth reporting",
+      "duplicate prevention for Track B local OSS tool lanes"
+    ],
+    "doesNotOwn": [
+      "AI graphics worker tools",
+      "Sound, music, or audio tools",
+      "Track A render/export runtime execution",
+      "provider or API tools",
+      "Supabase, SQL, GCS, public delivery, or signed URL scopes",
+      "beta or production unlock decisions"
+    ]
+  },
+  "statusCounts": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 5,
+    "blockedNotInstalledProven": 11,
+    "endToEndProductReady": 0
+  },
+  "ownedTools": [
+    {
+      "id": "ffmpeg",
+      "name": "FFmpeg",
+      "status": "accepted_proven_bounded_batch1",
+      "version": "5.1.9-0+deb12u1",
+      "proofBoundary": "tracka_container_version_only_no_media_processing",
+      "mediaProcessingAccepted": false,
+      "endToEndProductReady": false
+    },
+    {
+      "id": "ffprobe",
+      "name": "FFprobe",
+      "status": "accepted_proven_bounded_batch1",
+      "version": "5.1.9-0+deb12u1",
+      "proofBoundary": "tracka_container_version_only_no_media_file_probe",
+      "mediaFileProbingAccepted": false,
+      "endToEndProductReady": false
+    },
+    {
+      "id": "sharp_libvips",
+      "name": "Sharp/libvips",
+      "status": "accepted_proven_bounded_batch1",
+      "version": "0.34.5",
+      "proofBoundary": "import_version_only_no_image_processing",
+      "mediaProcessingAccepted": false,
+      "endToEndProductReady": false
+    },
+    {
+      "id": "duckdb",
+      "name": "DuckDB",
+      "status": "accepted_proven_bounded_batch1",
+      "version": "1.4.4",
+      "proofBoundary": "native_rebuild_import_api_shape_in_memory_query",
+      "mediaProcessingAccepted": false,
+      "endToEndProductReady": false
+    },
+    {
+      "id": "polars_nodejs_polars",
+      "name": "Polars / nodejs-polars",
+      "status": "accepted_proven_bounded_batch1",
+      "version": "0.25.1",
+      "proofBoundary": "import_version_in_memory_dataframe_metadata",
+      "mediaProcessingAccepted": false,
+      "endToEndProductReady": false
+    },
+    {
+      "id": "opencv",
+      "name": "OpenCV",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; media processing remains blocked.",
+      "endToEndProductReady": false
+    },
+    {
+      "id": "pyav",
+      "name": "PyAV",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; media processing remains blocked.",
+      "endToEndProductReady": false
+    },
+    {
+      "id": "pyscenedetect",
+      "name": "PySceneDetect",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; media processing remains blocked.",
+      "endToEndProductReady": false
+    },
+    {
+      "id": "paddleocr",
+      "name": "PaddleOCR",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; OCR/media execution remains blocked.",
+      "endToEndProductReady": false
+    },
+    {
+      "id": "paddlepaddle",
+      "name": "PaddlePaddle",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; OCR/media execution remains blocked.",
+      "endToEndProductReady": false
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; media file probing remains blocked.",
+      "endToEndProductReady": false
+    },
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; source media metadata probing remains blocked.",
+      "endToEndProductReady": false
+    },
+    {
+      "id": "imagemagick_graphicsmagick",
+      "name": "ImageMagick / GraphicsMagick",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; image processing remains blocked.",
+      "endToEndProductReady": false
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; OCR execution remains blocked.",
+      "endToEndProductReady": false
+    },
+    {
+      "id": "opencolorio",
+      "name": "OpenColorIO",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; color pipeline execution remains blocked.",
+      "endToEndProductReady": false
+    },
+    {
+      "id": "openimageio",
+      "name": "OpenImageIO",
+      "status": "blocked_not_installed_proven",
+      "reason": "Future Track B install-proof milestone required; image IO/media processing remains blocked.",
+      "endToEndProductReady": false
+    }
+  ],
+  "sourceEvidence": {
+    "batch2CandidateInventory": "docs/open-source-tool-stack/batch-2-planning-after-batch-1-rollup/batch-2-candidate-inventory.json",
+    "batch1AcceptedMatrix": "docs/open-source-tool-stack/batch-1-final-rollup-after-ffmpeg-ffprobe-proof/batch-1-accepted-tools-matrix.json",
+    "ownerLaneCounts": "docs/open-source-tool-stack/owner-lane-reconciliation-after-batch-1-rollup/reconciled-tool-count-summary.json"
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

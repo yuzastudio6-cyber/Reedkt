@@ -335,3 +335,11 @@ The staged plan keeps 71 candidates inventoried, Batch 1 bounded proof only, 13 
 
 Do not claim 40+ tools are installed/proven end-to-end. Worker runtime, media processing, render/export, Supabase/GCS/public delivery, beta, and production remain blocked.
 <!-- OPEN_SOURCE_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP:end -->
+
+<!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:start -->
+## Track B Media OSS Steward Owner Registry
+
+The Track B Media OSS Steward registry does not unblock runtime behavior. The following remain blocked: media processing, media file probing, decode/encode, OCR execution, color/image processing, render/export, worker execution, route execution, provider calls, Supabase/SQL/GCS mutation, public artifacts, signed URLs, raw prompt execution, beta, and production.
+
+Counts remain constrained: 16 owned Track B tools, 5 accepted/proven bounded Batch 1 tools, 11 blocked/not installed-proven tools, and 0 end-to-end product-ready tools.
+<!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:end -->

@@ -365,3 +365,13 @@ The staged plan keeps 71 candidates inventoried, Batch 1 bounded proof only, 13 
 
 Do not claim 40+ tools are installed/proven end-to-end. Worker runtime, media processing, render/export, Supabase/GCS/public delivery, beta, and production remain blocked.
 <!-- OPEN_SOURCE_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP:end -->
+
+<!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:start -->
+## Track B Media OSS Steward Owner Registry
+
+- Registered owner: `TRACK_B_MEDIA_OSS_STEWARD`.
+- Decision: `trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan`.
+- Next lane: `TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN`.
+- Future lane scope: plan install-proof milestones for the 11 Track B media OSS tools that remain blocked/not installed-proven.
+- Not unlocked: media processing, file probing, decode/encode, render/export, workers, routes, providers, Supabase/GCS/public delivery, signed URLs, raw prompts, beta, or production.
+<!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:end -->

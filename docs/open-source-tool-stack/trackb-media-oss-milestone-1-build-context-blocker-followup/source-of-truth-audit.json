@@ -1,0 +1,72 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1BuildContextFollowup.sourceAudit.v1",
+  "generatedAt": "2026-06-19T22:49:48.412Z",
+  "branchName": "codex/rp-trackb-media-oss-milestone-1-build-context-blocker-followup",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8",
+  "sourceSha": "cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8",
+  "sourceCompatible": true,
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "evidence": [
+    {
+      "pr": 551,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context",
+      "blocker": [
+        "dist-server",
+        "dist-staging-fixture-worker"
+      ]
+    },
+    {
+      "pr": 549,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "ownerId": "TRACK_B_MEDIA_OSS_STEWARD"
+    },
+    {
+      "pr": 553,
+      "state": "MERGED",
+      "relationship": "track_a_atlas_different_base_out_of_track_b_scope"
+    }
+  ],
+  "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+  "approvedPackages": [
+    "libimage-exiftool-perl",
+    "mediainfo",
+    "tesseract-ocr",
+    "tesseract-ocr-eng",
+    "imagemagick"
+  ],
+  "targetTools": [
+    "exiftool",
+    "mediainfo",
+    "tesseract",
+    "imagemagick"
+  ],
+  "graphicsMagickRole": "optional_fallback_not_default",
+  "packageJsonHash": "2979d42f664e6bf187fd0c7c3be1b4d0e4406ec9332d1252de29ac243d221f72",
+  "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "dockerfileHash": "e4470a77095330b990a33d019d76b1bf87cb94d06f12f1b4a478d3171b578c7f",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_FOLLOWUP_BLOCKER_REVIEW"
+}

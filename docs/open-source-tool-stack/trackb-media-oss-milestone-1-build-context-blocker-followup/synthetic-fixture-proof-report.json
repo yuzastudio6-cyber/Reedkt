@@ -1,0 +1,80 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1BuildContextFollowup.syntheticFixtureProof.v1",
+  "generatedAt": "2026-06-19T22:49:48.412Z",
+  "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof",
+  "imageTag": "reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8",
+  "skipped": false,
+  "proofDir": "/private/tmp/reeditpro-trackb-milestone1-build-context-followup-proof-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8",
+  "cleaned": true,
+  "reports": [
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "setupCommand": null,
+      "setupExitCode": null,
+      "command": "docker run --rm --network none -v /private/tmp/reeditpro-trackb-milestone1-build-context-followup-proof-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8:/proof:ro --entrypoint exiftool reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8 -FileType -MIMEType /proof/synthetic-exiftool.txt",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 195,
+      "stdoutSummary": "File Type                       : TXT\nMIME Type                       : text/plain",
+      "stderrSummary": "",
+      "fixtureProven": true,
+      "fixtureHashes": {
+        "synthetic-exiftool.txt": "5f1c718ac696e183b1c4c201537fb2d2d1ba98ccd2078ef462d1f8ada1b992cd"
+      }
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "setupCommand": null,
+      "setupExitCode": null,
+      "command": "docker run --rm --network none -v /private/tmp/reeditpro-trackb-milestone1-build-context-followup-proof-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8:/proof:ro --entrypoint mediainfo reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8 --Output=JSON /proof/synthetic-mediainfo.wav",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 149,
+      "stdoutSummary": "{\n\"creatingLibrary\": {\n\"name\": \"MediaInfoLib\",\n\"version\": \"23.04\",\n\"url\": \"https://mediaarea.net/MediaInfo\"\n},\n\"media\": {\n\"@ref\": \"/proof/synthetic-mediainfo.wav\",\n\"track\": [\n{\n\"@type\": \"General\",\n\"AudioCount\": \"1\",\n\"FileExtension\": \"wav\",\n\"Format\": \"Wave\",\n\"Format_Settings\": \"PcmWaveformat\",\n\"FileSize\": \"44\",\n\"OverallBitRate_Mode\": \"CBR\",\n\"File_Modified_Date\": \"2026-06-19 22:50:12 UTC\",\n\"File_Modified_Date_Local\": \"2026-06-19 22:50:12\"\n},\n{\n\"@type\": \"Audio\",\n\"Format\": \"PCM\",\n\"Format_Settings_Sign\": \"Unsigned\",\n\"CodecID\": \"1\",\n\"BitRate_Mode\": \"CBR\",\n\"BitRate\": \"64000\",\n\"Channels\": \"1\",\n\"SamplingRate\": \"8000\",\n\"BitDepth\": \"8\"\n}\n]\n}\n}",
+      "stderrSummary": "",
+      "fixtureProven": true,
+      "fixtureHashes": {
+        "synthetic-mediainfo.wav": "5b517b506f635e251ee0d7020062f1ce375cc3a92f1f445e71be6995f4a591f1"
+      }
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "setupCommand": null,
+      "setupExitCode": null,
+      "command": "docker run --rm --network none -v /private/tmp/reeditpro-trackb-milestone1-build-context-followup-proof-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8:/proof:ro --entrypoint tesseract reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8 /proof/synthetic-tesseract.pgm stdout --psm 7",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 212,
+      "stdoutSummary": "REEDLTPRU",
+      "stderrSummary": "",
+      "fixtureProven": false,
+      "fixtureHashes": {
+        "synthetic-tesseract.pgm": "a23c2fda15bdb6e3825dde24e3e8600ff8455ce12eabacfafbe8786611015e45"
+      }
+    },
+    {
+      "id": "imagemagick",
+      "name": "ImageMagick",
+      "setupCommand": null,
+      "setupExitCode": null,
+      "command": "docker run --rm --network none -v /private/tmp/reeditpro-trackb-milestone1-build-context-followup-proof-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8:/proof --entrypoint convert reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8 /proof/synthetic-tesseract.pgm -resize 120x42 /proof/synthetic-imagemagick-output.png",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 161,
+      "stdoutSummary": "",
+      "stderrSummary": "",
+      "fixtureProven": true,
+      "fixtureHashes": {
+        "synthetic-tesseract.pgm": "a23c2fda15bdb6e3825dde24e3e8600ff8455ce12eabacfafbe8786611015e45",
+        "synthetic-imagemagick-output.png": "2129c9f814fc61728a6436882837d12271a3a4c8af659fe6bc2fe53645804b9c"
+      }
+    }
+  ],
+  "syntheticFixturesOnly": true,
+  "realUserMediaUsed": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false
+}

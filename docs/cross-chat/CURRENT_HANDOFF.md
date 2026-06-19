@@ -457,3 +457,19 @@ TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_BUILD_CONTEXT_BLOCKER_FOLLOWUP`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_BLOCKER_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_BLOCKER_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Build-context outputs: `dist-server`, `dist-staging-fixture-worker` generated locally and cleaned before commit.
+- Target Dockerfile: `docker/prod/cpu-worker/Dockerfile`
+- Local image tag: `reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8`
+- Target tools: ExifTool, MediaInfo, Tesseract, and ImageMagick only.
+- GraphicsMagick remains optional fallback and is not installed or proven by default.
+- End-to-end product-ready Track B tools remain `0`; no 40+ installed/proven end-to-end claim is allowed.
+- Media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_FOLLOWUP_BLOCKER_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_BLOCKER_FOLLOWUP_STATUS:end -->

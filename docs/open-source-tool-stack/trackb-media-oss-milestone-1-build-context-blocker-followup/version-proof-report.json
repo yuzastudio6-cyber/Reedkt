@@ -1,0 +1,58 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1BuildContextFollowup.versionProof.v1",
+  "generatedAt": "2026-06-19T22:49:48.412Z",
+  "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof",
+  "imageTag": "reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8",
+  "skipped": false,
+  "localHostProbeRun": false,
+  "reports": [
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "selectedCommand": "exiftool",
+      "command": "docker run --rm --network none --entrypoint exiftool reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8 -ver",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 223,
+      "stdoutSummary": "12.57",
+      "stderrSummary": "",
+      "versionProven": true
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "selectedCommand": "mediainfo",
+      "command": "docker run --rm --network none --entrypoint mediainfo reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8 --Version",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 141,
+      "stdoutSummary": "MediaInfo Command line,\nMediaInfoLib - v23.04",
+      "stderrSummary": "",
+      "versionProven": true
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "selectedCommand": "tesseract",
+      "command": "docker run --rm --network none --entrypoint tesseract reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8 --version",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 213,
+      "stdoutSummary": "tesseract 5.3.0\nleptonica-1.82.0\nlibgif 5.2.1 : libjpeg 6b (libjpeg-turbo 2.1.2) : libpng 1.6.39 : libtiff 4.5.0 : zlib 1.2.13 : libwebp 1.2.4 : libopenjp2 2.5.0\nFound NEON\nFound OpenMP 201511\nFound libarchive 3.6.2 zlib/1.2.13 liblzma/5.4.1 bz2lib/1.0.8 liblz4/1.9.4 libzstd/1.5.4\nFound libcurl/7.88.1 OpenSSL/3.0.20 zlib/1.2.13 brotli/1.0.9 zstd/1.5.4 libidn2/2.3.3 libpsl/0.21.2 (+libidn2/2.3.3) libssh2/1.10.0 nghttp2/1.52.0 librtmp/2.3 OpenLDAP/2.5.13",
+      "stderrSummary": "",
+      "versionProven": true
+    },
+    {
+      "id": "imagemagick",
+      "name": "ImageMagick",
+      "selectedCommand": "convert",
+      "command": "docker run --rm --network none --entrypoint convert reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8 -version",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 174,
+      "stdoutSummary": "Version: ImageMagick 6.9.11-60 Q16 aarch64 2021-01-25 https://imagemagick.org\nCopyright: (C) 1999-2021 ImageMagick Studio LLC\nLicense: https://imagemagick.org/script/license.php\nFeatures: Cipher DPC Modules OpenMP(4.5)\nDelegates (built-in): bzlib djvu fftw fontconfig freetype heic jbig jng jp2 jpeg lcms lqr ltdl lzma openexr pangocairo png tiff webp wmf x xml zlib",
+      "stderrSummary": "",
+      "versionProven": true
+    }
+  ]
+}

@@ -1,46 +1,46 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
-const baseRef = 'origin/codex/rp-worker-ai-graphics-metadata-controlled-noop-worker-gate-execution'
-const decision = 'worker_ai_graphics_metadata_controlled_noop_worker_gate_qa_passed_with_warnings'
-const packageScriptName = 'worker:ai-graphics-metadata-controlled-noop-worker-gate-qa:diagnostics'
+const baseRef = 'origin/codex/rp-worker-ai-graphics-metadata-controlled-noop-worker-gate-qa-review'
+const decision = 'worker_ai_graphics_metadata_controlled_noop_worker_gate_owner_review_passed_with_warnings'
+const packageScriptName = 'worker:ai-graphics-metadata-controlled-noop-worker-gate-owner-review:diagnostics'
 const expectedScript =
-  'node scripts/validation/worker-ai-graphics-metadata-controlled-noop-worker-gate-qa-diagnostics.mjs'
+  'node scripts/validation/worker-ai-graphics-metadata-controlled-noop-worker-gate-owner-review-diagnostics.mjs'
 
 const allowedDecisions = new Set([
   decision,
-  'worker_ai_graphics_metadata_controlled_noop_worker_gate_qa_passed',
-  'blocked_pending_worker_ai_graphics_controlled_noop_qa_fixes',
-  'blocked_pending_worker_ai_graphics_controlled_noop_boundary_qa',
-  'blocked_pending_worker_ai_graphics_controlled_noop_artifact_scope_qa',
+  'worker_ai_graphics_metadata_controlled_noop_worker_gate_owner_review_passed',
+  'blocked_pending_worker_ai_graphics_controlled_noop_owner_review_fixes',
+  'blocked_pending_worker_ai_graphics_controlled_noop_boundary_owner_review',
+  'blocked_pending_worker_ai_graphics_controlled_noop_artifact_scope_owner_review',
 ])
 
 const requiredDocs = [
-  'docs/worker-runtime/ai-graphics-metadata-controlled-noop-worker-gate-qa-review.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-qa-source-lockfile.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-qa-run-results.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-scoped-pass-claim-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-generic-claim-rejection-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-job-payload-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-worker-runtime-boundary-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-no-real-job-claim-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-no-lease-mutation-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-no-queue-execution-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-route-tool-boundary-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-provider-boundary-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-supabase-storage-boundary-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-plan-snapshot-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-scoped-manifest-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-private-artifact-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-worker-intake-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-observability-audit-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-fail-closed-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-cleanup-qa.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-warning-blocker-register.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-qa-decision.md',
-  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-qa-next-lane-recommendation.md',
-  'docs/prompt-worker-ai-graphics-metadata-controlled-noop-worker-gate-qa-review-results.md',
-  'docs/implementation-prompts/prompt-worker-ai-graphics-metadata-controlled-noop-worker-gate-qa-review.md',
+  'docs/worker-runtime/ai-graphics-metadata-controlled-noop-worker-gate-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-owner-review-source-lockfile.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-owner-review-matrix.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-scoped-pass-claim-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-generic-claim-rejection-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-job-payload-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-worker-runtime-boundary-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-no-real-job-claim-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-no-lease-mutation-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-no-queue-execution-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-route-tool-boundary-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-provider-boundary-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-supabase-storage-boundary-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-plan-snapshot-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-scoped-manifest-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-private-artifact-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-worker-intake-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-observability-audit-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-fail-closed-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-cleanup-owner-review.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-owner-review-blocked-use-register.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-owner-review-decision.md',
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-owner-review-next-lane-recommendation.md',
+  'docs/prompt-worker-ai-graphics-metadata-controlled-noop-worker-gate-owner-review-results.md',
+  'docs/implementation-prompts/prompt-worker-ai-graphics-metadata-controlled-noop-worker-gate-owner-review.md',
 ]
 
 const tools = [
@@ -60,6 +60,9 @@ const tools = [
 ]
 
 const requiredTokens = [
+  'PR #531',
+  '770b817b2ef9cbaca6b1939b053088c5e3d0fe95',
+  'worker_ai_graphics_metadata_controlled_noop_worker_gate_qa_passed_with_warnings',
   'PR #528',
   '183f94c2c2ddb4fb92d1e9e0fa787a6f0769bfdd',
   'worker_ai_graphics_metadata_controlled_noop_worker_gate_passed_with_warnings',
@@ -79,9 +82,12 @@ const requiredTokens = [
   'PR #491',
   'worker_ai_graphics_metadata_job_payload_schema_validation_passed_with_warnings',
   'ai-graphics-job-payload-schema-validation-local-static',
+  'PR #464',
+  'ai-graphics-local-fixture-validation-local-static',
   'workerAiGraphicsMetadataControlledNoopPassed',
   'workerAiGraphicsMetadataJobPayloadDryRunPassed',
   'WORKER_AI_GRAPHICS_METADATA_CONTROLLED_NOOP_WORKER_GATE_OWNER_REVIEW',
+  'CENTRAL_TOOL_STACK_REFRESH_AUDIT',
   'no write',
   'docs_only',
   'environment touched:',
@@ -94,12 +100,12 @@ const requiredTokens = [
 ]
 
 const requiredTrueBooleans = [
-  'controlledNoopWorkerGateQaAccepted',
-  'controlledNoopWorkerGateQaAcceptedWithWarnings',
+  'controlledNoopWorkerGateOwnerReviewAccepted',
+  'controlledNoopWorkerGateOwnerReviewAcceptedWithWarnings',
   'controlledNoopWorkerGateExecutionAccepted',
   'workerAiGraphicsMetadataControlledNoopPassed',
   'workerAiGraphicsMetadataJobPayloadDryRunPassed',
-  'readyForControlledNoopWorkerGateOwnerReview',
+  'readyForCentralToolStackRefreshAudit',
   'scopedPassClaimAccepted',
   'noRealJobClaimAccepted',
   'noLeaseMutationAccepted',
@@ -208,9 +214,11 @@ function requireBoolean(content, name, expected) {
 }
 
 const docsContent = requiredDocs.map(requireFile).join('\n')
-const decisionDoc = requireFile('docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-qa-decision.md')
+const decisionDoc = requireFile(
+  'docs/worker-runtime/ai-graphics-controlled-noop-worker-gate-owner-review-decision.md',
+)
 
-requireFile('scripts/validation/worker-ai-graphics-metadata-controlled-noop-worker-gate-qa-diagnostics.mjs')
+requireFile('scripts/validation/worker-ai-graphics-metadata-controlled-noop-worker-gate-owner-review-diagnostics.mjs')
 requireToken(docsContent, decision)
 for (const token of requiredTokens) requireToken(docsContent, token)
 for (const tool of tools) requireToken(docsContent, `\`${tool}\``)
@@ -237,9 +245,6 @@ const packageJson = JSON.parse(read('package.json'))
 if (packageJson.scripts?.[packageScriptName] !== expectedScript) {
   failures.push(`missing_or_invalid_package_script:${packageScriptName}`)
 }
-const descendantPackageScripts = new Set([
-  'worker:ai-graphics-metadata-controlled-noop-worker-gate-owner-review:diagnostics',
-])
 
 const basePackageJson = JSON.parse(sh(['git', 'show', `${baseRef}:package.json`]))
 for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
@@ -252,7 +257,6 @@ const packageDiff = sh(['git', 'diff', '--', 'package.json'])
   .split('\n')
   .filter((line) => /^[+-]\s{4}"/.test(line))
   .filter((line) => !line.includes(packageScriptName))
-  .filter((line) => ![...descendantPackageScripts].some((script) => line.includes(script)))
   .filter((line) => !line.includes('worker:ai-graphics-metadata-controlled-noop-worker-gate-owner-review:diagnostics'))
 if (packageDiff.length > 0) failures.push(`unexpected_package_json_diff:${packageDiff.join(' | ')}`)
 
@@ -282,4 +286,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log('WORKER_AI_GRAPHICS_METADATA_CONTROLLED_NOOP_WORKER_GATE_QA diagnostics passed.')
+console.log('WORKER_AI_GRAPHICS_METADATA_CONTROLLED_NOOP_WORKER_GATE_OWNER_REVIEW diagnostics passed.')

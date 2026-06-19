@@ -18,6 +18,7 @@
     "ai-graphics:implementation-state-scan:diagnostics": "node scripts/validation/ai-graphics-implementation-state-scan-diagnostics.mjs",
     "ai-graphics:draft-package-proof-promotion-review:diagnostics": "node scripts/validation/ai-graphics-draft-package-proof-promotion-review-diagnostics.mjs",
     "ai-graphics:draft-package-proof-promotion-qa:diagnostics": "node scripts/validation/ai-graphics-draft-package-proof-promotion-qa-diagnostics.mjs",
+    "ai-graphics:draft-package-proof-merge-order-review:diagnostics": "node scripts/validation/ai-graphics-draft-package-proof-merge-order-review-diagnostics.mjs",
     "open-source-tool-stack:batch-1:approval:diagnostics": "node scripts/validation/open-source-tool-stack-batch-1-approval-diagnostics.mjs",
     "open-source-tool-stack:batch-1-rerun:approval:diagnostics": "node scripts/validation/open-source-tool-stack-batch-1-rerun-approval-diagnostics.mjs",
     "dependency-baseline:repair-before-tool-batch-1:diagnostics": "node scripts/validation/dependency-baseline-repair-before-tool-batch-1-diagnostics.mjs",

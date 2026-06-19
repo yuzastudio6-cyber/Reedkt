@@ -1,0 +1,23 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1SystemPackagingExecution.safetyScan.v1",
+  "generatedAt": "2026-06-19T21:35:33.624Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context",
+  "forbiddenOutputsPresent": [],
+  "protectedNoDiffFiles": [
+    "package-lock.json",
+    ".dockerignore",
+    "docker/prod/render-worker/Dockerfile"
+  ],
+  "changedProtectedFiles": [],
+  "cpuWorkerDockerfileMutationAllowed": true,
+  "packageLockMutationAllowed": false,
+  "dockerfileMutationLimitedToCpuWorker": true,
+  "tempProofPrefixes": [
+    "/private/tmp/reeditpro-trackb-milestone1-system-packaging-proof-"
+  ],
+  "mediaArtifactsCommitted": false,
+  "secretMaterialDetected": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "passed": true
+}

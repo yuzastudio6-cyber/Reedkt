@@ -99,6 +99,12 @@ const readiness = readJson(`${reportDir}/readiness-report.json`)
 const manifest = readJson(`${reportDir}/private-artifact-manifest.json`)
 const ownerStatus = readJson('docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json')
 const packageJson = readJson('package.json')
+const executionDecisionPath =
+  'docs/open-source-tool-stack/trackb-media-oss-milestone-1-system-packaging-execution/milestone-1-system-packaging-execution-decision.json'
+const executionDecision = fs.existsSync(path.join(repoRoot, executionDecisionPath))
+  ? readJson(executionDecisionPath)
+  : null
+const executionPhasePresent = Boolean(executionDecision?.decision?.startsWith('trackb_media_oss_milestone1_system_packaging_execution_'))
 
 for (const report of [
   sourceAudit,
@@ -226,9 +232,18 @@ for (const broadDoc of ['docs/beta-readiness-scorecard.md', 'docs/production-bet
 for (const output of ['node_modules', 'dist', 'dist-server', 'dist-remotion-worker', 'dist-staging-fixture-worker', 'dist-staging-real-video-export-worker']) {
   if (fs.existsSync(path.join(repoRoot, output))) fail(`forbidden_output_present:${output}`)
 }
-const protectedDiff = git(['diff', '--name-only', '--', 'package-lock.json', '.dockerignore', 'docker/prod/render-worker/Dockerfile', 'docker/prod/cpu-worker/Dockerfile'])
-const protectedCachedDiff = git(['diff', '--cached', '--name-only', '--', 'package-lock.json', '.dockerignore', 'docker/prod/render-worker/Dockerfile', 'docker/prod/cpu-worker/Dockerfile'])
+const protectedFiles = ['package-lock.json', '.dockerignore', 'docker/prod/render-worker/Dockerfile']
+if (!executionPhasePresent) protectedFiles.push('docker/prod/cpu-worker/Dockerfile')
+const protectedDiff = git(['diff', '--name-only', '--', ...protectedFiles])
+const protectedCachedDiff = git(['diff', '--cached', '--name-only', '--', ...protectedFiles])
 if (protectedDiff || protectedCachedDiff) fail('protected_file_mutation')
+if (executionPhasePresent) {
+  const cpuWorkerDockerfile = readText('docker/prod/cpu-worker/Dockerfile')
+  for (const pkg of requiredPackages) {
+    if (!new RegExp(`\\b${pkg}\\b`).test(cpuWorkerDockerfile)) fail(`execution_dockerfile_package_missing:${pkg}`)
+  }
+  if (/\bgraphicsmagick\b/.test(cpuWorkerDockerfile)) fail('execution_dockerfile_graphicsmagick_present')
+}
 
 if (failures.length) {
   console.error('Track B Milestone 1 system packaging approval diagnostics failed:')

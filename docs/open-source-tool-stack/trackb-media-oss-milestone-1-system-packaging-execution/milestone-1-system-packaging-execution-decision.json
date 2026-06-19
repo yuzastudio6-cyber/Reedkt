@@ -1,0 +1,52 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1SystemPackagingExecution.decision.v1",
+  "generatedAt": "2026-06-19T21:35:33.624Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context",
+  "sourceSha": "7dcdebdcd979de9072c2fb89223dc9f4f6647585",
+  "imageTag": "reeditpro-cpu-worker:trackb-milestone1-7dcdebdcd979de9072c2fb89223dc9f4f6647585",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+  "approvedPackages": [
+    "libimage-exiftool-perl",
+    "mediainfo",
+    "tesseract-ocr",
+    "tesseract-ocr-eng",
+    "imagemagick"
+  ],
+  "targetTools": [
+    "exiftool",
+    "mediainfo",
+    "tesseract",
+    "imagemagick"
+  ],
+  "graphicsMagickRole": "optional_fallback_not_default",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_BUILD_CONTEXT_BLOCKER_FOLLOWUP",
+  "endToEndProductReadyTools": 0,
+  "fortyPlusEndToEndClaimAllowed": false,
+  "cpuOnly": true,
+  "gpuRunInThisPhase": false,
+  "hostPackageInstallRun": false,
+  "npmCiRunOnHost": false,
+  "npmInstallRunOnHost": false,
+  "npmRebuildRunOnHost": false,
+  "packageLockMutationAllowed": false,
+  "dockerImagePushRun": false,
+  "ffmpegFfprobeRunInThisPhase": false,
+  "forbiddenTrackBToolsRunInThisPhase": false,
+  "realUserMediaUsed": false,
+  "mediaProcessingAccepted": false,
+  "renderExportAccepted": false,
+  "workerRuntimeAccepted": false,
+  "routeProviderRuntimeAccepted": false,
+  "supabaseGcsPublicDeliveryAccepted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "rawPromptExecutionAccepted": false,
+  "betaProductionAccepted": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

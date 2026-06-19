@@ -1,0 +1,39 @@
+{
+  "schema": "reeditpro.openSourceToolStack.refreshNextLanes.v1",
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_REFRESH_AUDIT_AFTER_AI_GRAPHICS_WORKER_QA_REVIEW",
+  "nextInstallProofBatches": [
+    {
+      "lane": "merge_reconciliation_after_draft_ai_graphics_stack",
+      "condition": "Only after draft AI graphics, Tool Route, and Worker evidence merges into the selected source-of-truth branch.",
+      "allowedNow": false
+    },
+    {
+      "lane": "remaining_missing_local_oss_install_proof_batch",
+      "condition": "Use the canonical missing/not-proven counts from PR #416 until merged evidence changes those counts.",
+      "allowedNow": true
+    },
+    {
+      "lane": "runtime_execution_or_internal_beta",
+      "condition": "Requires separate owner approval after canonical proof; not unlocked by this refresh.",
+      "allowedNow": false
+    }
+  ],
+  "blockedUntilSeparateGate": [
+    "worker execution",
+    "real job claim",
+    "lease mutation",
+    "queue execution",
+    "route execution",
+    "actual tool execution",
+    "provider/model runtime",
+    "browser/WebGL/canvas runtime",
+    "resvg rasterization",
+    "Remotion render/export",
+    "Supabase/GCS",
+    "signed URLs",
+    "public artifacts",
+    "internal beta",
+    "external beta",
+    "production"
+  ]
+}

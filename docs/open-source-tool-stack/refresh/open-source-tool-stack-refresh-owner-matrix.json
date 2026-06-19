@@ -1,0 +1,43 @@
+{
+  "schema": "reeditpro.openSourceToolStack.refreshOwnerMatrix.v1",
+  "ownerRows": [
+    {
+      "owner": "open_source_tool_stack",
+      "mergedCanonicalStatus": "pr_416_merged_source_of_truth",
+      "draftPendingEvidenceStatus": "draft_evidence_recorded_separately",
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false
+    },
+    {
+      "owner": "ai_tools_creative_graphics",
+      "tools": ["d3", "echarts", "vega-lite", "vega", "satori", "@svgdotjs/svg.js", "@viz-js/viz", "lottie-web", "animejs", "three", "pixi.js", "konva", "babylonjs"],
+      "draftPendingEvidenceStatus": "install_import_fixture_drafts_open",
+      "draftPendingProofLevel": "install_import_synthetic_or_manifest_only",
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false
+    },
+    {
+      "owner": "tool_route",
+      "tools": ["d3", "echarts", "vega-lite", "vega", "satori", "@svgdotjs/svg.js", "@viz-js/viz", "lottie-web", "animejs", "three", "pixi.js", "konva", "babylonjs"],
+      "draftPendingEvidenceStatus": "metadata_local_fixture_static_gate_drafts_open",
+      "draftPendingProofLevel": "metadata_scoped_manifest_private_artifact_static_only",
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false
+    },
+    {
+      "owner": "worker_runtime",
+      "tools": ["d3", "echarts", "vega-lite", "vega", "satori", "@svgdotjs/svg.js", "@viz-js/viz", "lottie-web", "animejs", "three", "pixi.js", "konva", "babylonjs"],
+      "draftPendingEvidenceStatus": "schema_dry_run_runtime_gate_controlled_noop_drafts_open",
+      "draftPendingProofLevel": "static_metadata_validation_only",
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false
+    },
+    {
+      "owner": "provider_api",
+      "mergedCanonicalStatus": "provider_api_separated_count_3",
+      "draftPendingEvidenceStatus": "no_provider_runtime_evidence_from_refresh",
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "schema": "reeditpro.openSourceToolStack.refreshAfterAiGraphicsWorker.v1",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceBranchHead": "40a7a25c319aea2f3ff8149aa5a7a9e6206ed346",
+  "refreshBranch": "codex/rp-open-source-tool-stack-refresh-after-ai-graphics-worker",
+  "decision": "open_source_tool_stack_refresh_completed_with_draft_evidence_reconciled",
+  "canonicalCentralAuditDecision": "open_source_tool_stack_audit_completed_install_proof_backlog_ready",
+  "sourceEvidence": {
+    "centralMergedPr": {
+      "number": 416,
+      "state": "MERGED",
+      "mergedAt": "2026-06-15T13:49:55Z",
+      "headRefOid": "85a02dce4a64a99927c8e30c68bd75d3d9736390",
+      "canonical": true
+    },
+    "latestWorkerDraftPr": {
+      "number": 532,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "4a04ca2601e1b2f1e90fa2560b11d1e35ee09c26",
+      "decision": "worker_ai_graphics_metadata_controlled_noop_worker_gate_owner_review_passed_with_warnings",
+      "canonical": false
+    }
+  },
+  "canonicalCounts": {
+    "total": 71,
+    "localOss": 68,
+    "providerApi": 3,
+    "packageDeclared": 22,
+    "systemBinary": 4,
+    "missing": 11,
+    "blocked": 9,
+    "smokeOnly": 14,
+    "docsOnly": 17,
+    "notProven": 31,
+    "e2eProven": 0
+  },
+  "draftPendingCounts": {
+    "installImportProofTools": 13,
+    "syntheticManifestFixtureTools": 13,
+    "schemaValidationMetadataTools": 13,
+    "jobPayloadDryRunMetadataTools": 13,
+    "controlledNoopMetadataTools": 13,
+    "runtimeGateMetadataTools": 13,
+    "runtimeReadyTools": 0,
+    "internalBetaReadyTools": 0
+  },
+  "evidenceSeparation": {
+    "mergedCanonicalStatus": "pr_416_merged_central_audit_only",
+    "draftPendingEvidenceStatus": "ai_graphics_tool_route_worker_chain_open_draft_pending_merge",
+    "draftPendingProofLevel": "install_import_fixture_schema_dry_run_controlled_noop_metadata_static_only",
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false
+  },
+  "executionScope": {
+    "workerRuntimeExecuted": false,
+    "routeRuntimeExecuted": false,
+    "toolRuntimeExecuted": false,
+    "providerRuntimeExecuted": false,
+    "browserWebglCanvasRuntimeExecuted": false,
+    "renderOrMediaRuntimeExecuted": false,
+    "supabaseMutationExecuted": false,
+    "gcsTransferExecuted": false,
+    "signedUrlCreated": false,
+    "publicArtifactCreated": false,
+    "rawPromptExecuted": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "genericDryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "classification": "docs_only",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no",
+    "milestoneSync": "not_performed"
+  },
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_REFRESH_AUDIT_AFTER_AI_GRAPHICS_WORKER_QA_REVIEW"
+}

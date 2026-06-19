@@ -29,3 +29,9 @@ record. It is not tool runtime execution, model inference, media processing,
 web search, map rendering, browser capture, provider execution, public
 artifact, external beta, paid production, broad real media, or production
 approval.
+
+Open-source tool stack refresh after AI graphics Worker records PR #416 as the
+canonical merged central audit and records PR #425/#433/#441 plus the Tool
+Route/Worker AI graphics chain through PR #532 as draft pending evidence only.
+It does not change internal beta, external beta, production, runtime execution,
+provider execution, Supabase/GCS, signed URL, or public artifact readiness.

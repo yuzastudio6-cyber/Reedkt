@@ -568,3 +568,16 @@ TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_1_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution`.
+- Future packaging target: `docker/prod/cpu-worker/Dockerfile`.
+- Approved future packages: `libimage-exiftool-perl`, `mediainfo`, `tesseract-ocr`, `tesseract-ocr-eng`, `imagemagick`.
+- GraphicsMagick role: optional fallback only; ImageMagick is the Milestone 1 default.
+- Current phase execution: no package install, Dockerfile mutation, Docker build/run, tool execution, media processing, render/export, worker/route/provider execution, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production.
+- End-to-end product-ready Track B tools remain `0`; no 40+ installed/proven end-to-end claim is allowed.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL_STATUS:end -->

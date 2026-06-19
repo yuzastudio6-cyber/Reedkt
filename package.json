@@ -117,6 +117,7 @@
     "trackb-media-oss:milestone-1-low-risk-metadata-tooling:report": "node server/cli/trackb-media-oss-milestone-1-low-risk-metadata-tooling-report.js",
     "trackb-media-oss:milestone-1-low-risk-metadata-tooling:summary": "node server/cli/trackb-media-oss-milestone-1-low-risk-metadata-tooling-summary.js",
     "trackb-media-oss:milestone-1-low-risk-metadata-tooling:diagnostics": "node scripts/validation/trackb-media-oss-milestone-1-low-risk-metadata-tooling-execution-diagnostics.mjs",
+    "trackb-media-oss:milestone-1-system-packaging-approval:diagnostics": "node scripts/validation/trackb-media-oss-milestone-1-system-packaging-approval-diagnostics.mjs",
     "smoke:trackb-media-oss-milestone-1-low-risk-metadata-tooling": "node server/smoke/trackb-media-oss-milestone-1-low-risk-metadata-tooling-smoke.js",
     "smoke:open-source-tool-stack-owner-lane-reconciliation-after-batch-1-rollup": "tsx server/smoke/open-source-tool-stack-owner-lane-reconciliation-after-batch-1-rollup-smoke.ts",
     "open-source-tool-stack:staged-owner-merge-plan-after-batch-1-rollup:plan": "tsx server/cli/open-source-tool-stack-staged-owner-merge-plan-after-batch-1-rollup-plan.ts",

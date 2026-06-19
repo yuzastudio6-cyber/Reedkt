@@ -1,29 +1,83 @@
 # Tool Owner Conflict Check Policy
 
-Status: `required_before_tool_implementation`
+Status: `completed_for_pr_544_scoped_claims`
 
-## Policy
+## Policy Result
 
-Before Atlas Track A installs, modifies, executes, or expands any claimed tool, it must:
+TOOL-OWNER-CONFLICT-SCAN-1 completed the first Atlas Track A conflict repair for PR #544.
 
-1. read central tool owner registry
-2. run duplicate ownership scan
-3. check whether another owner has claimed the tool
-4. record conflict or no-conflict result
-5. update owner tool inventory
-6. only then create tool-specific install/implementation packet
+Atlas Track A must not claim broad/global tools already assigned to another owner. Atlas Track A may keep only Track A-specific policy, review, validation handoff, and private E2E responsibilities that do not duplicate another owner.
 
-## Required Next Prompt
+## Conflict Classifications
 
-TOOL-OWNER-CONFLICT-SCAN-1 -- Cross-owner tool claim scan before Track A tool implementation
+Every candidate tool must be recorded with one of these values:
 
-## Later Prompt
+- keep_owned_by_atlas_tracka
+- shared_upstream_dependency_tracka_integration_only
+- owned_by_other_workstream_drop_from_atlas
+- conflict_needs_human_decision
+- unclear_pending_source_review
 
-TRACKA-OPEN-SOURCE-TOOL-INVENTORY-1 -- Installed/planned/blocked status for Atlas Track A tools
+## Current PR #544 Decision
 
-## Blocked Until Conflict Scan
+currentStatus: ownership_claim_scoped_pending_merge_order
 
-Tool installation, tool execution, media processing, browser capture, provider/model calls, worker execution, route execution, Supabase mutation, SQL execution, dependency mutation, package-lock mutation, final render/export, internal beta unlock, external beta unlock, and production unlock remain blocked.
+Unresolved conflicts: none
+
+Kept claims:
+
+- tracka_caption_burnin_policy_e2e
+- tracka_render_export_private_review_path
+- tracka_visual_video_private_e2e
+
+Handoff-only shared upstream dependencies:
+
+- tracka_ffmpeg_render_export_handoff_only
+- tracka_ffprobe_export_validation_handoff_only
+- tracka_libass_caption_burnin_handoff_only
+- tracka_remotion_render_validation_handoff_only
+- tracka_opentimelineio_validation_handoff_only
+
+Dropped global claims:
+
+- ffmpeg
+- ffprobe
+- libass
+- remotion
+- opentimelineio
+- sharp_libvips
+- opencolorio
+- openimageio
+- sam2
+- kornia
+- birefnet
+- real_esrgan
+- film
+
+## Evidence Sources
+
+- #544 Track A visual render owner
+- #543 AI Graphics owner assignment
+- #542 Track B media OSS steward owner registry
+- #534 Open-source tool stack refresh after AI graphics worker
+- #536 Open-source tool stack refresh after AI graphics worker QA review
+- #529 Open-source tool stack owner-lane reconciliation after Batch 1 rollup
+- #533 Open-source tool stack staged owner merge plan after Batch 1 rollup
+
+## Future Owner Process
+
+Before Atlas Track A installs, modifies, executes, or expands a scoped claim, it must:
+
+1. read `docs/tool-ownership/central-tool-owner-registry.json`
+2. read active owner sources under `docs/open-source-tool-stack/owner-registry/` and `docs/open-source-tool-stack/ownership/`
+3. check open and merged PRs for owner conflicts
+4. preserve other workstreams' global ownership
+5. record only Track A-specific handoff responsibilities
+6. keep tool installation, execution, media processing, Supabase, SQL, dependencies, final delivery, beta, and production blocked unless a later approved packet explicitly unlocks that scope
+
+## Next Prompt
+
+MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544
 
 ## No-Scope Statement
 

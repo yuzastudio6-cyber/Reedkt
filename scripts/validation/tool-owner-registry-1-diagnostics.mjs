@@ -13,7 +13,21 @@ const requiredFiles = [
   'scripts/validation/tool-owner-registry-1-diagnostics.mjs',
 ]
 
-const claimedTools = [
+const scopedClaims = [
+  'tracka_caption_burnin_policy_e2e',
+  'tracka_render_export_private_review_path',
+  'tracka_visual_video_private_e2e',
+]
+
+const handoffClaims = [
+  'tracka_ffmpeg_render_export_handoff_only',
+  'tracka_ffprobe_export_validation_handoff_only',
+  'tracka_libass_caption_burnin_handoff_only',
+  'tracka_remotion_render_validation_handoff_only',
+  'tracka_opentimelineio_validation_handoff_only',
+]
+
+const broadGlobalClaims = [
   'ffmpeg',
   'ffprobe',
   'libass',
@@ -29,91 +43,59 @@ const claimedTools = [
   'film',
   'tracka_caption_burnin',
   'tracka_render_export_hardening',
-  'tracka_visual_video_private_e2e',
 ]
 
-const excludedTokens = [
-  'paddleocr',
-  'paddlepaddle',
-  'opencv ownership for Track B analysis',
-  'pyav',
-  'pyscenedetect',
-  'duckdb',
-  'polars',
-  'deepfilternet',
-  'signalsmith_stretch',
-  'demucs',
-  'qwen_vl',
-  'vllm',
-  'searxng',
-  'brave_search',
-  'playwright for web capture',
-  'mozilla_readability',
-  'maplibre',
-  'turf',
-  'deck_gl',
-  'cesium_js',
-  'nominatim',
-  'photon',
-  'pelias',
-  'osrm',
-  'valhalla',
-  'pmtiles',
-  'tileserver_gl',
-  'martin',
-  'd3',
-  'echarts',
-  'vega_lite',
-  'three_js',
-  'pixijs',
-  'lottie_web',
-  'svg_js',
-  'satori',
-  'resvg_js',
-  'graphviz',
-  'viz_js',
-  'audioflux',
-  'mirelo',
-  'mmaudio',
-  'lyria',
-  'sound library generation',
-  'music/SFX provider routes',
-  'qwen',
-  'deepseek',
-  'provider gateway',
-  'model calls',
-  'worker claim/lease/RPC',
-  'transactional execution',
-  'service-role runtime',
-  'schema, RLS, migrations, SQL, milestone sync',
-  'credits, Stripe, payment flows',
+const requiredDroppedTools = [
+  'ffmpeg',
+  'ffprobe',
+  'sharp_libvips',
+  'opencolorio',
+  'openimageio',
+  'sam2',
+  'kornia',
+  'birefnet',
+  'real_esrgan',
+  'libass',
+  'remotion',
+  'opentimelineio',
+  'film',
 ]
 
 const requiredText = [
   'owner_tracka_visual_render_export',
   'Atlas Track A',
   'TRACK_A_VISUAL_RENDER_EXPORT',
-  'end_to_end_tool_ownership_after_cross_owner_conflict_check',
-  'ownership_claim_registered_pending_cross_owner_conflict_scan',
-  'current chat request',
-  'Track A tool-study',
-  'Track A caption/render chain',
-  'Track A restricted internal beta scope decision',
-  'current repo tool registry',
-  'duplicateRisk',
-  'pending_cross_owner_conflict_scan',
-  'TOOL-OWNER-CONFLICT-SCAN-1 -- Cross-owner tool claim scan before Track A tool implementation',
-  'TRACKA-OPEN-SOURCE-TOOL-INVENTORY-1 -- Installed/planned/blocked status for Atlas Track A tools',
-  'currentInstallStatus: unknown_until_tool_inventory_pass',
-  'claimed_pending_cross_owner_conflict_check',
-  'duplicateCheckRequired',
+  'tracka_scoped_visual_render_export_ownership',
+  'ownership_claim_scoped_pending_merge_order',
+  'completed_scoped_ownership_repair_clean',
+  'resolved_to_scoped_tracka_claims',
+  'keep_owned_by_atlas_tracka',
+  'shared_upstream_dependency_tracka_integration_only',
+  'owned_by_other_workstream_drop_from_atlas',
+  'conflict_needs_human_decision',
+  'unclear_pending_source_review',
+  '#544 Track A visual render owner',
+  '#543 AI Graphics owner assignment',
+  '#542 Track B media OSS steward owner registry',
+  '#534 Open-source tool stack refresh after AI graphics worker',
+  '#536 Open-source tool stack refresh after AI graphics worker QA review',
+  '#529 Open-source tool stack owner-lane reconciliation after Batch 1 rollup',
+  '#533 Open-source tool stack staged owner merge plan after Batch 1 rollup',
+  'docs/tool-ownership/central-tool-owner-registry.json',
+  'docs/open-source-tool-stack/owner-registry/',
+  'docs/open-source-tool-stack/ownership/',
+  'Unresolved conflicts: none',
+  'MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544',
+  'package-lock.json unchanged',
+  'Supabase update status: not_applicable_docs_only',
+  'SQL executed: none',
+  'Migration deployed: no',
   'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, tool installation, or broad service-role handler was enabled.',
 ]
 
 const forbiddenPatterns = [
   /tool installation (?:was )?enabled/i,
   /tools? installed:\s*(?!none)/i,
-  /currentInstallStatus:\s*(?:installed|available|ready)/i,
   /runtime execution (?:was )?enabled/i,
   /media processing (?:was )?enabled/i,
   /browser capture (?:was )?enabled/i,
@@ -160,38 +142,84 @@ if (packageJson.scripts?.['tool-owner-registry:diagnostics'] !== expectedScript)
 
 const registry = JSON.parse(read('docs/tool-ownership/central-tool-owner-registry.json'))
 if (registry.schemaVersion !== 1) fail('registry schemaVersion must be 1')
+if (!registry.centralRegistryPathDecision?.includes('docs/tool-ownership/central-tool-owner-registry.json')) {
+  fail('missing central registry path decision')
+}
+
 const owner = registry.owners?.find((entry) => entry.ownerId === 'owner_tracka_visual_render_export')
 if (!owner) fail('missing owner record owner_tracka_visual_render_export')
 if (owner.ownerDisplayName !== 'Atlas Track A') fail('ownerDisplayName mismatch')
 if (owner.workstream !== 'TRACK_A_VISUAL_RENDER_EXPORT') fail('workstream mismatch')
-if (owner.status !== 'ownership_claim_registered_pending_cross_owner_conflict_scan') {
-  fail('owner status mismatch')
+if (owner.status !== 'ownership_claim_scoped_pending_merge_order') fail('owner status mismatch')
+if (owner.currentStatus !== 'ownership_claim_scoped_pending_merge_order') fail('owner currentStatus mismatch')
+if (owner.responsibilityType !== 'tracka_scoped_visual_render_export_ownership') {
+  fail('responsibilityType mismatch')
 }
+if (owner.duplicateRisk !== 'resolved_to_scoped_tracka_claims') fail('duplicateRisk mismatch')
+if (owner.nextPrompt !== 'MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544') fail('nextPrompt mismatch')
 if (owner.duplicateCheckRequiredBeforeImplementation !== true) {
   fail('duplicateCheckRequiredBeforeImplementation must be true')
 }
-if (owner.nextPrompt !== 'TOOL-OWNER-CONFLICT-SCAN-1') fail('nextPrompt mismatch')
 
-for (const tool of claimedTools) {
-  if (!owner.claimedTools?.includes(tool)) fail(`registry JSON missing claimed tool: ${tool}`)
+if (!Array.isArray(owner.claimedTools)) fail('claimedTools missing')
+for (const claim of scopedClaims) {
+  if (!owner.claimedTools.includes(claim)) fail(`registry JSON missing scoped claim: ${claim}`)
+}
+if (owner.claimedTools.length !== scopedClaims.length) {
+  fail(`claimedTools must contain only scoped claims; found ${owner.claimedTools.length}`)
+}
+for (const broadClaim of broadGlobalClaims) {
+  if (owner.claimedTools.includes(broadClaim)) fail(`broad/global claim still present in claimedTools: ${broadClaim}`)
 }
 
-for (const excluded of [
-  'track_b_media_processing_tools',
-  'web_search_capture_tools',
-  'map_geospatial_tools',
-  'ai_creative_graphics_tools_outside_tracka_handoff',
-  'sound_music_audio_tools',
-  'provider_model_execution',
-  'worker_runtime_infrastructure',
-  'supabase_schema_rls_migrations',
-  'billing_stripe_credits',
+for (const claim of handoffClaims) {
+  const hit = owner.sharedUpstreamDependencies?.some((entry) => entry.scopedClaimId === claim)
+  if (!hit) fail(`missing handoff-only dependency: ${claim}`)
+}
+
+for (const tool of requiredDroppedTools) {
+  const hit = owner.droppedClaims?.some((entry) => entry.toolId === tool)
+  if (!hit) fail(`missing dropped claim evidence: ${tool}`)
+}
+
+for (const pr of ['#544', '#543', '#542', '#534', '#536', '#529', '#533']) {
+  const hit = owner.conflictScan?.sourcePullRequests?.some((entry) => entry.includes(pr))
+  if (!hit) fail(`missing conflict scan source PR: ${pr}`)
+}
+
+if (owner.conflictScan?.scanStatus !== 'completed_clean_after_scoped_repair') {
+  fail('conflict scan status mismatch')
+}
+if (!Array.isArray(owner.conflictScan?.unresolvedConflicts) || owner.conflictScan.unresolvedConflicts.length !== 0) {
+  fail('unresolved conflicts must be empty')
+}
+
+for (const [toolId, classification] of [
+  ['ffmpeg', 'owned_by_other_workstream_drop_from_atlas'],
+  ['ffprobe', 'owned_by_other_workstream_drop_from_atlas'],
+  ['sharp_libvips', 'owned_by_other_workstream_drop_from_atlas'],
+  ['opencolorio', 'owned_by_other_workstream_drop_from_atlas'],
+  ['openimageio', 'owned_by_other_workstream_drop_from_atlas'],
+  ['sam2', 'owned_by_other_workstream_drop_from_atlas'],
+  ['kornia', 'owned_by_other_workstream_drop_from_atlas'],
+  ['birefnet', 'owned_by_other_workstream_drop_from_atlas'],
+  ['real_esrgan', 'owned_by_other_workstream_drop_from_atlas'],
+  ['libass', 'shared_upstream_dependency_tracka_integration_only'],
+  ['remotion', 'shared_upstream_dependency_tracka_integration_only'],
+  ['opentimelineio', 'shared_upstream_dependency_tracka_integration_only'],
+  ['film', 'unclear_pending_source_review'],
+  ['tracka_caption_burnin', 'keep_owned_by_atlas_tracka'],
+  ['tracka_render_export_hardening', 'keep_owned_by_atlas_tracka'],
+  ['tracka_visual_video_private_e2e', 'keep_owned_by_atlas_tracka'],
 ]) {
-  if (!owner.excludedTools?.includes(excluded)) fail(`registry JSON missing excluded tool group: ${excluded}`)
+  const hit = owner.conflictScan?.candidateToolDecisions?.some(
+    (entry) => entry.toolId === toolId && entry.classification === classification,
+  )
+  if (!hit) fail(`missing conflict decision: ${toolId} ${classification}`)
 }
 
 const allText = requiredFiles.map((file) => read(file)).join('\n')
-for (const token of [...requiredText, ...claimedTools, ...excludedTokens]) {
+for (const token of [...requiredText, ...scopedClaims, ...handoffClaims, ...requiredDroppedTools]) {
   if (!allText.includes(token)) fail(`missing required text: ${token}`)
 }
 
@@ -240,9 +268,13 @@ for (const file of [...new Set([...changedFiles, ...stagedFiles, ...untrackedFil
 }
 
 console.log('TOOL-OWNER-REGISTRY-1 diagnostics passed')
+console.log('TOOL-OWNER-CONFLICT-SCAN-1 decision: completed_scoped_ownership_repair_clean')
 console.log('Owner registered: Atlas Track A')
 console.log('Owner ID: owner_tracka_visual_render_export')
 console.log('Workstream: TRACK_A_VISUAL_RENDER_EXPORT')
+console.log('Current status: ownership_claim_scoped_pending_merge_order')
+console.log('Scoped claims: tracka_caption_burnin_policy_e2e, tracka_render_export_private_review_path, tracka_visual_video_private_e2e')
+console.log('Unresolved conflicts: none')
 console.log('Supabase update status: not_applicable_docs_only')
 console.log('SQL executed: none')
 console.log('Migration deployed: no')

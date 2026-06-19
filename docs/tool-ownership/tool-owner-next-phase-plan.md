@@ -2,7 +2,7 @@
 
 ## Current Result
 
-TOOL-OWNER-REGISTRY-1 decision: completed_ownership_claim_registration
+TOOL-OWNER-CONFLICT-SCAN-1 decision: completed_scoped_ownership_repair_clean
 
 Owner registered: Atlas Track A
 
@@ -10,21 +10,41 @@ Owner ID: owner_tracka_visual_render_export
 
 Workstream: TRACK_A_VISUAL_RENDER_EXPORT
 
-currentStatus: ownership_claim_registered_pending_cross_owner_conflict_scan
+currentStatus: ownership_claim_scoped_pending_merge_order
 
-Duplicate risk: pending_cross_owner_conflict_scan
+Duplicate risk: resolved_to_scoped_tracka_claims
+
+Unresolved conflicts: none
+
+## Kept Claims
+
+- tracka_caption_burnin_policy_e2e
+- tracka_render_export_private_review_path
+- tracka_visual_video_private_e2e
+
+## Handoff-Only Dependencies
+
+- tracka_ffmpeg_render_export_handoff_only
+- tracka_ffprobe_export_validation_handoff_only
+- tracka_libass_caption_burnin_handoff_only
+- tracka_remotion_render_validation_handoff_only
+- tracka_opentimelineio_validation_handoff_only
+
+## Claims Left To Other Owners Or Deferred
+
+Track B owns or steward-controls the global media OSS claims for `ffmpeg`, `ffprobe`, `sharp_libvips`, `opencolorio`, and `openimageio` through PR #542.
+
+AI Graphics owns or responsibility-scopes `sam2`, `kornia`, `birefnet`, and `real_esrgan` through PR #543.
+
+Atlas Track A drops broad/global `libass`, `remotion`, and `opentimelineio` in favor of handoff-only scoped claims. `film` is `unclear_pending_source_review` and remains deferred outside Atlas Track A ownership.
 
 ## Next Required Prompt
 
-TOOL-OWNER-CONFLICT-SCAN-1 -- Cross-owner tool claim scan before Track A tool implementation
+MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544
 
 ## Later Prompt
 
-TRACKA-OPEN-SOURCE-TOOL-INVENTORY-1 -- Installed/planned/blocked status for Atlas Track A tools
-
-## Handoff
-
-Atlas Track A owns the Track A visual/render/export tool claim only after this registration. It must not install, execute, or expand any claimed tool until the conflict scan records whether another owner already owns the same tool or an overlapping implementation path.
+TRACKA-OPEN-SOURCE-TOOL-INVENTORY-1 -- Installed/planned/blocked status for Atlas Track A scoped claims only
 
 ## Supabase Classification
 

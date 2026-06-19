@@ -1,37 +1,24 @@
 # Central Tool Owner Registry
 
-Status: `ownership_registry_created`
+Status: `ownership_claim_scoped_pending_merge_order`
 
-Patch type: Docs/diagnostics-only central tool ownership registry packet.
+Patch type: Docs/diagnostics-only central tool ownership registry repair for TOOL-OWNER-CONFLICT-SCAN-1.
 
-Base: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration` at `6e4c1c08f4f2ce44db0bbc4f2ce6139f40b253df`.
+Base PR: [#544](https://github.com/yuzastudio6-cyber/Reedkt/pull/544)
+
+## Central Registry Path Decision
+
+Keep `docs/tool-ownership/central-tool-owner-registry.json` as the PR #544 Track A registry path.
+
+Cross-reference existing owner sources under `docs/open-source-tool-stack/owner-registry/` and `docs/open-source-tool-stack/ownership/`. Do not move, merge, or replace those registry trees in this PR.
 
 ## Purpose
 
-The central tool owner registry prevents duplicate tool ownership across chats and workstreams. Every owner must check this registry before claiming, installing, modifying, executing, or expanding a tool.
+The registry prevents duplicate tool ownership across chats and workstreams. Every owner must check this registry and the open-source tool stack owner sources before claiming, installing, modifying, executing, or expanding a tool.
 
-The registry tracks which tools are installed, planned, blocked, excluded, or owned elsewhere. It keeps tool implementation responsibility clear while preserving ReeditPro's approval gates, worker boundaries, provider boundaries, and no-execution planning policy.
+This repair removes Atlas Track A broad/global claims and records only non-conflicting Track A-scoped ownership plus handoff-only upstream dependencies.
 
-## Required Owner Fields
-
-Each owner record must include:
-
-- ownerId
-- ownerDisplayName
-- workstream
-- claimedTools
-- excludedTools
-- sharedHandoffs
-- currentStatus
-- sourceEvidence
-- duplicateRisk
-- nextRequiredAction
-- lastUpdatedByBranch
-- noScopeStatement
-
-## Registered Owners
-
-### Atlas Track A
+## Registered Owner
 
 ownerDisplayName: Atlas Track A
 
@@ -39,80 +26,75 @@ ownerId: owner_tracka_visual_render_export
 
 workstream: TRACK_A_VISUAL_RENDER_EXPORT
 
-ownerRole: End-to-end owner for Track A visual/render/export open-source tools after cross-owner conflict check.
+responsibilityType: tracka_scoped_visual_render_export_ownership
 
-responsibilityType: end_to_end_tool_ownership_after_cross_owner_conflict_check
+currentStatus: ownership_claim_scoped_pending_merge_order
 
-currentStatus: ownership_claim_registered_pending_cross_owner_conflict_scan
+duplicateRisk: resolved_to_scoped_tracka_claims
 
-humanOwnerPromptSource: current chat request
-
-duplicateRisk: pending_cross_owner_conflict_scan
-
-nextRequiredAction: TOOL-OWNER-CONFLICT-SCAN-1 -- Cross-owner tool claim scan before Track A tool implementation
+nextRequiredAction: MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544
 
 lastUpdatedByBranch: codex/rp-tool-owner-registry-1-atlas-tracka-visual-render-export
 
-sourceEvidence:
+## Kept Atlas Track A Claims
 
-- Track A tool-study
-- Track A caption/render chain
-- Track A restricted internal beta scope decision
-- current repo tool registry
+| scopedClaimId | classification | boundary |
+| --- | --- | --- |
+| tracka_caption_burnin_policy_e2e | keep_owned_by_atlas_tracka | Track A caption burn-in policy, source-of-truth, and private E2E review handoff only. |
+| tracka_render_export_private_review_path | keep_owned_by_atlas_tracka | Track A private render/export review path, manifest/checksum/QA policy, and blocked final delivery policy only. |
+| tracka_visual_video_private_e2e | keep_owned_by_atlas_tracka | Restricted Track A private visual-video E2E review readiness path only. |
 
-claimedTools:
+## Shared Upstream Dependencies
 
-- ffmpeg
-- ffprobe
-- libass
-- remotion
-- opentimelineio
-- sharp_libvips
-- opencolorio
-- openimageio
-- sam2
-- kornia
-- birefnet
-- real_esrgan
-- film
-- tracka_caption_burnin
-- tracka_render_export_hardening
-- tracka_visual_video_private_e2e
+Atlas Track A does not own these tools globally. It keeps only Track A integration/handoff responsibility.
 
-excludedTools:
+| sourceTool | scopedClaimId | classification | owner evidence | Atlas boundary |
+| --- | --- | --- | --- | --- |
+| ffmpeg | tracka_ffmpeg_render_export_handoff_only | shared_upstream_dependency_tracka_integration_only | PR #542 Track B Media OSS Steward | Track A render/export handoff policy only. |
+| ffprobe | tracka_ffprobe_export_validation_handoff_only | shared_upstream_dependency_tracka_integration_only | PR #542 Track B Media OSS Steward | Track A export validation handoff policy only. |
+| libass | tracka_libass_caption_burnin_handoff_only | shared_upstream_dependency_tracka_integration_only | Track A caption burn-in evidence and open conflict scan | Track A caption burn-in policy handoff only. |
+| remotion | tracka_remotion_render_validation_handoff_only | shared_upstream_dependency_tracka_integration_only | Track A render validation evidence and open conflict scan | Track A render validation handoff only. |
+| opentimelineio | tracka_opentimelineio_validation_handoff_only | shared_upstream_dependency_tracka_integration_only | Track A timeline validation evidence and open conflict scan | Track A timeline validation handoff only. |
 
-- track_b_media_processing_tools
-- web_search_capture_tools
-- map_geospatial_tools
-- ai_creative_graphics_tools_outside_tracka_handoff
-- sound_music_audio_tools
-- provider_model_execution
-- worker_runtime_infrastructure
-- supabase_schema_rls_migrations
-- billing_stripe_credits
+## Dropped Atlas Global Claims
 
-sharedHandoffs:
+| toolId | classification | source |
+| --- | --- | --- |
+| ffmpeg | owned_by_other_workstream_drop_from_atlas | PR #542 Track B Media OSS Steward |
+| ffprobe | owned_by_other_workstream_drop_from_atlas | PR #542 Track B Media OSS Steward |
+| sharp_libvips | owned_by_other_workstream_drop_from_atlas | PR #542 Track B Media OSS Steward |
+| opencolorio | owned_by_other_workstream_drop_from_atlas | PR #542 Track B Media OSS Steward |
+| openimageio | owned_by_other_workstream_drop_from_atlas | PR #542 Track B Media OSS Steward |
+| sam2 | owned_by_other_workstream_drop_from_atlas | PR #543 AI Graphics owner assignment |
+| kornia | owned_by_other_workstream_drop_from_atlas | PR #543 AI Graphics owner assignment |
+| birefnet | owned_by_other_workstream_drop_from_atlas | PR #543 AI Graphics owner assignment |
+| real_esrgan | owned_by_other_workstream_drop_from_atlas | PR #543 AI Graphics owner assignment |
+| libass | shared_upstream_dependency_tracka_integration_only | Track A handoff only; no global claim. |
+| remotion | shared_upstream_dependency_tracka_integration_only | Track A handoff only; no global claim. |
+| opentimelineio | shared_upstream_dependency_tracka_integration_only | Track A handoff only; no global claim. |
+| film | unclear_pending_source_review | Dropped from Atlas global claims and deferred pending source review. |
 
-- WORKER_RUNTIME_JOBS
-- TOOL_ROUTE_COORDINATION
-- TRACK_A_RENDER_EXPORT
-- INTERNAL_BETA_READINESS
-- COMPLIANCE_SECURITY
+## Conflict Scan Evidence
 
-## Future Owner Process
+- #544 Track A visual render owner
+- #543 AI Graphics owner assignment
+- #542 Track B media OSS steward owner registry
+- #534 Open-source tool stack refresh after AI graphics worker
+- #536 Open-source tool stack refresh after AI graphics worker QA review
+- #529 Open-source tool stack owner-lane reconciliation after Batch 1 rollup
+- #533 Open-source tool stack staged owner merge plan after Batch 1 rollup
 
-Before Atlas Track A installs, modifies, executes, or expands any claimed tool, it must:
+## Unresolved Conflicts
 
-1. read central tool owner registry
-2. run duplicate ownership scan
-3. check whether another owner has claimed the tool
-4. record conflict or no-conflict result
-5. update owner tool inventory
-6. only then create tool-specific install/implementation packet
+none
 
-Required next prompt: TOOL-OWNER-CONFLICT-SCAN-1 -- Cross-owner tool claim scan before Track A tool implementation
+## Blocked Scope
 
-Later prompt: TRACKA-OPEN-SOURCE-TOOL-INVENTORY-1 -- Installed/planned/blocked status for Atlas Track A tools
+Atlas Track A does not own global media-processing tools, AI graphics model tools, Worker Runtime infrastructure, Supabase schema/RLS/migrations, provider/model execution, billing, signed URLs, public artifacts, final delivery/export, beta unlock, or production unlock.
+
+## Next Prompt
+
+MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544
 
 ## No-Scope Statement
 

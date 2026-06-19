@@ -1,36 +1,222 @@
 {
   "schemaVersion": 1,
   "purpose": "Prevent duplicate tool ownership across chats and workstreams before tool installation, implementation, or execution.",
+  "centralRegistryPathDecision": "Keep docs/tool-ownership/central-tool-owner-registry.json as the PR #544 Track A registry path. Cross-reference existing owner sources under docs/open-source-tool-stack/owner-registry/ and docs/open-source-tool-stack/ownership/ without moving or merging registry trees in this PR.",
   "owners": [
     {
       "ownerId": "owner_tracka_visual_render_export",
       "ownerDisplayName": "Atlas Track A",
       "workstream": "TRACK_A_VISUAL_RENDER_EXPORT",
-      "ownerRole": "End-to-end owner for Track A visual/render/export open-source tools after cross-owner conflict check.",
-      "responsibilityType": "end_to_end_tool_ownership_after_cross_owner_conflict_check",
-      "status": "ownership_claim_registered_pending_cross_owner_conflict_scan",
-      "currentStatus": "ownership_claim_registered_pending_cross_owner_conflict_scan",
+      "ownerRole": "Scoped owner for Track A visual/render/export policy, private review, and private E2E handoff responsibilities after cross-owner conflict scan.",
+      "responsibilityType": "tracka_scoped_visual_render_export_ownership",
+      "status": "ownership_claim_scoped_pending_merge_order",
+      "currentStatus": "ownership_claim_scoped_pending_merge_order",
       "humanOwnerPromptSource": "current chat request",
       "claimedTools": [
-        "ffmpeg",
-        "ffprobe",
-        "libass",
-        "remotion",
-        "opentimelineio",
-        "sharp_libvips",
-        "opencolorio",
-        "openimageio",
-        "sam2",
-        "kornia",
-        "birefnet",
-        "real_esrgan",
-        "film",
-        "tracka_caption_burnin",
-        "tracka_render_export_hardening",
+        "tracka_caption_burnin_policy_e2e",
+        "tracka_render_export_private_review_path",
         "tracka_visual_video_private_e2e"
       ],
+      "sharedUpstreamDependencies": [
+        {
+          "sourceTool": "ffmpeg",
+          "scopedClaimId": "tracka_ffmpeg_render_export_handoff_only",
+          "classification": "shared_upstream_dependency_tracka_integration_only",
+          "existingOwnerSource": "PR #542 Track B Media OSS Steward",
+          "atlasBoundary": "Track A render/export handoff policy only; no global FFmpeg ownership, installation, probing, media processing, or execution claim."
+        },
+        {
+          "sourceTool": "ffprobe",
+          "scopedClaimId": "tracka_ffprobe_export_validation_handoff_only",
+          "classification": "shared_upstream_dependency_tracka_integration_only",
+          "existingOwnerSource": "PR #542 Track B Media OSS Steward",
+          "atlasBoundary": "Track A export validation handoff policy only; no global FFprobe ownership, file probing, media processing, or execution claim."
+        },
+        {
+          "sourceTool": "libass",
+          "scopedClaimId": "tracka_libass_caption_burnin_handoff_only",
+          "classification": "shared_upstream_dependency_tracka_integration_only",
+          "existingOwnerSource": "Track A caption burn-in evidence and open conflict scan",
+          "atlasBoundary": "Track A caption burn-in policy handoff only; no global libass ownership, installation, media processing, or execution claim."
+        },
+        {
+          "sourceTool": "remotion",
+          "scopedClaimId": "tracka_remotion_render_validation_handoff_only",
+          "classification": "shared_upstream_dependency_tracka_integration_only",
+          "existingOwnerSource": "Track A render validation evidence and open conflict scan",
+          "atlasBoundary": "Track A render validation handoff only; no global Remotion ownership, render/export execution, or runtime claim."
+        },
+        {
+          "sourceTool": "opentimelineio",
+          "scopedClaimId": "tracka_opentimelineio_validation_handoff_only",
+          "classification": "shared_upstream_dependency_tracka_integration_only",
+          "existingOwnerSource": "Track A timeline validation evidence and open conflict scan",
+          "atlasBoundary": "Track A timeline validation handoff only; no global OpenTimelineIO ownership, installation, or execution claim."
+        }
+      ],
+      "droppedClaims": [
+        {
+          "toolId": "ffmpeg",
+          "classification": "owned_by_other_workstream_drop_from_atlas",
+          "existingOwnerSource": "PR #542 Track B Media OSS Steward"
+        },
+        {
+          "toolId": "ffprobe",
+          "classification": "owned_by_other_workstream_drop_from_atlas",
+          "existingOwnerSource": "PR #542 Track B Media OSS Steward"
+        },
+        {
+          "toolId": "sharp_libvips",
+          "classification": "owned_by_other_workstream_drop_from_atlas",
+          "existingOwnerSource": "PR #542 Track B Media OSS Steward"
+        },
+        {
+          "toolId": "opencolorio",
+          "classification": "owned_by_other_workstream_drop_from_atlas",
+          "existingOwnerSource": "PR #542 Track B Media OSS Steward"
+        },
+        {
+          "toolId": "openimageio",
+          "classification": "owned_by_other_workstream_drop_from_atlas",
+          "existingOwnerSource": "PR #542 Track B Media OSS Steward"
+        },
+        {
+          "toolId": "sam2",
+          "classification": "owned_by_other_workstream_drop_from_atlas",
+          "existingOwnerSource": "PR #543 AI Graphics owner assignment"
+        },
+        {
+          "toolId": "kornia",
+          "classification": "owned_by_other_workstream_drop_from_atlas",
+          "existingOwnerSource": "PR #543 AI Graphics owner assignment"
+        },
+        {
+          "toolId": "birefnet",
+          "classification": "owned_by_other_workstream_drop_from_atlas",
+          "existingOwnerSource": "PR #543 AI Graphics owner assignment"
+        },
+        {
+          "toolId": "real_esrgan",
+          "classification": "owned_by_other_workstream_drop_from_atlas",
+          "existingOwnerSource": "PR #543 AI Graphics owner assignment"
+        },
+        {
+          "toolId": "libass",
+          "classification": "shared_upstream_dependency_tracka_integration_only",
+          "existingOwnerSource": "Track A caption burn-in handoff only"
+        },
+        {
+          "toolId": "remotion",
+          "classification": "shared_upstream_dependency_tracka_integration_only",
+          "existingOwnerSource": "Track A render validation handoff only"
+        },
+        {
+          "toolId": "opentimelineio",
+          "classification": "shared_upstream_dependency_tracka_integration_only",
+          "existingOwnerSource": "Track A timeline validation handoff only"
+        },
+        {
+          "toolId": "film",
+          "classification": "unclear_pending_source_review",
+          "existingOwnerSource": "No exact active owner found in required scan; dropped from Atlas global claims and deferred."
+        }
+      ],
+      "conflictScan": {
+        "scanId": "TOOL-OWNER-CONFLICT-SCAN-1",
+        "scanStatus": "completed_clean_after_scoped_repair",
+        "pr544Url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/544",
+        "sourcePullRequests": [
+          "#544 Track A visual render owner",
+          "#543 AI Graphics owner assignment",
+          "#542 Track B media OSS steward owner registry",
+          "#534 Open-source tool stack refresh after AI graphics worker",
+          "#536 Open-source tool stack refresh after AI graphics worker QA review",
+          "#529 Open-source tool stack owner-lane reconciliation after Batch 1 rollup",
+          "#533 Open-source tool stack staged owner merge plan after Batch 1 rollup"
+        ],
+        "candidateToolDecisions": [
+          {
+            "toolId": "ffmpeg",
+            "classification": "owned_by_other_workstream_drop_from_atlas"
+          },
+          {
+            "toolId": "ffprobe",
+            "classification": "owned_by_other_workstream_drop_from_atlas"
+          },
+          {
+            "toolId": "libass",
+            "classification": "shared_upstream_dependency_tracka_integration_only"
+          },
+          {
+            "toolId": "remotion",
+            "classification": "shared_upstream_dependency_tracka_integration_only"
+          },
+          {
+            "toolId": "opentimelineio",
+            "classification": "shared_upstream_dependency_tracka_integration_only"
+          },
+          {
+            "toolId": "sharp_libvips",
+            "classification": "owned_by_other_workstream_drop_from_atlas"
+          },
+          {
+            "toolId": "opencolorio",
+            "classification": "owned_by_other_workstream_drop_from_atlas"
+          },
+          {
+            "toolId": "openimageio",
+            "classification": "owned_by_other_workstream_drop_from_atlas"
+          },
+          {
+            "toolId": "sam2",
+            "classification": "owned_by_other_workstream_drop_from_atlas"
+          },
+          {
+            "toolId": "kornia",
+            "classification": "owned_by_other_workstream_drop_from_atlas"
+          },
+          {
+            "toolId": "birefnet",
+            "classification": "owned_by_other_workstream_drop_from_atlas"
+          },
+          {
+            "toolId": "real_esrgan",
+            "classification": "owned_by_other_workstream_drop_from_atlas"
+          },
+          {
+            "toolId": "film",
+            "classification": "unclear_pending_source_review"
+          },
+          {
+            "toolId": "tracka_caption_burnin",
+            "classification": "keep_owned_by_atlas_tracka",
+            "scopedClaimId": "tracka_caption_burnin_policy_e2e"
+          },
+          {
+            "toolId": "tracka_render_export_hardening",
+            "classification": "keep_owned_by_atlas_tracka",
+            "scopedClaimId": "tracka_render_export_private_review_path"
+          },
+          {
+            "toolId": "tracka_visual_video_private_e2e",
+            "classification": "keep_owned_by_atlas_tracka"
+          }
+        ],
+        "unresolvedConflicts": []
+      },
       "excludedTools": [
         "track_b_media_processing_tools",
+        "global_ffmpeg",
+        "global_ffprobe",
+        "global_sharp_libvips",
+        "global_opencolorio",
+        "global_openimageio",
+        "ai_graphics_global_model_tools",
+        "global_sam2",
+        "global_kornia",
+        "global_birefnet",
+        "global_real_esrgan",
+        "global_film_until_source_review",
         "web_search_capture_tools",
         "map_geospatial_tools",
         "ai_creative_graphics_tools_outside_tracka_handoff",
@@ -48,15 +234,18 @@
         "COMPLIANCE_SECURITY"
       ],
       "sourceEvidence": [
-        "Track A tool-study",
+        "PR #544 Track A visual render owner",
+        "PR #542 Track B Media OSS Steward",
+        "PR #543 AI Graphics owner assignment",
+        "PR #534 / PR #536 open-source tool stack refresh packets",
+        "PR #529 / PR #533 merged owner-lane context",
         "Track A caption/render chain",
-        "Track A restricted internal beta scope decision",
-        "current repo tool registry"
+        "Track A restricted internal beta scope decision"
       ],
-      "duplicateRisk": "pending_cross_owner_conflict_scan",
+      "duplicateRisk": "resolved_to_scoped_tracka_claims",
       "duplicateCheckRequiredBeforeImplementation": true,
-      "nextPrompt": "TOOL-OWNER-CONFLICT-SCAN-1",
-      "nextRequiredAction": "TOOL-OWNER-CONFLICT-SCAN-1 -- Cross-owner tool claim scan before Track A tool implementation",
+      "nextPrompt": "MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544",
+      "nextRequiredAction": "MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544",
       "lastUpdatedByBranch": "codex/rp-tool-owner-registry-1-atlas-tracka-visual-render-export",
       "noScopeStatement": "No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, tool installation, or broad service-role handler was enabled."
     }

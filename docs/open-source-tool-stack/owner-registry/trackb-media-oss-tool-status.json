@@ -124,5 +124,39 @@
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,
     "betaProductionAccepted": false
+  },
+  "milestone1SystemPackagingApproval": {
+    "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution",
+    "reportKey": "trackb_milestone_1_system_packaging_approval_reports",
+    "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+    "requiredPackages": [
+      "libimage-exiftool-perl",
+      "mediainfo",
+      "tesseract-ocr",
+      "tesseract-ocr-eng",
+      "imagemagick"
+    ],
+    "optionalFallbackPackages": [
+      "graphicsmagick"
+    ],
+    "graphicsMagickDefaultIncluded": false,
+    "futureInstallCommands": [
+      "apt-get update",
+      "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libimage-exiftool-perl mediainfo tesseract-ocr tesseract-ocr-eng imagemagick",
+      "rm -rf /var/lib/apt/lists/*"
+    ],
+    "futureVerificationCommands": [
+      "exiftool -ver",
+      "mediainfo --Version",
+      "tesseract --version",
+      "magick -version or convert -version, depending installed ImageMagick binary availability"
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION",
+    "packagingExecutionRunInThisPhase": false,
+    "dockerfileMutationInThisPhase": false,
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "betaProductionAccepted": false
   }
 }

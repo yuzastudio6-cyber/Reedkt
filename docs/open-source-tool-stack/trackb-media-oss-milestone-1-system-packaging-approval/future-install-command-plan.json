@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone1SystemPackagingApproval.futureInstallCommands.v1",
+  "generatedAt": "2026-06-19T20:52:00.000Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "installRunInThisPhase": false,
+  "dockerfilePatchApprovedForFutureExecution": true,
+  "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+  "commands": [
+    "apt-get update",
+    "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libimage-exiftool-perl mediainfo tesseract-ocr tesseract-ocr-eng imagemagick",
+    "rm -rf /var/lib/apt/lists/*"
+  ],
+  "requiredPackages": [
+    "libimage-exiftool-perl",
+    "mediainfo",
+    "tesseract-ocr",
+    "tesseract-ocr-eng",
+    "imagemagick"
+  ],
+  "optionalPackagesExcludedByDefault": [
+    "graphicsmagick"
+  ]
+}

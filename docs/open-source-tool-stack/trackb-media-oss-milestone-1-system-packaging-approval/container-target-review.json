@@ -1,0 +1,36 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone1SystemPackagingApproval.containerTarget.v1",
+  "generatedAt": "2026-06-19T20:52:00.000Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "selectedTarget": "docker/prod/cpu-worker/Dockerfile",
+  "selectedTargetType": "existing_debian_bookworm_cpu_worker_image",
+  "rationale": "The CPU worker is the existing Debian Bookworm CPU analysis/proxy/timeline image and already owns CPU media/tool support boundaries. Milestone 1 tools are CPU-only metadata utilities.",
+  "dockerfileMutationInThisPhase": false,
+  "dockerBuildRunInThisPhase": false,
+  "alternativeTargets": [
+    {
+      "target": "new_future_trackb-media-cpu-worker",
+      "status": "not_selected",
+      "reason": "not needed because an existing CPU worker target is available"
+    },
+    {
+      "target": "docker/prod/render-worker/Dockerfile",
+      "status": "not_selected",
+      "reason": "Track A render/probe path is not the owner for Track B metadata tooling packaging"
+    },
+    {
+      "target": "shared_existing_worker_image",
+      "status": "not_selected",
+      "reason": "cpu-worker is more specific and already Debian/Node/Python based"
+    }
+  ]
+}

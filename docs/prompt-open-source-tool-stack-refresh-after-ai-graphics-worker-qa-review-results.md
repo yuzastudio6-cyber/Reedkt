@@ -30,6 +30,20 @@ Local validation status:
 - `npm run build:server || true`: passed.
 - Changed-file secret scan: passed; existing `mask-*` package script names were identified as false positives outside the added diff.
 
-Staged diff checks and PR status will be updated after staging and PR creation.
+Staged diff checks:
+
+- `git diff --cached --check`: passed.
+- Staged package-lock check: passed; `package-lock.json` was not staged.
+- Staged artifact check: passed; no `.local-artifacts` or generated media/render/browser/canvas/WebGL/public artifact outputs were staged.
+
+Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/536
+
+Remote PR status after creation:
+
+- State: open.
+- Draft: true.
+- Mergeable: mergeable.
+- Head: `81a29dda6c8f41c4a1e64caef7b6f327936e753c`.
+- Check rollup: empty at creation.
 
 No worker execution, job claim, lease mutation, queue execution, route execution, actual tool execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.

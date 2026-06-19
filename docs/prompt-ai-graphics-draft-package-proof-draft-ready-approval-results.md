@@ -4,7 +4,9 @@ Decision: `ai_graphics_draft_package_proof_draft_ready_approval_passed_with_warn
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-draft-ready-approval`
 
-Draft PR: pending at initial implementation record.
+Draft PR: [#558](https://github.com/yuzastudio6-cyber/Reedkt/pull/558)
+
+PR #558 status after creation: open/draft/CLEAN at `8c8a61c338131435fa4d4d435aa50b660f47c28d`; check rollup empty at creation.
 
 PR #556 status used: open/draft/MERGEABLE at `26bdf931f4bd5d8661a86f45c3cfeef0833bea7d`.
 

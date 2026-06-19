@@ -571,6 +571,7 @@
     "tool-study:track-a-render-export:diagnostics": "node scripts/validation/tool-study-track-a-render-export-diagnostics.mjs",
     "tool-study:track-b-media-processing:diagnostics": "node scripts/validation/tool-study-track-b-media-processing-diagnostics.mjs",
     "tool-study:sound-music-audio:diagnostics": "node scripts/validation/tool-study-sound-music-audio-diagnostics.mjs",
+    "tool-owner-registry:diagnostics": "node scripts/validation/tool-owner-registry-1-diagnostics.mjs",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",
     "track-a:visual-review-packet:diagnostics": "node scripts/validation/track-a-visual-review-packet-diagnostics.mjs",

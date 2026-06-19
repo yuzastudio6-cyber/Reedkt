@@ -16,9 +16,17 @@ Plan the implementation readiness for the transactional worker contract defined 
 - SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 decision: `completed_migration_safety_packet_ready_for_static_migration_implementation`.
 - SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 decision: `completed_static_migration_implementation_sql_not_executed`.
 - Supabase update status: `static_migration_created_sql_not_executed`.
-- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 readiness: `ready_for_guarded_staging_sql_execution_packet_pending_confirmed_staging_target`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 decision: `blocked_pending_confirmed_staging_target_or_execution_confirmation`.
+- execution: `blocked_pending_guarded_staging_sql_confirmation`.
+- Supabase update status: `blocked_sql_not_executed`.
+- Supabase environment touched: `none`.
+- SQL executed: `none`.
+- Migration deployed: `no`.
+- readbackStatus: `not_run`.
+- Secret Manager payload printed: false.
+- production touched: false.
 - WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_guarded_staging_sql_execution`.
-- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_supabase_rpc_schema_deployment`.
+- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_guarded_staging_sql_execution`.
 - TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_transactional_contract`.
 - INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_transactional_contract`.
 - Internal beta unlocked: false.
@@ -29,7 +37,7 @@ Create a readiness packet for the future RPC/schema implementation path only aft
 
 ## Current Blocker
 
-This prompt remains blocked pending SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 -- Guarded staging SQL execution packet.
+This prompt remains blocked pending SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-IF-NEEDED -- Guarded staging confirmation rerun or an equivalent guarded staging SQL execution packet with deployed schema/RPC evidence.
 
 ## No-Scope Statement
 

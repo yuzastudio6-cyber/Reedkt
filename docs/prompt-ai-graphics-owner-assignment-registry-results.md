@@ -14,7 +14,9 @@ Decision: `ai_graphics_owner_assignment_registered_pending_duplicate_review`
 ## Results
 
 - Branch: `codex/rp-ai-graphics-owner-assignment-registry`
-- Draft PR: pending creation
+- Draft PR: #543, https://github.com/yuzastudio6-cyber/Reedkt/pull/543
+- PR state: open / draft / mergeable
+- PR check rollup: empty at creation
 - Duplicate search result: no exact PR or remote branch found before implementation
 - Owner display name: `Atlas — AI Graphics & Worker Metadata Owner`
 - Owner id: `atlas_ai_graphics_worker_owner`

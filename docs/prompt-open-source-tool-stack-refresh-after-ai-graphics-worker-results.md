@@ -22,6 +22,16 @@ Local validation status:
 - Changed-file secret scan: passed; existing `mask-*` package script names were identified as false positives outside the added diff.
 - `git diff --cached --check`: passed.
 
-PR link and remote check status will be added after the draft PR is opened. The current packet records PR #416 as merged canonical source evidence and PR #425/#433/#441/#532 as draft pending evidence.
+Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/534
+
+Remote PR status after creation:
+
+- State: open.
+- Draft: true.
+- Mergeable: mergeable.
+- Head: `46d00a3443c10f4ced482f74944209f6f5612ff7`.
+- Check rollup: empty at creation.
+
+The current packet records PR #416 as merged canonical source evidence and PR #425/#433/#441/#532 as draft pending evidence.
 
 No worker execution, route execution, actual tool execution, provider/model runtime, browser/WebGL/canvas runtime, Supabase/GCS mutation, signed URL creation, public artifact creation, internal beta unlock, external beta unlock, or production unlock was enabled.

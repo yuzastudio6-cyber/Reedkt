@@ -208,6 +208,19 @@ OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL:
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION`.
 - No FFmpeg/FFprobe probe, Docker build/run, Docker/container mutation, media processing, caption burn-in, render/export, npm install/rebuild, DuckDB/Polars proof rerun, worker/route/provider execution, Supabase/GCS mutation, public artifact, signed URL, raw prompt, beta, or production scope is enabled.
 - Supabase classification: no write / none / none / no.
+
+## AI Graphics Owner Assignment Registry
+
+- Decision: `ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings`.
+- Owner id: `atlas_ai_graphics_worker_owner`.
+- Next prompt: `AI_GRAPHICS_OWNER_ASSIGNMENT_DUPLICATE_REVIEW`.
+- Unlock status: no runtime, worker, route, tool, provider, Supabase/GCS, signed URL, public artifact, beta, or production unlock.
+
+## AI Graphics Track B Conflict Sync
+
+- Decision: `ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings`.
+- Next action: keep PR #543 in duplicate-review state and route Track B questions to `TRACK_B_MEDIA_OSS_STEWARD`.
+- Atlas cannot claim, install, prove, or execute Track B tools; PR #544 remains Track A context only.
 <!-- OPEN_SOURCE_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL_STATUS:end -->
 
 <!-- OPEN_SOURCE_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:start -->

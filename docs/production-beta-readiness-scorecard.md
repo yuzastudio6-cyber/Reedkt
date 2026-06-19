@@ -40,3 +40,16 @@ Open-source tool stack refresh QA after AI graphics Worker accepts PR #534 with
 warnings. The QA decision keeps canonical PR #416 counts separate from draft
 pending AI graphics, Tool Route, and Worker evidence. Runtime-ready tools,
 internal beta, external beta, and production readiness remain blocked.
+
+AI graphics owner assignment registry records `atlas_ai_graphics_worker_owner`
+as Atlas — AI Graphics & Worker Metadata Owner with decision
+`ai_graphics_owner_assignment_trackb_conflict_sync_passed_with_warnings`. The
+assignment is docs/diagnostics-only, claims no exclusive ownership, and does
+not change runtime, internal beta, external beta, or production readiness.
+
+AI graphics owner assignment Track B conflict sync confirms
+`TRACK_B_MEDIA_OSS_STEWARD` owns Track B media tools and Atlas cannot claim,
+install, prove, or execute those tools. PR #544 is Track A context only. This
+sync does not change internal beta, external beta, production, runtime
+execution, provider execution, Supabase/GCS, signed URL, or public artifact
+readiness.

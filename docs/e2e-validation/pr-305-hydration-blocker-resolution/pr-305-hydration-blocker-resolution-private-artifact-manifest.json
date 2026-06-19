@@ -1,0 +1,42 @@
+{
+  "schema": "reeditpro.e2e.pr305HydrationBlockerResolution.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-19T15:45:00Z",
+  "committedArtifacts": [
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/source-of-truth-audit.json",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/source-of-truth-audit.md",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/npm-ci-hydration-attempt-report.json",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/npm-ci-hydration-attempt-report.md",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/npm-log-environment-review.json",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/npm-log-environment-review.md",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/safe-retry-policy.json",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/safe-retry-policy.md",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/pr-305-validation-readiness-review.json",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/pr-305-validation-readiness-review.md",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/pr-305-hydration-blocker-resolution-decision.json",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/pr-305-hydration-blocker-resolution-decision.md",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/pr-305-hydration-blocker-resolution-readiness-report.json",
+    "docs/e2e-validation/pr-305-hydration-blocker-resolution/pr-305-hydration-blocker-resolution-validation-results.md",
+    "docs/implementation-prompts/prompt-reeditpro-e2e-validation-pr-305-rerun-after-hydration-resolution.md"
+  ],
+  "privateLocalArtifactsNotCommitted": [
+    {
+      "path": "/private/tmp/reeditpro-pr-305-hydration-validation",
+      "description": "Disposable PR #305 validation worktree.",
+      "cleanupRequired": true
+    },
+    {
+      "path": "/private/tmp/reeditpro-pr-305-hydration-validation/npm-ci-hydration-attempt.log",
+      "description": "Local npm attempt log summarized in committed reports.",
+      "cleanupRequired": true
+    },
+    {
+      "path": "/private/tmp/reeditpro-pr-305-hydration-validation/node_modules",
+      "description": "Validation-only dependency hydration output in disposable worktree.",
+      "cleanupRequired": true
+    }
+  ],
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "secretPayloadPrinted": false,
+  "mediaArtifactsCreated": false
+}

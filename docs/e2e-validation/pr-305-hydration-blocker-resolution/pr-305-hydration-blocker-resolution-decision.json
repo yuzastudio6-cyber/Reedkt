@@ -1,0 +1,45 @@
+{
+  "schema": "reeditpro.e2e.pr305HydrationBlockerResolution.decision.v1",
+  "generatedAt": "2026-06-19T15:45:00Z",
+  "decision": "e2e_pr305_hydration_blocker_resolved_ready_for_validation_rerun",
+  "decisionBasis": [
+    "npm ci --ignore-scripts --no-audit --no-fund completed successfully in a clean disposable PR #305 validation worktree.",
+    "Required validation tool binaries tsx, eslint, tsc, and vite were present after hydration.",
+    "package.json and package-lock.json hashes remained unchanged.",
+    "No runtime, media, product, provider, worker, Docker, FFmpeg/FFprobe, Supabase, GCS, public artifact, signed URL, beta, production, raw prompt, or secret payload scope ran."
+  ],
+  "pr305MergeReady": false,
+  "mergeReadyValidations": 0,
+  "nextPrompt": "REEDITPRO_E2E_VALIDATION_PR_305_RERUN_AFTER_HYDRATION_RESOLUTION",
+  "blockedScopeConfirmation": {
+    "fullPr305Validation": false,
+    "githubPrMerge": false,
+    "githubPrClose": false,
+    "packageLockMutation": false,
+    "npmInstall": false,
+    "npmRebuild": false,
+    "runtimeExecution": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "providerCall": false,
+    "docker": false,
+    "ffmpegFfprobe": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "gcsUpload": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPrompts": false,
+    "betaUnlock": false,
+    "productionUnlock": false,
+    "secretPayloadPrint": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

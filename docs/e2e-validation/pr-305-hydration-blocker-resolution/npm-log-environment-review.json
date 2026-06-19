@@ -1,0 +1,39 @@
+{
+  "schema": "reeditpro.e2e.pr305HydrationBlockerResolution.npmEnvironmentReview.v1",
+  "generatedAt": "2026-06-19T15:45:00Z",
+  "nodeVersion": "v26.3.0",
+  "npmVersion": "11.16.0",
+  "os": "Darwin 25.5.0 arm64",
+  "npmConfig": {
+    "ignoreScriptsDefault": false,
+    "auditDefault": true,
+    "fundDefault": true,
+    "cache": "/Users/macuser/.npm",
+    "commandFlags": {
+      "ignoreScripts": true,
+      "audit": false,
+      "fund": false
+    }
+  },
+  "diskSpace": {
+    "filesystem": "/dev/disk3s5",
+    "availableKb": 187354296,
+    "capacity": "59%"
+  },
+  "logReview": {
+    "attemptLogPath": "/private/tmp/reeditpro-pr-305-hydration-validation/npm-ci-hydration-attempt.log",
+    "npmDebugLogObserved": "/Users/macuser/.npm/_logs/2026-06-19T15_39_16_031Z-debug-0.log",
+    "safeSummary": "Hydration completed with deprecation warnings only. No error stack was needed for diagnosis.",
+    "secretMaterialObserved": false
+  },
+  "classification": {
+    "failureObserved": false,
+    "environmentRelated": false,
+    "dependencyResolutionRelated": false,
+    "lifecycleScriptRelated": false,
+    "networkRelated": false,
+    "cacheRelated": false,
+    "prSpecific": false,
+    "summary": "The previously reported hydration blocker did not reproduce in this disposable worktree. npm ci completed and linked the required validation tool binaries."
+  }
+}

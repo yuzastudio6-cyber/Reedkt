@@ -33,3 +33,13 @@ SOUND_MUSIC_AUDIO scoped status does not remove production beta blockers.
 - Not runtime readiness.
 - Not media processing readiness.
 - Blockers remain: `audioread` file-open, `pydub` media operations / FFmpeg warning, FFmpeg/ffprobe, Demucs/RNNoise/Essentia/Rubber Band, workers/routes/providers, Supabase/SQL, signed URLs/public artifacts, beta/production.
+
+## E2E PR #305 hydration blocker resolution
+
+PR #305 hydration blocker resolution does not remove production beta blockers.
+
+- `e2e_pr305_hydration_blocker_resolved_ready_for_validation_rerun`
+- The approved dependency hydration command completed in a disposable PR #305 worktree.
+- Full PR #305 validation did not run in this phase.
+- Merge-ready validations remain `0`.
+- External beta, paid production, production, runtime execution, workers/routes/providers, media/render/export, Supabase/GCS, public artifacts, signed URLs, raw prompts, and secret payload access remain blocked.

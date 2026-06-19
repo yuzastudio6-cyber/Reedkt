@@ -65,6 +65,8 @@
     "worker:ai-graphics-metadata-job-payload-dry-run-runtime-gate-qa:diagnostics": "node scripts/validation/worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-qa-diagnostics.mjs",
     "worker:ai-graphics-metadata-job-payload-dry-run-runtime-gate-owner-approval:diagnostics": "node scripts/validation/worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-owner-approval-diagnostics.mjs",
     "worker:ai-graphics-metadata-controlled-noop-worker-gate-approval:diagnostics": "node scripts/validation/worker-ai-graphics-metadata-controlled-noop-worker-gate-approval-diagnostics.mjs",
+    "worker:ai-graphics-metadata-controlled-noop-worker-gate:execute": "node scripts/validation/worker-ai-graphics-metadata-controlled-noop-worker-gate-execution.mjs",
+    "worker:ai-graphics-metadata-controlled-noop-worker-gate:diagnostics": "node scripts/validation/worker-ai-graphics-metadata-controlled-noop-worker-gate-execution-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

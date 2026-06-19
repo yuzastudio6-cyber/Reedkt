@@ -14,3 +14,9 @@
 | AI_TOOLS_CREATIVE_GRAPHICS | TOOL-STUDY-0 complete as docs/diagnostics only | Owns creative graphics planning, AI image generation planning, image editing planning, style transfer planning, thumbnails/covers/posters, title cards, lower thirds, overlays, brand/typography/layout metadata, and graphic asset QA metadata; no provider/model, image generation/editing, tool, worker, route, public artifact, signed URL, Supabase, beta, or production unlock |
 | TRACK_A_RENDER_EXPORT | TOOL-STUDY-0 complete as docs/diagnostics only | Owns final timeline assembly planning, render/export planning, mux/transcode/container planning, codec profile planning, caption/subtitle/burn-in planning, overlay/audio sync handoff, private artifact manifest/checksum planning, private GCS path planning, retention/delete/rollback planning, and export cost/capacity metadata; no render/export runtime, worker, route, public artifact, signed URL, Supabase, beta, or production unlock |
 | TOOL_STUDY_0_ROLLUP | Docs/diagnostics complete, blocked pending owner-study merge | Owns completion rollup and route-unlock readiness metadata; does not merge PRs, execute routes, execute tools/workers/providers, mutate Supabase, create public artifacts, create signed URLs, or unlock beta/production |
+
+## AI Graphics Owner Assignment Registry
+
+| Workstream | Current owner action | Merge hygiene note |
+| --- | --- | --- |
+| AI_TOOLS_CREATIVE_GRAPHICS | `atlas_ai_graphics_worker_owner` / Atlas — AI Graphics & Worker Metadata Owner registered as `pending_duplicate_review` | Coordinates AI graphics and Worker metadata ownership only; `exclusiveOwnershipClaimed:false`, runtime/beta/production remain blocked |

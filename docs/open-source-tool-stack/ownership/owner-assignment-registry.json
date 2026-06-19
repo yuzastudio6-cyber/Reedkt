@@ -1,0 +1,27 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ownerAssignmentRegistry.v1",
+  "decision": "ai_graphics_owner_assignment_registered_pending_duplicate_review",
+  "generatedFromBranch": "codex/rp-ai-graphics-owner-assignment-registry",
+  "baseBranch": "codex/rp-open-source-tool-stack-refresh-after-ai-graphics-worker-qa-review",
+  "assignments": [
+    {
+      "ownerDisplayName": "Atlas — AI Graphics & Worker Metadata Owner",
+      "ownerId": "atlas_ai_graphics_worker_owner",
+      "ownerLane": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "coordinationLanes": [
+        "TOOL_ROUTE_EXECUTION",
+        "WORKER_RUNTIME_JOBS",
+        "OPEN_SOURCE_TOOL_STACK_AUDIT"
+      ],
+      "assignmentStatus": "pending_duplicate_review",
+      "canonicalSource": "PR #416 central open-source tool stack audit",
+      "refreshedSource": "PR #534 / PR #536 open-source tool stack refresh and QA",
+      "latestWorkerEvidence": "PR #532 controlled no-op owner review",
+      "exclusiveOwnershipClaimed": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    }
+  ]
+}

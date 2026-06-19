@@ -1,0 +1,30 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsOwnedToolMatrix.v1",
+  "ownerId": "atlas_ai_graphics_worker_owner",
+  "ownerLane": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "assignmentStatus": "pending_duplicate_review",
+  "exclusiveOwnershipClaimed": false,
+  "tools": [
+    {"toolId": "torch_torchvision", "displayName": "Torch/TorchVision", "packageNames": ["torch", "torchvision"], "purpose": "ML/CV tensor and model runtime foundation", "currentStatus": "package_declared_smoke_only", "responsibility": "import/version proof, model-weight boundary, future runtime policy"},
+    {"toolId": "transformers", "displayName": "Transformers", "packageNames": ["transformers"], "purpose": "model/runtime utility layer", "currentStatus": "package_declared_docs_only", "responsibility": "import/version proof, no model downloads without approval"},
+    {"toolId": "sam2", "displayName": "SAM2", "packageNames": ["sam2"], "purpose": "segmentation model tooling", "currentStatus": "package_declared_smoke_only", "responsibility": "import/model-path proof, no segmentation execution until approved"},
+    {"toolId": "birefnet", "displayName": "BiRefNet", "packageNames": ["birefnet"], "purpose": "background/subject segmentation model tooling", "currentStatus": "package_declared_smoke_only", "responsibility": "import/model-path proof, no model execution until approved"},
+    {"toolId": "real_esrgan", "displayName": "Real-ESRGAN", "packageNames": ["real-esrgan"], "purpose": "image upscaling model tooling", "currentStatus": "package_declared_smoke_only", "responsibility": "import/model-path proof, no upscaling execution until approved"},
+    {"toolId": "kornia", "displayName": "Kornia", "packageNames": ["kornia"], "purpose": "CV/tensor image operations", "currentStatus": "package_declared_docs_only", "responsibility": "import/version proof and synthetic metadata fixture"},
+    {"toolId": "rembg", "displayName": "rembg", "packageNames": ["rembg"], "purpose": "background removal fallback", "currentStatus": "docs_only_not_proven", "responsibility": "backlog review; decide if needed after SAM2/BiRefNet"},
+    {"toolId": "transparent_background", "displayName": "transparent-background", "packageNames": ["transparent-background"], "purpose": "background removal fallback", "currentStatus": "docs_only_not_proven", "responsibility": "backlog review; avoid duplicate background-removal stack unless needed"},
+    {"toolId": "d3", "displayName": "D3", "packageNames": ["d3"], "purpose": "data-driven chart/graphics metadata", "currentStatus": "draft_install_import_fixture_proof_pending_merge", "responsibility": "package proof, chart metadata fixture proof, no runtime chart rendering until approved"},
+    {"toolId": "echarts", "displayName": "ECharts", "packageNames": ["echarts"], "purpose": "chart specification/graphics metadata", "currentStatus": "draft_install_import_fixture_proof_pending_merge", "responsibility": "package proof, chart metadata fixture proof, no browser chart runtime until approved"},
+    {"toolId": "vega_lite", "displayName": "Vega-Lite", "packageNames": ["vega-lite"], "purpose": "chart grammar/spec compiler", "currentStatus": "draft_install_import_fixture_proof_pending_merge", "responsibility": "spec validation, no production render/export until approved"},
+    {"toolId": "vega", "displayName": "Vega", "packageNames": ["vega"], "purpose": "Vega-Lite peer/compiler support", "currentStatus": "draft_install_import_fixture_proof_pending_merge", "responsibility": "compile/parse proof only until runtime approval"},
+    {"toolId": "satori", "displayName": "Satori", "packageNames": ["satori"], "purpose": "JSX/HTML-style SVG graphics generation", "currentStatus": "draft_install_import_fixture_proof_pending_merge", "responsibility": "import/static SVG metadata proof, no public artifact output until approved"},
+    {"toolId": "svgdotjs_svg_js", "displayName": "@svgdotjs/svg.js", "packageNames": ["@svgdotjs/svg.js"], "purpose": "SVG construction/manipulation", "currentStatus": "draft_install_import_fixture_proof_pending_merge", "responsibility": "SVG metadata proof, no public artifact output until approved"},
+    {"toolId": "viz_js", "displayName": "@viz-js/viz", "packageNames": ["@viz-js/viz"], "purpose": "Graphviz/DOT-to-SVG metadata generation", "currentStatus": "draft_node_only_static_proof_pending_merge", "responsibility": "Node-only in-memory DOT/SVG proof, no public artifact output until approved"},
+    {"toolId": "lottie_web", "displayName": "lottie-web", "packageNames": ["lottie-web"], "purpose": "Lottie animation manifest/player support", "currentStatus": "draft_manifest_metadata_proof_pending_merge", "responsibility": "manifest validation only, no player runtime until approved"},
+    {"toolId": "animejs", "displayName": "Anime.js", "packageNames": ["animejs"], "purpose": "animation metadata/timeline support", "currentStatus": "draft_import_manifest_proof_pending_merge", "responsibility": "manifest/timeline metadata proof, no animation runtime until approved"},
+    {"toolId": "three_js", "displayName": "Three.js", "packageNames": ["three"], "purpose": "3D/WebGL graphics", "currentStatus": "draft_import_manifest_proof_pending_merge", "responsibility": "import/manifest proof, no WebGL runtime until approved"},
+    {"toolId": "pixi_js", "displayName": "PixiJS", "packageNames": ["pixi.js"], "purpose": "canvas/WebGL graphics", "currentStatus": "draft_import_manifest_proof_pending_merge", "responsibility": "import/manifest proof, no canvas/WebGL runtime until approved"},
+    {"toolId": "konva", "displayName": "Konva", "packageNames": ["konva"], "purpose": "canvas graphics", "currentStatus": "draft_import_manifest_proof_pending_merge", "responsibility": "import/manifest proof, no canvas runtime until approved"},
+    {"toolId": "babylonjs", "displayName": "Babylon.js", "packageNames": ["babylonjs"], "purpose": "3D/WebGL graphics", "currentStatus": "draft_import_manifest_proof_pending_merge", "responsibility": "import/manifest proof, no WebGL runtime until approved"}
+  ]
+}

@@ -208,6 +208,13 @@ OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL:
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION`.
 - No FFmpeg/FFprobe probe, Docker build/run, Docker/container mutation, media processing, caption burn-in, render/export, npm install/rebuild, DuckDB/Polars proof rerun, worker/route/provider execution, Supabase/GCS mutation, public artifact, signed URL, raw prompt, beta, or production scope is enabled.
 - Supabase classification: no write / none / none / no.
+
+## AI Graphics Owner Assignment Registry
+
+- Decision: `ai_graphics_owner_assignment_registered_pending_duplicate_review`.
+- Owner id: `atlas_ai_graphics_worker_owner`.
+- Next prompt: `AI_GRAPHICS_OWNER_ASSIGNMENT_DUPLICATE_REVIEW`.
+- Unlock status: no runtime, worker, route, tool, provider, Supabase/GCS, signed URL, public artifact, beta, or production unlock.
 <!-- OPEN_SOURCE_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL_STATUS:end -->
 
 <!-- OPEN_SOURCE_TRACKA_CONTAINER_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:start -->

@@ -1,0 +1,42 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsOwnerAssignment.v1",
+  "decision": "ai_graphics_owner_assignment_registered_pending_duplicate_review",
+  "ownerDisplayName": "Atlas — AI Graphics & Worker Metadata Owner",
+  "ownerId": "atlas_ai_graphics_worker_owner",
+  "ownerLane": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "coordinationLanes": [
+    "TOOL_ROUTE_EXECUTION",
+    "WORKER_RUNTIME_JOBS",
+    "OPEN_SOURCE_TOOL_STACK_AUDIT"
+  ],
+  "assignmentStatus": "pending_duplicate_review",
+  "sourceEvidence": {
+    "canonicalSource": "PR #416 central open-source tool stack audit",
+    "refreshedSource": "PR #534 / PR #536 open-source tool stack refresh and QA",
+    "latestWorkerEvidence": "PR #532 controlled no-op owner review"
+  },
+  "booleans": {
+    "ownerAssignmentCreated": true,
+    "ownerIdRegistered": true,
+    "centralRegistryUpdated": true,
+    "crossChatFilesUpdated": true,
+    "duplicateRiskFound": true,
+    "exclusiveOwnershipClaimed": false,
+    "pendingDuplicateReview": true,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "sqlExecutionPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

@@ -166,6 +166,10 @@ TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_MERGE:
 - FFmpeg and FFprobe remain not installed/proven centrally; future version probes are not approved by this phase.
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL`.
 - Supabase classification: no write / none / none / no.
+
+## AI Graphics Owner Assignment Registry Blocked Scopes
+
+The `atlas_ai_graphics_worker_owner` assignment is docs/diagnostics-only and pending duplicate review. It does not unblock tool execution, worker execution, route execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, media processing, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta, external beta, or production.
 <!-- TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_STATUS:end -->
 
 <!-- OPEN_SOURCE_FFMPEG_FFPROBE_VERSION_PROBE_APPROVAL_STATUS:start -->

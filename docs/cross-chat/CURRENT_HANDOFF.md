@@ -377,3 +377,12 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - End-to-end product-ready tools remain `0`; do not claim 40+ tools are installed/proven end-to-end.
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP`.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## AI Graphics Owner Assignment Registry
+
+- Decision: `ai_graphics_owner_assignment_registered_pending_duplicate_review`.
+- Owner: `atlas_ai_graphics_worker_owner` / Atlas — AI Graphics & Worker Metadata Owner.
+- Canonical source: PR #416; refreshed source: PR #534 and PR #536; latest Worker evidence: PR #532.
+- Duplicate-risk result: existing AI graphics lane/backlog and Worker metadata references require review; `exclusiveOwnershipClaimed:false`.
+- Runtime-ready now: `false`; internal beta-ready now: `false`; external beta-ready now: `false`; production-ready now: `false`.
+- No worker execution, job claim, lease mutation, queue execution, route execution, actual tool execution, provider/model runtime, browser/WebGL/canvas runtime, resvg rasterization, Remotion render/export, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.

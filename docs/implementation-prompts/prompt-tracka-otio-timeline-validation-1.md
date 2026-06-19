@@ -1,6 +1,6 @@
 # TRACKA-OTIO-TIMELINE-VALIDATION-1
 
-Goal: plan the scoped OpenTimelineIO timeline validation proof for Atlas Track A after `TRACKA-CORE-RENDER-CAPTION-INSTALL-PROOF-1`.
+Goal: plan the scoped OpenTimelineIO timeline validation proof for Atlas Track A after `TRACKA-LIBASS-CAPTION-BURNIN-RUNTIME-PROOF-1`.
 
 Required source:
 
@@ -8,13 +8,19 @@ Required source:
 - `docs/track-a/tracka-core-render-caption-install-proof-1-install-evidence.md`
 - `docker/prod/render-worker/requirements.render.txt`
 - `docker/prod/tool-readiness-worker/requirements.readiness.txt`
+- `docs/track-a/tracka-libass-caption-burnin-runtime-proof-1.md`
+- `docs/activation-phase-tracka-libass-caption-burnin-runtime-proof-1-results.md`
 - #544 owner registry source
 - #547 inventory source
+- #553 source install proof
+- #463/#475/#488/#492 existing caption runtime evidence
 
-Current readiness: `ready_for_tracka_otio_timeline_validation_1`.
+Current readiness: `TRACKA-OTIO-TIMELINE-VALIDATION-1 readiness: ready`.
+
+Prerequisite decision: `TRACKA-LIBASS-CAPTION-BURNIN-RUNTIME-PROOF-1 decision: completed_runtime_proof_satisfied_by_existing_merged_evidence`.
 
 Scope boundary: `opentimelineio_timeline_validation` is a scoped Track A responsibility label. This prompt does not authorize OTIO imports, media processing, timeline execution, private E2E execution, final render/export, or beta/production unlock.
 
 FFmpeg and FFprobe remain Track B-owned shared dependencies. Atlas Track A may reference them only through handoff-only labels and must not claim global install or runtime proof for them.
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, tool installation, tool execution, media processing, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, tool installation, tool execution, private media processing, or broad service-role handler was enabled.

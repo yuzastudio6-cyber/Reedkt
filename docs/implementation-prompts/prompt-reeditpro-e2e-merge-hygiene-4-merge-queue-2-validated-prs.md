@@ -1,20 +1,37 @@
 # REEDITPRO-E2E-MERGE-HYGIENE-4: Merge Queue 2 Validated PRs, No Execution
 
-Use this prompt only after queue 2 produces at least one dependency-backed validated PR. The current queue-2 packet records zero merge-ready PRs, so this prompt is blocked until a later fix or validation packet updates the merge-ready register.
+Use this prompt after PR #539 is merged. Queue 2 has two dependency-backed merge-hygiene candidates: PR #245 and PR #263. PR #264 and PR #300 remain blocked and must not be included.
 
 ```json reeditpro-e2e-merge-hygiene-4-merge-queue-2-validated-prs
 {
   "prompt": "REEDITPRO-E2E-MERGE-HYGIENE-4: merge queue 2 validated PRs, no execution",
-  "sourcePrerequisite": "REEDITPRO-E2E-VALIDATION-QUEUE-2",
-  "currentPrerequisiteDecision": "reeditpro_e2e_validation_queue_2_blocked_dependency_hydration_failures",
-  "currentMergeReadyCount": 0,
-  "readyNow": false,
-  "blockedReason": "Queue 2 did not produce dependency-backed validated PRs. PRs #245, #263, #264, and #300 remain not ready.",
-  "dependencySafeMergeOrderIfLaterValidated": [245, 263, 264, 300],
+  "sourcePrerequisite": "REEDITPRO-E2E-VALIDATION-QUEUE-2-HYDRATION-FIX",
+  "currentPrerequisiteDecision": "reeditpro_e2e_validation_queue_2_hydration_fix_passed_with_warnings_ready_for_merge_hygiene_4",
+  "currentMergeReadyCount": 2,
+  "readyNow": true,
+  "mergeReadyPrs": [
+    {
+      "prNumber": 245,
+      "headRefOid": "bce1c0283b41ea5e3ca653617e1bafb7176ad563",
+      "requiredFinalRequery": true
+    },
+    {
+      "prNumber": 263,
+      "headRefOid": "163a90669d87bc605f1e72e4e1903a9526f9778c",
+      "requiredFinalRequery": true
+    }
+  ],
+  "dependencySafeMergeOrder": [245, 263],
+  "excludedFromMergeHygiene4": [
+    {"prNumber": 264, "reason": "git_diff_check_whitespace"},
+    {"prNumber": 300, "reason": "environment_owner_blocked_dependency_hydration_enospc"},
+    {"prNumber": 305, "reason": "environment_owner_blocked_native_optional_hydration"}
+  ],
   "requiredBeforeUse": [
-    "A later validation/fix packet must list at least one PR in docs/reeditpro-e2e-validation-queue-2-merge-ready-after-validation.md.",
-    "Each merge candidate must be re-queried immediately before merge hygiene.",
-    "No runtime, media, Supabase, provider, worker, route, artifact, billing, beta, or production scope may be widened."
+    "Re-query PR #245 and PR #263 immediately before any mutation.",
+    "Require open, non-draft or review-accepted, clean/mergeable, exact head SHA, expected file scope, and no blocking comments/reviews/checks.",
+    "Do not rerun runtime, media, Supabase, provider, worker, route, artifact, billing, beta, or production paths.",
+    "Do not merge PR #264, PR #300, or PR #305 through this prompt."
   ],
   "runtimeGates": {
     "supabaseMutationAllowed": false,

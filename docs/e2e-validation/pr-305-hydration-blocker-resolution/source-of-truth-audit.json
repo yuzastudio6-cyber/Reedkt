@@ -1,0 +1,107 @@
+{
+  "schema": "reeditpro.e2e.pr305HydrationBlockerResolution.sourceAudit.v1",
+  "generatedAt": "2026-06-19T15:45:00Z",
+  "repository": "yuzastudio6-cyber/Reedkt",
+  "reportingBranch": "codex/reeditpro-e2e-validation-pr-305-hydration-blocker-resolution",
+  "reportingBase": {
+    "branch": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+    "sha": "f258967676c4877d3e1627b5710b789cff04b451",
+    "reason": "Active E2E validation source branch containing merged PR #523 evidence."
+  },
+  "centralSourceEvidence": {
+    "branch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+    "sha": "1893ac00814971c7d2a05958dd6971052193f4e6",
+    "pr533": {
+      "number": 533,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T15:09:54Z",
+      "mergeCommit": "1893ac00814971c7d2a05958dd6971052193f4e6",
+      "headRefOid": "576e9c4779609e366d44c7c0a6ce9534bdc87379",
+      "decision": "staged_owner_merge_plan_passed_ready_for_e2e_validation_pr305_hydration_blocker_resolution",
+      "nextPrompt": "E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/533"
+    }
+  },
+  "e2eSourceEvidence": {
+    "pr523": {
+      "number": 523,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T02:04:29Z",
+      "mergeCommit": "f258967676c4877d3e1627b5710b789cff04b451",
+      "headRefOid": "34139763bdd34431239d40c1d96b15b77b92816f",
+      "decision": "reeditpro_e2e_validation_queue_1_blocked_validation_failures",
+      "pr305FixDecision": "pr_305_validation_blocked_npm_ci_failed",
+      "mergeReadyValidations": 0,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/523"
+    },
+    "pr519": {
+      "number": 519,
+      "state": "MERGED",
+      "mergedAt": "2026-06-18T17:42:26Z",
+      "mergeCommit": "61dc4940340db9508012f74294fd6723accb3d36",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/519"
+    }
+  },
+  "targetPr": {
+    "number": 305,
+    "title": "[track-a] Group B creative graphics handoff review",
+    "state": "OPEN",
+    "isDraft": false,
+    "mergeStateStatus": "CLEAN",
+    "baseRefName": "codex/rp-gd-10-group-b-controlled-local-fixture-execution",
+    "headRefName": "codex/rp-tracka-gd-groupb-handoff-0-review",
+    "headRefOid": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/305",
+    "changedFileCount": 23,
+    "validatedAsTargetOnly": true,
+    "mutatedByThisPacket": false
+  },
+  "duplicateSearches": {
+    "E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION": [],
+    "REEDITPRO-E2E-VALIDATION-PR-305-FIX-2": [],
+    "pr_305_validation_blocked_npm_ci_failed": []
+  },
+  "packageHashes": {
+    "reportingBranch": {
+      "packageJsonSha256": "a9205ce055d9fd9d0aabfc310c24abbf78271f432124190b1193dbfd5b3ce030",
+      "packageLockSha256": "bbc17b3cb96f642deb5316c680074b1c7e76fd8410bf30ea7db516f10db5ebe3"
+    },
+    "pr305DisposableWorktree": {
+      "packageJsonSha256": "507c60656461bb735173133281653b6dfa3c0e813b8d80968b65adc26337d315",
+      "packageLockSha256": "064ed352d55af751f8399752d5abaa980f66e514cab323d54894f0ce5afb89da"
+    }
+  },
+  "broadStatusDocs": {
+    "docs/beta-readiness-scorecard.md": "present_updated_with_metadata_only",
+    "docs/production-beta-blocker-inventory.md": "present_updated_with_metadata_only",
+    "PRODUCTION_FOUNDATION_STATUS.md": "absent_recorded_only",
+    "docs/cross-chat/CURRENT_HANDOFF.md": "absent_recorded_only",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md": "absent_recorded_only",
+    "docs/cross-chat/BLOCKED_SCOPES.md": "absent_recorded_only"
+  },
+  "scopeConfirmation": {
+    "githubPrMerge": false,
+    "githubPrClose": false,
+    "packageLockMutation": false,
+    "npmInstall": false,
+    "npmRebuild": false,
+    "runtimeExecution": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "providerCall": false,
+    "docker": false,
+    "ffmpegFfprobe": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "gcsUpload": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPrompts": false,
+    "betaUnlock": false,
+    "productionUnlock": false,
+    "secretPayloadPrint": false
+  },
+  "noScopeStatement": "No PR merge, PR close, rebase, retarget, branch deletion, dependency install, package-lock mutation, Docker, FFmpeg/FFprobe, media processing, render/export, worker execution, route execution, provider/model call, Supabase mutation, SQL execution, GCS upload, public artifact, signed URL, raw prompt, beta, production, or secret payload scope was enabled."
+}

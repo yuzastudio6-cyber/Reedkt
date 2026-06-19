@@ -1,15 +1,17 @@
 # REEDITPRO-E2E-VALIDATION-QUEUE-3: Run Next Batch, No Execution
 
-Use this prompt only after queue 2 hydration blockers are resolved or explicitly owner-classified and queue-2 merge-ready evidence is no longer blocked. Queue 3 must not bypass unresolved dependency hydration failures from queue 2.
+Use this prompt after queue-2 merge hygiene is handled or explicitly deferred. Queue 3 must preserve PR #264, PR #300, and PR #305 blocker evidence rather than treating them as validated.
 
 ```json reeditpro-e2e-validation-queue-3-run-next-batch
 {
   "prompt": "REEDITPRO-E2E-VALIDATION-QUEUE-3: run next batch, no execution",
-  "sourcePrerequisite": "REEDITPRO-E2E-VALIDATION-QUEUE-2",
-  "currentPrerequisiteDecision": "reeditpro_e2e_validation_queue_2_blocked_dependency_hydration_failures",
+  "sourcePrerequisite": "REEDITPRO-E2E-VALIDATION-QUEUE-2-HYDRATION-FIX",
+  "currentPrerequisiteDecision": "reeditpro_e2e_validation_queue_2_hydration_fix_passed_with_warnings_ready_for_merge_hygiene_4",
   "readyNow": false,
-  "blockedReason": "Queue 2 selected PRs did not complete dependency hydration, so validation queue 3 is deferred.",
+  "deferredUntil": "REEDITPRO-E2E-MERGE-HYGIENE-4 is merged or explicitly skipped by owner decision",
   "mustPreserveExclusions": [
+    {"prNumber": 264, "bucket": "git_diff_check_whitespace"},
+    {"prNumber": 300, "bucket": "environment_owner_blocked_dependency_hydration_enospc"},
     {"prNumber": 305, "bucket": "environment_owner_blocked_native_optional_hydration"}
   ],
   "blockedScopesRemain": [
@@ -21,7 +23,7 @@ Use this prompt only after queue 2 hydration blockers are resolved or explicitly
     "production_ready"
   ],
   "requiredBeforeUse": [
-    "Resolve or owner-classify the queue-2 dependency hydration blockers.",
+    "Do not bypass queue-2 merge hygiene candidates #245 and #263.",
     "Do not convert blocked queue-2 candidates into merge-ready evidence without complete dependency-backed validation.",
     "Continue prohibiting runtime, media, Supabase, provider, worker, route, artifact, billing, beta, and production execution."
   ],

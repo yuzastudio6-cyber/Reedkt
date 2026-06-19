@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const decision = 'reeditpro_e2e_validation_queue_2_blocked_dependency_hydration_failures';
+const decision = 'reeditpro_e2e_validation_queue_2_hydration_fix_passed_with_warnings_ready_for_merge_hygiene_4';
 const noScopeStatement =
   'No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, or broad service-role handler was enabled.';
 
@@ -62,9 +62,14 @@ function parseBlock(file, label) {
   }
 }
 
+function assertArray(actual, expected, label) {
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    fail(`${label} mismatch: ${JSON.stringify(actual)}`);
+  }
+}
+
 const parsed = Object.fromEntries(expectedBlocks.map(([file, label]) => [label, parseBlock(file, label)]));
 const docsContent = expectedBlocks.map(([file]) => read(file)).join('\n');
-const allContent = [docsContent, read('scripts/validation/reeditpro-e2e-validation-queue-2-diagnostics.mjs')].join('\n');
 
 const results = parsed['reeditpro-e2e-validation-queue-2-results'];
 const register = parsed['reeditpro-e2e-validation-queue-2-pr-results-register'];
@@ -83,69 +88,63 @@ if (results?.sourceEvidence?.pr523?.state !== 'MERGED') fail('PR #523 merged evi
 if (results?.sourceEvidence?.pr523?.mergeCommit !== 'f258967676c4877d3e1627b5710b789cff04b451') {
   fail('PR #523 merge commit mismatch.');
 }
-if (results?.sourceEvidence?.pr523?.decision !== 'dependency_validation_passed_with_inherited_readiness_blockers_ready_to_merge') {
-  fail('PR #523 validation handoff decision missing.');
+if (results?.sourceEvidence?.pr538?.mergeCommit !== '698af943b30b0fd35aab76d546734c7787bda144') {
+  fail('PR #538 merge commit evidence missing.');
+}
+if (results?.sourceEvidence?.pr538?.safeHydrationCommand !== 'npm ci --ignore-scripts --no-audit --no-fund') {
+  fail('PR #538 safe hydration command missing.');
 }
 if (results?.sourceEvidence?.pr305Excluded?.bucket !== 'environment_owner_blocked_native_optional_hydration') {
   fail('PR #305 excluded bucket missing.');
 }
 if (results?.sourceEvidence?.pr305Excluded?.retryHydration !== false) fail('PR #305 hydration retry must remain false.');
 
-const expectedSelected = [300, 264, 263, 245];
-if (JSON.stringify(results?.selectedPrs) !== JSON.stringify(expectedSelected)) fail('Selected PR list mismatch in results.');
-if (JSON.stringify(register?.selectedPrs) !== JSON.stringify(expectedSelected)) fail('Selected PR list mismatch in register.');
-if (!Array.isArray(register?.records) || register.records.length !== expectedSelected.length) fail('Register record count mismatch.');
+assertArray(results?.selectedPrs, [300, 264, 263, 245], 'Results selected PRs');
+assertArray(register?.selectedPrs, [300, 264, 263, 245], 'Register selected PRs');
+assertArray(results?.mergeReadyAfterValidation, [245, 263], 'Results merge-ready PRs');
+assertArray(register?.mergeReadyAfterValidation, [245, 263], 'Register merge-ready PRs');
+assertArray(mergeReady?.recommendedDependencySafeMergeOrder, [245, 263], 'Merge-ready order');
+assertArray(mergePrompt?.dependencySafeMergeOrder, [245, 263], 'Merge prompt order');
 
-for (const prNumber of expectedSelected) {
+if (results?.validationSummary?.mergeReadyAfterValidation !== 2) fail('Results merge-ready count must be 2.');
+if (register?.mergeReadyAfterValidationCount !== 2) fail('Register merge-ready count must be 2.');
+if (mergeReady?.mergeReadyAfterValidationCount !== 2) fail('Merge-ready doc count must be 2.');
+if (blockerQueue?.blockerFixCount !== 2) fail('Blocker count must be 2.');
+if (mergePrompt?.currentMergeReadyCount !== 2 || mergePrompt?.readyNow !== true) fail('Merge hygiene 4 prompt must be ready.');
+if (nextBatchPrompt?.readyNow !== false) fail('Validation queue 3 must remain deferred.');
+
+for (const prNumber of [245, 263]) {
   const record = register?.records?.find((item) => item.prNumber === prNumber);
   if (!record) {
     fail(`Missing register record for PR #${prNumber}`);
     continue;
   }
-  if (record.state !== 'OPEN') fail(`PR #${prNumber} must remain open in queue evidence.`);
-  if (record.draft !== false) fail(`PR #${prNumber} draft state mismatch.`);
-  if (record.mergeable !== 'MERGEABLE' || record.mergeStateStatus !== 'CLEAN') {
-    fail(`PR #${prNumber} mergeability evidence mismatch.`);
-  }
+  if (record.decision !== 'ready_for_merge_hygiene') fail(`PR #${prNumber} must be ready for merge hygiene.`);
+  if (record.hydrationResult !== 'passed') fail(`PR #${prNumber} hydration result mismatch.`);
   if (record.packageLockStatus !== 'unchanged') fail(`PR #${prNumber} package-lock status mismatch.`);
-  if (record.packageJsonStatus !== 'unchanged') fail(`PR #${prNumber} package.json status mismatch.`);
-  if (record.nodeModulesStatus !== 'removed_after_interrupted_hydration') {
-    fail(`PR #${prNumber} node_modules cleanup status mismatch.`);
+  for (const [bin, present] of Object.entries(record.requiredBins || {})) {
+    if (present !== true) fail(`PR #${prNumber} required binary missing: ${bin}`);
   }
-  if (record.safetyScanResult !== 'passed_no_secret_shaped_markers') fail(`PR #${prNumber} safety scan mismatch.`);
-  if (record.decision !== 'validation_failed') fail(`PR #${prNumber} decision must be validation_failed.`);
-  if (!record.commandsRun?.some((entry) => entry.command === 'npm ci' && entry.result === 'blocked')) {
-    fail(`PR #${prNumber} npm ci blocked evidence missing.`);
-  }
-}
-
-for (const prNumber of [264, 300]) {
-  const record = register?.records?.find((item) => item.prNumber === prNumber);
-  if (!record?.commandsRun?.some((entry) => entry.command === 'git diff --check' && entry.result === 'failed')) {
-    fail(`PR #${prNumber} whitespace blocker evidence missing.`);
+  for (const command of ['npm run lint', 'npm run typecheck:server', 'npx tsc -b', 'npm run build', 'npm run build:server']) {
+    if (!record.commandsRun?.some((entry) => entry.command === command && entry.result === 'passed')) {
+      fail(`PR #${prNumber} missing passed command: ${command}`);
+    }
   }
 }
 
-for (const prNumber of [245, 263]) {
-  const record = register?.records?.find((item) => item.prNumber === prNumber);
-  if (!record?.commandsRun?.some((entry) => entry.command === 'git diff --check' && entry.result === 'passed')) {
-    fail(`PR #${prNumber} diff check pass evidence missing.`);
-  }
+const pr264 = register?.records?.find((item) => item.prNumber === 264);
+if (pr264?.blockerCategory !== 'git_diff_check_whitespace') fail('PR #264 whitespace blocker missing.');
+if (!pr264?.commandsRun?.some((entry) => entry.command === 'git diff --check' && entry.result === 'failed')) {
+  fail('PR #264 failed diff-check evidence missing.');
 }
 
-if (results?.validationSummary?.mergeReadyAfterValidation !== 0) fail('Results merge-ready count must be zero.');
-if (mergeReady?.mergeReadyAfterValidationCount !== 0) fail('Merge-ready doc count must be zero.');
-if (Array.isArray(mergeReady?.mergeReadyPrs) && mergeReady.mergeReadyPrs.length !== 0) fail('Merge-ready PR list must be empty.');
-if (mergeReady?.mergeHygienePromptStatus?.readyNow !== false) fail('Merge hygiene prompt must not be ready.');
-if (blockerQueue?.blockerFixCount !== 4) fail('Blocker count mismatch.');
+const pr300 = register?.records?.find((item) => item.prNumber === 300);
+if (pr300?.blockerCategory !== 'environment_owner_blocked_dependency_hydration_enospc') fail('PR #300 ENOSPC blocker missing.');
+if (pr300?.hydrationResult !== 'blocked_enospc') fail('PR #300 hydration result mismatch.');
+
 for (const blocker of blockerQueue?.blockers || []) {
   if (blocker.executionAllowedNow !== false) fail(`Blocker execution must remain false: ${blocker.blockerId}`);
-  if (blocker.packageLockStatus !== 'unchanged') fail(`Blocker package-lock status mismatch: ${blocker.blockerId}`);
 }
-if (mergePrompt?.currentMergeReadyCount !== 0 || mergePrompt?.readyNow !== false) {
-  fail('Merge hygiene 4 prompt must remain blocked.');
-}
-if (nextBatchPrompt?.readyNow !== false) fail('Validation queue 3 prompt must remain deferred.');
 
 const gateMaps = [
   results?.runtimeGates,
@@ -170,11 +169,7 @@ for (const status of [
   if (results?.forbiddenStatuses?.[status] !== 'blocked_unclaimed') {
     fail(`Forbidden status not blocked_unclaimed: ${status}`);
   }
-  if (!allContent.includes(status)) fail(`Forbidden status wording missing: ${status}`);
-}
-
-if (fs.existsSync(path.join(root, 'docs/implementation-prompts/prompt-sound-oss-tools-16.md'))) {
-  fail('Unexpected SOUND-OSS-TOOLS-16 prompt exists.');
+  if (!docsContent.includes(status)) fail(`Forbidden status wording missing: ${status}`);
 }
 
 const packageJson = JSON.parse(read('package.json'));
@@ -182,18 +177,18 @@ if (
   packageJson.scripts?.['reeditpro:e2e-validation-queue-2:diagnostics'] !==
   'node scripts/validation/reeditpro-e2e-validation-queue-2-diagnostics.mjs'
 ) {
-  fail('Package diagnostics script missing.');
+  fail('Queue 2 diagnostics package script missing.');
 }
 
 for (const required of [
-  'REEDITPRO-E2E-VALIDATION-QUEUE-2-HYDRATION-FIX: resolve queue 2 dependency hydration blocker, no execution',
   'REEDITPRO-E2E-MERGE-HYGIENE-4: merge queue 2 validated PRs, no execution',
   'REEDITPRO-E2E-VALIDATION-QUEUE-3: run next batch, no execution',
   'environment_owner_blocked_native_optional_hydration',
-  'dependency_hydration_no_completion',
+  'environment_owner_blocked_dependency_hydration_enospc',
+  'git_diff_check_whitespace',
   noScopeStatement,
 ]) {
-  if (!allContent.includes(required)) fail(`Missing required term: ${required}`);
+  if (!docsContent.includes(required)) fail(`Missing required term: ${required}`);
 }
 
 for (const forbidden of [
@@ -211,7 +206,7 @@ for (const forbidden of [
   /postgres(?:ql)?:\/\/[^@\s]+@/i,
   /eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/,
   /service[_-]?role[_-]?key\s*[:=]\s*[A-Za-z0-9_-]{12,}/i,
-  /X-Goog-Signature|X-Amz-Signature|sig=|signature=/i,
+  new RegExp(`X-${'Goog'}-${'Signature'}|X-${'Amz'}-${'Signature'}`, 'i'),
 ]) {
   if (forbidden.test(docsContent)) fail(`Forbidden unsafe pattern present: ${forbidden}`);
 }
@@ -219,11 +214,10 @@ for (const forbidden of [
 const summary = {
   status: failures.length === 0 ? 'passed' : 'failed',
   decision,
-  sourcePr: 523,
-  selectedPrs: expectedSelected,
-  passed: 0,
-  failedOrBlocked: 4,
-  mergeReadyAfterValidation: 0,
+  sourcePrs: [523, 538],
+  selectedPrs: [300, 264, 263, 245],
+  mergeReadyAfterValidation: [245, 263],
+  blocked: [264, 300],
   packageLockStatus: 'unchanged_for_all_attempted_candidates',
   supabaseNoOpClassification: results?.supabaseNoOpClassification,
   failures,

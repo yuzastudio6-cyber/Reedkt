@@ -29,3 +29,11 @@ Worker runtime dry-run approval status: approved_for_future_worker_noop_dry_run_
 - Not runtime readiness.
 - Not media processing readiness.
 - Blockers remain: `audioread` file-open, `pydub` media operations / FFmpeg warning, FFmpeg/ffprobe, Demucs/RNNoise/Essentia/Rubber Band, workers/routes/providers, Supabase/SQL, signed URLs/public artifacts, beta/production.
+
+## E2E PR #305 hydration blocker resolution
+
+- `e2e_pr305_hydration_blocker_resolved_ready_for_validation_rerun`
+- Meaning: PR #305 dependency hydration now completes in a disposable validation worktree with `npm ci --ignore-scripts --no-audit --no-fund`.
+- Scope: hydration validation only; no full PR #305 validation suite ran.
+- Merge-ready validations remain `0` until the separate PR #305 validation rerun passes.
+- External beta, paid production, production, runtime execution, workers/routes/providers, media/render/export, Supabase/GCS, public artifacts, signed URLs, raw prompts, and secret payload access remain blocked.

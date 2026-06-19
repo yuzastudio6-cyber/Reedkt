@@ -533,3 +533,13 @@ The staged plan keeps 71 candidates inventoried, Batch 1 bounded proof only, 13 
 
 Do not claim 40+ tools are installed/proven end-to-end. Worker runtime, media processing, render/export, Supabase/GCS/public delivery, beta, and production remain blocked.
 <!-- OPEN_SOURCE_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP:end -->
+
+<!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:start -->
+## Track B Media OSS Steward Owner Registry
+
+Decision: `trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan`.
+
+The Track B Media OSS Steward is now the source-of-truth owner for local/professional media OSS install-proof planning across 16 tools. Five tools are accepted/proven only within bounded Batch 1 evidence: FFmpeg, FFprobe, Sharp/libvips, DuckDB, and Polars / nodejs-polars. The remaining eleven Track B media tools stay blocked/not installed-proven until future explicit milestone approval.
+
+The next install-batch planning lane is `TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN`. It must sequence the eleven blocked Track B tools without claiming media processing, render/export, runtime, Supabase/GCS/public delivery, beta, or production readiness.
+<!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:end -->

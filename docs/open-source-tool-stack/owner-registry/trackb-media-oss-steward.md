@@ -1,0 +1,42 @@
+# Track B Media OSS Steward
+
+Decision: `trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan`
+
+Owner ID: `TRACK_B_MEDIA_OSS_STEWARD`
+
+Lane: `TRACK_B_MEDIA_PROCESSING`
+
+Scope type: local/professional open-source tools only.
+
+Responsibility: central/local OSS media-processing tool install-proof, status tracking, duplicate prevention, and source-of-truth reporting.
+
+## Boundary
+
+The steward owns Track B media OSS install-proof coordination. It does not own AI graphics worker tools, Sound/Music/Audio tools, Track A render/export runtime tools, provider/API tools, Supabase/GCS/public delivery, signed URLs, beta, or production unlocks.
+
+## Tool Status
+
+| Tool | Status | Boundary |
+| --- | --- | --- |
+| FFmpeg | Accepted/proven bounded Batch 1 | Track A container version proof only, `5.1.9-0+deb12u1`; no media processing |
+| FFprobe | Accepted/proven bounded Batch 1 | Track A container version proof only, `5.1.9-0+deb12u1`; no media file probing |
+| Sharp/libvips | Accepted/proven bounded Batch 1 | Import/version proof only, no image processing |
+| DuckDB | Accepted/proven bounded Batch 1 | Native rebuild, import/API shape, tiny in-memory query |
+| Polars / nodejs-polars | Accepted/proven bounded Batch 1 | Import/version and tiny in-memory dataframe metadata |
+| OpenCV | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| PyAV | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| PySceneDetect | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| PaddleOCR | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| PaddlePaddle | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| MediaInfo | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| ExifTool | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| ImageMagick / GraphicsMagick | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| Tesseract | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| OpenColorIO | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| OpenImageIO | Blocked/not installed-proven | Future Track B install-proof milestone required |
+
+Counts: 16 owned tools, 5 accepted/proven bounded, 11 blocked/not installed-proven, 0 end-to-end product-ready tools.
+
+Do not claim 40+ tools are installed/proven end-to-end. Media processing, render/export, workers, routes, providers, Supabase/GCS, public delivery, signed URLs, raw prompts, beta, and production remain blocked.
+
+Next prompt: `TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN`.

@@ -1,0 +1,68 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ownerRegistry.trackBMediaOssToolStatus.v1",
+  "decision": "trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "counts": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 5,
+    "blockedNotInstalledProven": 11,
+    "endToEndProductReady": 0
+  },
+  "acceptedProvenBounded": [
+    {
+      "id": "ffmpeg",
+      "name": "FFmpeg",
+      "version": "5.1.9-0+deb12u1",
+      "proofBoundary": "tracka_container_version_only_no_media_processing"
+    },
+    {
+      "id": "ffprobe",
+      "name": "FFprobe",
+      "version": "5.1.9-0+deb12u1",
+      "proofBoundary": "tracka_container_version_only_no_media_file_probe"
+    },
+    {
+      "id": "sharp_libvips",
+      "name": "Sharp/libvips",
+      "version": "0.34.5",
+      "proofBoundary": "import_version_only_no_image_processing"
+    },
+    {
+      "id": "duckdb",
+      "name": "DuckDB",
+      "version": "1.4.4",
+      "proofBoundary": "native_rebuild_import_api_shape_in_memory_query"
+    },
+    {
+      "id": "polars_nodejs_polars",
+      "name": "Polars / nodejs-polars",
+      "version": "0.25.1",
+      "proofBoundary": "import_version_in_memory_dataframe_metadata"
+    }
+  ],
+  "blockedNotInstalledProven": [
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "paddleocr",
+    "paddlepaddle",
+    "mediainfo",
+    "exiftool",
+    "imagemagick_graphicsmagick",
+    "tesseract",
+    "opencolorio",
+    "openimageio"
+  ],
+  "blockedScopes": {
+    "mediaProcessingAccepted": false,
+    "mediaFileProbingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "routeRuntimeAccepted": false,
+    "providerRuntimeAccepted": false,
+    "supabaseGcsPublicDeliveryAccepted": false,
+    "signedUrlAccepted": false,
+    "rawPromptExecutionAccepted": false,
+    "betaProductionAccepted": false
+  }
+}

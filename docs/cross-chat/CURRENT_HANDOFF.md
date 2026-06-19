@@ -391,3 +391,16 @@ The staged plan keeps 71 candidates inventoried, Batch 1 bounded proof only, 13 
 
 Do not claim 40+ tools are installed/proven end-to-end. Worker runtime, media processing, render/export, Supabase/GCS/public delivery, beta, and production remain blocked.
 <!-- OPEN_SOURCE_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP:end -->
+
+<!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:start -->
+## Track B Media OSS Steward Owner Registry
+
+- Decision: `trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan`.
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD` / `Track B Media OSS Steward`.
+- Lane: `TRACK_B_MEDIA_PROCESSING`.
+- Owned tools: 16 total; accepted/proven bounded Batch 1 exactly 5; blocked/not installed-proven exactly 11; end-to-end product-ready exactly `0`.
+- Accepted bounded tools: FFmpeg, FFprobe, Sharp/libvips, DuckDB, Polars / nodejs-polars.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- Next prompt: `TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:end -->

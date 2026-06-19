@@ -2,7 +2,7 @@
 
 Status: `ownership_claim_scoped_pending_merge_order`
 
-Patch type: Docs/diagnostics-only central tool ownership registry repair for TOOL-OWNER-CONFLICT-SCAN-1.
+Patch type: Docs/diagnostics-only central tool ownership registry follow-up repair for TOOL-OWNER-CONFLICT-SCAN-1.
 
 Base PR: [#544](https://github.com/yuzastudio6-cyber/Reedkt/pull/544)
 
@@ -14,9 +14,9 @@ Cross-reference existing owner sources under `docs/open-source-tool-stack/owner-
 
 ## Purpose
 
-The registry prevents duplicate tool ownership across chats and workstreams. Every owner must check this registry and the open-source tool stack owner sources before claiming, installing, modifying, executing, or expanding a tool.
+The registry prevents duplicate tool ownership across chats and workstreams. Atlas Track A owns only scoped Track A Render/Export responsibility labels. It does not own raw global OSS packages owned by Track B, AI Tools / Creative Graphics / Worker, Sound/Music/Audio, Web Search/Capture, Map/Geospatial, Provider/API, Worker Runtime, Supabase, or Billing lanes.
 
-This repair removes Atlas Track A broad/global claims and records only non-conflicting Track A-scoped ownership plus handoff-only upstream dependencies.
+Product-ready end-to-end local OSS tools remain `0`.
 
 ## Registered Owner
 
@@ -30,49 +30,94 @@ responsibilityType: tracka_scoped_visual_render_export_ownership
 
 currentStatus: ownership_claim_scoped_pending_merge_order
 
-duplicateRisk: resolved_to_scoped_tracka_claims
+duplicateRisk: resolved_to_expanded_scoped_tracka_claims
 
 nextRequiredAction: MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544
 
+postMergeNextPrompt: TRACKA-OPEN-SOURCE-TOOL-INVENTORY-1
+
 lastUpdatedByBranch: codex/rp-tool-owner-registry-1-atlas-tracka-visual-render-export
 
-## Kept Atlas Track A Claims
+## Claimed Scoped Tools
 
-| scopedClaimId | classification | boundary |
-| --- | --- | --- |
-| tracka_caption_burnin_policy_e2e | keep_owned_by_atlas_tracka | Track A caption burn-in policy, source-of-truth, and private E2E review handoff only. |
-| tracka_render_export_private_review_path | keep_owned_by_atlas_tracka | Track A private render/export review path, manifest/checksum/QA policy, and blocked final delivery policy only. |
-| tracka_visual_video_private_e2e | keep_owned_by_atlas_tracka | Restricted Track A private visual-video E2E review readiness path only. |
+These are scoped Track A Render/Export responsibility labels only. They do not permit installation, execution, media processing, worker runtime, final delivery, beta, or production unlock.
 
-## Shared Upstream Dependencies
+| claimedScopedTool | classification |
+| --- | --- |
+| remotion_render_validation | keep_owned_by_atlas_tracka |
+| opentimelineio_timeline_validation | keep_owned_by_atlas_tracka |
+| hyperframe_render_handoff | keep_owned_by_atlas_tracka |
+| libass_caption_burnin | keep_owned_by_atlas_tracka |
+| gstreamer_render_pipeline_support | keep_owned_by_atlas_tracka |
+| bento4_mp4box_packaging_validation | keep_owned_by_atlas_tracka |
+| mkvtoolnix_container_validation | keep_owned_by_atlas_tracka |
+| vapoursynth_frame_pipeline | keep_owned_by_atlas_tracka |
+| revideo_render_preview_alternative | keep_owned_by_atlas_tracka |
+| film_frame_interpolation | keep_owned_by_atlas_tracka |
+| tracka_caption_burnin_policy_e2e | keep_owned_by_atlas_tracka |
+| tracka_render_export_private_review_path | keep_owned_by_atlas_tracka |
+| tracka_visual_video_private_e2e | keep_owned_by_atlas_tracka |
 
-Atlas Track A does not own these tools globally. It keeps only Track A integration/handoff responsibility.
+## Shared Dependencies Owned Elsewhere
 
-| sourceTool | scopedClaimId | classification | owner evidence | Atlas boundary |
-| --- | --- | --- | --- | --- |
-| ffmpeg | tracka_ffmpeg_render_export_handoff_only | shared_upstream_dependency_tracka_integration_only | PR #542 Track B Media OSS Steward | Track A render/export handoff policy only. |
-| ffprobe | tracka_ffprobe_export_validation_handoff_only | shared_upstream_dependency_tracka_integration_only | PR #542 Track B Media OSS Steward | Track A export validation handoff policy only. |
-| libass | tracka_libass_caption_burnin_handoff_only | shared_upstream_dependency_tracka_integration_only | Track A caption burn-in evidence and open conflict scan | Track A caption burn-in policy handoff only. |
-| remotion | tracka_remotion_render_validation_handoff_only | shared_upstream_dependency_tracka_integration_only | Track A render validation evidence and open conflict scan | Track A render validation handoff only. |
-| opentimelineio | tracka_opentimelineio_validation_handoff_only | shared_upstream_dependency_tracka_integration_only | Track A timeline validation evidence and open conflict scan | Track A timeline validation handoff only. |
+These raw upstream dependencies are not Atlas Track A-owned tools. Atlas Track A may coordinate with the owning lane only through a future approved handoff.
 
-## Dropped Atlas Global Claims
+| sharedDependency | owning lane |
+| --- | --- |
+| ffmpeg | TRACK_B_MEDIA_OSS_STEWARD, PR #542 |
+| ffprobe | TRACK_B_MEDIA_OSS_STEWARD, PR #542 |
+| sharp_libvips | TRACK_B_MEDIA_OSS_STEWARD, PR #542 |
+| opencolorio | TRACK_B_MEDIA_OSS_STEWARD, PR #542 |
+| openimageio | TRACK_B_MEDIA_OSS_STEWARD, PR #542 |
+| sam2 | AI Tools / Creative Graphics / Worker, PR #543 |
+| kornia | AI Tools / Creative Graphics / Worker, PR #543 |
+| birefnet | AI Tools / Creative Graphics / Worker, PR #543 |
+| real_esrgan | AI Tools / Creative Graphics / Worker, PR #543 |
 
-| toolId | classification | source |
-| --- | --- | --- |
-| ffmpeg | owned_by_other_workstream_drop_from_atlas | PR #542 Track B Media OSS Steward |
-| ffprobe | owned_by_other_workstream_drop_from_atlas | PR #542 Track B Media OSS Steward |
-| sharp_libvips | owned_by_other_workstream_drop_from_atlas | PR #542 Track B Media OSS Steward |
-| opencolorio | owned_by_other_workstream_drop_from_atlas | PR #542 Track B Media OSS Steward |
-| openimageio | owned_by_other_workstream_drop_from_atlas | PR #542 Track B Media OSS Steward |
-| sam2 | owned_by_other_workstream_drop_from_atlas | PR #543 AI Graphics owner assignment |
-| kornia | owned_by_other_workstream_drop_from_atlas | PR #543 AI Graphics owner assignment |
-| birefnet | owned_by_other_workstream_drop_from_atlas | PR #543 AI Graphics owner assignment |
-| real_esrgan | owned_by_other_workstream_drop_from_atlas | PR #543 AI Graphics owner assignment |
-| libass | shared_upstream_dependency_tracka_integration_only | Track A handoff only; no global claim. |
-| remotion | shared_upstream_dependency_tracka_integration_only | Track A handoff only; no global claim. |
-| opentimelineio | shared_upstream_dependency_tracka_integration_only | Track A handoff only; no global claim. |
-| film | unclear_pending_source_review | Dropped from Atlas global claims and deferred pending source review. |
+## Dropped Claims
+
+dropped_to_track_b_owner:
+
+- ffmpeg
+- ffprobe
+- sharp_libvips
+- opencolorio
+- openimageio
+
+dropped_to_ai_graphics_worker_owner:
+
+- sam2
+- kornia
+- birefnet
+- real_esrgan
+
+dropped_or_not_claimed_due_other_lanes:
+
+- Track B media processing tools
+- AI creative graphics tools
+- Sound/Music/Audio tools
+- Web Search/Capture tools
+- Map/Geospatial tools
+- Provider/API tools
+- Worker Runtime infrastructure
+- Supabase schema/RLS/migrations
+- Billing/Stripe/credits
+
+## Explicit Non-Owned Tool Sets
+
+TRACK_B_MEDIA_OSS_STEWARD owns exactly these 16 tools: `ffmpeg`, `ffprobe`, `sharp_libvips`, `duckdb`, `polars_nodejs_polars`, `opencv`, `pyav`, `pyscenedetect`, `paddleocr`, `paddlepaddle`, `mediainfo`, `exiftool`, `imagemagick_graphicsmagick`, `tesseract`, `opencolorio`, `openimageio`.
+
+AI Tools / Creative Graphics / Worker owns or responsibility-scopes: `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svg_js`, `viz_js`, `lottie_web`, `animejs`, `three`, `pixi_js`, `konva`, `babylonjs`, `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `rembg`, `transparent_background`, `real_esrgan`, `kornia`.
+
+Sound/Music/Audio owns: `deepfilternet`, `signalsmith_stretch`, `demucs`, `audioflux`, `rnnoise`, `librosa`, `soundfile_libsndfile`, `sox`, `rubber_band`, `aubio`, `essentia`, `mmaudio`.
+
+Web Search/Capture owns: `playwright_chromium`.
+
+Map/Geospatial owns: `maplibre`, `turf`, `gdal_ogr`, `tippecanoe`, `pmtiles`, `deck_gl`, `cesium_js`.
+
+Provider/API lanes own: `qwen_deepseek_provider_apis`, `lyria_provider_api`, `mirelo_provider_api`, `vllm`, `qwen3_vl`, `onnx_runtime_when_provider_or_runtime_infrastructure`.
+
+Worker Runtime infrastructure, Supabase schema/RLS/migrations, and Billing/Stripe/credits are explicitly not owned by Atlas Track A.
 
 ## Conflict Scan Evidence
 
@@ -87,10 +132,6 @@ Atlas Track A does not own these tools globally. It keeps only Track A integrati
 ## Unresolved Conflicts
 
 none
-
-## Blocked Scope
-
-Atlas Track A does not own global media-processing tools, AI graphics model tools, Worker Runtime infrastructure, Supabase schema/RLS/migrations, provider/model execution, billing, signed URLs, public artifacts, final delivery/export, beta unlock, or production unlock.
 
 ## Next Prompt
 

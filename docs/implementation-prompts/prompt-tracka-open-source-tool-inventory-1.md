@@ -4,31 +4,30 @@ Installed/planned/blocked status for Atlas Track A scoped claims only.
 
 ## Goal
 
-After TOOL-OWNER-REGISTRY-1 / PR #544 is merged, inventory only the scoped Atlas Track A claims and their handoff-only dependencies. Do not reintroduce broad/global ownership claims that were dropped by TOOL-OWNER-CONFLICT-SCAN-1.
+After TOOL-OWNER-REGISTRY-1 / PR #544 is merged, inventory only Atlas Track A claimed scoped tools and the blocked status of their external dependencies. Do not reintroduce broad/global ownership claims dropped by TOOL-OWNER-CONFLICT-SCAN-1.
 
-## Scoped Atlas Track A Claims
+## Claimed Scoped Tools
 
+- remotion_render_validation
+- opentimelineio_timeline_validation
+- hyperframe_render_handoff
+- libass_caption_burnin
+- gstreamer_render_pipeline_support
+- bento4_mp4box_packaging_validation
+- mkvtoolnix_container_validation
+- vapoursynth_frame_pipeline
+- revideo_render_preview_alternative
+- film_frame_interpolation
 - tracka_caption_burnin_policy_e2e
 - tracka_render_export_private_review_path
 - tracka_visual_video_private_e2e
 
-## Handoff-Only Dependencies
+## Shared Dependencies Owned Elsewhere
 
-- tracka_ffmpeg_render_export_handoff_only
-- tracka_ffprobe_export_validation_handoff_only
-- tracka_libass_caption_burnin_handoff_only
-- tracka_remotion_render_validation_handoff_only
-- tracka_opentimelineio_validation_handoff_only
-
-## Not Atlas Track A Global Ownership
-
-Do not inventory these as Atlas-owned global tools:
+These are not Atlas Track A global ownership claims:
 
 - ffmpeg
 - ffprobe
-- libass
-- remotion
-- opentimelineio
 - sharp_libvips
 - opencolorio
 - openimageio
@@ -36,7 +35,22 @@ Do not inventory these as Atlas-owned global tools:
 - kornia
 - birefnet
 - real_esrgan
-- film
+
+## Not Atlas Track A Ownership
+
+Do not inventory these as Atlas-owned global tools:
+
+- Track B media processing tools
+- AI creative graphics tools
+- Sound/Music/Audio tools
+- Web Search/Capture tools
+- Map/Geospatial tools
+- Provider/API tools
+- Worker Runtime infrastructure
+- Supabase schema/RLS/migrations
+- Billing/Stripe/credits
+
+Product-ready end-to-end local OSS tools remain `0` until later install/proof milestones pass.
 
 ## Blocked Scope
 

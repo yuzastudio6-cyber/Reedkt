@@ -13,39 +13,23 @@ const requiredFiles = [
   'scripts/validation/tool-owner-registry-1-diagnostics.mjs',
 ]
 
-const scopedClaims = [
+const claimedScopedTools = [
+  'remotion_render_validation',
+  'opentimelineio_timeline_validation',
+  'hyperframe_render_handoff',
+  'libass_caption_burnin',
+  'gstreamer_render_pipeline_support',
+  'bento4_mp4box_packaging_validation',
+  'mkvtoolnix_container_validation',
+  'vapoursynth_frame_pipeline',
+  'revideo_render_preview_alternative',
+  'film_frame_interpolation',
   'tracka_caption_burnin_policy_e2e',
   'tracka_render_export_private_review_path',
   'tracka_visual_video_private_e2e',
 ]
 
-const handoffClaims = [
-  'tracka_ffmpeg_render_export_handoff_only',
-  'tracka_ffprobe_export_validation_handoff_only',
-  'tracka_libass_caption_burnin_handoff_only',
-  'tracka_remotion_render_validation_handoff_only',
-  'tracka_opentimelineio_validation_handoff_only',
-]
-
-const broadGlobalClaims = [
-  'ffmpeg',
-  'ffprobe',
-  'libass',
-  'remotion',
-  'opentimelineio',
-  'sharp_libvips',
-  'opencolorio',
-  'openimageio',
-  'sam2',
-  'kornia',
-  'birefnet',
-  'real_esrgan',
-  'film',
-  'tracka_caption_burnin',
-  'tracka_render_export_hardening',
-]
-
-const requiredDroppedTools = [
+const sharedDependenciesOwnedElsewhere = [
   'ffmpeg',
   'ffprobe',
   'sharp_libvips',
@@ -55,10 +39,37 @@ const requiredDroppedTools = [
   'kornia',
   'birefnet',
   'real_esrgan',
-  'libass',
-  'remotion',
-  'opentimelineio',
-  'film',
+]
+
+const trackB16 = [
+  'ffmpeg',
+  'ffprobe',
+  'sharp_libvips',
+  'duckdb',
+  'polars_nodejs_polars',
+  'opencv',
+  'pyav',
+  'pyscenedetect',
+  'paddleocr',
+  'paddlepaddle',
+  'mediainfo',
+  'exiftool',
+  'imagemagick_graphicsmagick',
+  'tesseract',
+  'opencolorio',
+  'openimageio',
+]
+
+const aiGraphicsRequired = [
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+]
+
+const forbiddenClaimFields = [
+  'claimedTools',
+  'ownedTools',
 ]
 
 const requiredText = [
@@ -67,25 +78,26 @@ const requiredText = [
   'TRACK_A_VISUAL_RENDER_EXPORT',
   'tracka_scoped_visual_render_export_ownership',
   'ownership_claim_scoped_pending_merge_order',
-  'completed_scoped_ownership_repair_clean',
-  'resolved_to_scoped_tracka_claims',
-  'keep_owned_by_atlas_tracka',
-  'shared_upstream_dependency_tracka_integration_only',
-  'owned_by_other_workstream_drop_from_atlas',
-  'conflict_needs_human_decision',
-  'unclear_pending_source_review',
+  'completed_expanded_scoped_ownership_repair_clean',
+  'resolved_to_expanded_scoped_tracka_claims',
+  'claimedScopedTools',
+  'sharedDependenciesOwnedElsewhere',
+  'dropped_to_track_b_owner',
+  'dropped_to_ai_graphics_worker_owner',
+  'TRACK_B_MEDIA_OSS_STEWARD owns exactly these 16 tools',
+  'AI Tools / Creative Graphics / Worker owns',
+  'Product-ready end-to-end local OSS tools remain `0`',
   '#544 Track A visual render owner',
   '#543 AI Graphics owner assignment',
   '#542 Track B media OSS steward owner registry',
   '#534 Open-source tool stack refresh after AI graphics worker',
   '#536 Open-source tool stack refresh after AI graphics worker QA review',
-  '#529 Open-source tool stack owner-lane reconciliation after Batch 1 rollup',
-  '#533 Open-source tool stack staged owner merge plan after Batch 1 rollup',
   'docs/tool-ownership/central-tool-owner-registry.json',
   'docs/open-source-tool-stack/owner-registry/',
   'docs/open-source-tool-stack/ownership/',
   'Unresolved conflicts: none',
   'MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544',
+  'TRACKA-OPEN-SOURCE-TOOL-INVENTORY-1',
   'package-lock.json unchanged',
   'Supabase update status: not_applicable_docs_only',
   'SQL executed: none',
@@ -94,7 +106,6 @@ const requiredText = [
 ]
 
 const forbiddenPatterns = [
-  /tool installation (?:was )?enabled/i,
   /tools? installed:\s*(?!none)/i,
   /runtime execution (?:was )?enabled/i,
   /media processing (?:was )?enabled/i,
@@ -155,31 +166,61 @@ if (owner.currentStatus !== 'ownership_claim_scoped_pending_merge_order') fail('
 if (owner.responsibilityType !== 'tracka_scoped_visual_render_export_ownership') {
   fail('responsibilityType mismatch')
 }
-if (owner.duplicateRisk !== 'resolved_to_scoped_tracka_claims') fail('duplicateRisk mismatch')
+if (owner.duplicateRisk !== 'resolved_to_expanded_scoped_tracka_claims') fail('duplicateRisk mismatch')
 if (owner.nextPrompt !== 'MERGE-EXECUTION -- TOOL-OWNER-REGISTRY-1 / PR #544') fail('nextPrompt mismatch')
-if (owner.duplicateCheckRequiredBeforeImplementation !== true) {
-  fail('duplicateCheckRequiredBeforeImplementation must be true')
+if (owner.postMergeNextPrompt !== 'TRACKA-OPEN-SOURCE-TOOL-INVENTORY-1') fail('postMergeNextPrompt mismatch')
+if (owner.conflictScanRequiredBeforeImplementation !== true) fail('conflictScanRequiredBeforeImplementation must be true')
+if (owner.duplicateCheckRequiredBeforeImplementation !== true) fail('duplicateCheckRequiredBeforeImplementation must be true')
+if (owner.productReadyEndToEndLocalOssTools !== 0) fail('productReadyEndToEndLocalOssTools must be 0')
+
+for (const field of forbiddenClaimFields) {
+  if (Object.hasOwn(owner, field)) fail(`stale broad ownership field present: ${field}`)
 }
 
-if (!Array.isArray(owner.claimedTools)) fail('claimedTools missing')
-for (const claim of scopedClaims) {
-  if (!owner.claimedTools.includes(claim)) fail(`registry JSON missing scoped claim: ${claim}`)
+if (!Array.isArray(owner.claimedScopedTools)) fail('claimedScopedTools missing')
+for (const claim of claimedScopedTools) {
+  if (!owner.claimedScopedTools.includes(claim)) fail(`registry JSON missing claimed scoped tool: ${claim}`)
 }
-if (owner.claimedTools.length !== scopedClaims.length) {
-  fail(`claimedTools must contain only scoped claims; found ${owner.claimedTools.length}`)
-}
-for (const broadClaim of broadGlobalClaims) {
-  if (owner.claimedTools.includes(broadClaim)) fail(`broad/global claim still present in claimedTools: ${broadClaim}`)
+if (owner.claimedScopedTools.length !== claimedScopedTools.length) {
+  fail(`claimedScopedTools must contain exactly ${claimedScopedTools.length} entries`)
 }
 
-for (const claim of handoffClaims) {
-  const hit = owner.sharedUpstreamDependencies?.some((entry) => entry.scopedClaimId === claim)
-  if (!hit) fail(`missing handoff-only dependency: ${claim}`)
+if (!Array.isArray(owner.sharedDependenciesOwnedElsewhere)) fail('sharedDependenciesOwnedElsewhere missing')
+for (const dep of sharedDependenciesOwnedElsewhere) {
+  if (!owner.sharedDependenciesOwnedElsewhere.includes(dep)) {
+    fail(`missing shared dependency owned elsewhere: ${dep}`)
+  }
+  if (owner.claimedScopedTools.includes(dep)) fail(`raw global dependency claimed by Atlas Track A: ${dep}`)
 }
 
-for (const tool of requiredDroppedTools) {
-  const hit = owner.droppedClaims?.some((entry) => entry.toolId === tool)
-  if (!hit) fail(`missing dropped claim evidence: ${tool}`)
+if (!Array.isArray(owner.droppedClaims)) fail('droppedClaims missing')
+for (const dep of sharedDependenciesOwnedElsewhere) {
+  if (!owner.droppedClaims.includes(dep)) fail(`missing dropped claim: ${dep}`)
+}
+
+for (const dep of ['ffmpeg', 'ffprobe', 'sharp_libvips', 'opencolorio', 'openimageio']) {
+  if (!owner.droppedClaimGroups?.dropped_to_track_b_owner?.includes(dep)) {
+    fail(`missing Track B dropped claim: ${dep}`)
+  }
+}
+for (const dep of ['sam2', 'kornia', 'birefnet', 'real_esrgan']) {
+  if (!owner.droppedClaimGroups?.dropped_to_ai_graphics_worker_owner?.includes(dep)) {
+    fail(`missing AI Graphics dropped claim: ${dep}`)
+  }
+}
+
+for (const tool of trackB16) {
+  if (!owner.explicitlyNotOwnedToolSets?.trackBMediaOssStewardOwnsExactly16Tools?.includes(tool)) {
+    fail(`missing Track B 16-tool ownership entry: ${tool}`)
+  }
+}
+if (owner.explicitlyNotOwnedToolSets.trackBMediaOssStewardOwnsExactly16Tools.length !== 16) {
+  fail('Track B media OSS steward list must contain exactly 16 tools')
+}
+for (const tool of aiGraphicsRequired) {
+  if (!owner.explicitlyNotOwnedToolSets?.aiGraphicsWorkerOwns?.includes(tool)) {
+    fail(`missing AI Graphics ownership entry: ${tool}`)
+  }
 }
 
 for (const pr of ['#544', '#543', '#542', '#534', '#536', '#529', '#533']) {
@@ -187,39 +228,28 @@ for (const pr of ['#544', '#543', '#542', '#534', '#536', '#529', '#533']) {
   if (!hit) fail(`missing conflict scan source PR: ${pr}`)
 }
 
-if (owner.conflictScan?.scanStatus !== 'completed_clean_after_scoped_repair') {
+if (owner.conflictScan?.scanStatus !== 'completed_clean_after_expanded_scoped_repair') {
   fail('conflict scan status mismatch')
 }
 if (!Array.isArray(owner.conflictScan?.unresolvedConflicts) || owner.conflictScan.unresolvedConflicts.length !== 0) {
   fail('unresolved conflicts must be empty')
 }
 
-for (const [toolId, classification] of [
-  ['ffmpeg', 'owned_by_other_workstream_drop_from_atlas'],
-  ['ffprobe', 'owned_by_other_workstream_drop_from_atlas'],
-  ['sharp_libvips', 'owned_by_other_workstream_drop_from_atlas'],
-  ['opencolorio', 'owned_by_other_workstream_drop_from_atlas'],
-  ['openimageio', 'owned_by_other_workstream_drop_from_atlas'],
-  ['sam2', 'owned_by_other_workstream_drop_from_atlas'],
-  ['kornia', 'owned_by_other_workstream_drop_from_atlas'],
-  ['birefnet', 'owned_by_other_workstream_drop_from_atlas'],
-  ['real_esrgan', 'owned_by_other_workstream_drop_from_atlas'],
-  ['libass', 'shared_upstream_dependency_tracka_integration_only'],
-  ['remotion', 'shared_upstream_dependency_tracka_integration_only'],
-  ['opentimelineio', 'shared_upstream_dependency_tracka_integration_only'],
-  ['film', 'unclear_pending_source_review'],
-  ['tracka_caption_burnin', 'keep_owned_by_atlas_tracka'],
-  ['tracka_render_export_hardening', 'keep_owned_by_atlas_tracka'],
-  ['tracka_visual_video_private_e2e', 'keep_owned_by_atlas_tracka'],
-]) {
+for (const claim of claimedScopedTools) {
   const hit = owner.conflictScan?.candidateToolDecisions?.some(
-    (entry) => entry.toolId === toolId && entry.classification === classification,
+    (entry) => entry.toolId === claim && entry.classification === 'keep_owned_by_atlas_tracka',
   )
-  if (!hit) fail(`missing conflict decision: ${toolId} ${classification}`)
+  if (!hit) fail(`missing keep decision for claimed scoped tool: ${claim}`)
+}
+for (const dep of sharedDependenciesOwnedElsewhere) {
+  const hit = owner.conflictScan?.candidateToolDecisions?.some(
+    (entry) => entry.toolId === dep && entry.classification === 'owned_by_other_workstream_drop_from_atlas',
+  )
+  if (!hit) fail(`missing drop decision for shared dependency: ${dep}`)
 }
 
 const allText = requiredFiles.map((file) => read(file)).join('\n')
-for (const token of [...requiredText, ...scopedClaims, ...handoffClaims, ...requiredDroppedTools]) {
+for (const token of [...requiredText, ...claimedScopedTools, ...sharedDependenciesOwnedElsewhere, ...trackB16, ...aiGraphicsRequired]) {
   if (!allText.includes(token)) fail(`missing required text: ${token}`)
 }
 
@@ -268,12 +298,13 @@ for (const file of [...new Set([...changedFiles, ...stagedFiles, ...untrackedFil
 }
 
 console.log('TOOL-OWNER-REGISTRY-1 diagnostics passed')
-console.log('TOOL-OWNER-CONFLICT-SCAN-1 decision: completed_scoped_ownership_repair_clean')
+console.log('TOOL-OWNER-CONFLICT-SCAN-1 decision: completed_expanded_scoped_ownership_repair_clean')
 console.log('Owner registered: Atlas Track A')
 console.log('Owner ID: owner_tracka_visual_render_export')
 console.log('Workstream: TRACK_A_VISUAL_RENDER_EXPORT')
 console.log('Current status: ownership_claim_scoped_pending_merge_order')
-console.log('Scoped claims: tracka_caption_burnin_policy_e2e, tracka_render_export_private_review_path, tracka_visual_video_private_e2e')
+console.log(`Claimed scoped tools: ${claimedScopedTools.length}`)
+console.log('Product-ready end-to-end local OSS tools: 0')
 console.log('Unresolved conflicts: none')
 console.log('Supabase update status: not_applicable_docs_only')
 console.log('SQL executed: none')

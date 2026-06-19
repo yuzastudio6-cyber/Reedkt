@@ -4,11 +4,13 @@ Cross-owner tool claim scan before Track A tool implementation.
 
 ## Result
 
-TOOL-OWNER-CONFLICT-SCAN-1 decision: `completed_scoped_ownership_repair_clean`
+TOOL-OWNER-CONFLICT-SCAN-1 decision: `completed_expanded_scoped_ownership_repair_clean`
 
 Current Atlas Track A status: `ownership_claim_scoped_pending_merge_order`
 
 Unresolved conflicts: none
+
+Product-ready end-to-end local OSS tools remain `0`.
 
 ## PR Source
 
@@ -29,25 +31,39 @@ Branch: `codex/rp-tool-owner-registry-1-atlas-tracka-visual-render-export`
 - `docs/open-source-tool-stack/owner-registry/`
 - `docs/open-source-tool-stack/ownership/`
 
-## Final Atlas Track A Claims
+## Final Atlas Track A Claimed Scoped Tools
 
-Atlas Track A may keep only:
+Atlas Track A may keep only these scoped Track A Render/Export responsibility labels:
 
+- remotion_render_validation
+- opentimelineio_timeline_validation
+- hyperframe_render_handoff
+- libass_caption_burnin
+- gstreamer_render_pipeline_support
+- bento4_mp4box_packaging_validation
+- mkvtoolnix_container_validation
+- vapoursynth_frame_pipeline
+- revideo_render_preview_alternative
+- film_frame_interpolation
 - tracka_caption_burnin_policy_e2e
 - tracka_render_export_private_review_path
 - tracka_visual_video_private_e2e
 
-## Handoff-Only Labels
+## Shared Dependencies Owned Elsewhere
 
-Atlas Track A may reference these as Track A integration/handoff-only labels, not global ownership:
+Atlas Track A may reference these only as external dependencies owned by other lanes:
 
-- tracka_ffmpeg_render_export_handoff_only
-- tracka_ffprobe_export_validation_handoff_only
-- tracka_libass_caption_burnin_handoff_only
-- tracka_remotion_render_validation_handoff_only
-- tracka_opentimelineio_validation_handoff_only
+- ffmpeg
+- ffprobe
+- sharp_libvips
+- opencolorio
+- openimageio
+- sam2
+- kornia
+- birefnet
+- real_esrgan
 
-## Dropped Or Deferred Claims
+## Dropped Claims
 
 - ffmpeg: owned_by_other_workstream_drop_from_atlas, PR #542
 - ffprobe: owned_by_other_workstream_drop_from_atlas, PR #542
@@ -58,10 +74,10 @@ Atlas Track A may reference these as Track A integration/handoff-only labels, no
 - kornia: owned_by_other_workstream_drop_from_atlas, PR #543
 - birefnet: owned_by_other_workstream_drop_from_atlas, PR #543
 - real_esrgan: owned_by_other_workstream_drop_from_atlas, PR #543
-- libass: shared_upstream_dependency_tracka_integration_only
-- remotion: shared_upstream_dependency_tracka_integration_only
-- opentimelineio: shared_upstream_dependency_tracka_integration_only
-- film: unclear_pending_source_review
+
+## Explicitly Not Owned
+
+Track B media processing tools, AI creative graphics tools, Sound/Music/Audio tools, Web Search/Capture tools, Map/Geospatial tools, Provider/API tools, Worker Runtime infrastructure, Supabase schema/RLS/migrations, and Billing/Stripe/credits.
 
 ## Required Next Action
 

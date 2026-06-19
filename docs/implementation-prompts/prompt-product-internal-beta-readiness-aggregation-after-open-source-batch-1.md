@@ -12,3 +12,9 @@ Scope:
 
 Secondary prompt. Aggregate internal beta readiness only after owner-lane and E2E blocker state is clear.
 <!-- OPEN_SOURCE_BATCH_2_PLANNING_REFERENCE:end -->
+
+<!-- OWNER_LANE_RECONCILIATION_REFERENCE:start -->
+## Owner-Lane Reconciliation Reference
+
+Secondary prompt retained from earlier planning. Owner-lane reconciliation selected `OPEN_SOURCE_TOOL_STACK_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP` as the primary next phase; this prompt remains secondary until staged owner reconciliation and E2E blocker context are clearer.
+<!-- OWNER_LANE_RECONCILIATION_REFERENCE:end -->

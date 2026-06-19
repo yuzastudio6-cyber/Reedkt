@@ -18,9 +18,11 @@ Create the internal beta readiness rollup only after TRACKA-PRIVATE-E2E-REVALIDA
 - SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-1 decision: `completed_migration_readiness_planning_blocked_pending_migration_safety_packet`.
 - Worker runtime transactional contract readiness: `blocked_pending_supabase_worker_rpc_migration_safety_packet`.
 - SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 decision: `completed_migration_safety_packet_ready_for_static_migration_implementation`.
-- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 readiness: `ready_for_static_migration_implementation_packet`.
-- WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_supabase_rpc_schema_static_migration`.
-- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_supabase_rpc_schema_implementation`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 decision: `completed_static_migration_implementation_sql_not_executed`.
+- Supabase update status: `static_migration_created_sql_not_executed`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 readiness: `ready_for_guarded_staging_sql_execution_packet_pending_confirmed_staging_target`.
+- WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_guarded_staging_sql_execution`.
+- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_supabase_rpc_schema_deployment`.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 status.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 route contract dry-run gate status.
 - #492 caption layout policy: `user_configurable_default_one_line` with default preset `one_line_bottom_safe_area`.
@@ -70,9 +72,11 @@ Current Worker Runtime evidence:
 - SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-1 decision: `completed_migration_readiness_planning_blocked_pending_migration_safety_packet`.
 - Worker runtime transactional contract readiness: `blocked_pending_supabase_worker_rpc_migration_safety_packet`.
 - SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 decision: `completed_migration_safety_packet_ready_for_static_migration_implementation`.
-- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 readiness: `ready_for_static_migration_implementation_packet`.
-- WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_supabase_rpc_schema_static_migration`.
-- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_supabase_rpc_schema_implementation`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 decision: `completed_static_migration_implementation_sql_not_executed`.
+- Supabase update status: `static_migration_created_sql_not_executed`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 readiness: `ready_for_guarded_staging_sql_execution_packet_pending_confirmed_staging_target`.
+- WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_guarded_staging_sql_execution`.
+- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_supabase_rpc_schema_deployment`.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 decision: `completed_route_contract_dry_run_gate_planning`.
 - Tool Route execution readiness: `blocked_pending_future_guarded_execution_packet_and_worker_gate_2`.
@@ -83,7 +87,7 @@ INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_transactional_
 
 Internal beta unlocked: false
 
-The rollup remains blocked because SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 completed the safety packet without SQL execution and the worker transactional contract is blocked pending Supabase RPC/schema static migration and future implementation.
+The rollup remains blocked because SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 created a static migration without SQL execution and the worker transactional contract is blocked pending guarded staging SQL execution, deployment evidence, and future Worker Runtime validation.
 
 Explicit blocker: missing transactional backend/RPC claim path, service-role runtime boundary, and persistent event/lease enforcement.
 

@@ -4,11 +4,15 @@ Guarded staging SQL execution for Worker Runtime transactional RPC/schema.
 
 ## Goal
 
-Execute staging SQL only after a future static migration packet is complete, a staging target is confirmed, rollback readiness is recorded, and explicit confirmation gates are set. This prompt is currently blocked and must not execute SQL from the current packet.
+Execute staging SQL only after SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3's static migration packet is reviewed, a staging target is confirmed, rollback readiness is recorded, and explicit confirmation gates are set. This prompt is currently blocked pending target confirmation and must not execute SQL from the current packet.
 
 ## Current Blockers
 
-SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 readiness: `blocked_pending_static_migration_packet`
+SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 decision: `completed_static_migration_implementation_sql_not_executed`
+
+Supabase update status: `static_migration_created_sql_not_executed`
+
+SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 readiness: `ready_for_guarded_staging_sql_execution_packet_pending_confirmed_staging_target`
 
 Target safety status: `blocked_pending_confirmed_staging_target`
 
@@ -21,6 +25,7 @@ Supabase environment touched: `none`
 ## Required Before Execution
 
 - SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 static migration implementation packet complete.
+- Static migration file: `supabase/migrations/202606180001_worker_runtime_transactional_rpc.sql`.
 - Confirmed staging-only target and account context.
 - Reviewed migration checksum and diff.
 - Rollback readiness complete.

@@ -13,8 +13,10 @@ Plan the implementation readiness for the transactional worker contract defined 
 - SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-1 readiness: `ready_for_migration_readiness_planning`.
 - SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-1 decision: `completed_migration_readiness_planning_blocked_pending_migration_safety_packet`.
 - Worker runtime transactional contract readiness: `blocked_pending_supabase_worker_rpc_migration_safety_packet`.
-- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 readiness: `ready_for_migration_safety_packet`.
-- WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_supabase_rpc_schema_safety_packet`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 decision: `completed_migration_safety_packet_ready_for_static_migration_implementation`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 readiness: `ready_for_static_migration_implementation_packet`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 readiness: `blocked_pending_static_migration_packet`.
+- WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_supabase_rpc_schema_static_migration`.
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_transactional_contract_implementation`.
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_supabase_rpc_schema_implementation`.
 - TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_transactional_contract`.
@@ -23,11 +25,11 @@ Plan the implementation readiness for the transactional worker contract defined 
 
 ## Required Output
 
-Create a readiness packet for the future RPC/schema implementation path only after SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 completes migration safety. Preserve the operation family `tracka_private_e2e_revalidation`, the planned operation names, the service-role boundary, the no broad service-role handler rule, and the public/signed/final/internal-beta blockers.
+Create a readiness packet for the future RPC/schema implementation path only after SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 completes the static migration implementation packet. Preserve the operation family `tracka_private_e2e_revalidation`, the planned operation names, the service-role boundary, the no broad service-role handler rule, and the public/signed/final/internal-beta blockers.
 
 ## Current Blocker
 
-This prompt remains blocked pending SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 -- Migration safety packet.
+This prompt remains blocked pending SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 -- Static migration implementation packet.
 
 ## No-Scope Statement
 

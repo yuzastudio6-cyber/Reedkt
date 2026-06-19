@@ -59,3 +59,9 @@ merge-order review only. The 13 reviewed draft package proof tools are not
 canonically promoted and remain blocked for runtime execution, internal beta,
 external beta, production, provider execution, Supabase/GCS, signed URL, and
 public artifact readiness.
+
+AI graphics draft package proof merge-order review recommends the later order
+PR #425 -> PR #433 -> PR #441 for the 13 draft package proof tools. This is not
+canonical promotion, draft-ready approval, or merge approval. Runtime-ready
+tools, internal beta, external beta, production, provider execution,
+Supabase/GCS, signed URLs, and public artifacts remain blocked.

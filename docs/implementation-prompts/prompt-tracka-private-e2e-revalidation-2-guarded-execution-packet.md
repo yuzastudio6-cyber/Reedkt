@@ -20,6 +20,11 @@ Create the guarded execution packet for the restricted Track A private E2E scope
 - WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 decision: `completed_contract_completion_plan_blocked_pending_rpc_schema_implementation`.
 - Worker runtime transactional contract readiness: `blocked_pending_supabase_worker_rpc_schema_readiness`.
 - WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_transactional_contract_implementation`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-1 decision: `completed_migration_readiness_planning_blocked_pending_migration_safety_packet`.
+- Worker runtime transactional contract readiness: `blocked_pending_supabase_worker_rpc_migration_safety_packet`.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 readiness: `ready_for_migration_safety_packet`.
+- WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_supabase_rpc_schema_safety_packet`.
+- WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_supabase_rpc_schema_implementation`.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-1 decision: `completed_repo_audit_gate_planning`.
 - TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 decision: `completed_route_contract_dry_run_gate_planning`.
 - Tool Route execution readiness: `blocked_pending_future_guarded_execution_packet_and_worker_gate_2`.
@@ -49,7 +54,17 @@ WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 decision: `completed_contract_completion
 
 Worker runtime transactional contract readiness: `blocked_pending_supabase_worker_rpc_schema_readiness`
 
+SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-1 decision: `completed_migration_readiness_planning_blocked_pending_migration_safety_packet`
+
+Worker runtime transactional contract readiness: `blocked_pending_supabase_worker_rpc_migration_safety_packet`
+
+SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-2 readiness: `ready_for_migration_safety_packet`
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_supabase_rpc_schema_safety_packet`
+
 WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_transactional_contract_implementation`
+
+WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_supabase_rpc_schema_implementation`
 
 TOOL-ROUTE-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2 readiness: `completed`
 
@@ -57,7 +72,7 @@ INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_transactional_
 
 Internal beta unlocked: false
 
-This guarded execution packet remains blocked because WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-1 found that the contract is still blocked pending Supabase worker RPC/schema readiness.
+This guarded execution packet remains blocked because SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-1 found that the worker transactional contract is still blocked pending the Supabase migration safety packet and future RPC/schema implementation.
 
 Explicit blocker: missing transactional backend/RPC claim path, service-role runtime boundary, and persistent event/lease enforcement.
 

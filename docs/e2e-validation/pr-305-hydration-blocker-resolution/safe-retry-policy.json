@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.e2e.pr305HydrationBlockerResolution.safeRetryPolicy.v1",
+  "generatedAt": "2026-06-19T15:45:00Z",
+  "initialAttemptCompleted": true,
+  "retryAllowed": false,
+  "retryPerformed": false,
+  "reason": "The initial approved hydration command completed successfully, so a retry would add no blocker-resolution value.",
+  "allowedFutureRetryIfBlockerReturns": {
+    "removeDisposableNodeModulesFirst": true,
+    "sameCommandOnly": "npm ci --ignore-scripts --no-audit --no-fund",
+    "isolatedNpmCacheAllowed": true,
+    "increasedSafeLoggingAllowed": true,
+    "npmInstallAllowed": false,
+    "npmRebuildAllowed": false,
+    "lifecycleScriptsAllowed": false,
+    "packageLockMutationAllowed": false,
+    "runtimeExecutionAllowed": false
+  }
+}

@@ -181,3 +181,9 @@ This validation-only batch consumes merged PR #519 and attempts the first small 
 ```
 
 No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, or broad service-role handler was enabled.
+
+## Post-queue hydration resolution note
+
+The later PR #305 hydration blocker-resolution packet recorded `e2e_pr305_hydration_blocker_resolved_ready_for_validation_rerun`. Hydration now completes in a disposable PR #305 worktree, but no full PR #305 validation suite ran in that phase.
+
+The E2E queue remains blocked for merge hygiene until PR #305 passes a separate validation rerun. Merge-ready validations remain `0`.

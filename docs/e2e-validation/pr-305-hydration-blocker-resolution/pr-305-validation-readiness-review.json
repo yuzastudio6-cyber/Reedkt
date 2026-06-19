@@ -1,0 +1,18 @@
+{
+  "schema": "reeditpro.e2e.pr305HydrationBlockerResolution.validationReadiness.v1",
+  "generatedAt": "2026-06-19T15:45:00Z",
+  "hydrationResolved": true,
+  "requiredBinariesPresent": {
+    "tsx": true,
+    "eslint": true,
+    "tsc": true,
+    "vite": true
+  },
+  "packageFilesChanged": false,
+  "fullValidationRun": false,
+  "canReenterValidationQueue": true,
+  "canMovePr305ToMergeQueue": false,
+  "mergeReadyValidations": 0,
+  "reasonPr305NotMergeReady": "Only dependency hydration was proven. PR #305 still needs a separately approved validation rerun before any merge-ready claim.",
+  "nextRecommendedPrompt": "REEDITPRO_E2E_VALIDATION_PR_305_RERUN_AFTER_HYDRATION_RESOLUTION"
+}

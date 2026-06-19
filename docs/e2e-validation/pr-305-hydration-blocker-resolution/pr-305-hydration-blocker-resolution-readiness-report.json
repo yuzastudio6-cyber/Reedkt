@@ -1,0 +1,22 @@
+{
+  "schema": "reeditpro.e2e.pr305HydrationBlockerResolution.readinessReport.v1",
+  "generatedAt": "2026-06-19T15:45:00Z",
+  "decision": "e2e_pr305_hydration_blocker_resolved_ready_for_validation_rerun",
+  "status": "ready_for_validation_rerun",
+  "checks": {
+    "sourceAuditComplete": true,
+    "pr533MergedEvidenceRecorded": true,
+    "pr523MergedEvidenceRecorded": true,
+    "pr305LiveMetadataRecorded": true,
+    "npmCiAttemptRecorded": true,
+    "npmCiCompleted": true,
+    "toolBinariesPresent": true,
+    "packageFilesUnchanged": true,
+    "safeRetryPolicyRecorded": true,
+    "nextPromptCreated": true,
+    "fullValidationDeferred": true,
+    "mergeQueueDeferred": true
+  },
+  "nextGate": "separate PR #305 validation rerun",
+  "mergeReadyValidations": 0
+}

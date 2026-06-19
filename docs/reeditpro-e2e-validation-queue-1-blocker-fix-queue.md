@@ -114,3 +114,9 @@ This queue records blockers found during validation batch 1. It does not authori
   "noScopeStatement": "No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, or broad service-role handler was enabled."
 }
 ```
+
+## Post-queue hydration resolution note
+
+The follow-up hydration blocker-resolution packet recorded `e2e_pr305_hydration_blocker_resolved_ready_for_validation_rerun`: the approved `npm ci --ignore-scripts --no-audit --no-fund` command completed in a disposable PR #305 worktree at `757686f49d85cb7d346b55a1712e1d34a6bdde03`, and `tsx`, `eslint`, `tsc`, and `vite` were present.
+
+This note does not change the queue-1 historical decision. PR #305 still requires a separate validation rerun before any merge-ready claim, and merge-ready validations remain `0`.

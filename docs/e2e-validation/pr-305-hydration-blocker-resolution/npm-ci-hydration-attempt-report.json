@@ -1,0 +1,55 @@
+{
+  "schema": "reeditpro.e2e.pr305HydrationBlockerResolution.npmCiAttempt.v1",
+  "generatedAt": "2026-06-19T15:45:00Z",
+  "targetPr": 305,
+  "targetHead": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+  "disposableWorktree": "/private/tmp/reeditpro-pr-305-hydration-validation",
+  "command": "npm ci --ignore-scripts --no-audit --no-fund",
+  "startedAt": "2026-06-19T15:39:15.931Z",
+  "endedAt": "2026-06-19T15:39:20.430Z",
+  "durationMs": 4499,
+  "timeoutMs": 1800000,
+  "exitCode": 0,
+  "signal": null,
+  "completed": true,
+  "hung": false,
+  "interrupted": false,
+  "timedOut": false,
+  "outputBytes": 677,
+  "npmLogPath": "/private/tmp/reeditpro-pr-305-hydration-validation/npm-ci-hydration-attempt.log",
+  "lastSafeOutputLines": [
+    "npm warn deprecated uuid@8.3.2: uuid@10 and below is no longer supported. For ESM codebases, update to uuid@latest. For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).",
+    "npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported. For ESM codebases, update to uuid@latest. For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).",
+    "npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported. For ESM codebases, update to uuid@latest. For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).",
+    "added 755 packages in 4s"
+  ],
+  "packageHashes": {
+    "before": {
+      "packageJsonSha256": "507c60656461bb735173133281653b6dfa3c0e813b8d80968b65adc26337d315",
+      "packageLockSha256": "064ed352d55af751f8399752d5abaa980f66e514cab323d54894f0ce5afb89da"
+    },
+    "after": {
+      "packageJsonSha256": "507c60656461bb735173133281653b6dfa3c0e813b8d80968b65adc26337d315",
+      "packageLockSha256": "064ed352d55af751f8399752d5abaa980f66e514cab323d54894f0ce5afb89da"
+    },
+    "packageJsonChanged": false,
+    "packageLockChanged": false
+  },
+  "toolBinariesAfterHydration": {
+    "tsx": "present",
+    "eslint": "present",
+    "tsc": "present",
+    "vite": "present"
+  },
+  "nodeModules": {
+    "presentAfterHydration": true,
+    "sizeSummary": "773M",
+    "binEntryCount": 52,
+    "disposableOnly": true,
+    "committed": false,
+    "staged": false
+  },
+  "validationCommandsRunAfterHydration": false,
+  "fullPr305ValidationRun": false,
+  "result": "hydration_completed"
+}

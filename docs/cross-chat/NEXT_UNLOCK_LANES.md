@@ -375,3 +375,12 @@ Do not claim 40+ tools are installed/proven end-to-end. Worker runtime, media pr
 - Future lane scope: plan install-proof milestones for the 11 Track B media OSS tools that remain blocked/not installed-proven.
 - Not unlocked: media processing, file probing, decode/encode, render/export, workers, routes, providers, Supabase/GCS/public delivery, signed URLs, raw prompts, beta, or production.
 <!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:end -->
+
+<!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:start -->
+## Track B Media OSS Install/Proof Milestone Plan
+
+- Next approved future lane: `TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION`.
+- Milestone 1 tools: ExifTool, MediaInfo, Tesseract, ImageMagick / GraphicsMagick.
+- Compute: CPU-only/default, no GPU for Milestone 1.
+- Not unlocked now: install execution, package-lock mutation, media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production.
+<!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:end -->

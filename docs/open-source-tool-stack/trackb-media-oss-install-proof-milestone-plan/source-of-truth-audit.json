@@ -1,0 +1,36 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssInstallProofMilestonePlan.sourceAudit.v1",
+  "generatedAt": "2026-06-19T20:00:00Z",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceSha": "a66a1c0b72263e5e113d95216c373e0fad1071bb",
+  "requiredMergedPr": {
+    "number": 542,
+    "title": "[tools] Track B media OSS steward owner registry",
+    "state": "MERGED",
+    "mergedAt": "2026-06-19T19:07:30Z",
+    "headSha": "c2007f6bb20bc5cfae35d9e4eaef03feeca3218f"
+  },
+  "owner": {
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "ownerName": "Track B Media OSS Steward",
+    "lane": "TRACK_B_MEDIA_PROCESSING"
+  },
+  "counts": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 5,
+    "blockedNotInstalledProven": 11,
+    "endToEndProductReady": 0
+  },
+  "accepted": true,
+  "broadProductionDocs": {
+    "docs/beta-readiness-scorecard.md": "absent",
+    "docs/production-beta-blocker-inventory.md": "absent",
+    "PRODUCTION_FOUNDATION_STATUS.md": "absent"
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

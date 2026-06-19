@@ -1,0 +1,125 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssInstallProofMilestonePlan.toolMatrix.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
+  "counts": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 5,
+    "blockedNotInstalledProven": 11,
+    "endToEndProductReady": 0
+  },
+  "tools": [
+    {
+      "id": "ffmpeg",
+      "name": "FFmpeg",
+      "currentStatus": "accepted_proven_bounded_batch1",
+      "proofStatus": "tracka_container_version_only_no_media_processing",
+      "futureInstallProofExpectation": "Milestone 5 runtime planning only; media processing remains blocked."
+    },
+    {
+      "id": "ffprobe",
+      "name": "FFprobe",
+      "currentStatus": "accepted_proven_bounded_batch1",
+      "proofStatus": "tracka_container_version_only_no_media_file_probe",
+      "futureInstallProofExpectation": "Milestone 5 media-probe approval required before file probing."
+    },
+    {
+      "id": "sharp_libvips",
+      "name": "Sharp/libvips",
+      "currentStatus": "accepted_proven_bounded_batch1",
+      "proofStatus": "import_version_only_no_image_processing",
+      "futureInstallProofExpectation": "Already bounded-proven; real image processing remains separately blocked."
+    },
+    {
+      "id": "duckdb",
+      "name": "DuckDB",
+      "currentStatus": "accepted_proven_bounded_batch1",
+      "proofStatus": "native_rebuild_import_api_shape_in_memory_query",
+      "futureInstallProofExpectation": "Already bounded-proven for metadata/query use."
+    },
+    {
+      "id": "polars_nodejs_polars",
+      "name": "Polars / nodejs-polars",
+      "currentStatus": "accepted_proven_bounded_batch1",
+      "proofStatus": "import_version_in_memory_dataframe_metadata",
+      "futureInstallProofExpectation": "Already bounded-proven for in-memory dataframe metadata."
+    },
+    {
+      "id": "opencv",
+      "name": "OpenCV",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M2",
+      "futureInstallProofExpectation": "CPU-first import/version and tiny synthetic CV fixture after approval."
+    },
+    {
+      "id": "pyav",
+      "name": "PyAV",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M2",
+      "futureInstallProofExpectation": "CPU-first import/version and tiny synthetic container/header fixture after approval."
+    },
+    {
+      "id": "pyscenedetect",
+      "name": "PySceneDetect",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M2",
+      "futureInstallProofExpectation": "CPU-first import/version and synthetic scene-boundary fixture after approval."
+    },
+    {
+      "id": "paddleocr",
+      "name": "PaddleOCR",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M3",
+      "futureInstallProofExpectation": "CPU tiny proof first; GPU review before heavy or beta-quality OCR."
+    },
+    {
+      "id": "paddlepaddle",
+      "name": "PaddlePaddle",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M3",
+      "futureInstallProofExpectation": "CPU tiny proof first; GPU review for PaddleOCR and heavy ML workloads."
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M1",
+      "futureInstallProofExpectation": "Future CPU-only version proof and tiny synthetic media-header fixture if safely available."
+    },
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M1",
+      "futureInstallProofExpectation": "Future CPU-only version proof and tiny synthetic metadata fixture."
+    },
+    {
+      "id": "imagemagick_graphicsmagick",
+      "name": "ImageMagick / GraphicsMagick",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M1",
+      "futureInstallProofExpectation": "ImageMagick preferred; future CPU-default version proof and tiny synthetic image transform."
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M1",
+      "futureInstallProofExpectation": "Future CPU-only version proof and tiny synthetic OCR fixture."
+    },
+    {
+      "id": "opencolorio",
+      "name": "OpenColorIO",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M4",
+      "futureInstallProofExpectation": "CPU proof first; GPU preview/render color workflows require separate later approval."
+    },
+    {
+      "id": "openimageio",
+      "name": "OpenImageIO",
+      "currentStatus": "blocked_not_installed_proven",
+      "milestone": "M4",
+      "futureInstallProofExpectation": "CPU proof first; advanced image pipeline GPU use requires separate later approval."
+    }
+  ]
+}

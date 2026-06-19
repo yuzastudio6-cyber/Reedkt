@@ -111,6 +111,7 @@
     "open-source-tool-stack:owner-lane-reconciliation-after-batch-1-rollup:summary": "tsx server/cli/open-source-tool-stack-owner-lane-reconciliation-after-batch-1-rollup-summary.ts",
     "open-source-tool-stack:owner-lane-reconciliation-after-batch-1-rollup:diagnostics": "node scripts/validation/open-source-tool-stack-owner-lane-reconciliation-after-batch-1-rollup-diagnostics.mjs",
     "open-source-tool-owner-registry:trackb-media-oss-steward:diagnostics": "node scripts/validation/open-source-tool-owner-registry-trackb-media-oss-steward-diagnostics.mjs",
+    "trackb-media-oss:install-proof-milestone-plan:diagnostics": "node scripts/validation/trackb-media-oss-install-proof-milestone-plan-diagnostics.mjs",
     "smoke:open-source-tool-stack-owner-lane-reconciliation-after-batch-1-rollup": "tsx server/smoke/open-source-tool-stack-owner-lane-reconciliation-after-batch-1-rollup-smoke.ts",
     "open-source-tool-stack:staged-owner-merge-plan-after-batch-1-rollup:plan": "tsx server/cli/open-source-tool-stack-staged-owner-merge-plan-after-batch-1-rollup-plan.ts",
     "open-source-tool-stack:staged-owner-merge-plan-after-batch-1-rollup": "tsx server/cli/open-source-tool-stack-staged-owner-merge-plan-after-batch-1-rollup.ts",

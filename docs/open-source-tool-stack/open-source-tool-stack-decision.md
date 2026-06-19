@@ -308,3 +308,17 @@ Do not claim 40+ tools are installed/proven end-to-end. Media processing, render
 
 Next prompt: `TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN`.
 <!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:end -->
+
+<!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:start -->
+## Track B Media OSS Install/Proof Milestone Plan
+
+Decision: `trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution`.
+
+The Track B Media OSS Steward now has a CPU/GPU install-proof roadmap for all 16 owned tools. The plan preserves 5 bounded accepted/proven tools, 11 blocked/not installed-proven tools, and 0 end-to-end product-ready tools.
+
+Milestone 1 future execution is approved only for ExifTool, MediaInfo, Tesseract, and ImageMagick / GraphicsMagick. Milestone 1 is CPU-only/default, synthetic-fixture-only, and future execution only.
+
+No dependency install, package-lock mutation, Docker, FFmpeg/FFprobe probe, media processing, render/export, worker/route/provider execution, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is approved by this planning phase.
+
+Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION`.
+<!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:end -->

@@ -27,6 +27,17 @@
     "blockedNotInstalledProven": 11,
     "endToEndProductReady": 0
   },
+  "installProofMilestonePlan": {
+    "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-install-proof-milestone-plan",
+    "milestone1FutureExecutionApproved": true,
+    "milestone1FutureExecutionPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION",
+    "executionRunInThisPhase": false,
+    "mediaProcessingApproved": false,
+    "renderExportApproved": false,
+    "workerRuntimeApproved": false,
+    "betaProductionApproved": false
+  },
   "ownedTools": [
     {
       "id": "ffmpeg",
@@ -156,7 +167,7 @@
     "batch1AcceptedMatrix": "docs/open-source-tool-stack/batch-1-final-rollup-after-ffmpeg-ffprobe-proof/batch-1-accepted-tools-matrix.json",
     "ownerLaneCounts": "docs/open-source-tool-stack/owner-lane-reconciliation-after-batch-1-rollup/reconciled-tool-count-summary.json"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION",
   "supabaseClassification": {
     "updateRequired": "no write",
     "environmentTouched": "none",

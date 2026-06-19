@@ -343,3 +343,11 @@ The Track B Media OSS Steward registry does not unblock runtime behavior. The fo
 
 Counts remain constrained: 16 owned Track B tools, 5 accepted/proven bounded Batch 1 tools, 11 blocked/not installed-proven tools, and 0 end-to-end product-ready tools.
 <!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:end -->
+
+<!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:start -->
+## Track B Media OSS Install/Proof Milestone Plan
+
+The milestone plan does not run or unlock Track B runtime behavior. Dependency installs, package-lock mutation, Docker, FFmpeg/FFprobe probes, media file probing, media processing, decode/encode, OCR execution, image/color processing, render/export, worker execution, route execution, provider calls, Supabase/SQL/GCS mutation, public artifacts, signed URLs, raw prompt execution, beta, and production remain blocked in this phase.
+
+Milestone 1 is future execution only and limited to tiny synthetic fixtures after a separate execution prompt.
+<!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:end -->

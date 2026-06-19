@@ -39,4 +39,12 @@ Counts: 16 owned tools, 5 accepted/proven bounded, 11 blocked/not installed-prov
 
 Do not claim 40+ tools are installed/proven end-to-end. Media processing, render/export, workers, routes, providers, Supabase/GCS, public delivery, signed URLs, raw prompts, beta, and production remain blocked.
 
-Next prompt: `TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN`.
+## Install/Proof Milestone Plan
+
+Decision: `trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution`
+
+The milestone plan records CPU/GPU placement for all 16 owned Track B media OSS tools and approves only future Milestone 1 execution for ExifTool, MediaInfo, Tesseract, and ImageMagick / GraphicsMagick.
+
+This phase does not install tools, mutate package-lock, process media, render/export, run workers/routes/providers, or unlock beta/production.
+
+Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION`.

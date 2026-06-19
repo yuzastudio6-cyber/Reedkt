@@ -543,3 +543,15 @@ The Track B Media OSS Steward is now the source-of-truth owner for local/profess
 
 The next install-batch planning lane is `TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN`. It must sequence the eleven blocked Track B tools without claiming media processing, render/export, runtime, Supabase/GCS/public delivery, beta, or production readiness.
 <!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:end -->
+
+<!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:start -->
+## Track B Media OSS Install/Proof Milestone Plan
+
+Decision: `trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution`.
+
+Next approved future lane: `TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION`.
+
+Milestone 1 is limited to ExifTool, MediaInfo, Tesseract, and ImageMagick / GraphicsMagick. It is CPU-only/default and must use tiny synthetic fixtures only in the later execution phase.
+
+Milestones 2-7 remain planning/approval future work and do not authorize media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, beta, or production.
+<!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:end -->

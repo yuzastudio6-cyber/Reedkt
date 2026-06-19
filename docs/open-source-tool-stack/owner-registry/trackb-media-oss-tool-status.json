@@ -64,5 +64,17 @@
     "signedUrlAccepted": false,
     "rawPromptExecutionAccepted": false,
     "betaProductionAccepted": false
+  },
+  "installProofMilestonePlan": {
+    "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
+    "milestone1FutureExecutionApproved": true,
+    "milestone1Tools": [
+      "exiftool",
+      "mediainfo",
+      "tesseract",
+      "imagemagick_graphicsmagick"
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION",
+    "executionRunInThisPhase": false
   }
 }

@@ -404,3 +404,15 @@ Do not claim 40+ tools are installed/proven end-to-end. Worker runtime, media pr
 - Next prompt: `TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN`.
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- OPEN_SOURCE_TOOL_OWNER_REGISTRY_TRACKB_MEDIA_OSS_STEWARD:end -->
+
+<!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:start -->
+## Track B Media OSS Install/Proof Milestone Plan
+
+- Decision: `trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution`.
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`.
+- CPU/GPU policy: recorded for all 16 owned tools.
+- Milestone 1 future execution approved: ExifTool, MediaInfo, Tesseract, ImageMagick / GraphicsMagick.
+- End-to-end product-ready Track B tools remain `0`; do not claim 40+ tools are installed/proven end-to-end.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:end -->

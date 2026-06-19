@@ -37,3 +37,12 @@ Worker runtime dry-run approval status: approved_for_future_worker_noop_dry_run_
 - Scope: hydration validation only; no full PR #305 validation suite ran.
 - Merge-ready validations remain `0` until the separate PR #305 validation rerun passes.
 - External beta, paid production, production, runtime execution, workers/routes/providers, media/render/export, Supabase/GCS, public artifacts, signed URLs, raw prompts, and secret payload access remain blocked.
+
+## E2E PR #305 validation rerun after hydration
+
+- `e2e_pr305_validation_rerun_passed_ready_for_merge_hygiene`
+- Meaning: PR #305 hydration, bounded static validation, build classification, and safety scan passed in the approved disposable validation lane.
+- Scope: PR #305 merge-hygiene readiness only; PR #305 was not merged and product runtime was not executed.
+- Merge-ready validations from this packet: `1` for PR #305.
+- End-to-end product-ready tools remain `0`; do not claim 40+ tools are installed or proven end-to-end.
+- External beta, paid production, production, runtime execution, workers/routes/providers, media/render/export, Supabase/GCS, public artifacts, signed URLs, raw prompts, and secret payload access remain blocked.

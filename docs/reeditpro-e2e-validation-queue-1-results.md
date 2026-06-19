@@ -187,3 +187,11 @@ No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API c
 The later PR #305 hydration blocker-resolution packet recorded `e2e_pr305_hydration_blocker_resolved_ready_for_validation_rerun`. Hydration now completes in a disposable PR #305 worktree, but no full PR #305 validation suite ran in that phase.
 
 The E2E queue remains blocked for merge hygiene until PR #305 passes a separate validation rerun. Merge-ready validations remain `0`.
+
+## Post-hydration validation rerun note
+
+The later PR #305 validation-rerun packet recorded `e2e_pr305_validation_rerun_passed_ready_for_merge_hygiene`.
+
+This supersedes the queue-1 hydration blocker for PR #305 only: hydration, bounded static validation, build classification, and safety scan passed at `757686f49d85cb7d346b55a1712e1d34a6bdde03`.
+
+PR #305 was not merged, closed, rebased, retargeted, or mutated by the rerun packet. It may enter merge hygiene with `1` merge-ready validation. End-to-end product-ready tools remain `0`, and no runtime/product/media/Supabase/GCS/beta/production scope was enabled.

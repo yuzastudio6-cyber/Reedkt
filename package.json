@@ -768,7 +768,8 @@
     "preview": "vite preview",
     "reeditpro:e2e-merge-hygiene-1:diagnostics": "node scripts/validation/reeditpro-e2e-merge-hygiene-1-diagnostics.mjs",
     "reeditpro:e2e-validation-queue-1:diagnostics": "node scripts/validation/reeditpro-e2e-validation-queue-1-diagnostics.mjs",
-    "reeditpro:e2e-pr-305-hydration-blocker-resolution:diagnostics": "node scripts/validation/reeditpro-e2e-pr-305-hydration-blocker-resolution-diagnostics.mjs"
+    "reeditpro:e2e-pr-305-hydration-blocker-resolution:diagnostics": "node scripts/validation/reeditpro-e2e-pr-305-hydration-blocker-resolution-diagnostics.mjs",
+    "reeditpro:e2e-pr-305-validation-rerun-after-hydration:diagnostics": "node scripts/validation/reeditpro-e2e-pr-305-validation-rerun-after-hydration-diagnostics.mjs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

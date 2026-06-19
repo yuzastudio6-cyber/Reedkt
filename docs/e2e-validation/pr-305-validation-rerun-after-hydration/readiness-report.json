@@ -1,0 +1,21 @@
+{
+  "schema": "reeditpro.e2e.pr305ValidationRerunAfterHydration.readiness.v1",
+  "decision": "e2e_pr305_validation_rerun_passed_ready_for_merge_hygiene",
+  "status": "passed_ready_for_merge_hygiene",
+  "pr305": {
+    "number": 305,
+    "head": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+    "mergeReadyValidations": 1,
+    "canEnterMergeHygiene": true,
+    "canMergeImmediately": false
+  },
+  "validation": {
+    "hydration": "passed",
+    "staticValidation": "passed",
+    "buildClassification": "passed",
+    "safetyScan": "passed"
+  },
+  "productionReadiness": "blocked_by_existing_product_runtime_and_beta_gates",
+  "betaReadiness": "internal_testing_only",
+  "endToEndProductReadyTools": 0
+}

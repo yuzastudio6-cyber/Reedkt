@@ -1,0 +1,22 @@
+{
+  "schema": "reeditpro.e2e.pr305ValidationRerunAfterHydration.safetyScan.v1",
+  "targetHead": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+  "filesScanned": 23,
+  "classification": "passed_with_blocked_scope_policy_references_only",
+  "forbiddenFindings": 0,
+  "policyReferencesReviewed": 25,
+  "scannedFor": [
+    "secret-like tokens",
+    "database URLs",
+    "Supabase project URLs",
+    "signed URL material",
+    "public artifact URLs",
+    "media/binary artifact path changes",
+    "true forbidden-scope flags"
+  ],
+  "notes": [
+    "Blocked-scope policy text, diagnostic regex literals, and package script names were reviewed as non-blocking references.",
+    "No runtime, media, provider, worker, Supabase, GCS, public artifact, signed URL, beta, production, or raw-prompt unlock evidence was found."
+  ],
+  "passed": true
+}

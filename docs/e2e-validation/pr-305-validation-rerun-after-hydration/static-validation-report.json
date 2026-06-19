@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.e2e.pr305ValidationRerunAfterHydration.staticValidation.v1",
+  "targetHead": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+  "commands": [
+    {"command": "git diff --check", "exitCode": 0},
+    {"command": "git diff --check origin/codex/rp-gd-10-group-b-controlled-local-fixture-execution...HEAD", "exitCode": 0},
+    {"command": "git diff --cached --check", "exitCode": 0},
+    {"command": "npm run lint", "exitCode": 0},
+    {"command": "npm run typecheck:server", "exitCode": 0},
+    {"command": "npm run foundation:validate", "exitCode": 0},
+    {"command": "npm run --silent tracka:creative-graphics:group-b-handoff:diagnostics", "exitCode": 0},
+    {"command": "npm run --silent ai-tools:creative-graphics:group-b-local-fixtures:diagnostics", "exitCode": 0},
+    {"command": "npm run --silent ai-tools:creative-graphics:group-b-runtime-gate:diagnostics", "exitCode": 0},
+    {"command": "npm run --silent ai-tools:creative-graphics:package-runtime:diagnostics", "exitCode": 0},
+    {"command": "npm run --silent internal-beta:cross-workstream-gate:diagnostics", "exitCode": 0}
+  ],
+  "scriptsAbsent": [],
+  "allStaticValidationPassed": true,
+  "acceptedWithWarningsFixtures": [
+    "anime_js_motion",
+    "lottie_web_overlays",
+    "remotion_graphics"
+  ],
+  "productRuntimeReady": false,
+  "internalBetaReady": false,
+  "externalBetaReady": false,
+  "productionReady": false
+}

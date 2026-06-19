@@ -65,3 +65,9 @@ PR #425 -> PR #433 -> PR #441 for the 13 draft package proof tools. This is not
 canonical promotion, draft-ready approval, or merge approval. Runtime-ready
 tools, internal beta, external beta, production, provider execution,
 Supabase/GCS, signed URLs, and public artifacts remain blocked.
+
+AI graphics draft package proof merge-order QA accepts PR #554 with warnings and
+preserves the later stack order PR #425 -> PR #433 -> PR #441. It does not mark
+drafts ready, merge source PRs, promote canonical proof, or change runtime,
+internal beta, external beta, production, provider, Supabase/GCS, signed URL, or
+public artifact readiness.

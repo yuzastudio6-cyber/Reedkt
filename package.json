@@ -13,6 +13,7 @@
     "tool-study:completion-rollup:diagnostics": "node scripts/validation/tool-study-0-completion-rollup-diagnostics.mjs",
     "open-source-tool-stack:audit:diagnostics": "node scripts/validation/open-source-tool-stack-audit-diagnostics.mjs",
     "open-source-tool-stack:refresh-after-ai-graphics-worker:diagnostics": "node scripts/validation/open-source-tool-stack-refresh-after-ai-graphics-worker-diagnostics.mjs",
+    "open-source-tool-stack:refresh-after-ai-graphics-worker-qa:diagnostics": "node scripts/validation/open-source-tool-stack-refresh-after-ai-graphics-worker-qa-diagnostics.mjs",
     "open-source-tool-stack:batch-1:approval:diagnostics": "node scripts/validation/open-source-tool-stack-batch-1-approval-diagnostics.mjs",
     "open-source-tool-stack:batch-1-rerun:approval:diagnostics": "node scripts/validation/open-source-tool-stack-batch-1-rerun-approval-diagnostics.mjs",
     "dependency-baseline:repair-before-tool-batch-1:diagnostics": "node scripts/validation/dependency-baseline-repair-before-tool-batch-1-diagnostics.mjs",

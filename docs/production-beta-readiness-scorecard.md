@@ -35,3 +35,8 @@ canonical merged central audit and records PR #425/#433/#441 plus the Tool
 Route/Worker AI graphics chain through PR #532 as draft pending evidence only.
 It does not change internal beta, external beta, production, runtime execution,
 provider execution, Supabase/GCS, signed URL, or public artifact readiness.
+
+Open-source tool stack refresh QA after AI graphics Worker accepts PR #534 with
+warnings. The QA decision keeps canonical PR #416 counts separate from draft
+pending AI graphics, Tool Route, and Worker evidence. Runtime-ready tools,
+internal beta, external beta, and production readiness remain blocked.

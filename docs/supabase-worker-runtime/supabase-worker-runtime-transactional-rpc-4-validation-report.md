@@ -26,18 +26,18 @@ If validation passes, record the command results in the PR body. If validation f
 
 ## Validation Closure
 
-Validation status: incomplete_blocked_by_host_resource_limit_exit_137_during_npm_ci
+Validation status: completed_validation_closure
 
-Validation blocker: host_resource_limit_exit_137_during_npm_ci
+Validation blocker: none
 
 - `git diff --check`: passed.
-- `npm ci --no-audit --no-fund --progress=false`: failed with exit 137 and no package-lock change.
-- `npm_config_jobs=1 npm_config_foreground_scripts=false npm ci --no-audit --no-fund --progress=false`: failed with exit 137 and no package-lock change.
-- `npm run lint`: blocked because `eslint` was unavailable after `npm ci` did not complete.
-- `npm run typecheck:server`: blocked because `tsc` was unavailable after `npm ci` did not complete.
+- `npm ci --no-audit --no-fund --progress=false`: passed.
+- `npm_config_jobs=1 npm_config_foreground_scripts=false npm ci --no-audit --no-fund --progress=false`: not needed because the first dependency validation passed.
+- `npm run lint`: passed.
+- `npm run typecheck:server`: passed.
 - `npm run --silent supabase-worker-runtime:transactional-rpc-4:diagnostics`: passed.
-- `npm run build`: blocked because `tsc` was unavailable after `npm ci` did not complete.
-- `npm run build:server`: blocked because `tsc` was unavailable after `npm ci` did not complete.
+- `npm run build`: passed.
+- `npm run build:server`: passed.
 - `git diff --cached --check`: passed.
 - changed-file safety scan: passed.
 - staged safety scan: passed.

@@ -77,8 +77,8 @@ const requiredText = [
   'service-role-only',
   'backend-only through Google Secret Manager',
   'Secret Manager payload access: none',
-  'Validation status: incomplete_blocked_by_host_resource_limit_exit_137_during_npm_ci',
-  'Validation blocker: host_resource_limit_exit_137_during_npm_ci',
+  'Validation status: completed_validation_closure',
+  'Validation blocker: none',
   'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-IF-NEEDED -- Guarded staging confirmation rerun',
   'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.',
 ]

@@ -1,0 +1,38 @@
+# AI Graphics Draft Package Proof Promotion QA Decision
+
+Decision: `ai_graphics_draft_package_proof_promotion_qa_passed_with_warnings`
+
+| Field | Value |
+| --- | --- |
+| draftPackageProofPromotionQaCompleted | `true` |
+| promotionReviewAccepted | `true` |
+| all13DraftPackageToolsQaReviewed | `true` |
+| batch1QaReviewed | `true` |
+| batch2QaReviewed | `true` |
+| batch3QaReviewed | `true` |
+| sourcePrStatesAccepted | `true` |
+| packageDiffQaAccepted | `true` |
+| validationEvidenceQaAccepted | `true` |
+| runtimeBoundaryQaAccepted | `true` |
+| readyForMergeOrderReview | `true` |
+| readyForCanonicalPromotion | `false` |
+| dependencyInstallPerformed | `false` |
+| packageLockMutationPerformed | `false` |
+| importSmokeExecutedNow | `false` |
+| syntheticFixtureExecutedNow | `false` |
+| toolExecutionPerformed | `false` |
+| workerExecutionPerformed | `false` |
+| routeExecutionPerformed | `false` |
+| providerRuntimePerformed | `false` |
+| browserWebglCanvasRuntimePerformed | `false` |
+| gpuRuntimePerformed | `false` |
+| modelWeightDownloadPerformed | `false` |
+| supabaseMutationPerformed | `false` |
+| gcsUploadPerformed | `false` |
+| publicArtifactCreated | `false` |
+| signedUrlCreated | `false` |
+| runtimeReadyNow | `false` |
+| internalBetaReadyNow | `false` |
+| productionReadyNow | `false` |
+
+Next prompt recommendation: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_MERGE_ORDER_REVIEW`.

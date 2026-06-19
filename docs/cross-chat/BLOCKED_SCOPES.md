@@ -351,3 +351,18 @@ The milestone plan does not run or unlock Track B runtime behavior. Dependency i
 
 Milestone 1 is future execution only and limited to tiny synthetic fixtures after a separate execution prompt.
 <!-- TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone1_blocked_pending_container_packaging_approval`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Scope: ExifTool, MediaInfo, Tesseract, and ImageMagick/GraphicsMagick only.
+- CPU/GPU policy: CPU-only/default; no GPU.
+- Current result: system binary packaging approval is required before Milestone 1 can pass.
+- End-to-end product-ready Track B tools remain `0`; no 40+ installed/proven end-to-end claim is allowed.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+
+Blocked scopes remain: no FFmpeg/FFprobe, OpenCV, PyAV, PySceneDetect, PaddleOCR, PaddlePaddle, OpenColorIO, OpenImageIO, real user media, media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_EXECUTION_STATUS:end -->

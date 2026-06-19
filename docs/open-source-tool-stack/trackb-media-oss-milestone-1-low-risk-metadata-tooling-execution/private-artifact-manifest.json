@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone1Execution.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-19T20:24:14.983Z",
+  "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-1-low-risk-metadata-tooling-execution",
+  "temporaryFixtureDirectoryCommitted": false,
+  "fixtureOutputsCommitted": false,
+  "rawUserMediaAccessed": false,
+  "secretPayloadAccessed": false,
+  "secretsPrinted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

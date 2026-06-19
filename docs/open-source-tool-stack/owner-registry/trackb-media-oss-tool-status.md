@@ -21,3 +21,16 @@ Decision: `trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milest
 Milestone 1 future execution is approved for ExifTool, MediaInfo, Tesseract, and ImageMagick / GraphicsMagick. It is CPU-only/default and future-only; no install, package-lock mutation, proof execution, media processing, render/export, worker runtime, Supabase/GCS, public artifact, signed URL, beta, or production scope ran in this planning phase.
 
 Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION`.
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone1_blocked_pending_container_packaging_approval`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Scope: ExifTool, MediaInfo, Tesseract, and ImageMagick/GraphicsMagick only.
+- CPU/GPU policy: CPU-only/default; no GPU.
+- Current result: system binary packaging approval is required before Milestone 1 can pass.
+- End-to-end product-ready Track B tools remain `0`; no 40+ installed/proven end-to-end claim is allowed.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_EXECUTION_STATUS:end -->

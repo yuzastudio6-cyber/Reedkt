@@ -1,0 +1,89 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone1Execution.toolAvailability.v1",
+  "generatedAt": "2026-06-19T20:24:14.983Z",
+  "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval",
+  "tools": [
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "generatedAt": "2026-06-19T20:24:14.983Z",
+      "commands": [
+        {
+          "command": "exiftool",
+          "path": null,
+          "available": false
+        }
+      ],
+      "selectedCommand": null,
+      "selectedPath": null,
+      "available": false,
+      "versionCommand": null,
+      "versionExitCode": null,
+      "versionSummary": null
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "generatedAt": "2026-06-19T20:24:14.983Z",
+      "commands": [
+        {
+          "command": "mediainfo",
+          "path": null,
+          "available": false
+        }
+      ],
+      "selectedCommand": null,
+      "selectedPath": null,
+      "available": false,
+      "versionCommand": null,
+      "versionExitCode": null,
+      "versionSummary": null
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "generatedAt": "2026-06-19T20:24:14.983Z",
+      "commands": [
+        {
+          "command": "tesseract",
+          "path": null,
+          "available": false
+        }
+      ],
+      "selectedCommand": null,
+      "selectedPath": null,
+      "available": false,
+      "versionCommand": null,
+      "versionExitCode": null,
+      "versionSummary": null
+    },
+    {
+      "id": "imagemagick_graphicsmagick",
+      "name": "ImageMagick / GraphicsMagick",
+      "generatedAt": "2026-06-19T20:24:14.983Z",
+      "commands": [
+        {
+          "command": "magick",
+          "path": null,
+          "available": false
+        },
+        {
+          "command": "convert",
+          "path": null,
+          "available": false
+        },
+        {
+          "command": "gm",
+          "path": null,
+          "available": false
+        }
+      ],
+      "selectedCommand": null,
+      "selectedPath": null,
+      "available": false,
+      "versionCommand": null,
+      "versionExitCode": null,
+      "versionSummary": null
+    }
+  ]
+}

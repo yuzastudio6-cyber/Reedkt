@@ -1,0 +1,12 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone1Execution.cpuGpuCostPerformance.v1",
+  "generatedAt": "2026-06-19T20:24:14.983Z",
+  "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval",
+  "computeDefault": "cpu_only",
+  "gpuRequired": false,
+  "gpuRunInThisPhase": false,
+  "expectedFutureRuntime": "cpu_cloud_run_job_or_cpu_worker_image_after_packaging_approval",
+  "costTier": "low",
+  "latencyRisk": "low_for_tiny_synthetic_fixtures_higher_for_future_user_media_not_authorized_here",
+  "fallback": "block_until_cpu_worker_image_packaging_includes_missing_tool"
+}

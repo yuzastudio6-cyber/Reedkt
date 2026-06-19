@@ -53,3 +53,9 @@ install, prove, or execute those tools. PR #544 is Track A context only. This
 sync does not change internal beta, external beta, production, runtime
 execution, provider execution, Supabase/GCS, signed URL, or public artifact
 readiness.
+
+AI graphics draft package proof promotion QA accepts PR #550 with warnings for
+merge-order review only. The 13 reviewed draft package proof tools are not
+canonically promoted and remain blocked for runtime execution, internal beta,
+external beta, production, provider execution, Supabase/GCS, signed URL, and
+public artifact readiness.

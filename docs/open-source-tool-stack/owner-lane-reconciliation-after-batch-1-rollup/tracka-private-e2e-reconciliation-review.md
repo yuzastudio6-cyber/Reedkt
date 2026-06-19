@@ -1,0 +1,36 @@
+# Track A Private E2E Reconciliation Review
+
+- Schema: `reeditpro.openSourceToolStack.ownerLaneReconciliationAfterBatch1Rollup.trackaPrivateE2eReview.v1`
+- Status: `accepted`
+- Accepted: `true`
+- Warnings: `metadata_only_runtime_scopes_remain_blocked`
+- Blockers: none
+
+```json
+{
+  "reviewedPrs": [
+    "#497",
+    "#502",
+    "#505",
+    "#510",
+    "#513",
+    "#516",
+    "#520"
+  ],
+  "centralBatch1FfmpegFfprobeEvidence": {
+    "ffmpeg": "version_proven_tracka_container_path_only_5.1.9-0+deb12u1",
+    "ffprobe": "version_proven_tracka_container_path_only_5.1.9-0+deb12u1",
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false
+  },
+  "status": {
+    "privateE2eRevalidationPlanningReadyWhereSupported": true,
+    "internalBetaUnlocked": false,
+    "runtimeExecutionBlocked": true,
+    "transactionalRpcSourceGatesPending": true
+  },
+  "duplicateRisk": "medium_until_tracka_private_e2e_source_reconciles_with_central_open_source_path",
+  "centralRecommendation": "tracka_private_e2e_reconciliation_after_staged_owner_merge_plan",
+  "nextOwnerPromptRecommendation": "OPEN_SOURCE_TOOL_STACK_TRACKA_PRIVATE_E2E_RECONCILIATION_AFTER_BATCH_1"
+}
+```

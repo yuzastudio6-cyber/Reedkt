@@ -1,0 +1,124 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ownerLaneReconciliationAfterBatch1Rollup.aiGraphicsWorkerReview.v1",
+  "generatedAt": "2026-06-19T00:35:47.375Z",
+  "status": "accepted",
+  "accepted": true,
+  "warnings": [
+    "metadata_only_runtime_scopes_remain_blocked"
+  ],
+  "blockers": [],
+  "details": {
+    "reviewedPrs": [
+      "#524",
+      "#521",
+      "#517",
+      "#515",
+      "#511",
+      "#509",
+      "#506",
+      "#503",
+      "#500",
+      "#496",
+      "#493",
+      "#491"
+    ],
+    "acceptedWithWarningsTools": [
+      {
+        "toolName": "d3",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "echarts",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "vega-lite",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "vega",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "satori",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "@svgdotjs/svg.js",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "@viz-js/viz",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "lottie-web",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "animejs",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "three",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "pixi.js",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "konva",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      },
+      {
+        "toolName": "babylonjs",
+        "status": "accepted_with_warnings",
+        "lane": "worker_metadata_dry_run_only",
+        "runtimeApprovals": false
+      }
+    ],
+    "currentStatus": "open_draft_chain_not_central_source_of_truth",
+    "decisionFromOwnerLane": "worker_ai_graphics_metadata_job_payload_dry_run_runtime_gate_owner_approved_with_warnings",
+    "runtimeApprovals": {
+      "workerExecution": false,
+      "jobClaim": false,
+      "leaseMutation": false,
+      "queueExecution": false,
+      "routeExecution": false,
+      "actualToolExecution": false,
+      "providerModelRuntime": false,
+      "browserWebglCanvasRuntime": false,
+      "remotionRenderExport": false,
+      "supabaseGcsPublicArtifacts": false,
+      "betaProduction": false
+    },
+    "duplicateRisk": "high_until_draft_chain_resolves",
+    "centralRecommendation": "stage_owner_merge_plan_then_ai_graphics_worker_reconciliation",
+    "nextOwnerPromptRecommendation": "OPEN_SOURCE_TOOL_STACK_AI_GRAPHICS_WORKER_RECONCILIATION_AFTER_BATCH_1"
+  }
+}

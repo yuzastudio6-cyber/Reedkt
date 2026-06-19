@@ -1,0 +1,35 @@
+# Sound OSS Reconciliation Review
+
+- Schema: `reeditpro.openSourceToolStack.ownerLaneReconciliationAfterBatch1Rollup.soundOssReview.v1`
+- Status: `accepted`
+- Accepted: `true`
+- Warnings: `metadata_only_runtime_scopes_remain_blocked`
+- Blockers: none
+
+```json
+{
+  "reviewedPrs": [
+    "#495",
+    "#507"
+  ],
+  "scopedStatus": "metadata_and_synthetic_fixture_evidence_with_warnings",
+  "inheritedWarnings": [
+    "ffmpeg_ffprobe_boundary_alignment",
+    "project_wide_fixture_pass_claims_need_central_context"
+  ],
+  "blockedToolsAndScopes": [
+    "Demucs",
+    "RNNoise",
+    "Essentia",
+    "Rubber Band",
+    "Signalsmith Stretch",
+    "real_audio_processing",
+    "media_runtime",
+    "Supabase/GCS/artifacts",
+    "beta/production"
+  ],
+  "duplicateRisk": "medium_until_sound_scoped_evidence_is_centrally_reconciled",
+  "centralRecommendation": "sound_oss_reconciliation_after_staged_owner_merge_plan",
+  "nextOwnerPromptRecommendation": "OPEN_SOURCE_TOOL_STACK_SOUND_OSS_RECONCILIATION_AFTER_BATCH_1"
+}
+```

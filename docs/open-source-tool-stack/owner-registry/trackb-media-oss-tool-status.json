@@ -210,5 +210,54 @@
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,
     "betaProductionAccepted": false
+  },
+  "milestone1BuildContextBlockerFollowup": {
+    "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof",
+    "reportKey": "trackb_milestone_1_build_context_blocker_followup_reports",
+    "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+    "buildContextOutputs": [
+      "dist-server",
+      "dist-staging-fixture-worker"
+    ],
+    "imageTag": "reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8",
+    "tools": [
+      {
+        "id": "exiftool",
+        "name": "ExifTool",
+        "container_version_proven": true,
+        "synthetic_fixture_proven": true,
+        "accepted_proven": true,
+        "blocker": null
+      },
+      {
+        "id": "mediainfo",
+        "name": "MediaInfo",
+        "container_version_proven": true,
+        "synthetic_fixture_proven": true,
+        "accepted_proven": true,
+        "blocker": null
+      },
+      {
+        "id": "tesseract",
+        "name": "Tesseract",
+        "container_version_proven": true,
+        "synthetic_fixture_proven": false,
+        "accepted_proven": false,
+        "blocker": "synthetic_fixture_not_proven"
+      },
+      {
+        "id": "imagemagick",
+        "name": "ImageMagick",
+        "container_version_proven": true,
+        "synthetic_fixture_proven": true,
+        "accepted_proven": true,
+        "blocker": null
+      }
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_FOLLOWUP_BLOCKER_REVIEW",
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "betaProductionAccepted": false
   }
 }

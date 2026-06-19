@@ -1,0 +1,39 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1BuildContextFollowup.statusMatrix.v1",
+  "generatedAt": "2026-06-19T22:49:48.412Z",
+  "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof",
+  "tools": [
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "container_version_proven": true,
+      "synthetic_fixture_proven": true,
+      "accepted_proven": true,
+      "blocker": null
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "container_version_proven": true,
+      "synthetic_fixture_proven": true,
+      "accepted_proven": true,
+      "blocker": null
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "container_version_proven": true,
+      "synthetic_fixture_proven": false,
+      "accepted_proven": false,
+      "blocker": "synthetic_fixture_not_proven"
+    },
+    {
+      "id": "imagemagick",
+      "name": "ImageMagick",
+      "container_version_proven": true,
+      "synthetic_fixture_proven": true,
+      "accepted_proven": true,
+      "blocker": null
+    }
+  ]
+}

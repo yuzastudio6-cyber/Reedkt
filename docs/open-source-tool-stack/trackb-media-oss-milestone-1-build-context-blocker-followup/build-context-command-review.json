@@ -1,0 +1,43 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1BuildContextFollowup.commandReview.v1",
+  "generatedAt": "2026-06-19T22:49:48.412Z",
+  "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+  "dockerfileCopyTargets": [
+    "docker/prod/cpu-worker/requirements.cpu.txt",
+    "package*.json",
+    "dist-server",
+    "dist-staging-fixture-worker"
+  ],
+  "requiredBuildContextOutputs": [
+    "dist-server",
+    "dist-staging-fixture-worker"
+  ],
+  "buildContextCommands": [
+    {
+      "command": "npm run build:server",
+      "outputDir": "dist-server"
+    },
+    {
+      "command": "npm run build:staging-fixture-worker",
+      "outputDir": "dist-staging-fixture-worker"
+    }
+  ],
+  "approvedPackages": [
+    "libimage-exiftool-perl",
+    "mediainfo",
+    "tesseract-ocr",
+    "tesseract-ocr-eng",
+    "imagemagick"
+  ],
+  "packagePresence": {
+    "libimage-exiftool-perl": true,
+    "mediainfo": true,
+    "tesseract-ocr": true,
+    "tesseract-ocr-eng": true,
+    "imagemagick": true
+  },
+  "allApprovedPackagesPresent": true,
+  "graphicsMagickDefaultIncluded": false,
+  "ffmpegFfprobeNotExecuted": true,
+  "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof"
+}

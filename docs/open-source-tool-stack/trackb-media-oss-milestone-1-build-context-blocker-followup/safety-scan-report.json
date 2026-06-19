@@ -1,0 +1,17 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1BuildContextFollowup.safetyScan.v1",
+  "generatedAt": "2026-06-19T22:49:48.412Z",
+  "forbiddenOutputsPresent": [],
+  "changedProtectedFiles": [],
+  "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "generatedOutputsCommitted": false,
+  "fixtureOutputsCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "dockerImagePushed": false,
+  "secretMaterialDetected": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "cleanupPassed": true,
+  "passed": true,
+  "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof"
+}

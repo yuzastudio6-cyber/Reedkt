@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1BuildContextFollowup.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-19T22:49:48.412Z",
+  "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-1-build-context-blocker-followup",
+  "localDockerImageTag": "reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8",
+  "localDockerImagePushed": false,
+  "generatedBuildContextOutputsCommitted": false,
+  "fixtureOutputsCommitted": false,
+  "rawUserMediaAccessed": false,
+  "secretsPrinted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

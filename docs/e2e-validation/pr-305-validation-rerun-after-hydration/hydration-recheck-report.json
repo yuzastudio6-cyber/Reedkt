@@ -1,0 +1,38 @@
+{
+  "schema": "reeditpro.e2e.pr305ValidationRerunAfterHydration.hydrationRecheck.v1",
+  "command": "npm ci --ignore-scripts --no-audit --no-fund",
+  "worktree": "/private/tmp/reeditpro-pr-305-validation-rerun-target",
+  "targetHead": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+  "startedAt": "2026-06-19T16:24:14.549Z",
+  "endedAt": "2026-06-19T16:24:18.439Z",
+  "durationMs": 3890,
+  "exitCode": 0,
+  "completed": true,
+  "timedOut": false,
+  "interrupted": false,
+  "packageHashes": {
+    "before": {
+      "packageJsonSha256": "507c60656461bb735173133281653b6dfa3c0e813b8d80968b65adc26337d315",
+      "packageLockSha256": "064ed352d55af751f8399752d5abaa980f66e514cab323d54894f0ce5afb89da"
+    },
+    "after": {
+      "packageJsonSha256": "507c60656461bb735173133281653b6dfa3c0e813b8d80968b65adc26337d315",
+      "packageLockSha256": "064ed352d55af751f8399752d5abaa980f66e514cab323d54894f0ce5afb89da"
+    },
+    "packageJsonChanged": false,
+    "packageLockChanged": false
+  },
+  "requiredBinaries": {
+    "tsx": true,
+    "eslint": true,
+    "tsc": true,
+    "vite": true
+  },
+  "outputSummary": [
+    "npm emitted uuid deprecation warnings.",
+    "npm added 755 packages in 4s.",
+    "No package file mutation was observed."
+  ],
+  "retryPerformed": false,
+  "decisionImpact": "hydration_passed_static_validation_allowed"
+}

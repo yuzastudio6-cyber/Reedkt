@@ -1,0 +1,21 @@
+{
+  "schema": "reeditpro.e2e.pr305ValidationRerunAfterHydration.privateManifest.v1",
+  "privateWorktrees": [
+    "/private/tmp/reeditpro-pr-305-validation-rerun-target"
+  ],
+  "privateTempReports": [
+    "/private/tmp/reeditpro-pr-305-hydration-rerun-report.json",
+    "/private/tmp/reeditpro-pr-305-static-validation-results.json",
+    "/private/tmp/reeditpro-pr-305-build-classification-results.json",
+    "/private/tmp/reeditpro-pr-305-safety-scan-results.json"
+  ],
+  "committedArtifacts": "safe metadata reports only",
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "secretPayloadPrinted": false,
+  "mediaArtifactsCommitted": false,
+  "generatedOutputsCommitted": false,
+  "nodeModulesCommitted": false,
+  "packageLockMutated": false,
+  "dockerFilesMutated": false
+}

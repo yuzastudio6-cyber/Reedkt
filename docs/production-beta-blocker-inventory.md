@@ -43,3 +43,14 @@ PR #305 hydration blocker resolution does not remove production beta blockers.
 - Full PR #305 validation did not run in this phase.
 - Merge-ready validations remain `0`.
 - External beta, paid production, production, runtime execution, workers/routes/providers, media/render/export, Supabase/GCS, public artifacts, signed URLs, raw prompts, and secret payload access remain blocked.
+
+## E2E PR #305 validation rerun after hydration
+
+PR #305 validation rerun after hydration does not remove production beta blockers.
+
+- `e2e_pr305_validation_rerun_passed_ready_for_merge_hygiene`
+- Hydration, bounded static validation, build classification, and safety scan passed for PR #305 at `757686f49d85cb7d346b55a1712e1d34a6bdde03`.
+- PR #305 may enter merge hygiene, but it was not merged in this phase.
+- Merge-ready validations from this packet: `1`.
+- End-to-end product-ready tools remain `0`; no 40+ end-to-end tool proof is claimed.
+- External beta, paid production, production, runtime execution, workers/routes/providers, media/render/export, Supabase/GCS, public artifacts, signed URLs, raw prompts, and secret payload access remain blocked.

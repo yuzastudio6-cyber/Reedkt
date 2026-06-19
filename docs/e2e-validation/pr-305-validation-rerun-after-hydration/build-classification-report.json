@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.e2e.pr305ValidationRerunAfterHydration.buildClassification.v1",
+  "targetHead": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+  "commands": [
+    {"command": "npm run build", "exitCode": 0, "classification": "passed"},
+    {"command": "npm run build:server", "exitCode": 0, "classification": "passed"},
+    {"command": "npm run foundation:validate:with-build", "exitCode": 0, "classification": "passed"}
+  ],
+  "knownDarwinRolldownEnvironmentBlockerObserved": false,
+  "buildExceptionReviewNeeded": false,
+  "generatedOutputsObserved": [
+    "dist",
+    "dist-server"
+  ],
+  "cleanupCommand": "rm -rf dist dist-server dist-remotion-worker dist-staging-fixture-worker dist-staging-real-video-export-worker",
+  "cleanupCompleted": true,
+  "generatedOutputsRemainAfterCleanup": false,
+  "decisionImpact": "build_classification_passed"
+}

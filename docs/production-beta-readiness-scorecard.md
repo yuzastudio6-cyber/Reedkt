@@ -527,3 +527,18 @@ execution, provider/model runtime, browser/WebGL/canvas runtime, resvg
 rasterization, Remotion render/export, Supabase mutation, GCS/storage transfer,
 signed URLs, public artifacts, internal beta, external beta, paid production,
 and production readiness blocked.
+
+WORKER_AI_GRAPHICS_METADATA_CONTROLLED_NOOP_WORKER_GATE_OWNER_REVIEW decision
+`worker_ai_graphics_metadata_controlled_noop_worker_gate_owner_review_passed_with_warnings`
+accepts PR #531 controlled no-op QA evidence with warnings for all 13 accepted
+AI graphics metadata tools. It accepts only scoped claims
+`workerAiGraphicsMetadataControlledNoopPassed` and carried-forward
+`workerAiGraphicsMetadataJobPayloadDryRunPassed`, sets
+`readyForCentralToolStackRefreshAudit` true, keeps
+`readyForWorkerExecutionPlanning` false, and keeps generic dry-run and
+generated-local fixture pass claims false and rejected. Live worker execution,
+real job claim, lease mutation, queue execution, route execution, actual tool
+execution, provider/model runtime, browser/WebGL/canvas runtime, resvg
+rasterization, Remotion render/export, Supabase mutation, GCS/storage transfer,
+signed URLs, public artifacts, internal beta, external beta, paid production,
+and production readiness remain blocked.

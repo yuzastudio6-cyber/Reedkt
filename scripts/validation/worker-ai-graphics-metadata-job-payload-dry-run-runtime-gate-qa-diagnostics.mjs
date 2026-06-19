@@ -399,6 +399,7 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .filter((line) => !line.includes('worker:ai-graphics-metadata-controlled-noop-worker-gate:execute'))
   .filter((line) => !line.includes('worker:ai-graphics-metadata-controlled-noop-worker-gate:diagnostics'))
   .filter((line) => !line.includes('worker:ai-graphics-metadata-controlled-noop-worker-gate-qa:diagnostics'))
+  .filter((line) => !line.includes('worker:ai-graphics-metadata-controlled-noop-worker-gate-owner-review:diagnostics'))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 if (git(['diff', '--name-only', `${baseRef}...HEAD`, '--', 'package-lock.json']).trim()) failures.push('package_lock_changed')

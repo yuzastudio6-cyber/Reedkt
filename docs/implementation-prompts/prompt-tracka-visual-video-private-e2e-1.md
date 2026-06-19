@@ -9,6 +9,7 @@ Prerequisites:
 - `TRACKA-CORE-RENDER-CAPTION-INSTALL-PROOF-1`
 - `TRACKA-LIBASS-CAPTION-BURNIN-RUNTIME-PROOF-1`
 - `TRACKA-REMOTION-RENDER-VALIDATION-1`
+- `TRACKA-OTIO-TIMELINE-VALIDATION-1`
 - Worker Runtime transactional readiness
 - Supabase Worker Runtime RPC/schema readiness
 - Tool Route guarded execution readiness
@@ -20,6 +21,8 @@ Libass runtime proof status: `TRACKA-LIBASS-CAPTION-BURNIN-RUNTIME-PROOF-1 decis
 
 Current blocked readiness: `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates`.
 
+OTIO handoff readiness: `opentimelineio_timeline_validation readiness: ready_for_tracka_private_e2e_timeline_handoff`.
+
 This prompt must not execute private E2E, process media, access private artifacts, create signed URLs, create public artifacts, or unlock beta/production/final delivery.
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, tool installation, tool execution, private media processing, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, tool installation, tool execution, private media processing, FFmpeg/FFprobe execution, or broad service-role handler was enabled.

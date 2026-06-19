@@ -20,6 +20,10 @@ export const FFMPEG_FFPROBE_CONTAINER_VERSION = '5.1.9-0+deb12u1'
 const expectedDecision: StagedOwnerMergePlanDecision =
   'staged_owner_merge_plan_passed_ready_for_e2e_validation_pr305_hydration_blocker_resolution'
 const primaryNextPrompt = 'E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION'
+const pr523MergedAt = '2026-06-19T02:04:29Z'
+const pr523MergeCommit = 'f258967676c4877d3e1627b5710b789cff04b451'
+const pr305Blocker = 'pr_305_validation_blocked_npm_ci_failed'
+const e2eQueueDecision = 'reeditpro_e2e_validation_queue_1_blocked_validation_failures'
 const secondaryNextPrompts = [
   'OPEN_SOURCE_TOOL_STACK_AI_GRAPHICS_WORKER_SOURCE_REVIEW_AFTER_BATCH_1',
   'OPEN_SOURCE_TOOL_STACK_SOUND_OSS_SOURCE_RECONCILIATION_AFTER_BATCH_1',
@@ -245,7 +249,7 @@ function buildArtifacts(): StagedOwnerMergeArtifacts {
     'AI graphics source-chain ordering is advisory until draft PRs are explicitly resolved by their owner.',
   ])
   const mergeReadinessBlockerMatrix = report('mergeReadinessBlockerMatrix', generatedAt, buildBlockerMatrix(prMetadata), [
-    'PR #523 keeps merge-ready validation count at 0 for this staged plan.',
+    'PR #523 is merged source evidence that PR #305 remains blocked and merge-ready validations remain 0.',
   ])
   const toolCountAndClaimPolicy = report('toolCountAndClaimPolicy', generatedAt, buildToolCountPolicy(), [
     'Do not claim 40+ tools are installed/proven end-to-end.',
@@ -341,10 +345,10 @@ function buildSourceAudit(generatedAt: string, prMetadata: Record<string, JsonRe
 }
 
 function buildStages(prMetadata: Record<string, JsonRecord>) {
-  const e2e523 = prMetadata['523'] ?? {}
+  const e2e523 = prSummary(523, prMetadata)
   return [
     stage(0, 'central_source_hygiene_and_duplicate_avoidance', centralEvidencePrs, 'Confirm PR #529/#527/#522/#416 central evidence and no duplicate staged owner plan.', 'Clean central branch; no package-lock/Docker/.dockerignore diff.', 'Duplicate central staged owner plan, source drift, or forbidden scope.', 'staged-owner merge planner', 'source audit and duplicate-risk facts', 'OPEN_SOURCE_TOOL_STACK_STAGED_OWNER_MERGE_PLAN_AFTER_BATCH_1_ROLLUP'),
-    stage(1, 'e2e_validation_pr305_hydration_blocker_resolution', [519, 523, 305], 'Resolve or isolate PR #523 blocker before beta claims.', `PR #523 state=${e2e523.state ?? 'unknown'} draft=${String(e2e523.isDraft ?? 'unknown')}.`, 'PR #523 still open draft or PR #305 hydration blocker persists.', 'E2E validation owner', 'blocker-resolution packet only', primaryNextPrompt),
+    stage(1, 'e2e_validation_pr305_hydration_blocker_resolution', [519, 523, 305], 'Resolve the PR #305 hydration blocker before beta claims.', `PR #523 is merged source evidence at ${String(e2e523.mergedAt ?? 'unknown')} with merge commit ${String(e2e523.mergeCommitOid ?? 'unknown')}. PR #305 remains blocked by ${pr305Blocker}; merge-ready validations remain 0.`, 'PR #305 hydration blocker persists until the next phase resolves it; merge-ready validations remain 0.', 'E2E validation owner', 'blocker-resolution packet only', primaryNextPrompt),
     stage(2, 'ai_graphics_worker_source_review', aiGraphicsPrs, 'Review AI graphics worker chain without centralizing runtime proof.', 'Draft/open chain remains metadata dry-run scoped.', 'Worker execution, browser/WebGL/canvas runtime, provider/model calls, or beta claims.', 'AI graphics worker owner', 'AI graphics source review PR', 'OPEN_SOURCE_TOOL_STACK_AI_GRAPHICS_WORKER_SOURCE_REVIEW_AFTER_BATCH_1'),
     stage(3, 'sound_oss_source_reconciliation', soundPrs, 'Reconcile Sound OSS scoped evidence as metadata/synthetic-fixture only.', 'PR #495/#507 merged outside central open-source branch context.', 'Real audio/media processing, provider calls, or production claims.', 'Sound/Music/Audio owner', 'Sound scoped reconciliation packet', 'OPEN_SOURCE_TOOL_STACK_SOUND_OSS_SOURCE_RECONCILIATION_AFTER_BATCH_1'),
     stage(4, 'tracka_private_e2e_source_reconciliation', trackaPrs, 'Reconcile Track A private E2E context while runtime remains blocked.', 'Track A planning/gates are merged in owner lanes.', 'Render/export, worker execution, route execution, media processing, beta unlock.', 'Track A owner', 'Track A source reconciliation packet', 'OPEN_SOURCE_TOOL_STACK_TRACKA_PRIVATE_E2E_SOURCE_RECONCILIATION_AFTER_BATCH_1'),
@@ -405,8 +409,10 @@ function buildOwnerStackOrder(prMetadata: Record<string, JsonRecord>) {
     e2e: {
       recommendedOrder: e2ePrs,
       state: e2ePrs.map((pr) => prSummary(pr, prMetadata)),
-      blocker: 'pr_305_validation_blocked_npm_ci_failed',
+      blocker: pr305Blocker,
       mergeReadyValidations: 0,
+      pr523SourceEvidence:
+        'PR #523 is merged and now serves as source evidence for the unresolved PR #305 hydration blocker.',
     },
   }
 }
@@ -416,10 +422,16 @@ function buildBlockerMatrix(prMetadata: Record<string, JsonRecord>) {
   return {
     readyNonDraftCleanPrs: all.filter((pr) => pr.state === 'OPEN' && pr.isDraft === false && pr.mergeStateStatus === 'CLEAN'),
     draftPrs: all.filter((pr) => pr.state === 'OPEN' && pr.isDraft === true),
-    openBlockedPrs: [
+    activeE2eBlockers: [
       {
-        number: 523,
-        blocker: 'pr_305_validation_blocked_npm_ci_failed',
+        number: 305,
+        blocker: pr305Blocker,
+        sourceEvidencePr: 523,
+        sourceEvidenceState: 'MERGED',
+        sourceEvidenceMergedAt: pr523MergedAt,
+        sourceEvidenceMergeCommit: pr523MergeCommit,
+        queueDecision: e2eQueueDecision,
+        mergeReadyValidations: 0,
         impact: 'blocks credible E2E validation queue health and internal beta readiness claims',
       },
     ],
@@ -480,14 +492,14 @@ function buildInternalBetaMap() {
 }
 
 function buildRecommendedNextPath(prMetadata: Record<string, JsonRecord>) {
-  const pr523 = prMetadata['523'] ?? {}
+  const pr523 = prSummary(523, prMetadata)
   return {
     primaryNextPath: primaryNextPrompt,
     primaryDecision: expectedDecision,
-    why: `PR #523 remains ${String(pr523.state ?? 'unknown')} draft=${String(pr523.isDraft ?? 'unknown')} with blocker pr_305_validation_blocked_npm_ci_failed, and merge-ready validations remain 0.`,
+    why: `PR #523 is merged and now serves as source evidence for the unresolved PR #305 hydration blocker. PR #523 merged at ${String(pr523.mergedAt ?? pr523MergedAt)} with merge commit ${String(pr523.mergeCommitOid ?? pr523MergeCommit)}. PR #305 remains blocked by ${pr305Blocker}. Merge-ready validations remain 0.`,
     secondaryNextPaths: secondaryNextPrompts,
     expectedBlockers: [
-      'PR #523 validation failure',
+      'PR #523 merged source evidence for PR #305 validation failure',
       'AI graphics draft/open chain',
       'Track A private E2E runtime gate evidence',
       'Sound scoped evidence not central runtime proof',
@@ -505,7 +517,10 @@ function buildDecision(generatedAt: string, prMetadata: Record<string, JsonRecor
     accepted: true,
     primaryNextPrompt,
     secondaryNextPrompts,
-    blockers: ['pr_305_validation_blocked_npm_ci_failed', 'merge_ready_validations_0'],
+    blockers: [pr305Blocker, 'merge_ready_validations_0'],
+    queueDecision: e2eQueueDecision,
+    pr305Blocker,
+    mergeReadyValidations: 0,
     e2ePr523: prSummary(523, prMetadata),
     inventoryCandidateCount: 71,
     aiGraphicsAcceptedWithWarningsCount: 13,
@@ -590,12 +605,14 @@ function report(id: string, generatedAt: string, details: Record<string, unknown
 
 function prSummary(number: number, prMetadata: Record<string, JsonRecord>) {
   const pr = prMetadata[String(number)] ?? {}
+  const mergeCommit = pr.mergeCommit as JsonRecord | undefined
   return {
     number,
     title: pr.title ?? 'unavailable',
     state: pr.state ?? 'unavailable',
     isDraft: pr.isDraft ?? null,
     mergedAt: pr.mergedAt ?? null,
+    mergeCommitOid: mergeCommit?.oid ?? null,
     baseRefName: pr.baseRefName ?? null,
     headRefName: pr.headRefName ?? null,
     mergeStateStatus: pr.mergeStateStatus ?? null,
@@ -657,7 +674,7 @@ function ghPr(number: number): JsonRecord {
           '--repo',
           'yuzastudio6-cyber/Reedkt',
           '--json',
-          'number,title,state,isDraft,mergedAt,baseRefName,headRefName,headRefOid,mergeStateStatus,url',
+          'number,title,state,isDraft,mergedAt,baseRefName,headRefName,headRefOid,mergeStateStatus,url,mergeCommit',
         ],
         { encoding: 'utf8' },
       ),
@@ -752,7 +769,7 @@ function decisionMarkdown(value: JsonRecord) {
     '',
     `Primary next prompt: \`${primaryNextPrompt}\``,
     '',
-    'This decision prioritizes PR #305 hydration blocker resolution because PR #523 remains open draft and merge-ready validations remain 0.',
+    `This decision prioritizes PR #305 hydration blocker resolution because PR #523 is merged source evidence for ${pr305Blocker} and merge-ready validations remain 0.`,
     '',
     'Do not claim 40+ tools are installed/proven end-to-end.',
     'Do not claim worker runtime, media processing, render/export, beta, or production readiness.',
@@ -826,6 +843,8 @@ function updateStatusDocs() {
     `Decision: \`${expectedDecision}\`.`,
     '',
     'Primary next prompt: `E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION`.',
+    '',
+    `PR #523 is merged and now serves as source evidence for the unresolved PR #305 hydration blocker. PR #523 merged at ${pr523MergedAt} with merge commit ${pr523MergeCommit}. PR #305 remains blocked by ${pr305Blocker}. Merge-ready validations remain 0.`,
     '',
     'The staged plan keeps 71 candidates inventoried, Batch 1 bounded proof only, 13 AI graphics tools accepted-with-warnings in worker metadata dry-run scope only, and 0 end-to-end product-ready tools.',
     '',

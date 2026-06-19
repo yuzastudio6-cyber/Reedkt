@@ -56,13 +56,13 @@ Accepted: `true`
     {
       "order": 1,
       "id": "e2e_validation_pr305_hydration_blocker_resolution",
-      "objective": "Resolve or isolate PR #523 blocker before beta claims.",
+      "objective": "Resolve the PR #305 hydration blocker before beta claims.",
       "sourcePrs": [
         519,
         523,
         305
       ],
-      "currentState": "PR #523 state=OPEN draft=true.",
+      "currentState": "PR #523 is merged source evidence at 2026-06-19T02:04:29Z with merge commit f258967676c4877d3e1627b5710b789cff04b451. PR #305 remains blocked by pr_305_validation_blocked_npm_ci_failed; merge-ready validations remain 0.",
       "prerequisites": [
         "source-of-truth branch clean",
         "package-lock unchanged",
@@ -88,7 +88,7 @@ Accepted: `true`
         "beta_or_production_unlock"
       ],
       "expectedOutput": "blocker-resolution packet only",
-      "stopConditions": "PR #523 still open draft or PR #305 hydration blocker persists.",
+      "stopConditions": "PR #305 hydration blocker persists until the next phase resolves it; merge-ready validations remain 0.",
       "owner": "E2E validation owner",
       "nextPrompt": "E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION"
     },

@@ -329,6 +329,8 @@ Decision: `staged_owner_merge_plan_passed_ready_for_e2e_validation_pr305_hydrati
 
 Primary next prompt: `E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION`.
 
+PR #523 is merged and now serves as source evidence for the unresolved PR #305 hydration blocker. PR #523 merged at 2026-06-19T02:04:29Z with merge commit f258967676c4877d3e1627b5710b789cff04b451. PR #305 remains blocked by pr_305_validation_blocked_npm_ci_failed. Merge-ready validations remain 0.
+
 The staged plan keeps 71 candidates inventoried, Batch 1 bounded proof only, 13 AI graphics tools accepted-with-warnings in worker metadata dry-run scope only, and 0 end-to-end product-ready tools.
 
 Do not claim 40+ tools are installed/proven end-to-end. Worker runtime, media processing, render/export, Supabase/GCS/public delivery, beta, and production remain blocked.

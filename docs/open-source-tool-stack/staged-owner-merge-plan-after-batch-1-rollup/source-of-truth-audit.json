@@ -1,10 +1,10 @@
 {
   "schema": "reeditpro.openSourceToolStack.stagedOwnerMergePlanAfterBatch1Rollup.sourceAudit.v1",
-  "generatedAt": "2026-06-19T01:45:16.519Z",
+  "generatedAt": "2026-06-19T14:48:26.589Z",
   "branch": "codex/rp-open-source-tool-stack-staged-owner-merge-plan-after-batch-1-rollup",
   "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
   "expectedSourceSha": "40a7a25c319aea2f3ff8149aa5a7a9e6206ed346",
-  "liveSourceSha": "40a7a25c319aea2f3ff8149aa5a7a9e6206ed346",
+  "liveSourceSha": "5dc3b78fca0dd1635f5d0778adf1f8dd1be99541",
   "packageJsonHash": "b6d44bf32210d5eba781bb4b71eb63e630e77aaae22397c4b61dfad10f4bdda4",
   "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
   "protectedFileHashes": {
@@ -78,6 +78,7 @@
       "headRefName": "codex/rp-tracka-gd-groupb-handoff-0-review",
       "headRefOid": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
       "isDraft": false,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 305,
@@ -90,6 +91,7 @@
       "headRefName": "codex/rp-tool-route-3-offline-dry-run-approval-packet",
       "headRefOid": "0e91380d2201e651c0c7df67624be015befa2db7",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 384,
@@ -102,6 +104,7 @@
       "headRefName": "codex/rp-worker-5-offline-dry-run-qa-review",
       "headRefOid": "9bd3cffc2da9f9151a90939c6276851d491f2d0f",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 401,
@@ -114,6 +117,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-audit",
       "headRefOid": "85a02dce4a64a99927c8e30c68bd75d3d9736390",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "69f85d7f0aeebe3dceaa78aa0e9f4b30ce597571"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-15T13:49:55Z",
       "number": 416,
@@ -126,6 +132,7 @@
       "headRefName": "codex/rp-open-source-tool-stack-ai-tools-creative-graphics-audit",
       "headRefOid": "d56601693f8286bf6db6229974cdfc686015044c",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 417,
@@ -138,6 +145,7 @@
       "headRefName": "codex/rp-ai-tools-creative-graphics-install-proof-approval-batch-1",
       "headRefOid": "5d9dc9f734e8947658b26c7657dbab3b81db4630",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 420,
@@ -150,6 +158,7 @@
       "headRefName": "codex/rp-ai-tools-creative-graphics-package-lock-base-fix",
       "headRefOid": "fcec10e4df3a3c9ed8765737f5875ecbb4d6990c",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 423,
@@ -162,6 +171,7 @@
       "headRefName": "codex/rp-ai-tools-creative-graphics-install-proof-batch-1-execution",
       "headRefOid": "4e79f14a03a441c0a6d9c8adaef55b7c8b693c12",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 425,
@@ -174,6 +184,7 @@
       "headRefName": "codex/rp-ai-tools-creative-graphics-batch-1-qa-review",
       "headRefOid": "e75d654e6e5ce1c0464cc389ce48dd03f1d0a70d",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 428,
@@ -186,6 +197,7 @@
       "headRefName": "codex/rp-ai-tools-creative-graphics-batch-2-approval-packet",
       "headRefOid": "17f801a54bada51f60513ab7411c022192e4071f",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 432,
@@ -198,6 +210,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-install-proof-execution-batch-1",
       "headRefOid": "9fa82db4bfd25868aebc82f3d3d1779c149ee5db",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "d79c4ece6eacdea0fbc836536aa8fe34d818ac22"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-16T14:25:23Z",
       "number": 435,
@@ -210,6 +225,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-batch-1-qa-review",
       "headRefOid": "2e952e5c5b83ebbe9a9ef9303e14ef9787161812",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "87c2d8fb3c3e4e475590a06f19a5fa81c6284d03"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-16T15:07:40Z",
       "number": 439,
@@ -222,6 +240,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-missing-optional-package-binary-execution",
       "headRefOid": "13090b622267991a2ebf50d30ed03e5c72d77c95",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "ecc94e78a89890597d02eea1206193b6a22041ca"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-17T15:57:35Z",
       "number": 455,
@@ -234,6 +255,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-duckdb-native-rebuild-execution",
       "headRefOid": "5460e79dc20d395a309d28a542d6e352176428c7",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "93512cf4ea4d0c414d05b72f0cd94a480f617aa6"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-17T20:18:18Z",
       "number": 466,
@@ -246,6 +270,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-duckdb-native-rebuild-qa-review",
       "headRefOid": "a631dab9d8d409b84aaf5e2a4d7bb6aa83335706",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "24a2a975489e1e2f9c52f10ad2be8191133968c6"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-17T20:58:43Z",
       "number": 469,
@@ -258,6 +285,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-schema-validation-execution",
       "headRefOid": "1bd6ed2a4d276066d0ca134ce674358e18f64b7a",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 491,
@@ -270,6 +298,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-schema-validation-qa-review",
       "headRefOid": "58f4e7839057d8c9e54d52c81f0e791e40e2574c",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 493,
@@ -282,6 +311,9 @@
       "headRefName": "codex/sound-oss-tools-13-final-scoped-evidence-rollup",
       "headRefOid": "bcdd6db680361f19a23671341e79a6793e561d5a",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "83a45c3532f803bb0f291e16541bdaa2e4fea45b"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T12:05:36Z",
       "number": 495,
@@ -294,6 +326,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-owner-approval",
       "headRefOid": "ce204a63fc08412af212609eecf0c8201ae88794",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 496,
@@ -306,6 +339,9 @@
       "headRefName": "codex/rp-internal-beta-tracka-scope-decision-1",
       "headRefOid": "1d14193429e13364c05ff36457ce0d7e32bac42c",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "59f82beb641fd772bfeddc8a244f148c3dbb267a"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T11:58:46Z",
       "number": 497,
@@ -318,6 +354,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-approval",
       "headRefOid": "23017a7f35a088de2fc77fd0c1427378fd7aa373",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 498,
@@ -330,6 +367,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-execution",
       "headRefOid": "3e4a4f6900a26c22972d8e0859f1f8c3391063c1",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 500,
@@ -342,6 +380,9 @@
       "headRefName": "codex/rp-tracka-private-e2e-revalidation-1-planning",
       "headRefOid": "7e6d832a4a3001423d870c58ec0961d369c5d78f",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "e23a56d3ff76122ff5dd5edaae59156e422ffe03"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T14:13:03Z",
       "number": 502,
@@ -354,6 +395,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-qa-review",
       "headRefOid": "d189f8be0634eaff62baacb8e18c842f997fa3dd",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 503,
@@ -366,6 +408,9 @@
       "headRefName": "codex/rp-worker-runtime-tracka-private-e2e-execution-gate-1",
       "headRefOid": "9935ef072653a162cc4d21fc8ece450015f8e3e5",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "7436ffd1de24d9666150aa552464997d3eedaddf"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T15:05:51Z",
       "number": 505,
@@ -378,6 +423,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-owner-review-after-dry-run",
       "headRefOid": "915ac654e612eec120e7397373478c84aea42b9f",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 506,
@@ -390,6 +436,9 @@
       "headRefName": "codex/sound-oss-tools-15-post-archive-handoff-review",
       "headRefOid": "5f9df604424076b105c3c78f457b3cf9c9dff711",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "06532ed131c15ec88a01a6e6b36d3ae2d8e6782e"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T15:16:45Z",
       "number": 507,
@@ -402,6 +451,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-tracka-build-context-generation-execution",
       "headRefOid": "0133ef8a21f62d8074cab329da3f261105301ff8",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "9225347e636a50aa0ef241badbf51f9a3947b1f8"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T15:43:34Z",
       "number": 508,
@@ -414,6 +466,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-gate-status-packet",
       "headRefOid": "06acd79d71f2bebb4648dfe6c5bb55d66a27bbb5",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 509,
@@ -426,6 +479,9 @@
       "headRefName": "codex/rp-tool-route-tracka-private-e2e-execution-gate-1",
       "headRefOid": "edb0eacd4a575e59bc28fb1fc250effdb64a5c06",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "0c7eab149615b3700a0eea38a2d10c34420fe6da"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T15:46:07Z",
       "number": 510,
@@ -438,6 +494,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-gate-status-qa-review",
       "headRefOid": "02e3de73fa86ec3f7b713e539bc79797c4a44f6a",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 511,
@@ -450,6 +507,9 @@
       "headRefName": "codex/rp-tool-route-tracka-private-e2e-execution-gate-2",
       "headRefOid": "f0ddd37b82f3a68b69c1c08536e3ce61b075b05c",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "eed130e64b680c30b26a020099f3b51f58e2b339"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T16:36:44Z",
       "number": 513,
@@ -462,6 +522,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-tracka-container-docker-build-ffmpeg-ffprobe-version-probe-rerun",
       "headRefOid": "8a621b043d533d5ef7c70d18e4c9fc0c85dc50d9",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "a0ad97abce12f7b8265feeaefa30390a41de03e4"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T16:48:48Z",
       "number": 514,
@@ -474,6 +537,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-gate-status-owner-approval",
       "headRefOid": "37e6b724517d1ed61ed79cc5a8034cc04da3a4a3",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 515,
@@ -486,6 +550,9 @@
       "headRefName": "codex/rp-worker-runtime-tracka-private-e2e-execution-gate-2",
       "headRefOid": "59d1b305681c3bd253b43d067c6d96a35775774e",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "73eb9f808920d7c8acb8c9a7e390b5a0442a0f26"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T17:24:28Z",
       "number": 516,
@@ -498,6 +565,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-packet",
       "headRefOid": "fa7f3d13bba56f18267c7e1e894984da2eba9322",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 517,
@@ -510,6 +578,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa-review",
       "headRefOid": "3d6a404f801e9b00eadd7a6c8d581a2fbc7d6c9d",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "aed2a8ecc06b7a68a4139d38d3bb5f568a949ffc"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T17:37:27Z",
       "number": 518,
@@ -522,6 +593,9 @@
       "headRefName": "codex/reeditpro-e2e-merge-hygiene-1-open-pr-ready-queue",
       "headRefOid": "05260c604865f0ad6ff0e4327c172123a59eacf6",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "61dc4940340db9508012f74294fd6723accb3d36"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T17:42:26Z",
       "number": 519,
@@ -534,6 +608,9 @@
       "headRefName": "codex/rp-worker-runtime-transactional-contract-1-tracka-private-e2e",
       "headRefOid": "10b9d9ea2ef0f9b0c9f72fe8dc0deda8e63be6f5",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "2fa54b4de1db19be85400eb6ca3af3374e0d254d"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T18:22:06Z",
       "number": 520,
@@ -546,6 +623,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-qa-review",
       "headRefOid": "f70c43379eaa2981922e7e8a2dcba391cd8f5f05",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 521,
@@ -558,6 +636,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-batch1-final-rollup-after-ffmpeg-ffprobe-proof",
       "headRefOid": "fb205e78d73885360efd4f48b4aaae48e037e6df",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "96b5b0e69ba69f22d778aefe748128562fc3112a"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-18T18:44:15Z",
       "number": 522,
@@ -569,11 +650,14 @@
       "baseRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
       "headRefName": "codex/reeditpro-e2e-validation-queue-1-run-missing-validations",
       "headRefOid": "34139763bdd34431239d40c1d96b15b77b92816f",
-      "isDraft": true,
-      "mergeStateStatus": "CLEAN",
-      "mergedAt": null,
+      "isDraft": false,
+      "mergeCommit": {
+        "oid": "f258967676c4877d3e1627b5710b789cff04b451"
+      },
+      "mergeStateStatus": "UNKNOWN",
+      "mergedAt": "2026-06-19T02:04:29Z",
       "number": 523,
-      "state": "OPEN",
+      "state": "MERGED",
       "title": "[e2e] Validation queue batch 1",
       "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/523"
     },
@@ -582,6 +666,7 @@
       "headRefName": "codex/rp-worker-ai-graphics-metadata-job-payload-dry-run-runtime-gate-owner-approval",
       "headRefOid": "4c99de74cefaa68c6ace853e22998a5fb8c1e6b4",
       "isDraft": true,
+      "mergeCommit": null,
       "mergeStateStatus": "CLEAN",
       "mergedAt": null,
       "number": 524,
@@ -594,6 +679,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-batch-2-planning-after-batch-1-rollup",
       "headRefOid": "afc6d391931af59b9f1e8ec33e0e7d1e779d84fe",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "3fbbbb8ba3ea0e7f07a9bc956f72bc340ccec880"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-19T00:07:30Z",
       "number": 527,
@@ -606,6 +694,9 @@
       "headRefName": "codex/rp-open-source-tool-stack-owner-lane-reconciliation-after-batch-1-rollup",
       "headRefOid": "45f1e37894c855d0d1ed01c7d9d682f3652e1667",
       "isDraft": false,
+      "mergeCommit": {
+        "oid": "40a7a25c319aea2f3ff8149aa5a7a9e6206ed346"
+      },
       "mergeStateStatus": "UNKNOWN",
       "mergedAt": "2026-06-19T01:00:56Z",
       "number": 529,
@@ -622,6 +713,15 @@
     {
       "query": "staged owner merge plan after Batch 1",
       "results": [
+        {
+          "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+          "headRefName": "codex/rp-open-source-tool-stack-staged-owner-merge-plan-after-batch-1-rollup",
+          "isDraft": false,
+          "number": 533,
+          "state": "OPEN",
+          "title": "[tools] Open-source tool stack staged owner merge plan after Batch 1 rollup",
+          "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/533"
+        },
         {
           "baseRefName": "codex/rp-activation-52h-cross-workstream-handoff-tracking",
           "headRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",

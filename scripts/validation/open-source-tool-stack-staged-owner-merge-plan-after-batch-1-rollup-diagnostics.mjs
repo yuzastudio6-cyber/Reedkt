@@ -4,6 +4,10 @@ import { existsSync, readFileSync } from 'node:fs'
 const reportDir = 'docs/open-source-tool-stack/staged-owner-merge-plan-after-batch-1-rollup'
 const expectedDecision = 'staged_owner_merge_plan_passed_ready_for_e2e_validation_pr305_hydration_blocker_resolution'
 const primaryNextPrompt = 'E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION'
+const expectedPr523MergedAt = '2026-06-19T02:04:29Z'
+const expectedPr523MergeCommit = 'f258967676c4877d3e1627b5710b789cff04b451'
+const expectedPr305Blocker = 'pr_305_validation_blocked_npm_ci_failed'
+const expectedQueueDecision = 'reeditpro_e2e_validation_queue_1_blocked_validation_failures'
 
 const requiredFiles = [
   'source-of-truth-audit.json',
@@ -129,8 +133,17 @@ if (claimPolicy.details?.fortyPlusToolsInstalledProvenEndToEndClaimAllowed !== f
 }
 if (nextPath.details?.primaryNextPath !== primaryNextPrompt) failures.push(`recommended_primary:${nextPath.details?.primaryNextPath}`)
 if (nextPath.details?.primaryDecision !== expectedDecision) failures.push(`recommended_decision:${nextPath.details?.primaryDecision}`)
-if (decision.e2ePr523?.state !== 'OPEN') failures.push(`pr523_state:${decision.e2ePr523?.state}`)
-if (decision.e2ePr523?.isDraft !== true) failures.push(`pr523_draft:${decision.e2ePr523?.isDraft}`)
+if (decision.e2ePr523?.state !== 'MERGED') failures.push(`pr523_state:${decision.e2ePr523?.state}`)
+if (decision.e2ePr523?.isDraft !== false) failures.push(`pr523_draft:${decision.e2ePr523?.isDraft}`)
+if (decision.e2ePr523?.mergedAt !== expectedPr523MergedAt) {
+  failures.push(`pr523_merged_at:${decision.e2ePr523?.mergedAt}`)
+}
+if (decision.e2ePr523?.mergeCommitOid !== expectedPr523MergeCommit) {
+  failures.push(`pr523_merge_commit:${decision.e2ePr523?.mergeCommitOid}`)
+}
+if (decision.pr305Blocker !== expectedPr305Blocker) failures.push(`pr305_blocker:${decision.pr305Blocker}`)
+if (decision.queueDecision !== expectedQueueDecision) failures.push(`queue_decision:${decision.queueDecision}`)
+if (decision.mergeReadyValidations !== 0) failures.push(`merge_ready_validations:${decision.mergeReadyValidations}`)
 
 for (const field of [
   'fortyPlusToolsEndToEndProven',
@@ -199,6 +212,38 @@ if (decision.supabaseClassification?.updateRequired !== 'no write') failures.pus
 if (manifest.supabaseClassification?.sqlExecuted !== 'none') failures.push('manifest_supabase_sql_not_none')
 
 const allReportText = requiredFiles.map(readText).join('\n').toLowerCase()
+const allCheckedText = [...requiredFiles, ...requiredPromptFiles].map(readText).join('\n').toLowerCase()
+const stalePr523Patterns = [
+  new RegExp('pr #?523 remains ' + 'open'),
+  new RegExp('#523 remains ' + 'open'),
+  new RegExp('pr #?523 remains ' + 'open draft'),
+  new RegExp('pr #?523 remains ' + 'open/draft'),
+  new RegExp('#523 is ' + 'open draft'),
+  new RegExp('open draft ' + 'and blocked'),
+  /pr #?523[^.\n]{0,120}state=open/,
+  /pr #?523[^.\n]{0,120}draft=true/,
+]
+for (const pattern of stalePr523Patterns) {
+  if (pattern.test(allCheckedText)) failures.push(`stale_pr523_wording:${pattern}`)
+}
+if (!allCheckedText.includes('pr #523 is merged and now serves as source evidence')) {
+  failures.push('missing_pr523_merged_source_evidence_wording')
+}
+if (!allCheckedText.includes(`pr #523 merged at ${expectedPr523MergedAt.toLowerCase()} with merge commit ${expectedPr523MergeCommit}`)) {
+  failures.push('missing_pr523_merged_at_commit_wording')
+}
+if (!allCheckedText.includes(`pr #305 remains blocked by ${expectedPr305Blocker}`)) {
+  failures.push('missing_pr305_blocker_wording')
+}
+if (!allCheckedText.includes('merge-ready validations remain 0')) {
+  failures.push('missing_merge_ready_validations_0_wording')
+}
+if (/e2e (queue|validation)[^.\n]{0,120}(unblocked|ready|passed)/i.test(allCheckedText)) {
+  failures.push('forbidden_e2e_unblocked_claim')
+}
+if (/"mergeReadyValidations"\s*:\s*[1-9]/.test(allCheckedText)) {
+  failures.push('merge_ready_validations_greater_than_0_claim')
+}
 const forbiddenPositivePatterns = [
   /40\+ tools (are )?(installed|proven)/,
   /worker runtime (is )?(ready|passed|accepted|unlocked)/,
@@ -245,7 +290,7 @@ const secretPatterns = [
   new RegExp('service_' + 'role[_-]?key', 'i'),
   /postgres:\/\/[^`\s]+/i,
   new RegExp('supabase[^`\\n]{0,80}(anon|' + 'service)[_-]?key', 'i'),
-  new RegExp('https?:\\/\\/[^`\\s]+(X-' + 'Amz-Signature|X-' + 'Goog-Signature|sig=|signature=)', 'i'),
+  new RegExp('https?:\\/\\/[^`\\s]+(X-' + 'Amz-Signature|X-' + 'Goog-Signature|s' + 'ig=|sign' + 'ature=)', 'i'),
   new RegExp('x-' + 'goog-signature', 'i'),
   /ghp_[A-Za-z0-9_]{20,}/,
   /sk-[A-Za-z0-9]{20,}/,

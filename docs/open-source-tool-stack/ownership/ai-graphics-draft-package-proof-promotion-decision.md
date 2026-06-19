@@ -1,0 +1,37 @@
+# AI Graphics Draft Package Proof Promotion Decision
+
+Decision: `ai_graphics_draft_package_proof_promotion_review_passed_with_warnings`
+
+| Field | Value |
+| --- | --- |
+| draftPackageProofPromotionReviewCompleted | `true` |
+| all13DraftPackageToolsReviewed | `true` |
+| batch1Reviewed | `true` |
+| batch2Reviewed | `true` |
+| batch3Reviewed | `true` |
+| sourcePrStatesRecorded | `true` |
+| packageDiffReviewed | `true` |
+| validationEvidenceReviewed | `true` |
+| runtimeBoundaryPreserved | `true` |
+| readyForMergeOrderReview | `true` |
+| readyForCanonicalPromotion | `false` |
+| dependencyInstallPerformed | `false` |
+| packageLockMutationPerformed | `false` |
+| importSmokeExecutedNow | `false` |
+| syntheticFixtureExecutedNow | `false` |
+| toolExecutionPerformed | `false` |
+| workerExecutionPerformed | `false` |
+| routeExecutionPerformed | `false` |
+| providerRuntimePerformed | `false` |
+| browserWebglCanvasRuntimePerformed | `false` |
+| gpuRuntimePerformed | `false` |
+| modelWeightDownloadPerformed | `false` |
+| supabaseMutationPerformed | `false` |
+| gcsUploadPerformed | `false` |
+| publicArtifactCreated | `false` |
+| signedUrlCreated | `false` |
+| runtimeReadyNow | `false` |
+| internalBetaReadyNow | `false` |
+| productionReadyNow | `false` |
+
+Next prompt recommendation: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_PROMOTION_QA_REVIEW`.

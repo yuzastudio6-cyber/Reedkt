@@ -12,9 +12,10 @@ Next proof planning remains future-only and separately gated.
 | Draft AI graphics metadata continuation | 13 chart/SVG/animation/3D/canvas tools | Pending draft merge/review only | Browser/WebGL/canvas, public artifacts, render/export |
 | Draft package proof promotion QA | 13 chart/SVG/animation/3D/canvas tools | Accepted with warnings for merge-order review | Canonical promotion, browser/WebGL/canvas, runtime execution |
 | Draft package proof merge-order QA | PR #425, PR #433, PR #441 | QA of later stack order PR #425 -> PR #433 -> PR #441 | Draft-ready now, merge now, canonical promotion |
+| Draft package proof draft-ready approval | PR #425, PR #433, PR #441 | Future approval to mark drafts ready after fresh recheck | Merge now, canonical promotion, runtime execution |
 | Track B conflict sync | Track B media tools owned by `TRACK_B_MEDIA_OSS_STEWARD` | Reference evidence only | Atlas install/proof/execution authority for Track B tools |
 
-Next recommended prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_MERGE_ORDER_QA_REVIEW`.
+Next recommended prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_DRAFT_READY_APPROVAL`.
 
 Runtime-ready now: `false`
 

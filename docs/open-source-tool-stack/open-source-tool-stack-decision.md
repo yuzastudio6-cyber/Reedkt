@@ -348,3 +348,18 @@ TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION`.
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Target: `docker/prod/cpu-worker/Dockerfile`
+- Approved package set: `libimage-exiftool-perl`, `mediainfo`, `tesseract-ocr`, `tesseract-ocr-eng`, `imagemagick`
+- Target tools: ExifTool, MediaInfo, Tesseract, and ImageMagick only.
+- GraphicsMagick remains optional fallback and is not installed by default.
+- End-to-end product-ready Track B tools remain `0`; no 40+ installed/proven end-to-end claim is allowed.
+- Media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_BUILD_CONTEXT_BLOCKER_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION_STATUS:end -->

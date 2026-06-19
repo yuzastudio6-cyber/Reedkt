@@ -1,0 +1,21 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1SystemPackagingExecution.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-19T21:35:33.624Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-1-system-packaging-execution",
+  "dockerImagePushed": false,
+  "localDockerImageTag": "reeditpro-cpu-worker:trackb-milestone1-7dcdebdcd979de9072c2fb89223dc9f4f6647585",
+  "localDockerImageCleanupAttempted": false,
+  "fixtureOutputsCommitted": false,
+  "fixtureOutputsCleaned": true,
+  "rawUserMediaAccessed": false,
+  "secretsPrinted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

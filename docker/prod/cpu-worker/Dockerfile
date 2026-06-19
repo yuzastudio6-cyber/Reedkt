@@ -32,6 +32,11 @@ RUN apt-get update \
     libgomp1 \
     libvips42 \
     libvips-dev \
+    libimage-exiftool-perl \
+    mediainfo \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    imagemagick \
   && rm -rf /var/lib/apt/lists/*
 
 COPY docker/prod/cpu-worker/requirements.cpu.txt /tmp/requirements.cpu.txt

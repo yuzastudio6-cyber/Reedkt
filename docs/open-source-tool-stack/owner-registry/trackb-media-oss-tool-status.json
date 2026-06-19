@@ -158,5 +158,57 @@
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,
     "betaProductionAccepted": false
+  },
+  "milestone1SystemPackagingExecution": {
+    "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context",
+    "reportKey": "trackb_milestone_1_system_packaging_execution_reports",
+    "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+    "requiredPackages": [
+      "libimage-exiftool-perl",
+      "mediainfo",
+      "tesseract-ocr",
+      "tesseract-ocr-eng",
+      "imagemagick"
+    ],
+    "imageTag": "reeditpro-cpu-worker:trackb-milestone1-7dcdebdcd979de9072c2fb89223dc9f4f6647585",
+    "tools": [
+      {
+        "id": "exiftool",
+        "name": "ExifTool",
+        "container_version_proven": false,
+        "synthetic_fixture_proven": false,
+        "accepted_proven": false,
+        "blocker": "container_version_not_proven"
+      },
+      {
+        "id": "mediainfo",
+        "name": "MediaInfo",
+        "container_version_proven": false,
+        "synthetic_fixture_proven": false,
+        "accepted_proven": false,
+        "blocker": "container_version_not_proven"
+      },
+      {
+        "id": "tesseract",
+        "name": "Tesseract",
+        "container_version_proven": false,
+        "synthetic_fixture_proven": false,
+        "accepted_proven": false,
+        "blocker": "container_version_not_proven"
+      },
+      {
+        "id": "imagemagick",
+        "name": "ImageMagick",
+        "container_version_proven": false,
+        "synthetic_fixture_proven": false,
+        "accepted_proven": false,
+        "blocker": "container_version_not_proven"
+      }
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_BUILD_CONTEXT_BLOCKER_FOLLOWUP",
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "betaProductionAccepted": false
   }
 }

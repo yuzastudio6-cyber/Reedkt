@@ -62,20 +62,49 @@ This register records the live-inspected validation batch selected from PR #519'
           "exitCode": 130,
           "blockerCategory": "pr_305_validation_blocked_npm_ci_failed"
         },
+        {"command": "npm ls --depth=0 --package-lock-only", "runContext": "fresh_pr_305_fix_2_worktree", "result": "passed"},
+        {
+          "command": "npm ci --ignore-scripts --no-audit --no-fund --prefer-offline --timing --loglevel=verbose",
+          "runContext": "fresh_pr_305_fix_2_worktree",
+          "result": "blocked",
+          "exitCode": 143,
+          "blockerCategory": "pr_305_validation_blocked_npm_ci_native_optional_package",
+          "observedPhase": "npm reifyNode extraction and native package handling"
+        },
         {"command": "git diff --check", "runContext": "fresh_pr_305_fix_worktree", "result": "passed"},
+        {"command": "git diff --check", "runContext": "fresh_pr_305_fix_2_worktree", "result": "passed"},
         {
           "command": "git diff --check origin/codex/rp-gd-10-group-b-controlled-local-fixture-execution...HEAD",
           "runContext": "fresh_pr_305_fix_worktree",
           "result": "passed"
         },
-        {"command": "git diff --cached --check", "runContext": "fresh_pr_305_fix_worktree", "result": "passed"}
+        {"command": "git diff --cached --check", "runContext": "fresh_pr_305_fix_worktree", "result": "passed"},
+        {"command": "git diff --cached --check", "runContext": "fresh_pr_305_fix_2_worktree", "result": "passed"}
       ],
       "packageLockStatus": "unchanged",
       "packageJsonStatus": "unchanged",
       "nodeModulesStatus": "present_unstaged_in_disposable_validation_worktree_only",
       "safetyScanResult": "passed_no_runtime_or_secret_claim_found_after_fresh_retry",
-      "decision": "validation_blocked_npm_ci_failed",
-      "mergeReadinessRecommendation": "not_ready_repeated_dependency_hydration_blocker"
+      "fix2Evidence": {
+        "worktree": "/Volumes/backup/codex-worktrees/reeditpro-pr-305-validation-fix-2",
+        "decision": "pr_305_validation_blocked_npm_ci_native_optional_package",
+        "diagnosticCommand": "npm ci --ignore-scripts --no-audit --no-fund --prefer-offline --timing --loglevel=verbose",
+        "lastLoggedPackage": "node_modules/@deck.gl/layers",
+        "lastLoggedTimingMs": 800380,
+        "nativePackageEvidence": [
+          "sharp install/check.js observed after timeout",
+          "@img/sharp-libvips-darwin-arm64 reified",
+          "@rolldown/binding-darwin-arm64 reified"
+        ],
+        "toolBinariesAfterInterruptedHydration": {
+          "tsx": "missing",
+          "eslint": "missing",
+          "tsc": "missing",
+          "vite": "missing"
+        }
+      },
+      "decision": "validation_blocked_npm_ci_native_optional_package",
+      "mergeReadinessRecommendation": "not_ready_native_optional_dependency_hydration_blocker"
     },
     {
       "prNumber": 300,

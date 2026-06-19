@@ -19,7 +19,9 @@ Decision: `ai_graphics_draft_package_proof_promotion_review_passed_with_warnings
 ## Results
 
 - Branch: `codex/rp-ai-graphics-draft-package-proof-promotion-review`
-- Draft PR: pending before PR creation
+- Draft PR: [#550](https://github.com/yuzastudio6-cyber/Reedkt/pull/550)
+- PR state after creation: open / draft / MERGEABLE at `6bf6e996936ddadabe84f6223e9bdddd0e3c31a9`
+- PR check rollup after creation: empty
 - Duplicate search result: no exact promotion-review PR, remote branch, or worktree found before implementation
 - Tools reviewed: `13`
 - Batch 1 review result: ready for merge-order review with warnings

@@ -1,10 +1,8 @@
 # SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4
 
-Guarded staging SQL execution for Worker Runtime transactional RPC/schema.
-
 ## Goal
 
-Execute staging SQL only after SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3's static migration packet is reviewed, a staging target is confirmed, rollback readiness is recorded, and explicit confirmation gates are set. This prompt is currently blocked pending target confirmation and must not execute SQL from the current packet.
+Record the guarded staging SQL execution packet for Worker Runtime transactional RPC/schema. The current packet is blocked because staging target confirmation and explicit execution gates are absent. Do not execute SQL, deploy migrations, mutate Supabase, run readback queries, read Secret Manager payloads, run workers, claim jobs/leases, run routes/tools/providers, or unlock beta/production.
 
 ## Current Blockers
 
@@ -12,7 +10,9 @@ SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 decision: `completed_static_migratio
 
 Supabase update status: `static_migration_created_sql_not_executed`
 
-SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 readiness: `ready_for_guarded_staging_sql_execution_packet_pending_confirmed_staging_target`
+SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 decision: `blocked_pending_confirmed_staging_target_or_execution_confirmation`
+
+execution: `blocked_pending_guarded_staging_sql_confirmation`
 
 Target safety status: `blocked_pending_confirmed_staging_target`
 
@@ -21,6 +21,12 @@ SQL executed: `none`
 Migration deployed: `no`
 
 Supabase environment touched: `none`
+
+readbackStatus: `not_run`
+
+Secret Manager payload printed: false
+
+production touched: false
 
 ## Required Before Execution
 
@@ -32,6 +38,19 @@ Supabase environment touched: `none`
 - Backend-only Google Secret Manager credential resolution verified without payload printing.
 - Confirmation gates explicitly set by a future authorized prompt.
 - Production, external beta, paid production, public artifacts, signed URLs, final delivery/export, broad media, and internal beta remain blocked.
+
+Required future gates:
+
+- `REEDITPRO_CONFIRM_SUPABASE_WORKER_RUNTIME_RPC_MIGRATION=true`
+- `REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL=true`
+- `REEDITPRO_CONFIRM_WORKER_RUNTIME_TRANSACTIONAL_RPC_SCOPE=true`
+- `REEDITPRO_CONFIRM_SUPABASE_TARGET_IS_STAGING=true`
+- `REEDITPRO_CONFIRM_NO_PRODUCTION_SUPABASE=true`
+- `REEDITPRO_CONFIRM_SECRET_MANAGER_BACKEND_CREDENTIAL_RESOLUTION=true`
+
+## Next Prompt
+
+SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-IF-NEEDED -- Guarded staging confirmation rerun
 
 ## No-Scope Statement
 

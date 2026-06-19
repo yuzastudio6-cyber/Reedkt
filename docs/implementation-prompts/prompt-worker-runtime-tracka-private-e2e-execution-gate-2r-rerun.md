@@ -22,18 +22,30 @@ SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 decision: `completed_static_migratio
 
 Supabase update status: `static_migration_created_sql_not_executed`
 
-SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 readiness: `ready_for_guarded_staging_sql_execution_packet_pending_confirmed_staging_target`
+SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 decision: `blocked_pending_confirmed_staging_target_or_execution_confirmation`
+
+execution: `blocked_pending_guarded_staging_sql_confirmation`
+
+Supabase update status: `blocked_sql_not_executed`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
+readbackStatus: `not_run`
 
 WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_guarded_staging_sql_execution`
 
-WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_supabase_rpc_schema_deployment`
+WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_guarded_staging_sql_execution`
 
 Explicit blocker: missing transactional backend/RPC claim path, service-role runtime boundary, and persistent event/lease enforcement.
 
 ## Required Before Rerun
 
 - SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3 static migration implementation packet complete.
-- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 guarded staging SQL execution packet complete.
+- SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4 guarded staging SQL execution packet complete with SQL deployment and readback evidence.
 - WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 RPC/schema implementation readiness complete after deployment evidence exists.
 - Track A-specific transactional operation family implemented.
 - Atomic claim RPC/backend path validated.

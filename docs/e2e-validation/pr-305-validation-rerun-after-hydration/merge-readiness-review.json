@@ -1,0 +1,21 @@
+{
+  "schema": "reeditpro.e2e.pr305ValidationRerunAfterHydration.mergeReadinessReview.v1",
+  "targetPr": 305,
+  "targetHead": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+  "hydrationPassed": true,
+  "staticValidationPassed": true,
+  "buildClassificationPassed": true,
+  "safetyScanPassed": true,
+  "canEnterMergeHygiene": true,
+  "canMergeImmediately": false,
+  "mergeReadyValidationsAddedByThisPacket": 1,
+  "mergeReadyPrs": [305],
+  "requiredNextPrompt": "REEDITPRO_E2E_MERGE_HYGIENE_PR_305_AFTER_VALIDATION_RERUN",
+  "limitations": [
+    "PR #305 was not merged, closed, rebased, retargeted, or mutated.",
+    "This packet does not run product E2E runtime, media/render, worker, route, provider, Supabase, GCS, beta, or production scopes.",
+    "The accepted-with-warnings fixture status remains scoped to Track A Group B creative graphics handoff review."
+  ],
+  "endToEndProductReadyTools": 0,
+  "doNotClaimFortyPlusToolsEndToEnd": true
+}

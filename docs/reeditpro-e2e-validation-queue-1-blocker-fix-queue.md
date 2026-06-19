@@ -120,3 +120,11 @@ This queue records blockers found during validation batch 1. It does not authori
 The follow-up hydration blocker-resolution packet recorded `e2e_pr305_hydration_blocker_resolved_ready_for_validation_rerun`: the approved `npm ci --ignore-scripts --no-audit --no-fund` command completed in a disposable PR #305 worktree at `757686f49d85cb7d346b55a1712e1d34a6bdde03`, and `tsx`, `eslint`, `tsc`, and `vite` were present.
 
 This note does not change the queue-1 historical decision. PR #305 still requires a separate validation rerun before any merge-ready claim, and merge-ready validations remain `0`.
+
+## Post-hydration validation rerun note
+
+The follow-up validation-rerun packet recorded `e2e_pr305_validation_rerun_passed_ready_for_merge_hygiene`.
+
+PR #305 hydration, bounded static validation, build classification, and safety scan passed at `757686f49d85cb7d346b55a1712e1d34a6bdde03`. PR #305 is eligible for merge hygiene with `1` merge-ready validation, but it was not merged or mutated in the rerun packet.
+
+This note does not unlock E2E product runtime, media/render, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production.

@@ -1,0 +1,62 @@
+{
+  "schema": "reeditpro.e2e.pr305ValidationRerunAfterHydration.decision.v1",
+  "generatedAt": "2026-06-19T16:45:00Z",
+  "decision": "e2e_pr305_validation_rerun_passed_ready_for_merge_hygiene",
+  "decisionBasis": [
+    "PR #305 hydration passed with the approved npm ci command.",
+    "Bounded static validation commands all passed.",
+    "Build classification commands all passed; no environment build exception is needed.",
+    "Safety scan found no forbidden findings.",
+    "PR #305 source was not mutated and PR #305 was not merged."
+  ],
+  "nextPrompt": "REEDITPRO_E2E_MERGE_HYGIENE_PR_305_AFTER_VALIDATION_RERUN",
+  "nextPromptFile": "docs/implementation-prompts/prompt-reeditpro-e2e-merge-hygiene-pr-305-after-validation-rerun.md",
+  "pr305": {
+    "head": "757686f49d85cb7d346b55a1712e1d34a6bdde03",
+    "canEnterMergeHygiene": true,
+    "canMergeImmediately": false,
+    "mergeReadyValidations": 1,
+    "mergedByThisPacket": false,
+    "sourceMutatedByThisPacket": false
+  },
+  "blockedScopeConfirmation": {
+    "pr305Merge": false,
+    "pr305Close": false,
+    "pr305Rebase": false,
+    "pr305Retarget": false,
+    "pr305SourceMutation": false,
+    "githubPrMerge": false,
+    "npmInstall": false,
+    "npmRebuild": false,
+    "packageLockMutation": false,
+    "docker": false,
+    "ffmpegFfprobe": false,
+    "browserCapture": false,
+    "webglCanvasRuntime": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "remotionRenderExport": false,
+    "lottieBrowserRendering": false,
+    "aiToolExecution": false,
+    "groupBToolExecution": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "providerCall": false,
+    "modelCall": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "gcsUpload": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPrompts": false,
+    "betaUnlock": false,
+    "productionUnlock": false,
+    "secretPayloadPrint": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

@@ -106,11 +106,20 @@
 - The layer does not create a duplicate media probe worker, worker router, production registry, QA policy, fallback policy, Supabase runtime table, migration, SQL file, storage writer, artifact writer, or general command execution layer.
 - Probe results expose sanitized metadata summaries only; no raw ffprobe JSON, local paths, signed URLs, raw prompts, service-role context, provider secrets, command strings, arbitrary args, or filename fields are returned.
 
+## Fixture-Bound Export Validation Integration
+
+- Fixture-bound export validation reuses the sanitized synthetic WAV metadata probe result and first-class `ffprobe` `ProductionToolId`.
+- The layer performs pure TypeScript export and QA gate evaluation; it does not rerun `ffprobe`, execute tools, process media, inspect real media, transcode, mux, filter, render, dispatch workers, call providers, mutate Supabase, run SQL, or create signed URLs.
+- Existing export, QA, ffprobe, final-render, worker, CLI, and production-readiness helpers remain scan evidence only and are not imported.
+- The layer does not create a duplicate export worker, final-render worker, media probe worker, worker router, production registry, QA policy, fallback policy, Supabase runtime table, migration, SQL file, storage writer, artifact writer, or command execution layer.
+- Required gates are `export_codec_format`, `export_duration_sync`, and `render_asset_integrity`; `final_delivery` is optional, skipped, and deferred to a future real export validation milestone.
+
 ## Safety Confirmation
 
 - Normal tool-calling plans produce planning-only output with `executesTools: false`.
 - Controlled low-risk readiness probes return `executesTools: true` and `mediaProcessingPerformed: false`.
 - Fixture-bound metadata probes return `executesTools: true`, `fixtureInputUsed: true`, and `mediaProcessingPerformed: false`.
+- Fixture-bound export validation returns `executesTools: false` and `sourceProbeExecutesTools: true`.
 - Pipeline steps use `executionMode: planning_only`.
 - The diagnostics do not process media, call providers, create signed URLs, mutate Supabase, run SQL, or dispatch workers.
 - `package-lock.json` is intentionally not modified by this milestone.

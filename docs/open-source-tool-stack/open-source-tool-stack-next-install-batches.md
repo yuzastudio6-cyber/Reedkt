@@ -813,3 +813,13 @@ TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution`
+- Next lane: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION`
+- Future package patch: add `fonts-noto-cjk` to the OCR runtime apt install list; keep `fonts-noto-cjk-extra` fallback-only if regular/bold coverage is not enough.
+- Future batch should include package patch, font discovery/config, OCR runtime build, PaddlePaddle proof, PaddleOCR import/API proof, no-network boundary check, cleanup, and either QA or exact blocker report.
+- No package install, Dockerfile mutation, Docker build/run, font/model asset operation, OCR inference, worker/provider/Supabase/GCS/public/beta/production scope is accepted in this approval.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:end -->

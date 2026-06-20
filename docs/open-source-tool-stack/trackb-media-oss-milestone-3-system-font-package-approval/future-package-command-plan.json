@@ -1,0 +1,20 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+  "futurePrimaryPackage": "fonts-noto-cjk",
+  "futureFallbackPackage": "fonts-noto-cjk-extra",
+  "futureCommandPattern": [
+    "apt-get update",
+    "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk",
+    "rm -rf /var/lib/apt/lists/*"
+  ],
+  "futureFallbackCondition": "Only consider fonts-noto-cjk-extra if execution proves regular and bold Noto CJK coverage is insufficient.",
+  "disallowed": [
+    "PingFang asset addition",
+    "font binary commit",
+    "font asset upload",
+    "model asset upload",
+    "install during approval"
+  ],
+  "installApprovedNow": false
+}

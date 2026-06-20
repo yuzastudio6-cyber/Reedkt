@@ -581,3 +581,16 @@ TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution`
+- Primary future system-font package: `fonts-noto-cjk`.
+- Secondary/fallback package: `fonts-noto-cjk-extra`.
+- Exact `PingFang-SC-Regular.ttf` remains blocked; this approval avoids proprietary font staging and keeps package-manager delivery as the next safe gate.
+- No install, Docker, Paddle/OCR execution, OCR inference, model/font asset operation, requirements/Dockerfile mutation, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, beta, or production scope is accepted.
+- Track B counts remain: 16 owned / 12 bounded accepted-proven / 4 blocked-not-installed-proven / 0 product-ready.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:end -->

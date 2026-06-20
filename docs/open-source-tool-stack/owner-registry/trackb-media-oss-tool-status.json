@@ -841,5 +841,37 @@
       "sqlExecuted": "none",
       "migrationDeployed": "no"
     }
+  },
+  "milestone3SystemFontPackageApproval": {
+    "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+    "reportKey": "trackb_milestone_3_system_font_package_approval_reports",
+    "primarySystemFontPackage": "fonts-noto-cjk",
+    "secondarySystemFontPackage": "fonts-noto-cjk-extra",
+    "exactPingFangStatus": "blocked",
+    "selectedStrategy": "system_font_package_execution",
+    "systemFontPackageInstallApprovedNow": false,
+    "fontAssetOperationsRun": false,
+    "modelAssetOperationsRun": false,
+    "ocrInferenceRun": false,
+    "paddleOcrExecutionRun": false,
+    "paddlePaddleExecutionRun": false,
+    "dockerBuildRun": false,
+    "installRun": false,
+    "dockerfileMutated": false,
+    "requirementsMutated": false,
+    "packageLockMutated": false,
+    "countsRemainPendingQa": {
+      "ownedTools": 16,
+      "acceptedProvenBounded": 12,
+      "blockedNotInstalledProven": 4,
+      "endToEndProductReady": 0
+    },
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
   }
 }

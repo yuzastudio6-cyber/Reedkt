@@ -1,0 +1,17 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+  "fontFilesCreated": [],
+  "modelFilesCreated": [],
+  "mediaFilesCreated": [],
+  "publicArtifactsCreated": [],
+  "signedUrlsCreated": [],
+  "privateAssetsStaged": [],
+  "secretPayloadsRead": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

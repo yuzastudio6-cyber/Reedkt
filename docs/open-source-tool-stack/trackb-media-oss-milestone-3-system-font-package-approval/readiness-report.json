@@ -1,0 +1,21 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+  "nextPromptPath": "docs/implementation-prompts/prompt-trackb-media-oss-milestone-3-system-font-package-execution.md",
+  "readyForNextGate": true,
+  "readyForExecutionNow": false,
+  "nextGate": "system font package execution",
+  "primaryPackage": "fonts-noto-cjk",
+  "fallbackPackage": "fonts-noto-cjk-extra",
+  "blockedUntilNextGate": [
+    "package install",
+    "Dockerfile patch",
+    "Docker build",
+    "PaddleOCR/PaddlePaddle proof",
+    "OCR inference",
+    "model/font asset staging",
+    "GPU",
+    "beta",
+    "production"
+  ]
+}

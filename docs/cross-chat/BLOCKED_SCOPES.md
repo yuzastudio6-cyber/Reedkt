@@ -239,6 +239,18 @@ TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP:
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:end -->
 
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution`
+- `PingFang-SC-Regular.ttf` remains blocked for download, copy, upload, staging, repository commit, public delivery, signed URL delivery, and runtime image packaging.
+- `fonts-noto-cjk` is approved only for future system-font package execution; no install or Dockerfile mutation ran now.
+- `fonts-noto-cjk-extra` remains fallback-only.
+- OCR inference, PaddleOCR/PaddlePaddle execution, Docker build/run, GPU, installs, model asset operations, media/render, workers/routes/providers, Supabase/GCS, raw prompt execution, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:end -->
+
 <!-- tracka-docker-build-context-blocker-resolution:start -->
 ## Track A Docker Build Context Blocker Resolution
 

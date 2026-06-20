@@ -1,0 +1,73 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceSha": "d4f77e49547f7bdb41ba60d631f9f041d31e17a2",
+  "implementationBranch": "codex/rp-trackb-media-oss-milestone-3-system-font-package-approval",
+  "sourceOfTruthPr": {
+    "pr": 615,
+    "state": "MERGED",
+    "mergedAt": "2026-06-20T21:12:13Z",
+    "decision": "trackb_media_oss_milestone3_font_source_license_followup_passed_ready_for_system_font_package_approval",
+    "mergeCommit": "d4f77e49547f7bdb41ba60d631f9f041d31e17a2"
+  },
+  "predecessorEvidence": [
+    { "pr": 613, "state": "MERGED", "role": "exact font asset source review" },
+    { "pr": 606, "state": "MERGED", "role": "model asset approval" },
+    { "pr": 600, "state": "MERGED", "role": "PaddleX PingFang fetch blocker" },
+    { "pr": 592, "state": "MERGED", "role": "libGL blocker resolution evidence" },
+    { "pr": 587, "state": "MERGED", "role": "libgomp blocker follow-up evidence" },
+    { "pr": 583, "state": "MERGED", "role": "OCR/ML CPU execution blocker evidence" },
+    { "pr": 578, "state": "MERGED", "role": "OCR/ML CPU-GPU review" },
+    { "pr": 574, "state": "MERGED", "role": "Milestone 2 QA" },
+    { "pr": 571, "state": "MERGED", "role": "Milestone 2 execution" },
+    { "pr": 567, "state": "MERGED", "role": "Milestone 2 approval" },
+    { "pr": 563, "state": "MERGED", "role": "Milestone 1 QA" },
+    { "pr": 559, "state": "MERGED", "role": "Tesseract fixture follow-up" },
+    { "pr": 557, "state": "MERGED", "role": "build-context follow-up" },
+    { "pr": 551, "state": "MERGED", "role": "system packaging execution" },
+    { "pr": 549, "state": "MERGED", "role": "system packaging approval" },
+    { "pr": 546, "state": "MERGED", "role": "Milestone 1 execution" },
+    { "pr": 545, "state": "MERGED", "role": "install/proof milestone plan" },
+    { "pr": 542, "state": "MERGED", "role": "Track B owner registry" }
+  ],
+  "duplicateSearches": {
+    "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL": [],
+    "fonts-noto-cjk": [],
+    "trackb_media_oss_milestone3_system_font_package_approval": []
+  },
+  "referenceInputs": [
+    "https://packages.debian.org/sid/fonts/fonts-noto-cjk",
+    "https://packages.debian.org/sid/fonts/fonts-noto-cjk-extra",
+    "https://sources.debian.org/copyright/license/fonts-noto-cjk/1%3A20201206-cjk%2Brepack1-1/",
+    "https://notofonts.github.io/noto-docs/website/use/",
+    "https://github.com/PaddlePaddle/PaddleX/issues/4405"
+  ],
+  "protectedFilesInspected": [
+    "package.json",
+    "package-lock.json",
+    ".dockerignore",
+    "docker/prod/ocr-runtime/Dockerfile",
+    "docker/prod/ocr-runtime/requirements.ocr.txt"
+  ],
+  "absentBroadProductionDocs": [
+    "docs/beta-readiness-scorecard.md",
+    "docs/production-beta-blocker-inventory.md",
+    "PRODUCTION_FOUNDATION_STATUS.md"
+  ],
+  "noOperationConfirmations": {
+    "packageInstallRun": false,
+    "fontAssetOperationRun": false,
+    "modelAssetOperationRun": false,
+    "dockerRun": false,
+    "paddleOrOcrExecutionRun": false,
+    "supabaseOrGcsTouched": false,
+    "betaOrProductionUnlocked": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

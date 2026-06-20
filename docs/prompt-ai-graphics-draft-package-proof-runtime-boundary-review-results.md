@@ -4,9 +4,9 @@ Decision: `ai_graphics_draft_package_proof_runtime_boundary_review_passed_with_w
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-runtime-boundary-review`
 
-Draft PR: pending publication.
+Draft PR: PR #594, https://github.com/yuzastudio6-cyber/Reedkt/pull/594.
 
-Draft PR status: pending publication.
+Draft PR status: open/draft/MERGEABLE at `1d2738af002e098c90ecddb5d0de591af1a17ef8` before this follow-up record update, with empty check rollup.
 
 ## Source state recorded
 
@@ -35,7 +35,7 @@ Production-ready now: `false`.
 
 Validation status: passed before initial publication.
 
-PR check status: pending publication.
+PR check status: PR #594 had an empty check rollup when recorded.
 
 Package-lock status: unchanged.
 

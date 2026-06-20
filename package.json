@@ -30,6 +30,7 @@
     "open-source-tool-stack:ai-tools-creative-graphics:batch-3-execution:diagnostics": "node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-3-execution-diagnostics.mjs",
     "ai-graphics:cpu-static-spec-validation:refreshed-execute": "node scripts/validation/ai-graphics-cpu-static-spec-validation-refreshed-execution.mjs",
     "ai-graphics:cpu-static-spec-validation:refreshed-diagnostics": "node scripts/validation/ai-graphics-cpu-static-spec-validation-refreshed-execution-diagnostics.mjs",
+    "ai-graphics:cpu-static-spec-validation:refreshed-qa-diagnostics": "node scripts/validation/ai-graphics-cpu-static-spec-validation-refreshed-execution-qa-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

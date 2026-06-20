@@ -99,3 +99,11 @@ Three/Pixi/Konva/Babylon runtime, browser/WebGL/canvas runtime, Tool Route
 execution, Worker execution, provider/model runtime, Supabase mutation,
 GCS/storage transfer, signed URLs, public artifacts, internal beta, external
 beta, paid production, or production readiness.
+
+AI graphics CPU/static refreshed validation QA decision
+`ai_graphics_cpu_static_spec_validation_refreshed_execution_qa_passed_with_warnings`
+accepts PR #616 evidence for the same six CPU/static tools with warnings. The
+QA lane did not rerun `npm ci`, CPU/static execution, import smoke, fixtures,
+browser/WebGL/canvas runtime, Tool Route, Worker, provider/model runtime,
+Supabase mutation, GCS/storage transfer, signed URLs, public artifacts,
+internal beta, external beta, paid production, or production readiness.

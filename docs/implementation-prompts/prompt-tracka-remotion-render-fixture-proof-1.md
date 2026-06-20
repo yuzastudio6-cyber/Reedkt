@@ -2,12 +2,12 @@
 
 Goal: plan a future non-final Remotion render fixture proof only after the bounded runtime package import/bundle proof succeeds.
 
-Current readiness: `TRACKA-REMOTION-RENDER-FIXTURE-PROOF-1 readiness: blocked_pending_remotion_runtime_proof_1r`
+Current readiness: `TRACKA-REMOTION-RENDER-FIXTURE-PROOF-1 readiness: blocked_pending_remotion_runtime_proof_1r_completion`
 
 Prerequisite:
 
-- `TRACKA-REMOTION-RUNTIME-PROOF-1R readiness: ready_for_confirmed_bounded_runtime_proof`
-- successful confirmed bounded runtime package import and bundle proof
+- `TRACKA-REMOTION-RUNTIME-PROOF-1R readiness: blocked_pending_dependency_validation_or_confirmed_runtime_proof_rerun`
+- successful confirmed bounded runtime package import and bundle proof; the first 1R attempt is blocked by `host_resource_limit_exit_137_during_npm_ci`
 - no unresolved AI Graphics or Track B ownership conflict
 - no private E2E dependency is inferred from runtime proof alone
 

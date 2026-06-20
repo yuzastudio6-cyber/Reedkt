@@ -1,0 +1,89 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone3OcrMlCpuGpuReview.historicalEvidence.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution",
+  "generatedAt": "2026-06-20T12:59:59.583Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "0a05d4a39ab11675465efc2622299e28c132da02",
+  "reviewPhaseOnly": true,
+  "noScope": {
+    "packageInstallRun": false,
+    "npmCiRun": false,
+    "npmInstallRun": false,
+    "npmRebuildRun": false,
+    "packageLockMutated": false,
+    "requirementsMutated": false,
+    "dockerfileMutated": false,
+    "dockerBuildRun": false,
+    "dockerContainerRun": false,
+    "paddleOcrRun": false,
+    "paddlePaddleRun": false,
+    "ocrInferenceRun": false,
+    "modelDownloadRun": false,
+    "modelAssetCopied": false,
+    "modelAssetUploaded": false,
+    "gpuExecutionRun": false,
+    "mediaProcessingRun": false,
+    "renderExportRun": false,
+    "workerRouteProviderRun": false,
+    "supabaseMutationRun": false,
+    "gcsUploadRun": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "betaProductionUnlocked": false,
+    "rawPromptExecuted": false,
+    "secretPayloadPrinted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "historicalEvidence": [
+    {
+      "pr": 51,
+      "title": "[activation] Phase 37A PaddleOCR model/runtime approval workflow",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Planning context for PaddleOCR/PaddlePaddle model/runtime approval."
+    },
+    {
+      "pr": 56,
+      "title": "[activation] Verify Phase 37C generated OCR runtime",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Generated OCR runtime verification context; not current Track B install/proof authority."
+    },
+    {
+      "pr": 59,
+      "title": "[activation] Phase 37D OCR safe-zone execution",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Controlled OCR safe-zone context; no current media/OCR execution is approved."
+    },
+    {
+      "pr": 99,
+      "title": "[foundation] Prompt 13 tool readiness worker runtime checks",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Readiness registry context where tools were not product-ready runtime evidence."
+    },
+    {
+      "pr": 161,
+      "title": "[activation] Track B capability manifest baseline",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Capability manifest context only."
+    },
+    {
+      "pr": 164,
+      "title": "[activation] Phase 44I Track B tool route manifest integration",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Route manifest context only, not current proof authority."
+    }
+  ],
+  "conclusion": "Historical PaddleOCR/PaddlePaddle evidence is useful context but is not accepted as current Track B Milestone 3 install/proof completion.",
+  "currentTrackBProofStillRequired": true,
+  "runtimeScopeApprovedByHistoricalEvidence": false
+}

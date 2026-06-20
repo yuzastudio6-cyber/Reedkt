@@ -1,0 +1,82 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone3OcrMlCpuGpuReview.packageStrategy.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution",
+  "generatedAt": "2026-06-20T12:59:59.583Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "0a05d4a39ab11675465efc2622299e28c132da02",
+  "reviewPhaseOnly": true,
+  "noScope": {
+    "packageInstallRun": false,
+    "npmCiRun": false,
+    "npmInstallRun": false,
+    "npmRebuildRun": false,
+    "packageLockMutated": false,
+    "requirementsMutated": false,
+    "dockerfileMutated": false,
+    "dockerBuildRun": false,
+    "dockerContainerRun": false,
+    "paddleOcrRun": false,
+    "paddlePaddleRun": false,
+    "ocrInferenceRun": false,
+    "modelDownloadRun": false,
+    "modelAssetCopied": false,
+    "modelAssetUploaded": false,
+    "gpuExecutionRun": false,
+    "mediaProcessingRun": false,
+    "renderExportRun": false,
+    "workerRouteProviderRun": false,
+    "supabaseMutationRun": false,
+    "gcsUploadRun": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "betaProductionUnlocked": false,
+    "rawPromptExecuted": false,
+    "secretPayloadPrinted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "selectedFutureTargetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+  "selectedFutureTargetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+  "currentRequirementsAlreadyDeclareSelectedPins": true,
+  "selectedPackages": [
+    {
+      "name": "paddlepaddle",
+      "version": "3.0.0",
+      "role": "framework_dependency"
+    },
+    {
+      "name": "paddleocr",
+      "version": "3.0.0",
+      "role": "ocr_engine"
+    },
+    {
+      "name": "Pillow",
+      "version": "10.4.0",
+      "role": "synthetic_fixture_image_support"
+    },
+    {
+      "name": "numpy",
+      "version": "1.26.4",
+      "role": "array_tensor_support"
+    },
+    {
+      "name": "opencv-python-headless",
+      "version": "4.10.0.84",
+      "role": "supporting_image_dependency"
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.2",
+      "role": "configuration_dependency"
+    }
+  ],
+  "futureRequirementsMutationNeeded": false,
+  "requirementsMutationThisPhase": false,
+  "packageLockMutationThisPhase": false,
+  "packageInstallThisPhase": false,
+  "deterministicPinsRequired": true
+}

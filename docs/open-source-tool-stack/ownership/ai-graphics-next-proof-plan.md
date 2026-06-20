@@ -21,9 +21,10 @@ Next proof planning remains future-only and separately gated.
 | Draft package proof PR433 merge approval | PR #433 next | Future merge execution for PR #433 only after fresh recheck | PR #441 merge approval, PR #433 merge now, canonical promotion |
 | Draft package proof PR441 merge approval | PR #441 final | Future merge execution for PR #441 only after PR #425 and PR #433 merge evidence is rechecked | PR #441 merge now, canonical promotion, runtime execution |
 | Draft package proof canonical promotion review | 13 merged package-proof tools from PR #425, PR #433, and PR #441 | Canonical merged package/import/static-fixture proof only | Runtime execution, E2E proof, browser/WebGL/canvas, beta, production |
+| Draft package proof canonical promotion QA | 13 merged package-proof tools from PR #425, PR #433, and PR #441 | QA acceptance of canonical merged package/import/static-fixture proof only | Runtime execution, E2E proof, browser/WebGL/canvas, beta, production |
 | Track B conflict sync | Track B media tools owned by `TRACK_B_MEDIA_OSS_STEWARD` | Reference evidence only | Atlas install/proof/execution authority for Track B tools |
 
-Next recommended prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_CANONICAL_PROMOTION_QA_REVIEW`.
+Next recommended prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_RUNTIME_BOUNDARY_REVIEW`.
 
 Runtime-ready now: `false`
 

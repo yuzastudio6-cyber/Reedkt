@@ -131,3 +131,10 @@ merged package/import/static-fixture proof for 13 AI graphics tools. This is
 canonical package proof only; runtime-ready tools, internal beta, external beta,
 production, provider execution, browser/WebGL/canvas runtime, Supabase/GCS,
 signed URLs, and public artifacts remain blocked.
+
+AI graphics draft package proof canonical promotion QA accepts PR #585 with
+warnings and confirms the 13 merged package-proof tools only at
+`canonical_merged_package_import_static_fixture_proof`. Runtime promotion, E2E
+promotion, Tool Route execution, Worker execution, provider execution,
+browser/WebGL/canvas runtime, Supabase/GCS, signed URLs, public artifacts,
+internal beta, external beta, and production remain blocked.

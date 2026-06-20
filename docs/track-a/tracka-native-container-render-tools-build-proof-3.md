@@ -2,6 +2,10 @@
 
 Patch type: Atlas Track A native/container render tools Docker build/install proof.
 
+Canonical repair phase: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2`
+
+Build-Proof-3 status: old prompt ancestry and future confirmation-gated build-proof support for Batch-2.
+
 Base: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration` at `f19c173a6a3d9a4cf381fc23826bd14a6385bc1f`.
 
 Branch: `codex/rp-tracka-native-container-render-tools-build-proof-3`
@@ -18,6 +22,8 @@ Product-ready end-to-end local OSS tools: `0`
 
 `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_pending_native_container_build_confirmation`
 
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_pending_native_container_build_confirmation_with_identity_reviews_recorded`
+
 Execution: `blocked_confirmation_absent`
 
 Docker build status: `not_run_confirmation_absent`
@@ -30,7 +36,7 @@ Package-lock status: `unchanged`
 
 Dependency validation: `passed_after_constrained_npm_ci_retry`
 
-Next recommended milestone: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3R` after explicit build confirmation, then `TRACKA-GSTREAMER-RUNTIME-PROOF-1` and/or `TRACKA-CONTAINER-PACKAGING-VALIDATION-PROOF-1` after metadata proof passes.
+Next recommended milestone: `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` after explicit build metadata proof, with `TRACKA-BENTO4-MP4BOX-PACKAGE-IDENTITY-RESOLUTION-1`, `TRACKA-VAPOURSYNTH-NATIVE-POLICY-RESOLUTION-1`, and `TRACKA-REVIDEO-PACKAGE-IDENTITY-RESOLUTION-1` remaining as identity/policy tracks.
 
 ## Source Chain
 
@@ -64,6 +70,7 @@ Because the gate is absent in this run, no local Docker build, image inspection,
 - SQL executed: `none`
 - Migration deployed: `no`
 - Evidence docs: `docs/track-a/tracka-native-container-render-tools-build-proof-3*.md`
+- Canonical Batch-2 evidence docs: `docs/track-a/tracka-native-container-render-tools-batch-2*.md`
 - Blockers: `none_for_supabase`
 - Next Supabase action: `none`
 

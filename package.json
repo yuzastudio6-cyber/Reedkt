@@ -582,6 +582,7 @@
     "tracka:remotion-runtime-proof-1:diagnostics": "node scripts/validation/tracka-remotion-runtime-proof-1-diagnostics.mjs",
     "tracka:native-container-render-tools-batch-1:diagnostics": "node scripts/validation/tracka-native-container-render-tools-batch-1-diagnostics.mjs",
     "tracka:native-container-render-tools-install-proof-2:diagnostics": "node scripts/validation/tracka-native-container-render-tools-install-proof-2-diagnostics.mjs",
+    "tracka:native-container-render-tools-batch-2:diagnostics": "node scripts/validation/tracka-native-container-render-tools-batch-2-diagnostics.mjs",
     "tracka:native-container-render-tools-build-proof-3": "node scripts/validation/tracka-native-container-render-tools-build-proof-3.mjs",
     "tracka:native-container-render-tools-build-proof-3:diagnostics": "node scripts/validation/tracka-native-container-render-tools-build-proof-3-diagnostics.mjs",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",

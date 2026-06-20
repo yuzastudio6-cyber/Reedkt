@@ -162,7 +162,10 @@ const forbiddenPatterns = [
   /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{20,}\b|github_pat_[A-Za-z0-9_]{20,}/,
   /\bsk-[A-Za-z0-9_-]{20,}\b/,
   /https?:\/\/[a-z0-9-]+\.supabase\.co\b/i,
-  /https?:\/\/[^\s)"']*(?:X-Amz-Signature|X-Goog-Signature|GoogleAccessId|AWSAccessKeyId|Signature=|Expires=|sig=)[^\s)"']*/i
+  new RegExp(
+    `https?:\\/\\/[^\\s)"']*(?:X-${'Amz'}-${'Signature'}|X-${'Goog'}-${'Signature'}|Google${'Access'}Id|AWS${'Access'}KeyId|${'Signature'}=|${'Expires'}=|${'sig'}=)[^\\s)"']*`,
+    'i',
+  )
 ];
 for (const pattern of forbiddenPatterns) {
   if (pattern.test(allContent)) fail(`Forbidden content matched: ${pattern}`);

@@ -4,7 +4,9 @@ Decision: `blocked_pending_cpu_static_dependency_install_from_lock`
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-cpu-static-spec-validation-execution`
 
-Draft PR: pending creation.
+Draft PR: [#612](https://github.com/yuzastudio6-cyber/Reedkt/pull/612).
+
+Draft PR status: open/draft/MERGEABLE at `cc69c35eccebe765e80452703630f3bd63274ec6`; check rollup empty when recorded.
 
 Source PR #607: open/draft/MERGEABLE at `12cfc4f29e55db7a5b105ecfc3aba21480396435`.
 

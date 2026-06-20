@@ -8,7 +8,9 @@ Required branch: `codex/rp-ai-graphics-draft-package-proof-cpu-static-spec-valid
 
 Required draft PR title: `[tools] AI graphics CPU static spec validation execution`
 
-Created draft PR: pending creation.
+Created draft PR: [#612](https://github.com/yuzastudio6-cyber/Reedkt/pull/612).
+
+Recorded PR status: open/draft/MERGEABLE at `cc69c35eccebe765e80452703630f3bd63274ec6`; check rollup empty when recorded.
 
 Source PR #607: open/draft/MERGEABLE at `12cfc4f29e55db7a5b105ecfc3aba21480396435`.
 

@@ -74,6 +74,13 @@
 - Existing fixture and dry-run helpers under `server/media`, `server/e2e`, and `server/workers` remain execution, smoke, and readiness helpers and are not imported by the synthetic fixture dry-run layer.
 - Any future binary fixture generation or low-risk execution milestone must stay separately gated and must reuse existing production worker safety systems.
 
+## Execution Path Decision Integration
+
+- The execution path decision gate reuses the refresh gate, current tool-calling planners, dry-run materializer output, registry IDs, pending external reconciliation, and existing repo helper scan evidence.
+- The decision gate does not add binary fixture generation, low-risk execution, worker routes, command runners, adapter execution, Supabase runtime tables, migrations, SQL, or signed URLs.
+- Existing helpers under `server/media`, `server/e2e`, `server/workers`, worker routes, migration drafts, and runtime SQL tests are classified as reuse, defer, or avoid-duplicating evidence.
+- The current recommendation is binary fixture generation before controlled low-risk tool execution.
+
 ## Safety Confirmation
 
 - The new brain produces planning-only output with `executesTools: false`.

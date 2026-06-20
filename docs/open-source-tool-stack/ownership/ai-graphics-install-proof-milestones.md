@@ -9,6 +9,7 @@ Draft package proof promotion is the recommended next lane. PR #425, PR #433, an
 | `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_PROMOTION_REVIEW` | 13 draft package proof tools | recommended next |
 | `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_DRAFT_READY_EXECUTION_PR425` | PR #425 Batch 1 tools | completed as ready-for-review transition; not merged |
 | `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_DRAFT_READY_APPROVAL_PR433` | PR #433 Batch 2 tools | approved with warnings for future draft-ready execution |
+| `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_MERGE_APPROVAL_PR441` | PR #441 Batch 3 tools | approved with warnings for future merge execution only |
 | `AI_GRAPHICS_CPU_IMPORT_PROOF_APPROVAL_FOUNDATION` | `torch_torchvision`, `transformers`, `kornia` | future gated |
 | `AI_GRAPHICS_MODEL_TOOL_IMPORT_POLICY_APPROVAL` | `sam2`, `birefnet`, `real_esrgan` | future gated |
 

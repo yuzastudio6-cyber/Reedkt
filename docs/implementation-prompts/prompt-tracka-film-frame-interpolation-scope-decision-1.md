@@ -1,6 +1,6 @@
 # TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1
 
-Goal: preserve the next FILM scope decision handoff after native/container Batch-1.
+Goal: preserve the next FILM scope decision handoff after native/container Install-Proof-2.
 
 Current readiness: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 readiness: unchanged_ready_for_scope_decision_planning`
 

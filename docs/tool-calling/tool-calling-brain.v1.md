@@ -13,6 +13,15 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - Output execution mode: `planning_only`.
 - Raw prompts are not worker execution payloads and are not included in tool-calling plan output.
 
+## Milestone 1 Boundary
+
+- Milestone 1 is planning-only.
+- Current capability cards are generated from existing `server/tool-registry` `ProductionToolProfile` records.
+- Explicit per-tool study cards are deferred to `REEDITPRO-TOOL-CALLING-BRAIN-2`.
+- Runtime ID reconciliation for installed or proven tools that are not yet first-class `ProductionToolId` entries is deferred to Milestone 2.
+- Runtime tool selection must not use Track A, Track B, or owner labels.
+- Runtime tool selection must use operation capability, input/output compatibility, ranking policy, quality gates, fallback rules, resource profile, and future telemetry.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.

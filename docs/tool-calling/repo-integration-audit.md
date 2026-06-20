@@ -24,6 +24,14 @@
 - No duplicate `tool_execution_plans`, `tool_runs`, `tool_artifacts`, `quality_gate_results`, or `fallback_decisions`.
 - No migration or SQL file for this milestone.
 
+## Deferred to Milestone 2
+
+- Explicit per-tool capability study cards.
+- Installed or proven tool runtime ID reconciliation.
+- Alias handling for tool labels that differ from runtime IDs.
+- Alias examples: `sharp_libvips -> sharp`, `imagemagick_graphicsmagick -> imagemagick or pending registry expansion`, `polars_nodejs_polars -> polars`, `remotion_render_validation -> remotion`, `opentimelineio_timeline_validation -> opentimelineio`, `libass_caption_burnin -> libass`.
+- Capability expansion for MediaInfo, ExifTool, Tesseract, and ImageMagick/GraphicsMagick if they are not first-class `ProductionToolId` entries on the current base.
+
 ## Safety Confirmation
 
 - The new brain produces planning-only output with `executesTools: false`.

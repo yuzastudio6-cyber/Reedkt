@@ -1,25 +1,24 @@
-# AI Graphics Draft Package Proof PR #441 Draft-Ready Approval
+# AI Graphics Draft Package Proof PR441 Draft-Ready Approval
 
-Decision: `ai_graphics_draft_package_proof_draft_ready_approval_passed_with_warnings`
+Decision: `ai_graphics_draft_package_proof_pr441_draft_ready_approval_passed_with_warnings`
 
-PR #441 is deferred until PR #425 and PR #433 state are rechecked after earlier stack movement.
+PR #441 remains open/draft/CLEAN at `92c1a52b53c4836a642ab6be8885aa8fb994e9c8` and is the final draft target in the accepted stack order.
+
+Batch 3 scope:
+
+- `animejs`
+- `three_js`
+- `pixi_js`
+- `konva`
+- `babylonjs`
+
+PR #441 is approved with warnings for a future draft-ready execution lane only. It was not marked ready in this approval packet.
 
 | Field | Value |
 | --- | --- |
-| Title | `[tools] AI_TOOLS_CREATIVE_GRAPHICS batch 3 install proof execution` |
-| State | open |
-| Draft | true |
-| Mergeable | MERGEABLE |
-| Base | `codex/rp-ai-tools-creative-graphics-batch-3-approval-packet` |
-| Head | `codex/rp-ai-tools-creative-graphics-batch-3-install-proof-execution` |
-| Head SHA | `92c1a52b53c4836a642ab6be8885aa8fb994e9c8` |
-| Tools | `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs` |
-| Stack order position | 3 |
-| Future draft-ready execution approved | false |
-| Can be marked ready now | false |
-| Draft marked ready now | false |
-| PR merged now | false |
-| Canonical promotion approved now | false |
-| Blocker | `deferred_until_pr425_and_pr433_state_are_rechecked` |
-
-This branch does not change PR #441 state.
+| `firstDraftReadyTarget` | `441` |
+| `pr441DraftReadyApprovedForFutureExecution` | `true` |
+| `readyForPr441DraftReadyExecution` | `true` |
+| `pr441MarkedReadyNow` | `false` |
+| `prMergedNow` | `false` |
+| `canonicalPromotionApprovedNow` | `false` |

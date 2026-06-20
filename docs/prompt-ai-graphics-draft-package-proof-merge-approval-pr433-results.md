@@ -4,7 +4,7 @@ Decision: `ai_graphics_draft_package_proof_pr433_merge_approval_passed_with_warn
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-merge-approval-pr433`
 
-Draft PR: pending creation
+Draft PR: #576, open/draft/MERGEABLE, empty check rollup, https://github.com/yuzastudio6-cyber/Reedkt/pull/576
 
 Duplicate search result: no exact PR433 merge-approval PR, remote branch, or worktree found before creation; broad search found only earlier draft-ready PR433 records.
 
@@ -49,7 +49,7 @@ PR #441 defer result: deferred.
 
 `internalBetaReadyNow: false`
 
-Validation status: pending local validation.
+Validation status: local validation passed for `git diff --check`, `ai-graphics:draft-package-proof-merge-approval-pr433:diagnostics`, inherited diagnostics with expected warning-tolerant runs, changed-file secret scan, generated artifact/path scan, package-lock unchanged check, no `.local-artifacts` staged check, and `git diff --cached --check`.
 
 Package-lock status: unchanged by this lane.
 

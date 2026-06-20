@@ -9,7 +9,7 @@ Prerequisites:
 - `TRACKA-CORE-RENDER-CAPTION-INSTALL-PROOF-1`
 - `TRACKA-LIBASS-CAPTION-BURNIN-RUNTIME-PROOF-1`
 - `TRACKA-REMOTION-INSTALL-PROOF-1`
-- `TRACKA-REMOTION-RUNTIME-PROOF-1`
+- `TRACKA-REMOTION-RUNTIME-PROOF-1R`
 - `TRACKA-OTIO-TIMELINE-VALIDATION-1`
 - Worker Runtime transactional readiness
 - Supabase Worker Runtime RPC/schema readiness
@@ -28,7 +28,11 @@ Remotion inventory status: `TRACKA-REMOTION-RENDER-VALIDATION-1 decision: comple
 
 Remotion install status: `remotion_render_validation installStatus: installed_with_package_source_evidence`.
 
-Remotion runtime proof status: `remotion_render_validation runtimeProofStatus: blocked_pending_runtime_proof`.
+Remotion runtime proof status: `Remotion runtime proof status: blocked_pending_remotion_runtime_proof_confirmation`.
+
+Remotion runtime execution status: `runtimeExecutionPerformed: false`.
+
+Generated fixture: `not_run_confirmation_absent`.
 
 Browser runtime status: `browserRuntimeStatus: not_validated_in_this_phase`.
 

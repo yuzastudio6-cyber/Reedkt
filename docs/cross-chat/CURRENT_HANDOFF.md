@@ -512,3 +512,20 @@ TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Target: `docker/prod/cpu-worker/Dockerfile` with `docker/prod/cpu-worker/requirements.cpu.txt`.
+- Target tools: OpenCV, PyAV, and PySceneDetect only.
+- Build-context outputs: `dist-server` and `dist-staging-fixture-worker` generated locally and cleaned before commit.
+- Local image tag: `reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3`
+- Canonical Track B counts remain pending QA: 16 owned tools, 9 bounded accepted/proven tools, 7 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Execution proof evidence is ready for Milestone 2 QA review when the decision is pass or approved fixture-deferred.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No host pip install, host npm install, npm rebuild, package-lock mutation, requirements mutation, Dockerfile mutation, FFmpeg/FFprobe command, real user media, render/export, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION_STATUS:end -->

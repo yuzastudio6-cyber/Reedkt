@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisExecution.safetyScan.v1",
+  "generatedAt": "2026-06-20T03:16:15.024Z",
+  "forbiddenOutputsPresent": [],
+  "changedProtectedFiles": [],
+  "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "requirementsHash": "de5a91fd7331fc802a52508b470f9facef858051782e5ce3a2a97e4775b65461",
+  "dockerfileHash": "e4470a77095330b990a33d019d76b1bf87cb94d06f12f1b4a478d3171b578c7f",
+  "generatedOutputsCommitted": false,
+  "fixtureOutputsCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "dockerImagePushed": false,
+  "secretMaterialDetected": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "cleanupPassed": true,
+  "passed": true,
+  "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded"
+}

@@ -1,0 +1,57 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisExecution.syntheticFixtureProof.v1",
+  "generatedAt": "2026-06-20T03:16:15.024Z",
+  "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded",
+  "imageTag": "reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3",
+  "skipped": false,
+  "reports": [
+    {
+      "id": "opencv",
+      "name": "OpenCV",
+      "command": "docker run --rm --network none --entrypoint python3 reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3 -c \nimport cv2, json, numpy as np\nimg = np.zeros((8, 8, 3), dtype=np.uint8)\nimg[:, :, 1] = 128\ngray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)\nresized = cv2.resize(gray, (4, 4), interpolation=cv2.INTER_NEAREST)\nprint(json.dumps({'tool':'opencv','shape':list(resized.shape),'mean':float(resized.mean())}))\n",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 356,
+      "stdoutSummary": "{\"tool\": \"opencv\", \"shape\": [4, 4], \"mean\": 75.0}",
+      "stderrSummary": "",
+      "fixtureProven": true,
+      "deferrableIfSafeFixtureRequiresFfmpegOrRealMedia": false,
+      "realUserMediaUsed": false,
+      "ffmpegFfprobeCommandRun": false
+    },
+    {
+      "id": "pyav",
+      "name": "PyAV",
+      "command": "docker run --rm --network none --entrypoint python3 reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3 -c \nimport av, json, os, tempfile\npath = os.path.join(tempfile.gettempdir(), 'reeditpro_pyav_synthetic_fixture.mp4')\ntry:\n    container = av.open(path, mode='w')\n    stream = container.add_stream('mpeg4', rate=1)\n    stream.width = 16\n    stream.height = 16\n    stream.pix_fmt = 'yuv420p'\n    import numpy as np\n    frame = av.VideoFrame.from_ndarray(np.zeros((16, 16, 3), dtype=np.uint8), format='rgb24')\n    for packet in stream.encode(frame):\n        container.mux(packet)\n    for packet in stream.encode():\n        container.mux(packet)\n    container.close()\n    probe = av.open(path)\n    stream_count = len(probe.streams.video)\n    probe.close()\n    print(json.dumps({'tool':'pyav','fixture':'synthetic_mp4','video_streams':stream_count,'bytes':os.path.getsize(path)}))\nfinally:\n    try:\n        os.remove(path)\n    except FileNotFoundError:\n        pass\n",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 550,
+      "stdoutSummary": "{\"tool\": \"pyav\", \"fixture\": \"synthetic_mp4\", \"video_streams\": 1, \"bytes\": 878}",
+      "stderrSummary": "",
+      "fixtureProven": true,
+      "deferrableIfSafeFixtureRequiresFfmpegOrRealMedia": true,
+      "realUserMediaUsed": false,
+      "ffmpegFfprobeCommandRun": false
+    },
+    {
+      "id": "pyscenedetect",
+      "name": "PySceneDetect",
+      "command": "docker run --rm --network none --entrypoint python3 reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3 -c \nimport json, numpy as np\nfrom scenedetect.detectors import ContentDetector\nfrom scenedetect.frame_timecode import FrameTimecode\ndetector = ContentDetector(threshold=1.0)\nframe_a = np.zeros((24, 24, 3), dtype=np.uint8)\nframe_b = np.full((24, 24, 3), 255, dtype=np.uint8)\ncuts = []\ncuts.extend(detector.process_frame(FrameTimecode(0, 24.0), frame_a) or [])\ncuts.extend(detector.process_frame(FrameTimecode(1, 24.0), frame_b) or [])\nprint(json.dumps({'tool':'pyscenedetect','synthetic_frames':2,'cuts':len(cuts)}))\n",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 1015,
+      "stdoutSummary": "{\"tool\": \"pyscenedetect\", \"synthetic_frames\": 2, \"cuts\": 0}",
+      "stderrSummary": "<string>:4: DeprecationWarning: The `frame_timecode` submodule is deprecated, import from the base package instead.",
+      "fixtureProven": true,
+      "deferrableIfSafeFixtureRequiresFfmpegOrRealMedia": true,
+      "realUserMediaUsed": false,
+      "ffmpegFfprobeCommandRun": false
+    }
+  ],
+  "realUserMediaUsed": false,
+  "ffmpegFfprobeCommandRun": false,
+  "fixturesCreatedInContainerOrPrivateTmpOnly": true,
+  "syntheticFixturesOnly": true,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false
+}

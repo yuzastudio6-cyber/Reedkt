@@ -428,5 +428,53 @@
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,
     "betaProductionAccepted": false
+  },
+  "milestone2VideoAnalysisExecution": {
+    "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded",
+    "reportKey": "trackb_milestone_2_video_analysis_execution_reports",
+    "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+    "targetRequirements": "docker/prod/cpu-worker/requirements.cpu.txt",
+    "imageTag": "reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3",
+    "tools": [
+      {
+        "id": "opencv",
+        "name": "OpenCV",
+        "packageName": "opencv-python-headless",
+        "containerImportVersionProven": true,
+        "syntheticFixtureProven": true,
+        "fixtureDeferred": false,
+        "boundedProofAcceptedForQaReview": true,
+        "blocker": null
+      },
+      {
+        "id": "pyav",
+        "name": "PyAV",
+        "packageName": "av",
+        "containerImportVersionProven": true,
+        "syntheticFixtureProven": true,
+        "fixtureDeferred": false,
+        "boundedProofAcceptedForQaReview": true,
+        "blocker": null
+      },
+      {
+        "id": "pyscenedetect",
+        "name": "PySceneDetect",
+        "packageName": "scenedetect",
+        "containerImportVersionProven": true,
+        "syntheticFixtureProven": true,
+        "fixtureDeferred": false,
+        "boundedProofAcceptedForQaReview": true,
+        "blocker": null
+      }
+    ],
+    "canonicalCountsRemainPendingQa": true,
+    "canonicalAcceptedProvenBoundedBeforeMilestone2": 9,
+    "newlyProofedBoundedForQaReview": 3,
+    "acceptedProvenBoundedTotalPendingQa": 12,
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW",
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "betaProductionAccepted": false
   }
 }

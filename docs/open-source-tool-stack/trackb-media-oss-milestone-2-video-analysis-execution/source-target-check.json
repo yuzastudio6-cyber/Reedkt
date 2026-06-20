@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisExecution.sourceTargetCheck.v1",
+  "generatedAt": "2026-06-20T03:16:15.024Z",
+  "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+  "targetRequirements": "docker/prod/cpu-worker/requirements.cpu.txt",
+  "dockerfileCopiesRequirements": true,
+  "dockerfileInstallsRequirements": true,
+  "packagePresence": {
+    "opencv-python-headless": true,
+    "av": true,
+    "scenedetect": true
+  },
+  "allRequiredPackagesDeclared": true,
+  "packageLockMutationAllowed": false,
+  "dockerfileMutationAllowed": false,
+  "requirementsMutationAllowed": false,
+  "ffmpegFfprobeExpansionApproved": false,
+  "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded"
+}

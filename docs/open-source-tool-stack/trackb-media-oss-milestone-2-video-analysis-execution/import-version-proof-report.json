@@ -1,0 +1,49 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisExecution.importVersionProof.v1",
+  "generatedAt": "2026-06-20T03:16:15.024Z",
+  "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded",
+  "imageTag": "reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3",
+  "skipped": false,
+  "localHostProbeRun": false,
+  "reports": [
+    {
+      "id": "opencv",
+      "name": "OpenCV",
+      "packageName": "opencv-python-headless",
+      "module": "cv2",
+      "command": "docker run --rm --network none --entrypoint python3 reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3 -c import cv2, json; print(json.dumps({'tool':'opencv','version':cv2.__version__}))",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 792,
+      "stdoutSummary": "{\"tool\": \"opencv\", \"version\": \"4.13.0\"}",
+      "stderrSummary": "",
+      "versionProven": true
+    },
+    {
+      "id": "pyav",
+      "name": "PyAV",
+      "packageName": "av",
+      "module": "av",
+      "command": "docker run --rm --network none --entrypoint python3 reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3 -c import av, json; print(json.dumps({'tool':'pyav','version':av.__version__}))",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 253,
+      "stdoutSummary": "{\"tool\": \"pyav\", \"version\": \"17.1.0\"}",
+      "stderrSummary": "",
+      "versionProven": true
+    },
+    {
+      "id": "pyscenedetect",
+      "name": "PySceneDetect",
+      "packageName": "scenedetect",
+      "module": "scenedetect",
+      "command": "docker run --rm --network none --entrypoint python3 reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3 -c import scenedetect, json; print(json.dumps({'tool':'pyscenedetect','version':getattr(scenedetect, '__version__', 'unknown')}))",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 563,
+      "stdoutSummary": "{\"tool\": \"pyscenedetect\", \"version\": \"0.7\"}",
+      "stderrSummary": "",
+      "versionProven": true
+    }
+  ]
+}

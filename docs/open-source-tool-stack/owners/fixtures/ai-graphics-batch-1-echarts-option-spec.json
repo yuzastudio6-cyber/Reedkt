@@ -1,0 +1,59 @@
+{
+  "manifestId": "ai_graphics_batch_1_echarts_option_spec",
+  "toolId": "echarts",
+  "proofType": "synthetic_option_metadata_only",
+  "dataClassification": "synthetic_only",
+  "description": "Deterministic ECharts option fixture. This is not initialized in a browser or canvas runtime.",
+  "option": {
+    "title": { "text": "Synthetic Batch 1 Values", "show": true },
+    "dataset": {
+      "source": [
+        ["category", "value"],
+        ["alpha", 4],
+        ["beta", 12],
+        ["gamma", 20]
+      ]
+    },
+    "xAxis": { "type": "category" },
+    "yAxis": { "type": "value" },
+    "series": [
+      {
+        "type": "bar",
+        "encode": { "x": "category", "y": "value" }
+      }
+    ],
+    "animation": false
+  },
+  "expectedSeriesCount": 1,
+  "blockedUses": [
+    "browser_rendering",
+    "canvas_runtime",
+    "webgl_runtime",
+    "chart_initialization",
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "manifestId": "ai_graphics_batch_1_vega_lite_spec",
+  "toolId": "vega_lite",
+  "proofType": "synthetic_spec_compile_metadata_only",
+  "dataClassification": "synthetic_only",
+  "description": "Deterministic Vega-Lite compile fixture. This compiles to Vega JSON only and does not render.",
+  "spec": {
+    "description": "Synthetic Batch 1 Vega-Lite bar spec",
+    "data": {
+      "values": [
+        { "category": "alpha", "value": 4 },
+        { "category": "beta", "value": 12 },
+        { "category": "gamma", "value": 20 }
+      ]
+    },
+    "mark": "bar",
+    "encoding": {
+      "x": { "field": "category", "type": "nominal" },
+      "y": { "field": "value", "type": "quantitative" }
+    }
+  },
+  "expectedCompiledMarkType": "rect",
+  "requiresPeerPackage": "vega",
+  "blockedUses": [
+    "browser_rendering",
+    "canvas_runtime",
+    "webgl_runtime",
+    "svg_export",
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

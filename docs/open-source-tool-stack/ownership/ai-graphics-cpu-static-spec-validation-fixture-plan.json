@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsCpuStaticSpecValidationFixturePlan.v1",
+  "decision": "ai_graphics_cpu_static_spec_validation_approval_passed_with_warnings",
+  "executionApprovedNow": false,
+  "tools": [
+    {"toolId": "d3", "fixturePlan": "static data-shape fixture to deterministic chart metadata / selection-plan JSON", "domOrBrowserRequired": false},
+    {"toolId": "vega_lite", "fixturePlan": "minimal Vega-Lite spec fixture to schema/compile metadata only", "domOrBrowserRequired": false},
+    {"toolId": "vega", "fixturePlan": "compiled/minimal Vega spec fixture to parse/validation metadata only", "domOrBrowserRequired": false},
+    {"toolId": "satori", "fixturePlan": "static JSX-like manifest to SVG string metadata/shape contract later", "domOrBrowserRequired": false},
+    {"toolId": "svgdotjs_svg_js", "fixturePlan": "static SVG construction manifest to SVG element/string metadata contract later", "domOrBrowserRequired": false},
+    {"toolId": "viz_js", "fixturePlan": "small DOT graph fixture to DOT/SVG metadata contract later", "domOrBrowserRequired": false}
+  ],
+  "deferredTools": ["echarts", "lottie_web", "animejs", "three_js", "pixi_js", "konva", "babylonjs"],
+  "staticFixtureExecutionApprovedNow": false,
+  "browserRuntimeApprovedNow": false,
+  "webglCanvasRuntimeApprovedNow": false,
+  "publicArtifactApprovedNow": false,
+  "signedUrlApprovedNow": false
+}

@@ -26,9 +26,10 @@ Next proof planning remains future-only and separately gated.
 | Draft package proof runtime boundary QA | 13 canonical package-proof tools | QA acceptance of future runtime lane classifications and agent planning/study metadata only | Agent execution, runtime, Tool Route, Worker, browser/WebGL/canvas, beta, production |
 | Draft package proof runtime boundary owner approval | 13 canonical package-proof tools | Owner approval of PR #598 QA and future runtime lane classifications only | Agent execution, runtime, Tool Route, Worker, browser/WebGL/canvas, beta, production |
 | Draft package proof runtime boundary owner QA | 13 canonical package-proof tools | QA acceptance of PR #602 owner approval and future runtime lane classifications only | Agent execution, runtime, Tool Route, Worker, browser/WebGL/canvas, beta, production |
+| CPU/static spec validation approval | `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js` | Future CPU/static spec-validation execution approval only | Static execution now, browser/WebGL/canvas, Tool Route, Worker, public artifacts, beta, production |
 | Track B conflict sync | Track B media tools owned by `TRACK_B_MEDIA_OSS_STEWARD` | Reference evidence only | Atlas install/proof/execution authority for Track B tools |
 
-Next recommended prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_CPU_STATIC_SPEC_VALIDATION_APPROVAL`.
+Next recommended prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_CPU_STATIC_SPEC_VALIDATION_EXECUTION`.
 
 Runtime-ready now: `false`
 

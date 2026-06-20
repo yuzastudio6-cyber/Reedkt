@@ -1,0 +1,26 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsCpuStaticSpecValidationOutputContract.v1",
+  "decision": "ai_graphics_cpu_static_spec_validation_approval_passed_with_warnings",
+  "allowedFutureEvidence": ["deterministic_json_summaries", "per_tool_validation_metadata", "checksum_or_shape_metadata_if_future_execution_approves_it"],
+  "disallowedCurrentOutputs": ["generated_svg", "generated_image", "generated_media", "browser_output", "webgl_canvas_output", "public_artifact", "signed_url"],
+  "booleans": {
+    "staticValidationExecutionApprovedNow": false,
+    "staticFixtureExecutionApprovedNow": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "modelWeightDownloadPerformed": false,
+    "supabaseMutationPerformed": false,
+    "sqlExecutionPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "toolId": "birefnet",
+  "displayName": "BiRefNet",
+  "packageName": "birefnet",
+  "capabilities": [
+    "background_removal",
+    "subject_segmentation",
+    "planning_metadata_only",
+    "blocked_or_deferred"
+  ],
+  "bestFor": [
+    "future subject/background extraction planning"
+  ],
+  "notFor": [
+    "charts",
+    "3D scenes",
+    "current execution"
+  ],
+  "inputTypes": [
+    "image_subject_extraction_plan"
+  ],
+  "outputTypes": [
+    "planning_metadata"
+  ],
+  "proofStatus": "owner_assigned_no_model_proof",
+  "runtimeStatus": "blocked_pending_model_weight_provenance_and_gpu_policy",
+  "cpuGpuBrowserTarget": "model_weight_review_later_then_gpu_proof",
+  "costClass": "high",
+  "latencyClass": "high",
+  "qualityClass": "high_after_proof",
+  "integrationComplexity": "high",
+  "safetyLimitations": [
+    "model download blocked",
+    "inference blocked"
+  ],
+  "fallbacks": [
+    "sam2",
+    "rembg"
+  ],
+  "nextProofMilestone": "model_weight_and_background_extraction_review",
+  "tier": "Blocked",
+  "agentCanSelectForPlanning": true,
+  "agentCanExecuteNow": false,
+  "toolExecutionPerformed": false,
+  "runtimeReadyNow": false,
+  "internalBetaReadyNow": false,
+  "productionReadyNow": false,
+  "scoring": {
+    "capabilityFit": 21,
+    "outputQualityPotential": 17,
+    "reliabilityProof": 1,
+    "cloudReadiness": 1,
+    "costEfficiency": 3,
+    "integrationSimplicity": 2,
+    "safetyAndControl": 4,
+    "totalScore": 49
+  },
+  "eliminationRules": [
+    "Eliminate if capability mismatch.",
+    "Eliminate if proof status is below required proof.",
+    "Eliminate if browser/WebGL/canvas is required but not approved.",
+    "Eliminate if GPU/model weights are required but not approved.",
+    "Eliminate if public artifact/signed URL is required but not approved.",
+    "Eliminate if Tool Route/Worker execution is required but not approved.",
+    "Eliminate if another simpler tool covers the same purpose with lower cost.",
+    "Eliminate if tool is marked deferred/backlog."
+  ]
+}

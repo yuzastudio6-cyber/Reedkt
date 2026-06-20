@@ -1,0 +1,143 @@
+{
+  "decision": "ai_graphics_tool_capability_study_and_ranking_matrix_completed_with_warnings",
+  "canonicalPackageProofTools": [
+    "d3",
+    "echarts",
+    "vega_lite",
+    "vega",
+    "satori",
+    "svgdotjs_svg_js",
+    "viz_js",
+    "lottie_web",
+    "animejs",
+    "three_js",
+    "pixi_js",
+    "konva",
+    "babylonjs"
+  ],
+  "cpuStaticValidatedTools": [
+    "d3",
+    "vega_lite",
+    "vega",
+    "satori",
+    "svgdotjs_svg_js",
+    "viz_js"
+  ],
+  "blockedDeferredModelTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background"
+  ],
+  "proofByTool": {
+    "torch_torchvision": {
+      "proofStatus": "owner_assigned_no_import_or_model_proof",
+      "runtimeStatus": "blocked_pending_cpu_import_model_boundary_and_gpu_policy",
+      "agentCanExecuteNow": false
+    },
+    "transformers": {
+      "proofStatus": "owner_assigned_no_import_or_model_proof",
+      "runtimeStatus": "blocked_pending_cpu_import_model_boundary_and_model_weight_policy",
+      "agentCanExecuteNow": false
+    },
+    "sam2": {
+      "proofStatus": "owner_assigned_no_model_proof",
+      "runtimeStatus": "blocked_pending_model_weight_provenance_and_gpu_policy",
+      "agentCanExecuteNow": false
+    },
+    "birefnet": {
+      "proofStatus": "owner_assigned_no_model_proof",
+      "runtimeStatus": "blocked_pending_model_weight_provenance_and_gpu_policy",
+      "agentCanExecuteNow": false
+    },
+    "real_esrgan": {
+      "proofStatus": "owner_assigned_no_model_proof",
+      "runtimeStatus": "blocked_pending_model_weight_provenance_and_gpu_policy",
+      "agentCanExecuteNow": false
+    },
+    "kornia": {
+      "proofStatus": "owner_assigned_no_import_proof",
+      "runtimeStatus": "blocked_pending_cpu_import_proof",
+      "agentCanExecuteNow": false
+    },
+    "rembg": {
+      "proofStatus": "owner_assigned_backlog_decision_pending",
+      "runtimeStatus": "blocked_pending_backlog_redundancy_review",
+      "agentCanExecuteNow": false
+    },
+    "transparent_background": {
+      "proofStatus": "owner_assigned_backlog_decision_pending",
+      "runtimeStatus": "blocked_pending_backlog_redundancy_review",
+      "agentCanExecuteNow": false
+    },
+    "d3": {
+      "proofStatus": "canonical_package_proof_and_cpu_static_validation_passed",
+      "runtimeStatus": "planning_metadata_only_runtime_blocked",
+      "agentCanExecuteNow": false
+    },
+    "echarts": {
+      "proofStatus": "canonical_package_import_static_fixture_proof_only",
+      "runtimeStatus": "blocked_pending_browser_chart_runtime",
+      "agentCanExecuteNow": false
+    },
+    "vega_lite": {
+      "proofStatus": "canonical_package_proof_and_cpu_static_validation_passed",
+      "runtimeStatus": "planning_metadata_only_runtime_blocked",
+      "agentCanExecuteNow": false
+    },
+    "vega": {
+      "proofStatus": "canonical_package_proof_and_cpu_static_validation_passed",
+      "runtimeStatus": "planning_metadata_only_runtime_blocked",
+      "agentCanExecuteNow": false
+    },
+    "satori": {
+      "proofStatus": "canonical_package_proof_and_cpu_static_validation_passed",
+      "runtimeStatus": "planning_metadata_only_runtime_blocked",
+      "agentCanExecuteNow": false
+    },
+    "svgdotjs_svg_js": {
+      "proofStatus": "canonical_package_proof_and_cpu_static_validation_passed",
+      "runtimeStatus": "planning_metadata_only_runtime_blocked",
+      "agentCanExecuteNow": false
+    },
+    "viz_js": {
+      "proofStatus": "canonical_package_proof_and_cpu_static_validation_passed",
+      "runtimeStatus": "planning_metadata_only_runtime_blocked",
+      "agentCanExecuteNow": false
+    },
+    "lottie_web": {
+      "proofStatus": "canonical_package_import_static_fixture_proof_only",
+      "runtimeStatus": "blocked_pending_animation_runtime_approval",
+      "agentCanExecuteNow": false
+    },
+    "animejs": {
+      "proofStatus": "canonical_package_import_manifest_proof_only",
+      "runtimeStatus": "blocked_pending_animation_runtime_approval",
+      "agentCanExecuteNow": false
+    },
+    "three_js": {
+      "proofStatus": "canonical_package_import_manifest_proof_only",
+      "runtimeStatus": "blocked_pending_browser_webgl_canvas_sandbox",
+      "agentCanExecuteNow": false
+    },
+    "pixi_js": {
+      "proofStatus": "canonical_package_import_manifest_proof_only",
+      "runtimeStatus": "blocked_pending_browser_webgl_canvas_sandbox",
+      "agentCanExecuteNow": false
+    },
+    "konva": {
+      "proofStatus": "canonical_package_import_manifest_proof_only",
+      "runtimeStatus": "blocked_pending_browser_canvas_sandbox",
+      "agentCanExecuteNow": false
+    },
+    "babylonjs": {
+      "proofStatus": "canonical_package_import_manifest_proof_only",
+      "runtimeStatus": "blocked_pending_browser_webgl_canvas_sandbox",
+      "agentCanExecuteNow": false
+    }
+  }
+}

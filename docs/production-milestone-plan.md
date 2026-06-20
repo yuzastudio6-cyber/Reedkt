@@ -27,8 +27,19 @@ Prompt GD-1: AI Tools Creative Graphics Manifest Contract.
 - Migration deployed: `no`
 - Runtime execution remains blocked.
 
+## GD-2 Milestone
+
+Prompt GD-2: Creative Graphics All-Tools Dry-Run Fixture Pack.
+
+- Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / dry_run_not_executed`
+- Capability: `none; AI Tools creative graphics dry-run fixture pack only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime execution remains blocked.
+
 ## Next Milestone
 
-`Prompt GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack`
-
-GD-2 should create synthetic dry-run fixture definitions for Remotion, D3.js, Three.js, PixiJS, Anime.js, Lottie-web, SVG.js, Apache ECharts, Vega/Vega-Lite, Viz.js/Graphviz, Satori, and @resvg/resvg-js. It must remain non-runtime until dry-run fixture contracts are accepted.
+`Prompt GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack`

@@ -1,13 +1,13 @@
 # Creative Graphics Future Prompt Sequence
 
-Status: `repo_audit_passed / manifest_draft / dry_run_not_started`
+Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / dry_run_not_executed`
 
 ## Recommended Sequence
 
 1. `Prompt GD-1 - AI Tools Creative Graphics Capability Manifest Contract`
    - Completed as manifest drafts and contracts only.
 2. `Prompt GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack`
-   - Create synthetic dry-run fixture definitions for every owned tool.
+   - Completed as static fixture specs and examples only.
 3. `Prompt GD-3 - Creative Graphics Static Asset Fixture Candidate`
    - Plan local static SVG/chart/diagram/card/raster candidates.
 4. `Prompt GD-4 - Creative Graphics Motion/Animation Fixture Candidate`
@@ -17,6 +17,6 @@ Status: `repo_audit_passed / manifest_draft / dry_run_not_started`
 
 ## Current Recommendation
 
-Recommended next prompt: `Prompt GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack`.
+Recommended next prompt: `Prompt GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack`.
 
-Production capability enabled: `none; AI Tools creative graphics manifest contract only`
+Production capability enabled: `none; AI Tools creative graphics dry-run fixture pack only`

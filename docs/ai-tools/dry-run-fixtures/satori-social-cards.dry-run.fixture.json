@@ -1,0 +1,30 @@
+{
+  "fixtureId": "gd2_satori_social_cards_dry_run",
+  "toolId": "satori_social_cards",
+  "ownerWorkstream": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "runtimeUnlockStage": "repo_audit_passed",
+  "dryRunPurpose": "Validate a synthetic Satori social card artifact plan without rendering.",
+  "syntheticInputTypes": ["social_card_input", "style_manifest", "layout_intent"],
+  "blockedInputTypes": ["raw_prompt", "real_user_data", "signed_url_source", "provider_secret", "service_role_secret"],
+  "requiredContext": {
+    "approvedPlanSnapshotPlaceholder": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER>",
+    "timingContextPlaceholder": "<TIMING_CONTEXT_PLACEHOLDER>",
+    "aspectRatio": "1200:630",
+    "dimensions": { "width": 1200, "height": 630 },
+    "fps": null,
+    "durationFrames": null,
+    "styleManifestPlaceholder": "<STYLE_MANIFEST_PLACEHOLDER>"
+  },
+  "expectedOutputArtifacts": ["social_card_png_manifest", "social_card_svg_manifest", "private_artifact_manifest"],
+  "privateArtifactManifestPlaceholder": "<PRIVATE_ARTIFACT_MANIFEST_PLACEHOLDER>",
+  "gcsPrivatePathPlaceholder": "<PRIVATE_GCS_PATH_PLACEHOLDER>",
+  "supabaseArtifactRecordPlaceholder": "<SUPABASE_ARTIFACT_RECORD_PLACEHOLDER>",
+  "checksumPlaceholder": "<CHECKSUM_PLACEHOLDER>",
+  "trackAHandoffRequired": true,
+  "qaChecks": ["dimensions", "aspect_ratio", "safe_zones", "typography", "readability", "style_consistency", "blocked_use_compliance"],
+  "blockedUses": ["raw_prompt_worker_execution", "signed_url_as_source_of_truth", "public_artifact", "final_delivery_without_track_a_validation", "provider_fallback_without_approval", "production_beta_unlock"],
+  "passCriteria": ["fixture_parses", "synthetic_card_only", "private_artifact_placeholders_present", "satori_runtime_blocked", "no_public_delivery_claim"],
+  "failCriteria": ["real_user_data_reference", "public_or_signed_url_reference", "tool_execution_claim", "runtime_unlock_claim"],
+  "nextUnlockGate": "Prompt GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack",
+  "supabaseUpdateClassification": { "updateRequired": "docs/status only", "updateStatus": "docs_only", "environmentTouched": "none", "sqlExecuted": "none", "migrationDeployed": "no" }
+}

@@ -28,6 +28,8 @@ Blocker: `host_resource_limit_exit_137_during_npm_ci`
 
 Retry blocker: `host_resource_limit_exit_137_during_npm_ci_retry`
 
+Host-resource closure blocker: `host_resource_limit_requires_larger_dependency_validation_environment`
+
 `Product-ready end-to-end local OSS tools: 0`
 
 ## Validation Evidence
@@ -63,6 +65,18 @@ Validation status: `blocked`.
 
 The full post-packet validation suite should be rerun by the next retry host after dependency validation succeeds.
 
+## Host Resource Closure Evidence
+
+- PR #577 checks: `none_reported`
+- Larger/stable dependency-validation environment available to this Codex run: `not_available`
+- Already-hydrated clean #577 worktree with same lockfile and passing validation: `not_confirmed`
+- Same local exit-137 path repeated during closure: `false`
+- Remotion proof command: `not_run_host_resource_closure_blocked`
+- `git diff --check`: passed after host-resource closure update
+- `npm run --silent tracka:remotion-runtime-proof-1r:diagnostics`: passed after host-resource closure update
+- changed-file safety scan: passed after host-resource closure update
+- `package-lock.json`: unchanged
+
 ## Supabase Status
 
 - Supabase update required: `none`
@@ -82,6 +96,6 @@ The full post-packet validation suite should be rerun by the next retry host aft
 
 `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates_and_remotion_render_fixture_proof`
 
-Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-RETRY`
+Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE`
 
 No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, video rendering, media processing, FFmpeg/FFprobe execution, Remotion execution, or broad service-role handler was enabled.

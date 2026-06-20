@@ -25,7 +25,7 @@
 
 #575 added `scripts/validation/tracka-remotion-runtime-proof-1.mjs`, which is the only approved runner for this 1R attempt. The runner is guarded by `REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true`, writes only to `/tmp/reeditpro-tracka-remotion-runtime-proof-1/<runId>/`, and is designed for package import plus `bundle()` only.
 
-The runner was not invoked in this attempt because pre-execution `npm ci` validation failed with `host_resource_limit_exit_137_during_npm_ci`.
+The runner was not invoked in this attempt because pre-execution `npm ci` validation failed with `host_resource_limit_exit_137_during_npm_ci`, then retry closure confirmed `host_resource_limit_requires_larger_dependency_validation_environment`.
 
 Duplicate scan: `completed_no_prior_completed_1r_result_found`
 

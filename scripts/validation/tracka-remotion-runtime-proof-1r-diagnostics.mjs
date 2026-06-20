@@ -52,6 +52,12 @@ const requiredText = [
   'Artifacts/checksums: `none`',
   'host_resource_limit_exit_137_during_npm_ci',
   'host_resource_limit_exit_137_during_npm_ci_retry',
+  'host_resource_limit_requires_larger_dependency_validation_environment',
+  'PR #577 checks: `none_reported`',
+  'Larger/stable dependency-validation environment available to this Codex run: `not_available`',
+  'Already-hydrated clean #577 worktree with same lockfile and passing validation: `not_confirmed`',
+  'Same local exit-137 path repeated during closure: `false`',
+  'Remotion proof command: `not_run_host_resource_closure_blocked`',
   'Fresh temporary worktree retry under `/Volumes/backup/codex-worktrees/reeditpro-tracka-remotion-runtime-proof-1r-retry-tmp`: terminated during checkout with exit `143`',
   'Fresh temporary worktree retry under `/private/tmp/reeditpro-tracka-remotion-runtime-proof-1r-retry-tmp`: terminated with exit `143` before usable dependency validation output',
   'REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true npm run tracka:remotion-runtime-proof-1',
@@ -72,7 +78,7 @@ const requiredText = [
   'TRACKA-REMOTION-RENDER-FIXTURE-PROOF-1 readiness: blocked_pending_remotion_runtime_proof_1r_completion',
   'TRACKA-CONTAINER-PACKAGING-TOOLS-INSTALL-PROOF-1 readiness: ready_after_remotion_runtime_proof_or_parallel_if_owner_approved',
   'TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates_and_remotion_render_fixture_proof',
-  'Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-RETRY`',
+  'Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE`',
   'Supabase update status: `not_applicable_docs_only`',
   'Supabase environment touched: `none`',
   'SQL executed: `none`',
@@ -190,4 +196,5 @@ console.log('Runtime execution performed: false')
 console.log('Generated fixture: not_run_pre_execution_validation_blocked')
 console.log('Artifacts/checksums: none')
 console.log('Retry blocker: host_resource_limit_exit_137_during_npm_ci_retry')
-console.log('Next prompt: TRACKA-REMOTION-RUNTIME-PROOF-1R-RETRY')
+console.log('Host-resource closure blocker: host_resource_limit_requires_larger_dependency_validation_environment')
+console.log('Next prompt: TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE')

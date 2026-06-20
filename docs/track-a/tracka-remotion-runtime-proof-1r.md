@@ -73,6 +73,19 @@ The confirmed command remains not run:
 
 `REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true npm run tracka:remotion-runtime-proof-1`
 
+## Host Resource Closure
+
+`TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE blocker: host_resource_limit_requires_larger_dependency_validation_environment`
+
+Host-resource closure found no currently available stable validation path in this Codex environment:
+
+- PR #577 has no reported CI checks available for dependency-validation evidence.
+- The local #577 worktree has already produced repeated `npm ci` exit `137` failures.
+- Fresh temporary worktree attempts terminated before usable dependency validation could complete.
+- No already-hydrated clean #577 worktree with the same lockfile and passing validation was confirmed.
+
+The same local under-resourced dependency install path was not retried again. Runtime proof remains not run.
+
 ## Readiness
 
 `TRACKA-REMOTION-RUNTIME-PROOF-1R readiness: blocked_pending_dependency_validation_or_confirmed_runtime_proof_rerun`
@@ -83,6 +96,6 @@ The confirmed command remains not run:
 
 `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates_and_remotion_render_fixture_proof`
 
-Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-RETRY`
+Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE`
 
 No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, video rendering, media processing, FFmpeg/FFprobe execution, Remotion execution, or broad service-role handler was enabled.

@@ -16,7 +16,7 @@ The confirmed proof command was not run. The next phase must first complete depe
 
 `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates_and_remotion_render_fixture_proof`
 
-Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-RETRY`
+Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE`
 
 Only after a successful confirmed 1R rerun should the next recommended milestone become `TRACKA-REMOTION-RENDER-FIXTURE-PROOF-1`.
 
@@ -24,6 +24,7 @@ Only after a successful confirmed 1R rerun should the next recommended milestone
 
 - rerun duplicate scan
 - rerun package-lock and ownership boundary checks
+- use a larger or otherwise stable dependency-validation environment; do not repeat the same local exit-137 path
 - pass `npm ci --no-audit --no-fund --progress=false`
 - run exactly one confirmed bounded command with `REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true`
 - keep generated fixture artifacts in `/tmp`

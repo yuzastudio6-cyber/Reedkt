@@ -280,3 +280,28 @@ GD-8A status terms:
 - Migration deployed: `no`
 - GitHub focused resvg probe: `passed` on `linux/x64`
 - Next recommended prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`
+
+## TRACKA-GD-HANDOFF-0 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Track A handoff review | `docs/track-a/creative-graphics-handoff-review.md` |
+| Fixture acceptance matrix | `docs/track-a/creative-graphics-fixture-acceptance-matrix.md` |
+| Private preview readiness | `docs/track-a/creative-graphics-private-preview-readiness.md` |
+| Missing metadata checklist | `docs/track-a/creative-graphics-missing-metadata-checklist.md` |
+| Next handoff prompt | `docs/track-a/creative-graphics-next-handoff-prompt.md` |
+| Validation results | `docs/prompt-tracka-gd-handoff-0-validation-results.md` |
+
+TRACKA-GD-HANDOFF-0 status terms:
+
+- Handoff result: `tracka_handoff_ready_with_warnings`
+- Runtime unlock status: `generated_local_fixture_partially_passed / tracka_handoff_ready_with_warnings / private_preview_not_executed`
+- Accepted with warnings: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Skipped: `svg_js_vector_graphics`
+- Blocked: `resvg_js_svg_rasterization`
+- Production capability enabled: `none; Track A creative graphics handoff review only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`

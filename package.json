@@ -21,6 +21,7 @@
     "tool-calling:synthetic-fixture-dry-run": "node scripts/validation/tool-calling-synthetic-fixture-dry-run-diagnostics.mjs",
     "tool-calling:execution-path-decision": "node scripts/validation/tool-calling-execution-path-decision.mjs",
     "tool-calling:binary-fixture-generation": "node scripts/validation/tool-calling-binary-fixture-generation-diagnostics.mjs",
+    "tool-calling:controlled-low-risk-execution": "node scripts/validation/tool-calling-controlled-low-risk-execution-diagnostics.mjs",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",

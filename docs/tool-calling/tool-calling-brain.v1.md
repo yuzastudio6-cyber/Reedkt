@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Reeditpro tool-calling brain is a planning-only runtime foundation for choosing production tool candidates by operation, media context, user preference target, quality mode, resource profile, validators, fallback rules, and future telemetry. It does not execute tools, process media, call providers, mutate Supabase, run SQL, create signed URLs, or unlock beta/production execution.
+The Reeditpro tool-calling brain is a planning-first runtime foundation for choosing production tool candidates by operation, media context, user preference target, quality mode, resource profile, validators, fallback rules, and future telemetry. Normal planning outputs do not execute tools, process media, call providers, mutate Supabase, run SQL, create signed URLs, or unlock beta/production execution. The controlled low-risk readiness probe API is the only v1 tool execution surface.
 
 ## Runtime Boundary
 
@@ -81,6 +81,15 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - Existing helper surfaces under `server/media`, `server/e2e`, `server/workers`, storage, routes, CLIs, and artifact writers are not imported by this layer.
 - This milestone still does not execute tools, run shell commands, dispatch workers, process media, call providers, mutate Supabase, run SQL, create migrations, create signed URLs, unlock beta or production, or mutate `package-lock.json`.
 
+## Controlled Low-Risk Execution Layer
+
+- Controlled low-risk execution is the first actual tool execution surface in the tool-calling stack.
+- It runs only allowlisted readiness probes: `ffmpeg -version`, `ffprobe -version`, and Node package metadata resolution for `remotion` and `sharp`.
+- Binary probes use `execFile` with no shell, no stdin, exact hardcoded args, short timeouts, and sanitized diagnostics-only output.
+- Package probes use module resolution only; they do not import runtime packages, render, or process images.
+- Missing tools return structured `unavailable` results, while nonzero exits, timeouts, unsafe output, and policy mismatch fail closed.
+- This layer still does not process media or fixtures, execute safe command plans, dispatch workers, call providers, mutate Supabase, run SQL, create signed URLs, unlock beta or production, or mutate `package-lock.json`.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.
@@ -95,10 +104,12 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 10. When requested, materialize synthetic fixture dry-run descriptors and validate JSON-only artifact manifests without writing files or generating media.
 11. Before choosing an execution milestone, run the execution path decision gate and follow its recommendation.
 12. When requested, generate temporary Node-only binary fixtures from dry-run artifacts, validate checksums and cleanup, and return metadata without path exposure.
+13. When requested, run controlled low-risk readiness probes and return sanitized fail-closed diagnostics with `executesTools: true` and `mediaProcessingPerformed: false`.
 
 ## Non-Goals
 
-- No tool execution or worker dispatch.
+- No tool execution outside the explicit controlled readiness probe API.
+- No worker dispatch.
 - No media processing.
 - No provider/model calls.
 - No Supabase mutation or SQL.

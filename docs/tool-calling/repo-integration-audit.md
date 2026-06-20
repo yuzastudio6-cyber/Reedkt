@@ -90,9 +90,18 @@
 - The layer does not create a duplicate binary fixture catalog, production registry, worker router, QA policy, fallback policy, adapter execution layer, command execution layer, fixture planner, Supabase runtime table, migration, SQL file, storage writer, or artifact writer.
 - Existing helpers under `server/media`, `server/e2e`, `server/workers`, storage, routes, CLIs, migration drafts, and runtime SQL tests remain evidence or future integration references only.
 
+## Controlled Low-Risk Execution Integration
+
+- Controlled low-risk execution reuses first-class `ProductionToolId` values, pending external reconciliation, and the existing refresh gate.
+- The layer executes only diagnostics-only readiness probes for `ffmpeg`, `ffprobe`, `remotion`, and `sharp`; it does not execute safe command plans, process media, inspect fixtures, dispatch workers, or call provider/runtime systems.
+- Existing helpers under `server/workers`, `server/media`, `server/e2e`, production-readiness modules, worker routes, CLIs, migration drafts, and runtime SQL tests remain scan evidence only and are not imported.
+- The layer does not create a duplicate worker router, execution adapter, command policy, readiness worker, production registry, QA policy, fallback policy, Supabase runtime table, migration, SQL file, storage writer, or artifact writer.
+- Probe output is sanitized and diagnostics-only; no local paths, signed URLs, raw prompts, service-role context, provider secrets, shell commands, or arbitrary args are returned.
+
 ## Safety Confirmation
 
-- The new brain produces planning-only output with `executesTools: false`.
+- Normal tool-calling plans produce planning-only output with `executesTools: false`.
+- Controlled low-risk readiness probes return `executesTools: true` and `mediaProcessingPerformed: false`.
 - Pipeline steps use `executionMode: planning_only`.
 - The diagnostics do not process media, call providers, create signed URLs, mutate Supabase, run SQL, or dispatch workers.
 - `package-lock.json` is intentionally not modified by this milestone.

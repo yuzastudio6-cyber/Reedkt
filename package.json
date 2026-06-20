@@ -26,6 +26,7 @@
     "ai-graphics:draft-package-proof-merge-ready-review:diagnostics": "node scripts/validation/ai-graphics-draft-package-proof-merge-ready-review-diagnostics.mjs",
     "ai-graphics:draft-package-proof-merge-approval-pr425:diagnostics": "node scripts/validation/ai-graphics-draft-package-proof-merge-approval-pr425-diagnostics.mjs",
     "ai-graphics:draft-package-proof-merge-approval-pr433:diagnostics": "node scripts/validation/ai-graphics-draft-package-proof-merge-approval-pr433-diagnostics.mjs",
+    "ai-graphics:draft-package-proof-merge-approval-pr441:diagnostics": "node scripts/validation/ai-graphics-draft-package-proof-merge-approval-pr441-diagnostics.mjs",
     "open-source-tool-stack:batch-1:approval:diagnostics": "node scripts/validation/open-source-tool-stack-batch-1-approval-diagnostics.mjs",
     "open-source-tool-stack:batch-1-rerun:approval:diagnostics": "node scripts/validation/open-source-tool-stack-batch-1-rerun-approval-diagnostics.mjs",
     "dependency-baseline:repair-before-tool-batch-1:diagnostics": "node scripts/validation/dependency-baseline-repair-before-tool-batch-1-diagnostics.mjs",

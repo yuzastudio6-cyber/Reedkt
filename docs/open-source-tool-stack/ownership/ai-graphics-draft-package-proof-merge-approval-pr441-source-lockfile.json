@@ -1,0 +1,116 @@
+{
+  "decision": "ai_graphics_draft_package_proof_pr441_merge_approval_passed_with_warnings",
+  "branch": "codex/rp-ai-graphics-draft-package-proof-merge-approval-pr441",
+  "baseRef": "origin/codex/rp-ai-graphics-draft-package-proof-merge-execution-pr433",
+  "duplicateSearch": {
+    "exactOpenPrFound": false,
+    "exactRemoteBranchFound": false,
+    "targetWorktreeFoundBeforeCreation": false,
+    "broadSearchFoundOnlyEarlierApprovalOrExecutionRecords": true
+  },
+  "sources": {
+    "pr579": {
+      "number": 579,
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "merged": false,
+      "headSha": "c816322632920cfa34cc82639808decc3c3128d3",
+      "checkRollup": "empty"
+    },
+    "pr433": {
+      "number": 433,
+      "state": "merged",
+      "draft": false,
+      "headSha": "5d7921f9d79e19641a9453440a6f9abe6272ea04",
+      "mergeSha": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0",
+      "mergedAt": "2026-06-20T13:00:10Z"
+    },
+    "pr425": {
+      "number": 425,
+      "state": "merged",
+      "draft": false,
+      "headSha": "4e79f14a03a441c0a6d9c8adaef55b7c8b693c12",
+      "mergeSha": "a055ef045db2a6ce127a044bee6219d5933532c3",
+      "mergedAt": "2026-06-20T03:57:35Z"
+    },
+    "pr576": {
+      "number": 576,
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "merged": false,
+      "headSha": "e515cfd59dca5766778a49fcb937dd074c00f546",
+      "checkRollup": "empty"
+    },
+    "pr573": {
+      "number": 573,
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "merged": false,
+      "headSha": "8b9d65d44b4fc756631c303a389ef3d1712ca1ab",
+      "checkRollup": "empty"
+    },
+    "pr569": {
+      "number": 569,
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "merged": false,
+      "headSha": "a9dc1e9d8210e89a243de3f5eff5f53510f0217e",
+      "checkRollup": "empty"
+    },
+    "pr568": {
+      "number": 568,
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "merged": false,
+      "headSha": "d1794eedb94c59aa8279c5ef6cd463014b83980c",
+      "checkRollup": "empty"
+    },
+    "pr441": {
+      "number": 441,
+      "state": "open",
+      "draft": false,
+      "mergeable": "MERGEABLE",
+      "merged": false,
+      "headSha": "92c1a52b53c4836a642ab6be8885aa8fb994e9c8",
+      "baseRef": "codex/rp-ai-tools-creative-graphics-batch-3-approval-packet",
+      "checkRollup": "empty"
+    },
+    "pr543": {
+      "number": 543,
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "merged": false,
+      "headSha": "37fea25846987323d1de04098c701816fa24a237",
+      "checkRollup": "empty"
+    },
+    "pr542": {
+      "number": 542,
+      "state": "merged",
+      "draft": false,
+      "headSha": "c2007f6bb20bc5cfae35d9e4eaef03feeca3218f",
+      "mergeSha": "a66a1c0b72263e5e113d95216c373e0fad1071bb"
+    },
+    "pr544": {
+      "number": 544,
+      "state": "merged",
+      "draft": false,
+      "headSha": "318415fa8a9dbe33a4ac5f0f8a767ab761b73a4d",
+      "mergeSha": "62f69c6b66d77abf155287ffdb2e9a380541d763"
+    }
+  },
+  "trackBOwnerRule": {
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "atlasMayClaimTrackBTools": false,
+    "atlasMayInstallProveOrExecuteTrackBTools": false
+  },
+  "trackAOwnerContext": {
+    "sourcePr": 544,
+    "atlasOwnsTrackARenderExport": false
+  }
+}

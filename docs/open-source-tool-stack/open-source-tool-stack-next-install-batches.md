@@ -700,3 +700,20 @@ TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Target tools: PaddlePaddle and PaddleOCR only.
+- Build-context generation: not required for the OCR runtime target.
+- Local image tag: `reeditpro-ocr-runtime:trackb-milestone3-cpu-3cc82ddad41854860a4b06421dc9e22e74a1435f`
+- Canonical Track B counts remain pending QA: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Newly proofed CPU evidence pending QA: `0`.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No OCR inference, model download/copy/upload, GPU execution, real media/documents, FFmpeg/FFprobe, other Track B tool execution, render/export, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_STATUS:end -->

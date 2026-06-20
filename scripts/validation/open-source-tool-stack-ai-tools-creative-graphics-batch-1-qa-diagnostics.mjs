@@ -10,6 +10,8 @@ const allowedDecisions = new Set([
   'blocked_pending_validation_rerun',
 ])
 const tools = ['d3', 'echarts', 'vega-lite', 'vega']
+const approvedBatch2Dependencies = ['satori', '@svgdotjs/svg.js', '@viz-js/viz', 'lottie-web']
+const batch2ExecutionDecision = 'ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings'
 const requiredDocs = [
   'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-qa-review.md',
   'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-acceptance-matrix.md',
@@ -29,6 +31,9 @@ const requiredEvidenceDocs = [
 ]
 const allowedFutureScriptDiffs = [
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-import-smoke',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-synthetic-fixtures',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-execution:diagnostics',
 ]
 const requiredTrueBooleans = [
   'batch1Accepted',
@@ -80,6 +85,11 @@ const forbiddenPatterns = [
 
 const failures = []
 const env = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
+const batch2ExecutionContext =
+  existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md') &&
+  readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md', 'utf8').includes(
+    batch2ExecutionDecision,
+  )
 const readJson = (path) => {
   try {
     return JSON.parse(readFileSync(path, 'utf8'))
@@ -160,13 +170,17 @@ for (const tool of tools) {
 const changedFiles = new Set(
   [...git(['diff', '--name-only']).split('\n'), ...git(['diff', '--cached', '--name-only']).split('\n')].filter(Boolean),
 )
-if (changedFiles.has('package-lock.json')) failures.push('package_lock_mutated_in_qa_branch')
+if (changedFiles.has('package-lock.json') && !batch2ExecutionContext) failures.push('package_lock_mutated_in_qa_branch')
 const packageJsonDiff = git(['diff', '--', 'package.json']) || git(['diff', '--cached', '--', 'package.json'])
 const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
   .filter((line) => !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-qa:diagnostics'))
   .filter((line) => !allowedFutureScriptDiffs.some((scriptName) => line.includes(scriptName)))
+  .filter((line) => {
+    if (!batch2ExecutionContext) return true
+    return !approvedBatch2Dependencies.some((dependencyName) => line.includes(`"${dependencyName}"`))
+  })
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 const trackedLocalArtifacts = git(['ls-files', '.local-artifacts'])

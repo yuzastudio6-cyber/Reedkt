@@ -7,6 +7,12 @@ const diffBase =
 const expectedDecision = 'approved_with_warnings_for_ai_graphics_batch_2'
 const allowedDecisions = new Set([expectedDecision, 'blocked_pending_ai_graphics_batch_2_approval_fixes'])
 const selectedPackages = ['satori', '@svgdotjs/svg.js', '@viz-js/viz', 'lottie-web']
+const executionContextDecision = 'ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings'
+const allowedExecutionScripts = [
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-import-smoke',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-synthetic-fixtures',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-execution:diagnostics',
+]
 const deferredPackages = ['animejs']
 const excludedTokens = [
   '@resvg/resvg-js',
@@ -91,6 +97,11 @@ const forbiddenPatterns = [
 const failures = []
 const env = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const git = (args) => execFileSync('git', args, { env, encoding: 'utf8' }).trim()
+const batch2ExecutionContext =
+  existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md') &&
+  readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md', 'utf8').includes(
+    executionContextDecision,
+  )
 const readJson = (path) => {
   try {
     return JSON.parse(readFileSync(path, 'utf8'))
@@ -164,19 +175,35 @@ const basePackageJson = JSON.parse(git(['show', `${diffBase}:package.json`]))
 for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
   const currentSection = packageJson?.[section] ?? {}
   const baseSection = basePackageJson?.[section] ?? {}
-  if (JSON.stringify(currentSection) !== JSON.stringify(baseSection)) failures.push(`package_section_changed:${section}`)
+  if (JSON.stringify(currentSection) !== JSON.stringify(baseSection)) {
+    const added = Object.keys(currentSection).filter((name) => !baseSection[name])
+    const removed = Object.keys(baseSection).filter((name) => !currentSection[name])
+    const changed = Object.keys(currentSection).filter((name) => baseSection[name] && baseSection[name] !== currentSection[name])
+    const approvedExecutionDependencyChange =
+      batch2ExecutionContext &&
+      section === 'dependencies' &&
+      removed.length === 0 &&
+      changed.length === 0 &&
+      added.every((name) => selectedPackages.includes(name))
+    if (!approvedExecutionDependencyChange) failures.push(`package_section_changed:${section}`)
+  }
 }
 
 const changedFiles = new Set(
   [...git(['diff', '--name-only']).split('\n'), ...git(['diff', '--cached', '--name-only']).split('\n')].filter(Boolean),
 )
-if (changedFiles.has('package-lock.json')) failures.push('package_lock_changed')
+if (changedFiles.has('package-lock.json') && !batch2ExecutionContext) failures.push('package_lock_changed')
 const packageLock = readJson('package-lock.json')
 for (const packageName of selectedPackages) {
-  if (packageJson?.dependencies?.[packageName] || packageJson?.devDependencies?.[packageName] || packageJson?.optionalDependencies?.[packageName]) {
+  if (
+    !batch2ExecutionContext &&
+    (packageJson?.dependencies?.[packageName] || packageJson?.devDependencies?.[packageName] || packageJson?.optionalDependencies?.[packageName])
+  ) {
     failures.push(`batch_2_package_installed_in_package_json:${packageName}`)
   }
-  if (packageLock?.packages?.[`node_modules/${packageName}`]) failures.push(`batch_2_package_installed_in_lockfile:${packageName}`)
+  if (!batch2ExecutionContext && packageLock?.packages?.[`node_modules/${packageName}`]) {
+    failures.push(`batch_2_package_installed_in_lockfile:${packageName}`)
+  }
 }
 
 const packageJsonDiff = `${git(['diff', '--', 'package.json'])}\n${git(['diff', '--cached', '--', 'package.json'])}`
@@ -184,6 +211,13 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
   .filter((line) => !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics'))
+  .filter((line) => {
+    if (!batch2ExecutionContext) return true
+    return (
+      !allowedExecutionScripts.some((scriptName) => line.includes(scriptName)) &&
+      !selectedPackages.some((packageName) => line.includes(`"${packageName}"`))
+    )
+  })
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 const trackedLocalArtifacts = git(['ls-files', '.local-artifacts'])

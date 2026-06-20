@@ -53,3 +53,12 @@ run Batch 2 imports or fixtures now, or approve route/tool/worker/provider
 runtime, browser/WebGL runtime, render/export, Supabase mutation, GCS/storage
 transfer, signed URLs, public artifacts, internal beta, external beta, paid
 production, or production readiness.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 2 install/import/synthetic proof decision
+`ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings`
+accepts owner-lane proof for `satori`, `@svgdotjs/svg.js`, `@viz-js/viz`, and
+`lottie-web` with warnings. It is not E2E production proof and does not approve
+route/tool/worker/provider runtime, browser/WebGL runtime, Lottie player
+behavior, Remotion render/export, resvg rasterization, Supabase mutation,
+GCS/storage transfer, signed URLs, public artifacts, internal beta, external
+beta, paid production, or production readiness.

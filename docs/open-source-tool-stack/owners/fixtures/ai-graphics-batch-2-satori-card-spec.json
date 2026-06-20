@@ -1,0 +1,59 @@
+{
+  "fixtureId": "ai_graphics_batch_2_satori_card_spec",
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "packageName": "satori",
+  "dataClassification": "synthetic_only",
+  "proofScope": "metadata_spec_only_no_rasterization",
+  "cardSpec": {
+    "width": 640,
+    "height": 360,
+    "background": "#f8fafc",
+    "externalFonts": [],
+    "textRuns": [
+      {
+        "role": "title",
+        "text": "Synthetic launch metric"
+      },
+      {
+        "role": "value",
+        "text": "42"
+      }
+    ],
+    "layout": {
+      "safeMarginPx": 48,
+      "alignment": "center"
+    }
+  },
+  "blockedUses": [
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "browser_runtime",
+    "webgl_runtime",
+    "render_export",
+    "resvg_rasterization",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "webglRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "fixtureId": "ai_graphics_batch_2_viz_graphviz_dot_spec",
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "packageName": "@viz-js/viz",
+  "dataClassification": "synthetic_only",
+  "proofScope": "node_only_dot_to_svg_in_memory_metadata_proof",
+  "outputFileWritten": false,
+  "dotSpec": {
+    "engine": "dot",
+    "format": "svg",
+    "source": "digraph Batch2Synthetic { synthetic_start -> synthetic_end }"
+  },
+  "expected": {
+    "containsLabels": [
+      "synthetic_start",
+      "synthetic_end"
+    ],
+    "outputMode": "in_memory_string_only"
+  },
+  "blockedUses": [
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "browser_runtime",
+    "webgl_runtime",
+    "render_export",
+    "resvg_rasterization",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "webglRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

@@ -1,0 +1,257 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "kornia",
+  "displayName": "Kornia",
+  "aliases": [
+    "kornia"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "kornia",
+    "reason": "Kornia is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "background.remove",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Mask refinement",
+        "GPU image transforms",
+        "Artifact metrics"
+      ],
+      "notFor": [
+        "Primary segmentation model",
+        "CPU-only launch assumptions"
+      ],
+      "inputArtifacts": [
+        "frame_sequence",
+        "image",
+        "video"
+      ],
+      "outputArtifacts": [
+        "mask_image",
+        "mask_sequence",
+        "qa_report"
+      ],
+      "validators": [
+        "mask_edge_quality",
+        "mask_temporal_stability"
+      ],
+      "fallbackToolIds": [
+        "opencv"
+      ],
+      "notes": [
+        "Kornia is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "mask.generate",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Mask refinement",
+        "GPU image transforms",
+        "Artifact metrics"
+      ],
+      "notFor": [
+        "Primary segmentation model",
+        "CPU-only launch assumptions"
+      ],
+      "inputArtifacts": [
+        "frame_sequence",
+        "image",
+        "video"
+      ],
+      "outputArtifacts": [
+        "mask_image",
+        "mask_sequence",
+        "qa_report"
+      ],
+      "validators": [
+        "mask_edge_quality"
+      ],
+      "fallbackToolIds": [
+        "opencv"
+      ],
+      "notes": [
+        "Kornia is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "mask.refine",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Mask refinement",
+        "GPU image transforms",
+        "Artifact metrics"
+      ],
+      "notFor": [
+        "Primary segmentation model",
+        "CPU-only launch assumptions"
+      ],
+      "inputArtifacts": [
+        "frame_sequence",
+        "image",
+        "mask",
+        "video"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "mask_image",
+        "mask_sequence",
+        "qa_report"
+      ],
+      "validators": [
+        "mask_edge_quality",
+        "mask_temporal_stability"
+      ],
+      "fallbackToolIds": [
+        "opencv"
+      ],
+      "notes": [
+        "Kornia is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "video.blur.score",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Mask refinement",
+        "GPU image transforms",
+        "Artifact metrics"
+      ],
+      "notFor": [
+        "Primary segmentation model",
+        "CPU-only launch assumptions"
+      ],
+      "inputArtifacts": [
+        "frame_sequence",
+        "video"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "qa_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "opencv"
+      ],
+      "notes": [
+        "Kornia is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Mask refinement",
+    "GPU image transforms",
+    "Artifact metrics",
+    "Feature operations"
+  ],
+  "notFor": [
+    "Primary segmentation model",
+    "CPU-only launch assumptions"
+  ],
+  "inputArtifacts": [
+    "image",
+    "video",
+    "frame_sequence",
+    "mask"
+  ],
+  "outputArtifacts": [
+    "mask_image",
+    "mask_sequence",
+    "qa_report",
+    "json_spec"
+  ],
+  "validators": [
+    "mask_edge_quality",
+    "mask_temporal_stability",
+    "enhancement_artifacts"
+  ],
+  "fallbackToolIds": [
+    "opencv"
+  ],
+  "resourceProfile": {
+    "workerType": "gpu_ai_worker",
+    "gpuRequired": true,
+    "cpuAllowed": true,
+    "executionMode": "worker_recipe"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "GPU/runtime dependency availability not proven by this milestone",
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior"
+  ],
+  "professionalEditingUses": [
+    "Mask refinement",
+    "GPU image transforms",
+    "Artifact metrics",
+    "Feature operations"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:kornia:latency_pending",
+    "benchmark:kornia:quality_pending",
+    "benchmark:kornia:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:kornia:selection_count",
+    "telemetry:kornia:fallback_count",
+    "telemetry:kornia:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Kornia is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/gpu-worker/requirements.gpu.txt",
+      "summary": "Kornia has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/gpu-worker/requirements.gpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "Kornia has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-gpu-tool-readiness-policy.md",
+      "summary": "Kornia has related repo-local owner, readiness, Docker, or lane evidence in docs/production-gpu-tool-readiness-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "Kornia has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "Kornia has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

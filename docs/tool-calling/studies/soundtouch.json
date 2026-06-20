@@ -1,0 +1,168 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "soundtouch",
+  "displayName": "SoundTouch",
+  "aliases": [
+    "soundtouch"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "soundtouch",
+    "reason": "SoundTouch is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "audio.loudness.normalize",
+      "supportLevel": "future",
+      "bestFor": [
+        "Stretch/pitch fallback",
+        "CPU-friendly audio adjustment"
+      ],
+      "notFor": [
+        "Launch default",
+        "High-ratio premium music timing"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "processed_audio",
+        "qa_report"
+      ],
+      "validators": [
+        "audio_sync"
+      ],
+      "fallbackToolIds": [
+        "signalsmith_stretch",
+        "ffmpeg"
+      ],
+      "notes": [
+        "SoundTouch is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "media.inspect",
+      "supportLevel": "future",
+      "bestFor": [
+        "Stretch/pitch fallback",
+        "CPU-friendly audio adjustment"
+      ],
+      "notFor": [
+        "Launch default",
+        "High-ratio premium music timing"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "qa_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "signalsmith_stretch",
+        "ffmpeg"
+      ],
+      "notes": [
+        "SoundTouch is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Stretch/pitch fallback",
+    "CPU-friendly audio adjustment"
+  ],
+  "notFor": [
+    "Launch default",
+    "High-ratio premium music timing"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "processed_audio",
+    "qa_report"
+  ],
+  "validators": [
+    "audio_naturalness",
+    "audio_sync"
+  ],
+  "fallbackToolIds": [
+    "signalsmith_stretch",
+    "ffmpeg"
+  ],
+  "resourceProfile": {
+    "workerType": "cpu_analysis_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "worker_recipe"
+  },
+  "qualityProfile": {
+    "productionStatus": "future",
+    "adoptionStage": "future",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior"
+  ],
+  "professionalEditingUses": [
+    "Stretch/pitch fallback",
+    "CPU-friendly audio adjustment"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:soundtouch:latency_pending",
+    "benchmark:soundtouch:quality_pending",
+    "benchmark:soundtouch:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:soundtouch:selection_count",
+    "telemetry:soundtouch:fallback_count",
+    "telemetry:soundtouch:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems.",
+    "SoundTouch remains future; do not enable production execution from this card."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "SoundTouch is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/cpu-worker/requirements.cpu.txt",
+      "summary": "SoundTouch has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/cpu-worker/requirements.cpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/qa-worker/requirements.qa.txt",
+      "summary": "SoundTouch has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/qa-worker/requirements.qa.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/cross-chat/SOUND_MUSIC_AUDIO.md",
+      "summary": "SoundTouch has related repo-local owner, readiness, Docker, or lane evidence in docs/cross-chat/SOUND_MUSIC_AUDIO.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-audio-sound-foundation.md",
+      "summary": "SoundTouch has related repo-local owner, readiness, Docker, or lane evidence in docs/production-audio-sound-foundation.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

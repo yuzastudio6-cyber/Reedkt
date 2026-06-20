@@ -57,6 +57,12 @@ export interface ToolRuntimeResolution {
   reason: string
 }
 
+export interface ToolCapabilitySourceEvidence {
+  evidenceType: string
+  sourcePath: string
+  summary: string
+}
+
 export interface ToolCapabilityStudyOperation {
   operationId: ToolCallingOperationId
   supportLevel: ToolStudyOperationSupportLevel
@@ -102,6 +108,7 @@ export interface ToolCapabilityStudyCard {
   readinessNotes: readonly string[]
   benchmarkPlaceholders: readonly string[]
   telemetryPlaceholders: readonly string[]
+  sourceEvidence?: readonly ToolCapabilitySourceEvidence[]
 }
 
 export interface ToolCapabilityCard {
@@ -138,6 +145,7 @@ export interface ToolCapabilityCard {
   readinessNotes: readonly string[]
   benchmarkPlaceholders: readonly string[]
   telemetryPlaceholders: readonly string[]
+  sourceEvidence?: readonly ToolCapabilitySourceEvidence[]
 }
 
 export interface PendingExternalToolCapabilityCard {
@@ -174,6 +182,7 @@ export interface PendingExternalToolCapabilityCard {
   readinessNotes: readonly string[]
   benchmarkPlaceholders: readonly string[]
   telemetryPlaceholders: readonly string[]
+  sourceEvidence?: readonly ToolCapabilitySourceEvidence[]
 }
 
 export type ExpandedToolCapabilityCard = ToolCapabilityCard | PendingExternalToolCapabilityCard

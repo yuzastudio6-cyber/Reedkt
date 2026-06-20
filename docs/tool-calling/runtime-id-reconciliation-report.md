@@ -6,24 +6,57 @@ Milestone 2 adds explicit per-tool capability study cards and runtime ID alias r
 
 ## First-Class Runtime IDs Covered By Study Cards
 
-- `birefnet`
-- `deepfilternet`
-- `faster_whisper`
+All current first-class `ProductionToolId` entries now have explicit study-card coverage.
+
 - `ffmpeg`
 - `ffprobe`
-- `film`
+- `pyav`
+- `opentimelineio`
+- `hyperframe`
+- `remotion`
 - `libass`
+- `sharp`
+- `duckdb`
+- `polars`
+- `faster_whisper`
+- `whisper_cpp`
+- `paddleocr`
+- `pyscenedetect`
 - `opencv`
+- `mediapipe`
+- `kornia`
+- `birefnet`
+- `sam2`
+- `transparent_background`
+- `rembg`
 - `opencolorio`
 - `openimageio`
-- `opentimelineio`
-- `paddleocr`
-- `pyav`
-- `pyscenedetect`
+- `deepfilternet`
+- `rnnoise`
+- `demucs`
+- `librosa`
+- `audioflux`
+- `signalsmith_stretch`
+- `soundtouch`
+- `rubber_band`
+- `essentia`
 - `real_esrgan`
-- `remotion`
-- `sam2`
-- `sharp`
+- `film`
+- `pixijs`
+- `three_js`
+- `babylon_js`
+- `lottie`
+- `playwright`
+- `maplibre`
+- `turf`
+- `d3`
+- `echarts`
+- `vega_lite`
+- `deck_gl`
+- `cesium_js`
+- `konva`
+- `vapoursynth`
+- `revideo`
 
 ## Aliases Resolved To Runtime IDs
 

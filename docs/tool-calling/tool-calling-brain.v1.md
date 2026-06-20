@@ -107,6 +107,14 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Existing export, QA, ffprobe, worker, CLI, production-readiness, and final-render helpers remain scan evidence only and are not imported by this layer.
 - This layer does not use real media, probe video fixtures, transcode, mux, filter, render, dispatch workers, call providers, mutate Supabase, run SQL, create signed URLs, unlock beta or production, or mutate `package-lock.json`.
 
+## First-Class Full-Stack Tool Coverage
+
+- Tool-calling now targets all current first-class `ProductionToolId` values, not only launch-core media tools.
+- Every first-class registry tool has an explicit study card and a planning-only adapter contract generated from the existing `server/tool-registry` profile plus repo-local source evidence where present.
+- Execution remains gated separately by controlled probe and fixture-bound milestones; study cards and adapter contracts do not prove installation or execution readiness.
+- Owner evidence remains the source of truth for execution readiness, model-weight governance, license review, and worker-route enablement.
+- Pending external tools still require registry expansion before runtime selection: `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.

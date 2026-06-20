@@ -78,3 +78,11 @@ PR #441 remain deferred, and no source PR was marked ready, merged, retargeted,
 or promoted. Runtime-ready tools, internal beta, external beta, production,
 provider execution, Supabase/GCS, signed URLs, and public artifacts remain
 blocked.
+
+AI graphics draft package proof PR433 draft-ready approval accepts PR #561's
+PR #425 ready-for-review execution record and authorizes only a future
+draft-ready execution lane for PR #433 after a fresh live recheck. PR #433 and
+PR #441 were not marked ready in this approval packet, no source PR was merged,
+retargeted, closed, or canonically promoted, and runtime-ready tools, internal
+beta, external beta, production, provider execution, Supabase/GCS, signed URLs,
+and public artifacts remain blocked.

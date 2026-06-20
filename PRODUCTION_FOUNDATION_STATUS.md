@@ -39,3 +39,77 @@ This tracker was added on the Phase 53A activation base for Prompt GD-0. The bas
 ## Next Milestone
 
 `Prompt GD-1 - AI Tools Creative Graphics Capability Manifest Contract`.
+
+## GD-1 AI Tools Creative Graphics Manifest Contract
+
+- Status: `repo_audit_passed / manifest_draft / dry_run_not_started`
+- Production capability enabled: `none; AI Tools creative graphics manifest contract only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime/tool execution: none
+- Worker execution: none
+- Provider/model calls: none
+- Render/export: none
+- Media processing: none
+- Browser capture: none
+- Google Cloud access: none
+- Secret Manager access: none
+- Supabase lifecycle/mutation: none
+- Dependency mutation: none
+- Approval grant: none
+- Production/beta unlock: none
+
+Authoritative GD-1 files:
+
+- `docs/ai-tools/creative-graphics-capability-manifest-contract.md`
+- `docs/ai-tools/manifests/`
+- `docs/ai-tools/creative-graphics-output-artifact-registry.md`
+- `docs/ai-tools/creative-graphics-private-artifact-contract.md`
+- `docs/ai-tools/creative-graphics-dry-run-fixture-contract.md`
+- `docs/ai-tools/creative-graphics-track-a-handoff-contract.md`
+- `docs/ai-tools/creative-graphics-worker-toolcall-boundary.md`
+- `docs/ai-tools/creative-graphics-qa-readiness-contract.md`
+- `docs/ai-tools/creative-graphics-all-tools-readiness-matrix.md`
+- `docs/ai-tools/creative-graphics-next-fixture-plan.md`
+- `docs/prompt-gd-1-validation-results.md`
+
+Next milestone: `Prompt GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack`.
+
+## GD-2 Creative Graphics All-Tools Dry-Run Fixture Pack
+
+- Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / dry_run_not_executed`
+- Production capability enabled: `none; AI Tools creative graphics dry-run fixture pack only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime/tool execution: none
+- Worker execution: none
+- Provider/model calls: none
+- Render/export: none
+- Media processing: none
+- Browser capture: none
+- Google Cloud access: none
+- Secret Manager access: none
+- Supabase lifecycle/mutation: none
+- Dependency mutation: none
+- Approval grant: none
+- Production/beta unlock: none
+
+Authoritative GD-2 files:
+
+- `docs/ai-tools/creative-graphics-dry-run-fixture-pack.md`
+- `docs/ai-tools/dry-run-fixtures/`
+- `docs/ai-tools/creative-graphics-dry-run-input-manifest-examples.md`
+- `docs/ai-tools/creative-graphics-dry-run-output-manifest-examples.md`
+- `docs/ai-tools/creative-graphics-dry-run-qa-checklist.md`
+- `docs/ai-tools/creative-graphics-dry-run-track-a-handoff-examples.md`
+- `docs/ai-tools/creative-graphics-dry-run-worker-envelope-examples.md`
+- `docs/ai-tools/creative-graphics-dry-run-readiness-matrix.md`
+- `docs/prompt-gd-2-validation-results.md`
+
+Next milestone: `Prompt GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack`.

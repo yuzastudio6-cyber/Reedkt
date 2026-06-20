@@ -1,18 +1,18 @@
 # Creative Graphics Readiness Scorecard
 
-Status: `blocked at repo_audit stage`
+Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / dry_run_not_executed`
 
 | Area | Score | Reason |
 | --- | ---: | --- |
-| Ownership clarity | 55% | AI Tools ownership is documented, but detailed GD manifest contracts are missing. |
-| Tool inventory | 45% | All 12 tools are identified; several remain placeholder/planning-level. |
-| Runtime boundary | 50% | Cross-track exclusions are now documented; execution contracts remain missing. |
-| Local validation readiness | 20% | Static audit diagnostic exists; no tool fixtures or runtime validation exist. |
+| Ownership clarity | 70% | AI Tools ownership, GD-1 manifests, and GD-2 fixture boundaries are documented. |
+| Tool inventory | 65% | All 12 tools have manifest drafts and static dry-run fixture specs; runtime remains unvalidated. |
+| Runtime boundary | 65% | Cross-track exclusions, worker/tool-call boundaries, and fixture blocked uses are documented. |
+| Local validation readiness | 35% | Static manifest and fixture diagnostics exist; generated/local runtime validation does not exist. |
 | Production readiness | 1% | No runtime, worker, provider, render, media, storage, SQL, or deployment path is enabled. |
 
 ## Summary
 
-GD-0 improves audit clarity only. It does not materially improve executable beta readiness.
+GD-2 improves dry-run fixture planning only. It does not materially improve executable beta readiness.
 
-Runtime unlock status: `blocked at repo_audit stage`
-Production capability enabled: `none; AI Tools creative graphics repo audit only`
+Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / dry_run_not_executed`
+Production capability enabled: `none; AI Tools creative graphics dry-run fixture pack only`

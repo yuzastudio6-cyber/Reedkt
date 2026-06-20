@@ -34,6 +34,8 @@ const requiredChecks = [
   'lint',
   'typecheck:server',
   'ai-tools:creative-graphics:audit:diagnostics',
+  'ai-tools:creative-graphics:manifest:diagnostics',
+  'ai-tools:creative-graphics:dry-run-fixtures:diagnostics',
 ];
 
 const results = [];

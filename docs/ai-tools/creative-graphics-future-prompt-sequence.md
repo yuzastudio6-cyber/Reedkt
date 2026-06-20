@@ -1,26 +1,22 @@
 # Creative Graphics Future Prompt Sequence
 
-Status: `blocked at repo_audit stage`
+Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / dry_run_not_executed`
 
 ## Recommended Sequence
 
 1. `Prompt GD-1 - AI Tools Creative Graphics Capability Manifest Contract`
-   - Define canonical capability IDs, tool inputs, outputs, QA gates, ownership, and handoffs for all 12 owned tools.
-2. `Prompt GD-2 - Creative Graphics Runtime Boundary and Handoff Contract`
-   - Separate GD planning from Track A render/export, Track B media processing, maps/geospatial, audio, provider gateway, workers, and Supabase.
-3. `Prompt GD-3 - Data Graphics and Diagram Contract`
-   - Cover D3.js, Apache ECharts, Vega/Vega-Lite, and Viz.js/Graphviz for exact charts and diagrams.
-4. `Prompt GD-4 - Motion Graphics and Animation Contract`
-   - Cover Remotion graphics planning, Anime.js, Lottie-web, PixiJS, and Three.js without final render execution.
-5. `Prompt GD-5 - SVG/Card/Rasterization Contract`
-   - Cover SVG.js, Satori, and @resvg/resvg-js, including typography, safe zones, and artifact handoff.
-6. `Prompt GD-6 - Creative Graphics Local Fixture Plan`
-   - Draft local fixtures only after capability contracts are stable.
-7. `Prompt GD-7 - Creative Graphics Local Candidate Implementation`
-   - Add local-only candidates only after approval from GD-1 through GD-6.
+   - Completed as manifest drafts and contracts only.
+2. `Prompt GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack`
+   - Completed as static fixture specs and examples only.
+3. `Prompt GD-3 - Creative Graphics Static Asset Fixture Candidate`
+   - Plan local static SVG/chart/diagram/card/raster candidates.
+4. `Prompt GD-4 - Creative Graphics Motion/Animation Fixture Candidate`
+   - Plan local motion, canvas, 3D, and Lottie overlay candidates.
+5. `Prompt GD-5 - Creative Graphics Track A Handoff Dry-Run`
+   - Verify handoff fields without final composition/render/export execution.
 
 ## Current Recommendation
 
-Recommended next prompt: `Prompt GD-1 - AI Tools Creative Graphics Capability Manifest Contract`.
+Recommended next prompt: `Prompt GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack`.
 
-Production capability enabled: `none; AI Tools creative graphics repo audit only`
+Production capability enabled: `none; AI Tools creative graphics dry-run fixture pack only`

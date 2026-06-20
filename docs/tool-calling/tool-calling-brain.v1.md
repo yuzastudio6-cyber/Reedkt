@@ -90,6 +90,14 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Missing tools return structured `unavailable` results, while nonzero exits, timeouts, unsafe output, and policy mismatch fail closed.
 - This layer still does not process media or fixtures, execute safe command plans, dispatch workers, call providers, mutate Supabase, run SQL, create signed URLs, unlock beta or production, or mutate `package-lock.json`.
 
+## Fixture-Bound Metadata Probe Layer
+
+- Fixture-bound metadata probing is the first tool-calling surface that binds controlled execution to a generated synthetic fixture artifact.
+- It runs only `ffprobe` read-only metadata probing against an internally generated synthetic WAV fixture.
+- The synthetic WAV comes from the existing binary fixture generation provenance path; the probe regenerates the matching buffer in a private temp workspace and removes it before returning.
+- Returned metadata is a sanitized summary only. Raw ffprobe JSON, local temp paths, filename fields, signed URLs, secrets, command strings, arbitrary args, and raw stdout/stderr are not returned.
+- This layer does not use real media, probe video fixtures, transcode, mux, filter, execute safe command plans generally, dispatch workers, call providers, mutate Supabase, run SQL, create signed URLs, unlock beta or production, or mutate `package-lock.json`.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.
@@ -105,10 +113,11 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 11. Before choosing an execution milestone, run the execution path decision gate and follow its recommendation.
 12. When requested, generate temporary Node-only binary fixtures from dry-run artifacts, validate checksums and cleanup, and return metadata without path exposure.
 13. When requested, run controlled low-risk readiness probes and return sanitized fail-closed diagnostics with `executesTools: true` and `mediaProcessingPerformed: false`.
+14. When requested, run the fixture-bound metadata probe against generated synthetic WAV only and return sanitized fail-closed metadata diagnostics with `executesTools: true` and `fixtureInputUsed: true`.
 
 ## Non-Goals
 
-- No tool execution outside the explicit controlled readiness probe API.
+- No tool execution outside the explicit controlled readiness probe and fixture-bound metadata probe APIs.
 - No worker dispatch.
 - No media processing.
 - No provider/model calls.

@@ -13,6 +13,7 @@
     "typecheck:api": "tsc -p tsconfig.server.json --noEmit",
     "build:api": "npm run typecheck:api",
     "smoke:api": "tsx server/smoke/backend-runtime-smoke.ts",
+    "tool-calling:diagnostics": "node scripts/validation/tool-calling-brain-diagnostics.mjs",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",

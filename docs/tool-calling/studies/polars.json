@@ -1,0 +1,173 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "polars",
+  "displayName": "Polars",
+  "aliases": [
+    "polars"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "polars",
+    "reason": "Polars is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "media.inspect",
+      "supportLevel": "validator",
+      "bestFor": [
+        "Data transforms",
+        "Timing table processing",
+        "QA metrics"
+      ],
+      "notFor": [
+        "Long-lived storage",
+        "Raw media decode"
+      ],
+      "inputArtifacts": [
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "json_spec",
+        "qa_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "duckdb"
+      ],
+      "notes": [
+        "Polars is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "qa.final_delivery",
+      "supportLevel": "validator",
+      "bestFor": [
+        "Data transforms",
+        "Timing table processing",
+        "QA metrics"
+      ],
+      "notFor": [
+        "Long-lived storage",
+        "Raw media decode"
+      ],
+      "inputArtifacts": [
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "json_spec",
+        "qa_report"
+      ],
+      "validators": [
+        "render_timeline_integrity"
+      ],
+      "fallbackToolIds": [
+        "duckdb"
+      ],
+      "notes": [
+        "Polars is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Data transforms",
+    "Timing table processing",
+    "QA metrics",
+    "Fast dataframe work"
+  ],
+  "notFor": [
+    "Long-lived storage",
+    "Raw media decode"
+  ],
+  "inputArtifacts": [
+    "json_data"
+  ],
+  "outputArtifacts": [
+    "analysis_report",
+    "qa_report",
+    "json_spec"
+  ],
+  "validators": [
+    "render_timeline_integrity"
+  ],
+  "fallbackToolIds": [
+    "duckdb"
+  ],
+  "resourceProfile": {
+    "workerType": "cpu_analysis_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "worker_recipe"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior"
+  ],
+  "professionalEditingUses": [
+    "Data transforms",
+    "Timing table processing",
+    "QA metrics",
+    "Fast dataframe work"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:polars:latency_pending",
+    "benchmark:polars:quality_pending",
+    "benchmark:polars:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:polars:selection_count",
+    "telemetry:polars:fallback_count",
+    "telemetry:polars:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Polars is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/cpu-worker/requirements.cpu.txt",
+      "summary": "Polars has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/cpu-worker/requirements.cpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/qa-worker/requirements.qa.txt",
+      "summary": "Polars has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/qa-worker/requirements.qa.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-tool-readiness-plan.md",
+      "summary": "Polars has related repo-local owner, readiness, Docker, or lane evidence in docs/production-tool-readiness-plan.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-tool-runtime-roadmap.md",
+      "summary": "Polars has related repo-local owner, readiness, Docker, or lane evidence in docs/production-tool-runtime-roadmap.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

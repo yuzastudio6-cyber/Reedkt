@@ -1,0 +1,245 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "hyperframe",
+  "displayName": "Hyperframe",
+  "aliases": [
+    "hyperframe"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "hyperframe",
+    "reason": "Hyperframe is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.preview",
+      "supportLevel": "primary",
+      "bestFor": [
+        "Interactive preview coordination",
+        "Timeline UI boundary",
+        "Approved render handoff"
+      ],
+      "notFor": [
+        "Backend media processing",
+        "Final export",
+        "Raw chat execution"
+      ],
+      "inputArtifacts": [
+        "render_manifest",
+        "timeline_manifest"
+      ],
+      "outputArtifacts": [
+        "timeline_manifest",
+        "json_spec"
+      ],
+      "validators": [
+        "render_timeline_integrity"
+      ],
+      "fallbackToolIds": [
+        "remotion",
+        "opentimelineio"
+      ],
+      "notes": [
+        "Hyperframe is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "timeline.smart_cut",
+      "supportLevel": "primary",
+      "bestFor": [
+        "Interactive preview coordination",
+        "Timeline UI boundary",
+        "Approved render handoff"
+      ],
+      "notFor": [
+        "Backend media processing",
+        "Final export",
+        "Raw chat execution"
+      ],
+      "inputArtifacts": [
+        "timeline_manifest",
+        "render_manifest",
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "timeline_manifest"
+      ],
+      "validators": [
+        "render_timeline_integrity"
+      ],
+      "fallbackToolIds": [
+        "remotion",
+        "opentimelineio"
+      ],
+      "notes": [
+        "Hyperframe is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "timeline.to_otio",
+      "supportLevel": "primary",
+      "bestFor": [
+        "Interactive preview coordination",
+        "Timeline UI boundary",
+        "Approved render handoff"
+      ],
+      "notFor": [
+        "Backend media processing",
+        "Final export",
+        "Raw chat execution"
+      ],
+      "inputArtifacts": [
+        "json_data",
+        "timeline_manifest"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "timeline_manifest"
+      ],
+      "validators": [
+        "render_timeline_integrity"
+      ],
+      "fallbackToolIds": [
+        "remotion",
+        "opentimelineio"
+      ],
+      "notes": [
+        "Hyperframe is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "timeline.validate",
+      "supportLevel": "primary",
+      "bestFor": [
+        "Interactive preview coordination",
+        "Timeline UI boundary",
+        "Approved render handoff"
+      ],
+      "notFor": [
+        "Backend media processing",
+        "Final export",
+        "Raw chat execution"
+      ],
+      "inputArtifacts": [
+        "json_data",
+        "timeline_manifest"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "timeline_manifest"
+      ],
+      "validators": [
+        "render_timeline_integrity"
+      ],
+      "fallbackToolIds": [
+        "remotion",
+        "opentimelineio"
+      ],
+      "notes": [
+        "Hyperframe is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Interactive preview coordination",
+    "Timeline UI boundary",
+    "Approved render handoff"
+  ],
+  "notFor": [
+    "Backend media processing",
+    "Final export",
+    "Raw chat execution"
+  ],
+  "inputArtifacts": [
+    "timeline_manifest",
+    "render_manifest",
+    "json_data"
+  ],
+  "outputArtifacts": [
+    "timeline_manifest",
+    "json_spec"
+  ],
+  "validators": [
+    "render_timeline_integrity"
+  ],
+  "fallbackToolIds": [
+    "remotion",
+    "opentimelineio"
+  ],
+  "resourceProfile": {
+    "workerType": "frontend_preview_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "preview_boundary"
+  },
+  "qualityProfile": {
+    "productionStatus": "launch_core",
+    "adoptionStage": "launch_core",
+    "launchCore": true,
+    "modelWeightsRequired": false,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior"
+  ],
+  "professionalEditingUses": [
+    "Interactive preview coordination",
+    "Timeline UI boundary",
+    "Approved render handoff"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:hyperframe:latency_pending",
+    "benchmark:hyperframe:quality_pending",
+    "benchmark:hyperframe:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:hyperframe:selection_count",
+    "telemetry:hyperframe:fallback_count",
+    "telemetry:hyperframe:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Core boundary decision, but integration details remain future milestone work.",
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Hyperframe is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/render-worker/requirements.render.txt",
+      "summary": "Hyperframe has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/render-worker/requirements.render.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "Hyperframe has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "Hyperframe has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "Hyperframe has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

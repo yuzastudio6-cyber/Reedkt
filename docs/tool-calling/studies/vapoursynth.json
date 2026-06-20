@@ -1,0 +1,287 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "vapoursynth",
+  "displayName": "VapourSynth",
+  "aliases": [
+    "vapoursynth"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "vapoursynth",
+    "reason": "VapourSynth is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "export.mux",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Frame-level processing",
+        "Scripted preprocess",
+        "Python-native frame flows"
+      ],
+      "notFor": [
+        "Frontend processing",
+        "Unreviewed plugins",
+        "Launch render core replacement"
+      ],
+      "inputArtifacts": [
+        "video"
+      ],
+      "outputArtifacts": [
+        "qa_report"
+      ],
+      "validators": [
+        "export_duration_sync"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "pyav"
+      ],
+      "notes": [
+        "VapourSynth is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "media.proxy.create",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Frame-level processing",
+        "Scripted preprocess",
+        "Python-native frame flows"
+      ],
+      "notFor": [
+        "Frontend processing",
+        "Unreviewed plugins",
+        "Launch render core replacement"
+      ],
+      "inputArtifacts": [
+        "source_media",
+        "video"
+      ],
+      "outputArtifacts": [
+        "qa_report"
+      ],
+      "validators": [
+        "export_duration_sync",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "pyav"
+      ],
+      "notes": [
+        "VapourSynth is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "video.enhance",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Frame-level processing",
+        "Scripted preprocess",
+        "Python-native frame flows"
+      ],
+      "notFor": [
+        "Frontend processing",
+        "Unreviewed plugins",
+        "Launch render core replacement"
+      ],
+      "inputArtifacts": [
+        "frame_sequence",
+        "video"
+      ],
+      "outputArtifacts": [
+        "processed_video",
+        "qa_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "pyav"
+      ],
+      "notes": [
+        "VapourSynth is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "video.motion.score",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Frame-level processing",
+        "Scripted preprocess",
+        "Python-native frame flows"
+      ],
+      "notFor": [
+        "Frontend processing",
+        "Unreviewed plugins",
+        "Launch render core replacement"
+      ],
+      "inputArtifacts": [
+        "frame_sequence",
+        "source_media",
+        "video"
+      ],
+      "outputArtifacts": [
+        "processed_video",
+        "qa_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "pyav"
+      ],
+      "notes": [
+        "VapourSynth is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "video.slow_motion",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Frame-level processing",
+        "Scripted preprocess",
+        "Python-native frame flows"
+      ],
+      "notFor": [
+        "Frontend processing",
+        "Unreviewed plugins",
+        "Launch render core replacement"
+      ],
+      "inputArtifacts": [
+        "frame_sequence",
+        "video"
+      ],
+      "outputArtifacts": [
+        "processed_video",
+        "qa_report"
+      ],
+      "validators": [
+        "export_duration_sync"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "pyav"
+      ],
+      "notes": [
+        "VapourSynth is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Frame-level processing",
+    "Scripted preprocess",
+    "Python-native frame flows"
+  ],
+  "notFor": [
+    "Frontend processing",
+    "Unreviewed plugins",
+    "Launch render core replacement"
+  ],
+  "inputArtifacts": [
+    "source_media",
+    "video",
+    "frame_sequence"
+  ],
+  "outputArtifacts": [
+    "processed_video",
+    "qa_report"
+  ],
+  "validators": [
+    "render_asset_integrity",
+    "export_duration_sync"
+  ],
+  "fallbackToolIds": [
+    "ffmpeg",
+    "pyav"
+  ],
+  "resourceProfile": {
+    "workerType": "cpu_analysis_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "worker_recipe"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior"
+  ],
+  "professionalEditingUses": [
+    "Frame-level processing",
+    "Scripted preprocess",
+    "Python-native frame flows"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:vapoursynth:latency_pending",
+    "benchmark:vapoursynth:quality_pending",
+    "benchmark:vapoursynth:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:vapoursynth:selection_count",
+    "telemetry:vapoursynth:fallback_count",
+    "telemetry:vapoursynth:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "VapourSynth is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/cpu-worker/requirements.cpu.txt",
+      "summary": "VapourSynth has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/cpu-worker/requirements.cpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/qa-worker/requirements.qa.txt",
+      "summary": "VapourSynth has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/qa-worker/requirements.qa.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/render-worker/requirements.render.txt",
+      "summary": "VapourSynth has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/render-worker/requirements.render.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "VapourSynth has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "VapourSynth has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "VapourSynth has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

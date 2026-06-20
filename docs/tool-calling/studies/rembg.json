@@ -1,0 +1,191 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "rembg",
+  "displayName": "rembg",
+  "aliases": [
+    "rembg"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "rembg",
+    "reason": "rembg is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "background.remove",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Still-image fallback masks",
+        "Lightweight background removal",
+        "Fallback comparison"
+      ],
+      "notFor": [
+        "Premium video masks without QA",
+        "Complex contact-object preservation"
+      ],
+      "inputArtifacts": [
+        "frame_sequence",
+        "image"
+      ],
+      "outputArtifacts": [
+        "image_asset",
+        "mask_image",
+        "qa_report"
+      ],
+      "validators": [
+        "mask_edge_quality",
+        "mask_subject_coverage"
+      ],
+      "fallbackToolIds": [
+        "birefnet",
+        "sam2",
+        "opencv"
+      ],
+      "notes": [
+        "rembg is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "mask.generate",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Still-image fallback masks",
+        "Lightweight background removal",
+        "Fallback comparison"
+      ],
+      "notFor": [
+        "Premium video masks without QA",
+        "Complex contact-object preservation"
+      ],
+      "inputArtifacts": [
+        "frame_sequence",
+        "image"
+      ],
+      "outputArtifacts": [
+        "image_asset",
+        "mask_image",
+        "qa_report"
+      ],
+      "validators": [
+        "mask_edge_quality",
+        "mask_subject_coverage"
+      ],
+      "fallbackToolIds": [
+        "birefnet",
+        "sam2",
+        "opencv"
+      ],
+      "notes": [
+        "rembg is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Still-image fallback masks",
+    "Lightweight background removal",
+    "Fallback comparison"
+  ],
+  "notFor": [
+    "Premium video masks without QA",
+    "Complex contact-object preservation"
+  ],
+  "inputArtifacts": [
+    "image",
+    "frame_sequence"
+  ],
+  "outputArtifacts": [
+    "mask_image",
+    "image_asset",
+    "qa_report"
+  ],
+  "validators": [
+    "mask_edge_quality",
+    "mask_subject_coverage"
+  ],
+  "fallbackToolIds": [
+    "birefnet",
+    "sam2",
+    "opencv"
+  ],
+  "resourceProfile": {
+    "workerType": "gpu_ai_worker",
+    "gpuRequired": true,
+    "cpuAllowed": true,
+    "executionMode": "worker_recipe"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": true,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "GPU/runtime dependency availability not proven by this milestone",
+    "model weight or checkpoint review incomplete",
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior"
+  ],
+  "professionalEditingUses": [
+    "Still-image fallback masks",
+    "Lightweight background removal",
+    "Fallback comparison"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:rembg:latency_pending",
+    "benchmark:rembg:quality_pending",
+    "benchmark:rembg:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:rembg:selection_count",
+    "telemetry:rembg:fallback_count",
+    "telemetry:rembg:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Model-weight governance remains required before execution.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "rembg is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/gpu-worker/requirements.gpu.txt",
+      "summary": "rembg has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/gpu-worker/requirements.gpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "rembg has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-gpu-tool-readiness-policy.md",
+      "summary": "rembg has related repo-local owner, readiness, Docker, or lane evidence in docs/production-gpu-tool-readiness-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "rembg has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "rembg has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

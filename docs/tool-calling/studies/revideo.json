@@ -1,0 +1,155 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "revideo",
+  "displayName": "Revideo",
+  "aliases": [
+    "revideo"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "revideo",
+    "reason": "Revideo is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.preview",
+      "supportLevel": "future",
+      "bestFor": [
+        "Future gap analysis",
+        "Composition framework comparison",
+        "Research only"
+      ],
+      "notFor": [
+        "Core render stack",
+        "Launch dependency",
+        "Production execution"
+      ],
+      "inputArtifacts": [
+        "render_manifest",
+        "timeline_manifest"
+      ],
+      "outputArtifacts": [
+        "preview_video"
+      ],
+      "validators": [
+        "render_asset_integrity",
+        "render_timeline_integrity"
+      ],
+      "fallbackToolIds": [
+        "hyperframe",
+        "remotion",
+        "ffmpeg",
+        "libass",
+        "opentimelineio"
+      ],
+      "notes": [
+        "Revideo is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Future gap analysis",
+    "Composition framework comparison",
+    "Research only"
+  ],
+  "notFor": [
+    "Core render stack",
+    "Launch dependency",
+    "Production execution"
+  ],
+  "inputArtifacts": [
+    "render_manifest",
+    "timeline_manifest",
+    "json_data"
+  ],
+  "outputArtifacts": [
+    "json_spec",
+    "preview_video"
+  ],
+  "validators": [
+    "render_asset_integrity",
+    "render_timeline_integrity"
+  ],
+  "fallbackToolIds": [
+    "hyperframe",
+    "remotion",
+    "ffmpeg",
+    "libass",
+    "opentimelineio"
+  ],
+  "resourceProfile": {
+    "workerType": "planning_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "evaluation_only"
+  },
+  "qualityProfile": {
+    "productionStatus": "evaluation_only",
+    "adoptionStage": "evaluation_only",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "unknown",
+    "commercialUseStatus": "unknown"
+  },
+  "knownFailureModes": [
+    "evaluation-only registry status prevents production execution",
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior",
+    "planning-only registry worker type has no runtime execution route"
+  ],
+  "professionalEditingUses": [
+    "Future gap analysis",
+    "Composition framework comparison",
+    "Research only"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:revideo:latency_pending",
+    "benchmark:revideo:quality_pending",
+    "benchmark:revideo:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:revideo:selection_count",
+    "telemetry:revideo:fallback_count",
+    "telemetry:revideo:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Evaluation-only and future optional. Core stack remains Hyperframe + Remotion + FFmpeg + libass + OpenTimelineIO.",
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems.",
+    "Revideo remains evaluation_only; do not enable production execution from this card."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Revideo is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/render-worker/requirements.render.txt",
+      "summary": "Revideo has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/render-worker/requirements.render.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "Revideo has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "Revideo has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "Revideo has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

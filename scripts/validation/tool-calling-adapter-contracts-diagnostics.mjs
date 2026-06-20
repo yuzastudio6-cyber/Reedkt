@@ -81,8 +81,11 @@ const pendingExternalToolIds = new Set(
     .filter((result) => result.status === 'pending_production_tool_registry_expansion')
     .map((result) => result.externalToolId ?? result.inputToolId),
 )
+const firstClassToolIdsMissingAdapterContracts = PRODUCTION_TOOL_IDS
+  .filter((toolId) => !adapterContractToolIds.has(toolId))
 
-check(contracts.length === 18, 'Adapter contract milestone must expose 18 first-class contracts.')
+check(contracts.length === productionToolIds.size, 'Every first-class ProductionToolId must have a planning-only adapter contract.')
+check(firstClassToolIdsMissingAdapterContracts.length === 0, `First-class tools missing adapter contracts: ${firstClassToolIdsMissingAdapterContracts.join(', ')}`)
 
 for (const contract of contracts) {
   check(productionToolIds.has(contract.toolId), `${contract.adapterId} toolId must be a first-class ProductionToolId.`)
@@ -243,6 +246,8 @@ const coveredOperations = [...new Set(contracts.flatMap((contract) => contract.s
 console.log(JSON.stringify({
   ok: true,
   adapterContractCount: contracts.length,
+  firstClassProductionToolCount: productionToolIds.size,
+  firstClassToolIdsMissingAdapterContracts,
   adapterPlanCount,
   workerRouteBridgePlanCount,
   coveredOperations,

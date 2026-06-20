@@ -1,4 +1,5 @@
 import {
+  PRODUCTION_TOOL_IDS,
   getProductionToolProfile,
   isProductionToolId,
 } from '../tool-registry'
@@ -17,24 +18,7 @@ import type {
 } from './adapter-contract-types'
 
 export const ADAPTER_CONTRACT_TOOL_IDS = [
-  'ffmpeg',
-  'ffprobe',
-  'pyav',
-  'opencv',
-  'pyscenedetect',
-  'sharp',
-  'opentimelineio',
-  'remotion',
-  'libass',
-  'faster_whisper',
-  'paddleocr',
-  'deepfilternet',
-  'birefnet',
-  'sam2',
-  'real_esrgan',
-  'film',
-  'opencolorio',
-  'openimageio',
+  ...PRODUCTION_TOOL_IDS,
 ] as const satisfies readonly ProductionToolId[]
 
 function uniqueSorted<T extends string>(values: readonly T[]): T[] {

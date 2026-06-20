@@ -26,6 +26,7 @@ import {
 import type {
   ExpandedToolCapabilityCard,
   PendingExternalToolCapabilityCard,
+  ToolCapabilitySourceEvidence,
   ToolCapabilityCard,
   ToolCapabilityStudyCard,
   ToolCapabilityStudyOperation,
@@ -198,6 +199,23 @@ function readRuntimeResolution(value: unknown, context: string): ToolRuntimeReso
   }
 }
 
+function readSourceEvidence(value: unknown, context: string): ToolCapabilitySourceEvidence[] | undefined {
+  if (value === undefined) return undefined
+  if (!Array.isArray(value)) {
+    throw new Error(`${context} must be an array when provided.`)
+  }
+
+  return value.map((entry, index) => {
+    assertObject(entry, `${context}[${index}]`)
+
+    return {
+      evidenceType: readString(entry.evidenceType, `${context}[${index}].evidenceType`),
+      sourcePath: readString(entry.sourcePath, `${context}[${index}].sourcePath`),
+      summary: readString(entry.summary, `${context}[${index}].summary`),
+    }
+  })
+}
+
 function readToolCapabilityStudyCard(value: unknown, fileName: string): ToolCapabilityStudyCard {
   assertObject(value, fileName)
   const toolId = typeof value.toolId === 'string' ? value.toolId : undefined
@@ -240,6 +258,7 @@ function readToolCapabilityStudyCard(value: unknown, fileName: string): ToolCapa
     readinessNotes: readStringArray(value.readinessNotes, `${fileName}.readinessNotes`),
     benchmarkPlaceholders: readStringArray(value.benchmarkPlaceholders, `${fileName}.benchmarkPlaceholders`),
     telemetryPlaceholders: readStringArray(value.telemetryPlaceholders, `${fileName}.telemetryPlaceholders`),
+    sourceEvidence: readSourceEvidence(value.sourceEvidence, `${fileName}.sourceEvidence`),
   }
 }
 
@@ -385,6 +404,7 @@ function buildExplicitRuntimeCard(
     readinessNotes: studyCard.readinessNotes,
     benchmarkPlaceholders: studyCard.benchmarkPlaceholders,
     telemetryPlaceholders: studyCard.telemetryPlaceholders,
+    sourceEvidence: studyCard.sourceEvidence,
   }
 }
 
@@ -417,6 +437,7 @@ function buildPendingExternalCard(studyCard: ToolCapabilityStudyCard): PendingEx
     readinessNotes: studyCard.readinessNotes,
     benchmarkPlaceholders: studyCard.benchmarkPlaceholders,
     telemetryPlaceholders: studyCard.telemetryPlaceholders,
+    sourceEvidence: studyCard.sourceEvidence,
   }
 }
 

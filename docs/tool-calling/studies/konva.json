@@ -1,0 +1,181 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "konva",
+  "displayName": "Konva",
+  "aliases": [
+    "konva"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "konva",
+    "reason": "Konva is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "future",
+      "bestFor": [
+        "Editable 2D overlays",
+        "Shape specs",
+        "Future design-editor interactions"
+      ],
+      "notFor": [
+        "Final video export",
+        "Heavy media processing"
+      ],
+      "inputArtifacts": [
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "image_asset"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "remotion",
+        "pixijs"
+      ],
+      "notes": [
+        "Konva is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "render.preview",
+      "supportLevel": "future",
+      "bestFor": [
+        "Editable 2D overlays",
+        "Shape specs",
+        "Future design-editor interactions"
+      ],
+      "notFor": [
+        "Final video export",
+        "Heavy media processing"
+      ],
+      "inputArtifacts": [
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "image_asset"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "remotion",
+        "pixijs"
+      ],
+      "notes": [
+        "Konva is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Editable 2D overlays",
+    "Shape specs",
+    "Future design-editor interactions"
+  ],
+  "notFor": [
+    "Final video export",
+    "Heavy media processing"
+  ],
+  "inputArtifacts": [
+    "json_data"
+  ],
+  "outputArtifacts": [
+    "json_spec",
+    "image_asset"
+  ],
+  "validators": [
+    "caption_safe_zone",
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "remotion",
+    "pixijs"
+  ],
+  "resourceProfile": {
+    "workerType": "planning_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "planning_metadata"
+  },
+  "qualityProfile": {
+    "productionStatus": "future",
+    "adoptionStage": "future",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior",
+    "planning-only registry worker type has no runtime execution route"
+  ],
+  "professionalEditingUses": [
+    "Editable 2D overlays",
+    "Shape specs",
+    "Future design-editor interactions"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:konva:latency_pending",
+    "benchmark:konva:quality_pending",
+    "benchmark:konva:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:konva:selection_count",
+    "telemetry:konva:fallback_count",
+    "telemetry:konva:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Konva remains future; do not enable production execution from this card.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Konva is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/gpu-worker/requirements.gpu.txt",
+      "summary": "Konva has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/gpu-worker/requirements.gpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "Konva has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-gpu-tool-readiness-policy.md",
+      "summary": "Konva has related repo-local owner, readiness, Docker, or lane evidence in docs/production-gpu-tool-readiness-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "Konva has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "Konva has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

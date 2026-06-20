@@ -114,6 +114,15 @@
 - The layer does not create a duplicate export worker, final-render worker, media probe worker, worker router, production registry, QA policy, fallback policy, Supabase runtime table, migration, SQL file, storage writer, artifact writer, or command execution layer.
 - Required gates are `export_codec_format`, `export_duration_sync`, and `render_asset_integrity`; `final_delivery` is optional, skipped, and deferred to a future real export validation milestone.
 
+## First-Class Coverage Expansion
+
+- This milestone adds explicit study cards and planning-only adapter contracts for all remaining first-class registry tools: `audioflux`, `babylon_js`, `cesium_js`, `d3`, `deck_gl`, `demucs`, `duckdb`, `echarts`, `essentia`, `hyperframe`, `konva`, `kornia`, `librosa`, `lottie`, `maplibre`, `mediapipe`, `pixijs`, `playwright`, `polars`, `rembg`, `revideo`, `rnnoise`, `rubber_band`, `signalsmith_stretch`, `soundtouch`, `three_js`, `transparent_background`, `turf`, `vapoursynth`, `vega_lite`, `whisper_cpp`.
+- Covered lanes include Sound/Music/Audio, AI graphics and static/motion/chart planning, maps/web planning, Track A render/native planning, QA/data tools, and registry-only future/evaluation tools.
+- Governance-sensitive tools such as `essentia`, `rubber_band`, `revideo`, `transparent_background`, `whisper_cpp`, and model-weight-dependent GPU tools remain planning-only and must not be treated as installed or executable.
+- Pending external tools remain non-selectable and receive no adapter contracts: `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.
+- No duplicate production registry, worker router, QA policy, fallback policy, safe command policy, fixture catalog, controlled probe layer, Supabase runtime table, migration, SQL file, or execution adapter is introduced.
+- Next recommended milestone: `REEDITPRO-TOOL-CALLING-TRACKB-EXTERNAL-REGISTRY-EXPANSION-1`, only if Track B owner evidence confirms pending external tools should become first-class runtime IDs.
+
 ## Safety Confirmation
 
 - Normal tool-calling plans produce planning-only output with `executesTools: false`.

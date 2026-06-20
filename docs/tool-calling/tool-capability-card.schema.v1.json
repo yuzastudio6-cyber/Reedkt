@@ -115,6 +115,19 @@
     "professionalEditingUses": {"type": "array", "items": {"type": "string"}},
     "readinessNotes": {"type": "array", "items": {"type": "string"}},
     "benchmarkPlaceholders": {"type": "array", "items": {"type": "string"}},
-    "telemetryPlaceholders": {"type": "array", "items": {"type": "string"}}
+    "telemetryPlaceholders": {"type": "array", "items": {"type": "string"}},
+    "sourceEvidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evidenceType", "sourcePath", "summary"],
+        "additionalProperties": false,
+        "properties": {
+          "evidenceType": {"type": "string"},
+          "sourcePath": {"type": "string"},
+          "summary": {"type": "string"}
+        }
+      }
+    }
   }
 }

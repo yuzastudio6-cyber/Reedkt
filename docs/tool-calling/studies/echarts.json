@@ -1,0 +1,148 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "echarts",
+  "displayName": "ECharts",
+  "aliases": [
+    "echarts"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "echarts",
+    "reason": "ECharts is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Business charts",
+        "Metric cards",
+        "Dashboard visuals"
+      ],
+      "notFor": [
+        "Highly custom diagrams where D3 is better"
+      ],
+      "inputArtifacts": [
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "chart_visual",
+        "json_spec"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "d3",
+        "vega_lite"
+      ],
+      "notes": [
+        "ECharts is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Business charts",
+    "Metric cards",
+    "Dashboard visuals",
+    "Standard series charts"
+  ],
+  "notFor": [
+    "Highly custom diagrams where D3 is better"
+  ],
+  "inputArtifacts": [
+    "json_data"
+  ],
+  "outputArtifacts": [
+    "chart_visual",
+    "json_spec"
+  ],
+  "validators": [
+    "caption_safe_zone",
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "d3",
+    "vega_lite"
+  ],
+  "resourceProfile": {
+    "workerType": "planning_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "planning_metadata"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior",
+    "planning-only registry worker type has no runtime execution route"
+  ],
+  "professionalEditingUses": [
+    "Business charts",
+    "Metric cards",
+    "Dashboard visuals",
+    "Standard series charts"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:echarts:latency_pending",
+    "benchmark:echarts:quality_pending",
+    "benchmark:echarts:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:echarts:selection_count",
+    "telemetry:echarts:fallback_count",
+    "telemetry:echarts:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "ECharts is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/gpu-worker/requirements.gpu.txt",
+      "summary": "ECharts has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/gpu-worker/requirements.gpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "ECharts has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-gpu-tool-readiness-policy.md",
+      "summary": "ECharts has related repo-local owner, readiness, Docker, or lane evidence in docs/production-gpu-tool-readiness-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "ECharts has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "ECharts has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

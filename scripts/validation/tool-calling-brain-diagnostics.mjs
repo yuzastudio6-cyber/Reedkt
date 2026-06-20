@@ -62,6 +62,63 @@ const pendingProductionToolRegistryExpansion = runtimeIdReconciliationResults
     reason: result.reason,
   }))
 
+const newlyCoveredFirstClassToolIds = [
+  'audioflux',
+  'babylon_js',
+  'cesium_js',
+  'd3',
+  'deck_gl',
+  'demucs',
+  'duckdb',
+  'echarts',
+  'essentia',
+  'hyperframe',
+  'konva',
+  'kornia',
+  'librosa',
+  'lottie',
+  'maplibre',
+  'mediapipe',
+  'pixijs',
+  'playwright',
+  'polars',
+  'rembg',
+  'revideo',
+  'rnnoise',
+  'rubber_band',
+  'signalsmith_stretch',
+  'soundtouch',
+  'three_js',
+  'transparent_background',
+  'turf',
+  'vapoursynth',
+  'vega_lite',
+  'whisper_cpp',
+]
+
+const explicitFirstClassStudyCards = explicitStudyCards
+  .filter((card) => Boolean(card.toolId))
+const explicitPendingExternalStudyCards = explicitStudyCards
+  .filter((card) => Boolean(card.externalToolId))
+const explicitFirstClassStudyToolIds = new Set(explicitFirstClassStudyCards.map((card) => card.toolId))
+const firstClassToolIdsMissingExplicitStudy = PRODUCTION_TOOL_IDS
+  .filter((toolId) => !explicitFirstClassStudyToolIds.has(toolId))
+const newlyCoveredStudyCardsMissingSourceEvidence = newlyCoveredFirstClassToolIds
+  .filter((toolId) => {
+    const studyCard = explicitFirstClassStudyCards.find((card) => card.toolId === toolId)
+    return !studyCard?.sourceEvidence || studyCard.sourceEvidence.length === 0
+  })
+const governanceSensitiveNewStudyCards = explicitFirstClassStudyCards
+  .filter((card) => newlyCoveredFirstClassToolIds.includes(card.toolId))
+  .filter((card) => (
+    card.qualityProfile.productionStatus === 'evaluation_only' ||
+    card.qualityProfile.productionStatus === 'needs_license_review' ||
+    card.qualityProfile.productionStatus === 'future' ||
+    card.qualityProfile.modelWeightsRequired === true
+  ))
+const governanceSensitiveCardsMissingPlanningOnlyNotes = governanceSensitiveNewStudyCards
+  .filter((card) => !card.readinessNotes.some((note) => /do not enable production execution|no execution|planning/i.test(note)))
+
 const generatedFallbackCardCount = cards
   .filter((card) => card.capabilitySource === 'generated_registry_profile')
   .length
@@ -72,8 +129,14 @@ const pendingExternalToolIds = new Set(
 )
 
 check(cards.length === productionToolIds.size, 'Capability cards must map the existing production registry one-to-one.')
-check(explicitStudyCards.length === 22, 'Milestone 2 must include 22 explicit study cards.')
-check(expandedCards.length === 53, 'Expanded capability card count must include 49 runtime cards plus 4 pending external cards.')
+check(explicitFirstClassStudyCards.length === productionToolIds.size, 'Every first-class ProductionToolId must have an explicit study card.')
+check(firstClassToolIdsMissingExplicitStudy.length === 0, `Missing explicit first-class study cards: ${firstClassToolIdsMissingExplicitStudy.join(', ')}`)
+check(explicitPendingExternalStudyCards.length === pendingProductionToolRegistryExpansion.length, 'Pending external study-card count must match runtime ID reconciliation pending count.')
+check(explicitStudyCards.length === productionToolIds.size + pendingProductionToolRegistryExpansion.length, 'Explicit study card count must equal first-class tools plus pending external cards.')
+check(expandedCards.length === productionToolIds.size + pendingProductionToolRegistryExpansion.length, 'Expanded capability cards must include runtime cards plus pending external cards.')
+check(generatedFallbackCardCount === 0, 'No first-class ProductionToolId should rely on generated fallback cards after full coverage expansion.')
+check(newlyCoveredStudyCardsMissingSourceEvidence.length === 0, `New first-class study cards missing sourceEvidence: ${newlyCoveredStudyCardsMissingSourceEvidence.join(', ')}`)
+check(governanceSensitiveCardsMissingPlanningOnlyNotes.length === 0, `Governance-sensitive cards missing planning-only readiness notes: ${governanceSensitiveCardsMissingPlanningOnlyNotes.map((card) => card.toolId).join(', ')}`)
 check(runtimeIdReconciliationResults.length === 12, 'Runtime ID alias table must include 12 aliases.')
 
 const requiredStudyCardFields = [
@@ -135,11 +198,8 @@ for (const studyCard of explicitStudyCards) {
 
 for (const toolId of productionToolIds) {
   const card = cards.find((candidate) => candidate.toolId === toolId)
-  check(Boolean(card), `${toolId} must have an explicit study card or generated fallback card.`)
-  check(
-    card.capabilitySource === 'explicit_study_card' || card.capabilitySource === 'generated_registry_profile',
-    `${toolId} must be explicit study card or generated registry fallback.`,
-  )
+  check(Boolean(card), `${toolId} must have an explicit study card.`)
+  check(card.capabilitySource === 'explicit_study_card', `${toolId} must be an explicit study card after first-class coverage expansion.`)
 }
 
 for (const result of runtimeIdReconciliationResults) {
@@ -263,9 +323,15 @@ console.log(JSON.stringify({
     executesTools: plan.executesTools,
   })),
   capabilityCardCount: cards.length,
+  firstClassProductionToolCount: productionToolIds.size,
   productionRegistryToolCount: productionToolIds.size,
   explicitStudyCardCount: explicitStudyCards.length,
+  explicitFirstClassStudyCardCount: explicitFirstClassStudyCards.length,
+  pendingExternalStudyCardCount: explicitPendingExternalStudyCards.length,
   generatedFallbackCardCount,
+  firstClassToolIdsMissingExplicitStudy,
+  newlyCoveredStudyCardsMissingSourceEvidence,
+  governanceSensitiveNewStudyCardCount: governanceSensitiveNewStudyCards.length,
   expandedCapabilityCardCount: expandedCards.length,
   runtimeIdAliasesCount: runtimeIdReconciliationResults.length,
   pendingProductionToolRegistryExpansion,

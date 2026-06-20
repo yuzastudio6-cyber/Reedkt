@@ -61,9 +61,9 @@
     "productionReadyNow": false
   },
   "validation": {
-    "draftPr": "pending",
-    "draftPrState": "pending",
-    "draftPrChecks": "pending",
+    "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/621",
+    "draftPrState": "open_draft_clean",
+    "draftPrChecks": "no GitHub checks reported",
     "gitDiffCheck": "passed",
     "ownerDiagnostics": "passed",
     "refreshedQaDiagnostics": "passed",

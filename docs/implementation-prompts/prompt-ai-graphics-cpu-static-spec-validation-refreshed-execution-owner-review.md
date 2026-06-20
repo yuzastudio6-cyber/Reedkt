@@ -19,9 +19,9 @@ Owner review preserved deferred status for `echarts`, `lottie_web`, `animejs`, `
 
 ## PR Follow-Up
 
-- Draft PR: pending
-- PR link: pending
-- Check status: pending
+- Draft PR: PR #621 open/draft/CLEAN
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/621
+- Check status: no GitHub checks reported on `codex/rp-ai-graphics-cpu-static-spec-validation-refreshed-execution-owner-review` at `c23c87ce4e64cabc080895ea4b7674c5e2177983`
 
 ## Validation
 

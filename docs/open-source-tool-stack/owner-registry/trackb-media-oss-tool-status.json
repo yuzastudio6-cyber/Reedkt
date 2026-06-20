@@ -873,5 +873,45 @@
       "sqlExecuted": "none",
       "migrationDeployed": "no"
     }
+  },
+  "milestone3SystemFontPackageExecution": {
+    "decision": "trackb_media_oss_milestone3_system_font_package_execution_blocked_by_docker_build",
+    "reportKey": "trackb_milestone_3_system_font_package_execution_reports",
+    "sourcePr": null,
+    "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+    "targetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+    "addedPackage": "fonts-noto-cjk",
+    "fallbackPackageNotInstalled": "fonts-noto-cjk-extra",
+    "exactPingFangUsed": false,
+    "dockerBuild": {
+      "run": true,
+      "exitCode": 1,
+      "blocker": "DeadlineExceeded: context deadline exceeded while loading metadata for docker.io/library/python:3.12-slim",
+      "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-fonts-noto-cjk-a4574560fa04fde80f1473f837f98cdc757d177e",
+      "imageCreated": false,
+      "imagePushed": false
+    },
+    "fontDiscoveryRun": false,
+    "paddlePaddleProofRun": false,
+    "paddleOcrProofRun": false,
+    "ocrInferenceRun": false,
+    "modelAssetOperationsRun": false,
+    "fontAssetOperationsRun": false,
+    "gpuExecutionRun": false,
+    "counts": {
+      "ownedTools": 16,
+      "acceptedProvenBoundedBeforeExecution": 12,
+      "newlyPassedCpuEvidence": 0,
+      "acceptedProvenBoundedTotal": 12,
+      "blockedNotInstalledProven": 4,
+      "endToEndProductReady": 0
+    },
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP",
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
   }
 }

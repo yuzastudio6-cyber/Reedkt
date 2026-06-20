@@ -716,7 +716,8 @@
     "trackb-media-oss:milestone-3-model-asset-approval:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-model-asset-approval-diagnostics.mjs",
     "trackb-media-oss:milestone-3-exact-font-asset-source-review:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-exact-font-asset-source-review-diagnostics.mjs",
     "trackb-media-oss:milestone-3-font-source-license-followup:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-font-source-license-followup-diagnostics.mjs",
-    "trackb-media-oss:milestone-3-system-font-package-approval:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-system-font-package-approval-diagnostics.mjs"
+    "trackb-media-oss:milestone-3-system-font-package-approval:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-system-font-package-approval-diagnostics.mjs",
+    "trackb-media-oss:milestone-3-system-font-package-execution:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

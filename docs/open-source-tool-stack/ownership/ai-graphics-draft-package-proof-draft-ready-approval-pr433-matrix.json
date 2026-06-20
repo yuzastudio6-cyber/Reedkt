@@ -1,0 +1,10 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsDraftPackageProofDraftReadyApprovalPr433Matrix.v1",
+  "decision": "ai_graphics_draft_package_proof_pr433_draft_ready_approval_passed_with_warnings",
+  "reviewScope": "draft_ready_approval_planning_only_no_pr_state_mutation",
+  "sourcePrs": [
+    {"prNumber": 425, "state": "open", "draft": false, "mergeable": "CLEAN", "merged": false, "headSha": "4e79f14a03a441c0a6d9c8adaef55b7c8b693c12", "sourceBatch": "batch_1", "tools": ["d3", "echarts", "vega_lite", "vega"], "stackOrderPosition": 1, "draftReadyApprovalStatus": "post_ready_accepted_with_warnings", "canBeMarkedReadyInFutureExecution": false, "canBeMarkedReadyNow": false, "canonicalPromotionApprovedNow": false, "prMergedNow": false, "draftMarkedReadyNow": false, "blockedReason": ""},
+    {"prNumber": 433, "state": "open", "draft": true, "mergeable": "CLEAN", "merged": false, "headSha": "5d7921f9d79e19641a9453440a6f9abe6272ea04", "sourceBatch": "batch_2", "tools": ["satori", "svgdotjs_svg_js", "viz_js", "lottie_web"], "stackOrderPosition": 2, "draftReadyApprovalStatus": "approved_with_warnings_for_future_execution", "canBeMarkedReadyInFutureExecution": true, "canBeMarkedReadyNow": false, "canonicalPromotionApprovedNow": false, "prMergedNow": false, "draftMarkedReadyNow": false, "blockedReason": ""},
+    {"prNumber": 441, "state": "open", "draft": true, "mergeable": "CLEAN", "merged": false, "headSha": "92c1a52b53c4836a642ab6be8885aa8fb994e9c8", "sourceBatch": "batch_3", "tools": ["animejs", "three_js", "pixi_js", "konva", "babylonjs"], "stackOrderPosition": 3, "draftReadyApprovalStatus": "deferred_pending_pr433_state_recheck_and_execution", "canBeMarkedReadyInFutureExecution": false, "canBeMarkedReadyNow": false, "canonicalPromotionApprovedNow": false, "prMergedNow": false, "draftMarkedReadyNow": false, "blockedReason": "deferred_until_pr433_state_is_rechecked_and_execution_completes"}
+  ]
+}

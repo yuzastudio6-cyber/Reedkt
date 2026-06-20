@@ -1,0 +1,15 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuBlockerResolutionFollowup.libgthreadPresence.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required",
+  "command": "docker run --rm --network none --entrypoint python reeditpro-ocr-runtime:trackb-milestone3-cpu-libgthread-8c22f38755195f4028acfba1069e4cb0d6825c91 -c import glob,json; paths=glob.glob('/usr/lib/**/libgthread-2.0.so.0', recursive=True); print(json.dumps({'library':'libgthread-2.0.so.0','paths':paths[:8]}))",
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 326,
+  "stdoutSummary": "{\"library\": \"libgthread-2.0.so.0\", \"paths\": [\"/usr/lib/aarch64-linux-gnu/libgthread-2.0.so.0\"]}",
+  "stderrSummary": "",
+  "error": null,
+  "skipped": false,
+  "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-cpu-libgthread-8c22f38755195f4028acfba1069e4cb0d6825c91",
+  "libgthreadPresent": true,
+  "dockerRunNetworkNone": true
+}

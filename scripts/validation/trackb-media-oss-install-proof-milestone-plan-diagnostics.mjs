@@ -30,8 +30,26 @@ const expectedTools = [
   "opencolorio",
   "openimageio",
 ];
-const acceptedTools = ["ffmpeg", "ffprobe", "sharp_libvips", "duckdb", "polars_nodejs_polars"];
-const blockedTools = expectedTools.filter((tool) => !acceptedTools.includes(tool));
+const acceptedStatusTools = [
+  "ffmpeg",
+  "ffprobe",
+  "sharp_libvips",
+  "duckdb",
+  "polars_nodejs_polars",
+  "mediainfo",
+  "exiftool",
+  "imagemagick",
+  "tesseract",
+];
+const blockedTools = [
+  "opencv",
+  "pyav",
+  "pyscenedetect",
+  "paddleocr",
+  "paddlepaddle",
+  "opencolorio",
+  "openimageio",
+];
 const milestone1Tools = ["exiftool", "mediainfo", "tesseract", "imagemagick_graphicsmagick"];
 const computeFields = [
   "compute_default",
@@ -145,7 +163,7 @@ if (readiness.readiness !== true) fail("readiness_not_true");
 sameSet((matrix.tools || []).map((tool) => tool.id), expectedTools, "matrix_tools");
 sameSet((compute.tools || []).map((tool) => tool.id), expectedTools, "compute_tools");
 sameSet(ownerStatus.blockedNotInstalledProven || [], blockedTools, "blocked_tools");
-sameSet(ownerStatus.acceptedProvenBounded?.map((tool) => tool.id) || [], acceptedTools, "accepted_tools");
+sameSet(ownerStatus.acceptedProvenBounded?.map((tool) => tool.id) || [], acceptedStatusTools, "accepted_tools");
 
 for (const entry of compute.tools || []) {
   for (const field of computeFields) {
@@ -241,7 +259,7 @@ console.log(
       ok: true,
       decision,
       ownedTools: expectedTools.length,
-      acceptedProvenBounded: acceptedTools.length,
+      acceptedProvenBounded: acceptedStatusTools.length,
       blockedNotInstalledProven: blockedTools.length,
       milestone1Tools,
       nextPrompt,

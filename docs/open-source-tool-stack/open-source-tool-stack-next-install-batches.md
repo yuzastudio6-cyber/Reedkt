@@ -800,3 +800,16 @@ TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_font_source_license_followup_passed_ready_for_system_font_package_approval`
+- Batch direction: move from exact PingFang private asset review to future system-font package approval.
+- Candidate package path: `fonts-noto-cjk` primary, `fonts-noto-cjk-extra` secondary.
+- Future approval must confirm package metadata, license, installed font path, and PaddleX/PaddleOCR local-font configuration before any install or runtime proof.
+- Track B counts remain: 16 owned / 12 bounded accepted-proven / 4 blocked-not-installed-proven / 0 product-ready.
+- No package install, Dockerfile mutation, Docker build/run, font/model asset operation, OCR inference, worker/provider/Supabase/GCS/public/beta/production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:end -->

@@ -803,5 +803,43 @@
       "sqlExecuted": "none",
       "migrationDeployed": "no"
     }
+  },
+  "milestone3FontSourceLicenseFollowup": {
+    "decision": "trackb_media_oss_milestone3_font_source_license_followup_passed_ready_for_system_font_package_approval",
+    "reportKey": "trackb_milestone_3_font_source_license_followup_reports",
+    "requestedAsset": "PingFang-SC-Regular.ttf",
+    "sourceComponent": "PaddleX font assets",
+    "observedSourceUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf",
+    "selectedStrategy": "system_font_package_approval",
+    "exactPingFangLicenseKnown": false,
+    "exactPingFangChecksumKnown": false,
+    "privateAssetStagingApprovedNow": false,
+    "primarySystemFontCandidate": "fonts-noto-cjk",
+    "secondarySystemFontCandidate": "fonts-noto-cjk-extra",
+    "systemFontPackageApprovalApprovedAsNextGate": true,
+    "assetFreeImportConfigSelectedNow": false,
+    "fontAssetOperationsRun": false,
+    "modelAssetOperationsRun": false,
+    "ocrInferenceRun": false,
+    "paddleOcrExecutionRun": false,
+    "paddlePaddleExecutionRun": false,
+    "dockerBuildRun": false,
+    "installRun": false,
+    "dockerfileMutated": false,
+    "requirementsMutated": false,
+    "packageLockMutated": false,
+    "countsRemainPendingQa": {
+      "ownedTools": 16,
+      "acceptedProvenBounded": 12,
+      "blockedNotInstalledProven": 4,
+      "endToEndProductReady": 0
+    },
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL",
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
   }
 }

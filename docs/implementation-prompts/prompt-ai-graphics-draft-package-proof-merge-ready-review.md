@@ -6,7 +6,9 @@ Decision: `ai_graphics_draft_package_proof_merge_ready_review_passed_with_warnin
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-merge-ready-review`
 
-Draft PR: pending creation
+Draft PR: [#569](https://github.com/yuzastudio6-cyber/Reedkt/pull/569)
+
+PR status: open, draft, CLEAN, head `c0622e57d670cef14ec1f984ad0dc6a2deb526da`, empty check rollup.
 
 Implementation summary:
 
@@ -18,6 +20,6 @@ Implementation summary:
 - Added `ai-graphics:draft-package-proof-merge-ready-review:diagnostics`.
 - Did not merge, close, retarget, install dependencies, mutate package-lock, rerun proof scripts, execute tools/workers/routes/providers/models, create public artifacts, or unlock beta/production.
 
-Validation status: pending local validation.
+Validation status: local diagnostics and diff checks passed before PR creation; PR check rollup was empty when recorded.
 
 Next prompt recommendation: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_MERGE_APPROVAL_PR425`

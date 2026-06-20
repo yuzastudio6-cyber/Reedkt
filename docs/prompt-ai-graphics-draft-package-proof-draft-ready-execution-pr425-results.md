@@ -4,7 +4,9 @@ Decision: `ai_graphics_draft_package_proof_pr425_marked_ready_with_warnings`
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-draft-ready-execution-pr425`
 
-Tracking draft PR: pending at initial execution record.
+Tracking draft PR: [#561](https://github.com/yuzastudio6-cyber/Reedkt/pull/561)
+
+PR #561 status after creation: open/draft/CLEAN at `23b7bed213999d20b4de0cf8e86e88d352324ab6`; check rollup empty at creation.
 
 ## Source Status Used
 

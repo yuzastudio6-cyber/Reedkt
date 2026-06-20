@@ -40,3 +40,24 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## GD-7-Retry Local Fixture Follow-Up
+
+Status: `generated_local_fixture_partially_passed`
+
+| Tool ID | Runtime import state | GD-7-Retry execution state | Notes |
+| --- | --- | --- | --- |
+| `svg_js_vector_graphics` | `package_runtime_probe_passed` | skipped | `node_dom_runtime_unavailable_no_dependency_mutation` |
+| `satori_social_cards` | `package_runtime_probe_passed` | executed | Local private SVG fixture created. |
+| `resvg_js_svg_rasterization` | `local_darwin_native_blocker` | blocked/skipped | No rasterized output created. |
+| `d3_dataviz` | `package_runtime_probe_passed` | executed | Local private SVG fixture created. |
+| `echarts_dataviz` | `package_runtime_probe_passed` | executed | Local private SVG fixture created. |
+| `vega_lite_dataviz` | `package_runtime_probe_passed` | executed | Local private SVG fixture created. |
+| `viz_graphviz_diagrams` | `package_runtime_probe_passed` | executed | Local private SVG fixture created. |
+
+Production capability enabled: `none; controlled local creative graphics fixture execution only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

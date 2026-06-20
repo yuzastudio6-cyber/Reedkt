@@ -72,3 +72,29 @@ GD-8A Supabase update status: `docs_only`
 GD-8A Supabase environment touched: `none`
 GD-8A SQL executed: `none`
 GD-8A Migration deployed: `no`
+
+## GD-7-Retry Matrix Addendum
+
+Status: `generated_local_fixture_partially_passed`
+
+| Tool ID | GD-7-Retry state |
+| --- | --- |
+| `svg_js_vector_graphics` | skipped: `node_dom_runtime_unavailable_no_dependency_mutation` |
+| `satori_social_cards` | executed local private SVG fixture |
+| `resvg_js_svg_rasterization` | blocked/skipped: `local_darwin_native_blocker` |
+| `d3_dataviz` | executed local private SVG fixture |
+| `echarts_dataviz` | executed local private SVG fixture |
+| `vega_lite_dataviz` | executed local private SVG fixture |
+| `viz_graphviz_diagrams` | executed local private SVG fixture |
+| `anime_js_motion` | not executed; Group B needs package review |
+| `lottie_web_overlays` | not executed; Group B needs package review |
+| `remotion_graphics` | not executed; Group B needs package review |
+| `pixijs_canvas_graphics` | blocked; Group C |
+| `three_js_visuals` | blocked; Group C |
+
+Production capability enabled: `none; controlled local creative graphics fixture execution only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

@@ -82,3 +82,38 @@ GD-8A SQL executed: `none`
 GD-8A Migration deployed: `no`
 
 Recommended next prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.
+
+## GD-7-Retry Readiness Update
+
+Status: `generated_local_fixture_partially_passed`
+
+- Local synthetic fixture evidence now exists for `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams`.
+- `svg_js_vector_graphics` remains skipped by `node_dom_runtime_unavailable_no_dependency_mutation`.
+- `resvg_js_svg_rasterization` remains skipped by `local_darwin_native_blocker`.
+- Group B remains `needs_package_review`.
+- Group C remains `blocked`.
+- Track A final render/export validation remains a future handoff.
+
+Production capability enabled: `none; controlled local creative graphics fixture execution only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-0 Readiness Update
+
+Status: `tracka_handoff_ready_with_warnings`
+
+- Track A handoff readiness improves for five local/private SVG fixture summaries only.
+- Accepted with warnings: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`.
+- Skipped/blocker fixtures: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`.
+- Private preview composition remains `private_preview_not_executed`.
+- Track A final render/export remains blocked.
+
+Production capability enabled: `none; Track A creative graphics handoff review only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

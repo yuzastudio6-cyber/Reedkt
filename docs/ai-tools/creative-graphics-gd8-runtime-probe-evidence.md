@@ -85,3 +85,19 @@ Expected local focused result:
 - Migration deployed: `no`
 
 GD-8 CI passed but did not run the focused resvg import probe. GD-8A CI ran the probe successfully on `linux/x64`, so Linux import viability is proven while local Darwin native loading remains blocked.
+
+## GD-7-Retry Runtime Follow-Up
+
+Prompt: `GD-7-Retry`
+
+Status: `generated_local_fixture_partially_passed`
+
+GD-7-Retry ran the controlled local fixture runner after GD-8/GD-8A package enablement. The run produced local private SVG outputs for `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams`.
+
+`svg_js_vector_graphics` was skipped because SVG.js needs a DOM runtime that is not installed, and GD-7-Retry does not mutate dependencies. `resvg_js_svg_rasterization` was skipped because local Darwin native loading remains `local_darwin_native_blocker`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

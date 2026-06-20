@@ -45,3 +45,19 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## GD-7-Retry resvg Outcome
+
+Prompt: `GD-7-Retry`
+
+Status: `generated_local_fixture_partially_passed`
+
+GD-7-Retry preserved the GD-8A resvg classification. The local runner skipped `resvg_js_svg_rasterization` with `local_darwin_native_blocker` and did not create rasterized output.
+
+SVG-only Group A fixture paths proceeded for the importable tools with safe Node handlers. This does not convert Linux import-only evidence into resvg fixture execution.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

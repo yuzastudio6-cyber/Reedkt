@@ -25,6 +25,30 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-7-Retry QA Addendum
+
+Prompt: `GD-7-Retry`
+
+Status: `generated_local_fixture_partially_passed`
+
+Local ignored QA evidence: `.local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-09T15-28-41-955Z/qa-evidence.json`
+
+Executed SVG tools have checksum and local artifact manifest evidence and remain pending Track A review: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`.
+
+Skipped/blocker tools:
+
+- `svg_js_vector_graphics`: `node_dom_runtime_unavailable_no_dependency_mutation`.
+- `resvg_js_svg_rasterization`: `local_darwin_native_blocker`.
+
+Group B tools were not executed, and Group C tools remain blocked.
+
+Production capability enabled: `none; controlled local creative graphics fixture execution only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## GD-8 QA Evidence Addendum
 
 GD-8 has package import evidence only. It does not create visual QA evidence because generated/local fixture execution remains `generated_local_fixture_not_executed`.

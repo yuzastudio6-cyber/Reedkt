@@ -67,6 +67,13 @@
 - Existing fixture helpers under `server/media`, `server/e2e`, and `server/workers` are smoke or execution helpers and are not imported by the synthetic fixture planning layer.
 - Future fixture dry-runs must remain a separate controlled milestone with approved snapshots and private artifact references.
 
+## Synthetic Fixture Dry Run Integration
+
+- Synthetic fixture dry runs reuse synthetic fixture plans, safe command plans, adapter plans, production registry IDs, runtime artifact types, storage bucket purposes, QA gates, and the existing worker-router boundary.
+- Dry runs are JSON-only in-memory materializations; they are not binary fixture generators, local file writers, command runners, worker jobs, fixture execution tables, or router replacements.
+- Existing fixture and dry-run helpers under `server/media`, `server/e2e`, and `server/workers` remain execution, smoke, and readiness helpers and are not imported by the synthetic fixture dry-run layer.
+- Any future binary fixture generation or low-risk execution milestone must stay separately gated and must reuse existing production worker safety systems.
+
 ## Safety Confirmation
 
 - The new brain produces planning-only output with `executesTools: false`.

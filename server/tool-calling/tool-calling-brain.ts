@@ -41,6 +41,16 @@ import type {
   SyntheticFixturePlanValidationSummary,
 } from './synthetic-fixture-plan-types'
 import {
+  materializeSyntheticFixtureDryRuns,
+} from './synthetic-fixture-dry-run-materializer'
+import {
+  validateSyntheticFixtureDryRunResults,
+} from './synthetic-fixture-dry-run-validator'
+import type {
+  SyntheticFixtureDryRunResult,
+  SyntheticFixtureDryRunValidationSummary,
+} from './synthetic-fixture-dry-run-types'
+import {
   composePipelineForOperations,
   getPatternOperations,
 } from './pipeline-composer'
@@ -108,6 +118,11 @@ export interface ToolCallingPlanWithAdaptersAndCommandPlans extends ToolCallingP
 export interface ToolCallingPlanWithAdaptersCommandPlansAndFixtures extends ToolCallingPlanWithAdaptersAndCommandPlans {
   syntheticFixturePlans: readonly SyntheticFixturePlan[]
   fixtureValidationSummary: SyntheticFixturePlanValidationSummary
+}
+
+export interface ToolCallingPlanWithAdaptersCommandPlansFixturesAndDryRun extends ToolCallingPlanWithAdaptersCommandPlansAndFixtures {
+  syntheticFixtureDryRunResults: readonly SyntheticFixtureDryRunResult[]
+  dryRunValidationSummary: SyntheticFixtureDryRunValidationSummary
 }
 
 function stableHash(value: string): string {
@@ -220,6 +235,21 @@ export function buildToolCallingPlanWithAdaptersCommandPlansAndFixtures(
     ...plan,
     syntheticFixturePlans,
     fixtureValidationSummary,
+    executesTools: false,
+  }
+}
+
+export function buildToolCallingPlanWithAdaptersCommandPlansFixturesAndDryRun(
+  request: BuildToolCallingPlanRequest,
+): ToolCallingPlanWithAdaptersCommandPlansFixturesAndDryRun {
+  const plan = buildToolCallingPlanWithAdaptersCommandPlansAndFixtures(request)
+  const syntheticFixtureDryRunResults = materializeSyntheticFixtureDryRuns(plan.syntheticFixturePlans)
+  const dryRunValidationSummary = validateSyntheticFixtureDryRunResults(syntheticFixtureDryRunResults)
+
+  return {
+    ...plan,
+    syntheticFixtureDryRunResults,
+    dryRunValidationSummary,
     executesTools: false,
   }
 }

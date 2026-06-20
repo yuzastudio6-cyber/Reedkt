@@ -4,9 +4,9 @@ Decision: `ai_graphics_draft_package_proof_pr441_marked_ready_with_warnings`
 
 Create a docs/status-only tracking branch for the approved PR #441 draft-ready execution.
 
-Created tracking draft PR: pending creation
+Created tracking draft PR: [#568](https://github.com/yuzastudio6-cyber/Reedkt/pull/568)
 
-PR status after creation: pending
+PR #568 status after creation: open/draft/CLEAN at `df436a74eda1072313138f8fbdf52ef8a5c34470`; check rollup empty at creation.
 
 ## Action Performed
 

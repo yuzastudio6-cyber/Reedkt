@@ -1,0 +1,8 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsDraftPackageProofRuntimeBoundaryAgentSelectionOwnerQa.v1",
+  "decision": "ai_graphics_draft_package_proof_runtime_boundary_owner_qa_passed_with_warnings",
+  "currentAllowedUse": "canonical_package_import_static_fixture_proof_only",
+  "agentSelectionMetadataOwnerQaAccepted": true,
+  "agentExecutionAllowedNow": false,
+  "tools": ["d3", "echarts", "vega_lite", "vega", "satori", "svgdotjs_svg_js", "viz_js", "lottie_web", "animejs", "three_js", "pixi_js", "konva", "babylonjs"]
+}

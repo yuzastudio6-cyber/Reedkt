@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "externalToolId": "imagemagick",
+  "displayName": "ImageMagick / GraphicsMagick",
+  "aliases": ["graphicsmagick", "imagemagick", "imagemagick_graphicsmagick"],
+  "runtimeResolution": {
+    "status": "pending_production_tool_registry_expansion",
+    "externalToolId": "imagemagick",
+    "reason": "ImageMagick/GraphicsMagick are useful image tools but are not first-class ProductionToolId entries on this base."
+  },
+  "operations": [
+    {"operationId": "thumbnail.generate", "supportLevel": "fallback", "bestFor": ["still processing and format conversion"], "notFor": ["video timeline rendering"], "inputArtifacts": ["source_media", "image", "video"], "outputArtifacts": ["image_asset", "representative_frame", "qa_report"], "validators": ["render_asset_integrity", "caption_safe_zone"], "fallbackToolIds": ["sharp", "pyav", "ffmpeg"], "notes": ["Pending external image fallback; not selectable."]},
+    {"operationId": "color.exposure.correct", "supportLevel": "fallback", "bestFor": ["simple image exposure transforms"], "notFor": ["managed color pipelines"], "inputArtifacts": ["image", "video"], "outputArtifacts": ["image_asset", "processed_video", "qa_report", "analysis_report"], "validators": ["color_exposure", "color_export_space"], "fallbackToolIds": ["opencolorio", "openimageio", "ffmpeg"], "notes": ["Prefer OpenColorIO/OpenImageIO for managed color."]},
+    {"operationId": "video.enhance", "supportLevel": "fallback", "bestFor": ["image sequence resize or sharpening fallback"], "notFor": ["AI super-resolution"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["image_asset", "processed_video", "enhanced_video", "qa_report"], "validators": ["enhancement_artifacts", "render_asset_integrity"], "fallbackToolIds": ["real_esrgan", "sharp", "ffmpeg"], "notes": ["Useful only after explicit registry expansion."]}
+  ],
+  "bestFor": ["image conversion", "thumbnail fallback", "simple image transforms"],
+  "notFor": ["runtime selection before registry expansion", "managed color authority", "AI enhancement"],
+  "inputArtifacts": ["source_media", "image", "video", "frame_sequence"],
+  "outputArtifacts": ["image_asset", "representative_frame", "processed_video", "enhanced_video", "qa_report", "analysis_report"],
+  "validators": ["render_asset_integrity", "caption_safe_zone", "color_exposure", "color_export_space", "enhancement_artifacts"],
+  "fallbackToolIds": ["sharp", "pyav", "ffmpeg", "opencolorio", "openimageio", "real_esrgan"],
+  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "planning_metadata"},
+  "qualityProfile": {"productionStatus": "future", "adoptionStage": "future", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["not represented as ProductionToolId", "policy and package split between ImageMagick and GraphicsMagick", "color profile handling needs review"],
+  "professionalEditingUses": ["thumbnail fallback", "image format conversion", "simple exposure transform planning"],
+  "benchmarkPlaceholders": ["benchmark:imagemagick:image_transform_latency_pending"],
+  "telemetryPlaceholders": ["telemetry:imagemagick:pending_candidate_count"],
+  "readinessNotes": ["Pending registry expansion; diagnostics should report the alias as pending."]
+}

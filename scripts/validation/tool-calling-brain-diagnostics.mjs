@@ -37,6 +37,11 @@ const {
   DEFAULT_RANKING_WEIGHTS,
   INITIAL_PIPELINE_PATTERN_IDS,
   buildToolCallingPlan,
+  findToolsForOperation,
+  listExpandedToolCapabilityCards,
+  listExplicitToolStudyCards,
+  listOperationDefinitions,
+  listRuntimeIdReconciliationResults,
   listToolCapabilityCards,
 } = await tsImport('../../server/tool-calling/index.ts', import.meta.url)
 
@@ -46,8 +51,129 @@ const {
 
 const productionToolIds = new Set(PRODUCTION_TOOL_IDS)
 const cards = listToolCapabilityCards()
+const expandedCards = listExpandedToolCapabilityCards()
+const explicitStudyCards = listExplicitToolStudyCards()
+const runtimeIdReconciliationResults = listRuntimeIdReconciliationResults()
+const pendingProductionToolRegistryExpansion = runtimeIdReconciliationResults
+  .filter((result) => result.status === 'pending_production_tool_registry_expansion')
+  .map((result) => ({
+    inputToolId: result.inputToolId,
+    externalToolId: result.externalToolId,
+    reason: result.reason,
+  }))
+
+const generatedFallbackCardCount = cards
+  .filter((card) => card.capabilitySource === 'generated_registry_profile')
+  .length
+const pendingExternalToolIds = new Set(
+  expandedCards
+    .filter((card) => card.selectableAsRuntimeTool === false)
+    .map((card) => card.externalToolId),
+)
 
 check(cards.length === productionToolIds.size, 'Capability cards must map the existing production registry one-to-one.')
+check(explicitStudyCards.length === 22, 'Milestone 2 must include 22 explicit study cards.')
+check(expandedCards.length === 53, 'Expanded capability card count must include 49 runtime cards plus 4 pending external cards.')
+check(runtimeIdReconciliationResults.length === 12, 'Runtime ID alias table must include 12 aliases.')
+
+const requiredStudyCardFields = [
+  'schema',
+  'displayName',
+  'aliases',
+  'runtimeResolution',
+  'operations',
+  'bestFor',
+  'notFor',
+  'inputArtifacts',
+  'outputArtifacts',
+  'validators',
+  'fallbackToolIds',
+  'resourceProfile',
+  'qualityProfile',
+  'knownFailureModes',
+  'professionalEditingUses',
+  'benchmarkPlaceholders',
+  'telemetryPlaceholders',
+  'readinessNotes',
+]
+
+const requiredStudyOperationFields = [
+  'operationId',
+  'supportLevel',
+  'bestFor',
+  'notFor',
+  'inputArtifacts',
+  'outputArtifacts',
+  'validators',
+  'fallbackToolIds',
+  'notes',
+]
+
+for (const studyCard of explicitStudyCards) {
+  for (const requiredField of requiredStudyCardFields) {
+    check(
+      Object.prototype.hasOwnProperty.call(studyCard, requiredField),
+      `${studyCard.displayName} study card is missing required field: ${requiredField}`,
+    )
+  }
+
+  check(
+    Boolean(studyCard.toolId) !== Boolean(studyCard.externalToolId),
+    `${studyCard.displayName} must include exactly one of toolId or externalToolId.`,
+  )
+  check(studyCard.operations.length > 0, `${studyCard.displayName} must map to at least one operation.`)
+
+  for (const operation of studyCard.operations) {
+    for (const requiredField of requiredStudyOperationFields) {
+      check(
+        Object.prototype.hasOwnProperty.call(operation, requiredField),
+        `${studyCard.displayName} ${operation.operationId} is missing required field: ${requiredField}`,
+      )
+    }
+  }
+}
+
+for (const toolId of productionToolIds) {
+  const card = cards.find((candidate) => candidate.toolId === toolId)
+  check(Boolean(card), `${toolId} must have an explicit study card or generated fallback card.`)
+  check(
+    card.capabilitySource === 'explicit_study_card' || card.capabilitySource === 'generated_registry_profile',
+    `${toolId} must be explicit study card or generated registry fallback.`,
+  )
+}
+
+for (const result of runtimeIdReconciliationResults) {
+  check(
+    result.status === 'alias_resolved_to_production_tool_id' ||
+      result.status === 'first_class_production_tool_id' ||
+      result.status === 'pending_production_tool_registry_expansion',
+    `${result.inputToolId} alias must resolve or remain pending registry expansion.`,
+  )
+  if (result.status !== 'pending_production_tool_registry_expansion') {
+    check(Boolean(result.toolId), `${result.inputToolId} resolved alias must include toolId.`)
+    check(productionToolIds.has(result.toolId), `${result.inputToolId} resolved alias must target ProductionToolId.`)
+  }
+}
+
+const operationCoverageSummary = listOperationDefinitions().map((operation) => {
+  const firstClassCandidates = findToolsForOperation(operation.operationId)
+  const pendingCandidates = expandedCards
+    .filter((card) => card.selectableAsRuntimeTool === false && card.operations.includes(operation.operationId))
+    .map((card) => card.externalToolId)
+    .sort()
+
+  check(
+    firstClassCandidates.length > 0 || operation.futureAllowed,
+    `${operation.operationId} must have a first-class runtime candidate or be explicitly futureAllowed.`,
+  )
+
+  return {
+    operationId: operation.operationId,
+    futureAllowed: operation.futureAllowed,
+    firstClassCandidateCount: firstClassCandidates.length,
+    pendingExternalCandidateIds: pendingCandidates,
+  }
+})
 
 const duplicateSystemPaths = [
   'server/tool-calling/production-tool-registry.ts',
@@ -82,6 +208,9 @@ const plans = INITIAL_PIPELINE_PATTERN_IDS.map((patternId) => buildToolCallingPl
   },
 }))
 
+let selectedToolsAreFirstClassProductionToolIds = true
+let pendingExternalToolsSelected = false
+
 for (const plan of plans) {
   check(plan.executesTools === false, `${plan.planId} must be planning-only.`)
   check(plan.diagnostics.executesTools === false, `${plan.planId} diagnostics must be planning-only.`)
@@ -98,8 +227,14 @@ for (const plan of plans) {
     check(step.requiredQualityGates.length > 0, `${step.stepId} must include quality gates.`)
     check(step.executionMode === 'planning_only', `${step.stepId} must be planning_only.`)
     check(productionToolIds.has(step.selectedToolId), `${step.stepId} selected tool must exist in production registry.`)
+    selectedToolsAreFirstClassProductionToolIds = selectedToolsAreFirstClassProductionToolIds &&
+      productionToolIds.has(step.selectedToolId)
+    pendingExternalToolsSelected = pendingExternalToolsSelected || pendingExternalToolIds.has(step.selectedToolId)
   }
 }
+
+check(selectedToolsAreFirstClassProductionToolIds, 'Selected tools must all be first-class ProductionToolId values.')
+check(!pendingExternalToolsSelected, 'Pending external tools must not be selected as selectedToolId.')
 
 const stagedFiles = runGit(['diff', '--cached', '--name-only']).split('\n').filter(Boolean)
 const packageLockStaged = stagedFiles.includes('package-lock.json')
@@ -129,10 +264,16 @@ console.log(JSON.stringify({
   })),
   capabilityCardCount: cards.length,
   productionRegistryToolCount: productionToolIds.size,
-  milestone1CapabilityCardSource: 'generated_from_existing_production_tool_profiles',
-  explicitStudyCardsDeferredToMilestone2: true,
-  runtimeIdReconciliationDeferredToMilestone2: true,
+  explicitStudyCardCount: explicitStudyCards.length,
+  generatedFallbackCardCount,
+  expandedCapabilityCardCount: expandedCards.length,
+  runtimeIdAliasesCount: runtimeIdReconciliationResults.length,
+  pendingProductionToolRegistryExpansion,
+  operationCoverageSummary,
+  selectedToolsAreFirstClassProductionToolIds,
+  pendingExternalToolsSelected,
   duplicateSystemsCreated: false,
+  executesTools: false,
   rankingDimensions: rankingDimensionNames,
   coordinationLabelsUsedForRanking: false,
   packageLock: {

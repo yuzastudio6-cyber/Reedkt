@@ -1,0 +1,27 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "film",
+  "displayName": "FILM Frame Interpolation",
+  "aliases": ["film", "film_frame_interpolation"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "film",
+    "reason": "FILM is the first-class ProductionToolId for frame interpolation and slow-motion planning."
+  },
+  "operations": [
+    {"operationId": "video.slow_motion", "supportLevel": "primary", "bestFor": ["frame interpolation and slow-motion planning"], "notFor": ["timeline retiming decisions alone"], "inputArtifacts": ["video", "frame_sequence"], "outputArtifacts": ["processed_video", "interpolated_video", "qa_report"], "validators": ["slow_motion_artifacts", "export_duration_sync"], "fallbackToolIds": ["ffmpeg", "vapoursynth"], "notes": ["Primary interpolation planning candidate where model policy allows."]}
+  ],
+  "bestFor": ["slow motion", "frame interpolation", "motion smoothing planning"],
+  "notFor": ["audio cleanup", "color correction", "OCR"],
+  "inputArtifacts": ["video", "frame_sequence"],
+  "outputArtifacts": ["processed_video", "interpolated_video", "qa_report"],
+  "validators": ["slow_motion_artifacts", "export_duration_sync"],
+  "fallbackToolIds": ["ffmpeg", "vapoursynth"],
+  "resourceProfile": {"workerType": "gpu_ai_worker", "gpuRequired": true, "cpuAllowed": false, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": true, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["motion warping artifacts", "occlusion errors", "model-weight review may block execution"],
+  "professionalEditingUses": ["hero slow-motion effect planning", "smooth B-roll retiming", "interpolation QA"],
+  "benchmarkPlaceholders": ["benchmark:film:interpolation_quality_pending", "benchmark:film:slow_motion_latency_pending"],
+  "telemetryPlaceholders": ["telemetry:film:selection_count", "telemetry:film:slow_motion_gate_outcomes"],
+  "readinessNotes": ["Alias `film_frame_interpolation` resolves to first-class runtime ID `film`."]
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "pyscenedetect",
+  "displayName": "PySceneDetect",
+  "aliases": ["pyscenedetect"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "pyscenedetect",
+    "reason": "PySceneDetect is a first-class ProductionToolId for shot-boundary and smart-cut planning."
+  },
+  "operations": [
+    {"operationId": "video.scene.detect", "supportLevel": "primary", "bestFor": ["shot boundary detection"], "notFor": ["semantic ranking of scenes"], "inputArtifacts": ["source_media", "proxy_media", "video"], "outputArtifacts": ["analysis_report", "timeline_manifest", "json_spec"], "validators": ["cut_smoothness"], "fallbackToolIds": ["opencv", "ffmpeg"], "notes": ["Primary planning candidate for scene boundaries."]},
+    {"operationId": "timeline.smart_cut", "supportLevel": "secondary", "bestFor": ["scene-aware cut candidates"], "notFor": ["timeline schema validation"], "inputArtifacts": ["analysis_report", "transcript_json", "source_media", "proxy_media"], "outputArtifacts": ["timeline_manifest", "json_spec", "qa_report"], "validators": ["cut_smoothness", "render_timeline_integrity"], "fallbackToolIds": ["opentimelineio", "hyperframe", "opencv"], "notes": ["Feeds smart-cut planning with scene evidence."]},
+    {"operationId": "video.motion.score", "supportLevel": "secondary", "bestFor": ["rough pacing windows"], "notFor": ["fine optical-flow scoring"], "inputArtifacts": ["source_media", "proxy_media", "video", "frame_sequence"], "outputArtifacts": ["analysis_report", "json_spec"], "validators": ["cut_smoothness", "render_asset_integrity"], "fallbackToolIds": ["opencv", "vapoursynth"], "notes": ["Use scene deltas as coarse motion evidence."]}
+  ],
+  "bestFor": ["scene boundary planning", "smart-cut evidence", "pacing structure"],
+  "notFor": ["caption generation", "final export validation", "mask generation"],
+  "inputArtifacts": ["source_media", "proxy_media", "video", "analysis_report", "transcript_json"],
+  "outputArtifacts": ["analysis_report", "timeline_manifest", "json_spec", "qa_report"],
+  "validators": ["cut_smoothness", "render_timeline_integrity", "render_asset_integrity"],
+  "fallbackToolIds": ["opencv", "ffmpeg", "opentimelineio"],
+  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
+  "knownFailureModes": ["flash cuts can over-trigger", "low-contrast shots can under-trigger", "motion graphics may look like scene changes"],
+  "professionalEditingUses": ["rough cut structure", "social short pacing", "B-roll transition planning"],
+  "benchmarkPlaceholders": ["benchmark:pyscenedetect:boundary_precision_pending", "benchmark:pyscenedetect:analysis_latency_pending"],
+  "telemetryPlaceholders": ["telemetry:pyscenedetect:selection_count", "telemetry:pyscenedetect:cut_gate_outcomes"],
+  "readinessNotes": ["Planning only; no scene detection execution is performed by the brain."]
+}

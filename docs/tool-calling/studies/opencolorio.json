@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "opencolorio",
+  "displayName": "OpenColorIO",
+  "aliases": ["opencolorio"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "opencolorio",
+    "reason": "OpenColorIO is a first-class ProductionToolId for color-space and shot-match planning."
+  },
+  "operations": [
+    {"operationId": "color.exposure.correct", "supportLevel": "primary", "bestFor": ["managed exposure and color-space correction planning"], "notFor": ["AI enhancement"], "inputArtifacts": ["source_media", "proxy_media", "image", "video"], "outputArtifacts": ["processed_video", "image_asset", "qa_report", "analysis_report"], "validators": ["color_exposure", "color_export_space"], "fallbackToolIds": ["ffmpeg", "openimageio", "opencv"], "notes": ["Primary managed color planning candidate."]},
+    {"operationId": "color.shot_match", "supportLevel": "primary", "bestFor": ["shot matching and export color-space planning"], "notFor": ["thumbnail styling"], "inputArtifacts": ["source_media", "proxy_media", "image", "video"], "outputArtifacts": ["processed_video", "image_asset", "qa_report", "analysis_report"], "validators": ["color_shot_match", "color_skin_tone", "color_export_space"], "fallbackToolIds": ["openimageio", "opencv", "ffmpeg"], "notes": ["Use for professional color consistency planning."]}
+  ],
+  "bestFor": ["color-space management", "shot matching", "exposure correction planning"],
+  "notFor": ["frame interpolation", "OCR", "audio work"],
+  "inputArtifacts": ["source_media", "proxy_media", "image", "video"],
+  "outputArtifacts": ["processed_video", "image_asset", "qa_report", "analysis_report"],
+  "validators": ["color_exposure", "color_export_space", "color_shot_match", "color_skin_tone"],
+  "fallbackToolIds": ["ffmpeg", "openimageio", "opencv"],
+  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
+  "knownFailureModes": ["missing color profile", "scene-referred/display-referred mismatch", "skin-tone checks require visual QA"],
+  "professionalEditingUses": ["color correction planning", "shot matching", "delivery color-space QA"],
+  "benchmarkPlaceholders": ["benchmark:opencolorio:color_transform_latency_pending", "benchmark:opencolorio:shot_match_quality_pending"],
+  "telemetryPlaceholders": ["telemetry:opencolorio:selection_count", "telemetry:opencolorio:color_gate_outcomes"],
+  "readinessNotes": ["Alias `opencolorio` resolves to first-class runtime ID `opencolorio` on this base."]
+}

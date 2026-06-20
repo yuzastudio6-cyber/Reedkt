@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "externalToolId": "mediainfo",
+  "displayName": "MediaInfo",
+  "aliases": ["mediainfo"],
+  "runtimeResolution": {
+    "status": "pending_production_tool_registry_expansion",
+    "externalToolId": "mediainfo",
+    "reason": "MediaInfo is useful for metadata QA but is not a first-class ProductionToolId on this base."
+  },
+  "operations": [
+    {"operationId": "media.inspect", "supportLevel": "validator", "bestFor": ["container and stream metadata cross-checks"], "notFor": ["media transforms"], "inputArtifacts": ["source_media", "proxy_media", "video", "audio"], "outputArtifacts": ["analysis_report", "qa_report", "json_spec"], "validators": ["render_asset_integrity"], "fallbackToolIds": ["ffprobe", "ffmpeg"], "notes": ["Pending external study card; not selectable as selectedToolId."]},
+    {"operationId": "export.validate", "supportLevel": "validator", "bestFor": ["final export metadata corroboration"], "notFor": ["muxing or rendering"], "inputArtifacts": ["final_export", "video", "audio"], "outputArtifacts": ["qa_report", "analysis_report", "json_spec"], "validators": ["export_codec_format", "export_duration_sync", "final_delivery"], "fallbackToolIds": ["ffprobe", "ffmpeg"], "notes": ["Use after registry expansion only."]}
+  ],
+  "bestFor": ["metadata corroboration", "codec and container reporting"],
+  "notFor": ["runtime selection before registry expansion", "media mutation"],
+  "inputArtifacts": ["source_media", "proxy_media", "video", "audio", "final_export"],
+  "outputArtifacts": ["analysis_report", "qa_report", "json_spec"],
+  "validators": ["render_asset_integrity", "export_codec_format", "export_duration_sync", "final_delivery"],
+  "fallbackToolIds": ["ffprobe", "ffmpeg"],
+  "resourceProfile": {"workerType": "qa_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "planning_metadata"},
+  "qualityProfile": {"productionStatus": "future", "adoptionStage": "future", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
+  "knownFailureModes": ["not represented as ProductionToolId", "metadata field naming differs from ffprobe"],
+  "professionalEditingUses": ["ingest report verification", "delivery metadata cross-check"],
+  "benchmarkPlaceholders": ["benchmark:mediainfo:metadata_coverage_pending"],
+  "telemetryPlaceholders": ["telemetry:mediainfo:pending_candidate_count"],
+  "readinessNotes": ["Pending registry expansion; diagnostics should report this as pending, not failed."]
+}

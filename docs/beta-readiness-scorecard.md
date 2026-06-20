@@ -4,8 +4,8 @@ This activation-base scorecard was added for Prompt GD-0.
 
 | Area | Score | Prompt GD-0 impact |
 | --- | ---: | --- |
-| AI Tools creative graphics planning | 40% | Repo audit, manifest drafts, dry-run specs, and generated/local candidate specs are documented. |
-| AI Tools creative graphics manifest readiness | 54% | GD-1 manifests, GD-2 dry-run specs, GD-3 generated/local candidates, and GD-4 static gate review are present; execution has not started. |
+| AI Tools creative graphics planning | 44% | Repo audit, manifest drafts, dry-run specs, generated/local candidate specs, static review, GD-5 execution plan, and GD-6 approval gate packet are documented. |
+| AI Tools creative graphics manifest readiness | 58% | GD-1 manifests, GD-2 dry-run specs, GD-3 generated/local candidates, GD-4 static gate review, GD-5 execution plan, and GD-6 Group A gate are present; execution has not started. |
 | Runtime/tool execution readiness | 0% | No tools executed or enabled. |
 | Worker/provider/render readiness | 0% | Out of GD-0 scope. |
 | Supabase/database readiness | 0% | No Supabase touched by GD-0. |
@@ -22,3 +22,23 @@ GD-2 production capability enabled: `none; AI Tools creative graphics dry-run fi
 
 GD-4 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / generated_local_fixture_not_executed`
 GD-4 production capability enabled: `none; AI Tools creative graphics static fixture gate review only`
+
+GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
+GD-5 production capability enabled: `none; AI Tools creative graphics controlled execution plan only`
+GD-5 Supabase update required: `docs/status only`
+GD-5 Supabase update status: `docs_only`
+GD-5 Supabase environment touched: `none`
+GD-5 SQL executed: `none`
+GD-5 Migration deployed: `no`
+
+GD-6 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_not_executed`
+GD-6 execution approval decision: `approved_for_gd7_controlled_local_fixture_execution`
+GD-6 Group A status: `approved_for_gd7_controlled_local_fixture_execution`
+GD-6 Group B status: `needs_package_review`
+GD-6 Group C status: `blocked`
+GD-6 production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
+GD-6 Supabase update required: `docs/status only`
+GD-6 Supabase update status: `docs_only`
+GD-6 Supabase environment touched: `none`
+GD-6 SQL executed: `none`
+GD-6 Migration deployed: `no`

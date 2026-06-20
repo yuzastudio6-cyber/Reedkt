@@ -38,6 +38,8 @@ const requiredChecks = [
   'ai-tools:creative-graphics:dry-run-fixtures:diagnostics',
   'ai-tools:creative-graphics:generated-local-candidates:diagnostics',
   'ai-tools:creative-graphics:static-gate:diagnostics',
+  'ai-tools:creative-graphics:execution-plan:diagnostics',
+  'ai-tools:creative-graphics:execution-approval:diagnostics',
 ];
 
 const results = [];

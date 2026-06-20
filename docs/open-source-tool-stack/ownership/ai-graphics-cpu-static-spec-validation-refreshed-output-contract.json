@@ -1,0 +1,21 @@
+{
+  "decision": "ai_graphics_cpu_static_spec_validation_refreshed_execution_passed_with_warnings",
+  "allowedCommittedOutputs": [
+    "sanitized_source_lockfile_markdown_json",
+    "sanitized_matrix_markdown_json",
+    "sanitized_result_markdown_json",
+    "per_tool_markdown_summaries",
+    "output_contract_docs",
+    "blocked_use_register",
+    "prompt_records"
+  ],
+  "detailedEvidenceRoot": ".local-artifacts/open-source-tool-stack/ai-graphics/cpu-static-spec-validation/ai-graphics-cpu-static-spec-validation-refreshed-local-static/",
+  "publicArtifactCreated": false,
+  "signedUrlCreated": false,
+  "browserRuntimePerformed": false,
+  "webglCanvasRuntimePerformed": false,
+  "toolRouteExecutionPerformed": false,
+  "workerExecutionPerformed": false,
+  "supabaseMutationPerformed": false,
+  "gcsUploadPerformed": false
+}

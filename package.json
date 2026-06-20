@@ -15,6 +15,7 @@
     "smoke:api": "tsx server/smoke/backend-runtime-smoke.ts",
     "tool-calling:diagnostics": "node scripts/validation/tool-calling-brain-diagnostics.mjs",
     "tool-calling:refresh-gate": "node scripts/validation/tool-calling-refresh-gate.mjs",
+    "tool-calling:adapter-contracts": "node scripts/validation/tool-calling-adapter-contracts-diagnostics.mjs",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",

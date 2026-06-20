@@ -14,6 +14,13 @@ import type {
   ToolCallingQualityGatePlan,
 } from './quality-gate-planner'
 import {
+  buildAdapterPlanForPipeline,
+} from './adapter-planner'
+import type {
+  ToolAdapterPipelinePlan,
+  ToolCallingWorkerRouteBridgePlan,
+} from './adapter-contract-types'
+import {
   composePipelineForOperations,
   getPatternOperations,
 } from './pipeline-composer'
@@ -66,6 +73,11 @@ export interface ToolCallingPlan {
   qualityGatePlan: ToolCallingQualityGatePlan
   diagnostics: ToolCallingPlanDiagnostics
   executesTools: false
+}
+
+export interface ToolCallingPlanWithAdapters extends ToolCallingPlan {
+  adapterPlan: ToolAdapterPipelinePlan
+  workerRouteBridgePlan: readonly ToolCallingWorkerRouteBridgePlan[]
 }
 
 function stableHash(value: string): string {
@@ -136,6 +148,18 @@ export function buildToolCallingPlan(request: BuildToolCallingPlanRequest): Tool
       qualityGateCount: qualityGatePlan.gateTypes.length,
       warnings: [],
     },
+    executesTools: false,
+  }
+}
+
+export function buildToolCallingPlanWithAdapters(request: BuildToolCallingPlanRequest): ToolCallingPlanWithAdapters {
+  const plan = buildToolCallingPlan(request)
+  const adapterPlan = buildAdapterPlanForPipeline(plan.pipeline)
+
+  return {
+    ...plan,
+    adapterPlan,
+    workerRouteBridgePlan: adapterPlan.workerRouteBridgePlans,
     executesTools: false,
   }
 }

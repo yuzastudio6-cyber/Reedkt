@@ -45,6 +45,14 @@
 - The gate checks for stale stack state, duplicate study cards, duplicate aliases, duplicate local registry/router/QA/fallback systems, package-lock staging risk, and pending external tools that became first-class runtime IDs.
 - Future work must reuse existing registry, router, QA, fallback, runtime contract, and Supabase table systems instead of creating parallel implementations.
 
+## Adapter Contract Integration
+
+- Adapter contracts reuse `server/tool-registry` profiles, existing capability cards, QA policy, fallback policy, and runtime contract types.
+- The adapter registry is a planning catalog for selected first-class tools, not a second production tool registry.
+- The worker route bridge emits metadata for future handoff to the existing production worker router; it does not import or call the router.
+- Existing execution adapters under `server/workers/**` remain future execution surfaces and are not duplicated by this milestone.
+- Pending external tools are reported as pending adapter contracts until they become first-class `ProductionToolId` entries.
+
 ## Safety Confirmation
 
 - The new brain produces planning-only output with `executesTools: false`.

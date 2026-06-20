@@ -36,4 +36,6 @@ Runtime-boundary owner QA status: `ai_graphics_draft_package_proof_runtime_bound
 
 CPU/static spec-validation approval status: `ai_graphics_cpu_static_spec_validation_approval_passed_with_warnings`; future execution is approved only for `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, and `viz_js`. `echarts`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, and `babylonjs` remain deferred. Static validation execution now, static fixture execution now, Tool Route execution, Worker execution, browser/WebGL/canvas runtime, public artifacts, signed URLs, beta, and production remain blocked.
 
+CPU/static spec-validation execution status: `blocked_pending_cpu_static_dependency_install_from_lock`; run id `ai-graphics-cpu-static-spec-validation-local-static`. The six approved packages `d3`, `vega-lite`, `vega`, `satori`, `@svgdotjs/svg.js`, and `@viz-js/viz` are missing from both `package.json` and `package-lock.json` on the PR #607 source branch, so no static validation, import smoke, fixture execution, actual tool execution, public artifact, signed URL, runtime, beta, or production unlock was performed. Next prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_CPU_STATIC_SPEC_VALIDATION_DEPENDENCY_RECONCILIATION`.
+
 Runtime-ready tools: `0`. Internal-beta-ready tools: `0`. E2E-proven tools: `0`.

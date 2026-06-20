@@ -178,3 +178,11 @@ validation execution, static fixture execution, Tool Route execution, Worker
 execution, browser/WebGL/canvas runtime, provider execution, Supabase/GCS,
 signed URLs, public artifacts, internal beta, external beta, and production
 remain blocked.
+
+AI graphics CPU/static spec validation execution is blocked at
+`blocked_pending_cpu_static_dependency_install_from_lock` because PR #607 does
+not declare `d3`, `vega-lite`, `vega`, `satori`, `@svgdotjs/svg.js`, or
+`@viz-js/viz` in `package.json` or `package-lock.json`. No dependency mutation,
+static validation, fixture execution, tool/runtime execution, Supabase/GCS,
+signed URL, public artifact, internal beta, external beta, or production unlock
+occurred.

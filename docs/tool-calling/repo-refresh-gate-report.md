@@ -29,10 +29,10 @@
 
 ## Pending External Tool Findings
 
-- Pending external tools from Milestone 2 remain report-only until first-class registry promotion.
+- Track B registry planning promotes `exiftool`, `imagemagick`, `mediainfo`, and `tesseract` to first-class planning metadata.
 - The gate blocks if a pending external tool becomes a first-class `ProductionToolId` while still marked pending.
-- Current pending external tools: `exiftool`, `imagemagick`, `mediainfo`, `tesseract`.
-- Pending external tools now first-class: none found.
+- Current pending external runtime identity: `graphicsmagick`.
+- `graphicsMagickCounted`: false; bare `graphicsmagick` remains non-selectable.
 
 ## Decision
 

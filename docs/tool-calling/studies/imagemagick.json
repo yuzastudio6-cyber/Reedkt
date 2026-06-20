@@ -1,29 +1,211 @@
 {
   "schema": "reeditpro.toolCapabilityStudyCard.v1",
-  "externalToolId": "imagemagick",
-  "displayName": "ImageMagick / GraphicsMagick",
-  "aliases": ["graphicsmagick", "imagemagick", "imagemagick_graphicsmagick"],
+  "toolId": "imagemagick",
+  "displayName": "ImageMagick",
+  "aliases": [
+    "imagemagick",
+    "imagemagick_graphicsmagick"
+  ],
   "runtimeResolution": {
-    "status": "pending_production_tool_registry_expansion",
-    "externalToolId": "imagemagick",
-    "reason": "ImageMagick/GraphicsMagick are useful image tools but are not first-class ProductionToolId entries on this base."
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "imagemagick",
+    "reason": "ImageMagick is promoted to a first-class ProductionToolId for Track B planning metadata; GraphicsMagick remains pending separately."
   },
   "operations": [
-    {"operationId": "thumbnail.generate", "supportLevel": "fallback", "bestFor": ["still processing and format conversion"], "notFor": ["video timeline rendering"], "inputArtifacts": ["source_media", "image", "video"], "outputArtifacts": ["image_asset", "representative_frame", "qa_report"], "validators": ["render_asset_integrity", "caption_safe_zone"], "fallbackToolIds": ["sharp", "pyav", "ffmpeg"], "notes": ["Pending external image fallback; not selectable."]},
-    {"operationId": "color.exposure.correct", "supportLevel": "fallback", "bestFor": ["simple image exposure transforms"], "notFor": ["managed color pipelines"], "inputArtifacts": ["image", "video"], "outputArtifacts": ["image_asset", "processed_video", "qa_report", "analysis_report"], "validators": ["color_exposure", "color_export_space"], "fallbackToolIds": ["opencolorio", "openimageio", "ffmpeg"], "notes": ["Prefer OpenColorIO/OpenImageIO for managed color."]},
-    {"operationId": "video.enhance", "supportLevel": "fallback", "bestFor": ["image sequence resize or sharpening fallback"], "notFor": ["AI super-resolution"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["image_asset", "processed_video", "enhanced_video", "qa_report"], "validators": ["enhancement_artifacts", "render_asset_integrity"], "fallbackToolIds": ["real_esrgan", "sharp", "ffmpeg"], "notes": ["Useful only after explicit registry expansion."]}
+    {
+      "operationId": "thumbnail.generate",
+      "supportLevel": "fallback",
+      "bestFor": [
+        "still processing and format conversion planning"
+      ],
+      "notFor": [
+        "video timeline rendering",
+        "GraphicsMagick runtime selection"
+      ],
+      "inputArtifacts": [
+        "source_media",
+        "image",
+        "video"
+      ],
+      "outputArtifacts": [
+        "image_asset",
+        "qa_report",
+        "analysis_report"
+      ],
+      "validators": [
+        "render_asset_integrity",
+        "caption_safe_zone"
+      ],
+      "fallbackToolIds": [
+        "sharp",
+        "pyav",
+        "ffmpeg"
+      ],
+      "notes": [
+        "Planning-only ImageMagick fallback; no binary execution is enabled."
+      ]
+    },
+    {
+      "operationId": "color.exposure.correct",
+      "supportLevel": "fallback",
+      "bestFor": [
+        "simple image exposure transform planning"
+      ],
+      "notFor": [
+        "managed color pipelines"
+      ],
+      "inputArtifacts": [
+        "image",
+        "video"
+      ],
+      "outputArtifacts": [
+        "image_asset",
+        "processed_video",
+        "qa_report",
+        "analysis_report"
+      ],
+      "validators": [
+        "color_exposure",
+        "color_export_space"
+      ],
+      "fallbackToolIds": [
+        "opencolorio",
+        "openimageio",
+        "ffmpeg"
+      ],
+      "notes": [
+        "Prefer OpenColorIO/OpenImageIO for managed color."
+      ]
+    },
+    {
+      "operationId": "video.enhance",
+      "supportLevel": "fallback",
+      "bestFor": [
+        "image sequence resize or sharpening fallback planning"
+      ],
+      "notFor": [
+        "AI super-resolution"
+      ],
+      "inputArtifacts": [
+        "image",
+        "video",
+        "frame_sequence"
+      ],
+      "outputArtifacts": [
+        "image_asset",
+        "processed_video",
+        "qa_report",
+        "analysis_report"
+      ],
+      "validators": [
+        "enhancement_artifacts",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "real_esrgan",
+        "sharp",
+        "ffmpeg"
+      ],
+      "notes": [
+        "Video/image enhancement remains planning metadata only."
+      ]
+    }
   ],
-  "bestFor": ["image conversion", "thumbnail fallback", "simple image transforms"],
-  "notFor": ["runtime selection before registry expansion", "managed color authority", "AI enhancement"],
-  "inputArtifacts": ["source_media", "image", "video", "frame_sequence"],
-  "outputArtifacts": ["image_asset", "representative_frame", "processed_video", "enhanced_video", "qa_report", "analysis_report"],
-  "validators": ["render_asset_integrity", "caption_safe_zone", "color_exposure", "color_export_space", "enhancement_artifacts"],
-  "fallbackToolIds": ["sharp", "pyav", "ffmpeg", "opencolorio", "openimageio", "real_esrgan"],
-  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "planning_metadata"},
-  "qualityProfile": {"productionStatus": "future", "adoptionStage": "future", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
-  "knownFailureModes": ["not represented as ProductionToolId", "policy and package split between ImageMagick and GraphicsMagick", "color profile handling needs review"],
-  "professionalEditingUses": ["thumbnail fallback", "image format conversion", "simple exposure transform planning"],
-  "benchmarkPlaceholders": ["benchmark:imagemagick:image_transform_latency_pending"],
-  "telemetryPlaceholders": ["telemetry:imagemagick:pending_candidate_count"],
-  "readinessNotes": ["Pending registry expansion; diagnostics should report the alias as pending."]
+  "bestFor": [
+    "image conversion planning",
+    "thumbnail fallback planning",
+    "simple image transform planning"
+  ],
+  "notFor": [
+    "GraphicsMagick runtime selection",
+    "managed color authority",
+    "AI enhancement",
+    "runtime execution in this milestone"
+  ],
+  "inputArtifacts": [
+    "source_media",
+    "image",
+    "video",
+    "frame_sequence"
+  ],
+  "outputArtifacts": [
+    "image_asset",
+    "processed_video",
+    "qa_report",
+    "analysis_report"
+  ],
+  "validators": [
+    "render_asset_integrity",
+    "caption_safe_zone",
+    "color_exposure",
+    "color_export_space",
+    "enhancement_artifacts"
+  ],
+  "fallbackToolIds": [
+    "sharp",
+    "pyav",
+    "ffmpeg",
+    "opencolorio",
+    "openimageio",
+    "real_esrgan"
+  ],
+  "resourceProfile": {
+    "workerType": "planning_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "planning_metadata"
+  },
+  "qualityProfile": {
+    "productionStatus": "future",
+    "adoptionStage": "future",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "GraphicsMagick is not counted as first-class",
+    "delegate and policy configuration need review",
+    "color profile handling needs review"
+  ],
+  "professionalEditingUses": [
+    "thumbnail fallback planning",
+    "image format conversion planning",
+    "simple exposure transform planning"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:imagemagick:image_transform_latency_pending",
+    "benchmark:imagemagick:delegate_policy_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:imagemagick:planning_candidate_count",
+    "telemetry:imagemagick:future_probe_status"
+  ],
+  "readinessNotes": [
+    "ImageMagick is promoted for first-class planning metadata only; no execution, probing, media processing, worker dispatch, provider call, Supabase mutation, SQL, signed URL, beta unlock, or production unlock is enabled by this card.",
+    "Owner evidence must be refreshed again before any controlled execution milestone.",
+    "GraphicsMagick remains pending and is not counted as a first-class ProductionToolId in this milestone."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "ImageMagick now has a canonical ProductionToolProfile for planning-only registry metadata."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/542",
+      "summary": "Track B media OSS owner registry listed the bounded/proven media OSS ownership lane and included this tool family."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/545",
+      "summary": "Track B media OSS install/proof plan approved future low-risk validation work for MediaInfo, ExifTool, Tesseract, and ImageMagick/GraphicsMagick."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/619",
+      "summary": "First-class coverage expansion intentionally left this tool pending for the dedicated Track B registry-planning milestone."
+    }
+  ]
 }

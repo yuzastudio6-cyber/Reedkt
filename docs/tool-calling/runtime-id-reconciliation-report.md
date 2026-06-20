@@ -2,63 +2,30 @@
 
 ## Summary
 
-Milestone 2 adds explicit per-tool capability study cards and runtime ID alias resolution. The study cards enrich planning metadata, but `server/tool-registry` remains the canonical source for selectable runtime IDs.
+The runtime ID reconciliation layer maps study-card and owner-evidence labels onto canonical `ProductionToolId` entries without creating a second registry. `server/tool-registry` remains the source of truth for selectable runtime IDs.
+
+Track B external registry expansion promotes `mediainfo`, `exiftool`, `tesseract`, and `imagemagick` into first-class planning metadata. GraphicsMagick remains pending as a separate runtime identity.
 
 ## First-Class Runtime IDs Covered By Study Cards
 
-All current first-class `ProductionToolId` entries now have explicit study-card coverage.
+All current first-class `ProductionToolId` entries have explicit study-card coverage. On the current base that includes 53 first-class IDs: the 49 IDs from first-class coverage expansion plus `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.
 
-- `ffmpeg`
-- `ffprobe`
-- `pyav`
-- `opentimelineio`
-- `hyperframe`
-- `remotion`
-- `libass`
-- `sharp`
-- `duckdb`
-- `polars`
-- `faster_whisper`
-- `whisper_cpp`
-- `paddleocr`
-- `pyscenedetect`
-- `opencv`
-- `mediapipe`
-- `kornia`
-- `birefnet`
-- `sam2`
-- `transparent_background`
-- `rembg`
-- `opencolorio`
-- `openimageio`
-- `deepfilternet`
-- `rnnoise`
-- `demucs`
-- `librosa`
-- `audioflux`
-- `signalsmith_stretch`
-- `soundtouch`
-- `rubber_band`
-- `essentia`
-- `real_esrgan`
-- `film`
-- `pixijs`
-- `three_js`
-- `babylon_js`
-- `lottie`
-- `playwright`
-- `maplibre`
-- `turf`
-- `d3`
-- `echarts`
-- `vega_lite`
-- `deck_gl`
-- `cesium_js`
-- `konva`
-- `vapoursynth`
-- `revideo`
+## Promoted Track B Aliases
 
-## Aliases Resolved To Runtime IDs
+- `mediainfo -> mediainfo`
+  - Status: `alias_resolved_to_production_tool_id`.
+  - Boundary: planning metadata only; no MediaInfo probe or media execution is enabled.
+- `exiftool -> exiftool`
+  - Status: `alias_resolved_to_production_tool_id`.
+  - Boundary: planning metadata only; no ExifTool process is enabled.
+- `tesseract -> tesseract`
+  - Status: `alias_resolved_to_production_tool_id`.
+  - Boundary: planning metadata only; OCR execution and language-pack use remain future work.
+- `imagemagick_graphicsmagick -> imagemagick`
+  - Status: `alias_resolved_to_production_tool_id`.
+  - Boundary: ImageMagick is first-class for planning metadata; GraphicsMagick is not separately counted.
+
+## Existing Resolved Aliases
 
 - `sharp_libvips -> sharp`
 - `polars_nodejs_polars -> polars`
@@ -69,21 +36,13 @@ All current first-class `ProductionToolId` entries now have explicit study-card 
 - `opencolorio -> opencolorio`
 - `openimageio -> openimageio`
 
-## Pending Production Registry Expansion
+## Remaining Pending Runtime Identity
 
-- `imagemagick_graphicsmagick -> pending_production_tool_registry_expansion`
-  - Reason: ImageMagick/GraphicsMagick are useful image tools but `imagemagick` is not a first-class `ProductionToolId` on this base.
-  - Next milestone: add a registry profile, runtime policy, QA/fallback mapping, and adapter contract if ImageMagick or GraphicsMagick becomes selectable.
-- `mediainfo -> pending_production_tool_registry_expansion`
-  - Reason: MediaInfo is useful for metadata QA but is not a first-class `ProductionToolId` on this base.
-  - Next milestone: add a registry profile and metadata inspection adapter contract before runtime selection.
-- `exiftool -> pending_production_tool_registry_expansion`
-  - Reason: ExifTool is useful for image metadata evidence but is not a first-class `ProductionToolId` on this base.
-  - Next milestone: add a registry profile and metadata adapter contract before runtime selection.
-- `tesseract -> pending_production_tool_registry_expansion`
-  - Reason: Tesseract is useful OCR evidence but is not a first-class `ProductionToolId` on this base.
-  - Next milestone: add a registry profile and OCR adapter contract before runtime selection.
+- `graphicsmagick -> pending_production_tool_registry_expansion`
+  - Reason: GraphicsMagick is not separately proven or accepted as a first-class runtime ID in this milestone.
+  - Diagnostic boundary: `graphicsMagickCounted: false`; not selectable as `selectedToolId`; no adapter contract.
+  - Next step: require separate owner proof, registry profile, QA/fallback policy, capability card, and diagnostics before runtime selection.
 
 ## Runtime Selection Rule
 
-Pending external study cards can appear in reconciliation reports, study listings, pending-candidate diagnostics, and future expansion notes. They must not appear as a pipeline `selectedToolId` until promoted to a first-class `ProductionToolId`.
+Runtime selection must use operation capability, input/output compatibility, ranking policy, quality gates, fallback rules, resource profile, and future telemetry. It must not select bare `graphicsmagick` or any non-first-class runtime ID.

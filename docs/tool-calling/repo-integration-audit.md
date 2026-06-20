@@ -32,11 +32,13 @@
 - No duplicate `tool_execution_plans`, `tool_runs`, `tool_artifacts`, `quality_gate_results`, or `fallback_decisions`.
 - No migration or SQL file for this milestone.
 
-## Runtime Registry Expansion Still Deferred
+## Track B External Registry Planning Expansion
 
-- MediaInfo, ExifTool, Tesseract, and ImageMagick/GraphicsMagick remain pending production registry expansion on this base.
-- Pending external tools need first-class `ProductionToolId` profiles before runtime selection.
-- Pending external aliases are documented in `docs/tool-calling/runtime-id-reconciliation-report.md`.
+- MediaInfo, ExifTool, Tesseract, and ImageMagick are now first-class `ProductionToolId` entries for planning metadata only.
+- Their profiles live in the existing `server/tool-registry`; QA and fallback mappings extend the existing policy files.
+- Their study cards now use `toolId`, include source evidence, and remain explicit that no execution or production unlock is enabled.
+- `imagemagick_graphicsmagick` resolves to `imagemagick`; bare `graphicsmagick` remains pending, non-selectable, and counted as `graphicsMagickCounted: false`.
+- No duplicate registry, worker router, QA policy, fallback policy, adapter execution layer, safe-command execution layer, fixture/probe layer, Supabase runtime table, SQL file, or migration is introduced.
 
 ## Mandatory Refresh Gate Before Future Milestones
 
@@ -119,9 +121,9 @@
 - This milestone adds explicit study cards and planning-only adapter contracts for all remaining first-class registry tools: `audioflux`, `babylon_js`, `cesium_js`, `d3`, `deck_gl`, `demucs`, `duckdb`, `echarts`, `essentia`, `hyperframe`, `konva`, `kornia`, `librosa`, `lottie`, `maplibre`, `mediapipe`, `pixijs`, `playwright`, `polars`, `rembg`, `revideo`, `rnnoise`, `rubber_band`, `signalsmith_stretch`, `soundtouch`, `three_js`, `transparent_background`, `turf`, `vapoursynth`, `vega_lite`, `whisper_cpp`.
 - Covered lanes include Sound/Music/Audio, AI graphics and static/motion/chart planning, maps/web planning, Track A render/native planning, QA/data tools, and registry-only future/evaluation tools.
 - Governance-sensitive tools such as `essentia`, `rubber_band`, `revideo`, `transparent_background`, `whisper_cpp`, and model-weight-dependent GPU tools remain planning-only and must not be treated as installed or executable.
-- Pending external tools remain non-selectable and receive no adapter contracts: `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.
+- The former pending external tools `mediainfo`, `exiftool`, `tesseract`, and `imagemagick` are promoted in the stacked Track B registry-planning milestone; bare `graphicsmagick` remains pending and receives no adapter contract.
 - No duplicate production registry, worker router, QA policy, fallback policy, safe command policy, fixture catalog, controlled probe layer, Supabase runtime table, migration, SQL file, or execution adapter is introduced.
-- Next recommended milestone: `REEDITPRO-TOOL-CALLING-TRACKB-EXTERNAL-REGISTRY-EXPANSION-1`, only if Track B owner evidence confirms pending external tools should become first-class runtime IDs.
+- Next recommended milestone after Track B registry planning: `REEDITPRO-TOOL-CALLING-TRACKB-EXTERNAL-CONTROLLED-PROBES-1`, only after owner evidence, installation proof, fixture policy, and refresh-gate checks are current.
 
 ## Safety Confirmation
 

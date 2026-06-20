@@ -113,7 +113,16 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Every first-class registry tool has an explicit study card and a planning-only adapter contract generated from the existing `server/tool-registry` profile plus repo-local source evidence where present.
 - Execution remains gated separately by controlled probe and fixture-bound milestones; study cards and adapter contracts do not prove installation or execution readiness.
 - Owner evidence remains the source of truth for execution readiness, model-weight governance, license review, and worker-route enablement.
-- Pending external tools still require registry expansion before runtime selection: `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.
+- Track B external registry expansion promotes `mediainfo`, `exiftool`, `tesseract`, and `imagemagick` into first-class planning metadata while keeping execution gated separately.
+- `graphicsmagick` remains pending and non-selectable as a separate runtime identity; diagnostics report `graphicsMagickCounted: false`.
+
+## Track B External Registry Planning Expansion
+
+- Track B external registry expansion adds first-class `ProductionToolId` coverage for `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.
+- The new profiles are `future` status and `planning_only`; they are not launch-core and do not unlock production execution.
+- Their explicit study cards include owner/source evidence and operation metadata, and adapter contracts are generated from the existing registry and capability-card layers.
+- `imagemagick_graphicsmagick` resolves to `imagemagick`, while bare `graphicsmagick` remains pending and non-selectable until separately proven.
+- This milestone adds no controlled probes, media execution, safe-command execution, worker dispatch, Supabase tables, SQL, migrations, signed URLs, beta/prod unlocks, or package-lock changes.
 
 ## Planning Flow
 

@@ -36,7 +36,7 @@ import type {
 export const TOOL_CAPABILITY_STUDY_CARD_SCHEMA = 'reeditpro.toolCapabilityStudyCard.v1'
 
 export const OPERATION_TOOL_SEEDS: Record<ToolCallingOperationId, readonly ProductionToolId[]> = {
-  'media.inspect': ['ffprobe', 'ffmpeg', 'pyav', 'opencv'],
+  'media.inspect': ['ffprobe', 'ffmpeg', 'pyav', 'opencv', 'mediainfo', 'exiftool'],
   'media.proxy.create': ['ffmpeg', 'pyav', 'vapoursynth'],
   'media.audio.extract': ['ffmpeg', 'pyav'],
   'video.scene.detect': ['pyscenedetect', 'opencv', 'ffmpeg'],
@@ -58,17 +58,17 @@ export const OPERATION_TOOL_SEEDS: Record<ToolCallingOperationId, readonly Produ
   'render.preview': ['remotion', 'hyperframe', 'ffmpeg', 'pixijs', 'three_js'],
   'render.compose': ['remotion', 'ffmpeg', 'libass', 'pixijs', 'three_js', 'lottie'],
   'export.mux': ['ffmpeg', 'libass', 'vapoursynth'],
-  'export.validate': ['ffprobe', 'ffmpeg', 'opentimelineio'],
+  'export.validate': ['ffprobe', 'ffmpeg', 'opentimelineio', 'mediainfo'],
   'mask.generate': ['birefnet', 'sam2', 'rembg', 'transparent_background', 'opencv'],
   'mask.refine': ['kornia', 'sam2', 'opencv', 'birefnet'],
   'background.remove': ['birefnet', 'sam2', 'rembg', 'transparent_background', 'opencv', 'kornia'],
-  'video.enhance': ['real_esrgan', 'sharp', 'ffmpeg', 'vapoursynth'],
+  'video.enhance': ['real_esrgan', 'sharp', 'ffmpeg', 'vapoursynth', 'imagemagick'],
   'video.slow_motion': ['film', 'ffmpeg', 'vapoursynth'],
-  'color.exposure.correct': ['opencolorio', 'ffmpeg', 'openimageio', 'opencv'],
+  'color.exposure.correct': ['opencolorio', 'ffmpeg', 'openimageio', 'opencv', 'imagemagick'],
   'color.shot_match': ['opencolorio', 'openimageio', 'opencv', 'ffmpeg'],
-  'ocr.detect_text': ['paddleocr', 'opencv', 'playwright'],
-  'thumbnail.generate': ['sharp', 'pyav', 'ffmpeg', 'opencv'],
-  'qa.final_delivery': ['ffprobe', 'ffmpeg', 'opentimelineio', 'remotion', 'duckdb', 'polars'],
+  'ocr.detect_text': ['paddleocr', 'opencv', 'playwright', 'tesseract'],
+  'thumbnail.generate': ['sharp', 'pyav', 'ffmpeg', 'opencv', 'imagemagick', 'exiftool'],
+  'qa.final_delivery': ['ffprobe', 'ffmpeg', 'opentimelineio', 'remotion', 'duckdb', 'polars', 'mediainfo'],
 }
 
 const STUDY_CARDS_DIRECTORY = new URL('../../docs/tool-calling/studies/', import.meta.url)

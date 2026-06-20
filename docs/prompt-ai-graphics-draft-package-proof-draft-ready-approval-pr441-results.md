@@ -4,9 +4,9 @@ Decision: `ai_graphics_draft_package_proof_pr441_draft_ready_approval_passed_wit
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-draft-ready-approval-pr441`
 
-Tracking draft PR: pending creation
+Tracking draft PR: [#566](https://github.com/yuzastudio6-cyber/Reedkt/pull/566)
 
-PR status after creation: pending
+PR #566 status after creation: open/draft/CLEAN at `cdac40f5fa0ab363be96562726b85918b62abef8`; check rollup empty at creation.
 
 ## Source Status Used
 

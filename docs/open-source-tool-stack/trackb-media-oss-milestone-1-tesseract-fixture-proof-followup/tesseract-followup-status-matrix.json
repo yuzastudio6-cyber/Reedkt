@@ -1,0 +1,41 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1TesseractFixtureFollowup.statusMatrix.v1",
+  "generatedAt": "2026-06-19T23:33:31.867Z",
+  "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa",
+  "tools": [
+    {
+      "id": "exiftool",
+      "acceptedFromPr557": true,
+      "rerunInThisPhase": false,
+      "accepted_proven": true,
+      "blocker": null
+    },
+    {
+      "id": "mediainfo",
+      "acceptedFromPr557": true,
+      "rerunInThisPhase": false,
+      "accepted_proven": true,
+      "blocker": null
+    },
+    {
+      "id": "imagemagick",
+      "acceptedFromPr557": true,
+      "version_sanity_rerun": true,
+      "fixture_generation_for_tesseract": true,
+      "accepted_proven": true,
+      "blocker": null
+    },
+    {
+      "id": "tesseract",
+      "acceptedFromPr557Version": true,
+      "version_sanity_rerun": true,
+      "synthetic_fixture_proven": true,
+      "accepted_proven": true,
+      "acceptedVariant": "dejavu_sans_bold_large_psm7",
+      "blocker": null
+    }
+  ],
+  "milestone1QaReady": true,
+  "endToEndProductReadyTools": 0,
+  "fortyPlusEndToEndClaimAllowed": false
+}

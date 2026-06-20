@@ -1,0 +1,23 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1TesseractFixtureFollowup.imagePolicy.v1",
+  "generatedAt": "2026-06-19T23:33:31.867Z",
+  "priorImageAcceptedFromPr557": false,
+  "reason": "PR #557 evidence is accepted, but the local image was cleanup-only and must be rebuilt for a bounded Tesseract follow-up.",
+  "buildContextOutputs": [
+    "dist-server",
+    "dist-staging-fixture-worker"
+  ],
+  "dockerBuildCommand": "docker build -f docker/prod/cpu-worker/Dockerfile -t reeditpro-cpu-worker:trackb-milestone1-tesseract-followup-89f920212dfd35f3dece781473df36665073f4b2 .",
+  "imageTag": "reeditpro-cpu-worker:trackb-milestone1-tesseract-followup-89f920212dfd35f3dece781473df36665073f4b2",
+  "dockerImagePushRun": false,
+  "deploymentRun": false,
+  "containerProofsAllowed": [
+    "tesseract",
+    "imagemagick"
+  ],
+  "containerProofsNotRerun": [
+    "exiftool",
+    "mediainfo"
+  ],
+  "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa"
+}

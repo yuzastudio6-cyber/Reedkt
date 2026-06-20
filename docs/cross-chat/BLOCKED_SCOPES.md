@@ -410,3 +410,12 @@ TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_BLOCKER_FOLLOWUP:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_FOLLOWUP_BLOCKER_REVIEW`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_BLOCKER_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MILESTONE_1_TESSERACT_FIXTURE_FOLLOWUP_STATUS:start -->
+Decision: `trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa`.
+Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW`.
+PR #557 evidence remains accepted for ExifTool, MediaInfo, ImageMagick, Docker build, build-context generation, and Tesseract version proof.
+Tesseract fixture proof accepted variant: `dejavu_sans_bold_large_psm7`.
+Track B end-to-end product-ready tools remain `0`; do not claim 40+ tools are installed/proven end-to-end.
+Supabase classification: no write / none / none / no.
+<!-- TRACKB_MILESTONE_1_TESSERACT_FIXTURE_FOLLOWUP_STATUS:end -->

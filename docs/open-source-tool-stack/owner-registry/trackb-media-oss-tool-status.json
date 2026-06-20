@@ -259,5 +259,52 @@
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,
     "betaProductionAccepted": false
+  },
+  "milestone1TesseractFixtureFollowup": {
+    "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa",
+    "reportKey": "trackb_milestone_1_tesseract_fixture_followup_reports",
+    "imageTag": "reeditpro-cpu-worker:trackb-milestone1-tesseract-followup-89f920212dfd35f3dece781473df36665073f4b2",
+    "priorPr557Decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof",
+    "priorRejectedOutput": "REEDLTPRU",
+    "expectedNormalizedOutput": "REEDITPRO",
+    "acceptedVariant": "dejavu_sans_bold_large_psm7",
+    "tools": [
+      {
+        "id": "exiftool",
+        "acceptedFromPr557": true,
+        "rerunInThisPhase": false,
+        "accepted_proven": true,
+        "blocker": null
+      },
+      {
+        "id": "mediainfo",
+        "acceptedFromPr557": true,
+        "rerunInThisPhase": false,
+        "accepted_proven": true,
+        "blocker": null
+      },
+      {
+        "id": "imagemagick",
+        "acceptedFromPr557": true,
+        "version_sanity_rerun": true,
+        "fixture_generation_for_tesseract": true,
+        "accepted_proven": true,
+        "blocker": null
+      },
+      {
+        "id": "tesseract",
+        "acceptedFromPr557Version": true,
+        "version_sanity_rerun": true,
+        "synthetic_fixture_proven": true,
+        "accepted_proven": true,
+        "acceptedVariant": "dejavu_sans_bold_large_psm7",
+        "blocker": null
+      }
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW",
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "betaProductionAccepted": false
   }
 }

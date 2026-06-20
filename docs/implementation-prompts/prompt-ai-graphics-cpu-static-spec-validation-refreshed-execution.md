@@ -21,9 +21,9 @@ The lane does not execute `echarts`, `lottie_web`, `animejs`, `three_js`, `pixi_
 
 ## PR Follow-Up
 
-- Draft PR: pending
-- PR link: pending
-- Check status: pending local validation and PR creation
+- Draft PR: PR #616 open/draft/MERGEABLE
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/616
+- Check status: no GitHub checks reported on `codex/rp-ai-graphics-cpu-static-spec-validation-refreshed-execution` at `7752f6e8c291706a804b3374b74e1a9df24c233c`
 
 ## Validation
 

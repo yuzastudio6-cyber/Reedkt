@@ -1,0 +1,30 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3ModelAssetApproval.fontSourceLicenseProvenance.v1",
+  "decision": "trackb_media_oss_milestone3_model_asset_approval_passed_ready_for_exact_asset_source_review",
+  "generatedAt": "2026-06-20T18:51:13.975Z",
+  "sourceSha": "06f501d4095c1c6dc3b42f000ad9f3926e9934d9",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "ownerName": "Track B Media OSS Steward",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "requestedAsset": "PingFang-SC-Regular.ttf",
+  "sourceComponent": "PaddleX font assets",
+  "currentBlocker": "model_asset_required_for_import_api_shape",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "exactAssetSourceKnown": false,
+  "exactAssetLicenseKnown": false,
+  "exactAssetChecksumKnown": false,
+  "exactAssetVersionKnown": false,
+  "exactSourceUrlObservedFromTraceOnly": "https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf",
+  "repoCommitAllowed": false,
+  "privateStagingAllowedNow": false,
+  "publicDeliveryAllowed": false,
+  "signedUrlAllowed": false,
+  "conclusion": "Exact PingFang-SC-Regular.ttf source, license, checksum, and redistribution/private-staging policy are not proven by committed evidence.",
+  "selectedStrategy": "exact_asset_source_review"
+}

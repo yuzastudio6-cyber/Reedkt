@@ -1,0 +1,79 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1QaReview.evidenceAcceptance.v1",
+  "generatedAt": "2026-06-20T01:38:05.933Z",
+  "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval",
+  "pr557AcceptedEvidence": {
+    "dockerBuild": true,
+    "buildContextsGeneratedScannedCleaned": true,
+    "exiftoolVersionAndFixture": true,
+    "mediainfoVersionAndFixture": true,
+    "imagemagickVersionAndFixture": true,
+    "tesseractVersionOnly": true,
+    "tesseractFixtureBlockedOutput": "REEDLTPRU"
+  },
+  "pr559AcceptedEvidence": {
+    "tesseractFixtureProof": true,
+    "acceptedVariant": "dejavu_sans_bold_large_psm7",
+    "expectedNormalizedOutput": "REEDITPRO",
+    "observedNormalizedOutput": "REEDITPRO",
+    "priorRejectedOutputRetained": "REEDLTPRU"
+  },
+  "tools": [
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "sourcePr": 557,
+      "version": "12.57",
+      "versionProven": true,
+      "fixtureProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "proofBoundary": "container_version_and_synthetic_text_metadata_fixture_no_real_media_processing"
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "sourcePr": 557,
+      "version": "23.04",
+      "versionEvidence": "MediaInfo Command line,\nMediaInfoLib - v23.04",
+      "versionProven": true,
+      "fixtureProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "proofBoundary": "container_version_and_tiny_synthetic_wav_header_fixture_no_real_user_media"
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "sourcePr": 559,
+      "version": "5.3.0",
+      "versionEvidenceSourcePr": 557,
+      "versionProven": true,
+      "fixtureProven": true,
+      "acceptedVariant": "dejavu_sans_bold_large_psm7",
+      "expectedNormalizedOutput": "REEDITPRO",
+      "observedNormalizedOutput": "REEDITPRO",
+      "priorRejectedOutput": "REEDLTPRU",
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "proofBoundary": "container_version_from_pr557_and_exact_synthetic_ocr_fixture_from_pr559"
+    },
+    {
+      "id": "imagemagick",
+      "name": "ImageMagick",
+      "sourcePr": 557,
+      "followupFixtureSourcePr": 559,
+      "version": "6.9.11-60",
+      "versionEvidence": "Version: ImageMagick 6.9.11-60 Q16 aarch64 2021-01-25 https://imagemagick.org\nCopyright: (C) 1999-2021 ImageMagick Studio LLC\nLicense: https://imagemagick.org/script/license.php\nFeatures: Cipher DPC Modules OpenMP(4.5)\nDelegates (built-in): bzlib djvu fftw fontconfig freetype heic jbig jng jp2 jpeg lcms lqr ltdl lzma openexr pangocairo png tiff webp wmf x xml zlib",
+      "versionProven": true,
+      "fixtureProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "graphicsMagickCounted": false,
+      "proofBoundary": "imagemagick_only_container_version_and_synthetic_fixture_no_graphicsmagick_default"
+    }
+  ],
+  "qaPhaseToolExecutionRun": false,
+  "dockerRunInQaPhase": false,
+  "buildContextGenerationRunInQaPhase": false
+}

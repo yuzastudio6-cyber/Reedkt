@@ -12,7 +12,10 @@
     "inventoryCandidateCount": 71,
     "aiGraphicsAcceptedWithWarningsCount": 13,
     "endToEndProductReadyTools": 0,
-    "fortyPlusEndToEndClaimAllowed": false
+    "fortyPlusEndToEndClaimAllowed": false,
+    "trackbMilestone1QaReviewDecision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval",
+    "trackbAcceptedProvenBoundedAfterQa": 9,
+    "trackbStillBlockedAfterQa": 7
   },
   "owners": [
     {
@@ -22,8 +25,8 @@
       "scopeType": "local_professional_open_source_tools_only",
       "responsibility": "Central/local OSS media-processing tool install-proof, status tracking, duplicate prevention, and source-of-truth reporting.",
       "ownedToolCount": 16,
-      "acceptedProvenBoundedCount": 5,
-      "blockedNotInstalledProvenCount": 11,
+      "acceptedProvenBoundedCount": 9,
+      "blockedNotInstalledProvenCount": 7,
       "endToEndProductReadyToolCount": 0,
       "ownedTools": [
         "ffmpeg",
@@ -51,7 +54,7 @@
         "supabase_gcs_public_delivery",
         "beta_or_production_unlock"
       ],
-      "nextPrompt": "TRACKB_MEDIA_OSS_INSTALL_PROOF_MILESTONE_PLAN"
+      "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL"
     }
   ],
   "blockedScopes": {

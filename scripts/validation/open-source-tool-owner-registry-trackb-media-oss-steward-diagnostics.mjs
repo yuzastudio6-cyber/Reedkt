@@ -30,14 +30,36 @@ const expectedTools = [
   "opencolorio",
   "openimageio",
 ];
-const acceptedTools = [
+const preMilestoneAcceptedTools = [
   "ffmpeg",
   "ffprobe",
   "sharp_libvips",
   "duckdb",
   "polars_nodejs_polars",
 ];
-const blockedTools = expectedTools.filter((tool) => !acceptedTools.includes(tool));
+const acceptedStewardTools = [
+  ...preMilestoneAcceptedTools,
+  "mediainfo",
+  "exiftool",
+  "imagemagick_graphicsmagick",
+  "tesseract",
+];
+const acceptedStatusTools = [
+  ...preMilestoneAcceptedTools,
+  "mediainfo",
+  "exiftool",
+  "imagemagick",
+  "tesseract",
+];
+const blockedTools = [
+  "opencv",
+  "pyav",
+  "pyscenedetect",
+  "paddleocr",
+  "paddlepaddle",
+  "opencolorio",
+  "openimageio",
+];
 
 const requiredFiles = [
   "docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.md",
@@ -130,7 +152,7 @@ ensureSameSet(owner.ownedTools, expectedTools, "registry owned tools");
 ensureSameSet(steward.ownedTools.map((tool) => tool.id), expectedTools, "steward owned tools");
 ensureSameSet(
   status.acceptedProvenBounded.map((tool) => tool.id),
-  acceptedTools,
+  acceptedStatusTools,
   "accepted/proven bounded tools",
 );
 ensureSameSet(status.blockedNotInstalledProven, blockedTools, "blocked/not installed-proven tools");
@@ -139,18 +161,18 @@ if (owner.ownedToolCount !== 16 || steward.statusCounts.ownedTools !== 16 || sta
   fail("Owned tool count must be exactly 16.");
 }
 if (
-  owner.acceptedProvenBoundedCount !== 5 ||
-  steward.statusCounts.acceptedProvenBounded !== 5 ||
-  status.counts.acceptedProvenBounded !== 5
+  owner.acceptedProvenBoundedCount !== 9 ||
+  steward.statusCounts.acceptedProvenBounded !== 9 ||
+  status.counts.acceptedProvenBounded !== 9
 ) {
-  fail("Accepted/proven bounded count must be exactly 5.");
+  fail("Accepted/proven bounded count must be exactly 9 after Milestone 1 QA.");
 }
 if (
-  owner.blockedNotInstalledProvenCount !== 11 ||
-  steward.statusCounts.blockedNotInstalledProven !== 11 ||
-  status.counts.blockedNotInstalledProven !== 11
+  owner.blockedNotInstalledProvenCount !== 7 ||
+  steward.statusCounts.blockedNotInstalledProven !== 7 ||
+  status.counts.blockedNotInstalledProven !== 7
 ) {
-  fail("Blocked/not installed-proven count must be exactly 11.");
+  fail("Blocked/not installed-proven count must be exactly 7 after Milestone 1 QA.");
 }
 if (
   owner.endToEndProductReadyToolCount !== 0 ||
@@ -164,8 +186,18 @@ for (const tool of steward.ownedTools) {
   if (tool.endToEndProductReady !== false) {
     fail(`${tool.id} must not be product-ready.`);
   }
-  if (acceptedTools.includes(tool.id) && tool.status !== "accepted_proven_bounded_batch1") {
+  if (preMilestoneAcceptedTools.includes(tool.id) && tool.status !== "accepted_proven_bounded_batch1") {
     fail(`${tool.id} must be accepted only as bounded Batch 1 proof.`);
+  }
+  if (
+    acceptedStewardTools.includes(tool.id) &&
+    tool.status !== "accepted_proven_bounded_batch1" &&
+    !tool.status.startsWith("accepted_proven_bounded_milestone1")
+  ) {
+    fail(`${tool.id} must be accepted only as bounded Batch 1 or Milestone 1 proof.`);
+  }
+  if (tool.id === "imagemagick_graphicsmagick" && tool.graphicsMagickAcceptedProven !== false) {
+    fail("GraphicsMagick must remain optional fallback and not accepted/proven.");
   }
   if (blockedTools.includes(tool.id) && tool.status !== "blocked_not_installed_proven") {
     fail(`${tool.id} must remain blocked/not installed-proven.`);
@@ -285,7 +317,7 @@ console.log(
       decision,
       ownerId,
       ownedTools: expectedTools.length,
-      acceptedProvenBounded: acceptedTools.length,
+      acceptedProvenBounded: acceptedStatusTools.length,
       blockedNotInstalledProven: blockedTools.length,
       endToEndProductReady: 0,
       supabaseClassification: "no write / environment none / SQL none / migration no",

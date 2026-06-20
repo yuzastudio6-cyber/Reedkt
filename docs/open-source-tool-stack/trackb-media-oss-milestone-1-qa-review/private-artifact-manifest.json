@@ -1,0 +1,13 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1QaReview.privateManifest.v1",
+  "generatedAt": "2026-06-20T01:38:05.933Z",
+  "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval",
+  "reportsDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-1-qa-review",
+  "privateArtifactPayloadsCommitted": false,
+  "generatedBuildContextOutputsCommitted": false,
+  "fixtureOutputsCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "dockerOutputsCommitted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false
+}

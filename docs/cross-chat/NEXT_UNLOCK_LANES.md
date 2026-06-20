@@ -450,3 +450,18 @@ Tesseract fixture proof accepted variant: `dejavu_sans_bold_large_psm7`.
 Track B end-to-end product-ready tools remain `0`; do not claim 40+ tools are installed/proven end-to-end.
 Supabase classification: no write / none / none / no.
 <!-- TRACKB_MILESTONE_1_TESSERACT_FIXTURE_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW:
+
+- Decision: `trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval`
+- Accepted Milestone 1 tools: ExifTool, MediaInfo, Tesseract, and ImageMagick.
+- PR #557 evidence remains accepted for ExifTool, MediaInfo, ImageMagick, Docker build/build-context, and Tesseract version proof.
+- PR #559 evidence is accepted for Tesseract fixture proof variant `dejavu_sans_bold_large_psm7` with normalized OCR `REEDITPRO`.
+- Track B counts after QA: 16 owned tools, 9 bounded accepted/proven tools, 7 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- GraphicsMagick remains optional fallback only and is not counted as accepted/proven.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- Media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW_STATUS:end -->

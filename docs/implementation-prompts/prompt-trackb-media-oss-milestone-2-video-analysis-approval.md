@@ -1,5 +1,5 @@
-# TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL
+# Track B Media OSS Milestone 2 Video Analysis Approval
 
-Create the future approval packet for OpenCV, PyAV, and PySceneDetect CPU-first install/proof.
+Review and approve a future CPU-first, synthetic-fixture-only video analysis lane for OpenCV, PyAV, and PySceneDetect after Track B Milestone 1 QA passed.
 
-This must be approval metadata only until explicitly executed. CPU proof comes first; GPU decisions require measured latency or memory evidence. No real media, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, beta, or production.
+Do not run installs, Docker, FFmpeg/FFprobe, media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production in the approval phase.

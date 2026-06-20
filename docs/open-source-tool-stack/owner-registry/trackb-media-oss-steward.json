@@ -23,8 +23,8 @@
   },
   "statusCounts": {
     "ownedTools": 16,
-    "acceptedProvenBounded": 5,
-    "blockedNotInstalledProven": 11,
+    "acceptedProvenBounded": 9,
+    "blockedNotInstalledProven": 7,
     "endToEndProductReady": 0
   },
   "installProofMilestonePlan": {
@@ -122,30 +122,40 @@
     {
       "id": "mediainfo",
       "name": "MediaInfo",
-      "status": "blocked_not_installed_proven",
+      "status": "accepted_proven_bounded_milestone1",
       "reason": "Future Track B install-proof milestone required; media file probing remains blocked.",
-      "endToEndProductReady": false
+      "endToEndProductReady": false,
+      "proofBoundary": "trackb_cpu_worker_container_version_and_synthetic_fixture_only_no_media_processing",
+      "mediaProcessingAccepted": false
     },
     {
       "id": "exiftool",
       "name": "ExifTool",
-      "status": "blocked_not_installed_proven",
+      "status": "accepted_proven_bounded_milestone1",
       "reason": "Future Track B install-proof milestone required; source media metadata probing remains blocked.",
-      "endToEndProductReady": false
+      "endToEndProductReady": false,
+      "proofBoundary": "trackb_cpu_worker_container_version_and_synthetic_fixture_only_no_media_processing",
+      "mediaProcessingAccepted": false
     },
     {
       "id": "imagemagick_graphicsmagick",
       "name": "ImageMagick / GraphicsMagick",
-      "status": "blocked_not_installed_proven",
+      "status": "accepted_proven_bounded_milestone1_imagemagick_only",
       "reason": "Future Track B install-proof milestone required; image processing remains blocked.",
-      "endToEndProductReady": false
+      "endToEndProductReady": false,
+      "proofBoundary": "ImageMagick accepted/proven only; GraphicsMagick optional fallback not installed or proven",
+      "imageMagickAcceptedProven": true,
+      "graphicsMagickAcceptedProven": false,
+      "mediaProcessingAccepted": false
     },
     {
       "id": "tesseract",
       "name": "Tesseract",
-      "status": "blocked_not_installed_proven",
+      "status": "accepted_proven_bounded_milestone1",
       "reason": "Future Track B install-proof milestone required; OCR execution remains blocked.",
-      "endToEndProductReady": false
+      "endToEndProductReady": false,
+      "proofBoundary": "trackb_cpu_worker_container_version_and_synthetic_fixture_only_no_media_processing",
+      "mediaProcessingAccepted": false
     },
     {
       "id": "opencolorio",
@@ -167,11 +177,27 @@
     "batch1AcceptedMatrix": "docs/open-source-tool-stack/batch-1-final-rollup-after-ffmpeg-ffprobe-proof/batch-1-accepted-tools-matrix.json",
     "ownerLaneCounts": "docs/open-source-tool-stack/owner-lane-reconciliation-after-batch-1-rollup/reconciled-tool-count-summary.json"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL",
   "supabaseClassification": {
     "updateRequired": "no write",
     "environmentTouched": "none",
     "sqlExecuted": "none",
     "migrationDeployed": "no"
+  },
+  "milestone1QaReview": {
+    "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-1-qa-review",
+    "acceptedMilestone1Tools": [
+      "exiftool",
+      "mediainfo",
+      "tesseract",
+      "imagemagick"
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL",
+    "executionRunInThisPhase": false,
+    "mediaProcessingApproved": false,
+    "renderExportApproved": false,
+    "workerRuntimeApproved": false,
+    "betaProductionApproved": false
   }
 }

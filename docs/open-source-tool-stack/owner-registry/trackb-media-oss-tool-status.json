@@ -705,5 +705,34 @@
       "sqlExecuted": "none",
       "migrationDeployed": "no"
     }
+  },
+  "milestone3OcrMlCpuBlockerResolutionFollowup": {
+    "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required",
+    "reportKey": "trackb_milestone_3_ocr_ml_cpu_blocker_resolution_followup_reports",
+    "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+    "targetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+    "selectedRuntimePackage": "libglib2.0-0",
+    "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-cpu-libgthread-8c22f38755195f4028acfba1069e4cb0d6825c91",
+    "libgthreadPresent": true,
+    "paddlePaddleImportVersionProven": true,
+    "paddlePaddleTensorDeviceProven": true,
+    "paddleOcrImportApiShapeProven": false,
+    "paddleOcrBlocker": "model_asset_required_for_import_api_shape",
+    "ocrInferenceRun": false,
+    "modelAssetOperationsRun": false,
+    "gpuExecutionRun": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL",
+    "countsRemainPendingQa": {
+      "ownedTools": 16,
+      "acceptedProvenBounded": 12,
+      "blockedNotInstalledProven": 4,
+      "endToEndProductReady": 0
+    },
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
   }
 }

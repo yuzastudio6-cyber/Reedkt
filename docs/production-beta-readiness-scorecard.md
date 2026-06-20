@@ -102,3 +102,10 @@ approval lane after a fresh live recheck. No source PR was merged, retargeted,
 closed, or canonically promoted, and runtime-ready tools, internal beta,
 external beta, production, provider execution, Supabase/GCS, signed URLs, and
 public artifacts remain blocked.
+
+AI graphics draft package proof PR425 merge approval accepts PR #569's
+merge-ready review and approves only a future PR #425 merge execution lane after
+a fresh live recheck. PR #433 and PR #441 remain deferred, no source PR was
+merged, retargeted, closed, or canonically promoted, and runtime-ready tools,
+internal beta, external beta, production, provider execution, Supabase/GCS,
+signed URLs, and public artifacts remain blocked.

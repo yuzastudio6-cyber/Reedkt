@@ -170,3 +170,11 @@ CPU/static runtime, browser chart runtime, animation runtime, browser/WebGL/
 canvas sandbox runtime, Tool Route execution, Worker execution, provider
 execution, Supabase/GCS, signed URLs, public artifacts, internal beta, external
 beta, and production remain blocked.
+
+AI graphics CPU/static spec validation approval accepts PR #604 with warnings
+and approves only a future CPU/static spec-validation execution lane for `d3`,
+`vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, and `viz_js`. Current static
+validation execution, static fixture execution, Tool Route execution, Worker
+execution, browser/WebGL/canvas runtime, provider execution, Supabase/GCS,
+signed URLs, public artifacts, internal beta, external beta, and production
+remain blocked.

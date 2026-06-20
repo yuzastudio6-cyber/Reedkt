@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_implementation_state_scan_completed_ready_for_draft_proof_promotion_review`
 
-The ledger separates merged canonical evidence from draft pending evidence. PR #416 remains central canonical audit evidence. PR #425, PR #433, and PR #441 are now reconciled as canonical merged package/import/static-fixture proof for the 13 AI graphics package-proof tools. Canonical promotion QA accepts that package proof with warnings only, runtime boundary review classifies future lanes, runtime boundary QA accepts planning/study metadata selection only, owner approval accepts that boundary with warnings only, and owner QA accepts PR #602 with warnings only. PR #532 and Worker metadata remain draft/static evidence only.
+The ledger separates merged canonical evidence from draft pending evidence. PR #416 remains central canonical audit evidence. PR #425, PR #433, and PR #441 are now reconciled as canonical merged package/import/static-fixture proof for the 13 AI graphics package-proof tools. Canonical promotion QA accepts that package proof with warnings only, runtime boundary review classifies future lanes, runtime boundary QA accepts planning/study metadata selection only, owner approval accepts that boundary with warnings only, owner QA accepts PR #602 with warnings only, and CPU/static spec-validation approval authorizes only a future six-tool execution lane. PR #532 and Worker metadata remain draft/static evidence only.
 
 | toolId | canonicalStatusFromPr416 | draftEvidencePrs | package evidence | worker evidence |
 | --- | --- | --- | --- | --- |
@@ -33,5 +33,7 @@ Runtime-boundary QA status: `ai_graphics_draft_package_proof_runtime_boundary_qa
 Runtime-boundary owner approval status: `ai_graphics_draft_package_proof_runtime_boundary_owner_approved_with_warnings`; owner accepts PR #598 QA and future runtime lane classifications only, with runtime still blocked.
 
 Runtime-boundary owner QA status: `ai_graphics_draft_package_proof_runtime_boundary_owner_qa_passed_with_warnings`; owner QA accepts PR #602 and keeps agent execution, runtime execution, Tool Route execution, Worker execution, public artifacts, signed URLs, beta, and production blocked.
+
+CPU/static spec-validation approval status: `ai_graphics_cpu_static_spec_validation_approval_passed_with_warnings`; future execution is approved only for `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, and `viz_js`. `echarts`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, and `babylonjs` remain deferred. Static validation execution now, static fixture execution now, Tool Route execution, Worker execution, browser/WebGL/canvas runtime, public artifacts, signed URLs, beta, and production remain blocked.
 
 Runtime-ready tools: `0`. Internal-beta-ready tools: `0`. E2E-proven tools: `0`.

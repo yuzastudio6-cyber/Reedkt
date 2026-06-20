@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisExecution.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-20T03:16:15.024Z",
+  "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-2-video-analysis-execution",
+  "localDockerImageTag": "reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3",
+  "localDockerImagePushed": false,
+  "generatedBuildContextOutputsCommitted": false,
+  "fixtureOutputsCommitted": false,
+  "rawUserMediaAccessed": false,
+  "secretsPrinted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

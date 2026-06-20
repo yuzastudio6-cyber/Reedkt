@@ -1,0 +1,76 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisExecution.sourceAudit.v1",
+  "generatedAt": "2026-06-20T03:16:15.024Z",
+  "branchName": "codex/rp-trackb-media-oss-milestone-2-video-analysis-execution",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "4f22c637e49e77d237158b1b1139ed047ef242f3",
+  "sourceSha": "4f22c637e49e77d237158b1b1139ed047ef242f3",
+  "sourceCompatible": true,
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceEvidence": [
+    {
+      "pr": 567,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+      "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+      "targetRequirements": "docker/prod/cpu-worker/requirements.cpu.txt"
+    },
+    {
+      "pr": 563,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval"
+    },
+    {
+      "pr": 559,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa"
+    },
+    {
+      "pr": 557,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof"
+    },
+    {
+      "pr": 551,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context"
+    },
+    {
+      "pr": 549,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "ownerId": "TRACK_B_MEDIA_OSS_STEWARD"
+    }
+  ],
+  "tools": [
+    "opencv",
+    "pyav",
+    "pyscenedetect"
+  ],
+  "packageJsonHash": "8161c1fc72ede738fc61dff7d7e694bfe34aa60c3ebd589bb36667e57039369e",
+  "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "dockerfileHash": "e4470a77095330b990a33d019d76b1bf87cb94d06f12f1b4a478d3171b578c7f",
+  "requirementsHash": "de5a91fd7331fc802a52508b470f9facef858051782e5ce3a2a97e4775b65461",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW"
+}

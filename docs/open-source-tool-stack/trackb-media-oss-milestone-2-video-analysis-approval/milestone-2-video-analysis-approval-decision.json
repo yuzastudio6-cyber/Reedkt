@@ -1,0 +1,38 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisApproval.decision.v1",
+  "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "tools": [
+    "opencv",
+    "pyav",
+    "pyscenedetect"
+  ],
+  "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+  "targetRequirements": "docker/prod/cpu-worker/requirements.cpu.txt",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION",
+  "countsRemain": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 9,
+    "blockedNotInstalledProven": 7,
+    "endToEndProductReady": 0
+  },
+  "fortyPlusEndToEndClaimAllowed": false,
+  "blockedScopes": {
+    "packageInstallNow": false,
+    "dockerNow": false,
+    "toolExecutionNow": false,
+    "gpuNow": false,
+    "ffmpegFfprobeExpansion": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "workerRouteProviderRuntime": false,
+    "supabaseGcsPublicSignedUrl": false,
+    "betaProduction": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

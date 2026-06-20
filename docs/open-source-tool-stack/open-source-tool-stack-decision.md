@@ -403,3 +403,18 @@ TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution`
+- Future target: `docker/prod/cpu-worker/Dockerfile` with `docker/prod/cpu-worker/requirements.cpu.txt`.
+- Future tools: OpenCV (`opencv-python-headless`), PyAV (`av`), and PySceneDetect (`scenedetect`).
+- Compute policy: CPU-first; GPU requires separate approval after measured CPU latency/memory evidence.
+- Fixture policy: tiny synthetic fixtures only; PyAV/PySceneDetect fixtures may be deferred if a safe non-FFmpeg fixture is not feasible.
+- Track B counts remain: 16 owned tools, 9 bounded accepted/proven tools, 7 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No package install, requirements mutation, package-lock mutation, Dockerfile mutation, Docker build/run, OpenCV/PyAV/PySceneDetect execution, FFmpeg/FFprobe expansion, media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production scope ran.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL_STATUS:end -->

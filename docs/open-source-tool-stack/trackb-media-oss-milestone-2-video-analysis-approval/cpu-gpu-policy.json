@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisApproval.cpuGpuPolicy.v1",
+  "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+  "milestone2GpuApproved": false,
+  "gpuEscalationRequiresSeparateApproval": true,
+  "tools": [
+    {
+      "id": "opencv",
+      "computeDefault": "cpu_first",
+      "futureGpuConsideration": "heavy_cv_high_volume_frame_processing_tracking_segmentation_or_beta_quality_latency"
+    },
+    {
+      "id": "pyav",
+      "computeDefault": "cpu_first",
+      "futureGpuConsideration": "hardware_decode_encode_only_after_separate_approval"
+    },
+    {
+      "id": "pyscenedetect",
+      "computeDefault": "cpu_first",
+      "futureGpuConsideration": "not_required_for_first_proof_possible_later_decode_pipeline_review"
+    }
+  ],
+  "executionMustRecordLatencyAndMemory": true,
+  "autoEnableGpuOnSlowProof": false
+}

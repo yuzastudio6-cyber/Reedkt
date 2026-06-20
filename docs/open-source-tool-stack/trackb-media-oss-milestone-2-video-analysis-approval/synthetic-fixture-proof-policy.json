@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisApproval.syntheticFixturePolicy.v1",
+  "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+  "fixtures": [
+    {
+      "tool": "opencv",
+      "futureProof": "tiny_synthetic_image_or_array_dimensions_and_deterministic_operation",
+      "fixtureDeferrable": false
+    },
+    {
+      "tool": "pyav",
+      "futureProof": "import_version_then_safe_synthetic_container_frame_if_possible",
+      "fixtureDeferrable": true,
+      "deferReason": "do_not_expand_ffmpeg_or_real_media_scope"
+    },
+    {
+      "tool": "pyscenedetect",
+      "futureProof": "import_version_then_tiny_synthetic_scene_fixture_if_safe",
+      "fixtureDeferrable": true,
+      "deferReason": "do_not_expand_ffmpeg_or_real_media_scope"
+    }
+  ],
+  "realUserMediaAllowed": false,
+  "committedMediaFixturesAllowed": false,
+  "publicArtifactsAllowed": false,
+  "signedUrlsAllowed": false,
+  "ffmpegFfprobeExecutionAllowed": false,
+  "cleanupRequired": true
+}

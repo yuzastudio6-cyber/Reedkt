@@ -1,0 +1,43 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisApproval.historicalEvidence.v1",
+  "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+  "historicalPrs": [
+    {
+      "pr": 123,
+      "use": "context_only_media_data_readiness",
+      "currentAuthority": false
+    },
+    {
+      "pr": 125,
+      "use": "context_only_generated_media_data_analysis_suite",
+      "currentAuthority": false
+    },
+    {
+      "pr": 128,
+      "use": "context_only_controlled_real_video_suite",
+      "currentAuthority": false
+    },
+    {
+      "pr": 161,
+      "use": "context_only_trackb_capability_manifest_baseline",
+      "currentAuthority": false
+    },
+    {
+      "pr": 164,
+      "use": "context_only_trackb_route_manifest_integration",
+      "currentAuthority": false
+    }
+  ],
+  "selectedCurrentEvidence": [
+    563,
+    559,
+    557,
+    551,
+    549,
+    546,
+    545,
+    542
+  ],
+  "runtimeScopeApprovedNow": false,
+  "mediaScopeApprovedNow": false
+}

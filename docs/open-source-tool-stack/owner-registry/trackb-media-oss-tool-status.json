@@ -384,5 +384,49 @@
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,
     "betaProductionAccepted": false
+  },
+  "milestone2VideoAnalysisApproval": {
+    "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+    "reportKey": "trackb_milestone_2_video_analysis_approval_reports",
+    "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+    "targetRequirements": "docker/prod/cpu-worker/requirements.cpu.txt",
+    "tools": [
+      {
+        "id": "opencv",
+        "packageName": "opencv-python-headless",
+        "computeDefault": "cpu_first",
+        "futureGpuRequiresSeparateApproval": true,
+        "acceptedProvenBoundedNow": false
+      },
+      {
+        "id": "pyav",
+        "packageName": "av",
+        "computeDefault": "cpu_first",
+        "futureGpuRequiresSeparateApproval": true,
+        "acceptedProvenBoundedNow": false
+      },
+      {
+        "id": "pyscenedetect",
+        "packageName": "scenedetect",
+        "computeDefault": "cpu_first",
+        "futureGpuRequiresSeparateApproval": true,
+        "acceptedProvenBoundedNow": false
+      }
+    ],
+    "countsRemain": {
+      "ownedTools": 16,
+      "acceptedProvenBounded": 9,
+      "blockedNotInstalledProven": 7,
+      "endToEndProductReady": 0
+    },
+    "fortyPlusEndToEndClaimAllowed": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION",
+    "packageInstallInThisPhase": false,
+    "toolExecutionInThisPhase": false,
+    "dockerExecutionInThisPhase": false,
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "betaProductionAccepted": false
   }
 }

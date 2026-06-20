@@ -4,7 +4,9 @@ Decision: `ai_graphics_cpu_static_dependency_reconciliation_ready_for_refreshed_
 
 Branch: `codex/rp-ai-graphics-cpu-static-spec-validation-dependency-reconciliation`
 
-Draft PR: pending creation.
+Draft PR: [#614](https://github.com/yuzastudio6-cyber/Reedkt/pull/614).
+
+Draft PR status: open/draft/MERGEABLE at `62c6ba49962cb98d310bd5f0f50dd39b2b64b175`; check rollup empty when recorded.
 
 Duplicate search result: no exact dependency reconciliation PR, remote branch, or target worktree existed before implementation.
 

@@ -8,7 +8,9 @@ Required branch: `codex/rp-ai-graphics-cpu-static-spec-validation-dependency-rec
 
 Required draft PR title: `[tools] AI graphics CPU static spec validation dependency reconciliation`
 
-Created draft PR: pending creation.
+Created draft PR: [#614](https://github.com/yuzastudio6-cyber/Reedkt/pull/614).
+
+Recorded PR status: open/draft/MERGEABLE at `62c6ba49962cb98d310bd5f0f50dd39b2b64b175`; check rollup empty when recorded.
 
 This lane is docs/diagnostics-only. It reconciles PR #612's blocked dependency gate against the merged package-proof dependency lineage and concludes the next CPU/static execution can proceed from a dependency-bearing fresh base without new dependency mutation approval.
 

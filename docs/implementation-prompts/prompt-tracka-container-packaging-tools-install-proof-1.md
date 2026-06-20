@@ -18,7 +18,11 @@ Prerequisite Remotion inventory: `TRACKA-REMOTION-RENDER-VALIDATION-1 decision: 
 
 Remotion package status: `remotion_render_validation installStatus: installed_with_package_source_evidence`.
 
-Remotion runtime proof status: `remotion_render_validation runtimeProofStatus: blocked_pending_runtime_proof`.
+Remotion runtime proof status: `Remotion runtime proof status: blocked_pending_remotion_runtime_proof_confirmation`.
+
+Remotion runtime execution status: `runtimeExecutionPerformed: false`.
+
+Generated fixture: `not_run_confirmation_absent`.
 
 Browser runtime status: `browserRuntimeStatus: not_validated_in_this_phase`.
 

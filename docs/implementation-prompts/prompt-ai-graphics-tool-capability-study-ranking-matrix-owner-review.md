@@ -13,9 +13,9 @@ Implemented a docs/diagnostics-only owner-review packet for PR #623's product/ag
 
 ## PR Follow-Up
 
-- Draft PR: pending
-- PR link: pending
-- Check status: pending
+- Draft PR: #628, open/draft/MERGEABLE
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/628
+- Check status: empty check rollup at creation
 
 ## Validation
 

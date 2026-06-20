@@ -5,9 +5,9 @@ Decision: `ai_graphics_tool_capability_study_and_ranking_matrix_owner_review_pas
 ## Implementation Status
 
 - Branch: `codex/rp-ai-graphics-tool-capability-study-ranking-matrix-owner-review`
-- Draft PR: pending
-- PR link: pending
-- Check status: pending
+- Draft PR: #628, open/draft/MERGEABLE
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/628
+- Check status: empty check rollup at creation
 - Duplicate search result: no exact owner-review PR, remote owner-review branch, or target worktree existed before implementation
 - PR #627 status used: open/draft/MERGEABLE at `6ecd47f38ecef419c2dd8ec1e8fd46feb699911f`
 - PR #623 status used: open/draft/MERGEABLE at `4952fb0103d05e8f7df1272c0acd7419426f0ea4`

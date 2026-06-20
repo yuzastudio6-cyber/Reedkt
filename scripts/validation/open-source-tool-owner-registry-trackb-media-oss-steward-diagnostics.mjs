@@ -132,6 +132,17 @@ const status = readJson(
   "docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json",
 );
 const packageJson = readJson("package.json");
+const milestone2QaAccepted =
+  status.milestone2QaReview?.decision ===
+  "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review";
+const expectedAcceptedStatusTools = milestone2QaAccepted
+  ? [...acceptedStatusTools, "opencv", "pyav", "pyscenedetect"]
+  : acceptedStatusTools;
+const expectedBlockedTools = milestone2QaAccepted
+  ? ["paddleocr", "paddlepaddle", "opencolorio", "openimageio"]
+  : blockedTools;
+const expectedAcceptedCount = milestone2QaAccepted ? 12 : 9;
+const expectedBlockedCount = milestone2QaAccepted ? 4 : 7;
 
 if (registry.decision !== decision || steward.decision !== decision || status.decision !== decision) {
   fail("Decision drift detected in owner registry artifacts.");
@@ -152,27 +163,27 @@ ensureSameSet(owner.ownedTools, expectedTools, "registry owned tools");
 ensureSameSet(steward.ownedTools.map((tool) => tool.id), expectedTools, "steward owned tools");
 ensureSameSet(
   status.acceptedProvenBounded.map((tool) => tool.id),
-  acceptedStatusTools,
+  expectedAcceptedStatusTools,
   "accepted/proven bounded tools",
 );
-ensureSameSet(status.blockedNotInstalledProven, blockedTools, "blocked/not installed-proven tools");
+ensureSameSet(status.blockedNotInstalledProven, expectedBlockedTools, "blocked/not installed-proven tools");
 
 if (owner.ownedToolCount !== 16 || steward.statusCounts.ownedTools !== 16 || status.counts.ownedTools !== 16) {
   fail("Owned tool count must be exactly 16.");
 }
 if (
-  owner.acceptedProvenBoundedCount !== 9 ||
-  steward.statusCounts.acceptedProvenBounded !== 9 ||
-  status.counts.acceptedProvenBounded !== 9
+  owner.acceptedProvenBoundedCount !== expectedAcceptedCount ||
+  steward.statusCounts.acceptedProvenBounded !== expectedAcceptedCount ||
+  status.counts.acceptedProvenBounded !== expectedAcceptedCount
 ) {
-  fail("Accepted/proven bounded count must be exactly 9 after Milestone 1 QA.");
+  fail(`Accepted/proven bounded count must be exactly ${expectedAcceptedCount} for the current Track B source state.`);
 }
 if (
-  owner.blockedNotInstalledProvenCount !== 7 ||
-  steward.statusCounts.blockedNotInstalledProven !== 7 ||
-  status.counts.blockedNotInstalledProven !== 7
+  owner.blockedNotInstalledProvenCount !== expectedBlockedCount ||
+  steward.statusCounts.blockedNotInstalledProven !== expectedBlockedCount ||
+  status.counts.blockedNotInstalledProven !== expectedBlockedCount
 ) {
-  fail("Blocked/not installed-proven count must be exactly 7 after Milestone 1 QA.");
+  fail(`Blocked/not installed-proven count must be exactly ${expectedBlockedCount} for the current Track B source state.`);
 }
 if (
   owner.endToEndProductReadyToolCount !== 0 ||
@@ -196,10 +207,19 @@ for (const tool of steward.ownedTools) {
   ) {
     fail(`${tool.id} must be accepted only as bounded Batch 1 or Milestone 1 proof.`);
   }
+  if (["opencv", "pyav", "pyscenedetect"].includes(tool.id)) {
+    if (milestone2QaAccepted) {
+      if (tool.status !== "accepted_proven_bounded_milestone2") {
+        fail(`${tool.id} must be accepted only as bounded Milestone 2 proof after Milestone 2 QA.`);
+      }
+    } else if (tool.status !== "blocked_not_installed_proven") {
+      fail(`${tool.id} must remain blocked/not installed-proven before Milestone 2 QA.`);
+    }
+  }
   if (tool.id === "imagemagick_graphicsmagick" && tool.graphicsMagickAcceptedProven !== false) {
     fail("GraphicsMagick must remain optional fallback and not accepted/proven.");
   }
-  if (blockedTools.includes(tool.id) && tool.status !== "blocked_not_installed_proven") {
+  if (expectedBlockedTools.includes(tool.id) && tool.status !== "blocked_not_installed_proven") {
     fail(`${tool.id} must remain blocked/not installed-proven.`);
   }
 }
@@ -317,8 +337,8 @@ console.log(
       decision,
       ownerId,
       ownedTools: expectedTools.length,
-      acceptedProvenBounded: acceptedStatusTools.length,
-      blockedNotInstalledProven: blockedTools.length,
+      acceptedProvenBounded: expectedAcceptedCount,
+      blockedNotInstalledProven: expectedBlockedCount,
       endToEndProductReady: 0,
       supabaseClassification: "no write / environment none / SQL none / migration no",
     },

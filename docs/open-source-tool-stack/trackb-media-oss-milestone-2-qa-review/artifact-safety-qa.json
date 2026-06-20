@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2QaReview.artifactSafety.v1",
+  "generatedAt": "2026-06-20T04:03:52.230Z",
+  "decision": "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review",
+  "pr571GeneratedOutputsCleaned": true,
+  "pr571LocalImagePushed": false,
+  "qaPhaseGeneratedOutputsCreated": false,
+  "distPresent": false,
+  "distServerPresent": false,
+  "distStagingFixtureWorkerPresent": false,
+  "nodeModulesPresent": false,
+  "fixtureOutputsCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "dockerOutputsCommitted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "packageLockMutationAllowed": false,
+  "requirementsMutationAllowed": false,
+  "dockerfileMutationAllowed": false
+}

@@ -192,9 +192,17 @@ if (
   fail('blocker_next_prompt_drift')
 }
 
+const milestone2QaAccepted =
+  status.milestone2QaReview?.decision ===
+  'trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review'
 if (status.counts?.ownedTools !== 16) fail('owned_count_drift')
-if (status.counts?.acceptedProvenBounded !== 9) fail('canonical_accepted_count_should_remain_9_until_qa')
-if (status.counts?.blockedNotInstalledProven !== 7) fail('canonical_blocked_count_should_remain_7_until_qa')
+if (milestone2QaAccepted) {
+  if (status.counts?.acceptedProvenBounded !== 12) fail('canonical_accepted_count_should_be_12_after_qa')
+  if (status.counts?.blockedNotInstalledProven !== 4) fail('canonical_blocked_count_should_be_4_after_qa')
+} else {
+  if (status.counts?.acceptedProvenBounded !== 9) fail('canonical_accepted_count_should_remain_9_until_qa')
+  if (status.counts?.blockedNotInstalledProven !== 7) fail('canonical_blocked_count_should_remain_7_until_qa')
+}
 if (status.counts?.endToEndProductReady !== 0) fail('product_ready_count_drift')
 if (status.milestone2VideoAnalysisExecution?.decision !== decision.decision) fail('missing_status_json_milestone2_execution')
 if (status.milestone2VideoAnalysisExecution?.canonicalCountsRemainPendingQa !== true) fail('missing_pending_qa_count_boundary')
@@ -233,7 +241,7 @@ const forbiddenPatterns = [
   /GPU execution approved/i,
   /FFmpeg\/FFprobe expansion approved/i,
   /real user media used/i,
-  /media processing approved/i,
+  /media processing\s+approved/i,
   /render\/export approved/i,
   /beta .*unlocked/i,
   /production .*unlocked/i,

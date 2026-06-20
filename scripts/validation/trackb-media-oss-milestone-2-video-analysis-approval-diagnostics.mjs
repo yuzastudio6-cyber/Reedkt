@@ -167,11 +167,25 @@ for (const [key, value] of Object.entries(readiness)) {
 }
 if (manifest.publicArtifactsCreated !== false || manifest.signedUrlsCreated !== false || manifest.secretPayloadAccessed !== false) fail('manifest_scope_unblocked')
 
+const milestone2QaAccepted =
+  status.milestone2QaReview?.decision ===
+  'trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review'
 if (status.counts?.ownedTools !== 16) fail('owned_count_drift')
-if (status.counts?.acceptedProvenBounded !== 9) fail('accepted_count_drift')
-if (status.counts?.blockedNotInstalledProven !== 7) fail('blocked_count_drift')
+if (milestone2QaAccepted) {
+  if (status.counts?.acceptedProvenBounded !== 12) fail('accepted_count_after_qa_drift')
+  if (status.counts?.blockedNotInstalledProven !== 4) fail('blocked_count_after_qa_drift')
+} else {
+  if (status.counts?.acceptedProvenBounded !== 9) fail('accepted_count_drift')
+  if (status.counts?.blockedNotInstalledProven !== 7) fail('blocked_count_drift')
+}
 if (status.counts?.endToEndProductReady !== 0) fail('product_ready_count_drift')
-sameSet(status.blockedNotInstalledProven, ['opencv', 'pyav', 'pyscenedetect', 'paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio'], 'status_blocked')
+sameSet(
+  status.blockedNotInstalledProven,
+  milestone2QaAccepted
+    ? ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio']
+    : ['opencv', 'pyav', 'pyscenedetect', 'paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio'],
+  'status_blocked',
+)
 if (status.milestone2VideoAnalysisApproval?.decision !== decision) fail('missing_status_json_milestone2')
 
 if (
@@ -211,7 +225,7 @@ const forbiddenPatterns = [
   /PySceneDetect (was|is) executed/i,
   /GPU execution approved/i,
   /FFmpeg\/FFprobe expansion approved/i,
-  /media processing approved/i,
+  /media processing\s+approved/i,
   /render\/export approved/i,
   /beta .*unlocked/i,
   /production .*unlocked/i,

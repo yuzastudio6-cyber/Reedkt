@@ -4,8 +4,8 @@
   "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
   "counts": {
     "ownedTools": 16,
-    "acceptedProvenBounded": 9,
-    "blockedNotInstalledProven": 7,
+    "acceptedProvenBounded": 12,
+    "blockedNotInstalledProven": 4,
     "endToEndProductReady": 0
   },
   "acceptedProvenBounded": [
@@ -91,12 +91,42 @@
       "rerunInQaPhase": false,
       "graphicsMagickCounted": false,
       "proofBoundary": "imagemagick_only_container_version_and_synthetic_fixture_no_graphicsmagick_default"
+    },
+    {
+      "id": "opencv",
+      "name": "OpenCV",
+      "packageName": "opencv-python-headless",
+      "sourcePr": 571,
+      "importVersionProven": true,
+      "syntheticFixtureProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "proofBoundary": "trackb_cpu_worker_container_import_version_and_synthetic_fixture_only_no_real_media_processing"
+    },
+    {
+      "id": "pyav",
+      "name": "PyAV",
+      "packageName": "av",
+      "sourcePr": 571,
+      "importVersionProven": true,
+      "syntheticFixtureProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "proofBoundary": "trackb_cpu_worker_container_import_version_and_synthetic_fixture_only_no_real_media_processing"
+    },
+    {
+      "id": "pyscenedetect",
+      "name": "PySceneDetect",
+      "packageName": "scenedetect",
+      "sourcePr": 571,
+      "importVersionProven": true,
+      "syntheticFixtureProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "proofBoundary": "trackb_cpu_worker_container_import_version_and_synthetic_fixture_only_no_real_media_processing"
     }
   ],
   "blockedNotInstalledProven": [
-    "opencv",
-    "pyav",
-    "pyscenedetect",
     "paddleocr",
     "paddlepaddle",
     "opencolorio",
@@ -472,6 +502,31 @@
     "newlyProofedBoundedForQaReview": 3,
     "acceptedProvenBoundedTotalPendingQa": 12,
     "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW",
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "betaProductionAccepted": false
+  },
+  "milestone2QaReview": {
+    "decision": "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review",
+    "reportKey": "trackb_milestone_2_qa_review_reports",
+    "acceptedMilestone2Tools": [
+      "opencv",
+      "pyav",
+      "pyscenedetect"
+    ],
+    "acceptedProvenBoundedTotalAfterQa": 12,
+    "stillBlockedNotInstalledProven": [
+      "paddleocr",
+      "paddlepaddle",
+      "opencolorio",
+      "openimageio"
+    ],
+    "endToEndProductReadyTools": 0,
+    "fortyPlusEndToEndClaimAllowed": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW",
+    "gpuExecutionApproved": false,
+    "ffmpegFfprobeExpansionAccepted": false,
     "mediaProcessingAccepted": false,
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,

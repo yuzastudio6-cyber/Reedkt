@@ -240,12 +240,29 @@ const cachedFiles = git(['diff', '--cached', '--name-only']).split('\n').filter(
 const scanFiles = [...new Set([...requiredFiles, ...changedFiles, ...cachedFiles])].filter((file) => {
   return fs.existsSync(path.join(repoRoot, file)) && fs.statSync(path.join(repoRoot, file)).isFile()
 })
+const laterMilestone2QaAccepted =
+  readJson('docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json').milestone2QaReview?.decision ===
+  'trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review'
+const forbiddenToolProofPattern = laterMilestone2QaAccepted
+  ? /\b(ffmpeg|ffprobe|paddleocr|paddlepaddle|opencolorio|openimageio)\s+(?:version|fixture|proof|execution).{0,50}(?:passed|ran|accepted|proven)\b/i
+  : /\b(ffmpeg|ffprobe|opencv|pyav|pyscenedetect|paddleocr|paddlepaddle|opencolorio|openimageio)\s+(?:version|fixture|proof|execution).{0,50}(?:passed|ran|accepted|proven)\b/i
+const secretPattern = new RegExp(
+  `\\b(${[
+    'sk' + '-proj-',
+    'sk' + '-live-',
+    'gh' + 'p_',
+    'postgres' + ':\\/\\/',
+    'BEGIN [A-Z ]*PRIVATE KEY',
+    'X-Amz' + '-Signature=',
+  ].join('|')})\\b`,
+  'i',
+)
 const forbiddenPatterns = [
   /\b40\+\s+tools\s+(?:are\s+)?(?:installed|proven).{0,80}end-to-end/i,
   /\bend-to-end product-ready (?:Track B )?tools:\s*[1-9]/i,
-  /\b(ffmpeg|ffprobe|opencv|pyav|pyscenedetect|paddleocr|paddlepaddle|opencolorio|openimageio)\s+(?:version|fixture|proof|execution).{0,50}(?:passed|ran|accepted|proven)\b/i,
+  forbiddenToolProofPattern,
   /\b(media processing|render\/export|worker runtime|provider runtime|route runtime|Supabase|GCS|public artifact|signed URL|raw prompt|beta|production)\s+(?:is\s+)?(?:approved|enabled|accepted|unblocked)\b/i,
-  /\b(sk-proj-|sk-live-|ghp_|postgres:\/\/|BEGIN [A-Z ]*PRIVATE KEY|X-Amz-Signature=)\b/i,
+  secretPattern,
 ]
 for (const file of scanFiles) {
   const text = readText(file)

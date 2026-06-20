@@ -4,7 +4,9 @@ Decision: `ai_graphics_cpu_static_spec_validation_approval_passed_with_warnings`
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-cpu-static-spec-validation-approval`
 
-Draft PR: pending creation.
+Draft PR: [#607](https://github.com/yuzastudio6-cyber/Reedkt/pull/607).
+
+Draft PR status: open/draft/MERGEABLE at `40f420c9a01e1ce5dc16b9097e38c82728d540a8`; check rollup empty when recorded.
 
 Source PR #604: open/draft/MERGEABLE at `303ac0e00e5979a8857852aef91ac2aa8c2495fe`.
 

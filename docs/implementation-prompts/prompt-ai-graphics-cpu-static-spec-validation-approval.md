@@ -8,7 +8,9 @@ Required branch: `codex/rp-ai-graphics-draft-package-proof-cpu-static-spec-valid
 
 Required draft PR title: `[tools] AI graphics CPU static spec validation approval`
 
-Created draft PR: pending creation.
+Created draft PR: [#607](https://github.com/yuzastudio6-cyber/Reedkt/pull/607).
+
+Recorded PR status: open/draft/MERGEABLE at `40f420c9a01e1ce5dc16b9097e38c82728d540a8`; check rollup empty when recorded.
 
 This lane is docs/diagnostics-only. It approves only a future CPU/static spec-validation execution lane for exactly `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, and `viz_js`.
 

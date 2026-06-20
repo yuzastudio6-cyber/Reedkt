@@ -53,6 +53,13 @@
 - Existing execution adapters under `server/workers/**` remain future execution surfaces and are not duplicated by this milestone.
 - Pending external tools are reported as pending adapter contracts until they become first-class `ProductionToolId` entries.
 
+## Safe Command Plan Integration
+
+- Safe command plans reuse adapter plans, production registry tool IDs, QA gates, fallback IDs, runtime artifact types, and production storage bucket purposes.
+- Safe command plans are structured command intents; they are not command builders, shell strings, worker jobs, execution-plan tables, or router replacements.
+- Existing command-plan builders under `server/workers/**`, `server/activation/**`, and `server/cli/**` are not imported by the safe command-plan layer because those surfaces contain execution/readiness command fields.
+- Pending external tools remain excluded from safe command plans until production registry expansion.
+
 ## Safety Confirmation
 
 - The new brain produces planning-only output with `executesTools: false`.

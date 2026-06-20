@@ -21,6 +21,16 @@ import type {
   ToolCallingWorkerRouteBridgePlan,
 } from './adapter-contract-types'
 import {
+  buildSafeCommandPlansForAdapterPlans,
+} from './safe-command-plan-builder'
+import {
+  validateSafeCommandPlans,
+} from './safe-command-plan-validator'
+import type {
+  SafeCommandPlan,
+  SafeCommandPlanValidationSummary,
+} from './safe-command-plan-types'
+import {
   composePipelineForOperations,
   getPatternOperations,
 } from './pipeline-composer'
@@ -78,6 +88,11 @@ export interface ToolCallingPlan {
 export interface ToolCallingPlanWithAdapters extends ToolCallingPlan {
   adapterPlan: ToolAdapterPipelinePlan
   workerRouteBridgePlan: readonly ToolCallingWorkerRouteBridgePlan[]
+}
+
+export interface ToolCallingPlanWithAdaptersAndCommandPlans extends ToolCallingPlanWithAdapters {
+  safeCommandPlans: readonly SafeCommandPlan[]
+  commandPlanValidationSummary: SafeCommandPlanValidationSummary
 }
 
 function stableHash(value: string): string {
@@ -160,6 +175,21 @@ export function buildToolCallingPlanWithAdapters(request: BuildToolCallingPlanRe
     ...plan,
     adapterPlan,
     workerRouteBridgePlan: adapterPlan.workerRouteBridgePlans,
+    executesTools: false,
+  }
+}
+
+export function buildToolCallingPlanWithAdaptersAndCommandPlans(
+  request: BuildToolCallingPlanRequest,
+): ToolCallingPlanWithAdaptersAndCommandPlans {
+  const plan = buildToolCallingPlanWithAdapters(request)
+  const safeCommandPlans = buildSafeCommandPlansForAdapterPlans(plan.adapterPlan.adapterPlans)
+  const commandPlanValidationSummary = validateSafeCommandPlans(safeCommandPlans)
+
+  return {
+    ...plan,
+    safeCommandPlans,
+    commandPlanValidationSummary,
     executesTools: false,
   }
 }

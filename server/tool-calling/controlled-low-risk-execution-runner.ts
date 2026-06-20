@@ -233,7 +233,7 @@ async function runExecFileProbe(policy: ControlledLowRiskProbePolicy): Promise<C
       timeout: policy.timeoutMs,
       windowsHide: true,
       shell: false,
-      maxBuffer: 256 * 1024,
+      maxBuffer: policy.maxBufferBytes ?? 256 * 1024,
     })
     const stdout = sanitizeProbeOutput(stringFromOutput(output.stdout))
     const stderr = sanitizeProbeOutput(stringFromOutput(output.stderr))

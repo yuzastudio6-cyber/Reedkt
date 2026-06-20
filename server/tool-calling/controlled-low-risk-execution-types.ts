@@ -23,6 +23,7 @@ export interface ControlledLowRiskProbePolicy {
   executionMethod: ControlledLowRiskExecutionMethod
   executableName?: string
   exactArgs?: readonly string[]
+  maxBufferBytes?: number
   packageName?: string
   timeoutMs: number
   allowedExitCodes: readonly number[]

@@ -1,0 +1,24 @@
+# @svgdotjs/svg.js Owner Review
+
+Decision: `ai_graphics_tool_capability_study_and_ranking_matrix_owner_review_passed_with_warnings`
+
+- `toolId`: `svgdotjs_svg_js`
+- `displayName`: `@svgdotjs/svg.js`
+- `packageName`: `@svgdotjs/svg.js`
+- `sourceStudyAccepted`: `true`
+- `sourceQaAccepted`: `true`
+- `capabilityGroupsAccepted`: `true`
+- `rankingAccepted`: `true`
+- `selectionRulesAccepted`: `true`
+- `eliminationRulesAccepted`: `true`
+- `fallbacksAccepted`: `true`
+- `cloudTargetAccepted`: `true`
+- `proofStatusAccepted`: `true`
+- `agentCanSelectForPlanning`: `true`
+- `agentCanExecuteToolsNow`: `false`
+- `runtimeReadyNow`: `false`
+- `internalBetaReadyNow`: `false`
+- `productionReadyNow`: `false`
+- `nextMilestone`: CPU/static spec validation owner-approved evidence remains planning metadata; future runtime remains blocked.
+
+No tool execution, browser/WebGL/canvas runtime, GPU/model runtime, Tool Route execution, Worker execution, provider/model execution, Supabase/GCS transfer, signed URL, public artifact, beta, or production readiness is owner-accepted for `svgdotjs_svg_js`.

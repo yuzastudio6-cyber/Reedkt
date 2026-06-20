@@ -1,0 +1,16 @@
+{
+  "decision": "ai_graphics_tool_capability_study_and_ranking_matrix_owner_review_passed_with_warnings",
+  "agentRoutingExamplesOwnerAccepted": true,
+  "examples": [
+    "chart_overlay",
+    "svg_graphics",
+    "diagram_graphics",
+    "animation_overlay",
+    "3d_scene",
+    "2d_canvas_scene",
+    "background_removal",
+    "upscaling"
+  ],
+  "agentCanSelectForPlanning": true,
+  "agentCanExecuteToolsNow": false
+}

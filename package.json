@@ -533,7 +533,8 @@
     "activation:cross-workstream-handoff:summary": "tsx server/cli/activation-cross-workstream-handoff-summary.ts",
     "smoke:activation-cross-workstream-handoff-tracking": "tsx server/smoke/activation-cross-workstream-handoff-tracking-smoke.ts",
     "ai-graphics:tool-capability-study:diagnostics": "node scripts/validation/ai-graphics-tool-capability-study-ranking-matrix-diagnostics.mjs",
-    "ai-graphics:tool-capability-study:qa-diagnostics": "node scripts/validation/ai-graphics-tool-capability-study-ranking-matrix-qa-diagnostics.mjs"
+    "ai-graphics:tool-capability-study:qa-diagnostics": "node scripts/validation/ai-graphics-tool-capability-study-ranking-matrix-qa-diagnostics.mjs",
+    "ai-graphics:tool-capability-study:owner-diagnostics": "node scripts/validation/ai-graphics-tool-capability-study-ranking-matrix-owner-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

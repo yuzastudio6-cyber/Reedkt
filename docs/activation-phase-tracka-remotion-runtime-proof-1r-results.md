@@ -77,6 +77,64 @@ The full post-packet validation suite should be rerun by the next retry host aft
 - changed-file safety scan: passed after host-resource closure update
 - `package-lock.json`: unchanged
 
+## External Validation Handoff
+
+`TRACKA-REMOTION-RUNTIME-PROOF-1R-EXTERNAL-VALIDATION-HANDOFF readiness: pending_external_validation_result`
+
+External validation status: `pending_larger_host_ci_or_hydrated_worktree`
+
+PR #577 status: `draft_pending_external_validation`
+
+Approved external validation environments:
+
+- `larger_stable_host`
+- `ci_without_secrets_or_deployment`
+- `already_hydrated_clean_worktree_same_lockfile`
+
+Do not merge #577 until one approved validation path passes.
+
+Required external pre-proof commands:
+
+- `npm ci --no-audit --no-fund --progress=false`
+- `npm run lint`
+- `npm run typecheck:server`
+- `npm run --silent tracka:remotion-runtime-proof-1:diagnostics`
+- `npm run --silent tracka:remotion-runtime-proof-1r:diagnostics`
+- `npm run build`
+- `npm run build:server`
+- `git diff --check`
+- `git diff --cached --check`
+
+Allowed external proof command after validation passes:
+
+`REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true npm run tracka:remotion-runtime-proof-1`
+
+Required external post-proof commands:
+
+- `npm run --silent tracka:remotion-runtime-proof-1r:diagnostics`
+- `npm run lint`
+- `npm run typecheck:server`
+- `npm run build`
+- `npm run build:server`
+- `git diff --check`
+- `git diff --cached --check`
+
+Required evidence to return:
+
+- Environment type: `larger_host`, `ci`, or `hydrated_worktree`
+- `npm ci` status
+- Runtime proof status
+- Run ID
+- `/tmp/reeditpro-tracka-remotion-runtime-proof-1/<runId>/` path
+- Manifest/QA summaries
+- Generated file names, byte counts, and SHA-256 checksums
+- Validation commands passed
+- `package-lock.json`: `unchanged`
+- Generated artifacts committed: `none`
+- Safety statement confirming no video/still render, FFmpeg/FFprobe, private media, Supabase/SQL, workers/routes/providers, signed/public artifacts, or unlocks occurred
+
+Codex follow-up after passing external evidence: update existing #577 docs/results/diagnostics/PR body to `completed_bounded_remotion_package_runtime_bundle_proof`, record sanitized run evidence only, mark #577 ready for review, and do not merge. If external validation fails, record the exact blocker and keep #577 draft.
+
 ## Supabase Status
 
 - Supabase update required: `none`
@@ -96,6 +154,6 @@ The full post-packet validation suite should be rerun by the next retry host aft
 
 `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates_and_remotion_render_fixture_proof`
 
-Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE`
+Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-EXTERNAL-VALIDATION-HANDOFF`
 
 No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, video rendering, media processing, FFmpeg/FFprobe execution, Remotion execution, or broad service-role handler was enabled.

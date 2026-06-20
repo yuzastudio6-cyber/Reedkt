@@ -16,9 +16,36 @@ The confirmed proof command was not run. The next phase must first complete depe
 
 `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates_and_remotion_render_fixture_proof`
 
-Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE`
+Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-EXTERNAL-VALIDATION-HANDOFF`
 
 Only after a successful confirmed 1R rerun should the next recommended milestone become `TRACKA-REMOTION-RENDER-FIXTURE-PROOF-1`.
+
+## External Validation Handoff
+
+`TRACKA-REMOTION-RUNTIME-PROOF-1R-EXTERNAL-VALIDATION-HANDOFF readiness: pending_external_validation_result`
+
+External validation status: `pending_larger_host_ci_or_hydrated_worktree`
+
+PR #577 status: `draft_pending_external_validation`
+
+Do not merge #577 until one approved validation path passes.
+
+Allowed validation environments:
+
+- `larger_stable_host`
+- `ci_without_secrets_or_deployment`
+- `already_hydrated_clean_worktree_same_lockfile`
+
+Required evidence from that environment:
+
+- `npm ci --no-audit --no-fund --progress=false`: passed or failed
+- `REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true npm run tracka:remotion-runtime-proof-1`: passed or failed, only after validation passes
+- Run ID and `/tmp/reeditpro-tracka-remotion-runtime-proof-1/<runId>/` path if the proof passes
+- Manifest/QA summaries, generated file names, byte counts, and SHA-256 checksums if the proof passes
+- Validation commands passed
+- `package-lock.json`: `unchanged`
+- Generated artifacts committed: `none`
+- Safety statement confirming no video/still render, FFmpeg/FFprobe, private media, Supabase/SQL, workers/routes/providers, signed/public artifacts, or unlocks occurred
 
 ## Future Retry Requirements
 

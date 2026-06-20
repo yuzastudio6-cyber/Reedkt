@@ -86,6 +86,56 @@ Host-resource closure found no currently available stable validation path in thi
 
 The same local under-resourced dependency install path was not retried again. Runtime proof remains not run.
 
+## External Validation Handoff
+
+`TRACKA-REMOTION-RUNTIME-PROOF-1R-EXTERNAL-VALIDATION-HANDOFF readiness: pending_external_validation_result`
+
+External validation status: `pending_larger_host_ci_or_hydrated_worktree`
+
+PR #577 status: `draft_pending_external_validation`
+
+Approved external validation environments:
+
+- `larger_stable_host`
+- `ci_without_secrets_or_deployment`
+- `already_hydrated_clean_worktree_same_lockfile`
+
+Do not merge #577 until one approved validation path passes.
+
+External validation must check out the exact branch `codex/rp-tracka-remotion-runtime-proof-1r-confirmed-execution`, fast-forward only, and run dependency/pre-proof validation before the single confirmed proof command:
+
+- `npm ci --no-audit --no-fund --progress=false`
+- `npm run lint`
+- `npm run typecheck:server`
+- `npm run --silent tracka:remotion-runtime-proof-1:diagnostics`
+- `npm run --silent tracka:remotion-runtime-proof-1r:diagnostics`
+- `npm run build`
+- `npm run build:server`
+- `git diff --check`
+- `git diff --cached --check`
+
+Only if those commands pass, run exactly once:
+
+`REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true npm run tracka:remotion-runtime-proof-1`
+
+After the proof, rerun the 1R diagnostics, lint, server typecheck, build, build:server, `git diff --check`, and `git diff --cached --check`.
+
+External evidence required before Codex may update #577 to a completed result:
+
+- Environment type: `larger_host`, `ci`, or `hydrated_worktree`.
+- `npm ci` status.
+- Runtime proof status.
+- Run ID.
+- `/tmp/reeditpro-tracka-remotion-runtime-proof-1/<runId>/` path.
+- Manifest/QA summaries.
+- Generated file names, byte counts, and SHA-256 checksums.
+- Validation commands passed.
+- `package-lock.json`: `unchanged`.
+- Generated artifacts committed: `none`.
+- Safety statement confirming no video/still render, FFmpeg/FFprobe, private media, Supabase/SQL, workers/routes/providers, signed/public artifacts, or unlocks occurred.
+
+If external validation passes, Codex may update the existing #577 docs/results/diagnostics/PR body to `completed_bounded_remotion_package_runtime_bundle_proof`, record sanitized evidence only, mark #577 ready for review, and not merge it in that follow-up. If external validation fails, Codex must record the exact blocker, keep `runtimeExecutionPerformed: false`, keep generated fixture `not_run_pre_execution_validation_blocked`, keep artifacts/checksums `none`, and keep #577 draft.
+
 ## Readiness
 
 `TRACKA-REMOTION-RUNTIME-PROOF-1R readiness: blocked_pending_dependency_validation_or_confirmed_runtime_proof_rerun`
@@ -96,6 +146,6 @@ The same local under-resourced dependency install path was not retried again. Ru
 
 `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates_and_remotion_render_fixture_proof`
 
-Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE`
+Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-EXTERNAL-VALIDATION-HANDOFF`
 
 No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, video rendering, media processing, FFmpeg/FFprobe execution, Remotion execution, or broad service-role handler was enabled.

@@ -53,6 +53,14 @@ const requiredText = [
   'host_resource_limit_exit_137_during_npm_ci',
   'host_resource_limit_exit_137_during_npm_ci_retry',
   'host_resource_limit_requires_larger_dependency_validation_environment',
+  'TRACKA-REMOTION-RUNTIME-PROOF-1R-EXTERNAL-VALIDATION-HANDOFF readiness: pending_external_validation_result',
+  'External validation status: `pending_larger_host_ci_or_hydrated_worktree`',
+  'PR #577 status: `draft_pending_external_validation`',
+  'Do not merge #577 until one approved validation path passes.',
+  'larger_stable_host',
+  'ci_without_secrets_or_deployment',
+  'already_hydrated_clean_worktree_same_lockfile',
+  'Codex follow-up after passing external evidence: update existing #577 docs/results/diagnostics/PR body to `completed_bounded_remotion_package_runtime_bundle_proof`, record sanitized run evidence only, mark #577 ready for review, and do not merge.',
   'PR #577 checks: `none_reported`',
   'Larger/stable dependency-validation environment available to this Codex run: `not_available`',
   'Already-hydrated clean #577 worktree with same lockfile and passing validation: `not_confirmed`',
@@ -78,7 +86,7 @@ const requiredText = [
   'TRACKA-REMOTION-RENDER-FIXTURE-PROOF-1 readiness: blocked_pending_remotion_runtime_proof_1r_completion',
   'TRACKA-CONTAINER-PACKAGING-TOOLS-INSTALL-PROOF-1 readiness: ready_after_remotion_runtime_proof_or_parallel_if_owner_approved',
   'TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates_and_remotion_render_fixture_proof',
-  'Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE`',
+  'Next recommended milestone: `TRACKA-REMOTION-RUNTIME-PROOF-1R-EXTERNAL-VALIDATION-HANDOFF`',
   'Supabase update status: `not_applicable_docs_only`',
   'Supabase environment touched: `none`',
   'SQL executed: `none`',
@@ -197,4 +205,6 @@ console.log('Generated fixture: not_run_pre_execution_validation_blocked')
 console.log('Artifacts/checksums: none')
 console.log('Retry blocker: host_resource_limit_exit_137_during_npm_ci_retry')
 console.log('Host-resource closure blocker: host_resource_limit_requires_larger_dependency_validation_environment')
-console.log('Next prompt: TRACKA-REMOTION-RUNTIME-PROOF-1R-HOST-RESOURCE-CLOSURE')
+console.log('External validation status: pending_larger_host_ci_or_hydrated_worktree')
+console.log('PR #577 status: draft_pending_external_validation')
+console.log('Next prompt: TRACKA-REMOTION-RUNTIME-PROOF-1R-EXTERNAL-VALIDATION-HANDOFF')

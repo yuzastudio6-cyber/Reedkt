@@ -1,0 +1,68 @@
+{
+  "fixtureId": "ai_graphics_batch_2_svgjs_vector_spec",
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "packageName": "@svgdotjs/svg.js",
+  "dataClassification": "synthetic_only",
+  "proofScope": "vector_manifest_metadata_only_no_browser_dom_runtime",
+  "nodeRuntimeConstructionApproved": false,
+  "vectorManifest": {
+    "canvas": {
+      "width": 640,
+      "height": 360
+    },
+    "elements": [
+      {
+        "type": "rect",
+        "id": "synthetic-panel",
+        "x": 40,
+        "y": 40,
+        "width": 560,
+        "height": 280
+      },
+      {
+        "type": "circle",
+        "id": "synthetic-node",
+        "cx": 160,
+        "cy": 180,
+        "r": 32
+      },
+      {
+        "type": "text",
+        "id": "synthetic-label",
+        "text": "Vector fixture"
+      }
+    ]
+  },
+  "blockedUses": [
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "browser_runtime",
+    "webgl_runtime",
+    "render_export",
+    "resvg_rasterization",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "webglRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

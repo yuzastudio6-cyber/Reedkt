@@ -1,0 +1,71 @@
+{
+  "fixtureId": "ai_graphics_batch_2_lottie_manifest_spec",
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "packageName": "lottie-web",
+  "dataClassification": "synthetic_only",
+  "proofScope": "manifest_shape_validation_only_no_player_browser_runtime",
+  "playerRuntimeApproved": false,
+  "lottieManifest": {
+    "v": "5.7.4",
+    "fr": 30,
+    "ip": 0,
+    "op": 60,
+    "w": 640,
+    "h": 360,
+    "nm": "Synthetic Batch 2 Lottie Manifest",
+    "ddd": 0,
+    "assets": [],
+    "layers": [
+      {
+        "ddd": 0,
+        "ind": 1,
+        "ty": 4,
+        "nm": "Synthetic shape layer",
+        "sr": 1,
+        "ks": {
+          "o": {
+            "a": 0,
+            "k": 100
+          }
+        },
+        "ip": 0,
+        "op": 60,
+        "st": 0,
+        "bm": 0,
+        "shapes": []
+      }
+    ]
+  },
+  "blockedUses": [
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "browser_runtime",
+    "webgl_runtime",
+    "render_export",
+    "resvg_rasterization",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "webglRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

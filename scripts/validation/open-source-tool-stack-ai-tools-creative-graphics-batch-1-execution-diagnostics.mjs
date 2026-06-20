@@ -6,12 +6,15 @@ const expectedDecision = 'ai_graphics_batch_1_install_import_synthetic_proof_pas
 const allowedDecisions = new Set([
   'ai_graphics_batch_1_install_import_synthetic_proof_passed',
   'ai_graphics_batch_1_install_import_synthetic_proof_passed_with_warnings',
+  'approved_with_warnings_for_ai_graphics_batch_2',
   'blocked_batch_1_install_failed',
   'blocked_batch_1_import_smoke_failed',
   'blocked_batch_1_synthetic_fixture_failed',
   'blocked_batch_1_unrelated_dependency_churn_detected',
 ])
 const approvedDependencies = ['d3', 'echarts', 'vega-lite', 'vega']
+const approvedBatch2ExecutionDependencies = ['satori', '@svgdotjs/svg.js', '@viz-js/viz', 'lottie-web']
+const batch2ExecutionDecision = 'ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings'
 const expectedScripts = {
   'open-source-tool-stack:ai-tools-creative-graphics:batch-1-import-smoke':
     'node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-1-import-smoke.mjs',
@@ -90,6 +93,11 @@ const batch1QaReviewContext =
   readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-qa-decision.md', 'utf8').includes(
     'ai_graphics_batch_1_qa_passed_with_warnings',
   )
+const batch2ExecutionContext =
+  existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md') &&
+  readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md', 'utf8').includes(
+    batch2ExecutionDecision,
+  )
 const env = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const readJson = (path) => {
   try {
@@ -157,7 +165,8 @@ for (const dependencyName of approvedDependencies) {
 const basePackageJson = JSON.parse(execFileSync('git', ['show', `${diffBase}:package.json`], { env, encoding: 'utf8' }))
 const addedDirectDependencies = Object.keys(packageJson?.dependencies ?? {}).filter((name) => !basePackageJson.dependencies?.[name])
 for (const dependencyName of addedDirectDependencies) {
-  if (!approvedDependencies.includes(dependencyName)) failures.push(`unapproved_direct_dependency:${dependencyName}`)
+  const allowedBatch2Dependency = batch2ExecutionContext && approvedBatch2ExecutionDependencies.includes(dependencyName)
+  if (!approvedDependencies.includes(dependencyName) && !allowedBatch2Dependency) failures.push(`unapproved_direct_dependency:${dependencyName}`)
 }
 
 const packageJsonDiff = readGitDiff('package.json')

@@ -49,6 +49,14 @@ const requiredLockEntries = [
 
 const forbiddenDependencyNames = ['d3', 'echarts', 'vega', 'vega-lite']
 const approvedBatch1ExecutionDependencyNames = ['d3', 'echarts', 'vega', 'vega-lite']
+const approvedBatch2ExecutionDependencyNames = ['satori', '@svgdotjs/svg.js', '@viz-js/viz', 'lottie-web']
+const batch2ExecutionDecision = 'ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings'
+const allowedFutureScriptDiffs = [
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-import-smoke',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-synthetic-fixtures',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-execution:diagnostics',
+]
 const diffBase = process.env.AI_TOOLS_CREATIVE_GRAPHICS_PACKAGE_LOCK_BASE_FIX_DIFF_BASE ?? 'origin/codex/rp-ai-tools-creative-graphics-install-proof-approval-batch-1'
 
 const forbiddenPatterns = [
@@ -79,6 +87,11 @@ const batch1ExecutionContext =
   existsSync(batch1ExecutionDecisionPath) &&
   readFileSync(batch1ExecutionDecisionPath, 'utf8').includes(
     'ai_graphics_batch_1_install_import_synthetic_proof_passed_with_warnings',
+  )
+const batch2ExecutionContext =
+  existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md') &&
+  readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md', 'utf8').includes(
+    batch2ExecutionDecision,
   )
 
 const readGitDiff = (path) => {
@@ -187,7 +200,9 @@ try {
         !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-import-smoke') &&
         !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-synthetic-fixtures') &&
         !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-execution:diagnostics') &&
-        !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-qa:diagnostics')
+        !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-qa:diagnostics') &&
+        !allowedFutureScriptDiffs.some((scriptName) => line.includes(scriptName)) &&
+        !(batch2ExecutionContext && approvedBatch2ExecutionDependencyNames.some((dependencyName) => line.includes(`"${dependencyName}"`)))
       )
     })
   if (nonScriptPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${nonScriptPackageJsonDiff.join(' | ')}`)

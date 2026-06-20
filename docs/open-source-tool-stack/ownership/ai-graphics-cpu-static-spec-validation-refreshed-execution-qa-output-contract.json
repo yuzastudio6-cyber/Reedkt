@@ -1,0 +1,19 @@
+{
+  "decision": "ai_graphics_cpu_static_spec_validation_refreshed_execution_qa_passed_with_warnings",
+  "sourceExecutionPr": 616,
+  "acceptedCommittedOutputs": [
+    "sanitized_docs",
+    "sanitized_json_records",
+    "diagnostics",
+    "prompt_records"
+  ],
+  "localArtifactsAcceptedAsIgnoredOnly": true,
+  "publicArtifactCreated": false,
+  "signedUrlCreated": false,
+  "browserRuntimePerformed": false,
+  "webglCanvasRuntimePerformed": false,
+  "toolRouteExecutionPerformed": false,
+  "workerExecutionPerformed": false,
+  "supabaseMutationPerformed": false,
+  "gcsUploadPerformed": false
+}

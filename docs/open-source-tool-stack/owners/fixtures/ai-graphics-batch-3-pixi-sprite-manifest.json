@@ -1,0 +1,66 @@
+{
+  "fixtureId": "ai_graphics_batch_3_pixi_sprite_manifest",
+  "packageName": "pixi.js",
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "dataClassification": "synthetic_only",
+  "proofScope": "sprite_effect_manifest_only_no_renderer_canvas",
+  "spriteEffectManifest": {
+    "stageSize": {
+      "width": 1280,
+      "height": 720
+    },
+    "sprites": [
+      {
+        "spriteId": "synthetic_glow_orb",
+        "assetRef": "synthetic_internal_sprite_placeholder",
+        "position": [320, 360],
+        "effect": "metadata_only_additive_glow"
+      },
+      {
+        "spriteId": "synthetic_callout_marker",
+        "assetRef": "synthetic_internal_marker_placeholder",
+        "position": [760, 300],
+        "effect": "metadata_only_scale_pulse"
+      }
+    ],
+    "renderer": {
+      "canvasRequired": false,
+      "webglRequired": false,
+      "outputWritten": false
+    }
+  },
+  "blockedUses": [
+    "browser_runtime",
+    "webgl_runtime",
+    "canvas_runtime",
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "render_export",
+    "media_processing",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "webglRuntimeApprovedNow": false,
+    "canvasRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

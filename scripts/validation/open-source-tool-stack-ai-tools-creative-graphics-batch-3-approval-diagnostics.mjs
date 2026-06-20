@@ -2,57 +2,46 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
 const diffBase =
-  process.env.AI_TOOLS_CREATIVE_GRAPHICS_BATCH_2_APPROVAL_DIFF_BASE ??
-  'origin/codex/rp-ai-tools-creative-graphics-batch-1-qa-review'
-const expectedDecision = 'approved_with_warnings_for_ai_graphics_batch_2'
+  process.env.AI_TOOLS_CREATIVE_GRAPHICS_BATCH_3_APPROVAL_DIFF_BASE ??
+  'origin/codex/rp-ai-tools-creative-graphics-batch-2-qa-review'
+const expectedDecision = 'approved_with_warnings_for_ai_graphics_batch_3'
 const allowedDecisions = new Set([
+  'approved_for_ai_graphics_batch_3_install_proof_execution',
   expectedDecision,
-  'blocked_pending_ai_graphics_batch_2_approval_fixes',
-  'ai_graphics_batch_2_qa_passed_with_warnings',
-  'approved_with_warnings_for_ai_graphics_batch_3',
+  'blocked_pending_ai_graphics_batch_3_scope_fixes',
+  'blocked_pending_browser_runtime_boundary_review',
+  'blocked_pending_license_or_runtime_review',
+  'blocked_pending_package_risk_review',
 ])
-const selectedPackages = ['satori', '@svgdotjs/svg.js', '@viz-js/viz', 'lottie-web']
-const approvedBatch3ExecutionDependencies = ['animejs', 'three', 'pixi.js', 'konva', 'babylonjs']
-const executionContextDecision = 'ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings'
+const selectedPackages = ['animejs', 'three', 'pixi.js', 'konva', 'babylonjs']
 const batch3ExecutionDecision = 'ai_graphics_batch_3_install_import_manifest_proof_passed_with_warnings'
-const allowedExecutionScripts = [
-  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-import-smoke',
-  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-synthetic-fixtures',
-  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-execution:diagnostics',
-  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-qa:diagnostics',
-  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-approval:diagnostics',
-  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-import-smoke',
-  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-synthetic-fixtures',
-  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-execution:diagnostics',
-]
-const deferredPackages = ['animejs']
 const excludedTokens = [
   '@resvg/resvg-js',
   'Remotion',
-  'Three',
-  'Pixi',
-  'Konva',
-  'Babylon',
   'provider-generated graphics',
   'real media/render/browser output',
+  'route/tool/worker/provider runtime',
 ]
 const requiredDocs = [
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-approval-packet.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-source-evidence-lockfile.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-tool-selection.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-excluded-tools.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-package-scope.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-validation-plan.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-allowed-blocked-scope.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-approval-decision.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-recommendation.md',
-  'docs/prompt-ai-tools-creative-graphics-batch-2-approval-validation-results.md',
-  'docs/implementation-prompts/prompt-ai-tools-creative-graphics-batch-2-approval-packet.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-approval-packet.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-source-evidence-lockfile.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-tool-selection.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-excluded-tools.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-validation-plan.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-package-scope.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-runtime-boundary.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-allowed-blocked-scope.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-approval-decision.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-4-recommendation.md',
+  'docs/prompt-ai-tools-creative-graphics-batch-3-approval-validation-results.md',
+  'docs/implementation-prompts/prompt-ai-tools-creative-graphics-batch-3-approval-packet.md',
 ]
-const batch1EvidenceDocs = [
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-qa-decision.md',
-  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-qa-review.md',
-  'docs/prompt-ai-tools-creative-graphics-batch-1-qa-review-validation-results.md',
+const requiredEvidenceDocs = [
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-qa-decision.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-qa-review.md',
+  'docs/prompt-ai-tools-creative-graphics-batch-2-qa-review-validation-results.md',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-tool-inventory.json',
+  'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-install-batches.json',
 ]
 const requiredTrueBooleans = [
   'futureDependencyInstallApproved',
@@ -61,19 +50,17 @@ const requiredTrueBooleans = [
   'futureSyntheticFixtureApproved',
 ]
 const requiredFalseBooleans = [
-  'batch2ExecutionApprovedNow',
-  'batch2InstallPerformedNow',
-  'batch2ImportSmokePerformedNow',
-  'batch2SyntheticFixtureProofPerformedNow',
+  'batch3ExecutionApprovedNow',
   'e2eProductionProofClaimed',
   'actualToolExecutionApprovedNow',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
   'providerRuntimeApprovedNow',
-  'browserRuntimeApprovedNow',
-  'webglRuntimeApprovedNow',
   'renderExportApprovedNow',
   'mediaRuntimeApprovedNow',
+  'browserRuntimeApprovedNow',
+  'webglRuntimeApprovedNow',
+  'canvasRuntimeApprovedNow',
   'supabaseMutationApprovedNow',
   'gcsUploadApprovedNow',
   'publicArtifactsApproved',
@@ -84,10 +71,11 @@ const requiredFalseBooleans = [
   'productionApproved',
 ]
 const forbiddenPatterns = [
-  ['batch_2_install_claim', /\bBatch 2 (?:install|dependency install)\b[^.\n]*(?:completed|happened|ran|succeeded|was performed|approved now|enabled|true)\b/i],
-  ['batch_2_import_claim', /\bBatch 2 import smoke\b[^.\n]*(?:completed|happened|ran|succeeded|was performed|approved now|enabled|true)\b/i],
-  ['batch_2_fixture_claim', /\bBatch 2 synthetic fixture\b[^.\n]*(?:completed|happened|ran|succeeded|was performed|approved now|enabled|true)\b/i],
+  ['batch_3_install_claim', /\bBatch 3 (?:install|dependency install)\b[^.\n]*(?:completed|happened|ran|succeeded|was performed|approved now|enabled|true)\b/i],
+  ['batch_3_import_claim', /\bBatch 3 import smoke\b[^.\n]*(?:completed|happened|ran|succeeded|was performed|approved now|enabled|true)\b/i],
+  ['batch_3_fixture_claim', /\bBatch 3 synthetic fixture\b[^.\n]*(?:completed|happened|ran|succeeded|was performed|approved now|enabled|true)\b/i],
   ['e2e_production_claim', /\bE2E production proof\b[^.\n]*(?:claimed|completed|passed|true|enabled)\b/i],
+  ['runtime_ready_claim', /\bruntime[- ]route[- ]ready\b[^.\n]*(?:claimed|approved|enabled|true)\b/i],
   ['tool_execution_enabled', /\bactual tool execution\b[^.\n]*(?:enabled|approved now|allowed now|performed|executed|true)\b/i],
   ['route_execution_enabled', /\broute execution\b[^.\n]*(?:enabled|approved now|allowed now|performed|executed|true)\b/i],
   ['worker_execution_enabled', /\bworker execution\b[^.\n]*(?:enabled|approved now|allowed now|performed|executed|true)\b/i],
@@ -109,11 +97,6 @@ const forbiddenPatterns = [
 const failures = []
 const env = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const git = (args) => execFileSync('git', args, { env, encoding: 'utf8' }).trim()
-const batch2ExecutionContext =
-  existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md') &&
-  readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md', 'utf8').includes(
-    executionContextDecision,
-  )
 const batch3ExecutionContext =
   existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-readiness-decision.md') &&
   readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-readiness-decision.md', 'utf8').includes(
@@ -128,7 +111,7 @@ const readJson = (path) => {
   }
 }
 
-for (const path of [...requiredDocs, ...batch1EvidenceDocs]) {
+for (const path of [...requiredDocs, ...requiredEvidenceDocs]) {
   if (!existsSync(path)) failures.push(`missing_required_file:${path}`)
 }
 
@@ -137,9 +120,9 @@ const docsText = requiredDocs
   .map((path) => `\n--- ${path} ---\n${readFileSync(path, 'utf8')}`)
   .join('\n')
 const unsafeClaimText = docsText
-  .replace(/\b[Nn]o [^.\n]*(?: was (?:enabled|performed|claimed|created)| ran| is approved)\./g, '')
+  .replace(/\b[Nn]o [^.\n]*(?: was (?:enabled|performed|claimed|created)| ran| is approved| happened)\./g, '')
   .split('\n')
-  .filter((line) => !/\b(?:blocked|not approved|does not approve|future-only|future proof|later Batch 2 execution|remains false|remains blocked|out of scope|deferred|excluded)\b/i.test(line))
+  .filter((line) => !/\b(?:blocked|not claimed|not approved|does not approve|future-only|later Batch 3 execution|remains false|remains blocked|out of scope|deferred|excluded|has not happened|does not make)\b/i.test(line))
   .join('\n')
 
 for (const [name, pattern] of forbiddenPatterns) {
@@ -153,22 +136,24 @@ for (const decision of decisions) {
   if (!allowedDecisions.has(decision)) failures.push(`invalid_decision:${decision}`)
 }
 
-for (const token of ['PR #428', 'e75d654e6e5ce1c0464cc389ce48dd03f1d0a70d', 'ai_graphics_batch_1_qa_passed_with_warnings']) {
-  if (!docsText.includes(token)) failures.push(`batch_1_qa_evidence_missing:${token}`)
+for (const token of ['PR #437', '6a25d2d76702ec0ef015488a20db6048e5e8ba7a', 'ai_graphics_batch_2_qa_passed_with_warnings']) {
+  if (!docsText.includes(token)) failures.push(`batch_2_qa_evidence_missing:${token}`)
 }
-
 for (const packageName of selectedPackages) {
   if (!docsText.includes(`\`${packageName}\``)) failures.push(`selected_package_missing:${packageName}`)
-}
-for (const packageName of deferredPackages) {
-  if (!docsText.includes(`\`${packageName}\``)) failures.push(`deferred_package_missing:${packageName}`)
 }
 for (const token of excludedTokens) {
   if (!docsText.includes(token)) failures.push(`excluded_token_missing:${token}`)
 }
+for (const token of ['babylon_js', 'AI_TOOLS_CREATIVE_GRAPHICS']) {
+  const inventoryText = existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-tool-inventory.json')
+    ? readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-tool-inventory.json', 'utf8')
+    : ''
+  if (!inventoryText.includes(token)) failures.push(`owner_inventory_token_missing:${token}`)
+}
 
-const decisionDoc = existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-approval-decision.md')
-  ? readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-approval-decision.md', 'utf8')
+const decisionDoc = existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-approval-decision.md')
+  ? readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-approval-decision.md', 'utf8')
   : ''
 for (const field of requiredTrueBooleans) {
   if (!new RegExp(`\\|\\s*${field}\\s*\\|\\s*\`true\`\\s*\\|`).test(decisionDoc)) failures.push(`required_boolean_not_true:${field}`)
@@ -182,10 +167,10 @@ for (const token of ['no write', 'docs_only', 'environment touched: `none`', 'SQ
 
 const packageJson = readJson('package.json')
 if (
-  packageJson?.scripts?.['open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics'] !==
-  'node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-2-approval-diagnostics.mjs'
+  packageJson?.scripts?.['open-source-tool-stack:ai-tools-creative-graphics:batch-3-approval:diagnostics'] !==
+  'node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-3-approval-diagnostics.mjs'
 ) {
-  failures.push('missing_package_script:open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics')
+  failures.push('missing_package_script:open-source-tool-stack:ai-tools-creative-graphics:batch-3-approval:diagnostics')
 }
 
 const basePackageJson = JSON.parse(git(['show', `${diffBase}:package.json`]))
@@ -197,74 +182,48 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
     const removed = Object.keys(baseSection).filter((name) => !currentSection[name])
     const changed = Object.keys(currentSection).filter((name) => baseSection[name] && baseSection[name] !== currentSection[name])
     const approvedExecutionDependencyChange =
-      (batch2ExecutionContext || batch3ExecutionContext) &&
+      batch3ExecutionContext &&
       section === 'dependencies' &&
       removed.length === 0 &&
       changed.length === 0 &&
-      added.every((name) => selectedPackages.includes(name) || (batch3ExecutionContext && approvedBatch3ExecutionDependencies.includes(name)))
+      added.every((name) => selectedPackages.includes(name))
     if (!approvedExecutionDependencyChange) failures.push(`package_section_changed:${section}`)
   }
 }
-
 const changedFiles = new Set(
   [...git(['diff', '--name-only']).split('\n'), ...git(['diff', '--cached', '--name-only']).split('\n')].filter(Boolean),
 )
-if (changedFiles.has('package-lock.json') && !batch2ExecutionContext && !batch3ExecutionContext) failures.push('package_lock_changed')
-const packageLock = readJson('package-lock.json')
-for (const packageName of selectedPackages) {
-  if (
-    !batch2ExecutionContext &&
-    (packageJson?.dependencies?.[packageName] || packageJson?.devDependencies?.[packageName] || packageJson?.optionalDependencies?.[packageName])
-  ) {
-    failures.push(`batch_2_package_installed_in_package_json:${packageName}`)
-  }
-  if (!batch2ExecutionContext && !batch3ExecutionContext && packageLock?.packages?.[`node_modules/${packageName}`]) {
-    failures.push(`batch_2_package_installed_in_lockfile:${packageName}`)
-  }
-}
-
-const packageJsonDiff = `${git(['diff', '--', 'package.json'])}\n${git(['diff', '--cached', '--', 'package.json'])}`
-const unexpectedPackageJsonDiff = packageJsonDiff
-  .split('\n')
-  .filter((line) => /^[+-]\s*"/.test(line))
-  .filter((line) => !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics'))
-  .filter((line) => {
-    if (!batch2ExecutionContext) return true
-    return (
-      !allowedExecutionScripts.some((scriptName) => line.includes(scriptName)) &&
-      !selectedPackages.some((packageName) => line.includes(`"${packageName}"`)) &&
-      !(batch3ExecutionContext && approvedBatch3ExecutionDependencies.some((packageName) => line.includes(`"${packageName}"`)))
-    )
-  })
-if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
+if (changedFiles.has('package-lock.json') && !batch3ExecutionContext) failures.push('package_lock_changed')
 
 const trackedLocalArtifacts = git(['ls-files', '.local-artifacts'])
 if (trackedLocalArtifacts) failures.push(`local_artifacts_tracked:${trackedLocalArtifacts}`)
 const trackedGeneratedOutputs = git(['ls-files'])
   .split('\n')
   .filter((path) => /\.(png|jpe?g|webp|gif|mp4|mov|webm|svg|pdf)$/i.test(path))
-  .filter((path) => path.includes('open-source-tool-stack') || path.includes('ai-graphics-batch-2'))
+  .filter((path) => path.includes('open-source-tool-stack') || path.includes('ai-graphics-batch-3'))
 if (trackedGeneratedOutputs.length > 0) failures.push(`generated_media_or_render_output_tracked:${trackedGeneratedOutputs.join(',')}`)
 
 const result = {
   status: failures.length === 0 ? 'passed' : 'blocked',
   decisionState: expectedDecision,
   selectedPackages,
-  deferredPackages,
   futureDependencyInstallApproved: true,
   packageLockMutationApproved: true,
   futureImportSmokeApproved: true,
   futureSyntheticFixtureApproved: true,
-  batch2ExecutionApprovedNow: false,
+  batch3ExecutionApprovedNow: false,
+  e2eProductionProofClaimed: false,
   actualToolExecutionApprovedNow: false,
   routeExecutionApprovedNow: false,
   workerExecutionApprovedNow: false,
   providerRuntimeApprovedNow: false,
   renderExportApprovedNow: false,
-  packageLockUnchanged: !changedFiles.has('package-lock.json'),
-  dependencySectionsUnchanged: true,
+  browserRuntimeApprovedNow: false,
+  webglRuntimeApprovedNow: false,
+  canvasRuntimeApprovedNow: false,
   supabaseUpdateRequired: 'no write',
   supabaseStatus: 'docs_only',
+  packageLockUnchanged: !changedFiles.has('package-lock.json'),
   failures,
 }
 

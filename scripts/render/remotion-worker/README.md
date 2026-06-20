@@ -2,7 +2,7 @@
 
 This folder contains the mock-only Cloud Run Job container skeleton for future ReeditPro preview and export rendering.
 
-RP-RENDER-03A proves container build, deploy, job payload validation, and sanitized output wiring. It does not render media, install Remotion, import `@remotion/renderer`, access real GCS objects, read Secret Manager values, call providers, spend credits, or deploy automatically.
+RP-RENDER-03A proves container build, deploy, job payload validation, and sanitized output wiring. It does not render media, import `@remotion/renderer`, access real GCS objects, read Secret Manager values, call providers, spend credits, or deploy automatically. Later `TRACKA-REMOTION-INSTALL-PROOF-1` adds package-level Remotion dependencies only; runtime import and execution remain blocked.
 
 ## Planned Cloud Run Jobs
 
@@ -146,7 +146,7 @@ These are references only. The mock worker does not read Secret Manager values o
 
 ## Do Not Do Yet
 
-- Do not install `remotion` or `@remotion/renderer`.
+- Do not run or import `remotion` or `@remotion/renderer` in the mock worker.
 - Do not run Chromium, FFmpeg, Remotion, or media rendering.
 - Do not read Secret Manager values.
 - Do not download or upload real media.

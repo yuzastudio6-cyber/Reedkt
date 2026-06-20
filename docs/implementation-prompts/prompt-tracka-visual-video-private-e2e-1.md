@@ -20,14 +20,18 @@ Core proof status: `TRACKA-CORE-RENDER-CAPTION-INSTALL-PROOF-1 decision: complet
 
 Libass runtime proof status: `TRACKA-LIBASS-CAPTION-BURNIN-RUNTIME-PROOF-1 decision: completed_runtime_proof_satisfied_by_existing_merged_evidence`.
 
-Current blocked readiness: `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates`.
+Current blocked readiness: `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates_and_remotion_runtime_proof`.
 
 OTIO handoff readiness: `opentimelineio_timeline_validation readiness: ready_for_tracka_private_e2e_timeline_handoff`.
 
 Remotion inventory status: `TRACKA-REMOTION-RENDER-VALIDATION-1 decision: completed_source_inventory_remotion_not_installed_ready_for_install_proof_packet`.
 
-Remotion blocker: `remotion_render_validation installStatus: not_installed`.
+Remotion install status: `remotion_render_validation installStatus: installed_with_package_source_evidence`.
+
+Remotion runtime proof status: `remotion_render_validation runtimeProofStatus: blocked_pending_runtime_proof`.
+
+Browser runtime status: `browserRuntimeStatus: not_validated_in_this_phase`.
 
 This prompt must not execute private E2E, process media, access private artifacts, create signed URLs, create public artifacts, or unlock beta/production/final delivery.
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, tool installation, tool execution, Remotion execution, media processing, FFmpeg/FFprobe execution, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, Remotion execution, media processing, FFmpeg/FFprobe execution, or broad service-role handler was enabled. Dependency mutation was limited to the scoped Atlas Track A Remotion package install proof.

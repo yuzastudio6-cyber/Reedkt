@@ -269,6 +269,16 @@ TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP:
 - No install, Docker, Paddle/OCR execution, font/model asset operation, Supabase/GCS, beta, or production scope is accepted.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:end -->
 
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution`
+- Next lane: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION`
+- Reason: `fonts-noto-cjk` provides the lower-cost future package path for Noto CJK regular/bold coverage, while `fonts-noto-cjk-extra` stays fallback-only.
+- Future execution remains bounded to OCR runtime package patch, font discovery/config, network-disabled import/API-shape checks, and cleanup.
+- Runtime/product scopes remain blocked.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:end -->
+
 <!-- tracka-docker-build-context-blocker-resolution:start -->
 ## Track A Docker Build Context Blocker Resolution
 

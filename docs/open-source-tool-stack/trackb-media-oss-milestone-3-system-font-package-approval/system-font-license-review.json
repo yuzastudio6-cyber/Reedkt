@@ -1,0 +1,17 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+  "reviewedSources": [
+    "https://sources.debian.org/copyright/license/fonts-noto-cjk/1%3A20201206-cjk%2Brepack1-1/",
+    "https://notofonts.github.io/noto-docs/website/use/"
+  ],
+  "license": "SIL Open Font License 1.1",
+  "debianPackageUseAppearsAcceptableForFutureContainerReview": true,
+  "avoidsProprietaryPingFangAmbiguity": true,
+  "repositoryShouldCommitFontBinaries": false,
+  "futureExecutionShouldInstallFromPackageManagerOnly": true,
+  "fontAssetDownloadApprovedNow": false,
+  "fontAssetCopyApprovedNow": false,
+  "fontAssetUploadApprovedNow": false,
+  "privateAssetStagingApprovedNow": false
+}

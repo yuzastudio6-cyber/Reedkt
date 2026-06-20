@@ -1,0 +1,10 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecutionBlockerFollowup.buildContextGeneration.v1",
+  "generatedAt": "2026-06-20T15:05:37.884Z",
+  "skipped": true,
+  "skipReason": "not_required_for_ocr_runtime_target",
+  "allCommandsPassed": true,
+  "allOutputsPresent": true,
+  "generatedOutputs": [],
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape"
+}

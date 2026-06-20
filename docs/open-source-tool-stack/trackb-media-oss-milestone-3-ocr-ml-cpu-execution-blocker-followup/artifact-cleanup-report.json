@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecutionBlockerFollowup.artifactCleanup.v1",
+  "before": {
+    "dist": false,
+    "dist-server": false,
+    "dist-remotion-worker": false,
+    "dist-staging-fixture-worker": false,
+    "dist-staging-real-video-export-worker": false,
+    "node_modules": false
+  },
+  "after": {
+    "dist": false,
+    "dist-server": false,
+    "dist-remotion-worker": false,
+    "dist-staging-fixture-worker": false,
+    "dist-staging-real-video-export-worker": false,
+    "node_modules": false
+  },
+  "cleanupCommand": "rm -rf dist dist-server dist-remotion-worker dist-staging-fixture-worker dist-staging-real-video-export-worker node_modules",
+  "generatedOutputsCleaned": true,
+  "localImageCleanupCommand": "docker image rm reeditpro-ocr-runtime:trackb-milestone3-cpu-libgomp-b17a20898d5c046447905e5a411a733133afa535",
+  "localImageCleanupExitCode": 0,
+  "localImageCleanupNotRunReason": null,
+  "localImageCleanupAllowedFailure": false,
+  "dockerImagePushed": false,
+  "generatedAt": "2026-06-20T15:05:37.884Z",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape"
+}

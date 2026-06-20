@@ -1,0 +1,139 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecutionBlockerFollowup.sourceAudit.v1",
+  "generatedAt": "2026-06-20T15:05:37.884Z",
+  "branchName": "codex/rp-trackb-media-oss-milestone-3-ocr-ml-cpu-execution-blocker-followup",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "b17a20898d5c046447905e5a411a733133afa535",
+  "sourceSha": "b17a20898d5c046447905e5a411a733133afa535",
+  "sourceCompatible": true,
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceEvidence": [
+    {
+      "pr": 583,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape",
+      "blocker": "missing_libgomp_so_1_while_loading_paddle_base_libpaddle_so",
+      "dockerBuildPassed": true,
+      "paddleOcrSkippedBecausePaddlePaddleFailed": true,
+      "ocrInferenceRun": false,
+      "modelAssetOperationsRun": false
+    },
+    {
+      "pr": 578,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution",
+      "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+      "targetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt"
+    },
+    {
+      "pr": 574,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review"
+    },
+    {
+      "pr": 571,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded"
+    },
+    {
+      "pr": 567,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution"
+    },
+    {
+      "pr": 563,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval"
+    },
+    {
+      "pr": 559,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa"
+    },
+    {
+      "pr": 557,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof"
+    },
+    {
+      "pr": 551,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context"
+    },
+    {
+      "pr": 549,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "ownerId": "TRACK_B_MEDIA_OSS_STEWARD"
+    }
+  ],
+  "contextOnlyPrs": [
+    {
+      "pr": 543,
+      "status": "ai_graphics_context_only",
+      "canonicalTrackBSource": false
+    },
+    {
+      "pr": 51,
+      "status": "historical_paddleocr_context_only",
+      "selectedAsCurrentProof": false
+    },
+    {
+      "pr": 56,
+      "status": "historical_paddleocr_context_only",
+      "selectedAsCurrentProof": false
+    }
+  ],
+  "tools": [
+    "paddlepaddle",
+    "paddleocr"
+  ],
+  "fileHashes": {
+    "packageJson": "cc60006dccea08b7a24c8203122af3842cd61d98890c5f18a7d1d2aaaf06fb18",
+    "packageLock": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    "dockerfile": "dfccf4a34332df2521bd02fec5c9e052c6ccc790c1e3f63894313d7750ba5ef3",
+    "requirements": "b51d22ad3d74ed41b11b27fd4db545e283c4b88147abd149dd20e0ae7b79d365",
+    "dockerignore": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91"
+  },
+  "noScope": {
+    "ocrInferenceRun": false,
+    "modelDownloadRun": false,
+    "modelAssetCopied": false,
+    "modelAssetUploaded": false,
+    "gpuExecutionRun": false,
+    "realUserMediaUsed": false,
+    "realUserDocumentsUsed": false,
+    "mediaProcessingRun": false,
+    "renderExportRun": false,
+    "workerRouteProviderRun": false,
+    "supabaseMutationRun": false,
+    "gcsUploadRun": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "betaProductionUnlocked": false,
+    "rawPromptExecuted": false,
+    "secretPayloadPrinted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_FOLLOWUP_RESOLUTION"
+}

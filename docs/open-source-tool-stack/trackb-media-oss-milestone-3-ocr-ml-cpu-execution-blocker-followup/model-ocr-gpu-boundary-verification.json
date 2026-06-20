@@ -1,0 +1,15 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecutionBlockerFollowup.modelOcrBoundary.v1",
+  "generatedAt": "2026-06-20T15:05:37.884Z",
+  "ocrInferenceRun": false,
+  "modelDownloadRun": false,
+  "modelAssetCopyRun": false,
+  "modelAssetUploadRun": false,
+  "modelFilesStaged": false,
+  "dockerRunNetworkNone": true,
+  "paddleOcrImportApiProofAvoidedInstantiation": true,
+  "paddleOcrModelAssetRequiredForImportApiShape": false,
+  "ocrInferenceFutureOnly": true,
+  "modelAssetApprovalRequiredBeforeInference": true,
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape"
+}

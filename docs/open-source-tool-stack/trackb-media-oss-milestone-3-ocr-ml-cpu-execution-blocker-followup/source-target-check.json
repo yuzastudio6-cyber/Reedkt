@@ -1,0 +1,36 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecutionBlockerFollowup.sourceTargetCheck.v1",
+  "generatedAt": "2026-06-20T15:05:37.884Z",
+  "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+  "targetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+  "dockerfileExists": true,
+  "requirementsExists": true,
+  "dockerfileCopiesRequirements": true,
+  "dockerfileCopiesOcrRuntime": true,
+  "dockerfileInstallsRequirements": true,
+  "packagePresence": {
+    "paddlepaddle==3.0.0": true,
+    "paddleocr==3.0.0": true
+  },
+  "allRequiredPackagesDeclared": true,
+  "envGuards": {
+    "modelDownloadsDisabled": true,
+    "realMediaInputDisabled": true,
+    "providerExecutionDisabled": true
+  },
+  "allRuntimeGuardsDeclared": true,
+  "packageStrategy": {
+    "baseImage": "python:3.12-slim",
+    "packageManager": "apt",
+    "approvedPackage": "libgomp1",
+    "aptLayerPresent": true,
+    "unrelatedPackagesAdded": false
+  },
+  "buildContextGenerationRequired": false,
+  "packageLockMutationAllowed": false,
+  "requirementsMutationAllowed": false,
+  "dockerfileMutationAllowed": true,
+  "unrelatedDockerfileMutationAllowed": false,
+  "sourceTargetValid": true,
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape"
+}

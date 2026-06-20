@@ -45,6 +45,13 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - Pending external tools remain blocked from adapter plans until production registry expansion.
 - Future execution must consume approved snapshots and private artifact references through the existing production worker router.
 
+## Safe Command Plan Layer
+
+- Safe command plans convert adapter plans into structured command intents, not shell commands.
+- Safe command plans use allowlisted parameter schemas, artifact requirements, output artifact expectations, resource limits, sandbox profiles, and validation policy.
+- Safe command plans reject raw prompts, signed URLs, service-role context, arbitrary args, local paths, shell strings, provider keys, and secret values.
+- Safe command plans remain planning-only and are required before any future controlled synthetic fixture execution milestone.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.
@@ -54,6 +61,7 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 5. Compose a planning-only pipeline step with selected tool, ranked candidates, fallback IDs, expected artifacts, quality gates, and worker type when inferable.
 6. Build a pipeline fallback plan and quality gate plan from existing policies.
 7. When requested, build adapter plans and worker-route bridge metadata from the selected planning-only pipeline.
+8. When requested, build safe command plans and validate the command-intent boundary without executing tools.
 
 ## Non-Goals
 

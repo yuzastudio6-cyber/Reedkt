@@ -66,6 +66,9 @@
     "generatedArtifactPathScan": "passed",
     "packageLockUnchanged": "passed",
     "localArtifactsStaged": false,
-    "cachedDiffCheck": "pending"
+    "cachedDiffCheck": "passed",
+    "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/617",
+    "draftPrState": "open_draft_mergeable",
+    "draftPrChecks": "no GitHub checks reported"
   }
 }

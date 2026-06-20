@@ -20,8 +20,9 @@ QA preserved deferred status for `echarts`, `lottie_web`, `animejs`, `three_js`,
 ## PR Follow-Up
 
 - Draft PR: pending
-- PR link: pending
-- Check status: pending local validation and PR creation
+- Draft PR: PR #617 open/draft/MERGEABLE
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/617
+- Check status: no GitHub checks reported on `codex/rp-ai-graphics-cpu-static-spec-validation-refreshed-execution-qa-review` at `e441dace6ee303243368e0e4e583a7bacc9a899f`
 
 ## Validation
 

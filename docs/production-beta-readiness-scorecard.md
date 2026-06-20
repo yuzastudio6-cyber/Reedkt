@@ -186,3 +186,12 @@ not declare `d3`, `vega-lite`, `vega`, `satori`, `@svgdotjs/svg.js`, or
 static validation, fixture execution, tool/runtime execution, Supabase/GCS,
 signed URL, public artifact, internal beta, external beta, or production unlock
 occurred.
+
+AI graphics CPU/static dependency reconciliation records
+`ai_graphics_cpu_static_dependency_reconciliation_ready_for_refreshed_execution`.
+PR #612 remains a valid blocked record for its stale lineage, but PR #433 and
+PR #441 dependency-bearing package-proof refs contain the approved CPU/static
+packages. The next execution should use a refreshed dependency-bearing base; no
+dependency install, package-lock mutation, CPU/static execution, runtime
+execution, Supabase/GCS, signed URL, public artifact, internal beta, external
+beta, or production unlock occurred in this reconciliation lane.

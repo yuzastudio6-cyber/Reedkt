@@ -36,6 +36,7 @@
     "ai-graphics:cpu-static-spec-validation-approval:diagnostics": "node scripts/validation/ai-graphics-cpu-static-spec-validation-approval-diagnostics.mjs",
     "ai-graphics:cpu-static-spec-validation:execute": "node scripts/validation/ai-graphics-cpu-static-spec-validation-execution.mjs",
     "ai-graphics:cpu-static-spec-validation:diagnostics": "node scripts/validation/ai-graphics-cpu-static-spec-validation-execution-diagnostics.mjs",
+    "ai-graphics:cpu-static-spec-validation-dependency-reconciliation:diagnostics": "node scripts/validation/ai-graphics-cpu-static-spec-validation-dependency-reconciliation-diagnostics.mjs",
     "open-source-tool-stack:batch-1:approval:diagnostics": "node scripts/validation/open-source-tool-stack-batch-1-approval-diagnostics.mjs",
     "open-source-tool-stack:batch-1-rerun:approval:diagnostics": "node scripts/validation/open-source-tool-stack-batch-1-rerun-approval-diagnostics.mjs",
     "dependency-baseline:repair-before-tool-batch-1:diagnostics": "node scripts/validation/dependency-baseline-repair-before-tool-batch-1-diagnostics.mjs",

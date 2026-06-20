@@ -6,6 +6,9 @@ Current readiness: `TRACKA-REVIDEO-PACKAGE-IDENTITY-REVIEW-1 readiness: ready_fo
 
 Blocked reason: `blocked_pending_revideo_package_identity_review`
 
-Source-of-truth: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-2 decision: completed_install_source_changes_for_gstreamer_mkvtoolnix_pending_build_proof`
+Source-of-truth:
+
+- `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-2 decision: completed_install_source_changes_for_gstreamer_mkvtoolnix_pending_build_proof`
+- `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_pending_native_container_build_confirmation`
 
 Revideo remains evaluation-only and production-blocked. Do not install a Revideo package, run Revideo, render previews, process media, mutate Supabase, run SQL, or unlock beta/production/final delivery in this review.

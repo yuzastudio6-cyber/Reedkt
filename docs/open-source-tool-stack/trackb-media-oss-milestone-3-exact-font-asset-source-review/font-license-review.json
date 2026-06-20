@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3ExactFontAssetSourceReview.fontLicense.v1",
+  "decision": "trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review",
+  "generatedAt": "2026-06-20T20:05:00.000Z",
+  "requestedAsset": "PingFang-SC-Regular.ttf",
+  "sourceComponent": "PaddleX font assets",
+  "exactAssetLicenseKnown": false,
+  "redistributionAllowedKnown": false,
+  "privateStagingAllowedKnown": false,
+  "repoCommitAllowed": false,
+  "cloudRuntimeImageUseAllowedKnown": false,
+  "sourceCodeLicenseDoesNotResolveAssetLicense": true,
+  "paddleXSourceLicenseObserved": "Apache-2.0 source headers in reviewed PaddleX Python files",
+  "licenseBlocker": "The reviewed source code license does not prove the license of the external PingFang-SC-Regular.ttf font file.",
+  "saferSubstitutePreferredUntilLicenseProven": true,
+  "decisionReason": "The exact font asset license and redistribution/private-staging rights are not proven from safe text metadata.",
+  "fontAssetDownloaded": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP"
+}

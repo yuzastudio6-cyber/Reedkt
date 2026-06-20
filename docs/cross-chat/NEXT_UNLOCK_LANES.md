@@ -248,6 +248,16 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - Supabase classification: no write / none / none / no.
 <!-- OPEN_SOURCE_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:end -->
 
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW:
+
+- Decision: `trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review`
+- Next lane: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP`
+- Reason: `PingFang-SC-Regular.ttf` source path is observed, but the exact font license, redistribution/private-staging rights, checksum, and stable asset identity are not proven.
+- System-font and asset-free config alternatives remain possible, but not accepted by this review.
+- Runtime/product scopes remain blocked.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:end -->
+
 <!-- tracka-docker-build-context-blocker-resolution:start -->
 ## Track A Docker Build Context Blocker Resolution
 

@@ -1,0 +1,26 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3ExactFontAssetSourceReview.exactAssetIdentity.v1",
+  "decision": "trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review",
+  "generatedAt": "2026-06-20T20:05:00.000Z",
+  "sourceSha": "d4dce081f32c236b1442263d1d3889b1f9ab9db9",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "requestedAsset": "PingFang-SC-Regular.ttf",
+  "sourceComponent": "PaddleX font assets",
+  "requestingPath": "paddlex.utils.fonts.PINGFANG_FONT",
+  "observedUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf",
+  "observedInPr": 600,
+  "observedNetworkMode": "--network none",
+  "assetClassification": "font_asset_requested_by_package_data_runtime_fetch_path",
+  "packageDataClassification": "external_runtime_fetch_not_repo_bundled_asset",
+  "fontAssetDownloaded": false,
+  "fontAssetCopied": false,
+  "fontAssetUploaded": false,
+  "fontAssetStaged": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

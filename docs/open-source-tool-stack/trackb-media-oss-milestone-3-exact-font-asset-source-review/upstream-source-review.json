@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3ExactFontAssetSourceReview.upstreamSource.v1",
+  "decision": "trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review",
+  "generatedAt": "2026-06-20T20:05:00.000Z",
+  "requestedAsset": "PingFang-SC-Regular.ttf",
+  "sourceComponent": "PaddleX font assets",
+  "textOnlySourcesReviewed": [
+    {
+      "kind": "github_source_file",
+      "url": "https://github.com/PaddlePaddle/PaddleX/blob/a8ec0bdec40d4108859ebda48e079d2fdcfb5b82/paddlex/utils/fonts.py",
+      "finding": "PaddleX Font._get_offical_font builds the paddle-model-ecology URL and declares PINGFANG_FONT = Font(font_name=\"PingFang-SC-Regular.ttf\")."
+    },
+    {
+      "kind": "github_issue",
+      "url": "https://github.com/PaddlePaddle/PaddleX/issues/4405",
+      "finding": "Issue text discusses PADDLE_PDX_LOCAL_FONT_FILE_PATH and CACHE_DIR as local font controls."
+    },
+    {
+      "kind": "github_issue",
+      "url": "https://github.com/PaddlePaddle/PaddleX/issues/3758",
+      "finding": "Issue text records offline environments hitting the same PingFang-SC-Regular.ttf URL."
+    }
+  ],
+  "exactSourceUrlObserved": "https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf",
+  "officialProjectReferenceFound": true,
+  "assetBundledInReviewedRepoSource": false,
+  "assetThirdPartyOrProprietaryRisk": true,
+  "officialChecksumFound": false,
+  "sourceStableEnoughForStaging": false,
+  "sourceReviewConclusion": "The PaddleX source identifies the runtime URL and font name, but it does not prove the font asset's standalone license, checksum, version, or redistribution rights.",
+  "fontAssetDownloaded": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP"
+}

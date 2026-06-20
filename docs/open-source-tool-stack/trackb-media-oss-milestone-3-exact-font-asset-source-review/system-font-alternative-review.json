@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3ExactFontAssetSourceReview.systemFontAlternative.v1",
+  "decision": "trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review",
+  "generatedAt": "2026-06-20T20:05:00.000Z",
+  "requestedAsset": "PingFang-SC-Regular.ttf",
+  "reviewedCandidatePackages": [
+    {
+      "packageName": "fonts-noto-cjk",
+      "source": "Debian package metadata and Noto CJK license metadata",
+      "licenseCandidate": "SIL Open Font License 1.1",
+      "packageInstallApprovedNow": false,
+      "dockerfileMutationApprovedNow": false,
+      "viableForFutureReview": true
+    },
+    {
+      "packageName": "fonts-noto-cjk-extra",
+      "source": "Debian package metadata and Noto CJK license metadata",
+      "licenseCandidate": "SIL Open Font License 1.1",
+      "packageInstallApprovedNow": false,
+      "dockerfileMutationApprovedNow": false,
+      "viableForFutureReview": true
+    }
+  ],
+  "substituteAcceptedNow": false,
+  "configurationKnownToAvoidPaddleXFetch": false,
+  "reasonNotSelected": "Noto CJK appears safer as an open font candidate, but this phase did not prove PaddleX/PaddleOCR can be configured to use it without the PingFang fetch.",
+  "nextPossibleGate": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP"
+}

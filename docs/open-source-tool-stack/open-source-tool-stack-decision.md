@@ -552,3 +552,19 @@ TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW:
+
+- Decision: `trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review`
+- Requested asset: `PingFang-SC-Regular.ttf`.
+- Source component: PaddleX font assets, observed in PR #600 evidence as an attempted fetch from `https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf` under `--network none`.
+- Reviewed source metadata: PaddleX `paddlex/utils/fonts.py`, PaddleX issue #4405, and PaddleX issue #3758 as text only.
+- Result: the requesting path and URL are known, but exact font license, redistribution rights, private-staging rights, checksum, and stable asset identity are not proven.
+- System-font package approval, asset-free import/config follow-up, and private asset staging remain unapproved until a later gate proves the required evidence.
+- Track B counts remain: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No font/model asset download, copy, upload, private staging, OCR inference, PaddleOCR/PaddlePaddle execution, Docker build/run, install, requirements/Dockerfile mutation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:end -->

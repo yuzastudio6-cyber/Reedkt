@@ -1,5 +1,5 @@
-# TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW
+# Track B Media OSS Milestone 3 OCR/ML CPU/GPU Review
 
-Create the future OCR/ML review for PaddleOCR and PaddlePaddle.
+Review and approve the next Track B OCR/ML lane for PaddleOCR and PaddlePaddle after Milestone 2 QA accepted bounded CPU-only OpenCV, PyAV, and PySceneDetect evidence.
 
-CPU tiny proof should come first. GPU is recommended or required before heavy OCR, batch OCR, long edits, many frames/pages, or beta-quality OCR latency. No user documents/media, no worker runtime, no provider calls, and no beta/production unlock.
+This next phase is review/approval only unless a later prompt explicitly authorizes execution. Keep real user media/documents, Docker execution, FFmpeg/FFprobe expansion, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, beta, and production blocked.

@@ -466,3 +466,17 @@ TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW:
+
+- Decision: `trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review`
+- Accepted Milestone 2 tools: OpenCV, PyAV, and PySceneDetect.
+- PR #571 evidence is accepted for CPU-only container import/version and synthetic fixture proofs.
+- Track B counts after QA: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: PaddleOCR, PaddlePaddle, OpenColorIO, and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- GPU execution, FFmpeg/FFprobe expansion, real media processing/probing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW_STATUS:end -->

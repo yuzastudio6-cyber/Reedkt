@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-milestone-1-qa-review'
-const decision = 'trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval'
-const nextPrompt = 'TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL'
+const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-milestone-2-qa-review'
+const decision = 'trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review'
+const nextPrompt = 'TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW'
 const ownerId = 'TRACK_B_MEDIA_OSS_STEWARD'
 
 const requiredFiles = [
@@ -17,18 +17,20 @@ const requiredFiles = [
   'source-of-truth-audit.md',
   'evidence-acceptance-review.json',
   'evidence-acceptance-review.md',
-  'milestone-1-tool-qa-matrix.json',
-  'milestone-1-tool-qa-matrix.md',
+  'milestone-2-tool-qa-matrix.json',
+  'milestone-2-tool-qa-matrix.md',
   'artifact-safety-qa.json',
   'artifact-safety-qa.md',
   'runtime-boundary-qa.json',
   'runtime-boundary-qa.md',
+  'cpu-gpu-qa.json',
+  'cpu-gpu-qa.md',
   'trackb-status-update.json',
   'trackb-status-update.md',
-  'milestone-2-readiness-review.json',
-  'milestone-2-readiness-review.md',
-  'milestone-1-qa-decision.json',
-  'milestone-1-qa-decision.md',
+  'milestone-3-readiness-review.json',
+  'milestone-3-readiness-review.md',
+  'milestone-2-qa-decision.json',
+  'milestone-2-qa-decision.md',
   'readiness-report.json',
   'private-artifact-manifest.json',
   'validation-results.md',
@@ -88,24 +90,28 @@ function sameSet(actual, expected, label) {
 for (const file of [
   ...requiredFiles,
   ...statusFiles,
-  'docs/implementation-prompts/prompt-trackb-media-oss-milestone-2-video-analysis-approval.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-milestone-3-ocr-ml-cpu-gpu-review.md',
 ]) {
   readText(file)
 }
 
 const sourceAudit = readJson(`${reportDir}/source-of-truth-audit.json`)
 const evidenceReview = readJson(`${reportDir}/evidence-acceptance-review.json`)
-const matrix = readJson(`${reportDir}/milestone-1-tool-qa-matrix.json`)
+const matrix = readJson(`${reportDir}/milestone-2-tool-qa-matrix.json`)
 const artifactSafety = readJson(`${reportDir}/artifact-safety-qa.json`)
 const runtime = readJson(`${reportDir}/runtime-boundary-qa.json`)
+const cpuGpu = readJson(`${reportDir}/cpu-gpu-qa.json`)
 const statusUpdate = readJson(`${reportDir}/trackb-status-update.json`)
-const milestone2 = readJson(`${reportDir}/milestone-2-readiness-review.json`)
-const decisionReport = readJson(`${reportDir}/milestone-1-qa-decision.json`)
+const milestone3 = readJson(`${reportDir}/milestone-3-readiness-review.json`)
+const decisionReport = readJson(`${reportDir}/milestone-2-qa-decision.json`)
 const readiness = readJson(`${reportDir}/readiness-report.json`)
 const manifest = readJson(`${reportDir}/private-artifact-manifest.json`)
 const ownerRegistry = readJson('docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.json')
 const steward = readJson('docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.json')
 const status = readJson('docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json')
+const executionDecision = readJson(
+  'docs/open-source-tool-stack/trackb-media-oss-milestone-2-video-analysis-execution/milestone-2-video-analysis-execution-decision.json',
+)
 const packageJson = readJson('package.json')
 
 for (const [label, report] of Object.entries({
@@ -114,8 +120,9 @@ for (const [label, report] of Object.entries({
   matrix,
   artifactSafety,
   runtime,
+  cpuGpu,
   statusUpdate,
-  milestone2,
+  milestone3,
   decisionReport,
   readiness,
   manifest,
@@ -124,116 +131,139 @@ for (const [label, report] of Object.entries({
 }
 
 if (sourceAudit.ownerId !== ownerId || decisionReport.ownerId !== ownerId) fail('owner_id_drift')
-for (const pr of [559, 557, 551, 549, 546, 545, 542]) {
+if (sourceAudit.sourceSha !== '18f4ca37c45aa2b0b69d0e2192f297b25d2514e6') fail(`source_sha_drift:${sourceAudit.sourceSha}`)
+for (const pr of [571, 567, 563, 559, 557, 551, 549, 546, 545, 542]) {
   if (sourceAudit.sourceEvidence?.find((entry) => entry.pr === pr)?.state !== 'MERGED') fail(`missing_pr${pr}_merged_evidence`)
 }
-if (sourceAudit.sourceEvidence?.find((entry) => entry.pr === 559)?.acceptedVariant !== 'dejavu_sans_bold_large_psm7') {
-  fail('missing_pr559_accepted_variant')
+if (sourceAudit.sourceEvidence?.find((entry) => entry.pr === 125)?.canonicalAuthority !== false) {
+  fail('pr125_not_marked_context_only')
 }
-if (sourceAudit.sourceEvidence?.find((entry) => entry.pr === 557)?.blockerEvidence !== 'tesseract_fixture_output_REEDLTPRU_expected_REEDITPRO') {
-  fail('missing_pr557_prior_blocker_evidence')
+if (executionDecision.decision !== 'trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded') {
+  fail(`stale_or_missing_pr571_decision:${executionDecision.decision}`)
 }
 
 sameSet(
   (matrix.tools || []).filter((tool) => tool.acceptedProvenBounded).map((tool) => tool.id),
-  ['exiftool', 'mediainfo', 'tesseract', 'imagemagick'],
-  'accepted_milestone1_tools',
+  ['opencv', 'pyav', 'pyscenedetect'],
+  'accepted_milestone2_tools',
 )
-const tesseract = (matrix.tools || []).find((tool) => tool.id === 'tesseract') || {}
-if (tesseract.acceptedVariant !== 'dejavu_sans_bold_large_psm7') fail('tesseract_variant_drift')
-if (tesseract.observedNormalizedOutput !== 'REEDITPRO') fail('tesseract_output_drift')
-if (tesseract.priorRejectedOutput !== 'REEDLTPRU') fail('missing_prior_bad_ocr_output')
-if (matrix.graphicsMagick?.countedAsAcceptedProven !== false || matrix.graphicsMagick?.installedOrProven !== false) {
-  fail('graphicsmagick_counted_or_proven')
+for (const tool of matrix.tools || []) {
+  if (tool.importVersionProven !== true) fail(`tool_import_not_proven:${tool.id}`)
+  if (tool.syntheticFixtureProven !== true) fail(`tool_fixture_not_proven:${tool.id}`)
+  if (tool.cpuOnly !== true) fail(`tool_not_cpu_only:${tool.id}`)
+  if (tool.gpuUsed !== false) fail(`tool_gpu_used:${tool.id}`)
+  if (tool.runtimeProductReady !== false) fail(`tool_runtime_ready:${tool.id}`)
+  if (tool.rerunInQaPhase !== false) fail(`tool_rerun_in_qa:${tool.id}`)
 }
+if (matrix.milestone2AcceptedToolCount !== 3) fail('milestone2_accepted_count_not_3')
 
 if (statusUpdate.ownedTools !== 16) fail('owned_tool_count_drift')
-if (statusUpdate.previouslyAcceptedProvenBounded !== 5) fail('previous_count_drift')
-if (statusUpdate.milestone1AcceptedProvenBounded !== 4) fail('milestone1_count_drift')
-if (statusUpdate.acceptedProvenBoundedTotalAfterQa !== 9) fail('accepted_total_not_9')
-if (statusUpdate.stillBlockedNotInstalledProvenCount !== 7) fail('blocked_total_not_7')
+if (statusUpdate.acceptedProvenBoundedBeforeMilestone2 !== 9) fail('before_milestone2_count_drift')
+if (statusUpdate.milestone2NewlyAcceptedProvenBounded !== 3) fail('new_milestone2_count_drift')
+if (statusUpdate.acceptedProvenBoundedTotalAfterQa !== 12) fail('accepted_total_not_12')
+if (statusUpdate.stillBlockedNotInstalledProvenCount !== 4) fail('blocked_total_not_4')
+sameSet(statusUpdate.stillBlockedNotInstalledProven, ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio'], 'blocked_after_qa')
 if (statusUpdate.endToEndProductReadyTools !== 0 || decisionReport.endToEndProductReadyTools !== 0) fail('product_ready_not_zero')
 if (statusUpdate.fortyPlusEndToEndClaimAllowed !== false || decisionReport.fortyPlusEndToEndClaimAllowed !== false) fail('forty_plus_claim_allowed')
-sameSet(statusUpdate.stillBlockedNotInstalledProven, ['opencv', 'pyav', 'pyscenedetect', 'paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio'], 'blocked_after_qa')
-const milestone2QaAccepted =
-  status.milestone2QaReview?.decision ===
-  'trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review'
-const expectedAcceptedStatus = milestone2QaAccepted
-  ? ['ffmpeg', 'ffprobe', 'sharp_libvips', 'duckdb', 'polars_nodejs_polars', 'exiftool', 'mediainfo', 'tesseract', 'imagemagick', 'opencv', 'pyav', 'pyscenedetect']
-  : ['ffmpeg', 'ffprobe', 'sharp_libvips', 'duckdb', 'polars_nodejs_polars', 'exiftool', 'mediainfo', 'tesseract', 'imagemagick']
-const expectedBlockedStatus = milestone2QaAccepted
-  ? ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio']
-  : ['opencv', 'pyav', 'pyscenedetect', 'paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio']
-sameSet(status.acceptedProvenBounded?.map((tool) => tool.id), expectedAcceptedStatus, 'status_accepted_after_qa')
-sameSet(status.blockedNotInstalledProven, expectedBlockedStatus, 'status_blocked_after_qa')
 
-if (milestone2QaAccepted) {
-  if (status.counts?.acceptedProvenBounded !== 12 || steward.statusCounts?.acceptedProvenBounded !== 12) fail('owner_status_accepted_count_not_12_after_milestone2_qa')
-  if (status.counts?.blockedNotInstalledProven !== 4 || steward.statusCounts?.blockedNotInstalledProven !== 4) fail('owner_status_blocked_count_not_4_after_milestone2_qa')
-} else {
-  if (status.counts?.acceptedProvenBounded !== 9 || steward.statusCounts?.acceptedProvenBounded !== 9) fail('owner_status_accepted_count_not_9')
-  if (status.counts?.blockedNotInstalledProven !== 7 || steward.statusCounts?.blockedNotInstalledProven !== 7) fail('owner_status_blocked_count_not_7')
+sameSet(
+  status.acceptedProvenBounded?.map((tool) => tool.id),
+  [
+    'ffmpeg',
+    'ffprobe',
+    'sharp_libvips',
+    'duckdb',
+    'polars_nodejs_polars',
+    'exiftool',
+    'mediainfo',
+    'tesseract',
+    'imagemagick',
+    'opencv',
+    'pyav',
+    'pyscenedetect',
+  ],
+  'status_accepted_after_qa',
+)
+sameSet(status.blockedNotInstalledProven, ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio'], 'status_blocked_after_qa')
+if (status.counts?.acceptedProvenBounded !== 12 || steward.statusCounts?.acceptedProvenBounded !== 12) {
+  fail('owner_status_accepted_count_not_12')
 }
-if (status.counts?.endToEndProductReady !== 0 || steward.statusCounts?.endToEndProductReady !== 0) fail('owner_product_ready_not_zero')
+if (status.counts?.blockedNotInstalledProven !== 4 || steward.statusCounts?.blockedNotInstalledProven !== 4) {
+  fail('owner_status_blocked_count_not_4')
+}
+if (status.counts?.endToEndProductReady !== 0 || steward.statusCounts?.endToEndProductReady !== 0) {
+  fail('owner_product_ready_not_zero')
+}
 const owner = ownerRegistry.owners?.find((entry) => entry.ownerId === ownerId)
 if (!owner) fail('missing_trackb_owner')
-if (milestone2QaAccepted) {
-  if (owner?.acceptedProvenBoundedCount !== 12 || owner?.blockedNotInstalledProvenCount !== 4 || owner?.endToEndProductReadyToolCount !== 0) {
-    fail('registry_owner_counts_after_milestone2_qa_drift')
-  }
-} else if (owner?.acceptedProvenBoundedCount !== 9 || owner?.blockedNotInstalledProvenCount !== 7 || owner?.endToEndProductReadyToolCount !== 0) {
+if (owner?.acceptedProvenBoundedCount !== 12 || owner?.blockedNotInstalledProvenCount !== 4 || owner?.endToEndProductReadyToolCount !== 0) {
   fail('registry_owner_counts_drift')
 }
-const combinedImageTool = steward.ownedTools?.find((tool) => tool.id === 'imagemagick_graphicsmagick') || {}
-if (combinedImageTool.imageMagickAcceptedProven !== true || combinedImageTool.graphicsMagickAcceptedProven !== false) {
-  fail('imagemagick_graphicsmagick_boundary_drift')
+for (const id of ['opencv', 'pyav', 'pyscenedetect']) {
+  const tool = steward.ownedTools?.find((entry) => entry.id === id) || {}
+  if (tool.status !== 'accepted_proven_bounded_milestone2') fail(`steward_tool_status_drift:${id}:${tool.status}`)
+  if (tool.gpuUsed !== false || tool.mediaProcessingAccepted !== false || tool.endToEndProductReady !== false) {
+    fail(`steward_tool_scope_drift:${id}`)
+  }
 }
 
-if (milestone2.nextPrompt !== nextPrompt || decisionReport.nextPrompt !== nextPrompt || readiness.nextPrompt !== nextPrompt) fail('next_prompt_drift')
-sameSet((milestone2.candidateTools || []).map((tool) => tool.id), ['opencv', 'pyav', 'pyscenedetect'], 'milestone2_candidates')
-for (const tool of milestone2.candidateTools || []) {
-  if (tool.computeDefault !== 'cpu_first') fail(`milestone2_not_cpu_first:${tool.id}`)
+if (milestone3.nextPrompt !== nextPrompt || decisionReport.nextPrompt !== nextPrompt || readiness.nextPrompt !== nextPrompt) {
+  fail('next_prompt_drift')
 }
+sameSet((milestone3.candidateTools || []).map((tool) => tool.id), ['paddleocr', 'paddlepaddle'], 'milestone3_candidates')
+for (const tool of milestone3.candidateTools || []) {
+  if (tool.computeDefault !== 'cpu_tiny_proof_first') fail(`milestone3_not_cpu_tiny_first:${tool.id}`)
+}
+if (milestone3.executionAllowedNow !== false || milestone3.betaProductionAllowed !== false) fail('milestone3_execution_scope_unblocked')
 
+if (evidenceReview.pr571EvidenceAccepted !== true) fail('pr571_evidence_not_accepted')
+if (evidenceReview.buildContextsGeneratedScannedAndCleaned !== true) fail('build_context_evidence_not_clean')
+if (evidenceReview.dockerBuildPassed !== true) fail('docker_build_evidence_not_passed')
 for (const report of [artifactSafety, runtime, decisionReport, readiness, manifest]) {
   for (const [key, value] of Object.entries(report)) {
-    if (/(Accepted|Allowed|Created|Committed|Present|RunInQaPhase|RunInThisPhase)$/.test(key)) {
+    if (/(Accepted|Allowed|Created|Committed|Present|RunInQaPhase|RunInThisPhase|Approved|Printed)$/.test(key)) {
       if (key === 'qaReviewMetadataOnly') continue
+      if (key === 'boundedInstallContainerEvidenceAccepted') continue
       if (value !== false) fail(`flag_not_false:${report.schema || 'report'}:${key}:${value}`)
     }
   }
 }
-if (artifactSafety.pr557GeneratedOutputsCleaned !== true || artifactSafety.pr559GeneratedOutputsCleaned !== true) {
-  fail('prior_outputs_not_recorded_clean')
+for (const tool of cpuGpu.tools || []) {
+  if (tool.cpuOnlyProofAccepted !== true) fail(`cpu_proof_not_accepted:${tool.id}`)
+  if (tool.gpuUsed !== false || tool.gpuExecutionApproved !== false || tool.futureGpuRequiresSeparateApproval !== true) {
+    fail(`gpu_policy_drift:${tool.id}`)
+  }
 }
-if (readiness.readyForMilestone2VideoAnalysisApproval !== true) fail('milestone2_readiness_not_true')
-if (readiness.readyForRuntimeExecution !== false || readiness.readyForMediaProcessing !== false) fail('runtime_readiness_unblocked')
 if (decisionReport.supabaseClassification?.updateRequired !== 'no write') fail('supabase_update_drift')
 if (decisionReport.supabaseClassification?.environmentTouched !== 'none') fail('supabase_env_drift')
 if (decisionReport.supabaseClassification?.sqlExecuted !== 'none') fail('supabase_sql_drift')
 if (decisionReport.supabaseClassification?.migrationDeployed !== 'no') fail('supabase_migration_drift')
 
 if (
-  packageJson.scripts?.['trackb-media-oss:milestone-1-qa-review:diagnostics'] !==
-  'node scripts/validation/trackb-media-oss-milestone-1-qa-review-diagnostics.mjs'
+  packageJson.scripts?.['trackb-media-oss:milestone-2-qa-review:diagnostics'] !==
+  'node scripts/validation/trackb-media-oss-milestone-2-qa-review-diagnostics.mjs'
 ) {
   fail('missing_qa_diagnostics_script')
 }
 if (
-  packageJson.scripts?.['smoke:trackb-media-oss-milestone-1-qa-review'] !==
-  'node server/smoke/trackb-media-oss-milestone-1-qa-review-smoke.js'
+  packageJson.scripts?.['smoke:trackb-media-oss-milestone-2-qa-review'] !==
+  'node server/smoke/trackb-media-oss-milestone-2-qa-review-smoke.js'
 ) {
   fail('missing_qa_smoke_script')
 }
 
-const protectedDiff = git(['diff', '--name-only', '--', 'package-lock.json', '.dockerignore', 'docker/prod/render-worker/Dockerfile', 'docker/prod/cpu-worker/Dockerfile'])
-const protectedCachedDiff = git(['diff', '--cached', '--name-only', '--', 'package-lock.json', '.dockerignore', 'docker/prod/render-worker/Dockerfile', 'docker/prod/cpu-worker/Dockerfile'])
+const protectedDiff = git(['diff', '--name-only', '--', 'package-lock.json', '.dockerignore', 'docker/prod/render-worker/Dockerfile', 'docker/prod/cpu-worker/Dockerfile', 'docker/prod/cpu-worker/requirements.cpu.txt'])
+const protectedCachedDiff = git(['diff', '--cached', '--name-only', '--', 'package-lock.json', '.dockerignore', 'docker/prod/render-worker/Dockerfile', 'docker/prod/cpu-worker/Dockerfile', 'docker/prod/cpu-worker/requirements.cpu.txt'])
 if (protectedDiff || protectedCachedDiff) fail('protected_file_mutation')
 for (const output of ['node_modules', 'dist', 'dist-server', 'dist-remotion-worker', 'dist-staging-fixture-worker', 'dist-staging-real-video-export-worker']) {
   if (fs.existsSync(path.join(repoRoot, output))) fail(`forbidden_output_present:${output}`)
 }
 
-const scanFiles = [...requiredFiles, ...statusFiles, 'docs/implementation-prompts/prompt-trackb-media-oss-milestone-2-video-analysis-approval.md']
+const scanFiles = [
+  ...requiredFiles,
+  ...statusFiles,
+  'docs/implementation-prompts/prompt-trackb-media-oss-milestone-3-ocr-ml-cpu-gpu-review.md',
+]
 const secretPatterns = [
   /\bsk-[A-Za-z0-9_-]{20,}\b/,
   /\bsk-proj-[A-Za-z0-9_-]{20,}\b/,
@@ -245,14 +275,15 @@ const secretPatterns = [
 const forbiddenPositivePatterns = [
   /\b40\+\s+tools\s+(?:are\s+)?(?:installed|proven).{0,80}end-to-end/i,
   /\bend-to-end product-ready (?:Track B )?tools:\s*[1-9]/i,
-  /\b(GraphicsMagick)\s+(?:is\s+)?(?:accepted|proven|installed)\b/i,
+  /\bGPU execution\s+(?:is\s+)?(?:approved|enabled|accepted|unblocked)\b/i,
+  /\bFFmpeg\/FFprobe expansion\s+(?:is\s+)?(?:approved|enabled|accepted|unblocked)\b/i,
   /\b(media processing|media file probing|render\/export|worker runtime|route runtime|provider runtime|Supabase|GCS|public artifact|signed URL|raw prompt|beta|production)\s+(?:is\s+)?(?:approved|enabled|accepted|unblocked)\b/i,
 ]
 for (const file of scanFiles) {
   const text = readText(file)
   for (const pattern of secretPatterns) if (pattern.test(text)) fail(`secret_like_pattern:${file}`)
   for (const line of text.split(/\r?\n/)) {
-    const negative = /\b(no|not|do not|does not|did not|must not|remain blocked|blocked|false|future|separate|optional fallback|not counted|not installed|not created|without)\b/i.test(line)
+    const negative = /\b(no|not|do not|does not|did not|must not|remain blocked|blocked|false|future|separate|requires|only)\b/i.test(line)
     for (const pattern of forbiddenPositivePatterns) {
       if (!negative && pattern.test(line)) fail(`forbidden_positive_claim:${file}:${line.trim()}`)
     }
@@ -270,7 +301,7 @@ const forbiddenStatus = git(['status', '--short'])
 if (forbiddenStatus.length) fail(`forbidden_output_status:${forbiddenStatus.join(',')}`)
 
 if (failures.length) {
-  console.error('Track B Milestone 1 QA review diagnostics failed:')
+  console.error('Track B Milestone 2 QA review diagnostics failed:')
   for (const failure of failures) console.error(`- ${failure}`)
   process.exit(1)
 }
@@ -278,9 +309,13 @@ if (failures.length) {
 console.log(JSON.stringify({
   ok: true,
   decision,
-  acceptedProvenBoundedAfterQa: 9,
-  stillBlockedNotInstalledProven: 7,
-  endToEndProductReadyTools: 0,
+  ownerId,
+  acceptedMilestone2Tools: ['opencv', 'pyav', 'pyscenedetect'],
+  counts: {
+    ownedTools: 16,
+    acceptedProvenBounded: 12,
+    blockedNotInstalledProven: 4,
+    endToEndProductReady: 0,
+  },
   nextPrompt,
-  supabaseClassification: 'no write / environment none / SQL none / migration no',
 }, null, 2))

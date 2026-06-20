@@ -162,8 +162,21 @@ if (readiness.readiness !== true) fail("readiness_not_true");
 
 sameSet((matrix.tools || []).map((tool) => tool.id), expectedTools, "matrix_tools");
 sameSet((compute.tools || []).map((tool) => tool.id), expectedTools, "compute_tools");
-sameSet(ownerStatus.blockedNotInstalledProven || [], blockedTools, "blocked_tools");
-sameSet(ownerStatus.acceptedProvenBounded?.map((tool) => tool.id) || [], acceptedStatusTools, "accepted_tools");
+const milestone2QaAccepted =
+  ownerStatus.milestone2QaReview?.decision ===
+  "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review";
+sameSet(
+  ownerStatus.blockedNotInstalledProven || [],
+  milestone2QaAccepted ? ["paddleocr", "paddlepaddle", "opencolorio", "openimageio"] : blockedTools,
+  "blocked_tools",
+);
+sameSet(
+  ownerStatus.acceptedProvenBounded?.map((tool) => tool.id) || [],
+  milestone2QaAccepted
+    ? [...acceptedStatusTools, "opencv", "pyav", "pyscenedetect"]
+    : acceptedStatusTools,
+  "accepted_tools",
+);
 
 for (const entry of compute.tools || []) {
   for (const field of computeFields) {

@@ -23,8 +23,8 @@
   },
   "statusCounts": {
     "ownedTools": 16,
-    "acceptedProvenBounded": 9,
-    "blockedNotInstalledProven": 7,
+    "acceptedProvenBounded": 12,
+    "blockedNotInstalledProven": 4,
     "endToEndProductReady": 0
   },
   "installProofMilestonePlan": {
@@ -87,23 +87,44 @@
     {
       "id": "opencv",
       "name": "OpenCV",
-      "status": "blocked_not_installed_proven",
+      "status": "accepted_proven_bounded_milestone2",
       "reason": "Future Track B install-proof milestone required; media processing remains blocked.",
-      "endToEndProductReady": false
+      "endToEndProductReady": false,
+      "proofBoundary": "trackb_cpu_worker_container_import_version_and_synthetic_fixture_only_no_real_media_processing",
+      "packageName": "opencv-python-headless",
+      "sourcePr": 571,
+      "importVersionProven": true,
+      "syntheticFixtureProven": true,
+      "gpuUsed": false,
+      "mediaProcessingAccepted": false
     },
     {
       "id": "pyav",
       "name": "PyAV",
-      "status": "blocked_not_installed_proven",
+      "status": "accepted_proven_bounded_milestone2",
       "reason": "Future Track B install-proof milestone required; media processing remains blocked.",
-      "endToEndProductReady": false
+      "endToEndProductReady": false,
+      "proofBoundary": "trackb_cpu_worker_container_import_version_and_synthetic_fixture_only_no_real_media_processing",
+      "packageName": "av",
+      "sourcePr": 571,
+      "importVersionProven": true,
+      "syntheticFixtureProven": true,
+      "gpuUsed": false,
+      "mediaProcessingAccepted": false
     },
     {
       "id": "pyscenedetect",
       "name": "PySceneDetect",
-      "status": "blocked_not_installed_proven",
+      "status": "accepted_proven_bounded_milestone2",
       "reason": "Future Track B install-proof milestone required; media processing remains blocked.",
-      "endToEndProductReady": false
+      "endToEndProductReady": false,
+      "proofBoundary": "trackb_cpu_worker_container_import_version_and_synthetic_fixture_only_no_real_media_processing",
+      "packageName": "scenedetect",
+      "sourcePr": 571,
+      "importVersionProven": true,
+      "syntheticFixtureProven": true,
+      "gpuUsed": false,
+      "mediaProcessingAccepted": false
     },
     {
       "id": "paddleocr",
@@ -177,7 +198,7 @@
     "batch1AcceptedMatrix": "docs/open-source-tool-stack/batch-1-final-rollup-after-ffmpeg-ffprobe-proof/batch-1-accepted-tools-matrix.json",
     "ownerLaneCounts": "docs/open-source-tool-stack/owner-lane-reconciliation-after-batch-1-rollup/reconciled-tool-count-summary.json"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW",
   "supabaseClassification": {
     "updateRequired": "no write",
     "environmentTouched": "none",
@@ -195,6 +216,22 @@
     ],
     "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL",
     "executionRunInThisPhase": false,
+    "mediaProcessingApproved": false,
+    "renderExportApproved": false,
+    "workerRuntimeApproved": false,
+    "betaProductionApproved": false
+  },
+  "milestone2QaReview": {
+    "decision": "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-2-qa-review",
+    "acceptedMilestone2Tools": [
+      "opencv",
+      "pyav",
+      "pyscenedetect"
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW",
+    "executionRunInThisPhase": false,
+    "gpuExecutionApproved": false,
     "mediaProcessingApproved": false,
     "renderExportApproved": false,
     "workerRuntimeApproved": false,

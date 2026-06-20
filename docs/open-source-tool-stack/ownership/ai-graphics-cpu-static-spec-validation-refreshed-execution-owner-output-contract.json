@@ -1,0 +1,26 @@
+{
+  "decision": "ai_graphics_cpu_static_spec_validation_refreshed_execution_owner_review_passed_with_warnings",
+  "acceptedOutputContractStatus": "owner_accepted_metadata_only_outputs_with_warnings",
+  "acceptedOutputTypes": [
+    "deterministic_chart_metadata_json",
+    "compiled_spec_metadata_json",
+    "parsed_spec_metadata_json",
+    "manifest_contract_metadata_json",
+    "svg_manifest_contract_metadata_json",
+    "dot_metadata_shape_json"
+  ],
+  "browserRuntimePerformed": false,
+  "webglCanvasRuntimePerformed": false,
+  "gpuRuntimePerformed": false,
+  "toolRouteExecutionPerformed": false,
+  "workerExecutionPerformed": false,
+  "providerRuntimePerformed": false,
+  "supabaseMutationPerformed": false,
+  "gcsUploadPerformed": false,
+  "publicArtifactCreated": false,
+  "signedUrlCreated": false,
+  "runtimeReadyNow": false,
+  "internalBetaReadyNow": false,
+  "externalBetaReadyNow": false,
+  "productionReadyNow": false
+}

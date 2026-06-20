@@ -107,3 +107,12 @@ QA lane did not rerun `npm ci`, CPU/static execution, import smoke, fixtures,
 browser/WebGL/canvas runtime, Tool Route, Worker, provider/model runtime,
 Supabase mutation, GCS/storage transfer, signed URLs, public artifacts,
 internal beta, external beta, paid production, or production readiness.
+
+AI graphics CPU/static refreshed validation owner review decision
+`ai_graphics_cpu_static_spec_validation_refreshed_execution_owner_review_passed_with_warnings`
+accepts PR #617 QA and PR #616 refreshed execution evidence for the same six
+CPU/static tools with warnings. The owner review did not rerun `npm ci`,
+CPU/static execution, import smoke, fixtures, browser/WebGL/canvas runtime,
+Tool Route, Worker, provider/model runtime, Supabase mutation, GCS/storage
+transfer, signed URLs, public artifacts, internal beta, external beta, paid
+production, or production readiness.

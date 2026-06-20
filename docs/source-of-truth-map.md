@@ -145,3 +145,31 @@ GD-5 status terms:
 - Migration deployed: `no`
 - Tools covered: all 12 AI Tools creative graphics tools.
 - Next recommended prompt: `Prompt GD-6 - Creative Graphics Execution Approval Gate Packet`
+
+## GD-6 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Execution approval gate packet | `docs/ai-tools/creative-graphics-execution-approval-gate-packet.md` |
+| Execution approval matrix | `docs/ai-tools/creative-graphics-execution-approval-matrix.md` |
+| GD-7 allowed scope | `docs/ai-tools/creative-graphics-gd7-allowed-scope.md` |
+| GD-7 blocked scope | `docs/ai-tools/creative-graphics-gd7-blocked-scope.md` |
+| GD-7 QA evidence requirements | `docs/ai-tools/creative-graphics-gd7-qa-evidence-requirements.md` |
+| GD-7 approval decision record | `docs/ai-tools/creative-graphics-gd7-approval-decision-record.md` |
+| Validation results | `docs/prompt-gd-6-validation-results.md` |
+
+GD-6 status terms:
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_not_executed`
+- Execution approval decision: `approved_for_gd7_controlled_local_fixture_execution`
+- Group A: `approved_for_gd7_controlled_local_fixture_execution`
+- Group B: `needs_package_review`
+- Group C: `blocked`
+- Production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Tools covered: all 12 AI Tools creative graphics tools.
+- Next recommended prompt: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`

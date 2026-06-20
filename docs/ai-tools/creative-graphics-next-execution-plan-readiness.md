@@ -1,6 +1,6 @@
 # Creative Graphics Next Execution Plan Readiness
 
-Status: `static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved`
+Status: `static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution`
 
 GD-4 decides whether planning may proceed. It does not approve or perform execution.
 
@@ -43,3 +43,21 @@ This readiness decision is static and conditional:
 Recommended next prompt: `Prompt GD-6 - Creative Graphics Execution Approval Gate Packet`.
 
 Fallback if a future validation run finds missing files, unsafe claims, or schema mismatch: `Prompt GD-5A - Execution Plan Fixes`.
+
+## GD-6 Follow-Up Decision
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_not_executed`
+- Execution approval decision: `approved_for_gd7_controlled_local_fixture_execution`
+- Group A status: `approved_for_gd7_controlled_local_fixture_execution`
+- Group B status: `needs_package_review`
+- Group C status: `blocked`
+- Production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Tools covered: all 12 AI Tools creative graphics tools.
+- Next recommended prompt: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`
+
+GD-6 approves only future GD-7 controlled local synthetic private fixture work for Group A. GD-7 must skip any unavailable package/script and must not install dependencies.

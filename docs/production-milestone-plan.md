@@ -93,3 +93,25 @@ Prompt GD-5: Creative Graphics Controlled Fixture Execution Plan.
 ## Next Milestone After GD-5
 
 `Prompt GD-6 - Creative Graphics Execution Approval Gate Packet`
+
+## GD-6 Milestone
+
+Prompt GD-6: Creative Graphics Execution Approval Gate Packet.
+
+- Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_not_executed`
+- Execution approval decision: `approved_for_gd7_controlled_local_fixture_execution`
+- Group A status: `approved_for_gd7_controlled_local_fixture_execution`
+- Group B status: `needs_package_review`
+- Group C status: `blocked`
+- Capability: `none; AI Tools creative graphics execution approval gate packet only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime execution remains blocked until GD-7 performs its own package/script availability checks.
+- Tools covered: all 12 AI Tools creative graphics tools.
+
+## Next Milestone After GD-6
+
+`Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`

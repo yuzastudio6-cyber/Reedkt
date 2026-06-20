@@ -89,3 +89,18 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## GD-6 Follow-Up
+
+GD-6 records `approved_for_gd7_controlled_local_fixture_execution` for future GD-7 Group A controlled local synthetic private fixture work only. The GD-5 execution-plan record above remains the historical plan state; GD-6 moves the next prompt to `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`.
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_not_executed`
+- Group A status: `approved_for_gd7_controlled_local_fixture_execution`
+- Group B status: `needs_package_review`
+- Group C status: `blocked`
+- Production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`

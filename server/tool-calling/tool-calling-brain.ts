@@ -75,6 +75,12 @@ import type {
   FixtureBoundMetadataProbeRun,
 } from './fixture-bound-metadata-probe-types'
 import {
+  runFixtureBoundExportValidationStack,
+} from './fixture-bound-export-validation-runner'
+import type {
+  FixtureBoundExportValidationRun,
+} from './fixture-bound-export-validation-types'
+import {
   composePipelineForOperations,
   getPatternOperations,
 } from './pipeline-composer'
@@ -334,5 +340,22 @@ export async function runToolCallingFixtureBoundMetadataProbe(): Promise<Fixture
     binaryFixtureGenerationResults: binaryFixtureStack.binaryFixtureGenerationResults,
     ...probeStack,
     executesTools: true,
+  }
+}
+
+export async function runToolCallingFixtureBoundExportValidation(): Promise<FixtureBoundExportValidationRun> {
+  const sourceProbeRun = await runToolCallingFixtureBoundMetadataProbe()
+  const exportValidationStack = runFixtureBoundExportValidationStack(sourceProbeRun.probeResults)
+
+  return {
+    sourceProbePolicies: sourceProbeRun.probePolicies,
+    sourceProbeResults: sourceProbeRun.probeResults,
+    ...exportValidationStack,
+    executionBoundary: {
+      ...exportValidationStack.executionBoundary,
+      sourceProbeExecutesTools: sourceProbeRun.executesTools,
+    },
+    sourceProbeExecutesTools: true,
+    executesTools: false,
   }
 }

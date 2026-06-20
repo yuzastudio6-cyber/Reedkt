@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/tool-calling/fixture-bound-export-validation.schema.v1.json",
+  "title": "Reeditpro Fixture-Bound Export Validation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "validationRunId",
+    "policyId",
+    "validationKind",
+    "sourceProbeRunId",
+    "sourceProbeId",
+    "sourceProbeToolId",
+    "sourceProbeStatus",
+    "fixtureId",
+    "fixtureKind",
+    "contentType",
+    "status",
+    "checkedAt",
+    "qualityGateResults",
+    "issues",
+    "warnings",
+    "sourceProbeExecutesTools",
+    "exportValidationPerformed",
+    "executesTools",
+    "mediaProcessingPerformed",
+    "realUserMediaUsed",
+    "videoValidationPerformed",
+    "transcodingPerformed",
+    "muxingPerformed",
+    "filteringPerformed",
+    "renderingPerformed",
+    "workerExecutionPerformed",
+    "providerCallsPerformed",
+    "supabaseMutationPerformed",
+    "sqlExecuted",
+    "signedUrlsUsed",
+    "rawProbeJsonExposed",
+    "packageLockMutated",
+    "betaProductionUnlocked"
+  ],
+  "properties": {
+    "validationRunId": {
+      "type": "string",
+      "pattern": "^fixture_bound_export_validation_fixture_bound_synthetic_audio_export_validation_"
+    },
+    "policyId": {
+      "const": "fixture_bound_synthetic_audio_export_validation"
+    },
+    "validationKind": {
+      "const": "fixture_bound_export_validation"
+    },
+    "sourceProbeRunId": {
+      "type": "string"
+    },
+    "sourceProbeId": {
+      "const": "ffprobe_fixture_bound_synthetic_audio_metadata_probe"
+    },
+    "sourceProbeToolId": {
+      "const": "ffprobe"
+    },
+    "sourceProbeStatus": {
+      "enum": ["passed", "unavailable", "failed_closed"]
+    },
+    "fixtureId": {
+      "type": "string"
+    },
+    "fixtureKind": {
+      "const": "synthetic_audio"
+    },
+    "contentType": {
+      "const": "audio/wav"
+    },
+    "status": {
+      "enum": ["passed", "blocked", "unavailable", "failed_closed"]
+    },
+    "checkedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sanitizedInputSummary": {
+      "$ref": "#/$defs/sanitizedMetadataSummary"
+    },
+    "exportSummary": {
+      "$ref": "#/$defs/exportSummary"
+    },
+    "qualityGateResults": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "$ref": "#/$defs/qualityGateResult"
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sourceProbeExecutesTools": {
+      "const": true
+    },
+    "exportValidationPerformed": {
+      "type": "boolean"
+    },
+    "executesTools": {
+      "const": false
+    },
+    "mediaProcessingPerformed": {
+      "const": false
+    },
+    "realUserMediaUsed": {
+      "const": false
+    },
+    "videoValidationPerformed": {
+      "const": false
+    },
+    "transcodingPerformed": {
+      "const": false
+    },
+    "muxingPerformed": {
+      "const": false
+    },
+    "filteringPerformed": {
+      "const": false
+    },
+    "renderingPerformed": {
+      "const": false
+    },
+    "workerExecutionPerformed": {
+      "const": false
+    },
+    "providerCallsPerformed": {
+      "const": false
+    },
+    "supabaseMutationPerformed": {
+      "const": false
+    },
+    "sqlExecuted": {
+      "const": false
+    },
+    "signedUrlsUsed": {
+      "const": false
+    },
+    "rawProbeJsonExposed": {
+      "const": false
+    },
+    "packageLockMutated": {
+      "const": false
+    },
+    "betaProductionUnlocked": {
+      "const": false
+    }
+  },
+  "$defs": {
+    "sanitizedMetadataSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "streamCount",
+        "audioStreamCount",
+        "videoStreamCount",
+        "codecTypes",
+        "probeOutputBytes",
+        "metadataShapeValid"
+      ],
+      "properties": {
+        "formatName": {
+          "type": "string"
+        },
+        "durationSeconds": {
+          "type": "number"
+        },
+        "streamCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audioStreamCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "videoStreamCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "codecTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sampleRate": {
+          "type": "number"
+        },
+        "channels": {
+          "type": "number"
+        },
+        "bitRate": {
+          "type": "number"
+        },
+        "probeOutputBytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "metadataShapeValid": {
+          "type": "boolean"
+        }
+      }
+    },
+    "exportSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "streamCount",
+        "audioStreamCount",
+        "videoStreamCount",
+        "codecTypes",
+        "expectedFixtureKind",
+        "expectedContentType",
+        "metadataShapeValid",
+        "durationWithinExpectedRange",
+        "hasOnlyAudioStreams",
+        "exportValidationShapeValid"
+      ],
+      "properties": {
+        "containerFormat": {
+          "type": "string"
+        },
+        "durationSeconds": {
+          "type": "number"
+        },
+        "streamCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audioStreamCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "videoStreamCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "codecTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sampleRate": {
+          "type": "number"
+        },
+        "channels": {
+          "type": "number"
+        },
+        "expectedFixtureKind": {
+          "const": "synthetic_audio"
+        },
+        "expectedContentType": {
+          "const": "audio/wav"
+        },
+        "metadataShapeValid": {
+          "type": "boolean"
+        },
+        "durationWithinExpectedRange": {
+          "type": "boolean"
+        },
+        "hasOnlyAudioStreams": {
+          "type": "boolean"
+        },
+        "exportValidationShapeValid": {
+          "type": "boolean"
+        }
+      }
+    },
+    "qualityGateResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gateType",
+        "status",
+        "required",
+        "reason",
+        "blocksPreview",
+        "blocksFinalExport"
+      ],
+      "properties": {
+        "gateType": {
+          "enum": ["export_codec_format", "export_duration_sync", "render_asset_integrity", "final_delivery"]
+        },
+        "status": {
+          "enum": ["passed", "failed", "blocked", "skipped"]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "score": {
+          "type": "number"
+        },
+        "threshold": {
+          "type": "number"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "blocksPreview": {
+          "type": "boolean"
+        },
+        "blocksFinalExport": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

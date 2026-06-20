@@ -1,0 +1,69 @@
+{
+  "fixtureId": "ai_graphics_batch_3_anime_timing_manifest",
+  "packageName": "animejs",
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "dataClassification": "synthetic_only",
+  "proofScope": "timing_manifest_only_no_motion_runtime",
+  "timingManifest": {
+    "durationFrames": 120,
+    "fps": 30,
+    "cues": [
+      {
+        "cueId": "synthetic_intro_hold",
+        "startFrame": 0,
+        "endFrame": 30,
+        "easing": "linear"
+      },
+      {
+        "cueId": "synthetic_focus_shift",
+        "startFrame": 30,
+        "endFrame": 84,
+        "easing": "easeOutCubic"
+      },
+      {
+        "cueId": "synthetic_outro_hold",
+        "startFrame": 84,
+        "endFrame": 120,
+        "easing": "linear"
+      }
+    ],
+    "targets": [
+      "synthetic_vector_layer_placeholder"
+    ]
+  },
+  "blockedUses": [
+    "browser_runtime",
+    "webgl_runtime",
+    "canvas_runtime",
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "render_export",
+    "media_processing",
+    "beta_or_production_unlock"
+  ],
+  "motionRuntimeApproved": false,
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "webglRuntimeApprovedNow": false,
+    "canvasRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

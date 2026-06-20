@@ -11,7 +11,9 @@ const allowedDecisions = new Set([
 ])
 const tools = ['d3', 'echarts', 'vega-lite', 'vega']
 const approvedBatch2Dependencies = ['satori', '@svgdotjs/svg.js', '@viz-js/viz', 'lottie-web']
+const approvedBatch3Dependencies = ['animejs', 'three', 'pixi.js', 'konva', 'babylonjs']
 const batch2ExecutionDecision = 'ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings'
+const batch3ExecutionDecision = 'ai_graphics_batch_3_install_import_manifest_proof_passed_with_warnings'
 const requiredDocs = [
   'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-qa-review.md',
   'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-acceptance-matrix.md',
@@ -36,6 +38,9 @@ const allowedFutureScriptDiffs = [
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-execution:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-qa:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-approval:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-import-smoke',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-synthetic-fixtures',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-execution:diagnostics',
 ]
 const requiredTrueBooleans = [
   'batch1Accepted',
@@ -91,6 +96,11 @@ const batch2ExecutionContext =
   existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md') &&
   readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md', 'utf8').includes(
     batch2ExecutionDecision,
+  )
+const batch3ExecutionContext =
+  existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-readiness-decision.md') &&
+  readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-readiness-decision.md', 'utf8').includes(
+    batch3ExecutionDecision,
   )
 const readJson = (path) => {
   try {
@@ -172,7 +182,7 @@ for (const tool of tools) {
 const changedFiles = new Set(
   [...git(['diff', '--name-only']).split('\n'), ...git(['diff', '--cached', '--name-only']).split('\n')].filter(Boolean),
 )
-if (changedFiles.has('package-lock.json') && !batch2ExecutionContext) failures.push('package_lock_mutated_in_qa_branch')
+if (changedFiles.has('package-lock.json') && !batch2ExecutionContext && !batch3ExecutionContext) failures.push('package_lock_mutated_in_qa_branch')
 const packageJsonDiff = git(['diff', '--', 'package.json']) || git(['diff', '--cached', '--', 'package.json'])
 const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
@@ -181,7 +191,10 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .filter((line) => !allowedFutureScriptDiffs.some((scriptName) => line.includes(scriptName)))
   .filter((line) => {
     if (!batch2ExecutionContext) return true
-    return !approvedBatch2Dependencies.some((dependencyName) => line.includes(`"${dependencyName}"`))
+    return (
+      !approvedBatch2Dependencies.some((dependencyName) => line.includes(`"${dependencyName}"`)) &&
+      !(batch3ExecutionContext && approvedBatch3Dependencies.some((dependencyName) => line.includes(`"${dependencyName}"`)))
+    )
   })
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 

@@ -12,13 +12,18 @@ const allowedDecisions = new Set([
   'approved_with_warnings_for_ai_graphics_batch_3',
 ])
 const selectedPackages = ['satori', '@svgdotjs/svg.js', '@viz-js/viz', 'lottie-web']
+const approvedBatch3ExecutionDependencies = ['animejs', 'three', 'pixi.js', 'konva', 'babylonjs']
 const executionContextDecision = 'ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings'
+const batch3ExecutionDecision = 'ai_graphics_batch_3_install_import_manifest_proof_passed_with_warnings'
 const allowedExecutionScripts = [
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-import-smoke',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-synthetic-fixtures',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-execution:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-qa:diagnostics',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-approval:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-import-smoke',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-synthetic-fixtures',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-execution:diagnostics',
 ]
 const deferredPackages = ['animejs']
 const excludedTokens = [
@@ -109,6 +114,11 @@ const batch2ExecutionContext =
   readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-2-readiness-decision.md', 'utf8').includes(
     executionContextDecision,
   )
+const batch3ExecutionContext =
+  existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-readiness-decision.md') &&
+  readFileSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-readiness-decision.md', 'utf8').includes(
+    batch3ExecutionDecision,
+  )
 const readJson = (path) => {
   try {
     return JSON.parse(readFileSync(path, 'utf8'))
@@ -187,11 +197,11 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
     const removed = Object.keys(baseSection).filter((name) => !currentSection[name])
     const changed = Object.keys(currentSection).filter((name) => baseSection[name] && baseSection[name] !== currentSection[name])
     const approvedExecutionDependencyChange =
-      batch2ExecutionContext &&
+      (batch2ExecutionContext || batch3ExecutionContext) &&
       section === 'dependencies' &&
       removed.length === 0 &&
       changed.length === 0 &&
-      added.every((name) => selectedPackages.includes(name))
+      added.every((name) => selectedPackages.includes(name) || (batch3ExecutionContext && approvedBatch3ExecutionDependencies.includes(name)))
     if (!approvedExecutionDependencyChange) failures.push(`package_section_changed:${section}`)
   }
 }
@@ -199,7 +209,7 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 const changedFiles = new Set(
   [...git(['diff', '--name-only']).split('\n'), ...git(['diff', '--cached', '--name-only']).split('\n')].filter(Boolean),
 )
-if (changedFiles.has('package-lock.json') && !batch2ExecutionContext) failures.push('package_lock_changed')
+if (changedFiles.has('package-lock.json') && !batch2ExecutionContext && !batch3ExecutionContext) failures.push('package_lock_changed')
 const packageLock = readJson('package-lock.json')
 for (const packageName of selectedPackages) {
   if (
@@ -208,7 +218,7 @@ for (const packageName of selectedPackages) {
   ) {
     failures.push(`batch_2_package_installed_in_package_json:${packageName}`)
   }
-  if (!batch2ExecutionContext && packageLock?.packages?.[`node_modules/${packageName}`]) {
+  if (!batch2ExecutionContext && !batch3ExecutionContext && packageLock?.packages?.[`node_modules/${packageName}`]) {
     failures.push(`batch_2_package_installed_in_lockfile:${packageName}`)
   }
 }
@@ -222,7 +232,8 @@ const unexpectedPackageJsonDiff = packageJsonDiff
     if (!batch2ExecutionContext) return true
     return (
       !allowedExecutionScripts.some((scriptName) => line.includes(scriptName)) &&
-      !selectedPackages.some((packageName) => line.includes(`"${packageName}"`))
+      !selectedPackages.some((packageName) => line.includes(`"${packageName}"`)) &&
+      !(batch3ExecutionContext && approvedBatch3ExecutionDependencies.some((packageName) => line.includes(`"${packageName}"`)))
     )
   })
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)

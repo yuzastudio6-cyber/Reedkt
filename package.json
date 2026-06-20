@@ -577,6 +577,7 @@
     "tracka:libass-caption-burnin-runtime-proof-1:diagnostics": "node scripts/validation/tracka-libass-caption-burnin-runtime-proof-1-diagnostics.mjs",
     "tracka:otio-timeline-validation-1:diagnostics": "node scripts/validation/tracka-otio-timeline-validation-1-diagnostics.mjs",
     "tracka:remotion-render-validation-1:diagnostics": "node scripts/validation/tracka-remotion-render-validation-1-diagnostics.mjs",
+    "tracka:remotion-install-proof-1:diagnostics": "node scripts/validation/tracka-remotion-install-proof-1-diagnostics.mjs",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",
     "track-a:visual-review-packet:diagnostics": "node scripts/validation/track-a-visual-review-packet-diagnostics.mjs",
@@ -773,6 +774,8 @@
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",
+    "@remotion/bundler": "^4.0.481",
+    "@remotion/renderer": "^4.0.481",
     "@supabase/supabase-js": "^2.106.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -781,6 +784,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.0",
+    "remotion": "^4.0.481",
     "zod": "^4.4.3"
   },
   "devDependencies": {

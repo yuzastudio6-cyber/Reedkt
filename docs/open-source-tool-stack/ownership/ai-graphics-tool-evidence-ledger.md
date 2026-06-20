@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_implementation_state_scan_completed_ready_for_draft_proof_promotion_review`
 
-The ledger separates merged canonical evidence from draft pending evidence. PR #416 remains central canonical audit evidence. PR #425, PR #433, and PR #441 are now reconciled as canonical merged package/import/static-fixture proof for the 13 AI graphics package-proof tools. Canonical promotion QA accepts that package proof with warnings only, and runtime boundary review allows planning/study metadata selection only. PR #532 and Worker metadata remain draft/static evidence only.
+The ledger separates merged canonical evidence from draft pending evidence. PR #416 remains central canonical audit evidence. PR #425, PR #433, and PR #441 are now reconciled as canonical merged package/import/static-fixture proof for the 13 AI graphics package-proof tools. Canonical promotion QA accepts that package proof with warnings only, runtime boundary review classifies future lanes, and runtime boundary QA accepts planning/study metadata selection only. PR #532 and Worker metadata remain draft/static evidence only.
 
 | toolId | canonicalStatusFromPr416 | draftEvidencePrs | package evidence | worker evidence |
 | --- | --- | --- | --- | --- |
@@ -27,5 +27,7 @@ The ledger separates merged canonical evidence from draft pending evidence. PR #
 | pixi_js | canonical_merged_package_import_static_fixture_proof | PR #441 merged `d174de59471eacf05bed5a5511d661f2e5ba9f0f` | package/import/static-fixture proof canonicalized | draft Worker metadata/static evidence through PR #532; no live worker execution |
 | konva | canonical_merged_package_import_static_fixture_proof | PR #441 merged `d174de59471eacf05bed5a5511d661f2e5ba9f0f` | package/import/static-fixture proof canonicalized | draft Worker metadata/static evidence through PR #532; no live worker execution |
 | babylonjs | canonical_merged_package_import_static_fixture_proof | PR #441 merged `d174de59471eacf05bed5a5511d661f2e5ba9f0f` | package/import/static-fixture proof canonicalized | draft Worker metadata/static evidence through PR #532; no live worker execution |
+
+Runtime-boundary QA status: `ai_graphics_draft_package_proof_runtime_boundary_qa_passed_with_warnings`; agent planning/study metadata accepted only, agent execution rejected now.
 
 Runtime-ready tools: `0`. Internal-beta-ready tools: `0`. E2E-proven tools: `0`.

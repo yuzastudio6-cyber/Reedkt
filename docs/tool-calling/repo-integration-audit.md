@@ -81,6 +81,15 @@
 - Existing helpers under `server/media`, `server/e2e`, `server/workers`, worker routes, migration drafts, and runtime SQL tests are classified as reuse, defer, or avoid-duplicating evidence.
 - The current recommendation is binary fixture generation before controlled low-risk tool execution.
 
+## Binary Fixture Generation Integration
+
+- Binary fixture generation reuses the existing synthetic fixture dry-run output, production registry IDs, runtime artifact types, storage bucket purposes, QA gate context, and existing worker-router boundary.
+- The layer uses Node standard-library code only and does not import execution helpers, worker routes, storage clients, artifact writers, provider code, Supabase code, FFmpeg wrappers, ImageMagick wrappers, Python wrappers, OpenCV wrappers, PyAV wrappers, or PySceneDetect wrappers.
+- Generated JSON, WAV, and PNG files are temporary diagnostic artifacts written under `os.tmpdir()` for checksum validation and cleaned up before returning.
+- Synthetic video remains descriptor-only and does not produce MP4, MOV, WebM, stream, or container bytes.
+- The layer does not create a duplicate binary fixture catalog, production registry, worker router, QA policy, fallback policy, adapter execution layer, command execution layer, fixture planner, Supabase runtime table, migration, SQL file, storage writer, or artifact writer.
+- Existing helpers under `server/media`, `server/e2e`, `server/workers`, storage, routes, CLIs, migration drafts, and runtime SQL tests remain evidence or future integration references only.
+
 ## Safety Confirmation
 
 - The new brain produces planning-only output with `executesTools: false`.

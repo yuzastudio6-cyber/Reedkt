@@ -72,6 +72,15 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - The gate refreshes repo state, rebuilds the planning stack, scans existing helper surfaces, checks duplicate risks, and keeps the current tool-calling layers planning and dry-run only.
 - In the current stack, JSON-only dry-run artifacts are not enough to justify controlled execution before approved fixture files exist.
 
+## Binary Fixture Generation Layer
+
+- Binary fixture generation converts synthetic fixture dry-run artifacts into deterministic temp JSON, WAV, and PNG files using Node standard-library code only.
+- The runner writes files only under `os.tmpdir()` for checksum and byte-size validation, then removes the temp workspace before returning milestone results.
+- Returned results contain artifact metadata only; they do not expose temp paths, output paths, signed URLs, HTTP URLs, shell commands, arbitrary args, service-role context, provider secrets, or real user media references.
+- Synthetic video remains descriptor-only. MP4, MOV, WebM, stream, and container generation are deferred.
+- Existing helper surfaces under `server/media`, `server/e2e`, `server/workers`, storage, routes, CLIs, and artifact writers are not imported by this layer.
+- This milestone still does not execute tools, run shell commands, dispatch workers, process media, call providers, mutate Supabase, run SQL, create migrations, create signed URLs, unlock beta or production, or mutate `package-lock.json`.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.
@@ -85,6 +94,7 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 9. When requested, build synthetic fixture plans and validate future-only fixture requirements without generating artifacts.
 10. When requested, materialize synthetic fixture dry-run descriptors and validate JSON-only artifact manifests without writing files or generating media.
 11. Before choosing an execution milestone, run the execution path decision gate and follow its recommendation.
+12. When requested, generate temporary Node-only binary fixtures from dry-run artifacts, validate checksums and cleanup, and return metadata without path exposure.
 
 ## Non-Goals
 
@@ -95,6 +105,8 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - No migration or schema creation.
 - No package-lock mutation.
 - No runtime routing based on implementation coordination labels.
+- No binary video generation.
+- No committed generated fixture artifacts.
 
 ## Expansion Points
 

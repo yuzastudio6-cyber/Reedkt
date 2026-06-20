@@ -51,6 +51,18 @@ import type {
   SyntheticFixtureDryRunValidationSummary,
 } from './synthetic-fixture-dry-run-types'
 import {
+  buildBinaryFixtureGenerationPlans,
+  runBinaryFixtureGenerationPlans,
+} from './binary-fixture-generation-runner'
+import {
+  validateBinaryFixtureGenerationResults,
+} from './binary-fixture-generation-validator'
+import type {
+  BinaryFixtureGenerationPlan,
+  BinaryFixtureGenerationResult,
+  BinaryFixtureGenerationValidationSummary,
+} from './binary-fixture-generation-types'
+import {
   composePipelineForOperations,
   getPatternOperations,
 } from './pipeline-composer'
@@ -123,6 +135,12 @@ export interface ToolCallingPlanWithAdaptersCommandPlansAndFixtures extends Tool
 export interface ToolCallingPlanWithAdaptersCommandPlansFixturesAndDryRun extends ToolCallingPlanWithAdaptersCommandPlansAndFixtures {
   syntheticFixtureDryRunResults: readonly SyntheticFixtureDryRunResult[]
   dryRunValidationSummary: SyntheticFixtureDryRunValidationSummary
+}
+
+export interface ToolCallingPlanWithAdaptersCommandPlansFixturesDryRunAndBinaryFixtures extends ToolCallingPlanWithAdaptersCommandPlansFixturesAndDryRun {
+  binaryFixtureGenerationPlans: readonly BinaryFixtureGenerationPlan[]
+  binaryFixtureGenerationResults: readonly BinaryFixtureGenerationResult[]
+  binaryFixtureValidationSummary: BinaryFixtureGenerationValidationSummary
 }
 
 function stableHash(value: string): string {
@@ -250,6 +268,28 @@ export function buildToolCallingPlanWithAdaptersCommandPlansFixturesAndDryRun(
     ...plan,
     syntheticFixtureDryRunResults,
     dryRunValidationSummary,
+    executesTools: false,
+  }
+}
+
+export async function buildToolCallingPlanWithAdaptersCommandPlansFixturesDryRunAndBinaryFixtures(
+  request: BuildToolCallingPlanRequest,
+): Promise<ToolCallingPlanWithAdaptersCommandPlansFixturesDryRunAndBinaryFixtures> {
+  const plan = buildToolCallingPlanWithAdaptersCommandPlansFixturesAndDryRun(request)
+  const binaryFixtureGenerationPlans = buildBinaryFixtureGenerationPlans(plan.syntheticFixtureDryRunResults)
+  const binaryFixtureGenerationResults = await runBinaryFixtureGenerationPlans(binaryFixtureGenerationPlans, {
+    cleanup: true,
+  })
+  const binaryFixtureValidationSummary = validateBinaryFixtureGenerationResults(
+    binaryFixtureGenerationResults,
+    binaryFixtureGenerationPlans,
+  )
+
+  return {
+    ...plan,
+    binaryFixtureGenerationPlans,
+    binaryFixtureGenerationResults,
+    binaryFixtureValidationSummary,
     executesTools: false,
   }
 }

@@ -6,7 +6,9 @@ Branch: `codex/rp-ai-graphics-draft-package-proof-runtime-boundary-owner-approva
 
 Base: `origin/codex/rp-ai-graphics-draft-package-proof-runtime-boundary-qa-review`
 
-Draft PR: pending publication.
+Draft PR: PR #602, https://github.com/yuzastudio6-cyber/Reedkt/pull/602.
+
+Draft PR status: open/draft/MERGEABLE at `de4a7c0a99cf2f778a8ac2280f3b4d136bacd6f0` before this follow-up record update, with empty check rollup.
 
 ## Implementation summary
 

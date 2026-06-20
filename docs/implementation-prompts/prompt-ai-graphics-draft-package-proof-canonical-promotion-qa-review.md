@@ -6,7 +6,7 @@ Decision: `ai_graphics_draft_package_proof_canonical_promotion_qa_passed_with_wa
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-canonical-promotion-qa-review`
 
-Draft PR: pending publication.
+Draft PR: PR #589, https://github.com/yuzastudio6-cyber/Reedkt/pull/589.
 
 Scope:
 
@@ -17,5 +17,7 @@ Scope:
 - Keep runtime, E2E, Tool Route, Worker, provider, browser/WebGL/canvas, Supabase/GCS, signed URL, public artifact, internal beta, external beta, and production readiness false.
 
 Validation status: passed before initial publication.
+
+PR check status: PR #589 was open/draft/MERGEABLE at `4eed5dcf5384ae706017f5a9fc022efe318f194b` with empty check rollup when recorded.
 
 Next prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_RUNTIME_BOUNDARY_REVIEW`.

@@ -1,28 +1,200 @@
 {
   "schema": "reeditpro.toolCapabilityStudyCard.v1",
-  "externalToolId": "mediainfo",
+  "toolId": "mediainfo",
   "displayName": "MediaInfo",
-  "aliases": ["mediainfo"],
+  "aliases": [
+    "mediainfo"
+  ],
   "runtimeResolution": {
-    "status": "pending_production_tool_registry_expansion",
-    "externalToolId": "mediainfo",
-    "reason": "MediaInfo is useful for metadata QA but is not a first-class ProductionToolId on this base."
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "mediainfo",
+    "reason": "MediaInfo is promoted to a first-class ProductionToolId for Track B planning metadata."
   },
   "operations": [
-    {"operationId": "media.inspect", "supportLevel": "validator", "bestFor": ["container and stream metadata cross-checks"], "notFor": ["media transforms"], "inputArtifacts": ["source_media", "proxy_media", "video", "audio"], "outputArtifacts": ["analysis_report", "qa_report", "json_spec"], "validators": ["render_asset_integrity"], "fallbackToolIds": ["ffprobe", "ffmpeg"], "notes": ["Pending external study card; not selectable as selectedToolId."]},
-    {"operationId": "export.validate", "supportLevel": "validator", "bestFor": ["final export metadata corroboration"], "notFor": ["muxing or rendering"], "inputArtifacts": ["final_export", "video", "audio"], "outputArtifacts": ["qa_report", "analysis_report", "json_spec"], "validators": ["export_codec_format", "export_duration_sync", "final_delivery"], "fallbackToolIds": ["ffprobe", "ffmpeg"], "notes": ["Use after registry expansion only."]}
+    {
+      "operationId": "media.inspect",
+      "supportLevel": "validator",
+      "bestFor": [
+        "container and stream metadata cross-checks"
+      ],
+      "notFor": [
+        "media transforms",
+        "raw media execution in this milestone"
+      ],
+      "inputArtifacts": [
+        "source_media",
+        "proxy_media",
+        "video",
+        "audio"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "qa_report",
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffprobe",
+        "ffmpeg"
+      ],
+      "notes": [
+        "Selectable as first-class planning metadata only; current runtime execution remains deferred."
+      ]
+    },
+    {
+      "operationId": "export.validate",
+      "supportLevel": "validator",
+      "bestFor": [
+        "final export metadata corroboration"
+      ],
+      "notFor": [
+        "muxing or rendering"
+      ],
+      "inputArtifacts": [
+        "final_export",
+        "video",
+        "audio"
+      ],
+      "outputArtifacts": [
+        "qa_report",
+        "analysis_report",
+        "json_spec"
+      ],
+      "validators": [
+        "export_codec_format",
+        "export_duration_sync",
+        "final_delivery"
+      ],
+      "fallbackToolIds": [
+        "ffprobe",
+        "ffmpeg"
+      ],
+      "notes": [
+        "Planning-only export QA corroboration; ffprobe remains the current fixture-bound execution surface."
+      ]
+    },
+    {
+      "operationId": "qa.final_delivery",
+      "supportLevel": "future",
+      "bestFor": [
+        "delivery report corroboration"
+      ],
+      "notFor": [
+        "final delivery approval by itself"
+      ],
+      "inputArtifacts": [
+        "final_export",
+        "qa_report"
+      ],
+      "outputArtifacts": [
+        "qa_report",
+        "analysis_report",
+        "json_spec"
+      ],
+      "validators": [
+        "final_delivery",
+        "export_codec_format",
+        "export_duration_sync"
+      ],
+      "fallbackToolIds": [
+        "ffprobe",
+        "ffmpeg"
+      ],
+      "notes": [
+        "Future-only final delivery corroboration; does not unblock final delivery."
+      ]
+    }
   ],
-  "bestFor": ["metadata corroboration", "codec and container reporting"],
-  "notFor": ["runtime selection before registry expansion", "media mutation"],
-  "inputArtifacts": ["source_media", "proxy_media", "video", "audio", "final_export"],
-  "outputArtifacts": ["analysis_report", "qa_report", "json_spec"],
-  "validators": ["render_asset_integrity", "export_codec_format", "export_duration_sync", "final_delivery"],
-  "fallbackToolIds": ["ffprobe", "ffmpeg"],
-  "resourceProfile": {"workerType": "qa_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "planning_metadata"},
-  "qualityProfile": {"productionStatus": "future", "adoptionStage": "future", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
-  "knownFailureModes": ["not represented as ProductionToolId", "metadata field naming differs from ffprobe"],
-  "professionalEditingUses": ["ingest report verification", "delivery metadata cross-check"],
-  "benchmarkPlaceholders": ["benchmark:mediainfo:metadata_coverage_pending"],
-  "telemetryPlaceholders": ["telemetry:mediainfo:pending_candidate_count"],
-  "readinessNotes": ["Pending registry expansion; diagnostics should report this as pending, not failed."]
+  "bestFor": [
+    "metadata corroboration",
+    "codec and container reporting",
+    "delivery metadata cross-checks"
+  ],
+  "notFor": [
+    "media mutation",
+    "runtime execution in this milestone",
+    "replacement for ffprobe fixture-bound probes"
+  ],
+  "inputArtifacts": [
+    "source_media",
+    "proxy_media",
+    "video",
+    "audio",
+    "final_export"
+  ],
+  "outputArtifacts": [
+    "analysis_report",
+    "qa_report",
+    "json_spec"
+  ],
+  "validators": [
+    "render_asset_integrity",
+    "export_codec_format",
+    "export_duration_sync",
+    "final_delivery"
+  ],
+  "fallbackToolIds": [
+    "ffprobe",
+    "ffmpeg"
+  ],
+  "resourceProfile": {
+    "workerType": "planning_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "planning_metadata"
+  },
+  "qualityProfile": {
+    "productionStatus": "future",
+    "adoptionStage": "future",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "metadata field naming differs from ffprobe",
+    "tool install or binary policy may drift before execution",
+    "container metadata can disagree with decode truth"
+  ],
+  "professionalEditingUses": [
+    "ingest report verification",
+    "delivery metadata cross-check",
+    "codec/container evidence planning"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:mediainfo:metadata_coverage_pending",
+    "benchmark:mediainfo:fixture_probe_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:mediainfo:planning_candidate_count",
+    "telemetry:mediainfo:future_probe_status"
+  ],
+  "readinessNotes": [
+    "MediaInfo is promoted for first-class planning metadata only; no execution, probing, media processing, worker dispatch, provider call, Supabase mutation, SQL, signed URL, beta unlock, or production unlock is enabled by this card.",
+    "Owner evidence must be refreshed again before any controlled execution milestone."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "MediaInfo now has a canonical ProductionToolProfile for planning-only registry metadata."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/542",
+      "summary": "Track B media OSS owner registry listed the bounded/proven media OSS ownership lane and included this tool family."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/545",
+      "summary": "Track B media OSS install/proof plan approved future low-risk validation work for MediaInfo, ExifTool, Tesseract, and ImageMagick/GraphicsMagick."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/619",
+      "summary": "First-class coverage expansion intentionally left this tool pending for the dedicated Track B registry-planning milestone."
+    }
+  ]
 }

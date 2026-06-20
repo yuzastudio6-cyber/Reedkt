@@ -1,27 +1,135 @@
 {
   "schema": "reeditpro.toolCapabilityStudyCard.v1",
-  "externalToolId": "tesseract",
+  "toolId": "tesseract",
   "displayName": "Tesseract OCR",
-  "aliases": ["tesseract"],
+  "aliases": [
+    "tesseract"
+  ],
   "runtimeResolution": {
-    "status": "pending_production_tool_registry_expansion",
-    "externalToolId": "tesseract",
-    "reason": "Tesseract is useful OCR evidence but is not a first-class ProductionToolId on this base."
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "tesseract",
+    "reason": "Tesseract is promoted to a first-class ProductionToolId for Track B planning metadata."
   },
   "operations": [
-    {"operationId": "ocr.detect_text", "supportLevel": "fallback", "bestFor": ["CPU OCR fallback for screenshots and burned-in text"], "notFor": ["layout-aware OCR at scale"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["ocr_report_json", "analysis_report", "qa_report", "json_spec"], "validators": ["ocr_text_overlap", "caption_safe_zone"], "fallbackToolIds": ["paddleocr", "opencv", "playwright"], "notes": ["Pending external OCR card; not selectable until registry expansion."]}
+    {
+      "operationId": "ocr.detect_text",
+      "supportLevel": "fallback",
+      "bestFor": [
+        "CPU OCR fallback for screenshots and burned-in text"
+      ],
+      "notFor": [
+        "layout-aware OCR at scale",
+        "runtime OCR in this milestone"
+      ],
+      "inputArtifacts": [
+        "image",
+        "video",
+        "frame_sequence"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "qa_report",
+        "json_spec"
+      ],
+      "validators": [
+        "ocr_text_overlap",
+        "caption_safe_zone"
+      ],
+      "fallbackToolIds": [
+        "paddleocr",
+        "opencv",
+        "playwright"
+      ],
+      "notes": [
+        "Planning-only OCR fallback; language-pack execution remains deferred."
+      ]
+    }
   ],
-  "bestFor": ["OCR fallback", "screen recording text evidence"],
-  "notFor": ["runtime selection before registry expansion", "caption generation"],
-  "inputArtifacts": ["image", "video", "frame_sequence"],
-  "outputArtifacts": ["ocr_report_json", "analysis_report", "qa_report", "json_spec"],
-  "validators": ["ocr_text_overlap", "caption_safe_zone"],
-  "fallbackToolIds": ["paddleocr", "opencv", "playwright"],
-  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "planning_metadata"},
-  "qualityProfile": {"productionStatus": "future", "adoptionStage": "future", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
-  "knownFailureModes": ["not represented as ProductionToolId", "low accuracy on stylized or low-resolution text", "language pack dependency"],
-  "professionalEditingUses": ["safe-zone overlap detection", "screen recording text awareness"],
-  "benchmarkPlaceholders": ["benchmark:tesseract:ocr_accuracy_pending"],
-  "telemetryPlaceholders": ["telemetry:tesseract:pending_candidate_count"],
-  "readinessNotes": ["Pending registry expansion; diagnostics should treat it as pending."]
+  "bestFor": [
+    "OCR fallback planning",
+    "screen recording text evidence",
+    "caption safe-zone text awareness"
+  ],
+  "notFor": [
+    "caption generation",
+    "runtime OCR in this milestone",
+    "unreviewed language-pack execution"
+  ],
+  "inputArtifacts": [
+    "image",
+    "video",
+    "frame_sequence"
+  ],
+  "outputArtifacts": [
+    "analysis_report",
+    "qa_report",
+    "json_spec"
+  ],
+  "validators": [
+    "ocr_text_overlap",
+    "caption_safe_zone"
+  ],
+  "fallbackToolIds": [
+    "paddleocr",
+    "opencv",
+    "playwright"
+  ],
+  "resourceProfile": {
+    "workerType": "planning_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "planning_metadata"
+  },
+  "qualityProfile": {
+    "productionStatus": "future",
+    "adoptionStage": "future",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "low accuracy on stylized or low-resolution text",
+    "language pack dependency",
+    "private text extraction requires policy review"
+  ],
+  "professionalEditingUses": [
+    "safe-zone overlap detection",
+    "screen recording text awareness",
+    "fallback OCR planning"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:tesseract:ocr_accuracy_pending",
+    "benchmark:tesseract:language_pack_policy_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:tesseract:planning_candidate_count",
+    "telemetry:tesseract:future_probe_status"
+  ],
+  "readinessNotes": [
+    "Tesseract OCR is promoted for first-class planning metadata only; no execution, probing, media processing, worker dispatch, provider call, Supabase mutation, SQL, signed URL, beta unlock, or production unlock is enabled by this card.",
+    "Owner evidence must be refreshed again before any controlled execution milestone."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Tesseract OCR now has a canonical ProductionToolProfile for planning-only registry metadata."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/542",
+      "summary": "Track B media OSS owner registry listed the bounded/proven media OSS ownership lane and included this tool family."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/545",
+      "summary": "Track B media OSS install/proof plan approved future low-risk validation work for MediaInfo, ExifTool, Tesseract, and ImageMagick/GraphicsMagick."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/619",
+      "summary": "First-class coverage expansion intentionally left this tool pending for the dedicated Track B registry-planning milestone."
+    }
+  ]
 }

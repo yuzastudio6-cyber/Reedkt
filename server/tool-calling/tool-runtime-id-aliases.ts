@@ -43,26 +43,28 @@ export const RUNTIME_TOOL_ID_ALIASES = [
   {
     alias: 'imagemagick_graphicsmagick',
     runtimeToolId: 'imagemagick',
-    externalToolId: 'imagemagick',
-    reason: 'ImageMagick/GraphicsMagick are proven external image tools but are not first-class ProductionToolId entries on this base.',
+    reason: 'ImageMagick is the first-class ProductionToolId promoted for Track B planning; GraphicsMagick remains a deferred runtime identity.',
+  },
+  {
+    alias: 'graphicsmagick',
+    runtimeToolId: 'graphicsmagick',
+    externalToolId: 'graphicsmagick',
+    reason: 'GraphicsMagick is not separately proven as a first-class runtime ID in this milestone and remains pending registry expansion.',
   },
   {
     alias: 'mediainfo',
     runtimeToolId: 'mediainfo',
-    externalToolId: 'mediainfo',
-    reason: 'MediaInfo is a proven metadata tool but is not a first-class ProductionToolId entry on this base.',
+    reason: 'MediaInfo is promoted to a first-class ProductionToolId for Track B planning metadata.',
   },
   {
     alias: 'exiftool',
     runtimeToolId: 'exiftool',
-    externalToolId: 'exiftool',
-    reason: 'ExifTool is a proven metadata tool but is not a first-class ProductionToolId entry on this base.',
+    reason: 'ExifTool is promoted to a first-class ProductionToolId for Track B planning metadata.',
   },
   {
     alias: 'tesseract',
     runtimeToolId: 'tesseract',
-    externalToolId: 'tesseract',
-    reason: 'Tesseract is a proven OCR tool but is not a first-class ProductionToolId entry on this base.',
+    reason: 'Tesseract is promoted to a first-class ProductionToolId for Track B planning metadata.',
   },
   {
     alias: 'opencolorio',

@@ -3,17 +3,21 @@ import type { QualityGateType } from '../../src/backend/contracts/production-too
 export type ProductionToolId =
   | 'ffmpeg'
   | 'ffprobe'
+  | 'mediainfo'
+  | 'exiftool'
   | 'pyav'
   | 'opentimelineio'
   | 'hyperframe'
   | 'remotion'
   | 'libass'
   | 'sharp'
+  | 'imagemagick'
   | 'duckdb'
   | 'polars'
   | 'faster_whisper'
   | 'whisper_cpp'
   | 'paddleocr'
+  | 'tesseract'
   | 'pyscenedetect'
   | 'opencv'
   | 'mediapipe'
@@ -54,17 +58,21 @@ export type ProductionToolId =
 export const PRODUCTION_TOOL_IDS = [
   'ffmpeg',
   'ffprobe',
+  'mediainfo',
+  'exiftool',
   'pyav',
   'opentimelineio',
   'hyperframe',
   'remotion',
   'libass',
   'sharp',
+  'imagemagick',
   'duckdb',
   'polars',
   'faster_whisper',
   'whisper_cpp',
   'paddleocr',
+  'tesseract',
   'pyscenedetect',
   'opencv',
   'mediapipe',

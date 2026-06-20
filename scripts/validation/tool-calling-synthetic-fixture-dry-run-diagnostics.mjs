@@ -4,7 +4,21 @@ import { readFile } from 'node:fs/promises'
 import { execFileSync } from 'node:child_process'
 import { tsImport } from 'tsx/esm/api'
 
-const EXPECTED_PACKAGE_LOCK_SHA256 = 'c2c47ecc381a022921b76ab499cf70ba260466ef283046e2d53ac2f2bd255973'
+function readCommittedPackageLockSha256() {
+  const env = { ...process.env }
+  delete env.DEVELOPER_DIR
+
+  return createHash('sha256')
+    .update(execFileSync('git', ['show', 'HEAD:package-lock.json'], {
+      cwd: process.cwd(),
+      env,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }))
+    .digest('hex')
+}
+
+const EXPECTED_PACKAGE_LOCK_SHA256 = readCommittedPackageLockSha256()
 
 function check(condition, message) {
   if (!condition) {

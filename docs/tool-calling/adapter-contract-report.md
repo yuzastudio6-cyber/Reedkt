@@ -8,22 +8,15 @@ The mandatory refresh gate was run before implementation. It reported `continueA
 
 ## Contracts Added
 
-The adapter registry adds planning-only contracts for 18 first-class runtime tools:
+The adapter registry now generates planning-only contracts for every first-class runtime tool on the current base. Track B registry planning expands that set with `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.
 
-`ffmpeg`, `ffprobe`, `pyav`, `opencv`, `pyscenedetect`, `sharp`, `opentimelineio`, `remotion`, `libass`, `faster_whisper`, `paddleocr`, `deepfilternet`, `birefnet`, `sam2`, `real_esrgan`, `film`, `opencolorio`, and `openimageio`.
+Contracts are generated from `PRODUCTION_TOOL_IDS`, existing `ProductionToolProfile` records, and explicit capability cards; the current base has 53 planning-only adapter contracts after Track B promotion.
 
 Contracts are generated from existing `ProductionToolProfile` records plus capability cards. No duplicate production registry, worker router, QA policy, fallback policy, runtime table, or execution-plan table is introduced.
 
 ## Pending Adapter Contracts
 
-Pending external tools are intentionally not given adapter contracts or adapter plans on this base:
-
-- `exiftool`
-- `imagemagick`
-- `mediainfo`
-- `tesseract`
-
-Each remains `pending_adapter_contract_until_production_tool_registry_expansion`.
+Bare `graphicsmagick` remains pending and intentionally receives no adapter contract or adapter plan. `imagemagick_graphicsmagick` resolves to the first-class `imagemagick` planning contract; that does not count GraphicsMagick as first-class.
 
 ## Worker Bridge Categories
 

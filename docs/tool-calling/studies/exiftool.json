@@ -1,28 +1,163 @@
 {
   "schema": "reeditpro.toolCapabilityStudyCard.v1",
-  "externalToolId": "exiftool",
+  "toolId": "exiftool",
   "displayName": "ExifTool",
-  "aliases": ["exiftool"],
+  "aliases": [
+    "exiftool"
+  ],
   "runtimeResolution": {
-    "status": "pending_production_tool_registry_expansion",
-    "externalToolId": "exiftool",
-    "reason": "ExifTool is useful for image metadata evidence but is not a first-class ProductionToolId on this base."
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "exiftool",
+    "reason": "ExifTool is promoted to a first-class ProductionToolId for Track B planning metadata."
   },
   "operations": [
-    {"operationId": "media.inspect", "supportLevel": "validator", "bestFor": ["image and camera metadata inspection"], "notFor": ["video stream probing"], "inputArtifacts": ["source_media", "image"], "outputArtifacts": ["analysis_report", "qa_report", "json_spec"], "validators": ["render_asset_integrity"], "fallbackToolIds": ["ffprobe", "sharp"], "notes": ["Pending external metadata card; not selectable."]},
-    {"operationId": "thumbnail.generate", "supportLevel": "validator", "bestFor": ["orientation and metadata checks before thumbnail selection"], "notFor": ["thumbnail rendering"], "inputArtifacts": ["source_media", "image", "video"], "outputArtifacts": ["qa_report", "analysis_report", "json_spec"], "validators": ["render_asset_integrity", "caption_safe_zone"], "fallbackToolIds": ["sharp", "pyav"], "notes": ["Useful after registry expansion for metadata-aware still handling."]}
+    {
+      "operationId": "media.inspect",
+      "supportLevel": "validator",
+      "bestFor": [
+        "image and camera metadata inspection"
+      ],
+      "notFor": [
+        "video stream probing",
+        "raw metadata execution in this milestone"
+      ],
+      "inputArtifacts": [
+        "source_media",
+        "image"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "qa_report",
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffprobe",
+        "sharp"
+      ],
+      "notes": [
+        "Selectable as first-class planning metadata only; no ExifTool process is invoked."
+      ]
+    },
+    {
+      "operationId": "thumbnail.generate",
+      "supportLevel": "validator",
+      "bestFor": [
+        "orientation and metadata checks before thumbnail selection"
+      ],
+      "notFor": [
+        "thumbnail rendering"
+      ],
+      "inputArtifacts": [
+        "source_media",
+        "image",
+        "video"
+      ],
+      "outputArtifacts": [
+        "qa_report",
+        "analysis_report",
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity",
+        "caption_safe_zone"
+      ],
+      "fallbackToolIds": [
+        "sharp",
+        "pyav"
+      ],
+      "notes": [
+        "Metadata-aware still handling remains planning-only."
+      ]
+    }
   ],
-  "bestFor": ["EXIF metadata checks", "orientation evidence", "camera metadata reports"],
-  "notFor": ["runtime selection before registry expansion", "video rendering"],
-  "inputArtifacts": ["source_media", "image", "video"],
-  "outputArtifacts": ["analysis_report", "qa_report", "json_spec"],
-  "validators": ["render_asset_integrity", "caption_safe_zone"],
-  "fallbackToolIds": ["ffprobe", "sharp", "pyav"],
-  "resourceProfile": {"workerType": "qa_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "planning_metadata"},
-  "qualityProfile": {"productionStatus": "future", "adoptionStage": "future", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
-  "knownFailureModes": ["not represented as ProductionToolId", "metadata can be stripped or inconsistent"],
-  "professionalEditingUses": ["asset ingest QA", "thumbnail orientation checks", "source metadata reporting"],
-  "benchmarkPlaceholders": ["benchmark:exiftool:metadata_coverage_pending"],
-  "telemetryPlaceholders": ["telemetry:exiftool:pending_candidate_count"],
-  "readinessNotes": ["Pending registry expansion; never selected as selectedToolId in Milestone 2."]
+  "bestFor": [
+    "EXIF metadata checks",
+    "orientation evidence",
+    "camera metadata reports"
+  ],
+  "notFor": [
+    "video rendering",
+    "runtime execution in this milestone",
+    "source of truth for private user metadata without policy review"
+  ],
+  "inputArtifacts": [
+    "source_media",
+    "image",
+    "video"
+  ],
+  "outputArtifacts": [
+    "analysis_report",
+    "qa_report",
+    "json_spec"
+  ],
+  "validators": [
+    "render_asset_integrity",
+    "caption_safe_zone"
+  ],
+  "fallbackToolIds": [
+    "ffprobe",
+    "sharp",
+    "pyav"
+  ],
+  "resourceProfile": {
+    "workerType": "planning_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "planning_metadata"
+  },
+  "qualityProfile": {
+    "productionStatus": "future",
+    "adoptionStage": "future",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "metadata can be stripped or inconsistent",
+    "privacy-sensitive metadata requires policy review",
+    "tool install or binary policy may drift before execution"
+  ],
+  "professionalEditingUses": [
+    "asset ingest QA",
+    "thumbnail orientation checks",
+    "source metadata reporting"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:exiftool:metadata_coverage_pending",
+    "benchmark:exiftool:fixture_probe_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:exiftool:planning_candidate_count",
+    "telemetry:exiftool:future_probe_status"
+  ],
+  "readinessNotes": [
+    "ExifTool is promoted for first-class planning metadata only; no execution, probing, media processing, worker dispatch, provider call, Supabase mutation, SQL, signed URL, beta unlock, or production unlock is enabled by this card.",
+    "Owner evidence must be refreshed again before any controlled execution milestone."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "ExifTool now has a canonical ProductionToolProfile for planning-only registry metadata."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/542",
+      "summary": "Track B media OSS owner registry listed the bounded/proven media OSS ownership lane and included this tool family."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/545",
+      "summary": "Track B media OSS install/proof plan approved future low-risk validation work for MediaInfo, ExifTool, Tesseract, and ImageMagick/GraphicsMagick."
+    },
+    {
+      "evidenceType": "github_pr_evidence",
+      "sourcePath": "github:pr/619",
+      "summary": "First-class coverage expansion intentionally left this tool pending for the dedicated Track B registry-planning milestone."
+    }
+  ]
 }

@@ -25,9 +25,9 @@ These contracts are generated from existing `ProductionToolProfile` records and 
 
 ## Pending External Tools
 
-`mediainfo`, `exiftool`, `tesseract`, and `imagemagick` remain pending until they are expanded into first-class `ProductionToolId` entries. They must not receive adapter contracts or adapter plans on this base.
+Track B registry planning promotes `mediainfo`, `exiftool`, `tesseract`, and `imagemagick` to first-class planning metadata, so each receives a planning-only adapter contract through the generated adapter registry.
 
-Diagnostics report those tools as `pending_adapter_contract_until_production_tool_registry_expansion`.
+Bare `graphicsmagick` remains pending and must not receive an adapter contract or adapter plan until separately proven and promoted to a first-class `ProductionToolId`.
 
 ## Worker Route Bridge
 

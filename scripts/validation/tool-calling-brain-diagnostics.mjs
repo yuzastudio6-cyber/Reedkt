@@ -62,6 +62,13 @@ const pendingProductionToolRegistryExpansion = runtimeIdReconciliationResults
     reason: result.reason,
   }))
 
+const trackBPromotedProductionToolIds = [
+  'mediainfo',
+  'exiftool',
+  'tesseract',
+  'imagemagick',
+]
+
 const newlyCoveredFirstClassToolIds = [
   'audioflux',
   'babylon_js',
@@ -103,13 +110,17 @@ const explicitPendingExternalStudyCards = explicitStudyCards
 const explicitFirstClassStudyToolIds = new Set(explicitFirstClassStudyCards.map((card) => card.toolId))
 const firstClassToolIdsMissingExplicitStudy = PRODUCTION_TOOL_IDS
   .filter((toolId) => !explicitFirstClassStudyToolIds.has(toolId))
-const newlyCoveredStudyCardsMissingSourceEvidence = newlyCoveredFirstClassToolIds
+const sourceEvidenceRequiredToolIds = [
+  ...newlyCoveredFirstClassToolIds,
+  ...trackBPromotedProductionToolIds,
+]
+const newlyCoveredStudyCardsMissingSourceEvidence = sourceEvidenceRequiredToolIds
   .filter((toolId) => {
     const studyCard = explicitFirstClassStudyCards.find((card) => card.toolId === toolId)
     return !studyCard?.sourceEvidence || studyCard.sourceEvidence.length === 0
   })
 const governanceSensitiveNewStudyCards = explicitFirstClassStudyCards
-  .filter((card) => newlyCoveredFirstClassToolIds.includes(card.toolId))
+  .filter((card) => sourceEvidenceRequiredToolIds.includes(card.toolId))
   .filter((card) => (
     card.qualityProfile.productionStatus === 'evaluation_only' ||
     card.qualityProfile.productionStatus === 'needs_license_review' ||
@@ -127,17 +138,33 @@ const pendingExternalToolIds = new Set(
     .filter((card) => card.selectableAsRuntimeTool === false)
     .map((card) => card.externalToolId),
 )
+const graphicsMagickResolution = runtimeIdReconciliationResults.find((result) => result.inputToolId === 'graphicsmagick')
+const trackBPromotedToolIdsMissingProductionId = trackBPromotedProductionToolIds
+  .filter((toolId) => !productionToolIds.has(toolId))
+const trackBPromotedToolIdsMissingStudyCard = trackBPromotedProductionToolIds
+  .filter((toolId) => !explicitFirstClassStudyToolIds.has(toolId))
+const trackBPromotedToolIdsMissingAdapterEvidence = trackBPromotedProductionToolIds
+  .filter((toolId) => !cards.some((card) => card.toolId === toolId && card.capabilitySource === 'explicit_study_card'))
 
 check(cards.length === productionToolIds.size, 'Capability cards must map the existing production registry one-to-one.')
 check(explicitFirstClassStudyCards.length === productionToolIds.size, 'Every first-class ProductionToolId must have an explicit study card.')
 check(firstClassToolIdsMissingExplicitStudy.length === 0, `Missing explicit first-class study cards: ${firstClassToolIdsMissingExplicitStudy.join(', ')}`)
-check(explicitPendingExternalStudyCards.length === pendingProductionToolRegistryExpansion.length, 'Pending external study-card count must match runtime ID reconciliation pending count.')
-check(explicitStudyCards.length === productionToolIds.size + pendingProductionToolRegistryExpansion.length, 'Explicit study card count must equal first-class tools plus pending external cards.')
-check(expandedCards.length === productionToolIds.size + pendingProductionToolRegistryExpansion.length, 'Expanded capability cards must include runtime cards plus pending external cards.')
+check(explicitPendingExternalStudyCards.length === 0, 'Track B registry expansion should leave no pending external study cards on the current base.')
+check(pendingProductionToolRegistryExpansion.length === 1, 'Only GraphicsMagick should remain pending after Track B registry expansion.')
+check(pendingProductionToolRegistryExpansion[0]?.externalToolId === 'graphicsmagick', 'GraphicsMagick must be the remaining pending external runtime identity.')
+check(explicitStudyCards.length === productionToolIds.size, 'Explicit study card count must equal first-class production tools after Track B promotion.')
+check(expandedCards.length === productionToolIds.size, 'Expanded capability cards must contain only first-class runtime cards after Track B promotion.')
 check(generatedFallbackCardCount === 0, 'No first-class ProductionToolId should rely on generated fallback cards after full coverage expansion.')
 check(newlyCoveredStudyCardsMissingSourceEvidence.length === 0, `New first-class study cards missing sourceEvidence: ${newlyCoveredStudyCardsMissingSourceEvidence.join(', ')}`)
 check(governanceSensitiveCardsMissingPlanningOnlyNotes.length === 0, `Governance-sensitive cards missing planning-only readiness notes: ${governanceSensitiveCardsMissingPlanningOnlyNotes.map((card) => card.toolId).join(', ')}`)
-check(runtimeIdReconciliationResults.length === 12, 'Runtime ID alias table must include 12 aliases.')
+check(trackBPromotedToolIdsMissingProductionId.length === 0, `Track B promoted tools missing ProductionToolId: ${trackBPromotedToolIdsMissingProductionId.join(', ')}`)
+check(trackBPromotedToolIdsMissingStudyCard.length === 0, `Track B promoted tools missing study cards: ${trackBPromotedToolIdsMissingStudyCard.join(', ')}`)
+check(trackBPromotedToolIdsMissingAdapterEvidence.length === 0, `Track B promoted tools missing explicit capability cards: ${trackBPromotedToolIdsMissingAdapterEvidence.join(', ')}`)
+check(!productionToolIds.has('graphicsmagick'), 'GraphicsMagick must not be a first-class ProductionToolId in this milestone.')
+check(Boolean(graphicsMagickResolution), 'GraphicsMagick must be represented in runtime ID reconciliation.')
+check(graphicsMagickResolution?.status === 'pending_production_tool_registry_expansion', 'GraphicsMagick must remain pending production registry expansion.')
+check(graphicsMagickResolution?.selectableAsRuntimeTool === false, 'GraphicsMagick must remain non-selectable.')
+check(runtimeIdReconciliationResults.length === 13, 'Runtime ID alias table must include 13 aliases after Track B expansion.')
 
 const requiredStudyCardFields = [
   'schema',
@@ -335,6 +362,12 @@ console.log(JSON.stringify({
   expandedCapabilityCardCount: expandedCards.length,
   runtimeIdAliasesCount: runtimeIdReconciliationResults.length,
   pendingProductionToolRegistryExpansion,
+  trackBPromotedProductionToolIds,
+  trackBPromotedToolIdsMissingProductionId,
+  trackBPromotedToolIdsMissingStudyCard,
+  trackBPromotedToolIdsMissingAdapterEvidence,
+  graphicsMagickCounted: false,
+  graphicsMagickRuntimeResolution: graphicsMagickResolution,
   operationCoverageSummary,
   selectedToolsAreFirstClassProductionToolIds,
   pendingExternalToolsSelected,

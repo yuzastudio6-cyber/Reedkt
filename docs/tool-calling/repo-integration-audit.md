@@ -38,6 +38,13 @@
 - Pending external tools need first-class `ProductionToolId` profiles before runtime selection.
 - Pending external aliases are documented in `docs/tool-calling/runtime-id-reconciliation-report.md`.
 
+## Mandatory Refresh Gate Before Future Milestones
+
+- Every future tool-calling milestone must start with `npm run tool-calling:refresh-gate`.
+- When network refresh is safe, rerun with `REEDITPRO_REFRESH_GATE_ALLOW_FETCH=1 npm run tool-calling:refresh-gate`.
+- The gate checks for stale stack state, duplicate study cards, duplicate aliases, duplicate local registry/router/QA/fallback systems, package-lock staging risk, and pending external tools that became first-class runtime IDs.
+- Future work must reuse existing registry, router, QA, fallback, runtime contract, and Supabase table systems instead of creating parallel implementations.
+
 ## Safety Confirmation
 
 - The new brain produces planning-only output with `executesTools: false`.

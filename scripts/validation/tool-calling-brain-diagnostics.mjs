@@ -272,6 +272,7 @@ console.log(JSON.stringify({
   operationCoverageSummary,
   selectedToolsAreFirstClassProductionToolIds,
   pendingExternalToolsSelected,
+  refreshGateRequiredBeforeFutureMilestones: true,
   duplicateSystemsCreated: false,
   executesTools: false,
   rankingDimensions: rankingDimensionNames,

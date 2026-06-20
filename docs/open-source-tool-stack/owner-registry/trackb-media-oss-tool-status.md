@@ -298,3 +298,20 @@ TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone3_system_font_package_execution_blocked_by_docker_build`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Patch: existing `libgomp1 libgl1 libglib2.0-0` runtime packages preserved; `fonts-noto-cjk` added.
+- Docker build: blocked while loading `python:3.12-slim` metadata with `DeadlineExceeded: context deadline exceeded`; no image was created.
+- Font discovery: not run because Docker build failed.
+- PaddlePaddle/PaddleOCR proofs: not run because Docker build failed.
+- Exact PingFang remains blocked and was not used; `fonts-noto-cjk-extra` remains fallback-only and was not installed.
+- Track B counts remain: 16 owned tools, 12 bounded accepted-proven tools, 4 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No OCR inference, model/font asset operation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_STATUS:end -->

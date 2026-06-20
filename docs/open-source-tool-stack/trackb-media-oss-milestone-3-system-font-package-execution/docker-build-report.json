@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOss.milestone3SystemFontPackageExecution.report.v1",
+  "generatedAt": "2026-06-20T23:00:03.583Z",
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_blocked_by_docker_build",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP",
+  "sourceSha": "a4574560fa04fde80f1473f837f98cdc757d177e",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "command": "docker build -f docker/prod/ocr-runtime/Dockerfile -t reeditpro-ocr-runtime:trackb-milestone3-fonts-noto-cjk-a4574560fa04fde80f1473f837f98cdc757d177e .",
+  "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-fonts-noto-cjk-a4574560fa04fde80f1473f837f98cdc757d177e",
+  "run": true,
+  "exitCode": 1,
+  "elapsedSeconds": 61,
+  "blocker": "DeadlineExceeded: context deadline exceeded while loading metadata for docker.io/library/python:3.12-slim",
+  "imagePushed": false,
+  "logPath": "/private/tmp/reeditpro-trackb-m3-system-font-docker-build.log",
+  "logExcerpt": [
+    "#2 [internal] load metadata for docker.io/library/python:3.12-slim",
+    "#2 ERROR: DeadlineExceeded: context deadline exceeded",
+    " > [internal] load metadata for docker.io/library/python:3.12-slim:",
+    "   1 | >>> FROM python:3.12-slim",
+    "ERROR: failed to build: failed to solve: DeadlineExceeded: context deadline exceeded"
+  ]
+}

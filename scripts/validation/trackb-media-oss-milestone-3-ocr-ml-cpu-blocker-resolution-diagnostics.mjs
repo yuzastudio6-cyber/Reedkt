@@ -254,11 +254,19 @@ const allowedPrefixes = [
   'docs/open-source-tool-stack/',
   'docs/implementation-prompts/',
 ]
+const systemFontExecutionValidationScripts = new Set([
+  'scripts/validation/trackb-media-oss-milestone-3-system-font-package-approval-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-font-source-license-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-exact-font-asset-source-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-diagnostics.mjs',
+])
 for (const file of changedFiles) {
   const allowed =
     file === targetDockerfile ||
     file === 'package.json' ||
-    file === 'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-diagnostics.mjs' ||
+    systemFontExecutionValidationScripts.has(file) ||
     allowedPrefixes.some((prefix) => file.startsWith(prefix))
   if (!allowed) fail(`unexpected_changed_file:${file}`)
 }

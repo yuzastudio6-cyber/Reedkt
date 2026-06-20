@@ -37,6 +37,14 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - Pending external tools must be rechecked before each milestone because they may become first-class `ProductionToolId` entries later.
 - Future milestones must run `npm run tool-calling:refresh-gate` before implementation.
 
+## Adapter Contract Layer
+
+- Adapter contracts convert selected planning tools into structured adapter plans and future worker-route bridge metadata.
+- Adapter contracts are planning-only; they do not execute tools, run shell commands, process media, or replace the worker router.
+- Adapter plans are built only for selected first-class `ProductionToolId` values with adapter contracts.
+- Pending external tools remain blocked from adapter plans until production registry expansion.
+- Future execution must consume approved snapshots and private artifact references through the existing production worker router.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.
@@ -45,6 +53,7 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 4. Rank candidates deterministically with capability, artifact, quality, reliability, speed, resource, validation, fallback, and preference dimensions.
 5. Compose a planning-only pipeline step with selected tool, ranked candidates, fallback IDs, expected artifacts, quality gates, and worker type when inferable.
 6. Build a pipeline fallback plan and quality gate plan from existing policies.
+7. When requested, build adapter plans and worker-route bridge metadata from the selected planning-only pipeline.
 
 ## Non-Goals
 

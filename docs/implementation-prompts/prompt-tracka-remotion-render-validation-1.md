@@ -1,6 +1,6 @@
 # TRACKA-REMOTION-RENDER-VALIDATION-1
 
-Goal: plan Remotion render validation for Atlas Track A after libass runtime proof reconciliation and/or alongside OTIO validation.
+Goal: plan Remotion render validation for Atlas Track A after libass runtime proof reconciliation and OTIO source-runtime reconciliation.
 
 Scope:
 
@@ -13,10 +13,14 @@ Inputs:
 - Remotion worker mock/source contracts under `src/backend/render/remotion-worker/`
 - Track A visual review evidence docs
 
-Current readiness: `TRACKA-REMOTION-RENDER-VALIDATION-1 readiness: ready_after_or_parallel_with_otio_validation`.
+Current readiness: `TRACKA-REMOTION-RENDER-VALIDATION-1 readiness: ready`.
 
 Prerequisite source: `TRACKA-LIBASS-CAPTION-BURNIN-RUNTIME-PROOF-1 decision: completed_runtime_proof_satisfied_by_existing_merged_evidence`.
 
+Prerequisite OTIO source: `TRACKA-OTIO-TIMELINE-VALIDATION-1 decision: completed_source_runtime_reconciliation_pending_optional_bounded_fixture`.
+
+OTIO handoff: `opentimelineio_timeline_validation readiness: ready_for_tracka_private_e2e_timeline_handoff`.
+
 Blocked: package install/runtime proof, media processing, private E2E execution, final delivery/export, internal beta, external beta, production.
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, tool installation, tool execution, private media processing, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, tool installation, tool execution, private media processing, FFmpeg/FFprobe execution, or broad service-role handler was enabled.

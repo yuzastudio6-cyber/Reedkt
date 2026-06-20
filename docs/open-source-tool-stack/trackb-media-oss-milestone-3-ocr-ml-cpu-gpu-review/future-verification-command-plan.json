@@ -1,0 +1,52 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone3OcrMlCpuGpuReview.futureCommands.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution",
+  "generatedAt": "2026-06-20T12:59:59.583Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "0a05d4a39ab11675465efc2622299e28c132da02",
+  "reviewPhaseOnly": true,
+  "noScope": {
+    "packageInstallRun": false,
+    "npmCiRun": false,
+    "npmInstallRun": false,
+    "npmRebuildRun": false,
+    "packageLockMutated": false,
+    "requirementsMutated": false,
+    "dockerfileMutated": false,
+    "dockerBuildRun": false,
+    "dockerContainerRun": false,
+    "paddleOcrRun": false,
+    "paddlePaddleRun": false,
+    "ocrInferenceRun": false,
+    "modelDownloadRun": false,
+    "modelAssetCopied": false,
+    "modelAssetUploaded": false,
+    "gpuExecutionRun": false,
+    "mediaProcessingRun": false,
+    "renderExportRun": false,
+    "workerRouteProviderRun": false,
+    "supabaseMutationRun": false,
+    "gcsUploadRun": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "betaProductionUnlocked": false,
+    "rawPromptExecuted": false,
+    "secretPayloadPrinted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "commandsApprovedForFutureCpuExecution": [
+    "python -c \"import paddle; print(paddle.__version__)\"",
+    "python -c \"import paddle; import json; print(json.dumps({\\\"version\\\": paddle.__version__, \\\"device\\\": paddle.device.get_device()}))\"",
+    "python -c \"import paddleocr; print(getattr(paddleocr, '__version__', 'unknown'))\"",
+    "python -c \"from paddleocr import PaddleOCR; import inspect; print(sorted(inspect.signature(PaddleOCR.__init__).parameters.keys()))\""
+  ],
+  "commandsNotRunThisPhase": true,
+  "ocrInferenceCommandsApproved": false,
+  "gpuCommandsApproved": false,
+  "dockerCommandsRunThisPhase": false
+}

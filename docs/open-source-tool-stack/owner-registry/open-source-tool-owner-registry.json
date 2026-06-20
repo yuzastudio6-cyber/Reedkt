@@ -57,7 +57,15 @@
         "supabase_gcs_public_delivery",
         "beta_or_production_unlock"
       ],
-      "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW"
+      "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW",
+      "milestone3OcrMlCpuGpuReview": {
+        "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution",
+        "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION",
+        "reviewTools": [
+          "paddleocr",
+          "paddlepaddle"
+        ]
+      }
     }
   ],
   "blockedScopes": {

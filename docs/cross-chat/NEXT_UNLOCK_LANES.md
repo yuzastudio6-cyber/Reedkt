@@ -511,3 +511,21 @@ TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW:
+
+- Decision: `trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution`
+- Review tools: PaddleOCR and PaddlePaddle.
+- Future CPU target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Package strategy: existing pinned `paddlepaddle==3.0.0` and `paddleocr==3.0.0` remain future execution inputs; no requirements mutation occurred in this review.
+- CPU proof policy: future import/version/API-shape and model-free tensor/device checks only.
+- Model asset policy: OCR inference remains blocked until model asset provenance, checksum, and private storage approval lands.
+- GPU policy: future-only and requires separate approval for heavy OCR, frame-heavy batches, high-resolution OCR, or CPU latency/timeouts.
+- Track B counts remain: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: PaddleOCR, PaddlePaddle, OpenColorIO, and OpenImageIO.
+- Forty-plus end-to-end proof claims remain disallowed.
+- No package install, npm ci/install/rebuild, pip install, requirements mutation, Dockerfile mutation, Docker build/run, PaddleOCR/PaddlePaddle execution, OCR inference, model download/copy/upload, GPU job, media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production scope ran.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW_STATUS:end -->

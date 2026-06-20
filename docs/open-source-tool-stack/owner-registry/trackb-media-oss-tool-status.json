@@ -531,5 +531,55 @@
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,
     "betaProductionAccepted": false
+  },
+  "milestone3OcrMlCpuGpuReview": {
+    "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution",
+    "reportKey": "trackb_milestone_3_ocr_ml_cpu_gpu_review_reports",
+    "targetTools": [
+      "paddleocr",
+      "paddlepaddle"
+    ],
+    "selectedCpuTarget": "docker/prod/ocr-runtime/Dockerfile",
+    "selectedRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+    "selectedPackages": [
+      "paddlepaddle==3.0.0",
+      "paddleocr==3.0.0"
+    ],
+    "modelAssetPolicy": "import_version_api_shape_allowed_without_model_assets_ocr_inference_blocked",
+    "gpuPolicy": "future_only_requires_separate_approval",
+    "countsUnchanged": true,
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION",
+    "packageInstallRun": false,
+    "npmCiRun": false,
+    "npmInstallRun": false,
+    "npmRebuildRun": false,
+    "packageLockMutated": false,
+    "requirementsMutated": false,
+    "dockerfileMutated": false,
+    "dockerBuildRun": false,
+    "dockerContainerRun": false,
+    "paddleOcrRun": false,
+    "paddlePaddleRun": false,
+    "ocrInferenceRun": false,
+    "modelDownloadRun": false,
+    "modelAssetCopied": false,
+    "modelAssetUploaded": false,
+    "gpuExecutionRun": false,
+    "mediaProcessingRun": false,
+    "renderExportRun": false,
+    "workerRouteProviderRun": false,
+    "supabaseMutationRun": false,
+    "gcsUploadRun": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "betaProductionUnlocked": false,
+    "rawPromptExecuted": false,
+    "secretPayloadPrinted": false,
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
   }
 }

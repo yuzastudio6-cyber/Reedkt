@@ -1,0 +1,70 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone3OcrMlCpuGpuReview.ownershipDuplicate.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution",
+  "generatedAt": "2026-06-20T12:59:59.583Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "0a05d4a39ab11675465efc2622299e28c132da02",
+  "reviewPhaseOnly": true,
+  "noScope": {
+    "packageInstallRun": false,
+    "npmCiRun": false,
+    "npmInstallRun": false,
+    "npmRebuildRun": false,
+    "packageLockMutated": false,
+    "requirementsMutated": false,
+    "dockerfileMutated": false,
+    "dockerBuildRun": false,
+    "dockerContainerRun": false,
+    "paddleOcrRun": false,
+    "paddlePaddleRun": false,
+    "ocrInferenceRun": false,
+    "modelDownloadRun": false,
+    "modelAssetCopied": false,
+    "modelAssetUploaded": false,
+    "gpuExecutionRun": false,
+    "mediaProcessingRun": false,
+    "renderExportRun": false,
+    "workerRouteProviderRun": false,
+    "supabaseMutationRun": false,
+    "gcsUploadRun": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "betaProductionUnlocked": false,
+    "rawPromptExecuted": false,
+    "secretPayloadPrinted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "tools": [
+    {
+      "id": "paddleocr",
+      "name": "PaddleOCR",
+      "packageName": "paddleocr",
+      "selectedVersion": "3.0.0",
+      "purpose": "OCR engine for generated UI/text/frame OCR, caption safe-zone metadata, text-region extraction, and future edit-assistance workflows.",
+      "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+      "ownerLane": "TRACK_B_MEDIA_PROCESSING",
+      "stillBlockedNotInstalledProven": true
+    },
+    {
+      "id": "paddlepaddle",
+      "name": "PaddlePaddle",
+      "packageName": "paddlepaddle",
+      "selectedVersion": "3.0.0",
+      "purpose": "OCR/ML framework dependency for PaddleOCR and future OCR/vision workloads.",
+      "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+      "ownerLane": "TRACK_B_MEDIA_PROCESSING",
+      "stillBlockedNotInstalledProven": true
+    }
+  ],
+  "aiGraphicsOwnsTools": false,
+  "trackAOwnsTools": false,
+  "soundOwnsTools": false,
+  "providerLaneOwnsTools": false,
+  "duplicateMilestone3ReviewFound": false,
+  "duplicateOwnerConflictFound": false
+}

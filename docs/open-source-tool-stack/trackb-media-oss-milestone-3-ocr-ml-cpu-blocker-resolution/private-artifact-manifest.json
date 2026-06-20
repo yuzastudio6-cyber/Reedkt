@@ -1,0 +1,17 @@
+{
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape",
+  "generatedAt": "2026-06-20T15:53:48.495Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "localDockerImagePushed": false,
+  "localDockerImageRemoved": true,
+  "modelFilesCommitted": false,
+  "mediaFilesCommitted": false,
+  "publicArtifacts": false,
+  "signedUrls": false
+}

@@ -679,5 +679,31 @@
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,
     "betaProductionAccepted": false
+  },
+  "milestone3OcrMlCpuBlockerResolution": {
+    "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape",
+    "sourceSha": "a80edbdc5bcf434b0cd70f9f8bae9523a2e1c1fa",
+    "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+    "packageAdded": "libgl1",
+    "previousLibgompPatchPreserved": true,
+    "dockerBuildPassed": true,
+    "libGLPresent": true,
+    "paddlePaddleImportVersionProven": true,
+    "paddlePaddleTensorDeviceProven": true,
+    "paddleOcrImportApiProven": false,
+    "paddleOcrBlocker": "missing_libgthread_2_0_so_0",
+    "countsRemainPendingQa": {
+      "ownedTools": 16,
+      "acceptedProvenBounded": 12,
+      "blockedNotInstalledProven": 4,
+      "endToEndProductReady": 0
+    },
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_FOLLOWUP",
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
   }
 }

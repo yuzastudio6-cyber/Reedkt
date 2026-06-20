@@ -28,6 +28,8 @@
     "open-source-tool-stack:ai-tools-creative-graphics:batch-3-import-smoke": "node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-3-import-smoke.mjs",
     "open-source-tool-stack:ai-tools-creative-graphics:batch-3-synthetic-fixtures": "node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-3-synthetic-fixtures.mjs",
     "open-source-tool-stack:ai-tools-creative-graphics:batch-3-execution:diagnostics": "node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-3-execution-diagnostics.mjs",
+    "ai-graphics:cpu-static-spec-validation:refreshed-execute": "node scripts/validation/ai-graphics-cpu-static-spec-validation-refreshed-execution.mjs",
+    "ai-graphics:cpu-static-spec-validation:refreshed-diagnostics": "node scripts/validation/ai-graphics-cpu-static-spec-validation-refreshed-execution-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

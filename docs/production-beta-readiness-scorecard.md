@@ -89,3 +89,13 @@ approve browser/WebGL/canvas runtime, route/tool/worker/provider runtime,
 Remotion render/export, resvg rasterization, Supabase mutation, GCS/storage
 transfer, signed URLs, public artifacts, internal beta, external beta, paid
 production, or production readiness.
+
+AI graphics CPU/static refreshed validation decision
+`ai_graphics_cpu_static_spec_validation_refreshed_execution_passed_with_warnings`
+accepts dependency-bearing CPU/static metadata, spec, and manifest contract
+validation for `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, and
+`viz_js`. It does not approve ECharts runtime, Lottie/Anime runtime,
+Three/Pixi/Konva/Babylon runtime, browser/WebGL/canvas runtime, Tool Route
+execution, Worker execution, provider/model runtime, Supabase mutation,
+GCS/storage transfer, signed URLs, public artifacts, internal beta, external
+beta, paid production, or production readiness.

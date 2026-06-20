@@ -24,9 +24,10 @@ Next proof planning remains future-only and separately gated.
 | Draft package proof canonical promotion QA | 13 merged package-proof tools from PR #425, PR #433, and PR #441 | QA acceptance of canonical merged package/import/static-fixture proof only | Runtime execution, E2E proof, browser/WebGL/canvas, beta, production |
 | Draft package proof runtime boundary review | 13 canonical package-proof tools | Planning/study metadata selection only; future runtime lanes classified | Agent execution, runtime, Tool Route, Worker, browser/WebGL/canvas, beta, production |
 | Draft package proof runtime boundary QA | 13 canonical package-proof tools | QA acceptance of future runtime lane classifications and agent planning/study metadata only | Agent execution, runtime, Tool Route, Worker, browser/WebGL/canvas, beta, production |
+| Draft package proof runtime boundary owner approval | 13 canonical package-proof tools | Owner approval of PR #598 QA and future runtime lane classifications only | Agent execution, runtime, Tool Route, Worker, browser/WebGL/canvas, beta, production |
 | Track B conflict sync | Track B media tools owned by `TRACK_B_MEDIA_OSS_STEWARD` | Reference evidence only | Atlas install/proof/execution authority for Track B tools |
 
-Next recommended prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_RUNTIME_BOUNDARY_OWNER_APPROVAL`.
+Next recommended prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_RUNTIME_BOUNDARY_OWNER_QA_REVIEW`.
 
 Runtime-ready now: `false`
 

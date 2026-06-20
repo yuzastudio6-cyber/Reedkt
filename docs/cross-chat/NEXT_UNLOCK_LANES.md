@@ -596,3 +596,21 @@ TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_FOLLOWUP:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone3_model_asset_approval_passed_ready_for_exact_asset_source_review`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Requested asset: `PingFang-SC-Regular.ttf`.
+- Source component: PaddleX font assets, observed in PR #600 evidence as an attempted fetch from `https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf` under `--network none`.
+- Classification: font/package-data runtime fetch governance blocker; exact source, license, checksum, and private staging policy are not yet proven.
+- Selected strategy: exact font asset source review before any asset acquisition or staging.
+- System font substitute, private staging, and asset-free import configuration remain future alternatives only.
+- Track B counts remain: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: PaddleOCR, PaddlePaddle, OpenColorIO, and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No font/model asset download, copy, upload, OCR inference, PaddleOCR/PaddlePaddle execution, Docker build/run, install, requirements/Dockerfile mutation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL_STATUS:end -->

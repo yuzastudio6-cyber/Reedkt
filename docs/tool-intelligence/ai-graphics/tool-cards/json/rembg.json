@@ -1,0 +1,67 @@
+{
+  "toolId": "rembg",
+  "displayName": "rembg",
+  "packageName": "rembg",
+  "capabilities": [
+    "background_removal",
+    "planning_metadata_only",
+    "blocked_or_deferred"
+  ],
+  "bestFor": [
+    "backlog background removal planning"
+  ],
+  "notFor": [
+    "default segmentation until redundancy review",
+    "current execution"
+  ],
+  "inputTypes": [
+    "image_background_removal_plan"
+  ],
+  "outputTypes": [
+    "planning_metadata"
+  ],
+  "proofStatus": "owner_assigned_backlog_decision_pending",
+  "runtimeStatus": "blocked_pending_backlog_redundancy_review",
+  "cpuGpuBrowserTarget": "defer_or_drop_after_backlog_review",
+  "costClass": "medium",
+  "latencyClass": "medium",
+  "qualityClass": "conditional",
+  "integrationComplexity": "medium",
+  "safetyLimitations": [
+    "possible redundancy",
+    "model/runtime proof missing"
+  ],
+  "fallbacks": [
+    "sam2",
+    "birefnet",
+    "transparent_background"
+  ],
+  "nextProofMilestone": "background_removal_backlog_review",
+  "tier": "Tier D",
+  "agentCanSelectForPlanning": true,
+  "agentCanExecuteNow": false,
+  "toolExecutionPerformed": false,
+  "runtimeReadyNow": false,
+  "internalBetaReadyNow": false,
+  "productionReadyNow": false,
+  "scoring": {
+    "capabilityFit": 16,
+    "outputQualityPotential": 12,
+    "reliabilityProof": 1,
+    "cloudReadiness": 1,
+    "costEfficiency": 4,
+    "integrationSimplicity": 4,
+    "safetyAndControl": 4,
+    "totalScore": 42
+  },
+  "eliminationRules": [
+    "Eliminate if capability mismatch.",
+    "Eliminate if proof status is below required proof.",
+    "Eliminate if browser/WebGL/canvas is required but not approved.",
+    "Eliminate if GPU/model weights are required but not approved.",
+    "Eliminate if public artifact/signed URL is required but not approved.",
+    "Eliminate if Tool Route/Worker execution is required but not approved.",
+    "Eliminate if another simpler tool covers the same purpose with lower cost.",
+    "Eliminate if tool is marked deferred/backlog."
+  ]
+}

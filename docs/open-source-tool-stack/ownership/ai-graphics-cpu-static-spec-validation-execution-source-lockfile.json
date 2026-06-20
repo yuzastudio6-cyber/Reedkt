@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsCpuStaticSpecValidationExecutionSourceLockfile.v1",
+  "decision": "blocked_pending_cpu_static_dependency_install_from_lock",
+  "runId": "ai-graphics-cpu-static-spec-validation-local-static",
+  "baseRef": "origin/codex/rp-ai-graphics-draft-package-proof-cpu-static-spec-validation-approval",
+  "headBranch": "codex/rp-ai-graphics-draft-package-proof-cpu-static-spec-validation-execution",
+  "duplicateSearchResult": "no exact CPU/static execution PR, remote branch, or target worktree existed before implementation",
+  "sources": {
+    "pr607": {"state": "open", "draft": true, "mergeable": "MERGEABLE", "head": "12cfc4f29e55db7a5b105ecfc3aba21480396435", "role": "CPU/static spec-validation approval source"},
+    "pr604": {"state": "open", "draft": true, "mergeable": "MERGEABLE", "head": "303ac0e00e5979a8857852aef91ac2aa8c2495fe", "role": "runtime-boundary owner-QA source"},
+    "pr602": {"state": "open", "draft": true, "mergeable": "MERGEABLE", "head": "267834176b6f1fbe6d43e4e13d6a19fe133a260a", "role": "runtime-boundary owner QA"},
+    "pr598": {"state": "open", "draft": true, "mergeable": "MERGEABLE", "head": "f0181632558fb755f61c821c400dce807d075991", "role": "runtime-boundary owner approval"},
+    "pr594": {"state": "open", "draft": true, "mergeable": "MERGEABLE", "head": "1e9a2827951aef5efd995d8a54b6ee63131579db", "role": "runtime-boundary QA"},
+    "pr589": {"state": "open", "draft": true, "mergeable": "MERGEABLE", "head": "6a55428bfd99d6e745b572df4f1a96c3a22e59cc", "role": "runtime-boundary review"},
+    "pr582": {"state": "open", "draft": true, "mergeable": "MERGEABLE", "head": "e630c5de1db4ba064c0a57476246f83bd25af4a7", "role": "PR #441 merge execution record"},
+    "pr425": {"state": "merged", "draft": false, "head": "4e79f14a03a441c0a6d9c8adaef55b7c8b693c12", "mergeSha": "a055ef045db2a6ce127a044bee6219d5933532c3", "role": "Batch 1 package proof"},
+    "pr433": {"state": "merged", "draft": false, "head": "5d7921f9d79e19641a9453440a6f9abe6272ea04", "mergeSha": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0", "role": "Batch 2 package proof"},
+    "pr441": {"state": "merged", "draft": false, "head": "92c1a52b53c4836a642ab6be8885aa8fb994e9c8", "mergeSha": "d174de59471eacf05bed5a5511d661f2e5ba9f0f", "role": "Batch 3 package proof"},
+    "pr543": {"state": "open", "draft": true, "mergeable": "MERGEABLE", "head": "37fea25846987323d1de04098c701816fa24a237", "role": "Atlas owner assignment and Track B conflict sync"},
+    "pr542": {"state": "merged", "head": "c2007f6bb20bc5cfae35d9e4eaef03feeca3218f", "mergeSha": "a66a1c0b72263e5e113d95216c373e0fad1071bb", "role": "Track B owner context"},
+    "pr544": {"state": "merged", "head": "318415fa8a9dbe33a4ac5f0f8a767ab761b73a4d", "mergeSha": "62f69c6b66d77abf155287ffdb2e9a380541d763", "role": "Track A owner context"}
+  },
+  "packageAvailability": {
+    "d3": {"packageName": "d3", "packageJsonDeclared": false, "packageLockDeclared": false},
+    "vega_lite": {"packageName": "vega-lite", "packageJsonDeclared": false, "packageLockDeclared": false},
+    "vega": {"packageName": "vega", "packageJsonDeclared": false, "packageLockDeclared": false},
+    "satori": {"packageName": "satori", "packageJsonDeclared": false, "packageLockDeclared": false},
+    "svgdotjs_svg_js": {"packageName": "@svgdotjs/svg.js", "packageJsonDeclared": false, "packageLockDeclared": false},
+    "viz_js": {"packageName": "@viz-js/viz", "packageJsonDeclared": false, "packageLockDeclared": false}
+  },
+  "trackBOwnerRule": {"ownerId": "TRACK_B_MEDIA_OSS_STEWARD", "atlasMayClaimTrackBTools": false},
+  "trackAOwnerContext": {"sourcePr": "PR #544", "atlasOwnsTrackARenderExport": false}
+}

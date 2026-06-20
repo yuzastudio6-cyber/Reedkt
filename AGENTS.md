@@ -4,6 +4,7 @@ These instructions are for Codex and any future agent working in this repository
 
 ## Required Reading
 
+- Before any backend, database, worker, provider, rendering, storage, credit, or tool execution work, read `PRODUCTION_FOUNDATION_STATUS.md`, `docs/source-of-truth-map.md`, and `docs/production-milestone-plan.md`.
 - Read `design.md` before any UI, layout, component, visual, brand, or frontend design work.
 - Read `product-plan.md` before product-scope decisions.
 - Read `intent-led-edit-planning.md` before upload, planning, AI workflow, generation, or approval work.
@@ -64,6 +65,17 @@ These instructions are for Codex and any future agent working in this repository
 - Read `docs/lyria-worker-plan.md` and `docs/google-cloud-audio-worker-plan.md` before Lyria worker, Google Cloud audio worker, music generation job, worker secret, or generated music asset work.
 - Read `docs/lyria-integration-adapter.md` before Lyria provider adapter, Lyria request building, Lyria response parsing, integration mode, or disabled real API path work.
 - Read `supabase-production-test-readiness.md` and `supabase-local-staging-test-plan.md` before active Supabase migration testing, production-test readiness, local/staging database validation, or Supabase advisor review work.
+
+## Implementation Prompt Rules
+
+Every future implementation prompt must:
+
+- Create a dedicated branch.
+- Commit changes.
+- Push to GitHub.
+- Open or update a PR.
+- State validation results.
+- State explicitly what production capability was or was not enabled.
 
 ## Product Identity
 

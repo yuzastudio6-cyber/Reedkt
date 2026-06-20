@@ -72,6 +72,16 @@ Before UI work, read `design.md`. Before product, AI, billing, planning, or work
 
 This repo currently contains an early web prototype plus product foundation documentation. The documentation is intended to guide future implementation. The foundation docs do not implement backend logic, database migrations, Stripe, AI APIs, video rendering, or mobile app behavior.
 
+### Production Foundation Source Of Truth
+
+Future backend, database, worker, provider, rendering, storage, credit, and tool implementation should start from:
+
+- [PRODUCTION_FOUNDATION_STATUS.md](PRODUCTION_FOUNDATION_STATUS.md)
+- [docs/source-of-truth-map.md](docs/source-of-truth-map.md)
+- [docs/production-milestone-plan.md](docs/production-milestone-plan.md)
+
+These files consolidate what is real, mock-only, planning-only, blocked, and authoritative. ReeditPro is not production backend, rendering, provider, Stripe, migration, deployment, or tool-execution ready unless a later milestone explicitly implements and validates that capability.
+
 Future implementation should stay modular so upload, intent analysis, reference DNA, edit planning, credit estimation, approval gates, rendering jobs, billing, and review workflows can be added safely.
 
 The connected planning foundation now includes chat-native planning, source sequence review, adaptive strategy, visual/story/tool/render planning, color/audio/map/dataviz/browser/depth/mask planning, launch tool stack alignment, worker-runtime architecture notes, production-readiness boundaries, validation, regression, and the planning system audit. See `connected-planning-system-overview.md` for the end-to-end map and `implementation-status-and-next-phase.md` for what remains frontend/mock versus future backend work.

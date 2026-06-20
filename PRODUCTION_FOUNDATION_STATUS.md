@@ -1,0 +1,65 @@
+# Production Foundation Status
+
+This is the main human-readable source-of-truth status page for ReeditPro production foundation work. It is a documentation index and readiness summary only. It does not enable backend execution, provider calls, rendering, Stripe, migrations, deployment, service-role writes, or worker/tool execution.
+
+## Current Repo Reality
+
+- Default branch status: `origin/HEAD` points to `origin/codex/reeditpro-web-ui-shell`. It should be treated as an early web prototype and foundation-doc branch, not a production backend branch.
+- Planning-stack status: `origin/codex/reeditpro-planning-stack` is available and is the base for this consolidation. It contains the richer planning, mock runtime, readiness, database, worker, tool, provider, render, and production-boundary documentation used for future implementation prompts.
+- Draft PR stack status: the planning-stack branch is the authoritative draft stack for this milestone. Individual PR state is not a repo-local source of truth unless linked from a future implementation prompt record.
+- Production readiness status: ReeditPro is not production backend/render/provider/payment ready. Current production-facing work is docs, schemas, mocks, local readiness scaffolds, route contracts, and guardrail definitions.
+
+## Status Labels
+
+| Label | Meaning |
+| --- | --- |
+| `implemented` | Exists as repo code/docs for the stated limited scope and can be used within that limited scope. |
+| `mock_only` | Demonstrates behavior with fixtures, mock routes, mock workers, or local-only helpers; no production side effects. |
+| `planning_only` | Describes intended architecture or policy; no executable implementation should be assumed. |
+| `partially_implemented` | Some contracts, local scaffolds, or safe helpers exist, but production execution remains incomplete. |
+| `blocked` | Must not proceed until a named prerequisite is completed and reviewed. |
+| `needs_review` | Requires product, security, legal, data, migration, dependency, or architecture review before production use. |
+| `production_ready` | Validated for production use with security, persistence, monitoring, rollback, and operational boundaries. No area in this file is currently marked `production_ready`. |
+
+## Area Status
+
+| Area | Status | Authoritative files | Current implementation level | Production blocker | Next milestone |
+| --- | --- | --- | --- | --- | --- |
+| Frontend shell | `partially_implemented` | `README.md`, `design.md`, `product-plan.md` | Early web prototype with chat-native product direction and UI foundation. | Production backend, persistence, upload, auth/workspace, and execution paths are not complete. | Prompt 1 - Production Architecture Freeze |
+| Chat-native planning | `partially_implemented` | `intent-led-edit-planning.md`, `chat-planning-ux-architecture.md`, `connected-planning-system-overview.md` | Mock planning flow and typed planning concepts exist; chat is the editor. | Real media/transcript understanding, persistence, approved snapshot service, and credit gate runtime are not production complete. | Prompt 1 - Production Architecture Freeze |
+| Auth/profile/workspace | `partially_implemented` | `docs/auth-profile-workspace-bootstrap.md`, `docs/auth-runtime-boundary.md`, `database-architecture.md` | Frontend-safe bootstrap helpers and boundary docs exist. | RLS-blocked creation needs backend/admin service-role path and production auth review. | Prompt 3 - Auth/profile/workspace/RLS production path |
+| Supabase schema/migrations | `needs_review` | `database-architecture.md`, `supabase/migration-order.md`, `database-migration-readiness-checklist.md`, `docs/e2e-readiness/RP-E2E-READY-01-runtime-tables.md` | Active migration files and local/review-ready runtime table plans exist. | No local/staging/remote Supabase validation, advisor review, backup plan, or production migration approval is complete. | Prompt 2 - Supabase schema review and migration validation |
+| Storage/upload | `partially_implemented` | `docs/storage-upload-pipeline.md`, `docs/storage-runtime-boundary.md`, `docs/e2e-readiness/RP-E2E-READY-01-runtime-tables.md` | Upload validation, bucket/path planning, upload intents, storage object records, and signed URL event table plans exist. | Real signed upload/download services, deployed private buckets/RLS, canonical object writes, and deletion policy are not production complete. | Prompt 4 - Storage/upload production runtime |
+| Approved snapshots | `partially_implemented` | `approved-plan-snapshot-policy.md`, `docs/e2e-readiness/RP-E2E-READY-01-runtime-tables.md`, `docs/backend-api-route-map.md` | Snapshot policy and runtime table foundations exist; workers must execute approved snapshots, not raw chat. | Backend-only snapshot creation, immutability enforcement validation, revision versioning, idempotency, and service-role writes are not production complete. | Prompt 5 - Approved plan snapshot service |
+| Credit ledger | `mock_only` | `pricing-and-credits.md`, `credit-ledger-architecture.md`, `docs/credit-runtime-approval-gate.md`, `docs/credit-reservation-spend-refund-flow.md` | Credit estimates, approval gates, mock reservations, spend/release/refund skeletons, and route contracts exist. | Transactional backend ledger mutation, Stripe purchase flows, refunds, weekly grants, idempotency, audit, and overrun policy are not production complete. | Prompt 6 - Credit ledger and approval gate production runtime |
+| Backend API runtime | `partially_implemented` | `docs/backend-api-route-map.md`, `docs/backend-runtime-readiness-audit.md`, `docs/cloud-run-backend-runtime-plan.md` | Route contracts, mock router, frontend API boundary, and mock-only Node/Cloud Run target scaffold exist. | No deployed API, production auth middleware, service-role handlers, secrets, rate limits, or audited mutations. | Prompt 7 - Backend API runtime and route hardening |
+| Job orchestration | `partially_implemented` | `job-orchestration-architecture.md`, `docs/job-runtime-queue-readiness.md`, `docs/job-dependency-chain-runtime.md`, `docs/e2e-readiness/RP-E2E-READY-01-worker-tool-readiness.md` | Mock queue items, job gates, dependency chains, dispatch placeholders, events, retry/recovery, and local worker runner concepts exist. | Real queue mutation, Cloud Run/Pub/Sub/Cloud Tasks dispatch, service-role writes, idempotency enforcement, and production worker claims are not complete. | Prompt 8 - Job orchestration, worker claims, leases, and idempotency |
+| Worker leases | `partially_implemented` | `docs/worker-lease-runtime.md`, `docs/worker-heartbeat-stale-recovery.md`, `supabase/migration-order.md` | Local-only lease, heartbeat, stale recovery, claim-attempt, and runtime message foundations exist. | Service-role lease claim/heartbeat/complete/fail paths and transactional concurrency validation are not production complete. | Prompt 8 - Job orchestration, worker claims, leases, and idempotency |
+| Media probe/readiness | `partially_implemented` | `docs/e2e-readiness/RP-E2E-READY-01-worker-tool-readiness.md`, `docs/e2e-readiness/RP-E2E-READY-01-tool-bootstrap.md` | Readiness-only worker routes and CLI paths exist; Docker worker can verify required FFmpeg/FFprobe availability for later media readiness. | Production FFmpeg/legal review, private media handling, storage integration, probe result persistence, and real media smoke tests are incomplete. | Prompt 9 - Media readiness, probe, transcript, and timing foundation |
+| Transcript/media analysis | `planning_only` | `video-understanding-report.md`, `source-cleanup-trim-planning.md`, `master-timing-architecture.md`, `timing-qa-policy.md` | Mock planning and policy docs exist for video understanding, cleanup, timing, captions, and meaning preservation. | No real transcript alignment, speech-to-text, visual analysis, beat detection, media processing, or worker execution is production complete. | Prompt 9 - Media readiness, probe, transcript, and timing foundation |
+| Tool readiness | `partially_implemented` | `open-source-tool-registry.md`, `worker-tool-runtime-architecture.md`, `docs/e2e-readiness/RP-E2E-READY-01-worker-tool-readiness.md`, `docs/e2e-readiness/RP-E2E-READY-01-tool-bootstrap.md` | Tool registry and safe readiness checks exist; optional tools are honestly reported as unavailable when missing. | No production tool install policy, license review, worker isolation, media execution, or tool output persistence is complete. | Prompt 12 - Tool-call foundation; Prompt 13 - Tool readiness and worker runtime checks |
+| Provider gateway | `planning_only` | `generation-provider-architecture.md`, `model-routing-policy.md`, `provider-prompt-architecture.md`, `docs/real-sfx-provider-execution-readiness.md` | Provider routing policy, disabled/readiness routes, prompt architecture, and mock SFX provider adapters exist. | No Secret Manager integration, backend provider gateway, provider SDK/http clients, webhook verification, credit-backed attempts, or real calls. | Prompt 14 - Provider gateway foundation |
+| Render/preview/export | `planning_only` | `render-strategy-planner.md`, `remotion-renderer-plan.md`, `docs/backend-api-route-map.md`, `worker-tool-runtime-architecture.md` | Render strategy and Remotion compositor plans exist; render routes are placeholders/readiness contracts. | No Remotion/FFmpeg render worker, preview artifact creation, export pipeline, storage handoff, QA gate, or production render execution. | Prompt 10 - Render/preview/export foundation |
+| QA/revision/fallback | `mock_only` | `edit-qa-architecture.md`, `editing-agent-qa-gates.md`, `agent-failure-fallback-decision-matrix.md`, `agent-recovery-user-review-policy.md` | QA, revision, failure, fallback, and recovery policies exist in mock/planning form. | Real QA workers, asset validation, failure recovery execution, user-review persistence, and final render blocking are not production complete. | Prompt 11 - QA, revision, and fallback execution foundation |
+| Stripe/billing | `blocked` | `pricing-and-credits.md`, `backend-database-roadmap.md`, `credit-ledger-architecture.md` | Product pricing and credit model are documented. | Stripe must wait for production credit ledger, idempotency, approval gate, refund semantics, webhook security, and audit records. | Prompt 6 before billing; Stripe remains future until explicitly scoped |
+| Monitoring/rate limits/audit | `planning_only` | `production-readiness-review.md`, `worker-tool-runtime-architecture.md`, `docs/backend-runtime-readiness-audit.md` | Logging, sanitized events, audit, and runtime boundary requirements are documented. | No production monitoring, alerting, rate limits, abuse controls, request tracing, audit dashboards, or incident rollback process. | Prompt 16 - Observability, audit, abuse prevention, and cost controls |
+| Open-source tool registry | `needs_review` | `open-source-tool-registry.md`, `tool-license-risk-policy.md`, `launch-tool-stack-update.md` | Candidate tools, worker-only boundaries, and launch preferences are documented. | License/security/dependency review, installation policy, runtime isolation, and production execution approval are incomplete. | Prompt 15 - Compliance/license/dependency/security review foundation |
+
+## Explicit Non-Goals For Prompt 0
+
+- No real provider calls.
+- No real rendering.
+- No Stripe integration.
+- No deployment.
+- No tool package installs.
+- No production migrations.
+- No service-role secrets.
+- No frontend provider execution.
+- No frontend tool execution.
+- No signed URL generation.
+- No private media upload or processing.
+- No Cloud Run, Pub/Sub, Cloud Tasks, Secret Manager, or Google Cloud resource changes.
+
+## Next Recommended Prompt
+
+Prompt 1 - Production Architecture Freeze. Lock frontend/backend/Supabase/worker/provider/render/tool boundaries before deeper implementation.

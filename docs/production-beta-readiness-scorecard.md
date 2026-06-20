@@ -119,3 +119,6 @@ production, or production readiness.
 
 AI graphics tool capability study decision
 `ai_graphics_tool_capability_study_and_ranking_matrix_completed_with_warnings` creates an agent-facing planning and ranking matrix for all 21 AI graphics tools. It allows planning/study metadata selection only and does not approve tool execution, browser/WebGL/canvas runtime, GPU/model runtime, Tool Route execution, Worker execution, provider/model runtime, Supabase mutation, GCS/storage transfer, signed URLs, public artifacts, internal beta, external beta, paid production, or production readiness.
+
+AI graphics tool capability study QA decision
+`ai_graphics_tool_capability_study_and_ranking_matrix_qa_passed_with_warnings` accepts PR #623's agent-facing planning and ranking matrix with warnings. It allows planning/study metadata selection only and does not approve tool execution, browser/WebGL/canvas runtime, GPU/model runtime, Tool Route execution, Worker execution, provider/model runtime, Supabase mutation, GCS/storage transfer, signed URLs, public artifacts, internal beta, external beta, paid production, or production readiness.

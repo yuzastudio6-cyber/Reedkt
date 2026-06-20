@@ -1,0 +1,158 @@
+{
+  "decision": "ai_graphics_tool_capability_study_and_ranking_matrix_qa_passed_with_warnings",
+  "branch": "codex/rp-ai-graphics-tool-capability-study-ranking-matrix-qa-review",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/627",
+  "draftPrState": "open/draft/MERGEABLE",
+  "checkStatus": "empty check rollup at creation",
+  "duplicateSearchResult": "no exact QA PR or remote QA branch existed before implementation",
+  "sourceDecision": "ai_graphics_tool_capability_study_and_ranking_matrix_completed_with_warnings",
+  "sourcePrs": {
+    "361": {
+      "state": "merged",
+      "mergeCommit": "05d429f6029136f0f55fe01375809071b588791c",
+      "role": "historical capability routing contract"
+    },
+    "376": {
+      "state": "merged",
+      "mergeCommit": "9296a4a41a143c0a212415d890e6ff544f73bb4b",
+      "role": "historical capability routing study"
+    },
+    "425": {
+      "state": "merged",
+      "mergeCommit": "a055ef045db2a6ce127a044bee6219d5933532c3",
+      "role": "Batch 1 package proof"
+    },
+    "433": {
+      "state": "merged",
+      "mergeCommit": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0",
+      "role": "Batch 2 package proof"
+    },
+    "441": {
+      "state": "merged",
+      "mergeCommit": "d174de59471eacf05bed5a5511d661f2e5ba9f0f",
+      "role": "Batch 3 package proof"
+    },
+    "542": {
+      "state": "merged",
+      "mergeCommit": "a66a1c0b72263e5e113d95216c373e0fad1071bb",
+      "role": "Track B exclusion context"
+    },
+    "543": {
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "37fea25846987323d1de04098c701816fa24a237",
+      "role": "owner assignment and conflict sync source"
+    },
+    "544": {
+      "state": "merged",
+      "mergeCommit": "62f69c6b66d77abf155287ffdb2e9a380541d763",
+      "role": "Track A render/export exclusion context"
+    },
+    "589": {
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "6a55428bfd99d6e745b572df4f1a96c3a22e59cc",
+      "role": "canonical package proof QA source"
+    },
+    "604": {
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "303ac0e00e5979a8857852aef91ac2aa8c2495fe",
+      "role": "runtime-boundary owner QA source"
+    },
+    "607": {
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "12cfc4f29e55db7a5b105ecfc3aba21480396435",
+      "role": "CPU/static approval source"
+    },
+    "612": {
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "5f870b9e493170cb9c02a03d33a719f1801560c8",
+      "role": "stale lineage blocked source"
+    },
+    "614": {
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "31b196f8158f6f3054cf90daaa9ba74d18c95089",
+      "role": "dependency reconciliation source"
+    },
+    "616": {
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "474a88aa31aaff46164d1ff0d9dc469e8d320bf1",
+      "role": "refreshed execution evidence"
+    },
+    "617": {
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "5bc68feeb776f2329cc4a124515709f55aac36cb",
+      "role": "refreshed execution QA evidence"
+    },
+    "621": {
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "cd6ab312d83bb5ebaa30f1ef30f41cf3891c3306",
+      "role": "CPU/static owner review source"
+    },
+    "623": {
+      "state": "open",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "4952fb0103d05e8f7df1272c0acd7419426f0ea4",
+      "role": "source capability study and ranking matrix"
+    }
+  },
+  "qaTargetTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background",
+    "d3",
+    "echarts",
+    "vega_lite",
+    "vega",
+    "satori",
+    "svgdotjs_svg_js",
+    "viz_js",
+    "lottie_web",
+    "animejs",
+    "three_js",
+    "pixi_js",
+    "konva",
+    "babylonjs"
+  ],
+  "capabilityGroups": [
+    "chart_overlay",
+    "data_visualization",
+    "svg_graphics",
+    "diagram_graphics",
+    "animation_overlay",
+    "canvas_scene",
+    "webgl_3d_scene",
+    "background_removal",
+    "subject_segmentation",
+    "upscaling",
+    "tensor_image_ops",
+    "model_runtime_foundation",
+    "planning_metadata_only",
+    "blocked_or_deferred"
+  ],
+  "trackBExclusion": "TRACK_B_MEDIA_OSS_STEWARD owns Track B media tools; AI graphics QA does not claim, install, prove, or execute Track B tools.",
+  "trackAExclusion": "PR #544 remains Track A render/export context; AI graphics QA does not claim Track A render/export tools.",
+  "noScope": "No tool execution, worker execution, route execution, provider/model runtime, dependency install, npm ci, package-lock mutation, CPU/static validation rerun, import smoke, synthetic fixture, browser/WebGL/canvas runtime, GPU runtime, model download, media/Remotion/resvg processing, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, PR merge, PR close, or PR retarget was performed."
+}

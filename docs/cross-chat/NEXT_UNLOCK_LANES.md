@@ -258,6 +258,17 @@ TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW:
 - Runtime/product scopes remain blocked.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:end -->
 
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_font_source_license_followup_passed_ready_for_system_font_package_approval`
+- Next lane: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL`
+- Reason: exact PingFang license/checksum/private staging remains unproven, while `fonts-noto-cjk` and `fonts-noto-cjk-extra` provide a safer future system-font package review path.
+- Future lane must approve package metadata, font path, and PaddleX/PaddleOCR local-font configuration before any execution.
+- Track B counts remain: 16 owned / 12 bounded accepted-proven / 4 blocked-not-installed-proven / 0 product-ready.
+- No install, Docker, Paddle/OCR execution, font/model asset operation, Supabase/GCS, beta, or production scope is accepted.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:end -->
+
 <!-- tracka-docker-build-context-blocker-resolution:start -->
 ## Track A Docker Build Context Blocker Resolution
 

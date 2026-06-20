@@ -267,3 +267,19 @@ TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_font_source_license_followup_passed_ready_for_system_font_package_approval`
+- Requested asset: `PingFang-SC-Regular.ttf`.
+- Exact PingFang remains blocked because standalone license, redistribution/private-staging rights, checksum, and runtime image embedding rights remain unproven.
+- Selected next gate: system-font package approval with `fonts-noto-cjk` as primary candidate and `fonts-noto-cjk-extra` as secondary candidate.
+- PaddleX/PaddleOCR local-font configuration remains a future approval/execution concern; no runtime proof is claimed here.
+- Track B counts remain: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: PaddleOCR, PaddlePaddle, OpenColorIO, and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No font/model asset download, copy, upload, private staging, OCR inference, PaddleOCR/PaddlePaddle execution, Docker build/run, install, requirements/Dockerfile mutation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:end -->

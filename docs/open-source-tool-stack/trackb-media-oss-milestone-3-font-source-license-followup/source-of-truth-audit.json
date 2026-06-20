@@ -1,0 +1,71 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOss.milestone3FontSourceLicenseFollowup.sourceAudit.v1",
+  "decision": "trackb_media_oss_milestone3_font_source_license_followup_passed_ready_for_system_font_package_approval",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL",
+  "implementationBranch": "codex/rp-trackb-media-oss-milestone-3-font-source-license-followup",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceSha": "3547308483cc0bc0059fb22eccae59fd8ed6363a",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "predecessorEvidence": [
+    { "pr": 613, "state": "MERGED", "mergedAt": "2026-06-20T20:16:20Z", "decision": "trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review" },
+    { "pr": 606, "state": "MERGED", "mergedAt": "2026-06-20T19:11:30Z", "decision": "trackb_media_oss_milestone3_model_asset_approval_passed_ready_for_exact_asset_source_review" },
+    { "pr": 600, "state": "MERGED", "mergedAt": "2026-06-20T18:29:54Z", "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required" },
+    { "pr": 592, "state": "MERGED", "mergedAt": "2026-06-20T16:51:16Z" },
+    { "pr": 587, "state": "MERGED", "mergedAt": "2026-06-20T15:28:38Z" },
+    { "pr": 583, "state": "MERGED", "mergedAt": "2026-06-20T14:38:57Z" },
+    { "pr": 578, "state": "MERGED", "mergedAt": "2026-06-20T13:50:14Z" },
+    { "pr": 574, "state": "MERGED", "mergedAt": "2026-06-20T12:28:24Z" },
+    { "pr": 571, "state": "MERGED", "mergedAt": "2026-06-20T03:35:59Z" },
+    { "pr": 567, "state": "MERGED", "mergedAt": "2026-06-20T02:43:56Z" },
+    { "pr": 563, "state": "MERGED", "mergedAt": "2026-06-20T01:54:06Z" },
+    { "pr": 559, "state": "MERGED", "mergedAt": "2026-06-20T00:24:13Z" },
+    { "pr": 557, "state": "MERGED", "mergedAt": "2026-06-19T23:08:20Z" },
+    { "pr": 551, "state": "MERGED", "mergedAt": "2026-06-19T22:13:00Z" },
+    { "pr": 549, "state": "MERGED", "mergedAt": "2026-06-19T21:09:19Z" },
+    { "pr": 546, "state": "MERGED", "mergedAt": "2026-06-19T20:36:29Z" },
+    { "pr": 545, "state": "MERGED", "mergedAt": "2026-06-19T20:04:45Z" },
+    { "pr": 542, "state": "MERGED", "mergedAt": "2026-06-19T19:07:30Z" }
+  ],
+  "duplicateReview": {
+    "fontSourceLicenseFollowupOpenPrs": [],
+    "pingFangOpenPrs": [],
+    "fontsNotoCjkOpenPrs": []
+  },
+  "protectedFileHashes": {
+    "package.json": "a0a7aa009d3d34f366c50b249293e0522101d3b4f8e623abd8b4afa0aa92a343",
+    "package-lock.json": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    "docker/prod/ocr-runtime/Dockerfile": "f21f1f401a097c18cff3acdecf1603952b3c0fa53bcd2ac09030e68096191638",
+    "docker/prod/ocr-runtime/requirements.ocr.txt": "b51d22ad3d74ed41b11b27fd4db545e283c4b88147abd149dd20e0ae7b79d365",
+    ".dockerignore": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91",
+    "docker/prod/cpu-worker/Dockerfile": "e4470a77095330b990a33d019d76b1bf87cb94d06f12f1b4a478d3171b578c7f",
+    "docker/prod/cpu-worker/requirements.cpu.txt": "de5a91fd7331fc802a52508b470f9facef858051782e5ce3a2a97e4775b65461",
+    "docker/prod/render-worker/Dockerfile": "5c74565f21853301c2ad159d7dccdb0dfb48e1d33d39ab55fe330f6a409310e9"
+  },
+  "referenceInputs": [
+    "https://packages.debian.org/sid/fonts/fonts-noto-cjk",
+    "https://sources.debian.org/copyright/license/fonts-noto-cjk/1%3A20201206-cjk%2Brepack1-1/",
+    "https://notofonts.github.io/noto-docs/website/use/",
+    "https://github.com/PaddlePaddle/PaddleX/issues/4405"
+  ],
+  "broadProductionDocs": {
+    "docs/beta-readiness-scorecard.md": "absent",
+    "docs/production-beta-blocker-inventory.md": "absent",
+    "PRODUCTION_FOUNDATION_STATUS.md": "absent"
+  },
+  "noOperationConfirmations": {
+    "fontAssetDownloaded": false,
+    "fontAssetCopied": false,
+    "fontAssetUploaded": false,
+    "modelAssetDownloaded": false,
+    "modelAssetCopied": false,
+    "modelAssetUploaded": false,
+    "privateAssetStaged": false,
+    "ocrInferenceRun": false,
+    "paddleOcrRun": false,
+    "paddlePaddleRun": false,
+    "dockerRun": false,
+    "installRun": false,
+    "runtimeScopeTouched": false
+  }
+}

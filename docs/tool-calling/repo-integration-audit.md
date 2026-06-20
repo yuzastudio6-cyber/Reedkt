@@ -60,6 +60,13 @@
 - Existing command-plan builders under `server/workers/**`, `server/activation/**`, and `server/cli/**` are not imported by the safe command-plan layer because those surfaces contain execution/readiness command fields.
 - Pending external tools remain excluded from safe command plans until production registry expansion.
 
+## Synthetic Fixture Plan Integration
+
+- Synthetic fixture plans reuse safe command plans, adapter plans, production registry IDs, runtime artifact types, storage bucket purposes, QA gates, and the existing worker-router boundary.
+- Fixture plans are future-only requirements; they are not generated files, command runners, worker jobs, fixture execution tables, or router replacements.
+- Existing fixture helpers under `server/media`, `server/e2e`, and `server/workers` are smoke or execution helpers and are not imported by the synthetic fixture planning layer.
+- Future fixture dry-runs must remain a separate controlled milestone with approved snapshots and private artifact references.
+
 ## Safety Confirmation
 
 - The new brain produces planning-only output with `executesTools: false`.

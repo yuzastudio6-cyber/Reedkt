@@ -52,6 +52,13 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - Safe command plans reject raw prompts, signed URLs, service-role context, arbitrary args, local paths, shell strings, provider keys, and secret values.
 - Safe command plans remain planning-only and are required before any future controlled synthetic fixture execution milestone.
 
+## Synthetic Fixture Plan Layer
+
+- Synthetic fixture plans convert safe command plans into tiny future fixture requirements for controlled dry-runs.
+- Fixture plans are not generated files and do not execute tools, shell commands, workers, or media processing.
+- Fixture plans use private artifact requirements, expected output artifacts, storage bucket purposes, QA gates, and safety limits.
+- Existing fixture helpers under `server/media`, `server/e2e`, and `server/workers` remain execution or smoke-test surfaces and are not imported by this planning layer.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.
@@ -62,6 +69,7 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 6. Build a pipeline fallback plan and quality gate plan from existing policies.
 7. When requested, build adapter plans and worker-route bridge metadata from the selected planning-only pipeline.
 8. When requested, build safe command plans and validate the command-intent boundary without executing tools.
+9. When requested, build synthetic fixture plans and validate future-only fixture requirements without generating artifacts.
 
 ## Non-Goals
 

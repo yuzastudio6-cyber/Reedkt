@@ -31,6 +31,16 @@ import type {
   SafeCommandPlanValidationSummary,
 } from './safe-command-plan-types'
 import {
+  buildSyntheticFixturePlansForCommandPlans,
+} from './synthetic-fixture-planner'
+import {
+  validateSyntheticFixturePlans,
+} from './synthetic-fixture-plan-validator'
+import type {
+  SyntheticFixturePlan,
+  SyntheticFixturePlanValidationSummary,
+} from './synthetic-fixture-plan-types'
+import {
   composePipelineForOperations,
   getPatternOperations,
 } from './pipeline-composer'
@@ -93,6 +103,11 @@ export interface ToolCallingPlanWithAdapters extends ToolCallingPlan {
 export interface ToolCallingPlanWithAdaptersAndCommandPlans extends ToolCallingPlanWithAdapters {
   safeCommandPlans: readonly SafeCommandPlan[]
   commandPlanValidationSummary: SafeCommandPlanValidationSummary
+}
+
+export interface ToolCallingPlanWithAdaptersCommandPlansAndFixtures extends ToolCallingPlanWithAdaptersAndCommandPlans {
+  syntheticFixturePlans: readonly SyntheticFixturePlan[]
+  fixtureValidationSummary: SyntheticFixturePlanValidationSummary
 }
 
 function stableHash(value: string): string {
@@ -190,6 +205,21 @@ export function buildToolCallingPlanWithAdaptersAndCommandPlans(
     ...plan,
     safeCommandPlans,
     commandPlanValidationSummary,
+    executesTools: false,
+  }
+}
+
+export function buildToolCallingPlanWithAdaptersCommandPlansAndFixtures(
+  request: BuildToolCallingPlanRequest,
+): ToolCallingPlanWithAdaptersCommandPlansAndFixtures {
+  const plan = buildToolCallingPlanWithAdaptersAndCommandPlans(request)
+  const syntheticFixturePlans = buildSyntheticFixturePlansForCommandPlans(plan.safeCommandPlans)
+  const fixtureValidationSummary = validateSyntheticFixturePlans(syntheticFixturePlans)
+
+  return {
+    ...plan,
+    syntheticFixturePlans,
+    fixtureValidationSummary,
     executesTools: false,
   }
 }

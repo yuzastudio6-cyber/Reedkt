@@ -154,3 +154,11 @@ chart runtime, animation runtime, browser/WebGL/canvas sandbox runtime, Tool
 Route execution, Worker execution, provider execution, Supabase/GCS, signed
 URLs, public artifacts, internal beta, external beta, and production remain
 blocked.
+
+AI graphics draft package proof runtime boundary owner approval accepts PR #598
+with warnings and owner-approves only planning/study metadata plus future lane
+classifications for the 13 canonical package-proof tools. Agent execution,
+CPU/static runtime, browser chart runtime, animation runtime, browser/WebGL/
+canvas sandbox runtime, Tool Route execution, Worker execution, provider
+execution, Supabase/GCS, signed URLs, public artifacts, internal beta, external
+beta, and production remain blocked.

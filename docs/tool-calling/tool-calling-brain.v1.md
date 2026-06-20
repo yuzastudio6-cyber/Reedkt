@@ -30,6 +30,13 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - Tools that are not first-class `ProductionToolId` entries remain pending production registry expansion.
 - Pending external study cards can appear in diagnostics and reports, but not as pipeline `selectedToolId` values.
 
+## Repo Refresh And Duplicate Prevention
+
+- The tool-calling brain is an overlay on top of existing repo systems, not a replacement for the production registry, worker router, QA policy, fallback policy, runtime contracts, or Supabase table design.
+- Future capabilities and adapters must reuse existing implementations when present.
+- Pending external tools must be rechecked before each milestone because they may become first-class `ProductionToolId` entries later.
+- Future milestones must run `npm run tool-calling:refresh-gate` before implementation.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.

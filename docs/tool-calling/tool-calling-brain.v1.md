@@ -59,6 +59,13 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - Fixture plans use private artifact requirements, expected output artifacts, storage bucket purposes, QA gates, and safety limits.
 - Existing fixture helpers under `server/media`, `server/e2e`, and `server/workers` remain execution or smoke-test surfaces and are not imported by this planning layer.
 
+## Synthetic Fixture Dry Run Layer
+
+- Synthetic fixture dry runs convert fixture plans into deterministic in-memory JSON descriptor payloads and artifact manifests.
+- Dry runs do not write fixture files, generate binary media, execute tools, run shell commands, dispatch workers, process media, call providers, mutate Supabase, run SQL, create signed URLs, or unlock beta/production.
+- Dry-run artifacts use stable JSON checksums, byte counts, artifact types, and storage bucket purposes instead of local paths or signed URLs.
+- Existing dry-run and fixture helpers under `server/media`, `server/e2e`, and `server/workers` remain execution, smoke, or readiness surfaces and are not imported by this planner layer.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.
@@ -70,6 +77,7 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 7. When requested, build adapter plans and worker-route bridge metadata from the selected planning-only pipeline.
 8. When requested, build safe command plans and validate the command-intent boundary without executing tools.
 9. When requested, build synthetic fixture plans and validate future-only fixture requirements without generating artifacts.
+10. When requested, materialize synthetic fixture dry-run descriptors and validate JSON-only artifact manifests without writing files or generating media.
 
 ## Non-Goals
 

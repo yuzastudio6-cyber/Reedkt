@@ -18,6 +18,7 @@
     "tool-calling:adapter-contracts": "node scripts/validation/tool-calling-adapter-contracts-diagnostics.mjs",
     "tool-calling:safe-command-plan": "node scripts/validation/tool-calling-safe-command-plan-diagnostics.mjs",
     "tool-calling:synthetic-fixture-plan": "node scripts/validation/tool-calling-synthetic-fixture-plan-diagnostics.mjs",
+    "tool-calling:synthetic-fixture-dry-run": "node scripts/validation/tool-calling-synthetic-fixture-dry-run-diagnostics.mjs",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",

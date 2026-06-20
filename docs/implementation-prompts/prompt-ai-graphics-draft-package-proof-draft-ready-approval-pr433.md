@@ -6,6 +6,10 @@ Create a docs/diagnostics-only approval branch from `origin/codex/rp-ai-graphics
 
 Use branch `codex/rp-ai-graphics-draft-package-proof-draft-ready-approval-pr433` and keep the PR draft while PR #561 remains draft.
 
+Created draft PR: [#562](https://github.com/yuzastudio6-cyber/Reedkt/pull/562)
+
+PR #562 status after creation: open/draft/CLEAN at `febaa857629a04483c55effa4c31bea680471d5c`; check rollup empty at creation.
+
 Source state recorded:
 
 - PR #561 open/draft/CLEAN at `4749a3706d77884f104bfbf04fb1085f0300638c`

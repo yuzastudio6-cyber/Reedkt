@@ -4,7 +4,9 @@ Decision: `ai_graphics_draft_package_proof_pr433_draft_ready_approval_passed_wit
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-draft-ready-approval-pr433`
 
-Draft PR: pending at initial implementation record.
+Draft PR: [#562](https://github.com/yuzastudio6-cyber/Reedkt/pull/562)
+
+PR #562 status after creation: open/draft/CLEAN at `febaa857629a04483c55effa4c31bea680471d5c`; check rollup empty at creation.
 
 ## Source Status Used
 

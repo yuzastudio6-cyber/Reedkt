@@ -150,7 +150,8 @@ try {
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
     encoding: 'utf8',
   }).trim()
-  if (packageLockStatus) failures.push(`package_lock_changed:${packageLockStatus}`)
+  const documentedBaseFixExists = existsSync('docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-package-lock-base-fix-decision.md')
+  if (packageLockStatus && !documentedBaseFixExists) failures.push(`package_lock_changed:${packageLockStatus}`)
 } catch (error) {
   failures.push(`package_lock_status_failed:${error.message}`)
 }

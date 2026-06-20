@@ -515,3 +515,13 @@ Current classification:
 - production: blocked
 - external beta: blocked
 - paid production: blocked
+
+## AI_TOOLS_CREATIVE_GRAPHICS Batch 1 Install/Proof
+
+Decision `ai_graphics_batch_1_install_import_synthetic_proof_passed_with_warnings`
+records owner-lane package proof for `d3`, `echarts`, `vega-lite`, and `vega`
+only. This is dependency install, Node import smoke, and committed synthetic
+fixture validation only. Live tool execution, route execution, worker
+execution, provider runtime, browser/WebGL runtime, render/export, Supabase
+mutation, storage transfer, signed URLs, public artifacts, internal beta,
+external beta, and production remain blocked.

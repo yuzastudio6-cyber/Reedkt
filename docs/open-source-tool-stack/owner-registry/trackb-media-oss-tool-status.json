@@ -630,5 +630,54 @@
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,
     "betaProductionAccepted": false
+  },
+  "milestone3OcrMlCpuExecutionBlockerFollowup": {
+    "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape",
+    "reportKey": "trackb_milestone_3_ocr_ml_cpu_execution_blocker_followup_reports",
+    "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+    "targetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+    "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-cpu-libgomp-b17a20898d5c046447905e5a411a733133afa535",
+    "tools": [
+      {
+        "id": "paddlepaddle",
+        "name": "PaddlePaddle",
+        "packageDeclared": true,
+        "dockerBuildPassed": true,
+        "importVersionProven": true,
+        "apiTensorProofProven": true,
+        "ocrInferenceRun": false,
+        "modelAssetsRequired": false,
+        "modelAssetsDownloaded": false,
+        "gpuUsed": false,
+        "boundedCpuProofAcceptedForQaReview": true,
+        "blocker": null
+      },
+      {
+        "id": "paddleocr",
+        "name": "PaddleOCR",
+        "packageDeclared": true,
+        "dockerBuildPassed": true,
+        "importVersionProven": false,
+        "apiTensorProofProven": false,
+        "ocrInferenceRun": false,
+        "modelAssetsRequired": false,
+        "modelAssetsDownloaded": false,
+        "gpuUsed": false,
+        "boundedCpuProofAcceptedForQaReview": false,
+        "blocker": "paddleocr_import_blocked_missing_libGL_so_1"
+      }
+    ],
+    "canonicalCountsRemainPendingQa": true,
+    "canonicalAcceptedProvenBoundedBeforeMilestone3": 12,
+    "newlyProofedCpuEvidencePendingQa": 0,
+    "acceptedProvenBoundedTotalPendingQa": 12,
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_FOLLOWUP_RESOLUTION",
+    "ocrInferenceAccepted": false,
+    "modelAssetOperationsAccepted": false,
+    "gpuExecutionAccepted": false,
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "betaProductionAccepted": false
   }
 }

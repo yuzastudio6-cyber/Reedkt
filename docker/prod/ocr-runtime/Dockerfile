@@ -8,6 +8,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY docker/prod/ocr-runtime/requirements.ocr.txt /tmp/requirements.ocr.txt
 COPY server/workers/ocr-runtime/requirements.ocr-transitive-macos-py312.txt /tmp/requirements.ocr-transitive-macos-py312.txt
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \

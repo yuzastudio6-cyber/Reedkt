@@ -1,0 +1,15 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecutionBlockerFollowup.dockerfilePatch.v1",
+  "generatedAt": "2026-06-20T15:05:37.884Z",
+  "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+  "approvedPackage": "libgomp1",
+  "patchApplied": true,
+  "onlyApprovedPackageAdded": true,
+  "requirementsMutated": false,
+  "packageLockMutated": false,
+  "dockerignoreMutated": false,
+  "unrelatedDockerfilesMutated": false,
+  "dockerfileMutationAllowed": true,
+  "unrelatedDockerfileMutationAllowed": false,
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape"
+}

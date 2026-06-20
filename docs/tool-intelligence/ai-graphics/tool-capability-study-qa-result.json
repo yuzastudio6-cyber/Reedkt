@@ -1,5 +1,8 @@
 {
   "decision": "ai_graphics_tool_capability_study_and_ranking_matrix_qa_passed_with_warnings",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/627",
+  "draftPrState": "open/draft/MERGEABLE",
+  "checkStatus": "empty check rollup at creation",
   "sourceCapabilityStudyDecision": "ai_graphics_tool_capability_study_and_ranking_matrix_completed_with_warnings",
   "booleans": {
     "capabilityStudyQaCompleted": true,

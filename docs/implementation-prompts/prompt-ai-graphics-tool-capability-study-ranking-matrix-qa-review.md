@@ -13,9 +13,9 @@ Implemented a QA/review-only packet for PR #623's product/agent-facing AI graphi
 
 ## PR Follow-Up
 
-- Draft PR: pending
-- PR link: pending
-- Check status: pending
+- Draft PR: #627, open/draft/MERGEABLE
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/627
+- Check status: empty check rollup at creation
 
 ## Validation
 

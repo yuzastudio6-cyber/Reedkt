@@ -69,6 +69,12 @@ import type {
   ControlledLowRiskReadinessProbeRun,
 } from './controlled-low-risk-execution-types'
 import {
+  runFixtureBoundMetadataProbeStack,
+} from './fixture-bound-metadata-probe-runner'
+import type {
+  FixtureBoundMetadataProbeRun,
+} from './fixture-bound-metadata-probe-types'
+import {
   composePipelineForOperations,
   getPatternOperations,
 } from './pipeline-composer'
@@ -302,4 +308,31 @@ export async function buildToolCallingPlanWithAdaptersCommandPlansFixturesDryRun
 
 export async function runToolCallingControlledLowRiskReadinessProbes(): Promise<ControlledLowRiskReadinessProbeRun> {
   return runControlledLowRiskReadinessProbes()
+}
+
+export async function runToolCallingFixtureBoundMetadataProbe(): Promise<FixtureBoundMetadataProbeRun> {
+  const binaryFixtureStack = await buildToolCallingPlanWithAdaptersCommandPlansFixturesDryRunAndBinaryFixtures({
+    projectId: 'fixture_bound_metadata_probe_synthetic_audio',
+    mode: 'preview',
+    qualityTarget: 'balanced',
+    requestedOperations: ['media.audio.extract'],
+    userPreferenceTags: ['professional', 'fixture_bound_metadata_probe_safe'],
+    mediaContext: {
+      mediaTypes: ['audio'],
+      hasAudio: true,
+      hasSpeech: false,
+      hasMotion: false,
+    },
+  })
+  const probeStack = await runFixtureBoundMetadataProbeStack(
+    binaryFixtureStack.binaryFixtureGenerationResults,
+    binaryFixtureStack.binaryFixtureGenerationPlans,
+  )
+
+  return {
+    binaryFixtureGenerationPlans: binaryFixtureStack.binaryFixtureGenerationPlans,
+    binaryFixtureGenerationResults: binaryFixtureStack.binaryFixtureGenerationResults,
+    ...probeStack,
+    executesTools: true,
+  }
 }

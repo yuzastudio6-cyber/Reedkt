@@ -98,10 +98,19 @@
 - The layer does not create a duplicate worker router, execution adapter, command policy, readiness worker, production registry, QA policy, fallback policy, Supabase runtime table, migration, SQL file, storage writer, or artifact writer.
 - Probe output is sanitized and diagnostics-only; no local paths, signed URLs, raw prompts, service-role context, provider secrets, shell commands, or arbitrary args are returned.
 
+## Fixture-Bound Metadata Probe Integration
+
+- Fixture-bound metadata probing reuses the existing binary fixture generation provenance path and first-class `ffprobe` `ProductionToolId`.
+- The layer executes only one read-only `ffprobe` metadata probe against an internally generated synthetic WAV fixture; it does not probe real media, video fixtures, URLs, repository files, or public artifacts.
+- Existing ffprobe helpers under `server/media`, `server/workers`, CLI probes, production-readiness checks, and worker routes remain scan evidence only and are not imported.
+- The layer does not create a duplicate media probe worker, worker router, production registry, QA policy, fallback policy, Supabase runtime table, migration, SQL file, storage writer, artifact writer, or general command execution layer.
+- Probe results expose sanitized metadata summaries only; no raw ffprobe JSON, local paths, signed URLs, raw prompts, service-role context, provider secrets, command strings, arbitrary args, or filename fields are returned.
+
 ## Safety Confirmation
 
 - Normal tool-calling plans produce planning-only output with `executesTools: false`.
 - Controlled low-risk readiness probes return `executesTools: true` and `mediaProcessingPerformed: false`.
+- Fixture-bound metadata probes return `executesTools: true`, `fixtureInputUsed: true`, and `mediaProcessingPerformed: false`.
 - Pipeline steps use `executionMode: planning_only`.
 - The diagnostics do not process media, call providers, create signed URLs, mutate Supabase, run SQL, or dispatch workers.
 - `package-lock.json` is intentionally not modified by this milestone.

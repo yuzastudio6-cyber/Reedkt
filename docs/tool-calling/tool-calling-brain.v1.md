@@ -22,10 +22,18 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - Runtime tool selection must not use Track A, Track B, or owner labels.
 - Runtime tool selection must use operation capability, input/output compatibility, ranking policy, quality gates, fallback rules, resource profile, and future telemetry.
 
+## Milestone 2 Capability Cards
+
+- Milestone 2 adds explicit per-tool capability study cards under `docs/tool-calling/studies`.
+- Study cards enrich operation-level planning metadata and do not replace `server/tool-registry`.
+- Runtime ID aliasing resolves proven tool labels to existing `ProductionToolId` entries when possible.
+- Tools that are not first-class `ProductionToolId` entries remain pending production registry expansion.
+- Pending external study cards can appear in diagnostics and reports, but not as pipeline `selectedToolId` values.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.
-2. Build capability cards from existing production tool profiles.
+2. Build expanded capability cards from explicit study cards plus existing production tool profiles.
 3. Find multiple tool candidates for each operation from supported actions, artifact compatibility, and seeded operation mappings.
 4. Rank candidates deterministically with capability, artifact, quality, reliability, speed, resource, validation, fallback, and preference dimensions.
 5. Compose a planning-only pipeline step with selected tool, ranked candidates, fallback IDs, expected artifacts, quality gates, and worker type when inferable.

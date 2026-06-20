@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "opencv",
+  "displayName": "OpenCV",
+  "aliases": ["opencv"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "opencv",
+    "reason": "OpenCV is a first-class ProductionToolId for visual analysis, frame QA, OCR support, and mask refinement planning."
+  },
+  "operations": [
+    {"operationId": "video.frame.sample", "supportLevel": "secondary", "bestFor": ["frame extraction and preprocessing"], "notFor": ["container metadata"], "inputArtifacts": ["source_media", "proxy_media", "video"], "outputArtifacts": ["image_asset", "representative_frame", "analysis_report"], "validators": ["render_asset_integrity"], "fallbackToolIds": ["pyav", "ffmpeg", "sharp"], "notes": ["Works well as visual analysis preparation."]},
+    {"operationId": "video.motion.score", "supportLevel": "primary", "bestFor": ["motion intensity scoring"], "notFor": ["semantic action recognition"], "inputArtifacts": ["source_media", "proxy_media", "video", "frame_sequence"], "outputArtifacts": ["analysis_report", "json_spec"], "validators": ["cut_smoothness", "render_asset_integrity"], "fallbackToolIds": ["pyscenedetect", "vapoursynth"], "notes": ["Supports pacing and cut-density planning."]},
+    {"operationId": "video.blur.score", "supportLevel": "primary", "bestFor": ["blur and sharpness scoring"], "notFor": ["super-resolution"], "inputArtifacts": ["source_media", "proxy_media", "video", "frame_sequence"], "outputArtifacts": ["analysis_report", "qa_report", "json_spec"], "validators": ["render_asset_integrity"], "fallbackToolIds": ["sharp", "kornia"], "notes": ["Useful for rejecting weak thumbnail or cut candidates."]},
+    {"operationId": "video.safe_zone.detect", "supportLevel": "primary", "bestFor": ["safe-zone and overlay collision planning"], "notFor": ["text recognition alone"], "inputArtifacts": ["source_media", "proxy_media", "image", "video", "frame_sequence"], "outputArtifacts": ["analysis_report", "qa_report", "json_spec"], "validators": ["caption_safe_zone", "ocr_text_overlap"], "fallbackToolIds": ["mediapipe", "paddleocr", "sharp"], "notes": ["Supports caption placement and overlay QA."]},
+    {"operationId": "mask.refine", "supportLevel": "secondary", "bestFor": ["edge cleanup and mask QA"], "notFor": ["foundation-model segmentation"], "inputArtifacts": ["mask", "mask_image", "mask_sequence", "image", "video", "frame_sequence"], "outputArtifacts": ["mask_image", "mask_sequence", "qa_report", "json_spec"], "validators": ["mask_edge_quality", "mask_temporal_stability", "mask_subject_coverage"], "fallbackToolIds": ["kornia", "sam2", "birefnet"], "notes": ["Good for deterministic post-processing plans."]},
+    {"operationId": "ocr.detect_text", "supportLevel": "fallback", "bestFor": ["text-region pre-detection"], "notFor": ["OCR transcription accuracy"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["ocr_report_json", "analysis_report", "qa_report", "json_spec"], "validators": ["ocr_text_overlap", "caption_safe_zone"], "fallbackToolIds": ["paddleocr", "playwright"], "notes": ["Pairs with OCR engines for overlap detection."]},
+    {"operationId": "color.shot_match", "supportLevel": "secondary", "bestFor": ["histogram and frame-level matching evidence"], "notFor": ["color-managed final transforms"], "inputArtifacts": ["source_media", "proxy_media", "image", "video"], "outputArtifacts": ["processed_video", "image_asset", "qa_report", "analysis_report"], "validators": ["color_shot_match", "color_skin_tone", "color_export_space"], "fallbackToolIds": ["opencolorio", "openimageio", "ffmpeg"], "notes": ["Use as analysis evidence for color planning."]}
+  ],
+  "bestFor": ["frame analysis", "motion and blur scoring", "safe-zone analysis", "deterministic mask post-processing"],
+  "notFor": ["final color management", "subtitle burn-in", "speech transcription"],
+  "inputArtifacts": ["source_media", "proxy_media", "image", "video", "frame_sequence", "mask", "mask_image", "mask_sequence"],
+  "outputArtifacts": ["analysis_report", "qa_report", "json_spec", "image_asset", "representative_frame", "mask_image", "mask_sequence", "ocr_report_json"],
+  "validators": ["render_asset_integrity", "cut_smoothness", "caption_safe_zone", "ocr_text_overlap", "mask_edge_quality", "mask_temporal_stability", "mask_subject_coverage", "color_shot_match", "color_skin_tone", "color_export_space"],
+  "fallbackToolIds": ["pyav", "sharp", "paddleocr", "kornia", "sam2"],
+  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
+  "knownFailureModes": ["lighting changes can skew thresholds", "fast motion may create noisy masks", "text regions can be confused with graphics"],
+  "professionalEditingUses": ["cut pacing evidence", "safe-zone planning", "visual QA", "mask cleanup planning"],
+  "benchmarkPlaceholders": ["benchmark:opencv:motion_score_latency_pending", "benchmark:opencv:blur_score_accuracy_pending"],
+  "telemetryPlaceholders": ["telemetry:opencv:selection_count", "telemetry:opencv:qa_gate_outcomes"],
+  "readinessNotes": ["Study card adds operation-specific planning metadata only."]
+}

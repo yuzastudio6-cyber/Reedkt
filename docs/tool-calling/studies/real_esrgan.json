@@ -1,0 +1,27 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "real_esrgan",
+  "displayName": "Real-ESRGAN",
+  "aliases": ["real_esrgan"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "real_esrgan",
+    "reason": "Real-ESRGAN is a first-class ProductionToolId for AI enhancement and upscale planning."
+  },
+  "operations": [
+    {"operationId": "video.enhance", "supportLevel": "primary", "bestFor": ["AI upscale and enhancement planning"], "notFor": ["codec transcode"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["image_asset", "processed_video", "enhanced_video", "qa_report"], "validators": ["enhancement_artifacts", "render_asset_integrity"], "fallbackToolIds": ["sharp", "ffmpeg", "vapoursynth"], "notes": ["Primary enhancement planning candidate where model policy allows."]}
+  ],
+  "bestFor": ["AI upscaling", "detail enhancement", "low-resolution source repair planning"],
+  "notFor": ["color management", "caption rendering", "slow motion"],
+  "inputArtifacts": ["image", "video", "frame_sequence"],
+  "outputArtifacts": ["image_asset", "processed_video", "enhanced_video", "qa_report"],
+  "validators": ["enhancement_artifacts", "render_asset_integrity"],
+  "fallbackToolIds": ["sharp", "ffmpeg", "vapoursynth"],
+  "resourceProfile": {"workerType": "gpu_ai_worker", "gpuRequired": true, "cpuAllowed": false, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": true, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["hallucinated texture", "face/detail artifacts", "model weights may block execution"],
+  "professionalEditingUses": ["source repair planning", "thumbnail enhancement", "upscale workflows"],
+  "benchmarkPlaceholders": ["benchmark:real_esrgan:enhancement_quality_pending", "benchmark:real_esrgan:upscale_latency_pending"],
+  "telemetryPlaceholders": ["telemetry:real_esrgan:selection_count", "telemetry:real_esrgan:enhancement_gate_outcomes"],
+  "readinessNotes": ["No enhancement execution in this milestone."]
+}

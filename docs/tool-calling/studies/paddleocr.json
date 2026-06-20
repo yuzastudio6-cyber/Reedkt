@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "paddleocr",
+  "displayName": "PaddleOCR",
+  "aliases": ["paddleocr"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "paddleocr",
+    "reason": "PaddleOCR is a first-class ProductionToolId for text detection and safe-zone planning."
+  },
+  "operations": [
+    {"operationId": "ocr.detect_text", "supportLevel": "primary", "bestFor": ["screen recording text and overlay detection"], "notFor": ["caption generation"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["ocr_report_json", "analysis_report", "qa_report", "json_spec"], "validators": ["ocr_text_overlap", "caption_safe_zone"], "fallbackToolIds": ["opencv", "playwright"], "notes": ["Primary first-class OCR planning candidate on this base."]},
+    {"operationId": "video.safe_zone.detect", "supportLevel": "secondary", "bestFor": ["detecting text regions that captions should avoid"], "notFor": ["subject pose detection"], "inputArtifacts": ["source_media", "proxy_media", "image", "video", "frame_sequence"], "outputArtifacts": ["analysis_report", "qa_report", "json_spec"], "validators": ["caption_safe_zone", "ocr_text_overlap"], "fallbackToolIds": ["opencv", "mediapipe", "sharp"], "notes": ["Useful for caption safe-zone planning when text overlays are present."]}
+  ],
+  "bestFor": ["OCR detection", "text overlap QA", "caption safe-zone evidence"],
+  "notFor": ["timeline conversion", "audio processing", "render composition"],
+  "inputArtifacts": ["source_media", "proxy_media", "image", "video", "frame_sequence"],
+  "outputArtifacts": ["ocr_report_json", "analysis_report", "qa_report", "json_spec"],
+  "validators": ["ocr_text_overlap", "caption_safe_zone"],
+  "fallbackToolIds": ["opencv", "playwright", "mediapipe", "sharp"],
+  "resourceProfile": {"workerType": "gpu_ai_worker", "gpuRequired": true, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": true, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["stylized text can reduce OCR quality", "small text may be missed", "model weights require review"],
+  "professionalEditingUses": ["screen recording text awareness", "caption collision avoidance", "overlay QA"],
+  "benchmarkPlaceholders": ["benchmark:paddleocr:ocr_accuracy_pending", "benchmark:paddleocr:text_overlap_latency_pending"],
+  "telemetryPlaceholders": ["telemetry:paddleocr:selection_count", "telemetry:paddleocr:ocr_gate_outcomes"],
+  "readinessNotes": ["Study card enriches planning only; OCR execution remains outside this milestone."]
+}

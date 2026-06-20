@@ -1,0 +1,27 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "externalToolId": "tesseract",
+  "displayName": "Tesseract OCR",
+  "aliases": ["tesseract"],
+  "runtimeResolution": {
+    "status": "pending_production_tool_registry_expansion",
+    "externalToolId": "tesseract",
+    "reason": "Tesseract is useful OCR evidence but is not a first-class ProductionToolId on this base."
+  },
+  "operations": [
+    {"operationId": "ocr.detect_text", "supportLevel": "fallback", "bestFor": ["CPU OCR fallback for screenshots and burned-in text"], "notFor": ["layout-aware OCR at scale"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["ocr_report_json", "analysis_report", "qa_report", "json_spec"], "validators": ["ocr_text_overlap", "caption_safe_zone"], "fallbackToolIds": ["paddleocr", "opencv", "playwright"], "notes": ["Pending external OCR card; not selectable until registry expansion."]}
+  ],
+  "bestFor": ["OCR fallback", "screen recording text evidence"],
+  "notFor": ["runtime selection before registry expansion", "caption generation"],
+  "inputArtifacts": ["image", "video", "frame_sequence"],
+  "outputArtifacts": ["ocr_report_json", "analysis_report", "qa_report", "json_spec"],
+  "validators": ["ocr_text_overlap", "caption_safe_zone"],
+  "fallbackToolIds": ["paddleocr", "opencv", "playwright"],
+  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "planning_metadata"},
+  "qualityProfile": {"productionStatus": "future", "adoptionStage": "future", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
+  "knownFailureModes": ["not represented as ProductionToolId", "low accuracy on stylized or low-resolution text", "language pack dependency"],
+  "professionalEditingUses": ["safe-zone overlap detection", "screen recording text awareness"],
+  "benchmarkPlaceholders": ["benchmark:tesseract:ocr_accuracy_pending"],
+  "telemetryPlaceholders": ["telemetry:tesseract:pending_candidate_count"],
+  "readinessNotes": ["Pending registry expansion; diagnostics should treat it as pending."]
+}

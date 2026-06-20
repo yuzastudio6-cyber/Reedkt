@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "remotion",
+  "displayName": "Remotion",
+  "aliases": ["remotion", "remotion_render_validation"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "remotion",
+    "reason": "Remotion is the first-class ProductionToolId for render composition, preview render, and caption style planning."
+  },
+  "operations": [
+    {"operationId": "caption.style", "supportLevel": "primary", "bestFor": ["caption layout and visual style planning"], "notFor": ["word alignment"], "inputArtifacts": ["caption_segments", "caption_segments_json", "render_manifest", "json_data"], "outputArtifacts": ["render_manifest", "json_spec", "qa_report"], "validators": ["caption_readability", "caption_safe_zone"], "fallbackToolIds": ["libass", "sharp"], "notes": ["Primary planning candidate for styled caption render manifests."]},
+    {"operationId": "render.preview", "supportLevel": "primary", "bestFor": ["preview render composition planning"], "notFor": ["codec-level muxing"], "inputArtifacts": ["timeline_manifest", "render_manifest", "image", "audio", "video"], "outputArtifacts": ["preview_video", "qa_report"], "validators": ["render_asset_integrity", "render_timeline_integrity", "caption_safe_zone"], "fallbackToolIds": ["hyperframe", "ffmpeg", "pixijs"], "notes": ["Planning only; no Remotion render starts here."]},
+    {"operationId": "render.compose", "supportLevel": "primary", "bestFor": ["layered composition and final render manifest planning"], "notFor": ["delivery container validation"], "inputArtifacts": ["timeline_manifest", "render_manifest", "image", "audio", "video"], "outputArtifacts": ["render_manifest", "processed_video", "preview_video", "qa_report"], "validators": ["render_asset_integrity", "render_timeline_integrity", "caption_safe_zone"], "fallbackToolIds": ["ffmpeg", "libass", "pixijs"], "notes": ["Composes planning manifests while worker execution remains separate."]}
+  ],
+  "bestFor": ["caption style planning", "preview render planning", "composition manifest planning"],
+  "notFor": ["media inspection", "audio cleanup", "OCR"],
+  "inputArtifacts": ["caption_segments", "caption_segments_json", "render_manifest", "json_data", "timeline_manifest", "image", "audio", "video"],
+  "outputArtifacts": ["render_manifest", "json_spec", "qa_report", "preview_video", "processed_video"],
+  "validators": ["caption_readability", "caption_safe_zone", "render_asset_integrity", "render_timeline_integrity"],
+  "fallbackToolIds": ["libass", "sharp", "hyperframe", "ffmpeg", "pixijs"],
+  "resourceProfile": {"workerType": "render_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "render_pipeline"},
+  "qualityProfile": {"productionStatus": "launch_core", "adoptionStage": "launch_core", "launchCore": true, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
+  "knownFailureModes": ["asset path mismatch", "timeline/render manifest divergence", "caption layout overflow"],
+  "professionalEditingUses": ["preview composition", "caption styling", "motion graphics render planning"],
+  "benchmarkPlaceholders": ["benchmark:remotion:preview_latency_pending", "benchmark:remotion:composition_stability_pending"],
+  "telemetryPlaceholders": ["telemetry:remotion:selection_count", "telemetry:remotion:render_gate_outcomes"],
+  "readinessNotes": ["Alias `remotion_render_validation` resolves to first-class runtime ID `remotion`."]
+}

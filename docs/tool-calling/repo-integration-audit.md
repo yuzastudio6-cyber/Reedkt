@@ -5,6 +5,7 @@
 - Implementation target: `/Users/macuser/Developer/REeditpro`.
 - Starting branch candidate: `codex/sound-music-audio-1abc-checkpoint`.
 - New implementation branch: `codex/reeditpro-tool-calling-brain-1`.
+- Milestone 2 stacked branch: `codex/reeditpro-tool-calling-brain-2-capability-cards`.
 - The light shell at `/Users/macuser/Documents/Frontend` is not the implementation target.
 
 ## Existing Systems Reused
@@ -15,6 +16,13 @@
 - Artifact and quality gate types reuse `src/backend/contracts/production-tool-runtime-contracts.ts` where applicable.
 - Future execution remains targeted at `server/workers/production/production-worker-router.ts`.
 
+## Milestone 2 Capability Card Expansion
+
+- Explicit study cards now add per-tool operation metadata for the installed and proven Reeditpro stack.
+- Study cards enrich generated `ProductionToolProfile` capability cards; they do not replace `server/tool-registry`.
+- First-class `ProductionToolId` entries remain the only selectable runtime IDs for pipeline `selectedToolId`.
+- Pending external cards are included only in diagnostics, reconciliation reports, and future expansion notes.
+
 ## Duplicate Systems Not Created
 
 - No second production tool registry.
@@ -24,13 +32,11 @@
 - No duplicate `tool_execution_plans`, `tool_runs`, `tool_artifacts`, `quality_gate_results`, or `fallback_decisions`.
 - No migration or SQL file for this milestone.
 
-## Deferred to Milestone 2
+## Runtime Registry Expansion Still Deferred
 
-- Explicit per-tool capability study cards.
-- Installed or proven tool runtime ID reconciliation.
-- Alias handling for tool labels that differ from runtime IDs.
-- Alias examples: `sharp_libvips -> sharp`, `imagemagick_graphicsmagick -> imagemagick or pending registry expansion`, `polars_nodejs_polars -> polars`, `remotion_render_validation -> remotion`, `opentimelineio_timeline_validation -> opentimelineio`, `libass_caption_burnin -> libass`.
-- Capability expansion for MediaInfo, ExifTool, Tesseract, and ImageMagick/GraphicsMagick if they are not first-class `ProductionToolId` entries on the current base.
+- MediaInfo, ExifTool, Tesseract, and ImageMagick/GraphicsMagick remain pending production registry expansion on this base.
+- Pending external tools need first-class `ProductionToolId` profiles before runtime selection.
+- Pending external aliases are documented in `docs/tool-calling/runtime-id-reconciliation-report.md`.
 
 ## Safety Confirmation
 

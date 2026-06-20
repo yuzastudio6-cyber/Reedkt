@@ -1,0 +1,31 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "sharp",
+  "displayName": "Sharp / libvips",
+  "aliases": ["sharp", "sharp_libvips"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "sharp",
+    "reason": "Sharp is the first-class ProductionToolId for libvips-backed image and thumbnail planning."
+  },
+  "operations": [
+    {"operationId": "video.frame.sample", "supportLevel": "fallback", "bestFor": ["image frame processing after extraction"], "notFor": ["video decode authority"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["image_asset", "representative_frame", "analysis_report"], "validators": ["render_asset_integrity"], "fallbackToolIds": ["pyav", "opencv", "ffmpeg"], "notes": ["Best after a decoder provides still frames."]},
+    {"operationId": "video.blur.score", "supportLevel": "secondary", "bestFor": ["thumbnail sharpness checks"], "notFor": ["motion scoring"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["analysis_report", "qa_report", "json_spec"], "validators": ["render_asset_integrity"], "fallbackToolIds": ["opencv", "kornia"], "notes": ["Useful for still quality screening."]},
+    {"operationId": "caption.style", "supportLevel": "secondary", "bestFor": ["caption image asset and style preview prep"], "notFor": ["subtitle timing"], "inputArtifacts": ["caption_segments", "caption_segments_json", "render_manifest", "json_data"], "outputArtifacts": ["render_manifest", "json_spec", "qa_report"], "validators": ["caption_readability", "caption_safe_zone"], "fallbackToolIds": ["remotion", "libass"], "notes": ["Supports style asset preparation planning."]},
+    {"operationId": "thumbnail.generate", "supportLevel": "primary", "bestFor": ["thumbnail resizing, crop, and format planning"], "notFor": ["video extraction"], "inputArtifacts": ["source_media", "proxy_media", "image", "video", "frame_sequence"], "outputArtifacts": ["image_asset", "representative_frame", "qa_report"], "validators": ["render_asset_integrity", "caption_safe_zone"], "fallbackToolIds": ["pyav", "ffmpeg", "opencv"], "notes": ["Primary image-processing candidate for thumbnail planning."]},
+    {"operationId": "video.enhance", "supportLevel": "fallback", "bestFor": ["non-AI resize and sharpening fallback"], "notFor": ["super-resolution"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["image_asset", "processed_video", "enhanced_video", "qa_report"], "validators": ["enhancement_artifacts", "render_asset_integrity"], "fallbackToolIds": ["real_esrgan", "ffmpeg", "vapoursynth"], "notes": ["Fallback for basic enhancement plans."]}
+  ],
+  "bestFor": ["thumbnail generation", "image resizing", "still quality checks", "caption style assets"],
+  "notFor": ["audio", "timeline validation", "AI segmentation"],
+  "inputArtifacts": ["source_media", "proxy_media", "image", "video", "frame_sequence", "caption_segments", "caption_segments_json", "render_manifest", "json_data"],
+  "outputArtifacts": ["image_asset", "representative_frame", "analysis_report", "qa_report", "json_spec", "render_manifest", "processed_video", "enhanced_video"],
+  "validators": ["render_asset_integrity", "caption_safe_zone", "caption_readability", "enhancement_artifacts"],
+  "fallbackToolIds": ["pyav", "ffmpeg", "opencv", "remotion", "libass", "real_esrgan"],
+  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
+  "knownFailureModes": ["animated inputs require frame extraction first", "color profile differences need QA", "large images can pressure memory"],
+  "professionalEditingUses": ["thumbnail prep", "caption style assets", "still-frame visual QA"],
+  "benchmarkPlaceholders": ["benchmark:sharp:thumbnail_latency_pending", "benchmark:sharp:image_quality_pending"],
+  "telemetryPlaceholders": ["telemetry:sharp:selection_count", "telemetry:sharp:fallback_count"],
+  "readinessNotes": ["Alias `sharp_libvips` resolves to first-class runtime ID `sharp`."]
+}

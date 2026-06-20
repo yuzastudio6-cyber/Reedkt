@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "opentimelineio",
+  "displayName": "OpenTimelineIO",
+  "aliases": ["opentimelineio", "opentimelineio_timeline_validation"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "opentimelineio",
+    "reason": "OpenTimelineIO is the first-class ProductionToolId for timeline validation and OTIO conversion planning."
+  },
+  "operations": [
+    {"operationId": "timeline.validate", "supportLevel": "primary", "bestFor": ["timeline structure and range validation"], "notFor": ["rendering frames"], "inputArtifacts": ["timeline_manifest", "json_data"], "outputArtifacts": ["timeline_manifest", "qa_report", "json_spec"], "validators": ["render_timeline_integrity"], "fallbackToolIds": ["hyperframe", "remotion", "ffprobe"], "notes": ["Primary timeline validation planning candidate."]},
+    {"operationId": "timeline.to_otio", "supportLevel": "primary", "bestFor": ["OTIO-compatible conversion planning"], "notFor": ["media transcoding"], "inputArtifacts": ["timeline_manifest", "json_data"], "outputArtifacts": ["timeline_manifest", "opentimelineio_manifest", "json_spec"], "validators": ["render_timeline_integrity"], "fallbackToolIds": ["hyperframe", "remotion"], "notes": ["Documents conversion intent without executing adapters."]},
+    {"operationId": "qa.final_delivery", "supportLevel": "validator", "bestFor": ["timeline evidence for final QA"], "notFor": ["container stream validation"], "inputArtifacts": ["final_export", "qa_report", "timeline_manifest", "render_manifest"], "outputArtifacts": ["qa_report", "analysis_report", "json_spec"], "validators": ["final_delivery", "render_timeline_integrity", "export_duration_sync"], "fallbackToolIds": ["ffprobe", "ffmpeg", "remotion"], "notes": ["Contributes timeline integrity evidence to delivery planning."]}
+  ],
+  "bestFor": ["timeline validation", "OTIO handoff planning", "final delivery timeline evidence"],
+  "notFor": ["media probing", "caption rendering", "audio cleanup"],
+  "inputArtifacts": ["timeline_manifest", "json_data", "final_export", "qa_report", "render_manifest"],
+  "outputArtifacts": ["timeline_manifest", "opentimelineio_manifest", "qa_report", "json_spec", "analysis_report"],
+  "validators": ["render_timeline_integrity", "final_delivery", "export_duration_sync"],
+  "fallbackToolIds": ["hyperframe", "remotion", "ffprobe", "ffmpeg"],
+  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
+  "knownFailureModes": ["timeline schema mismatch", "unsupported transition representation", "media reference gaps"],
+  "professionalEditingUses": ["NLE interchange planning", "timeline QA", "handoff validation"],
+  "benchmarkPlaceholders": ["benchmark:opentimelineio:validation_latency_pending", "benchmark:opentimelineio:schema_coverage_pending"],
+  "telemetryPlaceholders": ["telemetry:opentimelineio:selection_count", "telemetry:opentimelineio:timeline_gate_outcomes"],
+  "readinessNotes": ["Alias `opentimelineio_timeline_validation` resolves to first-class runtime ID `opentimelineio`."]
+}

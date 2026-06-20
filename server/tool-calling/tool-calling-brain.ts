@@ -63,6 +63,12 @@ import type {
   BinaryFixtureGenerationValidationSummary,
 } from './binary-fixture-generation-types'
 import {
+  runControlledLowRiskReadinessProbes,
+} from './controlled-low-risk-execution-runner'
+import type {
+  ControlledLowRiskReadinessProbeRun,
+} from './controlled-low-risk-execution-types'
+import {
   composePipelineForOperations,
   getPatternOperations,
 } from './pipeline-composer'
@@ -292,4 +298,8 @@ export async function buildToolCallingPlanWithAdaptersCommandPlansFixturesDryRun
     binaryFixtureValidationSummary,
     executesTools: false,
   }
+}
+
+export async function runToolCallingControlledLowRiskReadinessProbes(): Promise<ControlledLowRiskReadinessProbeRun> {
+  return runControlledLowRiskReadinessProbes()
 }

@@ -734,3 +734,19 @@ TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_FOLLOWUP_RESOLUTION`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION:
+
+- Decision: `trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Patch: existing `libgomp1` runtime package preserved and minimal `libgl1` package added.
+- Docker build: passed for local image `reeditpro-ocr-runtime:trackb-milestone3-cpu-libgl-a80edbdc5bcf434b0cd70f9f8bae9523a2e1c1fa`.
+- `libGL.so.1`: present and loadable in the rebuilt image.
+- PaddlePaddle: import/version and model-free CPU tensor/device proof passed.
+- PaddleOCR: import/API-shape remains blocked by `libgthread-2.0.so.0`; no OCR inference or model assets ran.
+- Track B counts remain pending QA: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_STATUS:end -->

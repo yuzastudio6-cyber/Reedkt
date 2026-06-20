@@ -1,0 +1,22 @@
+{
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape",
+  "generatedAt": "2026-06-20T15:53:48.495Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "localImageTag": "reeditpro-ocr-runtime:trackb-milestone3-cpu-libgl-a80edbdc5bcf434b0cd70f9f8bae9523a2e1c1fa",
+  "localImageRemoved": true,
+  "imageCleanupExitCode": 0,
+  "cleanupLog": [
+    "Untagged: reeditpro-ocr-runtime:trackb-milestone3-cpu-libgl-a80edbdc5bcf434b0cd70f9f8bae9523a2e1c1fa",
+    "Deleted: sha256:5269a5ea9c94b34b32159a2c81287908c9ca44459eafef9cfa3f66eee3c835b5"
+  ],
+  "generatedOutputsCleaned": true,
+  "nodeModulesPresent": false,
+  "distPresent": false,
+  "tempLogsKeptOutsideRepo": true
+}

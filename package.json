@@ -164,6 +164,7 @@
     "trackb-media-oss:milestone-3-ocr-ml-cpu-execution-blocker-followup:report": "node server/cli/trackb-media-oss-milestone-3-ocr-ml-cpu-execution-blocker-followup-report.js",
     "trackb-media-oss:milestone-3-ocr-ml-cpu-execution-blocker-followup:summary": "node server/cli/trackb-media-oss-milestone-3-ocr-ml-cpu-execution-blocker-followup-summary.js",
     "trackb-media-oss:milestone-3-ocr-ml-cpu-execution-blocker-followup:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-execution-blocker-followup-diagnostics.mjs",
+    "trackb-media-oss:milestone-3-ocr-ml-cpu-blocker-resolution:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-diagnostics.mjs",
     "smoke:trackb-media-oss-milestone-1-low-risk-metadata-tooling": "node server/smoke/trackb-media-oss-milestone-1-low-risk-metadata-tooling-smoke.js",
     "smoke:trackb-media-oss-milestone-1-system-packaging-execution": "node server/smoke/trackb-media-oss-milestone-1-system-packaging-execution-smoke.js",
     "smoke:trackb-media-oss-milestone-1-build-context-blocker-followup": "node server/smoke/trackb-media-oss-milestone-1-build-context-blocker-followup-smoke.js",

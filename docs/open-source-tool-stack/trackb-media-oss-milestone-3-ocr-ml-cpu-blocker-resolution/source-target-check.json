@@ -1,0 +1,21 @@
+{
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape",
+  "generatedAt": "2026-06-20T15:53:48.495Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+  "targetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+  "priorLibgompPatchPresent": true,
+  "libglPatchPresent": true,
+  "baseImage": "python:3.12-slim",
+  "aptPackageManagerAvailableBySource": true,
+  "buildContextGenerationRequired": false,
+  "requirementsMutated": false,
+  "packageLockMutated": false,
+  "onlyOcrRuntimeDockerfileEligibleForPatch": true
+}

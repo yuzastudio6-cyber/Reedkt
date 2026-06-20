@@ -1,0 +1,39 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsDraftPackageProofRuntimeBoundaryAgentSelectionStatus.v1",
+  "decision": "ai_graphics_draft_package_proof_runtime_boundary_review_passed_with_warnings",
+  "agentSelectionMetadataAllowed": true,
+  "agentSelectionMeaning": "Agent may consider these tools in planning/study metadata only because canonical package/import/static-fixture proof exists.",
+  "agentExecutionAllowedNow": false,
+  "currentAllowedUse": "canonical_package_import_static_fixture_proof_only",
+  "blockedNow": [
+    "tool execution",
+    "worker execution",
+    "route execution",
+    "provider/model runtime",
+    "browser runtime",
+    "WebGL/canvas runtime",
+    "Supabase mutation",
+    "SQL execution",
+    "GCS upload",
+    "signed URL creation",
+    "public artifact creation",
+    "internal beta",
+    "external beta",
+    "production"
+  ],
+  "tools": [
+    "d3",
+    "echarts",
+    "vega_lite",
+    "vega",
+    "satori",
+    "svgdotjs_svg_js",
+    "viz_js",
+    "lottie_web",
+    "animejs",
+    "three_js",
+    "pixi_js",
+    "konva",
+    "babylonjs"
+  ]
+}

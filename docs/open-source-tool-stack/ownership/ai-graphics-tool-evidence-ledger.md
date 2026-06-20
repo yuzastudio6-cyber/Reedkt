@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_implementation_state_scan_completed_ready_for_draft_proof_promotion_review`
 
-The ledger separates merged canonical evidence from draft pending evidence. PR #416 remains central canonical audit evidence. PR #425, PR #433, and PR #441 are now reconciled as canonical merged package/import/static-fixture proof for the 13 AI graphics package-proof tools. Canonical promotion QA accepts that package proof with warnings only; PR #532 and Worker metadata remain draft/static evidence only.
+The ledger separates merged canonical evidence from draft pending evidence. PR #416 remains central canonical audit evidence. PR #425, PR #433, and PR #441 are now reconciled as canonical merged package/import/static-fixture proof for the 13 AI graphics package-proof tools. Canonical promotion QA accepts that package proof with warnings only, and runtime boundary review allows planning/study metadata selection only. PR #532 and Worker metadata remain draft/static evidence only.
 
 | toolId | canonicalStatusFromPr416 | draftEvidencePrs | package evidence | worker evidence |
 | --- | --- | --- | --- | --- |

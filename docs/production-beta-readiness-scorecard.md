@@ -138,3 +138,11 @@ warnings and confirms the 13 merged package-proof tools only at
 promotion, Tool Route execution, Worker execution, provider execution,
 browser/WebGL/canvas runtime, Supabase/GCS, signed URLs, public artifacts,
 internal beta, external beta, and production remain blocked.
+
+AI graphics draft package proof runtime boundary review classifies future
+runtime lanes for the 13 canonical package-proof tools and permits agent
+planning/study metadata selection only. Agent execution, CPU/static runtime,
+browser chart runtime, animation runtime, browser/WebGL/canvas sandbox runtime,
+Tool Route execution, Worker execution, provider execution, Supabase/GCS,
+signed URLs, public artifacts, internal beta, external beta, and production
+remain blocked.

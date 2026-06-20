@@ -66,6 +66,12 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 - Dry-run artifacts use stable JSON checksums, byte counts, artifact types, and storage bucket purposes instead of local paths or signed URLs.
 - Existing dry-run and fixture helpers under `server/media`, `server/e2e`, and `server/workers` remain execution, smoke, or readiness surfaces and are not imported by this planner layer.
 
+## Execution Path Decision Gate
+
+- The execution path decision gate chooses whether the next milestone should generate deterministic binary fixtures or attempt controlled low-risk execution.
+- The gate refreshes repo state, rebuilds the planning stack, scans existing helper surfaces, checks duplicate risks, and keeps the current tool-calling layers planning and dry-run only.
+- In the current stack, JSON-only dry-run artifacts are not enough to justify controlled execution before approved fixture files exist.
+
 ## Planning Flow
 
 1. Resolve an operation list from a requested pattern and any explicitly requested operations.
@@ -78,6 +84,7 @@ The Reeditpro tool-calling brain is a planning-only runtime foundation for choos
 8. When requested, build safe command plans and validate the command-intent boundary without executing tools.
 9. When requested, build synthetic fixture plans and validate future-only fixture requirements without generating artifacts.
 10. When requested, materialize synthetic fixture dry-run descriptors and validate JSON-only artifact manifests without writing files or generating media.
+11. Before choosing an execution milestone, run the execution path decision gate and follow its recommendation.
 
 ## Non-Goals
 

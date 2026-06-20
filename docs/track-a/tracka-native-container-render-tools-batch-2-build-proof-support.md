@@ -27,3 +27,17 @@ It must not run version commands, GStreamer pipelines, MKVToolNix media operatio
 Future success decision, only after confirmed build proof: `completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews`
 
 Current Batch-2 decision: `blocked_pending_native_container_build_confirmation_with_identity_reviews_recorded`
+
+## Batch-2R Confirmation Check
+
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: blocked_pending_native_container_build_confirmation`
+
+The Batch-2R pre-build validation passed, but the required confirmation gate was absent/not `true`, so the support runner was not executed.
+
+Required gate: `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
+
+Docker build: `not_run_confirmation_absent`
+
+Metadata verification: `not_run_confirmation_absent`
+
+Generated artifacts committed: `none`

@@ -20,6 +20,28 @@ Package-lock: `unchanged`
 
 Dependency validation: `passed`
 
+## Batch-2R Follow-Up Result
+
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: blocked_pending_native_container_build_confirmation`
+
+Batch-2R execution: `blocked_confirmation_absent_no_build`
+
+Batch-2R pre-build validation: `passed`
+
+Batch-2R Docker build: `not_run_confirmation_absent`
+
+Batch-2R metadata verification: `not_run_confirmation_absent`
+
+Batch-2R blocker: `blocked_pending_native_container_build_confirmation`
+
+Required confirmation gate was absent/not `true`: `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
+
+Generated artifacts committed: `none`
+
+Package-lock: `unchanged`
+
+No Docker build, Docker image inspection, package metadata query, command path check, GStreamer pipeline, MKVToolNix media command, FFmpeg/FFprobe execution, media processing, Docker push, Cloud Run deployment, Supabase mutation, SQL execution, signed/public artifact creation, or beta/production/final unlock occurred in Batch-2R.
+
 Product-ready end-to-end local OSS tools: `0`
 
 ## Matrix
@@ -60,6 +82,17 @@ Validation evidence:
 - `git diff --cached --check`
 - changed-file safety scan: `passed`
 - staged safety scan: `passed`
+
+Batch-2R refreshed validation evidence:
+
+- `npm ci --no-audit --no-fund --progress=false`
+- `git diff --check`
+- `npm run lint`
+- `npm run typecheck:server`
+- `npm run --silent tracka:native-container-render-tools-batch-2:diagnostics`
+- `npm run build`
+- `npm run build:server`
+- `git diff --cached --check`
 
 PR status: `draft_pending_native_container_build_confirmation`
 

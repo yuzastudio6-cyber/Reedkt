@@ -17,9 +17,10 @@ Next proof planning remains future-only and separately gated.
 | Draft package proof PR433 draft-ready approval | PR #433 next | Future approval to mark PR #433 ready after fresh recheck | PR #433 mark-ready now, PR #441 mark-ready, merge now, canonical promotion |
 | Draft package proof PR441 draft-ready approval | PR #441 final draft target | Future approval to mark PR #441 ready after fresh recheck | PR #441 mark-ready now, merge now, canonical promotion |
 | Draft package proof merge-ready review | PR #425, PR #433, PR #441 | Future PR #425 merge approval after fresh recheck | Merge now, PR #433/#441 approval now, canonical promotion |
+| Draft package proof PR425 merge approval | PR #425 first | Future merge execution for PR #425 only after fresh recheck | PR #433/#441 merge approval, merge now, canonical promotion |
 | Track B conflict sync | Track B media tools owned by `TRACK_B_MEDIA_OSS_STEWARD` | Reference evidence only | Atlas install/proof/execution authority for Track B tools |
 
-Next recommended prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_MERGE_APPROVAL_PR425`.
+Next recommended prompt: `AI_GRAPHICS_DRAFT_PACKAGE_PROOF_MERGE_EXECUTION_PR425`.
 
 Runtime-ready now: `false`
 

@@ -1,0 +1,165 @@
+{
+  "decision": "ai_graphics_draft_package_proof_pr425_merge_approval_passed_with_warnings",
+  "branch": "codex/rp-ai-graphics-draft-package-proof-merge-approval-pr425",
+  "baseRef": "origin/codex/rp-ai-graphics-draft-package-proof-merge-ready-review",
+  "duplicateSearch": {
+    "exactOpenPrFound": false,
+    "exactRemoteBranchFound": false,
+    "targetWorktreeFoundBeforeCreation": false
+  },
+  "sources": {
+    "pr569": {
+      "number": 569,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "a9dc1e9d8210e89a243de3f5eff5f53510f0217e",
+      "checkRollup": "empty"
+    },
+    "pr568": {
+      "number": 568,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "d1794eedb94c59aa8279c5ef6cd463014b83980c",
+      "checkRollup": "empty"
+    },
+    "pr564": {
+      "number": 564,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "c38f3c637fc20268ca3f9b97386b07272bfb3b77",
+      "checkRollup": "empty"
+    },
+    "pr561": {
+      "number": 561,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "4749a3706d77884f104bfbf04fb1085f0300638c",
+      "checkRollup": "empty"
+    },
+    "pr556": {
+      "number": 556,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "26bdf931f4bd5d8661a86f45c3cfeef0833bea7d",
+      "checkRollup": "empty"
+    },
+    "pr554": {
+      "number": 554,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "891473dbc0bf4b6cdd332c90b64e51bc467a74a9",
+      "checkRollup": "empty"
+    },
+    "pr552": {
+      "number": 552,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "f1db3b4c1c7e422ece6a163aed87906012da726b",
+      "checkRollup": "empty"
+    },
+    "pr550": {
+      "number": 550,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "d1b32e69e77ecb38a35d8d7135a9ee54de06b6ea",
+      "checkRollup": "empty"
+    },
+    "pr548": {
+      "number": 548,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "df86197fd8663ddd47ecd9c8783a2aa255986361",
+      "checkRollup": "empty"
+    },
+    "pr543": {
+      "number": 543,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "37fea25846987323d1de04098c701816fa24a237",
+      "checkRollup": "empty"
+    },
+    "pr536": {
+      "number": 536,
+      "state": "open",
+      "draft": true,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "cc762b22d517e8042eed1e655a3c0708848b28f5",
+      "checkRollup": "empty"
+    },
+    "pr416": {
+      "number": 416,
+      "state": "merged",
+      "draft": false,
+      "headSha": "85a02dce4a64a99927c8e30c68bd75d3d9736390"
+    },
+    "pr425": {
+      "number": 425,
+      "state": "open",
+      "draft": false,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "4e79f14a03a441c0a6d9c8adaef55b7c8b693c12",
+      "checkRollup": "empty"
+    },
+    "pr433": {
+      "number": 433,
+      "state": "open",
+      "draft": false,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "5d7921f9d79e19641a9453440a6f9abe6272ea04",
+      "checkRollup": "empty"
+    },
+    "pr441": {
+      "number": 441,
+      "state": "open",
+      "draft": false,
+      "mergeable": "CLEAN",
+      "merged": false,
+      "headSha": "92c1a52b53c4836a642ab6be8885aa8fb994e9c8",
+      "checkRollup": "empty"
+    },
+    "pr542": {
+      "number": 542,
+      "state": "merged",
+      "draft": false,
+      "headSha": "c2007f6bb20bc5cfae35d9e4eaef03feeca3218f"
+    },
+    "pr544": {
+      "number": 544,
+      "state": "merged",
+      "draft": false,
+      "headSha": "318415fa8a9dbe33a4ac5f0f8a767ab761b73a4d"
+    }
+  },
+  "trackBOwnerRule": {
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "atlasMayClaimTrackBTools": false,
+    "atlasMayInstallProveOrExecuteTrackBTools": false
+  },
+  "trackAOwnerContext": {
+    "sourcePr": 544,
+    "atlasOwnsTrackARenderExport": false
+  }
+}

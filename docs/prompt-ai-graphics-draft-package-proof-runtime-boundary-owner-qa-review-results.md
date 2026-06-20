@@ -4,7 +4,9 @@ Decision: `ai_graphics_draft_package_proof_runtime_boundary_owner_qa_passed_with
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-runtime-boundary-owner-qa-review`
 
-Draft PR: pending at first validation.
+Draft PR: [#604](https://github.com/yuzastudio6-cyber/Reedkt/pull/604).
+
+Draft PR status: open/draft/MERGEABLE at `295d4b39d2ffbaabce95c8b306ed200f6a57ff4c`; check rollup empty when recorded.
 
 Source PR #602: open/draft/MERGEABLE at `267834176b6f1fbe6d43e4e13d6a19fe133a260a`.
 

@@ -4,7 +4,7 @@ Decision: `ai_graphics_draft_package_proof_pr425_merge_approval_passed_with_warn
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-merge-approval-pr425`
 
-Draft PR: #572, open/draft/MERGEABLE, head `7bea1f0e236869e8d780e3df5aab12804d62e884`, empty check rollup, https://github.com/yuzastudio6-cyber/Reedkt/pull/572
+Draft PR: #572, open/draft/MERGEABLE, empty check rollup, https://github.com/yuzastudio6-cyber/Reedkt/pull/572
 
 Duplicate search result: no exact open PR or remote branch found before worktree creation.
 

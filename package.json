@@ -477,7 +477,12 @@
     "activation:runtime-unlock-roadmap:report": "tsx server/cli/activation-runtime-unlock-roadmap-report.ts",
     "activation:runtime-unlock-roadmap:iam-plan": "tsx server/cli/activation-runtime-unlock-roadmap-iam-plan.ts",
     "activation:runtime-unlock:summary": "tsx server/cli/activation-runtime-unlock-summary.ts",
-    "smoke:activation-runtime-unlock-roadmap": "tsx server/smoke/activation-runtime-unlock-roadmap-smoke.ts"
+    "smoke:activation-runtime-unlock-roadmap": "tsx server/smoke/activation-runtime-unlock-roadmap-smoke.ts",
+    "activation:provider-gateway-models-audit": "tsx server/cli/activation-provider-gateway-models-audit.ts",
+    "activation:provider-gateway-models-audit:report": "tsx server/cli/activation-provider-gateway-models-audit-report.ts",
+    "activation:provider-gateway-models-audit:iam-plan": "tsx server/cli/activation-provider-gateway-models-audit-iam-plan.ts",
+    "activation:provider-gateway-models:summary": "tsx server/cli/activation-provider-gateway-models-summary.ts",
+    "smoke:activation-provider-gateway-models-audit": "tsx server/smoke/activation-provider-gateway-models-audit-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

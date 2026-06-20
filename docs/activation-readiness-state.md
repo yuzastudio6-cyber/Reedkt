@@ -290,6 +290,17 @@ Cloud Run, SQL migrations, schema/RLS changes, unrelated Supabase writes, public
 artifacts, signed URL source-of-truth, raw prompt execution, production,
 external beta, paid production, and broad media remain blocked.
 
+PROVIDER-0 adds the Provider Gateway models repo audit on top of Phase 53A. It
+encodes official DeepSeek and Qwen evidence, maps internal model names to
+`deepseek-v4-pro`, `deepseek-v4-flash`, and `qwen3.7-max`, records backend-only
+secret-reference policy, defines Qwen/DeepSeek data and cost policy, answers
+the 14 provider audit questions, and keeps provider calls/direct execution
+blocked. PROVIDER-1 is ready only for provider registry and secret metadata
+fixtures. DeepSeek/Qwen calls, provider secret values, model inference,
+worker/tool execution, schema/RLS/Data API changes, raw prompt execution,
+public artifacts, signed URL source-of-truth, production, external beta, paid
+production, and broad media remain blocked.
+
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

@@ -1,0 +1,10 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecution.buildContextReview.v1",
+  "generatedAt": "2026-06-20T14:18:29.043Z",
+  "dockerfile": "docker/prod/ocr-runtime/Dockerfile",
+  "buildContextGenerationRequired": false,
+  "reason": "The reviewed OCR runtime target copies committed requirements and server/workers/ocr-runtime files from repository context; it does not copy dist-server or staging worker build outputs.",
+  "approvedBuildContextCommands": [],
+  "buildContextConfirmationsSet": false,
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape"
+}

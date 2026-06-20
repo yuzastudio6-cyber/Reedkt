@@ -1,0 +1,26 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecution.validationResults.v1",
+  "generatedAt": "2026-06-20T14:18:29.043Z",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape",
+  "validationMode": "container_cpu_import_api_shape_proof_with_no_model_assets",
+  "expectedDiagnostics": [
+    "trackb-media-oss:milestone-3-ocr-ml-cpu-execution:diagnostics",
+    "trackb-media-oss:milestone-3-ocr-ml-cpu-gpu-review:diagnostics",
+    "trackb-media-oss:milestone-2-qa-review:diagnostics",
+    "trackb-media-oss:milestone-2-video-analysis-execution:diagnostics",
+    "trackb-media-oss:milestone-2-video-analysis-approval:diagnostics",
+    "trackb-media-oss:milestone-1-qa-review:diagnostics",
+    "trackb-media-oss:milestone-1-tesseract-fixture-proof-followup:diagnostics",
+    "trackb-media-oss:milestone-1-build-context-blocker-followup:diagnostics",
+    "trackb-media-oss:milestone-1-system-packaging-execution:diagnostics",
+    "trackb-media-oss:milestone-1-system-packaging-approval:diagnostics",
+    "trackb-media-oss:milestone-1-low-risk-metadata-tooling:diagnostics",
+    "trackb-media-oss:install-proof-milestone-plan:diagnostics",
+    "open-source-tool-owner-registry:trackb-media-oss-steward:diagnostics",
+    "open-source-tool-stack:batch-2-planning-after-batch-1-rollup:diagnostics",
+    "open-source-tool-stack:owner-lane-reconciliation-after-batch-1-rollup:diagnostics",
+    "open-source-tool-stack:batch-1-final-rollup-after-ffmpeg-ffprobe-proof:diagnostics",
+    "git diff --check",
+    "git diff --cached --check"
+  ]
+}

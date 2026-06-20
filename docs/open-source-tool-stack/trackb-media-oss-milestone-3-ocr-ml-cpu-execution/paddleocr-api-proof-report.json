@@ -1,0 +1,17 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecution.paddleOcrApiProof.v1",
+  "generatedAt": "2026-06-20T14:18:29.043Z",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape",
+  "skipped": true,
+  "skipReason": "paddlepaddle_proof_not_passed",
+  "importApi": null,
+  "importApiProven": false,
+  "modelAssetRequired": false,
+  "ocrInferenceRun": false,
+  "modelDownloadRun": false,
+  "modelAssetCopyRun": false,
+  "modelAssetUploadRun": false,
+  "localHostProbeRun": false,
+  "cpuOnly": true,
+  "gpuExecutionRun": false
+}

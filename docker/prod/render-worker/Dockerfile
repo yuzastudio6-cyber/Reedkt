@@ -29,10 +29,14 @@ RUN apt-get update \
     python3-setuptools \
     fontconfig \
     fonts-dejavu-core \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-tools \
     libass9 \
     libass-dev \
     libvips42 \
     libvips-dev \
+    mkvtoolnix \
   && rm -rf /var/lib/apt/lists/*
 
 COPY docker/prod/render-worker/requirements.render.txt /tmp/requirements.render.txt

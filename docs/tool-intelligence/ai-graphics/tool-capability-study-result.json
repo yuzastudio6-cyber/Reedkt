@@ -1,9 +1,9 @@
 {
   "decision": "ai_graphics_tool_capability_study_and_ranking_matrix_completed_with_warnings",
   "branch": "codex/rp-ai-graphics-tool-capability-study-ranking-matrix",
-  "draftPr": "pending",
-  "draftPrState": "pending",
-  "checkStatus": "pending",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/623",
+  "draftPrState": "open/draft/MERGEABLE",
+  "checkStatus": "empty check rollup at creation",
   "duplicateSearchResult": "no exact capability-study PR or remote branch existed before branch creation",
   "sourcePrs": {
     "361": {

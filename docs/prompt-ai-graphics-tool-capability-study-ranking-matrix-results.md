@@ -5,9 +5,9 @@ Decision: `ai_graphics_tool_capability_study_and_ranking_matrix_completed_with_w
 ## Implementation Status
 
 - Branch: `codex/rp-ai-graphics-tool-capability-study-ranking-matrix`
-- Draft PR: pending
-- PR link: pending
-- Check status: pending
+- Draft PR: #623, open/draft/MERGEABLE
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/623
+- Check status: empty check rollup at creation
 - Duplicate search result: no exact capability-study PR or remote branch existed before branch creation
 - PR #621 status used: open/draft/CLEAN at `cd6ab312d83bb5ebaa30f1ef30f41cf3891c3306`
 - PR #617 status used: open/draft/MERGEABLE at `5bc68feeb776f2329cc4a124515709f55aac36cb`

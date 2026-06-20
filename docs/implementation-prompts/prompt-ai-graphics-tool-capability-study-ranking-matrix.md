@@ -13,9 +13,9 @@ Implemented a docs/diagnostics-only, product/agent-facing AI graphics capability
 
 ## PR Follow-Up
 
-- Draft PR: pending
-- PR link: pending
-- Check status: pending
+- Draft PR: #623, open/draft/MERGEABLE
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/623
+- Check status: empty check rollup at creation
 
 ## Validation
 

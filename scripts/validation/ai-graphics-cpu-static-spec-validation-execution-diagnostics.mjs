@@ -254,6 +254,7 @@ try {
   const scriptsAfter = { ...(packageAfter.scripts ?? {}) }
   delete scriptsAfter['ai-graphics:cpu-static-spec-validation:execute']
   delete scriptsAfter['ai-graphics:cpu-static-spec-validation:diagnostics']
+  delete scriptsAfter['ai-graphics:cpu-static-spec-validation-dependency-reconciliation:diagnostics']
   if (JSON.stringify(scriptsBefore) !== JSON.stringify(scriptsAfter)) failures.push('unexpected_package_script_drift')
 } catch (error) {
   failures.push(`package_json_compare_failed:${error.message}`)

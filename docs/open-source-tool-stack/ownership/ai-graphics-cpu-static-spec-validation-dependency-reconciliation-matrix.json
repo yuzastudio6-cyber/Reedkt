@@ -1,0 +1,40 @@
+{
+  "schema": "reeditpro.openSourceToolStack.aiGraphicsCpuStaticDependencyReconciliationMatrix.v1",
+  "decision": "ai_graphics_cpu_static_dependency_reconciliation_ready_for_refreshed_execution",
+  "tools": [
+    {"toolId": "d3", "packageName": "d3", "expectedFromMergedPr": "PR #425", "presentInCurrentPackageJson": false, "presentInCurrentPackageLock": false, "presentInMergedPackageProofLineage": true, "requiresDependencyMutation": false, "canProceedFromFreshBase": true, "nextAction": "rerun_cpu_static_execution_from_dependency_bearing_base"},
+    {"toolId": "vega_lite", "packageName": "vega-lite", "expectedFromMergedPr": "PR #425", "presentInCurrentPackageJson": false, "presentInCurrentPackageLock": false, "presentInMergedPackageProofLineage": true, "requiresDependencyMutation": false, "canProceedFromFreshBase": true, "nextAction": "rerun_cpu_static_execution_from_dependency_bearing_base"},
+    {"toolId": "vega", "packageName": "vega", "expectedFromMergedPr": "PR #425", "presentInCurrentPackageJson": false, "presentInCurrentPackageLock": false, "presentInMergedPackageProofLineage": true, "requiresDependencyMutation": false, "canProceedFromFreshBase": true, "nextAction": "rerun_cpu_static_execution_from_dependency_bearing_base"},
+    {"toolId": "satori", "packageName": "satori", "expectedFromMergedPr": "PR #433", "presentInCurrentPackageJson": false, "presentInCurrentPackageLock": false, "presentInMergedPackageProofLineage": true, "requiresDependencyMutation": false, "canProceedFromFreshBase": true, "nextAction": "rerun_cpu_static_execution_from_dependency_bearing_base"},
+    {"toolId": "svgdotjs_svg_js", "packageName": "@svgdotjs/svg.js", "expectedFromMergedPr": "PR #433", "presentInCurrentPackageJson": false, "presentInCurrentPackageLock": false, "presentInMergedPackageProofLineage": true, "requiresDependencyMutation": false, "canProceedFromFreshBase": true, "nextAction": "rerun_cpu_static_execution_from_dependency_bearing_base"},
+    {"toolId": "viz_js", "packageName": "@viz-js/viz", "expectedFromMergedPr": "PR #433", "presentInCurrentPackageJson": false, "presentInCurrentPackageLock": false, "presentInMergedPackageProofLineage": true, "requiresDependencyMutation": false, "canProceedFromFreshBase": true, "nextAction": "rerun_cpu_static_execution_from_dependency_bearing_base"}
+  ],
+  "excludedRuntimePackages": ["echarts", "lottie_web", "animejs", "three_js", "pixi_js", "konva", "babylonjs"],
+  "booleans": {
+    "dependencyReconciliationCompleted": true,
+    "pr612BlockedStateAccepted": true,
+    "packageJsonReviewed": true,
+    "packageLockReviewed": true,
+    "mergedPrDependencyStateReviewed": true,
+    "all6CpuStaticPackagesReviewed": true,
+    "canProceedFromFreshBase": true,
+    "dependencyApprovalRequired": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "cpuStaticExecutionPerformed": false,
+    "importSmokeExecutedNow": false,
+    "syntheticFixtureExecutedNow": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  }
+}

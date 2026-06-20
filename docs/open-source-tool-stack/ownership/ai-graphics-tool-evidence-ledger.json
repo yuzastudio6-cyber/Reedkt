@@ -214,6 +214,38 @@
     "productionReadyNow": false,
     "nextPromptRecommendation": "AI_GRAPHICS_DRAFT_PACKAGE_PROOF_CPU_STATIC_SPEC_VALIDATION_DEPENDENCY_RECONCILIATION"
   },
+  "latestCpuStaticSpecValidationDependencyReconciliation": {
+    "decision": "ai_graphics_cpu_static_dependency_reconciliation_ready_for_refreshed_execution",
+    "sourcePr": {
+      "pr612": "5f870b9e493170cb9c02a03d33a719f1801560c8",
+      "pr607": "12cfc4f29e55db7a5b105ecfc3aba21480396435"
+    },
+    "dependencyBearingRefs": {
+      "sixToolPackageProofBase": "origin/codex/rp-ai-tools-creative-graphics-batch-2-approval-packet",
+      "fullPackageProofBase": "origin/codex/rp-ai-tools-creative-graphics-batch-3-approval-packet"
+    },
+    "approvedTools": ["d3", "vega_lite", "vega", "satori", "svgdotjs_svg_js", "viz_js"],
+    "approvedPackages": ["d3", "vega-lite", "vega", "satori", "@svgdotjs/svg.js", "@viz-js/viz"],
+    "excludedRuntimePackages": ["echarts", "lottie_web", "animejs", "three_js", "pixi_js", "konva", "babylonjs"],
+    "canProceedFromFreshBase": true,
+    "dependencyApprovalRequired": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "cpuStaticExecutionPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "nextPromptRecommendation": "AI_GRAPHICS_DRAFT_PACKAGE_PROOF_CPU_STATIC_SPEC_VALIDATION_REFRESHED_EXECUTION"
+  },
   "ownerDisplayName": "Atlas — AI Graphics & Worker Metadata Owner",
   "ownerId": "atlas_ai_graphics_worker_owner",
   "ownerLane": "AI_TOOLS_CREATIVE_GRAPHICS",

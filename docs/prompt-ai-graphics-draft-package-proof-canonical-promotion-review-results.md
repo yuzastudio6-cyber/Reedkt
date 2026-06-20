@@ -4,7 +4,9 @@ Decision: `ai_graphics_draft_package_proof_canonical_promotion_review_passed_wit
 
 Branch: `codex/rp-ai-graphics-draft-package-proof-canonical-promotion-review`
 
-Draft PR: pending initial publication.
+Draft PR: PR #585, https://github.com/yuzastudio6-cyber/Reedkt/pull/585.
+
+Draft PR status: open/draft/MERGEABLE at `d3e1120da4306f161caf8299d3eaaf8e843ceeca` before this follow-up record update, with empty check rollup.
 
 ## Source state recorded
 
@@ -27,7 +29,9 @@ Production-ready now: `false`.
 
 ## Validation
 
-Validation status: pending before initial publication.
+Validation status: passed before initial publication.
+
+PR check status: PR #585 had an empty check rollup when recorded.
 
 Package-lock status: unchanged.
 

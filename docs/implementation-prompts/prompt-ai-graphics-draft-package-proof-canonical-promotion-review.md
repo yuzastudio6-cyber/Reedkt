@@ -29,4 +29,6 @@ Run no-install validation only:
 - no `.local-artifacts` staged check
 - `git diff --cached --check`
 
-Draft PR: pending initial publication.
+Draft PR: PR #585, https://github.com/yuzastudio6-cyber/Reedkt/pull/585.
+
+Draft PR status at record update: open/draft/MERGEABLE at `d3e1120da4306f161caf8299d3eaaf8e843ceeca` before this follow-up commit, with empty check rollup.

@@ -1,0 +1,48 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3ExactFontAssetSourceReview.decision.v1",
+  "decision": "trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review",
+  "generatedAt": "2026-06-20T20:05:00.000Z",
+  "sourceSha": "d4dce081f32c236b1442263d1d3889b1f9ab9db9",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "ownerName": "Track B Media OSS Steward",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "requestedAsset": "PingFang-SC-Regular.ttf",
+  "sourceComponent": "PaddleX font assets",
+  "selectedStrategy": "font_source_license_followup",
+  "decisionReason": "The PaddleX source path and observed URL are known, but exact font license, redistribution rights, private-staging rights, checksum, and stable asset identity are not proven from safe text metadata.",
+  "rejectedStrategiesForNow": [
+    {
+      "strategy": "system_font_package_approval",
+      "reason": "Noto CJK packages are plausible safer alternatives, but PaddleX/PaddleOCR substitute configuration is not proven."
+    },
+    {
+      "strategy": "asset_free_import_config_followup",
+      "reason": "Potential env/cache controls exist, but an asset-free import/API path is not proven without execution."
+    },
+    {
+      "strategy": "private_asset_staging_approval",
+      "reason": "Exact source/license/checksum/private-storage policy is not proven."
+    }
+  ],
+  "counts": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 12,
+    "blockedNotInstalledProven": 4,
+    "endToEndProductReady": 0
+  },
+  "blockedTools": [
+    "PaddleOCR",
+    "PaddlePaddle",
+    "OpenColorIO",
+    "OpenImageIO"
+  ],
+  "noFortyPlusEndToEndClaim": true,
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP",
+  "nextPromptPath": "docs/implementation-prompts/prompt-trackb-media-oss-milestone-3-font-source-license-followup.md",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

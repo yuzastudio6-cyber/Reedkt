@@ -274,6 +274,18 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - Supabase classification: no write / none / none / no.
 <!-- OPEN_SOURCE_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:end -->
 
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW:
+
+- Decision: `trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review`
+- Requested asset: `PingFang-SC-Regular.ttf` from PaddleX font assets.
+- Current blocker: exact font license, redistribution/private-staging rights, checksum, and stable asset identity remain unproven.
+- Track B counts remain: 16 owned / 12 bounded accepted-proven / 4 blocked-not-installed-proven / 0 product-ready.
+- No font/model asset operation, OCR inference, PaddleOCR/PaddlePaddle execution, Docker, install, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:end -->
+
 <!-- tracka-docker-build-context-blocker-resolution:start -->
 ## Track A Docker Build Context Blocker Resolution
 

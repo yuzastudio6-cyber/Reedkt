@@ -218,6 +218,16 @@ OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION
 - Supabase classification: no write / none / none / no.
 <!-- OPEN_SOURCE_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_STATUS:end -->
 
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW:
+
+- Decision: `trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review`
+- `PingFang-SC-Regular.ttf` remains blocked for download, copy, upload, staging, repo commit, public delivery, signed URL delivery, and runtime image packaging.
+- OCR inference, PaddleOCR/PaddlePaddle execution, Docker build/run, GPU, installs, model asset operations, media/render, workers/routes/providers, Supabase/GCS, raw prompt execution, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:end -->
+
 <!-- tracka-docker-build-context-blocker-resolution:start -->
 ## Track A Docker Build Context Blocker Resolution
 

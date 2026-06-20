@@ -785,3 +785,18 @@ TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW:
+
+- Decision: `trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review`
+- Requested asset: `PingFang-SC-Regular.ttf`.
+- Source component: PaddleX font assets, with source metadata confirming the requesting path and URL pattern.
+- Current blocker: exact font license, redistribution/private-staging rights, checksum, and stable asset identity are not proven.
+- System font substitute and asset-free import/config remain future alternatives only.
+- Track B counts remain: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No font/model asset download, copy, upload, private staging, OCR inference, PaddleOCR/PaddlePaddle execution, Docker build/run, install, requirements/Dockerfile mutation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:end -->

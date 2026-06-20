@@ -51,6 +51,9 @@ const requiredText = [
   'Generated fixture: `not_run_pre_execution_validation_blocked`',
   'Artifacts/checksums: `none`',
   'host_resource_limit_exit_137_during_npm_ci',
+  'host_resource_limit_exit_137_during_npm_ci_retry',
+  'Fresh temporary worktree retry under `/Volumes/backup/codex-worktrees/reeditpro-tracka-remotion-runtime-proof-1r-retry-tmp`: terminated during checkout with exit `143`',
+  'Fresh temporary worktree retry under `/private/tmp/reeditpro-tracka-remotion-runtime-proof-1r-retry-tmp`: terminated with exit `143` before usable dependency validation output',
   'REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true npm run tracka:remotion-runtime-proof-1',
   'not_run_pre_execution_validation_blocked',
   'Remotion browser runtime status: `not_validated_in_this_phase`',
@@ -186,4 +189,5 @@ console.log('Execution: blocked_pre_execution_dependency_validation_host_resourc
 console.log('Runtime execution performed: false')
 console.log('Generated fixture: not_run_pre_execution_validation_blocked')
 console.log('Artifacts/checksums: none')
+console.log('Retry blocker: host_resource_limit_exit_137_during_npm_ci_retry')
 console.log('Next prompt: TRACKA-REMOTION-RUNTIME-PROOF-1R-RETRY')

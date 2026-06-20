@@ -58,6 +58,21 @@ The requested confirmed command was not run:
 
 This packet therefore records a blocked 1R attempt, not a passing Remotion bundle proof.
 
+## Retry Attempt
+
+`TRACKA-REMOTION-RUNTIME-PROOF-1R-RETRY blocker: host_resource_limit_exit_137_during_npm_ci_retry`
+
+The retry also stopped before running the confirmed bounded proof command:
+
+- `npm ci --no-audit --no-fund --progress=false`: failed with exit `137`.
+- `npm_config_jobs=1 npm_config_foreground_scripts=false npm ci --no-audit --no-fund --progress=false`: failed with exit `137`.
+- Fresh temporary worktree retry under `/Volumes/backup/codex-worktrees/reeditpro-tracka-remotion-runtime-proof-1r-retry-tmp`: terminated during checkout with exit `143`, so no dependency validation ran there.
+- Fresh temporary worktree retry under `/private/tmp/reeditpro-tracka-remotion-runtime-proof-1r-retry-tmp`: terminated with exit `143` before usable dependency validation output.
+
+The confirmed command remains not run:
+
+`REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true npm run tracka:remotion-runtime-proof-1`
+
 ## Readiness
 
 `TRACKA-REMOTION-RUNTIME-PROOF-1R readiness: blocked_pending_dependency_validation_or_confirmed_runtime_proof_rerun`

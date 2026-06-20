@@ -26,6 +26,8 @@ Artifacts/checksums: `none`
 
 Blocker: `host_resource_limit_exit_137_during_npm_ci`
 
+Retry blocker: `host_resource_limit_exit_137_during_npm_ci_retry`
+
 `Product-ready end-to-end local OSS tools: 0`
 
 ## Validation Evidence
@@ -45,6 +47,19 @@ Validation status: `blocked`.
 - `git diff --cached --check`: passed before staging
 - changed-file safety scan: passed
 - staged safety scan: passed
+
+## Retry Validation Evidence
+
+- `npm ci --no-audit --no-fund --progress=false`: failed with exit `137`
+- `npm_config_jobs=1 npm_config_foreground_scripts=false npm ci --no-audit --no-fund --progress=false`: failed with exit `137`
+- Fresh temporary worktree retry under `/Volumes/backup/codex-worktrees/reeditpro-tracka-remotion-runtime-proof-1r-retry-tmp`: terminated during checkout with exit `143`
+- Fresh temporary worktree retry under `/private/tmp/reeditpro-tracka-remotion-runtime-proof-1r-retry-tmp`: terminated with exit `143` before usable dependency validation output
+- `REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true npm run tracka:remotion-runtime-proof-1`: not run because dependency validation remained blocked
+- `npm run --silent tracka:remotion-runtime-proof-1r:diagnostics`: passed after retry blocker update
+- `npm run lint`: blocked because `eslint` was unavailable after failed retry `npm ci`
+- `npm run typecheck:server`: blocked because `tsc` was unavailable after failed retry `npm ci`
+- `npm run build`: blocked because `tsc` was unavailable after failed retry `npm ci`
+- `npm run build:server`: blocked because `tsc` was unavailable after failed retry `npm ci`
 
 The full post-packet validation suite should be rerun by the next retry host after dependency validation succeeds.
 

@@ -33,6 +33,16 @@ Confirmed proof command:
 
 Blocker: `host_resource_limit_exit_137_during_npm_ci`
 
+Retry blocker: `host_resource_limit_exit_137_during_npm_ci_retry`
+
 The proof was not run because the dependency baseline could not be validated in this host before execution. No success record was invented.
+
+## Retry Commands
+
+- `npm ci --no-audit --no-fund --progress=false`: failed with exit `137`.
+- `npm_config_jobs=1 npm_config_foreground_scripts=false npm ci --no-audit --no-fund --progress=false`: failed with exit `137`.
+- Fresh temporary worktree retry under `/Volumes/backup/codex-worktrees/reeditpro-tracka-remotion-runtime-proof-1r-retry-tmp`: terminated during checkout with exit `143`.
+- Fresh temporary worktree retry under `/private/tmp/reeditpro-tracka-remotion-runtime-proof-1r-retry-tmp`: terminated with exit `143` before usable dependency validation output.
+- `REEDITPRO_CONFIRM_TRACKA_REMOTION_RUNTIME_PROOF=true npm run tracka:remotion-runtime-proof-1`: not run because dependency validation remained blocked.
 
 No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, video rendering, media processing, FFmpeg/FFprobe execution, Remotion execution, or broad service-role handler was enabled.

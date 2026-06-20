@@ -2,13 +2,13 @@
 
 Goal: retry the confirmed bounded Atlas Track A Remotion runtime proof only after dependency validation can complete on the host.
 
-Current blocker: `host_resource_limit_exit_137_during_npm_ci`
+Current blocker: `host_resource_limit_exit_137_during_npm_ci_retry`
 
 Current decision: `TRACKA-REMOTION-RUNTIME-PROOF-1R decision: blocked_pre_execution_dependency_validation_host_resource_limit_exit_137`
 
 Before running the proof, require:
 
-- `npm ci --no-audit --no-fund --progress=false` passes
+- `npm ci --no-audit --no-fund --progress=false` passes on a host/worktree with enough memory
 - duplicate scan remains clean
 - package-lock remains unchanged before execution
 - #575 guarded runner remains source-of-truth

@@ -98,8 +98,18 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 3. Confirm the tracking ledger covers all 12 workstreams, with AI Tools, Sound/Music/Audio, Provider Gateway, Worker Runtime, Compliance, Observability, Frontend UX, and Billing pending, and map/geospatial, Track A, Track B, and Supabase accepted/partial with blockers.
 4. Confirm prompt packet references point to private Phase 52G `gs://` artifacts and no owner prompt execution occurred.
 5. Confirm one Phase 52H Supabase milestone sync record wrote/read back through the Phase 51D path and stores only private `gs://` references plus structured metadata.
-6. Proceed to Phase 52I only as owner-response intake update or pause pending owner responses.
+6. Proceed to Phase 53A only as runtime unlock roadmap and owner acceptance audit if the system needs the official unlock ladder before owner responses are processed.
 7. Do not execute owner prompts, tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
+
+## After Phase 53A
+
+1. Review `activation:runtime-unlock-roadmap:report`, `activation:runtime-unlock-roadmap:iam-plan`, `activation:runtime-unlock:summary`, `docs/runtime-unlock/*`, and private Phase 53A artifacts.
+2. Confirm the 10-stage ladder runs from `blocked` to `production_candidate` and no stage can skip without explicit later policy and QA.
+3. Confirm the owner acceptance matrix covers all 12 workstreams and maps each owner to a repo-audit prompt.
+4. Confirm raw prompt execution remains permanently blocked as direct execution and signed URLs remain permanently blocked as source of truth.
+5. Confirm one Phase 53A Supabase milestone sync record wrote/read back through the Phase 51D path and stores only private `gs://` references plus structured metadata.
+6. Proceed to Phase 53B only as owner acceptance intake after owner chats respond, or pause pending owner repo audits.
+7. Do not execute tools, workers, models, providers, media processing, web search, browser capture, map rendering, Docker, Cloud Run, SQL migrations, schema/RLS changes, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
 
 ## After Phase 49J
 

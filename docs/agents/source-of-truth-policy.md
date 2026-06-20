@@ -31,3 +31,16 @@ Phase 52G go/no-go and owner prompt artifacts are coordination records only. The
 ## Phase 52H Owner Response Rule
 
 Phase 52H owner-response ledgers and intake manifests are coordination source records for handoff status only. They may track owner decisions, accepted scope, blocked scope, next prompts, evidence refs, and Supabase update classification, but they do not replace domain manifests and they cannot be used as runtime approval, public artifact approval, signed URL source-of-truth, or production/external beta approval.
+
+## Phase 53A Runtime Unlock Rule
+
+Phase 53A runtime unlock roadmap artifacts are coordination source records for
+owner acceptance and unlock stage status only. They may define blocked scopes,
+owner repo-audit prompts, ladder stages, acceptance criteria, and risk posture,
+but they do not authorize any runtime work.
+
+Raw prompt execution remains blocked as a direct execution source forever.
+Approved plan snapshots are the replacement source of truth for future worker
+execution. Signed URLs remain blocked as source of truth forever; later phases
+may approve them only as temporary access links backed by private artifact
+manifests and Supabase milestone references.

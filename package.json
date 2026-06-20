@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "foundation:validate": "node scripts/validation/run-foundation-validation.mjs",
+    "foundation:validate:with-build": "REEDITPRO_INCLUDE_FULL_BUILD=true node scripts/validation/run-foundation-validation.mjs",
+    "ai-tools:creative-graphics:audit:diagnostics": "node scripts/validation/ai-tools-creative-graphics-audit-diagnostics.mjs",
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",
     "build:remotion-worker:mock": "npm run typecheck:server && vite build --config vite.remotion-worker.config.ts",
@@ -469,7 +472,12 @@
     "activation:cross-workstream-handoff-tracking:report": "tsx server/cli/activation-cross-workstream-handoff-tracking-report.ts",
     "activation:cross-workstream-handoff-tracking:iam-plan": "tsx server/cli/activation-cross-workstream-handoff-tracking-iam-plan.ts",
     "activation:cross-workstream-handoff:summary": "tsx server/cli/activation-cross-workstream-handoff-summary.ts",
-    "smoke:activation-cross-workstream-handoff-tracking": "tsx server/smoke/activation-cross-workstream-handoff-tracking-smoke.ts"
+    "smoke:activation-cross-workstream-handoff-tracking": "tsx server/smoke/activation-cross-workstream-handoff-tracking-smoke.ts",
+    "activation:runtime-unlock-roadmap": "tsx server/cli/activation-runtime-unlock-roadmap.ts",
+    "activation:runtime-unlock-roadmap:report": "tsx server/cli/activation-runtime-unlock-roadmap-report.ts",
+    "activation:runtime-unlock-roadmap:iam-plan": "tsx server/cli/activation-runtime-unlock-roadmap-iam-plan.ts",
+    "activation:runtime-unlock:summary": "tsx server/cli/activation-runtime-unlock-summary.ts",
+    "smoke:activation-runtime-unlock-roadmap": "tsx server/smoke/activation-runtime-unlock-roadmap-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

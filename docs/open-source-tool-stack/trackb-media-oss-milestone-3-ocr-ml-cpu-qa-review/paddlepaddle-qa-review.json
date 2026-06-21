@@ -1,0 +1,39 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuQaReview.paddlePaddleQa.v1",
+  "generatedAt": "2026-06-21T02:28:00.283Z",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "99595b05b65dd2e6789aceecc144560db1e442cb",
+  "tool": {
+    "id": "paddlepaddle",
+    "name": "PaddlePaddle",
+    "packageName": "paddlepaddle",
+    "packageVersion": "3.0.0",
+    "sourcePr": 635,
+    "proofBoundary": "ocr_runtime_container_cpu_import_version_model_free_tensor_device_no_model_assets",
+    "importVersionProven": true,
+    "apiShapeOrTensorProven": true,
+    "version": "3.0.0",
+    "device": "cpu",
+    "acceptedProvenBounded": true,
+    "evidencePendingQa": false,
+    "rerunInQaPhase": false,
+    "cpuOnly": true,
+    "gpuUsed": false,
+    "ocrInferenceRun": false,
+    "modelAssetsUsed": false,
+    "fontAssetsUsed": false,
+    "runtimeProductReady": false
+  },
+  "acceptedAsBoundedCpuProof": true,
+  "proofAcceptedFromPr": 635,
+  "proofSummary": [
+    "version 3.0.0",
+    "tensor [1, 2, 3]",
+    "device cpu"
+  ],
+  "modelFreeTensorDeviceProof": true,
+  "ocrInferenceRun": false,
+  "modelAssetsUsed": false,
+  "gpuUsed": false
+}

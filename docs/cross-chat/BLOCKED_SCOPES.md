@@ -660,3 +660,18 @@ TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW:
+
+- Decision: `trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval`
+- Accepted Milestone 3 OCR/ML CPU tools: PaddlePaddle and PaddleOCR.
+- PR #635 evidence is accepted for bounded CPU PaddlePaddle import/version plus model-free tensor/device proof and PaddleOCR import/API-shape proof.
+- Accepted local font config: `PADDLE_PDX_LOCAL_FONT_FILE_PATH=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc`.
+- Track B counts after QA: 16 owned tools, 14 bounded accepted/proven tools, 2 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: OpenColorIO and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- OCR inference, model/font assets, exact PingFang, GPU, media/render, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW_STATUS:end -->

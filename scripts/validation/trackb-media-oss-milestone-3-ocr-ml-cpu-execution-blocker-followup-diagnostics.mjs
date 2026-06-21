@@ -314,8 +314,16 @@ if (decision.decision === passDecision) {
 }
 
 if (status.counts?.ownedTools !== 16) fail('owned_count_drift')
-if (status.counts?.acceptedProvenBounded !== 12) fail('canonical_accepted_count_should_remain_12_until_qa')
-if (status.counts?.blockedNotInstalledProven !== 4) fail('canonical_blocked_count_should_remain_4_until_qa')
+const milestone3OcrMlCpuQaAccepted =
+  status.milestone3OcrMlCpuQaReview?.decision ===
+  'trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval'
+if (milestone3OcrMlCpuQaAccepted) {
+  if (status.counts?.acceptedProvenBounded !== 14) fail('canonical_accepted_count_should_be_14_after_qa')
+  if (status.counts?.blockedNotInstalledProven !== 2) fail('canonical_blocked_count_should_be_2_after_qa')
+} else {
+  if (status.counts?.acceptedProvenBounded !== 12) fail('canonical_accepted_count_should_remain_12_until_qa')
+  if (status.counts?.blockedNotInstalledProven !== 4) fail('canonical_blocked_count_should_remain_4_until_qa')
+}
 if (status.counts?.endToEndProductReady !== 0) fail('product_ready_count_drift')
 if (status.milestone3OcrMlCpuExecution?.decision !== 'trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape') {
   fail('prior_pr583_status_was_overwritten')

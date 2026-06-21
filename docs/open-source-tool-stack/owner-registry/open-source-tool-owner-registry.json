@@ -18,7 +18,10 @@
     "trackbStillBlockedAfterQa": 7,
     "trackbMilestone2QaReviewDecision": "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review",
     "trackbAcceptedProvenBoundedAfterMilestone2Qa": 12,
-    "trackbStillBlockedAfterMilestone2Qa": 4
+    "trackbStillBlockedAfterMilestone2Qa": 4,
+    "trackbMilestone3OcrMlCpuQaReviewDecision": "trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval",
+    "trackbAcceptedProvenBoundedAfterMilestone3OcrMlCpuQa": 14,
+    "trackbStillBlockedAfterMilestone3OcrMlCpuQa": 2
   },
   "owners": [
     {
@@ -28,8 +31,8 @@
       "scopeType": "local_professional_open_source_tools_only",
       "responsibility": "Central/local OSS media-processing tool install-proof, status tracking, duplicate prevention, and source-of-truth reporting.",
       "ownedToolCount": 16,
-      "acceptedProvenBoundedCount": 12,
-      "blockedNotInstalledProvenCount": 4,
+      "acceptedProvenBoundedCount": 14,
+      "blockedNotInstalledProvenCount": 2,
       "endToEndProductReadyToolCount": 0,
       "ownedTools": [
         "ffmpeg",
@@ -57,7 +60,7 @@
         "supabase_gcs_public_delivery",
         "beta_or_production_unlock"
       ],
-      "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW",
+      "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL",
       "milestone3OcrMlCpuGpuReview": {
         "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution",
         "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION",

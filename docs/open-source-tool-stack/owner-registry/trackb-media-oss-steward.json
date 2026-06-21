@@ -23,8 +23,8 @@
   },
   "statusCounts": {
     "ownedTools": 16,
-    "acceptedProvenBounded": 12,
-    "blockedNotInstalledProven": 4,
+    "acceptedProvenBounded": 14,
+    "blockedNotInstalledProven": 2,
     "endToEndProductReady": 0
   },
   "installProofMilestonePlan": {
@@ -129,16 +129,38 @@
     {
       "id": "paddleocr",
       "name": "PaddleOCR",
-      "status": "blocked_not_installed_proven",
+      "status": "accepted_proven_bounded_milestone3_ocr_ml_cpu",
       "reason": "Future Track B install-proof milestone required; OCR/media execution remains blocked.",
-      "endToEndProductReady": false
+      "endToEndProductReady": false,
+      "proofBoundary": "ocr_runtime_container_cpu_import_version_api_shape_local_noto_font_config_no_instantiation_no_inference_no_model_assets",
+      "packageName": "paddleocr",
+      "version": "3.0.0",
+      "sourcePr": 635,
+      "importVersionProven": true,
+      "apiShapeOrTensorProven": true,
+      "gpuUsed": false,
+      "ocrInferenceAccepted": false,
+      "modelAssetOperationsAccepted": false,
+      "fontAssetOperationsAccepted": false,
+      "mediaProcessingAccepted": false
     },
     {
       "id": "paddlepaddle",
       "name": "PaddlePaddle",
-      "status": "blocked_not_installed_proven",
+      "status": "accepted_proven_bounded_milestone3_ocr_ml_cpu",
       "reason": "Future Track B install-proof milestone required; OCR/media execution remains blocked.",
-      "endToEndProductReady": false
+      "endToEndProductReady": false,
+      "proofBoundary": "ocr_runtime_container_cpu_import_version_model_free_tensor_device_no_model_assets",
+      "packageName": "paddlepaddle",
+      "version": "3.0.0",
+      "sourcePr": 635,
+      "importVersionProven": true,
+      "apiShapeOrTensorProven": true,
+      "gpuUsed": false,
+      "ocrInferenceAccepted": false,
+      "modelAssetOperationsAccepted": false,
+      "fontAssetOperationsAccepted": false,
+      "mediaProcessingAccepted": false
     },
     {
       "id": "mediainfo",
@@ -198,7 +220,7 @@
     "batch1AcceptedMatrix": "docs/open-source-tool-stack/batch-1-final-rollup-after-ffmpeg-ffprobe-proof/batch-1-accepted-tools-matrix.json",
     "ownerLaneCounts": "docs/open-source-tool-stack/owner-lane-reconciliation-after-batch-1-rollup/reconciled-tool-count-summary.json"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL",
   "supabaseClassification": {
     "updateRequired": "no write",
     "environmentTouched": "none",
@@ -286,5 +308,21 @@
       "sqlExecuted": "none",
       "migrationDeployed": "no"
     }
+  },
+  "milestone3OcrMlCpuQaReview": {
+    "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review",
+    "acceptedMilestone3Tools": [
+      "paddlepaddle",
+      "paddleocr"
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL",
+    "executionRunInThisPhase": false,
+    "ocrInferenceAccepted": false,
+    "gpuExecutionApproved": false,
+    "mediaProcessingApproved": false,
+    "renderExportApproved": false,
+    "workerRuntimeApproved": false,
+    "betaProductionApproved": false
   }
 }

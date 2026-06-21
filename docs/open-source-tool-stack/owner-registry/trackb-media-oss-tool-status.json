@@ -4,8 +4,8 @@
   "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
   "counts": {
     "ownedTools": 16,
-    "acceptedProvenBounded": 12,
-    "blockedNotInstalledProven": 4,
+    "acceptedProvenBounded": 14,
+    "blockedNotInstalledProven": 2,
     "endToEndProductReady": 0
   },
   "acceptedProvenBounded": [
@@ -124,11 +124,45 @@
       "acceptedProvenBounded": true,
       "rerunInQaPhase": false,
       "proofBoundary": "trackb_cpu_worker_container_import_version_and_synthetic_fixture_only_no_real_media_processing"
+    },
+    {
+      "id": "paddlepaddle",
+      "name": "PaddlePaddle",
+      "packageName": "paddlepaddle",
+      "version": "3.0.0",
+      "sourcePr": 635,
+      "importVersionProven": true,
+      "apiShapeOrTensorProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "cpuOnly": true,
+      "gpuUsed": false,
+      "ocrInferenceRun": false,
+      "modelAssetsUsed": false,
+      "fontAssetsUsed": false,
+      "endToEndProductReady": false,
+      "proofBoundary": "ocr_runtime_container_cpu_import_version_model_free_tensor_device_no_model_assets"
+    },
+    {
+      "id": "paddleocr",
+      "name": "PaddleOCR",
+      "packageName": "paddleocr",
+      "version": "3.0.0",
+      "sourcePr": 635,
+      "importVersionProven": true,
+      "apiShapeOrTensorProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "cpuOnly": true,
+      "gpuUsed": false,
+      "ocrInferenceRun": false,
+      "modelAssetsUsed": false,
+      "fontAssetsUsed": false,
+      "endToEndProductReady": false,
+      "proofBoundary": "ocr_runtime_container_cpu_import_version_api_shape_local_noto_font_config_no_instantiation_no_inference_no_model_assets"
     }
   ],
   "blockedNotInstalledProven": [
-    "paddleocr",
-    "paddlepaddle",
     "opencolorio",
     "openimageio"
   ],
@@ -996,5 +1030,30 @@
       "paddleocr"
     ],
     "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW"
+  },
+  "milestone3OcrMlCpuQaReview": {
+    "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval",
+    "reportKey": "trackb_milestone_3_ocr_ml_cpu_qa_review_reports",
+    "acceptedMilestone3Tools": [
+      "paddlepaddle",
+      "paddleocr"
+    ],
+    "acceptedProvenBoundedTotalAfterQa": 14,
+    "stillBlockedNotInstalledProven": [
+      "opencolorio",
+      "openimageio"
+    ],
+    "endToEndProductReadyTools": 0,
+    "fortyPlusEndToEndClaimAllowed": false,
+    "localFontConfig": "PADDLE_PDX_LOCAL_FONT_FILE_PATH=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL",
+    "ocrInferenceAccepted": false,
+    "modelAssetOperationsAccepted": false,
+    "fontAssetOperationsAccepted": false,
+    "gpuExecutionApproved": false,
+    "mediaProcessingAccepted": false,
+    "renderExportAccepted": false,
+    "workerRuntimeAccepted": false,
+    "betaProductionAccepted": false
   }
 }

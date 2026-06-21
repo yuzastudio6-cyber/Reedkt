@@ -26,10 +26,14 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 ## 2. Supabase Schema Review And Migration Validation
 
 - Purpose: validate the schema chain before any production data path depends on it.
-- Implements: local/staging migration run plan, RLS/storage policy test plan, schema health checks, advisor review checklist, backup/rollback plan, and migration readiness report.
+- Implements: migration inventory, active-vs-draft comparison, schema conflict inventory, local/staging/prod validation runbook, RLS/storage policy validation test plan, validation results record, and local-only static audit tooling.
+- Expected deliverables: `docs/supabase-schema-review-report.md`, `docs/supabase-migration-validation-runbook.md`, `docs/rls-and-storage-policy-validation-plan.md`, `docs/schema-conflict-inventory.md`, `docs/schema-validation-results.md`, optional `scripts/validation/supabase-schema-static-audit.mjs`, and generated static audit JSON when the script runs.
+- Status after Prompt 2: validation-infrastructure / docs-plus-static-audit. This does not mark the milestone production-ready.
+- Validation expectations: `git diff --check`, base diff whitespace check, static schema audit, and build/lint when code/package files are touched. Local Supabase reset and SQL smoke tests should be run only after schema conflict resolution or explicit disposable-local approval.
 - Must not implement: production migration execution, service-role API handlers, provider calls, rendering, Stripe, or worker dispatch.
 - Main files/tables/services: `supabase/migration-order.md`, `database-migration-readiness-checklist.md`, `supabase/migrations/`, `database/test-sql/`, runtime tables from `docs/e2e-readiness/RP-E2E-READY-01-runtime-tables.md`.
-- Acceptance criteria: migrations are validated locally/staging or explicitly blocked with logs, RLS/storage tests are documented, no credentials are committed.
+- Acceptance criteria: migrations are inventoried, active/draft conflicts are documented, RLS/storage tests are documented, validation results are honest about what did and did not run, no credentials are committed, and no production execution is enabled.
+- Next prompt recommendation: Prompt 2A - Schema Gap Fix Plan before Prompt 3 if duplicate active schema concepts remain unresolved.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and production-migration status.
 
 ## 3. Auth/Profile/Workspace/RLS Production Path

@@ -1,13 +1,17 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 Blocked Scope Register
 
-Build confirmation blocker: `blocked_pending_native_container_build_confirmation`
+Build proof blocker: `blocked_render_worker_docker_build_failed`
 
-Required future gate: `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
+Required gate status: `provided_true`
+
+Run ID: `2026-06-21T00-41-00-745Z-1884537d`
+
+Sanitized blocker summary: Docker build failed while sending the build context: `failed to xattr dist-server/._brand: operation not permitted`.
 
 Blocked scope in this packet:
 
-- Docker build
 - Docker image inspection
+- Docker build completion
 - Docker push
 - Cloud Run
 - deployment

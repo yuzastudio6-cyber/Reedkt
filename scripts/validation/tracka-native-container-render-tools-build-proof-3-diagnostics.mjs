@@ -22,7 +22,16 @@ const requiredFiles = [
   'scripts/validation/tracka-native-container-render-tools-build-proof-3-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
+const allowedChangedFiles = new Set([
+  ...requiredFiles,
+  'docs/track-a/tracka-native-container-render-tools-batch-2.md',
+  'docs/track-a/tracka-native-container-render-tools-batch-2-tool-matrix.md',
+  'docs/track-a/tracka-native-container-render-tools-batch-2-identity-reviews.md',
+  'docs/track-a/tracka-native-container-render-tools-batch-2-build-proof-support.md',
+  'docs/activation-phase-tracka-native-container-render-tools-batch-2-results.md',
+  'scripts/validation/tracka-native-container-render-tools-batch-2-diagnostics.mjs',
+  'package.json',
+])
 
 const requiredText = [
   'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3',
@@ -30,22 +39,28 @@ const requiredText = [
   '#601',
   '#577 is draft/open/blocked and excluded as source-of-truth',
   'PR #577 live readback: `OPEN`, draft, `CONFLICTING` / `DIRTY`',
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_pending_native_container_build_confirmation',
-  'Execution: `blocked_confirmation_absent`',
-  'Docker build status: `not_run_confirmation_absent`',
-  'Metadata verification: `not_run_confirmation_absent`',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_render_worker_docker_build_failed',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_render_worker_docker_build_failed_with_identity_reviews_recorded',
+  'Execution: `blocked_before_or_during_build`',
+  'Docker build status: `failed`',
+  'Metadata verification: `not_run_build_failed`',
   'REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true',
+  'blocked_render_worker_docker_build_failed',
+  'Run ID: `2026-06-21T00-41-00-745Z-1884537d`',
+  'failed to xattr dist-server/._brand: operation not permitted',
+  '4341ddf9e211a52a158079eccbab9ce65a8bba2dfabcfe78b215d1f65d2459ef',
+  'acdf39f6db38edd831174458ac183c9738b59d86a2e262b4f43070fb850637f5',
   'Product-ready end-to-end local OSS tools: `0`',
   'gstreamer_render_pipeline_support',
   'mkvtoolnix_container_validation',
   'installed_source_declared_by_601',
-  'blocked_pending_native_container_build_confirmation',
+  'blocked_render_worker_docker_build_failed',
   'bento4_mp4box_packaging_validation',
-  'blocked_pending_bento4_mp4box_package_identity_provenance_review',
+  'resolved_mp4box_provider_gpac_ready_for_future_install_proof',
   'vapoursynth_frame_pipeline',
-  'blocked_pending_vapoursynth_native_dependency_plugin_policy',
+  'resolved_vapoursynth_native_policy_ready_for_future_install_proof',
   'revideo_render_preview_alternative',
-  'blocked_pending_revideo_package_identity_review',
+  'resolved_revideo_package_identity_ready_for_future_install_proof',
   'hyperframe_render_handoff',
   'handoff_only_no_build_change',
   'FFmpeg/FFprobe remain Track B-owned shared dependencies only',
@@ -57,7 +72,7 @@ const requiredText = [
   'Migration deployed: `no`',
   'TRACKA-GSTREAMER-RUNTIME-PROOF-1',
   'TRACKA-CONTAINER-PACKAGING-VALIDATION-PROOF-1',
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker build, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, or broad service-role handler was enabled.',
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker push, deployment, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, or broad service-role handler was enabled. The only Docker action was the single confirmed local render-worker build attempt, which failed before metadata verification.',
 ]
 
 const forbiddenPatterns = [
@@ -153,9 +168,9 @@ for (const forbiddenFile of ['package-lock.json', 'docker/prod/render-worker/Doc
 }
 
 console.log('TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 diagnostics passed')
-console.log('Decision: blocked_pending_native_container_build_confirmation')
-console.log('Execution: blocked_confirmation_absent')
-console.log('Docker build: not_run_confirmation_absent')
-console.log('Metadata verification: not_run_confirmation_absent')
+console.log('Decision: blocked_render_worker_docker_build_failed')
+console.log('Execution: blocked_before_or_during_build')
+console.log('Docker build: failed')
+console.log('Metadata verification: not_run_build_failed')
 console.log('Package-lock: unchanged')
 console.log('Product-ready end-to-end local OSS tools: 0')

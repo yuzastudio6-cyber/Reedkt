@@ -1,15 +1,16 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 Next Phase Plan
 
-Current Build-Proof-3 readiness: `blocked_pending_native_container_build_confirmation`
+Current Build-Proof-3 readiness: `blocked_render_worker_docker_build_failed`
 
 Recommended next phase:
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R confirmed Docker build metadata proof`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R build-context repair and confirmed retry`
 
 Future 3R requirement:
 
+- Repair or avoid the local Docker build context xattr blocker: `failed to xattr dist-server/._brand: operation not permitted`.
 - Set `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`.
-- Run the guarded build runner once.
+- Run the guarded build runner once after pre-build validation.
 - Record sanitized `/tmp` manifest/checksum evidence only.
 - Do not commit generated reports or image artifacts.
 

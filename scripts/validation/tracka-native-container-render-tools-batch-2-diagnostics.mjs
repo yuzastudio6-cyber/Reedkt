@@ -41,6 +41,9 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-tracka-revideo-package-identity-review-1.md',
   'docs/implementation-prompts/prompt-tracka-vapoursynth-native-policy-review-1.md',
   'docs/track-a/tracka-native-container-render-tools-build-proof-3-blocked-scope-register.md',
+  'docs/track-a/tracka-native-container-render-tools-build-proof-3-build-result.md',
+  'docs/track-a/tracka-native-container-render-tools-build-proof-3-install-metadata-verification.md',
+  'docs/track-a/tracka-native-container-render-tools-build-proof-3-artifact-manifest-summary.md',
   'docs/track-a/tracka-native-container-render-tools-build-proof-3-duplicate-scan.md',
   'docs/track-a/tracka-native-container-render-tools-build-proof-3-next-phase-plan.md',
   'docs/track-a/tracka-native-container-render-tools-build-proof-3-source-audit.md',
@@ -49,11 +52,17 @@ const allowedChangedFiles = new Set([
 
 const requiredText = [
   'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2',
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_pending_native_container_build_confirmation_with_identity_reviews_recorded',
-  'Execution: `blocked_confirmation_absent_no_build`',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_render_worker_docker_build_failed_with_identity_reviews_recorded',
+  'Execution: `blocked_before_or_during_build`',
   'Future success decision, only after confirmed build proof: `completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews`',
-  'Docker build status: `not_run_confirmation_absent`',
-  'Metadata verification: `not_run_confirmation_absent`',
+  'Docker build status: `failed`',
+  'Metadata verification: `not_run_build_failed`',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: blocked_render_worker_docker_build_failed',
+  'Batch-2R blocker: `blocked_render_worker_docker_build_failed`',
+  'Batch-2R run ID: `2026-06-21T00-41-00-745Z-1884537d`',
+  'failed to xattr dist-server/._brand: operation not permitted',
+  '4341ddf9e211a52a158079eccbab9ce65a8bba2dfabcfe78b215d1f65d2459ef',
+  'acdf39f6db38edd831174458ac183c9738b59d86a2e262b4f43070fb850637f5',
   'Product-ready end-to-end local OSS tools: `0`',
   '#601',
   'f19c173a6a3d9a4cf381fc23826bd14a6385bc1f',
@@ -92,7 +101,7 @@ const requiredText = [
   'Supabase environment touched: `none`',
   'SQL executed: `none`',
   'Migration deployed: `no`',
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker build, FFmpeg/FFprobe execution, or broad service-role handler was enabled.',
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker push, deployment, FFmpeg/FFprobe execution, or broad service-role handler was enabled. The only Docker action was the single confirmed local render-worker build attempt, which failed before metadata verification.',
 ]
 
 const forbiddenPatterns = [
@@ -195,9 +204,9 @@ for (const forbiddenFile of [
 }
 
 console.log('TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 diagnostics passed')
-console.log('Decision: blocked_pending_native_container_build_confirmation_with_identity_reviews_recorded')
-console.log('Execution: blocked_confirmation_absent_no_build')
-console.log('Docker build: not_run_confirmation_absent')
-console.log('Metadata verification: not_run_confirmation_absent')
+console.log('Decision: blocked_render_worker_docker_build_failed_with_identity_reviews_recorded')
+console.log('Execution: blocked_before_or_during_build')
+console.log('Docker build: failed')
+console.log('Metadata verification: not_run_build_failed')
 console.log('Package-lock: unchanged')
 console.log('Product-ready end-to-end local OSS tools: 0')

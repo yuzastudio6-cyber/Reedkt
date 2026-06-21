@@ -1,16 +1,16 @@
 # Activation Phase TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 Results
 
-Result: `blocked_pending_native_container_build_confirmation_with_identity_reviews_recorded`
+Result: `blocked_render_worker_docker_build_failed_with_identity_reviews_recorded`
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_pending_native_container_build_confirmation_with_identity_reviews_recorded`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_render_worker_docker_build_failed_with_identity_reviews_recorded`
 
-Execution: `blocked_confirmation_absent_no_build`
+Execution: `blocked_before_or_during_build`
 
 Future success decision, only after confirmed build proof: `completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews`
 
-Docker build status: `not_run_confirmation_absent`
+Docker build status: `failed`
 
-Metadata verification: `not_run_confirmation_absent`
+Metadata verification: `not_run_build_failed`
 
 Runtime media execution: `false`
 
@@ -22,25 +22,37 @@ Dependency validation: `passed`
 
 ## Batch-2R Follow-Up Result
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: blocked_pending_native_container_build_confirmation`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: blocked_render_worker_docker_build_failed`
 
-Batch-2R execution: `blocked_confirmation_absent_no_build`
+Batch-2R execution: `blocked_before_or_during_build`
 
 Batch-2R pre-build validation: `passed`
 
-Batch-2R Docker build: `not_run_confirmation_absent`
+Batch-2R Docker build: `failed`
 
-Batch-2R metadata verification: `not_run_confirmation_absent`
+Batch-2R metadata verification: `not_run_build_failed`
 
-Batch-2R blocker: `blocked_pending_native_container_build_confirmation`
+Batch-2R blocker: `blocked_render_worker_docker_build_failed`
 
-Required confirmation gate was absent/not `true`: `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
+Required confirmation gate was provided for the single allowed proof command: `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
+
+Batch-2R run ID: `2026-06-21T00-41-00-745Z-1884537d`
+
+Batch-2R local output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T00-41-00-745Z-1884537d`
+
+Batch-2R local image tag: `reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-21T00-41-00-745Z-1884537d`
+
+Batch-2R sanitized blocker summary: Docker build failed while sending the build context: `failed to xattr dist-server/._brand: operation not permitted`.
+
+Batch-2R report: `build-proof-3-blocked-report.json`, bytes `2810`, SHA-256 `4341ddf9e211a52a158079eccbab9ce65a8bba2dfabcfe78b215d1f65d2459ef`
+
+Batch-2R manifest: `build-proof-3-blocked-manifest.json`, bytes `359`, SHA-256 `acdf39f6db38edd831174458ac183c9738b59d86a2e262b4f43070fb850637f5`
 
 Generated artifacts committed: `none`
 
 Package-lock: `unchanged`
 
-No Docker build, Docker image inspection, package metadata query, command path check, GStreamer pipeline, MKVToolNix media command, FFmpeg/FFprobe execution, media processing, Docker push, Cloud Run deployment, Supabase mutation, SQL execution, signed/public artifact creation, or beta/production/final unlock occurred in Batch-2R.
+A single local render-worker Docker build was attempted by the approved guarded runner and failed before image metadata verification. No Docker image inspection, package metadata query, command path check, GStreamer pipeline, MKVToolNix media command, FFmpeg/FFprobe execution, media processing, Docker push, Cloud Run deployment, Supabase mutation, SQL execution, signed/public artifact creation, or beta/production/final unlock occurred in Batch-2R.
 
 Product-ready end-to-end local OSS tools: `0`
 
@@ -49,9 +61,9 @@ Product-ready end-to-end local OSS tools: `0`
 | scopedToolId | Batch-2 status | install-source status | build/metadata status | runtime execution | readiness |
 | --- | --- | --- | --- | --- | --- |
 | `hyperframe_render_handoff` | `handoff_only` | `handoff_only_no_install_source_change` | `not_applicable` | `not_run` | `handoff_only_no_install_target_unless_source_evidence_changes` |
-| `gstreamer_render_pipeline_support` | `install_source_declared_by_601` | `installed_source_declared_by_601` | `blocked_pending_native_container_build_confirmation` | `not_run` | `blocked_pending_build_metadata_proof` |
+| `gstreamer_render_pipeline_support` | `install_source_declared_by_601` | `installed_source_declared_by_601` | `blocked_render_worker_docker_build_failed` | `not_run` | `blocked_pending_build_context_repair_or_confirmed_retry` |
 | `bento4_mp4box_packaging_validation` | `identity_resolved_by_624` | `not_installed` | `not_run` | `not_run` | `resolved_mp4box_provider_gpac_ready_for_future_install_proof` |
-| `mkvtoolnix_container_validation` | `install_source_declared_by_601` | `installed_source_declared_by_601` | `blocked_pending_native_container_build_confirmation` | `not_run` | `blocked_pending_build_metadata_proof` |
+| `mkvtoolnix_container_validation` | `install_source_declared_by_601` | `installed_source_declared_by_601` | `blocked_render_worker_docker_build_failed` | `not_run` | `blocked_pending_build_context_repair_or_confirmed_retry` |
 | `vapoursynth_frame_pipeline` | `native_policy_resolved_by_624` | `not_installed` | `not_run` | `not_run` | `resolved_vapoursynth_native_policy_ready_for_future_install_proof` |
 | `revideo_render_preview_alternative` | `package_identity_resolved_by_624` | `not_installed` | `not_run` | `not_run` | `resolved_revideo_package_identity_ready_for_future_install_proof` |
 
@@ -76,7 +88,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Validation Results
 
-Validation status: `passed`
+Validation status: `passed_for_blocked_docker_build_failed_packet`
 
 Validation evidence:
 
@@ -101,7 +113,8 @@ Batch-2R refreshed validation evidence:
 - `npm run build`
 - `npm run build:server`
 - `git diff --cached --check`
+- `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true npm run tracka:native-container-render-tools-build-proof-3` exited with `blocked_render_worker_docker_build_failed`
 
-PR status: `draft_pending_native_container_build_confirmation`
+PR status: `draft_blocked_render_worker_docker_build_failed`
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker build, FFmpeg/FFprobe execution, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker push, deployment, FFmpeg/FFprobe execution, or broad service-role handler was enabled. The only Docker action was the single confirmed local render-worker build attempt, which failed before metadata verification.

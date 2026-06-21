@@ -20,23 +20,23 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Decision
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_pending_native_container_build_confirmation`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_render_worker_docker_build_failed`
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_pending_native_container_build_confirmation_with_identity_reviews_recorded`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_render_worker_docker_build_failed_with_identity_reviews_recorded`
 
-Execution: `blocked_confirmation_absent`
+Execution: `blocked_before_or_during_build`
 
-Docker build status: `not_run_confirmation_absent`
+Docker build status: `failed`
 
-Metadata verification: `not_run_confirmation_absent`
+Metadata verification: `not_run_build_failed`
 
 Runtime media execution: `false`
 
 Package-lock status: `unchanged`
 
-Dependency validation: `passed_after_constrained_npm_ci_retry`
+Dependency validation: `passed`
 
-Next recommended milestone: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R confirmed Docker build metadata proof`, then `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` after explicit build metadata proof. Resolved identity tools move to `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`.
+Next recommended milestone: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R build-context repair and confirmed retry`, then `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` after explicit build metadata proof. Resolved identity tools move to `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`.
 
 ## Source Chain
 
@@ -61,7 +61,13 @@ Required future gate:
 
 `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
 
-Because the gate is absent in this run, no local Docker build, image inspection, package metadata query, command path check, media processing, or runtime tool execution was run.
+The gate was present for this run. The single local render-worker Docker build attempt failed while Docker was sending the build context, before image inspection, package metadata query, command path check, media processing, or runtime tool execution could run.
+
+Run ID: `2026-06-21T00-41-00-745Z-1884537d`
+
+Output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T00-41-00-745Z-1884537d`
+
+Sanitized blocker summary: Docker build failed while sending the build context: `failed to xattr dist-server/._brand: operation not permitted`.
 
 ## #624 Identity Integration
 
@@ -82,4 +88,4 @@ Because the gate is absent in this run, no local Docker build, image inspection,
 - Blockers: `none_for_supabase`
 - Next Supabase action: `none`
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker build, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker push, deployment, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, or broad service-role handler was enabled. The only Docker action was the single confirmed local render-worker build attempt, which failed before metadata verification.

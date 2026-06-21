@@ -3,9 +3,9 @@
 | scopedToolId | Batch-2 classification | install-source status | build/metadata status | identity/policy review | next milestone |
 | --- | --- | --- | --- | --- | --- |
 | `hyperframe_render_handoff` | `handoff_only` | `handoff_only_no_install_source_change` | `not_applicable` | `no_install_target_unless_future_source_evidence_proves_one` | `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` |
-| `gstreamer_render_pipeline_support` | `install_source_declared` | `installed_source_declared_by_601` | `blocked_render_worker_docker_build_failed` | `not_required_for_declared_packages` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R prebuilt worker outputs repair and confirmed retry` |
+| `gstreamer_render_pipeline_support` | `install_source_declared` | `installed_source_declared_by_601` | `blocked_docker_build_context_transfer_failed` | `not_required_for_declared_packages` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R AppleDouble root sidecar cleanup and confirmed retry` |
 | `bento4_mp4box_packaging_validation` | `identity_resolved_by_624` | `not_installed` | `not_run` | `resolved_mp4box_provider_gpac_ready_for_future_install_proof` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3` |
-| `mkvtoolnix_container_validation` | `install_source_declared` | `installed_source_declared_by_601` | `blocked_render_worker_docker_build_failed` | `not_required_for_declared_packages` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R prebuilt worker outputs repair and confirmed retry` |
+| `mkvtoolnix_container_validation` | `install_source_declared` | `installed_source_declared_by_601` | `blocked_docker_build_context_transfer_failed` | `not_required_for_declared_packages` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R AppleDouble root sidecar cleanup and confirmed retry` |
 | `vapoursynth_frame_pipeline` | `native_policy_resolved_by_624` | `not_installed` | `not_run` | `resolved_vapoursynth_native_policy_ready_for_future_install_proof` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3` |
 | `revideo_render_preview_alternative` | `package_identity_resolved_by_624` | `not_installed` | `not_run` | `resolved_revideo_package_identity_ready_for_future_install_proof` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3` |
 

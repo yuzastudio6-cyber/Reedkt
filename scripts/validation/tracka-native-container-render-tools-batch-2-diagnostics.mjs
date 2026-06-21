@@ -52,17 +52,22 @@ const allowedChangedFiles = new Set([
 
 const requiredText = [
   'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2',
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_render_worker_docker_build_failed_with_identity_reviews_recorded',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_docker_build_context_transfer_failed_with_identity_reviews_recorded',
   'Execution: `blocked_before_or_during_build`',
   'Future success decision, only after confirmed build proof: `completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews`',
   'Docker build status: `failed`',
   'Metadata verification: `not_run_build_failed`',
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: blocked_render_worker_docker_build_failed',
-  'Batch-2R blocker: `blocked_render_worker_docker_build_failed`',
-  'Batch-2R run ID: `2026-06-21T01-12-53-067Z-3b7af8a7`',
-  'Docker build context transfer succeeded after sidecar cleanup, then Dockerfile COPY failed because `dist-remotion-worker`, `dist-staging-fixture-worker`, and `dist-staging-real-video-export-worker` were not present in the build context',
-  '1f45b57e9740c3355d95bf12142052302b1d070516ab3e06b64e82e091f6f058',
-  '738ad586c9bd6c2fcd294a4603fb42cf48893ea232932d15707568a6a2fe2e8e',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: blocked_docker_build_context_transfer_failed',
+  'Batch-2R blocker: `blocked_docker_build_context_transfer_failed`',
+  'Raw runner decision before blocker normalization: `blocked_render_worker_docker_build_failed`',
+  'Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`',
+  'COPYFILE_DISABLE=1 npm run build:remotion-worker:mock',
+  'COPYFILE_DISABLE=1 npm run build:staging-fixture-worker',
+  'COPYFILE_DISABLE=1 npm run build:staging-real-video-export-worker',
+  'Batch-2R run ID: `2026-06-21T02-12-41-704Z-a06117f3`',
+  'Docker build context transfer failed on root AppleDouble sidecar `._dist-remotion-worker`: `failed to xattr ._dist-remotion-worker: operation not permitted`',
+  '17f1cc020b1a2e58fcafc89c4addaa3dbf629c3b54da0d39ef02731d74a6529a',
+  '70c83f50c07603574791a692c6b90729a0df612818e853d0f5d44860ef763b2c',
   'Product-ready end-to-end local OSS tools: `0`',
   '#601',
   'f19c173a6a3d9a4cf381fc23826bd14a6385bc1f',
@@ -204,7 +209,7 @@ for (const forbiddenFile of [
 }
 
 console.log('TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 diagnostics passed')
-console.log('Decision: blocked_render_worker_docker_build_failed_with_identity_reviews_recorded')
+console.log('Decision: blocked_docker_build_context_transfer_failed_with_identity_reviews_recorded')
 console.log('Execution: blocked_before_or_during_build')
 console.log('Docker build: failed')
 console.log('Metadata verification: not_run_build_failed')

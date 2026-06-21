@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { createHash, randomUUID } from 'node:crypto'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const confirmation = process.env.REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF
@@ -58,6 +58,23 @@ if (confirmation !== 'true') {
   )
 }
 
+const requiredPrebuiltWorkerOutputs = [
+  'dist-remotion-worker',
+  'dist-staging-fixture-worker',
+  'dist-staging-real-video-export-worker',
+]
+const missingPrebuiltWorkerOutputs = requiredPrebuiltWorkerOutputs.filter((dir) => !existsSync(dir))
+if (missingPrebuiltWorkerOutputs.length > 0) {
+  failClosed(
+    'blocked_missing_prebuilt_worker_outputs',
+    'Required prebuilt worker output directories are missing before Docker build.',
+    {
+      requiredPrebuiltWorkerOutputs,
+      missingPrebuiltWorkerOutputs,
+    },
+  )
+}
+
 function run(command, args, options = {}) {
   return execFileSync(command, args, {
     encoding: 'utf8',
@@ -84,9 +101,15 @@ try {
     '.',
   ])
 } catch (error) {
-  failClosed('blocked_render_worker_docker_build_failed', 'Render-worker Docker build failed.', {
-    stderr: String(error.stderr || error.message || '').slice(0, 4000),
-  })
+  const stderr = String(error.stderr || error.message || '')
+  const isBuildContextFailure = /load build context|load \.dockerignore|failed to xattr|readdir: failed to xattr|error from sender/i.test(stderr)
+  failClosed(
+    isBuildContextFailure ? 'blocked_docker_build_context_transfer_failed' : 'blocked_render_worker_docker_build_failed',
+    isBuildContextFailure ? 'Docker build context transfer failed before render-worker image build completed.' : 'Render-worker Docker build failed.',
+    {
+      stderr: stderr.slice(0, 4000),
+    },
+  )
 }
 
 let metadataOutput = ''
@@ -111,12 +134,14 @@ try {
 
 const report = {
   proof: 'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3',
-  decision: 'completed_render_worker_docker_build_install_metadata_proof',
+  decision: 'completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews',
   execution: 'completed_docker_build_metadata_only',
   runId,
   outputDir,
   imageTag,
   dockerfile: 'docker/prod/render-worker/Dockerfile',
+  requiredPrebuiltWorkerOutputs,
+  prebuiltWorkerOutputsStatus: 'present_generated_by_safe_build_scripts_not_committed',
   metadataVerification: 'passed',
   metadataOutput,
   runtimeMediaExecution: false,

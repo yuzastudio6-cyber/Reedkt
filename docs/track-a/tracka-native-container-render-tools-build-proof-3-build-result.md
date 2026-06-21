@@ -1,14 +1,14 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 Build Result
 
-Build result: `blocked_render_worker_docker_build_failed`
+Build result: `blocked_docker_build_context_transfer_failed`
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_render_worker_docker_build_failed`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_docker_build_context_transfer_failed`
 
 Execution: `blocked_before_or_during_build`
 
 Docker build status: `failed`
 
-Docker image tag: `reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-21T01-12-53-067Z-3b7af8a7`
+Docker image tag: `reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-21T02-12-41-704Z-a06117f3`
 
 Docker push: `not_run`
 
@@ -18,15 +18,21 @@ Required confirmation gate: `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PRO
 
 Confirmation gate status: `provided_true`
 
-Run ID: `2026-06-21T01-12-53-067Z-3b7af8a7`
+Run ID: `2026-06-21T02-12-41-704Z-a06117f3`
 
-Output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T01-12-53-067Z-3b7af8a7`
+Output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T02-12-41-704Z-a06117f3`
 
-Sanitized blocker summary: Docker build context transfer succeeded after sidecar cleanup, then Dockerfile COPY failed because `dist-remotion-worker`, `dist-staging-fixture-worker`, and `dist-staging-real-video-export-worker` were not present in the build context.
+Raw runner decision before blocker normalization: `blocked_render_worker_docker_build_failed`
 
-Report: `build-proof-3-blocked-report.json`, bytes `4460`, SHA-256 `1f45b57e9740c3355d95bf12142052302b1d070516ab3e06b64e82e091f6f058`
+Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`
 
-Manifest: `build-proof-3-blocked-manifest.json`, bytes `359`, SHA-256 `738ad586c9bd6c2fcd294a4603fb42cf48893ea232932d15707568a6a2fe2e8e`
+Missing prebuilt output blocker: `blocked_missing_prebuilt_worker_outputs`
+
+Sanitized blocker summary: prebuilt worker outputs were generated and present, but Docker build context transfer failed on root AppleDouble sidecar `._dist-remotion-worker`: `failed to xattr ._dist-remotion-worker: operation not permitted`.
+
+Report: `build-proof-3-blocked-report.json`, bytes `2963`, SHA-256 `17f1cc020b1a2e58fcafc89c4addaa3dbf629c3b54da0d39ef02731d74a6529a`
+
+Manifest: `build-proof-3-blocked-manifest.json`, bytes `359`, SHA-256 `70c83f50c07603574791a692c6b90729a0df612818e853d0f5d44860ef763b2c`
 
 ## Confirmed Attempt Boundary
 
@@ -39,6 +45,7 @@ The run did not push images, deploy images, use Cloud Run, use GCS/private artif
 Approved future blockers:
 
 - `blocked_docker_daemon_unavailable`
+- `blocked_docker_build_context_transfer_failed`
 - `blocked_render_worker_docker_build_failed`
 - `blocked_metadata_install_verification_failed`
 

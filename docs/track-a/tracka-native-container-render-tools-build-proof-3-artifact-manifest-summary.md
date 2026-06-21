@@ -2,14 +2,14 @@
 
 Artifact manifest status: `blocked_report_manifest_written_build_failed`
 
-Run ID: `2026-06-21T01-12-53-067Z-3b7af8a7`
+Run ID: `2026-06-21T02-12-41-704Z-a06117f3`
 
-Generated fixture path: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T01-12-53-067Z-3b7af8a7`
+Generated fixture path: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T02-12-41-704Z-a06117f3`
 
 Artifacts/checksums:
 
-- `build-proof-3-blocked-report.json`, bytes `4460`, SHA-256 `1f45b57e9740c3355d95bf12142052302b1d070516ab3e06b64e82e091f6f058`
-- `build-proof-3-blocked-manifest.json`, bytes `359`, SHA-256 `738ad586c9bd6c2fcd294a4603fb42cf48893ea232932d15707568a6a2fe2e8e`
+- `build-proof-3-blocked-report.json`, bytes `2963`, SHA-256 `17f1cc020b1a2e58fcafc89c4addaa3dbf629c3b54da0d39ef02731d74a6529a`
+- `build-proof-3-blocked-manifest.json`, bytes `359`, SHA-256 `70c83f50c07603574791a692c6b90729a0df612818e853d0f5d44860ef763b2c`
 
 Generated artifacts committed: `none`
 

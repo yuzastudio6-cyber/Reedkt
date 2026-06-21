@@ -1,12 +1,16 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 Blocked Scope Register
 
-Build proof blocker: `blocked_render_worker_docker_build_failed`
+Build proof blocker: `blocked_docker_build_context_transfer_failed`
 
 Required gate status: `provided_true`
 
-Run ID: `2026-06-21T01-12-53-067Z-3b7af8a7`
+Run ID: `2026-06-21T02-12-41-704Z-a06117f3`
 
-Sanitized blocker summary: Docker build context transfer succeeded after sidecar cleanup, then Dockerfile COPY failed because `dist-remotion-worker`, `dist-staging-fixture-worker`, and `dist-staging-real-video-export-worker` were not present in the build context.
+Raw runner decision before blocker normalization: `blocked_render_worker_docker_build_failed`
+
+Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`
+
+Sanitized blocker summary: prebuilt worker outputs were generated and present, but Docker build context transfer failed on root AppleDouble sidecar `._dist-remotion-worker`: `failed to xattr ._dist-remotion-worker: operation not permitted`.
 
 Blocked scope in this packet:
 

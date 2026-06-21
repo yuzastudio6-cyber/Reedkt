@@ -135,14 +135,21 @@ const packageJson = readJson("package.json");
 const milestone2QaAccepted =
   status.milestone2QaReview?.decision ===
   "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review";
-const expectedAcceptedStatusTools = milestone2QaAccepted
+const milestone3OcrMlCpuQaAccepted =
+  status.milestone3OcrMlCpuQaReview?.decision ===
+  "trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval";
+const expectedAcceptedStatusTools = milestone3OcrMlCpuQaAccepted
+  ? [...acceptedStatusTools, "opencv", "pyav", "pyscenedetect", "paddlepaddle", "paddleocr"]
+  : milestone2QaAccepted
   ? [...acceptedStatusTools, "opencv", "pyav", "pyscenedetect"]
   : acceptedStatusTools;
-const expectedBlockedTools = milestone2QaAccepted
+const expectedBlockedTools = milestone3OcrMlCpuQaAccepted
+  ? ["opencolorio", "openimageio"]
+  : milestone2QaAccepted
   ? ["paddleocr", "paddlepaddle", "opencolorio", "openimageio"]
   : blockedTools;
-const expectedAcceptedCount = milestone2QaAccepted ? 12 : 9;
-const expectedBlockedCount = milestone2QaAccepted ? 4 : 7;
+const expectedAcceptedCount = milestone3OcrMlCpuQaAccepted ? 14 : milestone2QaAccepted ? 12 : 9;
+const expectedBlockedCount = milestone3OcrMlCpuQaAccepted ? 2 : milestone2QaAccepted ? 4 : 7;
 
 if (registry.decision !== decision || steward.decision !== decision || status.decision !== decision) {
   fail("Decision drift detected in owner registry artifacts.");
@@ -214,6 +221,15 @@ for (const tool of steward.ownedTools) {
       }
     } else if (tool.status !== "blocked_not_installed_proven") {
       fail(`${tool.id} must remain blocked/not installed-proven before Milestone 2 QA.`);
+    }
+  }
+  if (["paddleocr", "paddlepaddle"].includes(tool.id)) {
+    if (milestone3OcrMlCpuQaAccepted) {
+      if (tool.status !== "accepted_proven_bounded_milestone3_ocr_ml_cpu") {
+        fail(`${tool.id} must be accepted only as bounded Milestone 3 OCR/ML CPU proof after Milestone 3 QA.`);
+      }
+    } else if (tool.status !== "blocked_not_installed_proven") {
+      fail(`${tool.id} must remain blocked/not installed-proven before Milestone 3 OCR/ML CPU QA.`);
     }
   }
   if (tool.id === "imagemagick_graphicsmagick" && tool.graphicsMagickAcceptedProven !== false) {

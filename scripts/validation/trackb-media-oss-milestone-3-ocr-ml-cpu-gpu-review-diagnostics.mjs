@@ -235,10 +235,23 @@ if (decisionReport.gpuExecutionApprovalNeededBeforeGpuUse !== true || readiness.
 }
 if (decisionReport.fortyPlusEndToEndClaimAllowed !== false) fail('forty_plus_claim_allowed')
 
-if (status.counts?.ownedTools !== 16 || status.counts?.acceptedProvenBounded !== 12 || status.counts?.blockedNotInstalledProven !== 4 || status.counts?.endToEndProductReady !== 0) {
+const milestone3OcrMlCpuQaAccepted =
+  status.milestone3OcrMlCpuQaReview?.decision ===
+  'trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval'
+const expectedCurrentAcceptedCount = milestone3OcrMlCpuQaAccepted ? 14 : 12
+const expectedCurrentBlockedCount = milestone3OcrMlCpuQaAccepted ? 2 : 4
+const expectedCurrentBlockedTools = milestone3OcrMlCpuQaAccepted
+  ? ['opencolorio', 'openimageio']
+  : ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio']
+if (
+  status.counts?.ownedTools !== 16 ||
+  status.counts?.acceptedProvenBounded !== expectedCurrentAcceptedCount ||
+  status.counts?.blockedNotInstalledProven !== expectedCurrentBlockedCount ||
+  status.counts?.endToEndProductReady !== 0
+) {
   fail('status_counts_drift')
 }
-sameSet(status.blockedNotInstalledProven, ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio'], 'status_blocked_tools')
+sameSet(status.blockedNotInstalledProven, expectedCurrentBlockedTools, 'status_blocked_tools')
 if (status.milestone3OcrMlCpuGpuReview?.decision !== decision) fail('status_milestone3_missing')
 if (steward.milestone3OcrMlCpuGpuReview?.decision !== decision) fail('steward_milestone3_missing')
 const owner = registry.owners?.find((entry) => entry.ownerId === ownerId)

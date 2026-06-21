@@ -719,7 +719,13 @@
     "trackb-media-oss:milestone-3-system-font-package-approval:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-system-font-package-approval-diagnostics.mjs",
     "trackb-media-oss:milestone-3-system-font-package-execution:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-diagnostics.mjs",
     "trackb-media-oss:milestone-3-system-font-package-execution-blocker-followup:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-blocker-followup-diagnostics.mjs",
-    "trackb-media-oss:milestone-3-font-config-followup:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-font-config-followup-diagnostics.mjs"
+    "trackb-media-oss:milestone-3-font-config-followup:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-font-config-followup-diagnostics.mjs",
+    "trackb-media-oss:milestone-3-ocr-ml-cpu-qa-review:plan": "node server/cli/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review-plan.js",
+    "trackb-media-oss:milestone-3-ocr-ml-cpu-qa-review": "node server/cli/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review.js",
+    "trackb-media-oss:milestone-3-ocr-ml-cpu-qa-review:report": "node server/cli/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review-report.js",
+    "trackb-media-oss:milestone-3-ocr-ml-cpu-qa-review:summary": "node server/cli/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review-summary.js",
+    "trackb-media-oss:milestone-3-ocr-ml-cpu-qa-review:diagnostics": "node scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review-diagnostics.mjs",
+    "smoke:trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review": "node server/smoke/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review-smoke.js"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

@@ -166,37 +166,53 @@ sameSet(statusUpdate.stillBlockedNotInstalledProven, ['paddleocr', 'paddlepaddle
 if (statusUpdate.endToEndProductReadyTools !== 0 || decisionReport.endToEndProductReadyTools !== 0) fail('product_ready_not_zero')
 if (statusUpdate.fortyPlusEndToEndClaimAllowed !== false || decisionReport.fortyPlusEndToEndClaimAllowed !== false) fail('forty_plus_claim_allowed')
 
-sameSet(
-  status.acceptedProvenBounded?.map((tool) => tool.id),
-  [
-    'ffmpeg',
-    'ffprobe',
-    'sharp_libvips',
-    'duckdb',
-    'polars_nodejs_polars',
-    'exiftool',
-    'mediainfo',
-    'tesseract',
-    'imagemagick',
-    'opencv',
-    'pyav',
-    'pyscenedetect',
-  ],
-  'status_accepted_after_qa',
-)
-sameSet(status.blockedNotInstalledProven, ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio'], 'status_blocked_after_qa')
-if (status.counts?.acceptedProvenBounded !== 12 || steward.statusCounts?.acceptedProvenBounded !== 12) {
-  fail('owner_status_accepted_count_not_12')
+const milestone3OcrMlCpuQaAccepted =
+  status.milestone3OcrMlCpuQaReview?.decision ===
+  'trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval'
+const currentExpectedAccepted = [
+  'ffmpeg',
+  'ffprobe',
+  'sharp_libvips',
+  'duckdb',
+  'polars_nodejs_polars',
+  'exiftool',
+  'mediainfo',
+  'tesseract',
+  'imagemagick',
+  'opencv',
+  'pyav',
+  'pyscenedetect',
+  ...(milestone3OcrMlCpuQaAccepted ? ['paddlepaddle', 'paddleocr'] : []),
+]
+const currentExpectedBlocked = milestone3OcrMlCpuQaAccepted
+  ? ['opencolorio', 'openimageio']
+  : ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio']
+const currentExpectedAcceptedCount = milestone3OcrMlCpuQaAccepted ? 14 : 12
+const currentExpectedBlockedCount = milestone3OcrMlCpuQaAccepted ? 2 : 4
+sameSet(status.acceptedProvenBounded?.map((tool) => tool.id), currentExpectedAccepted, 'status_accepted_after_qa')
+sameSet(status.blockedNotInstalledProven, currentExpectedBlocked, 'status_blocked_after_qa')
+if (
+  status.counts?.acceptedProvenBounded !== currentExpectedAcceptedCount ||
+  steward.statusCounts?.acceptedProvenBounded !== currentExpectedAcceptedCount
+) {
+  fail(`owner_status_accepted_count_not_${currentExpectedAcceptedCount}`)
 }
-if (status.counts?.blockedNotInstalledProven !== 4 || steward.statusCounts?.blockedNotInstalledProven !== 4) {
-  fail('owner_status_blocked_count_not_4')
+if (
+  status.counts?.blockedNotInstalledProven !== currentExpectedBlockedCount ||
+  steward.statusCounts?.blockedNotInstalledProven !== currentExpectedBlockedCount
+) {
+  fail(`owner_status_blocked_count_not_${currentExpectedBlockedCount}`)
 }
 if (status.counts?.endToEndProductReady !== 0 || steward.statusCounts?.endToEndProductReady !== 0) {
   fail('owner_product_ready_not_zero')
 }
 const owner = ownerRegistry.owners?.find((entry) => entry.ownerId === ownerId)
 if (!owner) fail('missing_trackb_owner')
-if (owner?.acceptedProvenBoundedCount !== 12 || owner?.blockedNotInstalledProvenCount !== 4 || owner?.endToEndProductReadyToolCount !== 0) {
+if (
+  owner?.acceptedProvenBoundedCount !== currentExpectedAcceptedCount ||
+  owner?.blockedNotInstalledProvenCount !== currentExpectedBlockedCount ||
+  owner?.endToEndProductReadyToolCount !== 0
+) {
   fail('registry_owner_counts_drift')
 }
 for (const id of ['opencv', 'pyav', 'pyscenedetect']) {

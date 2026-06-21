@@ -775,6 +775,7 @@
     "reeditpro:e2e-validation-queue-5:diagnostics": "node scripts/validation/reeditpro-e2e-validation-queue-5-diagnostics.mjs",
     "reeditpro:e2e-validation-queue-6:diagnostics": "node scripts/validation/reeditpro-e2e-validation-queue-6-diagnostics.mjs",
     "reeditpro:e2e-validation-queue-7:diagnostics": "node scripts/validation/reeditpro-e2e-validation-queue-7-diagnostics.mjs",
+    "reeditpro:e2e-validation-queue-8:diagnostics": "node scripts/validation/reeditpro-e2e-validation-queue-8-diagnostics.mjs",
     "reeditpro:e2e-pr-305-hydration-blocker-resolution:diagnostics": "node scripts/validation/reeditpro-e2e-pr-305-hydration-blocker-resolution-diagnostics.mjs",
     "reeditpro:e2e-pr-305-validation-rerun-after-hydration:diagnostics": "node scripts/validation/reeditpro-e2e-pr-305-validation-rerun-after-hydration-diagnostics.mjs"
   },

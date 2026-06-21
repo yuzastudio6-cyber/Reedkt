@@ -1,0 +1,26 @@
+# @viz-js/viz Owner Approval
+
+Decision: `ai_graphics_tool_capability_study_and_ranking_matrix_owner_approved_with_warnings`
+
+- `toolId`: `viz_js`
+- `displayName`: `@viz-js/viz`
+- `packageName`: `@viz-js/viz`
+- `sourceStudyAccepted`: `true`
+- `sourceQaAccepted`: `true`
+- `sourceOwnerReviewAccepted`: `true`
+- `capabilityGroupsApproved`: `true`
+- `rankingApproved`: `true`
+- `selectionRulesApproved`: `true`
+- `eliminationRulesApproved`: `true`
+- `fallbacksApproved`: `true`
+- `cloudTargetApproved`: `true`
+- `proofStatusApproved`: `true`
+- `agentCanSelectForPlanning`: `true`
+- `agentCanExecuteToolsNow`: `false`
+- `runtimeReadyNow`: `false`
+- `internalBetaReadyNow`: `false`
+- `externalBetaReadyNow`: `false`
+- `productionReadyNow`: `false`
+- `nextMilestone`: Approved study/ranking metadata remains planning-only; any runtime use needs a separate execution approval lane.
+
+No tool execution, browser/WebGL/canvas runtime, GPU/model runtime, Tool Route execution, Worker execution, provider/model execution, Supabase/GCS transfer, signed URL, public artifact, beta, or production readiness is owner-approved for `viz_js`.

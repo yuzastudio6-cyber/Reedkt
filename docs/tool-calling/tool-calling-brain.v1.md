@@ -45,6 +45,14 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - The overlay prevents duplicating active owner work for install proof, runtime proof, Docker requirements, adapters, worker routes, Supabase/runtime tables, and capability metadata.
 - Owner lanes remain evidence metadata and must not become runtime ranking dimensions.
 
+## All-Owner Stack Coverage
+
+- Tool-calling must reconcile all Reeditpro tool-stack lanes, not only launch/core media tools.
+- Owner implementations are source evidence when merged, and open/draft owner work is candidate evidence plus duplicate-risk signal.
+- The all-owner matrix identifies first-class tools, explicit studies, installed/proven owner evidence, blocked candidates, pending registry expansion, missing adapters/command intents/fixtures/probes, and surfaces that must not be duplicated.
+- Owner labels and lanes are never runtime ranking dimensions; pending external tools must wait for first-class registry expansion before runtime selection.
+- Future expansion milestones must run refresh-gate, unmerged-owner evidence, and all-owner stack reconciliation before adding tool-calling coverage.
+
 ## Adapter Contract Layer
 
 - Adapter contracts convert selected planning tools into structured adapter plans and future worker-route bridge metadata.

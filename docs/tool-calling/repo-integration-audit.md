@@ -54,6 +54,14 @@
 - Future tool-calling milestones must mark duplicate risk when owner PRs are already implementing the same tool/capability, and should wait for merge or reconcile after merge rather than duplicating work.
 - No owner registry, second production registry, worker router, QA policy, fallback policy, adapter registry, safe command policy, fixture/probe layer, Supabase table, SQL file, or migration is created.
 
+## All-Owner Stack Reconciliation
+
+- The all-owner reconciliation layer covers Track A, Track B, AI graphics, Sound/Music/Audio, SFX/SoundSync, Web/Capture, Map/Geospatial, provider/local runtime candidates, Worker Runtime, and the tool-calling overlay.
+- It uses merged owner evidence as source metadata and open/unmerged owner PRs as candidate-only duplicate-risk evidence.
+- It identifies tools needing study cards, runtime registry expansion, adapters, safe command intents, fixture plans, controlled probes, fixture-bound probes, owner proof, or blocked-state preservation.
+- It prevents duplicate production registries, worker routers, QA policies, fallback policies, adapter execution systems, command execution systems, fixture/probe layers, owner registries, Supabase/runtime tables, migrations, and SQL execution tables.
+- Recommended next milestones are lane-scoped and must wait for owner proof before registry or execution expansion.
+
 ## Adapter Contract Integration
 
 - Adapter contracts reuse `server/tool-registry` profiles, existing capability cards, QA policy, fallback policy, and runtime contract types.

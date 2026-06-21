@@ -26,6 +26,7 @@
     "tool-calling:fixture-bound-metadata-probe": "node scripts/validation/tool-calling-fixture-bound-metadata-probe-diagnostics.mjs",
     "tool-calling:fixture-bound-export-validation": "node scripts/validation/tool-calling-fixture-bound-export-validation-diagnostics.mjs",
     "tool-calling:unmerged-owner-evidence": "node scripts/validation/tool-calling-unmerged-owner-evidence-overlay-diagnostics.mjs",
+    "tool-calling:all-owner-stack-reconciliation": "node scripts/validation/tool-calling-all-owner-stack-reconciliation-diagnostics.mjs",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",

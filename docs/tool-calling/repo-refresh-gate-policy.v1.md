@@ -14,12 +14,14 @@ Run before implementation:
 - `git diff --name-only`
 - `git diff --cached --name-only`
 - `npm run tool-calling:refresh-gate`
+- `npm run tool-calling:unmerged-owner-evidence`
+- `npm run tool-calling:all-owner-stack-reconciliation`
 
 When network and permissions make it safe, also run:
 
 - `REEDITPRO_REFRESH_GATE_ALLOW_FETCH=1 npm run tool-calling:refresh-gate`
 
-The refresh gate may run `git fetch --all --prune` only when `REEDITPRO_REFRESH_GATE_ALLOW_FETCH=1` is set. Future tool-calling milestones must also run `npm run tool-calling:unmerged-owner-evidence` so open owner PRs are considered candidate evidence and duplicate-risk signals when GitHub access is available.
+The refresh gate may run `git fetch --all --prune` only when `REEDITPRO_REFRESH_GATE_ALLOW_FETCH=1` is set. Future tool-calling milestones must also run unmerged-owner evidence and all-owner reconciliation so open owner PRs are considered candidate evidence and duplicate-risk signals, and all owner lanes are checked before new coverage is added.
 
 ## Stack And Base Checks
 
@@ -65,6 +67,8 @@ The gate must inspect changed or staged paths under:
 - `pending_external_tool_now_first_class`
 - `unmerged_owner_pr_duplicate_risk`
 - `owner_work_wait_for_merge`
+- `all_owner_lane_missing_from_reconciliation`
+- `owner_lane_candidate_missing_registry_decision`
 
 ## Stop And Continue Rules
 

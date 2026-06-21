@@ -12,12 +12,19 @@ Allowed probes are:
 
 - `ffmpeg_version_probe`: `ffmpeg` with exact args `["-version"]`
 - `ffprobe_version_probe`: `ffprobe` with exact args `["-version"]`
+- `mediainfo_version_probe`: `mediainfo` with exact args `["--Version"]`
+- `exiftool_version_probe`: `exiftool` with exact args `["-ver"]`
+- `tesseract_version_probe`: `tesseract` with exact args `["--version"]`
+- `imagemagick_magick_version_probe`: `magick` with exact args `["-version"]`
+- `imagemagick_convert_version_probe`: legacy ImageMagick `convert` with exact args `["-version"]`
 - `remotion_package_resolution_probe`: Node package metadata resolution only
 - `sharp_package_resolution_probe`: Node package metadata resolution only
 
 Binary probes use `child_process.execFile` with `shell: false`, no stdin, exact hardcoded args, short timeouts, and small output buffers. Package probes use Node module resolution for package metadata only and do not import runtime code.
 
 Missing tools are not uncontrolled failures. They return structured `unavailable` results. Nonzero exits, timeouts, unsafe output, or policy mismatch return `failed_closed`.
+
+Track B external probes remain readiness-only. They do not inspect media files, transform images, run OCR, inspect metadata files, or use fixtures. ImageMagick prefers `magick`; legacy `convert` can satisfy ImageMagick readiness with warning `imagemagick_legacy_convert_binary_used` when `magick` is unavailable. Bare `graphicsmagick` remains pending and is not probed.
 
 ## Output Sanitization
 

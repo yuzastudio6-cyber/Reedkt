@@ -43,8 +43,13 @@ export const FORBIDDEN_CONTROLLED_LOW_RISK_EXECUTION_KEYS = [
 const productionToolIds = new Set<string>(PRODUCTION_TOOL_IDS)
 const forbiddenKeySet = new Set<string>(FORBIDDEN_CONTROLLED_LOW_RISK_EXECUTION_KEYS)
 const allowedExecPolicy = new Map([
-  ['ffmpeg_version_probe', { executableName: 'ffmpeg', exactArgs: ['-version'] }],
-  ['ffprobe_version_probe', { executableName: 'ffprobe', exactArgs: ['-version'] }],
+  ['ffmpeg_version_probe', { executableName: 'ffmpeg', exactArgs: ['-version'], maxBufferBytes: 262144 }],
+  ['ffprobe_version_probe', { executableName: 'ffprobe', exactArgs: ['-version'], maxBufferBytes: 262144 }],
+  ['mediainfo_version_probe', { executableName: 'mediainfo', exactArgs: ['--Version'], maxBufferBytes: 262144 }],
+  ['exiftool_version_probe', { executableName: 'exiftool', exactArgs: ['-ver'], maxBufferBytes: 262144 }],
+  ['tesseract_version_probe', { executableName: 'tesseract', exactArgs: ['--version'], maxBufferBytes: 262144 }],
+  ['imagemagick_magick_version_probe', { executableName: 'magick', exactArgs: ['-version'], maxBufferBytes: 262144 }],
+  ['imagemagick_convert_version_probe', { executableName: 'convert', exactArgs: ['-version'], maxBufferBytes: 262144 }],
 ])
 const allowedPackagePolicy = new Map([
   ['remotion_package_resolution_probe', { packageName: 'remotion' }],
@@ -221,6 +226,10 @@ function validatePolicyInternal(
         invalidPolicyFindings.push(`${policy.probeId}.exactArgs`)
         ok = false
       }
+      if (policy.maxBufferBytes !== expected.maxBufferBytes) {
+        invalidPolicyFindings.push(`${policy.probeId}.maxBufferBytes`)
+        ok = false
+      }
     }
   } else {
     const expected = allowedPackagePolicy.get(policy.probeId)
@@ -228,6 +237,11 @@ function validatePolicyInternal(
       invalidPolicyFindings.push(`${policy.probeId}.packageName`)
       ok = false
     }
+  }
+
+  if (String(policy.toolId) === 'graphicsmagick') {
+    invalidPolicyFindings.push(`${policy.probeId}.graphicsmagickNotFirstClass`)
+    ok = false
   }
 
   if (

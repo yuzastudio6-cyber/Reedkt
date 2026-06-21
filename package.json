@@ -22,6 +22,7 @@
     "tool-calling:execution-path-decision": "node scripts/validation/tool-calling-execution-path-decision.mjs",
     "tool-calling:binary-fixture-generation": "node scripts/validation/tool-calling-binary-fixture-generation-diagnostics.mjs",
     "tool-calling:controlled-low-risk-execution": "node scripts/validation/tool-calling-controlled-low-risk-execution-diagnostics.mjs",
+    "tool-calling:trackb-external-controlled-probes": "node scripts/validation/tool-calling-trackb-external-controlled-probes-diagnostics.mjs",
     "tool-calling:fixture-bound-metadata-probe": "node scripts/validation/tool-calling-fixture-bound-metadata-probe-diagnostics.mjs",
     "tool-calling:fixture-bound-export-validation": "node scripts/validation/tool-calling-fixture-bound-export-validation-diagnostics.mjs",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",

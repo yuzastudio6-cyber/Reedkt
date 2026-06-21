@@ -100,6 +100,13 @@
 - The layer does not create a duplicate worker router, execution adapter, command policy, readiness worker, production registry, QA policy, fallback policy, Supabase runtime table, migration, SQL file, storage writer, or artifact writer.
 - Probe output is sanitized and diagnostics-only; no local paths, signed URLs, raw prompts, service-role context, provider secrets, shell commands, or arbitrary args are returned.
 
+## Track B External Controlled Probe Integration
+
+- Track B external controlled probes reuse the existing controlled low-risk execution runner, validator, first-class `ProductionToolId` values, runtime reconciliation, and refresh gate.
+- The layer executes only diagnostics-only version probes for `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`; it does not read media, inspect files, run OCR, transform images, use fixtures, or dispatch workers.
+- ImageMagick readiness prefers `magick`; legacy `convert` is ImageMagick fallback evidence only and does not promote `graphicsmagick`.
+- The layer does not create a duplicate worker router, execution adapter, command policy, readiness worker, production registry, QA policy, fallback policy, Supabase runtime table, migration, SQL file, storage writer, or artifact writer.
+
 ## Fixture-Bound Metadata Probe Integration
 
 - Fixture-bound metadata probing reuses the existing binary fixture generation provenance path and first-class `ffprobe` `ProductionToolId`.

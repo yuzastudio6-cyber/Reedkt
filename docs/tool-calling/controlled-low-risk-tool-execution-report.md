@@ -17,10 +17,17 @@ The refresh gate was run before implementation. It reported `continueAllowed: tr
 
 - `ffmpeg_version_probe`: allowlisted `execFile("ffmpeg", ["-version"])`.
 - `ffprobe_version_probe`: allowlisted `execFile("ffprobe", ["-version"])`.
+- `mediainfo_version_probe`: allowlisted `execFile("mediainfo", ["--Version"])`.
+- `exiftool_version_probe`: allowlisted `execFile("exiftool", ["-ver"])`.
+- `tesseract_version_probe`: allowlisted `execFile("tesseract", ["--version"])`.
+- `imagemagick_magick_version_probe`: allowlisted `execFile("magick", ["-version"])`.
+- `imagemagick_convert_version_probe`: allowlisted legacy ImageMagick `execFile("convert", ["-version"])`.
 - `remotion_package_resolution_probe`: Node package metadata resolution only.
 - `sharp_package_resolution_probe`: Node package metadata resolution only.
 
-Missing executables or packages are reported as structured `unavailable` results. Nonzero exits, timeouts, unsafe output, or policy mismatch fail closed.
+Missing executables or packages are reported as structured `unavailable` results. Nonzero exits, timeouts, unsafe output, or policy mismatch fail closed. Track B probes are readiness-only and do not use files, fixtures, OCR inputs, metadata inputs, or image transforms.
+
+ImageMagick readiness prefers `magick -version`. If `magick` is unavailable and legacy `convert -version` passes, readiness passes with warning `imagemagick_legacy_convert_binary_used`. Bare `graphicsmagick` remains pending and non-selectable.
 
 ## Sanitization Policy
 

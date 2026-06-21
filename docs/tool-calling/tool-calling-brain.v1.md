@@ -90,6 +90,14 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Missing tools return structured `unavailable` results, while nonzero exits, timeouts, unsafe output, and policy mismatch fail closed.
 - This layer still does not process media or fixtures, execute safe command plans, dispatch workers, call providers, mutate Supabase, run SQL, create signed URLs, unlock beta or production, or mutate `package-lock.json`.
 
+## Track B External Controlled Probes
+
+- Track B external controlled probes extend the controlled low-risk execution layer for `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.
+- The probes are version/readiness checks only: `mediainfo --Version`, `exiftool -ver`, `tesseract --version`, `magick -version`, and legacy ImageMagick `convert -version`.
+- They use `execFile` with no shell, no stdin, exact hardcoded args, max buffer `262144`, sanitized summaries, and fail-closed behavior.
+- They do not inspect files, run OCR, transform images, use fixtures, process media, dispatch workers, call providers, mutate Supabase, run SQL, create signed URLs, unlock beta/production, or mutate `package-lock.json`.
+- Bare `graphicsmagick` remains pending and is not probed.
+
 ## Fixture-Bound Metadata Probe Layer
 
 - Fixture-bound metadata probing is the first tool-calling surface that binds controlled execution to a generated synthetic fixture artifact.

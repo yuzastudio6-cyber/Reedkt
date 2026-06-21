@@ -19,7 +19,7 @@ When network and permissions make it safe, also run:
 
 - `REEDITPRO_REFRESH_GATE_ALLOW_FETCH=1 npm run tool-calling:refresh-gate`
 
-The refresh gate may run `git fetch --all --prune` only when `REEDITPRO_REFRESH_GATE_ALLOW_FETCH=1` is set.
+The refresh gate may run `git fetch --all --prune` only when `REEDITPRO_REFRESH_GATE_ALLOW_FETCH=1` is set. Future tool-calling milestones must also run `npm run tool-calling:unmerged-owner-evidence` so open owner PRs are considered candidate evidence and duplicate-risk signals when GitHub access is available.
 
 ## Stack And Base Checks
 
@@ -63,6 +63,8 @@ The gate must inspect changed or staged paths under:
 - `stale_base_branch`
 - `package_lock_mutation_risk`
 - `pending_external_tool_now_first_class`
+- `unmerged_owner_pr_duplicate_risk`
+- `owner_work_wait_for_merge`
 
 ## Stop And Continue Rules
 
@@ -76,6 +78,7 @@ Stop and report when:
 - another PR added a Supabase table or migration for the same runtime concept
 - `package-lock.json` is staged or unintentionally changed
 - the base branch changed in a way that invalidates capability-card or ranking assumptions
+- an open owner PR is already implementing install proof, runtime proof, Docker requirements, worker routing, Supabase/runtime tables, or capability metadata for the same tool/capability
 
 ## Source Priority
 

@@ -150,6 +150,25 @@ function isGuardrailLine(line) {
   )
 }
 
+function isAllowedFontConfigDockerfileDiff(diff) {
+  if (!diff) return true
+  const localFontEnv = 'PADDLE_PDX_LOCAL_FONT_FILE_PATH=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc'
+  if (!diff.includes(localFontEnv)) return false
+
+  const changedLines = diff
+    .split('\n')
+    .filter((line) => /^[+-]/.test(line) && !/^(\+\+\+|---)/.test(line))
+    .map((line) => line.slice(1).trim())
+
+  return changedLines.every((line) =>
+    [
+      'PROVIDER_EXECUTION_ENABLED=false',
+      'PROVIDER_EXECUTION_ENABLED=false \\',
+      localFontEnv,
+    ].includes(line),
+  )
+}
+
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 
 const packageJson = readJson('package.json')
@@ -267,6 +286,13 @@ for (const relativePath of forbiddenPaths) {
 for (const protectedFile of protectedNoDiffFiles) {
   const diff = git(['diff', '--', protectedFile])
   const stagedDiff = git(['diff', '--cached', '--', protectedFile])
+  if (
+    protectedFile === targetDockerfile &&
+    isAllowedFontConfigDockerfileDiff(diff) &&
+    isAllowedFontConfigDockerfileDiff(stagedDiff)
+  ) {
+    continue
+  }
   if (diff || stagedDiff) fail(`protected_file_mutated:${protectedFile}`)
 }
 

@@ -331,3 +331,21 @@ TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Config: source-supported `PADDLE_PDX_LOCAL_FONT_FILE_PATH=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc`.
+- Docker build: passed for local image `reeditpro-ocr-runtime:trackb-milestone3-font-config-edb183eda9dce464f8aae0ce4d32ac8e63118433`; image removed before commit.
+- Font discovery: `fonts-noto-cjk` present, `fonts-noto-cjk-extra` absent, exact PingFang absent and unused.
+- PaddlePaddle: import/version and model-free CPU tensor/device proof passed.
+- PaddleOCR: import/version and API-shape proof passed under `--network none` without OCR object instantiation, OCR inference, model download, or font download.
+- Track B counts remain pending QA: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- New CPU evidence pending QA: PaddlePaddle and PaddleOCR.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No OCR inference, model/font asset operation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP_STATUS:end -->

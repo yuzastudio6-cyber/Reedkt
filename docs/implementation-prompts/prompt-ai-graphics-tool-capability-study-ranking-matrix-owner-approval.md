@@ -12,9 +12,9 @@ Implemented a docs/diagnostics-only owner-approval packet for PR #623's product/
 
 ## PR Follow-Up
 
-- Draft PR: pending
-- PR link: pending
-- Check status: pending
+- Draft PR: PR #632 open/draft/MERGEABLE
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/632
+- Check status: empty combined status on creation head `ea8f426af5dd6a069008fc77aa24612cba55874a`
 
 ## Validation
 

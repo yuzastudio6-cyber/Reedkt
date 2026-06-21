@@ -1,0 +1,17 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "configAttempted": true,
+  "configType": "ocr_runtime_dockerfile_env",
+  "envVar": "PADDLE_PDX_LOCAL_FONT_FILE_PATH",
+  "value": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+  "dockerfilePatched": true,
+  "runtimeOnlyProofBeforePatchPassed": true,
+  "sourceSupported": true,
+  "packageSourceModified": false,
+  "symlinkOrCopyUsed": false,
+  "exactPingFangUsed": false,
+  "noAssetOperation": true
+}

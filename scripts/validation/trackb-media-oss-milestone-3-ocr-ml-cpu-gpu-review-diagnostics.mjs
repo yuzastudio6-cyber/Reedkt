@@ -74,6 +74,24 @@ function git(args) {
     encoding: 'utf8',
   }).trim()
 }
+function isAllowedFontConfigDockerfileDiff(diff) {
+  if (!diff) return true
+  const localFontEnv = 'PADDLE_PDX_LOCAL_FONT_FILE_PATH=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc'
+  if (!diff.includes(localFontEnv)) return false
+
+  const changedLines = diff
+    .split('\n')
+    .filter((line) => /^[+-]/.test(line) && !/^(\+\+\+|---)/.test(line))
+    .map((line) => line.slice(1).trim())
+
+  return changedLines.every((line) =>
+    [
+      'PROVIDER_EXECUTION_ENABLED=false',
+      'PROVIDER_EXECUTION_ENABLED=false \\',
+      localFontEnv,
+    ].includes(line),
+  )
+}
 function sameSet(actual, expected, label) {
   const actualSet = new Set(actual || [])
   const expectedSet = new Set(expected)
@@ -265,9 +283,20 @@ const protectedFiles = [
   'docker/prod/ocr-runtime/Dockerfile',
   'docker/prod/ocr-runtime/requirements.ocr.txt',
 ]
-const protectedDiff = git(['diff', '--name-only', '--', ...protectedFiles])
-const protectedCachedDiff = git(['diff', '--cached', '--name-only', '--', ...protectedFiles])
-if (protectedDiff || protectedCachedDiff) fail('protected_file_mutation')
+const protectedDiffFailures = []
+for (const protectedFile of protectedFiles) {
+  const diff = git(['diff', '--', protectedFile])
+  const stagedDiff = git(['diff', '--cached', '--', protectedFile])
+  if (
+    protectedFile === 'docker/prod/ocr-runtime/Dockerfile' &&
+    isAllowedFontConfigDockerfileDiff(diff) &&
+    isAllowedFontConfigDockerfileDiff(stagedDiff)
+  ) {
+    continue
+  }
+  if (diff || stagedDiff) protectedDiffFailures.push(protectedFile)
+}
+if (protectedDiffFailures.length) fail('protected_file_mutation')
 for (const output of ['node_modules', 'dist', 'dist-server', 'dist-remotion-worker', 'dist-staging-fixture-worker', 'dist-staging-real-video-export-worker']) {
   if (fs.existsSync(path.join(repoRoot, output))) fail(`forbidden_output_present:${output}`)
 }

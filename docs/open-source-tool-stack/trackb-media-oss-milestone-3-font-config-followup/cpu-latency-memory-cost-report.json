@@ -1,0 +1,16 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "dockerBuildElapsedSecondsApproximate": 180,
+  "sourceConfigInspectionElapsedSecondsApproximate": 1,
+  "fontDiscoveryElapsedSeconds": 0,
+  "paddlePaddleElapsedSeconds": 1,
+  "paddleOcrElapsedSeconds": 2,
+  "imageSizeBytes": 518960666,
+  "cpuOnly": true,
+  "gpuUsed": false,
+  "fontsNotoCjkImageSizeWarning": "fonts-noto-cjk keeps the larger system-font footprint already approved by PR #620/#625/#629",
+  "fontsNotoCjkExtraNecessary": false
+}

@@ -1,0 +1,25 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "inspectedInContainer": true,
+  "networkMode": "none",
+  "filesInspected": [
+    "/usr/local/lib/python3.12/site-packages/paddlex/utils/fonts/__init__.py",
+    "/usr/local/lib/python3.12/site-packages/paddlex/utils/flags.py"
+  ],
+  "exactRequestingPath": "/usr/local/lib/python3.12/site-packages/paddlex/utils/fonts/__init__.py",
+  "hardCodedAssetUrlPattern": "https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/{file_name}",
+  "pingFangAssetName": "PingFang-SC-Regular.ttf",
+  "simfangAssetName": "simfang.ttf",
+  "safeConfigFound": true,
+  "safeConfigEnvVar": "PADDLE_PDX_LOCAL_FONT_FILE_PATH",
+  "selectedLocalFont": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+  "sourceExcerptSummary": [
+    "LOCAL_FONT_FILE_PATH is imported from paddlex.utils.flags.",
+    "If LOCAL_FONT_FILE_PATH points to a file, PaddleX assigns both PINGFANG_FONT_FILE_PATH and SIMFANG_FONT_FILE_PATH to that local path.",
+    "Only when the local font file path is absent does PaddleX call get_font_file_path for PingFang-SC-Regular.ttf and simfang.ttf."
+  ],
+  "sourceExcerptCaptured": true
+}

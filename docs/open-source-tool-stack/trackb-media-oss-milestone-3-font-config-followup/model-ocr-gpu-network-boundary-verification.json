@@ -1,0 +1,19 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "ocrInferenceRun": false,
+  "modelDownloadRun": false,
+  "fontDownloadRun": false,
+  "assetCopyRun": false,
+  "assetUploadRun": false,
+  "gpuExecutionRun": false,
+  "networkEnabledForProofs": false,
+  "exactPingFangUsed": false,
+  "fontsNotoCjkExtraUsed": false,
+  "realUserMediaUsed": false,
+  "realUserDocumentsUsed": false,
+  "supabaseMutationRun": false,
+  "gcsOperationRun": false
+}

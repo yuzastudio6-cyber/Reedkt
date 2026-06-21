@@ -1,0 +1,18 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "command": "docker build -f docker/prod/ocr-runtime/Dockerfile -t reeditpro-ocr-runtime:trackb-milestone3-font-config-edb183eda9dce464f8aae0ce4d32ac8e63118433 .",
+  "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-font-config-edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "exitCode": 0,
+  "elapsedSecondsApproximate": 180,
+  "imageCreated": true,
+  "imagePushed": false,
+  "imageInspect": "sha256:4dfa7badcfe97dfd7e67878dca3023564b83fba0c5e31e1fc0c4e38d32ca8696 518960666",
+  "notes": [
+    "Docker metadata for python:3.12-slim loaded successfully.",
+    "The Dockerfile fallback no-deps path completed after the pandas build-hook resolver issue, matching prior PR #629 behavior.",
+    "Pip reported the known paddlex 3.0.0 / pandas 3.0.3 resolver warning."
+  ]
+}

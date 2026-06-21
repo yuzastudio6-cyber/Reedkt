@@ -969,5 +969,32 @@
       "sqlExecuted": "none",
       "migrationDeployed": "no"
     }
+  },
+  "milestone3FontConfigFollowup": {
+    "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+    "target": "docker/prod/ocr-runtime/Dockerfile",
+    "envVar": "PADDLE_PDX_LOCAL_FONT_FILE_PATH",
+    "selectedLocalFont": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "dockerBuildPassed": true,
+    "fontsNotoCjkPresent": true,
+    "fontsNotoCjkExtraPresent": false,
+    "exactPingFangUsed": false,
+    "paddlePaddleImportTensorProofPassed": true,
+    "paddleOcrImportApiShapeProofPassed": true,
+    "ocrInferenceRun": false,
+    "modelAssetOperationsRun": false,
+    "fontAssetOperationsRun": false,
+    "gpuExecutionRun": false,
+    "canonicalCountsPendingQa": {
+      "ownedTools": 16,
+      "acceptedProvenBounded": 12,
+      "blockedNotInstalledProven": 4,
+      "endToEndProductReady": 0
+    },
+    "newCpuEvidencePendingQa": [
+      "paddlepaddle",
+      "paddleocr"
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW"
   }
 }

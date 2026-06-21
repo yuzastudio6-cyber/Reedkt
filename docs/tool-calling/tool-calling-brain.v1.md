@@ -37,6 +37,14 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Pending external tools must be rechecked before each milestone because they may become first-class `ProductionToolId` entries later.
 - Future milestones must run `npm run tool-calling:refresh-gate` before implementation.
 
+## Unmerged Owner Evidence Overlay
+
+- Future tool-calling milestones must check unmerged owner evidence after the refresh gate.
+- Open and draft owner PRs are candidate evidence and duplicate-risk signals, not final source of truth.
+- Merged owner PRs become source evidence only when included in the current base or explicitly referenced by branch evidence.
+- The overlay prevents duplicating active owner work for install proof, runtime proof, Docker requirements, adapters, worker routes, Supabase/runtime tables, and capability metadata.
+- Owner lanes remain evidence metadata and must not become runtime ranking dimensions.
+
 ## Adapter Contract Layer
 
 - Adapter contracts convert selected planning tools into structured adapter plans and future worker-route bridge metadata.

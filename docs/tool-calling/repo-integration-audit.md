@@ -47,6 +47,13 @@
 - The gate checks for stale stack state, duplicate study cards, duplicate aliases, duplicate local registry/router/QA/fallback systems, package-lock staging risk, and pending external tools that became first-class runtime IDs.
 - Future work must reuse existing registry, router, QA, fallback, runtime contract, and Supabase table systems instead of creating parallel implementations.
 
+## Unmerged Owner Evidence Overlay Integration
+
+- The unmerged owner evidence overlay reuses GitHub PR metadata when available and local refresh-gate evidence when GitHub is unavailable.
+- Open and draft PRs are candidate evidence only; they do not replace `server/tool-registry`, worker routing, QA policy, fallback policy, adapter planning, safe command policy, fixture/probe layers, or Supabase/runtime table design.
+- Future tool-calling milestones must mark duplicate risk when owner PRs are already implementing the same tool/capability, and should wait for merge or reconcile after merge rather than duplicating work.
+- No owner registry, second production registry, worker router, QA policy, fallback policy, adapter registry, safe command policy, fixture/probe layer, Supabase table, SQL file, or migration is created.
+
 ## Adapter Contract Integration
 
 - Adapter contracts reuse `server/tool-registry` profiles, existing capability cards, QA policy, fallback policy, and runtime contract types.

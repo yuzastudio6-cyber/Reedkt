@@ -50,10 +50,18 @@ Product-ready end-to-end local OSS tools: `0`
 | --- | --- | --- | --- | --- | --- |
 | `hyperframe_render_handoff` | `handoff_only` | `handoff_only_no_install_source_change` | `not_applicable` | `not_run` | `handoff_only_no_install_target_unless_source_evidence_changes` |
 | `gstreamer_render_pipeline_support` | `install_source_declared_by_601` | `installed_source_declared_by_601` | `blocked_pending_native_container_build_confirmation` | `not_run` | `blocked_pending_build_metadata_proof` |
-| `bento4_mp4box_packaging_validation` | `identity_review_recorded_install_deferred` | `not_installed` | `not_run` | `not_run` | `blocked_pending_bento4_mp4box_package_identity_provenance_review` |
+| `bento4_mp4box_packaging_validation` | `identity_resolved_by_624` | `not_installed` | `not_run` | `not_run` | `resolved_mp4box_provider_gpac_ready_for_future_install_proof` |
 | `mkvtoolnix_container_validation` | `install_source_declared_by_601` | `installed_source_declared_by_601` | `blocked_pending_native_container_build_confirmation` | `not_run` | `blocked_pending_build_metadata_proof` |
-| `vapoursynth_frame_pipeline` | `native_policy_review_recorded_install_deferred` | `not_installed` | `not_run` | `not_run` | `blocked_pending_vapoursynth_native_dependency_plugin_policy` |
-| `revideo_render_preview_alternative` | `package_identity_review_recorded_install_deferred` | `not_installed` | `not_run` | `not_run` | `blocked_pending_revideo_package_identity_review` |
+| `vapoursynth_frame_pipeline` | `native_policy_resolved_by_624` | `not_installed` | `not_run` | `not_run` | `resolved_vapoursynth_native_policy_ready_for_future_install_proof` |
+| `revideo_render_preview_alternative` | `package_identity_resolved_by_624` | `not_installed` | `not_run` | `not_run` | `resolved_revideo_package_identity_ready_for_future_install_proof` |
+
+## #624 Identity Integration
+
+- #624 merge `afc9983cecaef0eeeb536409c16c3e0ad2eda7c6` is now the source-of-truth for package identity and policy decisions.
+- GPAC is the future MP4Box provider for Atlas Track A package identity; Bento4 remains separate and is not selected for the MP4Box command path in Batch-2.
+- VapourSynth core policy is resolved for future install proof; plugins remain separately reviewed.
+- Revideo is evaluation-only/non-core for future install proof.
+- Hyperframe remains handoff-only with no external install target.
 
 ## Supabase Classification
 

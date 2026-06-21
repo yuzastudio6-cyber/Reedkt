@@ -8,6 +8,7 @@ Searched ownership/source context:
 - #547 Atlas Track A inventory source-of-truth.
 - #595 native/container Batch-1 source inventory.
 - #601 GStreamer/MKVToolNix install-source proof.
+- #624 package identity Batch-1 source-of-truth for GPAC/MP4Box, core VapourSynth, Revideo evaluation identity, and Hyperframe handoff-only status.
 - #577 draft/open/blocked and excluded as source-of-truth.
 
 Tool ownership boundaries:

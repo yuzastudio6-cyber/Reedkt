@@ -54,7 +54,7 @@ Required confirmation gate was absent/not `true`: `REEDITPRO_CONFIRM_TRACKA_NATI
 
 No Docker build, Docker image inspection, package metadata query, command path check, GStreamer pipeline, MKVToolNix media command, FFmpeg/FFprobe execution, media processing, Docker push, Cloud Run deployment, Supabase mutation, SQL execution, signed/public artifact creation, or beta/production/final unlock occurred in Batch-2R.
 
-Next recommended milestone: `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` after confirmed build metadata proof, with identity resolution tracks for Bento4/MP4Box, VapourSynth, Revideo, and FILM running separately.
+Next recommended milestone: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R confirmed Docker build metadata proof`, then `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` if build metadata passes. Resolved identity tools move to `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`.
 
 ## Source Chain
 
@@ -68,9 +68,17 @@ Next recommended milestone: `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-
 - #575 `TRACKA-REMOTION-RUNTIME-PROOF-1`
 - #595 `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-1`
 - #601 `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-2`, merge `f19c173a6a3d9a4cf381fc23826bd14a6385bc1f`
+- #624 `TRACKA-NATIVE-CONTAINER-PACKAGE-IDENTITY-BATCH-1`, merge `afc9983cecaef0eeeb536409c16c3e0ad2eda7c6`
 - #577 is draft/open/blocked/conflicting and excluded as source-of-truth.
 
 PR #577 live readback: `OPEN`, draft, `CONFLICTING` / `DIRTY`; it remains excluded from this Batch-2 source chain.
+
+## #624 Identity Integration
+
+- `bento4_mp4box_packaging_validation`: `resolved_mp4box_provider_gpac_ready_for_future_install_proof`; GPAC is the future MP4Box provider and Bento4 remains separate.
+- `vapoursynth_frame_pipeline`: `resolved_vapoursynth_native_policy_ready_for_future_install_proof`; future proof may cover core VapourSynth only and plugins remain separately reviewed.
+- `revideo_render_preview_alternative`: `resolved_revideo_package_identity_ready_for_future_install_proof`; Revideo remains evaluation-only/non-core and future install proof must be owner-approved.
+- `hyperframe_render_handoff`: `handoff_only_no_install_source_change`; no external install target is selected.
 
 ## Confirmation Gate
 

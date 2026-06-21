@@ -2,7 +2,7 @@
 
 Source audit status: `completed_source_audit_build_confirmation_absent`
 
-Required source merge: #601 at `f19c173a6a3d9a4cf381fc23826bd14a6385bc1f`.
+Required source merges: #601 at `f19c173a6a3d9a4cf381fc23826bd14a6385bc1f` and #624 at `afc9983cecaef0eeeb536409c16c3e0ad2eda7c6`.
 
 #601 source-of-truth records:
 
@@ -19,6 +19,14 @@ Render-worker Dockerfile package declarations from #601:
 - `mkvtoolnix`
 
 No Build-Proof-3 Dockerfile changes were made. `docker/prod/render-worker/Dockerfile` remains the #601 install-source source-of-truth.
+
+#624 source-of-truth records:
+
+- GPAC is the future MP4Box provider.
+- Bento4 remains separate and is not selected for the MP4Box command path in this batch.
+- VapourSynth core policy is resolved for future install proof; plugins remain separately reviewed.
+- Revideo is evaluation-only/non-core for future install proof.
+- Hyperframe remains handoff-only.
 
 ## Exclusions
 

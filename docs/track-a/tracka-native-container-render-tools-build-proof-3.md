@@ -6,7 +6,7 @@ Canonical repair phase: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2`
 
 Build-Proof-3 status: old prompt ancestry and future confirmation-gated build-proof support for Batch-2.
 
-Base: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration` at `f19c173a6a3d9a4cf381fc23826bd14a6385bc1f`.
+Base after post-#624 repair: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration` at `afc9983cecaef0eeeb536409c16c3e0ad2eda7c6`.
 
 Branch: `codex/rp-tracka-native-container-render-tools-build-proof-3`
 
@@ -36,7 +36,7 @@ Package-lock status: `unchanged`
 
 Dependency validation: `passed_after_constrained_npm_ci_retry`
 
-Next recommended milestone: `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` after explicit build metadata proof, with `TRACKA-BENTO4-MP4BOX-PACKAGE-IDENTITY-RESOLUTION-1`, `TRACKA-VAPOURSYNTH-NATIVE-POLICY-RESOLUTION-1`, and `TRACKA-REVIDEO-PACKAGE-IDENTITY-RESOLUTION-1` remaining as identity/policy tracks.
+Next recommended milestone: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R confirmed Docker build metadata proof`, then `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` after explicit build metadata proof. Resolved identity tools move to `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`.
 
 ## Source Chain
 
@@ -50,6 +50,7 @@ Next recommended milestone: `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-
 - #575 `TRACKA-REMOTION-RUNTIME-PROOF-1`
 - #595 `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-1`
 - #601 `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-2`, merge `f19c173a6a3d9a4cf381fc23826bd14a6385bc1f`
+- #624 `TRACKA-NATIVE-CONTAINER-PACKAGE-IDENTITY-BATCH-1`, merge `afc9983cecaef0eeeb536409c16c3e0ad2eda7c6`
 - #577 is draft/open/blocked and excluded as source-of-truth.
 
 PR #577 live readback: `OPEN`, draft, `CONFLICTING` / `DIRTY`; it remains excluded from this Build-Proof-3 source chain.
@@ -61,6 +62,13 @@ Required future gate:
 `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
 
 Because the gate is absent in this run, no local Docker build, image inspection, package metadata query, command path check, media processing, or runtime tool execution was run.
+
+## #624 Identity Integration
+
+- `bento4_mp4box_packaging_validation`: `resolved_mp4box_provider_gpac_ready_for_future_install_proof`
+- `vapoursynth_frame_pipeline`: `resolved_vapoursynth_native_policy_ready_for_future_install_proof`
+- `revideo_render_preview_alternative`: `resolved_revideo_package_identity_ready_for_future_install_proof`, evaluation-only/non-core
+- `hyperframe_render_handoff`: `handoff_only_no_install_source_change`
 
 ## Supabase Status
 

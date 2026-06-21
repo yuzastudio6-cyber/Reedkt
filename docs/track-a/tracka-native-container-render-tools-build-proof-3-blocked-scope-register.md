@@ -33,9 +33,9 @@ Blocked scope in this packet:
 - final render/export
 - package-lock mutation
 
-Still blocked by package identity or policy:
+Resolved identity/policy, still blocked from install or runtime execution in this packet:
 
-- `bento4_mp4box_packaging_validation`: `blocked_pending_bento4_mp4box_package_identity_provenance_review`
-- `vapoursynth_frame_pipeline`: `blocked_pending_vapoursynth_native_dependency_plugin_policy`
-- `revideo_render_preview_alternative`: `blocked_pending_revideo_package_identity_review`
+- `bento4_mp4box_packaging_validation`: `resolved_mp4box_provider_gpac_ready_for_future_install_proof`
+- `vapoursynth_frame_pipeline`: `resolved_vapoursynth_native_policy_ready_for_future_install_proof`
+- `revideo_render_preview_alternative`: `resolved_revideo_package_identity_ready_for_future_install_proof`, evaluation-only/non-core
 - `hyperframe_render_handoff`: `handoff_only_no_build_change`

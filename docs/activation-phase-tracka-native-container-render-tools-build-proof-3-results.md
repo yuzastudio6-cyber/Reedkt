@@ -33,9 +33,14 @@ Product-ready end-to-end local OSS tools: `0`
 | `gstreamer_render_pipeline_support` | `installed_source_declared_by_601` | `blocked_pending_native_container_build_confirmation` | `not_run_confirmation_absent` | `not_run` | `blocked_pending_build_metadata_proof` |
 | `mkvtoolnix_container_validation` | `installed_source_declared_by_601` | `blocked_pending_native_container_build_confirmation` | `not_run_confirmation_absent` | `not_run` | `blocked_pending_build_metadata_proof` |
 | `hyperframe_render_handoff` | `handoff_only_no_build_change` | `not_applicable` | `not_applicable` | `not_run` | `handoff_only_no_build_change` |
-| `bento4_mp4box_packaging_validation` | `blocked_pending_bento4_mp4box_package_identity_provenance_review` | `not_run` | `not_run` | `not_run` | `blocked_pending_bento4_mp4box_package_identity_provenance_review` |
-| `vapoursynth_frame_pipeline` | `blocked_pending_vapoursynth_native_dependency_plugin_policy` | `not_run` | `not_run` | `not_run` | `blocked_pending_vapoursynth_native_dependency_plugin_policy` |
-| `revideo_render_preview_alternative` | `blocked_pending_revideo_package_identity_review` | `not_run` | `not_run` | `not_run` | `blocked_pending_revideo_package_identity_review` |
+| `bento4_mp4box_packaging_validation` | `resolved_mp4box_provider_gpac_ready_for_future_install_proof` | `not_run` | `not_run` | `not_run` | `ready_for_future_install_proof_3` |
+| `vapoursynth_frame_pipeline` | `resolved_vapoursynth_native_policy_ready_for_future_install_proof` | `not_run` | `not_run` | `not_run` | `ready_for_future_install_proof_3` |
+| `revideo_render_preview_alternative` | `resolved_revideo_package_identity_ready_for_future_install_proof` | `not_run` | `not_run` | `not_run` | `ready_for_future_install_proof_3_evaluation_only_non_core` |
+
+## #624 Identity Integration
+
+- #624 merge `afc9983cecaef0eeeb536409c16c3e0ad2eda7c6` resolves GPAC/MP4Box, core VapourSynth, Revideo evaluation identity, and Hyperframe handoff-only status for future planning.
+- No install-source changes, Docker build, metadata verification, media processing, or tool execution occurred in this repair.
 
 ## Supabase Classification
 

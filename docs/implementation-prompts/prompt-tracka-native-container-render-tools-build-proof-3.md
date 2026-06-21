@@ -12,6 +12,7 @@ Source-of-truth:
 
 - #595 native/container Batch-1 packet.
 - #601 merge `f19c173a6a3d9a4cf381fc23826bd14a6385bc1f`.
+- #624 merge `afc9983cecaef0eeeb536409c16c3e0ad2eda7c6` for GPAC/MP4Box, core VapourSynth, Revideo evaluation identity, and Hyperframe handoff-only status.
 - `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_pending_native_container_build_confirmation`
 - `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_pending_native_container_build_confirmation_with_identity_reviews_recorded`
 - #577 is draft/open/blocked and excluded as source-of-truth.

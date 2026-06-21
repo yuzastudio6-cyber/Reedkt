@@ -1,11 +1,11 @@
 # TRACKA-REVIDEO-PACKAGE-IDENTITY-RESOLUTION-1
 
-Goal: resolve Revideo package identity, package name, ownership boundary, and whether Revideo remains an evaluation-only render preview alternate.
+Goal: preserve #624's resolved Revideo package identity and hand off any future evaluation-only install-source proof to the explicit install-proof packet.
 
 Source-of-truth: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_pending_native_container_build_confirmation_with_identity_reviews_recorded`
 
-Current readiness: `blocked_pending_revideo_package_identity_review`
+Current readiness: `resolved_revideo_package_identity_ready_for_future_install_proof`
 
-Batch-2 records identity review status only. It does not install Revideo, add npm packages, run preview tooling, or claim product readiness.
+#624 source-of-truth: Revideo identity is resolved for future install-proof planning, but remains evaluation-only/non-core and not launch-ready.
 
-Do not install packages, run render previews, execute browser/runtime tooling, process media, mutate Supabase, run SQL, create signed/public artifacts, or unlock beta/production/final delivery unless a future approved install-proof plan explicitly permits it.
+Next install-source work belongs in `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3` and must be owner-approved. Do not install packages, run render previews, execute browser/runtime tooling, process media, mutate Supabase, run SQL, create signed/public artifacts, or unlock beta/production/final delivery unless a future approved install-proof plan explicitly permits it.

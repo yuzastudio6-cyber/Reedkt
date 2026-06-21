@@ -1,0 +1,22 @@
+{
+  "decision": "ai_graphics_tool_capability_study_and_ranking_matrix_owner_approved_with_warnings",
+  "sourceStudyAccepted": true,
+  "sourceQaAccepted": true,
+  "sourceOwnerReviewAccepted": true,
+  "all21AtlasToolsOwnerApproved": true,
+  "capabilityGroupsOwnerApproved": true,
+  "rankingMatrixOwnerApproved": true,
+  "selectionRulesOwnerApproved": true,
+  "eliminationRulesOwnerApproved": true,
+  "fallbackMapOwnerApproved": true,
+  "cloudTargetsOwnerApproved": true,
+  "proofStatusOwnerApproved": true,
+  "agentRoutingExamplesOwnerApproved": true,
+  "agentCanSelectForPlanning": true,
+  "agentCanExecuteToolsNow": false,
+  "runtimeReadyNow": false,
+  "internalBetaReadyNow": false,
+  "externalBetaReadyNow": false,
+  "productionReadyNow": false,
+  "nextPrompt": "AI_GRAPHICS_TOOL_CAPABILITY_STUDY_AND_RANKING_MATRIX_OWNER_APPROVAL_QA_REVIEW"
+}

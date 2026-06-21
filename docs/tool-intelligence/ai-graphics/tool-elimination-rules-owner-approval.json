@@ -1,0 +1,15 @@
+{
+  "decision": "ai_graphics_tool_capability_study_and_ranking_matrix_owner_approved_with_warnings",
+  "eliminationRulesOwnerApproved": true,
+  "blockers": [
+    "capability mismatch",
+    "proof status is below required proof",
+    "browser/WebGL/canvas not approved",
+    "GPU/model weights not approved",
+    "public artifact/signed URL not approved",
+    "Tool Route/Worker execution not approved",
+    "simpler lower-cost tool available",
+    "deferred/backlog"
+  ],
+  "agentCanExecuteToolsNow": false
+}

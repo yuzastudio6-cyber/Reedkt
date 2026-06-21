@@ -1,0 +1,14 @@
+# Canonical Agent Routing Elimination Policy
+
+- Eliminate if capability mismatch.
+- Eliminate if proof status is below the proof required by the requested operation.
+- Eliminate if browser/WebGL/canvas runtime is required but not approved.
+- Eliminate if GPU runtime or model weights are required but not approved.
+- Eliminate if public artifact creation or signed URL creation is required but not approved.
+- Eliminate if Tool Route execution or Worker execution is required but not approved.
+- Eliminate if provider/model execution is required but not approved.
+- Eliminate if Supabase, SQL, or GCS mutation is required but not approved.
+- Eliminate if another simpler tool covers the same purpose with lower cost and compatible proof.
+- Eliminate if the tool is marked deferred, backlog, or blocked for the requested operation.
+
+These blockers apply before any fallback is considered. They preserve planning-only selection and prevent runtime escalation.

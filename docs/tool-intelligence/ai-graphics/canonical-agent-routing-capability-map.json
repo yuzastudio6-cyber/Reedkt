@@ -1,0 +1,333 @@
+{
+  "decision": "ai_graphics_tool_capability_study_canonical_agent_routing_approved_with_warnings",
+  "capabilities": {
+    "chart_overlay": {
+      "capabilityId": "chart_overlay",
+      "productFacingName": "Chart Overlay",
+      "preferredPlanningTools": [
+        "vega_lite",
+        "d3"
+      ],
+      "conditionalPlanningTools": [
+        "echarts"
+      ],
+      "fallbackPlanningTools": [
+        "vega"
+      ],
+      "eliminatedTools": [
+        "sam2",
+        "real_esrgan",
+        "three_js unless 3D chart is explicitly requested"
+      ],
+      "requiredProofLevelForExecution": "Future chart overlay spec/runtime approval before execution.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "cpu_static_spec_validation_or_browser_chart_runtime_later",
+      "nextProofMilestone": "Future chart overlay spec/runtime approval before execution."
+    },
+    "data_visualization": {
+      "capabilityId": "data_visualization",
+      "productFacingName": "Data Visualization",
+      "preferredPlanningTools": [
+        "vega_lite",
+        "vega",
+        "d3"
+      ],
+      "conditionalPlanningTools": [
+        "echarts"
+      ],
+      "fallbackPlanningTools": [
+        "svgdotjs_svg_js"
+      ],
+      "eliminatedTools": [
+        "sam2",
+        "real_esrgan",
+        "lottie_web unless animation is explicitly requested"
+      ],
+      "requiredProofLevelForExecution": "Future structured data visualization execution approval after source data and runtime review.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "cpu_static_spec_validation_later",
+      "nextProofMilestone": "Future structured data visualization execution approval after source data and runtime review."
+    },
+    "svg_graphics": {
+      "capabilityId": "svg_graphics",
+      "productFacingName": "SVG Graphics",
+      "preferredPlanningTools": [
+        "svgdotjs_svg_js",
+        "satori"
+      ],
+      "conditionalPlanningTools": [
+        "d3"
+      ],
+      "fallbackPlanningTools": [
+        "viz_js for graph-shaped SVG"
+      ],
+      "eliminatedTools": [
+        "sam2",
+        "real_esrgan",
+        "transformers"
+      ],
+      "requiredProofLevelForExecution": "Future SVG contract execution approval with private artifact policy.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "cpu_static_spec_validation_later",
+      "nextProofMilestone": "Future SVG contract execution approval with private artifact policy."
+    },
+    "diagram_graphics": {
+      "capabilityId": "diagram_graphics",
+      "productFacingName": "Diagram Graphics",
+      "preferredPlanningTools": [
+        "viz_js"
+      ],
+      "conditionalPlanningTools": [
+        "svgdotjs_svg_js"
+      ],
+      "fallbackPlanningTools": [
+        "d3"
+      ],
+      "eliminatedTools": [
+        "vega_lite unless the request is a chart",
+        "sam2",
+        "real_esrgan"
+      ],
+      "requiredProofLevelForExecution": "Future diagram metadata execution approval before DOT/SVG artifact creation.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "cpu_static_spec_validation_later",
+      "nextProofMilestone": "Future diagram metadata execution approval before DOT/SVG artifact creation."
+    },
+    "animation_overlay": {
+      "capabilityId": "animation_overlay",
+      "productFacingName": "Animation Overlay",
+      "preferredPlanningTools": [
+        "lottie_web",
+        "animejs"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "satori for static fallback planning"
+      ],
+      "eliminatedTools": [
+        "sam2",
+        "real_esrgan",
+        "vega_lite unless the request is chart animation"
+      ],
+      "requiredProofLevelForExecution": "Animation manifest/runtime approval before player or timeline execution.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "animation_manifest_runtime_later",
+      "nextProofMilestone": "Animation manifest/runtime approval before player or timeline execution."
+    },
+    "canvas_scene": {
+      "capabilityId": "canvas_scene",
+      "productFacingName": "Canvas Scene",
+      "preferredPlanningTools": [
+        "pixi_js",
+        "konva"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "svgdotjs_svg_js for static 2D plan"
+      ],
+      "eliminatedTools": [
+        "sam2",
+        "real_esrgan",
+        "vega_lite unless the scene is a chart"
+      ],
+      "requiredProofLevelForExecution": "Browser/canvas sandbox approval before any canvas runtime.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "browser_canvas_sandbox_later",
+      "nextProofMilestone": "Browser/canvas sandbox approval before any canvas runtime."
+    },
+    "webgl_3d_scene": {
+      "capabilityId": "webgl_3d_scene",
+      "productFacingName": "WebGL 3D Scene",
+      "preferredPlanningTools": [
+        "three_js",
+        "babylonjs"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "pixi_js for 2D fallback",
+        "d3 for non-3D chart fallback"
+      ],
+      "eliminatedTools": [
+        "vega_lite unless 3D chart is explicitly requested",
+        "sam2",
+        "real_esrgan"
+      ],
+      "requiredProofLevelForExecution": "Browser/WebGL sandbox approval before any scene runtime.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "browser_webgl_sandbox_later",
+      "nextProofMilestone": "Browser/WebGL sandbox approval before any scene runtime."
+    },
+    "background_removal": {
+      "capabilityId": "background_removal",
+      "productFacingName": "Background Removal",
+      "preferredPlanningTools": [
+        "sam2",
+        "birefnet"
+      ],
+      "conditionalPlanningTools": [
+        "rembg",
+        "transparent_background"
+      ],
+      "fallbackPlanningTools": [
+        "manual mask planning after model proof"
+      ],
+      "eliminatedTools": [
+        "vega_lite",
+        "d3",
+        "three_js"
+      ],
+      "requiredProofLevelForExecution": "CPU import, model provenance, model-weight, and GPU policy proof before execution.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "model_weight_review_later",
+      "nextProofMilestone": "CPU import, model provenance, model-weight, and GPU policy proof before execution."
+    },
+    "subject_segmentation": {
+      "capabilityId": "subject_segmentation",
+      "productFacingName": "Subject Segmentation",
+      "preferredPlanningTools": [
+        "sam2",
+        "birefnet"
+      ],
+      "conditionalPlanningTools": [
+        "kornia"
+      ],
+      "fallbackPlanningTools": [
+        "manual review path"
+      ],
+      "eliminatedTools": [
+        "vega_lite",
+        "viz_js",
+        "lottie_web"
+      ],
+      "requiredProofLevelForExecution": "Model provenance and segmentation boundary proof before execution.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "model_weight_review_later",
+      "nextProofMilestone": "Model provenance and segmentation boundary proof before execution."
+    },
+    "upscaling": {
+      "capabilityId": "upscaling",
+      "productFacingName": "Upscaling",
+      "preferredPlanningTools": [
+        "real_esrgan"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "source replacement or lower-resolution layout plan"
+      ],
+      "eliminatedTools": [
+        "vega_lite",
+        "d3",
+        "sam2 unless segmentation is also requested"
+      ],
+      "requiredProofLevelForExecution": "Model/GPU/provenance proof before upscaling execution.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "model_weight_review_later",
+      "nextProofMilestone": "Model/GPU/provenance proof before upscaling execution."
+    },
+    "tensor_image_ops": {
+      "capabilityId": "tensor_image_ops",
+      "productFacingName": "Tensor Image Ops",
+      "preferredPlanningTools": [
+        "kornia"
+      ],
+      "conditionalPlanningTools": [
+        "torch_torchvision"
+      ],
+      "fallbackPlanningTools": [
+        "blocked manual planning until import proof"
+      ],
+      "eliminatedTools": [
+        "vega_lite",
+        "lottie_web",
+        "viz_js"
+      ],
+      "requiredProofLevelForExecution": "CPU import and tensor/image operation contract proof before execution.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "cloud_run_cpu_job_later",
+      "nextProofMilestone": "CPU import and tensor/image operation contract proof before execution."
+    },
+    "model_runtime_foundation": {
+      "capabilityId": "model_runtime_foundation",
+      "productFacingName": "Model Runtime Foundation",
+      "preferredPlanningTools": [
+        "torch_torchvision",
+        "transformers"
+      ],
+      "conditionalPlanningTools": [
+        "kornia"
+      ],
+      "fallbackPlanningTools": [
+        "defer until model-boundary proof"
+      ],
+      "eliminatedTools": [
+        "d3",
+        "vega_lite",
+        "svgdotjs_svg_js"
+      ],
+      "requiredProofLevelForExecution": "CPU/GPU model-runtime foundation proof, model-weight provenance, and boundary review before execution.",
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasons": [
+        "planning_metadata_only",
+        "runtime_approval_missing",
+        "artifact_policy_missing"
+      ],
+      "runtimeTarget": "cloud_run_cpu_or_gpu_review_later",
+      "nextProofMilestone": "CPU/GPU model-runtime foundation proof, model-weight provenance, and boundary review before execution."
+    }
+  }
+}

@@ -1,0 +1,252 @@
+{
+  "decision": "ai_graphics_tool_capability_study_canonical_agent_routing_qa_passed_with_warnings",
+  "routingExamplesQa": {
+    "accepted": true,
+    "routeExamples": {
+      "chart_overlay": {
+        "requestedCapability": "chart_overlay",
+        "preferredPlanningTools": [
+          "vega_lite",
+          "d3"
+        ],
+        "conditionalPlanningTools": [
+          "echarts"
+        ],
+        "fallbackPlanningTools": [
+          "vega"
+        ],
+        "eliminatedTools": [
+          "sam2",
+          "real_esrgan",
+          "three_js unless 3D chart is explicitly requested"
+        ],
+        "planningOnlyRecommendation": "Chart Overlay: select vega_lite, d3 for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "Future chart overlay spec/runtime approval before execution."
+      },
+      "data_visualization": {
+        "requestedCapability": "data_visualization",
+        "preferredPlanningTools": [
+          "vega_lite",
+          "vega",
+          "d3"
+        ],
+        "conditionalPlanningTools": [
+          "echarts"
+        ],
+        "fallbackPlanningTools": [
+          "svgdotjs_svg_js"
+        ],
+        "eliminatedTools": [
+          "sam2",
+          "real_esrgan",
+          "lottie_web unless animation is explicitly requested"
+        ],
+        "planningOnlyRecommendation": "Data Visualization: select vega_lite, vega, d3 for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "Future structured data visualization execution approval after source data and runtime review."
+      },
+      "svg_graphics": {
+        "requestedCapability": "svg_graphics",
+        "preferredPlanningTools": [
+          "svgdotjs_svg_js",
+          "satori"
+        ],
+        "conditionalPlanningTools": [
+          "d3"
+        ],
+        "fallbackPlanningTools": [
+          "viz_js for graph-shaped SVG"
+        ],
+        "eliminatedTools": [
+          "sam2",
+          "real_esrgan",
+          "transformers"
+        ],
+        "planningOnlyRecommendation": "SVG Graphics: select svgdotjs_svg_js, satori for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "Future SVG contract execution approval with private artifact policy."
+      },
+      "diagram_graphics": {
+        "requestedCapability": "diagram_graphics",
+        "preferredPlanningTools": [
+          "viz_js"
+        ],
+        "conditionalPlanningTools": [
+          "svgdotjs_svg_js"
+        ],
+        "fallbackPlanningTools": [
+          "d3"
+        ],
+        "eliminatedTools": [
+          "vega_lite unless the request is a chart",
+          "sam2",
+          "real_esrgan"
+        ],
+        "planningOnlyRecommendation": "Diagram Graphics: select viz_js for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "Future diagram metadata execution approval before DOT/SVG artifact creation."
+      },
+      "animation_overlay": {
+        "requestedCapability": "animation_overlay",
+        "preferredPlanningTools": [
+          "lottie_web",
+          "animejs"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "satori for static fallback planning"
+        ],
+        "eliminatedTools": [
+          "sam2",
+          "real_esrgan",
+          "vega_lite unless the request is chart animation"
+        ],
+        "planningOnlyRecommendation": "Animation Overlay: select lottie_web, animejs for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "Animation manifest/runtime approval before player or timeline execution."
+      },
+      "canvas_scene": {
+        "requestedCapability": "canvas_scene",
+        "preferredPlanningTools": [
+          "pixi_js",
+          "konva"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "svgdotjs_svg_js for static 2D plan"
+        ],
+        "eliminatedTools": [
+          "sam2",
+          "real_esrgan",
+          "vega_lite unless the scene is a chart"
+        ],
+        "planningOnlyRecommendation": "Canvas Scene: select pixi_js, konva for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "Browser/canvas sandbox approval before any canvas runtime."
+      },
+      "webgl_3d_scene": {
+        "requestedCapability": "webgl_3d_scene",
+        "preferredPlanningTools": [
+          "three_js",
+          "babylonjs"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "pixi_js for 2D fallback",
+          "d3 for non-3D chart fallback"
+        ],
+        "eliminatedTools": [
+          "vega_lite unless 3D chart is explicitly requested",
+          "sam2",
+          "real_esrgan"
+        ],
+        "planningOnlyRecommendation": "WebGL 3D Scene: select three_js, babylonjs for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "Browser/WebGL sandbox approval before any scene runtime."
+      },
+      "background_removal": {
+        "requestedCapability": "background_removal",
+        "preferredPlanningTools": [
+          "sam2",
+          "birefnet"
+        ],
+        "conditionalPlanningTools": [
+          "rembg",
+          "transparent_background"
+        ],
+        "fallbackPlanningTools": [
+          "manual mask planning after model proof"
+        ],
+        "eliminatedTools": [
+          "vega_lite",
+          "d3",
+          "three_js"
+        ],
+        "planningOnlyRecommendation": "Background Removal: select sam2, birefnet for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "CPU import, model provenance, model-weight, and GPU policy proof before execution."
+      },
+      "subject_segmentation": {
+        "requestedCapability": "subject_segmentation",
+        "preferredPlanningTools": [
+          "sam2",
+          "birefnet"
+        ],
+        "conditionalPlanningTools": [
+          "kornia"
+        ],
+        "fallbackPlanningTools": [
+          "manual review path"
+        ],
+        "eliminatedTools": [
+          "vega_lite",
+          "viz_js",
+          "lottie_web"
+        ],
+        "planningOnlyRecommendation": "Subject Segmentation: select sam2, birefnet for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "Model provenance and segmentation boundary proof before execution."
+      },
+      "upscaling": {
+        "requestedCapability": "upscaling",
+        "preferredPlanningTools": [
+          "real_esrgan"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "source replacement or lower-resolution layout plan"
+        ],
+        "eliminatedTools": [
+          "vega_lite",
+          "d3",
+          "sam2 unless segmentation is also requested"
+        ],
+        "planningOnlyRecommendation": "Upscaling: select real_esrgan for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "Model/GPU/provenance proof before upscaling execution."
+      },
+      "tensor_image_ops": {
+        "requestedCapability": "tensor_image_ops",
+        "preferredPlanningTools": [
+          "kornia"
+        ],
+        "conditionalPlanningTools": [
+          "torch_torchvision"
+        ],
+        "fallbackPlanningTools": [
+          "blocked manual planning until import proof"
+        ],
+        "eliminatedTools": [
+          "vega_lite",
+          "lottie_web",
+          "viz_js"
+        ],
+        "planningOnlyRecommendation": "Tensor Image Ops: select kornia for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "CPU import and tensor/image operation contract proof before execution."
+      },
+      "model_runtime_foundation": {
+        "requestedCapability": "model_runtime_foundation",
+        "preferredPlanningTools": [
+          "torch_torchvision",
+          "transformers"
+        ],
+        "conditionalPlanningTools": [
+          "kornia"
+        ],
+        "fallbackPlanningTools": [
+          "defer until model-boundary proof"
+        ],
+        "eliminatedTools": [
+          "d3",
+          "vega_lite",
+          "svgdotjs_svg_js"
+        ],
+        "planningOnlyRecommendation": "Model Runtime Foundation: select torch_torchvision, transformers for study metadata first; execution remains blocked.",
+        "executionAllowedNow": false,
+        "nextProofRequired": "CPU/GPU model-runtime foundation proof, model-weight provenance, and boundary review before execution."
+      }
+    }
+  }
+}

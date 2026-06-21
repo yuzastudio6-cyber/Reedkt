@@ -1,0 +1,15 @@
+# Canonical Agent Routing Blocked-Use Register QA
+
+QA status: accepted with warnings.
+
+- Tool execution remains blocked.
+- Tool Route execution remains blocked.
+- Worker execution remains blocked.
+- Provider/model runtime remains blocked.
+- Browser/WebGL/canvas runtime remains blocked.
+- GPU runtime and model weights remain blocked.
+- Supabase, SQL, and GCS mutation remain blocked.
+- Signed URL and public artifact creation remain blocked.
+- Internal beta, external beta, and production remain blocked.
+
+No tool execution, worker execution, route execution, provider/model runtime, dependency install, npm ci, package-lock mutation, CPU/static validation rerun, import smoke, synthetic fixture, browser/WebGL/canvas runtime, GPU runtime, model download, media/Remotion/resvg processing, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, PR merge, PR close, or PR retarget was performed.

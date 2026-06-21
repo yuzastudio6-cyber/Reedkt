@@ -3,8 +3,8 @@
   "branch": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-approval",
   "baseBranch": "codex/rp-ai-graphics-tool-capability-study-ranking-matrix-owner-approval-qa-review",
   "draftPrTitle": "[tools] AI graphics canonical agent routing approval",
-  "draftPr": null,
-  "draftPrStatus": "pending_creation",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/638",
+  "draftPrStatus": "open/draft/MERGEABLE",
   "createdAt": "2026-06-20",
   "sourcePrs": {
     "361": {
@@ -1574,7 +1574,9 @@
     "packageLockUnchanged": "passed",
     "localArtifactsStaged": false,
     "generatedMediaRenderBrowserCanvasWebglPublicOutputStaged": false,
-    "cachedDiffCheck": "pending_until_staging"
+    "cachedDiffCheck": "passed"
   },
-  "noScope": "No tool execution, worker execution, route execution, provider/model runtime, dependency install, npm ci, package-lock mutation, CPU/static validation rerun, import smoke, synthetic fixture, browser/WebGL/canvas runtime, GPU runtime, model download, media/Remotion/resvg processing, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, PR merge, PR close, or PR retarget was performed."
+  "noScope": "No tool execution, worker execution, route execution, provider/model runtime, dependency install, npm ci, package-lock mutation, CPU/static validation rerun, import smoke, synthetic fixture, browser/WebGL/canvas runtime, GPU runtime, model download, media/Remotion/resvg processing, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, PR merge, PR close, or PR retarget was performed.",
+  "draftPrHead": "f297f9d8f91f526a2a7852da1e67ae461c99c71b",
+  "checkStatus": "empty check rollup at PR creation"
 }

@@ -153,5 +153,9 @@
     "PR #634"
   ],
   "duplicateSearch": "No exact PR or remote branch found before implementation.",
-  "keepDraftWhile": "PR #634 remains draft"
+  "keepDraftWhile": "PR #634 remains draft",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/638",
+  "draftPrStatus": "open/draft/MERGEABLE",
+  "draftPrHead": "f297f9d8f91f526a2a7852da1e67ae461c99c71b",
+  "checkStatus": "empty check rollup at PR creation"
 }

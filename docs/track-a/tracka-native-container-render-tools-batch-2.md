@@ -52,21 +52,21 @@ Batch-2R blocker: `blocked_render_worker_docker_build_failed`
 
 Required confirmation gate was provided for the single allowed proof command: `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
 
-Batch-2R run ID: `2026-06-21T00-41-00-745Z-1884537d`
+Batch-2R run ID: `2026-06-21T01-12-53-067Z-3b7af8a7`
 
-Batch-2R local output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T00-41-00-745Z-1884537d`
+Batch-2R local output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T01-12-53-067Z-3b7af8a7`
 
-Batch-2R local image tag: `reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-21T00-41-00-745Z-1884537d`
+Batch-2R local image tag: `reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-21T01-12-53-067Z-3b7af8a7`
 
-Batch-2R sanitized blocker summary: Docker build failed while sending the build context: `failed to xattr dist-server/._brand: operation not permitted`.
+Batch-2R sanitized blocker summary: Docker build context transfer succeeded after sidecar cleanup, then Dockerfile COPY failed because `dist-remotion-worker`, `dist-staging-fixture-worker`, and `dist-staging-real-video-export-worker` were not present in the build context.
 
-Batch-2R report: `build-proof-3-blocked-report.json`, bytes `2810`, SHA-256 `4341ddf9e211a52a158079eccbab9ce65a8bba2dfabcfe78b215d1f65d2459ef`
+Batch-2R report: `build-proof-3-blocked-report.json`, bytes `4460`, SHA-256 `1f45b57e9740c3355d95bf12142052302b1d070516ab3e06b64e82e091f6f058`
 
-Batch-2R manifest: `build-proof-3-blocked-manifest.json`, bytes `359`, SHA-256 `acdf39f6db38edd831174458ac183c9738b59d86a2e262b4f43070fb850637f5`
+Batch-2R manifest: `build-proof-3-blocked-manifest.json`, bytes `359`, SHA-256 `738ad586c9bd6c2fcd294a4603fb42cf48893ea232932d15707568a6a2fe2e8e`
 
 A single local render-worker Docker build was attempted by the approved guarded runner and failed before image metadata verification. No Docker image inspection, package metadata query, command path check, GStreamer pipeline, MKVToolNix media command, FFmpeg/FFprobe execution, media processing, Docker push, Cloud Run deployment, Supabase mutation, SQL execution, signed/public artifact creation, or beta/production/final unlock occurred in Batch-2R.
 
-Next recommended milestone: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R build-context repair and confirmed retry`, then `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` if build metadata passes. Resolved identity tools move to `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`.
+Next recommended milestone: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R prebuilt worker outputs repair and confirmed retry`, then `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` if build metadata passes. Resolved identity tools move to `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`.
 
 ## Source Chain
 

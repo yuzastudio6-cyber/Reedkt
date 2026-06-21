@@ -36,17 +36,17 @@ Batch-2R blocker: `blocked_render_worker_docker_build_failed`
 
 Required confirmation gate was provided for the single allowed proof command: `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
 
-Batch-2R run ID: `2026-06-21T00-41-00-745Z-1884537d`
+Batch-2R run ID: `2026-06-21T01-12-53-067Z-3b7af8a7`
 
-Batch-2R local output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T00-41-00-745Z-1884537d`
+Batch-2R local output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T01-12-53-067Z-3b7af8a7`
 
-Batch-2R local image tag: `reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-21T00-41-00-745Z-1884537d`
+Batch-2R local image tag: `reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-21T01-12-53-067Z-3b7af8a7`
 
-Batch-2R sanitized blocker summary: Docker build failed while sending the build context: `failed to xattr dist-server/._brand: operation not permitted`.
+Batch-2R sanitized blocker summary: Docker build context transfer succeeded after sidecar cleanup, then Dockerfile COPY failed because `dist-remotion-worker`, `dist-staging-fixture-worker`, and `dist-staging-real-video-export-worker` were not present in the build context.
 
-Batch-2R report: `build-proof-3-blocked-report.json`, bytes `2810`, SHA-256 `4341ddf9e211a52a158079eccbab9ce65a8bba2dfabcfe78b215d1f65d2459ef`
+Batch-2R report: `build-proof-3-blocked-report.json`, bytes `4460`, SHA-256 `1f45b57e9740c3355d95bf12142052302b1d070516ab3e06b64e82e091f6f058`
 
-Batch-2R manifest: `build-proof-3-blocked-manifest.json`, bytes `359`, SHA-256 `acdf39f6db38edd831174458ac183c9738b59d86a2e262b4f43070fb850637f5`
+Batch-2R manifest: `build-proof-3-blocked-manifest.json`, bytes `359`, SHA-256 `738ad586c9bd6c2fcd294a4603fb42cf48893ea232932d15707568a6a2fe2e8e`
 
 Generated artifacts committed: `none`
 
@@ -61,9 +61,9 @@ Product-ready end-to-end local OSS tools: `0`
 | scopedToolId | Batch-2 status | install-source status | build/metadata status | runtime execution | readiness |
 | --- | --- | --- | --- | --- | --- |
 | `hyperframe_render_handoff` | `handoff_only` | `handoff_only_no_install_source_change` | `not_applicable` | `not_run` | `handoff_only_no_install_target_unless_source_evidence_changes` |
-| `gstreamer_render_pipeline_support` | `install_source_declared_by_601` | `installed_source_declared_by_601` | `blocked_render_worker_docker_build_failed` | `not_run` | `blocked_pending_build_context_repair_or_confirmed_retry` |
+| `gstreamer_render_pipeline_support` | `install_source_declared_by_601` | `installed_source_declared_by_601` | `blocked_render_worker_docker_build_failed` | `not_run` | `blocked_pending_prebuilt_worker_outputs_or_confirmed_retry` |
 | `bento4_mp4box_packaging_validation` | `identity_resolved_by_624` | `not_installed` | `not_run` | `not_run` | `resolved_mp4box_provider_gpac_ready_for_future_install_proof` |
-| `mkvtoolnix_container_validation` | `install_source_declared_by_601` | `installed_source_declared_by_601` | `blocked_render_worker_docker_build_failed` | `not_run` | `blocked_pending_build_context_repair_or_confirmed_retry` |
+| `mkvtoolnix_container_validation` | `install_source_declared_by_601` | `installed_source_declared_by_601` | `blocked_render_worker_docker_build_failed` | `not_run` | `blocked_pending_prebuilt_worker_outputs_or_confirmed_retry` |
 | `vapoursynth_frame_pipeline` | `native_policy_resolved_by_624` | `not_installed` | `not_run` | `not_run` | `resolved_vapoursynth_native_policy_ready_for_future_install_proof` |
 | `revideo_render_preview_alternative` | `package_identity_resolved_by_624` | `not_installed` | `not_run` | `not_run` | `resolved_revideo_package_identity_ready_for_future_install_proof` |
 

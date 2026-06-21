@@ -4,9 +4,9 @@ Build proof blocker: `blocked_render_worker_docker_build_failed`
 
 Required gate status: `provided_true`
 
-Run ID: `2026-06-21T00-41-00-745Z-1884537d`
+Run ID: `2026-06-21T01-12-53-067Z-3b7af8a7`
 
-Sanitized blocker summary: Docker build failed while sending the build context: `failed to xattr dist-server/._brand: operation not permitted`.
+Sanitized blocker summary: Docker build context transfer succeeded after sidecar cleanup, then Dockerfile COPY failed because `dist-remotion-worker`, `dist-staging-fixture-worker`, and `dist-staging-real-video-export-worker` were not present in the build context.
 
 Blocked scope in this packet:
 

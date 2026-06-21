@@ -21,6 +21,6 @@ Confirmation gate was provided for the single Batch-2R proof attempt: `REEDITPRO
 
 Current blocker: `blocked_render_worker_docker_build_failed`.
 
-Sanitized blocker summary: Docker build failed while sending the build context: `failed to xattr dist-server/._brand: operation not permitted`.
+Sanitized blocker summary: Docker build context transfer succeeded after sidecar cleanup, then Dockerfile COPY failed because `dist-remotion-worker`, `dist-staging-fixture-worker`, and `dist-staging-real-video-export-worker` were not present in the build context.
 
 Allowed future scope after build-context repair and confirmation: local repo-owned render-worker Docker build and metadata-only package/path verification for GStreamer and MKVToolNix. Do not run GStreamer pipelines, MKVToolNix against media, MP4Box, VapourSynth, Revideo, Remotion, FFmpeg, FFprobe, media processing, private media, Supabase mutation, SQL, workers/routes/providers/models, signed/public artifacts, Docker push, Cloud Run, deployment, or beta/production/final delivery.

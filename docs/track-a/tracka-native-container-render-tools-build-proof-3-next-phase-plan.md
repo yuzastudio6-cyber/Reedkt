@@ -4,11 +4,11 @@ Current Build-Proof-3 readiness: `blocked_render_worker_docker_build_failed`
 
 Recommended next phase:
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R build-context repair and confirmed retry`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R prebuilt worker outputs repair and confirmed retry`
 
 Future 3R requirement:
 
-- Repair or avoid the local Docker build context xattr blocker: `failed to xattr dist-server/._brand: operation not permitted`.
+- Repair or avoid the local Docker build context xattr blocker: `Dockerfile COPY failed because required prebuilt worker output directories were missing from the build context`.
 - Set `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`.
 - Run the guarded build runner once after pre-build validation.
 - Record sanitized `/tmp` manifest/checksum evidence only.

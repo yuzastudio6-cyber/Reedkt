@@ -15,3 +15,7 @@ Decision: `ai_graphics_tool_capability_study_and_ranking_matrix_completed_with_w
 ## Canonical Agent Routing Approval
 
 Decision `ai_graphics_tool_capability_study_canonical_agent_routing_approved_with_warnings` promotes PR #623/PR #634 capability study evidence into the canonical planning-time routing policy. Next lane: `AI_GRAPHICS_TOOL_CAPABILITY_STUDY_CANONICAL_AGENT_ROUTING_QA_REVIEW`. Execution and runtime remain blocked.
+
+## Canonical Agent Routing QA Review
+
+Decision `ai_graphics_tool_capability_study_canonical_agent_routing_qa_passed_with_warnings` QA-accepts PR #638 canonical routing approval. Next lane: `AI_GRAPHICS_TOOL_CAPABILITY_STUDY_CANONICAL_AGENT_ROUTING_OWNER_REVIEW`. Execution and runtime remain blocked.

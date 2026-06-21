@@ -1,0 +1,16 @@
+# AI Graphics Tool Elimination Rules Owner Approval QA
+
+Decision: `ai_graphics_tool_capability_study_and_ranking_matrix_owner_approval_qa_passed_with_warnings`
+
+Owner-approval QA accepts elimination rules with warnings.
+
+- capability mismatch
+- proof status is below required proof
+- browser/WebGL/canvas approval missing
+- GPU/model approval missing
+- public artifact approval missing
+- signed URL approval missing
+- Tool Route/Worker approval missing
+- tool is deferred/backlog
+
+These blockers preserve no execution, no runtime readiness, and no beta/production readiness.

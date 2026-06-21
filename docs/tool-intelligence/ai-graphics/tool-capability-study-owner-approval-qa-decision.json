@@ -1,0 +1,11 @@
+{
+  "decision": "ai_graphics_tool_capability_study_and_ranking_matrix_owner_approval_qa_passed_with_warnings",
+  "nextPrompt": "AI_GRAPHICS_TOOL_CAPABILITY_STUDY_AND_RANKING_MATRIX_CANONICAL_AGENT_ROUTING_APPROVAL",
+  "sourceOwnerApprovalAccepted": true,
+  "agentCanSelectForPlanning": true,
+  "agentCanExecuteToolsNow": false,
+  "runtimeReadyNow": false,
+  "internalBetaReadyNow": false,
+  "externalBetaReadyNow": false,
+  "productionReadyNow": false
+}

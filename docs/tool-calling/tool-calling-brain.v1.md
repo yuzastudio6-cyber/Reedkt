@@ -53,6 +53,14 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Owner labels and lanes are never runtime ranking dimensions; pending external tools must wait for first-class registry expansion before runtime selection.
 - Future expansion milestones must run refresh-gate, unmerged-owner evidence, and all-owner stack reconciliation before adding tool-calling coverage.
 
+## Sound/Music/Audio Owner Expansion
+
+- Sound/Music/Audio and SFX/SoundSync coverage is reconciled against merged owner evidence before tool-calling adds study, registry, adapter, probe, or execution surfaces.
+- PR #636 `SOUND-RUNTIME-MEDIA-GATE-0` is consumed as owner evidence for 65 SOUND candidate labels, 13 pinned requirements, 16 install-plan tools, and the current runtime/media/model/license gate status.
+- First-class SOUND tools stay covered by the existing registry, study cards, and planning-only adapters; this expansion does not duplicate them.
+- Owner-inventory, install-plan-only, provider/API-only, SFX/SoundSync, cue-manifest, model-weight, license-sensitive, and media-policy-sensitive surfaces remain non-selectable unless first-class registry and owner proof exists.
+- Runtime/media/model/provenance/license gates must remain blocked until the SOUND owner lane clears them.
+
 ## Adapter Contract Layer
 
 - Adapter contracts convert selected planning tools into structured adapter plans and future worker-route bridge metadata.

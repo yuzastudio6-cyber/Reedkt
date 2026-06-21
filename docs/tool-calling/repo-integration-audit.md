@@ -62,6 +62,14 @@
 - It prevents duplicate production registries, worker routers, QA policies, fallback policies, adapter execution systems, command execution systems, fixture/probe layers, owner registries, Supabase/runtime tables, migrations, and SQL execution tables.
 - Recommended next milestones are lane-scoped and must wait for owner proof before registry or execution expansion.
 
+## Sound/Music/Audio Owner Evidence
+
+- The Sound/Music/Audio owner expansion consumes merged PR #636 `SOUND-RUNTIME-MEDIA-GATE-0` evidence without copying the SOUND owner registry or docs into a new tool-calling system.
+- PR #636 inventories 65 SOUND candidate labels, records 13 pinned Python requirements, and records 16 approved install-plan tools as install evidence only.
+- Runtime/media/model/license gates remain blocked for model weights, GPU use, FFmpeg/ffprobe handoff, pydub media operations, audioread file-open, Supabase, signed/public artifacts, billing, beta, and production.
+- First-class SOUND tools continue to come from `server/tool-registry`; owner-inventory and install-plan-only candidates remain non-selectable until SOUND gate reconciliation clears them.
+- Recommended next owner work remains `SOUND-RUNTIME-MEDIA-GATE-1`, `SOUND-RUNTIME-MEDIA-GATE-2`, and `SOUND-RUNTIME-MEDIA-GATE-3` before tool-calling registry or execution expansion.
+
 ## Adapter Contract Integration
 
 - Adapter contracts reuse `server/tool-registry` profiles, existing capability cards, QA policy, fallback policy, and runtime contract types.

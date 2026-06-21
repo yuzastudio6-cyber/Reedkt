@@ -13,9 +13,9 @@ Implemented a docs/diagnostics-only owner-approval QA packet for PR #632's owner
 
 ## PR Follow-Up
 
-- Draft PR: pending
-- PR link: pending
-- Check status: pending
+- Draft PR: PR #634 open/draft/MERGEABLE
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/634
+- Check status: empty combined status on creation head `c75eb180108926275c7a48737bbc6d61336e3175`
 
 ## Validation
 

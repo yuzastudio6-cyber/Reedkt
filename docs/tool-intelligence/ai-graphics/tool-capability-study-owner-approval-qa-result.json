@@ -5,9 +5,9 @@
   "sourceOwnerReviewDecision": "ai_graphics_tool_capability_study_and_ranking_matrix_owner_review_passed_with_warnings",
   "sourceOwnerApprovalDecision": "ai_graphics_tool_capability_study_and_ranking_matrix_owner_approved_with_warnings",
   "branch": "codex/rp-ai-graphics-tool-capability-study-ranking-matrix-owner-approval-qa-review",
-  "draftPr": "pending",
-  "draftPrState": "pending",
-  "checkStatus": "pending",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/634",
+  "draftPrState": "open/draft/MERGEABLE",
+  "checkStatus": "empty combined status on creation head c75eb180108926275c7a48737bbc6d61336e3175",
   "booleans": {
     "capabilityStudyOwnerApprovalQaCompleted": true,
     "sourceCapabilityStudyAccepted": true,

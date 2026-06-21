@@ -913,5 +913,61 @@
       "sqlExecuted": "none",
       "migrationDeployed": "no"
     }
+  },
+  "milestone3SystemFontPackageExecutionFollowup": {
+    "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+    "reportKey": "trackb_milestone_3_system_font_package_execution_blocker_followup_reports",
+    "sourceSha": "f739488b207f8959c36579e57280df635e6e87c6",
+    "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+    "targetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+    "dockerBuild": {
+      "run": true,
+      "exitCode": 0,
+      "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-fonts-noto-cjk-rerun-f739488b207f8959c36579e57280df635e6e87c6",
+      "imageCreated": true,
+      "imagePushed": false,
+      "imageRemoved": true,
+      "priorMetadataTimeoutResolved": true
+    },
+    "fontDiscovery": {
+      "run": true,
+      "fontsNotoCjkPresent": true,
+      "fontsNotoCjkExtraPresent": false,
+      "exactPingFangPresent": false,
+      "fontFiles": [
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
+      ]
+    },
+    "paddlePaddle": {
+      "proofRun": true,
+      "version": "3.0.0",
+      "tensorDevicePassed": true,
+      "device": "cpu"
+    },
+    "paddleOcr": {
+      "proofRun": true,
+      "importApiShapePassed": false,
+      "blocker": "PingFang-SC-Regular.ttf asset fetch attempted under --network none",
+      "modelAssetRequired": true
+    },
+    "ocrInferenceRun": false,
+    "modelAssetOperationsRun": false,
+    "fontAssetOperationsRun": false,
+    "gpuExecutionRun": false,
+    "counts": {
+      "ownedTools": 16,
+      "acceptedProvenBoundedBeforeFollowup": 12,
+      "newCpuEvidencePendingQa": 1,
+      "blockedNotInstalledProven": 4,
+      "endToEndProductReady": 0
+    },
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
   }
 }

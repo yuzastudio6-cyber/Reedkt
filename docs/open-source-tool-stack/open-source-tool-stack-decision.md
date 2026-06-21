@@ -611,3 +611,16 @@ TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required`
+- Docker metadata blocker from PR #625 is resolved: the OCR runtime image built locally with `fonts-noto-cjk`.
+- `fonts-noto-cjk` is present, `fonts-noto-cjk-extra` is absent, and exact PingFang remains blocked.
+- PaddlePaddle CPU import/tensor proof passed.
+- PaddleOCR import/API-shape remains blocked because PaddleX attempts `PingFang-SC-Regular.ttf` fetch under `--network none`.
+- No OCR inference, asset operation, GPU, media/render, worker/provider, Supabase/GCS, public artifact, signed URL, beta, or production scope is accepted.
+- Track B counts remain pending QA: 16 owned / 12 accepted-proven before follow-up / 1 new CPU evidence candidate / 4 blocked-not-installed-proven / 0 product-ready.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP`
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP_STATUS:end -->

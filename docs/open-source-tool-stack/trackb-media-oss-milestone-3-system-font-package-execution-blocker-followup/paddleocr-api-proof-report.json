@@ -1,0 +1,19 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "proofRun": true,
+  "exitCode": 1,
+  "elapsedSeconds": 1,
+  "networkMode": "none",
+  "importApiShapePassed": false,
+  "distributionVersionKnownBeforeImport": true,
+  "distributionVersion": "3.0.0",
+  "modelAssetRequired": true,
+  "blocker": "PaddleOCR import attempted PaddleX font asset fetch for PingFang-SC-Regular.ttf under --network none",
+  "blockerUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf",
+  "errorClass": "requests.exceptions.ConnectionError",
+  "ocrInferenceRun": false,
+  "paddleOcrInstantiated": false,
+  "modelDownloadRun": false,
+  "fontDownloadCompleted": false,
+  "assetCopiedOrUploaded": false
+}

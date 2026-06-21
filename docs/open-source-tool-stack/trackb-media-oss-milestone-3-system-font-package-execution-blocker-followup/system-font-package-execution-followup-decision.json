@@ -1,0 +1,14 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "resolvedBlocker": "Docker python:3.12-slim metadata timeout",
+  "newBlocker": "PaddleOCR import attempted PaddleX PingFang-SC-Regular.ttf fetch under --network none",
+  "dockerBuildPassed": true,
+  "fontsNotoCjkPresent": true,
+  "paddlePaddlePassed": true,
+  "paddleOcrPassed": false,
+  "ocrInferenceRun": false,
+  "modelAssetOperationsRun": false,
+  "fontAssetOperationsRun": false,
+  "gpuExecutionRun": false
+}

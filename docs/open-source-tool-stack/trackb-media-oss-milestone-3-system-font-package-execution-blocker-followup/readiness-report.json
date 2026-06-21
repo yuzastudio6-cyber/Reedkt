@@ -1,0 +1,8 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "readyForOcrMlCpuQa": false,
+  "readyForFontConfigFollowup": true,
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "nextPromptPath": "docs/implementation-prompts/prompt-trackb-media-oss-milestone-3-font-config-followup.md",
+  "reason": "PaddleOCR import remains blocked by PaddleX PingFang-SC-Regular.ttf asset fetch under --network none"
+}

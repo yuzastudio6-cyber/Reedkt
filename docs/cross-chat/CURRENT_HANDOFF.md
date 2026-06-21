@@ -700,3 +700,16 @@ TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required`
+- Docker build rerun passed and resolved the PR #625 `python:3.12-slim` metadata timeout.
+- `fonts-noto-cjk` is installed in the local image; `fonts-noto-cjk-extra` and exact PingFang are not used.
+- PaddlePaddle CPU import/tensor proof passed.
+- PaddleOCR import/API-shape is blocked by PaddleX `PingFang-SC-Regular.ttf` asset fetch under `--network none`.
+- No OCR inference, font/model asset operation, GPU, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope ran.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP_STATUS:end -->

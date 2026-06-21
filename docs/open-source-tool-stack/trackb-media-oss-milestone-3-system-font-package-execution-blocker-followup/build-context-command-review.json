@@ -1,0 +1,7 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "buildContextGenerationRequired": false,
+  "ocrRuntimeUsesCommittedRepoPathsOnly": true,
+  "npmCiRequired": false,
+  "approvedBuildCommand": "docker build -f docker/prod/ocr-runtime/Dockerfile -t reeditpro-ocr-runtime:trackb-milestone3-fonts-noto-cjk-rerun-f739488b207f8959c36579e57280df635e6e87c6 ."
+}

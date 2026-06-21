@@ -633,3 +633,12 @@ TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP:
+
+- PaddleOCR remains blocked by PaddleX `PingFang-SC-Regular.ttf` asset fetch under `--network none`.
+- Exact PingFang asset use, font/model download, font/model copy/upload, OCR inference, GPU execution, public artifacts, signed URLs, Supabase/GCS, beta, and production remain blocked.
+- `fonts-noto-cjk-extra` remains fallback-only and was not installed.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP`
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP_STATUS:end -->

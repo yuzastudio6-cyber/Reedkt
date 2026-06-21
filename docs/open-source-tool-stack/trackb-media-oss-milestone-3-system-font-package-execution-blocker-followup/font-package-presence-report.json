@@ -1,0 +1,19 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "checkRun": true,
+  "exitCode": 0,
+  "elapsedSeconds": 1,
+  "networkMode": "none",
+  "fontsNotoCjkPresent": true,
+  "fontsNotoCjkPackageVersion": "1:20240730+repack1-1",
+  "fontsNotoCjkExtraPresent": false,
+  "exactPingFangPresent": false,
+  "exactPingFangUsed": false,
+  "fcListAvailable": false,
+  "fontFiles": [
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSerifCJK-Bold.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
+  ]
+}

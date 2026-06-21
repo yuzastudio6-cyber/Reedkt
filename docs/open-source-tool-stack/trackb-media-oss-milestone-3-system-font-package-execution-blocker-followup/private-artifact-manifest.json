@@ -1,0 +1,16 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "privateArtifactsCreated": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "fontFilesCommitted": false,
+  "modelFilesCommitted": false,
+  "mediaFilesCommitted": false,
+  "dockerImageCommitted": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

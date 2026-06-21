@@ -61,6 +61,10 @@
     "packageLockUnchanged": "passed",
     "localArtifactsStaged": false,
     "generatedMediaRenderBrowserCanvasWebglPublicOutputStaged": false,
-    "cachedDiffCheck": "pending_until_staging"
-  }
+    "cachedDiffCheck": "passed"
+  },
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/642",
+  "draftPrStatus": "open/draft/MERGEABLE",
+  "draftPrHead": "d0db8e21771f949fc92a6031439d3d97a4f3d642",
+  "checkStatus": "empty check rollup at PR creation"
 }

@@ -1,0 +1,10 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1",
+  "private_artifacts_created": [],
+  "public_artifacts_created": [],
+  "signed_urls_created": [],
+  "gcs_uploads": [],
+  "media_files_used": [],
+  "generated_outputs_committed": [],
+  "status": "metadata_only_no_artifacts"
+}

@@ -1,0 +1,8 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1",
+  "readiness": "ready_for_private_fixture_approval",
+  "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_scope_decision_passed_ready_for_private_fixture_approval",
+  "ready_next_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
+  "blocked_scope_preserved": true,
+  "execution_performed_in_this_phase": false
+}

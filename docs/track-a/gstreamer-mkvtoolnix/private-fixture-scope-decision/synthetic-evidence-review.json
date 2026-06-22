@@ -1,0 +1,32 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1",
+  "review": "synthetic_evidence_review",
+  "source": "PR #652 controlled synthetic fixture proof",
+  "accepted_evidence": {
+    "gstreamer": {
+      "command": "gst-launch-1.0 -q fakesrc num-buffers=3 ! fakesink",
+      "result": "passed_in_pr_652_evidence",
+      "fixture_type": "in_memory_fakesrc_fakesink",
+      "network": "docker_network_disabled"
+    },
+    "mkvtoolnix": {
+      "commands": [
+        "mkvmerge -o synthetic-subtitle-only.mkv synthetic.srt",
+        "mkvmerge --identify synthetic-subtitle-only.mkv"
+      ],
+      "result": "passed_in_pr_652_evidence",
+      "fixture_type": "generated_tmp_srt_to_mkv",
+      "committed_artifacts": "none"
+    }
+  },
+  "limitations": {
+    "private_media": "not_tested",
+    "user_media": "not_tested",
+    "real_media": "not_tested",
+    "ffmpeg_ffprobe": "not_run_and_not_expanded",
+    "render_export": "not_run",
+    "product_runtime": "not_run",
+    "product_ready_tools": 0
+  },
+  "finding": "sufficient_for_private_fixture_approval_planning_only"
+}

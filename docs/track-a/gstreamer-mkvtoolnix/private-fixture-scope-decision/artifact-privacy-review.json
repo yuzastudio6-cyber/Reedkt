@@ -1,0 +1,15 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1",
+  "review": "artifact_privacy_review",
+  "pr_652_committed_generated_artifacts": "none",
+  "future_fixture_policy": {
+    "public_artifacts": "blocked",
+    "signed_urls": "blocked",
+    "gcs_upload": "blocked_without_separate_approval",
+    "private_media_leak_prevention": "required",
+    "sanitized_logs": "required",
+    "stdout_private_content": "blocked",
+    "secret_payload_printing": "blocked"
+  },
+  "finding": "artifact_privacy_review_passed_for_approval_planning"
+}

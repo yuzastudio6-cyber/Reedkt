@@ -1,0 +1,55 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1",
+  "owner": "Atlas Track A",
+  "owner_id": "owner_tracka_visual_render_export",
+  "base_branch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "source_sha": "a9256e97bcded71f7b72a611261471cdb5739a94",
+  "pr_652": {
+    "number": 652,
+    "title": "[track-a] GStreamer MKVToolNix controlled synthetic fixture proof",
+    "state": "MERGED",
+    "merged_at": "2026-06-22T14:52:30Z",
+    "head_sha": "a3074af2eff53380402708ee055fa0db70b2f77a",
+    "decision": "completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof",
+    "run_id": "2026-06-22T14-31-44-660Z-390958ab",
+    "image": "reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8"
+  },
+  "proof_summary": {
+    "gstreamer": "gst-launch-1.0 -q fakesrc num-buffers=3 ! fakesink passed with Docker network disabled in PR #652 evidence",
+    "mkvtoolnix": "generated /tmp synthetic.srt, muxed synthetic-subtitle-only.mkv, and identified a Matroska SubRip/SRT track in PR #652 evidence",
+    "validation": "PR #652 recorded npm ci, confirmed proof runner, diagnostics, lint, typecheck:server, build, build:server, and diff checks",
+    "merge_validation": "PR #652 merge validation reran diagnostics and diff checks only"
+  },
+  "hashes": {
+    "package_json_sha256": "60eda7989cf8a3107a5ec0837c168803df37df3dbba13c64135e1fb9f1812a27",
+    "package_lock_sha256": "8a19532a335a579a29ec6819c6aa2460b9dd7b3edf1cecdfa33d79d634d3b023"
+  },
+  "duplicate_scan": {
+    "open_private_fixture_scope_decision_pr": "none_found",
+    "searches": [
+      "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1",
+      "tracka_gstreamer_mkvtoolnix_private_fixture_scope_decision",
+      "GStreamer MKVToolNix private fixture"
+    ]
+  },
+  "existing_docs_absence_audit": {
+    "docs/cross-chat/CURRENT_HANDOFF.md": "absent",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md": "absent",
+    "docs/cross-chat/BLOCKED_SCOPES.md": "absent",
+    "PRODUCTION_FOUNDATION_STATUS.md": "absent",
+    "docs/production-beta-blocker-inventory.md": "present_without_tracka_specific_status_section"
+  },
+  "no_scope": {
+    "gstreamer_execution": "not_run",
+    "mkvtoolnix_execution": "not_run",
+    "ffmpeg_ffprobe_execution": "not_run",
+    "private_user_real_media": "not_used",
+    "media_processing": "not_run",
+    "render_export": "not_run",
+    "docker_build_run": "not_run",
+    "supabase_sql_gcs": "not_touched",
+    "public_artifacts_signed_urls": "not_created",
+    "beta_production": "not_unlocked",
+    "product_ready_local_oss_tools": 0
+  }
+}

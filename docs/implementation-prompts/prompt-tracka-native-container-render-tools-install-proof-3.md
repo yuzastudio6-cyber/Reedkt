@@ -1,5 +1,12 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3
 
+Readiness: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 readiness: ready_for_resolved_identity_install_source_planning`
+
+Source-of-truth context:
+
+- #624 resolved GPAC/MP4Box, core VapourSynth, Revideo evaluation identity, and Hyperframe handoff-only status.
+- `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1 decision: completed_gstreamer_mkvtoolnix_no_media_runtime_proof` did not install resolved identity tools and did not broaden runtime scope.
+
 Goal: plan a future install-source proof for resolved Batch-1 identity tools only.
 
 Resolved candidates:

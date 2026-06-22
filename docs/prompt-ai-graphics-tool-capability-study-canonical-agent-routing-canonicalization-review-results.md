@@ -3,7 +3,7 @@
 Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_review_passed_with_warnings`.
 
 Branch: `codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-review`.
-Draft PR: pending creation.
+Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/656.
 
 ## Source Acceptance
 
@@ -88,7 +88,7 @@ Draft PR: pending creation.
 
 ## Final PR Status
 
-- PR: pending creation
-- Status: pending
-- Head: pending
-- Check status: pending
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/656
+- Status: open/draft/MERGEABLE
+- Head: `5e5260c00026f23c7a07c8476da4a2ad7989ac6f`
+- Check status: empty check rollup at PR creation

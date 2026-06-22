@@ -3,8 +3,8 @@
   "branch": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-qa-review",
   "baseBranch": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-review",
   "draftPrTitle": "[tools] AI graphics canonical agent routing canonicalization QA review",
-  "draftPr": null,
-  "draftPrStatus": "pending_creation",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/657",
+  "draftPrStatus": "open/draft/MERGEABLE",
   "sourceDecision": "ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_review_passed_with_warnings",
   "sourcePrs": {
     "361": {
@@ -3137,6 +3137,6 @@
     "No signed URL or public artifact creation.",
     "No internal/external beta or production unlock."
   ],
-  "draftPrHead": null,
-  "checkStatus": "pending"
+  "draftPrHead": "204f0b20c74f96273d8a5bd7cccf3a4a2b80efdb",
+  "checkStatus": "empty check rollup at PR creation"
 }

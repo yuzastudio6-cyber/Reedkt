@@ -206,8 +206,8 @@
     "pr433": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0",
     "pr441": "d174de59471eacf05bed5a5511d661f2e5ba9f0f"
   },
-  "draftPr": null,
-  "draftPrStatus": "pending_creation",
-  "draftPrHead": null,
-  "checkStatus": "pending"
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/657",
+  "draftPrStatus": "open/draft/MERGEABLE",
+  "draftPrHead": "204f0b20c74f96273d8a5bd7cccf3a4a2b80efdb",
+  "checkStatus": "empty check rollup at PR creation"
 }

@@ -53,22 +53,26 @@ const allowedChangedFiles = new Set([
 
 const requiredText = [
   'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2',
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_runner_tracked_file_safety_check_failed_before_docker_with_identity_reviews_recorded',
-  'Execution: `blocked_before_docker`',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews',
+  'Execution: `completed_docker_build_metadata_only`',
   'Future success decision, only after confirmed build proof: `completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews`',
-  'Docker build status: `not_run_runner_safety_check_failed`',
-  'Metadata verification: `not_run_docker_not_started`',
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: blocked_runner_tracked_file_safety_check_failed_before_docker',
-  'Batch-2R blocker: `blocked_runner_tracked_file_safety_check_failed_before_docker`',
-  'Runner failure before report: `git_ls_files_failed_missing_developer_dir`',
-  'Runner repair status: `completed_commandlinetools_env_fallback_for_future_retry`',
+  'Docker build status: `completed`',
+  'Metadata verification: `passed`',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews',
+  'Batch-2R blocker: `none`',
+  'Runner failure before report: `none`',
+  'Runner repair status: `completed_developer_dir_fallback`',
   'Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`',
   'COPYFILE_DISABLE=1 npm run build:remotion-worker:mock',
   'COPYFILE_DISABLE=1 npm run build:staging-fixture-worker',
   'COPYFILE_DISABLE=1 npm run build:staging-real-video-export-worker',
-  'Batch-2R run ID: `none_runner_crashed_before_report`',
-  'runner tracked-file safety check failed before Docker because `git ls-files -z` inherited a missing Xcode developer path',
-  'none_report_not_written_runner_git_check_failed',
+  'Batch-2R run ID: `2026-06-22T01-24-10-232Z-4e862aa8`',
+  'Batch-2R local image tag: `reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8`',
+  'build-proof-3-report.json',
+  'build-proof-3-manifest.json',
+  '083c2ead99873175e51b493958ae02cadac00e011ffd3268f88784ffca99999a',
+  '2b041c11e9a2373a6d0ed197d85cf358f03783c6d228287e6e9231e36400ed8e',
+  'Docker build was limited to the local repo-owned render-worker build/install metadata proof for Atlas Track A GStreamer and MKVToolNix declarations; the image was not pushed or deployed.',
   'Product-ready end-to-end local OSS tools: `0`',
   '#601',
   'f19c173a6a3d9a4cf381fc23826bd14a6385bc1f',
@@ -107,14 +111,10 @@ const requiredText = [
   'Supabase environment touched: `none`',
   'SQL executed: `none`',
   'Migration deployed: `no`',
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker build, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, Docker push, Docker deployment, or broad service-role handler was enabled.',
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, media processing, runtime media execution, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, Docker push, Docker deployment, or broad service-role handler was enabled.',
 ]
 
 const forbiddenPatterns = [
-  /TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision:\s*completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews/i,
-  /Execution:\s*`completed_docker_build_metadata_only`/i,
-  /Docker build status:\s*`(completed|passed|run)/i,
-  /Metadata verification:\s*`(passed|completed|run)/i,
   /runtime media execution:\s*`?true/i,
   /GStreamer pipeline execution:\s*`?(true|completed|passed|run)/i,
   /MKVToolNix media execution:\s*`?(true|completed|passed|run)/i,
@@ -178,7 +178,7 @@ for (const token of [
   'skippedTrackedMacMetadataFiles',
   'macMetadataCleanup',
   'blocked_missing_prebuilt_worker_outputs',
-  'blocked_runner_tracked_file_safety_check_failed_before_docker',
+  'completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews',
 ]) {
   if (!buildProofRunner.includes(token)) fail(`missing guarded runner token: ${token}`)
 }
@@ -214,7 +214,31 @@ const untrackedOutput = execFileSync('git', ['ls-files', '--others', '--exclude-
 const changedFiles = [...new Set([
   ...(diffOutput ? diffOutput.split('\n') : []),
   ...(untrackedOutput ? untrackedOutput.split('\n') : []),
-])]
+])].filter((file) => ![
+  'dist-remotion-worker/',
+  'dist-staging-fixture-worker/',
+  'dist-staging-real-video-export-worker/',
+].some((dir) => file === dir.slice(0, -1) || file.startsWith(dir)))
+
+const stagedOutput = execFileSync('git', ['diff', '--cached', '--name-only', '--',
+  'dist-remotion-worker',
+  'dist-staging-fixture-worker',
+  'dist-staging-real-video-export-worker',
+], {
+  encoding: 'utf8',
+  env: gitEnv,
+}).trim()
+if (stagedOutput) fail('generated prebuilt worker outputs must not be staged')
+
+const trackedOutput = execFileSync('git', ['ls-files',
+  'dist-remotion-worker',
+  'dist-staging-fixture-worker',
+  'dist-staging-real-video-export-worker',
+], {
+  encoding: 'utf8',
+  env: gitEnv,
+}).trim()
+if (trackedOutput) fail('generated prebuilt worker outputs must not be tracked')
 
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file: ${file}`)
@@ -229,9 +253,9 @@ for (const forbiddenFile of [
 }
 
 console.log('TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 diagnostics passed')
-console.log('Decision: blocked_runner_tracked_file_safety_check_failed_before_docker_with_identity_reviews_recorded')
-console.log('Execution: blocked_before_docker')
-console.log('Docker build: not_run_runner_safety_check_failed')
-console.log('Metadata verification: not_run_docker_not_started')
+console.log('Decision: completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews')
+console.log('Execution: completed_docker_build_metadata_only')
+console.log('Docker build: completed')
+console.log('Metadata verification: passed')
 console.log('Package-lock: unchanged')
 console.log('Product-ready end-to-end local OSS tools: 0')

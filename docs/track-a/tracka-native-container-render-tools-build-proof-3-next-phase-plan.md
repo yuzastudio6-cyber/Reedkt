@@ -1,14 +1,14 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 Next Phase Plan
 
-Current Build-Proof-3 readiness: `blocked_runner_tracked_file_safety_check_failed_before_docker`
+Current Build-Proof-3 readiness: `completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews`
 
 Recommended next phase:
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R runner git environment repair and confirmed retry`
+`TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1`
 
-Future 3R requirement:
+Future repeat-proof requirement, only if ownership requests another metadata proof:
 
-- Re-run after the runner-side `DEVELOPER_DIR` CommandLineTools fallback and metadata cleanup repair.
+- Preserve the runner-side `DEVELOPER_DIR` CommandLineTools fallback and metadata cleanup repair.
 - Preserve the fail-closed precheck for missing `dist-remotion-worker`, `dist-staging-fixture-worker`, and `dist-staging-real-video-export-worker`.
 - Set `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`.
 - Run the guarded build runner once after pre-build validation.
@@ -17,7 +17,7 @@ Future 3R requirement:
 
 After successful Batch-2R metadata proof:
 
-- `TRACKA-GSTREAMER-RUNTIME-PROOF-1 readiness: ready_after_build_metadata_proof`
+- `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1 readiness: ready_after_build_metadata_proof`
 - `TRACKA-CONTAINER-PACKAGING-VALIDATION-PROOF-1 readiness: ready_after_build_metadata_proof`
 
 Resolved identity handoff after #624:

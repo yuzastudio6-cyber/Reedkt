@@ -8,11 +8,11 @@ Support package script: `tracka:native-container-render-tools-build-proof-3`
 
 Required gate: `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
 
-Current execution: `blocked_before_docker`
+Current execution: `completed_docker_build_metadata_only`
 
-Current build status: `failed`
+Current build status: `completed`
 
-Current metadata verification: `not_run_docker_not_started`
+Current metadata verification: `passed`
 
 ## Future Confirmed Support Path
 
@@ -26,36 +26,36 @@ It must not run version commands, GStreamer pipelines, MKVToolNix media operatio
 
 Future success decision, only after confirmed build proof: `completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews`
 
-Current Batch-2 decision: `blocked_runner_tracked_file_safety_check_failed_before_docker_with_identity_reviews_recorded`
+Current Batch-2 decision: `completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews`
 
 ## Batch-2R Confirmation Check
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: blocked_runner_tracked_file_safety_check_failed_before_docker`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R result: completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews`
 
 The Batch-2R pre-build validation passed and the required confirmation gate was provided for the single allowed support runner invocation.
 
 Required gate: `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`
 
-Docker build: `not_run_runner_safety_check_failed`
+Docker build: `completed`
 
-Metadata verification: `not_run_docker_not_started`
+Metadata verification: `passed`
 
-Blocker: `blocked_runner_tracked_file_safety_check_failed_before_docker`
+Blocker: `none`
 
-Runner failure before report: `git_ls_files_failed_missing_developer_dir`
+Runner failure before report: `none`
 
-Runner repair status: `completed_commandlinetools_env_fallback_for_future_retry`
+Runner repair status: `completed_developer_dir_fallback`
 
 Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`
 
-Run ID: `none_runner_crashed_before_report`
+Run ID: `2026-06-22T01-24-10-232Z-4e862aa8`
 
-Output directory: `none_runner_crashed_before_report`
+Output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-22T01-24-10-232Z-4e862aa8`
 
-Sanitized blocker summary: prebuilt worker outputs were generated and present, but the runner tracked-file safety check failed before Docker because `git ls-files -z` inherited a missing Xcode developer path; the runner now sets a CommandLineTools fallback for future confirmed retries.
+Sanitized proof summary: the confirmed local render-worker Docker build completed, metadata-only package/path verification passed, and the local image was not pushed or deployed.
 
-Report: `none_report_not_written_runner_git_check_failed`
+Report: `build-proof-3-report.json`, bytes `1835`, SHA-256 `083c2ead99873175e51b493958ae02cadac00e011ffd3268f88784ffca99999a`
 
-Manifest: `none_report_not_written_runner_git_check_failed`
+Manifest: `build-proof-3-manifest.json`, bytes `440`, SHA-256 `2b041c11e9a2373a6d0ed197d85cf358f03783c6d228287e6e9231e36400ed8e`
 
 Generated artifacts committed: `none`

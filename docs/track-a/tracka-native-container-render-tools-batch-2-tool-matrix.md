@@ -3,9 +3,9 @@
 | scopedToolId | Batch-2 classification | install-source status | build/metadata status | identity/policy review | next milestone |
 | --- | --- | --- | --- | --- | --- |
 | `hyperframe_render_handoff` | `handoff_only` | `handoff_only_no_install_source_change` | `not_applicable` | `no_install_target_unless_future_source_evidence_proves_one` | `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` |
-| `gstreamer_render_pipeline_support` | `install_source_declared` | `installed_source_declared_by_601` | `blocked_runner_tracked_file_safety_check_failed_before_docker` | `not_required_for_declared_packages` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R runner git environment repair and confirmed retry` |
+| `gstreamer_render_pipeline_support` | `install_source_declared` | `installed_source_declared_by_601` | `completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews` | `not_required_for_declared_packages` | `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` |
 | `bento4_mp4box_packaging_validation` | `identity_resolved_by_624` | `not_installed` | `not_run` | `resolved_mp4box_provider_gpac_ready_for_future_install_proof` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3` |
-| `mkvtoolnix_container_validation` | `install_source_declared` | `installed_source_declared_by_601` | `blocked_runner_tracked_file_safety_check_failed_before_docker` | `not_required_for_declared_packages` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R runner git environment repair and confirmed retry` |
+| `mkvtoolnix_container_validation` | `install_source_declared` | `installed_source_declared_by_601` | `completed_render_worker_docker_build_install_metadata_proof_with_identity_reviews` | `not_required_for_declared_packages` | `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` |
 | `vapoursynth_frame_pipeline` | `native_policy_resolved_by_624` | `not_installed` | `not_run` | `resolved_vapoursynth_native_policy_ready_for_future_install_proof` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3` |
 | `revideo_render_preview_alternative` | `package_identity_resolved_by_624` | `not_installed` | `not_run` | `resolved_revideo_package_identity_ready_for_future_install_proof` | `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3` |
 
@@ -23,4 +23,4 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Runtime Boundary
 
-A single local render-worker Docker build was attempted by the approved guarded runner and failed before package metadata query. No apt execution outside Docker build, package metadata query, GStreamer pipeline, MKVToolNix media command, FFmpeg/FFprobe execution, Remotion execution, worker execution, route execution, provider/model call, private media processing, signed/public artifact creation, Supabase mutation, SQL execution, or beta/production/final unlock occurred in Batch-2.
+A single local render-worker Docker build completed through the approved guarded runner, followed only by metadata package/path verification. No apt execution outside Docker build, GStreamer pipeline, MKVToolNix media command, FFmpeg/FFprobe execution, Remotion execution, worker execution, route execution, provider/model call, private media processing, signed/public artifact creation, Supabase mutation, SQL execution, Docker push/deployment, or beta/production/final unlock occurred in Batch-2.

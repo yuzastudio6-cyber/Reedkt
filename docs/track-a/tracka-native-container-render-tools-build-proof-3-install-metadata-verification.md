@@ -1,29 +1,29 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 Install Metadata Verification
 
-Metadata verification: `not_run_docker_not_started`
+Metadata verification: `passed`
 
-The required build confirmation `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true` was set for the single approved proof command, but the Docker build failed before any image existed to inspect.
+The required build confirmation `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true` was set for the single approved proof command. The local render-worker Docker build completed, and metadata-only package/path verification passed.
 
-Blocker: `blocked_runner_tracked_file_safety_check_failed_before_docker`
+Blocker: `none`
 
-Run ID: `none_runner_crashed_before_report`
+Run ID: `2026-06-22T01-24-10-232Z-4e862aa8`
 
-Runner failure before report: `git_ls_files_failed_missing_developer_dir`
+Runner failure before report: `none`
 
-Runner repair status: `completed_commandlinetools_env_fallback_for_future_retry`
+Runner repair status: `completed_developer_dir_fallback`
 
 Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`
 
-Sanitized blocker summary: prebuilt worker outputs were generated and present, but the runner tracked-file safety check failed before Docker because `git ls-files -z` inherited a missing Xcode developer path; the runner now sets a CommandLineTools fallback for future confirmed retries.
+Sanitized proof summary: prebuilt worker outputs were generated and present, the local render-worker Docker build completed, metadata-only package/path verification passed, and the local image was not pushed or deployed.
 
-Future allowed metadata-only checks after a successful local render-worker image build:
+Completed metadata-only checks:
 
 - `dpkg-query` package database check for `gstreamer1.0-plugins-base`
 - `dpkg-query` package database check for `gstreamer1.0-plugins-good`
 - `dpkg-query` package database check for `gstreamer1.0-tools`
 - `dpkg-query` package database check for `mkvtoolnix`
-- shell `command -v gst-launch-1.0`
-- shell `command -v mkvmerge`
+- shell `command -v gst-launch-1.0` recorded `/usr/bin/gst-launch-1.0`
+- shell `command -v mkvmerge` recorded `/usr/bin/mkvmerge`
 
 Blocked even in a confirmed build proof:
 

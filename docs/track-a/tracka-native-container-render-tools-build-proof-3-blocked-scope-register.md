@@ -1,23 +1,21 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 Blocked Scope Register
 
-Build proof blocker: `blocked_runner_tracked_file_safety_check_failed_before_docker`
+Build proof blocker: `none`
 
 Required gate status: `provided_true`
 
-Run ID: `none_runner_crashed_before_report`
+Run ID: `2026-06-22T01-24-10-232Z-4e862aa8`
 
-Runner failure before report: `git_ls_files_failed_missing_developer_dir`
+Runner failure before report: `none`
 
-Runner repair status: `completed_commandlinetools_env_fallback_for_future_retry`
+Runner repair status: `completed_developer_dir_fallback`
 
 Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`
 
-Sanitized blocker summary: prebuilt worker outputs were generated and present, but the runner tracked-file safety check failed before Docker because `git ls-files -z` inherited a missing Xcode developer path; the runner now sets a CommandLineTools fallback for future confirmed retries.
+Sanitized proof summary: prebuilt worker outputs were generated and present, the local render-worker Docker build completed, metadata-only package/path verification passed, and the local image was not pushed or deployed.
 
-Blocked scope in this packet:
+Still-blocked scope in this packet:
 
-- Docker image inspection
-- Docker build completion
 - Docker push
 - Cloud Run
 - deployment

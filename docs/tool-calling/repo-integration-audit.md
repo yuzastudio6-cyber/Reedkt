@@ -160,6 +160,13 @@
 - Next owner prompts remain `SOUND-RUNTIME-MEDIA-GATE-1A` for controlled CPU install proof and `SOUND-RUNTIME-MEDIA-GATE-1B` for worker contract review.
 - This layer adds no package installs, probes, adapters, command intents, media processing, worker dispatch, Supabase/SQL, package-lock mutation, beta unlock, or production unlock.
 
+## Sound Runtime Media Gate 1A Evidence
+
+- Sound Gate 1A evidence overlay observes PR #647 and classifies it as candidate-only unless live GitHub inspection proves the PR is merged.
+- It records reported controlled CPU install proof facts without running installs, imports, tools, media processing, workers, providers, Supabase, SQL, or migrations.
+- It adds no runtime IDs, adapters, command intents, probes, package-lock mutation, signed URLs, beta unlock, or production unlock.
+- Next recommendations depend on PR #647 state: wait for merge if open/draft, or plan post-merge import-probe reconciliation while still waiting for Gate 1B worker review.
+
 ## First-Class Coverage Expansion
 
 - This milestone adds explicit study cards and planning-only adapter contracts for all remaining first-class registry tools: `audioflux`, `babylon_js`, `cesium_js`, `d3`, `deck_gl`, `demucs`, `duckdb`, `echarts`, `essentia`, `hyperframe`, `konva`, `kornia`, `librosa`, `lottie`, `maplibre`, `mediapipe`, `pixijs`, `playwright`, `polars`, `rembg`, `revideo`, `rnnoise`, `rubber_band`, `signalsmith_stretch`, `soundtouch`, `three_js`, `transparent_background`, `turf`, `vapoursynth`, `vega_lite`, `whisper_cpp`.

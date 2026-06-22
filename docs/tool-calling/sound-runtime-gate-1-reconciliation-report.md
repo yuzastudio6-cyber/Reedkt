@@ -28,5 +28,6 @@
 - Wait for `SOUND-RUNTIME-MEDIA-GATE-1A` before `REEDITPRO-TOOL-CALLING-SOUND-GATE-1A-CONTROLLED-PROBE-RECONCILIATION`.
 - Wait for `SOUND-RUNTIME-MEDIA-GATE-1B` before any sound worker-route dry-run integration.
 - Continue to treat unmerged Sound/SFX/SoundSync PR evidence as candidate-only until merged and reconciled.
+- The Sound Gate 1A evidence overlay observes PR #647 state and keeps it candidate-only unless merge is verified.
 
 Decision target: `reeditpro_tool_calling_sound_runtime_gate_1_reconciliation_1_ready_after_owner_gate_1a_or_gate_1b`.

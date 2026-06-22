@@ -12,6 +12,9 @@ const expectedScript =
   "ai-graphics:tool-capability-study:canonical-routing-canonicalization-diagnostics";
 const expectedScriptCommand =
   "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-diagnostics.mjs";
+const allowedDescendantScripts = new Set([
+  "ai-graphics:tool-capability-study:canonical-routing-canonicalization-qa-diagnostics",
+]);
 
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -481,7 +484,9 @@ const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
     JSON.stringify(basePackageJson.scripts?.[key]),
 );
 for (const key of scriptDrift) {
-  if (key !== expectedScript) fail(`Unexpected script drift: ${key}`);
+  if (key !== expectedScript && !allowedDescendantScripts.has(key)) {
+    fail(`Unexpected script drift: ${key}`);
+  }
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) {
   if (!(key in (packageJson.scripts || {}))) fail(`Removed package script: ${key}`);

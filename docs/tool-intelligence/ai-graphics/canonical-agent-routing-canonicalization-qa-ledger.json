@@ -1,0 +1,96 @@
+{
+  "decision": "ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_qa_passed_with_warnings",
+  "sourceCanonicalizationReviewAccepted": true,
+  "canonicalizationLedgerQaAccepted": true,
+  "sourceLedger": {
+    "decision": "ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_review_passed_with_warnings",
+    "canonicalizationStatus": "current_source_of_truth_for_planning_metadata_selection_only",
+    "canonicalizedChain": [
+      "PR #623",
+      "PR #638",
+      "PR #642",
+      "PR #645",
+      "PR #646",
+      "PR #651"
+    ],
+    "supportingEvidence": [
+      "PR #361",
+      "PR #376",
+      "PR #425",
+      "PR #433",
+      "PR #441",
+      "PR #542",
+      "PR #543",
+      "PR #544",
+      "PR #589",
+      "PR #604",
+      "PR #607",
+      "PR #614",
+      "PR #616",
+      "PR #617",
+      "PR #621",
+      "PR #623",
+      "PR #627",
+      "PR #628",
+      "PR #632",
+      "PR #634",
+      "PR #638",
+      "PR #642",
+      "PR #645",
+      "PR #646",
+      "PR #651"
+    ],
+    "productFacingCapabilityOnly": true,
+    "internalLabelsEvidenceOnly": true,
+    "trackBExclusion": {
+      "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+      "evidence": "PR #542 and PR #543"
+    },
+    "trackAExclusion": {
+      "evidence": "PR #544"
+    },
+    "all21ToolsCovered": true,
+    "all12CapabilitiesCovered": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "packageProofMergeShas": {
+      "pr425": "a055ef045db2a6ce127a044bee6219d5933532c3",
+      "pr433": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0",
+      "pr441": "d174de59471eacf05bed5a5511d661f2e5ba9f0f"
+    }
+  },
+  "acceptedChain": [
+    "PR #623",
+    "PR #638",
+    "PR #642",
+    "PR #645",
+    "PR #646",
+    "PR #651",
+    "PR #656"
+  ],
+  "currentSourceOfTruthForPlanningMetadataOnly": true,
+  "all21ToolsCoveredByCanonicalRoutingQa": true,
+  "allRequiredCapabilitiesCanonicalizedQa": true,
+  "agentCanSelectForPlanning": true,
+  "agentCanExecuteToolsNow": false,
+  "runtimeReadyNow": false,
+  "internalBetaReadyNow": false,
+  "externalBetaReadyNow": false,
+  "productionReadyNow": false,
+  "trackBExclusion": {
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "evidence": "PR #542 and PR #543"
+  },
+  "trackAExclusion": {
+    "evidence": "PR #544"
+  },
+  "packageProofMergeShas": {
+    "pr425": "a055ef045db2a6ce127a044bee6219d5933532c3",
+    "pr433": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0",
+    "pr441": "d174de59471eacf05bed5a5511d661f2e5ba9f0f"
+  }
+}

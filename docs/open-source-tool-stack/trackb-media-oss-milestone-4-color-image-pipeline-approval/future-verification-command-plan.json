@@ -1,0 +1,24 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone4ColorImagePipelineApproval.futureVerificationCommands.v1",
+  "generatedAt": "2026-06-22T01:10:51.296Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_approval_passed_ready_for_cpu_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "1ad2899b7124232ca107e1a5a9ee1f5dc8edbc4c",
+  "commandsAreFutureOnly": true,
+  "openColorIO": [
+    "python -c \"import PyOpenColorIO as ocio; print(getattr(ocio, '__version__', 'unknown'))\"",
+    "python -c \"import PyOpenColorIO as ocio; cfg = ocio.Config.CreateRaw(); print(cfg.getName() or 'raw_config')\""
+  ],
+  "openImageIO": [
+    "python -c \"import OpenImageIO as oiio; print(getattr(oiio, 'VERSION_STRING', 'unknown'))\"",
+    "python -c \"import OpenImageIO as oiio; spec = oiio.ImageSpec(1, 1, 3, oiio.UINT8); print(spec.width, spec.height, spec.nchannels)\""
+  ],
+  "prohibitedFutureScopeUnlessSeparatelyApproved": [
+    "real_user_media",
+    "render_export",
+    "gcs_upload",
+    "signed_urls",
+    "beta_production",
+    "gpu_jobs"
+  ]
+}

@@ -1055,5 +1055,44 @@
     "renderExportAccepted": false,
     "workerRuntimeAccepted": false,
     "betaProductionAccepted": false
+  },
+  "milestone4ColorImagePipelineApproval": {
+    "decision": "trackb_media_oss_milestone4_color_image_pipeline_approval_passed_ready_for_cpu_execution",
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "tools": [
+      {
+        "id": "opencolorio",
+        "name": "OpenColorIO",
+        "status": "approved_for_future_cpu_execution_still_blocked_until_execution_and_qa"
+      },
+      {
+        "id": "openimageio",
+        "name": "OpenImageIO",
+        "status": "approved_for_future_cpu_execution_still_blocked_until_execution_and_qa"
+      }
+    ],
+    "futureTarget": "docker/prod/cpu-worker/Dockerfile",
+    "futureRequirements": "docker/prod/cpu-worker/requirements.cpu.txt",
+    "counts": {
+      "ownedTools": 16,
+      "acceptedProvenBounded": 14,
+      "blockedNotInstalledProven": 2,
+      "endToEndProductReady": 0
+    },
+    "contextOnlyPrs": [
+      543,
+      99,
+      63,
+      65,
+      67,
+      68
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION",
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
   }
 }

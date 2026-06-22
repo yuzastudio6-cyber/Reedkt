@@ -1,0 +1,16 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone4ColorImagePipelineApproval.syntheticFixturePolicy.v1",
+  "generatedAt": "2026-06-22T01:10:51.296Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_approval_passed_ready_for_cpu_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "1ad2899b7124232ca107e1a5a9ee1f5dc8edbc4c",
+  "futureFixtures": "tiny_generated_local_temp_only",
+  "noUserMedia": true,
+  "noRealMedia": true,
+  "noPrivateMedia": true,
+  "noCommittedBinaryFixturesExpected": true,
+  "cleanupRequired": true,
+  "publicArtifactsAllowed": false,
+  "signedUrlsAllowed": false,
+  "renderExportAllowed": false
+}

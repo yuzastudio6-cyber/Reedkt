@@ -168,6 +168,13 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - It does not run imports, install packages, add probes, promote runtime IDs, add adapters, add command intents, process media/audio, or dispatch workers.
 - Gate 1B worker contract review, Gate 2 model/provenance review, and Gate 3 media-policy handoff remain required before downstream expansion.
 
+## Sound Gate 1B Merged Reconciliation
+
+- Sound Gate 1B merged reconciliation records PR #653 / `SOUND-RUNTIME-MEDIA-GATE-1B` as merged owner source evidence using merge commit `5bc262db23f6f6a4c9ab7b03f9b239536c6a0f91`.
+- The layer recognizes `sound-cpu-analysis-worker`, `sound-audio-metadata-worker`, and four `sound.*` job types as planning metadata only.
+- It does not dispatch workers, call the worker router, create jobs, run imports, execute tools, add worker-route dry-runs, add adapters, add commands, add probes, process media/audio, or mutate Supabase.
+- Gate 1C and Gate 1D remain required before CPU worker image planning or worker runtime handoff can be consumed.
+
 ## Track B External Registry Planning Expansion
 
 - Track B external registry expansion adds first-class `ProductionToolId` coverage for `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.

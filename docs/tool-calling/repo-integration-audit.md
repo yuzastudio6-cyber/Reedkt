@@ -167,6 +167,14 @@
 - It does not duplicate the Sound owner lane, production registry, worker router, QA policy, fallback policy, adapter registry, command policy, fixture planner, probe layer, Supabase runtime table, migration, or SQL file.
 - Gate 1B worker contracts, Gate 2 model/provenance review, and Gate 3 media policy remain required before runtime expansion.
 
+## Sound Runtime Media Gate 1B Merged Evidence
+
+- Sound Gate 1B merged reconciliation records PR #653 / `SOUND-RUNTIME-MEDIA-GATE-1B` as merged owner source evidence using merge commit `5bc262db23f6f6a4c9ab7b03f9b239536c6a0f91`.
+- It accepts `sound-cpu-analysis-worker`, `sound-audio-metadata-worker`, and four `sound.*` job types as planning-only metadata while explicitly rejecting `sound.synthetic_fixture_validate` as a Gate 1B worker execution contract item.
+- It preserves blocked scopes for media file-open, pydub operations, FFmpeg/ffprobe, real audio processing, artifact writes, worker/route/tool execution, Docker/GCP, Supabase/SQL, provider/model calls, billing, beta, and production.
+- It does not duplicate worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Supabase runtime tables, migrations, or SQL.
+- Next recommended owner gate is `SOUND-RUNTIME-MEDIA-GATE-1C`; Gate 1D remains required before worker runtime handoff.
+
 ## First-Class Coverage Expansion
 
 - This milestone adds explicit study cards and planning-only adapter contracts for all remaining first-class registry tools: `audioflux`, `babylon_js`, `cesium_js`, `d3`, `deck_gl`, `demucs`, `duckdb`, `echarts`, `essentia`, `hyperframe`, `konva`, `kornia`, `librosa`, `lottie`, `maplibre`, `mediapipe`, `pixijs`, `playwright`, `polars`, `rembg`, `revideo`, `rnnoise`, `rubber_band`, `signalsmith_stretch`, `soundtouch`, `three_js`, `transparent_background`, `turf`, `vapoursynth`, `vega_lite`, `whisper_cpp`.

@@ -161,6 +161,13 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Package/install proof remains owner-lane gated by `SOUND-RUNTIME-MEDIA-GATE-1A`; worker contract review remains gated by `SOUND-RUNTIME-MEDIA-GATE-1B`.
 - Tool-calling can reason about Gate 1 candidates, but it must not select or execute candidate-only tools.
 
+## Sound Gate 1A Evidence Overlay
+
+- Sound Gate 1A evidence overlay observes PR #647 without running its proof runner, installing packages, or importing packages.
+- Open or draft PR #647 evidence is candidate-only and must not be treated as final source-of-truth.
+- If PR #647 is merged, the overlay may classify it as owner source evidence while still enabling no tool-calling execution.
+- Runtime expansion remains blocked until a separate post-merge reconciliation and Gate 1B owner review.
+
 ## Track B External Registry Planning Expansion
 
 - Track B external registry expansion adds first-class `ProductionToolId` coverage for `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.

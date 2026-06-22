@@ -30,6 +30,7 @@
     "tool-calling:sound-music-audio-owner-expansion": "node scripts/validation/tool-calling-sound-music-audio-owner-expansion-diagnostics.mjs",
     "tool-calling:sound-candidate-study-cards": "node scripts/validation/tool-calling-sound-candidate-study-cards-diagnostics.mjs",
     "tool-calling:sound-runtime-gate-1-reconciliation": "node scripts/validation/tool-calling-sound-runtime-gate-1-reconciliation-diagnostics.mjs",
+    "tool-calling:sound-gate-1a-evidence-overlay": "node scripts/validation/tool-calling-sound-gate-1a-evidence-overlay-diagnostics.mjs",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",

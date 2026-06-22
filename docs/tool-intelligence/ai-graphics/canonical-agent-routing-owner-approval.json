@@ -3,8 +3,8 @@
   "branch": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval",
   "baseBranch": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-review",
   "draftPrTitle": "[tools] AI graphics canonical agent routing owner approval",
-  "draftPr": "pending",
-  "draftPrStatus": "pending; keep draft while PR #645 remains draft",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/646",
+  "draftPrStatus": "open/draft/MERGEABLE",
   "sourceDecision": "ai_graphics_tool_capability_study_canonical_agent_routing_owner_review_passed_with_warnings",
   "sourcePrs": {
     "361": {
@@ -1959,11 +1959,25 @@
     ]
   },
   "validation": {
-    "status": "pending",
+    "status": "passed",
     "diagnostics": [
-      "ai-graphics:tool-capability-study:canonical-routing-owner-approval-diagnostics"
+      "git diff --check",
+      "ai-graphics:tool-capability-study:canonical-routing-owner-approval-diagnostics",
+      "ai-graphics:tool-capability-study:canonical-routing-owner-diagnostics",
+      "ai-graphics:tool-capability-study:canonical-routing-qa-diagnostics",
+      "ai-graphics:tool-capability-study:canonical-routing-approval-diagnostics",
+      "owner approval QA/owner approval/owner review/QA/source study diagnostics",
+      "refreshed CPU/static owner/QA diagnostics",
+      "open-source-tool-stack:audit:diagnostics",
+      "changed-file secret scan",
+      "generated artifact/path scan",
+      "package-lock unchanged check",
+      "no .local-artifacts staged check",
+      "git diff --cached --check"
     ]
   },
   "nextPrompt": "AI_GRAPHICS_TOOL_CAPABILITY_STUDY_CANONICAL_AGENT_ROUTING_OWNER_APPROVAL_QA_REVIEW",
-  "noScope": "No tool execution, worker execution, route execution, provider/model runtime, dependency install, npm ci, package-lock mutation, CPU/static validation rerun, import smoke, synthetic fixture, browser/WebGL/canvas runtime, GPU runtime, model download, media/Remotion/resvg processing, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, PR merge, PR close, or PR retarget was performed."
+  "noScope": "No tool execution, worker execution, route execution, provider/model runtime, dependency install, npm ci, package-lock mutation, CPU/static validation rerun, import smoke, synthetic fixture, browser/WebGL/canvas runtime, GPU runtime, model download, media/Remotion/resvg processing, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, PR merge, PR close, or PR retarget was performed.",
+  "draftPrHead": "4e6029abb24ecbac34d1849ac611c3b58e93eb5f",
+  "checkStatus": "empty check rollup at PR creation"
 }

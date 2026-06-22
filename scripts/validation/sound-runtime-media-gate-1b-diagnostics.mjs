@@ -4,6 +4,7 @@ import path from "node:path";
 
 const root = process.cwd();
 const decision = "sound_runtime_media_gate_1b_worker_contract_owner_review_passed_with_warnings_ready_for_cpu_worker_image_plan";
+const gate1cDecision = "sound_runtime_media_gate_1c_cpu_worker_image_plan_completed_with_warnings_ready_for_worker_runtime_handoff";
 const gate1aDecision = "sound_runtime_media_gate_1a_controlled_cpu_install_proof_passed_with_warnings_ready_for_worker_contract_review";
 const gate1Decision = "sound_runtime_media_gate_1_completed_with_warnings_ready_for_controlled_cpu_install_proof";
 const gate0Decision = "sound_runtime_media_gate_0_completed_with_warnings_ready_for_cpu_worker_install_plan";
@@ -309,8 +310,9 @@ assert(prompt1c.requiredDecision === decision, "Gate 1C required decision not up
 assert(prompt1c.sourceEvidenceRequired?.[0] === "SOUND-RUNTIME-MEDIA-GATE-1B worker contract owner review", "Gate 1C must require Gate 1B first");
 assertIncludesAll(prompt1c.blockedActions, ["Docker build", "Cloud Run execution", "GCP API call", "worker execution", "media processing", "Supabase mutation", "SQL execution", "artifact creation", "beta or production unlock"], "Gate 1C blocked actions");
 
-assert(prompt1d.sourceMilestone === "SOUND-RUNTIME-MEDIA-GATE-1B", "Gate 1D source milestone mismatch");
-assert(prompt1d.requiredDecision === decision, "Gate 1D required decision mismatch");
+assert(prompt1d.sourceMilestone === "SOUND-RUNTIME-MEDIA-GATE-1C", "Gate 1D source milestone mismatch");
+assert(prompt1d.requiredDecision === gate1cDecision, "Gate 1D required decision mismatch");
+assert(prompt1d.sourceEvidenceRequired?.includes("SOUND-RUNTIME-MEDIA-GATE-1B worker contract owner review"), "Gate 1D must preserve Gate 1B source evidence");
 assertExactMembers(prompt1d.acceptedPlanningOnlyWorkerNames, expectedWorkerNames, "Gate 1D worker names");
 assertExactMembers(prompt1d.acceptedPlanningOnlyJobTypes, expectedAcceptedJobTypes, "Gate 1D job types");
 assert(prompt1d.sourceEvidenceOnlyJobTypes?.includes("sound.synthetic_fixture_validate"), "Gate 1D must preserve synthetic fixture source-only status");

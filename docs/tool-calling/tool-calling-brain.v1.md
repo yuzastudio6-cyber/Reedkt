@@ -161,6 +161,13 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Package/install proof remains owner-lane gated by `SOUND-RUNTIME-MEDIA-GATE-1A`; worker contract review remains gated by `SOUND-RUNTIME-MEDIA-GATE-1B`.
 - Tool-calling can reason about Gate 1 candidates, but it must not select or execute candidate-only tools.
 
+## Sound Gate 1A Merged Reconciliation
+
+- Sound Gate 1A merged reconciliation records PR #647 / `SOUND-RUNTIME-MEDIA-GATE-1A` as merged owner source evidence using merge commit `0126327c19f1af18bb1ca040c31d06736693d1b6`.
+- The layer records controlled CPU install proof facts for planning only: 13 metadata checks passed, 14 import checks passed including `scipy.signal`, failed imports `[]`, `python3` observed as `3.13.13`, and temporary venv cleanup.
+- It does not run imports, install packages, add probes, promote runtime IDs, add adapters, add command intents, process media/audio, or dispatch workers.
+- Gate 1B worker contract review, Gate 2 model/provenance review, and Gate 3 media-policy handoff remain required before downstream expansion.
+
 ## Track B External Registry Planning Expansion
 
 - Track B external registry expansion adds first-class `ProductionToolId` coverage for `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.

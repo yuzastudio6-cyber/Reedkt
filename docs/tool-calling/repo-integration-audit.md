@@ -160,6 +160,13 @@
 - Next owner prompts remain `SOUND-RUNTIME-MEDIA-GATE-1A` for controlled CPU install proof and `SOUND-RUNTIME-MEDIA-GATE-1B` for worker contract review.
 - This layer adds no package installs, probes, adapters, command intents, media processing, worker dispatch, Supabase/SQL, package-lock mutation, beta unlock, or production unlock.
 
+## Sound Gate 1A Merged Evidence
+
+- Sound Gate 1A merged reconciliation records PR #647 / `SOUND-RUNTIME-MEDIA-GATE-1A` as merged owner source evidence using merge commit `0126327c19f1af18bb1ca040c31d06736693d1b6`.
+- It records controlled CPU install proof metadata only and does not run package imports, install packages, add controlled probes, add adapters, add command intents, change registry IDs, process audio/media, or dispatch workers.
+- It does not duplicate the Sound owner lane, production registry, worker router, QA policy, fallback policy, adapter registry, command policy, fixture planner, probe layer, Supabase runtime table, migration, or SQL file.
+- Gate 1B worker contracts, Gate 2 model/provenance review, and Gate 3 media policy remain required before runtime expansion.
+
 ## First-Class Coverage Expansion
 
 - This milestone adds explicit study cards and planning-only adapter contracts for all remaining first-class registry tools: `audioflux`, `babylon_js`, `cesium_js`, `d3`, `deck_gl`, `demucs`, `duckdb`, `echarts`, `essentia`, `hyperframe`, `konva`, `kornia`, `librosa`, `lottie`, `maplibre`, `mediapipe`, `pixijs`, `playwright`, `polars`, `rembg`, `revideo`, `rnnoise`, `rubber_band`, `signalsmith_stretch`, `soundtouch`, `three_js`, `transparent_background`, `turf`, `vapoursynth`, `vega_lite`, `whisper_cpp`.

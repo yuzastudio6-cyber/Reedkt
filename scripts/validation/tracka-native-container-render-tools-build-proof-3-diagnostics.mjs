@@ -30,6 +30,7 @@ const allowedChangedFiles = new Set([
   'docs/track-a/tracka-native-container-render-tools-batch-2-build-proof-support.md',
   'docs/activation-phase-tracka-native-container-render-tools-batch-2-results.md',
   'scripts/validation/tracka-native-container-render-tools-batch-2-diagnostics.mjs',
+  '.dockerignore',
   'package.json',
 ])
 
@@ -39,25 +40,25 @@ const requiredText = [
   '#601',
   '#577 is draft/open/blocked and excluded as source-of-truth',
   'PR #577 live readback: `OPEN`, draft, `CONFLICTING` / `DIRTY`',
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_docker_build_context_transfer_failed',
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_docker_build_context_transfer_failed_with_identity_reviews_recorded',
-  'Execution: `blocked_before_or_during_build`',
-  'Docker build status: `failed`',
-  'Metadata verification: `not_run_build_failed`',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_runner_tracked_file_safety_check_failed_before_docker',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_runner_tracked_file_safety_check_failed_before_docker_with_identity_reviews_recorded',
+  'Execution: `blocked_before_docker`',
+  'Docker build status: `not_run_runner_safety_check_failed`',
+  'Metadata verification: `not_run_docker_not_started`',
   'REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true',
-  'blocked_docker_build_context_transfer_failed',
-  'Raw runner decision before blocker normalization: `blocked_render_worker_docker_build_failed`',
+  'blocked_runner_tracked_file_safety_check_failed_before_docker',
+  'Runner failure before report: `git_ls_files_failed_missing_developer_dir`',
+  'Runner repair status: `completed_commandlinetools_env_fallback_for_future_retry`',
   'Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`',
   'blocked_missing_prebuilt_worker_outputs',
-  'Run ID: `2026-06-21T02-12-41-704Z-a06117f3`',
-  'Docker build context transfer failed on root AppleDouble sidecar `._dist-remotion-worker`: `failed to xattr ._dist-remotion-worker: operation not permitted`',
-  '17f1cc020b1a2e58fcafc89c4addaa3dbf629c3b54da0d39ef02731d74a6529a',
-  '70c83f50c07603574791a692c6b90729a0df612818e853d0f5d44860ef763b2c',
+  'Run ID: `none_runner_crashed_before_report`',
+  'runner tracked-file safety check failed before Docker because `git ls-files -z` inherited a missing Xcode developer path',
+  'none_report_not_written_runner_git_check_failed',
   'Product-ready end-to-end local OSS tools: `0`',
   'gstreamer_render_pipeline_support',
   'mkvtoolnix_container_validation',
   'installed_source_declared_by_601',
-  'blocked_render_worker_docker_build_failed',
+  'blocked_runner_tracked_file_safety_check_failed_before_docker',
   'bento4_mp4box_packaging_validation',
   'resolved_mp4box_provider_gpac_ready_for_future_install_proof',
   'vapoursynth_frame_pipeline',
@@ -75,7 +76,7 @@ const requiredText = [
   'Migration deployed: `no`',
   'TRACKA-GSTREAMER-RUNTIME-PROOF-1',
   'TRACKA-CONTAINER-PACKAGING-VALIDATION-PROOF-1',
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker push, deployment, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, or broad service-role handler was enabled. The only Docker action was the single confirmed local render-worker build attempt, which failed before metadata verification.',
+  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker build, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, Docker push, Docker deployment, or broad service-role handler was enabled.',
 ]
 
 const forbiddenPatterns = [
@@ -129,6 +130,25 @@ for (const token of ['gstreamer1.0-plugins-base', 'gstreamer1.0-plugins-good', '
   if (!dockerfile.includes(token)) fail(`missing #601 Dockerfile package declaration: ${token}`)
 }
 
+const dockerignore = read('.dockerignore')
+for (const token of ['._*', '**/._*', '.DS_Store', '**/.DS_Store', '__MACOSX/', '**/__MACOSX/']) {
+  if (!dockerignore.includes(token)) fail(`missing Docker metadata ignore pattern: ${token}`)
+}
+
+const buildProofRunner = read('scripts/validation/tracka-native-container-render-tools-build-proof-3.mjs')
+for (const token of [
+  'removeUntrackedMacMetadataFiles',
+  'git',
+  'ls-files',
+  'removedUntrackedMacMetadataFiles',
+  'skippedTrackedMacMetadataFiles',
+  'macMetadataCleanup',
+  'blocked_missing_prebuilt_worker_outputs',
+  'blocked_runner_tracked_file_safety_check_failed_before_docker',
+]) {
+  if (!buildProofRunner.includes(token)) fail(`missing guarded runner token: ${token}`)
+}
+
 const combined = requiredFiles
   .filter((file) => !file.startsWith('scripts/validation/'))
   .map((file) => read(file))
@@ -171,9 +191,9 @@ for (const forbiddenFile of ['package-lock.json', 'docker/prod/render-worker/Doc
 }
 
 console.log('TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 diagnostics passed')
-console.log('Decision: blocked_docker_build_context_transfer_failed')
-console.log('Execution: blocked_before_or_during_build')
-console.log('Docker build: failed')
-console.log('Metadata verification: not_run_build_failed')
+console.log('Decision: blocked_runner_tracked_file_safety_check_failed_before_docker')
+console.log('Execution: blocked_before_docker')
+console.log('Docker build: not_run_runner_safety_check_failed')
+console.log('Metadata verification: not_run_docker_not_started')
 console.log('Package-lock: unchanged')
 console.log('Product-ready end-to-end local OSS tools: 0')

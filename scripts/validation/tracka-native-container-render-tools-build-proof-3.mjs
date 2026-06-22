@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { createHash, randomUUID } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const confirmation = process.env.REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF
@@ -78,15 +78,85 @@ if (missingPrebuiltWorkerOutputs.length > 0) {
 function run(command, args, options = {}) {
   return execFileSync(command, args, {
     encoding: 'utf8',
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: process.env.DEVELOPER_DIR || '/Library/Developer/CommandLineTools',
+      ...(options.env || {}),
+    },
     stdio: ['ignore', 'pipe', 'pipe'],
     ...options,
   }).trim()
 }
 
+function trackedFiles() {
+  try {
+    return new Set(
+      run('git', ['ls-files', '-z'])
+        .split('\0')
+        .filter(Boolean),
+    )
+  } catch (error) {
+    failClosed(
+      'blocked_runner_tracked_file_safety_check_failed_before_docker',
+      'Runner tracked-file safety check failed before Docker build.',
+      {
+        stderr: String(error.stderr || error.message || '').slice(0, 2000),
+      },
+    )
+  }
+}
+
+function collectMacMetadataFiles(root = '.', prefix = '') {
+  const entries = readdirSync(root, { withFileTypes: true })
+  const files = []
+  for (const entry of entries) {
+    if (entry.name === '.git' || entry.name === 'node_modules') continue
+
+    const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name
+    const absolutePath = join(root, entry.name)
+
+    if (entry.isDirectory()) {
+      files.push(...collectMacMetadataFiles(absolutePath, relativePath))
+      continue
+    }
+
+    if (entry.isFile() && (entry.name.startsWith('._') || entry.name === '.DS_Store')) {
+      files.push({ relativePath, absolutePath })
+    }
+  }
+  return files
+}
+
+function removeUntrackedMacMetadataFiles() {
+  const tracked = trackedFiles()
+  const candidates = collectMacMetadataFiles()
+  const removed = []
+  const skippedTracked = []
+
+  for (const candidate of candidates) {
+    if (tracked.has(candidate.relativePath)) {
+      skippedTracked.push(candidate.relativePath)
+      continue
+    }
+    rmSync(candidate.absolutePath, { force: true })
+    removed.push(candidate.relativePath)
+  }
+
+  return {
+    removedUntrackedMacMetadataFiles: removed,
+    skippedTrackedMacMetadataFiles: skippedTracked,
+    removedUntrackedMacMetadataFileCount: removed.length,
+    skippedTrackedMacMetadataFileCount: skippedTracked.length,
+  }
+}
+
+const macMetadataCleanup = removeUntrackedMacMetadataFiles()
+
 try {
   run('docker', ['info', '--format', '{{.ServerVersion}}'])
 } catch (error) {
   failClosed('blocked_docker_daemon_unavailable', 'Docker daemon is unavailable or docker is not callable.', {
+    macMetadataCleanup,
     stderr: String(error.stderr || error.message || '').slice(0, 2000),
   })
 }
@@ -107,6 +177,7 @@ try {
     isBuildContextFailure ? 'blocked_docker_build_context_transfer_failed' : 'blocked_render_worker_docker_build_failed',
     isBuildContextFailure ? 'Docker build context transfer failed before render-worker image build completed.' : 'Render-worker Docker build failed.',
     {
+      macMetadataCleanup,
       stderr: stderr.slice(0, 4000),
     },
   )
@@ -128,6 +199,7 @@ try {
   ])
 } catch (error) {
   failClosed('blocked_metadata_install_verification_failed', 'Metadata-only package/path verification failed.', {
+    macMetadataCleanup,
     stderr: String(error.stderr || error.message || '').slice(0, 4000),
   })
 }
@@ -142,6 +214,7 @@ const report = {
   dockerfile: 'docker/prod/render-worker/Dockerfile',
   requiredPrebuiltWorkerOutputs,
   prebuiltWorkerOutputsStatus: 'present_generated_by_safe_build_scripts_not_committed',
+  macMetadataCleanup,
   metadataVerification: 'passed',
   metadataOutput,
   runtimeMediaExecution: false,

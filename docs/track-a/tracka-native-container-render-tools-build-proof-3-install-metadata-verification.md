@@ -1,18 +1,20 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 Install Metadata Verification
 
-Metadata verification: `not_run_build_failed`
+Metadata verification: `not_run_docker_not_started`
 
 The required build confirmation `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true` was set for the single approved proof command, but the Docker build failed before any image existed to inspect.
 
-Blocker: `blocked_docker_build_context_transfer_failed`
+Blocker: `blocked_runner_tracked_file_safety_check_failed_before_docker`
 
-Run ID: `2026-06-21T02-12-41-704Z-a06117f3`
+Run ID: `none_runner_crashed_before_report`
 
-Raw runner decision before blocker normalization: `blocked_render_worker_docker_build_failed`
+Runner failure before report: `git_ls_files_failed_missing_developer_dir`
+
+Runner repair status: `completed_commandlinetools_env_fallback_for_future_retry`
 
 Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`
 
-Sanitized blocker summary: prebuilt worker outputs were generated and present, but Docker build context transfer failed on root AppleDouble sidecar `._dist-remotion-worker`: `failed to xattr ._dist-remotion-worker: operation not permitted`.
+Sanitized blocker summary: prebuilt worker outputs were generated and present, but the runner tracked-file safety check failed before Docker because `git ls-files -z` inherited a missing Xcode developer path; the runner now sets a CommandLineTools fallback for future confirmed retries.
 
 Future allowed metadata-only checks after a successful local render-worker image build:
 

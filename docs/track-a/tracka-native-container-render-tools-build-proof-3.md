@@ -20,15 +20,15 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Decision
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_docker_build_context_transfer_failed`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_runner_tracked_file_safety_check_failed_before_docker`
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_docker_build_context_transfer_failed_with_identity_reviews_recorded`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_runner_tracked_file_safety_check_failed_before_docker_with_identity_reviews_recorded`
 
-Execution: `blocked_before_or_during_build`
+Execution: `blocked_before_docker`
 
-Docker build status: `failed`
+Docker build status: `not_run_runner_safety_check_failed`
 
-Metadata verification: `not_run_build_failed`
+Metadata verification: `not_run_docker_not_started`
 
 Runtime media execution: `false`
 
@@ -36,7 +36,7 @@ Package-lock status: `unchanged`
 
 Dependency validation: `passed`
 
-Next recommended milestone: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R AppleDouble root sidecar cleanup and confirmed retry`, then `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` after explicit build metadata proof. Resolved identity tools move to `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`.
+Next recommended milestone: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R runner git environment repair and confirmed retry`, then `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1` after explicit build metadata proof. Resolved identity tools move to `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`.
 
 ## Source Chain
 
@@ -63,17 +63,19 @@ Required future gate:
 
 The gate was present for this run. The single local render-worker Docker build attempt failed while Docker was sending the build context, before image inspection, package metadata query, command path check, media processing, or runtime tool execution could run.
 
-Run ID: `2026-06-21T02-12-41-704Z-a06117f3`
+Run ID: `none_runner_crashed_before_report`
 
-Output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T02-12-41-704Z-a06117f3`
+Output directory: `none_runner_crashed_before_report`
 
-Raw runner decision before blocker normalization: `blocked_render_worker_docker_build_failed`
+Runner failure before report: `git_ls_files_failed_missing_developer_dir`
+
+Runner repair status: `completed_commandlinetools_env_fallback_for_future_retry`
 
 Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`
 
 Missing prebuilt output blocker: `blocked_missing_prebuilt_worker_outputs`
 
-Sanitized blocker summary: prebuilt worker outputs were generated and present, but Docker build context transfer failed on root AppleDouble sidecar `._dist-remotion-worker`: `failed to xattr ._dist-remotion-worker: operation not permitted`.
+Sanitized blocker summary: prebuilt worker outputs were generated and present, but the runner tracked-file safety check failed before Docker because `git ls-files -z` inherited a missing Xcode developer path; the runner now sets a CommandLineTools fallback for future confirmed retries.
 
 ## #624 Identity Integration
 
@@ -94,4 +96,4 @@ Sanitized blocker summary: prebuilt worker outputs were generated and present, b
 - Blockers: `none_for_supabase`
 - Next Supabase action: `none`
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker push, deployment, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, or broad service-role handler was enabled. The only Docker action was the single confirmed local render-worker build attempt, which failed before metadata verification.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker build, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, Docker push, Docker deployment, or broad service-role handler was enabled.

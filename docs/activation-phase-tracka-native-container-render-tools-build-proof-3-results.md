@@ -4,17 +4,17 @@ Canonical repair phase: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2`
 
 Build-Proof-3 status: old prompt ancestry and future confirmation-gated build-proof support for Batch-2.
 
-Result: `blocked_docker_build_context_transfer_failed`
+Result: `blocked_runner_tracked_file_safety_check_failed_before_docker`
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_docker_build_context_transfer_failed`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 decision: blocked_runner_tracked_file_safety_check_failed_before_docker`
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_docker_build_context_transfer_failed_with_identity_reviews_recorded`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2 decision: blocked_runner_tracked_file_safety_check_failed_before_docker_with_identity_reviews_recorded`
 
-Execution: `blocked_before_or_during_build`
+Execution: `blocked_before_docker`
 
-Docker build status: `failed`
+Docker build status: `not_run_runner_safety_check_failed`
 
-Metadata verification: `not_run_build_failed`
+Metadata verification: `not_run_docker_not_started`
 
 Runtime media execution: `false`
 
@@ -30,8 +30,8 @@ Product-ready end-to-end local OSS tools: `0`
 
 | scopedToolId | install-source status | build status | metadata verification | runtime execution | readiness |
 | --- | --- | --- | --- | --- | --- |
-| `gstreamer_render_pipeline_support` | `installed_source_declared_by_601` | `blocked_docker_build_context_transfer_failed` | `not_run_build_failed` | `not_run` | `blocked_pending_appledouble_root_sidecar_cleanup_or_confirmed_retry` |
-| `mkvtoolnix_container_validation` | `installed_source_declared_by_601` | `blocked_docker_build_context_transfer_failed` | `not_run_build_failed` | `not_run` | `blocked_pending_appledouble_root_sidecar_cleanup_or_confirmed_retry` |
+| `gstreamer_render_pipeline_support` | `installed_source_declared_by_601` | `blocked_runner_tracked_file_safety_check_failed_before_docker` | `not_run_docker_not_started` | `not_run` | `blocked_pending_runner_git_env_repair_or_confirmed_retry` |
+| `mkvtoolnix_container_validation` | `installed_source_declared_by_601` | `blocked_runner_tracked_file_safety_check_failed_before_docker` | `not_run_docker_not_started` | `not_run` | `blocked_pending_runner_git_env_repair_or_confirmed_retry` |
 | `hyperframe_render_handoff` | `handoff_only_no_build_change` | `not_applicable` | `not_applicable` | `not_run` | `handoff_only_no_build_change` |
 | `bento4_mp4box_packaging_validation` | `resolved_mp4box_provider_gpac_ready_for_future_install_proof` | `not_run` | `not_run` | `not_run` | `ready_for_future_install_proof_3` |
 | `vapoursynth_frame_pipeline` | `resolved_vapoursynth_native_policy_ready_for_future_install_proof` | `not_run` | `not_run` | `not_run` | `ready_for_future_install_proof_3` |
@@ -41,19 +41,20 @@ Product-ready end-to-end local OSS tools: `0`
 
 - #624 merge `afc9983cecaef0eeeb536409c16c3e0ad2eda7c6` resolves GPAC/MP4Box, core VapourSynth, Revideo evaluation identity, and Hyperframe handoff-only status for future planning.
 - No install-source changes, metadata verification, media processing, or tool execution occurred in this repair.
-- The only Docker action was the single confirmed local render-worker build attempt, which failed while sending the build context before metadata verification.
+- The confirmed guarded command exited before Docker daemon inspection, Docker build, image creation, and metadata verification.
 
 ## Batch-2R Blocker Evidence
 
-- Run ID: `2026-06-21T02-12-41-704Z-a06117f3`
-- Output directory: `/tmp/reeditpro-tracka-native-container-render-tools-build-proof-3/2026-06-21T02-12-41-704Z-a06117f3`
-- Local image tag: `reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-21T02-12-41-704Z-a06117f3`
-- Blocker: `blocked_docker_build_context_transfer_failed`
-- Raw runner decision before blocker normalization: `blocked_render_worker_docker_build_failed`
+- Run ID: `none_runner_crashed_before_report`
+- Output directory: `none_runner_crashed_before_report`
+- Local image tag: `none_runner_crashed_before_report`
+- Blocker: `blocked_runner_tracked_file_safety_check_failed_before_docker`
+- Runner failure before report: `git_ls_files_failed_missing_developer_dir`
+- Runner repair status: `completed_commandlinetools_env_fallback_for_future_retry`
 - Prebuilt worker outputs: `present_generated_by_safe_build_scripts_not_committed`
-- Sanitized summary: prebuilt worker outputs were generated and present, but Docker build context transfer failed on root AppleDouble sidecar `._dist-remotion-worker`: `failed to xattr ._dist-remotion-worker: operation not permitted`.
-- Report: `build-proof-3-blocked-report.json`, bytes `2963`, SHA-256 `17f1cc020b1a2e58fcafc89c4addaa3dbf629c3b54da0d39ef02731d74a6529a`
-- Manifest: `build-proof-3-blocked-manifest.json`, bytes `359`, SHA-256 `70c83f50c07603574791a692c6b90729a0df612818e853d0f5d44860ef763b2c`
+- Sanitized summary: prebuilt worker outputs were generated and present, but the runner tracked-file safety check failed before Docker because `git ls-files -z` inherited a missing Xcode developer path; the runner now sets a CommandLineTools fallback for future confirmed retries.
+- Report: `none_report_not_written_runner_git_check_failed`
+- Manifest: `none_report_not_written_runner_git_check_failed`
 
 ## Supabase Classification
 
@@ -86,12 +87,12 @@ Validation evidence:
 - `COPYFILE_DISABLE=1 npm run build:remotion-worker:mock`
 - `COPYFILE_DISABLE=1 npm run build:staging-fixture-worker`
 - `COPYFILE_DISABLE=1 npm run build:staging-real-video-export-worker`
-- `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true npm run tracka:native-container-render-tools-build-proof-3` exited with raw runner decision `blocked_render_worker_docker_build_failed`; normalized blocker `blocked_docker_build_context_transfer_failed`
+- `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true npm run tracka:native-container-render-tools-build-proof-3` exited before Docker because `git ls-files -z` inherited a missing Xcode developer path; blocker `blocked_runner_tracked_file_safety_check_failed_before_docker`
 - changed-file safety scan: `passed`
 - staged safety scan: `passed`
 
-PR status: `draft_blocked_docker_build_context_transfer_failed`
+PR status: `draft_blocked_runner_tracked_file_safety_check_failed_before_docker`
 
-Canonical Batch-2 PR status: `draft_blocked_docker_build_context_transfer_failed_with_identity_reviews_recorded`
+Canonical Batch-2 PR status: `draft_blocked_runner_tracked_file_safety_check_failed_before_docker_with_identity_reviews_recorded`
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker push, deployment, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, or broad service-role handler was enabled. The only Docker action was the single confirmed local render-worker build attempt, which failed before metadata verification.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, tool execution, media processing, Docker build, FFmpeg/FFprobe execution, GStreamer pipeline execution, MKVToolNix media execution, Docker push, Docker deployment, or broad service-role handler was enabled.

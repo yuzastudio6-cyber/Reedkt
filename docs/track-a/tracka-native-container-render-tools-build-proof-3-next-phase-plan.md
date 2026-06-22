@@ -1,14 +1,14 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-3 Next Phase Plan
 
-Current Build-Proof-3 readiness: `blocked_docker_build_context_transfer_failed`
+Current Build-Proof-3 readiness: `blocked_runner_tracked_file_safety_check_failed_before_docker`
 
 Recommended next phase:
 
-`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R AppleDouble root sidecar cleanup and confirmed retry`
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BATCH-2R runner git environment repair and confirmed retry`
 
 Future 3R requirement:
 
-- Repair or avoid the local Docker build context xattr blocker: Docker build context transfer failed on root AppleDouble sidecar `._dist-remotion-worker` after the required prebuilt worker outputs were generated.
+- Re-run after the runner-side `DEVELOPER_DIR` CommandLineTools fallback and metadata cleanup repair.
 - Preserve the fail-closed precheck for missing `dist-remotion-worker`, `dist-staging-fixture-worker`, and `dist-staging-real-video-export-worker`.
 - Set `REEDITPRO_CONFIRM_TRACKA_NATIVE_CONTAINER_BUILD_PROOF=true`.
 - Run the guarded build runner once after pre-build validation.

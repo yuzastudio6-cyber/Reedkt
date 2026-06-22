@@ -28,6 +28,7 @@
     "tool-calling:unmerged-owner-evidence": "node scripts/validation/tool-calling-unmerged-owner-evidence-overlay-diagnostics.mjs",
     "tool-calling:all-owner-stack-reconciliation": "node scripts/validation/tool-calling-all-owner-stack-reconciliation-diagnostics.mjs",
     "tool-calling:sound-music-audio-owner-expansion": "node scripts/validation/tool-calling-sound-music-audio-owner-expansion-diagnostics.mjs",
+    "tool-calling:sound-candidate-study-cards": "node scripts/validation/tool-calling-sound-candidate-study-cards-diagnostics.mjs",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",

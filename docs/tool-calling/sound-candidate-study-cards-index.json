@@ -1,0 +1,53 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCardsIndex.v1",
+  "sourcePrs": [
+    641,
+    636
+  ],
+  "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-0",
+  "candidateStudyCardCount": 18,
+  "cardPaths": [
+    "docs/tool-calling/sound-candidate-studies/asteroid.json",
+    "docs/tool-calling/sound-candidate-studies/aubio.json",
+    "docs/tool-calling/sound-candidate-studies/audioread.json",
+    "docs/tool-calling/sound-candidate-studies/basic_pitch.json",
+    "docs/tool-calling/sound-candidate-studies/crepe.json",
+    "docs/tool-calling/sound-candidate-studies/mmaudio.json",
+    "docs/tool-calling/sound-candidate-studies/music_ducking_loudness_qa.json",
+    "docs/tool-calling/sound-candidate-studies/open_unmix.json",
+    "docs/tool-calling/sound-candidate-studies/pydub.json",
+    "docs/tool-calling/sound-candidate-studies/pyloudnorm.json",
+    "docs/tool-calling/sound-candidate-studies/sfx_director.json",
+    "docs/tool-calling/sound-candidate-studies/sound_cue_manifest.json",
+    "docs/tool-calling/sound-candidate-studies/soundfile_libsndfile.json",
+    "docs/tool-calling/sound-candidate-studies/soundsync.json",
+    "docs/tool-calling/sound-candidate-studies/sox.json",
+    "docs/tool-calling/sound-candidate-studies/speechbrain_enhancement.json",
+    "docs/tool-calling/sound-candidate-studies/spleeter.json",
+    "docs/tool-calling/sound-candidate-studies/torchcrepe.json"
+  ],
+  "candidateExternalToolIds": [
+    "asteroid",
+    "aubio",
+    "audioread",
+    "basic_pitch",
+    "crepe",
+    "mmaudio",
+    "music_ducking_loudness_qa",
+    "open_unmix",
+    "pydub",
+    "pyloudnorm",
+    "sfx_director",
+    "sound_cue_manifest",
+    "soundfile_libsndfile",
+    "soundsync",
+    "sox",
+    "speechbrain_enhancement",
+    "spleeter",
+    "torchcrepe"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractsAdded": 0,
+  "commandIntentsAdded": 0,
+  "controlledProbesAdded": 0
+}

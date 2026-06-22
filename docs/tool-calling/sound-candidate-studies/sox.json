@@ -1,0 +1,157 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "sox",
+  "displayName": "SoX",
+  "aliases": [
+    "sox"
+  ],
+  "ownerLane": "sound_music_audio",
+  "soundCategory": "loudness_qa",
+  "runtimeResolution": {
+    "status": "blocked_pending_license",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Native audio utility candidate, license/install owner proof is required before any registry work."
+  },
+  "operations": [
+    {
+      "operationId": "audio.loudness.normalize",
+      "supportLevel": "future",
+      "bestFor": [
+        "future command-line audio transform planning",
+        "loudness and cleanup candidate comparison"
+      ],
+      "notFor": [
+        "execution before license/install proof",
+        "replacing ffmpeg audio paths"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "audio",
+        "qa_report"
+      ],
+      "validators": [
+        "audio_loudness",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "rnnoise"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    },
+    {
+      "operationId": "audio.cleanup",
+      "supportLevel": "future",
+      "bestFor": [
+        "future command-line audio transform planning",
+        "loudness and cleanup candidate comparison"
+      ],
+      "notFor": [
+        "execution before license/install proof",
+        "replacing ffmpeg audio paths"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "audio",
+        "qa_report"
+      ],
+      "validators": [
+        "audio_loudness",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "rnnoise"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future command-line audio transform planning",
+    "loudness and cleanup candidate comparison"
+  ],
+  "notFor": [
+    "execution before license/install proof",
+    "replacing ffmpeg audio paths"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "audio",
+    "qa_report"
+  ],
+  "validators": [
+    "audio_loudness",
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "ffmpeg",
+    "rnnoise"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "license or native dependency provenance may block execution",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Audio repair candidate study",
+    "Batch audio utility comparison"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md",
+      "summary": "Owner evidence for SoX from PR #636 docs/sound-runtime-media-gate-0-install-strategy.md."
+    },
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-runtime-tool-inventory.md",
+      "summary": "Owner evidence for SoX from PR #636 docs/sound-runtime-media-gate-0-runtime-tool-inventory.md."
+    }
+  ],
+  "ownerGateStatus": "wait_for_license_provenance_review",
+  "futurePromotionRequirements": [
+    "license, native dependency, and commercial use provenance review",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:sox:owner_gate_pending",
+    "benchmark:sox:latency_pending",
+    "benchmark:sox:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:sox:candidate_review_count",
+    "telemetry:sox:owner_gate_outcomes",
+    "telemetry:sox:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

@@ -14,6 +14,7 @@ const expectedScriptCommand =
   "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-qa-diagnostics.mjs";
 const allowedDescendantScripts = new Set([
   "ai-graphics:tool-capability-study:canonical-routing-canonicalization-diagnostics",
+  "ai-graphics:tool-capability-study:canonical-routing-canonicalization-qa-diagnostics",
 ]);
 
 const failures = [];

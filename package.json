@@ -538,7 +538,8 @@
     "ai-graphics:tool-capability-study:owner-approval-diagnostics": "node scripts/validation/ai-graphics-tool-capability-study-ranking-matrix-owner-approval-diagnostics.mjs",
     "ai-graphics:tool-capability-study:owner-approval-qa-diagnostics": "node scripts/validation/ai-graphics-tool-capability-study-ranking-matrix-owner-approval-qa-diagnostics.mjs",
     "ai-graphics:tool-capability-study:canonical-routing-approval-diagnostics": "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-approval-diagnostics.mjs",
-    "ai-graphics:tool-capability-study:canonical-routing-qa-diagnostics": "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-qa-diagnostics.mjs"
+    "ai-graphics:tool-capability-study:canonical-routing-qa-diagnostics": "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-qa-diagnostics.mjs",
+    "ai-graphics:tool-capability-study:canonical-routing-owner-diagnostics": "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-owner-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

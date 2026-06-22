@@ -143,3 +143,6 @@ AI graphics canonical agent routing owner review decision
 
 AI graphics canonical agent routing owner approval decision
 `ai_graphics_tool_capability_study_canonical_agent_routing_owner_approved_with_warnings` owner-approves PR #645 owner review, PR #642 QA, and PR #638 canonical routing approval with warnings for planning/study metadata only across all 21 AI graphics tools. It does not approve agent/tool execution, Tool Route execution, Worker execution, provider/model runtime, browser/WebGL/canvas runtime, GPU/model runtime, Supabase mutation, GCS transfer, signed URL creation, public artifact creation, internal beta, external beta, paid production, or production readiness.
+
+AI graphics canonical agent routing owner approval QA decision
+`ai_graphics_tool_capability_study_canonical_agent_routing_owner_approval_qa_passed_with_warnings` QA-accepts PR #646 owner approval, PR #645 owner review, PR #642 QA, and PR #638 canonical routing approval with warnings for planning/study metadata only across all 21 AI graphics tools. It does not approve agent/tool execution, Tool Route execution, Worker execution, provider/model runtime, browser/WebGL/canvas runtime, GPU/model runtime, Supabase mutation, GCS transfer, signed URL creation, public artifact creation, internal beta, external beta, paid production, or production readiness.

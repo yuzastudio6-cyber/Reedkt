@@ -1,0 +1,8 @@
+{
+  "sourceApprovalAccepted": true,
+  "sourceQaAccepted": true,
+  "sourceOwnerReviewAccepted": true,
+  "sourceOwnerApprovalAccepted": true,
+  "ownerApprovalQaAccepted": true,
+  "planningOnlyPolicy": {}
+}

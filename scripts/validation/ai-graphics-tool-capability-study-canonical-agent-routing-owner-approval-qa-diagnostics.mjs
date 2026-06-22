@@ -5,16 +5,13 @@ import { execFileSync } from "node:child_process";
 
 const root = process.cwd();
 const baseRef =
-  "origin/codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-review";
+  "origin/codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval";
 const expectedDecision =
-  "ai_graphics_tool_capability_study_canonical_agent_routing_owner_approved_with_warnings";
+  "ai_graphics_tool_capability_study_canonical_agent_routing_owner_approval_qa_passed_with_warnings";
 const expectedScript =
-  "ai-graphics:tool-capability-study:canonical-routing-owner-approval-diagnostics";
+  "ai-graphics:tool-capability-study:canonical-routing-owner-approval-qa-diagnostics";
 const expectedScriptCommand =
-  "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-diagnostics.mjs";
-const allowedDescendantScripts = new Set([
-  "ai-graphics:tool-capability-study:canonical-routing-owner-approval-qa-diagnostics",
-]);
+  "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-qa-diagnostics.mjs";
 
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -30,38 +27,36 @@ const git = (args) =>
   execFileSync("git", args, { cwd: root, encoding: "utf8", env: gitEnv }).trim();
 
 const requiredDocs = [
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval-source-lockfile.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-schema-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-capability-map-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-ranking-policy-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-elimination-policy-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-fallback-policy-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-safety-boundary-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-planning-only-policy-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-examples-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-blocked-use-register-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-next-lane-owner-approval.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval-decision.md",
-  "docs/prompt-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-results.md",
-  "docs/implementation-prompts/prompt-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval-qa-review.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval-qa-source-lockfile.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-schema-owner-approval-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-capability-map-owner-approval-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-ranking-policy-owner-approval-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-elimination-policy-owner-approval-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-fallback-policy-owner-approval-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-safety-boundary-owner-approval-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-planning-only-policy-owner-approval-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-examples-owner-approval-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-blocked-use-register-owner-approval-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-next-lane-owner-approval-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval-qa-decision.md",
+  "docs/prompt-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-qa-review-results.md",
+  "docs/implementation-prompts/prompt-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-qa-review.md",
 ];
-
 const requiredJson = [
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval-source-lockfile.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-schema-owner-approval.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-capability-map-owner-approval.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-ranking-policy-owner-approval.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-elimination-policy-owner-approval.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-fallback-policy-owner-approval.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-safety-boundary-owner-approval.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-planning-only-policy-owner-approval.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-examples-owner-approval.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-blocked-use-register-owner-approval.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval-qa-source-lockfile.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-schema-owner-approval-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-capability-map-owner-approval-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-ranking-policy-owner-approval-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-elimination-policy-owner-approval-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-fallback-policy-owner-approval-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-examples-owner-approval-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-blocked-use-register-owner-approval-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-safety-boundary-owner-approval-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-planning-only-policy-owner-approval-qa.json",
 ];
-
-const capabilityDocNames = [
+const capabilitySlugs = [
   "chart-overlay",
   "data-visualization",
   "svg-graphics",
@@ -75,45 +70,25 @@ const capabilityDocNames = [
   "tensor-image-ops",
   "model-runtime-foundation",
 ];
-const capabilityDocs = capabilityDocNames.map(
+const capabilityDocs = capabilitySlugs.map(
   (name) =>
-    `docs/tool-intelligence/ai-graphics/canonical-routing/owner-approval/${name}.md`,
+    `docs/tool-intelligence/ai-graphics/canonical-routing/owner-approval-qa/${name}.md`,
 );
-const sourceOwnerDocs = [
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-review.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-source-lockfile.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-schema-owner-review.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-capability-map-owner-review.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-ranking-policy-owner-review.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-elimination-policy-owner-review.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-fallback-policy-owner-review.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-safety-boundary-owner-review.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-examples-owner-review.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-blocked-use-register-owner-review.json",
-];
-const sourceQaDocs = [
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-qa-review.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-schema-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-capability-map-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-ranking-policy-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-elimination-policy-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-fallback-policy-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-safety-boundary-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-examples-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-blocked-use-register-qa.json",
-];
-const sourceApprovalDocs = [
+const sourceDocs = [
   "docs/tool-intelligence/ai-graphics/canonical-agent-routing-approval.json",
   "docs/tool-intelligence/ai-graphics/canonical-agent-routing-schema.json",
   "docs/tool-intelligence/ai-graphics/canonical-agent-routing-capability-map.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-ranking-policy.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-elimination-policy.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-fallback-policy.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-safety-boundary.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-examples.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-blocked-use-register.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-qa-review.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-schema-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-capability-map-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-review.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-schema-owner-review.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-capability-map-owner-review.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval-source-lockfile.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-schema-owner-approval.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-routing-capability-map-owner-approval.json",
 ];
-
 const allTools = [
   "torch_torchvision",
   "transformers",
@@ -156,42 +131,39 @@ for (const file of [
   ...requiredDocs,
   ...requiredJson,
   ...capabilityDocs,
-  ...sourceOwnerDocs,
-  ...sourceQaDocs,
-  ...sourceApprovalDocs,
+  ...sourceDocs,
 ]) {
   if (!exists(file)) fail(`Missing required file: ${file}`);
 }
 
-let approval = {};
+let qa = {};
 try {
-  approval = parseJson(
-    "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval.json",
+  qa = parseJson(
+    "docs/tool-intelligence/ai-graphics/canonical-agent-routing-owner-approval-qa.json",
   );
 } catch (error) {
-  fail(`Unable to parse owner-approval JSON: ${error.message}`);
+  fail(`Unable to parse owner-approval QA JSON: ${error.message}`);
 }
 
-if (approval.decision !== expectedDecision) {
-  fail(`Unexpected decision: ${approval.decision}`);
-}
+if (qa.decision !== expectedDecision) fail(`Unexpected decision: ${qa.decision}`);
 
 const trueBooleans = [
-  "canonicalAgentRoutingOwnerApprovalCompleted",
+  "canonicalAgentRoutingOwnerApprovalQaCompleted",
   "sourceCanonicalRoutingApprovalAccepted",
   "sourceCanonicalRoutingQaAccepted",
   "sourceCanonicalRoutingOwnerReviewAccepted",
+  "sourceCanonicalRoutingOwnerApprovalAccepted",
   "sourceCapabilityStudyOwnerApprovalQaAccepted",
-  "all21ToolsCoveredByRoutingOwnerApproval",
-  "allRequiredCapabilitiesCoveredOwnerApproval",
-  "canonicalRoutingSchemaOwnerApproved",
-  "capabilityMapOwnerApproved",
-  "rankingPolicyOwnerApproved",
-  "eliminationPolicyOwnerApproved",
-  "fallbackPolicyOwnerApproved",
-  "planningOnlyPolicyOwnerApproved",
-  "safetyBoundaryOwnerApproved",
-  "routingExamplesOwnerApproved",
+  "all21ToolsCoveredByRoutingOwnerApprovalQa",
+  "allRequiredCapabilitiesCoveredOwnerApprovalQa",
+  "canonicalRoutingSchemaOwnerApprovalQaAccepted",
+  "capabilityMapOwnerApprovalQaAccepted",
+  "rankingPolicyOwnerApprovalQaAccepted",
+  "eliminationPolicyOwnerApprovalQaAccepted",
+  "fallbackPolicyOwnerApprovalQaAccepted",
+  "planningOnlyPolicyOwnerApprovalQaAccepted",
+  "safetyBoundaryOwnerApprovalQaAccepted",
+  "routingExamplesOwnerApprovalQaAccepted",
   "agentCanSelectForPlanning",
 ];
 const falseBooleans = [
@@ -222,13 +194,13 @@ const falseBooleans = [
   "signedUrlCreated",
 ];
 for (const key of trueBooleans) {
-  if (approval.booleans?.[key] !== true) fail(`Expected true boolean: ${key}`);
+  if (qa.booleans?.[key] !== true) fail(`Expected true boolean: ${key}`);
 }
 for (const key of falseBooleans) {
-  if (approval.booleans?.[key] !== false) fail(`Expected false boolean: ${key}`);
+  if (qa.booleans?.[key] !== false) fail(`Expected false boolean: ${key}`);
 }
 
-const schema = approval.schemaOwnerApproval?.sourceSchema || {};
+const schema = qa.schemaOwnerApprovalQa?.schema || {};
 for (const section of [
   "requestCapabilityExtraction",
   "candidateToolRanking",
@@ -237,36 +209,39 @@ for (const section of [
   "safetyBoundary",
 ]) {
   if (!Array.isArray(schema[section]) || schema[section].length === 0) {
-    fail(`Missing schema owner approval section: ${section}`);
+    fail(`Missing schema QA section: ${section}`);
   }
 }
 
-const capabilityApproval = approval.capabilityOwnerApproval || {};
+const capabilityQa = qa.capabilityOwnerApprovalQa || {};
 for (const capability of requiredCapabilities) {
-  const row = capabilityApproval[capability];
-  if (!row) fail(`Missing capability owner approval row: ${capability}`);
+  const row = capabilityQa[capability];
+  if (!row) fail(`Missing capability owner-approval QA row: ${capability}`);
+  if (row?.sourceOwnerApprovalAccepted !== true) {
+    fail(`Capability did not accept source owner approval: ${capability}`);
+  }
   if (row?.currentExecutionAllowed !== false) {
     fail(`Capability should not allow execution: ${capability}`);
   }
   for (const key of [
-    "preferredPlanningToolsOwnerApproved",
-    "conditionalPlanningToolsOwnerApproved",
-    "fallbackPlanningToolsOwnerApproved",
-    "eliminatedToolsOwnerApproved",
-    "blockedRuntimeReasonsOwnerApproved",
+    "preferredPlanningToolsOwnerApprovalQaAccepted",
+    "conditionalPlanningToolsOwnerApprovalQaAccepted",
+    "fallbackPlanningToolsOwnerApprovalQaAccepted",
+    "eliminatedToolsOwnerApprovalQaAccepted",
+    "blockedRuntimeReasonsOwnerApprovalQaAccepted",
   ]) {
     if (!Array.isArray(row?.[key])) fail(`Capability ${capability} missing ${key}`);
   }
 }
-if (Object.keys(capabilityApproval).some((key) => /track|atlas|owner/i.test(key))) {
-  fail("Internal owner labels leaked into product-facing capability approval IDs.");
+if (Object.keys(capabilityQa).some((key) => /track|atlas|owner/i.test(key))) {
+  fail("Internal owner labels leaked into product-facing capability QA IDs.");
 }
 
-const tools = new Set((approval.tools || []).map((row) => row.toolId));
+const tools = new Set((qa.tools || []).map((row) => row.toolId));
 for (const tool of allTools) {
-  if (!tools.has(tool)) fail(`Missing owner-approved tool row: ${tool}`);
+  if (!tools.has(tool)) fail(`Missing owner-approval-QA tool row: ${tool}`);
 }
-for (const row of approval.tools || []) {
+for (const row of qa.tools || []) {
   if (row.agentCanSelectForPlanning !== true) {
     fail(`Tool not selectable for planning: ${row.toolId}`);
   }
@@ -283,9 +258,9 @@ for (const row of approval.tools || []) {
   }
 }
 
-const ranking = approval.rankingPolicyOwnerApproval || {};
+const ranking = qa.rankingPolicyOwnerApprovalQa || {};
 if (ranking.source !== "PR #623 scoring model") {
-  fail("Ranking policy owner approval does not reference PR #623 scoring model.");
+  fail("Ranking policy QA does not reference PR #623 scoring model.");
 }
 for (const [key, value] of Object.entries({
   capabilityFit: 25,
@@ -303,7 +278,7 @@ for (const [key, value] of Object.entries({
 }
 
 const eliminationText = (
-  approval.eliminationPolicyOwnerApproval?.eliminationPolicy?.rules || []
+  qa.eliminationPolicyOwnerApprovalQa?.eliminationPolicy?.rules || []
 ).join("\n");
 for (const blocker of [
   "capability mismatch",
@@ -320,21 +295,21 @@ for (const blocker of [
   if (!eliminationText.includes(blocker)) fail(`Missing blocker: ${blocker}`);
 }
 
-const fallback = approval.fallbackPolicyOwnerApproval?.fallbackPolicy || {};
+const fallback = qa.fallbackPolicyOwnerApprovalQa?.fallbackPolicy || {};
 for (const capability of requiredCapabilities) {
   const row = fallback[capability];
   if (!Array.isArray(row?.preferred) || row.preferred.length === 0) {
-    fail(`Fallback owner approval missing preferred tools: ${capability}`);
+    fail(`Fallback QA missing preferred tools: ${capability}`);
   }
   if (!Array.isArray(row?.conditional)) {
-    fail(`Fallback owner approval missing conditional tools: ${capability}`);
+    fail(`Fallback QA missing conditional tools: ${capability}`);
   }
   if (!Array.isArray(row?.fallback) || row.fallback.length === 0) {
-    fail(`Fallback owner approval missing fallback tools: ${capability}`);
+    fail(`Fallback QA missing fallback tools: ${capability}`);
   }
 }
 
-const examples = approval.routingExamplesOwnerApproval?.routeExamples || {};
+const examples = qa.routingExamplesOwnerApprovalQa?.routeExamples || {};
 for (const capability of [
   "chart_overlay",
   "svg_graphics",
@@ -348,10 +323,13 @@ for (const capability of [
   "tensor_image_ops",
   "model_runtime_foundation",
 ]) {
-  if (!examples[capability]) fail(`Routing examples owner approval missing: ${capability}`);
+  if (!examples[capability]) fail(`Routing examples QA missing: ${capability}`);
+  if (examples[capability]?.executionAllowedNow !== false) {
+    fail(`Routing example should not allow execution: ${capability}`);
+  }
 }
 
-const blocked = approval.blockedUseRegisterOwnerApproval?.blockedUseRegister || {};
+const blocked = qa.blockedUseRegisterOwnerApprovalQa?.blockedUseRegister || {};
 for (const phrase of [
   "Tool execution remains blocked.",
   "Tool Route execution remains blocked.",
@@ -361,11 +339,11 @@ for (const phrase of [
   "Signed URL and public artifact creation remain blocked.",
 ]) {
   if (!blocked.runtimeBlocks?.includes(phrase)) {
-    fail(`Blocked-use owner approval missing: ${phrase}`);
+    fail(`Blocked-use QA missing: ${phrase}`);
   }
 }
 
-const safety = approval.safetyBoundaryOwnerApproval?.safetyBoundary || {};
+const safety = qa.safetyBoundaryOwnerApprovalQa?.safetyBoundary || {};
 if (safety.trackBExclusion?.ownerId !== "TRACK_B_MEDIA_OSS_STEWARD") {
   fail("Track B exclusion missing or wrong.");
 }
@@ -390,15 +368,14 @@ const combinedText = [
   ...requiredDocs,
   ...requiredJson,
   ...capabilityDocs,
-  ...sourceOwnerDocs,
-  ...sourceQaDocs,
-  ...sourceApprovalDocs,
+  ...sourceDocs,
   "docs/production-beta-readiness-scorecard.md",
 ]
   .filter(exists)
   .map(read)
   .join("\n");
 for (const pr of [
+  "646",
   "645",
   "642",
   "638",
@@ -410,6 +387,8 @@ for (const pr of [
   "621",
   "617",
   "616",
+  "614",
+  "607",
   "604",
   "589",
   "543",
@@ -435,6 +414,7 @@ for (const pattern of [
   /workerExecutionPerformed[`"]?\s*[:=]\s*true/i,
   /workerExecutionApprovedNow[`"]?\s*[:=]\s*true/i,
   /providerRuntimePerformed[`"]?\s*[:=]\s*true/i,
+  /providerRuntimeApprovedNow[`"]?\s*[:=]\s*true/i,
   /browserWebglCanvasRuntimePerformed[`"]?\s*[:=]\s*true/i,
   /browserWebglCanvasRuntimeApprovedNow[`"]?\s*[:=]\s*true/i,
   /gpuRuntimePerformed[`"]?\s*[:=]\s*true/i,
@@ -484,9 +464,7 @@ const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
     JSON.stringify(basePackageJson.scripts?.[key]),
 );
 for (const key of scriptDrift) {
-  if (key !== expectedScript && !allowedDescendantScripts.has(key)) {
-    fail(`Unexpected script drift: ${key}`);
-  }
+  if (key !== expectedScript) fail(`Unexpected script drift: ${key}`);
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) {
   if (!(key in (packageJson.scripts || {}))) fail(`Removed package script: ${key}`);
@@ -525,9 +503,9 @@ for (const file of changed.split("\n").filter(Boolean)) {
 }
 
 if (failures.length > 0) {
-  console.error("AI graphics canonical routing owner approval diagnostics failed:");
+  console.error("AI graphics canonical routing owner approval QA diagnostics failed:");
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
 
-console.log("AI graphics canonical routing owner approval diagnostics passed.");
+console.log("AI graphics canonical routing owner approval QA diagnostics passed.");

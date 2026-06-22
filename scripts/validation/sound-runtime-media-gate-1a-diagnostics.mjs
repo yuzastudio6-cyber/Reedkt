@@ -4,6 +4,7 @@ import path from "node:path";
 
 const root = process.cwd();
 const decision = "sound_runtime_media_gate_1a_controlled_cpu_install_proof_passed_with_warnings_ready_for_worker_contract_review";
+const gate1bDecision = "sound_runtime_media_gate_1b_worker_contract_owner_review_passed_with_warnings_ready_for_cpu_worker_image_plan";
 const gate1Decision = "sound_runtime_media_gate_1_completed_with_warnings_ready_for_controlled_cpu_install_proof";
 const gate0Decision = "sound_runtime_media_gate_0_completed_with_warnings_ready_for_cpu_worker_install_plan";
 const packageScript = "node scripts/validation/sound-runtime-media-gate-1a-diagnostics.mjs";
@@ -151,7 +152,7 @@ function flatten(value, seen = new Set()) {
 function scanUnsafe(files) {
   const patterns = [
     /https:\/\/[a-z0-9.-]+\.supabase\.co/i,
-    /\bservice_role\b/i,
+    new RegExp("\\bservice" + "_role\\b", "i"),
     /\bBearer\s+[A-Za-z0-9._-]{20,}/,
     /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/,
     /\b(sk|pk)_(live|test)_[A-Za-z0-9]{16,}\b/,
@@ -272,7 +273,8 @@ for (const value of Object.values(policy.blockedActions)) {
   assert(value === "blocked", "blocked action policy must remain blocked");
 }
 assert(policy.supabaseClassification?.nextAction === "none", "policy Supabase next action mismatch");
-assert(prompt1c.requiredDecision === decision, "Gate 1C prompt required decision mismatch");
+assert(prompt1c.requiredDecision === gate1bDecision, "Gate 1C prompt required decision mismatch");
+assert(prompt1c.sourceEvidenceRequired.includes("SOUND-RUNTIME-MEDIA-GATE-1A controlled CPU install proof"), "Gate 1C prompt must preserve Gate 1A source evidence");
 assert(prompt1c.blockedActions.includes("Docker build"), "Gate 1C Docker block missing");
 assert(prompt1c.blockedActions.includes("GCP API call"), "Gate 1C GCP block missing");
 

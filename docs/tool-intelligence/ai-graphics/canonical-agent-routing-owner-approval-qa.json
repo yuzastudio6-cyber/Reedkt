@@ -3,8 +3,8 @@
   "branch": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-qa-review",
   "baseBranch": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval",
   "draftPrTitle": "[tools] AI graphics canonical agent routing owner approval QA review",
-  "draftPr": null,
-  "draftPrStatus": "pending_draft_pr_creation",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/651",
+  "draftPrStatus": "open/draft/MERGEABLE",
   "sourceDecision": "ai_graphics_tool_capability_study_canonical_agent_routing_owner_approved_with_warnings",
   "sourcePrs": {
     "361": {
@@ -2007,5 +2007,7 @@
     "No Supabase/SQL/GCS mutation.",
     "No signed URL or public artifact creation.",
     "No internal/external beta or production unlock."
-  ]
+  ],
+  "draftPrHead": "be777a7d6a328d55a79a135bc189ff139862ae1b",
+  "checkStatus": "empty check rollup at PR creation"
 }

@@ -3,7 +3,7 @@
 Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_owner_approval_qa_passed_with_warnings`.
 
 Branch: `codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-qa-review`.
-Draft PR: pending creation.
+Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/651.
 
 ## Source Acceptance
 
@@ -82,3 +82,10 @@ Draft PR: pending creation.
 - No Supabase/SQL/GCS mutation.
 - No signed URL or public artifact creation.
 - No internal/external beta or production unlock.
+
+## Final PR Status
+
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/651
+- Status: open/draft/MERGEABLE
+- Head: `be777a7d6a328d55a79a135bc189ff139862ae1b`
+- Check status: empty check rollup at PR creation

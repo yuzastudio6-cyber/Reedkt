@@ -1094,5 +1094,56 @@
       "sqlExecuted": "none",
       "migrationDeployed": "no"
     }
+  },
+  "milestone4ColorImagePipelineCpuExecution": {
+    "decision": "trackb_media_oss_milestone4_color_image_pipeline_cpu_execution_passed_ready_for_qa",
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "sourceSha": "957e8f96900e9a374a8cd7990f00e761222ebb64",
+    "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+    "targetRequirements": "docker/prod/cpu-worker/requirements.cpu.txt",
+    "requirementsAdded": [
+      "OpenColorIO",
+      "OpenImageIO"
+    ],
+    "tools": [
+      {
+        "id": "opencolorio",
+        "name": "OpenColorIO",
+        "version": "2.5.2",
+        "importVersionProven": true,
+        "apiShapeProven": true,
+        "acceptedProvenBoundedPendingQa": true,
+        "productReady": false
+      },
+      {
+        "id": "openimageio",
+        "name": "OpenImageIO",
+        "version": "3.1.14.1",
+        "importVersionProven": true,
+        "apiShapeProven": true,
+        "acceptedProvenBoundedPendingQa": true,
+        "productReady": false
+      }
+    ],
+    "newProofCandidatesPendingQa": 2,
+    "countsRemainPendingQa": {
+      "ownedTools": 16,
+      "acceptedProvenBounded": 14,
+      "blockedNotInstalledProven": 2,
+      "endToEndProductReady": 0
+    },
+    "realMediaUsed": false,
+    "imageProcessingRun": false,
+    "renderExportRun": false,
+    "gpuUsed": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW",
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
   }
 }

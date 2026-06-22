@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-06-22T03:06:27.749Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_cpu_execution_passed_ready_for_qa",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "957e8f96900e9a374a8cd7990f00e761222ebb64",
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "privatePayloadsCreated": false,
+  "committedArtifacts": [
+    "metadata reports",
+    "diagnostics script",
+    "package script metadata",
+    "CPU-worker requirements patch",
+    "status docs",
+    "next prompt"
+  ],
+  "uncommittedGeneratedOutputsRemoved": [
+    "node_modules",
+    "dist-server",
+    "dist-staging-fixture-worker",
+    "reeditpro-cpu-worker:trackb-milestone4-color-image-957e8f96900e9a374a8cd7990f00e761222ebb64"
+  ],
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

@@ -429,9 +429,11 @@ if (!isAllowedDockerfileDiff(stagedDockerfileDiff)) fail('staged_dockerfile_diff
 const changedFiles = changedFileSet()
 const allowedExactFiles = new Set([
   targetDockerfile,
+  'docker/prod/cpu-worker/requirements.cpu.txt',
   'package.json',
   nextPromptPath,
   'docs/implementation-prompts/prompt-trackb-media-oss-milestone-4-color-image-pipeline-approval.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-milestone-4-color-image-pipeline-qa-review.md',
   'scripts/validation/trackb-media-oss-milestone-3-font-config-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-blocker-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-diagnostics.mjs',
@@ -439,6 +441,8 @@ const allowedExactFiles = new Set([
   'scripts/validation/trackb-media-oss-milestone-3-font-source-license-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-exact-font-asset-source-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-model-asset-approval-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-execution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-execution-blocker-followup-diagnostics.mjs',
@@ -448,6 +452,7 @@ const allowedExactFiles = new Set([
   'scripts/validation/trackb-media-oss-milestone-2-video-analysis-approval-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-1-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-install-proof-milestone-plan-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-cpu-execution-diagnostics.mjs',
   'scripts/validation/open-source-tool-owner-registry-trackb-media-oss-steward-diagnostics.mjs',
   'server/activation/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review/index.js',
   'server/cli/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review-plan.js',

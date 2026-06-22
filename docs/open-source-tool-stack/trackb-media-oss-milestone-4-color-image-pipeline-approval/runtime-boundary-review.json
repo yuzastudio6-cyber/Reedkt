@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone4ColorImagePipelineApproval.runtimeBoundary.v1",
+  "generatedAt": "2026-06-22T01:10:51.296Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_approval_passed_ready_for_cpu_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "1ad2899b7124232ca107e1a5a9ee1f5dc8edbc4c",
+  "toolExecutionRun": false,
+  "openColorIORun": false,
+  "openImageIORun": false,
+  "pythonImportsRun": false,
+  "packageInstallRun": false,
+  "dockerBuildRun": false,
+  "dockerRun": false,
+  "buildContextGenerated": false,
+  "mediaProcessingRun": false,
+  "imageProcessingRun": false,
+  "renderExportRun": false,
+  "gpuExecutionRun": false,
+  "workerRouteProviderRun": false,
+  "supabaseGcsPublicDeliveryRun": false,
+  "betaProductionUnlocked": false,
+  "rawPromptExecutionRun": false,
+  "prMergeRun": false,
+  "productReadyTools": 0,
+  "fortyPlusEndToEndClaimAllowed": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

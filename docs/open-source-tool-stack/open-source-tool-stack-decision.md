@@ -657,3 +657,19 @@ TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone4_color_image_pipeline_approval_passed_ready_for_cpu_execution`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Tools approved for future CPU execution: OpenColorIO and OpenImageIO.
+- Future target: `docker/prod/cpu-worker/Dockerfile` with `docker/prod/cpu-worker/requirements.cpu.txt`.
+- Current Track B counts remain: 16 owned tools, 14 bounded accepted/proven tools, 2 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- OpenColorIO and OpenImageIO remain blocked/not installed-proven until execution and QA accept bounded evidence.
+- Track A/pro color-image and AI graphics/Kornia evidence is context-only, not Track B proof authority.
+- No install, requirements mutation, Dockerfile mutation, Docker build/run, OpenColorIO/OpenImageIO execution, image/media processing, render/export, GPU, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production scope ran.
+- The 40-plus end-to-end proof claim remains disallowed.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL_STATUS:end -->

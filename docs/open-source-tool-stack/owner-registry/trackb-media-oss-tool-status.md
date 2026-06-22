@@ -380,3 +380,20 @@ TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION_STATUS:
+
+- Decision: `trackb_media_oss_milestone4_color_image_pipeline_cpu_execution_passed_ready_for_qa`
+- Target: `docker/prod/cpu-worker/Dockerfile` with `docker/prod/cpu-worker/requirements.cpu.txt`.
+- Requirements patch: added `OpenColorIO` and `OpenImageIO`; `PyOpenColorIO` was not declared.
+- Docker build: passed for local image `reeditpro-cpu-worker:trackb-milestone4-color-image-957e8f96900e9a374a8cd7990f00e761222ebb64`; image removed before commit.
+- OpenColorIO: `PyOpenColorIO` import/version 2.5.2 and raw `Config` API-shape proof passed under `--network none`.
+- OpenImageIO: import/version 3.1.14.1 and `ImageSpec`/`ImageBuf` API-shape proof passed under `--network none` without file I/O.
+- Track B counts remain pending QA: 16 owned tools, 14 bounded accepted/proven tools, 2 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- New CPU proof candidates pending QA: OpenColorIO and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No real media/image processing, render/export, GPU, FFmpeg/FFprobe, other Track B tools, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION_STATUS:end -->

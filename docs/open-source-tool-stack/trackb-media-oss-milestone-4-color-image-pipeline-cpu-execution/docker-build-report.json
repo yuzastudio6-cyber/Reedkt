@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-06-22T03:06:27.749Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_cpu_execution_passed_ready_for_qa",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "957e8f96900e9a374a8cd7990f00e761222ebb64",
+  "command": "docker build -f docker/prod/cpu-worker/Dockerfile -t reeditpro-cpu-worker:trackb-milestone4-color-image-957e8f96900e9a374a8cd7990f00e761222ebb64 .",
+  "exitCode": 0,
+  "imageCreated": true,
+  "imageTag": "reeditpro-cpu-worker:trackb-milestone4-color-image-957e8f96900e9a374a8cd7990f00e761222ebb64",
+  "elapsedSeconds": 69.89,
+  "observedPackageInstalls": [
+    "OpenColorIO-2.5.2",
+    "OpenImageIO-3.1.14.1"
+  ],
+  "imageSizeBytes": 1104989753,
+  "pushedOrDeployed": false
+}

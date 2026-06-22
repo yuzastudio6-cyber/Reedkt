@@ -360,13 +360,18 @@ const changedFiles = git(['diff', '--name-only', 'origin/codex/rp-github-merge-h
   .filter(Boolean)
 const systemFontExecutionFiles = new Set([
   'docker/prod/ocr-runtime/Dockerfile',
+  'docker/prod/cpu-worker/requirements.cpu.txt',
   'docs/implementation-prompts/prompt-trackb-media-oss-milestone-3-system-font-package-execution-blocker-followup.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-milestone-4-color-image-pipeline-qa-review.md',
+  'scripts/validation/trackb-media-oss-milestone-3-font-config-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-blocker-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-system-font-package-approval-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-font-source-license-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-exact-font-asset-source-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-cpu-execution-diagnostics.mjs',
 ])
 for (const file of changedFiles) {
   const allowed =

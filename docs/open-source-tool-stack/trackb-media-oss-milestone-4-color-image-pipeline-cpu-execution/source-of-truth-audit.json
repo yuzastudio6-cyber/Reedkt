@@ -1,0 +1,142 @@
+{
+  "generatedAt": "2026-06-22T03:06:27.749Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_cpu_execution_passed_ready_for_qa",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "957e8f96900e9a374a8cd7990f00e761222ebb64",
+  "sourceEvidence": [
+    {
+      "pr": 644,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 639,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 635,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 629,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 625,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 620,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 615,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 613,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 606,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 600,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 592,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 587,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 583,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 578,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 574,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 571,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 567,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 563,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 559,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 557,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 551,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 549,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "mergedAt": "confirmed_non_null_preflight"
+    }
+  ],
+  "sourceBranch": "origin/codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "duplicateCpuExecutionPrOpen": false,
+  "protectedHashesCaptured": true,
+  "dirtyWorkspaceAvoided": "/Volumes/backup/REeditpro not used",
+  "broadProductionDocsAbsentAuditFacts": [
+    "docs/beta-readiness-scorecard.md absent",
+    "docs/production-beta-blocker-inventory.md absent",
+    "PRODUCTION_FOUNDATION_STATUS.md absent"
+  ]
+}

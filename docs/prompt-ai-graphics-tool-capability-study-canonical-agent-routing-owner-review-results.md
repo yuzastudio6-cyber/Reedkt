@@ -4,9 +4,9 @@ Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_owner_revie
 
 Branch: `codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-review`
 
-Draft PR: pending
+Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/645
 
-Draft status: pending; keep draft while PR #642 remains draft.
+Draft status: open/draft/MERGEABLE; keep draft while PR #642 remains draft.
 
 Duplicate search result: no exact owner-review PR or remote owner-review branch existed before implementation; target worktree was absent.
 
@@ -56,10 +56,12 @@ Routing examples owner result: accepted with warnings.
 
 `internalBetaReadyNow`: false
 
-Validation status: pending.
+Validation status: passed; PR check rollup empty at creation.
 
 Package-lock status: unchanged.
 
 No tool execution, worker execution, route execution, provider/model runtime, dependency install, npm ci, package-lock mutation, CPU/static validation rerun, import smoke, synthetic fixture, browser/WebGL/canvas runtime, GPU runtime, model download, media/Remotion/resvg processing, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, PR merge, PR close, or PR retarget was performed.
 
 Next prompt: `AI_GRAPHICS_TOOL_CAPABILITY_STUDY_CANONICAL_AGENT_ROUTING_OWNER_APPROVAL`.
+
+PR follow-up: https://github.com/yuzastudio6-cyber/Reedkt/pull/645 is open/draft/MERGEABLE at 942795c5aecdb20d6e7e9e93df09a04181525606; empty check rollup at PR creation.

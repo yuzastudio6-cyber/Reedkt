@@ -6,8 +6,10 @@ Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_owner_revie
 
 Scope: owner-review-only. Agent routing remains approved only for planning/study metadata. No execution, runtime, artifact, beta, or production approval is included.
 
-Draft PR: pending.
+Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/645.
 
-Validation status: pending.
+Validation status: passed; PR check rollup empty at creation.
 
 No tool execution, worker execution, route execution, provider/model runtime, dependency install, npm ci, package-lock mutation, CPU/static validation rerun, import smoke, synthetic fixture, browser/WebGL/canvas runtime, GPU runtime, model download, media/Remotion/resvg processing, Supabase mutation, SQL execution, GCS upload, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, PR merge, PR close, or PR retarget was performed.
+
+PR follow-up: https://github.com/yuzastudio6-cyber/Reedkt/pull/645 is open/draft/MERGEABLE at 942795c5aecdb20d6e7e9e93df09a04181525606; empty check rollup at PR creation.

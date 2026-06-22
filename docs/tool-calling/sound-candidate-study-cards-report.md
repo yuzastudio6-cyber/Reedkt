@@ -44,7 +44,8 @@
 ## Recommendation
 
 - Do not promote candidate-only SOUND tools yet.
-- Wait for `SOUND-RUNTIME-MEDIA-GATE-1`, `SOUND-RUNTIME-MEDIA-GATE-2`, and `SOUND-RUNTIME-MEDIA-GATE-3` before registry or execution expansion.
-- Next tool-calling milestone after owner proof: `REEDITPRO-TOOL-CALLING-SOUND-RUNTIME-GATE-1-RECONCILIATION`.
+- `SOUND-RUNTIME-MEDIA-GATE-1` is now consumed by the Sound Runtime Gate 1 reconciliation layer as planning evidence only.
+- Wait for `SOUND-RUNTIME-MEDIA-GATE-1A`, `SOUND-RUNTIME-MEDIA-GATE-1B`, `SOUND-RUNTIME-MEDIA-GATE-2`, and `SOUND-RUNTIME-MEDIA-GATE-3` before registry or execution expansion.
+- Next tool-calling milestone after owner Gate 1A proof: `REEDITPRO-TOOL-CALLING-SOUND-GATE-1A-CONTROLLED-PROBE-RECONCILIATION`.
 
 Decision target: `reeditpro_tool_calling_sound_candidate_study_cards_1_ready_for_sound_runtime_gate_1_reconciliation`

@@ -1,0 +1,10 @@
+{
+  "decision": "ai_graphics_tool_capability_study_canonical_agent_routing_owner_approved_with_warnings",
+  "planningOnlyPolicyOwnerApproval": {
+    "sourceApprovalAccepted": true,
+    "sourceQaAccepted": true,
+    "sourceOwnerReviewAccepted": true,
+    "ownerApproved": true,
+    "planningOnlyPolicy": {}
+  }
+}

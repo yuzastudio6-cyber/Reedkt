@@ -1,0 +1,31 @@
+{
+  "decision": "ai_graphics_tool_capability_study_canonical_agent_routing_owner_approved_with_warnings",
+  "rankingPolicyOwnerApproval": {
+    "source": "PR #623 scoring model",
+    "sourceApprovalAccepted": true,
+    "sourceQaAccepted": true,
+    "sourceOwnerReviewAccepted": true,
+    "ownerApproved": true,
+    "rankingPolicy": {
+      "source": "PR #623 scoring model",
+      "scoringModel": {
+        "capabilityFit": 25,
+        "outputQualityPotential": 20,
+        "reliabilityProof": 15,
+        "cloudReadiness": 10,
+        "costEfficiency": 10,
+        "integrationSimplicity": 10,
+        "safetyAndControl": 10,
+        "totalScore": 100
+      },
+      "tierModel": [
+        "Tier A",
+        "Tier B",
+        "Tier C",
+        "Tier D",
+        "Blocked"
+      ],
+      "currentUse": "Planning-time candidate ranking only. Scores never authorize execution."
+    }
+  }
+}

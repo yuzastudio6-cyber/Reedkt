@@ -37,5 +37,6 @@
 - Proceed with `SOUND-RUNTIME-MEDIA-GATE-1` before registry expansion for install-plan-only candidates.
 - Prepare `REEDITPRO-TOOL-CALLING-SOUND-OWNER-CANDIDATE-STUDY-CARDS-1` only after current owner install evidence is reconciled and only as planning metadata.
 - Keep `SOUND-RUNTIME-MEDIA-GATE-2` and `SOUND-RUNTIME-MEDIA-GATE-3` as blockers for model-weight/provenance-sensitive and media-policy-sensitive tools.
+- After PR #640, use the Sound Runtime Gate 1 reconciliation layer to track Gate 1A and Gate 1B readiness without promoting or executing candidates.
 
 Decision target: `reeditpro_tool_calling_sound_music_audio_owner_expansion_1_ready_for_sound_candidate_study_or_runtime_gate_reconciliation`

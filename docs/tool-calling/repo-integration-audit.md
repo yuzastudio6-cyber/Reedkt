@@ -153,6 +153,13 @@
 - Candidate cards remain separate from first-class capability cards; runtime selection still requires `server/tool-registry` `ProductionToolId` coverage.
 - Next recommended gate is `SOUND-RUNTIME-MEDIA-GATE-1` before any registry reconciliation for install-plan candidates.
 
+## Sound Runtime Media Gate 1
+
+- Sound Runtime Media Gate 1 reconciliation consumes merged PR #640 evidence for 15 CPU install candidates.
+- It records 13 direct pinned packages, 2 alias-covered tools, `signalsmith_stretch` as approved-plan-covered and planning-only, and future sound worker/job surfaces.
+- Next owner prompts remain `SOUND-RUNTIME-MEDIA-GATE-1A` for controlled CPU install proof and `SOUND-RUNTIME-MEDIA-GATE-1B` for worker contract review.
+- This layer adds no package installs, probes, adapters, command intents, media processing, worker dispatch, Supabase/SQL, package-lock mutation, beta unlock, or production unlock.
+
 ## First-Class Coverage Expansion
 
 - This milestone adds explicit study cards and planning-only adapter contracts for all remaining first-class registry tools: `audioflux`, `babylon_js`, `cesium_js`, `d3`, `deck_gl`, `demucs`, `duckdb`, `echarts`, `essentia`, `hyperframe`, `konva`, `kornia`, `librosa`, `lottie`, `maplibre`, `mediapipe`, `pixijs`, `playwright`, `polars`, `rembg`, `revideo`, `rnnoise`, `rubber_band`, `signalsmith_stretch`, `soundtouch`, `three_js`, `transparent_background`, `turf`, `vapoursynth`, `vega_lite`, `whisper_cpp`.

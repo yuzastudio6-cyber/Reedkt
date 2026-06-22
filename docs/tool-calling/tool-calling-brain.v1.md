@@ -154,6 +154,13 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - They are stored separately from first-class study cards and do not participate in runtime selection, ranking, adapter contracts, command intents, fixtures, probes, or execution.
 - Runtime selection still requires a first-class `ProductionToolId`; SOUND owner gates remain the source of truth for install, model, license, media, provider, and worker readiness.
 
+## Sound Runtime Gate 1 Reconciliation
+
+- Sound Runtime Gate 1 reconciliation consumes merged PR #640 evidence as planning metadata only.
+- It records the 13 direct pinned packages, 2 alias-covered tools, and planning-only sound worker/job surfaces without enabling runtime execution.
+- Package/install proof remains owner-lane gated by `SOUND-RUNTIME-MEDIA-GATE-1A`; worker contract review remains gated by `SOUND-RUNTIME-MEDIA-GATE-1B`.
+- Tool-calling can reason about Gate 1 candidates, but it must not select or execute candidate-only tools.
+
 ## Track B External Registry Planning Expansion
 
 - Track B external registry expansion adds first-class `ProductionToolId` coverage for `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.

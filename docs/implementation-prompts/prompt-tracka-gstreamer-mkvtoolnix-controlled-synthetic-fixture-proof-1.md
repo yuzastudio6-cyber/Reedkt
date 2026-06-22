@@ -1,18 +1,24 @@
 # TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-SYNTHETIC-FIXTURE-PROOF-1
 
-Readiness: `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-SYNTHETIC-FIXTURE-PROOF-1 readiness: ready_for_future_owner_approved_planning`
+Status: `completed`
 
-Source-of-truth: `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1 decision: completed_gstreamer_mkvtoolnix_no_media_runtime_proof`
+Decision: `completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof`
 
-Goal: plan a future controlled synthetic fixture proof for GStreamer and MKVToolNix only after owner approval.
+Source-of-truth: `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-SYNTHETIC-FIXTURE-PROOF-1 decision: completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof`
 
-Current completed scope:
+Predecessor source-of-truth: `TRACKA-GSTREAMER-MKVTOOLNIX-NO-MEDIA-RUNTIME-PROOF-1 decision: completed_gstreamer_mkvtoolnix_no_media_runtime_proof`
 
-- GStreamer command path/version/plugin metadata checks passed.
-- MKVToolNix command path/version checks passed.
-- No GStreamer pipeline ran.
-- No MKVToolNix media command ran.
-- No FFmpeg/FFprobe execution occurred.
-- No private media, GCS/private artifacts, signed/public artifacts, Supabase, SQL, workers, routes, providers, or beta/production unlocks were used.
+Completed scope:
 
-Future fixture proof must use synthetic local fixture data only, must not use private media or public artifacts, and must keep FFmpeg/FFprobe Track B-owned unless a later prompt explicitly provides owner-approved handoff scope.
+- `gstreamer_render_pipeline_support`: `gst-launch-1.0 -q fakesrc num-buffers=3 ! fakesink` passed inside the local render-worker image.
+- `mkvtoolnix_container_validation`: generated `/tmp` `synthetic.srt`, muxed `synthetic-subtitle-only.mkv`, and identified the Matroska subtitle track.
+- Image tag reused: `reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8`.
+- Private/user media used: `false`.
+- Generated artifacts committed: `none`.
+- Product-ready end-to-end local OSS tools: `0`.
+
+FFmpeg/FFprobe remain Track B-owned shared dependencies only.
+
+Atlas Track A does not claim FFmpeg/FFprobe ownership or install proof.
+
+Next prompt: `TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1`

@@ -32,6 +32,14 @@ Remotion runtime proof status: `Remotion runtime proof status: blocked_pending_r
 
 Remotion runtime execution status: `runtimeExecutionPerformed: false`.
 
+Track A GStreamer/MKVToolNix controlled synthetic fixture proof: `completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof`.
+
+Private/user media used: `false`.
+
+Generated artifacts committed: `none`.
+
+Product-ready end-to-end local OSS tools: `0`.
+
 Generated fixture: `not_run_confirmation_absent`.
 
 Browser runtime status: `browserRuntimeStatus: not_validated_in_this_phase`.

@@ -1,0 +1,162 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "soundfile_libsndfile",
+  "displayName": "SoundFile / libsndfile",
+  "aliases": [
+    "libsndfile",
+    "soundfile",
+    "soundfile_libsndfile"
+  ],
+  "ownerLane": "sound_music_audio",
+  "soundCategory": "speech_audio_support",
+  "runtimeResolution": {
+    "status": "blocked_pending_license",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Python audio I/O wrapper remains candidate-only until license/install proof is refreshed. Audio file I/O native dependency, do not promote until SOUND owner install/license proof is refreshed."
+  },
+  "operations": [
+    {
+      "operationId": "media.inspect",
+      "supportLevel": "future",
+      "bestFor": [
+        "future private audio file decoding evidence",
+        "audio container inspection planning",
+        "SOUND owner install and license reconciliation"
+      ],
+      "notFor": [
+        "runtime audio decoding now",
+        "real user media access",
+        "public artifact creation"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffprobe",
+        "ffmpeg"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    },
+    {
+      "operationId": "media.audio.extract",
+      "supportLevel": "future",
+      "bestFor": [
+        "future private audio file decoding evidence",
+        "audio container inspection planning",
+        "SOUND owner install and license reconciliation"
+      ],
+      "notFor": [
+        "runtime audio decoding now",
+        "real user media access",
+        "public artifact creation"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffprobe",
+        "ffmpeg"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future private audio file decoding evidence",
+    "audio container inspection planning",
+    "SOUND owner install and license reconciliation"
+  ],
+  "notFor": [
+    "runtime audio decoding now",
+    "real user media access",
+    "public artifact creation"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "analysis_report",
+    "json_spec"
+  ],
+  "validators": [
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "ffprobe",
+    "ffmpeg"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "license or native dependency provenance may block execution",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Audio import readiness planning",
+    "Private audio artifact compatibility notes"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md",
+      "summary": "Owner evidence for SoundFile / libsndfile from PR #636 docs/sound-runtime-media-gate-0-install-strategy.md."
+    },
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-runtime-tool-inventory.md",
+      "summary": "Owner evidence for SoundFile / libsndfile from PR #636 docs/sound-runtime-media-gate-0-runtime-tool-inventory.md."
+    }
+  ],
+  "ownerGateStatus": "wait_for_license_provenance_review",
+  "futurePromotionRequirements": [
+    "license, native dependency, and commercial use provenance review",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:soundfile_libsndfile:owner_gate_pending",
+    "benchmark:soundfile_libsndfile:latency_pending",
+    "benchmark:soundfile_libsndfile:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:soundfile_libsndfile:candidate_review_count",
+    "telemetry:soundfile_libsndfile:owner_gate_outcomes",
+    "telemetry:soundfile_libsndfile:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

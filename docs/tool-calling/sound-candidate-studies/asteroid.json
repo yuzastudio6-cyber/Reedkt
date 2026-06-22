@@ -1,0 +1,119 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "asteroid",
+  "displayName": "Asteroid",
+  "aliases": [
+    "asteroid"
+  ],
+  "ownerLane": "sound_music_audio",
+  "soundCategory": "stem_separation",
+  "runtimeResolution": {
+    "status": "blocked_pending_model_weight",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Model/provenance-sensitive enhancement/separation candidate."
+  },
+  "operations": [
+    {
+      "operationId": "audio.cleanup",
+      "supportLevel": "future",
+      "bestFor": [
+        "future speech enhancement and separation planning",
+        "model provenance review"
+      ],
+      "notFor": [
+        "model execution",
+        "voice cleanup runtime now"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "audio",
+        "analysis_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "deepfilternet",
+        "demucs"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future speech enhancement and separation planning",
+    "model provenance review"
+  ],
+  "notFor": [
+    "model execution",
+    "voice cleanup runtime now"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "audio",
+    "analysis_report"
+  ],
+  "validators": [
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "deepfilternet",
+    "demucs"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "model weights or provider provenance may block execution",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Speech enhancement study",
+    "Separation model comparison"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-model-weight-gpu-policy-plan.md",
+      "summary": "Owner evidence for Asteroid from PR #636 docs/sound-runtime-media-gate-0-model-weight-gpu-policy-plan.md."
+    }
+  ],
+  "ownerGateStatus": "wait_for_model_weight_owner_review",
+  "futurePromotionRequirements": [
+    "SOUND-RUNTIME-MEDIA-GATE-2 model weight, license, and provenance review",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:asteroid:owner_gate_pending",
+    "benchmark:asteroid:latency_pending",
+    "benchmark:asteroid:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:asteroid:candidate_review_count",
+    "telemetry:asteroid:owner_gate_outcomes",
+    "telemetry:asteroid:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

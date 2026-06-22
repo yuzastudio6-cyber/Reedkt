@@ -1,0 +1,123 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "sfx_director",
+  "displayName": "SFX Director",
+  "aliases": [
+    "action_foley_sfx_tool",
+    "sfx_director",
+    "sfx_director_tool"
+  ],
+  "ownerLane": "sfx_soundsync",
+  "soundCategory": "sfx_director",
+  "runtimeResolution": {
+    "status": "owner_inventory_only",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "SFX owner service lane, no tool-calling runtime identity."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "future",
+      "bestFor": [
+        "future action Foley planning",
+        "SFX owner-service handoff"
+      ],
+      "notFor": [
+        "local executable runtime",
+        "provider call or SFX generation now"
+      ],
+      "inputArtifacts": [
+        "json_spec"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "qa_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "remotion"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future action Foley planning",
+    "SFX owner-service handoff"
+  ],
+  "notFor": [
+    "local executable runtime",
+    "provider call or SFX generation now"
+  ],
+  "inputArtifacts": [
+    "json_spec"
+  ],
+  "outputArtifacts": [
+    "json_spec",
+    "qa_report"
+  ],
+  "validators": [
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "remotion"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Foley cue planning",
+    "SFX scene design metadata"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-runtime-tool-inventory.md",
+      "summary": "Owner evidence for SFX Director from PR #636 docs/sound-runtime-media-gate-0-runtime-tool-inventory.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_evidence",
+      "sourcePath": "docs/sfx-director-service.md",
+      "summary": "Owner evidence for SFX Director from docs/sfx-director-service.md."
+    }
+  ],
+  "ownerGateStatus": "do_not_duplicate_owner_lane",
+  "futurePromotionRequirements": [
+    "explicit owner handoff that this surface should become a local OSS runtime tool",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:sfx_director:owner_gate_pending",
+    "benchmark:sfx_director:latency_pending",
+    "benchmark:sfx_director:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:sfx_director:candidate_review_count",
+    "telemetry:sfx_director:owner_gate_outcomes",
+    "telemetry:sfx_director:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

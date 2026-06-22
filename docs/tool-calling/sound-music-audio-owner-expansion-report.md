@@ -25,6 +25,7 @@
 - CPU install-plan candidates are candidates for SOUND gate reconciliation, not runtime tools.
 - Model-weight and provenance-sensitive tools remain blocked until owner review clears model source, license, checksum, storage, cost, and GPU policy.
 - Provider/API-only SFX/music surfaces remain separated from local OSS tool-calling execution.
+- Candidate-only study cards may now document selected owner-evidence candidates, but they do not change runtime selectability or first-class registry status.
 
 ## Duplicate-Risk Notes
 

@@ -1,0 +1,162 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "music_ducking_loudness_qa",
+  "displayName": "Music Ducking Loudness QA",
+  "aliases": [
+    "loudness_qa",
+    "music_ducking_loudness_qa",
+    "music_ducking_loudness_qa_planning",
+    "music_ducking_mix_qa"
+  ],
+  "ownerLane": "sound_music_audio",
+  "soundCategory": "loudness_qa",
+  "runtimeResolution": {
+    "status": "owner_inventory_only",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Policy/QA owner lane, do not convert to a tool without owner handoff."
+  },
+  "operations": [
+    {
+      "operationId": "audio.loudness.normalize",
+      "supportLevel": "future",
+      "bestFor": [
+        "future music ducking QA policy planning",
+        "voice/music balance analysis"
+      ],
+      "notFor": [
+        "mix rendering",
+        "loudness execution now"
+      ],
+      "inputArtifacts": [
+        "audio",
+        "json_spec"
+      ],
+      "outputArtifacts": [
+        "qa_report",
+        "analysis_report"
+      ],
+      "validators": [
+        "audio_loudness",
+        "audio_sync"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "audioflux"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    },
+    {
+      "operationId": "qa.final_delivery",
+      "supportLevel": "future",
+      "bestFor": [
+        "future music ducking QA policy planning",
+        "voice/music balance analysis"
+      ],
+      "notFor": [
+        "mix rendering",
+        "loudness execution now"
+      ],
+      "inputArtifacts": [
+        "audio",
+        "json_spec"
+      ],
+      "outputArtifacts": [
+        "qa_report",
+        "analysis_report"
+      ],
+      "validators": [
+        "audio_loudness",
+        "audio_sync"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "audioflux"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future music ducking QA policy planning",
+    "voice/music balance analysis"
+  ],
+  "notFor": [
+    "mix rendering",
+    "loudness execution now"
+  ],
+  "inputArtifacts": [
+    "audio",
+    "json_spec"
+  ],
+  "outputArtifacts": [
+    "qa_report",
+    "analysis_report"
+  ],
+  "validators": [
+    "audio_loudness",
+    "audio_sync"
+  ],
+  "fallbackToolIds": [
+    "ffmpeg",
+    "audioflux"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Music-under-dialogue QA study",
+    "Final mix policy planning"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-media-runtime-policy-plan.md",
+      "summary": "Owner evidence for Music Ducking Loudness QA from PR #636 docs/sound-runtime-media-gate-0-media-runtime-policy-plan.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_evidence",
+      "sourcePath": "docs/production-loudness-music-ducking-policy.md",
+      "summary": "Owner evidence for Music Ducking Loudness QA from docs/production-loudness-music-ducking-policy.md."
+    }
+  ],
+  "ownerGateStatus": "do_not_duplicate_owner_lane",
+  "futurePromotionRequirements": [
+    "explicit owner handoff that this surface should become a local OSS runtime tool",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:music_ducking_loudness_qa:owner_gate_pending",
+    "benchmark:music_ducking_loudness_qa:latency_pending",
+    "benchmark:music_ducking_loudness_qa:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:music_ducking_loudness_qa:candidate_review_count",
+    "telemetry:music_ducking_loudness_qa:owner_gate_outcomes",
+    "telemetry:music_ducking_loudness_qa:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

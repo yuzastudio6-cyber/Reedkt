@@ -148,6 +148,12 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Track B external registry expansion promotes `mediainfo`, `exiftool`, `tesseract`, and `imagemagick` into first-class planning metadata while keeping execution gated separately.
 - `graphicsmagick` remains pending and non-selectable as a separate runtime identity; diagnostics report `graphicsMagickCounted: false`.
 
+## Sound Candidate-Only Study Cards
+
+- Sound candidate-only study cards are awareness metadata for Sound/Music/Audio and SFX/SoundSync candidates from PR #641 / PR #636 evidence.
+- They are stored separately from first-class study cards and do not participate in runtime selection, ranking, adapter contracts, command intents, fixtures, probes, or execution.
+- Runtime selection still requires a first-class `ProductionToolId`; SOUND owner gates remain the source of truth for install, model, license, media, provider, and worker readiness.
+
 ## Track B External Registry Planning Expansion
 
 - Track B external registry expansion adds first-class `ProductionToolId` coverage for `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.

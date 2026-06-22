@@ -1,0 +1,148 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "pyloudnorm",
+  "displayName": "pyloudnorm",
+  "aliases": [
+    "pyloudnorm"
+  ],
+  "ownerLane": "sound_music_audio",
+  "soundCategory": "loudness_qa",
+  "runtimeResolution": {
+    "status": "install_plan_only",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Pinned loudness-analysis evidence only, no media runtime claim."
+  },
+  "operations": [
+    {
+      "operationId": "audio.loudness.normalize",
+      "supportLevel": "future",
+      "bestFor": [
+        "future EBU R128 loudness analysis planning",
+        "music ducking QA comparisons"
+      ],
+      "notFor": [
+        "audio rendering",
+        "loudness normalization execution now"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "qa_report",
+        "analysis_report"
+      ],
+      "validators": [
+        "audio_loudness"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "audioflux"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    },
+    {
+      "operationId": "qa.final_delivery",
+      "supportLevel": "future",
+      "bestFor": [
+        "future EBU R128 loudness analysis planning",
+        "music ducking QA comparisons"
+      ],
+      "notFor": [
+        "audio rendering",
+        "loudness normalization execution now"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "qa_report",
+        "analysis_report"
+      ],
+      "validators": [
+        "audio_loudness"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg",
+        "audioflux"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future EBU R128 loudness analysis planning",
+    "music ducking QA comparisons"
+  ],
+  "notFor": [
+    "audio rendering",
+    "loudness normalization execution now"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "qa_report",
+    "analysis_report"
+  ],
+  "validators": [
+    "audio_loudness"
+  ],
+  "fallbackToolIds": [
+    "ffmpeg",
+    "audioflux"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Loudness QA candidate study",
+    "Broadcast-style mix validation planning"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md",
+      "summary": "Owner evidence for pyloudnorm from PR #636 docs/sound-runtime-media-gate-0-install-strategy.md."
+    }
+  ],
+  "ownerGateStatus": "wait_for_sound_runtime_media_gate_1",
+  "futurePromotionRequirements": [
+    "SOUND-RUNTIME-MEDIA-GATE-1 CPU worker install plan and bounded install proof",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:pyloudnorm:owner_gate_pending",
+    "benchmark:pyloudnorm:latency_pending",
+    "benchmark:pyloudnorm:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:pyloudnorm:candidate_review_count",
+    "telemetry:pyloudnorm:owner_gate_outcomes",
+    "telemetry:pyloudnorm:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

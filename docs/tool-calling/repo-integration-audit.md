@@ -146,6 +146,13 @@
 - The layer does not create a duplicate export worker, final-render worker, media probe worker, worker router, production registry, QA policy, fallback policy, Supabase runtime table, migration, SQL file, storage writer, artifact writer, or command execution layer.
 - Required gates are `export_codec_format`, `export_duration_sync`, and `render_asset_integrity`; `final_delivery` is optional, skipped, and deferred to a future real export validation milestone.
 
+## Sound Candidate Study Coverage
+
+- Sound candidate study coverage adds candidate-only cards for 18 Sound/Music/Audio and SFX/SoundSync owner-evidence tools.
+- The cards do not create runtime IDs, adapter contracts, command intents, fixture plans, controlled probes, execution surfaces, Supabase tables, SQL, migrations, signed URLs, package installs, or package-lock changes.
+- Candidate cards remain separate from first-class capability cards; runtime selection still requires `server/tool-registry` `ProductionToolId` coverage.
+- Next recommended gate is `SOUND-RUNTIME-MEDIA-GATE-1` before any registry reconciliation for install-plan candidates.
+
 ## First-Class Coverage Expansion
 
 - This milestone adds explicit study cards and planning-only adapter contracts for all remaining first-class registry tools: `audioflux`, `babylon_js`, `cesium_js`, `d3`, `deck_gl`, `demucs`, `duckdb`, `echarts`, `essentia`, `hyperframe`, `konva`, `kornia`, `librosa`, `lottie`, `maplibre`, `mediapipe`, `pixijs`, `playwright`, `polars`, `rembg`, `revideo`, `rnnoise`, `rubber_band`, `signalsmith_stretch`, `soundtouch`, `three_js`, `transparent_background`, `turf`, `vapoursynth`, `vega_lite`, `whisper_cpp`.

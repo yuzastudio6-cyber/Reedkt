@@ -5,8 +5,15 @@ Implemented decision: `ai_graphics_tool_capability_study_canonical_agent_routing
 This implementation creates the owner-approval QA docs/diagnostics lane from `codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-owner-approval`.
 
 Branch: `codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-owner-approval-qa-review`.
-Draft PR: pending creation.
+Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/668.
 
 No dependency install, `npm ci`, CPU/static execution, import smoke, synthetic fixtures, tool/worker/route/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, Supabase/SQL/GCS, signed URLs, public artifacts, beta/production commands, PR merge, PR close, or PR retarget was performed.
 
 Next prompt: `AI_GRAPHICS_TOOL_CAPABILITY_STUDY_CANONICAL_AGENT_ROUTING_CANONICALIZATION_CANONICAL_AGENT_SELECTION_REVIEW`.
+
+## Final PR Status
+
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/668
+- Status: open draft, MERGEABLE
+- Head: `07e628f47fd396f5fc18f7097f54f1aece55c876`
+- Check status: empty check rollup at creation

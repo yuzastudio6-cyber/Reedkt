@@ -24,6 +24,8 @@ const requiredReports = [
   'readiness-report.json',
   'private-artifact-manifest.json',
   'validation-results.md',
+  'source-refresh-after-pr-680-drift.json',
+  'source-refresh-after-pr-680-drift.md',
 ].map((file) => `${packetDir}/${file}`)
 
 const predecessorFiles = [
@@ -135,6 +137,10 @@ const requiredText = [
   'PR #577 remains open, draft, blocked/conflicting, and excluded as source-of-truth',
   'Product-ready end-to-end local OSS tools: `0`',
   'Track B FFmpeg/FFprobe ownership remains preserved',
+  'PR #680 merge SHA / current base SHA: `41601b267d076534412b7e13c86bee32cac23f7b`',
+  'PR #682 old head SHA: `ea2e5c81550143643de2ae1e10e67fbd75fd9205`',
+  'tracka:gstreamer-mkvtoolnix-private-fixture-execution-packet-1:diagnostics',
+  'tracka:gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1:diagnostics',
   'QA-phase GStreamer execution: `not_run`',
   'QA-phase MKVToolNix execution: `not_run`',
   'QA-phase FFmpeg/FFprobe execution: `not_run`',
@@ -219,6 +225,10 @@ const packageJson = JSON.parse(read('package.json'))
 const expectedScript = 'node scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs'
 if (packageJson.scripts?.['tracka:gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1:diagnostics'] !== expectedScript) {
   fail('missing package script: tracka:gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1:diagnostics')
+}
+const expectedExecutionPacketScript = 'node scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs'
+if (packageJson.scripts?.['tracka:gstreamer-mkvtoolnix-private-fixture-execution-packet-1:diagnostics'] !== expectedExecutionPacketScript) {
+  fail('missing package script: tracka:gstreamer-mkvtoolnix-private-fixture-execution-packet-1:diagnostics')
 }
 
 const combined = requiredFiles.map((file) => read(file)).join('\n')

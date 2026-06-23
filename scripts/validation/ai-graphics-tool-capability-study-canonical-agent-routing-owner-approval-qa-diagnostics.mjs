@@ -15,6 +15,7 @@ const expectedScriptCommand =
 const allowedDescendantScripts = new Set([
   "ai-graphics:tool-capability-study:canonical-routing-canonicalization-diagnostics",
   "ai-graphics:tool-capability-study:canonical-routing-canonicalization-qa-diagnostics",
+  "ai-graphics:tool-capability-study:canonical-routing-canonicalization-owner-diagnostics",
 ]);
 
 const failures = [];

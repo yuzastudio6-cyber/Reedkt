@@ -154,3 +154,7 @@ Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_canonicaliz
 ## AI Graphics Canonical Agent Routing Canonicalization QA Review
 
 Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_qa_passed_with_warnings`. PR #656 canonicalization review is QA-accepted with warnings as planning/study metadata routing only for all 21 AI graphics tools and all 12 product-facing capabilities. Agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal/external beta, and production remain false.
+
+## AI Graphics Canonical Agent Routing Canonicalization Owner Review
+
+Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_owner_review_passed_with_warnings`. PR #657 canonicalization QA is owner-accepted with warnings as planning/study metadata routing only for all 21 AI graphics tools and all 12 product-facing capabilities. Agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal/external beta, and production remain false.

@@ -1,0 +1,19 @@
+{
+  "ownerApproved": true,
+  "sourceSchemaOwnerReviewAccepted": true,
+  "requiredSections": [
+    "capabilityExtraction",
+    "candidateMapping",
+    "ranking",
+    "elimination",
+    "fallback",
+    "missingProofRequirements",
+    "planningOnlyRecommendation",
+    "safetyBoundary"
+  ],
+  "executionAllowedNow": false,
+  "routeExecutionAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "runtimeReadyNow": false
+}

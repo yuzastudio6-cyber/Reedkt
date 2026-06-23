@@ -1,0 +1,271 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_owner_approved_with_warnings",
+  "sourcePrs": {
+    "361": {
+      "state": "MERGED",
+      "mergeCommit": "05d429f6029136f0f55fe01375809071b588791c",
+      "role": "historical capability routing contract"
+    },
+    "376": {
+      "state": "MERGED",
+      "mergeCommit": "9296a4a41a143c0a212415d890e6ff544f73bb4b",
+      "role": "historical capability routing study"
+    },
+    "425": {
+      "state": "MERGED",
+      "mergeCommit": "a055ef045db2a6ce127a044bee6219d5933532c3",
+      "role": "Batch 1 package-proof source"
+    },
+    "433": {
+      "state": "MERGED",
+      "mergeCommit": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0",
+      "role": "Batch 2 package-proof source"
+    },
+    "441": {
+      "state": "MERGED",
+      "mergeCommit": "d174de59471eacf05bed5a5511d661f2e5ba9f0f",
+      "role": "Batch 3 package-proof source"
+    },
+    "542": {
+      "state": "MERGED",
+      "mergeCommit": "a66a1c0b72263e5e113d95216c373e0fad1071bb",
+      "role": "Track B owner exclusion evidence"
+    },
+    "543": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "37fea25846987323d1de04098c701816fa24a237",
+      "role": "owner assignment and exclusion context"
+    },
+    "544": {
+      "state": "MERGED",
+      "mergeCommit": "62f69c6b66d77abf155287ffdb2e9a380541d763",
+      "role": "Track A render/export exclusion evidence"
+    },
+    "589": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "6a55428bfd99d6e745b572df4f1a96c3a22e59cc",
+      "role": "canonical package-proof source"
+    },
+    "604": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "303ac0e00e5979a8857852aef91ac2aa8c2495fe",
+      "role": "runtime-boundary owner QA source"
+    },
+    "607": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "12cfc4f29e55db7a5b105ecfc3aba21480396435",
+      "role": "CPU/static approval source"
+    },
+    "614": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "31b196f8158f6f3054cf90daaa9ba74d18c95089",
+      "role": "dependency reconciliation source"
+    },
+    "616": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "474a88aa31aaff46164d1ff0d9dc469e8d320bf1",
+      "role": "CPU/static refreshed execution source"
+    },
+    "617": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "5bc68feeb776f2329cc4a124515709f55aac36cb",
+      "role": "CPU/static QA source"
+    },
+    "621": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "cd6ab312d83bb5ebaa30f1ef30f41cf3891c3306",
+      "role": "CPU/static owner review source"
+    },
+    "623": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "4952fb0103d05e8f7df1272c0acd7419426f0ea4",
+      "role": "capability study and PR #623 scoring model source"
+    },
+    "627": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "6ecd47f38ecef419c2dd8ec1e8fd46feb699911f",
+      "role": "capability study QA source"
+    },
+    "628": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "435cbb1317e7c45e7ef57cb54007fa38df7a3b7c",
+      "role": "capability study owner review source"
+    },
+    "632": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "e6b336556de9a9c06b392726d107e9eb9fe15ae3",
+      "role": "capability study owner approval source"
+    },
+    "634": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "8347d9c7aa310f53d577858cc4ea27d12246887e",
+      "role": "capability study owner approval QA source"
+    },
+    "638": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "61003fe69287a5ec490ec294a34ca72ef31f4367",
+      "role": "canonical routing approval source"
+    },
+    "642": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "494f37004eb59cf2fa431109cb60a4636bfd1037",
+      "role": "canonical routing QA source"
+    },
+    "645": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "244217ef84c6b2f721aab0ff74b926b6168855c9",
+      "role": "owner review source"
+    },
+    "646": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "917592a87fc85716761f98bd691f878bd6c20461",
+      "role": "owner approval source"
+    },
+    "651": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "b0803fdda8d1d6fb725e7533b64746156517f9b5",
+      "role": "owner approval QA source"
+    },
+    "656": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "d402d821519c2d03db49029c18def5dfadf0d79a",
+      "role": "canonicalization review source"
+    },
+    "657": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "6665c2a8175c575045070d74d4f7f6929f155f61",
+      "role": "canonicalization QA source PR"
+    },
+    "661": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "b23a0446fe72521688d783e990da8eb84e847856",
+      "role": "canonicalization owner-review source",
+      "decision": "ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_owner_review_passed_with_warnings"
+    },
+    "665": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "841ce60ec31b9e4c43202ed0d3e0363a4ce13869",
+      "role": "canonicalization owner-approval source",
+      "decision": "ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_owner_approved_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/665"
+    },
+    "668": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "d09b9287d3d6312d9ebe71f6657e830d0e903bb1",
+      "role": "canonicalization owner-approval QA source",
+      "decision": "ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_owner_approval_qa_passed_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/668"
+    },
+    "671": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "01917db09617a06549f110858abd16a342226c7c",
+      "role": "canonical agent-selection review source",
+      "decision": "ai_graphics_canonical_agent_selection_review_passed_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/671"
+    },
+    "674": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "fc17ed6d647207e5b99b55ac19eba650e80cd42c",
+      "role": "canonical agent-selection QA source",
+      "decision": "ai_graphics_canonical_agent_selection_qa_passed_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/674"
+    },
+    "677": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "2ff1673b27ca6e9bea9735968dc99fbbc2e4253d",
+      "role": "canonical agent-selection owner-review source",
+      "decision": "ai_graphics_canonical_agent_selection_owner_review_passed_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/677",
+      "statusMetadataWarning": "source owner-review JSON records earlier PR-status head 77ec1d8322a75f24e07d4d406c0e9e4e1f00e93d; live PR #677 head is authoritative and compatible"
+    }
+  },
+  "sourceCitations": [
+    "PR #677",
+    "PR #674",
+    "PR #671",
+    "PR #668",
+    "PR #665",
+    "PR #661",
+    "PR #657",
+    "PR #656",
+    "PR #651",
+    "PR #646",
+    "PR #645",
+    "PR #642",
+    "PR #638",
+    "PR #634",
+    "PR #632",
+    "PR #628",
+    "PR #627",
+    "PR #623",
+    "PR #621",
+    "PR #617",
+    "PR #616",
+    "PR #614",
+    "PR #607",
+    "PR #604",
+    "PR #589",
+    "PR #543",
+    "PR #425",
+    "PR #433",
+    "PR #441",
+    "PR #376",
+    "PR #361",
+    "PR #542",
+    "PR #544"
+  ],
+  "duplicateSearchResult": "No exact owner-approval PR, remote branch, or target worktree existed at preflight.",
+  "reviewedAt": "2026-06-23T14:14:03.669Z"
+}

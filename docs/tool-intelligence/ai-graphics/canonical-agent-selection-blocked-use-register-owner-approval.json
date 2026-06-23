@@ -1,0 +1,19 @@
+{
+  "ownerApproved": true,
+  "blocked": [
+    "agent execution",
+    "tool execution",
+    "route execution",
+    "worker execution",
+    "provider/model execution",
+    "browser/WebGL/canvas runtime",
+    "GPU/model runtime",
+    "Supabase/SQL/GCS",
+    "signed URLs",
+    "public artifacts",
+    "runtime readiness",
+    "internal beta",
+    "external beta",
+    "production"
+  ]
+}

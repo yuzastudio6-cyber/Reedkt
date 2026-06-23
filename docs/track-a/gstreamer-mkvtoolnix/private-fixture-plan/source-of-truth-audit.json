@@ -1,0 +1,66 @@
+{
+  "audit": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-PLAN-1 source-of-truth audit",
+  "status": "completed",
+  "source_branch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "source_sha": "ba3d8d5850601a8effb4ec971cbefb0ff7f786a9",
+  "owner": "Atlas Track A",
+  "owner_lane": "owner_tracka_visual_render_export",
+  "predecessors": [
+    {
+      "pr": 662,
+      "title": "[track-a] GStreamer MKVToolNix private fixture approval",
+      "state": "MERGED",
+      "merged_at": "2026-06-23T02:18:25Z",
+      "head_sha": "4ed3cc562ca2656f103282a1344fa060fc75bac5",
+      "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_approval_passed_ready_for_private_fixture_plan"
+    },
+    {
+      "pr": 659,
+      "title": "[track-a] GStreamer MKVToolNix private fixture scope decision",
+      "state": "MERGED",
+      "merged_at": "2026-06-23T01:10:56Z",
+      "head_sha": "479b7bba918f27e58ecd9591b8fade0b79680d84",
+      "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_scope_decision_passed_ready_for_private_fixture_approval"
+    },
+    {
+      "pr": 652,
+      "title": "[track-a] GStreamer MKVToolNix controlled synthetic fixture proof",
+      "state": "MERGED",
+      "merged_at": "2026-06-22T14:52:30Z",
+      "head_sha": "a3074af2eff53380402708ee055fa0db70b2f77a",
+      "decision": "completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof",
+      "run_id": "2026-06-22T14-31-44-660Z-390958ab",
+      "proof_image": "reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8"
+    }
+  ],
+  "duplicate_search": {
+    "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-PLAN-1": "none",
+    "tracka_gstreamer_mkvtoolnix_private_fixture_plan": "none",
+    "GStreamer MKVToolNix private fixture plan": "none"
+  },
+  "source_hashes": {
+    "package_json_sha256": "b8734205b84f720c898eb3b49d11b5ecb958c9acadbe9c06a6942ce44c337576",
+    "package_lock_sha256": "8a19532a335a579a29ec6819c6aa2460b9dd7b3edf1cecdfa33d79d634d3b023"
+  },
+  "existing_docs": {
+    "docs/cross-chat/CURRENT_HANDOFF.md": "absent",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md": "absent",
+    "docs/cross-chat/BLOCKED_SCOPES.md": "absent",
+    "docs/production-beta-blocker-inventory.md": "present_without_matching_tracka_gstreamer_mkvtoolnix_section",
+    "PRODUCTION_FOUNDATION_STATUS.md": "absent"
+  },
+  "no_scope": {
+    "gstreamer_execution": "not_run",
+    "mkvtoolnix_execution": "not_run",
+    "ffmpeg_ffprobe_execution": "not_run",
+    "private_user_real_media": "not_used",
+    "media_processing": "not_run",
+    "render_export": "not_run",
+    "docker_build_run": "not_run",
+    "workers_routes_providers": "not_run",
+    "supabase_sql_gcs": "not_touched",
+    "public_artifacts_signed_urls": "not_created",
+    "beta_production": "not_unlocked",
+    "product_ready_end_to_end_local_oss_tools": 0
+  }
+}

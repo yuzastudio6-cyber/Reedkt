@@ -1,0 +1,7 @@
+{
+  "readiness": "ready_for_controlled_generated_private_fixture_execution_gate",
+  "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_plan_passed_ready_for_controlled_generated_private_fixture_execution",
+  "next_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1",
+  "execution_authorized_in_this_phase": false,
+  "product_ready_end_to_end_local_oss_tools": 0
+}

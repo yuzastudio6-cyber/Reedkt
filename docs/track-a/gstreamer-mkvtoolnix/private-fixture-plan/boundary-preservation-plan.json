@@ -1,0 +1,19 @@
+{
+  "plan": "boundary preservation",
+  "status": "completed",
+  "boundaries": {
+    "trackb_ffmpeg_ffprobe": "preserved",
+    "render_export": "preserved",
+    "remotion_browser": "preserved",
+    "supabase_gcs": "preserved",
+    "public_signed_url": "preserved",
+    "beta_production": "preserved",
+    "product_ready_end_to_end_local_oss_tools": 0
+  },
+  "ownership": {
+    "gstreamer": "Track A scoped planning only",
+    "mkvtoolnix": "Track A scoped planning only",
+    "ffmpeg": "Track B-owned shared dependency boundary preserved",
+    "ffprobe": "Track B-owned shared dependency boundary preserved"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "future_execution_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1",
+  "status": "planned_no_execution",
+  "required_confirmation": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_CONTROLLED_GENERATED_PRIVATE_FIXTURE_EXECUTION=true",
+  "source_branch": "codex/rp-tracka-gstreamer-mkvtoolnix-private-fixture-plan-1",
+  "allowed_command_categories": [
+    "bounded_synthetic_generated_gstreamer_pipeline",
+    "generated_temp_subtitle_fixture_mkvmerge_mux_identify"
+  ],
+  "expected_reports": [
+    "source audit",
+    "command matrix",
+    "generated fixture manifest",
+    "runtime result",
+    "cleanup report",
+    "safety scan",
+    "decision"
+  ],
+  "cleanup": "mandatory_before_commit",
+  "success_decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_execution_passed_ready_for_private_fixture_qa",
+  "blocked_decisions": [
+    "blocked_missing_execution_confirmation",
+    "blocked_docker_unavailable",
+    "blocked_gstreamer_generated_fixture_failure",
+    "blocked_mkvtoolnix_generated_fixture_failure",
+    "blocked_unexpected_private_user_real_media",
+    "blocked_unexpected_ffmpeg_ffprobe_execution",
+    "blocked_cleanup_failure",
+    "rejected_due_runtime_safety_risk"
+  ],
+  "next_qa_gate": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-QA-1",
+  "product_runtime": "not_authorized"
+}

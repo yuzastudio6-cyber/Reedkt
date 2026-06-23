@@ -1,0 +1,18 @@
+{
+  "review": "runtime boundary review",
+  "status": "completed",
+  "this_phase": {
+    "tool_execution": "not_run",
+    "gstreamer_execution": "not_run",
+    "mkvtoolnix_execution": "not_run",
+    "docker_build_run": "not_run",
+    "private_user_real_media": "not_used",
+    "media_processing": "not_run",
+    "render_export": "not_run",
+    "workers_routes_providers": "not_run",
+    "supabase_sql_gcs": "not_touched",
+    "public_signed_url": "not_created",
+    "beta_production": "not_unlocked",
+    "product_ready_end_to_end_local_oss_tools": 0
+  }
+}

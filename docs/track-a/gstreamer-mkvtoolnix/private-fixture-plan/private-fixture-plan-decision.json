@@ -1,0 +1,19 @@
+{
+  "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_plan_passed_ready_for_controlled_generated_private_fixture_execution",
+  "next_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1",
+  "status": "passed_ready_for_next_execution_gate",
+  "rationale": [
+    "future fixture is generated synthetic content scoped to a private temp execution context",
+    "user media, private media, real media, GCS/private artifact source, public artifact, and signed URL delivery are not required",
+    "future command categories are bounded",
+    "cleanup and safe metadata reporting are mandatory",
+    "FFmpeg/FFprobe, render/export, product runtime, beta, and production remain blocked"
+  ],
+  "product_ready_end_to_end_local_oss_tools": 0,
+  "supabase_classification": {
+    "update_required": "none",
+    "environment_touched": "none",
+    "sql_executed": "none",
+    "migration_deployed": "no"
+  }
+}

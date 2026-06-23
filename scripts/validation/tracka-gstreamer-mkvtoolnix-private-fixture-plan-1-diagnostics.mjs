@@ -1,32 +1,58 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
-const packetDir = 'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval'
+const packetDir = 'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan'
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'private-fixture-source-approval.json',
-  'private-fixture-source-approval.md',
-  'tool-command-approval.json',
-  'tool-command-approval.md',
-  'artifact-log-policy.json',
-  'artifact-log-policy.md',
-  'boundary-preservation-review.json',
-  'boundary-preservation-review.md',
-  'future-execution-plan.json',
-  'future-execution-plan.md',
+  'generated-synthetic-private-fixture-design.json',
+  'generated-synthetic-private-fixture-design.md',
+  'gstreamer-command-plan.json',
+  'gstreamer-command-plan.md',
+  'mkvtoolnix-command-plan.json',
+  'mkvtoolnix-command-plan.md',
+  'privacy-artifact-plan.json',
+  'privacy-artifact-plan.md',
+  'boundary-preservation-plan.json',
+  'boundary-preservation-plan.md',
+  'future-execution-validation-plan.json',
+  'future-execution-validation-plan.md',
   'runtime-boundary-review.json',
   'runtime-boundary-review.md',
-  'private-fixture-approval-decision.json',
-  'private-fixture-approval-decision.md',
+  'private-fixture-plan-decision.json',
+  'private-fixture-plan-decision.md',
   'readiness-report.json',
   'private-artifact-manifest.json',
   'validation-results.md',
 ].map((file) => `${packetDir}/${file}`)
 
+const predecessorApprovalFiles = [
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/source-of-truth-audit.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/source-of-truth-audit.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-fixture-source-approval.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-fixture-source-approval.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/tool-command-approval.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/tool-command-approval.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/artifact-log-policy.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/artifact-log-policy.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/boundary-preservation-review.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/boundary-preservation-review.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/future-execution-plan.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/future-execution-plan.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/runtime-boundary-review.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/runtime-boundary-review.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-fixture-approval-decision.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-fixture-approval-decision.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/readiness-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-artifact-manifest.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/validation-results.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-plan-1.md',
+]
+
 const requiredFiles = [
   ...requiredReports,
-  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-plan-1.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-plan-1-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1-diagnostics.mjs',
@@ -34,69 +60,23 @@ const requiredFiles = [
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
 ]
 
-const predecessorScopeFiles = [
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/source-of-truth-audit.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/source-of-truth-audit.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/synthetic-evidence-review.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/synthetic-evidence-review.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/private-fixture-policy-review.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/private-fixture-policy-review.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/trackb-ffmpeg-ffprobe-boundary-review.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/trackb-ffmpeg-ffprobe-boundary-review.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/render-export-boundary-review.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/render-export-boundary-review.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/artifact-privacy-review.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/artifact-privacy-review.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/future-command-scope-plan.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/future-command-scope-plan.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/runtime-boundary-review.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/runtime-boundary-review.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/private-fixture-scope-decision.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/private-fixture-scope-decision.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/readiness-report.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/private-artifact-manifest.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/validation-results.md',
-  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-approval-1.md',
-]
-
 const allowedChangedFiles = new Set([
   ...requiredFiles,
   ...requiredReports,
-  ...predecessorScopeFiles,
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/source-of-truth-audit.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/source-of-truth-audit.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/generated-synthetic-private-fixture-design.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/generated-synthetic-private-fixture-design.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/gstreamer-command-plan.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/gstreamer-command-plan.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/mkvtoolnix-command-plan.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/mkvtoolnix-command-plan.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/privacy-artifact-plan.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/privacy-artifact-plan.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/boundary-preservation-plan.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/boundary-preservation-plan.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/future-execution-validation-plan.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/future-execution-validation-plan.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/runtime-boundary-review.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/runtime-boundary-review.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/private-fixture-plan-decision.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/private-fixture-plan-decision.md',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/readiness-report.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/private-artifact-manifest.json',
-  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/validation-results.md',
-  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1.md',
-  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-plan-1-diagnostics.mjs',
-  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-approval-1.md',
+  ...predecessorApprovalFiles,
   'package.json',
 ])
 
-const decision = 'tracka_gstreamer_mkvtoolnix_private_fixture_approval_passed_ready_for_private_fixture_plan'
-const nextPrompt = 'TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-PLAN-1'
+const decision = 'tracka_gstreamer_mkvtoolnix_private_fixture_plan_passed_ready_for_controlled_generated_private_fixture_execution'
+const nextPrompt = 'TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1'
 
 const requiredText = [
-  'TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1',
+  'TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-PLAN-1',
+  '#662',
+  'ba3d8d5850601a8effb4ec971cbefb0ff7f786a9',
+  '4ed3cc562ca2656f103282a1344fa060fc75bac5',
+  'tracka_gstreamer_mkvtoolnix_private_fixture_approval_passed_ready_for_private_fixture_plan',
   '#659',
-  '535b6003606430df88e6905ecd2db36be19a9e8b',
   '479b7bba918f27e58ecd9591b8fade0b79680d84',
   'tracka_gstreamer_mkvtoolnix_private_fixture_scope_decision_passed_ready_for_private_fixture_approval',
   '#652',
@@ -104,6 +84,12 @@ const requiredText = [
   'completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof',
   '2026-06-22T14-31-44-660Z-390958ab',
   'reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8',
+  '/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1/<runId>/',
+  'generated-private-subtitles.srt',
+  'generated-private-subtitle-only.mkv',
+  'gst-launch-1.0 -q videotestsrc num-buffers=3 ! fakesink',
+  'mkvmerge -o generated-private-subtitle-only.mkv generated-private-subtitles.srt',
+  'mkvmerge --identify generated-private-subtitle-only.mkv',
   decision,
   nextPrompt,
   'Product-ready end-to-end local OSS tools: `0`',
@@ -136,9 +122,10 @@ const forbiddenPatterns = [
   /Secret payloads? in logs:\s*`?(true|enabled|printed|allowed)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
   /40\+ tools.*end-to-end/i,
-  /private fixture execution:\s*`?(authorized|approved|enabled|true)/i,
   /user media:\s*`?(allowed|approved|true)/i,
   /real media:\s*`?(allowed|approved|true)/i,
+  /GCS upload:\s*`?(allowed|approved|true)/i,
+  /signed URL delivery:\s*`?(allowed|approved|true)/i,
 ]
 
 function fail(message) {
@@ -163,9 +150,9 @@ for (const file of requiredReports.filter((file) => file.endsWith('.json'))) {
 }
 
 const packageJson = JSON.parse(read('package.json'))
-const expectedScript = 'node scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1-diagnostics.mjs'
-if (packageJson.scripts?.['tracka:gstreamer-mkvtoolnix-private-fixture-approval-1:diagnostics'] !== expectedScript) {
-  fail('missing package script: tracka:gstreamer-mkvtoolnix-private-fixture-approval-1:diagnostics')
+const expectedScript = 'node scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-plan-1-diagnostics.mjs'
+if (packageJson.scripts?.['tracka:gstreamer-mkvtoolnix-private-fixture-plan-1:diagnostics'] !== expectedScript) {
+  fail('missing package script: tracka:gstreamer-mkvtoolnix-private-fixture-plan-1:diagnostics')
 }
 
 const combined = requiredFiles.map((file) => read(file)).join('\n')
@@ -176,6 +163,10 @@ for (const token of requiredText) {
 for (const pattern of forbiddenPatterns) {
   if (pattern.test(combined)) fail(`forbidden claim matched: ${pattern}`)
 }
+
+const decisionReport = JSON.parse(read(`${packetDir}/private-fixture-plan-decision.json`))
+if (decisionReport.decision !== decision) fail('decision drift in private-fixture-plan-decision.json')
+if (decisionReport.next_prompt !== nextPrompt) fail('next prompt drift in private-fixture-plan-decision.json')
 
 const artifactManifest = JSON.parse(read(`${packetDir}/private-artifact-manifest.json`))
 for (const key of [
@@ -230,4 +221,4 @@ for (const file of changedFiles) {
 const stagedGenerated = git(['diff', '--cached', '--name-only', '--', 'dist', 'dist-server', 'node_modules'])
 if (stagedGenerated) fail(`generated output staged unexpectedly: ${stagedGenerated}`)
 
-console.log('TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1 diagnostics passed')
+console.log('TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-PLAN-1 diagnostics passed')

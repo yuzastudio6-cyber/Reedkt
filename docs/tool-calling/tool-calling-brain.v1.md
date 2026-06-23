@@ -187,6 +187,12 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - The layer records the `WORKER_RUNTIME_JOBS` handoff packet, dependency map, job contract register, blocker register, owner acceptance request, runtime claim policy, accepted planning terms, blocked gates, and next prompts.
 - It does not dispatch workers, call the worker router, create jobs, claim or lease worker runtime, run imports, execute tools, add worker-route dry-runs, add adapters, add commands, add probes, process media/audio, touch Docker/GCP/Cloud Run/Secret Manager, mutate Supabase/SQL, or mutate `package-lock.json`.
 
+## Worker Runtime Sound CPU Handoff Review
+
+- Worker Runtime Sound CPU handoff review reconciliation records PR #670 / `WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW` as merged owner source evidence using merge commit `f0cb0000fcc49f9b5c5e76394be9578f5d6d29dc`.
+- The layer records Sound worker names, planned images, and job types as future static planning terms only.
+- Worker-route dry-run, worker dispatch, worker claim/lease, job creation, static contract integration, imports, tools, media/audio, Docker/GCP/Cloud Run/Secret Manager, Supabase/SQL, adapters, commands, probes, fixtures, beta, and production remain blocked until static contract plan evidence exists.
+
 ## Track B External Registry Planning Expansion
 
 - Track B external registry expansion adds first-class `ProductionToolId` coverage for `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.

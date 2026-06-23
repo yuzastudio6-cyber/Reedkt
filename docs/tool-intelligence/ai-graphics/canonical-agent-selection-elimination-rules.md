@@ -1,0 +1,14 @@
+# Canonical Agent Selection Elimination Rules
+
+Decision: `ai_graphics_canonical_agent_selection_review_passed_with_warnings`.
+
+- Eliminate on capability mismatch.
+- Eliminate when proof level is below required operation.
+- Eliminate when browser/WebGL/canvas runtime is required but not approved.
+- Eliminate when GPU/model weights are required but not approved.
+- Eliminate when Tool Route execution is required but not approved.
+- Eliminate when Worker execution is required but not approved.
+- Eliminate when provider/model runtime is required but not approved.
+- Eliminate when public artifact or signed URL is required but not approved.
+- Prefer simpler/lower-cost tools when capability fit is similar.
+- Preserve all deferred/backlog statuses.

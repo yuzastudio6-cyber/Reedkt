@@ -1,0 +1,113 @@
+{
+  "schemaName": "canonical_ai_graphics_agent_selection_planning_only",
+  "source": "PR #668 canonicalization owner-approval QA",
+  "fields": [
+    "requestId",
+    "requestedCapability",
+    "inputIntent",
+    "inputMediaType",
+    "desiredOutputType",
+    "visualIntent",
+    "candidateTools",
+    "rankedTools",
+    "eliminatedTools",
+    "preferredPlanningTools",
+    "fallbackPlanningTools",
+    "requiredProofBeforeExecution",
+    "executionAllowedNow",
+    "routeExecutionAllowedNow",
+    "workerExecutionAllowedNow",
+    "browserWebglCanvasAllowedNow",
+    "gpuModelRuntimeAllowedNow",
+    "publicArtifactAllowedNow",
+    "signedUrlAllowedNow",
+    "runtimeReadyNow",
+    "internalBetaReadyNow",
+    "productionReadyNow"
+  ],
+  "sections": {
+    "capabilityExtraction": [
+      "requestedCapability",
+      "inputIntent",
+      "inputMediaType",
+      "desiredOutputType",
+      "visualIntent"
+    ],
+    "ranking": [
+      "candidateTools",
+      "rankedTools",
+      "task fit",
+      "proof level",
+      "runtime requirements",
+      "cost"
+    ],
+    "elimination": [
+      "eliminatedTools",
+      "capability mismatch",
+      "missing proof",
+      "unapproved runtime",
+      "unsafe output path"
+    ],
+    "fallback": [
+      "preferredPlanningTools",
+      "fallbackPlanningTools"
+    ],
+    "planningOnlyRecommendation": [
+      "requiredProofBeforeExecution",
+      "executionAllowedNow false"
+    ],
+    "safetyBoundary": [
+      "routeExecutionAllowedNow false",
+      "workerExecutionAllowedNow false",
+      "browserWebglCanvasAllowedNow false",
+      "gpuModelRuntimeAllowedNow false",
+      "publicArtifactAllowedNow false",
+      "signedUrlAllowedNow false"
+    ]
+  },
+  "sampleResponse": {
+    "requestId": "ai-graphics-selection-example",
+    "requestedCapability": "chart_overlay",
+    "inputIntent": "chart overlay planning",
+    "inputMediaType": "structured_data",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "future visual overlay",
+    "candidateTools": [
+      "vega_lite",
+      "d3",
+      "echarts",
+      "vega"
+    ],
+    "rankedTools": [
+      "vega_lite",
+      "d3",
+      "vega",
+      "echarts"
+    ],
+    "eliminatedTools": [
+      "sam2",
+      "real_esrgan"
+    ],
+    "preferredPlanningTools": [
+      "vega_lite",
+      "d3"
+    ],
+    "fallbackPlanningTools": [
+      "vega"
+    ],
+    "requiredProofBeforeExecution": [
+      "browser chart runtime approval",
+      "artifact boundary approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
+  "plan": "future_execution_plan",
+  "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_approval_passed_ready_for_private_fixture_plan",
+  "future_confirmation_flag": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_PRIVATE_FIXTURE_PLAN=true",
+  "allowed_fixture_source": "generated_synthetic_but_private_fixture_to_be_defined_by_next_plan",
+  "allowed_command_categories": [
+    "bounded_gstreamer_non_decode_synthetic_or_explicit_fixture_pipeline",
+    "bounded_mkvtoolnix_mux_or_identify_explicit_fixture"
+  ],
+  "docker_network_policy": "disabled_where_possible_in_future_execution_plan",
+  "cleanup": "mandatory_temp_cleanup_and_manifest_verification",
+  "future_report_location": "docs/track-a/gstreamer-mkvtoolnix/private-fixture-plan/",
+  "blocked_scopes": [
+    "user_media",
+    "real_media",
+    "ffmpeg_ffprobe",
+    "render_export",
+    "public_artifacts",
+    "signed_urls",
+    "gcs_upload",
+    "beta",
+    "production"
+  ],
+  "next_gate_after_plan": "future execution prompt only if the private fixture plan proves exact fixture source, command matrix, privacy, checksum, and cleanup policy"
+}

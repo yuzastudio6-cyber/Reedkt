@@ -1,0 +1,17 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
+  "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_approval_passed_ready_for_private_fixture_plan",
+  "rationale": [
+    "PR #659 approved only this private fixture approval gate",
+    "the future generated synthetic-but-private fixture still needs an exact source, command matrix, privacy, checksum, report, and cleanup plan",
+    "no private fixture execution, user media, real media, FFmpeg/FFprobe, render/export, public artifacts, signed URLs, GCS, beta, or production scope is authorized"
+  ],
+  "next_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-PLAN-1",
+  "product_ready_local_oss_tools": 0,
+  "supabase_classification": {
+    "update_required": "none",
+    "environment_touched": "none",
+    "sql_executed": "none",
+    "migration_deployed": "no"
+  }
+}

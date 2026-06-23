@@ -1,0 +1,31 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
+  "review": "tool_command_approval",
+  "future_command_classes_only": true,
+  "gstreamer": {
+    "allowed_future_category": "bounded_non_decode_synthetic_or_explicit_fixture_pipeline_after_plan",
+    "disallowed": [
+      "real_media_decode",
+      "broad_user_media_pipeline",
+      "network_dependent_pipeline",
+      "render_export_pipeline"
+    ]
+  },
+  "mkvtoolnix": {
+    "allowed_future_category": "mux_or_identify_explicitly_approved_fixture_after_plan",
+    "disallowed": [
+      "broad_media_probe",
+      "public_artifact_generation",
+      "signed_url_delivery",
+      "product_delivery"
+    ]
+  },
+  "global_boundaries": {
+    "ffmpeg_ffprobe": "disallowed",
+    "render_export": "disallowed",
+    "network": "disabled_by_default_where_possible",
+    "container": "future_plan_must_define_exact_image_and_cleanup",
+    "output": "temporary_private_cleaned",
+    "stdout": "sanitized_metadata_only"
+  }
+}

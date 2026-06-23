@@ -8,6 +8,7 @@
   "requiredDecision": "sound_runtime_media_gate_1c_cpu_worker_image_plan_completed_with_warnings_ready_for_worker_runtime_handoff",
   "purpose": "Plan the future static Dockerfile definition for SOUND CPU worker images without creating a Dockerfile, building an image, running Docker, calling GCP, pushing to Artifact Registry, or executing workers.",
   "sourceEvidenceRequired": [
+    "SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
     "SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
     "SOUND-RUNTIME-MEDIA-GATE-1B worker contract owner review",
     "SOUND-RUNTIME-MEDIA-GATE-1A controlled CPU install proof",

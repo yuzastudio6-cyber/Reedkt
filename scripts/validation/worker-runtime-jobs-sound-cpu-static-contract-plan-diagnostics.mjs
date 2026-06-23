@@ -4,10 +4,14 @@ import { existsSync, readFileSync } from 'node:fs';
 const DECISION = 'worker_runtime_jobs_sound_cpu_static_contract_plan_completed_with_warnings_ready_for_contract_owner_review';
 const SOURCE_DECISION = 'worker_runtime_jobs_sound_cpu_handoff_review_passed_with_warnings_ready_for_static_contract_plan';
 const SOURCE_HEAD = 'f0cb0000fcc49f9b5c5e76394be9578f5d6d29dc';
-const MATRIX_SCHEMA = 'reeditpro.workerRuntimeJobsSoundCpuStaticContractPlanMatrix.v1';
-const MATRIX_FILE = 'docs/worker-runtime-jobs/sound-cpu-static-contract-plan-matrix.json';
-const STATIC_PLAN_DOC = 'docs/worker-runtime-jobs/sound-cpu-static-contract-plan.v1.md';
-const STATIC_PLAN_REPORT = 'docs/worker-runtime-jobs/sound-cpu-static-contract-plan-report.md';
+const SOURCE_OF_TRUTH_PR = 672;
+const SOURCE_OF_TRUTH_MERGE_COMMIT = 'f39db99f89a21634b8edc4fee38af39d2df05fbb';
+const SUPPLEMENT_PR = 678;
+const MATRIX_SCHEMA = 'reeditpro.workerRuntimeJobsSoundCpuStaticContractCompatibilitySupplementMatrix.v1';
+const MATRIX_FILE = 'docs/worker-runtime-jobs/sound-cpu-static-contract-compatibility-supplement-matrix.json';
+const STATIC_PLAN_DOC = 'docs/worker-runtime-jobs/sound-cpu-static-contract-compatibility-supplement.v1.md';
+const STATIC_PLAN_REPORT = 'docs/worker-runtime-jobs/sound-cpu-static-contract-compatibility-supplement-report.md';
+const DUPLICATE_RECONCILIATION_REPORT = 'docs/worker-runtime-jobs/sound-cpu-static-contract-duplicate-reconciliation.md';
 
 const REQUIRED_DOCS = [
   ['docs/worker-runtime-jobs-sound-cpu-static-contract-plan.md', 'worker-runtime-jobs-sound-cpu-static-contract-plan'],
@@ -263,6 +267,10 @@ function collectForbidden(value, path = '$', findings = []) {
 function validateMatrix() {
   const matrix = readJson(MATRIX_FILE);
   assert(matrix.schema === MATRIX_SCHEMA, 'Static contract matrix schema mismatch');
+  assert(matrix.sourceEvidenceSummary?.sourceOfTruthPr === SOURCE_OF_TRUTH_PR, 'Compatibility supplement must reference PR #672 as source of truth');
+  assert(matrix.sourceEvidenceSummary?.sourceOfTruthMergeCommit === SOURCE_OF_TRUTH_MERGE_COMMIT, 'Compatibility supplement source-of-truth merge commit mismatch');
+  assert(matrix.sourceEvidenceSummary?.supplementPr === SUPPLEMENT_PR, 'Compatibility supplement must reference PR #678');
+  assert(matrix.sourceEvidenceSummary?.supplementDecision === 'retain_as_supplement', 'Compatibility supplement decision mismatch');
   assert(matrix.sourceEvidenceSummary?.sourcePr === 670, 'Static contract matrix must reference PR #670');
   assert(matrix.sourceEvidenceSummary?.mergeCommit === SOURCE_HEAD, 'Static contract matrix merge commit mismatch');
   assert(matrix.sourceEvidenceSummary?.sourceDecision === SOURCE_DECISION, 'Static contract matrix source decision mismatch');
@@ -285,7 +293,9 @@ function validateMatrix() {
     assert(typeof row.normalizedItemId === 'string' && row.normalizedItemId.length > 0, 'Matrix row missing normalizedItemId');
     assert(typeof row.displayName === 'string' && row.displayName.length > 0, `${row.normalizedItemId} missing displayName`);
     assert(ALLOWED_MATRIX_ITEM_TYPES.has(row.itemType), `${row.normalizedItemId} has unsupported itemType ${row.itemType}`);
-    assert(Array.isArray(row.sourceEvidence) && row.sourceEvidence.some((entry) => entry.includes('PR #670')), `${row.normalizedItemId} missing PR #670 source evidence`);
+    assert(Array.isArray(row.sourceEvidence) && row.sourceEvidence.some((entry) => entry.includes('PR #672')), `${row.normalizedItemId} missing PR #672 source-of-truth evidence`);
+    assert(row.sourceEvidence.some((entry) => entry.includes('PR #678')), `${row.normalizedItemId} missing PR #678 supplement evidence`);
+    assert(row.sourceEvidence.some((entry) => entry.includes('PR #670')), `${row.normalizedItemId} missing PR #670 source evidence`);
     assert(Array.isArray(row.staticContractFields), `${row.normalizedItemId} missing staticContractFields`);
     assert(typeof row.blockedReason === 'string' && row.blockedReason.length > 0, `${row.normalizedItemId} missing blockedReason`);
     assert(typeof row.notes === 'string' && row.notes.length > 0, `${row.normalizedItemId} missing notes`);
@@ -403,11 +413,12 @@ const handoff = parsed['worker-runtime-jobs-sound-cpu-handoff-review'];
 assert(handoff.decision === SOURCE_DECISION, 'Handoff source decision mismatch');
 
 for (const [file] of REQUIRED_DOCS) scanUnsafe(file);
-for (const file of [MATRIX_FILE, STATIC_PLAN_DOC, STATIC_PLAN_REPORT]) scanUnsafe(file);
+for (const file of [MATRIX_FILE, STATIC_PLAN_DOC, STATIC_PLAN_REPORT, DUPLICATE_RECONCILIATION_REPORT]) scanUnsafe(file);
 
 const matrixSummary = validateMatrix();
 assert(existsSync(STATIC_PLAN_DOC), `Missing static contract plan doc: ${STATIC_PLAN_DOC}`);
 assert(existsSync(STATIC_PLAN_REPORT), `Missing static contract plan report: ${STATIC_PLAN_REPORT}`);
+assert(existsSync(DUPLICATE_RECONCILIATION_REPORT), `Missing duplicate reconciliation report: ${DUPLICATE_RECONCILIATION_REPORT}`);
 
 const changedFiles = gitOutput(['status', '--short'])
   .split('\n')
@@ -436,6 +447,10 @@ console.log(JSON.stringify({
   sourceHead: SOURCE_HEAD,
   sourceDecision: SOURCE_DECISION,
   matrixSchema: MATRIX_SCHEMA,
+  sourceOfTruthPr: SOURCE_OF_TRUTH_PR,
+  sourceOfTruthMergeCommit: SOURCE_OF_TRUTH_MERGE_COMMIT,
+  supplementPr: SUPPLEMENT_PR,
+  duplicateReconciliationDecision: 'retain_as_supplement',
   staticContractRowCount: matrixSummary.staticContractRowCount,
   workerNameCount: matrixSummary.workerNameCount,
   plannedImageCount: matrixSummary.plannedImageCount,

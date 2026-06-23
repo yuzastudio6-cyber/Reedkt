@@ -48,7 +48,6 @@
     "sound-runtime-media-gate-1c:diagnostics": "node scripts/validation/sound-runtime-media-gate-1c-diagnostics.mjs",
     "sound-runtime-media-gate-1d:diagnostics": "node scripts/validation/sound-runtime-media-gate-1d-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-handoff-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-handoff-review-diagnostics.mjs",
-    "worker-runtime-jobs:sound-cpu-static-contract-plan": "node scripts/validation/worker-runtime-jobs-sound-cpu-static-contract-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-static-contract-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-static-contract-plan-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",

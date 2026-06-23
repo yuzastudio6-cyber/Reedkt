@@ -1,11 +1,11 @@
 {
-  "schema": "reeditpro.workerRuntimeJobsSoundCpuStaticContractPlanMatrix.v1",
+  "schema": "reeditpro.workerRuntimeJobsSoundCpuStaticContractCompatibilitySupplementMatrix.v1",
   "sourceEvidenceSummary": {
     "sourcePr": 670,
     "sourceMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW",
     "sourceDecision": "worker_runtime_jobs_sound_cpu_handoff_review_passed_with_warnings_ready_for_static_contract_plan",
     "mergeCommit": "f0cb0000fcc49f9b5c5e76394be9578f5d6d29dc",
-    "staticContractMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-STATIC-CONTRACT-PLAN",
+    "staticContractMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-STATIC-CONTRACT-COMPATIBILITY-SUPPLEMENT",
     "nextRecommendedMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-STATIC-CONTRACT-OWNER-REVIEW",
     "acceptedWorkers": [
       "sound-cpu-analysis-worker",
@@ -20,7 +20,11 @@
       "sound.numeric_array_analysis",
       "sound.symbolic_midi_analysis",
       "sound.loudness_synthetic_analysis"
-    ]
+    ],
+    "sourceOfTruthPr": 672,
+    "sourceOfTruthMergeCommit": "f39db99f89a21634b8edc4fee38af39d2df05fbb",
+    "supplementPr": 678,
+    "supplementDecision": "retain_as_supplement"
   },
   "rows": [
     {
@@ -28,6 +32,8 @@
       "displayName": "sound-cpu-analysis-worker",
       "itemType": "static_worker_contract",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -70,6 +76,8 @@
       "displayName": "sound-audio-metadata-worker",
       "itemType": "static_worker_contract",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -112,6 +120,8 @@
       "displayName": "reeditpro/sound-cpu-analysis-worker",
       "itemType": "planned_image_name",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -145,6 +155,8 @@
       "displayName": "reeditpro/sound-audio-metadata-worker",
       "itemType": "planned_image_name",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -178,6 +190,8 @@
       "displayName": "sound.package_import_smoke",
       "itemType": "accepted_job_type",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #653 SOUND-RUNTIME-MEDIA-GATE-1B worker contract owner review",
@@ -219,6 +233,8 @@
       "displayName": "sound.numeric_array_analysis",
       "itemType": "accepted_job_type",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #653 SOUND-RUNTIME-MEDIA-GATE-1B worker contract owner review",
@@ -260,6 +276,8 @@
       "displayName": "sound.symbolic_midi_analysis",
       "itemType": "accepted_job_type",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #653 SOUND-RUNTIME-MEDIA-GATE-1B worker contract owner review",
@@ -301,6 +319,8 @@
       "displayName": "sound.loudness_synthetic_analysis",
       "itemType": "accepted_job_type",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #653 SOUND-RUNTIME-MEDIA-GATE-1B worker contract owner review",
@@ -342,6 +362,8 @@
       "displayName": "input contract: package import smoke",
       "itemType": "input_contract",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -382,6 +404,8 @@
       "displayName": "output contract: package import smoke result",
       "itemType": "output_contract",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -419,6 +443,8 @@
       "displayName": "input contract: numeric array analysis",
       "itemType": "input_contract",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -459,6 +485,8 @@
       "displayName": "output contract: numeric array analysis result",
       "itemType": "output_contract",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -496,6 +524,8 @@
       "displayName": "input contract: symbolic MIDI analysis",
       "itemType": "input_contract",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -536,6 +566,8 @@
       "displayName": "output contract: symbolic MIDI analysis result",
       "itemType": "output_contract",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -573,6 +605,8 @@
       "displayName": "input contract: loudness synthetic analysis",
       "itemType": "input_contract",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -613,6 +647,8 @@
       "displayName": "output contract: loudness synthetic analysis result",
       "itemType": "output_contract",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -650,6 +686,8 @@
       "displayName": "idempotency policy placeholder",
       "itemType": "idempotency_policy_placeholder",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -685,6 +723,8 @@
       "displayName": "retry policy placeholder",
       "itemType": "retry_policy_placeholder",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -720,6 +760,8 @@
       "displayName": "artifact policy placeholder",
       "itemType": "artifact_policy_placeholder",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -754,6 +796,8 @@
       "displayName": "observability policy placeholder",
       "itemType": "artifact_policy_placeholder",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -790,6 +834,8 @@
       "displayName": "worker dispatch",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -822,6 +868,8 @@
       "displayName": "worker claim",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -854,6 +902,8 @@
       "displayName": "worker lease",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -886,6 +936,8 @@
       "displayName": "route execution",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -918,6 +970,8 @@
       "displayName": "worker execution",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -950,6 +1004,8 @@
       "displayName": "tool execution",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -982,6 +1038,8 @@
       "displayName": "media open/process/write",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1014,6 +1072,8 @@
       "displayName": "pydub operations",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1046,6 +1106,8 @@
       "displayName": "FFmpeg",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1078,6 +1140,8 @@
       "displayName": "artifact write",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1110,6 +1174,8 @@
       "displayName": "generated local fixture passed",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1142,6 +1208,8 @@
       "displayName": "dry run passed",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1174,6 +1242,8 @@
       "displayName": "worker readiness",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1206,6 +1276,8 @@
       "displayName": "runtime readiness",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1238,6 +1310,8 @@
       "displayName": "Supabase/SQL",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1270,6 +1344,8 @@
       "displayName": "public artifacts",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1302,6 +1378,8 @@
       "displayName": "signed URLs",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1334,6 +1412,8 @@
       "displayName": "provider/model calls",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1366,6 +1446,8 @@
       "displayName": "model weights/GPU",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1398,6 +1480,8 @@
       "displayName": "billing",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1430,6 +1514,8 @@
       "displayName": "beta",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1462,6 +1548,8 @@
       "displayName": "production",
       "itemType": "blocked_execution_gate",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1494,6 +1582,8 @@
       "displayName": "WORKER_RUNTIME_JOBS owner lane",
       "itemType": "owner_handoff_surface",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1526,6 +1616,8 @@
       "displayName": "SOUND Runtime Media Gate 1E Dockerfile static plan",
       "itemType": "owner_handoff_surface",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1558,6 +1650,8 @@
       "displayName": "TRACK_B_MEDIA_PROCESSING owner lane",
       "itemType": "owner_handoff_surface",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1590,6 +1684,8 @@
       "displayName": "SUPABASE_RLS_STORAGE_DATABASE owner lane",
       "itemType": "owner_handoff_surface",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
@@ -1622,6 +1718,8 @@
       "displayName": "WORKER_RUNTIME_JOBS-SOUND-CPU-STATIC-CONTRACT-OWNER-REVIEW",
       "itemType": "next_prompt",
       "sourceEvidence": [
+        "PR #672 merged Worker Runtime owner-lane static contract source of truth",
+        "PR #678 compatibility supplement matrix/report validation",
         "PR #670 WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW merged owner review evidence",
         "PR #663 SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
         "PR #660 SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",

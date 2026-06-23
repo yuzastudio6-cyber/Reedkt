@@ -1,0 +1,14 @@
+{
+  "generatedSrtMkvStaged": false,
+  "mediaArtifactsStaged": false,
+  "tmpArtifactsCopiedToRepo": false,
+  "distStaged": false,
+  "nodeModulesStaged": false,
+  "packageLockMutation": false,
+  "dockerfileMutation": false,
+  "dockerignoreMutation": false,
+  "runtimeSourceMutation": false,
+  "secrets": false,
+  "publicSignedUrlArtifacts": false,
+  "decision": "passed"
+}

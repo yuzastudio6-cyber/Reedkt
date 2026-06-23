@@ -1,0 +1,11 @@
+{
+  "runId": "2026-06-23T03-37-56-bc4d88cf",
+  "tempRoot": "/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1/2026-06-23T03-37-56-bc4d88cf",
+  "generatedSubtitlePath": "/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1/2026-06-23T03-37-56-bc4d88cf/generated-private-subtitles.srt",
+  "generatedMkvPath": "/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1/2026-06-23T03-37-56-bc4d88cf/generated-private-subtitle-only.mkv",
+  "userMediaUsed": false,
+  "privateMediaUsed": false,
+  "realMediaUsed": false,
+  "cleanupRequired": true,
+  "cleanupCompleted": true
+}

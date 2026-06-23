@@ -1,0 +1,24 @@
+{
+  "runId": "2026-06-23T03-37-56-bc4d88cf",
+  "tempRoot": "/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1/2026-06-23T03-37-56-bc4d88cf",
+  "generatedTempArtifacts": [
+    {
+      "name": "generated-private-subtitles.srt",
+      "bytes": 77,
+      "sha256": "2487edd658e8459b7818baf0422c8db6679f693020d78aeb90d5be0fb5aa446b"
+    },
+    {
+      "name": "generated-private-subtitle-only.mkv",
+      "bytes": 5823,
+      "sha256": "ea659dec22a7492be8af90a521be03f76367723e99570e32e9f3b59d68ec1b82"
+    }
+  ],
+  "committedArtifacts": [],
+  "privateArtifactsCreated": [],
+  "userMediaUsed": [],
+  "realMediaUsed": [],
+  "publicArtifactsCreated": [],
+  "signedUrlsCreated": [],
+  "gcsUploads": [],
+  "cleanupStatus": "completed"
+}

@@ -1,0 +1,35 @@
+{
+  "runId": "2026-06-23T03-37-56-bc4d88cf",
+  "image": "reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8",
+  "commandClass": "generated temp SRT muxed to generated subtitle-only MKV, then identify",
+  "mergeCommand": "docker run --rm --network none -v <runRoot>:/proof <image> mkvmerge -o /proof/generated-private-subtitle-only.mkv /proof/generated-private-subtitles.srt",
+  "identifyCommand": "docker run --rm --network none -v <runRoot>:/proof:ro <image> mkvmerge --identify /proof/generated-private-subtitle-only.mkv",
+  "mergeExitStatus": 0,
+  "identifyExitStatus": 0,
+  "mergeElapsedSeconds": 0.487,
+  "identifyElapsedSeconds": 0.364,
+  "mergeStdoutStderrSnippet": [
+    "mkvmerge v74.0.0 ('You Oughta Know') 64-bit",
+    "'/proof/generated-private-subtitles.srt': Using the demultiplexer for the format 'SRT subtitles'.",
+    "'/proof/generated-private-subtitles.srt' track 0: Using the output module for the format 'text subtitles'.",
+    "The file '/proof/generated-private-subtitle-only.mkv' has been opened for writing.",
+    "Progress: 100%",
+    "The cue entries (the index) are being written...",
+    "Multiplexing took 0 seconds."
+  ],
+  "identifyStdoutStderrSnippet": [
+    "File '/proof/generated-private-subtitle-only.mkv': container: Matroska",
+    "Track ID 0: subtitles (SubRip/SRT)"
+  ],
+  "generatedSubtitle": {
+    "name": "generated-private-subtitles.srt",
+    "bytes": 77,
+    "sha256": "2487edd658e8459b7818baf0422c8db6679f693020d78aeb90d5be0fb5aa446b"
+  },
+  "generatedMkv": {
+    "name": "generated-private-subtitle-only.mkv",
+    "bytes": 5823,
+    "sha256": "ea659dec22a7492be8af90a521be03f76367723e99570e32e9f3b59d68ec1b82"
+  },
+  "decision": "passed"
+}

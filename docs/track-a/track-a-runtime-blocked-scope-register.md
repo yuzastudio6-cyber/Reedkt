@@ -29,8 +29,8 @@ TRACKA-RECON-0 records blocked runtime and delivery scope. It does not relax or 
 | OpenColorIO runtime | blocked | No color management runtime is run. |
 | OpenImageIO runtime | blocked | No image pipeline runtime is run. |
 | libass runtime | blocked | No caption burn-in is run. |
-| GStreamer private fixture execution | blocked | PR #652 is controlled synthetic evidence only; `TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-PLAN-1` defines the generated synthetic-private fixture path, but execution remains blocked until `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1`. |
-| MKVToolNix private fixture execution | blocked | PR #652 is controlled synthetic evidence only; `TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-PLAN-1` defines the generated synthetic-private fixture path, but execution remains blocked until `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1`. |
+| GStreamer private fixture execution | bounded_generated_fixture_done | `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1` ran only the approved network-disabled in-memory `videotestsrc` to `fakesink` generated fixture class. User/private/real media, broad private folders, render/export, beta, production, and product runtime remain blocked. |
+| MKVToolNix private fixture execution | bounded_generated_fixture_done | `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1` ran only the approved generated temp SRT to subtitle-only MKV mux/identify class. Generated SRT/MKV artifacts were cleaned and not committed; user/private/real media, broad private folders, public artifacts, signed URLs, render/export, beta, production, and product runtime remain blocked. |
 | Remotion runtime | blocked | No preview or final render is run. |
 | OpenTimelineIO runtime | blocked | No timeline/interchange validation is run. |
 | FFmpeg runtime | blocked | No media processing, encoding, or export hardening is run. |

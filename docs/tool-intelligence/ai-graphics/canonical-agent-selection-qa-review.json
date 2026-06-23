@@ -3,8 +3,8 @@
   "branch": "codex/rp-ai-graphics-canonical-agent-selection-qa-review",
   "baseBranch": "codex/rp-ai-graphics-canonical-agent-selection-review",
   "draftPrTitle": "[tools] AI graphics canonical agent selection QA review",
-  "draftPr": null,
-  "draftPrStatus": "pending_creation",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/674",
+  "draftPrStatus": "open draft, MERGEABLE",
   "sourceDecision": "ai_graphics_canonical_agent_selection_review_passed_with_warnings",
   "sourcePrs": {
     "361": {
@@ -2511,6 +2511,6 @@
     "No beta or production unlock.",
     "No PR merge, close, or retarget."
   ],
-  "draftPrHead": null,
-  "checkStatus": "pending_creation"
+  "draftPrHead": "20684471669f470ba86a313d1e095cff6a50a84f",
+  "checkStatus": "empty check rollup at creation"
 }

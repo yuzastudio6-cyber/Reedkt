@@ -10,8 +10,11 @@
   "workerOwnerReviewRequiredDecision": "worker_runtime_jobs_sound_cpu_handoff_review_passed_with_warnings_ready_for_static_contract_plan",
   "staticContractMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-STATIC-CONTRACT-PLAN",
   "staticContractRequiredDecision": "worker_runtime_jobs_sound_cpu_static_contract_plan_completed_with_warnings_ready_for_contract_owner_review",
+  "contractOwnerReviewMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-CONTRACT-OWNER-REVIEW",
+  "contractOwnerReviewRequiredDecision": "worker_runtime_jobs_sound_cpu_contract_owner_review_passed_with_warnings_ready_for_dockerfile_static_plan",
   "purpose": "Plan the future static Dockerfile definition for SOUND CPU worker images without creating a Dockerfile, building an image, running Docker, calling GCP, pushing to Artifact Registry, or executing workers.",
   "sourceEvidenceRequired": [
+    "WORKER_RUNTIME_JOBS SOUND CPU contract owner review",
     "WORKER_RUNTIME_JOBS SOUND CPU static contract plan",
     "WORKER_RUNTIME_JOBS SOUND CPU handoff review",
     "SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",

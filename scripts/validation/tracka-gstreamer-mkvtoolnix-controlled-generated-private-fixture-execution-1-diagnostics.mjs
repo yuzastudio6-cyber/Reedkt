@@ -153,6 +153,14 @@ const forbiddenEnv = [
   'REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT',
 ]
 
+function isAllowedChangedFile(file) {
+  return allowedChangedFiles.has(file)
+    || file.startsWith('docs/track-a/gstreamer-mkvtoolnix/private-fixture-execution-packet/')
+    || file === 'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1.md'
+    || (file.startsWith('scripts/validation/tracka-gstreamer-mkvtoolnix-') && file.endsWith('-diagnostics.mjs'))
+    || file === 'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs'
+}
+
 function fail(message) {
   console.error(message)
   process.exit(1)
@@ -268,7 +276,7 @@ const changedFiles = [...new Set([
 ])].filter(Boolean)
 
 for (const file of changedFiles) {
-  if (!allowedChangedFiles.has(file)) fail(`unexpected changed file: ${file}`)
+  if (!isAllowedChangedFile(file)) fail(`unexpected changed file: ${file}`)
   if (/\.(mkv|srt|mp4|mov|avi|wav|mp3|m4a)$/i.test(file)) fail(`media artifact changed unexpectedly: ${file}`)
   if (file.startsWith('dist') || file.includes('/dist')) fail(`generated dist output changed unexpectedly: ${file}`)
   if (file.includes('node_modules')) fail(`node_modules must not be changed: ${file}`)

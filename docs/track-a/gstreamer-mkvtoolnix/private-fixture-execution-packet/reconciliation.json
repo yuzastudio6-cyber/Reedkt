@@ -1,0 +1,22 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-EXECUTION-PACKET-1",
+  "decision": "satisfied_by_merged_controlled_generated_private_fixture_execution_1",
+  "execution": "completed_docs_only_post_673_reconciliation_no_runtime_execution",
+  "privateFixtureExecutionInThisPhase": false,
+  "sourceOfTruthExecutionPr": 673,
+  "sourceOfTruthExecutionMergeSha": "536d24bbe37763b8262e3b70dd8950e264482dfd",
+  "sourceOfTruthExecutionMilestone": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1",
+  "aliasMilestone": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-EXECUTION-PACKET-1",
+  "nextPrompt": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA-REVIEW-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "generatedArtifactsCommitted": "none",
+  "packageLockChanged": false,
+  "supabase": {
+    "updateRequired": "none",
+    "status": "not_applicable_docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextAction": "none"
+  }
+}

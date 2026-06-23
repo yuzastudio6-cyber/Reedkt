@@ -1,0 +1,28 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1",
+  "review": "private_fixture_policy_review",
+  "future_private_fixture": "eligible_for_approval_planning_only",
+  "preferred_future_source_type": "generated_synthetic_but_private_fixture",
+  "allowed_future_source_types": [
+    "generated_synthetic_but_private_fixture_with_exact_source_privacy_checksum_cleanup_rules"
+  ],
+  "blocked_source_types_without_separate_approval": [
+    "user_media",
+    "real_media",
+    "preapproved_private_artifact",
+    "public_artifact",
+    "signed_url_artifact",
+    "gcs_artifact"
+  ],
+  "requirements_for_future_approval": [
+    "fixture source definition",
+    "privacy classification",
+    "checksum manifest",
+    "temp-only storage",
+    "sanitized logs",
+    "cleanup verification",
+    "no public delivery",
+    "no product runtime"
+  ],
+  "decision_support": "ready_for_private_fixture_approval"
+}

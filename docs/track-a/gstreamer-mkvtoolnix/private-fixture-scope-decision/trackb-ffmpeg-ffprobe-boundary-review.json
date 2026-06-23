@@ -1,0 +1,13 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1",
+  "review": "trackb_ffmpeg_ffprobe_boundary_review",
+  "pr_652_ffmpeg_execution": "not_run",
+  "pr_652_ffprobe_execution": "not_run",
+  "owner_boundary": "FFmpeg/FFprobe remain Track B-owned shared dependencies only",
+  "future_private_fixture_scope": {
+    "ffmpeg": "not_allowed_without_separate_trackb_owner_approval",
+    "ffprobe": "not_allowed_without_separate_trackb_owner_approval",
+    "media_probe_decode_encode": "not_allowed"
+  },
+  "finding": "boundary_preserved"
+}

@@ -1,0 +1,11 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1",
+  "review": "render_export_boundary_review",
+  "remotion": "not_run",
+  "browser_capture": "not_run",
+  "render_export": "not_run",
+  "final_delivery": "not_enabled",
+  "product_runtime": "not_enabled",
+  "future_private_fixture": "tool_proof_only_unless_separately_approved",
+  "finding": "render_export_boundary_preserved"
+}

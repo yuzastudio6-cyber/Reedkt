@@ -47,8 +47,11 @@ const privateFixtureScopeDecisionFiles = [
   'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/readiness-report.json',
   'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/private-artifact-manifest.json',
   'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/validation-results.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/post-merge-safety-closure.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision/post-merge-safety-closure.md',
   'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-approval-1.md',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1r-diagnostics.mjs',
   'docs/track-a/track-a-tool-status-matrix.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
 ]

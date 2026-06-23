@@ -9,5 +9,13 @@
     "ffprobe": "not_allowed_without_separate_trackb_owner_approval",
     "media_probe_decode_encode": "not_allowed"
   },
+  "pushed_pr_path_ffmpeg_ffprobe_execution": "not_run",
+  "local_unpushed_ad_hoc_safety_scan_quoting_error": {
+    "tool": "ffprobe",
+    "media_input": "none",
+    "artifacts_produced": "none",
+    "accepted_source_evidence": false,
+    "repeat_policy": "must_not_be_repeated"
+  },
   "finding": "boundary_preserved"
 }

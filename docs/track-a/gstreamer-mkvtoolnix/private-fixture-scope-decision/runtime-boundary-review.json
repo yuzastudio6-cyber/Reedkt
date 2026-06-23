@@ -12,6 +12,19 @@
   "public_signed_url": "not_created",
   "beta_production": "not_unlocked",
   "raw_prompts": "not_executed",
+  "post_merge_safety_closure": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1R",
+  "pushed_pr_path": "docs_status_diagnostics_only",
+  "guarded_private_fixture_execution": "not_run",
+  "gstreamer_private_fixture_execution": "not_run",
+  "mkvtoolnix_private_fixture_execution": "not_run",
+  "pushed_pr_path_ffmpeg_ffprobe_execution": "not_run",
+  "local_unpushed_ad_hoc_safety_scan_quoting_error": {
+    "tool": "ffprobe",
+    "media_input": "none",
+    "artifacts_produced": "none",
+    "accepted_source_evidence": false,
+    "repeat_policy": "must_not_be_repeated"
+  },
   "product_ready_local_oss_tools": 0,
   "finding": "runtime_boundary_preserved"
 }

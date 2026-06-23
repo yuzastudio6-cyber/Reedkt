@@ -1,0 +1,43 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1R",
+  "closure_status": "completed_docs_only_post_merge_safety_closure",
+  "pr_659": {
+    "state": "MERGED",
+    "merge_sha": "535b6003606430df88e6905ecd2db36be19a9e8b",
+    "body_closure": "post_merge_pr_body_updated_after_merge"
+  },
+  "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_scope_decision_passed_ready_for_private_fixture_approval",
+  "private_fixture_execution_in_659": false,
+  "pushed_pr_path": "docs_status_diagnostics_only",
+  "guarded_private_fixture_execution": "not_run",
+  "gstreamer_private_fixture_execution": "not_run",
+  "mkvtoolnix_private_fixture_execution": "not_run",
+  "media_processing": "not_run",
+  "supabase_mutation": "none",
+  "sql_execution": "none",
+  "signed_public_artifacts": "none",
+  "beta_production_final_delivery_unlock": "none",
+  "pushed_pr_path_ffmpeg_ffprobe_execution": "not_run",
+  "local_unpushed_ad_hoc_safety_scan_quoting_error": {
+    "tool": "ffprobe",
+    "media_input": "none",
+    "artifacts_produced": "none",
+    "accepted_source_evidence": false,
+    "repeat_policy": "must_not_be_repeated"
+  },
+  "future_safety_scan_policy": "avoid_shell_patterns_that_accidentally_invoke_tool_binaries",
+  "product_ready_end_to_end_local_oss_tools": 0,
+  "source_boundaries": {
+    "controlled_synthetic_fixture_source_of_truth": "#652",
+    "private_fixture_scope_decision_source_of_truth": "#659",
+    "excluded_remotion_draft": "#577"
+  },
+  "supabase_classification": {
+    "update_required": "none",
+    "status": "not_applicable_docs_only",
+    "environment_touched": "none",
+    "sql_executed": "none",
+    "migration_deployed": "no",
+    "next_action": "none"
+  }
+}

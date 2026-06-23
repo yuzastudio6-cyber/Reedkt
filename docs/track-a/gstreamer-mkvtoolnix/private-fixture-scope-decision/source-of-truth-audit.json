@@ -42,7 +42,15 @@
   "no_scope": {
     "gstreamer_execution": "not_run",
     "mkvtoolnix_execution": "not_run",
-    "ffmpeg_ffprobe_execution": "not_run",
+    "pushed_pr_path_ffmpeg_ffprobe_execution": "not_run",
+    "post_merge_safety_closure": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1R",
+    "local_unpushed_ad_hoc_safety_scan_quoting_error": {
+      "tool": "ffprobe",
+      "media_input": "none",
+      "artifacts_produced": "none",
+      "accepted_source_evidence": false,
+      "repeat_policy": "must_not_be_repeated"
+    },
     "private_user_real_media": "not_used",
     "media_processing": "not_run",
     "render_export": "not_run",

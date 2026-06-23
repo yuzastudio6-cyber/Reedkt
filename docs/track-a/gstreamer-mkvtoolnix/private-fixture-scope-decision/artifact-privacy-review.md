@@ -15,3 +15,5 @@ Future fixture policy:
 - Secret payload printing: `blocked`
 
 Any future private fixture approval must define temp-only storage, checksum metadata, cleanup verification, and sanitized output rules before execution is considered.
+
+Post-merge safety closure: `TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1R` records that the local unpushed ad hoc safety-scan quoting error produced no artifacts and is not accepted source evidence.

@@ -1,0 +1,19 @@
+{
+  "planningOnlyPolicy": {
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "allowedUse": "planning/study metadata selection only",
+    "disallowedUse": [
+      "tool execution",
+      "route execution",
+      "worker execution",
+      "provider/model execution",
+      "browser/WebGL/canvas runtime",
+      "GPU/model runtime",
+      "public artifacts",
+      "signed URLs",
+      "beta or production readiness"
+    ]
+  },
+  "ownerApprovalQaAccepted": true
+}

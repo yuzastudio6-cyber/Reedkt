@@ -1,0 +1,100 @@
+{
+  "capabilities": {
+    "chart_overlay": {
+      "capabilityId": "chart_overlay",
+      "displayName": "Chart Overlay",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "data_visualization": {
+      "capabilityId": "data_visualization",
+      "displayName": "Data Visualization",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "svg_graphics": {
+      "capabilityId": "svg_graphics",
+      "displayName": "Svg Graphics",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "diagram_graphics": {
+      "capabilityId": "diagram_graphics",
+      "displayName": "Diagram Graphics",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "animation_overlay": {
+      "capabilityId": "animation_overlay",
+      "displayName": "Animation Overlay",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "canvas_scene": {
+      "capabilityId": "canvas_scene",
+      "displayName": "Canvas Scene",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "webgl_3d_scene": {
+      "capabilityId": "webgl_3d_scene",
+      "displayName": "Webgl 3d Scene",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "background_removal": {
+      "capabilityId": "background_removal",
+      "displayName": "Background Removal",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "subject_segmentation": {
+      "capabilityId": "subject_segmentation",
+      "displayName": "Subject Segmentation",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "upscaling": {
+      "capabilityId": "upscaling",
+      "displayName": "Upscaling",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "tensor_image_ops": {
+      "capabilityId": "tensor_image_ops",
+      "displayName": "Tensor Image Ops",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    },
+    "model_runtime_foundation": {
+      "capabilityId": "model_runtime_foundation",
+      "displayName": "Model Runtime Foundation",
+      "ownerApprovalQaAccepted": true,
+      "productFacing": true,
+      "executionAllowedNow": false,
+      "internalOwnerLabelCategory": false
+    }
+  }
+}

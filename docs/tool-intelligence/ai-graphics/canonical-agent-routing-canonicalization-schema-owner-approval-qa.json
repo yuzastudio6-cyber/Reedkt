@@ -1,0 +1,33 @@
+{
+  "source": "PR #665 owner approval of canonical routing canonicalization",
+  "schema": {
+    "requestCapabilityExtraction": [
+      "identify product-facing capability",
+      "capture input/output intent",
+      "keep internal owner labels out of capability categories"
+    ],
+    "candidateToolRanking": [
+      "apply PR #623 scoring model",
+      "rank planning candidates only",
+      "prefer simpler proven metadata path"
+    ],
+    "eliminationResult": [
+      "remove capability mismatch",
+      "remove unapproved runtime requirement",
+      "remove public artifact or signed URL requirement"
+    ],
+    "planningOnlyRecommendation": [
+      "return planning/study metadata recommendation only",
+      "agentCanSelectForPlanning true",
+      "agentCanExecuteToolsNow false"
+    ],
+    "safetyBoundary": [
+      "no Tool Route execution",
+      "no Worker execution",
+      "no provider/model execution",
+      "no browser/WebGL/canvas runtime",
+      "no GPU/model runtime",
+      "no Supabase/GCS/public artifact/signed URL actions"
+    ]
+  }
+}

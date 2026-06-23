@@ -53,9 +53,34 @@ const privateFixtureScopeDecisionFiles = [
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
 ]
 
+const privateFixtureApprovalFiles = [
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/source-of-truth-audit.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/source-of-truth-audit.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-fixture-source-approval.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-fixture-source-approval.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/tool-command-approval.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/tool-command-approval.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/artifact-log-policy.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/artifact-log-policy.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/boundary-preservation-review.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/boundary-preservation-review.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/future-execution-plan.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/future-execution-plan.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/runtime-boundary-review.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/runtime-boundary-review.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-fixture-approval-decision.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-fixture-approval-decision.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/readiness-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-artifact-manifest.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/validation-results.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-plan-1.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
   ...privateFixtureScopeDecisionFiles,
+  ...privateFixtureApprovalFiles,
   'package.json',
 ])
 

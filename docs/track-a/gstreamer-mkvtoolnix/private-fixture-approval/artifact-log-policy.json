@@ -1,0 +1,19 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
+  "review": "artifact_log_policy",
+  "artifact_policy": {
+    "temp_only_artifacts": "required_for_future_plan",
+    "committed_srt_mkv_media_artifacts": "blocked",
+    "committed_private_artifacts": "blocked",
+    "public_artifacts": "blocked",
+    "signed_urls": "blocked",
+    "gcs_upload": "blocked_without_separate_approval",
+    "mandatory_cleanup": "required"
+  },
+  "log_policy": {
+    "secret_payloads": "blocked",
+    "private_contents": "blocked",
+    "stdout": "sanitized_metadata_only",
+    "reports": "safe_metadata_only"
+  }
+}

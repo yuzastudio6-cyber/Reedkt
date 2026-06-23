@@ -1,0 +1,63 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
+  "owner": "Atlas Track A",
+  "owner_id": "owner_tracka_visual_render_export",
+  "base_branch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "source_sha": "535b6003606430df88e6905ecd2db36be19a9e8b",
+  "pr_659": {
+    "number": 659,
+    "title": "[track-a] GStreamer MKVToolNix private fixture scope decision",
+    "state": "MERGED",
+    "merged_at": "2026-06-23T01:10:56Z",
+    "head_sha": "479b7bba918f27e58ecd9591b8fade0b79680d84",
+    "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_scope_decision_passed_ready_for_private_fixture_approval",
+    "next_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1"
+  },
+  "pr_652": {
+    "number": 652,
+    "title": "[track-a] GStreamer MKVToolNix controlled synthetic fixture proof",
+    "state": "MERGED",
+    "merged_at": "2026-06-22T14:52:30Z",
+    "head_sha": "a3074af2eff53380402708ee055fa0db70b2f77a",
+    "decision": "completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof",
+    "run_id": "2026-06-22T14-31-44-660Z-390958ab",
+    "image": "reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8"
+  },
+  "proof_summary": {
+    "gstreamer": "PR #652 accepted only as controlled synthetic fakesrc/fakesink evidence",
+    "mkvtoolnix": "PR #652 accepted only as generated /tmp SRT-to-MKV/identify evidence",
+    "scope_decision": "PR #659 approved only the private fixture approval planning gate",
+    "product_ready_local_oss_tools": 0
+  },
+  "hashes": {
+    "package_json_sha256_before_change": "fac4a6ca4927621f55fde9f999bd69ca2a44f2aac83a1d7b6b9c649a327b48a1",
+    "package_lock_sha256": "8a19532a335a579a29ec6819c6aa2460b9dd7b3edf1cecdfa33d79d634d3b023"
+  },
+  "duplicate_scan": {
+    "open_private_fixture_approval_pr": "none_found",
+    "searches": [
+      "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
+      "tracka_gstreamer_mkvtoolnix_private_fixture_approval",
+      "GStreamer MKVToolNix private fixture approval"
+    ]
+  },
+  "existing_docs_absence_audit": {
+    "docs/cross-chat/CURRENT_HANDOFF.md": "absent",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md": "absent",
+    "docs/cross-chat/BLOCKED_SCOPES.md": "absent",
+    "PRODUCTION_FOUNDATION_STATUS.md": "absent",
+    "docs/production-beta-blocker-inventory.md": "present_without_tracka_specific_status_section"
+  },
+  "no_scope": {
+    "gstreamer_execution": "not_run",
+    "mkvtoolnix_execution": "not_run",
+    "ffmpeg_ffprobe_execution": "not_run",
+    "private_user_real_media": "not_used",
+    "media_processing": "not_run",
+    "render_export": "not_run",
+    "docker_build_run": "not_run",
+    "supabase_sql_gcs": "not_touched",
+    "public_artifacts_signed_urls": "not_created",
+    "beta_production": "not_unlocked"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
+  "review": "private_fixture_source_approval",
+  "approval_status": "planning_lane_approved_execution_not_authorized",
+  "approved_future_fixture_type": "generated_synthetic_but_private_fixture_plan",
+  "generated_synthetic_but_private_fixture": "allowed_for_future_plan_only",
+  "preapproved_private_artifact": "blocked_pending_source_privacy_storage_cleanup_review",
+  "user_media": "blocked",
+  "real_media": "blocked",
+  "gcs_private_artifact_source": "blocked_without_separate_approval",
+  "cleanup_requirements": [
+    "temp-only working directory",
+    "checksum manifest",
+    "sanitized metadata report",
+    "mandatory deletion verification"
+  ],
+  "privacy_requirements": [
+    "no user-provided content",
+    "no real media",
+    "no broad private folder access",
+    "no public artifact path",
+    "no signed URL delivery"
+  ]
+}

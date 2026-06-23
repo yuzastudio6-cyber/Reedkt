@@ -1,0 +1,15 @@
+{
+  "sourceSha": "5df02d3d5920f1329c5058e772fdcd669cb03824",
+  "branch": "codex/rp-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1",
+  "approvedImage": "reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8",
+  "imageAvailability": "present_local_image",
+  "imageId": "sha256:8d78f83f400e1674f7e4348329e71bd3cc10431efb9e5cbec6ed9daac5f2d122",
+  "imageCreated": "2026-06-22T01:26:16.349439669Z",
+  "dockerRunUsed": true,
+  "dockerNetworkDisabled": true,
+  "dockerBuildNeeded": false,
+  "packageLockChanged": false,
+  "dockerfileChanged": false,
+  "dockerignoreChanged": false,
+  "runtimeSourceChanged": false
+}

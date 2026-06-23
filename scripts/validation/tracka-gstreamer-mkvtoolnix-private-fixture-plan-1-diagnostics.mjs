@@ -66,10 +66,41 @@ const requiredFiles = [
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
 ]
 
+const controlledGeneratedPrivateFixtureExecutionFiles = [
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/source-of-truth-audit.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/source-of-truth-audit.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/source-target-image-check.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/source-target-image-check.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/run-directory-fixture-design.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/run-directory-fixture-design.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/gstreamer-execution-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/gstreamer-execution-report.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/mkvtoolnix-execution-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/mkvtoolnix-execution-report.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/artifact-privacy-cleanup-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/artifact-privacy-cleanup-report.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/boundary-verification.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/boundary-verification.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/latency-cost-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/latency-cost-report.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/safety-scan-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/safety-scan-report.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/status-matrix.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/status-matrix.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/controlled-generated-private-fixture-execution-decision.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/controlled-generated-private-fixture-execution-decision.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/readiness-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/private-artifact-manifest.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/validation-results.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
   ...requiredReports,
   ...predecessorApprovalFiles,
+  ...controlledGeneratedPrivateFixtureExecutionFiles,
   'package.json',
 ])
 

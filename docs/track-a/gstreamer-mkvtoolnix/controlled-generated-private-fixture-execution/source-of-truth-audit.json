@@ -1,0 +1,67 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1",
+  "sourceSha": "5df02d3d5920f1329c5058e772fdcd669cb03824",
+  "base": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "prs": {
+    "#666": {
+      "title": "[track-a] GStreamer MKVToolNix private fixture plan",
+      "state": "MERGED",
+      "mergedAt": "2026-06-23T03:13:12Z",
+      "head": "8184a3af6499d1a05f56c95273f0bc44acf8540b",
+      "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_plan_passed_ready_for_controlled_generated_private_fixture_execution"
+    },
+    "#662": {
+      "title": "[track-a] GStreamer MKVToolNix private fixture approval",
+      "state": "MERGED",
+      "mergedAt": "2026-06-23T02:18:25Z",
+      "head": "4ed3cc562ca2656f103282a1344fa060fc75bac5",
+      "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_approval_passed_ready_for_private_fixture_plan"
+    },
+    "#659": {
+      "title": "[track-a] GStreamer MKVToolNix private fixture scope decision",
+      "state": "MERGED",
+      "mergedAt": "2026-06-23T01:10:56Z",
+      "head": "479b7bba918f27e58ecd9591b8fade0b79680d84",
+      "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_scope_decision_passed_ready_for_private_fixture_approval"
+    },
+    "#652": {
+      "title": "[track-a] GStreamer MKVToolNix controlled synthetic fixture proof",
+      "state": "MERGED",
+      "mergedAt": "2026-06-22T14:52:30Z",
+      "head": "a3074af2eff53380402708ee055fa0db70b2f77a",
+      "decision": "completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof",
+      "runId": "2026-06-22T14-31-44-660Z-390958ab"
+    }
+  },
+  "proofImage": "reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8",
+  "plannedTempRoot": "/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1/<runId>/",
+  "plannedGstreamerCommandClass": "bounded in-memory videotestsrc to fakesink",
+  "plannedMkvToolNixCommandClass": "generated temp SRT muxed to generated subtitle-only MKV, then identify",
+  "noScope": {
+    "generatedSyntheticPrivateFixtureOnly": true,
+    "userMediaUsed": false,
+    "privateMediaUsed": false,
+    "realMediaUsed": false,
+    "broadPrivateFolderAccess": false,
+    "gcsPrivateArtifactSource": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "mediaProcessingBeyondApprovedGeneratedSubtitleOnlyMkv": false,
+    "remotionExecution": false,
+    "renderExport": false,
+    "browserCapture": false,
+    "workersRoutesProviders": false,
+    "supabaseMutation": false,
+    "sqlExecuted": false,
+    "gcsUpload": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "dockerBuild": false,
+    "dockerPushDeploy": false,
+    "betaProductionUnlocked": false,
+    "rawPromptExecution": false,
+    "secretPayloadPrinted": false,
+    "productReadyLocalOssTools": 0,
+    "trackBFFmpegFFprobeBoundary": "preserved"
+  }
+}

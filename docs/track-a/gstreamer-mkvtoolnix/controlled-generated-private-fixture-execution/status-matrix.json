@@ -1,0 +1,28 @@
+{
+  "rows": [
+    {
+      "tool": "GStreamer",
+      "commandClass": "bounded in-memory videotestsrc to fakesink",
+      "generatedFixtureOnly": true,
+      "proofPassed": true,
+      "userPrivateRealMedia": false,
+      "ffmpegFfprobe": false,
+      "renderExport": false,
+      "artifactsCleaned": true,
+      "productReady": false,
+      "blocker": null
+    },
+    {
+      "tool": "MKVToolNix",
+      "commandClass": "generated temp SRT muxed to generated subtitle-only MKV, then identify",
+      "generatedFixtureOnly": true,
+      "proofPassed": true,
+      "userPrivateRealMedia": false,
+      "ffmpegFfprobe": false,
+      "renderExport": false,
+      "artifactsCleaned": true,
+      "productReady": false,
+      "blocker": null
+    }
+  ]
+}

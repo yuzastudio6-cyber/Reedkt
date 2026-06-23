@@ -1,0 +1,11 @@
+{
+  "runId": "2026-06-23T03-37-56-bc4d88cf",
+  "gstreamerElapsedSeconds": 0.929,
+  "mkvMergeElapsedSeconds": 0.487,
+  "mkvIdentifyElapsedSeconds": 0.364,
+  "localOnlyExecution": true,
+  "cloudExecution": false,
+  "gpu": false,
+  "deployment": false,
+  "productPerformanceClaim": false
+}

@@ -1,0 +1,43 @@
+{
+  "decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_execution_passed_ready_for_qa",
+  "nextPrompt": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA-REVIEW-1",
+  "qaReady": true,
+  "productReady": false,
+  "acceptedEvidence": [
+    "GStreamer bounded in-memory generated fixture proof",
+    "MKVToolNix generated temp subtitle-only MKV mux and identify proof"
+  ],
+  "blockedScopes": {
+    "generatedSyntheticPrivateFixtureOnly": true,
+    "userMediaUsed": false,
+    "privateMediaUsed": false,
+    "realMediaUsed": false,
+    "broadPrivateFolderAccess": false,
+    "gcsPrivateArtifactSource": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "mediaProcessingBeyondApprovedGeneratedSubtitleOnlyMkv": false,
+    "remotionExecution": false,
+    "renderExport": false,
+    "browserCapture": false,
+    "workersRoutesProviders": false,
+    "supabaseMutation": false,
+    "sqlExecuted": false,
+    "gcsUpload": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "dockerBuild": false,
+    "dockerPushDeploy": false,
+    "betaProductionUnlocked": false,
+    "rawPromptExecution": false,
+    "secretPayloadPrinted": false,
+    "productReadyLocalOssTools": 0,
+    "trackBFFmpegFFprobeBoundary": "preserved"
+  },
+  "supabase": {
+    "updateRequired": "none",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

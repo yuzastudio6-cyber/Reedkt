@@ -189,6 +189,13 @@
 - It preserves blocked scopes for worker dispatch, worker-router calls, job creation, worker claims, worker leases, route/tool execution, Docker/GCP/Cloud Run/Secret Manager, media/audio processing, provider/model calls, Supabase/SQL, signed/public artifacts, billing, beta, and production.
 - It does not duplicate worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Docker/GCP handoff, Supabase runtime tables, migrations, SQL, or package-lock state.
 
+## Worker Runtime Sound CPU Handoff Review
+
+- Worker Runtime Sound CPU handoff review reconciliation records PR #670 / `WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW` as merged owner source evidence using merge commit `f0cb0000fcc49f9b5c5e76394be9578f5d6d29dc`.
+- It records Worker Runtime acceptance of the Sound worker names, planned images, and job types for future static planning only.
+- It preserves blocked scopes for worker dispatch, worker-router calls, job creation, worker claims, worker leases, static contract integration, imports, tools, media/audio, Docker/GCP/Cloud Run/Secret Manager, observability/retry/artifact/Supabase policy enablement, signed/public artifacts, beta, and production.
+- It does not duplicate Worker Runtime Jobs owner docs, Sound Gate 1D docs, worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Supabase runtime tables, migrations, SQL, or package-lock state.
+
 ## First-Class Coverage Expansion
 
 - This milestone adds explicit study cards and planning-only adapter contracts for all remaining first-class registry tools: `audioflux`, `babylon_js`, `cesium_js`, `d3`, `deck_gl`, `demucs`, `duckdb`, `echarts`, `essentia`, `hyperframe`, `konva`, `kornia`, `librosa`, `lottie`, `maplibre`, `mediapipe`, `pixijs`, `playwright`, `polars`, `rembg`, `revideo`, `rnnoise`, `rubber_band`, `signalsmith_stretch`, `soundtouch`, `three_js`, `transparent_background`, `turf`, `vapoursynth`, `vega_lite`, `whisper_cpp`.

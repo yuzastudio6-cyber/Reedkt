@@ -34,6 +34,7 @@
     "tool-calling:sound-gate-1b-merged-reconciliation": "node scripts/validation/tool-calling-sound-gate-1b-merged-reconciliation-diagnostics.mjs",
     "tool-calling:sound-gate-1c-merged-reconciliation": "node scripts/validation/tool-calling-sound-gate-1c-merged-reconciliation-diagnostics.mjs",
     "tool-calling:sound-gate-1d-merged-reconciliation": "node scripts/validation/tool-calling-sound-gate-1d-merged-reconciliation-diagnostics.mjs",
+    "tool-calling:worker-runtime-sound-cpu-handoff-review-reconciliation": "node scripts/validation/tool-calling-worker-runtime-sound-cpu-handoff-review-reconciliation-diagnostics.mjs",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",

@@ -1,0 +1,444 @@
+{
+  "ownerAccepted": true,
+  "capabilityIds": [
+    "chart_overlay",
+    "data_visualization",
+    "svg_graphics",
+    "diagram_graphics",
+    "animation_overlay",
+    "canvas_scene",
+    "webgl_3d_scene",
+    "background_removal",
+    "subject_segmentation",
+    "upscaling",
+    "tensor_image_ops",
+    "model_runtime_foundation"
+  ],
+  "executionAllowedNow": false,
+  "examples": {
+    "chart_overlay": {
+      "capabilityId": "chart_overlay",
+      "label": "Chart Overlay",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "vega_lite",
+        "d3"
+      ],
+      "conditionalPlanningTools": [
+        "echarts"
+      ],
+      "fallbackPlanningTools": [
+        "vega"
+      ],
+      "eliminatedTools": [
+        "three_js",
+        "sam2",
+        "real_esrgan"
+      ],
+      "missingProofRequirements": [
+        "browser chart runtime approval for echarts",
+        "approved render/export lane before visual output"
+      ],
+      "blockedRuntimeReasons": [
+        "browser chart runtime approval for echarts",
+        "approved render/export lane before visual output"
+      ],
+      "nextProofMilestone": "browser chart runtime approval for echarts; approved render/export lane before visual output"
+    },
+    "data_visualization": {
+      "capabilityId": "data_visualization",
+      "label": "Data Visualization",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "vega_lite",
+        "vega",
+        "d3"
+      ],
+      "conditionalPlanningTools": [
+        "echarts"
+      ],
+      "fallbackPlanningTools": [
+        "d3"
+      ],
+      "eliminatedTools": [
+        "sam2",
+        "real_esrgan"
+      ],
+      "missingProofRequirements": [
+        "runtime approval for browser chart execution",
+        "artifact approval before output"
+      ],
+      "blockedRuntimeReasons": [
+        "runtime approval for browser chart execution",
+        "artifact approval before output"
+      ],
+      "nextProofMilestone": "runtime approval for browser chart execution; artifact approval before output"
+    },
+    "svg_graphics": {
+      "capabilityId": "svg_graphics",
+      "label": "SVG Graphics",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "svgdotjs_svg_js",
+        "satori"
+      ],
+      "conditionalPlanningTools": [
+        "d3"
+      ],
+      "fallbackPlanningTools": [
+        "d3"
+      ],
+      "eliminatedTools": [
+        "sam2",
+        "real_esrgan"
+      ],
+      "missingProofRequirements": [
+        "static SVG output contract approval",
+        "public artifact boundary approval"
+      ],
+      "blockedRuntimeReasons": [
+        "static SVG output contract approval",
+        "public artifact boundary approval"
+      ],
+      "nextProofMilestone": "static SVG output contract approval; public artifact boundary approval"
+    },
+    "diagram_graphics": {
+      "capabilityId": "diagram_graphics",
+      "label": "Diagram Graphics",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "viz_js"
+      ],
+      "conditionalPlanningTools": [
+        "svgdotjs_svg_js"
+      ],
+      "fallbackPlanningTools": [
+        "svgdotjs_svg_js"
+      ],
+      "eliminatedTools": [
+        "vega_lite"
+      ],
+      "missingProofRequirements": [
+        "diagram output contract approval",
+        "artifact boundary approval"
+      ],
+      "blockedRuntimeReasons": [
+        "diagram output contract approval",
+        "artifact boundary approval"
+      ],
+      "nextProofMilestone": "diagram output contract approval; artifact boundary approval"
+    },
+    "animation_overlay": {
+      "capabilityId": "animation_overlay",
+      "label": "Animation Overlay",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "lottie_web",
+        "animejs"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "animejs"
+      ],
+      "eliminatedTools": [
+        "real_esrgan",
+        "sam2"
+      ],
+      "missingProofRequirements": [
+        "animation manifest/runtime approval"
+      ],
+      "blockedRuntimeReasons": [
+        "animation manifest/runtime approval"
+      ],
+      "nextProofMilestone": "animation manifest/runtime approval"
+    },
+    "canvas_scene": {
+      "capabilityId": "canvas_scene",
+      "label": "Canvas Scene",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "pixi_js",
+        "konva"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "konva"
+      ],
+      "eliminatedTools": [
+        "sam2",
+        "real_esrgan"
+      ],
+      "missingProofRequirements": [
+        "browser/canvas sandbox approval"
+      ],
+      "blockedRuntimeReasons": [
+        "browser/canvas sandbox approval"
+      ],
+      "nextProofMilestone": "browser/canvas sandbox approval"
+    },
+    "webgl_3d_scene": {
+      "capabilityId": "webgl_3d_scene",
+      "label": "WebGL 3D Scene",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "three_js",
+        "babylonjs"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "babylonjs"
+      ],
+      "eliminatedTools": [
+        "vega_lite",
+        "sam2"
+      ],
+      "missingProofRequirements": [
+        "browser/WebGL sandbox approval"
+      ],
+      "blockedRuntimeReasons": [
+        "browser/WebGL sandbox approval"
+      ],
+      "nextProofMilestone": "browser/WebGL sandbox approval"
+    },
+    "background_removal": {
+      "capabilityId": "background_removal",
+      "label": "Background Removal",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "sam2",
+        "birefnet"
+      ],
+      "conditionalPlanningTools": [
+        "rembg",
+        "transparent_background"
+      ],
+      "fallbackPlanningTools": [
+        "rembg",
+        "transparent_background"
+      ],
+      "eliminatedTools": [
+        "vega_lite",
+        "d3"
+      ],
+      "missingProofRequirements": [
+        "model/import/provenance proof",
+        "model boundary approval"
+      ],
+      "blockedRuntimeReasons": [
+        "model/import/provenance proof",
+        "model boundary approval"
+      ],
+      "nextProofMilestone": "model/import/provenance proof; model boundary approval"
+    },
+    "subject_segmentation": {
+      "capabilityId": "subject_segmentation",
+      "label": "Subject Segmentation",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "sam2",
+        "birefnet"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "birefnet"
+      ],
+      "eliminatedTools": [
+        "vega_lite",
+        "real_esrgan"
+      ],
+      "missingProofRequirements": [
+        "model/import/provenance proof",
+        "model boundary approval"
+      ],
+      "blockedRuntimeReasons": [
+        "model/import/provenance proof",
+        "model boundary approval"
+      ],
+      "nextProofMilestone": "model/import/provenance proof; model boundary approval"
+    },
+    "upscaling": {
+      "capabilityId": "upscaling",
+      "label": "Upscaling",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "real_esrgan"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "real_esrgan"
+      ],
+      "eliminatedTools": [
+        "vega_lite",
+        "d3"
+      ],
+      "missingProofRequirements": [
+        "model/GPU/provenance proof",
+        "model boundary approval"
+      ],
+      "blockedRuntimeReasons": [
+        "model/GPU/provenance proof",
+        "model boundary approval"
+      ],
+      "nextProofMilestone": "model/GPU/provenance proof; model boundary approval"
+    },
+    "tensor_image_ops": {
+      "capabilityId": "tensor_image_ops",
+      "label": "Tensor Image Ops",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "kornia"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "kornia"
+      ],
+      "eliminatedTools": [
+        "echarts",
+        "lottie_web"
+      ],
+      "missingProofRequirements": [
+        "CPU import proof",
+        "operation boundary approval"
+      ],
+      "blockedRuntimeReasons": [
+        "CPU import proof",
+        "operation boundary approval"
+      ],
+      "nextProofMilestone": "CPU import proof; operation boundary approval"
+    },
+    "model_runtime_foundation": {
+      "capabilityId": "model_runtime_foundation",
+      "label": "Model Runtime Foundation",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "preferredPlanningToolsOwnerAccepted": true,
+      "conditionalPlanningToolsOwnerAccepted": true,
+      "fallbackPlanningToolsOwnerAccepted": true,
+      "eliminatedToolsOwnerAccepted": true,
+      "missingProofRulesOwnerAccepted": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsOwnerAccepted": true,
+      "nextProofMilestoneOwnerAccepted": true,
+      "preferredPlanningTools": [
+        "torch_torchvision",
+        "transformers"
+      ],
+      "conditionalPlanningTools": [],
+      "fallbackPlanningTools": [
+        "transformers"
+      ],
+      "eliminatedTools": [
+        "vega_lite",
+        "d3"
+      ],
+      "missingProofRequirements": [
+        "CPU/GPU/model-boundary proof",
+        "model provenance approval"
+      ],
+      "blockedRuntimeReasons": [
+        "CPU/GPU/model-boundary proof",
+        "model provenance approval"
+      ],
+      "nextProofMilestone": "CPU/GPU/model-boundary proof; model provenance approval"
+    }
+  }
+}

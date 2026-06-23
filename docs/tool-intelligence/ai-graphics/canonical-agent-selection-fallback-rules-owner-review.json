@@ -1,0 +1,45 @@
+{
+  "ownerAccepted": true,
+  "sourceQaAccepted": true,
+  "allCapabilitiesCovered": true,
+  "executionAllowedNow": false,
+  "fallbackByCapability": {
+    "chart_overlay": [
+      "vega"
+    ],
+    "data_visualization": [
+      "d3"
+    ],
+    "svg_graphics": [
+      "d3"
+    ],
+    "diagram_graphics": [
+      "svgdotjs_svg_js"
+    ],
+    "animation_overlay": [
+      "animejs"
+    ],
+    "canvas_scene": [
+      "konva"
+    ],
+    "webgl_3d_scene": [
+      "babylonjs"
+    ],
+    "background_removal": [
+      "rembg",
+      "transparent_background"
+    ],
+    "subject_segmentation": [
+      "birefnet"
+    ],
+    "upscaling": [
+      "real_esrgan"
+    ],
+    "tensor_image_ops": [
+      "kornia"
+    ],
+    "model_runtime_foundation": [
+      "transformers"
+    ]
+  }
+}

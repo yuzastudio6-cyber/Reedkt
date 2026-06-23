@@ -1,0 +1,16 @@
+{
+  "ownerAccepted": true,
+  "blockers": [
+    "capability mismatch",
+    "proof below required level",
+    "browser/WebGL/canvas not approved",
+    "GPU/model weights not approved",
+    "public artifact or signed URL not approved",
+    "Tool Route execution not approved",
+    "Worker execution not approved",
+    "provider/model runtime not approved",
+    "simpler lower-cost tool available",
+    "deferred/backlog tool"
+  ],
+  "executionAllowedNow": false
+}

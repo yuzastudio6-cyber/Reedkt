@@ -182,6 +182,13 @@
 - It preserves blocked scopes for Dockerfiles, image builds, Docker/GCP/Cloud Run calls, service accounts, Secret Manager, worker/route/tool execution, media/audio processing, model/provider calls, Supabase/SQL, signed/public artifacts, billing, beta, and production.
 - It does not duplicate worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Docker/GCP handoff, Supabase runtime tables, migrations, SQL, or package-lock state.
 
+## Sound Runtime Media Gate 1D Merged Evidence
+
+- Sound Gate 1D merged reconciliation records PR #663 / `SOUND-RUNTIME-MEDIA-GATE-1D` as merged owner source evidence using merge commit `dbb6d7fe56e7a710059fd80385f11e6fe186f5e0`.
+- It records the `WORKER_RUNTIME_JOBS` owner handoff packet, accepted worker names, planned image names, planning-only job types, runtime claim policy, blocked gates, and next prompts as evidence metadata only.
+- It preserves blocked scopes for worker dispatch, worker-router calls, job creation, worker claims, worker leases, route/tool execution, Docker/GCP/Cloud Run/Secret Manager, media/audio processing, provider/model calls, Supabase/SQL, signed/public artifacts, billing, beta, and production.
+- It does not duplicate worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Docker/GCP handoff, Supabase runtime tables, migrations, SQL, or package-lock state.
+
 ## First-Class Coverage Expansion
 
 - This milestone adds explicit study cards and planning-only adapter contracts for all remaining first-class registry tools: `audioflux`, `babylon_js`, `cesium_js`, `d3`, `deck_gl`, `demucs`, `duckdb`, `echarts`, `essentia`, `hyperframe`, `konva`, `kornia`, `librosa`, `lottie`, `maplibre`, `mediapipe`, `pixijs`, `playwright`, `polars`, `rembg`, `revideo`, `rnnoise`, `rubber_band`, `signalsmith_stretch`, `soundtouch`, `three_js`, `transparent_background`, `turf`, `vapoursynth`, `vega_lite`, `whisper_cpp`.

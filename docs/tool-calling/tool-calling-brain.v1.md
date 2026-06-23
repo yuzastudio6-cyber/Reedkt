@@ -193,6 +193,13 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - The layer records Sound worker names, planned images, and job types as future static planning terms only.
 - Worker-route dry-run, worker dispatch, worker claim/lease, job creation, static contract integration, imports, tools, media/audio, Docker/GCP/Cloud Run/Secret Manager, Supabase/SQL, adapters, commands, probes, fixtures, beta, and production remain blocked until static contract plan evidence exists.
 
+## Worker Runtime Sound CPU Contract Owner Review
+
+- Worker Runtime Sound CPU contract owner review reconciliation records PR #679 / `WORKER_RUNTIME_JOBS-SOUND-CPU-CONTRACT-OWNER-REVIEW` as merged owner source evidence using merge commit `1091f901729334389918f3b1ea28b584ebf7686b`.
+- The layer records accepted worker names, planned images, job types, static contract areas, static fields, and placeholder policies as future Dockerfile/static image planning terms only.
+- PR #684 Dockerfile static review evidence is candidate-only unless live GitHub inspection proves it has merged.
+- Worker-route dry-run, worker dispatch, worker claim/lease, job creation, Dockerfile static integration, Docker/GCP/Cloud Run/Secret Manager, imports, tools, media/audio, Supabase/SQL, adapters, commands, probes, fixtures, beta, and production remain blocked until Dockerfile static review and Gate 1E evidence are reconciled.
+
 ## Track B External Registry Planning Expansion
 
 - Track B external registry expansion adds first-class `ProductionToolId` coverage for `mediainfo`, `exiftool`, `tesseract`, and `imagemagick`.

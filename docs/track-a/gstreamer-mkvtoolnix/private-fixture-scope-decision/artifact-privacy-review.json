@@ -11,5 +11,10 @@
     "stdout_private_content": "blocked",
     "secret_payload_printing": "blocked"
   },
+  "post_merge_safety_closure": {
+    "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1R",
+    "local_unpushed_ad_hoc_safety_scan_quoting_error_artifacts": "none",
+    "accepted_source_evidence": false
+  },
   "finding": "artifact_privacy_review_passed_for_approval_planning"
 }

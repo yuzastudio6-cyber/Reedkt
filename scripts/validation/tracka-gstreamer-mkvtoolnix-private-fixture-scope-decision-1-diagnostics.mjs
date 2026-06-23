@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, statSync } from 'node:fs'
 
 const packetDir = 'docs/track-a/gstreamer-mkvtoolnix/private-fixture-scope-decision'
 const requiredReports = [
@@ -24,12 +24,15 @@ const requiredReports = [
   'readiness-report.json',
   'private-artifact-manifest.json',
   'validation-results.md',
+  'post-merge-safety-closure.json',
+  'post-merge-safety-closure.md',
 ].map((file) => `${packetDir}/${file}`)
 
 const requiredFiles = [
   ...requiredReports,
   'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-approval-1.md',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1r-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1-diagnostics.mjs',
   'docs/track-a/track-a-tool-status-matrix.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
@@ -86,7 +89,15 @@ const requiredText = [
   'FFmpeg/FFprobe remain Track B-owned shared dependencies only.',
   'GStreamer execution: `not_run`',
   'MKVToolNix execution: `not_run`',
-  'FFmpeg/FFprobe execution: `not_run`',
+  'Pushed PR path FFmpeg/FFprobe execution: `not_run`',
+  'TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1R',
+  '535b6003606430df88e6905ecd2db36be19a9e8b',
+  'pushed PR path did not execute FFmpeg/FFprobe',
+  'local unpushed ad hoc safety-scan quoting error invoked `ffprobe` with no media input',
+  'produced no artifacts',
+  'not accepted source evidence',
+  'must not be repeated',
+  'Future safety scans must avoid shell patterns that accidentally invoke tool binaries.',
   'Private/user/real media: `not_used`',
   'Media processing: `not_run`',
   'Render/export: `not_run`',
@@ -158,6 +169,16 @@ for (const pattern of forbiddenPatterns) {
   if (pattern.test(combined)) fail(`forbidden claim matched: ${pattern}`)
 }
 
+for (const line of combined.split(/\r?\n/)) {
+  const trimmed = line.trim()
+  if (/^FFmpeg\/FFprobe execution:\s*`?not_run/i.test(trimmed)) {
+    fail(`unqualified FFmpeg/FFprobe not-run claim must be scoped to the pushed PR path: ${trimmed}`)
+  }
+  if (/no FFmpeg\/FFprobe execution occurred/i.test(trimmed) && !/(pushed PR path|guarded PR path)/i.test(trimmed)) {
+    fail(`unqualified no-FFmpeg/FFprobe execution claim: ${trimmed}`)
+  }
+}
+
 const artifactManifest = JSON.parse(read(`${packetDir}/private-artifact-manifest.json`))
 for (const key of [
   'private_artifacts_created',
@@ -191,9 +212,11 @@ for (const protectedPath of [
 }
 
 const diffFiles = git(['diff', '--name-only', 'HEAD'])
+const stagedFiles = git(['diff', '--cached', '--name-only'])
 const untrackedFiles = git(['ls-files', '--others', '--exclude-standard'])
 const changedFiles = [...new Set([
   ...(diffFiles ? diffFiles.split('\n') : []),
+  ...(stagedFiles ? stagedFiles.split('\n') : []),
   ...(untrackedFiles ? untrackedFiles.split('\n') : []),
 ])].filter(Boolean)
 
@@ -210,5 +233,25 @@ for (const file of changedFiles) {
 
 const stagedGenerated = git(['diff', '--cached', '--name-only', '--', 'dist', 'dist-server', 'node_modules'])
 if (stagedGenerated) fail(`generated output staged unexpectedly: ${stagedGenerated}`)
+
+const forbiddenChangedContent = [
+  /renderMedia\s*\(/,
+  /renderStill\s*\(/,
+  /getCompositions\s*\(/,
+  /^\s*(docker|podman)\s+(build|run|push|compose)\b/m,
+  /\b(Docker|Cloud Run)\s+(push|deployment):\s*`?(completed|enabled|true)/i,
+  /signed\s+url\s*:\s*`?(created|enabled|true)/i,
+  /public\s+artifact\s*:\s*`?(created|enabled|true)/i,
+  /Supabase\s+(mutation|SQL)\s*:\s*`?(executed|mutated|true)/i,
+  /beta\/production\/final delivery unlock:\s*`?(enabled|unlocked|true)/i,
+]
+
+for (const file of changedFiles) {
+  if (!existsSync(file) || !statSync(file).isFile()) continue
+  const text = read(file)
+  for (const pattern of forbiddenChangedContent) {
+    if (pattern.test(text)) fail(`forbidden changed-file content matched ${pattern} in ${file}`)
+  }
+}
 
 console.log('TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1 diagnostics passed')

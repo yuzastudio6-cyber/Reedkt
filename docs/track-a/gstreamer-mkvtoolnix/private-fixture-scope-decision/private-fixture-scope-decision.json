@@ -4,7 +4,8 @@
   "rationale": [
     "PR #652 controlled synthetic GStreamer and MKVToolNix evidence is accepted for considering a future private fixture approval lane",
     "future work remains approval-only until exact fixture source, privacy, checksum, storage, logging, and cleanup rules are approved",
-    "no private media execution, user media, FFmpeg/FFprobe expansion, render/export, GCS, signed URL, public artifact, beta, or production scope is authorized"
+    "no private media execution, user media, FFmpeg/FFprobe expansion, render/export, GCS, signed URL, public artifact, beta, or production scope is authorized",
+    "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1R records that the pushed PR path is docs/status/diagnostics only and did not execute FFmpeg/FFprobe; a local unpushed ad hoc safety-scan quoting error invoked ffprobe with no media input, produced no artifacts, is not accepted source evidence, and must not be repeated"
   ],
   "next_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
   "product_ready_local_oss_tools": 0,

@@ -591,6 +591,7 @@
     "tracka:gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1": "node scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1.mjs",
     "tracka:gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1:diagnostics": "node scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1-diagnostics.mjs",
     "tracka:gstreamer-mkvtoolnix-private-fixture-scope-decision-1:diagnostics": "node scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1-diagnostics.mjs",
+    "tracka:gstreamer-mkvtoolnix-private-fixture-scope-decision-1r:diagnostics": "node scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1r-diagnostics.mjs",
     "tracka:gstreamer-mkvtoolnix-private-fixture-approval-1:diagnostics": "node scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1-diagnostics.mjs",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",

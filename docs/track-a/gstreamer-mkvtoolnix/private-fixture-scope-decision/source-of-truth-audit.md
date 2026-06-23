@@ -50,7 +50,11 @@ GStreamer execution: `not_run`
 
 MKVToolNix execution: `not_run`
 
-FFmpeg/FFprobe execution: `not_run`
+Pushed PR path FFmpeg/FFprobe execution: `not_run`
+
+Post-merge safety closure: `TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-SCOPE-DECISION-1R`
+
+Local safety-scan caveat: a local unpushed ad hoc safety-scan quoting error invoked `ffprobe` with no media input, produced no artifacts, is not accepted source evidence, and must not be repeated.
 
 Private/user/real media: `not_used`
 

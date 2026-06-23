@@ -1,0 +1,68 @@
+{
+  "sourceOfTruth": [
+    {
+      "pr": 601,
+      "mergeSha": "f19c173a6a3d9a4cf381fc23826bd14a6385bc1f",
+      "role": "install_source_declarations"
+    },
+    {
+      "pr": 609,
+      "mergeSha": "e36b1a691eb1616cde95ba89bd51f480a337997c",
+      "role": "render_worker_build_install_metadata_proof"
+    },
+    {
+      "pr": 624,
+      "mergeSha": "afc9983cecaef0eeeb536409c16c3e0ad2eda7c6",
+      "role": "identity_policy_decisions"
+    },
+    {
+      "pr": 649,
+      "mergeSha": "7aaa0b5b8004a401e92b23da5ad3444b3e59cec9",
+      "role": "no_media_runtime_command_checks"
+    },
+    {
+      "pr": 652,
+      "mergeSha": "a9256e97bcded71f7b72a611261471cdb5739a94",
+      "role": "controlled_synthetic_fixture_proof"
+    },
+    {
+      "pr": 659,
+      "mergeSha": "535b6003606430df88e6905ecd2db36be19a9e8b",
+      "role": "private_fixture_scope_decision"
+    },
+    {
+      "pr": 667,
+      "mergeSha": "45ed9fc7325fdae722e0e8cb9b1282f70e147000",
+      "role": "post_merge_safety_closure"
+    },
+    {
+      "pr": 662,
+      "mergeSha": "ba3d8d5850601a8effb4ec971cbefb0ff7f786a9",
+      "role": "original_private_fixture_approval"
+    },
+    {
+      "pr": 666,
+      "mergeSha": "5df02d3d5920f1329c5058e772fdcd669cb03824",
+      "role": "private_fixture_plan"
+    },
+    {
+      "pr": 675,
+      "mergeSha": "b9c4136850b5247a2b1e300a18804674df99731d",
+      "role": "approval_reconciliation_after_667"
+    },
+    {
+      "pr": 673,
+      "mergeSha": "536d24bbe37763b8262e3b70dd8950e264482dfd",
+      "role": "controlled_generated_private_fixture_execution_source_of_truth"
+    }
+  ],
+  "excluded": [
+    {
+      "pr": 577,
+      "status": "open_draft_blocked_conflicting",
+      "reason": "unrelated Remotion runtime proof remains pending external validation"
+    }
+  ],
+  "nextPrompt": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA-REVIEW-1",
+  "productReadyEndToEndLocalOssTools": 0
+}

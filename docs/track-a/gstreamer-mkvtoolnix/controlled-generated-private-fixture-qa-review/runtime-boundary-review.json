@@ -11,6 +11,10 @@
   "deliveryInterfacesChanged": false,
   "qaPhaseToolExecution": false,
   "qaPhaseGeneratedArtifacts": false,
+  "privateFixtureExecutionInThisPhase": false,
+  "qaScope": "source_evidence_review_only",
+  "post680ReconciliationIntegrated": true,
+  "post680MergeSha": "41601b267d076534412b7e13c86bee32cac23f7b",
   "supabaseClassification": {
     "updateRequired": "none",
     "environmentTouched": "none",

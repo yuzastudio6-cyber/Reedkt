@@ -2,7 +2,7 @@
 
 Goal: plan the restricted Track A visual-video private E2E packet only after Worker/Supabase gates and core tool proofs are complete.
 
-Current readiness: `blocked_pending_worker_supabase_gates_and_core_tool_proofs`.
+Current readiness: `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates`.
 
 Prerequisites:
 
@@ -20,7 +20,7 @@ Core proof status: `TRACKA-CORE-RENDER-CAPTION-INSTALL-PROOF-1 decision: complet
 
 Libass runtime proof status: `TRACKA-LIBASS-CAPTION-BURNIN-RUNTIME-PROOF-1 decision: completed_runtime_proof_satisfied_by_existing_merged_evidence`.
 
-Current blocked readiness: `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: blocked_pending_worker_supabase_private_e2e_gates_and_remotion_runtime_proof`.
+Current blocked readiness: `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates`.
 
 OTIO handoff readiness: `opentimelineio_timeline_validation readiness: ready_for_tracka_private_e2e_timeline_handoff`.
 
@@ -33,6 +33,8 @@ Remotion runtime proof status: `Remotion runtime proof status: blocked_pending_r
 Remotion runtime execution status: `runtimeExecutionPerformed: false`.
 
 Track A GStreamer/MKVToolNix controlled synthetic fixture proof: `completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof`.
+
+Track A GStreamer/MKVToolNix generated private fixture QA decision: `qa_passed_controlled_generated_private_fixture_execution_evidence`.
 
 Private/user media used: `false`.
 

@@ -1,12 +1,19 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1
 
-Roll up Track A native container render-tool evidence after GStreamer/MKVToolNix controlled generated private fixture QA.
+Historical rollup prompt ancestry for Track A native container render-tool evidence after GStreamer/MKVToolNix controlled generated private fixture QA.
 
 Source-of-truth input:
 
-- QA decision: `tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup`
+- QA decision: `qa_passed_controlled_generated_private_fixture_execution_evidence`
 - QA packet: `docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/`
 - Accepted execution evidence: PR #673 only, as bounded generated synthetic-private fixture evidence.
+- PR #680 reconciled the execution-packet alias to #673.
+
+Current next prompt: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`.
+
+`TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 readiness: ready`
+
+`TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates`
 
 Scope:
 

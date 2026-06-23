@@ -1,13 +1,25 @@
 {
   "phase": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA-REVIEW-1",
   "sourceSha": "536d24bbe37763b8262e3b70dd8950e264482dfd",
+  "latestIntegrationSha": "41601b267d076534412b7e13c86bee32cac23f7b",
   "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
   "branch": "codex/rp-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1",
-  "decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "decision": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+  "execution": "completed_docs_only_qa_review_no_runtime_execution",
+  "qaScope": "source_evidence_review_only",
+  "privateFixtureExecutionInThisPhase": false,
   "predecessorPullRequests": [
+    {
+      "number": 680,
+      "state": "MERGED",
+      "mergeSha": "41601b267d076534412b7e13c86bee32cac23f7b",
+      "decision": "satisfied_by_merged_controlled_generated_private_fixture_execution_1",
+      "acceptedFor": "post-673 execution packet reconciliation source"
+    },
     {
       "number": 673,
       "state": "MERGED",
+      "mergeSha": "536d24bbe37763b8262e3b70dd8950e264482dfd",
       "headSha": "71705e3b6081cf2e0e4870d2e24e7f29f421dfec",
       "decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_execution_passed_ready_for_qa",
       "acceptedFor": "bounded generated synthetic-private fixture evidence only"
@@ -35,6 +47,13 @@
       "state": "MERGED",
       "headSha": "a3074af2eff53380402708ee055fa0db70b2f77a",
       "decision": "completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof"
+    }
+  ],
+  "excludedPullRequests": [
+    {
+      "number": 577,
+      "status": "open_draft_blocked_conflicting",
+      "reason": "unrelated Remotion runtime proof remains pending external validation"
     }
   ],
   "duplicateSearch": {

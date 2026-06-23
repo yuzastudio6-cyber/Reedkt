@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
 const packetDir = 'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review'
+const executionPacketDir = 'docs/track-a/gstreamer-mkvtoolnix/private-fixture-execution-packet'
+const activationResult = 'docs/activation-phase-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-results.md'
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
@@ -25,6 +27,13 @@ const requiredReports = [
 ].map((file) => `${packetDir}/${file}`)
 
 const predecessorFiles = [
+  `${executionPacketDir}/reconciliation.json`,
+  `${executionPacketDir}/reconciliation.md`,
+  `${executionPacketDir}/source-of-truth-audit.json`,
+  `${executionPacketDir}/source-of-truth-audit.md`,
+  `${executionPacketDir}/status-matrix.json`,
+  `${executionPacketDir}/status-matrix.md`,
+  `${executionPacketDir}/validation-results.md`,
   'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/source-of-truth-audit.json',
   'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/gstreamer-execution-report.json',
   'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/mkvtoolnix-execution-report.json',
@@ -40,6 +49,11 @@ const predecessorFiles = [
 const requiredFiles = [
   ...requiredReports,
   ...predecessorFiles,
+  activationResult,
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1.md',
+  'docs/implementation-prompts/prompt-tracka-native-container-render-tools-install-proof-3.md',
+  'docs/implementation-prompts/prompt-tracka-visual-video-private-e2e-1.md',
+  'docs/implementation-prompts/prompt-tracka-film-frame-interpolation-scope-decision-1.md',
   'docs/implementation-prompts/prompt-tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1.md',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1-diagnostics.mjs',
@@ -53,7 +67,17 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set([
   ...requiredReports,
+  ...predecessorFiles,
+  activationResult,
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1.md',
+  'docs/implementation-prompts/prompt-tracka-native-container-render-tools-install-proof-3.md',
+  'docs/implementation-prompts/prompt-tracka-visual-video-private-e2e-1.md',
+  'docs/implementation-prompts/prompt-tracka-film-frame-interpolation-scope-decision-1.md',
   'docs/implementation-prompts/prompt-tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1r-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1r-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-plan-1-diagnostics.mjs',
@@ -65,12 +89,16 @@ const allowedChangedFiles = new Set([
   'package.json',
 ])
 
-const decision = 'tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup'
-const nextPrompt = 'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1'
+const decision = 'qa_passed_controlled_generated_private_fixture_execution_evidence'
+const validationBlocker = 'host_resource_limit_no_space_left_on_device_during_npm_ci'
+const nextPrompt = 'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3'
 const tempRoot = '/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1/2026-06-23T03-37-56-bc4d88cf'
 
 const requiredText = [
   'TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA-REVIEW-1',
+  '#680',
+  '41601b267d076534412b7e13c86bee32cac23f7b',
+  'satisfied_by_merged_controlled_generated_private_fixture_execution_1',
   '#673',
   '536d24bbe37763b8262e3b70dd8950e264482dfd',
   '71705e3b6081cf2e0e4870d2e24e7f29f421dfec',
@@ -94,7 +122,17 @@ const requiredText = [
   '2487edd658e8459b7818baf0422c8db6679f693020d78aeb90d5be0fb5aa446b',
   'ea659dec22a7492be8af90a521be03f76367723e99570e32e9f3b59d68ec1b82',
   decision,
+  validationBlocker,
+  'Validation status: `blocked_host_resource_limit_no_space_left_on_device_during_npm_ci`',
+  'PR review state: `draft_pending_dependency_validation_on_host_with_available_disk`',
+  'Execution: `completed_docs_only_qa_review_no_runtime_execution`',
+  'QA scope: `source_evidence_review_only`',
+  'Private fixture execution in this phase: `false`',
   nextPrompt,
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 readiness: ready',
+  'TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates',
+  'TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1',
+  'PR #577 remains open, draft, blocked/conflicting, and excluded as source-of-truth',
   'Product-ready end-to-end local OSS tools: `0`',
   'Track B FFmpeg/FFprobe ownership remains preserved',
   'QA-phase GStreamer execution: `not_run`',
@@ -194,9 +232,28 @@ for (const pattern of forbiddenPatterns) {
 
 const decisionReport = JSON.parse(read(`${packetDir}/controlled-generated-private-fixture-qa-decision.json`))
 if (decisionReport.decision !== decision) fail('decision drift in QA decision report')
+if (decisionReport.execution !== 'completed_docs_only_qa_review_no_runtime_execution') fail('execution drift in QA decision report')
+if (decisionReport.qaScope !== 'source_evidence_review_only') fail('QA scope drift in QA decision report')
+if (decisionReport.privateFixtureExecutionInThisPhase !== false) fail('private fixture execution must remain false in QA decision report')
+if (decisionReport.reconciliationPullRequest !== 680) fail('PR #680 reconciliation must be recorded')
+if (decisionReport.reconciliationMergeSha !== '41601b267d076534412b7e13c86bee32cac23f7b') fail('PR #680 merge SHA drift')
 if (decisionReport.next_prompt !== nextPrompt) fail('next prompt drift in QA decision report')
 if (decisionReport.productReadyLocalOssTools !== 0) fail('product-ready local OSS count must remain 0')
 if (decisionReport.trackBFFmpegFFprobeOwnershipPreserved !== true) fail('Track B FFmpeg/FFprobe ownership must be preserved')
+if (decisionReport.blocker !== validationBlocker) fail('QA decision report must record the dependency validation blocker')
+if (decisionReport.validationStatus !== `blocked_${validationBlocker}`) fail('QA decision report validation status drift')
+
+const audit = JSON.parse(read(`${packetDir}/source-of-truth-audit.json`))
+if (audit.decision !== decision) fail('decision drift in source audit')
+if (audit.execution !== 'completed_docs_only_qa_review_no_runtime_execution') fail('execution drift in source audit')
+if (audit.qaScope !== 'source_evidence_review_only') fail('QA scope drift in source audit')
+if (audit.privateFixtureExecutionInThisPhase !== false) fail('private fixture execution must remain false in source audit')
+if (!audit.predecessorPullRequests?.some((pr) => pr.number === 680 && pr.mergeSha === '41601b267d076534412b7e13c86bee32cac23f7b')) {
+  fail('source audit must record PR #680 merge SHA')
+}
+if (!audit.excludedPullRequests?.some((pr) => pr.number === 577 && pr.status === 'open_draft_blocked_conflicting')) {
+  fail('source audit must exclude PR #577')
+}
 
 const gst = JSON.parse(read(`${packetDir}/gstreamer-evidence-acceptance.json`))
 if (gst.accepted !== true || gst.sourcePullRequest !== 673) fail('GStreamer evidence must accept PR #673')
@@ -229,13 +286,27 @@ for (const row of statusMatrix.rows) {
   if (row.qaAccepted !== true) fail(`QA row must be accepted for ${row.tool}`)
   if (row.qaPhaseExecution !== false) fail(`QA row must not execute for ${row.tool}`)
   if (row.productReady !== false) fail(`QA row must keep productReady false for ${row.tool}`)
+  if (row.readiness !== 'qa_passed_ready_for_tracka_native_container_rollup_or_private_e2e_planning') {
+    fail(`QA row readiness drift for ${row.tool}`)
+  }
 }
+
+const readiness = JSON.parse(read(`${packetDir}/readiness-report.json`))
+if (readiness.validationBlocker !== validationBlocker) fail('readiness report must record the dependency validation blocker')
+if (readiness.validationStatus !== `blocked_${validationBlocker}`) fail('readiness report validation status drift')
+if (readiness.dependencyValidation !== 'blocked') fail('readiness report dependency validation must be blocked')
 
 const runtimeBoundary = JSON.parse(read(`${packetDir}/runtime-boundary-review.json`))
 for (const [key, value] of Object.entries(runtimeBoundary)) {
-  if (key === 'supabaseClassification') continue
+  if (['supabaseClassification', 'qaScope', 'post680MergeSha'].includes(key)) continue
+  if (key === 'post680ReconciliationIntegrated') {
+    if (value !== true) fail('post-680 reconciliation must be integrated')
+    continue
+  }
   if (value !== false) fail(`runtime boundary must remain false for ${key}`)
 }
+if (runtimeBoundary.qaScope !== 'source_evidence_review_only') fail('runtime boundary QA scope drift')
+if (runtimeBoundary.post680MergeSha !== '41601b267d076534412b7e13c86bee32cac23f7b') fail('runtime boundary PR #680 merge SHA drift')
 
 const manifest = JSON.parse(read(`${packetDir}/private-artifact-manifest.json`))
 for (const key of [

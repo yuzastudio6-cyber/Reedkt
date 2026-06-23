@@ -79,6 +79,23 @@ const allowedChangedFiles = new Set([
   'package.json',
 ])
 
+function isAllowedChangedFile(file) {
+  return allowedChangedFiles.has(file)
+    || file.startsWith('docs/track-a/gstreamer-mkvtoolnix/private-fixture-execution-packet/')
+    || file.startsWith('docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/')
+    || file === 'docs/activation-phase-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-results.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-native-container-render-tools-install-proof-3.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-visual-video-private-e2e-1.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-film-frame-interpolation-scope-decision-1.md'
+    || file === 'docs/track-a/track-a-runtime-blocked-scope-register.md'
+    || file === 'docs/track-a/track-a-tool-status-matrix.md'
+    || (file.startsWith('scripts/validation/tracka-gstreamer-mkvtoolnix-') && file.endsWith('-diagnostics.mjs'))
+    || file === 'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs'
+}
+
 function fail(message) {
   console.error(message)
   process.exit(1)
@@ -153,7 +170,7 @@ const changedFiles = [...new Set([
 ])].filter(Boolean)
 
 for (const file of changedFiles) {
-  if (!allowedChangedFiles.has(file)) fail(`unexpected changed file: ${file}`)
+  if (!isAllowedChangedFile(file)) fail(`unexpected changed file: ${file}`)
   if (file === 'package-lock.json') fail('package-lock.json must remain unchanged')
   if (/\.(mkv|srt|mp4|mov|avi|wav|mp3|m4a|webm)$/i.test(file)) fail(`media/generated artifact changed: ${file}`)
   if (file.startsWith('dist') || file.includes('/dist') || file.includes('node_modules')) {

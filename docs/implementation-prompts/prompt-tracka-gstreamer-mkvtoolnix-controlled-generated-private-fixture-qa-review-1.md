@@ -2,11 +2,20 @@
 
 Review the Track A GStreamer/MKVToolNix controlled generated synthetic-private fixture execution packet.
 
+Post-#680 repair decision to record: `qa_passed_controlled_generated_private_fixture_execution_evidence`.
+
+Execution in this QA phase: `completed_docs_only_qa_review_no_runtime_execution`.
+
+QA scope: `source_evidence_review_only`.
+
+Private fixture execution in this phase: `false`.
+
 Source-of-truth input:
 
 - Execution decision: `tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_execution_passed_ready_for_qa`
 - Execution packet: `docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-execution/`
 - Prior plan decision: `tracka_gstreamer_mkvtoolnix_private_fixture_plan_passed_ready_for_controlled_generated_private_fixture_execution`
+- Execution-packet reconciliation: PR #680 merge `41601b267d076534412b7e13c86bee32cac23f7b`, `satisfied_by_merged_controlled_generated_private_fixture_execution_1`
 
 QA scope:
 
@@ -36,3 +45,9 @@ Blocked scope remains blocked:
 - beta/production
 
 Supabase classification remains: no write / environment none / SQL none / migration no.
+
+Next readiness:
+
+- `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 readiness: ready`
+- `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates`
+- `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1` remains planning-only.

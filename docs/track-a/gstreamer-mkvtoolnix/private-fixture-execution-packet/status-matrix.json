@@ -1,0 +1,53 @@
+{
+  "rows": [
+    {
+      "tool": "gstreamer_render_pipeline_support",
+      "installSource": "declared_by_601",
+      "buildMetadataProof": "completed_by_609",
+      "noMediaRuntimeProof": "completed_by_649",
+      "controlledSyntheticFixtureProof": "completed_by_652",
+      "privateFixtureScopeDecision": "completed_by_659",
+      "postMergeSafetyClosure": "completed_by_667",
+      "privateFixtureApproval": "completed_by_662_and_reconciled_by_675",
+      "privateFixturePlan": "completed_by_666",
+      "controlledGeneratedPrivateFixtureExecution": "completed_by_673",
+      "executionPacket": "satisfied_by_merged_controlled_generated_private_fixture_execution_1",
+      "privateFixtureExecutionNow": false,
+      "readiness": "ready_for_tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_review_1",
+      "productReady": false
+    },
+    {
+      "tool": "mkvtoolnix_container_validation",
+      "installSource": "declared_by_601",
+      "buildMetadataProof": "completed_by_609",
+      "noMediaRuntimeProof": "completed_by_649",
+      "controlledSyntheticFixtureProof": "completed_by_652",
+      "privateFixtureScopeDecision": "completed_by_659",
+      "postMergeSafetyClosure": "completed_by_667",
+      "privateFixtureApproval": "completed_by_662_and_reconciled_by_675",
+      "privateFixturePlan": "completed_by_666",
+      "controlledGeneratedPrivateFixtureExecution": "completed_by_673",
+      "executionPacket": "satisfied_by_merged_controlled_generated_private_fixture_execution_1",
+      "privateFixtureExecutionNow": false,
+      "readiness": "ready_for_tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_review_1",
+      "productReady": false
+    },
+    {
+      "tool": "shared_dependency_ffmpeg_trackb_owned",
+      "execution": "not_run_in_this_reconciliation_phase",
+      "ownership": "track_b_owned_shared_dependency",
+      "atlasTrackAOwnershipClaim": false,
+      "coordinationRequiredForFutureUse": true,
+      "productReady": false
+    },
+    {
+      "tool": "shared_dependency_ffprobe_trackb_owned",
+      "execution": "not_run_in_this_reconciliation_phase",
+      "ownership": "track_b_owned_shared_dependency",
+      "atlasTrackAOwnershipClaim": false,
+      "coordinationRequiredForFutureUse": true,
+      "productReady": false
+    }
+  ],
+  "productReadyEndToEndLocalOssTools": 0
+}

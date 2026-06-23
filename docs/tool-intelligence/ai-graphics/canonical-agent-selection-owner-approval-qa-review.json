@@ -3,8 +3,8 @@
   "branch": "codex/rp-ai-graphics-canonical-agent-selection-owner-approval-qa-review",
   "baseBranch": "codex/rp-ai-graphics-canonical-agent-selection-owner-approval",
   "draftPrTitle": "[tools] AI graphics canonical agent selection owner approval QA review",
-  "draftPr": "pending",
-  "draftPrStatus": "pending draft PR creation",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/683",
+  "draftPrStatus": "open draft, MERGEABLE, empty check rollup",
   "sourceDecision": "ai_graphics_canonical_agent_selection_owner_approved_with_warnings",
   "sourcePrs": {
     "361": {
@@ -834,9 +834,14 @@
     "generatedOutputCreated": false
   },
   "validation": {
-    "status": "pending local validation before draft PR creation",
+    "status": "passed locally before PR creation",
+    "prNumber": 683,
+    "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/683",
+    "prHead": "e2b4bb19196d0a6dc0ef8915ecc4b5dd614da4c8",
+    "checkRollup": [],
     "packageLockUnchanged": true,
-    "localArtifactsStaged": false
+    "localArtifactsStaged": false,
+    "generatedArtifactsStaged": false
   },
   "nextPrompt": "AI_GRAPHICS_CANONICAL_AGENT_SELECTION_OWNER_APPROVAL_QA_FOLLOW_UP_OR_CANONICAL_AGENT_SELECTION_CANONICALIZATION_REVIEW"
 }

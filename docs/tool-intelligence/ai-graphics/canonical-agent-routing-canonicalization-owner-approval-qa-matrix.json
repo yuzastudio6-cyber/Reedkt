@@ -1,0 +1,267 @@
+{
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "transformers",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "sam2",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "kornia",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "rembg",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "d3",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "echarts",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "vega",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "satori",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "animejs",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "three_js",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "konva",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false
+    }
+  ],
+  "capabilities": {
+    "chart_overlay": {
+      "capabilityId": "chart_overlay",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "data_visualization": {
+      "capabilityId": "data_visualization",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "svg_graphics": {
+      "capabilityId": "svg_graphics",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "diagram_graphics": {
+      "capabilityId": "diagram_graphics",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "animation_overlay": {
+      "capabilityId": "animation_overlay",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "canvas_scene": {
+      "capabilityId": "canvas_scene",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "webgl_3d_scene": {
+      "capabilityId": "webgl_3d_scene",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "background_removal": {
+      "capabilityId": "background_removal",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "subject_segmentation": {
+      "capabilityId": "subject_segmentation",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "upscaling": {
+      "capabilityId": "upscaling",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "tensor_image_ops": {
+      "capabilityId": "tensor_image_ops",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    },
+    "model_runtime_foundation": {
+      "capabilityId": "model_runtime_foundation",
+      "ownerApprovalQaAccepted": true,
+      "currentExecutionAllowed": false,
+      "agentCanSelectForPlanning": true
+    }
+  }
+}

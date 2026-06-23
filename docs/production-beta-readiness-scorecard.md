@@ -162,3 +162,13 @@ Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_canonicaliz
 ## AI Graphics Canonical Agent Routing Canonicalization Owner Approval
 
 Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_owner_approved_with_warnings`. PR #661 canonicalization owner review is owner-approved with warnings as planning/study metadata routing only for all 21 AI graphics tools and all 12 product-facing capabilities. Agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal/external beta, and production remain false.
+
+## AI Graphics Canonical Agent Routing Canonicalization Owner Approval QA
+
+- Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_owner_approval_qa_passed_with_warnings`.
+- Source PR #665 owner approval accepted with warnings for planning/study metadata only.
+- All 21 AI graphics tools and 12 product-facing capabilities remain covered by canonical routing canonicalization.
+- Agent planning/study metadata selection remains allowed.
+- Agent/tool/route/worker/provider execution remains false.
+- Browser/WebGL/canvas runtime, GPU/model runtime, runtime readiness, internal beta, external beta, and production readiness remain false.
+- Track B exclusion remains under `TRACK_B_MEDIA_OSS_STEWARD` via PR #542; Track A render/export exclusion remains via PR #544. These labels remain evidence/exclusion context only.

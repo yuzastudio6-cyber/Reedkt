@@ -8,6 +8,9 @@ const baseRef = "origin/codex/rp-ai-graphics-canonical-agent-selection-qa-review
 const expectedDecision = "ai_graphics_canonical_agent_selection_owner_review_passed_with_warnings";
 const expectedScript = "ai-graphics:canonical-agent-selection:owner-diagnostics";
 const expectedScriptCommand = "node scripts/validation/ai-graphics-canonical-agent-selection-owner-diagnostics.mjs";
+const allowedDescendantScripts = new Set([
+  "ai-graphics:canonical-agent-selection:owner-approval-diagnostics",
+]);
 const failures = [];
 const fail = (message) => failures.push(message);
 const rel = (file) => path.join(root, file);
@@ -175,7 +178,7 @@ try { packageJson = JSON.parse(read("package.json")); basePackageJson = JSON.par
 for (const section of ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]) if (JSON.stringify(packageJson[section] || {}) !== JSON.stringify(basePackageJson[section] || {})) fail("Package dependency section changed: " + section);
 if (packageJson.scripts?.[expectedScript] !== expectedScriptCommand) fail("Expected package script is missing or incorrect.");
 const scriptDrift = Object.keys(packageJson.scripts || {}).filter((key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key]));
-for (const key of scriptDrift) if (key !== expectedScript) fail("Unexpected script drift: " + key);
+for (const key of scriptDrift) if (key !== expectedScript && !allowedDescendantScripts.has(key)) fail("Unexpected script drift: " + key);
 for (const key of Object.keys(basePackageJson.scripts || {})) if (!(key in (packageJson.scripts || {}))) fail("Removed package script: " + key);
 try { if (git(["diff", "--name-only", baseRef, "--", "package-lock.json"])) fail("package-lock.json changed relative to base."); } catch (error) { fail("Unable to verify package-lock diff: " + error.message); }
 let tracked = "";

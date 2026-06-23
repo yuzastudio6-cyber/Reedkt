@@ -4,14 +4,11 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 const root = process.cwd();
-const baseRef = "origin/codex/rp-ai-graphics-canonical-agent-selection-owner-approval";
-const expectedDecision = "ai_graphics_canonical_agent_selection_owner_approval_qa_passed_with_warnings";
-const expectedScript = "ai-graphics:canonical-agent-selection:owner-approval-qa-diagnostics";
-const expectedScriptCommand = "node scripts/validation/ai-graphics-canonical-agent-selection-owner-approval-qa-diagnostics.mjs";
-const allowedDescendantScripts = new Set([
-  "ai-graphics:canonical-agent-selection:canonicalization-diagnostics",
-  "ai-graphics:canonical-agent-selection:canonicalization-qa-diagnostics",
-]);
+const baseRef = "origin/codex/rp-ai-graphics-canonical-agent-selection-canonicalization-review";
+const expectedDecision = "ai_graphics_canonical_agent_selection_canonicalization_qa_passed_with_warnings";
+const expectedScript = "ai-graphics:canonical-agent-selection:canonicalization-qa-diagnostics";
+const expectedScriptCommand =
+  "node scripts/validation/ai-graphics-canonical-agent-selection-canonicalization-qa-diagnostics.mjs";
 const failures = [];
 const fail = (message) => failures.push(message);
 const rel = (file) => path.join(root, file);
@@ -22,34 +19,43 @@ const gitEnv = { ...process.env, DEVELOPER_DIR: "/Library/Developer/CommandLineT
 const git = (args) => execFileSync("git", args, { cwd: root, encoding: "utf8", env: gitEnv }).trim();
 
 const requiredDocs = [
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-owner-approval-qa-review.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-owner-approval-qa-source-lockfile.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-schema-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-capability-map-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-ranking-rules-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-elimination-rules-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-fallback-rules-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-missing-proof-rules-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-safety-boundary-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-planning-only-policy-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-examples-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-blocked-use-register-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-next-lane-owner-approval-qa.md",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-owner-approval-qa-decision.md",
-  "docs/prompt-ai-graphics-canonical-agent-selection-owner-approval-qa-review-results.md",
-  "docs/implementation-prompts/prompt-ai-graphics-canonical-agent-selection-owner-approval-qa-review.md"
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-review.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-source-lockfile.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-ledger.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-matrix.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-schema-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-capability-map-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-ranking-rules-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-elimination-rules-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-fallback-rules-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-missing-proof-rules-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-safety-boundary-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-planning-only-policy-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-examples-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-blocked-use-register-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-next-lane-canonicalization-qa.md",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-decision.md",
+  "docs/prompt-ai-graphics-canonical-agent-selection-canonicalization-qa-review-results.md",
+  "docs/implementation-prompts/prompt-ai-graphics-canonical-agent-selection-canonicalization-qa-review.md"
 ];
 
 const requiredJson = [
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-owner-approval-qa-review.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-owner-approval-qa-source-lockfile.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-schema-owner-approval-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-capability-map-owner-approval-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-ranking-rules-owner-approval-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-elimination-rules-owner-approval-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-fallback-rules-owner-approval-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-examples-owner-approval-qa.json",
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-blocked-use-register-owner-approval-qa.json"
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-review.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-source-lockfile.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-ledger.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-matrix.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-schema-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-capability-map-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-ranking-rules-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-elimination-rules-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-fallback-rules-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-missing-proof-rules-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-safety-boundary-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-planning-only-policy-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-examples-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-blocked-use-register-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-next-lane-canonicalization-qa.json",
+  "docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-decision.json"
 ];
 
 const capabilities = [
@@ -67,8 +73,11 @@ const capabilities = [
   "model_runtime_foundation"
 ];
 
-const capabilityDocs = capabilities.map((capability) =>
-  "docs/tool-intelligence/ai-graphics/canonical-agent-selection/owner-approval-qa/" + capability.replaceAll("_", "-") + ".md"
+const capabilityDocs = capabilities.map(
+  (capability) =>
+    "docs/tool-intelligence/ai-graphics/canonical-agent-selection/canonicalization-qa/" +
+    capability.replaceAll("_", "-") +
+    ".md"
 );
 
 const allTools = [
@@ -101,31 +110,37 @@ for (const file of [...requiredDocs, ...requiredJson, ...capabilityDocs]) {
 
 let qa = {};
 try {
-  qa = parseJson("docs/tool-intelligence/ai-graphics/canonical-agent-selection-owner-approval-qa-review.json");
+  qa = parseJson("docs/tool-intelligence/ai-graphics/canonical-agent-selection-canonicalization-qa-review.json");
 } catch (error) {
-  fail("Unable to parse owner-approval QA JSON: " + error.message);
+  fail("Unable to parse canonicalization QA review JSON: " + error.message);
 }
 
 if (qa.decision !== expectedDecision) fail("Unexpected decision: " + qa.decision);
+if (qa.canonicalAgentSelectionLedgerQa?.accepted !== true) fail("Canonical ledger QA was not accepted.");
+if (qa.canonicalAgentSelectionMatrixQa?.accepted !== true) fail("Canonical matrix QA was not accepted.");
 
 const trueBooleans = [
-  "canonicalAgentSelectionOwnerApprovalQaCompleted",
+  "canonicalAgentSelectionCanonicalizationQaCompleted",
+  "sourceCanonicalAgentSelectionCanonicalizationReviewAccepted",
+  "sourceCanonicalAgentSelectionOwnerApprovalQaAccepted",
   "sourceCanonicalAgentSelectionOwnerApprovalAccepted",
   "sourceCanonicalAgentSelectionOwnerReviewAccepted",
   "sourceCanonicalAgentSelectionQaAccepted",
   "sourceCanonicalAgentSelectionReviewAccepted",
   "sourceCanonicalRoutingCanonicalizationAccepted",
-  "all21ToolsCoveredByAgentSelectionOwnerApprovalQa",
-  "allRequiredCapabilitiesCoveredByAgentSelectionOwnerApprovalQa",
-  "canonicalAgentSelectionSchemaOwnerApprovalQaAccepted",
-  "capabilityMapOwnerApprovalQaAccepted",
-  "rankingRulesOwnerApprovalQaAccepted",
-  "eliminationRulesOwnerApprovalQaAccepted",
-  "fallbackRulesOwnerApprovalQaAccepted",
-  "missingProofRulesOwnerApprovalQaAccepted",
-  "planningOnlyPolicyOwnerApprovalQaAccepted",
-  "safetyBoundaryOwnerApprovalQaAccepted",
-  "selectionExamplesOwnerApprovalQaAccepted",
+  "all21ToolsCoveredByAgentSelectionCanonicalizationQa",
+  "allRequiredCapabilitiesCoveredByAgentSelectionCanonicalizationQa",
+  "canonicalAgentSelectionLedgerQaAccepted",
+  "canonicalAgentSelectionMatrixQaAccepted",
+  "canonicalAgentSelectionSchemaQaAccepted",
+  "capabilityMapQaAccepted",
+  "rankingRulesQaAccepted",
+  "eliminationRulesQaAccepted",
+  "fallbackRulesQaAccepted",
+  "missingProofRulesQaAccepted",
+  "planningOnlyPolicyQaAccepted",
+  "safetyBoundaryQaAccepted",
+  "selectionExamplesQaAccepted",
   "agentCanSelectForPlanning"
 ];
 
@@ -173,28 +188,34 @@ for (const tool of allTools) {
 const capMap = qa.capabilities || {};
 for (const capability of capabilities) {
   const row = capMap[capability];
-  if (!row) fail("Missing capability owner-approval QA row: " + capability);
+  if (!row) fail("Missing capability QA row: " + capability);
   for (const key of [
     "capabilityId",
+    "canonicalQaStatus",
+    "sourceCanonicalizationReviewAccepted",
     "sourceSelectionReviewAccepted",
     "sourceSelectionQaAccepted",
     "sourceSelectionOwnerReviewAccepted",
     "sourceSelectionOwnerApprovalAccepted",
-    "preferredPlanningToolsOwnerApprovalQaAccepted",
-    "conditionalPlanningToolsOwnerApprovalQaAccepted",
-    "fallbackPlanningToolsOwnerApprovalQaAccepted",
-    "eliminatedToolsOwnerApprovalQaAccepted",
-    "missingProofRulesOwnerApprovalQaAccepted",
+    "sourceSelectionOwnerApprovalQaAccepted",
+    "preferredPlanningToolsQaAccepted",
+    "conditionalPlanningToolsQaAccepted",
+    "fallbackPlanningToolsQaAccepted",
+    "eliminatedToolsQaAccepted",
+    "missingProofRulesQaAccepted",
     "currentExecutionAllowed",
-    "blockedRuntimeReasonsOwnerApprovalQaAccepted",
-    "nextProofMilestoneOwnerApprovalQaAccepted"
+    "blockedRuntimeReasonsQaAccepted",
+    "nextProofMilestoneQaAccepted"
   ]) {
     if (!(key in row)) fail("Capability " + capability + " missing field: " + key);
+  }
+  if (row.canonicalQaStatus !== "qa_accepted_canonical_planning_study_metadata_selection_only") {
+    fail("Unexpected QA status for capability: " + capability);
   }
   if (row.currentExecutionAllowed !== false) fail("Capability should keep current execution false: " + capability);
 }
 
-const schema = qa.schemaOwnerApprovalQa || {};
+const schema = qa.schemaQa || {};
 for (const section of [
   "capabilityExtraction",
   "candidateMapping",
@@ -205,7 +226,7 @@ for (const section of [
   "planningOnlyRecommendation",
   "safetyBoundary"
 ]) {
-  if (!schema.requiredSections?.includes(section)) fail("Missing schema owner-approval QA section: " + section);
+  if (!schema.requiredSections?.includes(section)) fail("Missing schema QA section: " + section);
 }
 
 const combinedText = [
@@ -213,9 +234,14 @@ const combinedText = [
   ...requiredJson,
   ...capabilityDocs,
   "docs/production-beta-readiness-scorecard.md"
-].filter(exists).map(read).join("\n");
+]
+  .filter(exists)
+  .map(read)
+  .join("\n");
 
 for (const pr of [
+  "685",
+  "683",
   "681",
   "677",
   "674",
@@ -245,6 +271,23 @@ for (const phrase of ["TRACK_B_MEDIA_OSS_STEWARD", "Track A render/export exclus
   if (!combinedText.includes(phrase)) fail("Missing exclusion phrase: " + phrase);
 }
 
+for (const phrase of [
+  "chart_overlay",
+  "data_visualization",
+  "svg_graphics",
+  "diagram_graphics",
+  "animation_overlay",
+  "canvas_scene",
+  "webgl_3d_scene",
+  "background_removal",
+  "subject_segmentation",
+  "upscaling",
+  "tensor_image_ops",
+  "model_runtime_foundation"
+]) {
+  if (!combinedText.includes(phrase)) fail("Missing product-facing capability: " + phrase);
+}
+
 for (const pattern of [
   /"agentCanExecuteToolsNow"\s*:\s*true/i,
   /"routeExecutionApprovedNow"\s*:\s*true/i,
@@ -261,8 +304,8 @@ for (const pattern of [
   /"gcsUploadPerformed"\s*:\s*true/i,
   /"publicArtifactCreated"\s*:\s*true/i,
   /"signedUrlCreated"\s*:\s*true/i,
-  /execution approved now/i,
-  /runtime ready now/i,
+  /execution approved now:\s*true/i,
+  /runtime ready now:\s*true/i,
   /E2E proof approved/i,
   /dry_run_passed/i,
   /generated_local_fixture_passed/i
@@ -286,11 +329,11 @@ for (const section of ["dependencies", "devDependencies", "optionalDependencies"
 if (packageJson.scripts?.[expectedScript] !== expectedScriptCommand) {
   fail("Expected package script is missing or incorrect.");
 }
-const scriptDrift = Object.keys(packageJson.scripts || {}).filter((key) =>
-  JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key])
+const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
+  (key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key])
 );
 for (const key of scriptDrift) {
-  if (key !== expectedScript && !allowedDescendantScripts.has(key)) fail("Unexpected script drift: " + key);
+  if (key !== expectedScript) fail("Unexpected script drift: " + key);
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) {
   if (!(key in (packageJson.scripts || {}))) fail("Removed package script: " + key);
@@ -318,8 +361,8 @@ for (const file of tracked.split("\n").filter(Boolean)) {
 }
 
 if (failures.length) {
-  console.error("AI graphics canonical agent-selection owner approval QA diagnostics failed:");
+  console.error("AI graphics canonical agent-selection canonicalization QA diagnostics failed:");
   for (const failure of failures) console.error("- " + failure);
   process.exit(1);
 }
-console.log("AI graphics canonical agent-selection owner approval QA diagnostics passed.");
+console.log("AI graphics canonical agent-selection canonicalization QA diagnostics passed.");

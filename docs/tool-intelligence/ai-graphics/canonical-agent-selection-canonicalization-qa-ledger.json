@@ -1,0 +1,59 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_canonicalization_qa_passed_with_warnings",
+  "accepted": true,
+  "canonicalSourceChain": [
+    "PR #671",
+    "PR #674",
+    "PR #677",
+    "PR #681",
+    "PR #683",
+    "PR #685"
+  ],
+  "allTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background",
+    "d3",
+    "echarts",
+    "vega_lite",
+    "vega",
+    "satori",
+    "svgdotjs_svg_js",
+    "viz_js",
+    "lottie_web",
+    "animejs",
+    "three_js",
+    "pixi_js",
+    "konva",
+    "babylonjs"
+  ],
+  "capabilities": [
+    "chart_overlay",
+    "data_visualization",
+    "svg_graphics",
+    "diagram_graphics",
+    "animation_overlay",
+    "canvas_scene",
+    "webgl_3d_scene",
+    "background_removal",
+    "subject_segmentation",
+    "upscaling",
+    "tensor_image_ops",
+    "model_runtime_foundation"
+  ],
+  "agentCanSelectForPlanning": true,
+  "agentCanExecuteToolsNow": false,
+  "runtimeReadyNow": false,
+  "internalBetaReadyNow": false,
+  "productionReadyNow": false,
+  "exclusions": {
+    "trackB": "TRACK_B_MEDIA_OSS_STEWARD preserved as evidence/exclusion context only via PR #542.",
+    "trackA": "Track A render/export exclusion via PR #544 preserved as evidence/exclusion context only.",
+    "productFacingCategories": "Internal owner labels are not product-facing capability categories."
+  }
+}

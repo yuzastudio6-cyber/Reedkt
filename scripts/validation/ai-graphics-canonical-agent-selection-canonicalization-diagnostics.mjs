@@ -8,6 +8,9 @@ const baseRef = "origin/codex/rp-ai-graphics-canonical-agent-selection-owner-app
 const expectedDecision = "ai_graphics_canonical_agent_selection_canonicalization_review_passed_with_warnings";
 const expectedScript = "ai-graphics:canonical-agent-selection:canonicalization-diagnostics";
 const expectedScriptCommand = "node scripts/validation/ai-graphics-canonical-agent-selection-canonicalization-diagnostics.mjs";
+const allowedDescendantScripts = new Set([
+  "ai-graphics:canonical-agent-selection:canonicalization-qa-diagnostics"
+]);
 const failures = [];
 const fail = (message) => failures.push(message);
 const rel = (file) => path.join(root, file);
@@ -299,7 +302,7 @@ const scriptDrift = Object.keys(packageJson.scripts || {}).filter((key) =>
   JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key])
 );
 for (const key of scriptDrift) {
-  if (key !== expectedScript) fail("Unexpected script drift: " + key);
+  if (key !== expectedScript && !allowedDescendantScripts.has(key)) fail("Unexpected script drift: " + key);
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) {
   if (!(key in (packageJson.scripts || {}))) fail("Removed package script: " + key);

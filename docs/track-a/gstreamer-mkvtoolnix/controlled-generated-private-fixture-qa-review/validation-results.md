@@ -1,16 +1,18 @@
 # Validation Results
 
-Validation status: `blocked_host_resource_limit_no_space_left_on_device_during_npm_ci`
+Validation status: `blocked_host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`
 
-Validation blocker: `host_resource_limit_no_space_left_on_device_during_npm_ci`
+Validation blocker: `host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`
 
 Dependency validation result: `blocked`
 
-Dependency validation attempted command: `npm ci --no-audit --no-fund --progress=false`
+Dependency validation current attempt: `not_run_disk_space_below_threshold`
 
-Dependency validation failure: local host returned repeated `ENOSPC: no space left on device` tar extraction errors during `npm ci`; partial generated `node_modules` state was removed and is not committed.
+Dependency validation reason: local `/Volumes/backup` has only about `9.4GiB` free, below the required `25GiB` threshold for retrying `npm ci`.
 
-Blocked commands not run after dependency failure: `npm run lint`, `npm run typecheck:server`, `npm run build`, and `npm run build:server`.
+Prior dependency validation failure: local host returned repeated `ENOSPC: no space left on device` tar extraction errors during `npm ci`; partial generated `node_modules` state was removed and is not committed.
+
+Blocked commands not run because the environment remains below the disk-space threshold: `npm ci --no-audit --no-fund --progress=false`, `npm run lint`, `npm run typecheck:server`, `npm run build`, and `npm run build:server`.
 
 Required repair validation commands:
 
@@ -33,7 +35,7 @@ Required repair validation commands:
 
 Changed-file and staged safety scans are non-executing file-content scans only.
 
-Feasible repair checks after the dependency blocker are limited to `git diff --check`, Node-built-in diagnostics, `git diff --cached --check`, and non-executing file-content safety scans.
+Feasible repair checks while the larger-environment blocker remains are limited to `git diff --check`, Node-built-in diagnostics, `git diff --cached --check`, and non-executing file-content safety scans.
 
 Repair decision: `qa_passed_controlled_generated_private_fixture_execution_evidence`
 

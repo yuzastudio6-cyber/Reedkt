@@ -25,10 +25,12 @@
     "product-ready local OSS claims"
   ],
   "productReadyLocalOssTools": 0,
-  "validationStatus": "blocked_host_resource_limit_no_space_left_on_device_during_npm_ci",
-  "validationBlocker": "host_resource_limit_no_space_left_on_device_during_npm_ci",
+  "validationStatus": "blocked_host_resource_limit_no_space_left_on_device_requires_larger_validation_environment",
+  "validationBlocker": "host_resource_limit_no_space_left_on_device_requires_larger_validation_environment",
   "dependencyValidation": "blocked",
-  "dependencyValidationAttemptedCommand": "npm ci --no-audit --no-fund --progress=false",
-  "dependencyValidationFailure": "ENOSPC no space left on device during npm ci tar extraction",
-  "prReviewState": "draft_pending_dependency_validation_on_host_with_available_disk"
+  "dependencyValidationCurrentAttempt": "not_run_disk_space_below_threshold",
+  "dependencyValidationDiskFree": "9.4GiB",
+  "dependencyValidationRequiredDiskFree": "25GiB",
+  "dependencyValidationFailure": "requires larger validation environment before npm ci retry",
+  "prReviewState": "draft_pending_larger_validation_environment"
 }

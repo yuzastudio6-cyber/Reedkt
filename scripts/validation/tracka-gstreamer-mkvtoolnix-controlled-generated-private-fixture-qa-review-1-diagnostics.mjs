@@ -92,7 +92,7 @@ const allowedChangedFiles = new Set([
 ])
 
 const decision = 'qa_passed_controlled_generated_private_fixture_execution_evidence'
-const validationBlocker = 'host_resource_limit_no_space_left_on_device_during_npm_ci'
+const validationBlocker = 'host_resource_limit_no_space_left_on_device_requires_larger_validation_environment'
 const nextPrompt = 'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3'
 const tempRoot = '/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1/2026-06-23T03-37-56-bc4d88cf'
 
@@ -125,8 +125,9 @@ const requiredText = [
   'ea659dec22a7492be8af90a521be03f76367723e99570e32e9f3b59d68ec1b82',
   decision,
   validationBlocker,
-  'Validation status: `blocked_host_resource_limit_no_space_left_on_device_during_npm_ci`',
-  'PR review state: `draft_pending_dependency_validation_on_host_with_available_disk`',
+  'Validation status: `blocked_host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`',
+  'Dependency validation current attempt: `not_run_disk_space_below_threshold`',
+  'PR review state: `draft_pending_larger_validation_environment`',
   'Execution: `completed_docs_only_qa_review_no_runtime_execution`',
   'QA scope: `source_evidence_review_only`',
   'Private fixture execution in this phase: `false`',

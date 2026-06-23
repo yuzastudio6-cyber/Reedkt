@@ -34,6 +34,6 @@ Next prompt: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`
 
 Parallel planning-only prompt: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1`
 
-Validation blocker: `host_resource_limit_no_space_left_on_device_during_npm_ci`
+Validation blocker: `host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`
 
-PR review state: `draft_pending_dependency_validation_on_host_with_available_disk`
+PR review state: `draft_pending_larger_validation_environment`

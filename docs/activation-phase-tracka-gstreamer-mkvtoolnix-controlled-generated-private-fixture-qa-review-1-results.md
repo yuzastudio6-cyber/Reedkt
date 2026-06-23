@@ -10,15 +10,17 @@ Private fixture execution in this phase: `false`
 
 Product-ready end-to-end local OSS tools: `0`
 
-Validation status: `blocked_host_resource_limit_no_space_left_on_device_during_npm_ci`
+Validation status: `blocked_host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`
 
-Validation blocker: `host_resource_limit_no_space_left_on_device_during_npm_ci`
+Validation blocker: `host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`
 
-Dependency validation attempted command: `npm ci --no-audit --no-fund --progress=false`
+Dependency validation current attempt: `not_run_disk_space_below_threshold`
 
-Dependency validation failure: local host returned repeated `ENOSPC: no space left on device` tar extraction errors during `npm ci`; partial generated `node_modules` state was removed and is not committed.
+Dependency validation reason: local `/Volumes/backup` has only about `9.4GiB` free, below the required `25GiB` threshold for retrying `npm ci`.
 
-PR review state: `draft_pending_dependency_validation_on_host_with_available_disk`
+Prior dependency validation failure: local host returned repeated `ENOSPC: no space left on device` tar extraction errors during `npm ci`; partial generated `node_modules` state was removed and is not committed.
+
+PR review state: `draft_pending_larger_validation_environment`
 
 ## Source Chain
 

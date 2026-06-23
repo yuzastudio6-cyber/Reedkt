@@ -1,0 +1,28 @@
+{
+  "plan": "privacy and artifact plan",
+  "status": "planned_no_execution",
+  "artifact_policy": {
+    "user_media": "not_used",
+    "private_media": "not_used",
+    "real_media": "not_used",
+    "committed_fixture_files": "not_allowed",
+    "gcs_upload": "not_allowed",
+    "public_artifacts": "not_allowed",
+    "signed_urls": "not_allowed",
+    "temp_only_output": "required_for_future_execution",
+    "cleanup_verification": "required_for_future_execution"
+  },
+  "log_policy": {
+    "stdout": "sanitized_safe_stdout_only",
+    "stderr": "sanitized_safe_stderr_only",
+    "checksums": "allowed_for_generated_temp_fixtures",
+    "absolute_temp_paths": "allowed_only_under_future_temp_root",
+    "secrets": "not_allowed"
+  },
+  "this_phase_artifacts": {
+    "generated_media_artifacts": [],
+    "private_artifacts": [],
+    "public_artifacts": [],
+    "signed_urls": []
+  }
+}

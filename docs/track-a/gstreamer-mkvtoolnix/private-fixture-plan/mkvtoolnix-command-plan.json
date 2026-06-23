@@ -1,0 +1,22 @@
+{
+  "tool": "MKVToolNix",
+  "status": "planned_no_execution",
+  "allowed_future_command_class": "mux_and_identify_generated_temp_subtitle_fixture_only",
+  "preferred_future_commands": [
+    "mkvmerge -o generated-private-subtitle-only.mkv generated-private-subtitles.srt",
+    "mkvmerge --identify generated-private-subtitle-only.mkv"
+  ],
+  "stdout_policy": "safe_stdout_only",
+  "output_policy": "temporary_output_only",
+  "disallowed": [
+    "broad_file_discovery",
+    "arbitrary_media_probe",
+    "private_user_media",
+    "real_media",
+    "ffmpeg_ffprobe",
+    "render_export",
+    "public_artifact_delivery",
+    "signed_url_delivery"
+  ],
+  "this_phase_execution": "not_run"
+}

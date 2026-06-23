@@ -1,0 +1,19 @@
+{
+  "tool": "GStreamer",
+  "status": "planned_no_execution",
+  "allowed_future_command_class": "bounded_synthetic_generated_source_pipeline",
+  "preferred_future_command_family": "gst-launch-1.0 -q videotestsrc num-buffers=3 ! fakesink",
+  "network_policy": "disabled_where_possible",
+  "stdout_policy": "safe_stdout_only",
+  "output_policy": "no_file_output_by_default",
+  "disallowed": [
+    "private_user_media_decode",
+    "real_media_decode",
+    "ffmpeg_ffprobe",
+    "render_export",
+    "broad_media_processing",
+    "public_artifact_delivery",
+    "signed_url_delivery"
+  ],
+  "this_phase_execution": "not_run"
+}

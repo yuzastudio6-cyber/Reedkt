@@ -6,8 +6,11 @@
   "title": "Dockerfile static plan, no Docker build",
   "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1C",
   "requiredDecision": "sound_runtime_media_gate_1c_cpu_worker_image_plan_completed_with_warnings_ready_for_worker_runtime_handoff",
+  "workerOwnerReviewMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW",
+  "workerOwnerReviewRequiredDecision": "worker_runtime_jobs_sound_cpu_handoff_review_passed_with_warnings_ready_for_static_contract_plan",
   "purpose": "Plan the future static Dockerfile definition for SOUND CPU worker images without creating a Dockerfile, building an image, running Docker, calling GCP, pushing to Artifact Registry, or executing workers.",
   "sourceEvidenceRequired": [
+    "WORKER_RUNTIME_JOBS SOUND CPU handoff review",
     "SOUND-RUNTIME-MEDIA-GATE-1D worker runtime owner handoff",
     "SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
     "SOUND-RUNTIME-MEDIA-GATE-1B worker contract owner review",

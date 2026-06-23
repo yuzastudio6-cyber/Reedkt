@@ -1,0 +1,533 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_canonicalization_review_passed_with_warnings",
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "transformers",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "sam2",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "kornia",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "rembg",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "d3",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "echarts",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "vega",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "satori",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "animejs",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "three_js",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "konva",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    }
+  ],
+  "capabilities": {
+    "chart_overlay": {
+      "capabilityId": "chart_overlay",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "vega_lite",
+        "d3"
+      ],
+      "conditionalPlanningToolsCanonicalized": [
+        "echarts"
+      ],
+      "fallbackPlanningToolsCanonicalized": [
+        "vega"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "three_js",
+        "sam2",
+        "real_esrgan"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "browser chart runtime not approved",
+        "model/GPU proof not approved for eliminated ML tools",
+        "3D chart request required before three_js planning"
+      ],
+      "nextProofMilestoneCanonicalized": "future chart/browser runtime or CPU/static chart metadata proof before execution"
+    },
+    "data_visualization": {
+      "capabilityId": "data_visualization",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "vega_lite",
+        "vega",
+        "d3"
+      ],
+      "conditionalPlanningToolsCanonicalized": [
+        "echarts"
+      ],
+      "fallbackPlanningToolsCanonicalized": [
+        "svgdotjs_svg_js"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "sam2",
+        "real_esrgan",
+        "lottie_web"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "browser chart runtime not approved for echarts",
+        "model/GPU tools are capability mismatches"
+      ],
+      "nextProofMilestoneCanonicalized": "future data visualization execution proof after runtime approval"
+    },
+    "svg_graphics": {
+      "capabilityId": "svg_graphics",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "svgdotjs_svg_js",
+        "satori"
+      ],
+      "conditionalPlanningToolsCanonicalized": [
+        "d3"
+      ],
+      "fallbackPlanningToolsCanonicalized": [
+        "viz_js"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "sam2",
+        "real_esrgan"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "public SVG artifact creation not approved",
+        "model/GPU tools are capability mismatches"
+      ],
+      "nextProofMilestoneCanonicalized": "future static SVG contract or artifact-boundary proof"
+    },
+    "diagram_graphics": {
+      "capabilityId": "diagram_graphics",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "viz_js"
+      ],
+      "conditionalPlanningToolsCanonicalized": [
+        "svgdotjs_svg_js"
+      ],
+      "fallbackPlanningToolsCanonicalized": [
+        "d3"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "vega_lite"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "diagram execution and public artifact output not approved",
+        "vega_lite only applies when request is chart-like"
+      ],
+      "nextProofMilestoneCanonicalized": "future DOT/SVG diagram execution boundary proof"
+    },
+    "animation_overlay": {
+      "capabilityId": "animation_overlay",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "lottie_web",
+        "animejs"
+      ],
+      "conditionalPlanningToolsCanonicalized": [],
+      "fallbackPlanningToolsCanonicalized": [
+        "satori"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "real_esrgan",
+        "sam2"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "animation manifest/runtime approval missing",
+        "browser/runtime execution not approved"
+      ],
+      "nextProofMilestoneCanonicalized": "animation manifest and runtime approval lane"
+    },
+    "canvas_scene": {
+      "capabilityId": "canvas_scene",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "pixi_js",
+        "konva"
+      ],
+      "conditionalPlanningToolsCanonicalized": [],
+      "fallbackPlanningToolsCanonicalized": [
+        "svgdotjs_svg_js"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "torch_torchvision",
+        "transformers"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "browser/canvas sandbox approval missing",
+        "tool execution not approved"
+      ],
+      "nextProofMilestoneCanonicalized": "browser/canvas sandbox proof lane"
+    },
+    "webgl_3d_scene": {
+      "capabilityId": "webgl_3d_scene",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "three_js",
+        "babylonjs"
+      ],
+      "conditionalPlanningToolsCanonicalized": [],
+      "fallbackPlanningToolsCanonicalized": [
+        "pixi_js"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "vega_lite",
+        "d3"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "browser/WebGL sandbox approval missing",
+        "GPU/browser runtime not approved"
+      ],
+      "nextProofMilestoneCanonicalized": "browser/WebGL sandbox proof lane"
+    },
+    "background_removal": {
+      "capabilityId": "background_removal",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "sam2",
+        "birefnet"
+      ],
+      "conditionalPlanningToolsCanonicalized": [
+        "rembg",
+        "transparent_background"
+      ],
+      "fallbackPlanningToolsCanonicalized": [
+        "kornia"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "vega_lite",
+        "d3"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "model/import/provenance proof missing",
+        "model weights and inference are not approved"
+      ],
+      "nextProofMilestoneCanonicalized": "model import, provenance, and boundary proof lane"
+    },
+    "subject_segmentation": {
+      "capabilityId": "subject_segmentation",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "sam2",
+        "birefnet"
+      ],
+      "conditionalPlanningToolsCanonicalized": [
+        "kornia"
+      ],
+      "fallbackPlanningToolsCanonicalized": [
+        "rembg"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "echarts",
+        "vega"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "model/import/provenance proof missing",
+        "model weights and inference are not approved"
+      ],
+      "nextProofMilestoneCanonicalized": "segmentation model-boundary proof lane"
+    },
+    "upscaling": {
+      "capabilityId": "upscaling",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "real_esrgan"
+      ],
+      "conditionalPlanningToolsCanonicalized": [],
+      "fallbackPlanningToolsCanonicalized": [
+        "kornia"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "d3",
+        "satori"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "model/GPU/provenance proof missing",
+        "GPU runtime not approved"
+      ],
+      "nextProofMilestoneCanonicalized": "upscaling model/GPU/provenance proof lane"
+    },
+    "tensor_image_ops": {
+      "capabilityId": "tensor_image_ops",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "kornia"
+      ],
+      "conditionalPlanningToolsCanonicalized": [
+        "torch_torchvision"
+      ],
+      "fallbackPlanningToolsCanonicalized": [
+        "transformers"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "echarts",
+        "viz_js"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "CPU import proof not approved for execution",
+        "tensor/image ops execution not approved"
+      ],
+      "nextProofMilestoneCanonicalized": "CPU import and tensor-operation boundary proof lane"
+    },
+    "model_runtime_foundation": {
+      "capabilityId": "model_runtime_foundation",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "sourceSelectionReviewAccepted": true,
+      "sourceSelectionQaAccepted": true,
+      "sourceSelectionOwnerReviewAccepted": true,
+      "sourceSelectionOwnerApprovalAccepted": true,
+      "sourceSelectionOwnerApprovalQaAccepted": true,
+      "preferredPlanningToolsCanonicalized": [
+        "torch_torchvision",
+        "transformers"
+      ],
+      "conditionalPlanningToolsCanonicalized": [],
+      "fallbackPlanningToolsCanonicalized": [
+        "kornia"
+      ],
+      "eliminatedToolsCanonicalized": [
+        "vega_lite",
+        "lottie_web"
+      ],
+      "missingProofRulesCanonicalized": true,
+      "currentExecutionAllowed": false,
+      "blockedRuntimeReasonsCanonicalized": [
+        "CPU/GPU/model-boundary proof missing",
+        "model downloads and provider/model runtime are not approved"
+      ],
+      "nextProofMilestoneCanonicalized": "model runtime foundation proof lane"
+    }
+  },
+  "booleans": {
+    "canonicalAgentSelectionCanonicalizationReviewCompleted": true,
+    "sourceCanonicalAgentSelectionOwnerApprovalQaAccepted": true,
+    "sourceCanonicalAgentSelectionOwnerApprovalAccepted": true,
+    "sourceCanonicalAgentSelectionOwnerReviewAccepted": true,
+    "sourceCanonicalAgentSelectionQaAccepted": true,
+    "sourceCanonicalAgentSelectionReviewAccepted": true,
+    "sourceCanonicalRoutingCanonicalizationAccepted": true,
+    "all21ToolsCoveredByAgentSelectionCanonicalization": true,
+    "allRequiredCapabilitiesCoveredByAgentSelectionCanonicalization": true,
+    "canonicalAgentSelectionLedgerCreated": true,
+    "canonicalAgentSelectionMatrixCreated": true,
+    "canonicalAgentSelectionSchemaCanonicalized": true,
+    "capabilityMapCanonicalized": true,
+    "rankingRulesCanonicalized": true,
+    "eliminationRulesCanonicalized": true,
+    "fallbackRulesCanonicalized": true,
+    "missingProofRulesCanonicalized": true,
+    "planningOnlyPolicyCanonicalized": true,
+    "safetyBoundaryCanonicalized": true,
+    "selectionExamplesCanonicalized": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "publicArtifactApprovedNow": false,
+    "signedUrlApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "generatedOutputCreated": false
+  }
+}

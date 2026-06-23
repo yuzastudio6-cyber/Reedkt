@@ -1,0 +1,214 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_canonicalization_review_passed_with_warnings",
+  "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "transformers",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "sam2",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "kornia",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "rembg",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "d3",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "echarts",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "vega",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "satori",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "animejs",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "three_js",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "konva",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "canonicalStatus": "canonical_planning_study_metadata_selection_only",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    }
+  ],
+  "sourceCitations": [
+    "PR #683",
+    "PR #681",
+    "PR #677",
+    "PR #674",
+    "PR #671",
+    "PR #668",
+    "PR #665",
+    "PR #661",
+    "PR #657",
+    "PR #656",
+    "PR #651",
+    "PR #646",
+    "PR #645",
+    "PR #642",
+    "PR #638",
+    "PR #623",
+    "PR #621",
+    "PR #617",
+    "PR #616",
+    "PR #614",
+    "PR #607",
+    "PR #604",
+    "PR #589",
+    "PR #543",
+    "PR #425",
+    "PR #433",
+    "PR #441",
+    "PR #376",
+    "PR #361",
+    "PR #542",
+    "PR #544"
+  ],
+  "booleans": {
+    "canonicalAgentSelectionCanonicalizationReviewCompleted": true,
+    "sourceCanonicalAgentSelectionOwnerApprovalQaAccepted": true,
+    "sourceCanonicalAgentSelectionOwnerApprovalAccepted": true,
+    "sourceCanonicalAgentSelectionOwnerReviewAccepted": true,
+    "sourceCanonicalAgentSelectionQaAccepted": true,
+    "sourceCanonicalAgentSelectionReviewAccepted": true,
+    "sourceCanonicalRoutingCanonicalizationAccepted": true,
+    "all21ToolsCoveredByAgentSelectionCanonicalization": true,
+    "allRequiredCapabilitiesCoveredByAgentSelectionCanonicalization": true,
+    "canonicalAgentSelectionLedgerCreated": true,
+    "canonicalAgentSelectionMatrixCreated": true,
+    "canonicalAgentSelectionSchemaCanonicalized": true,
+    "capabilityMapCanonicalized": true,
+    "rankingRulesCanonicalized": true,
+    "eliminationRulesCanonicalized": true,
+    "fallbackRulesCanonicalized": true,
+    "missingProofRulesCanonicalized": true,
+    "planningOnlyPolicyCanonicalized": true,
+    "safetyBoundaryCanonicalized": true,
+    "selectionExamplesCanonicalized": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "publicArtifactApprovedNow": false,
+    "signedUrlApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "generatedOutputCreated": false
+  }
+}

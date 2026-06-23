@@ -1,0 +1,500 @@
+{
+  "chart_overlay": {
+    "requestId": "chart_overlay_planning_example",
+    "requestedCapability": "chart_overlay",
+    "inputIntent": "chart overlay planning",
+    "inputMediaType": "structured_data",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "overlay chart metadata on a future visual surface",
+    "candidateTools": [
+      "vega_lite",
+      "d3",
+      "echarts",
+      "vega"
+    ],
+    "rankedTools": [
+      "vega_lite",
+      "d3",
+      "echarts",
+      "vega"
+    ],
+    "eliminatedTools": [
+      "three_js",
+      "sam2",
+      "real_esrgan"
+    ],
+    "preferredPlanningTools": [
+      "vega_lite",
+      "d3"
+    ],
+    "fallbackPlanningTools": [
+      "vega"
+    ],
+    "requiredProofBeforeExecution": [
+      "browser chart runtime approval for echarts",
+      "approved render/export lane before visual output"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "data_visualization": {
+    "requestId": "data_visualization_planning_example",
+    "requestedCapability": "data_visualization",
+    "inputIntent": "data visualization planning",
+    "inputMediaType": "structured_data",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "choose a data visualization specification path",
+    "candidateTools": [
+      "vega_lite",
+      "vega",
+      "d3",
+      "echarts"
+    ],
+    "rankedTools": [
+      "vega_lite",
+      "vega",
+      "d3",
+      "echarts"
+    ],
+    "eliminatedTools": [
+      "sam2",
+      "real_esrgan"
+    ],
+    "preferredPlanningTools": [
+      "vega_lite",
+      "vega",
+      "d3"
+    ],
+    "fallbackPlanningTools": [
+      "d3"
+    ],
+    "requiredProofBeforeExecution": [
+      "runtime approval for browser chart execution",
+      "artifact approval before output"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "svg_graphics": {
+    "requestId": "svg_graphics_planning_example",
+    "requestedCapability": "svg_graphics",
+    "inputIntent": "SVG/static graphics planning",
+    "inputMediaType": "svg_manifest",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "plan explicit SVG or JSX-like static graphics",
+    "candidateTools": [
+      "svgdotjs_svg_js",
+      "satori",
+      "d3"
+    ],
+    "rankedTools": [
+      "svgdotjs_svg_js",
+      "satori",
+      "d3"
+    ],
+    "eliminatedTools": [
+      "sam2",
+      "real_esrgan"
+    ],
+    "preferredPlanningTools": [
+      "svgdotjs_svg_js",
+      "satori"
+    ],
+    "fallbackPlanningTools": [
+      "d3"
+    ],
+    "requiredProofBeforeExecution": [
+      "static SVG output contract approval",
+      "public artifact boundary approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "diagram_graphics": {
+    "requestId": "diagram_graphics_planning_example",
+    "requestedCapability": "diagram_graphics",
+    "inputIntent": "diagram graphics planning",
+    "inputMediaType": "dot_graph",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "plan graph and diagram output from DOT-like metadata",
+    "candidateTools": [
+      "viz_js",
+      "svgdotjs_svg_js"
+    ],
+    "rankedTools": [
+      "viz_js",
+      "svgdotjs_svg_js"
+    ],
+    "eliminatedTools": [
+      "vega_lite"
+    ],
+    "preferredPlanningTools": [
+      "viz_js"
+    ],
+    "fallbackPlanningTools": [
+      "svgdotjs_svg_js"
+    ],
+    "requiredProofBeforeExecution": [
+      "diagram output contract approval",
+      "artifact boundary approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "animation_overlay": {
+    "requestId": "animation_overlay_planning_example",
+    "requestedCapability": "animation_overlay",
+    "inputIntent": "animation overlay planning",
+    "inputMediaType": "animation_manifest",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "plan animation manifest or timeline metadata",
+    "candidateTools": [
+      "lottie_web",
+      "animejs"
+    ],
+    "rankedTools": [
+      "lottie_web",
+      "animejs"
+    ],
+    "eliminatedTools": [
+      "real_esrgan",
+      "sam2"
+    ],
+    "preferredPlanningTools": [
+      "lottie_web",
+      "animejs"
+    ],
+    "fallbackPlanningTools": [
+      "animejs"
+    ],
+    "requiredProofBeforeExecution": [
+      "animation manifest/runtime approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "canvas_scene": {
+    "requestId": "canvas_scene_planning_example",
+    "requestedCapability": "canvas_scene",
+    "inputIntent": "2D canvas scene planning",
+    "inputMediaType": "scene_manifest",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "plan 2D canvas or sprite scene structure",
+    "candidateTools": [
+      "pixi_js",
+      "konva"
+    ],
+    "rankedTools": [
+      "pixi_js",
+      "konva"
+    ],
+    "eliminatedTools": [
+      "sam2",
+      "real_esrgan"
+    ],
+    "preferredPlanningTools": [
+      "pixi_js",
+      "konva"
+    ],
+    "fallbackPlanningTools": [
+      "konva"
+    ],
+    "requiredProofBeforeExecution": [
+      "browser/canvas sandbox approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "webgl_3d_scene": {
+    "requestId": "webgl_3d_scene_planning_example",
+    "requestedCapability": "webgl_3d_scene",
+    "inputIntent": "3D/WebGL scene planning",
+    "inputMediaType": "scene_manifest",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "plan 3D scene or game-like WebGL structure",
+    "candidateTools": [
+      "three_js",
+      "babylonjs"
+    ],
+    "rankedTools": [
+      "three_js",
+      "babylonjs"
+    ],
+    "eliminatedTools": [
+      "vega_lite",
+      "sam2"
+    ],
+    "preferredPlanningTools": [
+      "three_js",
+      "babylonjs"
+    ],
+    "fallbackPlanningTools": [
+      "babylonjs"
+    ],
+    "requiredProofBeforeExecution": [
+      "browser/WebGL sandbox approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "background_removal": {
+    "requestId": "background_removal_planning_example",
+    "requestedCapability": "background_removal",
+    "inputIntent": "background removal planning",
+    "inputMediaType": "image_metadata",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "select possible background or subject extraction path",
+    "candidateTools": [
+      "sam2",
+      "birefnet",
+      "rembg",
+      "transparent_background"
+    ],
+    "rankedTools": [
+      "sam2",
+      "birefnet",
+      "rembg",
+      "transparent_background"
+    ],
+    "eliminatedTools": [
+      "vega_lite",
+      "d3"
+    ],
+    "preferredPlanningTools": [
+      "sam2",
+      "birefnet"
+    ],
+    "fallbackPlanningTools": [
+      "rembg",
+      "transparent_background"
+    ],
+    "requiredProofBeforeExecution": [
+      "model/import/provenance proof",
+      "model boundary approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "subject_segmentation": {
+    "requestId": "subject_segmentation_planning_example",
+    "requestedCapability": "subject_segmentation",
+    "inputIntent": "subject segmentation planning",
+    "inputMediaType": "image_metadata",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "select possible subject segmentation path",
+    "candidateTools": [
+      "sam2",
+      "birefnet"
+    ],
+    "rankedTools": [
+      "sam2",
+      "birefnet"
+    ],
+    "eliminatedTools": [
+      "vega_lite",
+      "real_esrgan"
+    ],
+    "preferredPlanningTools": [
+      "sam2",
+      "birefnet"
+    ],
+    "fallbackPlanningTools": [
+      "birefnet"
+    ],
+    "requiredProofBeforeExecution": [
+      "model/import/provenance proof",
+      "model boundary approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "upscaling": {
+    "requestId": "upscaling_planning_example",
+    "requestedCapability": "upscaling",
+    "inputIntent": "image upscaling planning",
+    "inputMediaType": "image_metadata",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "select possible image enhancement path",
+    "candidateTools": [
+      "real_esrgan"
+    ],
+    "rankedTools": [
+      "real_esrgan"
+    ],
+    "eliminatedTools": [
+      "vega_lite",
+      "d3"
+    ],
+    "preferredPlanningTools": [
+      "real_esrgan"
+    ],
+    "fallbackPlanningTools": [
+      "real_esrgan"
+    ],
+    "requiredProofBeforeExecution": [
+      "model/GPU/provenance proof",
+      "model boundary approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "tensor_image_ops": {
+    "requestId": "tensor_image_ops_planning_example",
+    "requestedCapability": "tensor_image_ops",
+    "inputIntent": "tensor image operation planning",
+    "inputMediaType": "tensor_metadata",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "plan deterministic tensor/image transform path",
+    "candidateTools": [
+      "kornia"
+    ],
+    "rankedTools": [
+      "kornia"
+    ],
+    "eliminatedTools": [
+      "echarts",
+      "lottie_web"
+    ],
+    "preferredPlanningTools": [
+      "kornia"
+    ],
+    "fallbackPlanningTools": [
+      "kornia"
+    ],
+    "requiredProofBeforeExecution": [
+      "CPU import proof",
+      "operation boundary approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "model_runtime_foundation": {
+    "requestId": "model_runtime_foundation_planning_example",
+    "requestedCapability": "model_runtime_foundation",
+    "inputIntent": "model runtime foundation planning",
+    "inputMediaType": "model_metadata",
+    "desiredOutputType": "planning_metadata",
+    "visualIntent": "plan model runtime foundation only",
+    "candidateTools": [
+      "torch_torchvision",
+      "transformers"
+    ],
+    "rankedTools": [
+      "torch_torchvision",
+      "transformers"
+    ],
+    "eliminatedTools": [
+      "vega_lite",
+      "d3"
+    ],
+    "preferredPlanningTools": [
+      "torch_torchvision",
+      "transformers"
+    ],
+    "fallbackPlanningTools": [
+      "transformers"
+    ],
+    "requiredProofBeforeExecution": [
+      "CPU/GPU/model-boundary proof",
+      "model provenance approval"
+    ],
+    "executionAllowedNow": false,
+    "routeExecutionAllowedNow": false,
+    "workerExecutionAllowedNow": false,
+    "browserWebglCanvasAllowedNow": false,
+    "gpuModelRuntimeAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "signedUrlAllowedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  }
+}

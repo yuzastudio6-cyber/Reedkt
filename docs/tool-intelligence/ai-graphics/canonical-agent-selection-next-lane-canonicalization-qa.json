@@ -1,0 +1,90 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_canonicalization_qa_passed_with_warnings",
+  "accepted": true,
+  "nextPromptRecommendation": "AI_GRAPHICS_CANONICAL_AGENT_SELECTION_CANONICALIZATION_OWNER_REVIEW",
+  "sourcePrs": {
+    "361": {
+      "state": "MERGED",
+      "mergeCommit": "05d429f6029136f0f55fe01375809071b588791c",
+      "role": "historical capability routing contract"
+    },
+    "376": {
+      "state": "MERGED",
+      "mergeCommit": "9296a4a41a143c0a212415d890e6ff544f73bb4b",
+      "role": "historical capability routing study"
+    },
+    "542": {
+      "state": "MERGED",
+      "mergeCommit": "a66a1c0b72263e5e113d95216c373e0fad1071bb",
+      "role": "Track B owner exclusion evidence"
+    },
+    "544": {
+      "state": "MERGED",
+      "mergeCommit": "62f69c6b66d77abf155287ffdb2e9a380541d763",
+      "role": "Track A render/export exclusion evidence"
+    },
+    "623": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "4952fb0103d05e8f7df1272c0acd7419426f0ea4",
+      "role": "capability study and PR #623 scoring model source"
+    },
+    "668": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "d09b9287d3d6312d9ebe71f6657e830d0e903bb1",
+      "role": "canonicalization owner-approval QA source",
+      "decision": "ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_owner_approval_qa_passed_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/668"
+    },
+    "671": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "01917db09617a06549f110858abd16a342226c7c",
+      "role": "canonical agent-selection review source",
+      "decision": "ai_graphics_canonical_agent_selection_review_passed_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/671"
+    },
+    "674": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "fc17ed6d647207e5b99b55ac19eba650e80cd42c",
+      "role": "canonical agent-selection QA source",
+      "decision": "ai_graphics_canonical_agent_selection_qa_passed_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/674"
+    },
+    "677": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "2ff1673b27ca6e9bea9735968dc99fbbc2e4253d",
+      "role": "canonical agent-selection owner-review source",
+      "decision": "ai_graphics_canonical_agent_selection_owner_review_passed_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/677",
+      "statusMetadataWarning": "source owner-review JSON records earlier PR-status head 77ec1d8322a75f24e07d4d406c0e9e4e1f00e93d; live PR #677 head is authoritative and compatible"
+    },
+    "681": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "c2d2c278c9af39b22414f8690d2d70c17da303ee",
+      "role": "canonical agent-selection owner approval source",
+      "decision": "ai_graphics_canonical_agent_selection_owner_approved_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/681"
+    },
+    "685": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "b8db13e34a5201060baebfa39812c8bbd9eeb714",
+      "role": "canonical agent-selection canonicalization review source",
+      "decision": "ai_graphics_canonical_agent_selection_canonicalization_review_passed_with_warnings",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/685",
+      "statusCheckRollup": []
+    }
+  }
+}

@@ -10,6 +10,7 @@ const expectedScript = "ai-graphics:canonical-agent-selection:owner-diagnostics"
 const expectedScriptCommand = "node scripts/validation/ai-graphics-canonical-agent-selection-owner-diagnostics.mjs";
 const allowedDescendantScripts = new Set([
   "ai-graphics:canonical-agent-selection:canonicalization-diagnostics",
+  "ai-graphics:canonical-agent-selection:canonicalization-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:owner-approval-diagnostics",
   "ai-graphics:canonical-agent-selection:owner-approval-qa-diagnostics",
 ]);

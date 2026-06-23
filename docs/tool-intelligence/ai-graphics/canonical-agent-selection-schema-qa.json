@@ -1,0 +1,79 @@
+{
+  "source": "PR #671 canonical agent-selection review",
+  "sourceSchemaAccepted": true,
+  "requiredSections": [
+    "capabilityExtraction",
+    "candidateMapping",
+    "ranking",
+    "elimination",
+    "fallback",
+    "missingProofRequirements",
+    "planningOnlyRecommendation",
+    "safetyBoundary"
+  ],
+  "schemaFieldsAccepted": [
+    "requestId",
+    "requestedCapability",
+    "inputIntent",
+    "inputMediaType",
+    "desiredOutputType",
+    "visualIntent",
+    "candidateTools",
+    "rankedTools",
+    "eliminatedTools",
+    "preferredPlanningTools",
+    "fallbackPlanningTools",
+    "requiredProofBeforeExecution",
+    "executionAllowedNow",
+    "routeExecutionAllowedNow",
+    "workerExecutionAllowedNow",
+    "browserWebglCanvasAllowedNow",
+    "gpuModelRuntimeAllowedNow",
+    "publicArtifactAllowedNow",
+    "signedUrlAllowedNow",
+    "runtimeReadyNow",
+    "internalBetaReadyNow",
+    "productionReadyNow"
+  ],
+  "schemaSectionsAccepted": {
+    "capabilityExtraction": [
+      "requestedCapability",
+      "inputIntent",
+      "inputMediaType",
+      "desiredOutputType",
+      "visualIntent"
+    ],
+    "ranking": [
+      "candidateTools",
+      "rankedTools",
+      "task fit",
+      "proof level",
+      "runtime requirements",
+      "cost"
+    ],
+    "elimination": [
+      "eliminatedTools",
+      "capability mismatch",
+      "missing proof",
+      "unapproved runtime",
+      "unsafe output path"
+    ],
+    "fallback": [
+      "preferredPlanningTools",
+      "fallbackPlanningTools"
+    ],
+    "planningOnlyRecommendation": [
+      "requiredProofBeforeExecution",
+      "executionAllowedNow false"
+    ],
+    "safetyBoundary": [
+      "routeExecutionAllowedNow false",
+      "workerExecutionAllowedNow false",
+      "browserWebglCanvasAllowedNow false",
+      "gpuModelRuntimeAllowedNow false",
+      "publicArtifactAllowedNow false",
+      "signedUrlAllowedNow false"
+    ]
+  },
+  "metadataStalenessWarning": "Source result metadata records earlier PR creation head 1147647ee391c1309b69193e42d244ad9176118f; live PR #671 head 01917db09617a06549f110858abd16a342226c7c is authoritative and content is compatible."
+}

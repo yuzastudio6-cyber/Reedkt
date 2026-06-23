@@ -1,0 +1,149 @@
+{
+  "sourceFallbackRulesAccepted": true,
+  "fallbackRules": {
+    "fallbackByCapability": {
+      "chart_overlay": {
+        "preferredPlanningTools": [
+          "vega_lite",
+          "d3"
+        ],
+        "conditionalPlanningTools": [
+          "echarts"
+        ],
+        "fallbackPlanningTools": [
+          "vega"
+        ],
+        "executionAllowedNow": false
+      },
+      "data_visualization": {
+        "preferredPlanningTools": [
+          "vega_lite",
+          "vega",
+          "d3"
+        ],
+        "conditionalPlanningTools": [
+          "echarts"
+        ],
+        "fallbackPlanningTools": [
+          "d3"
+        ],
+        "executionAllowedNow": false
+      },
+      "svg_graphics": {
+        "preferredPlanningTools": [
+          "svgdotjs_svg_js",
+          "satori"
+        ],
+        "conditionalPlanningTools": [
+          "d3"
+        ],
+        "fallbackPlanningTools": [
+          "d3"
+        ],
+        "executionAllowedNow": false
+      },
+      "diagram_graphics": {
+        "preferredPlanningTools": [
+          "viz_js"
+        ],
+        "conditionalPlanningTools": [
+          "svgdotjs_svg_js"
+        ],
+        "fallbackPlanningTools": [
+          "svgdotjs_svg_js"
+        ],
+        "executionAllowedNow": false
+      },
+      "animation_overlay": {
+        "preferredPlanningTools": [
+          "lottie_web",
+          "animejs"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "animejs"
+        ],
+        "executionAllowedNow": false
+      },
+      "canvas_scene": {
+        "preferredPlanningTools": [
+          "pixi_js",
+          "konva"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "konva"
+        ],
+        "executionAllowedNow": false
+      },
+      "webgl_3d_scene": {
+        "preferredPlanningTools": [
+          "three_js",
+          "babylonjs"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "babylonjs"
+        ],
+        "executionAllowedNow": false
+      },
+      "background_removal": {
+        "preferredPlanningTools": [
+          "sam2",
+          "birefnet"
+        ],
+        "conditionalPlanningTools": [
+          "rembg",
+          "transparent_background"
+        ],
+        "fallbackPlanningTools": [
+          "rembg",
+          "transparent_background"
+        ],
+        "executionAllowedNow": false
+      },
+      "subject_segmentation": {
+        "preferredPlanningTools": [
+          "sam2",
+          "birefnet"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "birefnet"
+        ],
+        "executionAllowedNow": false
+      },
+      "upscaling": {
+        "preferredPlanningTools": [
+          "real_esrgan"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "real_esrgan"
+        ],
+        "executionAllowedNow": false
+      },
+      "tensor_image_ops": {
+        "preferredPlanningTools": [
+          "kornia"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "kornia"
+        ],
+        "executionAllowedNow": false
+      },
+      "model_runtime_foundation": {
+        "preferredPlanningTools": [
+          "torch_torchvision",
+          "transformers"
+        ],
+        "conditionalPlanningTools": [],
+        "fallbackPlanningTools": [
+          "transformers"
+        ],
+        "executionAllowedNow": false
+      }
+    }
+  }
+}

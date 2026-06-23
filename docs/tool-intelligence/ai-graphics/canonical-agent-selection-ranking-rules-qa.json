@@ -1,0 +1,23 @@
+{
+  "source": "PR #623 scoring/ranking model and PR #671 selection ranking rules",
+  "sourceRankingRulesAccepted": true,
+  "rankingRules": {
+    "source": "PR #623 scoring model plus PR #668 planning-only canonicalization QA",
+    "rules": [
+      "Rank candidate tools by task fit first.",
+      "Prefer higher proof level when task fit is comparable.",
+      "Demote tools requiring unapproved browser/WebGL/canvas runtime.",
+      "Demote tools requiring unapproved GPU/model weights.",
+      "Prefer lower-cost and lower-complexity planning paths when capability fit is similar.",
+      "Return missing-proof requirements before any execution can be considered."
+    ],
+    "scoringModel": {
+      "taskFit": 30,
+      "proofLevel": 25,
+      "runtimeReadinessPenaltyAvoidance": 20,
+      "costEfficiency": 15,
+      "integrationSimplicity": 10,
+      "totalScore": 100
+    }
+  }
+}

@@ -183,3 +183,14 @@ Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_canonicaliz
 - Agent/tool/route/worker/provider execution remains false.
 - Browser/WebGL/canvas runtime, GPU/model runtime, runtime readiness, internal beta, external beta, and production readiness remain false.
 - Track B exclusion remains under `TRACK_B_MEDIA_OSS_STEWARD` via PR #542; Track A render/export exclusion remains via PR #544. These labels remain evidence/exclusion context only.
+
+## AI Graphics Canonical Agent Selection QA Review
+
+- Decision: `ai_graphics_canonical_agent_selection_qa_passed_with_warnings`.
+- Source PR #671 canonical agent-selection review accepted with warnings for planning/study metadata only.
+- Schema, capability map, ranking, elimination, fallback, missing-proof, planning-only, safety, and examples QA accepted.
+- All 21 AI graphics tools and 12 product-facing capabilities remain covered.
+- Agent planning/study metadata selection remains allowed.
+- Agent/tool/route/worker/provider execution remains false.
+- Browser/WebGL/canvas runtime, GPU/model runtime, runtime readiness, internal beta, external beta, and production readiness remain false.
+- Track B exclusion remains under `TRACK_B_MEDIA_OSS_STEWARD` via PR #542; Track A render/export exclusion remains via PR #544. These labels remain evidence/exclusion context only.

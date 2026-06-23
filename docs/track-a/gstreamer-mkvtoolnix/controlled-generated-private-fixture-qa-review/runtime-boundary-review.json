@@ -1,0 +1,20 @@
+{
+  "runtimeApisChanged": false,
+  "dependenciesChanged": false,
+  "lockfilesChanged": false,
+  "dockerfilesChanged": false,
+  "dockerignoreChanged": false,
+  "runtimeSourceChanged": false,
+  "workerProviderContractsChanged": false,
+  "supabaseGcsPathsChanged": false,
+  "productBehaviorChanged": false,
+  "deliveryInterfacesChanged": false,
+  "qaPhaseToolExecution": false,
+  "qaPhaseGeneratedArtifacts": false,
+  "supabaseClassification": {
+    "updateRequired": "none",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

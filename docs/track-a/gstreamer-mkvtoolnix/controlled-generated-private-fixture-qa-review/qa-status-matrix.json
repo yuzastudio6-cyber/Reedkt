@@ -1,0 +1,34 @@
+{
+  "rows": [
+    {
+      "tool": "GStreamer",
+      "sourcePullRequest": 673,
+      "acceptedEvidence": "network-disabled videotestsrc num-buffers=3 to fakesink",
+      "qaAccepted": true,
+      "qaPhaseExecution": false,
+      "generatedFixtureOnly": true,
+      "userPrivateRealMedia": false,
+      "ffmpegFfprobe": false,
+      "renderExport": false,
+      "artifactsCleaned": true,
+      "productReady": false,
+      "nextGate": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1"
+    },
+    {
+      "tool": "MKVToolNix",
+      "sourcePullRequest": 673,
+      "acceptedEvidence": "generated temp SRT to generated subtitle-only MKV, then identify",
+      "qaAccepted": true,
+      "qaPhaseExecution": false,
+      "generatedFixtureOnly": true,
+      "userPrivateRealMedia": false,
+      "ffmpegFfprobe": false,
+      "renderExport": false,
+      "artifactsCleaned": true,
+      "productReady": false,
+      "nextGate": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1"
+    }
+  ],
+  "productReadyLocalOssTools": 0,
+  "decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup"
+}

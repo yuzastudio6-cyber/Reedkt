@@ -1,0 +1,12 @@
+{
+  "decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "next_prompt": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1",
+  "qaAccepted": true,
+  "acceptedPullRequest": 673,
+  "acceptedEvidenceScope": "bounded generated synthetic-private fixture proof only",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "blockedScopePreserved": true,
+  "sourceSha": "536d24bbe37763b8262e3b70dd8950e264482dfd",
+  "blocker": null
+}

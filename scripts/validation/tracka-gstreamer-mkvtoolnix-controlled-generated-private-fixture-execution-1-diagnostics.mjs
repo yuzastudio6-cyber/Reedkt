@@ -45,9 +45,34 @@ const predecessorDiagnosticFiles = [
   'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1-diagnostics.mjs',
 ]
 
+const qaReviewFiles = [
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/source-of-truth-audit.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/source-of-truth-audit.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/gstreamer-evidence-acceptance.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/gstreamer-evidence-acceptance.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/mkvtoolnix-evidence-acceptance.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/mkvtoolnix-evidence-acceptance.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/artifact-cleanup-acceptance.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/artifact-cleanup-acceptance.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/boundary-qa.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/boundary-qa.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/qa-status-matrix.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/qa-status-matrix.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/runtime-boundary-review.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/runtime-boundary-review.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/controlled-generated-private-fixture-qa-decision.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/controlled-generated-private-fixture-qa-decision.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/readiness-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/private-artifact-manifest.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/validation-results.md',
+  'docs/implementation-prompts/prompt-tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
   ...predecessorDiagnosticFiles,
+  ...qaReviewFiles,
   'package.json',
 ])
 

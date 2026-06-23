@@ -1,0 +1,33 @@
+{
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "productReadyLocalOssTools": 0,
+  "acceptedScope": [
+    "GStreamer bounded generated synthetic-private in-memory fixture evidence from PR #673",
+    "MKVToolNix bounded generated synthetic-private temp subtitle-only fixture evidence from PR #673",
+    "artifact cleanup evidence from PR #673"
+  ],
+  "blockedScope": {
+    "userMedia": "blocked",
+    "privateMedia": "blocked",
+    "realMedia": "blocked",
+    "arbitraryMediaProbing": "blocked",
+    "ffmpeg": "blocked",
+    "ffprobe": "blocked",
+    "remotion": "blocked",
+    "browserCapture": "blocked",
+    "renderExport": "blocked",
+    "mediaProcessing": "blocked",
+    "workersRoutesProviders": "blocked",
+    "supabaseSqlGcs": "blocked",
+    "publicArtifacts": "blocked",
+    "signedUrls": "blocked",
+    "betaProduction": "blocked",
+    "productReadyLocalOssClaim": "blocked"
+  },
+  "qaPhaseCommands": {
+    "gstreamer": "not_run",
+    "mkvtoolnix": "not_run",
+    "docker": "not_run",
+    "ffmpegFfprobe": "not_run"
+  }
+}

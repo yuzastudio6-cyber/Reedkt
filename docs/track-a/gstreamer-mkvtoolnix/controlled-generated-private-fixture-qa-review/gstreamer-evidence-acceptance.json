@@ -1,0 +1,29 @@
+{
+  "tool": "GStreamer",
+  "accepted": true,
+  "sourcePullRequest": 673,
+  "sourceDecision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_execution_passed_ready_for_qa",
+  "sourceRunId": "2026-06-23T03-37-56-bc4d88cf",
+  "sourceImage": "reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8",
+  "acceptedCommandClass": "bounded in-memory generated fixture pipeline",
+  "acceptedCommand": "docker run --rm --network none <image> gst-launch-1.0 -q videotestsrc num-buffers=3 ! fakesink",
+  "acceptedPipeline": "gst-launch-1.0 -q videotestsrc num-buffers=3 ! fakesink",
+  "exitStatus": 0,
+  "fileOutput": false,
+  "networkDisabled": true,
+  "qaPhaseExecution": false,
+  "acceptedScopeOnly": [
+    "videotestsrc",
+    "fakesink",
+    "three buffers",
+    "no file output",
+    "no user/private/real media"
+  ],
+  "notAcceptedScope": [
+    "arbitrary GStreamer pipelines",
+    "media file input",
+    "media file output",
+    "render/export",
+    "product runtime"
+  ]
+}

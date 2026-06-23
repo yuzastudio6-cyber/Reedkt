@@ -1,0 +1,21 @@
+{
+  "readyForNextGate": true,
+  "nextGate": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1",
+  "acceptedTools": [
+    "GStreamer",
+    "MKVToolNix"
+  ],
+  "acceptedEvidenceScope": "bounded generated synthetic-private fixture proof only",
+  "blockedScopeStillBlocked": [
+    "user/private/real media",
+    "arbitrary media probing",
+    "FFmpeg/FFprobe",
+    "render/export",
+    "product runtime",
+    "GCS/public/signed URL delivery",
+    "beta/production",
+    "product-ready local OSS claims"
+  ],
+  "productReadyLocalOssTools": 0,
+  "validationStatus": "passed_no_install_validation"
+}

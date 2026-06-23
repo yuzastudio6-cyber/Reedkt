@@ -1,0 +1,29 @@
+{
+  "phase": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA-REVIEW-1",
+  "acceptedPriorTempArtifacts": [
+    {
+      "name": "generated-private-subtitles.srt",
+      "sourcePullRequest": 673,
+      "bytes": 77,
+      "sha256": "2487edd658e8459b7818baf0422c8db6679f693020d78aeb90d5be0fb5aa446b",
+      "cleanupStatus": "removed_before_commit"
+    },
+    {
+      "name": "generated-private-subtitle-only.mkv",
+      "sourcePullRequest": 673,
+      "bytes": 5823,
+      "sha256": "ea659dec22a7492be8af90a521be03f76367723e99570e32e9f3b59d68ec1b82",
+      "cleanupStatus": "removed_before_commit"
+    }
+  ],
+  "committedArtifacts": [],
+  "privateArtifactsCreated": [],
+  "userMediaUsed": [],
+  "realMediaUsed": [],
+  "publicArtifactsCreated": [],
+  "signedUrlsCreated": [],
+  "gcsUploads": [],
+  "tmpArtifactsCopiedToRepo": [],
+  "qaPhaseArtifactsCreated": [],
+  "cleanupStatus": "no_qa_phase_artifacts_created"
+}

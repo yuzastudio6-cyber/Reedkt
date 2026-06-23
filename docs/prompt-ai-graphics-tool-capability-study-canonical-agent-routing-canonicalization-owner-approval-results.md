@@ -87,7 +87,7 @@ PR #661 is recorded as open/draft/MERGEABLE at `b23a0446fe72521688d783e990da8eb8
 
 ## Validation Status
 
-- PR: pending creation
-- Status: pending
-- Head: pending
-- Check status: pending
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/665
+- Status: open draft, mergeable
+- Head: `d700213851776640710c048988e26bc55ab53d8e`
+- Check status: empty check rollup at creation

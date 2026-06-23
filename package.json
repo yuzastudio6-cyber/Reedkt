@@ -550,7 +550,8 @@
     "ai-graphics:canonical-agent-selection:review-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-review-diagnostics.mjs",
     "ai-graphics:canonical-agent-selection:qa-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-qa-diagnostics.mjs",
     "ai-graphics:canonical-agent-selection:owner-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-owner-diagnostics.mjs",
-    "ai-graphics:canonical-agent-selection:owner-approval-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-owner-approval-diagnostics.mjs"
+    "ai-graphics:canonical-agent-selection:owner-approval-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-owner-approval-diagnostics.mjs",
+    "ai-graphics:canonical-agent-selection:owner-approval-qa-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-owner-approval-qa-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

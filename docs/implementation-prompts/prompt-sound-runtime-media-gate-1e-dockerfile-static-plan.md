@@ -1,55 +1,46 @@
-# SOUND-RUNTIME-MEDIA-GATE-1D: worker runtime owner handoff, no execution
+# SOUND-RUNTIME-MEDIA-GATE-1E: Dockerfile static plan, no Docker build
 
-```json sound-runtime-media-gate-1d-worker-runtime-owner-handoff
+```json sound-runtime-media-gate-1e-dockerfile-static-plan
 {
-  "prompt": "SOUND-RUNTIME-MEDIA-GATE-1D",
-  "title": "Worker runtime owner handoff, no execution",
+  "prompt": "SOUND-RUNTIME-MEDIA-GATE-1E",
+  "title": "Dockerfile static plan, no Docker build",
   "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1C",
   "requiredDecision": "sound_runtime_media_gate_1c_cpu_worker_image_plan_completed_with_warnings_ready_for_worker_runtime_handoff",
-  "purpose": "Review worker runtime ownership after the SOUND CPU worker image plan before any worker execution, route execution, queue mutation, artifact write, Docker build, GCP action, or runtime implementation begins.",
+  "purpose": "Plan the future static Dockerfile definition for SOUND CPU worker images without creating a Dockerfile, building an image, running Docker, calling GCP, pushing to Artifact Registry, or executing workers.",
   "sourceEvidenceRequired": [
     "SOUND-RUNTIME-MEDIA-GATE-1C CPU worker image plan",
     "SOUND-RUNTIME-MEDIA-GATE-1B worker contract owner review",
     "SOUND-RUNTIME-MEDIA-GATE-1A controlled CPU install proof",
-    "SOUND-RUNTIME-MEDIA-GATE-1 CPU worker install plan",
-    "SOUND-RUNTIME-MEDIA-GATE-0 runtime media readiness gate plan"
+    "SOUND-RUNTIME-MEDIA-GATE-1 CPU worker install plan"
   ],
-  "acceptedPlanningOnlyWorkerNames": [
-    "sound-cpu-analysis-worker",
-    "sound-audio-metadata-worker"
+  "plannedImageNames": [
+    "reeditpro/sound-cpu-analysis-worker",
+    "reeditpro/sound-audio-metadata-worker"
   ],
-  "acceptedPlanningOnlyJobTypes": [
-    "sound.package_import_smoke",
-    "sound.numeric_array_analysis",
-    "sound.symbolic_midi_analysis",
-    "sound.loudness_synthetic_analysis"
-  ],
-  "sourceEvidenceOnlyJobTypes": [
-    "sound.synthetic_fixture_validate"
-  ],
-  "reviewSubjects": [
-    "worker runtime ownership",
-    "job dispatch boundary",
-    "approved snapshot reference requirements",
-    "queue mutation policy",
-    "observability and timeout policy",
-    "artifact and Supabase no-op defaults",
-    "CPU worker image planning defaults",
-    "runtime implementation prompt-family boundary"
+  "plannedStaticReviewSubjects": [
+    "base OS image selection",
+    "Python runtime version pin",
+    "requirements source reuse",
+    "no system/binary handoff tools",
+    "no model weights",
+    "runtime-disabled entrypoint default",
+    "non-secret environment variable names",
+    "no Supabase or artifact write defaults"
   ],
   "blockedActions": [
-    "worker execution",
-    "route execution",
-    "tool execution",
-    "queue mutation",
-    "media file open",
-    "pydub media operation",
-    "FFmpeg or ffprobe execution",
+    "Dockerfile creation",
     "Docker build",
     "Docker run",
     "Cloud Run execution",
     "GCP API call",
     "Secret Manager API call",
+    "Artifact Registry push",
+    "worker execution",
+    "route execution",
+    "tool execution",
+    "media file open",
+    "pydub media operation",
+    "FFmpeg or ffprobe execution",
     "provider call",
     "model call",
     "model download",

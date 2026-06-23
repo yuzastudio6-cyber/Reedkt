@@ -26,8 +26,12 @@ const requiredReports = [
 
 const requiredFiles = [
   ...requiredReports,
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/post-667-reconciliation.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/post-667-reconciliation.md',
   'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-plan-1.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1.md',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1r-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1-diagnostics.mjs',
   'docs/track-a/track-a-tool-status-matrix.md',
@@ -87,6 +91,12 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1.md',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-plan-1-diagnostics.mjs',
   'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-approval-1.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/post-667-reconciliation.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/post-667-reconciliation.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1r-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1r-diagnostics.mjs',
   'package.json',
 ])
 
@@ -105,6 +115,11 @@ const requiredText = [
   '2026-06-22T14-31-44-660Z-390958ab',
   'reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8',
   decision,
+  'TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1 decision: approved_for_guarded_private_fixture_execution_packet_planning',
+  '45ed9fc7325fdae722e0e8cb9b1282f70e147000',
+  'completed_docs_only_private_fixture_approval',
+  'approved_for_separate_guarded_execution_packet_only',
+  'REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_PRIVATE_FIXTURE_EXECUTION=true',
   nextPrompt,
   'Product-ready end-to-end local OSS tools: `0`',
   'FFmpeg/FFprobe remain Track B-owned shared dependencies only.',
@@ -136,7 +151,7 @@ const forbiddenPatterns = [
   /Secret payloads? in logs:\s*`?(true|enabled|printed|allowed)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
   /40\+ tools.*end-to-end/i,
-  /private fixture execution:\s*`?(authorized|approved|enabled|true)/i,
+  /(private fixture execution now|private fixture execution in this phase|private fixture execution performed):\s*`?(authorized|approved|enabled|true)/i,
   /user media:\s*`?(allowed|approved|true)/i,
   /real media:\s*`?(allowed|approved|true)/i,
 ]

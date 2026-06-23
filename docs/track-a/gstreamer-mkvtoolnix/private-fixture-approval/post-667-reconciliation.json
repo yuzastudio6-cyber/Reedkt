@@ -1,0 +1,26 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1R",
+  "reconciliationStatus": "completed",
+  "originalApprovalPr": 662,
+  "downstreamPlanningPr": 666,
+  "post659SafetyClosurePr": 667,
+  "post659SafetyClosureMergeSha": "45ed9fc7325fdae722e0e8cb9b1282f70e147000",
+  "compatibilityDecision": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1 decision: approved_for_guarded_private_fixture_execution_packet_planning",
+  "execution": "completed_docs_only_private_fixture_approval",
+  "privateFixtureExecutionInThisPhase": false,
+  "futureGuardedPrivateFixtureExecution": "approved_for_separate_guarded_execution_packet_only",
+  "requiredFutureConfirmation": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_PRIVATE_FIXTURE_EXECUTION=true",
+  "productReadyEndToEndLocalOssTools": 0,
+  "excludedSourceTruth": {
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "supabaseClassification": {
+    "updateRequired": "none",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextAction": "none"
+  },
+  "generatedArtifactsCommitted": [],
+  "privateFixtureExecutionPerformed": false
+}

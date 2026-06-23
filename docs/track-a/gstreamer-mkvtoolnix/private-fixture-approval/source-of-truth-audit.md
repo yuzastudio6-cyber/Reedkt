@@ -4,9 +4,45 @@ Audit status: `completed`
 
 Source branch: `codex/rp-model-orchestration-qwen-schema-timeout-target-calibration`
 
-Source SHA: `535b6003606430df88e6905ecd2db36be19a9e8b`
+Source SHA: `5df02d3d5920f1329c5058e772fdcd669cb03824`
 
 Owner: Atlas Track A, `owner_tracka_visual_render_export`
+
+## PR #662 Approval Source
+
+- PR: #662 `[track-a] GStreamer MKVToolNix private fixture approval`
+- State: `MERGED`
+- Merged at: `2026-06-23T02:18:25Z`
+- Merge SHA: `ba3d8d5850601a8effb4ec971cbefb0ff7f786a9`
+- Decision: `tracka_gstreamer_mkvtoolnix_private_fixture_approval_passed_ready_for_private_fixture_plan`
+
+## PR #666 Downstream Plan Source
+
+- PR: #666 `[track-a] GStreamer MKVToolNix private fixture plan`
+- State: `MERGED`
+- Merged at: `2026-06-23T03:13:12Z`
+- Merge SHA: `5df02d3d5920f1329c5058e772fdcd669cb03824`
+- Decision: `tracka_gstreamer_mkvtoolnix_private_fixture_plan_passed_ready_for_controlled_generated_private_fixture_execution`
+
+## PR #667 Post-#659 Safety Closure
+
+- PR: #667 `[track-a] GStreamer MKVToolNix private fixture scope safety closure`
+- State: `MERGED`
+- Merged at: `2026-06-23T03:07:25Z`
+- Merge SHA: `45ed9fc7325fdae722e0e8cb9b1282f70e147000`
+- Closure: PR #659 pushed path was docs/status/diagnostics only; the local unpushed ad hoc `ffprobe` caveat produced no artifacts, is not accepted source evidence, and must not be repeated.
+
+## 1R Compatibility Decision
+
+`TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1 decision: approved_for_guarded_private_fixture_execution_packet_planning`
+
+Execution in this reconciliation phase: `completed_docs_only_private_fixture_approval`
+
+Private fixture execution in this reconciliation phase: `false`
+
+Future guarded private fixture execution: `approved_for_separate_guarded_execution_packet_only`
+
+Required future confirmation: `REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_PRIVATE_FIXTURE_EXECUTION=true`
 
 ## PR #659 Scope Decision
 
@@ -32,6 +68,8 @@ PR #652 is accepted only as controlled synthetic evidence. It does not prove pri
 ## Duplicate Review
 
 Open PR searches for `TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1`, `tracka_gstreamer_mkvtoolnix_private_fixture_approval`, and `GStreamer MKVToolNix private fixture approval` found no duplicate private fixture approval PR at implementation preflight.
+
+Post-#667 reconciliation duplicate review found no open duplicate for `TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1R`, `private fixture approval reconciliation`, or `post-667 reconciliation`.
 
 ## Hashes
 

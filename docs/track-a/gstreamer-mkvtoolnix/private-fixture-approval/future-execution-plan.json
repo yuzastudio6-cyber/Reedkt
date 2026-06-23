@@ -2,7 +2,12 @@
   "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
   "plan": "future_execution_plan",
   "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_approval_passed_ready_for_private_fixture_plan",
+  "compatibility_decision": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1 decision: approved_for_guarded_private_fixture_execution_packet_planning",
   "future_confirmation_flag": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_PRIVATE_FIXTURE_PLAN=true",
+  "future_guarded_private_fixture_execution_flag": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_PRIVATE_FIXTURE_EXECUTION=true",
+  "future_guarded_private_fixture_execution": "approved_for_separate_guarded_execution_packet_only",
+  "alias_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-EXECUTION-PACKET-1",
+  "concrete_execution_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-EXECUTION-1",
   "allowed_fixture_source": "generated_synthetic_but_private_fixture_to_be_defined_by_next_plan",
   "allowed_command_categories": [
     "bounded_gstreamer_non_decode_synthetic_or_explicit_fixture_pipeline",

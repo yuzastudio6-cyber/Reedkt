@@ -31,6 +31,21 @@ const allowedChangedFiles = new Set([
   ...requiredFiles,
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1-diagnostics.mjs',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/source-of-truth-audit.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/source-of-truth-audit.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/future-execution-plan.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/future-execution-plan.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/runtime-boundary-review.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-fixture-approval-decision.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/private-fixture-approval-decision.md',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/readiness-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/post-667-reconciliation.json',
+  'docs/track-a/gstreamer-mkvtoolnix/private-fixture-approval/post-667-reconciliation.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1r-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-plan-1-diagnostics.mjs',
+  'package.json',
 ])
 
 const requiredText = [
@@ -64,7 +79,7 @@ const requiredText = [
 const forbiddenPatterns = [
   /GStreamer private fixture execution:\s*`?(true|completed|passed|run|executed)/i,
   /MKVToolNix private fixture execution:\s*`?(true|completed|passed|run|executed)/i,
-  /private fixture execution:\s*`?(authorized|approved|enabled|true)/i,
+  /(private fixture execution now|private fixture execution in this phase|private fixture execution performed):\s*`?(authorized|approved|enabled|true)/i,
   /Media processing:\s*`?(true|completed|passed|run|executed)/i,
   /Supabase mutation \/ SQL execution:\s*`?(executed|mutated|true)/i,
   /SQL executed:\s*`?(true|yes|executed)/i,

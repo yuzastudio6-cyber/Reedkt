@@ -90,7 +90,7 @@ Draft PR: pending creation.
 
 ## Final PR Status
 
-- PR: pending creation
-- Status: pending
-- Head: pending
-- Check status: pending
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/661
+- Status: open draft, mergeable
+- Head: `59512ff234f700b6d46cf5aa953c996b07d395ed`
+- Check status: empty check rollup at creation

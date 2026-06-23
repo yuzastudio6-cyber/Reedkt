@@ -12,6 +12,9 @@ const expectedScript =
   "ai-graphics:tool-capability-study:canonical-routing-canonicalization-owner-diagnostics";
 const expectedScriptCommand =
   "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-owner-diagnostics.mjs";
+const allowedDescendantScripts = new Set([
+  "ai-graphics:tool-capability-study:canonical-routing-canonicalization-owner-approval-diagnostics",
+]);
 
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -232,7 +235,9 @@ for (const section of ["dependencies", "devDependencies", "optionalDependencies"
 }
 if (packageJson.scripts?.[expectedScript] !== expectedScriptCommand) fail("Expected package script is missing or incorrect.");
 const scriptDrift = Object.keys(packageJson.scripts || {}).filter((key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key]));
-for (const key of scriptDrift) if (key !== expectedScript) fail(`Unexpected script drift: ${key}`);
+for (const key of scriptDrift) {
+  if (key !== expectedScript && !allowedDescendantScripts.has(key)) fail(`Unexpected script drift: ${key}`);
+}
 for (const key of Object.keys(basePackageJson.scripts || {})) if (!(key in (packageJson.scripts || {}))) fail(`Removed package script: ${key}`);
 try { if (git(["diff", "--name-only", baseRef, "--", "package-lock.json"])) fail("package-lock.json changed relative to base."); }
 catch (error) { fail(`Unable to verify package-lock diff: ${error.message}`); }

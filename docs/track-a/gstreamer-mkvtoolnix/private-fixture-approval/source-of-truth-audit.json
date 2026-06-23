@@ -3,7 +3,21 @@
   "owner": "Atlas Track A",
   "owner_id": "owner_tracka_visual_render_export",
   "base_branch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
-  "source_sha": "535b6003606430df88e6905ecd2db36be19a9e8b",
+  "source_sha": "5df02d3d5920f1329c5058e772fdcd669cb03824",
+  "post_667_reconciliation": {
+    "status": "completed",
+    "original_approval_pr": 662,
+    "original_approval_merge_sha": "ba3d8d5850601a8effb4ec971cbefb0ff7f786a9",
+    "downstream_plan_pr": 666,
+    "downstream_plan_merge_sha": "5df02d3d5920f1329c5058e772fdcd669cb03824",
+    "post_659_safety_closure_pr": 667,
+    "post_659_safety_closure_merge_sha": "45ed9fc7325fdae722e0e8cb9b1282f70e147000",
+    "compatibility_decision": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1 decision: approved_for_guarded_private_fixture_execution_packet_planning",
+    "execution": "completed_docs_only_private_fixture_approval",
+    "private_fixture_execution_in_this_phase": false,
+    "future_guarded_private_fixture_execution": "approved_for_separate_guarded_execution_packet_only",
+    "required_future_confirmation": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_PRIVATE_FIXTURE_EXECUTION=true"
+  },
   "pr_659": {
     "number": 659,
     "title": "[track-a] GStreamer MKVToolNix private fixture scope decision",

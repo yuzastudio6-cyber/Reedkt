@@ -1,12 +1,21 @@
 {
   "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1",
   "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_approval_passed_ready_for_private_fixture_plan",
+  "compatibility_decision": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-APPROVAL-1 decision: approved_for_guarded_private_fixture_execution_packet_planning",
+  "post_667_reconciliation": "completed",
+  "post_667_merge_sha": "45ed9fc7325fdae722e0e8cb9b1282f70e147000",
   "rationale": [
     "PR #659 approved only this private fixture approval gate",
+    "PR #667 records the post-#659 safety closure",
+    "PR #662 remains the original approval source-of-truth and PR #666 remains the downstream private fixture planning source-of-truth",
     "the future generated synthetic-but-private fixture still needs an exact source, command matrix, privacy, checksum, report, and cleanup plan",
     "no private fixture execution, user media, real media, FFmpeg/FFprobe, render/export, public artifacts, signed URLs, GCS, beta, or production scope is authorized"
   ],
   "next_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-PLAN-1",
+  "alias_next_prompt": "TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-EXECUTION-PACKET-1",
+  "future_guarded_private_fixture_execution": "approved_for_separate_guarded_execution_packet_only",
+  "required_future_confirmation": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_PRIVATE_FIXTURE_EXECUTION=true",
+  "private_fixture_execution_in_this_phase": false,
   "product_ready_local_oss_tools": 0,
   "supabase_classification": {
     "update_required": "none",

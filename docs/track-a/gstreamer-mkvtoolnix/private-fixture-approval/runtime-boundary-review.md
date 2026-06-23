@@ -13,6 +13,11 @@ Review status: `runtime_boundary_preserved`
 - Public artifacts/signed URLs: `not_created`
 - Beta/production: `not_unlocked`
 - Raw prompts: `not_executed`
+- Private fixture execution in this reconciliation phase: `false`
+- Future guarded private fixture execution: `approved_for_separate_guarded_execution_packet_only`
+- Required future confirmation: `REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_PRIVATE_FIXTURE_EXECUTION=true`
 - Product-ready end-to-end local OSS tools: `0`
 
 This packet is source-of-truth approval metadata only.
+
+Generated artifacts committed: none

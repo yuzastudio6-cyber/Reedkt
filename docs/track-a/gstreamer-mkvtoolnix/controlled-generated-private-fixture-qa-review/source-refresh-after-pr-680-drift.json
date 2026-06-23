@@ -1,0 +1,55 @@
+{
+  "phase": "TRACKA-GSTREAMER-MKVTOOLNIX-QA-PR-682-SOURCE-REFRESH-AFTER-PR-680-DRIFT",
+  "pullRequest": 682,
+  "sourceBranch": "codex/rp-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1",
+  "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "oldBaseSha": "536d24bbe37763b8262e3b70dd8950e264482dfd",
+  "currentBaseSha": "41601b267d076534412b7e13c86bee32cac23f7b",
+  "pr680MergeSha": "41601b267d076534412b7e13c86bee32cac23f7b",
+  "oldPr682HeadSha": "ea2e5c81550143643de2ae1e10e67fbd75fd9205",
+  "newPushedHeadSha": "recorded-in-pr-682-source-refresh-comment-after-push",
+  "refreshStrategy": "merge-current-base-into-existing-pr-branch",
+  "conflictsEncountered": [
+    "package.json"
+  ],
+  "resolvedFiles": [
+    "package.json"
+  ],
+  "packageJsonResolution": {
+    "preservedExecutionPacketDiagnostics": "tracka:gstreamer-mkvtoolnix-private-fixture-execution-packet-1:diagnostics",
+    "preservedQaReviewDiagnostics": "tracka:gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1:diagnostics"
+  },
+  "autoMergedTrackAMetadata": true,
+  "pr680ContextOnly": true,
+  "qaDecisionPreserved": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "nextPromptPreserved": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1",
+  "noExecutionConfirmations": {
+    "gstreamer": "not_run",
+    "mkvtoolnix": "not_run",
+    "ffmpeg": "not_run",
+    "ffprobe": "not_run",
+    "dockerBuild": "not_run",
+    "dockerRun": "not_run",
+    "remotion": "not_run",
+    "mediaProcessing": "not_run",
+    "privateUserRealMedia": "not_used",
+    "supabaseSqlGcs": "not_touched",
+    "betaProduction": "not_unlocked"
+  },
+  "protectedMutationReview": {
+    "packageLock": "unchanged",
+    "dockerfiles": "unchanged",
+    "dockerignore": "unchanged",
+    "runtimeSource": "unchanged",
+    "supabaseSql": "unchanged",
+    "generatedSrtMkvMedia": "not_present"
+  },
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "supabaseClassification": {
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

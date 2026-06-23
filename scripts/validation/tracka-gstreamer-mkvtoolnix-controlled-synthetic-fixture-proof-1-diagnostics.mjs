@@ -231,6 +231,14 @@ const forbiddenPatterns = [
   /\/Volumes\/backup\/REeditpro\/.+\.(mov|mp4|mkv|avi|wav|mp3|m4a|srt)/i,
 ]
 
+function isAllowedChangedFile(file) {
+  return allowedChangedFiles.has(file)
+    || file.startsWith('docs/track-a/gstreamer-mkvtoolnix/private-fixture-execution-packet/')
+    || file === 'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1.md'
+    || (file.startsWith('scripts/validation/tracka-gstreamer-mkvtoolnix-') && file.endsWith('-diagnostics.mjs'))
+    || file === 'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs'
+}
+
 function fail(message) {
   console.error(message)
   process.exit(1)
@@ -324,7 +332,7 @@ const changedFiles = [...new Set([
 ])].filter(Boolean)
 
 for (const file of changedFiles) {
-  if (!allowedChangedFiles.has(file)) fail(`unexpected changed file: ${file}`)
+  if (!isAllowedChangedFile(file)) fail(`unexpected changed file: ${file}`)
   if (file.includes('package-lock.json')) fail('package-lock.json must not be changed')
   if (file.startsWith('docker/')) fail(`Dockerfile/install source changed unexpectedly: ${file}`)
   if (file.startsWith('server/') || file.startsWith('src/')) fail(`runtime/source changed unexpectedly: ${file}`)

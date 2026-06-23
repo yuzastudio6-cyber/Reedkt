@@ -1,0 +1,24 @@
+# Safety Boundary Canonicalization Owner Approval
+
+Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_canonicalization_owner_approved_with_warnings`.
+
+Track B exclusion remains preserved under `TRACK_B_MEDIA_OSS_STEWARD`. Track A render/export exclusion remains preserved via PR #544. These labels are evidence/exclusion context only and are not product-facing capability categories.
+
+- `productFacingRule`: "Canonical routing is capability-first. Internal coordination labels are evidence context only, not agent-facing categories."
+- `trackBExclusion`: {"ownerId":"TRACK_B_MEDIA_OSS_STEWARD","status":"excluded_from_ai_graphics_routing_execution_authority","citedEvidence":"PR #542 and PR #543"}
+- `trackAExclusion`: {"status":"render_export_tools_excluded_from_ai_graphics_routing_execution_authority","citedEvidence":"PR #544"}
+- `agentCanSelectForPlanning`: true
+- `agentCanExecuteNow`: false
+- `toolExecutionAllowed`: false
+- `routeExecutionAllowed`: false
+- `workerExecutionAllowed`: false
+- `browserWebglCanvasAllowed`: false
+- `gpuRuntimeAllowed`: false
+- `modelWeightsAllowed`: false
+- `publicArtifactAllowed`: false
+- `signedUrlAllowed`: false
+- `runtimeReadyNow`: false
+- `internalBetaReadyNow`: false
+- `externalBetaReadyNow`: false
+- `productionReadyNow`: false
+- `betaOrProductionAllowed`: false

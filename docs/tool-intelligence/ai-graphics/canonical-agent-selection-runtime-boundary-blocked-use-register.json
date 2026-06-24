@@ -1,0 +1,31 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_review_passed_with_warnings",
+  "blocked": {
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "publicArtifactApprovedNow": false,
+    "signedUrlApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "trackBExclusion": "TRACK_B_MEDIA_OSS_STEWARD remains evidence-only exclusion context, not a product-facing capability category.",
+  "trackAExclusion": "PR #544 Track A render/export exclusion remains evidence-only context, not a product-facing capability category."
+}

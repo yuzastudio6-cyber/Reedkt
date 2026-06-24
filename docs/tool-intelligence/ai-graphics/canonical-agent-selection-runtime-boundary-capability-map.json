@@ -1,0 +1,360 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_review_passed_with_warnings",
+  "capabilities": [
+    {
+      "capabilityId": "chart_overlay",
+      "displayName": "Chart overlay",
+      "candidateTools": [
+        "vega_lite",
+        "d3",
+        "echarts"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "planning_metadata_allowed_now",
+      "additionalRuntimeBoundaryBuckets": [
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+        "browser_chart_runtime_later",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "CPU/static and browser chart runtime approvals remain separate future gates."
+    },
+    {
+      "capabilityId": "data_visualization",
+      "displayName": "Data visualization",
+      "candidateTools": [
+        "vega_lite",
+        "vega",
+        "d3",
+        "echarts"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "planning_metadata_allowed_now",
+      "additionalRuntimeBoundaryBuckets": [
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+        "browser_chart_runtime_later",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Agent may rank chart candidates, but cannot compile, render, or export charts."
+    },
+    {
+      "capabilityId": "svg_graphics",
+      "displayName": "SVG graphics",
+      "candidateTools": [
+        "svgdotjs_svg_js",
+        "satori",
+        "d3"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "planning_metadata_allowed_now",
+      "additionalRuntimeBoundaryBuckets": [
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "CPU/static proof may be referenced; SVG/string/artifact generation remains blocked."
+    },
+    {
+      "capabilityId": "diagram_graphics",
+      "displayName": "Diagram graphics",
+      "candidateTools": [
+        "viz_js",
+        "svgdotjs_svg_js"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "planning_metadata_allowed_now",
+      "additionalRuntimeBoundaryBuckets": [
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "DOT/diagram tool execution and artifact creation remain blocked."
+    },
+    {
+      "capabilityId": "animation_overlay",
+      "displayName": "Animation overlay",
+      "candidateTools": [
+        "lottie_web",
+        "animejs"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "animation_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Animation manifest/runtime approval is required before execution."
+    },
+    {
+      "capabilityId": "canvas_scene",
+      "displayName": "Canvas scene",
+      "candidateTools": [
+        "pixi_js",
+        "konva"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "browser_canvas_webgl_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Browser/canvas sandbox approval is required before execution."
+    },
+    {
+      "capabilityId": "webgl_3d_scene",
+      "displayName": "WebGL/3D scene",
+      "candidateTools": [
+        "three_js",
+        "babylonjs"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "browser_canvas_webgl_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Browser/WebGL sandbox approval is required before execution."
+    },
+    {
+      "capabilityId": "background_removal",
+      "displayName": "Background removal",
+      "candidateTools": [
+        "sam2",
+        "birefnet",
+        "rembg",
+        "transparent_background"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Model provenance, weight, CPU import, and runtime approvals are required before execution."
+    },
+    {
+      "capabilityId": "subject_segmentation",
+      "displayName": "Subject segmentation",
+      "candidateTools": [
+        "sam2",
+        "birefnet"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Segmentation model execution remains blocked pending model proof."
+    },
+    {
+      "capabilityId": "upscaling",
+      "displayName": "Upscaling",
+      "candidateTools": [
+        "real_esrgan"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Upscaling model execution remains blocked pending model/GPU/provenance proof."
+    },
+    {
+      "capabilityId": "tensor_image_ops",
+      "displayName": "Tensor image ops",
+      "candidateTools": [
+        "torch_torchvision",
+        "kornia"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Tensor/image operation runtime remains blocked pending CPU/GPU/runtime proof."
+    },
+    {
+      "capabilityId": "model_runtime_foundation",
+      "displayName": "Model runtime foundation",
+      "candidateTools": [
+        "torch_torchvision",
+        "transformers"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Foundation model runtime remains blocked pending model/provenance/runtime proof."
+    }
+  ]
+}

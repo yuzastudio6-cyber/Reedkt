@@ -1,0 +1,80 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_review_passed_with_warnings",
+  "ownerAccepted": true,
+  "capabilityCount": 12,
+  "capabilities": [
+    {
+      "capabilityId": "chart_overlay",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "data_visualization",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "svg_graphics",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "diagram_graphics",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "animation_overlay",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "canvas_scene",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "webgl_3d_scene",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "background_removal",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "subject_segmentation",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "upscaling",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "tensor_image_ops",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "model_runtime_foundation",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    }
+  ],
+  "sourceCapabilityMapDecision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_qa_passed_with_warnings"
+}

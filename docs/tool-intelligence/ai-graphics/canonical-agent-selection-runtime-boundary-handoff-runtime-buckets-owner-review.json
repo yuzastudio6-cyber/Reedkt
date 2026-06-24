@@ -1,0 +1,52 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_review_passed_with_warnings",
+  "ownerAccepted": true,
+  "runtimeBuckets": {
+    "planning_metadata_allowed_now": {
+      "ownerAccepted": true,
+      "sourceBucketPresent": true,
+      "executionApprovedNow": false
+    },
+    "cpu_static_execution_previously_validated_but_not_agent_executable_now": {
+      "ownerAccepted": true,
+      "sourceBucketPresent": true,
+      "executionApprovedNow": false
+    },
+    "browser_chart_runtime_later": {
+      "ownerAccepted": true,
+      "sourceBucketPresent": true,
+      "executionApprovedNow": false
+    },
+    "animation_runtime_later": {
+      "ownerAccepted": true,
+      "sourceBucketPresent": true,
+      "executionApprovedNow": false
+    },
+    "browser_canvas_webgl_runtime_later": {
+      "ownerAccepted": true,
+      "sourceBucketPresent": true,
+      "executionApprovedNow": false
+    },
+    "model_cpu_gpu_runtime_later": {
+      "ownerAccepted": true,
+      "sourceBucketPresent": true,
+      "executionApprovedNow": false
+    },
+    "tool_route_handoff_later": {
+      "ownerAccepted": true,
+      "sourceBucketPresent": true,
+      "executionApprovedNow": false
+    },
+    "worker_handoff_later": {
+      "ownerAccepted": true,
+      "sourceBucketPresent": true,
+      "executionApprovedNow": false
+    },
+    "public_artifact_and_signed_url_later": {
+      "ownerAccepted": true,
+      "sourceBucketPresent": true,
+      "executionApprovedNow": false
+    }
+  },
+  "allRuntimeBucketsCoveredByRuntimeBoundaryHandoffOwnerReview": true
+}

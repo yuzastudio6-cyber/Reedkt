@@ -1,0 +1,134 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_review_passed_with_warnings",
+  "ownerAccepted": true,
+  "toolCount": 21,
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "transformers",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "sam2",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "kornia",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "rembg",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "d3",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "echarts",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "vega",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "satori",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "animejs",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "three_js",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "konva",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    }
+  ],
+  "sourceToolMapDecision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_qa_passed_with_warnings"
+}

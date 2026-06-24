@@ -308,7 +308,8 @@ const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
 );
 for (const key of scriptDrift) {
   if (key !== expectedScript && key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-qa-diagnostics") fail("Unexpected script drift: " + key);
+    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-qa-diagnostics" &&
+    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-diagnostics") fail("Unexpected script drift: " + key);
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) {
   if (!(key in (packageJson.scripts || {}))) fail("Removed package script: " + key);

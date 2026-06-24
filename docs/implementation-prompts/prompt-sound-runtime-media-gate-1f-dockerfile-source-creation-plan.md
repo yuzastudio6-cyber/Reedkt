@@ -7,6 +7,8 @@
   "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1E",
   "requiredSourceDecision": "sound_runtime_media_gate_1e_dockerfile_static_plan_completed_with_warnings_ready_for_dockerfile_static_owner_review",
   "requiredOwnerReviewPrompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-OWNER-REVIEW",
+  "requiredOwnerReviewDecision": "worker_runtime_jobs_sound_cpu_dockerfile_static_owner_review_passed_with_warnings_ready_for_gate_1f_source_creation_plan",
+  "requiredSourceMergeCommit": "f8db4312f6a3e11899b381c08f6f3a53d2804171",
   "purpose": "Plan the future source-file creation step for SOUND CPU worker Dockerfiles after owner review, without building images, running Docker, calling GCP, or executing workers.",
   "acceptedPlanningOnly": {
     "workers": [

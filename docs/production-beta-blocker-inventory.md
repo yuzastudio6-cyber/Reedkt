@@ -41,6 +41,20 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## Track A GPAC/MP4Box Official APT Install Source Execution
+
+`TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-EXECUTION-1` is a bounded local Docker install-source proof and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_official_apt_install_source_execution_passed_ready_for_install_source_qa`.
+
+The render-worker image proof used official GPAC APT source `https://dist.gpac.io/gpac/linux/debian`, codename `bookworm`, component `main`, blocked component `nightly`, key endpoint `https://dist.gpac.io/gpac/linux/gpg.asc`, keyring path `/usr/share/keyrings/gpac-archive-keyring.gpg`, source file `/etc/apt/sources.list.d/gpac.sources`, preferences file `/etc/apt/preferences.d/gpac.pref`, and exact installed package `gpac=26.02-rev0-g118e60a90-HEAD` on `arm64`.
+
+Accepted evidence is install-source/package presence only: `dpkg-query -W gpac` returned `gpac	26.02-rev0-g118e60a90-HEAD	arm64`, and `command -v MP4Box` returned `/usr/bin/MP4Box` under `--network none`. No `MP4Box -version`, GPAC/MP4Box media command, media processing, render/export, product runtime, beta, or production approval is granted.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-QA-1`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
+
+Package-lock/.dockerignore/requirements/runtime source mutation: `none`. Dockerfile mutation: `approved_only_for_docker/prod/render-worker/Dockerfile`. Generated artifacts committed: `none`.
+
 ## Track A GPAC/MP4Box Owner Source Classification
 
 `TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1` is metadata-only and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_owner_source_classification_passed_ready_for_official_gpac_apt_repo_approval`.

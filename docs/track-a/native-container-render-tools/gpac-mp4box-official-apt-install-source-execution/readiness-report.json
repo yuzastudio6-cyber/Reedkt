@@ -1,0 +1,45 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-EXECUTION-1",
+  "decision": "tracka_gpac_mp4box_official_apt_install_source_execution_passed_ready_for_install_source_qa",
+  "sourceSha": "834b63eb7847a545592f5c16cb5de9150d6862fe",
+  "runId": "20260624T234132Z-834b63e",
+  "imageTag": "reeditpro-tracka-gpac-mp4box-official-apt-install-source-execution-1:20260624T234132Z-834b63e",
+  "repository": {
+    "uri": "https://dist.gpac.io/gpac/linux/debian",
+    "codename": "bookworm",
+    "component": "main",
+    "blockedComponent": "nightly",
+    "keyEndpoint": "https://dist.gpac.io/gpac/linux/gpg.asc",
+    "sourceFile": "/etc/apt/sources.list.d/gpac.sources",
+    "keyringPath": "/usr/share/keyrings/gpac-archive-keyring.gpg",
+    "preferencesFile": "/etc/apt/preferences.d/gpac.pref",
+    "packageName": "gpac",
+    "selectedCandidateVersion": "26.02-rev0-g118e60a90-HEAD",
+    "architecture": "arm64"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-QA-1",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577Excluded": true,
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no",
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "readiness": "ready_for_install_source_qa_only",
+  "acceptedEvidence": [
+    "official APT source/keyring/preferences path written inside local Docker image",
+    "gpac exact candidate installed from bookworm/main",
+    "MP4Box binary presence proven without executing MP4Box"
+  ],
+  "blockedUntilLater": [
+    "GPAC/MP4Box runtime behavior",
+    "MP4Box version/provenance command if required by QA",
+    "media commands and user/private/real media",
+    "render/export/product runtime",
+    "beta/production"
+  ],
+  "nextPromptFile": "docs/implementation-prompts/prompt-tracka-gpac-mp4box-official-apt-install-source-qa-1.md"
+}

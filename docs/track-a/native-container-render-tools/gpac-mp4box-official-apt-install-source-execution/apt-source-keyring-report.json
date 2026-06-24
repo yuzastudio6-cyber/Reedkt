@@ -1,0 +1,57 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-EXECUTION-1",
+  "decision": "tracka_gpac_mp4box_official_apt_install_source_execution_passed_ready_for_install_source_qa",
+  "sourceSha": "834b63eb7847a545592f5c16cb5de9150d6862fe",
+  "runId": "20260624T234132Z-834b63e",
+  "imageTag": "reeditpro-tracka-gpac-mp4box-official-apt-install-source-execution-1:20260624T234132Z-834b63e",
+  "repository": {
+    "uri": "https://dist.gpac.io/gpac/linux/debian",
+    "codename": "bookworm",
+    "component": "main",
+    "blockedComponent": "nightly",
+    "keyEndpoint": "https://dist.gpac.io/gpac/linux/gpg.asc",
+    "sourceFile": "/etc/apt/sources.list.d/gpac.sources",
+    "keyringPath": "/usr/share/keyrings/gpac-archive-keyring.gpg",
+    "preferencesFile": "/etc/apt/preferences.d/gpac.pref",
+    "packageName": "gpac",
+    "selectedCandidateVersion": "26.02-rev0-g118e60a90-HEAD",
+    "architecture": "arm64"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-QA-1",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577Excluded": true,
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no",
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "aptSource": {
+    "type": "deb822",
+    "path": "/etc/apt/sources.list.d/gpac.sources",
+    "fields": {
+      "Types": "deb",
+      "URIs": "https://dist.gpac.io/gpac/linux/debian",
+      "Suites": "bookworm",
+      "Components": "main",
+      "Signed-By": "/usr/share/keyrings/gpac-archive-keyring.gpg"
+    }
+  },
+  "keyring": {
+    "endpoint": "https://dist.gpac.io/gpac/linux/gpg.asc",
+    "method": "curl_pipe_gpg_dearmor",
+    "outputPath": "/usr/share/keyrings/gpac-archive-keyring.gpg",
+    "chmod": "0644",
+    "aptKeyUsed": false
+  },
+  "blocked": {
+    "nightly": true,
+    "debianSid": true,
+    "debianBullseyeNativePath": true,
+    "randomBinary": true,
+    "sourceBuild": true,
+    "bento4Fallback": true
+  }
+}

@@ -1,0 +1,1431 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_qa_passed_with_warnings",
+  "branch": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-qa-review",
+  "baseBranch": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-review",
+  "draftPrTitle": "[tools] AI graphics canonical agent selection runtime boundary QA review",
+  "draftPr": "pending draft PR creation",
+  "draftPrStatus": "pending draft PR creation; source PR #694 open/draft/MERGEABLE at 88ec8e9a28d583177c3bff92bd0fb554942813b5 with empty check rollup",
+  "statusCheckRollup": "pending until draft PR creation; source PR #694 has empty check rollup",
+  "sourceDecision": "ai_graphics_canonical_agent_selection_runtime_boundary_review_passed_with_warnings",
+  "duplicateSearchResult": "No exact runtime-boundary QA PR, remote branch, or worktree existed at preflight.",
+  "sourcePrs": {
+    "361": {
+      "state": "MERGED",
+      "mergeCommit": "05d429f6029136f0f55fe01375809071b588791c",
+      "role": "historical AI graphics routing contract"
+    },
+    "376": {
+      "state": "MERGED",
+      "mergeCommit": "9296a4a41a143c0a212415d890e6ff544f73bb4b",
+      "role": "historical AI graphics capability routing study"
+    },
+    "425": {
+      "state": "MERGED",
+      "mergeCommit": "a055ef045db2a6ce127a044bee6219d5933532c3",
+      "role": "Batch 1 package-proof source"
+    },
+    "433": {
+      "state": "MERGED",
+      "mergeCommit": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0",
+      "role": "Batch 2 package-proof source"
+    },
+    "441": {
+      "state": "MERGED",
+      "mergeCommit": "d174de59471eacf05bed5a5511d661f2e5ba9f0f",
+      "role": "Batch 3 package-proof source"
+    },
+    "542": {
+      "state": "MERGED",
+      "mergeCommit": "a66a1c0b72263e5e113d95216c373e0fad1071bb",
+      "role": "Track B exclusion evidence"
+    },
+    "544": {
+      "state": "MERGED",
+      "mergeCommit": "62f69c6b66d77abf155287ffdb2e9a380541d763",
+      "role": "Track A render/export exclusion evidence"
+    },
+    "621": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "cd6ab312d83bb5ebaa30f1ef30f41cf3891c3306",
+      "role": "refreshed CPU/static validation owner review evidence"
+    },
+    "623": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "4952fb0103d05e8f7df1272c0acd7419426f0ea4",
+      "role": "product/agent-facing capability study and ranking matrix"
+    },
+    "638": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "61003fe69287a5ec490ec294a34ca72ef31f4367",
+      "role": "canonical routing approval source"
+    },
+    "642": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "494f37004eb59cf2fa431109cb60a4636bfd1037",
+      "role": "canonical routing QA source"
+    },
+    "645": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "244217ef84c6b2f721aab0ff74b926b6168855c9",
+      "role": "canonical routing owner review source"
+    },
+    "646": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "917592a87fc85716761f98bd691f878bd6c20461",
+      "role": "canonical routing owner approval source"
+    },
+    "651": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "b0803fdda8d1d6fb725e7533b64746156517f9b5",
+      "role": "canonical routing owner approval QA source"
+    },
+    "656": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "d402d821519c2d03db49029c18def5dfadf0d79a",
+      "role": "canonical routing canonicalization review"
+    },
+    "657": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "6665c2a8175c575045070d74d4f7f6929f155f61",
+      "role": "canonical routing canonicalization QA"
+    },
+    "661": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "b23a0446fe72521688d783e990da8eb84e847856",
+      "role": "canonical routing canonicalization owner review"
+    },
+    "665": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "841ce60ec31b9e4c43202ed0d3e0363a4ce13869",
+      "role": "canonical routing canonicalization owner approval"
+    },
+    "668": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "d09b9287d3d6312d9ebe71f6657e830d0e903bb1",
+      "role": "canonical routing canonicalization owner approval QA"
+    },
+    "671": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "01917db09617a06549f110858abd16a342226c7c",
+      "role": "canonical agent-selection review source"
+    },
+    "674": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "fc17ed6d647207e5b99b55ac19eba650e80cd42c",
+      "role": "canonical agent-selection QA source"
+    },
+    "677": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "2ff1673b27ca6e9bea9735968dc99fbbc2e4253d",
+      "role": "canonical agent-selection owner review source"
+    },
+    "681": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "c2d2c278c9af39b22414f8690d2d70c17da303ee",
+      "role": "canonical agent-selection owner approval source"
+    },
+    "683": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "487562a1d4245fc63ac7674d1f696140d0bf691e",
+      "role": "canonical agent-selection owner approval QA source"
+    },
+    "685": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "b8db13e34a5201060baebfa39812c8bbd9eeb714",
+      "role": "canonical agent-selection canonicalization review"
+    },
+    "686": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "74e89f2c0c6e76035c1fb7d19c31d827a8affd3f",
+      "role": "canonical agent-selection canonicalization QA"
+    },
+    "688": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "b52cfbc492b97a0871f53e9c356e935995f45eb9",
+      "role": "canonical agent-selection canonicalization owner review"
+    },
+    "689": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "1e32b1e4e182d9759fd6f443c5d3f06b1e21285f",
+      "role": "canonical agent-selection canonicalization owner approval"
+    },
+    "692": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "8062496fa2c3b3ef2d7fdfca3d5fb4fede40f6ec",
+      "role": "canonical agent-selection canonicalization owner approval QA source"
+    },
+    "694": {
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "head": "88ec8e9a28d583177c3bff92bd0fb554942813b5",
+      "role": "runtime-boundary review source"
+    }
+  },
+  "runtimeBuckets": {
+    "planning_metadata_allowed_now": {
+      "appliesTo": "all 21 tools and all 12 capabilities",
+      "meaning": "Agent may select, rank, eliminate, and recommend tools for planning/study metadata only; no execution or artifacts."
+    },
+    "cpu_static_execution_previously_validated_but_not_agent_executable_now": {
+      "tools": [
+        "d3",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js"
+      ],
+      "meaning": "CPU/static proof exists as evidence, but canonical agent selection may not execute these tools."
+    },
+    "browser_chart_runtime_later": {
+      "tools": [
+        "echarts"
+      ],
+      "meaning": "Browser chart runtime approval is required before execution."
+    },
+    "animation_runtime_later": {
+      "tools": [
+        "lottie_web",
+        "animejs"
+      ],
+      "meaning": "Animation manifest/runtime approval is required before execution."
+    },
+    "browser_canvas_webgl_runtime_later": {
+      "tools": [
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "meaning": "Browser/canvas/WebGL sandbox approval is required before execution."
+    },
+    "model_cpu_gpu_runtime_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background"
+      ],
+      "meaning": "CPU import, model provenance, model-weight, and later GPU/runtime approvals are required before execution."
+    },
+    "tool_route_handoff_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background",
+        "d3",
+        "echarts",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js",
+        "lottie_web",
+        "animejs",
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "meaning": "Future Tool Route approval may consume canonical agent-selection schema as planning metadata only until execution is separately approved."
+    },
+    "worker_handoff_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background",
+        "d3",
+        "echarts",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js",
+        "lottie_web",
+        "animejs",
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "meaning": "Future Worker approval may consume canonical agent-selection schema as planning metadata only until execution is separately approved."
+    },
+    "public_artifact_and_signed_url_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background",
+        "d3",
+        "echarts",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js",
+        "lottie_web",
+        "animejs",
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "meaning": "Signed URLs, GCS/public artifacts, and public artifact creation remain blocked."
+    }
+  },
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "displayName": "Torch/Torchvision",
+      "packageName": "torch/torchvision",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "model_or_foundation_tool_planning_only_runtime_blocked",
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "model runtime foundation and tensor image ops",
+      "requiredNextApprovalBeforeExecution": "CPU import, model provenance, model-weight, and GPU/runtime approvals required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "transformers",
+      "displayName": "Transformers",
+      "packageName": "transformers",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "model_or_foundation_tool_planning_only_runtime_blocked",
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "model runtime foundation",
+      "requiredNextApprovalBeforeExecution": "CPU import, model provenance, model-weight, and GPU/runtime approvals required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "sam2",
+      "displayName": "SAM2",
+      "packageName": "sam2",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "model_or_foundation_tool_planning_only_runtime_blocked",
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "subject segmentation",
+      "requiredNextApprovalBeforeExecution": "CPU import, model provenance, model-weight, and GPU/runtime approvals required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "birefnet",
+      "displayName": "BiRefNet",
+      "packageName": "birefnet",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "model_or_foundation_tool_planning_only_runtime_blocked",
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "subject/background extraction",
+      "requiredNextApprovalBeforeExecution": "CPU import, model provenance, model-weight, and GPU/runtime approvals required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "real_esrgan",
+      "displayName": "Real-ESRGAN",
+      "packageName": "real-esrgan",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "model_or_foundation_tool_planning_only_runtime_blocked",
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "upscaling",
+      "requiredNextApprovalBeforeExecution": "CPU import, model provenance, model-weight, and GPU/runtime approvals required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "kornia",
+      "displayName": "Kornia",
+      "packageName": "kornia",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "model_or_foundation_tool_planning_only_runtime_blocked",
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "tensor image ops",
+      "requiredNextApprovalBeforeExecution": "CPU import and later model/runtime approvals required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "rembg",
+      "displayName": "rembg",
+      "packageName": "rembg",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "model_or_foundation_tool_planning_only_runtime_blocked",
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "background removal fallback",
+      "requiredNextApprovalBeforeExecution": "CPU import, model provenance, model-weight, and GPU/runtime approvals required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "transparent_background",
+      "displayName": "Transparent Background",
+      "packageName": "transparent-background",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "model_or_foundation_tool_planning_only_runtime_blocked",
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "background removal fallback",
+      "requiredNextApprovalBeforeExecution": "CPU import, model provenance, model-weight, and GPU/runtime approvals required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "d3",
+      "displayName": "D3",
+      "packageName": "d3",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "cpu_static_validation_owner_accepted_from_pr_621",
+      "runtimeBoundaryBucket": "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "custom data-shape/SVG planning",
+      "requiredNextApprovalBeforeExecution": "CPU/static proof exists, but agent execution remains blocked",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "echarts",
+      "displayName": "ECharts",
+      "packageName": "echarts",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "canonical_package_proof_or_planning_evidence_only_runtime_blocked",
+      "runtimeBoundaryBucket": "browser_chart_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "browser chart planning",
+      "requiredNextApprovalBeforeExecution": "Browser chart runtime approval required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "vega_lite",
+      "displayName": "Vega-Lite",
+      "packageName": "vega-lite",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "cpu_static_validation_owner_accepted_from_pr_621",
+      "runtimeBoundaryBucket": "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "declarative chart specs",
+      "requiredNextApprovalBeforeExecution": "CPU/static proof exists, but agent execution remains blocked",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "vega",
+      "displayName": "Vega",
+      "packageName": "vega",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "cpu_static_validation_owner_accepted_from_pr_621",
+      "runtimeBoundaryBucket": "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "compiled/parsed Vega spec validation",
+      "requiredNextApprovalBeforeExecution": "CPU/static proof exists, but agent execution remains blocked",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "satori",
+      "displayName": "Satori",
+      "packageName": "satori",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "cpu_static_validation_owner_accepted_from_pr_621",
+      "runtimeBoundaryBucket": "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "JSX/HTML-style graphic manifest planning",
+      "requiredNextApprovalBeforeExecution": "CPU/static proof exists, but agent execution remains blocked",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "displayName": "SVG.js",
+      "packageName": "@svgdotjs/svg.js",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "cpu_static_validation_owner_accepted_from_pr_621",
+      "runtimeBoundaryBucket": "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "explicit SVG construction planning",
+      "requiredNextApprovalBeforeExecution": "CPU/static proof exists, but agent execution remains blocked",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "viz_js",
+      "displayName": "Viz.js",
+      "packageName": "@viz-js/viz",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "cpu_static_validation_owner_accepted_from_pr_621",
+      "runtimeBoundaryBucket": "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "DOT/graph diagram planning",
+      "requiredNextApprovalBeforeExecution": "CPU/static proof exists, but agent execution remains blocked",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "lottie_web",
+      "displayName": "lottie-web",
+      "packageName": "lottie-web",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "canonical_package_proof_or_planning_evidence_only_runtime_blocked",
+      "runtimeBoundaryBucket": "animation_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "animation manifest planning",
+      "requiredNextApprovalBeforeExecution": "Animation manifest/runtime approval required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "animejs",
+      "displayName": "anime.js",
+      "packageName": "animejs",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "canonical_package_proof_or_planning_evidence_only_runtime_blocked",
+      "runtimeBoundaryBucket": "animation_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "timeline animation planning",
+      "requiredNextApprovalBeforeExecution": "Animation manifest/runtime approval required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "three_js",
+      "displayName": "Three.js",
+      "packageName": "three",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "canonical_package_proof_or_planning_evidence_only_runtime_blocked",
+      "runtimeBoundaryBucket": "browser_canvas_webgl_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "general 3D/WebGL scene planning",
+      "requiredNextApprovalBeforeExecution": "Browser/canvas/WebGL sandbox approval required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "pixi_js",
+      "displayName": "PixiJS",
+      "packageName": "pixi.js",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "canonical_package_proof_or_planning_evidence_only_runtime_blocked",
+      "runtimeBoundaryBucket": "browser_canvas_webgl_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "2D WebGL/canvas sprite scene planning",
+      "requiredNextApprovalBeforeExecution": "Browser/canvas/WebGL sandbox approval required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "konva",
+      "displayName": "Konva",
+      "packageName": "konva",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "canonical_package_proof_or_planning_evidence_only_runtime_blocked",
+      "runtimeBoundaryBucket": "browser_canvas_webgl_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "2D canvas drawing and annotation planning",
+      "requiredNextApprovalBeforeExecution": "Browser/canvas/WebGL sandbox approval required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    },
+    {
+      "toolId": "babylonjs",
+      "displayName": "Babylon.js",
+      "packageName": "babylonjs",
+      "canonicalSelectionStatus": "canonical_planning_study_metadata_selection_only",
+      "proofStatus": "canonical_package_proof_or_planning_evidence_only_runtime_blocked",
+      "runtimeBoundaryBucket": "browser_canvas_webgl_runtime_later",
+      "futureHandoffBuckets": [
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "bestFor": "heavier 3D scene/game-style planning",
+      "requiredNextApprovalBeforeExecution": "Browser/canvas/WebGL sandbox approval required",
+      "blockedReason": "Canonical agent selection may choose this tool for planning/study metadata only. Execution requires a future approval lane and remains blocked now."
+    }
+  ],
+  "capabilities": [
+    {
+      "capabilityId": "chart_overlay",
+      "displayName": "Chart overlay",
+      "candidateTools": [
+        "vega_lite",
+        "d3",
+        "echarts"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "planning_metadata_allowed_now",
+      "additionalRuntimeBoundaryBuckets": [
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+        "browser_chart_runtime_later",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "CPU/static and browser chart runtime approvals remain separate future gates."
+    },
+    {
+      "capabilityId": "data_visualization",
+      "displayName": "Data visualization",
+      "candidateTools": [
+        "vega_lite",
+        "vega",
+        "d3",
+        "echarts"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "planning_metadata_allowed_now",
+      "additionalRuntimeBoundaryBuckets": [
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+        "browser_chart_runtime_later",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Agent may rank chart candidates, but cannot compile, render, or export charts."
+    },
+    {
+      "capabilityId": "svg_graphics",
+      "displayName": "SVG graphics",
+      "candidateTools": [
+        "svgdotjs_svg_js",
+        "satori",
+        "d3"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "planning_metadata_allowed_now",
+      "additionalRuntimeBoundaryBuckets": [
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "CPU/static proof may be referenced; SVG/string/artifact generation remains blocked."
+    },
+    {
+      "capabilityId": "diagram_graphics",
+      "displayName": "Diagram graphics",
+      "candidateTools": [
+        "viz_js",
+        "svgdotjs_svg_js"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "planning_metadata_allowed_now",
+      "additionalRuntimeBoundaryBuckets": [
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "DOT/diagram tool execution and artifact creation remain blocked."
+    },
+    {
+      "capabilityId": "animation_overlay",
+      "displayName": "Animation overlay",
+      "candidateTools": [
+        "lottie_web",
+        "animejs"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "animation_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Animation manifest/runtime approval is required before execution."
+    },
+    {
+      "capabilityId": "canvas_scene",
+      "displayName": "Canvas scene",
+      "candidateTools": [
+        "pixi_js",
+        "konva"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "browser_canvas_webgl_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Browser/canvas sandbox approval is required before execution."
+    },
+    {
+      "capabilityId": "webgl_3d_scene",
+      "displayName": "WebGL/3D scene",
+      "candidateTools": [
+        "three_js",
+        "babylonjs"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "browser_canvas_webgl_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Browser/WebGL sandbox approval is required before execution."
+    },
+    {
+      "capabilityId": "background_removal",
+      "displayName": "Background removal",
+      "candidateTools": [
+        "sam2",
+        "birefnet",
+        "rembg",
+        "transparent_background"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Model provenance, weight, CPU import, and runtime approvals are required before execution."
+    },
+    {
+      "capabilityId": "subject_segmentation",
+      "displayName": "Subject segmentation",
+      "candidateTools": [
+        "sam2",
+        "birefnet"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Segmentation model execution remains blocked pending model proof."
+    },
+    {
+      "capabilityId": "upscaling",
+      "displayName": "Upscaling",
+      "candidateTools": [
+        "real_esrgan"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Upscaling model execution remains blocked pending model/GPU/provenance proof."
+    },
+    {
+      "capabilityId": "tensor_image_ops",
+      "displayName": "Tensor image ops",
+      "candidateTools": [
+        "torch_torchvision",
+        "kornia"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Tensor/image operation runtime remains blocked pending CPU/GPU/runtime proof."
+    },
+    {
+      "capabilityId": "model_runtime_foundation",
+      "displayName": "Model runtime foundation",
+      "candidateTools": [
+        "torch_torchvision",
+        "transformers"
+      ],
+      "planningSelectionAllowedNow": true,
+      "agentExecutionAllowedNow": false,
+      "toolExecutionAllowedNow": false,
+      "routeExecutionAllowedNow": false,
+      "workerExecutionAllowedNow": false,
+      "browserWebglCanvasAllowedNow": false,
+      "gpuModelRuntimeAllowedNow": false,
+      "providerRuntimeAllowedNow": false,
+      "publicArtifactAllowedNow": false,
+      "signedUrlAllowedNow": false,
+      "runtimeReadyNow": false,
+      "internalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "runtimeBoundaryBucket": "model_cpu_gpu_runtime_later",
+      "additionalRuntimeBoundaryBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "nextProofMilestone": "Foundation model runtime remains blocked pending model/provenance/runtime proof."
+    }
+  ],
+  "sourceRuntimeBoundaryQa": {
+    "sourcePr": 694,
+    "accepted": true,
+    "acceptedWithWarnings": true,
+    "acceptedScope": "planning/study metadata runtime-boundary only"
+  },
+  "runtimeBoundaryLedgerQa": {
+    "accepted": true,
+    "source": "docs/tool-intelligence/ai-graphics/canonical-agent-selection-runtime-boundary-ledger.json"
+  },
+  "runtimeBoundaryMatrixQa": {
+    "accepted": true,
+    "source": "docs/tool-intelligence/ai-graphics/canonical-agent-selection-runtime-boundary-matrix.json"
+  },
+  "runtimeBoundaryToolMapQa": {
+    "accepted": true,
+    "tools": [
+      "torch_torchvision",
+      "transformers",
+      "sam2",
+      "birefnet",
+      "real_esrgan",
+      "kornia",
+      "rembg",
+      "transparent_background",
+      "d3",
+      "echarts",
+      "vega_lite",
+      "vega",
+      "satori",
+      "svgdotjs_svg_js",
+      "viz_js",
+      "lottie_web",
+      "animejs",
+      "three_js",
+      "pixi_js",
+      "konva",
+      "babylonjs"
+    ]
+  },
+  "runtimeBoundaryCapabilityMapQa": {
+    "accepted": true,
+    "capabilities": [
+      "chart_overlay",
+      "data_visualization",
+      "svg_graphics",
+      "diagram_graphics",
+      "animation_overlay",
+      "canvas_scene",
+      "webgl_3d_scene",
+      "background_removal",
+      "subject_segmentation",
+      "upscaling",
+      "tensor_image_ops",
+      "model_runtime_foundation"
+    ]
+  },
+  "runtimeBoundaryBucketsQa": {
+    "accepted": true,
+    "buckets": [
+      "planning_metadata_allowed_now",
+      "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+      "browser_chart_runtime_later",
+      "animation_runtime_later",
+      "browser_canvas_webgl_runtime_later",
+      "model_cpu_gpu_runtime_later",
+      "tool_route_handoff_later",
+      "worker_handoff_later",
+      "public_artifact_and_signed_url_later"
+    ]
+  },
+  "planningOnlyPolicyQa": {
+    "accepted": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false
+  },
+  "blockedUseRegisterQa": {
+    "accepted": true,
+    "allRuntimeAndArtifactActionsBlocked": true
+  },
+  "booleans": {
+    "canonicalAgentSelectionRuntimeBoundaryQaCompleted": true,
+    "sourceCanonicalAgentSelectionRuntimeBoundaryReviewAccepted": true,
+    "sourceCanonicalAgentSelectionCanonicalizationOwnerApprovalQaAccepted": true,
+    "all21ToolsCoveredByRuntimeBoundaryQa": true,
+    "allRequiredCapabilitiesCoveredByRuntimeBoundaryQa": true,
+    "runtimeBoundaryLedgerQaAccepted": true,
+    "runtimeBoundaryMatrixQaAccepted": true,
+    "runtimeBoundaryToolMapQaAccepted": true,
+    "runtimeBoundaryCapabilityMapQaAccepted": true,
+    "runtimeBoundaryBucketsQaAccepted": true,
+    "planningOnlyPolicyQaAccepted": true,
+    "blockedUseRegisterQaAccepted": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "publicArtifactApprovedNow": false,
+    "signedUrlApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "generatedOutputCreated": false
+  },
+  "trackBExclusion": "TRACK_B_MEDIA_OSS_STEWARD remains evidence-only exclusion context, not a product-facing capability category.",
+  "trackAExclusion": "PR #544 Track A render/export exclusion remains evidence-only context, not a product-facing capability category.",
+  "nextPrompt": "AI_GRAPHICS_CANONICAL_AGENT_SELECTION_RUNTIME_BOUNDARY_OWNER_REVIEW"
+}

@@ -323,7 +323,7 @@ const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
   (key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key])
 );
 for (const key of scriptDrift) {
-  if (key !== expectedScript && key !== "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-diagnostics" && key !== "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-qa-diagnostics" && key !== "ai-graphics:canonical-agent-selection:runtime-boundary-diagnostics") fail("Unexpected script drift: " + key);
+  if (key !== expectedScript && key !== "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-diagnostics" && key !== "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-qa-diagnostics" && key !== "ai-graphics:canonical-agent-selection:runtime-boundary-diagnostics" && key !== "ai-graphics:canonical-agent-selection:runtime-boundary-qa-diagnostics") fail("Unexpected script drift: " + key);
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) {
   if (!(key in (packageJson.scripts || {}))) fail("Removed package script: " + key);

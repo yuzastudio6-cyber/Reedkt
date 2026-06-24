@@ -1,0 +1,20 @@
+{
+  "pr706": {
+    "number": 706,
+    "title": "[track-a] Native container package source policy review",
+    "state": "MERGED",
+    "mergedAt": "2026-06-24T15:47:47Z",
+    "mergeCommit": "a293ec57a304728b2ab4f731ab1fd58f5c9aaec8",
+    "decision": "blocked_no_safe_package_source_policy_available",
+    "execution": "completed_docs_only_package_source_policy_review_no_install_changes"
+  },
+  "sourceTruth": {
+    "gpacMp4box": "blocked_gpac_mp4box_package_source_unavailable",
+    "vapoursynthCore": "blocked_core_vapoursynth_package_source_unavailable",
+    "vapoursynthPlugins": "blocked_vapoursynth_native_plugin_policy_not_satisfied",
+    "revideo": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "hyperframe": "handoff_only_no_install_source_change",
+    "gstreamer": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+    "mkvtoolnix": "qa_passed_controlled_generated_private_fixture_execution_evidence"
+  }
+}

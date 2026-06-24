@@ -1,0 +1,19 @@
+{
+  "pr708": {
+    "number": 708,
+    "title": "[track-a] Reconcile PR 701 metadata after PR 702 merge",
+    "status": "open_dirty_stale_unmerged",
+    "head": "59dea660c547fa0d8756372ab92cec2a2c72804c",
+    "decision": "tracka_post_pr702_pr701_metadata_reconciliation_passed_pr701_context_preserved_ready_for_gpac_mp4box_policy_review",
+    "directMergeAllowedAfterPr706": false,
+    "preservedContext": [
+      "PR #701 content was preserved by post-PR702 reconciliation.",
+      "PR #701 remains dirty/stale and should not be merged directly.",
+      "PR #701 may be closed later by separate approved close prompt.",
+      "The pushed post-PR690 branch classification superseded_by_pr697_context_only_no_reconciliation_required is preserved.",
+      "PR #708 became dirty/stale after PR #706 and should not be merged directly."
+    ]
+  },
+  "pushedPostPr690BranchClassification": "superseded_by_pr697_context_only_no_reconciliation_required",
+  "laterPr701ClosePrompt": "TRACKA-CLOSE-STALE-PR701-AFTER-POST-PR702-RECONCILIATION"
+}

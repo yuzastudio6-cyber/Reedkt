@@ -41,6 +41,31 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
 
+const gpacMp4boxOwnerEnvironmentFollowupFiles = [
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/owner-environment-source-review.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/owner-environment-source-review.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/gpac-vs-bento4-policy-review.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/gpac-vs-bento4-policy-review.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/environment-base-compatibility.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/environment-base-compatibility.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/boundary-review.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/boundary-review.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/gpac-mp4box-owner-environment-followup-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/gpac-mp4box-owner-environment-followup-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-owner-environment-followup/validation-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-owner-source-classification-request-1.md',
+  'docs/production-beta-blocker-inventory.md',
+  'scripts/validation/tracka-gpac-mp4box-owner-environment-followup-diagnostics.mjs',
+]
+
+for (const file of gpacMp4boxOwnerEnvironmentFollowupFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   'TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1',
   'TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1 decision: blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth',

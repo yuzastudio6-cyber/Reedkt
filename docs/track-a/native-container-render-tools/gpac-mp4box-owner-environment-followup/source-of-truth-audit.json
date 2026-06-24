@@ -1,0 +1,75 @@
+{
+  "milestone": "TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-OWNER-ENVIRONMENT-FOLLOWUP-1",
+  "baseSource": "03286b3b155fedffd5173239877e36a937998440",
+  "decision": "tracka_gpac_mp4box_owner_environment_followup_blocked_no_owner_environment_source_approval",
+  "sourceTruth": {
+    "pr711": {
+      "state": "MERGED",
+      "mergeCommit": "03286b3b155fedffd5173239877e36a937998440",
+      "role": "post-pr706-pr708 reconciliation source-of-truth"
+    },
+    "pr713": {
+      "state": "MERGED",
+      "mergeCommit": "c526f42fa428a4945b4d2a7b280cc00fa186923a",
+      "decision": "blocked_no_owner_environment_package_source_approval",
+      "role": "owner/environment package-source source-of-truth"
+    },
+    "pr706": {
+      "state": "MERGED",
+      "mergeCommit": "a293ec57a304728b2ab4f731ab1fd58f5c9aaec8",
+      "decision": "blocked_no_safe_package_source_policy_available"
+    },
+    "pr702": {
+      "state": "MERGED",
+      "mergeCommit": "93d574f35f40eed1b7b8b87540201750b94df304",
+      "decision": "blocked_no_safe_package_source_resolution_available"
+    },
+    "pr697": {
+      "state": "MERGED",
+      "mergeCommit": "702cf924db4c8c29688f8c9335ef08f147314bd9"
+    },
+    "pr701": {
+      "state": "CLOSED",
+      "mergedAt": null,
+      "head": "6c75dd02a2ff090428912efa1df88ee6835bbca4",
+      "classification": "closed_without_merge_stale_context"
+    },
+    "pr708": {
+      "state": "CLOSED",
+      "mergedAt": null,
+      "head": "59dea660c547fa0d8756372ab92cec2a2c72804c",
+      "classification": "closed_without_merge_stale_context"
+    },
+    "pr577": {
+      "state": "OPEN",
+      "draft": true,
+      "classification": "open_draft_blocked_excluded"
+    }
+  },
+  "predecessorsMerged": [
+    711,
+    713,
+    706,
+    702,
+    697,
+    690,
+    693,
+    682,
+    680,
+    673,
+    666,
+    662,
+    659,
+    652
+  ],
+  "duplicateSearch": {
+    "ownerEnvironmentFollowupPr": "none_found",
+    "ownerSourceClassificationPr": "none_found"
+  },
+  "absentAuditFacts": {
+    "docs/cross-chat/CURRENT_HANDOFF.md": "absent",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md": "absent",
+    "docs/cross-chat/BLOCKED_SCOPES.md": "absent",
+    "PRODUCTION_FOUNDATION_STATUS.md": "absent"
+  }
+}

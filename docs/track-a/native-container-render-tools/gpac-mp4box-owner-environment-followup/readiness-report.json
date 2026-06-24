@@ -1,0 +1,17 @@
+{
+  "readiness": "blocked_pending_owner_source_classification_request",
+  "decision": "tracka_gpac_mp4box_owner_environment_followup_blocked_no_owner_environment_source_approval",
+  "readyForInstallProof": false,
+  "readyForRuntimeExecution": false,
+  "readyForBeta": false,
+  "readyForProduction": false,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1",
+  "nextPromptFile": "docs/implementation-prompts/prompt-tracka-gpac-mp4box-owner-source-classification-request-1.md",
+  "productReadyLocalOssTools": 0,
+  "absentDocsRecordedOnly": [
+    "docs/cross-chat/CURRENT_HANDOFF.md",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md",
+    "docs/cross-chat/BLOCKED_SCOPES.md",
+    "PRODUCTION_FOUNDATION_STATUS.md"
+  ]
+}

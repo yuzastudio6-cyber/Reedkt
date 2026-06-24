@@ -46,6 +46,20 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## Track A GPAC/MP4Box Owner/Environment Follow-Up
+
+`TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-OWNER-ENVIRONMENT-FOLLOWUP-1` records decision `tracka_gpac_mp4box_owner_environment_followup_blocked_no_owner_environment_source_approval`.
+
+PR #711 remains the latest merged reconciliation source-of-truth at `03286b3b155fedffd5173239877e36a937998440`; PR #713 remains owner/environment package-source source-of-truth with `blocked_no_owner_environment_package_source_approval`; PR #706 and PR #702 remain package-source policy/resolution blockers. PR #701 and PR #708 are closed without merge and remain stale context only.
+
+GPAC/MP4Box remains `blocked_no_owner_environment_source_approval_for_gpac_mp4box`; allowed future source is `none_until_owner_environment_source_approval`; Bento4 remains `separate_not_selected_for_mp4box_command_path`. VapourSynth, Revideo, Hyperframe, GStreamer, and MKVToolNix carry forward unchanged.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## No-Scope Statement
 
 No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.

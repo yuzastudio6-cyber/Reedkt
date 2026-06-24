@@ -26,3 +26,15 @@ GPAC/MP4Box remains `blocked_gpac_mp4box_package_source_unavailable`. VapourSynt
 Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
+## Track A GPAC/MP4Box Owner/Environment Follow-Up
+
+`TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-OWNER-ENVIRONMENT-FOLLOWUP-1` is metadata-only and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_owner_environment_followup_blocked_no_owner_environment_source_approval`.
+
+GPAC/MP4Box remains `blocked_no_owner_environment_source_approval_for_gpac_mp4box`, with allowed future source `none_until_owner_environment_source_approval`. Bento4 remains `separate_not_selected_for_mp4box_command_path`. PR #711 and #713 remain source-of-truth; PR #701 and PR #708 are closed without merge and stale context only.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.

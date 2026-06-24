@@ -11,6 +11,7 @@ const expectedScript =
 const expectedScriptCommand =
   "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-owner-approval-qa-diagnostics.mjs";
 const allowedDescendantScripts = new Set([
+  "ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics",
   "ai-graphics:cpu-static-execution-proof:phase0",
   "ai-graphics:cpu-static-execution-proof:phase0-diagnostics",
   "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics",

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "2026-06-24.ai-graphics.cpu-static-execution-proof.phase0.owner-review",
+  "decision": "ai_graphics_cpu_static_execution_proof_phase_0_owner_review_passed_with_warnings",
+  "localArtifactRoot": ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local",
+  "generatedArtifactsCommitted": false,
+  "ownerAccepted": true,
+  "requiredPolicy": "Detailed proof outputs remain ignored under .local-artifacts/ai-graphics/cpu-static-proof/; committed records are sanitized Markdown/JSON only.",
+  "localArtifactPaths": [
+    ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/d3.svg",
+    ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/vega_lite_compiled.json",
+    ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/vega_parsed_metadata.json",
+    ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/satori_blocked.json",
+    ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/svgdotjs_svg_js.svg",
+    ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/viz_js.svg"
+  ]
+}

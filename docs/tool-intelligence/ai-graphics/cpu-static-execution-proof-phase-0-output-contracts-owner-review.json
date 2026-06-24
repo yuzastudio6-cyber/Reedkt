@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "2026-06-24.ai-graphics.cpu-static-execution-proof.phase0.owner-review",
+  "decision": "ai_graphics_cpu_static_execution_proof_phase_0_owner_review_passed_with_warnings",
+  "contracts": [
+    {
+      "toolId": "d3",
+      "ownerAccepted": true,
+      "outputContractStatus": "checked",
+      "summaryKeys": [
+        "svgHash",
+        "pathData",
+        "pointCount",
+        "width",
+        "height",
+        "marker"
+      ],
+      "notes": "Owner accepts deterministic CPU/static proof evidence with output contract checked and no product runtime approved."
+    },
+    {
+      "toolId": "vega_lite",
+      "ownerAccepted": true,
+      "outputContractStatus": "checked",
+      "summaryKeys": [
+        "compiledHash",
+        "markCount",
+        "dataCount",
+        "scaleCount"
+      ],
+      "notes": "Owner accepts deterministic CPU/static proof evidence with output contract checked and no product runtime approved."
+    },
+    {
+      "toolId": "vega",
+      "ownerAccepted": true,
+      "outputContractStatus": "checked",
+      "summaryKeys": [
+        "parsedHash",
+        "operatorCount",
+        "streamCount",
+        "markCount"
+      ],
+      "notes": "Owner accepts deterministic CPU/static proof evidence with output contract checked and no product runtime approved."
+    },
+    {
+      "toolId": "satori",
+      "ownerAccepted": true,
+      "outputContractStatus": "blocked_contract_recorded",
+      "summaryKeys": [],
+      "notes": "Owner accepts the honest block because Satori text SVG layout still requires an approved deterministic font fixture."
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "ownerAccepted": true,
+      "outputContractStatus": "checked",
+      "summaryKeys": [
+        "svgHash",
+        "svgLength",
+        "hasSvgRoot",
+        "hasRect",
+        "proofMarkerFound",
+        "nodeDomAdapterUsed"
+      ],
+      "notes": "Owner accepts the existing jsdom Node DOM adapter for static shape construction; no browser runtime is approved."
+    },
+    {
+      "toolId": "viz_js",
+      "ownerAccepted": true,
+      "outputContractStatus": "checked",
+      "summaryKeys": [
+        "svgHash",
+        "svgLength",
+        "hasSvgRoot",
+        "expectedNodeMarkersFound",
+        "dotHash"
+      ],
+      "notes": "Owner accepts deterministic CPU/static proof evidence with output contract checked and no product runtime approved."
+    }
+  ]
+}

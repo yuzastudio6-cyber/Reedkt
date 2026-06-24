@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "2026-06-24.ai-graphics.cpu-static-execution-proof.phase0.owner-review",
+  "decision": "ai_graphics_cpu_static_execution_proof_phase_0_owner_review_passed_with_warnings",
+  "fetchedAt": "2026-06-24T00:00:00Z",
+  "sourcePrs": [
+    {
+      "number": 731,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "86cb23b1213297a11eee4eb19590ce68c7ed694b",
+      "role": "Phase 0 QA review source",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/731"
+    },
+    {
+      "number": 728,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "585b8160ce104ff03efe181d2ce0fda29bc08f40",
+      "role": "Phase 0 CPU/static execution proof source",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/728"
+    },
+    {
+      "number": 724,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "7e030fac095ba12bde54d7f21e6f20db0d51a155",
+      "role": "runtime-boundary handoff owner approval",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/724"
+    },
+    {
+      "number": 722,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "c97952a2b30a3580964b0aab3bb711dc85ded8a4",
+      "role": "runtime-boundary handoff owner review",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/722"
+    },
+    {
+      "number": 719,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "fa62444977d7ab6e4f40095ac489ccfc5108e254",
+      "role": "runtime-boundary handoff QA",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/719"
+    },
+    {
+      "number": 718,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "d291277d68a5bf5e3bc076acd99cd1a0b3bd64a3",
+      "role": "runtime-boundary handoff review",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/718"
+    },
+    {
+      "number": 715,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "9ff65730f9a88041e9f0d2f1b8f273711bef1a1e",
+      "role": "runtime-boundary canonicalization owner-approval QA",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/715"
+    },
+    {
+      "number": 694,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "88ec8e9a28d583177c3bff92bd0fb554942813b5",
+      "role": "runtime-boundary review chain root",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/694"
+    },
+    {
+      "number": 671,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "01917db09617a06549f110858abd16a342226c7c",
+      "role": "canonical agent-selection review",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/671"
+    },
+    {
+      "number": 683,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "487562a1d4245fc63ac7674d1f696140d0bf691e",
+      "role": "canonical agent-selection owner-approval QA",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/683"
+    },
+    {
+      "number": 623,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "4952fb0103d05e8f7df1272c0acd7419426f0ea4",
+      "role": "AI graphics capability study and ranking matrix",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/623"
+    },
+    {
+      "number": 621,
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "headRefOid": "cd6ab312d83bb5ebaa30f1ef30f41cf3891c3306",
+      "role": "CPU/static validation owner review",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/621"
+    },
+    {
+      "number": 425,
+      "state": "MERGED",
+      "isDraft": false,
+      "mergeable": "UNKNOWN",
+      "headRefOid": "4e79f14a03a441c0a6d9c8adaef55b7c8b693c12",
+      "mergeCommitOid": "a055ef045db2a6ce127a044bee6219d5933532c3",
+      "role": "package-proof source batch 1",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/425"
+    },
+    {
+      "number": 433,
+      "state": "MERGED",
+      "isDraft": false,
+      "mergeable": "UNKNOWN",
+      "headRefOid": "5d7921f9d79e19641a9453440a6f9abe6272ea04",
+      "mergeCommitOid": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0",
+      "role": "package-proof source batch 2",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/433"
+    },
+    {
+      "number": 441,
+      "state": "MERGED",
+      "isDraft": false,
+      "mergeable": "UNKNOWN",
+      "headRefOid": "92c1a52b53c4836a642ab6be8885aa8fb994e9c8",
+      "mergeCommitOid": "d174de59471eacf05bed5a5511d661f2e5ba9f0f",
+      "role": "package-proof source batch 3",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/441"
+    }
+  ],
+  "duplicateSearch": {
+    "openHeadPrFound": false,
+    "remoteBranchFound": false,
+    "targetWorktreePreexisted": false
+  },
+  "sourceQaEmbeddedPrMetadata": {
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/731",
+    "number": 731,
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeable": "MERGEABLE",
+    "headRefOid": "f4e10e3f16103e33713ad2cef732b4a2a56a99dc",
+    "statusCheckRollup": [],
+    "baseRefName": "codex/rp-ai-graphics-cpu-static-execution-proof-phase-0",
+    "headRefName": "codex/rp-ai-graphics-cpu-static-execution-proof-phase-0-qa-review",
+    "recordedAt": "2026-06-24T00:00:00Z",
+    "note": "PR creation status recorded before follow-up metadata commit."
+  },
+  "sourceProofEmbeddedPrMetadata": {
+    "number": 728,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/728",
+    "title": "[tools] AI graphics CPU static execution proof phase 0",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeable": "MERGEABLE",
+    "headRefName": "codex/rp-ai-graphics-cpu-static-execution-proof-phase-0",
+    "headRefOid": "a9c4ebdc0d526b2d68a894141a75b3c7857c35ac",
+    "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval",
+    "statusCheckRollup": []
+  },
+  "liveSourceQaHeadAccepted": "86cb23b1213297a11eee4eb19590ce68c7ed694b",
+  "liveSourceProofHeadAccepted": "585b8160ce104ff03efe181d2ce0fda29bc08f40",
+  "nonBlockingStatusMetadataStaleness": true,
+  "packageProofMergeShas": {
+    "pr425": "a055ef045db2a6ce127a044bee6219d5933532c3",
+    "pr433": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0",
+    "pr441": "d174de59471eacf05bed5a5511d661f2e5ba9f0f"
+  }
+}

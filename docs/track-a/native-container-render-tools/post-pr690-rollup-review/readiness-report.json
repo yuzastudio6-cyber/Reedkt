@@ -1,0 +1,9 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-ROLLUP-POST-PR-690-SOURCE-OF-TRUTH-REVIEW",
+  "readiness": "passed_ready_for_install_proof_3",
+  "decision": "tracka_native_container_rollup_post_pr690_review_passed_rollup_valid_ready_for_install_proof_3",
+  "nextPrompt": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3",
+  "installProof3Readiness": "ready",
+  "productReadyLocalOssTools": 0,
+  "runtimeBoundary": "preserved"
+}

@@ -25,7 +25,34 @@ const requiredFiles = [
   'scripts/validation/tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
+const postPr690ReviewFiles = [
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/pr690-dependency-gate-review.json',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/pr690-dependency-gate-review.md',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/pr693-rollup-review.json',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/pr693-rollup-review.md',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/boundary-review.json',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/boundary-review.md',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/install-proof-3-readiness.json',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/install-proof-3-readiness.md',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/post-pr690-rollup-review-decision.json',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/post-pr690-rollup-review-decision.md',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/readiness-report.json',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/post-pr690-rollup-review/validation-results.md',
+  'docs/production-beta-blocker-inventory.md',
+  'scripts/validation/tracka-native-container-rollup-post-pr690-review-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-plan-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...postPr690ReviewFiles, 'package.json'])
 
 const requiredText = [
   'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1',

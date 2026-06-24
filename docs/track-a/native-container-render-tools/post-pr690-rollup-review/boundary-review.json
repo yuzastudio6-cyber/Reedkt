@@ -1,0 +1,27 @@
+{
+  "review": "boundary review",
+  "noRuntimeToolExecution": true,
+  "gstreamer": "not_run",
+  "mkvtoolnix": "not_run",
+  "gpacMp4box": "not_run",
+  "vapoursynth": "not_run",
+  "ffmpegFfprobe": "not_run",
+  "docker": "not_run",
+  "remotionBrowserRenderExport": "not_run",
+  "mediaProcessing": "not_run",
+  "privateUserRealMedia": "not_used",
+  "generatedMediaArtifacts": "not_created",
+  "workersRoutesProviders": "not_run",
+  "supabaseSqlGcs": "not_touched",
+  "publicArtifactsSignedUrls": "not_created",
+  "betaProduction": "not_unlocked",
+  "rawPromptsSecrets": "not_used",
+  "protectedFiles": {
+    "packageLock": "unchanged",
+    "dockerfiles": "unchanged",
+    "dockerignore": "unchanged",
+    "runtimeSource": "unchanged"
+  },
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true
+}

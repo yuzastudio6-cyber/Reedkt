@@ -1,0 +1,19 @@
+{
+  "nextPrompt": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3",
+  "readiness": "ready",
+  "candidates": {
+    "gpacMp4box": "ready_for_bounded_install_proof_3_planning",
+    "vapoursynth": "ready_for_bounded_install_proof_3_planning"
+  },
+  "notSelectedForInstallProof3": {
+    "revideo": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "hyperframe": "handoff_only_no_install_source_change"
+  },
+  "stillBlocked": [
+    "product_runtime",
+    "render_export",
+    "private_user_real_media",
+    "ffmpeg_ffprobe_expansion",
+    "supabase_gcs_public_signed_url_beta_production"
+  ]
+}

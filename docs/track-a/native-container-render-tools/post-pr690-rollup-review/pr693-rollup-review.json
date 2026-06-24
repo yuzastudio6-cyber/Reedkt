@@ -1,0 +1,20 @@
+{
+  "review": "PR #693 rollup review after PR #690",
+  "pullRequest": 693,
+  "mergeSha": "e357ca31906c1cfcad8ed36a941f81247d889297",
+  "baseBeforePr690": "d1dfcdbee62971313f6d7b017ed61747ac9d2518",
+  "decision": "completed_native_container_rollup_after_gstreamer_mkvtoolnix_qa",
+  "execution": "completed_docs_only_rollup_no_runtime_execution",
+  "rollupEntries": {
+    "gstreamer": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+    "mkvtoolnix": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+    "gpacMp4box": "ready_for_tracka_native_container_install_proof_3",
+    "vapoursynth": "ready_for_tracka_native_container_install_proof_3",
+    "revideo": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "hyperframe": "handoff_only_no_install_source_change",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "postPr690Compatibility": "rollup_valid_after_pr_690_dependency_gate_reconciliation",
+  "refreshRequiredBeforeInstallProof3": false,
+  "nextPrompt": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3"
+}

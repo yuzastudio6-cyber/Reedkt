@@ -5,6 +5,7 @@ Readiness: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 readiness: read
 Source-of-truth context:
 
 - `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1 decision: completed_native_container_rollup_after_gstreamer_mkvtoolnix_qa`.
+- `TRACKA-NATIVE-CONTAINER-ROLLUP-POST-PR-690-SOURCE-OF-TRUTH-REVIEW decision: tracka_native_container_rollup_post_pr690_review_passed_rollup_valid_ready_for_install_proof_3`.
 - GStreamer/MKVToolNix rollup status: `qa_passed_controlled_generated_private_fixture_execution_evidence`.
 - #624 resolved GPAC/MP4Box, core VapourSynth, Revideo evaluation identity, and Hyperframe handoff-only status.
 - #680 reconciled `TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-EXECUTION-PACKET-1` to the already-merged #673 execution source-of-truth.

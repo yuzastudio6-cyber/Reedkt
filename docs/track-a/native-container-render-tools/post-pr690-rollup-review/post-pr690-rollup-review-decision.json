@@ -1,0 +1,14 @@
+{
+  "decision": "tracka_native_container_rollup_post_pr690_review_passed_rollup_valid_ready_for_install_proof_3",
+  "rollupCompatibility": "rollup_valid_after_pr_690_dependency_gate_reconciliation",
+  "requiresRollupRefresh": false,
+  "nextPrompt": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "supabaseClassification": {
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

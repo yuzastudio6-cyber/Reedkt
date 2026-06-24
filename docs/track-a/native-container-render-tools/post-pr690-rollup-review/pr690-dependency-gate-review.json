@@ -1,0 +1,17 @@
+{
+  "review": "PR #690 dependency-gate metadata review",
+  "pullRequest": 690,
+  "mergeSha": "f85e8255902a8b753ee21fc61e5b6f94f0503ccd",
+  "restoredReports": [
+    "docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/dependency-validation-gate-decision.json",
+    "docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/dependency-validation-gate-decision.md",
+    "docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/post-merge-dependency-gate-reconciliation.json",
+    "docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/post-merge-dependency-gate-reconciliation.md"
+  ],
+  "canonicalQaDecision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "internalRepairStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+  "dependencyValidationStatus": "passed",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "reviewConclusion": "pr690_metadata_present_and_compatible_with_rollup"
+}

@@ -78,6 +78,31 @@ for (const file of packageSourceOwnerEnvironmentReviewFiles) {
   allowedChangedFiles.add(file)
 }
 
+const packageSourceOwnerDecisionFiles = [
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/package-source-owner-decision-1.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/package-source-owner-decision-1.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/gpac-mp4box-owner-decision.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/gpac-mp4box-owner-decision.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/vapoursynth-owner-decision.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/vapoursynth-owner-decision.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/revideo-hyperframe-carry-forward.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/revideo-hyperframe-carry-forward.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/tool-status-matrix.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/tool-status-matrix.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/blocked-scope-register.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/readiness-report.json',
+  'docs/activation-phase-tracka-native-container-package-source-owner-decision-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-package-source-owner-decision-1.md',
+  'docs/implementation-prompts/prompt-tracka-vapoursynth-package-source-owner-decision-1.md',
+  'scripts/validation/tracka-native-container-package-source-owner-decision-1-diagnostics.mjs',
+]
+
+for (const file of packageSourceOwnerDecisionFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   'TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-RESOLUTION-BATCH-1',
   'blocked_no_safe_package_source_resolution_available',

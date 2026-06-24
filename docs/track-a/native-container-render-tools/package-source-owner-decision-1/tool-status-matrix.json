@@ -1,0 +1,37 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "tools": {
+    "bento4_mp4box_packaging_validation": {
+      "status": "blocked_no_owner_approval_for_gpac_mp4box_package_source",
+      "identity": "resolved_mp4box_provider_gpac_ready_for_future_install_proof",
+      "provider": "GPAC/MP4Box",
+      "bento4": "separate_not_selected_for_mp4box_command_path",
+      "allowedFutureSource": "none_until_owner_approval",
+      "readiness": "blocked_pending_owner_approved_package_source"
+    },
+    "vapoursynth_frame_pipeline": {
+      "status": "blocked_no_owner_approval_for_core_vapoursynth_package_source",
+      "policy": "resolved_vapoursynth_native_policy_ready_for_future_install_proof",
+      "scope": "core_vapoursynth_only_plugins_excluded",
+      "plugins": "plugins_not_installed_separate_review_required",
+      "allowedFutureSource": "none_until_owner_approval",
+      "readiness": "blocked_pending_owner_approved_package_source"
+    },
+    "revideo_render_preview_alternative": {
+      "status": "evaluation_only_non_core_owner_approval_required_before_install_source",
+      "readiness": "blocked_pending_owner_approval"
+    },
+    "hyperframe_render_handoff": {
+      "status": "handoff_only_no_install_source_change"
+    },
+    "gstreamer_render_pipeline_support": {
+      "status": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "runtimeExecution": "not_run_in_this_phase"
+    },
+    "mkvtoolnix_container_validation": {
+      "status": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "runtimeExecution": "not_run_in_this_phase"
+    }
+  }
+}

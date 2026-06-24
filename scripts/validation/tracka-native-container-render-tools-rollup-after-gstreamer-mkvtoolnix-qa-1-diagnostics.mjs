@@ -96,12 +96,34 @@ const packageSourceOwnerEnvironmentReviewFiles = [
   'scripts/validation/tracka-native-container-package-source-owner-environment-review-1-diagnostics.mjs',
 ]
 
+const packageSourceOwnerDecisionFiles = [
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/package-source-owner-decision-1.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/package-source-owner-decision-1.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/gpac-mp4box-owner-decision.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/gpac-mp4box-owner-decision.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/vapoursynth-owner-decision.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/vapoursynth-owner-decision.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/revideo-hyperframe-carry-forward.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/revideo-hyperframe-carry-forward.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/tool-status-matrix.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/tool-status-matrix.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/blocked-scope-register.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-decision-1/readiness-report.json',
+  'docs/activation-phase-tracka-native-container-package-source-owner-decision-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-package-source-owner-decision-1.md',
+  'docs/implementation-prompts/prompt-tracka-vapoursynth-package-source-owner-decision-1.md',
+  'scripts/validation/tracka-native-container-package-source-owner-decision-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
   ...installProof3Files,
   ...packageSourceResolutionFiles,
   ...packageSourcePolicyReviewFiles,
   ...packageSourceOwnerEnvironmentReviewFiles,
+  ...packageSourceOwnerDecisionFiles,
   'package.json',
 ])
 

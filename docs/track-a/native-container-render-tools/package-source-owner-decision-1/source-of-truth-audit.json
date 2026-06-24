@@ -1,0 +1,30 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1",
+  "baseIntegration": "c526f42fa428a4945b4d2a7b280cc00fa186923a",
+  "acceptedSourceChain": [
+    "#601",
+    "#609",
+    "#624",
+    "#649",
+    "#652",
+    "#659",
+    "#667",
+    "#662",
+    "#666",
+    "#675",
+    "#673",
+    "#680",
+    "#682",
+    "#693",
+    "#697",
+    "#702",
+    "#706",
+    "#713"
+  ],
+  "excluded": {
+    "#577": "open_draft_blocked_excluded_as_source_of_truth",
+    "#701": "historical_context_only_not_target_pr"
+  },
+  "decision": "blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth",
+  "productReadyEndToEndLocalOssTools": 0
+}

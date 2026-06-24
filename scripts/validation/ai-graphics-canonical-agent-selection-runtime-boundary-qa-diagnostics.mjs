@@ -19,7 +19,8 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-diagnostics",
   "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-qa-diagnostics",
-  "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-diagnostics"
+  "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-diagnostics",
+  "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-diagnostics"
 ]);
 const failures = [];
 const fail = (message) => failures.push(message);

@@ -20,8 +20,18 @@
   "requiredStaticValidationOwnerReviewDecision": "worker_runtime_jobs_sound_cpu_dockerfile_static_validation_owner_review_passed_with_warnings_ready_for_build_proof_readiness_plan",
   "requiredStaticValidationOwnerReviewCompatibilityDecision": "worker_runtime_jobs_sound_cpu_dockerfile_static_validation_owner_review_passed_with_warnings_ready_for_docker_build_proof_plan",
   "requiredDockerfileSourcePath": "server/workers/sound-cpu/Dockerfile",
+  "sourceVerification": {
+    "requiredSourceBranch": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+    "requiredSourceHead": "a8ed3c09f003b687425ee9b33945dc212ab875b5",
+    "requiredPr720Status": "merged"
+  },
   "purpose": "Worker owner reviews the Gate 1I Docker build-proof readiness plan before any controlled Docker build proof is proposed. This prompt must not build, push, run, deploy, or execute workers.",
   "decisionTarget": "worker_runtime_jobs_sound_cpu_docker_build_readiness_owner_review_passed_with_warnings_ready_for_controlled_docker_build_proof",
+  "controlledDockerBuildProofMayProceedAfterOwnerReview": true,
+  "acceptedForDockerBuildToday": false,
+  "acceptedForDockerPushToday": false,
+  "acceptedForDockerRunToday": false,
+  "acceptedForExecutionToday": "none",
   "acceptedPlanningOnly": {
     "workers": [
       "sound-cpu-analysis-worker",

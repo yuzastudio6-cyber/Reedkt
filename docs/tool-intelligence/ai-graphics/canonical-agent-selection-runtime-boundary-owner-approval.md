@@ -8,7 +8,7 @@ Owner-approves PR #699 runtime-boundary owner review, PR #696 runtime-boundary Q
 - Branch: `codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-owner-approval`
 - Base: `codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-owner-review`
 - Draft PR title: [tools] AI graphics canonical agent selection runtime boundary owner approval
-- Draft PR: pending creation
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/700
 - Source PR #699: OPEN/draft/MERGEABLE at `5640b8852ff7fb2cd7823e3797a9697af0098bef`; empty check rollup at preflight.
 - Duplicate search result: No exact runtime-boundary owner-approval PR, remote branch, or worktree existed at preflight.
 

@@ -1,0 +1,82 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_owner_review_passed_with_warnings",
+  "ownerAccepted": true,
+  "capabilities": [
+    {
+      "capabilityId": "chart_overlay",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "data_visualization",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "svg_graphics",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "diagram_graphics",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "animation_overlay",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "canvas_scene",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "webgl_3d_scene",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "background_removal",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "subject_segmentation",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "upscaling",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "tensor_image_ops",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "model_runtime_foundation",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    }
+  ],
+  "sourceCapabilityMapSummary": {
+    "capabilities": 12,
+    "qaAccepted": true
+  }
+}

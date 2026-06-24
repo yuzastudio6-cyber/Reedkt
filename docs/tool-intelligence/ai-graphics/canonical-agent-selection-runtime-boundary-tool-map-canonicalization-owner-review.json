@@ -1,0 +1,136 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_owner_review_passed_with_warnings",
+  "ownerAccepted": true,
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "transformers",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "sam2",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "kornia",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "rembg",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "d3",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "echarts",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "vega",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "satori",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "animejs",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "three_js",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "konva",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "agentCanExecuteNow": false
+    }
+  ],
+  "sourceToolMapSummary": {
+    "tools": 21,
+    "qaAccepted": true
+  }
+}

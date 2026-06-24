@@ -1,0 +1,21 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1",
+  "decision": "blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth",
+  "execution": "completed_docs_only_owner_package_source_decision_no_install_changes",
+  "readiness": {
+    "TRACKA_NATIVE_CONTAINER_RENDER_TOOLS_INSTALL_PROOF_4": "blocked_pending_owner_approved_package_source",
+    "TRACKA_GPAC_MP4BOX_PACKAGE_SOURCE_OWNER_DECISION_1": "blocked_no_owner_approval_for_gpac_mp4box_package_source",
+    "TRACKA_VAPOURSYNTH_PACKAGE_SOURCE_OWNER_DECISION_1": "blocked_no_owner_approval_for_core_vapoursynth_package_source",
+    "TRACKA_REVIDEO_OWNER_APPROVAL_1": "blocked_pending_owner_approval",
+    "TRACKA_FILM_FRAME_INTERPOLATION_SCOPE_DECISION_1": "planning_only",
+    "TRACKA_VISUAL_VIDEO_PRIVATE_E2E_1": "still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates"
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "supabase": {
+    "status": "not_applicable_docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextAction": "none"
+  }
+}

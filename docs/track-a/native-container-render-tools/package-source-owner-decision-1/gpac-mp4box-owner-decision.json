@@ -1,0 +1,11 @@
+{
+  "toolRow": "bento4_mp4box_packaging_validation",
+  "provider": "GPAC/MP4Box",
+  "identityDecision": "resolved_mp4box_provider_gpac_ready_for_future_install_proof",
+  "bento4Status": "separate_not_selected_for_mp4box_command_path",
+  "ownerDecision": "blocked_no_owner_approval_for_gpac_mp4box_package_source",
+  "readiness": "blocked_pending_owner_approved_package_source",
+  "allowedFutureInstallSource": "none_until_owner_approval",
+  "installSourceStatus": "not_changed_in_this_phase",
+  "runtimeExecution": "not_run"
+}

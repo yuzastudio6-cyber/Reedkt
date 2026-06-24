@@ -1,0 +1,14 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1",
+  "revideo": {
+    "status": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "readiness": "blocked_pending_owner_approval",
+    "packageChange": "none",
+    "packageLock": "unchanged"
+  },
+  "hyperframe": {
+    "status": "handoff_only_no_install_source_change",
+    "installTarget": "none",
+    "packageChange": "none"
+  }
+}

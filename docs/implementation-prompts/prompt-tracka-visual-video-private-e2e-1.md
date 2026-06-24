@@ -46,13 +46,19 @@ Track A native/container package source policy review decision: `TRACKA-NATIVE-C
 
 Track A native/container package source owner/environment review decision: `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1 decision: blocked_no_owner_environment_package_source_approval`.
 
+Track A native/container package source owner decision: `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1 decision: blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth`.
+
 GPAC/MP4Box readiness: `blocked_gpac_mp4box_package_source_unavailable`.
 
 GPAC/MP4Box owner/environment readiness: `blocked_pending_owner_environment_package_source_approval`.
 
+GPAC/MP4Box owner decision readiness: `blocked_pending_owner_approved_package_source`.
+
 VapourSynth readiness: `blocked_core_vapoursynth_package_source_unavailable`; `blocked_vapoursynth_native_plugin_policy_not_satisfied`.
 
 VapourSynth owner/environment readiness: `blocked_pending_owner_environment_package_source_approval`.
+
+VapourSynth owner decision readiness: `blocked_pending_owner_approved_package_source`.
 
 Revideo readiness: `evaluation_only_non_core_owner_approval_required_before_install_source`.
 

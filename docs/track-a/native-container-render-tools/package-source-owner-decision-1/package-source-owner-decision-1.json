@@ -1,0 +1,35 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1",
+  "decision": "blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth",
+  "decisionStatement": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1 decision: blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth",
+  "execution": "completed_docs_only_owner_package_source_decision_no_install_changes",
+  "baseIntegration": "c526f42fa428a4945b4d2a7b280cc00fa186923a",
+  "sourceTruth": {
+    "ownerEnvironmentReview": "#713",
+    "policyReview": "#706",
+    "sourceResolution": "#702",
+    "installProof3": "#697",
+    "rollup": "#693",
+    "identity": "#624",
+    "excludedRemotionDraft": "#577"
+  },
+  "toolOutcomes": {
+    "gpacMp4box": "blocked_no_owner_approval_for_gpac_mp4box_package_source",
+    "coreVapourSynth": "blocked_no_owner_approval_for_core_vapoursynth_package_source",
+    "revideo": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "hyperframe": "handoff_only_no_install_source_change",
+    "gstreamer": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+    "mkvtoolnix": "qa_passed_controlled_generated_private_fixture_execution_evidence"
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "updateRequired": "none",
+    "status": "not_applicable_docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextAction": "none"
+  }
+}

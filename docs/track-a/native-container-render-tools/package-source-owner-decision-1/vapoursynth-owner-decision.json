@@ -1,0 +1,11 @@
+{
+  "toolRow": "vapoursynth_frame_pipeline",
+  "policyDecision": "resolved_vapoursynth_native_policy_ready_for_future_install_proof",
+  "scope": "core_vapoursynth_only_plugins_excluded",
+  "ownerDecision": "blocked_no_owner_approval_for_core_vapoursynth_package_source",
+  "pluginStatus": "plugins_not_installed_separate_review_required",
+  "readiness": "blocked_pending_owner_approved_package_source",
+  "allowedFutureInstallSource": "none_until_owner_approval",
+  "installSourceStatus": "not_changed_in_this_phase",
+  "runtimeExecution": "not_run"
+}

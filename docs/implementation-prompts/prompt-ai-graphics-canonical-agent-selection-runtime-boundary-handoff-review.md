@@ -9,10 +9,10 @@ This implementation records the docs/diagnostics-only handoff review connecting 
 Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_review_passed_with_warnings`
 
 - Branch: `codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-review`
-- Draft PR: pending creation
-- Draft status: pending creation
-- Head SHA: pending creation
-- Check rollup: pending creation
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/718
+- Draft status: OPEN/draft=true/mergeable=CLEAN
+- Head SHA: `2531db7c8718849e03ac02cfcac4b5f768e0fa59`
+- Check rollup: Empty check rollup after PR creation.
 - Duplicate search result: Preflight found no exact runtime-boundary handoff review PR, remote branch, or worktree.
 - PR #715 status used: open/draft/CLEAN at `9ff65730f9a88041e9f0d2f1b8f273711bef1a1e`
 - PR #714 status used: open/draft/CLEAN at `9ee8d5aee571b130360a4df20bd0a14bd93ec600`
@@ -95,4 +95,4 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_review
 
 ## Validation
 
-Pending local validation and PR creation.
+Local validation passed before PR creation; PR #718 opened as draft with an empty check rollup.

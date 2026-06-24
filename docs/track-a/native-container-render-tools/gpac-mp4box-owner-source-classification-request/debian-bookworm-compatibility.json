@@ -1,0 +1,22 @@
+{
+  "currentRenderWorkerBase": "node:24-bookworm",
+  "selectedRepositoryCodename": "bookworm",
+  "selectedRepositoryUri": "https://dist.gpac.io/gpac/linux/debian",
+  "selectedComponent": "main",
+  "blockedComponent": "nightly",
+  "architectures": {
+    "repoLists": [
+      "amd64",
+      "i386",
+      "armhf",
+      "arm64"
+    ],
+    "futureReviewTargets": [
+      "amd64",
+      "arm64"
+    ]
+  },
+  "nativeDebianPackageStatus": "not_selected",
+  "debianNativeReason": "Debian source search remains unsafe for current bookworm native package approval because exact gpac source evidence was previously limited to bullseye and sid is not a stable bookworm source class.",
+  "classification": "official_gpac_apt_repository_ready_for_approval_review"
+}

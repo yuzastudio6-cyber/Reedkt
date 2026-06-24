@@ -1,0 +1,49 @@
+{
+  "selectedSourceClass": "official_gpac_apt_repository",
+  "decision": "tracka_gpac_mp4box_owner_source_classification_passed_ready_for_official_gpac_apt_repo_approval",
+  "officialDocs": "https://gpac.io/downloads/gpac-nightly-builds/",
+  "repositoryEvidence": {
+    "debianBookwormReleaseUrl": "https://dist.gpac.io/gpac/linux/debian/dists/bookworm/Release",
+    "debianBookwormReleaseStatus": "HTTP 200",
+    "codename": "bookworm",
+    "components": [
+      "main",
+      "nightly"
+    ],
+    "selectedComponent": "main",
+    "blockedComponent": "nightly",
+    "architectures": [
+      "amd64",
+      "i386",
+      "armhf",
+      "arm64"
+    ],
+    "selectedArchitecturesForFutureReview": [
+      "amd64",
+      "arm64"
+    ],
+    "releaseSha256Observed": "18bce363dc74f1bd13e9af5fa71545d470605134359e1be79339388c4f246ff1"
+  },
+  "keyEvidence": {
+    "url": "https://dist.gpac.io/gpac/linux/gpg.asc",
+    "status": "HTTP 200",
+    "contentType": "application/pgp-keys",
+    "sha256Observed": "c88993c228200dece139005eb28fec06b7f3933122fee5612a85d4cb5b94c7ad",
+    "futureKeyringPath": "/usr/share/keyrings/gpac-archive-keyring.gpg",
+    "requiresNextApproval": true
+  },
+  "packageEvidence": {
+    "packagesUrl": "https://dist.gpac.io/gpac/linux/debian/dists/bookworm/main/binary-amd64/Packages",
+    "packagesStatus": "HTTP 200",
+    "packagesSha256Observed": "565259a5111d6294b6ee93a979677eeab55ca23f4e7e0266af711aaffb036a04",
+    "packageName": "gpac",
+    "observedVersions": [
+      "2.4-rev0-g5d70253ac-HEAD",
+      "26.02-rev0-g118e60a90-HEAD"
+    ],
+    "installCommandForFutureApproval": "apt-get update && apt-get install -y --no-install-recommends gpac"
+  },
+  "classificationOnly": true,
+  "installApproved": false,
+  "runtimeApproved": false
+}

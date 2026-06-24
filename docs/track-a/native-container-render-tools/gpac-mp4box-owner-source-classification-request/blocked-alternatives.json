@@ -1,0 +1,11 @@
+{
+  "blockedAlternatives": {
+    "debianSid": "not_a_stable_bookworm_source_class",
+    "debianBullseyeNativePackage": "not_current_bookworm_base",
+    "randomBinaryDownload": "not_owner_approved",
+    "sourceBuild": "not_selected_for_this_path",
+    "bento4Fallback": "separate_not_selected_for_mp4box_command_path",
+    "gpacNightlyComponent": "blocked_component",
+    "unversionedInstallWithoutPinning": "blocked_until_official_apt_repo_approval"
+  }
+}

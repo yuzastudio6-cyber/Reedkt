@@ -1,0 +1,67 @@
+{
+  "milestone": "TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1",
+  "baseSource": "322fd01ee6cb46e5320360687966408b5c1e7d47",
+  "decision": "tracka_gpac_mp4box_owner_source_classification_passed_ready_for_official_gpac_apt_repo_approval",
+  "sourceTruth": {
+    "pr723": {
+      "state": "MERGED",
+      "mergeCommit": "322fd01ee6cb46e5320360687966408b5c1e7d47",
+      "decision": "tracka_gpac_mp4box_owner_environment_followup_blocked_no_owner_environment_source_approval"
+    },
+    "pr711": {
+      "state": "MERGED",
+      "mergeCommit": "03286b3b155fedffd5173239877e36a937998440"
+    },
+    "pr713": {
+      "state": "MERGED",
+      "mergeCommit": "c526f42fa428a4945b4d2a7b280cc00fa186923a",
+      "decision": "blocked_no_owner_environment_package_source_approval"
+    },
+    "pr706": {
+      "state": "MERGED",
+      "mergeCommit": "a293ec57a304728b2ab4f731ab1fd58f5c9aaec8",
+      "decision": "blocked_no_safe_package_source_policy_available"
+    },
+    "pr702": {
+      "state": "MERGED",
+      "mergeCommit": "93d574f35f40eed1b7b8b87540201750b94df304",
+      "decision": "blocked_no_safe_package_source_resolution_available"
+    },
+    "pr701": {
+      "state": "CLOSED",
+      "mergedAt": null,
+      "classification": "closed_without_merge_stale_context"
+    },
+    "pr708": {
+      "state": "CLOSED",
+      "mergedAt": null,
+      "classification": "closed_without_merge_stale_context"
+    },
+    "pr577": {
+      "state": "OPEN",
+      "draft": true,
+      "classification": "open_draft_blocked_excluded"
+    }
+  },
+  "predecessorsMerged": [
+    723,
+    711,
+    713,
+    706,
+    702,
+    697,
+    690,
+    693,
+    682,
+    680,
+    673,
+    666,
+    662,
+    659,
+    652
+  ],
+  "duplicateSearch": {
+    "ownerSourceClassificationPr": "none_found",
+    "officialAptApprovalPr": "none_found"
+  }
+}

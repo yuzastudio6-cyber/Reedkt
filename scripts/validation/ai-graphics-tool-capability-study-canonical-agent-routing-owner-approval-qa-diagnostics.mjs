@@ -15,6 +15,7 @@ const expectedScriptCommand =
 const allowedDescendantScripts = new Set([
   "ai-graphics:canonical-agent-selection:canonicalization-diagnostics",
   "ai-graphics:canonical-agent-selection:canonicalization-qa-diagnostics",
+  "ai-graphics:canonical-agent-selection:canonicalization-owner-diagnostics",
   "ai-graphics:canonical-agent-selection:owner-approval-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:qa-diagnostics",
   "ai-graphics:canonical-agent-selection:review-diagnostics",

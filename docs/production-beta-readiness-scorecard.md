@@ -264,3 +264,13 @@ Decision: `ai_graphics_tool_capability_study_canonical_agent_routing_canonicaliz
 - Runtime readiness, internal beta, external beta, and production readiness: false.
 - Track B exclusion under `TRACK_B_MEDIA_OSS_STEWARD` and Track A render/export exclusion via PR #544 remain evidence-only context.
 - No dependency install, package-lock mutation, CPU/static execution, import smoke, synthetic fixtures, browser/WebGL/canvas runtime, GPU/model runtime, Supabase/GCS, signed URL, public artifact, beta command, production command, PR merge, PR close, or PR retarget occurred.
+
+## AI Graphics Canonical Agent Selection Canonicalization Owner Approval QA
+
+- Decision: `ai_graphics_canonical_agent_selection_canonicalization_owner_approval_qa_passed_with_warnings`.
+- PR #689 canonicalization owner approval QA accepted all 21 AI graphics tools and all 12 product-facing capabilities for planning/study metadata selection only.
+- Agent can select for planning: true.
+- Agent/tool/route/worker/provider execution: false.
+- Runtime readiness, internal beta, external beta, and production readiness: false.
+- Track B exclusion under `TRACK_B_MEDIA_OSS_STEWARD` and Track A render/export exclusion via PR #544 remain evidence-only context.
+- No dependency install, package-lock mutation, CPU/static execution, import smoke, synthetic fixtures, browser/WebGL/canvas runtime, GPU/model runtime, Supabase/GCS, signed URL, public artifact, beta command, production command, PR merge, PR close, or PR retarget occurred.

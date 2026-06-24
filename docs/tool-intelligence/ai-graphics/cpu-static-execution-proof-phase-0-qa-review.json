@@ -358,11 +358,17 @@
     "No internal beta, external beta, or production unlock."
   ],
   "draftPr": {
-    "url": null,
-    "state": "pending_creation",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/731",
+    "number": 731,
+    "state": "OPEN",
     "isDraft": true,
-    "headRefOid": null,
-    "statusCheckRollup": "pending_creation"
+    "mergeable": "MERGEABLE",
+    "headRefOid": "f4e10e3f16103e33713ad2cef732b4a2a56a99dc",
+    "statusCheckRollup": [],
+    "baseRefName": "codex/rp-ai-graphics-cpu-static-execution-proof-phase-0",
+    "headRefName": "codex/rp-ai-graphics-cpu-static-execution-proof-phase-0-qa-review",
+    "recordedAt": "2026-06-24T00:00:00Z",
+    "note": "PR creation status recorded before follow-up metadata commit."
   },
   "nextPrompt": "AI_GRAPHICS_CPU_STATIC_EXECUTION_PROOF_PHASE_0_OWNER_REVIEW"
 }

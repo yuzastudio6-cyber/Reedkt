@@ -1,8 +1,8 @@
 # Prompt AI Graphics CPU Static Execution Proof Phase 0 QA Review Results
 
 - Branch: `codex/rp-ai-graphics-cpu-static-execution-proof-phase-0-qa-review`
-- Draft PR: pending creation
-- Draft status: pending creation
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/731
+- Draft status: OPEN/draft=true/mergeable=MERGEABLE
 - Source PR #728: OPEN/draft=true/mergeable=MERGEABLE at `585b8160ce104ff03efe181d2ce0fda29bc08f40`
 - Duplicate search: no open head PR, no exact remote branch, target worktree did not preexist
 - Decision: `ai_graphics_cpu_static_execution_proof_phase_0_qa_passed_with_warnings`
@@ -11,7 +11,9 @@
 - Satori blocked reason QA result: accepted pending approved font fixture for text SVG layout
 - Local artifact policy QA result: accepted; detailed outputs remain ignored under `.local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local`
 - Package-lock status: unchanged
-- Validation status: passed locally before draft PR creation
+- PR creation head SHA: `f4e10e3f16103e33713ad2cef732b4a2a56a99dc`
+- Check rollup at PR creation: empty
+- Validation status: passed locally; draft PR created and metadata recorded
 
 ## Source PRs Used
 

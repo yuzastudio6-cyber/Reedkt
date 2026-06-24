@@ -22,11 +22,11 @@ Implemented the QA/review-only packet for PR #728, the Phase 0 local CPU/static 
 
 ## Draft PR Metadata
 
-- Draft PR: pending creation
-- Draft status: pending creation
-- Head SHA: pending creation
-- Check rollup: pending creation
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/731
+- Draft status: OPEN/draft=true/mergeable=MERGEABLE
+- PR creation head SHA: `f4e10e3f16103e33713ad2cef732b4a2a56a99dc`
+- Check rollup at PR creation: empty
 
 ## Validation
 
-Validation passed locally before draft PR creation.
+Validation passed locally; draft PR created and metadata recorded.

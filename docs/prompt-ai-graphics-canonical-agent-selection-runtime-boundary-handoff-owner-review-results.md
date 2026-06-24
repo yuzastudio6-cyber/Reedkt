@@ -3,10 +3,10 @@
 Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_review_passed_with_warnings`
 
 - Branch: `codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-review`
-- Draft PR: pending creation
-- Draft status: pending creation
-- Head SHA: pending creation
-- Check rollup: pending creation
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/722
+- Draft status: OPEN/draft=true/mergeable=MERGEABLE
+- Head SHA: `c4a26a7ba7af790c1022af0cdff0bd40b0acef46`
+- Check rollup: Empty check rollup after PR creation.
 - Duplicate search result: Preflight found no exact runtime-boundary handoff owner-review PR, remote branch, or worktree.
 - PR #719 status used: OPEN/draft=true/mergeable=MERGEABLE at `fa62444977d7ab6e4f40095ac489ccfc5108e254`
 - PR #718 status used: OPEN/draft=true/mergeable=MERGEABLE at `d291277d68a5bf5e3bc076acd99cd1a0b3bd64a3`
@@ -76,4 +76,4 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 ## Validation
 
-Pending local validation and draft PR creation.
+Local validation passed before PR creation; PR #722 opened as draft with an empty check rollup.

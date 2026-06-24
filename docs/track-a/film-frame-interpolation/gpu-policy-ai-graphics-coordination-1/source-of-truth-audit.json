@@ -1,0 +1,35 @@
+{
+  "packet": "TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1",
+  "acceptedSources": [
+    "#544",
+    "#547",
+    "#717",
+    "#721"
+  ],
+  "filmScopeDecision": {
+    "pr": "#721",
+    "mergeSha": "77c878bf17939b2197e336b5b3f41da218934c0d",
+    "decision": "blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination"
+  },
+  "carryForwardSources": [
+    "#693",
+    "#697",
+    "#702",
+    "#706",
+    "#713",
+    "#717"
+  ],
+  "excludedSources": [
+    {
+      "pr": "#577",
+      "status": "open_draft_blocked_conflicting",
+      "reason": "excluded_as_source_of_truth"
+    }
+  ],
+  "historicalContextOnly": [
+    "#54",
+    "#55",
+    "#58"
+  ],
+  "productReadyEndToEndLocalOssTools": 0
+}

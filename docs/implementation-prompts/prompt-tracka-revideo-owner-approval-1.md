@@ -11,6 +11,7 @@ Source-of-truth context:
 - `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1` preserves Revideo as `evaluation_only_non_core_owner_approval_required_before_install_source`.
 - `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1` preserves Revideo as `evaluation_only_non_core_owner_approval_required_before_install_source`.
 - `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1` is separate from Revideo and records FILM as `blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination`.
+- `TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1` keeps FILM separate from Revideo and records `blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy`.
 
 Goal: decide whether Revideo should remain evaluation-only or receive explicit owner approval for a future install-source proof. The approval must prove non-duplication with Remotion and Hyperframe and must keep Revideo non-core unless owner policy changes.
 

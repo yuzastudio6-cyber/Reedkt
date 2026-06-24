@@ -1,0 +1,18 @@
+{
+  "packet": "TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1",
+  "modelWeights": "not_accessed_and_not_approved",
+  "modelWeightSource": "none",
+  "modelWeightStorage": "none",
+  "modelWeightChecksum": "none",
+  "modelCall": "not_run",
+  "futurePolicyRequired": [
+    "owner_approved_source",
+    "license_review",
+    "checksum_policy",
+    "storage_policy",
+    "retention_policy",
+    "cleanup_policy",
+    "privacy_policy",
+    "worker_execution_policy"
+  ]
+}

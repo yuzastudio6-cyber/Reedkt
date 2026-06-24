@@ -1,0 +1,17 @@
+{
+  "packet": "TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1",
+  "decision": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy",
+  "execution": "completed_docs_only_gpu_policy_ai_graphics_coordination_no_install_or_runtime",
+  "readiness": {
+    "filmInstallProof": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy",
+    "filmRuntimeProof": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_model_weight_policy_and_worker_runtime_lane",
+    "aiGraphicsOwnerAcceptance": "required",
+    "gpuRuntime": "not_configured_and_not_approved",
+    "modelWeights": "not_accessed_and_not_approved",
+    "privateE2E": "still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates"
+  },
+  "nextMilestone": "TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "generatedArtifactsCommitted": "none",
+  "packageLock": "unchanged"
+}

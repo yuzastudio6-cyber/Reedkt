@@ -50,7 +50,9 @@ Track A native/container package source owner decision: `TRACKA-NATIVE-CONTAINER
 
 Track A FILM frame interpolation scope decision: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 decision: blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination`.
 
-FILM readiness: `blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination`; model weights `not_accessed`; runtime `not_run`; AI Graphics / Worker coordination `required`.
+Track A FILM GPU/AI Graphics coordination decision: `TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1 decision: blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy`.
+
+FILM readiness: `blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy`; model weights `not_accessed_and_not_approved`; runtime `not_run`; GPU runtime `not_configured_and_not_approved`; AI Graphics / Worker responsibility `required_for_model_runtime_model_weights_gpu_execution_and_ml_dependency_policy`.
 
 GPAC/MP4Box readiness: `blocked_gpac_mp4box_package_source_unavailable`.
 

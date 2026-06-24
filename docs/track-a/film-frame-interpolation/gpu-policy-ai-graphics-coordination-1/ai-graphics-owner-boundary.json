@@ -1,0 +1,10 @@
+{
+  "packet": "TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1",
+  "filmOwner": "atlas_tracka_scoped_capability_label_only",
+  "trackAResponsibility": "render_export_capability_label_acceptance_criteria_and_future_handoff_requirements",
+  "aiGraphicsWorkerResponsibility": "required_for_model_runtime_model_weights_gpu_execution_and_ml_dependency_policy",
+  "aiGraphicsWorkerCoordination": "required_before_any_install_or_runtime",
+  "ownerAcceptance": "not_present",
+  "runtimeApproval": "not_present",
+  "modelWeightApproval": "not_present"
+}

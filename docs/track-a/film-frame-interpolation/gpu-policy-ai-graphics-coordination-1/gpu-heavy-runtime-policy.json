@@ -1,0 +1,12 @@
+{
+  "packet": "TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1",
+  "decision": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy",
+  "filmRuntimeClass": "gpu_heavy",
+  "gpuRuntime": "not_configured_and_not_approved",
+  "heavyMlRuntimePolicy": "blocked_pending_ai_graphics_owner_acceptance",
+  "allowedInstallSourceChange": "none",
+  "allowedRuntimeExecution": "none",
+  "packageInstallation": "none",
+  "dependencyMutation": "none",
+  "productReadyEndToEndLocalOssTools": 0
+}

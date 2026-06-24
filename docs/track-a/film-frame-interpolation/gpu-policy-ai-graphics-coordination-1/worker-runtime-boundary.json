@@ -1,0 +1,15 @@
+{
+  "packet": "TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1",
+  "execution": "completed_docs_only_gpu_policy_ai_graphics_coordination_no_install_or_runtime",
+  "filmExecution": "not_run",
+  "modelCall": "not_run",
+  "modelWeights": "not_accessed_and_not_approved",
+  "gpuRuntime": "not_configured_and_not_approved",
+  "workerExecution": "none",
+  "routeExecution": "none",
+  "providerModelExecution": "none",
+  "dockerExecution": "none",
+  "remotionExecution": "none",
+  "ffmpegFfprobeExecution": "none",
+  "mediaProcessing": "none"
+}

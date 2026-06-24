@@ -4,91 +4,65 @@ import fs from 'node:fs'
 
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
-const packetDir = 'docs/track-a/film-frame-interpolation/scope-decision-1'
+const packet = 'TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1'
+const packetDir = 'docs/track-a/film-frame-interpolation/gpu-policy-ai-graphics-coordination-1'
+
 const requiredFiles = [
-  `${packetDir}/scope-decision.md`,
-  `${packetDir}/scope-decision.json`,
+  `${packetDir}/coordination.md`,
+  `${packetDir}/coordination.json`,
   `${packetDir}/source-of-truth-audit.md`,
   `${packetDir}/source-of-truth-audit.json`,
   `${packetDir}/gpu-heavy-runtime-policy.md`,
   `${packetDir}/gpu-heavy-runtime-policy.json`,
-  `${packetDir}/ai-graphics-coordination.md`,
-  `${packetDir}/ai-graphics-coordination.json`,
+  `${packetDir}/ai-graphics-owner-boundary.md`,
+  `${packetDir}/ai-graphics-owner-boundary.json`,
+  `${packetDir}/model-weight-policy.md`,
+  `${packetDir}/model-weight-policy.json`,
+  `${packetDir}/worker-runtime-boundary.md`,
+  `${packetDir}/worker-runtime-boundary.json`,
   `${packetDir}/blocked-scope-register.md`,
   `${packetDir}/readiness-report.json`,
-  'docs/activation-phase-tracka-film-frame-interpolation-scope-decision-1-results.md',
+  'docs/activation-phase-tracka-film-gpu-policy-ai-graphics-coordination-1-results.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
   'docs/track-a/track-a-tool-status-matrix.md',
-  'docs/implementation-prompts/prompt-tracka-film-frame-interpolation-scope-decision-1.md',
+  'docs/implementation-prompts/prompt-tracka-film-ai-graphics-owner-acceptance-1.md',
   'docs/implementation-prompts/prompt-tracka-film-frame-interpolation-gpu-policy-review-1.md',
   'docs/implementation-prompts/prompt-tracka-ai-graphics-film-coordination-1.md',
   'docs/implementation-prompts/prompt-tracka-revideo-owner-approval-1.md',
   'docs/implementation-prompts/prompt-tracka-visual-video-private-e2e-1.md',
   'scripts/validation/tracka-film-frame-interpolation-scope-decision-1-diagnostics.mjs',
-]
-
-const coordinationPacketDir = 'docs/track-a/film-frame-interpolation/gpu-policy-ai-graphics-coordination-1'
-const allowedFollowupFiles = [
-  `${coordinationPacketDir}/coordination.md`,
-  `${coordinationPacketDir}/coordination.json`,
-  `${coordinationPacketDir}/source-of-truth-audit.md`,
-  `${coordinationPacketDir}/source-of-truth-audit.json`,
-  `${coordinationPacketDir}/gpu-heavy-runtime-policy.md`,
-  `${coordinationPacketDir}/gpu-heavy-runtime-policy.json`,
-  `${coordinationPacketDir}/ai-graphics-owner-boundary.md`,
-  `${coordinationPacketDir}/ai-graphics-owner-boundary.json`,
-  `${coordinationPacketDir}/model-weight-policy.md`,
-  `${coordinationPacketDir}/model-weight-policy.json`,
-  `${coordinationPacketDir}/worker-runtime-boundary.md`,
-  `${coordinationPacketDir}/worker-runtime-boundary.json`,
-  `${coordinationPacketDir}/blocked-scope-register.md`,
-  `${coordinationPacketDir}/readiness-report.json`,
-  'docs/activation-phase-tracka-film-gpu-policy-ai-graphics-coordination-1-results.md',
-  'docs/implementation-prompts/prompt-tracka-film-ai-graphics-owner-acceptance-1.md',
   'scripts/validation/tracka-film-gpu-policy-ai-graphics-coordination-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...allowedFollowupFiles, 'package.json'])
+const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
 
 const requiredText = [
-  'TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1',
-  'blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination',
-  'completed_docs_only_scope_decision_no_install_or_runtime',
-  '03286b3b155fedffd5173239877e36a937998440',
-  'aeed9cfe534c88e0c91546d20873eed6a2e04b2c',
+  packet,
+  'blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy',
+  'completed_docs_only_gpu_policy_ai_graphics_coordination_no_install_or_runtime',
+  '77c878bf17939b2197e336b5b3f41da218934c0d',
   '#544',
   '#547',
   '#717',
-  '#54',
-  '#55',
-  '#58',
+  '#721',
   '#577 remains open/draft/blocked/conflicting and excluded as source-of-truth',
-  'historical context only',
+  'TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 decision: blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination',
   'film_frame_interpolation',
   'atlas_tracka_scoped_capability_label_only',
-  'blocked_pending_gpu_heavy_runtime_policy',
-  'not_changed',
-  'not_run',
-  'not_accessed',
-  'expected_gpu_heavy',
-  'required_before_tensorflow_pytorch_or_equivalent_runtime',
-  'AI Graphics / Worker coordination: `required`',
-  'Track B FFmpeg/FFprobe coordination: `required_for_future_media_evidence_only_if_needed`',
-  'blocked_pending_gpu_heavy_runtime_policy_and_model_weight_policy',
-  'revideo_render_preview_alternative',
-  'evaluation_only_non_core_owner_approval_required_before_install_source',
-  'blocked_pending_owner_approval',
-  'gstreamer_render_pipeline_support',
-  'mkvtoolnix_container_validation',
-  'qa_passed_controlled_generated_private_fixture_execution_evidence',
-  'bento4_mp4box_packaging_validation',
-  'vapoursynth_frame_pipeline',
-  'blocked_pending_owner_approved_package_source',
-  'hyperframe_render_handoff',
-  'handoff_only_no_install_source_change',
-  'TRACKA-FILM-FRAME-INTERPOLATION-GPU-POLICY-REVIEW-1',
-  'TRACKA-AI-GRAPHICS-FILM-COORDINATION-1',
+  'render_export_capability_label_acceptance_criteria_and_future_handoff_requirements',
+  'required_for_model_runtime_model_weights_gpu_execution_and_ml_dependency_policy',
+  'blocked_pending_ai_graphics_owner_acceptance_and_gpu_heavy_runtime_policy',
+  'not_accessed_and_not_approved',
+  'not_configured_and_not_approved',
+  'required_before_any_install_or_runtime',
+  'blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_model_weight_policy_and_worker_runtime_lane',
+  'TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1',
+  'TRACKA-REVIDEO-OWNER-APPROVAL-1',
   'TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates',
+  'qa_passed_controlled_generated_private_fixture_execution_evidence',
+  'blocked_pending_owner_approved_package_source',
+  'evaluation_only_non_core_owner_approval_required_before_install_source',
+  'handoff_only_no_install_source_change',
   'Product-ready end-to-end local OSS tools: `0`',
   'Supabase update status: `not_applicable_docs_only`',
   'Supabase environment touched: `none`',
@@ -110,12 +84,15 @@ const forbiddenPatterns = [
   /FILM runtime:\s*`?(completed|passed|true|run|executed|enabled)/i,
   /model weight access:\s*`?(completed|passed|true|run|executed|enabled)/i,
   /model weights?:\s*`?(accessed|downloaded|available|present|checked|hashed|loaded)/i,
+  /GPU runtime:\s*`?(installed|configured|enabled|available|approved|true)/i,
   /TensorFlow(?: runtime| package| install)?:\s*`?(installed|enabled|available|true)/i,
   /PyTorch(?: runtime| package| install)?:\s*`?(installed|enabled|available|true)/i,
-  /GPU(?: runtime| tooling| host)?:\s*`?(installed|enabled|available|approved|true)/i,
-  /AI Graphics \/ Worker coordination:\s*`?(complete|completed|approved|not_required)/i,
+  /AI Graphics \/ Worker responsibility:\s*`?(not_required|complete|completed|approved)/i,
+  /AI Graphics \/ Worker coordination:\s*`?(not_required|complete|completed|approved)/i,
   /FILM install proof readiness:\s*`?(ready|enabled|unblocked|approved)/i,
   /FILM runtime proof readiness:\s*`?(ready|enabled|unblocked|approved)/i,
+  /private media processing:\s*`?(completed|enabled|true|run|executed)/i,
+  /user media processing:\s*`?(completed|enabled|true|run|executed)/i,
   /internal beta unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,
   /external beta unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,
   /production unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,
@@ -157,7 +134,7 @@ const forbiddenExactFiles = new Set([
 ])
 
 function fail(message) {
-  console.error(`TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 diagnostics failed: ${message}`)
+  console.error(`${packet} diagnostics failed: ${message}`)
   process.exit(1)
 }
 
@@ -192,8 +169,8 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const packageJson = JSON.parse(read('package.json'))
-const script = packageJson.scripts?.['tracka:film-frame-interpolation-scope-decision-1:diagnostics']
-if (script !== 'node scripts/validation/tracka-film-frame-interpolation-scope-decision-1-diagnostics.mjs') {
+const script = packageJson.scripts?.['tracka:film-gpu-policy-ai-graphics-coordination-1:diagnostics']
+if (script !== 'node scripts/validation/tracka-film-gpu-policy-ai-graphics-coordination-1-diagnostics.mjs') {
   fail('missing package diagnostics script')
 }
 
@@ -245,7 +222,11 @@ for (const file of [...changedFiles, ...stagedFiles]) {
     file.endsWith('.mp4') ||
     file.endsWith('.mov') ||
     file.endsWith('.mkv') ||
-    file.endsWith('.webm')
+    file.endsWith('.webm') ||
+    file.endsWith('.pt') ||
+    file.endsWith('.pth') ||
+    file.endsWith('.onnx') ||
+    file.endsWith('.ckpt')
   ) {
     fail(`forbidden changed path ${file}`)
   }
@@ -259,6 +240,9 @@ for (const file of changedFiles) {
     'FILM execution `completed`',
     'FILM execution: `completed`',
     'model weight access: `completed`',
+    'model weights: `accessed`',
+    'GPU runtime: `configured`',
+    'AI Graphics / Worker coordination: `completed`',
     'Docker build `completed`',
     'Docker build: `completed`',
     'Docker push: `completed`',
@@ -274,4 +258,4 @@ for (const file of changedFiles) {
   }
 }
 
-console.log('TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 diagnostics passed')
+console.log(`${packet} diagnostics passed`)

@@ -265,7 +265,8 @@ for (const key of scriptDrift) if (key !== expectedScript &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-diagnostics" &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0" &&
-    key !== "ai-graphics:cpu-static-execution-proof:phase0-diagnostics") fail("Unexpected script drift: " + key);
+    key !== "ai-graphics:cpu-static-execution-proof:phase0-diagnostics" &&
+    key !== "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics") fail("Unexpected script drift: " + key);
 for (const key of Object.keys(basePackageJson.scripts || {})) if (!(key in (packageJson.scripts || {}))) fail("Removed package script: " + key);
 try { if (git(["diff", "--name-only", baseRef, "--", "package-lock.json"])) fail("package-lock.json changed relative to base."); } catch (error) { fail("Unable to verify package-lock diff: " + error.message); }
 let tracked = "";

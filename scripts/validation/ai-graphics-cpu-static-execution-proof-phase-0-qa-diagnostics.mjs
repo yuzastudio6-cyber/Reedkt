@@ -276,7 +276,11 @@ for (const [scriptName, command] of Object.entries(basePackageJson.scripts ?? {}
   if (packageJson?.scripts?.[scriptName] !== command) fail(`existing_script_changed:${scriptName}`)
 }
 for (const scriptName of Object.keys(packageJson?.scripts ?? {})) {
-  if (!basePackageJson.scripts?.[scriptName] && scriptName !== 'ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics') {
+  if (
+    !basePackageJson.scripts?.[scriptName] &&
+    scriptName !== 'ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics' &&
+    scriptName !== 'ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics'
+  ) {
     fail(`unexpected_new_script:${scriptName}`)
   }
 }

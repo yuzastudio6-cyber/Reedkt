@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "2026-06-24.ai-graphics.cpu-static-execution-proof.phase0.owner-review",
+  "decision": "ai_graphics_cpu_static_execution_proof_phase_0_owner_review_passed_with_warnings",
+  "blockedTools": [
+    {
+      "toolId": "satori",
+      "status": "proof_blocked_missing_runtime",
+      "ownerAccepted": true,
+      "reason": "Satori text SVG rendering requires approved font data; Phase 0 does not commit or fetch font assets.",
+      "nextMilestone": "Approve and provide a deterministic font fixture before claiming Satori text SVG layout proof."
+    }
+  ],
+  "runtimeBlocks": {
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "publicArtifactApprovedNow": false,
+    "signedUrlApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false
+  }
+}

@@ -343,7 +343,8 @@ for (const key of scriptDrift) {
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-diagnostics" &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0" &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0-diagnostics" &&
-    key !== "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics"
+    key !== "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics" &&
+    key !== "ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics"
   ) {
     fail("Unexpected script drift: " + key);
   }

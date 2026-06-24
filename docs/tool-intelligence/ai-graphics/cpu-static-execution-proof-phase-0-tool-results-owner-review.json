@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "2026-06-24.ai-graphics.cpu-static-execution-proof.phase0.owner-review",
+  "decision": "ai_graphics_cpu_static_execution_proof_phase_0_owner_review_passed_with_warnings",
+  "ownerReviewedResults": [
+    {
+      "toolId": "d3",
+      "displayName": "D3",
+      "packageName": "d3",
+      "expectedStatus": "proof_passed",
+      "observedStatus": "proof_passed",
+      "importStatus": "passed",
+      "fixtureStatus": "executed",
+      "outputContractStatus": "checked",
+      "ownerReviewStatus": "owner_accepted",
+      "ownerDecision": "accepted_proof_passed",
+      "blockedReason": null,
+      "localArtifactPaths": [
+        ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/d3.svg"
+      ],
+      "runtimeGates": {
+        "agentCanExecuteToolsNow": false,
+        "routeExecutionApprovedNow": false,
+        "workerExecutionApprovedNow": false,
+        "toolExecutionApprovedNow": false,
+        "browserWebglCanvasRuntimeApprovedNow": false,
+        "gpuRuntimeApprovedNow": false,
+        "providerRuntimeApprovedNow": false,
+        "publicArtifactApprovedNow": false,
+        "signedUrlApprovedNow": false,
+        "runtimeReadyNow": false,
+        "internalBetaReadyNow": false,
+        "productionReadyNow": false
+      }
+    },
+    {
+      "toolId": "vega_lite",
+      "displayName": "Vega-Lite",
+      "packageName": "vega-lite",
+      "expectedStatus": "proof_passed",
+      "observedStatus": "proof_passed",
+      "importStatus": "passed",
+      "fixtureStatus": "executed",
+      "outputContractStatus": "checked",
+      "ownerReviewStatus": "owner_accepted",
+      "ownerDecision": "accepted_proof_passed",
+      "blockedReason": null,
+      "localArtifactPaths": [
+        ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/vega_lite_compiled.json"
+      ],
+      "runtimeGates": {
+        "agentCanExecuteToolsNow": false,
+        "routeExecutionApprovedNow": false,
+        "workerExecutionApprovedNow": false,
+        "toolExecutionApprovedNow": false,
+        "browserWebglCanvasRuntimeApprovedNow": false,
+        "gpuRuntimeApprovedNow": false,
+        "providerRuntimeApprovedNow": false,
+        "publicArtifactApprovedNow": false,
+        "signedUrlApprovedNow": false,
+        "runtimeReadyNow": false,
+        "internalBetaReadyNow": false,
+        "productionReadyNow": false
+      }
+    },
+    {
+      "toolId": "vega",
+      "displayName": "Vega",
+      "packageName": "vega",
+      "expectedStatus": "proof_passed",
+      "observedStatus": "proof_passed",
+      "importStatus": "passed",
+      "fixtureStatus": "executed",
+      "outputContractStatus": "checked",
+      "ownerReviewStatus": "owner_accepted",
+      "ownerDecision": "accepted_proof_passed",
+      "blockedReason": null,
+      "localArtifactPaths": [
+        ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/vega_parsed_metadata.json"
+      ],
+      "runtimeGates": {
+        "agentCanExecuteToolsNow": false,
+        "routeExecutionApprovedNow": false,
+        "workerExecutionApprovedNow": false,
+        "toolExecutionApprovedNow": false,
+        "browserWebglCanvasRuntimeApprovedNow": false,
+        "gpuRuntimeApprovedNow": false,
+        "providerRuntimeApprovedNow": false,
+        "publicArtifactApprovedNow": false,
+        "signedUrlApprovedNow": false,
+        "runtimeReadyNow": false,
+        "internalBetaReadyNow": false,
+        "productionReadyNow": false
+      }
+    },
+    {
+      "toolId": "satori",
+      "displayName": "Satori",
+      "packageName": "satori",
+      "expectedStatus": "proof_blocked_missing_runtime",
+      "observedStatus": "proof_blocked_missing_runtime",
+      "importStatus": "passed",
+      "fixtureStatus": "blocked",
+      "outputContractStatus": "blocked_contract_recorded",
+      "ownerReviewStatus": "owner_accepted_expected_block",
+      "ownerDecision": "accepted_blocked_missing_runtime_pending_approved_font_fixture",
+      "blockedReason": "Satori text SVG rendering requires approved font data; Phase 0 does not commit or fetch font assets.",
+      "localArtifactPaths": [
+        ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/satori_blocked.json"
+      ],
+      "runtimeGates": {
+        "agentCanExecuteToolsNow": false,
+        "routeExecutionApprovedNow": false,
+        "workerExecutionApprovedNow": false,
+        "toolExecutionApprovedNow": false,
+        "browserWebglCanvasRuntimeApprovedNow": false,
+        "gpuRuntimeApprovedNow": false,
+        "providerRuntimeApprovedNow": false,
+        "publicArtifactApprovedNow": false,
+        "signedUrlApprovedNow": false,
+        "runtimeReadyNow": false,
+        "internalBetaReadyNow": false,
+        "productionReadyNow": false
+      }
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "displayName": "@svgdotjs/svg.js",
+      "packageName": "@svgdotjs/svg.js",
+      "expectedStatus": "proof_passed",
+      "observedStatus": "proof_passed",
+      "importStatus": "passed",
+      "fixtureStatus": "executed",
+      "outputContractStatus": "checked",
+      "ownerReviewStatus": "owner_accepted",
+      "ownerDecision": "accepted_proof_passed",
+      "blockedReason": null,
+      "localArtifactPaths": [
+        ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/svgdotjs_svg_js.svg"
+      ],
+      "runtimeGates": {
+        "agentCanExecuteToolsNow": false,
+        "routeExecutionApprovedNow": false,
+        "workerExecutionApprovedNow": false,
+        "toolExecutionApprovedNow": false,
+        "browserWebglCanvasRuntimeApprovedNow": false,
+        "gpuRuntimeApprovedNow": false,
+        "providerRuntimeApprovedNow": false,
+        "publicArtifactApprovedNow": false,
+        "signedUrlApprovedNow": false,
+        "runtimeReadyNow": false,
+        "internalBetaReadyNow": false,
+        "productionReadyNow": false
+      }
+    },
+    {
+      "toolId": "viz_js",
+      "displayName": "@viz-js/viz",
+      "packageName": "@viz-js/viz",
+      "expectedStatus": "proof_passed",
+      "observedStatus": "proof_passed",
+      "importStatus": "passed",
+      "fixtureStatus": "executed",
+      "outputContractStatus": "checked",
+      "ownerReviewStatus": "owner_accepted",
+      "ownerDecision": "accepted_proof_passed",
+      "blockedReason": null,
+      "localArtifactPaths": [
+        ".local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local/viz_js.svg"
+      ],
+      "runtimeGates": {
+        "agentCanExecuteToolsNow": false,
+        "routeExecutionApprovedNow": false,
+        "workerExecutionApprovedNow": false,
+        "toolExecutionApprovedNow": false,
+        "browserWebglCanvasRuntimeApprovedNow": false,
+        "gpuRuntimeApprovedNow": false,
+        "providerRuntimeApprovedNow": false,
+        "publicArtifactApprovedNow": false,
+        "signedUrlApprovedNow": false,
+        "runtimeReadyNow": false,
+        "internalBetaReadyNow": false,
+        "productionReadyNow": false
+      }
+    }
+  ]
+}

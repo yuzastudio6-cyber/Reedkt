@@ -6,6 +6,8 @@ const SOURCE_HEAD = 'a02aae02c5a9fd50316a2e714385199c60c8a0e8';
 const PR695_DECISION = 'worker_runtime_jobs_sound_cpu_dockerfile_static_owner_review_passed_with_warnings_ready_for_gate_1f_source_creation_plan';
 const PR691_DECISION = 'sound_runtime_media_gate_1e_dockerfile_static_plan_completed_with_warnings_ready_for_dockerfile_static_owner_review';
 const PR684_DECISION = 'worker_runtime_jobs_sound_cpu_dockerfile_static_review_passed_with_warnings_ready_for_gate_1e_static_plan';
+const GATE1G_DECISION = 'sound_runtime_media_gate_1g_actual_dockerfile_source_created_with_warnings_ready_for_dockerfile_source_owner_review';
+const GATE1G_RESULT_PATH = 'docs/sound-runtime-media-gate-1g-actual-dockerfile-source-result.md';
 const PROPOSED_DOCKERFILE_PATH = 'server/workers/sound-cpu/Dockerfile';
 const REQUIREMENTS_PATH = 'server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt';
 const NO_SCOPE = 'No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, or broad service-role handler was enabled.';
@@ -187,7 +189,12 @@ const parsed = DOC_BLOCKS.map(([file, label]) => {
 
 for (const file of SOURCE_FILES) read(file);
 
-assert(!existsSync(PROPOSED_DOCKERFILE_PATH), `${PROPOSED_DOCKERFILE_PATH} must not exist in Gate 1F`);
+const gate1gSourceEvidencePresent =
+  existsSync(GATE1G_RESULT_PATH) &&
+  read(GATE1G_RESULT_PATH).includes(GATE1G_DECISION) &&
+  read(GATE1G_RESULT_PATH).includes(PROPOSED_DOCKERFILE_PATH);
+
+assert(!existsSync(PROPOSED_DOCKERFILE_PATH) || gate1gSourceEvidencePresent, `${PROPOSED_DOCKERFILE_PATH} must not exist unless Gate 1G source evidence is present`);
 
 const plan = parsed.find((entry) => entry.label === 'sound-runtime-media-gate-1f-dockerfile-source-creation-plan').block;
 assert(plan.decision === DECISION, 'Gate 1F decision mismatch');
@@ -230,13 +237,14 @@ assert(gate1g.allowedFutureSourcePath === PROPOSED_DOCKERFILE_PATH, 'Gate 1G pat
 assertSupabaseNoop(gate1g.supabaseClassification, 'Gate 1G prompt');
 
 const sourceOwnerPrompt = parsed.find((entry) => entry.label === 'worker-runtime-jobs-sound-cpu-dockerfile-source-owner-review').block;
+const expectedGate1GDecision = gate1gSourceEvidencePresent ? GATE1G_DECISION : gate1g.expectedDecision;
 assert(sourceOwnerPrompt.requiredGate1FDecision === DECISION, 'source owner prompt missing Gate 1F decision');
-assert(sourceOwnerPrompt.requiredGate1GDecision === gate1g.expectedDecision, 'source owner prompt missing Gate 1G decision');
+assert(sourceOwnerPrompt.requiredGate1GDecision === expectedGate1GDecision, 'source owner prompt missing Gate 1G decision');
 assert(sourceOwnerPrompt.requiredDockerfileSourcePath === PROPOSED_DOCKERFILE_PATH, 'source owner prompt path mismatch');
 
 const buildProofPrompt = parsed.find((entry) => entry.label === 'worker-runtime-jobs-sound-cpu-docker-build-proof-plan').block;
 assert(buildProofPrompt.requiredDockerfileSourcePlanDecision === DECISION, 'build proof prompt missing Gate 1F decision');
-assert(buildProofPrompt.requiredActualDockerfileSourceDecision === gate1g.expectedDecision, 'build proof prompt missing Gate 1G decision');
+assert(buildProofPrompt.requiredActualDockerfileSourceDecision === expectedGate1GDecision, 'build proof prompt missing Gate 1G decision');
 assert(buildProofPrompt.requiredDockerfileSourcePath === PROPOSED_DOCKERFILE_PATH, 'build proof prompt path mismatch');
 
 const packageJson = JSON.parse(read('package.json'));

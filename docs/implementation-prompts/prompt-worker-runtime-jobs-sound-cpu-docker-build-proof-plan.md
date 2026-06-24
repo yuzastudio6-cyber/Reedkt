@@ -12,10 +12,12 @@
   "requiredDockerfileSourcePlanMilestone": "SOUND-RUNTIME-MEDIA-GATE-1F",
   "requiredDockerfileSourcePlanDecision": "sound_runtime_media_gate_1f_dockerfile_source_creation_plan_completed_with_warnings_ready_for_actual_dockerfile_source_gate",
   "requiredActualDockerfileSourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1G",
-  "requiredActualDockerfileSourceDecision": "sound_runtime_media_gate_1g_actual_dockerfile_source_creation_completed_with_warnings_ready_for_source_owner_review",
+  "requiredActualDockerfileSourceDecision": "sound_runtime_media_gate_1g_actual_dockerfile_source_created_with_warnings_ready_for_dockerfile_source_owner_review",
   "requiredDockerfileSourceOwnerReviewMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-SOURCE-OWNER-REVIEW",
   "requiredDockerfileSourceOwnerReviewDecision": "worker_runtime_jobs_sound_cpu_dockerfile_source_owner_review_passed_with_warnings_ready_for_docker_build_proof_plan",
   "requiredDockerfileSourcePath": "server/workers/sound-cpu/Dockerfile",
+  "requiredStaticValidationMilestone": "SOUND-RUNTIME-MEDIA-GATE-1H",
+  "requiredStaticValidationDecision": "sound_runtime_media_gate_1h_dockerfile_static_validation_passed_with_warnings_ready_for_docker_build_proof_planning",
   "purpose": "Plan a future local controlled Docker build proof after Dockerfile source and owner approval. This prompt itself remains planning-only and must not build, push, deploy, or execute workers.",
   "acceptedPlanningOnly": {
     "workers": [

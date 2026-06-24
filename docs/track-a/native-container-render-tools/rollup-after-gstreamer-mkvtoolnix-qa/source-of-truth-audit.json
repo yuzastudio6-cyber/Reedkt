@@ -1,0 +1,25 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1",
+  "mergedSources": {
+    "601": "GStreamer/MKVToolNix install-source declarations",
+    "609": "render-worker Docker build/install metadata proof",
+    "624": "GPAC/MP4Box, core VapourSynth, Revideo, and Hyperframe identity/policy decisions",
+    "649": "GStreamer/MKVToolNix no-media runtime command checks",
+    "652": "GStreamer/MKVToolNix controlled synthetic fixture proof",
+    "659": "private fixture scope decision",
+    "667": "post-merge safety closure for #659",
+    "662": "original private fixture approval source-of-truth",
+    "666": "downstream private fixture planning source-of-truth",
+    "675": "approval reconciliation after #667",
+    "673": "completed controlled generated private fixture execution source-of-truth",
+    "680": "execution packet reconciliation",
+    "682": "controlled generated private fixture QA review source-of-truth"
+  },
+  "requiredMergeSha": {
+    "682": "d1dfcdbee62971313f6d7b017ed61747ac9d2518"
+  },
+  "excludedSources": {
+    "577": "open_draft_blocked_excluded"
+  },
+  "productReadyEndToEndLocalOssTools": 0
+}

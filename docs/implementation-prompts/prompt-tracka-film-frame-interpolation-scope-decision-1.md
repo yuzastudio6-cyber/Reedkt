@@ -2,11 +2,13 @@
 
 Goal: preserve the next FILM scope decision handoff after native/container Batch-2 and package identity Batch-1.
 
-Current readiness: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 readiness: unchanged_ready_for_scope_decision_planning`
+Current readiness: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 readiness: ready_for_gpu_scope_decision_planning`
 
 Source-of-truth: `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-SYNTHETIC-FIXTURE-PROOF-1 decision: completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof`
 
 QA context: `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA-REVIEW-1 decision: qa_passed_controlled_generated_private_fixture_execution_evidence`
+
+Rollup context: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1 decision: completed_native_container_rollup_after_gstreamer_mkvtoolnix_qa`
 
 This prompt remains planning-only.
 

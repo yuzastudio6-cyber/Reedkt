@@ -1,0 +1,15 @@
+{
+  "nextRecommendedMilestone": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3",
+  "readiness": {
+    "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3": "ready",
+    "TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1": "ready_for_gpu_scope_decision_planning",
+    "TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1": "still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates"
+  },
+  "futureInstallPlanning": {
+    "gpacMp4box": "ready_for_install_source_planning_from_resolved_identity",
+    "coreVapoursynth": "ready_for_install_source_planning_from_resolved_policy",
+    "revideo": "evaluation_only_ready_for_owner_approved_install_source_planning",
+    "hyperframe": "handoff_only_no_install_source_change"
+  },
+  "productReadyEndToEndLocalOssTools": 0
+}

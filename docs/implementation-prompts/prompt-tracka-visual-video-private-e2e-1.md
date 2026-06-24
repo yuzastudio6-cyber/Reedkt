@@ -36,6 +36,8 @@ Track A GStreamer/MKVToolNix controlled synthetic fixture proof: `completed_gstr
 
 Track A GStreamer/MKVToolNix generated private fixture QA decision: `qa_passed_controlled_generated_private_fixture_execution_evidence`.
 
+Track A native/container render tools rollup after GStreamer/MKVToolNix QA: `completed_native_container_rollup_after_gstreamer_mkvtoolnix_qa`.
+
 Private/user media used: `false`.
 
 Generated artifacts committed: `none`.

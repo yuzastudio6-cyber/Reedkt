@@ -1,0 +1,20 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1",
+  "decision": "completed_native_container_rollup_after_gstreamer_mkvtoolnix_qa",
+  "execution": "completed_docs_only_rollup_no_runtime_execution",
+  "privateE2E": "blocked",
+  "internalBeta": "blocked",
+  "externalBeta": "blocked",
+  "production": "blocked",
+  "finalRenderExport": "blocked",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3",
+  "supabase": {
+    "updateRequired": "none",
+    "status": "not_applicable_docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextAction": "none"
+  }
+}

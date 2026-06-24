@@ -8,6 +8,7 @@ Source-of-truth context:
 - `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3` records Revideo as `evaluation_only_non_core_owner_approval_required_before_install_source`.
 - `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-RESOLUTION-BATCH-1` preserves Revideo as `evaluation_only_non_core_owner_approval_required_before_install_source`.
 - `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1` preserves Revideo as `evaluation_only_non_core_owner_approval_required_before_install_source`.
+- `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1` preserves Revideo as `evaluation_only_non_core_owner_approval_required_before_install_source`.
 
 Goal: decide whether Revideo should remain evaluation-only or receive explicit owner approval for a future install-source proof. The approval must prove non-duplication with Remotion and Hyperframe and must keep Revideo non-core unless owner policy changes.
 

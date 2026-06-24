@@ -20,6 +20,8 @@ const requiredFiles = [
   `${packetDir}/readiness-report.json`,
   `${packetDir}/private-artifact-manifest.json`,
   `${packetDir}/validation-results.md`,
+  `${packetDir}/source-refresh-after-pr713-drift.json`,
+  `${packetDir}/source-refresh-after-pr713-drift.md`,
   'docs/implementation-prompts/prompt-tracka-close-stale-pr701-pr708-after-post-pr706-reconciliation.md',
   'docs/production-beta-blocker-inventory.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
@@ -31,11 +33,21 @@ const requiredFiles = [
 const allowedChangedFiles = new Set(requiredFiles)
 const requiredText = [
   'TRACKA-POST-PR706-PR708-METADATA-RECONCILIATION-1',
+  'TRACKA-PR711-SOURCE-REFRESH-AFTER-PR713-DRIFT',
+  'tracka_pr711_source_refresh_after_pr713_drift_passed_ready_for_merge_hygiene',
   'tracka_post_pr706_pr708_metadata_reconciliation_passed_pr708_context_preserved_ready_for_stale_pr_close_prompt',
   'tracka_post_pr702_pr701_metadata_reconciliation_passed_pr701_context_preserved_ready_for_gpac_mp4box_policy_review',
   'blocked_no_safe_package_source_policy_available',
+  'blocked_no_owner_environment_package_source_approval',
+  'blocked_gpac_mp4box_package_source_policy_not_approved',
+  'blocked_pending_owner_environment_package_source_approval',
+  'none_until_owner_environment_approval',
+  'blocked_core_vapoursynth_package_source_policy_not_approved',
+  'core_vapoursynth_only_plugins_excluded',
   'completed_docs_only_package_source_policy_review_no_install_changes',
   'a293ec57a304728b2ab4f731ab1fd58f5c9aaec8',
+  'd392351457314cca5b51259f44b0a27ab74ecf39',
+  'c526f42fa428a4945b4d2a7b280cc00fa186923a',
   '59dea660c547fa0d8756372ab92cec2a2c72804c',
   '6c75dd02a2ff090428912efa1df88ee6835bbca4',
   '93d574f35f40eed1b7b8b87540201750b94df304',
@@ -153,6 +165,17 @@ const packageJson = JSON.parse(read('package.json'))
 if (packageJson.scripts?.['tracka:post-pr706-pr708-metadata-reconciliation:diagnostics'] !== 'node scripts/validation/tracka-post-pr706-pr708-metadata-reconciliation-diagnostics.mjs') {
   fail('missing package diagnostics script')
 }
+if (packageJson.scripts?.['tracka:native-container-package-source-owner-environment-review-1:diagnostics'] !== 'node scripts/validation/tracka-native-container-package-source-owner-environment-review-1-diagnostics.mjs') {
+  fail('missing owner/environment package-source diagnostics script')
+}
+
+const refresh = JSON.parse(read(`${packetDir}/source-refresh-after-pr713-drift.json`))
+if (refresh.decision !== 'tracka_pr711_source_refresh_after_pr713_drift_passed_ready_for_merge_hygiene') fail('source refresh decision drift')
+if (refresh.pr711?.preservedDecision !== 'tracka_post_pr706_pr708_metadata_reconciliation_passed_pr708_context_preserved_ready_for_stale_pr_close_prompt') fail('source refresh PR711 decision drift')
+if (refresh.pr713?.preservedDecision !== 'blocked_no_owner_environment_package_source_approval') fail('source refresh PR713 decision drift')
+if (refresh.conflictResolution?.protectedFileConflicts !== false) fail('source refresh protected conflict drift')
+if (refresh.preservedContext?.productReadyLocalOssTools !== 0) fail('source refresh product-ready count drift')
+if (refresh.preservedContext?.trackBFFmpegFFprobeOwnershipPreserved !== true) fail('source refresh Track B ownership drift')
 
 for (const file of forbiddenExactFiles) {
   gitQuiet(['diff', '--quiet', '--', file], `${file} changed`)

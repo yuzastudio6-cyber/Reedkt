@@ -1,0 +1,15 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1",
+  "revideo_render_preview_alternative": {
+    "status": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "installSourceStatus": "not_changed_owner_approval_required",
+    "runtimeExecution": "not_run",
+    "readiness": "blocked_pending_owner_approval"
+  },
+  "hyperframe_render_handoff": {
+    "status": "handoff_only_no_install_source_change",
+    "installSourceStatus": "not_changed_handoff_only",
+    "runtimeExecution": "not_run"
+  },
+  "productReadyEndToEndLocalOssTools": 0
+}

@@ -1,0 +1,41 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approval_qa_passed_with_warnings",
+  "ownerApprovalQaAccepted": true,
+  "allowedBehavior": [
+    "agent may read runtime-boundary metadata",
+    "agent may select tools for planning/study only",
+    "agent may rank tools",
+    "agent may eliminate tools",
+    "agent may explain missing proof",
+    "agent may recommend preferred and fallback tools for planning",
+    "agent may return next proof milestones",
+    "agent may explain why execution is blocked"
+  ],
+  "blockedBehavior": [
+    "no tool execution",
+    "no Tool Route execution",
+    "no Worker execution",
+    "no provider/model execution",
+    "no browser/WebGL/canvas runtime",
+    "no GPU/model runtime",
+    "no model-weight download",
+    "no media processing",
+    "no Supabase mutation",
+    "no SQL",
+    "no GCS upload",
+    "no signed URL",
+    "no public artifact",
+    "no beta unlock",
+    "no production unlock"
+  ],
+  "planningOnlyPreserved": true,
+  "executionAllowedNow": false,
+  "routeExecutionAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "browserWebglCanvasAllowedNow": false,
+  "gpuModelRuntimeAllowedNow": false,
+  "providerRuntimeAllowedNow": false,
+  "publicArtifactAllowedNow": false,
+  "signedUrlAllowedNow": false
+}

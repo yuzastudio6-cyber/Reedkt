@@ -1,0 +1,265 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approval_qa_passed_with_warnings",
+  "ownerApprovalQaAccepted": true,
+  "capabilities": [
+    {
+      "capabilityId": "chart_overlay",
+      "preferredPlanningTools": [
+        "vega_lite",
+        "d3"
+      ],
+      "fallbackPlanningTools": [
+        "vega"
+      ],
+      "conditionalPlanningTools": [
+        "echarts"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "data_visualization",
+      "preferredPlanningTools": [
+        "vega_lite",
+        "vega",
+        "d3"
+      ],
+      "fallbackPlanningTools": [
+        "echarts"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "svg_graphics",
+      "preferredPlanningTools": [
+        "svgdotjs_svg_js",
+        "satori"
+      ],
+      "fallbackPlanningTools": [
+        "d3"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "diagram_graphics",
+      "preferredPlanningTools": [
+        "viz_js"
+      ],
+      "fallbackPlanningTools": [
+        "svgdotjs_svg_js",
+        "d3"
+      ],
+      "conditionalPlanningTools": [
+        "vega_lite"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "animation_overlay",
+      "preferredPlanningTools": [
+        "lottie_web",
+        "animejs"
+      ],
+      "fallbackPlanningTools": [
+        "satori"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "canvas_scene",
+      "preferredPlanningTools": [
+        "pixi_js",
+        "konva"
+      ],
+      "fallbackPlanningTools": [
+        "svgdotjs_svg_js"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "webgl_3d_scene",
+      "preferredPlanningTools": [
+        "three_js",
+        "babylonjs"
+      ],
+      "fallbackPlanningTools": [
+        "pixi_js"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "background_removal",
+      "preferredPlanningTools": [
+        "birefnet",
+        "sam2"
+      ],
+      "fallbackPlanningTools": [
+        "rembg",
+        "transparent_background"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "subject_segmentation",
+      "preferredPlanningTools": [
+        "sam2",
+        "birefnet"
+      ],
+      "fallbackPlanningTools": [
+        "kornia"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "upscaling",
+      "preferredPlanningTools": [
+        "real_esrgan"
+      ],
+      "fallbackPlanningTools": [
+        "kornia"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "tensor_image_ops",
+      "preferredPlanningTools": [
+        "kornia",
+        "torch_torchvision"
+      ],
+      "fallbackPlanningTools": [
+        "transformers"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "model_runtime_foundation",
+      "preferredPlanningTools": [
+        "torch_torchvision",
+        "transformers"
+      ],
+      "fallbackPlanningTools": [
+        "sam2",
+        "birefnet",
+        "real_esrgan"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    }
+  ]
+}

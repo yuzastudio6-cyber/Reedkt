@@ -28,6 +28,10 @@ const requiredReports = [
   'source-refresh-after-pr-680-drift.md',
   'live-head-draft-readiness-review.json',
   'live-head-draft-readiness-review.md',
+  'dependency-validation-gate-decision.json',
+  'dependency-validation-gate-decision.md',
+  'post-merge-dependency-gate-reconciliation.json',
+  'post-merge-dependency-gate-reconciliation.md',
 ].map((file) => `${packetDir}/${file}`)
 
 const predecessorFiles = [
@@ -136,6 +140,13 @@ const requiredText = [
   'Validation status: `full_validation_passed_after_disk_space_closure`',
   'Dependency validation current attempt: `completed_after_disk_space_closure`',
   'PR review state: `ready_for_review_after_validation_closure`',
+  'PR #682 live head at gate start: `146b2805c6a84e2fcdc5a2052ea0fda3b4e5bf1b`',
+  'Dependency validation decision: `ready_for_review_after_validation_passed`',
+  'Previous blocker: `host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`',
+  'Phase: `TRACKA-GSTREAMER-MKVTOOLNIX-QA-PR-682-POST-MERGE-DEPENDENCY-GATE-METADATA-RECONCILIATION`',
+  'PR #682 merge commit: `d1dfcdbee62971313f6d7b017ed61747ac9d2518`',
+  'Post-merge source-branch commit: `90e8f39d960a8a75405a45c5bbe3e07b12a8be40`',
+  'Compare status: `diverged`',
   'Execution: `completed_docs_only_qa_review_no_runtime_execution`',
   'QA scope: `source_evidence_review_only`',
   'Private fixture execution in this phase: `false`',
@@ -331,6 +342,55 @@ if (liveHeadReview.nextPrompt !== nextPrompt) fail('live-head readiness review n
 if (liveHeadReview.validationBlocker !== validationBlocker) fail('live-head readiness review validation blocker drift')
 if (liveHeadReview.validationStatus !== validationStatus) fail('live-head readiness review validation status drift')
 if (liveHeadReview.supabaseClassification?.write !== 'no') fail('live-head readiness review Supabase classification drift')
+
+const dependencyGate = JSON.parse(read(`${packetDir}/dependency-validation-gate-decision.json`))
+if (dependencyGate.pullRequest !== 682) fail('dependency validation gate PR drift')
+if (dependencyGate.liveHeadAtGateStart !== '146b2805c6a84e2fcdc5a2052ea0fda3b4e5bf1b') fail('dependency validation gate live head drift')
+if (dependencyGate.baseSha !== '41601b267d076534412b7e13c86bee32cac23f7b') fail('dependency validation gate base SHA drift')
+if (dependencyGate.pr680Context?.mergeSha !== '41601b267d076534412b7e13c86bee32cac23f7b') fail('dependency validation gate PR #680 context drift')
+if (dependencyGate.canonicalDecision !== decision) fail('dependency validation gate canonical decision drift')
+if (dependencyGate.internalRepairStatus !== internalRepairStatus) fail('dependency validation gate internal repair status drift')
+if (dependencyGate.nextPrompt !== nextPrompt) fail('dependency validation gate next prompt drift')
+if (dependencyGate.previousBlocker !== 'host_resource_limit_no_space_left_on_device_requires_larger_validation_environment') fail('dependency validation gate previous blocker drift')
+if (dependencyGate.validationBlocker !== validationBlocker) fail('dependency validation gate blocker must be closed')
+if (dependencyGate.dependencyValidationDecision !== 'ready_for_review_after_validation_passed') fail('dependency validation gate decision drift')
+if (dependencyGate.dependencyValidationStatus !== 'passed') fail('dependency validation gate status must be passed')
+if (dependencyGate.dependencyValidationAttemptedInThisPhase !== true) fail('dependency validation gate must record dependency validation attempt')
+if (dependencyGate.dependencyValidationEnvironment?.threshold !== '25GiB') fail('dependency validation gate disk threshold drift')
+if (dependencyGate.noScopeConfirmation?.gstreamer !== 'not_run') fail('dependency validation gate must keep GStreamer not_run')
+if (dependencyGate.noScopeConfirmation?.mkvtoolnix !== 'not_run') fail('dependency validation gate must keep MKVToolNix not_run')
+if (dependencyGate.noScopeConfirmation?.docker !== 'not_run') fail('dependency validation gate must keep Docker not_run')
+if (dependencyGate.noScopeConfirmation?.supabaseSqlGcs !== 'not_touched') fail('dependency validation gate must keep Supabase/SQL/GCS untouched')
+if (dependencyGate.protectedMutationReview?.packageLock !== 'unchanged') fail('dependency validation gate package-lock mutation drift')
+if (dependencyGate.protectedMutationReview?.dockerfiles !== 'unchanged') fail('dependency validation gate Dockerfile mutation drift')
+if (dependencyGate.productReadyLocalOssTools !== 0) fail('dependency validation gate product-ready count drift')
+if (dependencyGate.trackBFFmpegFFprobeOwnershipPreserved !== true) fail('dependency validation gate Track B FFmpeg/FFprobe ownership drift')
+if (dependencyGate.supabaseClassification?.write !== 'no') fail('dependency validation gate Supabase classification drift')
+
+const postMergeReconciliation = JSON.parse(read(`${packetDir}/post-merge-dependency-gate-reconciliation.json`))
+if (postMergeReconciliation.phase !== 'TRACKA-GSTREAMER-MKVTOOLNIX-QA-PR-682-POST-MERGE-DEPENDENCY-GATE-METADATA-RECONCILIATION') fail('post-merge reconciliation phase drift')
+if (postMergeReconciliation.pullRequest !== 682 || postMergeReconciliation.pullRequestMerged !== true) fail('post-merge reconciliation PR state drift')
+if (postMergeReconciliation.pullRequestMergeCommit !== 'd1dfcdbee62971313f6d7b017ed61747ac9d2518') fail('post-merge reconciliation merge commit drift')
+if (postMergeReconciliation.pullRequestMergedHead !== '146b2805c6a84e2fcdc5a2052ea0fda3b4e5bf1b') fail('post-merge reconciliation merged head drift')
+if (postMergeReconciliation.postMergeSourceBranchCommit !== '90e8f39d960a8a75405a45c5bbe3e07b12a8be40') fail('post-merge reconciliation source-branch commit drift')
+if (postMergeReconciliation.postMergeSourceBranchCommitMessage !== '[track-a] Record PR 682 dependency validation gate') fail('post-merge reconciliation source-branch commit message drift')
+if (postMergeReconciliation.compare?.status !== 'diverged') fail('post-merge reconciliation compare status drift')
+if (postMergeReconciliation.compare?.aheadBy !== 1 || postMergeReconciliation.compare?.behindBy !== 1) fail('post-merge reconciliation compare ahead/behind drift')
+if (postMergeReconciliation.compare?.mergeBase !== '146b2805c6a84e2fcdc5a2052ea0fda3b4e5bf1b') fail('post-merge reconciliation compare merge base drift')
+if (postMergeReconciliation.canonicalDecision !== decision) fail('post-merge reconciliation canonical decision drift')
+if (postMergeReconciliation.internalRepairStatus !== internalRepairStatus) fail('post-merge reconciliation internal repair status drift')
+if (postMergeReconciliation.validationClosure !== validationStatus) fail('post-merge reconciliation validation closure drift')
+if (postMergeReconciliation.dependencyValidationGateDecision !== 'ready_for_review_after_validation_passed') fail('post-merge reconciliation dependency gate decision drift')
+if (postMergeReconciliation.nextPrompt !== nextPrompt) fail('post-merge reconciliation next prompt drift')
+if (postMergeReconciliation.productReadyLocalOssTools !== 0) fail('post-merge reconciliation product-ready count drift')
+if (postMergeReconciliation.trackBFFmpegFFprobeOwnershipPreserved !== true) fail('post-merge reconciliation Track B FFmpeg/FFprobe ownership drift')
+if (postMergeReconciliation.noScopeConfirmation?.gstreamer !== 'not_run') fail('post-merge reconciliation must keep GStreamer not_run')
+if (postMergeReconciliation.noScopeConfirmation?.mkvtoolnix !== 'not_run') fail('post-merge reconciliation must keep MKVToolNix not_run')
+if (postMergeReconciliation.noScopeConfirmation?.docker !== 'not_run') fail('post-merge reconciliation must keep Docker not_run')
+if (postMergeReconciliation.noScopeConfirmation?.supabaseSqlGcs !== 'not_touched') fail('post-merge reconciliation must keep Supabase/SQL/GCS untouched')
+if (postMergeReconciliation.protectedMutationReview?.packageLock !== 'unchanged') fail('post-merge reconciliation package-lock mutation drift')
+if (postMergeReconciliation.protectedMutationReview?.dockerfiles !== 'unchanged') fail('post-merge reconciliation Dockerfile mutation drift')
+if (postMergeReconciliation.supabaseClassification?.write !== 'no') fail('post-merge reconciliation Supabase classification drift')
 
 const runtimeBoundary = JSON.parse(read(`${packetDir}/runtime-boundary-review.json`))
 for (const [key, value] of Object.entries(runtimeBoundary)) {

@@ -1,0 +1,62 @@
+{
+  "phase": "TRACKA-GSTREAMER-MKVTOOLNIX-QA-PR-682-POST-MERGE-DEPENDENCY-GATE-METADATA-RECONCILIATION",
+  "pullRequest": 682,
+  "pullRequestMerged": true,
+  "pullRequestMergeCommit": "d1dfcdbee62971313f6d7b017ed61747ac9d2518",
+  "pullRequestMergedAt": "2026-06-24T01:39:24Z",
+  "pullRequestMergedHead": "146b2805c6a84e2fcdc5a2052ea0fda3b4e5bf1b",
+  "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "baseShaAtReconciliation": "d1dfcdbee62971313f6d7b017ed61747ac9d2518",
+  "postMergeSourceBranchCommit": "90e8f39d960a8a75405a45c5bbe3e07b12a8be40",
+  "postMergeSourceBranchCommitMessage": "[track-a] Record PR 682 dependency validation gate",
+  "compare": {
+    "base": "d1dfcdbee62971313f6d7b017ed61747ac9d2518",
+    "head": "90e8f39d960a8a75405a45c5bbe3e07b12a8be40",
+    "status": "diverged",
+    "aheadBy": 1,
+    "behindBy": 1,
+    "mergeBase": "146b2805c6a84e2fcdc5a2052ea0fda3b4e5bf1b"
+  },
+  "reconciliationReason": "metadata commit 90e8f39d960a8a75405a45c5bbe3e07b12a8be40 was pushed to the PR #682 source branch after PR #682 was externally merged and is not contained in the base branch",
+  "reconciledFiles": [
+    "docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/dependency-validation-gate-decision.json",
+    "docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/dependency-validation-gate-decision.md",
+    "scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs",
+    "scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs"
+  ],
+  "canonicalDecision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "internalRepairStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+  "validationClosure": "full_validation_passed_after_disk_space_closure",
+  "dependencyValidationGateDecision": "ready_for_review_after_validation_passed",
+  "nextPrompt": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "noScopeConfirmation": {
+    "gstreamer": "not_run",
+    "mkvtoolnix": "not_run",
+    "ffmpegFfprobe": "not_run",
+    "docker": "not_run",
+    "remotionBrowserRenderExport": "not_run",
+    "mediaProcessing": "not_run",
+    "privateUserRealMedia": "not_used",
+    "generatedSrtMkvMedia": "not_created",
+    "workersRoutesProviders": "not_run",
+    "supabaseSqlGcs": "not_touched",
+    "publicArtifactsSignedUrls": "not_created",
+    "betaProduction": "not_unlocked",
+    "rawPromptsSecrets": "not_used"
+  },
+  "protectedMutationReview": {
+    "packageLock": "unchanged",
+    "dockerfiles": "unchanged",
+    "dockerignore": "unchanged",
+    "runtimeSource": "unchanged",
+    "supabaseSql": "unchanged"
+  },
+  "supabaseClassification": {
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

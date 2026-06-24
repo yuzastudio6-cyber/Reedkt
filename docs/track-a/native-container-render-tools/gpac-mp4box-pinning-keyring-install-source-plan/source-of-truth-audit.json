@@ -1,0 +1,60 @@
+{
+  "prompt": "TRACKA-GPAC-MP4BOX-PINNING-KEYRING-INSTALL-SOURCE-PLAN-1",
+  "phase": "metadata_only_pinning_keyring_install_source_plan",
+  "sourceBranchBase": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "currentSourceSha": "b138140c17b1d9a80294122d9efdb42b7f955b03",
+  "requiredMinimumSourceSha": "1691a5cb93d7cfa8da76fecd8840f1e2f84174f7",
+  "reviewDate": "2026-06-24",
+  "pr729": {
+    "state": "MERGED",
+    "mergeCommit": "1691a5cb93d7cfa8da76fecd8840f1e2f84174f7",
+    "head": "919066ebe72b42c32f1212928df7d65fdcf48c60",
+    "decision": "tracka_gpac_mp4box_official_apt_repo_approval_passed_ready_for_pinning_keyring_install_source_plan",
+    "approvedSourceClass": "official_gpac_apt_repository"
+  },
+  "mergedPredecessors": {
+    "725": "5fe1c1cc83111ff671b44064c73391ea2180adba",
+    "723": "322fd01ee6cb46e5320360687966408b5c1e7d47",
+    "711": "03286b3b155fedffd5173239877e36a937998440",
+    "713": "c526f42fa428a4945b4d2a7b280cc00fa186923a",
+    "706": "a293ec57a304728b2ab4f731ab1fd58f5c9aaec8",
+    "702": "93d574f35f40eed1b7b8b87540201750b94df304",
+    "697": "702cf924db4c8c29688f8c9335ef08f147314bd9",
+    "690": "f85e8255902a8b753ee21fc61e5b6f94f0503ccd",
+    "693": "e357ca31906c1cfcad8ed36a941f81247d889297",
+    "682": "d1dfcdbee62971313f6d7b017ed61747ac9d2518",
+    "680": "41601b267d076534412b7e13c86bee32cac23f7b",
+    "673": "536d24bbe37763b8262e3b70dd8950e264482dfd",
+    "666": "5df02d3d5920f1329c5058e772fdcd669cb03824",
+    "662": "ba3d8d5850601a8effb4ec971cbefb0ff7f786a9",
+    "659": "535b6003606430df88e6905ecd2db36be19a9e8b",
+    "652": "a9256e97bcded71f7b72a611261471cdb5739a94"
+  },
+  "closedStaleContext": {
+    "701": "closed_without_merge_stale_context",
+    "708": "closed_without_merge_stale_context"
+  },
+  "excluded": {
+    "577": "#577 remains open/draft/blocked and excluded as source-of-truth"
+  },
+  "duplicates": {
+    "openDuplicatePinningKeyringInstallSourcePlanPr": false,
+    "openDuplicateOfficialAptInstallSourceExecutionPr": false
+  },
+  "absentDocsRecordedAsAuditFacts": [
+    "docs/cross-chat/CURRENT_HANDOFF.md",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md",
+    "docs/cross-chat/BLOCKED_SCOPES.md",
+    "PRODUCTION_FOUNDATION_STATUS.md"
+  ],
+  "noScope": {
+    "aptSourceMutation": "none",
+    "aptKeyImport": "none",
+    "aptUpdate": "not_run",
+    "packageInstall": "not_run",
+    "docker": "not_run",
+    "runtimeTools": "not_run",
+    "mediaProcessing": "not_run",
+    "supabase": "no write / environment none / SQL none / migration no"
+  }
+}

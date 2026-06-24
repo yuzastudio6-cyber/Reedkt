@@ -62,6 +62,18 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## Track A GPAC/MP4Box Pinning Keyring Install Source Plan
+
+`TRACKA-GPAC-MP4BOX-PINNING-KEYRING-INSTALL-SOURCE-PLAN-1` records decision `tracka_gpac_mp4box_pinning_keyring_install_source_plan_passed_ready_for_official_apt_install_source_execution`.
+
+GPAC/MP4Box remains not installed and not executed. The only selected future path is official GPAC APT `main` for `bookworm`, with source file `/etc/apt/sources.list.d/gpac.sources`, keyring `/usr/share/keyrings/gpac-archive-keyring.gpg`, preferences file `/etc/apt/preferences.d/gpac.pref`, package candidate `gpac`, and future install form `gpac=<candidate-version>`. Component `nightly` remains blocked and Bento4 remains `separate_not_selected_for_mp4box_command_path`.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-EXECUTION-1`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## Track A GPAC/MP4Box Official APT Repo Approval
 
 `TRACKA-GPAC-MP4BOX-OFFICIAL-APT-REPO-APPROVAL-1` records decision `tracka_gpac_mp4box_official_apt_repo_approval_passed_ready_for_pinning_keyring_install_source_plan`.

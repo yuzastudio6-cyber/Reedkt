@@ -1,0 +1,27 @@
+{
+  "futureRollbackPaths": [
+    "/etc/apt/sources.list.d/gpac.sources",
+    "/usr/share/keyrings/gpac-archive-keyring.gpg",
+    "/etc/apt/preferences.d/gpac.pref"
+  ],
+  "futureCleanup": [
+    "rm -rf /var/lib/apt/lists/*",
+    "remove temporary key download file",
+    "remove failed source or preferences files on failure"
+  ],
+  "futurePackageRollback": {
+    "ifInstalledInExecutionLane": "apt-get purge -y gpac followed by apt-get autoremove -y only if rollback is explicitly authorized",
+    "notApprovedNow": true
+  },
+  "failurePolicy": {
+    "keyMismatch": "block_and_remove_temp_key",
+    "sourceReleaseMissing": "block_and_remove_source_file",
+    "candidateUnexpected": "block_without_install",
+    "installFailure": "record_failure_and_request_followup"
+  },
+  "approvalBoundary": {
+    "rollbackExecutedNow": false,
+    "packagePurgeApprovedNow": false,
+    "filesystemMutationApprovedNow": false
+  }
+}

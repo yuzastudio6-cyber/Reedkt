@@ -1,0 +1,23 @@
+{
+  "keyEndpoint": "https://dist.gpac.io/gpac/linux/gpg.asc",
+  "observedEndpointSha256FromPr729": "c88993c228200dece139005eb28fec06b7f3933122fee5612a85d4cb5b94c7ad",
+  "futureKeyringPath": "/usr/share/keyrings/gpac-archive-keyring.gpg",
+  "keyImportMethod": "future_gpg_dearmor_only_no_apt_key",
+  "fingerprintPolicy": {
+    "requiredBeforeMutation": true,
+    "source": "future execution must derive and record fingerprint from fetched key before source mutation",
+    "failClosedIfMissingOrUnexpected": true
+  },
+  "rotationPolicy": {
+    "requiredBeforeMutation": true,
+    "unexpectedKeyChange": "block_and_request_owner_review"
+  },
+  "approvalBoundary": {
+    "keyFetchApproved": false,
+    "keyImportApproved": false,
+    "keyringWriteApproved": false,
+    "aptKeyApproved": false,
+    "runtimeApproved": false,
+    "productUseApproved": false
+  }
+}

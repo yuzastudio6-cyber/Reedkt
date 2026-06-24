@@ -1,0 +1,32 @@
+{
+  "futureTarget": "docker/prod/render-worker/Dockerfile",
+  "patchApprovedNow": false,
+  "proposalTextOnly": {
+    "installPrerequisites": "ca-certificates curl gnupg",
+    "keyringPath": "/usr/share/keyrings/gpac-archive-keyring.gpg",
+    "sourceFile": "/etc/apt/sources.list.d/gpac.sources",
+    "preferencesFile": "/etc/apt/preferences.d/gpac.pref",
+    "packageInstall": "gpac=<candidate-version>",
+    "cleanup": "rm -rf /var/lib/apt/lists/*"
+  },
+  "futureCommandCategories": [
+    "fetch key endpoint after fingerprint approval",
+    "write dearmored keyring",
+    "write Deb822 source file",
+    "write package-only preferences file",
+    "apt-get update",
+    "apt-cache policy gpac",
+    "apt-get install --no-install-recommends gpac=<candidate-version>",
+    "cleanup apt lists"
+  ],
+  "blockedNow": [
+    "Dockerfile mutation",
+    "apt source mutation",
+    "key import",
+    "apt update",
+    "package install",
+    "GPAC/MP4Box execution",
+    "media processing",
+    "runtime/product approval"
+  ]
+}

@@ -27,6 +27,20 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## Track A GPAC/MP4Box Pinning Keyring Install Source Plan
+
+`TRACKA-GPAC-MP4BOX-PINNING-KEYRING-INSTALL-SOURCE-PLAN-1` is metadata-only and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_pinning_keyring_install_source_plan_passed_ready_for_official_apt_install_source_execution`.
+
+The official GPAC APT source remains `official_gpac_apt_repository` with repository `https://dist.gpac.io/gpac/linux/debian`, codename `bookworm`, component `main`, blocked component `nightly`, key endpoint `https://dist.gpac.io/gpac/linux/gpg.asc`, keyring path `/usr/share/keyrings/gpac-archive-keyring.gpg`, source file `/etc/apt/sources.list.d/gpac.sources`, preferences file `/etc/apt/preferences.d/gpac.pref`, and package candidate `gpac`.
+
+This phase approves only the next bounded official APT install-source execution gate. It does not approve apt source mutation, apt key import, apt update, package install, Dockerfile mutation, requirements mutation, package-lock mutation, runtime source mutation, GPAC/MP4Box execution, media processing, or product/runtime use.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-EXECUTION-1`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## Track A GPAC/MP4Box Owner Source Classification
 
 `TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1` is metadata-only and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_owner_source_classification_passed_ready_for_official_gpac_apt_repo_approval`.

@@ -1,0 +1,44 @@
+{
+  "milestone": "TRACKA-POST-PR706-PR708-METADATA-RECONCILIATION-1",
+  "baseHead": "a293ec57a304728b2ab4f731ab1fd58f5c9aaec8",
+  "decision": "tracka_post_pr706_pr708_metadata_reconciliation_passed_pr708_context_preserved_ready_for_stale_pr_close_prompt",
+  "liveReadback": {
+    "pr708": {
+      "state": "OPEN",
+      "draft": false,
+      "mergeStateStatus": "DIRTY",
+      "head": "59dea660c547fa0d8756372ab92cec2a2c72804c",
+      "directMergeAllowed": false
+    },
+    "pr706": {
+      "state": "MERGED",
+      "mergedAt": "2026-06-24T15:47:47Z",
+      "mergeCommit": "a293ec57a304728b2ab4f731ab1fd58f5c9aaec8",
+      "decision": "blocked_no_safe_package_source_policy_available"
+    },
+    "pr701": {
+      "state": "OPEN",
+      "draft": false,
+      "mergeStateStatus": "DIRTY",
+      "head": "6c75dd02a2ff090428912efa1df88ee6835bbca4",
+      "directMergeAllowed": false
+    }
+  },
+  "predecessorsMerged": [
+    702,
+    697,
+    690,
+    693,
+    682,
+    680,
+    673,
+    666,
+    662,
+    659,
+    652
+  ],
+  "absentAuditFacts": {
+    "docsCrossChat": "absent",
+    "productionFoundationStatus": "absent"
+  }
+}

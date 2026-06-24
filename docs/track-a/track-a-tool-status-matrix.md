@@ -32,6 +32,20 @@ Status vocabulary: `not_started`, `policy_only`, `generated_fixture_done`, `real
 
 Current Track A routing source-of-truth is the merged TOOL-STUDY-0 contract plus TOOL-ROUTE-1 and TOOL-ROUTE-2 planning evidence. Historical visual/video activation PRs provide important evidence, but most remain stacked on older phase branches and need retargeting, superseded closure, or visual review before they can be merged into the current integration branch.
 
+## Post-PR706 PR708 Metadata Reconciliation
+
+`TRACKA-POST-PR706-PR708-METADATA-RECONCILIATION-1` records decision `tracka_post_pr706_pr708_metadata_reconciliation_passed_pr708_context_preserved_ready_for_stale_pr_close_prompt`.
+
+PR #706 remains package-source-policy source-of-truth with `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1 decision: blocked_no_safe_package_source_policy_available` at merge commit `a293ec57a304728b2ab4f731ab1fd58f5c9aaec8`. PR #708 remains open/dirty/stale at `59dea660c547fa0d8756372ab92cec2a2c72804c` and should not merge directly. PR #701 remains open/dirty/stale at `6c75dd02a2ff090428912efa1df88ee6835bbca4` and should not merge directly.
+
+Preserved context: PR #708 preserved PR #701 context after PR #702; the pushed post-PR690 branch classification `superseded_by_pr697_context_only_no_reconciliation_required` remains source truth; PR #701 and PR #708 may be closed later only by `TRACKA-CLOSE-STALE-PR701-PR708-AFTER-POST-PR706-RECONCILIATION`.
+
+Tool status remains unchanged: GPAC/MP4Box remains `blocked_gpac_mp4box_package_source_unavailable`; VapourSynth remains `blocked_core_vapoursynth_package_source_unavailable` plus `blocked_vapoursynth_native_plugin_policy_not_satisfied`; Revideo remains `evaluation_only_non_core_owner_approval_required_before_install_source`; Hyperframe remains `handoff_only_no_install_source_change`; GStreamer/MKVToolNix remain `qa_passed_controlled_generated_private_fixture_execution_evidence`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## No-Scope Statement
 
 No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.

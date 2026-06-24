@@ -1,0 +1,10 @@
+{
+  "readyForNextPrompt": true,
+  "nextPrompt": "TRACKA-CLOSE-STALE-PR701-PR708-AFTER-POST-PR706-RECONCILIATION",
+  "directMergeOfPr708Required": false,
+  "directMergeOfPr701Required": false,
+  "runtimeReady": false,
+  "betaReady": false,
+  "productionReady": false,
+  "productReadyLocalOssTools": 0
+}

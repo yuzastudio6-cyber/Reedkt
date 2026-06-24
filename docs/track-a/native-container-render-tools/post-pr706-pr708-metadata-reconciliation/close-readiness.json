@@ -1,0 +1,14 @@
+{
+  "decision": "tracka_post_pr706_pr708_metadata_reconciliation_passed_pr708_context_preserved_ready_for_stale_pr_close_prompt",
+  "pr701": {
+    "state": "open_dirty_stale",
+    "mayBeClosedLaterBySeparatePrompt": true,
+    "closeInThisPhase": false
+  },
+  "pr708": {
+    "state": "open_dirty_stale",
+    "mayBeClosedLaterBySeparatePrompt": true,
+    "closeInThisPhase": false
+  },
+  "nextPrompt": "TRACKA-CLOSE-STALE-PR701-PR708-AFTER-POST-PR706-RECONCILIATION"
+}

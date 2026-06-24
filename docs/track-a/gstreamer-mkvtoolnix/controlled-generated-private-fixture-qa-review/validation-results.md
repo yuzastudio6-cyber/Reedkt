@@ -8,7 +8,7 @@ Dependency validation result: `blocked`
 
 Dependency validation current attempt: `not_run_disk_space_below_threshold`
 
-Dependency validation reason: local `/Volumes/backup` has only about `9.4GiB` free, below the required `25GiB` threshold for retrying `npm ci`.
+Dependency validation reason: local `/Volumes/backup` has only about `9.6GiB` free, below the required `25GiB` threshold for retrying `npm ci`.
 
 Prior dependency validation failure: local host returned repeated `ENOSPC: no space left on device` tar extraction errors during `npm ci`; partial generated `node_modules` state was removed and is not committed.
 

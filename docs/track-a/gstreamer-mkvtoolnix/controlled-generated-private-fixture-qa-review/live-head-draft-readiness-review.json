@@ -9,7 +9,7 @@
   "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
   "baseSha": "41601b267d076534412b7e13c86bee32cac23f7b",
   "headBranch": "codex/rp-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1",
-  "liveHead": "9d1d0248fadc2335870133be406765f7222469fe",
+  "liveHead": "6e3d90c2e7065a7bc41c694ab80806b10c9bc722",
   "canonicalDecision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
   "internalRepairStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
   "canonicalDecisionStatus": "restored_as_source_of_truth",

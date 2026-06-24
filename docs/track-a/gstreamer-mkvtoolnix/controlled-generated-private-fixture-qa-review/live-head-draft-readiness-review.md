@@ -1,6 +1,6 @@
 # PR #682 Live-Head Draft Readiness Review
 
-live head: `9d1d0248fadc2335870133be406765f7222469fe`
+live head: `6e3d90c2e7065a7bc41c694ab80806b10c9bc722`
 
 Draft decision: `kept_draft`
 

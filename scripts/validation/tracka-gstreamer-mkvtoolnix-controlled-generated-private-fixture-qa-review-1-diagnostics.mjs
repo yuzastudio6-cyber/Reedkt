@@ -129,7 +129,7 @@ const requiredText = [
   decision,
   internalRepairStatus,
   validationBlocker,
-  'live head: `9d1d0248fadc2335870133be406765f7222469fe`',
+  'live head: `6e3d90c2e7065a7bc41c694ab80806b10c9bc722`',
   'Draft decision: `kept_draft`',
   'Validation status: `blocked_host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`',
   'Dependency validation current attempt: `not_run_disk_space_below_threshold`',
@@ -321,7 +321,7 @@ if (readiness.validationStatus !== `blocked_${validationBlocker}`) fail('readine
 if (readiness.dependencyValidation !== 'blocked') fail('readiness report dependency validation must be blocked')
 
 const liveHeadReview = JSON.parse(read(`${packetDir}/live-head-draft-readiness-review.json`))
-if (liveHeadReview.liveHead !== '9d1d0248fadc2335870133be406765f7222469fe') fail('live-head readiness review head drift')
+if (liveHeadReview.liveHead !== '6e3d90c2e7065a7bc41c694ab80806b10c9bc722') fail('live-head readiness review head drift')
 if (liveHeadReview.draftDecision !== 'kept_draft') fail('live-head readiness review must keep PR draft')
 if (liveHeadReview.canonicalDecision !== decision) fail('live-head readiness review canonical decision drift')
 if (liveHeadReview.internalRepairStatus !== internalRepairStatus) fail('live-head readiness review internal repair status drift')

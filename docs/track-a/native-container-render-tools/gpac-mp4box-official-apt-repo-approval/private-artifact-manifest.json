@@ -1,0 +1,13 @@
+{
+  "privateArtifacts": [],
+  "publicArtifacts": [],
+  "signedUrls": [],
+  "mediaArtifacts": [],
+  "generatedOutputsCommitted": [],
+  "runtimeOutputs": [],
+  "notes": [
+    "Metadata-only review.",
+    "No GPAC/MP4Box execution.",
+    "No apt source, key, package, Dockerfile, requirements, package-lock, runtime source, Supabase, GCS, public artifact, or signed URL mutation."
+  ]
+}

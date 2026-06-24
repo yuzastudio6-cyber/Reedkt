@@ -608,6 +608,7 @@
     "tracka:film-frame-interpolation-scope-decision-1:diagnostics": "node scripts/validation/tracka-film-frame-interpolation-scope-decision-1-diagnostics.mjs",
     "tracka:gpac-mp4box-owner-environment-followup:diagnostics": "node scripts/validation/tracka-gpac-mp4box-owner-environment-followup-diagnostics.mjs",
     "tracka:gpac-mp4box-owner-source-classification-request:diagnostics": "node scripts/validation/tracka-gpac-mp4box-owner-source-classification-request-diagnostics.mjs",
+    "tracka:gpac-mp4box-official-apt-repo-approval:diagnostics": "node scripts/validation/tracka-gpac-mp4box-official-apt-repo-approval-diagnostics.mjs",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",
     "track-a:visual-review-packet:diagnostics": "node scripts/validation/track-a-visual-review-packet-diagnostics.mjs",

@@ -1,0 +1,32 @@
+{
+  "blockedAlternatives": [
+    {
+      "name": "nightly component",
+      "status": "blocked_separate_approval_required"
+    },
+    {
+      "name": "Debian sid native package path",
+      "status": "blocked_not_selected_for_bookworm_render_worker"
+    },
+    {
+      "name": "Debian bullseye native package path",
+      "status": "blocked_not_selected_for_bookworm_render_worker"
+    },
+    {
+      "name": "random binary downloads",
+      "status": "blocked"
+    },
+    {
+      "name": "source build",
+      "status": "blocked"
+    },
+    {
+      "name": "Bento4 fallback",
+      "status": "separate_not_selected_for_mp4box_command_path"
+    }
+  ],
+  "vapoursynth": "separate_blocked_pending_owner_environment_source_approval",
+  "revideo": "evaluation_only_owner_gated",
+  "hyperframe": "handoff_only",
+  "gstreamerMkvtoolnix": "qa_accepted_bounded_generated_fixture_evidence_not_rerun"
+}

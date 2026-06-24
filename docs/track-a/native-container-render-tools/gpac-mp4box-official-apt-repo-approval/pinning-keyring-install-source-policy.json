@@ -1,0 +1,31 @@
+{
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-PINNING-KEYRING-INSTALL-SOURCE-PLAN-1",
+  "requiresBeforeExecution": [
+    "exact repository URI",
+    "codename bookworm",
+    "component main only",
+    "key endpoint and fingerprint review",
+    "keyring path",
+    "Signed-By source stanza",
+    "apt package pinning",
+    "package version selection",
+    "architecture policy",
+    "rollback policy",
+    "Dockerfile patch scope",
+    "no media and no runtime execution guardrails"
+  ],
+  "explicitlyNotApproved": [
+    "apt source mutation",
+    "apt key import",
+    "apt update",
+    "apt install gpac",
+    "Dockerfile mutation",
+    "requirements mutation",
+    "package-lock mutation",
+    "runtime source mutation",
+    "GPAC execution",
+    "MP4Box execution",
+    "product use"
+  ],
+  "passDecision": "tracka_gpac_mp4box_official_apt_repo_approval_passed_ready_for_pinning_keyring_install_source_plan"
+}

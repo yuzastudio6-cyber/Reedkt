@@ -1,0 +1,43 @@
+{
+  "sourceClass": "official_gpac_apt_repository",
+  "officialDocs": "https://gpac.io/downloads/gpac-nightly-builds/",
+  "docsReview": {
+    "supportedDebianCodename": "bookworm",
+    "packageCandidate": "gpac",
+    "developmentPackageCandidate": "libgpac-dev",
+    "stableComponentSupported": true,
+    "nightlyComponentAvailableButBlocked": true
+  },
+  "repository": {
+    "uri": "https://dist.gpac.io/gpac/linux/debian",
+    "releaseEndpoint": "https://dist.gpac.io/gpac/linux/debian/dists/bookworm/Release",
+    "releaseEndpointStatus": "HTTP 200",
+    "releaseSha256": "18bce363dc74f1bd13e9af5fa71545d470605134359e1be79339388c4f246ff1",
+    "origin": "https://dist.gpac.io",
+    "codename": "bookworm",
+    "components": [
+      "main",
+      "nightly"
+    ],
+    "selectedComponent": "main",
+    "blockedComponent": "nightly",
+    "architectures": [
+      "amd64",
+      "i386",
+      "armhf",
+      "arm64"
+    ],
+    "mainAmd64PackagesEndpoint": "https://dist.gpac.io/gpac/linux/debian/dists/bookworm/main/binary-amd64/Packages",
+    "mainAmd64PackagesSha256": "565259a5111d6294b6ee93a979677eeab55ca23f4e7e0266af711aaffb036a04"
+  },
+  "approvalBoundary": {
+    "repoSourceClassApprovedForFuturePlanning": true,
+    "installSourcePlanRequiredBeforeMutation": true,
+    "aptSourceMutationApproved": false,
+    "aptKeyImportApproved": false,
+    "aptUpdateApproved": false,
+    "packageInstallApproved": false,
+    "runtimeApproved": false,
+    "productUseApproved": false
+  }
+}

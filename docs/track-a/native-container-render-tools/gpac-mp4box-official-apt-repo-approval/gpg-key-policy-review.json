@@ -1,0 +1,14 @@
+{
+  "keyEndpoint": "https://dist.gpac.io/gpac/linux/gpg.asc",
+  "status": "HTTP 200",
+  "contentType": "application/pgp-keys",
+  "contentLength": 612,
+  "sha256": "c88993c228200dece139005eb28fec06b7f3933122fee5612a85d4cb5b94c7ad",
+  "acceptedForFutureKeyringPlanningOnly": true,
+  "keyImportApproved": false,
+  "keyringPathApproved": false,
+  "fingerprintPolicyRequiredBeforeMutation": true,
+  "signedByPolicyRequiredBeforeMutation": true,
+  "rotationPolicyRequiredBeforeMutation": true,
+  "rollbackPolicyRequiredBeforeMutation": true
+}

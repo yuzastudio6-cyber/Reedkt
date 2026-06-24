@@ -1,0 +1,59 @@
+{
+  "productReadyEndToEndLocalOssTools": 0,
+  "tools": {
+    "gstreamer_render_pipeline_support": {
+      "installSource": "declared_by_601",
+      "buildMetadataProof": "completed_by_609",
+      "noMediaRuntimeProof": "completed_by_649",
+      "controlledSyntheticFixtureProof": "completed_by_652",
+      "privateFixtureScopeDecision": "completed_by_659",
+      "postMergeSafetyClosure": "completed_by_667",
+      "privateFixtureApproval": "completed_by_662_and_reconciled_by_675",
+      "privateFixturePlan": "completed_by_666",
+      "controlledGeneratedPrivateFixtureExecution": "completed_by_673",
+      "executionPacketReconciliation": "completed_by_680",
+      "qaReview": "completed_by_682",
+      "rollupStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "readiness": "ready_for_tracka_native_container_install_proof_3_and_future_private_e2e_planning"
+    },
+    "mkvtoolnix_container_validation": {
+      "installSource": "declared_by_601",
+      "buildMetadataProof": "completed_by_609",
+      "noMediaRuntimeProof": "completed_by_649",
+      "controlledSyntheticFixtureProof": "completed_by_652",
+      "privateFixtureScopeDecision": "completed_by_659",
+      "postMergeSafetyClosure": "completed_by_667",
+      "privateFixtureApproval": "completed_by_662_and_reconciled_by_675",
+      "privateFixturePlan": "completed_by_666",
+      "controlledGeneratedPrivateFixtureExecution": "completed_by_673",
+      "executionPacketReconciliation": "completed_by_680",
+      "qaReview": "completed_by_682",
+      "rollupStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "readiness": "ready_for_tracka_native_container_install_proof_3_and_future_private_e2e_planning"
+    },
+    "bento4_mp4box_packaging_validation": {
+      "identityDecision": "resolved_mp4box_provider_gpac_ready_for_future_install_proof",
+      "readiness": "ready_for_tracka_native_container_install_proof_3"
+    },
+    "vapoursynth_frame_pipeline": {
+      "identityDecision": "resolved_vapoursynth_native_policy_ready_for_future_install_proof",
+      "readiness": "ready_for_tracka_native_container_install_proof_3"
+    },
+    "revideo_render_preview_alternative": {
+      "identityDecision": "resolved_revideo_package_identity_ready_for_future_install_proof",
+      "status": "evaluation_only_non_core",
+      "readiness": "owner_approval_required_before_install_source"
+    },
+    "hyperframe_render_handoff": {
+      "status": "handoff_only_no_install_source_change"
+    },
+    "shared_dependency_ffmpeg_trackb_owned": {
+      "execution": "not_run_in_accepted_source_evidence",
+      "coordinationRequiredForFutureUse": true
+    },
+    "shared_dependency_ffprobe_trackb_owned": {
+      "execution": "not_run_in_accepted_source_evidence",
+      "coordinationRequiredForFutureUse": true
+    }
+  }
+}

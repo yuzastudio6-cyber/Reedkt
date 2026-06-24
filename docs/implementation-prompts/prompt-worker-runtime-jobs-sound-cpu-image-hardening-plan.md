@@ -4,9 +4,15 @@
 {
   "prompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-IMAGE-HARDENING-PLAN",
   "title": "Plan image hardening, no Docker build",
-  "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1J",
+  "sourceMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKER-BUILD-PROOF-OWNER-REVIEW",
   "requiredGate1JDecision": "sound_runtime_media_gate_1j_controlled_docker_build_proof_passed_with_warnings_ready_for_build_proof_owner_review",
-  "purpose": "Plan follow-up image-hardening work from the controlled local Gate 1J build proof. This prompt must not run Docker build, Docker run, Docker push, GCP, workers, routes, tools, media, Supabase, SQL, or artifact operations.",
+  "requiredBuildProofOwnerReviewDecision": "worker_runtime_jobs_sound_cpu_docker_build_proof_owner_review_passed_with_warnings_ready_for_image_hardening_plan",
+  "requiredBuildProofOwnerReviewEvidence": [
+    "docs/worker-runtime-jobs-sound-cpu-docker-build-proof-owner-review.md",
+    "docs/worker-runtime-jobs-sound-cpu-docker-build-proof-acceptance-register.md",
+    "docs/worker-runtime-jobs-sound-cpu-image-hardening-readiness-register.md"
+  ],
+  "purpose": "Plan follow-up image-hardening work from the controlled local Gate 1J build proof after WORKER_RUNTIME_JOBS owner review. This prompt must not run Docker build, Docker run, Docker push, GCP, workers, routes, tools, media, Supabase, SQL, or artifact operations.",
   "hardeningInputs": {
     "dockerfilePath": "server/workers/sound-cpu/Dockerfile",
     "baseImage": "python:3.13-slim",

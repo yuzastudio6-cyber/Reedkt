@@ -31,7 +31,7 @@
   "validationBlocker": "host_resource_limit_no_space_left_on_device_requires_larger_validation_environment",
   "dependencyValidation": "blocked",
   "dependencyValidationCurrentAttempt": "not_run_disk_space_below_threshold",
-  "dependencyValidationDiskFree": "9.6GiB",
+  "dependencyValidationDiskFree": "21GiB",
   "dependencyValidationRequiredDiskFree": "25GiB",
   "dependencyValidationFailure": "requires larger validation environment before npm ci retry",
   "prReviewState": "draft_pending_larger_validation_environment"

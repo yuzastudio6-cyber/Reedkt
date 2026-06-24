@@ -48,6 +48,10 @@ Track A native/container package source owner/environment review decision: `TRAC
 
 Track A native/container package source owner decision: `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1 decision: blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth`.
 
+Track A FILM frame interpolation scope decision: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 decision: blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination`.
+
+FILM readiness: `blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination`; model weights `not_accessed`; runtime `not_run`; AI Graphics / Worker coordination `required`.
+
 GPAC/MP4Box readiness: `blocked_gpac_mp4box_package_source_unavailable`.
 
 GPAC/MP4Box owner/environment readiness: `blocked_pending_owner_environment_package_source_approval`.

@@ -1,0 +1,43 @@
+{
+  "phase": "TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1",
+  "decision": "blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination",
+  "execution": "completed_docs_only_scope_decision_no_install_or_runtime",
+  "productReadyEndToEndLocalOssTools": 0,
+  "integrationHead": "03286b3b155fedffd5173239877e36a937998440",
+  "sourceChain": {
+    "ownerRegistry": "#544",
+    "toolInventory": "#547",
+    "latestOwnerDecision": "#717",
+    "latestOwnerDecisionMergeSha": "aeed9cfe534c88e0c91546d20873eed6a2e04b2c",
+    "historicalFilmPrs": ["#54", "#55", "#58"],
+    "excludedPrs": ["#577"]
+  },
+  "film": {
+    "capability": "film_frame_interpolation",
+    "owner": "atlas_tracka_scoped_capability_label_only",
+    "implementation": "blocked_pending_gpu_heavy_runtime_policy",
+    "installSource": "not_changed",
+    "runtime": "not_run",
+    "modelWeights": "not_accessed",
+    "gpuRequirement": "expected_gpu_heavy",
+    "aiGraphicsCoordination": "required",
+    "trackBFFmpegFFprobeCoordination": "required_for_future_media_evidence_only_if_needed",
+    "installProofReadiness": "blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination",
+    "runtimeProofReadiness": "blocked_pending_gpu_heavy_runtime_policy_and_model_weight_policy"
+  },
+  "supabase": {
+    "updateStatus": "not_applicable_docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextAction": "none"
+  },
+  "repoMutation": {
+    "packageLock": "unchanged",
+    "generatedArtifactsCommitted": "none",
+    "dockerfileInstallSourceChange": "none",
+    "requirementsInstallSourceChange": "none",
+    "packageInstallation": "none",
+    "dependencyMutation": "none"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "phase": "TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1",
+  "aiGraphicsWorkerCoordination": "required",
+  "trackBFFmpegFFprobeCoordination": "required_for_future_media_evidence_only_if_needed",
+  "futurePrompts": [
+    "TRACKA-FILM-FRAME-INTERPOLATION-GPU-POLICY-REVIEW-1",
+    "TRACKA-AI-GRAPHICS-FILM-COORDINATION-1"
+  ],
+  "runtime": "not_run",
+  "modelWeights": "not_accessed",
+  "productReadyEndToEndLocalOssTools": 0
+}

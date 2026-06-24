@@ -1,0 +1,14 @@
+{
+  "renderWorkerBase": "node:24-bookworm",
+  "pythonBaseline": "Debian bookworm python3 3.11.2",
+  "gpacSourceFinding": "no_current_owner_approved_bookworm_source_class",
+  "knownBlockedFindings": [
+    "Debian source search showed exact source package gpac only in bullseye in prior evidence",
+    "Debian sid gpac is not a stable bookworm package source for this repo base",
+    "GPAC downloads do not provide a clean owner-approved current render-worker package source in committed source truth"
+  ],
+  "compatibilityDecision": "blocked_no_owner_environment_source_approval_for_gpac_mp4box",
+  "dockerfilePatch": "none",
+  "requirementsPatch": "none",
+  "packageLockPatch": "none"
+}

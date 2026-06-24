@@ -62,6 +62,20 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## Track A GPAC/MP4Box Owner/Environment Follow-Up
+
+`TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-OWNER-ENVIRONMENT-FOLLOWUP-1` records decision `tracka_gpac_mp4box_owner_environment_followup_blocked_no_owner_environment_source_approval`.
+
+GPAC/MP4Box install and runtime scope remains blocked as `blocked_no_owner_environment_source_approval_for_gpac_mp4box`. The allowed future source remains `none_until_owner_environment_source_approval`, and the next gate is `TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1`.
+
+Bento4 remains `separate_not_selected_for_mp4box_command_path`; this follow-up does not switch MP4Box ownership or approve Bento4 execution. PR #701 and PR #708 are closed without merge and remain stale context only. #577 remains open/draft/blocked and excluded as source-of-truth.
+
+No GPAC/MP4Box execution, Bento4 execution, VapourSynth execution, Revideo execution, Hyperframe execution, GStreamer execution, MKVToolNix execution, FFmpeg/FFprobe execution, Docker build/run, package install, dependency mutation, media processing, Supabase/SQL/GCS, public artifact, signed URL, beta, or production scope was enabled.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. Supabase classification: no write / environment none / SQL none / migration no.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## No-Scope Statement
 
 No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.

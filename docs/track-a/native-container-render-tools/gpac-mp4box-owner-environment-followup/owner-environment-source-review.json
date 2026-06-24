@@ -1,0 +1,21 @@
+{
+  "toolRow": "bento4_mp4box_packaging_validation",
+  "selectedProvider": "GPAC/MP4Box",
+  "identityDecision": "resolved_mp4box_provider_gpac_ready_for_future_install_proof",
+  "ownerEnvironmentFollowupDecision": "tracka_gpac_mp4box_owner_environment_followup_blocked_no_owner_environment_source_approval",
+  "priorOwnerEnvironmentDecision": "blocked_no_owner_environment_package_source_approval",
+  "priorOwnerDecision": "blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth",
+  "gpacMp4boxStatus": "blocked_no_owner_environment_source_approval_for_gpac_mp4box",
+  "allowedFutureInstallSource": "none_until_owner_environment_source_approval",
+  "approvedSourceClasses": [],
+  "blockedSourceClasses": [
+    "render_worker_debian_bookworm_os_package",
+    "render_worker_bookworm_backports_os_package_owner_approved",
+    "owner_approved_pinned_official_gpac_source_build_plan",
+    "third_party_repository_without_owner_environment_source_approval",
+    "binary_download_without_owner_environment_source_approval"
+  ],
+  "runtimeExecution": "not_run",
+  "packageInstallation": "none",
+  "dependencyMutation": "none"
+}

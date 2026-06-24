@@ -567,7 +567,8 @@
     "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-diagnostics.mjs",
     "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-approval-diagnostics.mjs",
     "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-qa-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-approval-qa-diagnostics.mjs",
-    "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-handoff-diagnostics.mjs"
+    "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-handoff-diagnostics.mjs",
+    "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-qa-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-handoff-qa-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

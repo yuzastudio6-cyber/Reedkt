@@ -1,0 +1,113 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_qa_passed_with_warnings",
+  "qaAccepted": true,
+  "proofStatusMappingAccepted": true,
+  "sourceProofStatusDecision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_review_passed_with_warnings",
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "transformers",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "sam2",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "kornia",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "rembg",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "d3",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "echarts",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "vega",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "satori",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "animejs",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "three_js",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "konva",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "proofStatusQaAccepted": true,
+      "executionApprovedNow": false
+    }
+  ]
+}

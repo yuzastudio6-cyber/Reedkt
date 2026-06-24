@@ -1,0 +1,24 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_qa_passed_with_warnings",
+  "qaAccepted": true,
+  "blockedUse": {
+    "toolExecution": false,
+    "toolRouteExecution": false,
+    "workerExecution": false,
+    "providerModelExecution": false,
+    "browserWebglCanvasRuntime": false,
+    "gpuModelRuntime": false,
+    "modelWeightDownload": false,
+    "mediaProcessing": false,
+    "supabaseMutation": false,
+    "sqlMutation": false,
+    "gcsUpload": false,
+    "signedUrl": false,
+    "publicArtifact": false,
+    "internalBeta": false,
+    "externalBeta": false,
+    "production": false
+  },
+  "sourceBlockedUseDecision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_review_passed_with_warnings",
+  "blockedUseRegisterQaAccepted": true
+}

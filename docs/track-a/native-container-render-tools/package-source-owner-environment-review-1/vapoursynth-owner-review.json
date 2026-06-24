@@ -1,0 +1,17 @@
+{
+  "toolRow": "vapoursynth_frame_pipeline",
+  "policyDecision": "resolved_vapoursynth_native_policy_ready_for_future_install_proof",
+  "scope": "core_vapoursynth_only_plugins_excluded",
+  "packageSourcePolicyStatus": "blocked_core_vapoursynth_package_source_policy_not_approved",
+  "pluginStatus": "plugins_not_installed_separate_review_required",
+  "installSourceStatus": "not_changed_in_this_phase",
+  "runtimeExecution": "not_run",
+  "readiness": "blocked_pending_owner_environment_package_source_approval",
+  "approvedSources": [],
+  "blockedSources": [
+    "render_worker_debian_bookworm_os_package",
+    "render_worker_bookworm_backports_os_package_owner_approved",
+    "owner_approved_core_vapoursynth_python_package_with_native_dependency_plan",
+    "owner_approved_pinned_official_vapoursynth_source_build_plan"
+  ]
+}

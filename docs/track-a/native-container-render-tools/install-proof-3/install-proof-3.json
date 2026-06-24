@@ -1,0 +1,51 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3",
+  "decision": "blocked_no_safe_resolved_identity_install_source_available",
+  "execution": "completed_docs_only_blocked_install_source_review",
+  "base": {
+    "integrationHead": "f85e8255902a8b753ee21fc61e5b6f94f0503ccd",
+    "containsMerge": {
+      "pr": 693,
+      "mergeSha": "e357ca31906c1cfcad8ed36a941f81247d889297"
+    }
+  },
+  "toolStatus": {
+    "bento4_mp4box_packaging_validation": "blocked_gpac_mp4box_package_source_unavailable",
+    "vapoursynth_frame_pipeline": [
+      "blocked_core_vapoursynth_package_source_unavailable",
+      "blocked_vapoursynth_native_plugin_policy_not_satisfied"
+    ],
+    "revideo_render_preview_alternative": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "hyperframe_render_handoff": "handoff_only_no_install_source_change",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "sourceChanges": {
+    "dockerfileChanged": false,
+    "packageLockChanged": false,
+    "packageDependenciesChanged": false,
+    "pythonRequirementsChanged": false,
+    "runtimeSourceChanged": false
+  },
+  "executionInThisPhase": {
+    "gstreamer": false,
+    "mkvtoolnix": false,
+    "gpacMp4box": false,
+    "vapoursynth": false,
+    "revideo": false,
+    "ffmpeg": false,
+    "ffprobe": false,
+    "docker": false,
+    "remotion": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "packageInstallation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  },
+  "nextMilestone": "package-source resolution follow-up before TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-4",
+  "excludedSource": {
+    "pr577": "open_draft_blocked_excluded"
+  }
+}

@@ -16,6 +16,8 @@ Package-source resolution context: `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-RESOL
 
 Package-source policy review context: `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1 decision: blocked_no_safe_package_source_policy_available`
 
+Owner/environment package-source review context: `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1 decision: blocked_no_owner_environment_package_source_approval`
+
 This prompt remains planning-only.
 
 Package identity context: #624 records GPAC/MP4Box, core VapourSynth, and Revideo evaluation identity as resolved for future planning only. Install-Proof-3, Package-Source-Resolution-Batch-1, and Package-Source-Policy-Review-1 did not add GPAC/MP4Box, VapourSynth, or Revideo install-source declarations. FILM remains separate and must not inherit those approvals.

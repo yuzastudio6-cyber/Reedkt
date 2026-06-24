@@ -44,9 +44,15 @@ Track A native/container package source resolution Batch-1 decision: `blocked_no
 
 Track A native/container package source policy review decision: `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1 decision: blocked_no_safe_package_source_policy_available`.
 
+Track A native/container package source owner/environment review decision: `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1 decision: blocked_no_owner_environment_package_source_approval`.
+
 GPAC/MP4Box readiness: `blocked_gpac_mp4box_package_source_unavailable`.
 
+GPAC/MP4Box owner/environment readiness: `blocked_pending_owner_environment_package_source_approval`.
+
 VapourSynth readiness: `blocked_core_vapoursynth_package_source_unavailable`; `blocked_vapoursynth_native_plugin_policy_not_satisfied`.
+
+VapourSynth owner/environment readiness: `blocked_pending_owner_environment_package_source_approval`.
 
 Revideo readiness: `evaluation_only_non_core_owner_approval_required_before_install_source`.
 

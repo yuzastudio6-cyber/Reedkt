@@ -1,0 +1,46 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1",
+  "rows": {
+    "bento4_mp4box_packaging_validation": {
+      "identityDecision": "resolved_mp4box_provider_gpac_ready_for_future_install_proof",
+      "provider": "GPAC/MP4Box",
+      "packageSourcePolicyStatus": "blocked_gpac_mp4box_package_source_policy_not_approved",
+      "allowedFutureInstallSource": "none_until_owner_environment_approval",
+      "bento4Status": "separate_not_selected_for_mp4box_command_path",
+      "installSourceStatus": "not_changed_in_this_phase",
+      "runtimeExecution": "not_run",
+      "readiness": "blocked_pending_owner_environment_package_source_approval"
+    },
+    "vapoursynth_frame_pipeline": {
+      "policyDecision": "resolved_vapoursynth_native_policy_ready_for_future_install_proof",
+      "scope": "core_vapoursynth_only_plugins_excluded",
+      "packageSourcePolicyStatus": "blocked_core_vapoursynth_package_source_policy_not_approved",
+      "pluginStatus": "plugins_not_installed_separate_review_required",
+      "installSourceStatus": "not_changed_in_this_phase",
+      "runtimeExecution": "not_run",
+      "readiness": "blocked_pending_owner_environment_package_source_approval"
+    },
+    "revideo_render_preview_alternative": {
+      "status": "evaluation_only_non_core_owner_approval_required_before_install_source",
+      "installSourceStatus": "not_changed_owner_approval_required",
+      "runtimeExecution": "not_run",
+      "readiness": "blocked_pending_owner_approval"
+    },
+    "hyperframe_render_handoff": {
+      "status": "handoff_only_no_install_source_change",
+      "installSourceStatus": "not_changed_handoff_only",
+      "runtimeExecution": "not_run"
+    },
+    "gstreamer_render_pipeline_support": {
+      "status": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "installSourceStatus": "already_completed",
+      "runtimeExecution": "not_run_in_this_phase"
+    },
+    "mkvtoolnix_container_validation": {
+      "status": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "installSourceStatus": "already_completed",
+      "runtimeExecution": "not_run_in_this_phase"
+    }
+  },
+  "productReadyEndToEndLocalOssTools": 0
+}

@@ -4,18 +4,23 @@ import fs from 'node:fs'
 
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
-const packetDir = 'docs/track-a/native-container-render-tools/package-source-policy-review-1'
+const packetDir = 'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1'
 const requiredFiles = [
-  `${packetDir}/package-source-policy-review-1.md`,
-  `${packetDir}/package-source-policy-review-1.json`,
+  `${packetDir}/package-source-owner-environment-review-1.md`,
+  `${packetDir}/package-source-owner-environment-review-1.json`,
   `${packetDir}/source-of-truth-audit.md`,
-  `${packetDir}/source-policy-review.md`,
+  `${packetDir}/source-of-truth-audit.json`,
+  `${packetDir}/gpac-mp4box-owner-review.md`,
+  `${packetDir}/gpac-mp4box-owner-review.json`,
+  `${packetDir}/vapoursynth-owner-review.md`,
+  `${packetDir}/vapoursynth-owner-review.json`,
+  `${packetDir}/revideo-hyperframe-carry-forward.md`,
+  `${packetDir}/revideo-hyperframe-carry-forward.json`,
   `${packetDir}/tool-status-matrix.md`,
+  `${packetDir}/tool-status-matrix.json`,
   `${packetDir}/blocked-scope-register.md`,
-  `${packetDir}/next-phase-plan.md`,
-  `${packetDir}/validation-results.md`,
   `${packetDir}/readiness-report.json`,
-  'docs/activation-phase-tracka-native-container-package-source-policy-review-1-results.md',
+  'docs/activation-phase-tracka-native-container-package-source-owner-environment-review-1-results.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
   'docs/track-a/track-a-tool-status-matrix.md',
   'docs/implementation-prompts/prompt-tracka-native-container-render-tools-install-proof-4.md',
@@ -28,39 +33,17 @@ const requiredFiles = [
   'scripts/validation/tracka-native-container-render-tools-install-proof-3-diagnostics.mjs',
   'scripts/validation/tracka-native-container-package-source-resolution-batch-1-diagnostics.mjs',
   'scripts/validation/tracka-native-container-package-source-policy-review-1-diagnostics.mjs',
+  'scripts/validation/tracka-native-container-package-source-owner-environment-review-1-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
 
-const packageSourceOwnerEnvironmentReviewFiles = [
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/package-source-owner-environment-review-1.md',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/package-source-owner-environment-review-1.json',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/source-of-truth-audit.md',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/source-of-truth-audit.json',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/gpac-mp4box-owner-review.md',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/gpac-mp4box-owner-review.json',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/vapoursynth-owner-review.md',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/vapoursynth-owner-review.json',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/revideo-hyperframe-carry-forward.md',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/revideo-hyperframe-carry-forward.json',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/tool-status-matrix.md',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/tool-status-matrix.json',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/blocked-scope-register.md',
-  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/readiness-report.json',
-  'docs/activation-phase-tracka-native-container-package-source-owner-environment-review-1-results.md',
-  'scripts/validation/tracka-native-container-package-source-owner-environment-review-1-diagnostics.mjs',
-]
-
-for (const file of packageSourceOwnerEnvironmentReviewFiles) {
-  allowedChangedFiles.add(file)
-}
-
 const requiredText = [
-  'TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1',
-  'TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1 decision: blocked_no_safe_package_source_policy_available',
-  'blocked_no_safe_package_source_policy_available',
-  'completed_docs_only_package_source_policy_review_no_install_changes',
-  '93d574f35f40eed1b7b8b87540201750b94df304',
+  'TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1',
+  'TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1 decision: blocked_no_owner_environment_package_source_approval',
+  'blocked_no_owner_environment_package_source_approval',
+  'completed_docs_only_owner_environment_source_review_no_install_changes',
+  'a293ec57a304728b2ab4f731ab1fd58f5c9aaec8',
   '#601',
   '#609',
   '#624',
@@ -77,7 +60,7 @@ const requiredText = [
   '#693',
   '#697',
   '#702',
-  '#701 remains open/conflicting historical context only',
+  '#706',
   '#577 remains open/draft/blocked and excluded as source-of-truth',
   'node:24-bookworm',
   'Debian bookworm `python3` 3.11.2',
@@ -93,18 +76,19 @@ const requiredText = [
   'hyperframe_render_handoff',
   'gstreamer_render_pipeline_support',
   'mkvtoolnix_container_validation',
-  'shared_dependency_ffmpeg_trackb_owned',
-  'shared_dependency_ffprobe_trackb_owned',
-  'blocked_gpac_mp4box_package_source_unavailable',
-  'blocked_pending_safe_package_source',
+  'resolved_mp4box_provider_gpac_ready_for_future_install_proof',
+  'resolved_vapoursynth_native_policy_ready_for_future_install_proof',
+  'blocked_gpac_mp4box_package_source_policy_not_approved',
+  'blocked_core_vapoursynth_package_source_policy_not_approved',
+  'blocked_pending_owner_environment_package_source_approval',
+  'none_until_owner_environment_approval',
+  'core_vapoursynth_only_plugins_excluded',
+  'plugins_not_installed_separate_review_required',
   'separate_not_selected_for_mp4box_command_path',
-  'blocked_core_vapoursynth_package_source_unavailable',
-  'blocked_vapoursynth_native_plugin_policy_not_satisfied',
   'evaluation_only_non_core_owner_approval_required_before_install_source',
   'handoff_only_no_install_source_change',
   'qa_passed_controlled_generated_private_fixture_execution_evidence',
-  'owner_or_environment_package_source_review',
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-4 readiness: blocked_pending_owner_or_environment_package_source_policy_changes',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-4 readiness: blocked_pending_owner_environment_package_source_approval',
   'TRACKA-REVIDEO-OWNER-APPROVAL-1 readiness: blocked_pending_owner_approval',
   'TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 readiness: ready_for_gpu_scope_decision_planning',
   'TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates',
@@ -127,7 +111,6 @@ const forbiddenPatterns = [
   /internal beta unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,
   /external beta unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,
   /production unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,
-  /private E2E readiness:\s*`?(ready|unlocked|enabled|true)/i,
   /final render\/export:\s*`?(completed|enabled|true|run)/i,
   /public artifacts?:\s*`?(created|enabled|true)/i,
   /signed URLs?:\s*`?(created|enabled|true)/i,
@@ -146,6 +129,10 @@ const forbiddenPatterns = [
   /Dockerfile install-source change:\s*`?(completed|enabled|true|added|changed)/i,
   /requirements install-source change:\s*`?(completed|enabled|true|added|changed)/i,
   /TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-4 readiness:\s*`?(ready|enabled|unblocked)/i,
+  /approved_sources_for_gpac_mp4box_and_core_vapoursynth_future_install_proof/i,
+  /partial_owner_environment_source_approval_with_blockers_recorded/i,
+  /approved_gpac_package_source_for_future_install_proof/i,
+  /approved_core_vapoursynth_package_source_for_future_install_proof/i,
 ]
 
 const forbiddenPathPrefixes = [
@@ -165,21 +152,8 @@ const forbiddenExactFiles = new Set([
   'docker/prod/render-worker/requirements.render.txt',
 ])
 
-const forbiddenSourceTerms = [
-  'Docker build `completed`',
-  'Docker build: `completed`',
-  'Docker push: `completed`',
-  'signed URL creation: `completed`',
-  'public artifact creation: `completed`',
-  'internal beta unlock: `enabled`',
-  'external beta unlock: `enabled`',
-  'production unlock: `enabled`',
-  'package-lock: `changed`',
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-4 readiness: ready',
-]
-
 function fail(message) {
-  console.error(`TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1 diagnostics failed: ${message}`)
+  console.error(`TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1 diagnostics failed: ${message}`)
   process.exit(1)
 }
 
@@ -214,8 +188,8 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const packageJson = JSON.parse(read('package.json'))
-const script = packageJson.scripts?.['tracka:native-container-package-source-policy-review-1:diagnostics']
-if (script !== 'node scripts/validation/tracka-native-container-package-source-policy-review-1-diagnostics.mjs') {
+const script = packageJson.scripts?.['tracka:native-container-package-source-owner-environment-review-1:diagnostics']
+if (script !== 'node scripts/validation/tracka-native-container-package-source-owner-environment-review-1-diagnostics.mjs') {
   fail('missing package diagnostics script')
 }
 
@@ -262,34 +236,24 @@ for (const file of [...changedFiles, ...stagedFiles]) {
   }
 }
 
-const generatedArtifactPatterns = [
-  /^dist(?:-|\/|$)/,
-  /^dist-server(?:\/|$)/,
-  /^node_modules\//,
-  /^tmp\//,
-  /^\.reeditpro-local-storage-smoke\//,
-  /\.(mp4|mov|mkv|webm|srt|ass|png|jpg|jpeg|gif|wav|mp3|jsonl)$/i,
-]
-for (const file of changedFiles) {
-  if (generatedArtifactPatterns.some((pattern) => pattern.test(file)) && !file.startsWith(packetDir)) {
-    fail(`generated artifact appears changed: ${file}`)
-  }
-}
-
 for (const file of changedFiles) {
   if (file.startsWith('scripts/validation/')) continue
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) continue
-  const text = fs.readFileSync(file, 'utf8')
-  for (const term of forbiddenSourceTerms) {
-    if (text.includes(term)) fail(`forbidden source term in ${file}: ${term}`)
+  const text = read(file)
+  for (const phrase of [
+    'Docker build `completed`',
+    'Docker build: `completed`',
+    'Docker push: `completed`',
+    'signed URL creation: `completed`',
+    'public artifact creation: `completed`',
+    'internal beta unlock: `enabled`',
+    'external beta unlock: `enabled`',
+    'production unlock: `enabled`',
+    'package-lock: `changed`',
+    'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-4 readiness: ready',
+  ]) {
+    if (text.includes(phrase)) fail(`forbidden source phrase in ${file}: ${phrase}`)
   }
 }
 
-console.log('TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1 diagnostics passed')
-console.log('Decision: blocked_no_safe_package_source_policy_available')
-console.log('Execution: completed_docs_only_package_source_policy_review_no_install_changes')
-console.log('GPAC/MP4Box blocker: blocked_gpac_mp4box_package_source_unavailable')
-console.log('VapourSynth blockers: blocked_core_vapoursynth_package_source_unavailable; blocked_vapoursynth_native_plugin_policy_not_satisfied')
-console.log('Next milestone: owner_or_environment_package_source_review')
-console.log('Product-ready end-to-end local OSS tools: 0')
-console.log('Package-lock: unchanged')
+console.log('TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1 diagnostics passed')

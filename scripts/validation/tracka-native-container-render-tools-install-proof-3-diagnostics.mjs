@@ -121,6 +121,29 @@ for (const file of packageSourcePolicyReviewFiles) {
   allowedChangedFiles.add(file)
 }
 
+const packageSourceOwnerEnvironmentReviewFiles = [
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/package-source-owner-environment-review-1.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/package-source-owner-environment-review-1.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/gpac-mp4box-owner-review.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/gpac-mp4box-owner-review.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/vapoursynth-owner-review.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/vapoursynth-owner-review.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/revideo-hyperframe-carry-forward.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/revideo-hyperframe-carry-forward.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/tool-status-matrix.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/tool-status-matrix.json',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/blocked-scope-register.md',
+  'docs/track-a/native-container-render-tools/package-source-owner-environment-review-1/readiness-report.json',
+  'docs/activation-phase-tracka-native-container-package-source-owner-environment-review-1-results.md',
+  'scripts/validation/tracka-native-container-package-source-owner-environment-review-1-diagnostics.mjs',
+]
+
+for (const file of packageSourceOwnerEnvironmentReviewFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const forbiddenPatterns = [
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
   /internal beta unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,

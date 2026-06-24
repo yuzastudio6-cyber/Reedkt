@@ -1,0 +1,28 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1",
+  "decision": "blocked_no_owner_environment_package_source_approval",
+  "acceptedSourceChain": [
+    "#601",
+    "#609",
+    "#624",
+    "#649",
+    "#652",
+    "#659",
+    "#667",
+    "#662",
+    "#675",
+    "#666",
+    "#673",
+    "#680",
+    "#682",
+    "#693",
+    "#697",
+    "#702",
+    "#706"
+  ],
+  "baseMergeSha": "a293ec57a304728b2ab4f731ab1fd58f5c9aaec8",
+  "excludedSource": {
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "productReadyEndToEndLocalOssTools": 0
+}

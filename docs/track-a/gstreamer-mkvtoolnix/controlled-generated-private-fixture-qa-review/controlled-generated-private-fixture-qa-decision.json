@@ -1,0 +1,25 @@
+{
+  "decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "internalRepairStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+  "execution": "completed_docs_only_qa_review_no_runtime_execution",
+  "qaScope": "source_evidence_review_only",
+  "privateFixtureExecutionInThisPhase": false,
+  "next_prompt": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1",
+  "secondary_prompts": [
+    "TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1",
+    "TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1"
+  ],
+  "qaAccepted": true,
+  "acceptedPullRequest": 673,
+  "reconciliationPullRequest": 680,
+  "reconciliationMergeSha": "41601b267d076534412b7e13c86bee32cac23f7b",
+  "acceptedEvidenceScope": "bounded generated synthetic-private fixture proof only",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "blockedScopePreserved": true,
+  "sourceSha": "536d24bbe37763b8262e3b70dd8950e264482dfd",
+  "latestIntegrationSha": "41601b267d076534412b7e13c86bee32cac23f7b",
+  "blocker": "closed",
+  "validationStatus": "full_validation_passed_after_disk_space_closure",
+  "prReviewState": "ready_for_review_after_validation_closure"
+}

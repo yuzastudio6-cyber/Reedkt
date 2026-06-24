@@ -1,0 +1,42 @@
+{
+  "rows": [
+    {
+      "tool": "GStreamer",
+      "sourcePullRequest": 673,
+      "acceptedEvidence": "network-disabled videotestsrc num-buffers=3 to fakesink",
+      "qaAccepted": true,
+      "qaPhaseExecution": false,
+      "generatedFixtureOnly": true,
+      "userPrivateRealMedia": false,
+      "ffmpegFfprobe": false,
+      "renderExport": false,
+      "artifactsCleaned": true,
+      "productReady": false,
+      "readiness": "qa_passed_ready_for_tracka_native_container_rollup_or_private_e2e_planning",
+      "nextGate": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1"
+    },
+    {
+      "tool": "MKVToolNix",
+      "sourcePullRequest": 673,
+      "acceptedEvidence": "generated temp SRT to generated subtitle-only MKV, then identify",
+      "qaAccepted": true,
+      "qaPhaseExecution": false,
+      "generatedFixtureOnly": true,
+      "userPrivateRealMedia": false,
+      "ffmpegFfprobe": false,
+      "renderExport": false,
+      "artifactsCleaned": true,
+      "productReady": false,
+      "readiness": "qa_passed_ready_for_tracka_native_container_rollup_or_private_e2e_planning",
+      "nextGate": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1"
+    }
+  ],
+  "productReadyLocalOssTools": 0,
+  "decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "internalRepairStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+  "execution": "completed_docs_only_qa_review_no_runtime_execution",
+  "qaScope": "source_evidence_review_only",
+  "privateFixtureExecutionInThisPhase": false,
+  "reconciliationPullRequest": 680,
+  "reconciliationMergeSha": "41601b267d076534412b7e13c86bee32cac23f7b"
+}

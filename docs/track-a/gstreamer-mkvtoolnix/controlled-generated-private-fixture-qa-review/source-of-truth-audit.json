@@ -1,0 +1,80 @@
+{
+  "phase": "TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA-REVIEW-1",
+  "sourceSha": "536d24bbe37763b8262e3b70dd8950e264482dfd",
+  "latestIntegrationSha": "41601b267d076534412b7e13c86bee32cac23f7b",
+  "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "branch": "codex/rp-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1",
+  "decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "internalRepairStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+  "execution": "completed_docs_only_qa_review_no_runtime_execution",
+  "qaScope": "source_evidence_review_only",
+  "privateFixtureExecutionInThisPhase": false,
+  "predecessorPullRequests": [
+    {
+      "number": 680,
+      "state": "MERGED",
+      "mergeSha": "41601b267d076534412b7e13c86bee32cac23f7b",
+      "decision": "satisfied_by_merged_controlled_generated_private_fixture_execution_1",
+      "acceptedFor": "post-673 execution packet reconciliation source"
+    },
+    {
+      "number": 673,
+      "state": "MERGED",
+      "mergeSha": "536d24bbe37763b8262e3b70dd8950e264482dfd",
+      "headSha": "71705e3b6081cf2e0e4870d2e24e7f29f421dfec",
+      "decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_execution_passed_ready_for_qa",
+      "acceptedFor": "bounded generated synthetic-private fixture evidence only"
+    },
+    {
+      "number": 666,
+      "state": "MERGED",
+      "headSha": "8184a3af6499d1a05f56c95273f0bc44acf8540b",
+      "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_plan_passed_ready_for_controlled_generated_private_fixture_execution"
+    },
+    {
+      "number": 662,
+      "state": "MERGED",
+      "headSha": "4ed3cc562ca2656f103282a1344fa060fc75bac5",
+      "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_approval_passed_ready_for_private_fixture_plan"
+    },
+    {
+      "number": 659,
+      "state": "MERGED",
+      "headSha": "479b7bba918f27e58ecd9591b8fade0b79680d84",
+      "decision": "tracka_gstreamer_mkvtoolnix_private_fixture_scope_decision_passed_ready_for_private_fixture_approval"
+    },
+    {
+      "number": 652,
+      "state": "MERGED",
+      "headSha": "a3074af2eff53380402708ee055fa0db70b2f77a",
+      "decision": "completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof"
+    }
+  ],
+  "excludedPullRequests": [
+    {
+      "number": 577,
+      "status": "open_draft_blocked_conflicting",
+      "reason": "unrelated Remotion runtime proof remains pending external validation"
+    }
+  ],
+  "duplicateSearch": {
+    "trackaNativeRollupPrompt": "no non-PR-673 superseding QA or rollup PR found during preflight",
+    "qaDecision": "no duplicate open QA decision PR found during preflight",
+    "generatedMkvName": "no duplicate open generated-private-subtitle-only.mkv QA PR found during preflight"
+  },
+  "qaPhaseExecution": {
+    "GStreamer": "not_run",
+    "MKVToolNix": "not_run",
+    "Docker": "not_run",
+    "FFmpeg": "not_run",
+    "FFprobe": "not_run",
+    "Remotion": "not_run",
+    "mediaProcessing": "not_run"
+  },
+  "supabaseClassification": {
+    "updateRequired": "none",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

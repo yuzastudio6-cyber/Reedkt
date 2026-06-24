@@ -6,6 +6,10 @@ Current readiness: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 readiness: 
 
 Source-of-truth: `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-SYNTHETIC-FIXTURE-PROOF-1 decision: completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof`
 
+QA context: `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA-REVIEW-1 decision: qa_passed_controlled_generated_private_fixture_execution_evidence`
+
+This prompt remains planning-only.
+
 Package identity context: #624 records GPAC/MP4Box, core VapourSynth, and Revideo evaluation identity as resolved for future planning only; FILM remains separate and must not inherit those approvals.
 
 Private/user media used: `false`.

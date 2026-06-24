@@ -1,0 +1,75 @@
+{
+  "phase": "TRACKA-GSTREAMER-MKVTOOLNIX-QA-PR-682-LIVE-HEAD-DRAFT-READINESS-REVIEW",
+  "pullRequest": 682,
+  "state": "OPEN",
+  "draftBefore": true,
+  "draftAfter": false,
+  "draftDecision": "ready_for_review_after_validation_closure",
+  "mergeStateStatus": "CLEAN",
+  "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "baseSha": "41601b267d076534412b7e13c86bee32cac23f7b",
+  "headBranch": "codex/rp-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1",
+  "liveHead": "6e3d90c2e7065a7bc41c694ab80806b10c9bc722",
+  "canonicalDecision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "internalRepairStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+  "canonicalDecisionStatus": "restored_as_source_of_truth",
+  "internalRepairStatusUse": "non_canonical_repair_evidence_only",
+  "nextPrompt": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1",
+  "pr680Context": {
+    "state": "MERGED",
+    "mergeSha": "41601b267d076534412b7e13c86bee32cac23f7b",
+    "treatment": "context_reconciliation_only"
+  },
+  "predecessorsMerged": [
+    673,
+    666,
+    662,
+    659,
+    652
+  ],
+  "validationStatus": "full_validation_passed_after_disk_space_closure",
+  "validationBlocker": "closed",
+  "dependencyValidationCurrentAttempt": "completed_after_disk_space_closure",
+  "dependencyValidationReason": "npm ci passed after disk space temporarily exceeded the 25GiB threshold; generated validation outputs were removed before commit",
+  "feasibleDiagnostics": [
+    "tracka:gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1:diagnostics",
+    "tracka:gstreamer-mkvtoolnix-private-fixture-execution-packet-1:diagnostics",
+    "tracka:gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1:diagnostics",
+    "tracka:gstreamer-mkvtoolnix-private-fixture-plan-1:diagnostics",
+    "tracka:gstreamer-mkvtoolnix-private-fixture-approval-1:diagnostics",
+    "tracka:gstreamer-mkvtoolnix-private-fixture-scope-decision-1:diagnostics",
+    "tracka:gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1:diagnostics",
+    "git diff --check",
+    "git diff --cached --check"
+  ],
+  "noScopeConfirmation": {
+    "gstreamer": "not_run",
+    "mkvtoolnix": "not_run",
+    "ffmpegFfprobe": "not_run",
+    "docker": "not_run",
+    "remotionBrowserRenderExport": "not_run",
+    "mediaProcessing": "not_run",
+    "privateUserRealMedia": "not_used",
+    "generatedSrtMkvMedia": "not_created",
+    "workersRoutesProviders": "not_run",
+    "supabaseSqlGcs": "not_touched",
+    "publicArtifactsSignedUrls": "not_created",
+    "betaProduction": "not_unlocked",
+    "rawPromptsSecrets": "not_used"
+  },
+  "protectedMutationReview": {
+    "packageLock": "unchanged",
+    "dockerfiles": "unchanged",
+    "dockerignore": "unchanged",
+    "runtimeSource": "unchanged",
+    "supabaseSql": "unchanged"
+  },
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "supabaseClassification": {
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

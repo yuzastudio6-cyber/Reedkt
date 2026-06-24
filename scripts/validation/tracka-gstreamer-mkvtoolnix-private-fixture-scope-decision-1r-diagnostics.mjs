@@ -92,7 +92,16 @@ const forbiddenPatterns = [
 function isAllowedChangedFile(file) {
   return allowedChangedFiles.has(file)
     || file.startsWith('docs/track-a/gstreamer-mkvtoolnix/private-fixture-execution-packet/')
+    || file.startsWith('docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/')
+    || file === 'docs/activation-phase-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-results.md'
     || file === 'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-native-container-render-tools-install-proof-3.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-visual-video-private-e2e-1.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-film-frame-interpolation-scope-decision-1.md'
+    || file === 'docs/track-a/track-a-runtime-blocked-scope-register.md'
+    || file === 'docs/track-a/track-a-tool-status-matrix.md'
     || (file.startsWith('scripts/validation/tracka-gstreamer-mkvtoolnix-') && file.endsWith('-diagnostics.mjs'))
     || file === 'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs'
 }

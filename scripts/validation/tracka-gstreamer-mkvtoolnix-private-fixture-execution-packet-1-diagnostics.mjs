@@ -2,6 +2,31 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
 const packetDir = 'docs/track-a/gstreamer-mkvtoolnix/private-fixture-execution-packet'
+const downstreamQaRepairFiles = [
+  'docs/activation-phase-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-film-frame-interpolation-scope-decision-1.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1.md',
+  'docs/implementation-prompts/prompt-tracka-native-container-render-tools-install-proof-3.md',
+  'docs/implementation-prompts/prompt-tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1.md',
+  'docs/implementation-prompts/prompt-tracka-visual-video-private-e2e-1.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/controlled-generated-private-fixture-qa-decision.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/controlled-generated-private-fixture-qa-decision.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/qa-status-matrix.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/qa-status-matrix.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/readiness-report.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/runtime-boundary-review.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/runtime-boundary-review.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/source-of-truth-audit.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/source-of-truth-audit.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/source-refresh-after-pr-680-drift.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/source-refresh-after-pr-680-drift.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/live-head-draft-readiness-review.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/live-head-draft-readiness-review.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/validation-results.md',
+  'docs/track-a/track-a-runtime-blocked-scope-register.md',
+  'docs/track-a/track-a-tool-status-matrix.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs',
+]
 
 const requiredFiles = [
   `${packetDir}/reconciliation.md`,
@@ -37,6 +62,7 @@ const allowedChangedFiles = new Set([
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1r-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-plan-1-diagnostics.mjs',
   'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs',
+  ...downstreamQaRepairFiles,
   'package.json',
 ])
 

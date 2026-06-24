@@ -337,7 +337,8 @@ for (const key of scriptDrift) {
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-owner-approval-qa-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-qa-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-diagnostics"
+    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-diagnostics" &&
+    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-diagnostics"
   ) {
     fail("Unexpected script drift: " + key);
   }

@@ -346,3 +346,10 @@ production readiness.
 - Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_owner_review_passed_with_warnings`.
 - Scope: Owner-accepted PR #709 and PR #705 runtime-boundary canonicalization for planning/study metadata only across all 21 tools and all 12 capabilities.
 - Runtime/beta/production: no unlock; agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, internal beta, external beta, and production remain false.
+
+
+## AI graphics runtime boundary canonicalization owner approval
+
+- Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_owner_approved_with_warnings`
+- Owner-approves runtime-boundary canonicalization only for planning/study metadata across all 21 AI graphics tools and all 12 capabilities.
+- Runtime-ready: false. Internal beta-ready: false. Production-ready: false. No execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, or public artifacts are approved.

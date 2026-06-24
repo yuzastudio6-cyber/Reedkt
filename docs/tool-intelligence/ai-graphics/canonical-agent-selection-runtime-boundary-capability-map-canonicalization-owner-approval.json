@@ -1,0 +1,154 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_owner_approved_with_warnings",
+  "capabilities": [
+    {
+      "capabilityId": "chart_overlay",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "data_visualization",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "svg_graphics",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "diagram_graphics",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "animation_overlay",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "canvas_scene",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "webgl_3d_scene",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "background_removal",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "subject_segmentation",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "upscaling",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "tensor_image_ops",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    },
+    {
+      "capabilityId": "model_runtime_foundation",
+      "ownerAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false,
+      "ownerApproved": true,
+      "ownerApproval": "approved_with_warnings",
+      "planningOnlyPolicyOwnerApproved": true
+    }
+  ],
+  "runtimeBuckets": {
+    "planning_metadata_allowed_now": {
+      "ownerApproved": true,
+      "executionApprovedNow": false
+    },
+    "cpu_static_execution_previously_validated_but_not_agent_executable_now": {
+      "ownerApproved": true,
+      "executionApprovedNow": false
+    },
+    "browser_chart_runtime_later": {
+      "ownerApproved": true,
+      "executionApprovedNow": false
+    },
+    "animation_runtime_later": {
+      "ownerApproved": true,
+      "executionApprovedNow": false
+    },
+    "browser_canvas_webgl_runtime_later": {
+      "ownerApproved": true,
+      "executionApprovedNow": false
+    },
+    "model_cpu_gpu_runtime_later": {
+      "ownerApproved": true,
+      "executionApprovedNow": false
+    },
+    "tool_route_handoff_later": {
+      "ownerApproved": true,
+      "executionApprovedNow": false
+    },
+    "worker_handoff_later": {
+      "ownerApproved": true,
+      "executionApprovedNow": false
+    },
+    "public_artifact_and_signed_url_later": {
+      "ownerApproved": true,
+      "executionApprovedNow": false
+    }
+  },
+  "ownerApproval": "approved_with_warnings",
+  "agentCanSelectForPlanning": true,
+  "agentCanExecuteToolsNow": false
+}

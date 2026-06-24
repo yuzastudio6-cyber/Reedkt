@@ -313,7 +313,8 @@ const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
 for (const key of scriptDrift) {
   if (
     key !== expectedScript &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-diagnostics"
+    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-diagnostics" &&
+    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-diagnostics"
   ) {
     fail("Unexpected script drift: " + key);
   }

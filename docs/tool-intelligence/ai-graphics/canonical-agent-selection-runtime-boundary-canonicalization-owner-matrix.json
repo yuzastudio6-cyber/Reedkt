@@ -1,0 +1,122 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_owner_review_passed_with_warnings",
+  "tools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background",
+    "d3",
+    "echarts",
+    "vega_lite",
+    "vega",
+    "satori",
+    "svgdotjs_svg_js",
+    "viz_js",
+    "lottie_web",
+    "animejs",
+    "three_js",
+    "pixi_js",
+    "konva",
+    "babylonjs"
+  ],
+  "capabilities": [
+    "chart_overlay",
+    "data_visualization",
+    "svg_graphics",
+    "diagram_graphics",
+    "animation_overlay",
+    "canvas_scene",
+    "webgl_3d_scene",
+    "background_removal",
+    "subject_segmentation",
+    "upscaling",
+    "tensor_image_ops",
+    "model_runtime_foundation"
+  ],
+  "runtimeBuckets": {
+    "planning_metadata_allowed_now": {
+      "ownerAccepted": true,
+      "executionApprovedNow": false
+    },
+    "cpu_static_execution_previously_validated_but_not_agent_executable_now": {
+      "ownerAccepted": true,
+      "executionApprovedNow": false
+    },
+    "browser_chart_runtime_later": {
+      "ownerAccepted": true,
+      "executionApprovedNow": false
+    },
+    "animation_runtime_later": {
+      "ownerAccepted": true,
+      "executionApprovedNow": false
+    },
+    "browser_canvas_webgl_runtime_later": {
+      "ownerAccepted": true,
+      "executionApprovedNow": false
+    },
+    "model_cpu_gpu_runtime_later": {
+      "ownerAccepted": true,
+      "executionApprovedNow": false
+    },
+    "tool_route_handoff_later": {
+      "ownerAccepted": true,
+      "executionApprovedNow": false
+    },
+    "worker_handoff_later": {
+      "ownerAccepted": true,
+      "executionApprovedNow": false
+    },
+    "public_artifact_and_signed_url_later": {
+      "ownerAccepted": true,
+      "executionApprovedNow": false
+    }
+  },
+  "sourceMatrixAccepted": true,
+  "booleans": {
+    "canonicalAgentSelectionRuntimeBoundaryCanonicalizationOwnerReviewCompleted": true,
+    "sourceRuntimeBoundaryCanonicalizationQaAccepted": true,
+    "sourceRuntimeBoundaryCanonicalizationReviewAccepted": true,
+    "sourceRuntimeBoundaryOwnerApprovalQaAccepted": true,
+    "sourceRuntimeBoundaryOwnerApprovalAccepted": true,
+    "sourceRuntimeBoundaryOwnerReviewAccepted": true,
+    "sourceRuntimeBoundaryQaAccepted": true,
+    "sourceRuntimeBoundaryReviewAccepted": true,
+    "all21ToolsCoveredByRuntimeBoundaryCanonicalizationOwnerReview": true,
+    "allRequiredCapabilitiesCoveredByRuntimeBoundaryCanonicalizationOwnerReview": true,
+    "runtimeBoundaryLedgerCanonicalizationOwnerAccepted": true,
+    "runtimeBoundaryMatrixCanonicalizationOwnerAccepted": true,
+    "runtimeBoundaryToolMapCanonicalizationOwnerAccepted": true,
+    "runtimeBoundaryCapabilityMapCanonicalizationOwnerAccepted": true,
+    "planningOnlyPolicyCanonicalizationOwnerAccepted": true,
+    "blockedUseRegisterCanonicalizationOwnerAccepted": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "publicArtifactApprovedNow": false,
+    "signedUrlApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

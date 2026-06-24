@@ -1,0 +1,134 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_qa_passed_with_warnings",
+  "runtimeBuckets": {
+    "planning_metadata_allowed_now": {
+      "appliesTo": "all 21 tools and all 12 capabilities",
+      "meaning": "Agent may select, rank, eliminate, and recommend tools for planning/study metadata only; no execution or artifacts."
+    },
+    "cpu_static_execution_previously_validated_but_not_agent_executable_now": {
+      "tools": [
+        "d3",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js"
+      ],
+      "meaning": "CPU/static proof exists as evidence, but canonical agent selection may not execute these tools."
+    },
+    "browser_chart_runtime_later": {
+      "tools": [
+        "echarts"
+      ],
+      "meaning": "Browser chart runtime approval is required before execution."
+    },
+    "animation_runtime_later": {
+      "tools": [
+        "lottie_web",
+        "animejs"
+      ],
+      "meaning": "Animation manifest/runtime approval is required before execution."
+    },
+    "browser_canvas_webgl_runtime_later": {
+      "tools": [
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "meaning": "Browser/canvas/WebGL sandbox approval is required before execution."
+    },
+    "model_cpu_gpu_runtime_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background"
+      ],
+      "meaning": "CPU import, model provenance, model-weight, and later GPU/runtime approvals are required before execution."
+    },
+    "tool_route_handoff_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background",
+        "d3",
+        "echarts",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js",
+        "lottie_web",
+        "animejs",
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "meaning": "Future Tool Route approval may consume canonical agent-selection schema as planning metadata only until execution is separately approved."
+    },
+    "worker_handoff_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background",
+        "d3",
+        "echarts",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js",
+        "lottie_web",
+        "animejs",
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "meaning": "Future Worker approval may consume canonical agent-selection schema as planning metadata only until execution is separately approved."
+    },
+    "public_artifact_and_signed_url_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background",
+        "d3",
+        "echarts",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js",
+        "lottie_web",
+        "animejs",
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "meaning": "Signed URLs, GCS/public artifacts, and public artifact creation remain blocked."
+    }
+  },
+  "accepted": true
+}

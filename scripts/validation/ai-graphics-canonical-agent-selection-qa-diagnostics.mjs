@@ -9,6 +9,7 @@ const expectedDecision = "ai_graphics_canonical_agent_selection_qa_passed_with_w
 const expectedScript = "ai-graphics:canonical-agent-selection:qa-diagnostics";
 const expectedScriptCommand = "node scripts/validation/ai-graphics-canonical-agent-selection-qa-diagnostics.mjs";
 const allowedDescendantScripts = new Set([
+  "ai-graphics:canonical-agent-selection:runtime-boundary-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:runtime-boundary-diagnostics",
   "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-diagnostics",

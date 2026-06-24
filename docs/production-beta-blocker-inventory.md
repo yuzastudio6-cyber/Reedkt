@@ -39,6 +39,18 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## Track A GPAC/MP4Box Official APT Repo Approval
+
+`TRACKA-GPAC-MP4BOX-OFFICIAL-APT-REPO-APPROVAL-1` is metadata-only and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_official_apt_repo_approval_passed_ready_for_pinning_keyring_install_source_plan`.
+
+The official GPAC APT source class is approved for a future pinning/keyring/install-source plan only. Future target metadata is `https://dist.gpac.io/gpac/linux/debian`, `bookworm`, component `main`, key endpoint `https://dist.gpac.io/gpac/linux/gpg.asc`, and package candidate `gpac`. Component `nightly` remains blocked, Bento4 remains `separate_not_selected_for_mp4box_command_path`, and no install/runtime/product approval is granted.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-PINNING-KEYRING-INSTALL-SOURCE-PLAN-1`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## Track A GPAC/MP4Box Owner/Environment Follow-Up
 
 `TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-OWNER-ENVIRONMENT-FOLLOWUP-1` is metadata-only and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_owner_environment_followup_blocked_no_owner_environment_source_approval`.

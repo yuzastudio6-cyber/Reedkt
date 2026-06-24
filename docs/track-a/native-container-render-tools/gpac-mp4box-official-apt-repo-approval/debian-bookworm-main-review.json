@@ -1,0 +1,27 @@
+{
+  "codename": "bookworm",
+  "componentDecision": {
+    "selected": "main",
+    "blocked": "nightly",
+    "reason": "The official GPAC docs allow stable releases via main, while nightly remains a fast-moving development component requiring separate approval."
+  },
+  "environmentCompatibility": {
+    "futureTarget": "render_worker_bookworm_or_compatible_debian_base",
+    "metadataAcceptedForPlanning": true,
+    "baseImagePatchApproved": false,
+    "dockerfileMutationApproved": false,
+    "runtimeCompatibilityProven": false
+  },
+  "packageIndex": {
+    "endpoint": "https://dist.gpac.io/gpac/linux/debian/dists/bookworm/main/binary-amd64/Packages",
+    "endpointStatus": "HTTP 200",
+    "packageCandidate": "gpac",
+    "observedVersions": [
+      "2.4-rev0-g5d70253ac-HEAD",
+      "26.02-rev0-g118e60a90-HEAD"
+    ],
+    "observedPackageLicenseField": "unknown",
+    "pinningRequiredBeforeExecution": true,
+    "packageSourcePlanRequiredBeforeExecution": true
+  }
+}

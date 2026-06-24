@@ -1,0 +1,38 @@
+{
+  "decision": "tracka_gpac_mp4box_official_apt_repo_approval_passed_ready_for_pinning_keyring_install_source_plan",
+  "decisionType": "passed_to_next_metadata_gate",
+  "sourceClass": "official_gpac_apt_repository",
+  "officialDocs": "https://gpac.io/downloads/gpac-nightly-builds/",
+  "repository": {
+    "uri": "https://dist.gpac.io/gpac/linux/debian",
+    "codename": "bookworm",
+    "component": "main",
+    "blockedComponent": "nightly",
+    "releaseEndpoint": "https://dist.gpac.io/gpac/linux/debian/dists/bookworm/Release",
+    "keyEndpoint": "https://dist.gpac.io/gpac/linux/gpg.asc",
+    "packageCandidate": "gpac"
+  },
+  "approval": {
+    "repoApprovedForFuturePlanning": true,
+    "pinningKeyringInstallSourcePlanRequired": true,
+    "installApproved": false,
+    "runtimeApproved": false,
+    "productUseApproved": false
+  },
+  "bento4Status": "separate_not_selected_for_mp4box_command_path",
+  "vapoursynthStatus": "separate_blocked_pending_owner_environment_source_approval",
+  "revideoStatus": "evaluation_only_owner_gated",
+  "hyperframeStatus": "handoff_only",
+  "gstreamerMkvtoolnixStatus": "qa_accepted_bounded_generated_fixture_evidence_not_rerun",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577Excluded": true,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-PINNING-KEYRING-INSTALL-SOURCE-PLAN-1",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no",
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

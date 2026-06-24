@@ -38,6 +38,7 @@ TRACKA-RECON-0 records blocked runtime and delivery scope. It does not relax or 
 | GPAC/MP4Box owner/environment package-source approval | blocked_gpac_mp4box_package_source_policy_not_approved | `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1` records `blocked_no_owner_environment_package_source_approval`, allowed future source `none_until_owner_environment_approval`, and readiness `blocked_pending_owner_environment_package_source_approval`. No GPAC, MP4Box, Bento4, Dockerfile, requirements, package-lock, package installation, Docker, or runtime execution changed. |
 | VapourSynth owner/environment package-source approval | blocked_core_vapoursynth_package_source_policy_not_approved | `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-ENVIRONMENT-REVIEW-1` records `blocked_no_owner_environment_package_source_approval`, core scope `core_vapoursynth_only_plugins_excluded`, plugin status `plugins_not_installed_separate_review_required`, allowed future source `none_until_owner_environment_approval`, and readiness `blocked_pending_owner_environment_package_source_approval`. No VapourSynth, plugin, Dockerfile, requirements, package-lock, package installation, Docker, or runtime execution changed. |
 | GPAC/MP4Box owner package-source approval | blocked_no_owner_approval_for_gpac_mp4box_package_source | `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1` records `blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth`, allowed future source `none_until_owner_approval`, and readiness `blocked_pending_owner_approved_package_source`. No GPAC, MP4Box, Bento4, Dockerfile, requirements, package-lock, package installation, Docker, or runtime execution changed. |
+| GPAC/MP4Box official APT repo approval | approved_for_future_pinning_keyring_install_source_plan_only | `TRACKA-GPAC-MP4BOX-OFFICIAL-APT-REPO-APPROVAL-1` records `tracka_gpac_mp4box_official_apt_repo_approval_passed_ready_for_pinning_keyring_install_source_plan`. The future source class is `official_gpac_apt_repository`, URI `https://dist.gpac.io/gpac/linux/debian`, codename `bookworm`, component `main`, key endpoint `https://dist.gpac.io/gpac/linux/gpg.asc`, and package candidate `gpac`. This does not approve apt source mutation, key import, apt update, package install, Dockerfile mutation, requirements mutation, package-lock mutation, runtime source mutation, GPAC/MP4Box execution, or product/runtime use. |
 | VapourSynth owner package-source approval | blocked_no_owner_approval_for_core_vapoursynth_package_source | `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1` records `blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth`, core scope `core_vapoursynth_only_plugins_excluded`, plugin status `plugins_not_installed_separate_review_required`, allowed future source `none_until_owner_approval`, and readiness `blocked_pending_owner_approved_package_source`. No VapourSynth, plugin, Dockerfile, requirements, package-lock, package installation, Docker, or runtime execution changed. |
 | Revideo install source | evaluation_only_non_core_owner_approval_required_before_install_source | Revideo remains evaluation-only/non-core and owner-gated before any install-source proof. Package-Source-Resolution-Batch-1 does not install or execute Revideo. |
 | Hyperframe install source | handoff_only_no_install_source_change | Hyperframe remains handoff-only with no selected external install target. |
@@ -73,6 +74,20 @@ This phase does not approve install proof or runtime. No apt source, keyring, Do
 Next prompt: `TRACKA-GPAC-MP4BOX-OFFICIAL-APT-REPO-APPROVAL-1`.
 
 Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. Supabase classification: no write / environment none / SQL none / migration no.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
+## Track A GPAC/MP4Box Official APT Repo Approval
+
+`TRACKA-GPAC-MP4BOX-OFFICIAL-APT-REPO-APPROVAL-1` records decision `tracka_gpac_mp4box_official_apt_repo_approval_passed_ready_for_pinning_keyring_install_source_plan`.
+
+The official GPAC APT source class is approved only for future pinning/keyring/install-source planning. Future source metadata is URI `https://dist.gpac.io/gpac/linux/debian`, codename `bookworm`, component `main`, key endpoint `https://dist.gpac.io/gpac/linux/gpg.asc`, and package candidate `gpac`. Component `nightly` remains blocked.
+
+Runtime and mutation scope remain blocked: no apt source mutation, key import, apt update, package install, Dockerfile mutation, requirements mutation, package-lock mutation, runtime source mutation, GPAC/MP4Box execution, Docker build/run, media processing, Supabase/GCS, beta, production, public artifact, or signed URL scope is approved.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-PINNING-KEYRING-INSTALL-SOURCE-PLAN-1`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no.
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 

@@ -1,0 +1,25 @@
+{
+  "readiness": "ready_for_pinning_keyring_install_source_plan",
+  "decision": "tracka_gpac_mp4box_official_apt_repo_approval_passed_ready_for_pinning_keyring_install_source_plan",
+  "acceptedEvidence": [
+    "PR #725 merged source classification",
+    "official GPAC documentation metadata",
+    "Debian bookworm Release endpoint metadata",
+    "GPAC GPG key endpoint metadata",
+    "main amd64 Packages metadata"
+  ],
+  "remainingBeforeExecution": [
+    "fingerprint and keyring policy",
+    "Signed-By source stanza",
+    "apt pinning/version selection",
+    "architecture policy",
+    "Dockerfile patch review",
+    "rollback policy",
+    "bounded install proof",
+    "bounded MP4Box proof",
+    "QA acceptance"
+  ],
+  "productReadyLocalOssTools": 0,
+  "betaReady": false,
+  "productionReady": false
+}

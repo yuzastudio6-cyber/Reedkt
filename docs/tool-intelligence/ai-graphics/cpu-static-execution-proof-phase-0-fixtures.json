@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "2026-06-24.ai-graphics.cpu-static-execution-proof.phase0",
+  "d3": {
+    "width": 320,
+    "height": 180,
+    "points": [
+      { "label": "source", "value": 12 },
+      { "label": "proof", "value": 24 },
+      { "label": "handoff", "value": 33 }
+    ]
+  },
+  "vega_lite": {
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "description": "Phase 0 CPU/static proof Vega-Lite bar chart.",
+    "mark": "bar",
+    "data": {
+      "values": [
+        { "category": "source", "value": 1 },
+        { "category": "proof", "value": 2 },
+        { "category": "handoff", "value": 3 }
+      ]
+    },
+    "encoding": {
+      "x": { "field": "category", "type": "nominal" },
+      "y": { "field": "value", "type": "quantitative" }
+    }
+  },
+  "vega": {
+    "$schema": "https://vega.github.io/schema/vega/v6.json",
+    "description": "Phase 0 CPU/static proof Vega parse fixture.",
+    "width": 320,
+    "height": 180,
+    "data": [
+      {
+        "name": "table",
+        "values": [
+          { "x": 0, "y": 1 },
+          { "x": 1, "y": 3 }
+        ]
+      }
+    ],
+    "scales": [
+      { "name": "x", "type": "linear", "domain": [0, 1], "range": "width" }
+    ],
+    "marks": [
+      {
+        "type": "symbol",
+        "from": { "data": "table" },
+        "encode": { "enter": { "x": { "scale": "x", "field": "x" } } }
+      }
+    ]
+  },
+  "satori": {
+    "width": 320,
+    "height": 120,
+    "node": {
+      "type": "div",
+      "props": {
+        "style": {
+          "fontSize": 24,
+          "color": "black",
+          "backgroundColor": "white",
+          "padding": 12
+        },
+        "children": "CPU Static"
+      }
+    }
+  },
+  "svgdotjs_svg_js": {
+    "width": 320,
+    "height": 180,
+    "rect": { "x": 8, "y": 8, "width": 80, "height": 40, "fill": "#123456" },
+    "marker": "svgdotjs-phase0-static-shape"
+  },
+  "viz_js": {
+    "dot": "digraph G { source -> proof; proof -> qa; }"
+  }
+}

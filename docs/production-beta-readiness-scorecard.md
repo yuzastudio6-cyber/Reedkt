@@ -400,3 +400,10 @@ production readiness.
 ## AI Graphics Runtime Boundary Handoff Owner Approval
 
 Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approved_with_warnings`. PR #722 runtime-boundary handoff owner review, PR #719 QA, and PR #718 handoff review are owner-approved with warnings as planning/study metadata only across all 21 AI graphics tools, all 12 product-facing capabilities, and all nine runtime buckets. Agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal beta, external beta, and production remain false. Tool Route and Worker placeholders remain future-only.
+
+## AI Graphics CPU Static Execution Proof Phase 0
+
+- Decision: `ai_graphics_cpu_static_execution_proof_phase_0_completed_with_warnings`.
+- Scope: local CPU/static proof imports and deterministic fixture attempts for `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, and `viz_js`.
+- Proof result: `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js` produced or validated deterministic local output contracts; `satori` imported but is blocked pending an approved font fixture for text SVG layout.
+- Runtime/beta/production: no unlock; agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, internal beta, external beta, and production remain false.

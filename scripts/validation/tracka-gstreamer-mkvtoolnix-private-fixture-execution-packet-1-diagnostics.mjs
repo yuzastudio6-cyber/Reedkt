@@ -70,6 +70,16 @@ const allowedChangedFiles = new Set([
   'package.json',
 ])
 
+function isPostPr697ReviewChangedFile(file) {
+  return file.startsWith('docs/track-a/native-container-render-tools/post-pr697-install-proof-3-review/')
+    || file === 'docs/production-beta-blocker-inventory.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-gpac-mp4box-package-source-resolution-1.md'
+    || file === 'scripts/validation/tracka-install-proof-3-post-pr697-review-diagnostics.mjs'
+    || file === 'scripts/validation/tracka-native-container-render-tools-install-proof-3-diagnostics.mjs'
+    || file === 'scripts/validation/tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1-diagnostics.mjs'
+    || file === 'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs'
+}
+
 const requiredText = [
   'TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-EXECUTION-PACKET-1',
   'TRACKA-GSTREAMER-MKVTOOLNIX-PRIVATE-FIXTURE-EXECUTION-PACKET-1 decision: satisfied_by_merged_controlled_generated_private_fixture_execution_1',
@@ -225,7 +235,7 @@ const changedFiles = [...new Set([
 ])].filter(Boolean)
 
 for (const file of changedFiles) {
-  if (!allowedChangedFiles.has(file)) fail(`unexpected changed file: ${file}`)
+  if (!allowedChangedFiles.has(file) && !isPostPr697ReviewChangedFile(file)) fail(`unexpected changed file: ${file}`)
   if (file === 'package-lock.json') fail('package-lock.json must not be changed')
   if (/\.(mkv|srt|mp4|mov|avi|wav|mp3|m4a|webm)$/i.test(file)) fail(`media/generated artifact changed: ${file}`)
   if (file.startsWith('dist') || file.includes('/dist') || file.includes('node_modules')) {

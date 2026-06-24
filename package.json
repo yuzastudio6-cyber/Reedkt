@@ -600,6 +600,7 @@
     "tracka:gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1:diagnostics": "node scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs",
     "tracka:native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1:diagnostics": "node scripts/validation/tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1-diagnostics.mjs",
     "tracka:native-container-render-tools-install-proof-3:diagnostics": "node scripts/validation/tracka-native-container-render-tools-install-proof-3-diagnostics.mjs",
+    "tracka:install-proof-3-post-pr697-review:diagnostics": "node scripts/validation/tracka-install-proof-3-post-pr697-review-diagnostics.mjs",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",
     "track-a:visual-review-packet:diagnostics": "node scripts/validation/track-a-visual-review-packet-diagnostics.mjs",

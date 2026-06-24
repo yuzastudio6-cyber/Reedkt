@@ -1,0 +1,10 @@
+{
+  "phase": "TRACKA-NATIVE-CONTAINER-INSTALL-PROOF-3-POST-PR697-SOURCE-OF-TRUTH-REVIEW",
+  "readiness": "ready_for_gpac_mp4box_package_source_resolution",
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-RESOLUTION-1",
+  "pr697SupersedesPushedPostPr690Branch": true,
+  "rollupRefreshRequired": false,
+  "sourceResolutionRequiredBeforeBuildProof4": true,
+  "productReadyLocalOssTools": 0,
+  "runtimeScopeUnlocked": false
+}

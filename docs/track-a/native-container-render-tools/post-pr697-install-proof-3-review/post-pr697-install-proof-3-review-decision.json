@@ -1,0 +1,15 @@
+{
+  "phase": "TRACKA-NATIVE-CONTAINER-INSTALL-PROOF-3-POST-PR697-SOURCE-OF-TRUTH-REVIEW",
+  "decision": "tracka_install_proof_3_post_pr697_review_passed_pr697_supersedes_pushed_post_pr690_branch_ready_for_gpac_mp4box_source_resolution",
+  "classification": "pr697_supersedes_pushed_post_pr690_branch",
+  "pushedBranchReconciliationRequired": false,
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-RESOLUTION-1",
+  "supabase": {
+    "updateRequired": "none",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

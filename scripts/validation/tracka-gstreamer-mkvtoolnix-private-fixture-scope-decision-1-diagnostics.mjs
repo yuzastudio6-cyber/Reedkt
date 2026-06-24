@@ -210,6 +210,17 @@ const forbiddenPatterns = [
 
 function isAllowedChangedFile(file) {
   return allowedChangedFiles.has(file)
+    || file.startsWith('docs/track-a/native-container-render-tools/post-pr697-install-proof-3-review/')
+    || file === 'docs/production-beta-blocker-inventory.md'
+    || file === 'docs/implementation-prompts/prompt-tracka-gpac-mp4box-package-source-resolution-1.md'
+    || file === 'scripts/validation/tracka-install-proof-3-post-pr697-review-diagnostics.mjs'
+    || file === 'scripts/validation/tracka-native-container-render-tools-install-proof-3-diagnostics.mjs'
+    || file === 'scripts/validation/tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1-diagnostics.mjs'
+    || file === 'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs'
+    || file === 'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1-diagnostics.mjs'
+    || file === 'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-plan-1-diagnostics.mjs'
+    || file === 'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1-diagnostics.mjs'
+    || file === 'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs'
     || file.startsWith('docs/track-a/gstreamer-mkvtoolnix/private-fixture-execution-packet/')
     || file.startsWith('docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/')
     || file === 'docs/activation-phase-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-results.md'

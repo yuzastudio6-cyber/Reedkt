@@ -1,0 +1,24 @@
+{
+  "phase": "TRACKA-NATIVE-CONTAINER-INSTALL-PROOF-3-POST-PR697-SOURCE-OF-TRUTH-REVIEW",
+  "pr": 697,
+  "state": "MERGED",
+  "mergeCommit": "702cf924db4c8c29688f8c9335ef08f147314bd9",
+  "decision": "blocked_no_safe_resolved_identity_install_source_available",
+  "execution": "completed_docs_only_blocked_install_source_review",
+  "sourceStates": {
+    "gpacMp4box": "blocked_gpac_mp4box_package_source_unavailable",
+    "vapoursynthCore": "blocked_core_vapoursynth_package_source_unavailable",
+    "vapoursynthPluginPolicy": "blocked_vapoursynth_native_plugin_policy_not_satisfied",
+    "revideo": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "hyperframe": "handoff_only_no_install_source_change",
+    "pr577": "open_draft_blocked_excluded_from_source_of_truth"
+  },
+  "productReadyLocalOssTools": 0,
+  "packageDeclarationsChanged": false,
+  "runtimeSourceChanged": false,
+  "nextSourceResolutionLanes": [
+    "TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-RESOLUTION-1",
+    "TRACKA-VAPOURSYNTH-PACKAGE-SOURCE-RESOLUTION-1",
+    "TRACKA-REVIDEO-OWNER-APPROVAL-1"
+  ]
+}

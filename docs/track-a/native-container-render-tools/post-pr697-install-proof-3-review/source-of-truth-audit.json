@@ -1,0 +1,71 @@
+{
+  "phase": "TRACKA-NATIVE-CONTAINER-INSTALL-PROOF-3-POST-PR697-SOURCE-OF-TRUTH-REVIEW",
+  "sourceBranch": "codex/rp-tracka-install-proof-3-post-pr697-source-review",
+  "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "liveBaseSha": "702cf924db4c8c29688f8c9335ef08f147314bd9",
+  "reason": "PR #697 merged after PR #690 and the pushed post-PR690 rollup review branch was never opened as a PR.",
+  "pullRequests": {
+    "697": {
+      "state": "MERGED",
+      "mergeCommit": "702cf924db4c8c29688f8c9335ef08f147314bd9",
+      "head": "2abd27e4f63eb7deb962b30308cb2a86343f0e95",
+      "base": "f85e8255902a8b753ee21fc61e5b6f94f0503ccd",
+      "title": "[track-a] Native container render tools install proof 3"
+    },
+    "690": {
+      "state": "MERGED",
+      "mergeCommit": "f85e8255902a8b753ee21fc61e5b6f94f0503ccd",
+      "head": "641d606d7b2d29b56948579e723818b5768a9536"
+    },
+    "693": {
+      "state": "MERGED",
+      "mergeCommit": "e357ca31906c1cfcad8ed36a941f81247d889297",
+      "head": "272aca9c8e23d697793f4b6cec74d1d3e9aeeeb7"
+    },
+    "682": {
+      "state": "MERGED",
+      "head": "146b2805c6a84e2fcdc5a2052ea0fda3b4e5bf1b"
+    },
+    "680": {
+      "state": "MERGED",
+      "head": "3dc51be8d5275e0dbe8d4dca5cc4fb527d9625f8"
+    },
+    "673": {
+      "state": "MERGED",
+      "head": "71705e3b6081cf2e0e4870d2e24e7f29f421dfec"
+    },
+    "666": {
+      "state": "MERGED",
+      "head": "8184a3af6499d1a05f56c95273f0bc44acf8540b"
+    },
+    "662": {
+      "state": "MERGED",
+      "head": "4ed3cc562ca2656f103282a1344fa060fc75bac5"
+    },
+    "659": {
+      "state": "MERGED",
+      "head": "479b7bba918f27e58ecd9591b8fade0b79680d84"
+    },
+    "652": {
+      "state": "MERGED",
+      "head": "a3074af2eff53380402708ee055fa0db70b2f77a"
+    }
+  },
+  "pushedPostPr690Branch": {
+    "branch": "codex/rp-tracka-native-container-rollup-post-pr690-source-review",
+    "commit": "3c65ec6c3115655a55e93099a884ee45562cf3a9",
+    "exists": true
+  },
+  "duplicateReviewPr": "none_found",
+  "duplicateGpacSourceResolutionPr": "none_found",
+  "duplicateVapourSynthSourceResolutionPr": "none_found",
+  "unrelatedSearchHit": "#3 activation baseline ignored",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnership": "preserved",
+  "supabase": {
+    "updateRequired": "none",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

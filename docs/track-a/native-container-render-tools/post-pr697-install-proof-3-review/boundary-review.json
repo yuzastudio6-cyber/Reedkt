@@ -1,0 +1,23 @@
+{
+  "phase": "TRACKA-NATIVE-CONTAINER-INSTALL-PROOF-3-POST-PR697-SOURCE-OF-TRUTH-REVIEW",
+  "runtimeToolExecution": false,
+  "gpacMp4boxExecution": false,
+  "vapoursynthExecution": false,
+  "revideoExecution": false,
+  "hyperframeExecution": false,
+  "gstreamerExecution": false,
+  "mkvtoolnixExecution": false,
+  "ffmpegFfprobeExecution": false,
+  "dockerBuildRun": false,
+  "privateUserRealMedia": false,
+  "mediaProcessing": false,
+  "renderExport": false,
+  "supabaseSqlGcs": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "betaProduction": false,
+  "rawPromptsSecrets": false,
+  "packageLockDockerfileDockerignoreRuntimeSourceMutation": false,
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnership": "preserved"
+}

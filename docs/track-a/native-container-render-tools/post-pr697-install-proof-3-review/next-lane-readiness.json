@@ -1,0 +1,12 @@
+{
+  "phase": "TRACKA-NATIVE-CONTAINER-INSTALL-PROOF-3-POST-PR697-SOURCE-OF-TRUTH-REVIEW",
+  "candidateLanes": {
+    "TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-RESOLUTION-1": "ready_for_package_source_review",
+    "TRACKA-VAPOURSYNTH-PACKAGE-SOURCE-RESOLUTION-1": "ready_for_package_source_and_plugin_policy_review",
+    "TRACKA-REVIDEO-OWNER-APPROVAL-1": "blocked_pending_owner_approval",
+    "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-4": "blocked_pending_package_source_resolution"
+  },
+  "selectedNextPrompt": "TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-RESOLUTION-1",
+  "selectionReason": "GPAC/MP4Box has one concrete package-source blocker; VapourSynth also has plugin policy scope to resolve.",
+  "blockedScopesPreserved": true
+}

@@ -1,0 +1,11 @@
+{
+  "privateUserMediaUsed": false,
+  "realMediaUsed": false,
+  "generatedMediaArtifactsCreated": false,
+  "srtMkvArtifactsCreated": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUpload": false,
+  "supabaseMutation": false,
+  "secretsPrinted": false
+}

@@ -1,0 +1,14 @@
+{
+  "phase": "TRACKA-NATIVE-CONTAINER-INSTALL-PROOF-3-POST-PR697-SOURCE-OF-TRUTH-REVIEW",
+  "pushedBranch": "codex/rp-tracka-native-container-rollup-post-pr690-source-review",
+  "pushedCommit": "3c65ec6c3115655a55e93099a884ee45562cf3a9",
+  "pushedBranchDecision": "tracka_native_container_rollup_post_pr690_review_passed_rollup_valid_ready_for_install_proof_3",
+  "classification": "superseded_by_pr697_context_only_no_reconciliation_required",
+  "supersededBy": {
+    "pr": 697,
+    "mergeCommit": "702cf924db4c8c29688f8c9335ef08f147314bd9"
+  },
+  "reason": "The pushed branch confirmed readiness for install-proof-3; PR #697 already executed the install-proof-3 metadata lane from PR #690 base and recorded blocked package-source decisions.",
+  "reconciliationRequired": false,
+  "shouldOpenPushedBranchPr": false
+}

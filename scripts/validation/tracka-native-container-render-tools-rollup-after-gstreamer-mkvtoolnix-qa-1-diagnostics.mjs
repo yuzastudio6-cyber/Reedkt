@@ -45,7 +45,22 @@ const installProof3Files = [
   'scripts/validation/tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...installProof3Files, 'package.json'])
+const postPr697ReviewChangedFiles = [
+  'docs/production-beta-blocker-inventory.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-package-source-resolution-1.md',
+  'scripts/validation/tracka-install-proof-3-post-pr697-review-diagnostics.mjs',
+  'scripts/validation/tracka-native-container-render-tools-install-proof-3-diagnostics.mjs',
+  'scripts/validation/tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-qa-review-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-execution-packet-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-plan-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-approval-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-private-fixture-scope-decision-1-diagnostics.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-controlled-synthetic-fixture-proof-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...installProof3Files, ...postPr697ReviewChangedFiles, 'package.json'])
 
 const requiredText = [
   'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1',
@@ -161,7 +176,7 @@ const changedFiles = [...new Set([
 ])]
 
 for (const file of changedFiles) {
-  if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
+  if (!allowedChangedFiles.has(file) && !file.startsWith('docs/track-a/native-container-render-tools/post-pr697-install-proof-3-review/')) fail(`unexpected changed file ${file}`)
   if (
     file === 'package-lock.json' ||
     file.startsWith('docker/') ||

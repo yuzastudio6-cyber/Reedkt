@@ -10,9 +10,11 @@ QA context: `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA
 
 Rollup context: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1 decision: completed_native_container_rollup_after_gstreamer_mkvtoolnix_qa`
 
+Install-Proof-3 context: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 decision: blocked_no_safe_resolved_identity_install_source_available`
+
 This prompt remains planning-only.
 
-Package identity context: #624 records GPAC/MP4Box, core VapourSynth, and Revideo evaluation identity as resolved for future planning only; FILM remains separate and must not inherit those approvals.
+Package identity context: #624 records GPAC/MP4Box, core VapourSynth, and Revideo evaluation identity as resolved for future planning only. Install-Proof-3 did not add GPAC/MP4Box, VapourSynth, or Revideo install-source declarations. FILM remains separate and must not inherit those approvals.
 
 Private/user media used: `false`.
 

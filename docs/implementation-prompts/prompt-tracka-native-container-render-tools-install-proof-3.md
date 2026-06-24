@@ -1,6 +1,10 @@
 # TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3
 
-Readiness: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 readiness: ready`
+Decision: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 decision: blocked_no_safe_resolved_identity_install_source_available`
+
+Execution: `completed_docs_only_blocked_install_source_review`
+
+Readiness: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 readiness: blocked_pending_package_source_resolution`
 
 Source-of-truth context:
 
@@ -11,13 +15,13 @@ Source-of-truth context:
 - `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-GENERATED-PRIVATE-FIXTURE-QA-REVIEW-1 decision: qa_passed_controlled_generated_private_fixture_execution_evidence`.
 - `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-SYNTHETIC-FIXTURE-PROOF-1 decision: completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof` proved only scoped GStreamer/MKVToolNix synthetic fixtures and did not install resolved identity tools or broaden runtime scope.
 
-Goal: plan a future install-source proof for resolved Batch-1 identity tools only.
+Goal: record that the requested install-source proof reviewed resolved Batch-1 identity tools and did not find a safe repo-owned source declaration for the current render-worker base.
 
-Resolved candidates:
+Resolved candidates and current results:
 
-- `bento4_mp4box_packaging_validation`: GPAC/MP4Box provider path only.
-- `vapoursynth_frame_pipeline`: core VapourSynth only; plugins remain separately reviewed.
-- `revideo_render_preview_alternative`: evaluation-only package identity; owner approval required before any install-source change.
+- `bento4_mp4box_packaging_validation`: `blocked_gpac_mp4box_package_source_unavailable`.
+- `vapoursynth_frame_pipeline`: `blocked_core_vapoursynth_package_source_unavailable`; `blocked_vapoursynth_native_plugin_policy_not_satisfied`.
+- `revideo_render_preview_alternative`: `evaluation_only_non_core_owner_approval_required_before_install_source`.
 
 Preserve boundaries:
 
@@ -27,5 +31,7 @@ Preserve boundaries:
 - Private/user media used: `false`.
 - Generated artifacts committed: `none`.
 - Product-ready end-to-end local OSS tools: `0`.
+
+Next milestone: package-source resolution follow-up before `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-4`.
 
 Do not install packages, edit Dockerfiles, mutate `package-lock.json`, run Docker, run tools, process media, mutate Supabase, run SQL, create signed/public artifacts, or unlock beta/production/final delivery unless a future prompt explicitly authorizes that exact scope.

@@ -38,6 +38,14 @@ Track A GStreamer/MKVToolNix generated private fixture QA decision: `qa_passed_c
 
 Track A native/container render tools rollup after GStreamer/MKVToolNix QA: `completed_native_container_rollup_after_gstreamer_mkvtoolnix_qa`.
 
+Track A native/container render tools Install-Proof-3 decision: `blocked_no_safe_resolved_identity_install_source_available`.
+
+GPAC/MP4Box readiness: `blocked_gpac_mp4box_package_source_unavailable`.
+
+VapourSynth readiness: `blocked_core_vapoursynth_package_source_unavailable`; `blocked_vapoursynth_native_plugin_policy_not_satisfied`.
+
+Revideo readiness: `evaluation_only_non_core_owner_approval_required_before_install_source`.
+
 Private/user media used: `false`.
 
 Generated artifacts committed: `none`.

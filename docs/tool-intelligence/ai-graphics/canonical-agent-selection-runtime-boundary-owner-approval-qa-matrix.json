@@ -1,0 +1,281 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_owner_approval_qa_passed_with_warnings",
+  "qaResult": "owner_approval_qa_accepted_with_warnings",
+  "runtimeBuckets": {
+    "planning_metadata_allowed_now": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background",
+        "d3",
+        "echarts",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js",
+        "lottie_web",
+        "animejs",
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "capabilities": [
+        "chart_overlay",
+        "data_visualization",
+        "svg_graphics",
+        "diagram_graphics",
+        "animation_overlay",
+        "canvas_scene",
+        "webgl_3d_scene",
+        "background_removal",
+        "subject_segmentation",
+        "upscaling",
+        "tensor_image_ops",
+        "model_runtime_foundation"
+      ],
+      "meaning": "Agent may select, rank, eliminate, and recommend tools for planning/study metadata only; no execution or artifacts."
+    },
+    "cpu_static_execution_previously_validated_but_not_agent_executable_now": {
+      "tools": [
+        "d3",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js"
+      ],
+      "capabilities": [
+        "chart_overlay",
+        "data_visualization",
+        "svg_graphics",
+        "diagram_graphics"
+      ],
+      "meaning": "CPU/static proof exists as evidence, but canonical agent selection may not execute these tools."
+    },
+    "browser_chart_runtime_later": {
+      "tools": [
+        "echarts"
+      ],
+      "capabilities": [
+        "chart_overlay",
+        "data_visualization"
+      ],
+      "meaning": "Browser chart runtime approval is required before execution."
+    },
+    "animation_runtime_later": {
+      "tools": [
+        "lottie_web",
+        "animejs"
+      ],
+      "capabilities": [
+        "animation_overlay"
+      ],
+      "meaning": "Animation manifest/runtime approval is required before execution."
+    },
+    "browser_canvas_webgl_runtime_later": {
+      "tools": [
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "capabilities": [
+        "canvas_scene",
+        "webgl_3d_scene"
+      ],
+      "meaning": "Browser/canvas/WebGL sandbox approval is required before execution."
+    },
+    "model_cpu_gpu_runtime_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background"
+      ],
+      "capabilities": [
+        "background_removal",
+        "subject_segmentation",
+        "upscaling",
+        "tensor_image_ops",
+        "model_runtime_foundation"
+      ],
+      "meaning": "CPU import, model provenance, model-weight, and later GPU/runtime approvals are required before execution."
+    },
+    "tool_route_handoff_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background",
+        "d3",
+        "echarts",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js",
+        "lottie_web",
+        "animejs",
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "capabilities": [
+        "chart_overlay",
+        "data_visualization",
+        "svg_graphics",
+        "diagram_graphics",
+        "animation_overlay",
+        "canvas_scene",
+        "webgl_3d_scene",
+        "background_removal",
+        "subject_segmentation",
+        "upscaling",
+        "tensor_image_ops",
+        "model_runtime_foundation"
+      ],
+      "meaning": "Future Tool Route approval may consume canonical agent-selection schema as planning metadata only until execution is separately approved."
+    },
+    "worker_handoff_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background",
+        "d3",
+        "echarts",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js",
+        "lottie_web",
+        "animejs",
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "capabilities": [
+        "chart_overlay",
+        "data_visualization",
+        "svg_graphics",
+        "diagram_graphics",
+        "animation_overlay",
+        "canvas_scene",
+        "webgl_3d_scene",
+        "background_removal",
+        "subject_segmentation",
+        "upscaling",
+        "tensor_image_ops",
+        "model_runtime_foundation"
+      ],
+      "meaning": "Future Worker approval may consume canonical agent-selection schema as planning metadata only until execution is separately approved."
+    },
+    "public_artifact_and_signed_url_later": {
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background",
+        "d3",
+        "echarts",
+        "vega_lite",
+        "vega",
+        "satori",
+        "svgdotjs_svg_js",
+        "viz_js",
+        "lottie_web",
+        "animejs",
+        "three_js",
+        "pixi_js",
+        "konva",
+        "babylonjs"
+      ],
+      "capabilities": [
+        "chart_overlay",
+        "data_visualization",
+        "svg_graphics",
+        "diagram_graphics",
+        "animation_overlay",
+        "canvas_scene",
+        "webgl_3d_scene",
+        "background_removal",
+        "subject_segmentation",
+        "upscaling",
+        "tensor_image_ops",
+        "model_runtime_foundation"
+      ],
+      "meaning": "Signed URLs, GCS/public artifacts, and public artifact creation remain blocked."
+    }
+  },
+  "ownerApprovalSourceMatrix": "docs/tool-intelligence/ai-graphics/canonical-agent-selection-runtime-boundary-owner-approval-matrix.json",
+  "all21ToolsCovered": true,
+  "all12CapabilitiesCovered": true,
+  "planningOnly": true,
+  "booleans": {
+    "canonicalAgentSelectionRuntimeBoundaryOwnerApprovalQaCompleted": true,
+    "sourceRuntimeBoundaryOwnerApprovalAccepted": true,
+    "sourceRuntimeBoundaryOwnerReviewAccepted": true,
+    "sourceRuntimeBoundaryQaAccepted": true,
+    "sourceRuntimeBoundaryReviewAccepted": true,
+    "all21ToolsCoveredByRuntimeBoundaryOwnerApprovalQa": true,
+    "allRequiredCapabilitiesCoveredByRuntimeBoundaryOwnerApprovalQa": true,
+    "runtimeBoundaryLedgerOwnerApprovalQaAccepted": true,
+    "runtimeBoundaryMatrixOwnerApprovalQaAccepted": true,
+    "runtimeBoundaryToolMapOwnerApprovalQaAccepted": true,
+    "runtimeBoundaryCapabilityMapOwnerApprovalQaAccepted": true,
+    "planningOnlyPolicyOwnerApprovalQaAccepted": true,
+    "blockedUseRegisterOwnerApprovalQaAccepted": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "publicArtifactApprovedNow": false,
+    "signedUrlApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "generatedOutputCreated": false
+  }
+}

@@ -3,9 +3,9 @@
   "branch": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-qa-review",
   "baseBranch": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-review",
   "draftPrTitle": "[tools] AI graphics canonical agent selection runtime boundary QA review",
-  "draftPr": "pending draft PR creation",
-  "draftPrStatus": "pending draft PR creation; source PR #694 open/draft/MERGEABLE at 88ec8e9a28d583177c3bff92bd0fb554942813b5 with empty check rollup",
-  "statusCheckRollup": "pending until draft PR creation; source PR #694 has empty check rollup",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/696",
+  "draftPrStatus": "PR #696 is OPEN/draft/MERGEABLE at a3addfd4ce16801e21e57527d829666611c3fca6.",
+  "statusCheckRollup": "PR #696 status check rollup is empty at creation; source PR #694 has empty check rollup.",
   "sourceDecision": "ai_graphics_canonical_agent_selection_runtime_boundary_review_passed_with_warnings",
   "duplicateSearchResult": "No exact runtime-boundary QA PR, remote branch, or worktree existed at preflight.",
   "sourcePrs": {

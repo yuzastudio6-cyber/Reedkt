@@ -1,21 +1,19 @@
-# WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-OWNER-REVIEW: review SOUND CPU Dockerfile static plan output, no Docker build/GCP
+# SOUND-RUNTIME-MEDIA-GATE-1F: Dockerfile source creation plan, no Docker build/GCP
 
-```json worker-runtime-jobs-sound-cpu-dockerfile-static-owner-review
+```json sound-runtime-media-gate-1f-dockerfile-source-creation-plan
 {
-  "prompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-OWNER-REVIEW",
-  "title": "Review SOUND CPU Dockerfile static plan output, no Docker build/GCP",
+  "prompt": "SOUND-RUNTIME-MEDIA-GATE-1F",
+  "title": "Dockerfile source creation plan, no Docker build/GCP",
   "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1E",
   "requiredSourceDecision": "sound_runtime_media_gate_1e_dockerfile_static_plan_completed_with_warnings_ready_for_dockerfile_static_owner_review",
-  "requiredSourceHead": "1188355ac866735f9ff9aa676c7bb30c4e9cb815",
-  "prerequisiteMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-REVIEW",
-  "prerequisiteDecision": "worker_runtime_jobs_sound_cpu_dockerfile_static_review_passed_with_warnings_ready_for_gate_1e_static_plan",
-  "purpose": "Review the future Gate 1E static Dockerfile plan output without creating Dockerfiles, building images, running Docker, calling GCP, deploying Cloud Run, or executing workers.",
+  "requiredOwnerReviewPrompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-OWNER-REVIEW",
+  "purpose": "Plan the future source-file creation step for SOUND CPU worker Dockerfiles after owner review, without building images, running Docker, calling GCP, or executing workers.",
   "acceptedPlanningOnly": {
-    "workerNames": [
+    "workers": [
       "sound-cpu-analysis-worker",
       "sound-audio-metadata-worker"
     ],
-    "imageNames": [
+    "images": [
       "reeditpro/sound-cpu-analysis-worker",
       "reeditpro/sound-audio-metadata-worker"
     ],
@@ -24,10 +22,10 @@
       "sound.numeric_array_analysis",
       "sound.symbolic_midi_analysis",
       "sound.loudness_synthetic_analysis"
-    ]
+    ],
+    "requirementsSource": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt"
   },
   "blockedActions": [
-    "Dockerfile creation",
     "Docker build",
     "Docker push",
     "GCP API call",

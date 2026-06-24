@@ -1,0 +1,11 @@
+{
+  "readiness": "ready_for_official_gpac_apt_repo_approval_metadata_gate",
+  "decision": "tracka_gpac_mp4box_owner_source_classification_passed_ready_for_official_gpac_apt_repo_approval",
+  "readyForInstallProof": false,
+  "readyForRuntimeExecution": false,
+  "readyForBeta": false,
+  "readyForProduction": false,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-REPO-APPROVAL-1",
+  "nextPromptFile": "docs/implementation-prompts/prompt-tracka-gpac-mp4box-official-apt-repo-approval-1.md",
+  "productReadyLocalOssTools": 0
+}

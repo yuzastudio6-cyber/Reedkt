@@ -1,0 +1,21 @@
+{
+  "selectedComponent": "main",
+  "blockedComponents": [
+    "nightly"
+  ],
+  "packageName": "gpac",
+  "observedPackageVersions": [
+    "2.4-rev0-g5d70253ac-HEAD",
+    "26.02-rev0-g118e60a90-HEAD"
+  ],
+  "pinningRequiredBeforeExecution": true,
+  "futureApprovalMustSpecify": [
+    "exact repo URI",
+    "component main only",
+    "architecture",
+    "package name gpac",
+    "version pin or apt preference",
+    "rollback command"
+  ],
+  "executionApproved": false
+}

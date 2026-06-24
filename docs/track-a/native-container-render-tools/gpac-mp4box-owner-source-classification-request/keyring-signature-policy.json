@@ -1,0 +1,16 @@
+{
+  "keySource": "https://dist.gpac.io/gpac/linux/gpg.asc",
+  "keyStatus": "source_endpoint_observed_only",
+  "observedSha256": "c88993c228200dece139005eb28fec06b7f3933122fee5612a85d4cb5b94c7ad",
+  "futureKeyringPath": "/usr/share/keyrings/gpac-archive-keyring.gpg",
+  "futureSourceListStyle": "deb822_or_signed_by_only",
+  "requiresNextApproval": [
+    "key fingerprint readback",
+    "key dearmor command",
+    "signed-by source entry",
+    "key rotation policy",
+    "rollback/removal command"
+  ],
+  "keyImportedInThisPhase": false,
+  "aptSourceAddedInThisPhase": false
+}

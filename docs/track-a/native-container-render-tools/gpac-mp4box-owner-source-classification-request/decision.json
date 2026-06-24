@@ -1,0 +1,28 @@
+{
+  "decision": "tracka_gpac_mp4box_owner_source_classification_passed_ready_for_official_gpac_apt_repo_approval",
+  "decisionType": "passed_to_next_metadata_gate",
+  "selectedSourceClass": "official_gpac_apt_repository",
+  "installApproved": false,
+  "runtimeApproved": false,
+  "gpacMp4box": {
+    "provider": "GPAC/MP4Box",
+    "packageNameCandidate": "gpac",
+    "repoUriCandidate": "https://dist.gpac.io/gpac/linux/debian",
+    "codename": "bookworm",
+    "component": "main",
+    "keyUrl": "https://dist.gpac.io/gpac/linux/gpg.asc",
+    "pinningRequiredBeforeExecution": true
+  },
+  "bento4Status": "separate_not_selected_for_mp4box_command_path",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577Excluded": true,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-REPO-APPROVAL-1",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no",
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

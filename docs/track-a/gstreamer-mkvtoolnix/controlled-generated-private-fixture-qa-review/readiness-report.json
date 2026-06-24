@@ -8,7 +8,7 @@
   "privateFixtureExecutionInThisPhase": false,
   "gstreamerReadiness": "qa_passed_ready_for_tracka_native_container_rollup_or_private_e2e_planning",
   "mkvtoolnixReadiness": "qa_passed_ready_for_tracka_native_container_rollup_or_private_e2e_planning",
-  "trackaNativeContainerRenderToolsRollupReadiness": "ready_after_dependency_validation_blocker_resolution_or_waiver",
+  "trackaNativeContainerRenderToolsRollupReadiness": "ready",
   "trackaNativeContainerRenderToolsInstallProof3Readiness": "context_only_ready",
   "trackaVisualVideoPrivateE2EReadiness": "still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates",
   "acceptedTools": [
@@ -27,12 +27,12 @@
     "product-ready local OSS claims"
   ],
   "productReadyLocalOssTools": 0,
-  "validationStatus": "blocked_host_resource_limit_no_space_left_on_device_requires_larger_validation_environment",
-  "validationBlocker": "host_resource_limit_no_space_left_on_device_requires_larger_validation_environment",
-  "dependencyValidation": "blocked",
-  "dependencyValidationCurrentAttempt": "not_run_disk_space_below_threshold",
-  "dependencyValidationDiskFree": "21GiB",
-  "dependencyValidationRequiredDiskFree": "25GiB",
-  "dependencyValidationFailure": "requires larger validation environment before npm ci retry",
-  "prReviewState": "draft_pending_larger_validation_environment"
+  "validationStatus": "full_validation_passed_after_disk_space_closure",
+  "validationBlocker": "closed",
+  "dependencyValidation": "passed",
+  "dependencyValidationCurrentAttempt": "completed_after_disk_space_closure",
+  "dependencyValidationDiskFreeAtValidationStart": "44GiB",
+  "dependencyValidationPostCleanupDiskFree": "15GiB",
+  "dependencyValidationFailure": "none",
+  "prReviewState": "ready_for_review_after_validation_closure"
 }

@@ -38,6 +38,8 @@ Context-only readiness note: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF
 
 Parallel planning-only prompt: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1`
 
-Validation blocker: `host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`
+Validation blocker: `closed`
 
-PR review state: `draft_pending_larger_validation_environment`
+Validation: `full_validation_passed_after_disk_space_closure`
+
+PR review state: `ready_for_review_after_validation_closure`

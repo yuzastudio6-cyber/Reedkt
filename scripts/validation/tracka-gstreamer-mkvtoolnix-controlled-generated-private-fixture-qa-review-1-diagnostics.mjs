@@ -95,7 +95,8 @@ const allowedChangedFiles = new Set([
 
 const decision = 'tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup'
 const internalRepairStatus = 'qa_passed_controlled_generated_private_fixture_execution_evidence'
-const validationBlocker = 'host_resource_limit_no_space_left_on_device_requires_larger_validation_environment'
+const validationStatus = 'full_validation_passed_after_disk_space_closure'
+const validationBlocker = 'closed'
 const nextPrompt = 'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1'
 const tempRoot = '/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1/2026-06-23T03-37-56-bc4d88cf'
 
@@ -128,12 +129,13 @@ const requiredText = [
   'ea659dec22a7492be8af90a521be03f76367723e99570e32e9f3b59d68ec1b82',
   decision,
   internalRepairStatus,
-  validationBlocker,
+  validationStatus,
+  'Validation blocker: `closed`',
   'live head: `6e3d90c2e7065a7bc41c694ab80806b10c9bc722`',
-  'Draft decision: `kept_draft`',
-  'Validation status: `blocked_host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`',
-  'Dependency validation current attempt: `not_run_disk_space_below_threshold`',
-  'PR review state: `draft_pending_larger_validation_environment`',
+  'Draft decision: `ready_for_review_after_validation_closure`',
+  'Validation status: `full_validation_passed_after_disk_space_closure`',
+  'Dependency validation current attempt: `completed_after_disk_space_closure`',
+  'PR review state: `ready_for_review_after_validation_closure`',
   'Execution: `completed_docs_only_qa_review_no_runtime_execution`',
   'QA scope: `source_evidence_review_only`',
   'Private fixture execution in this phase: `false`',
@@ -258,8 +260,8 @@ if (decisionReport.reconciliationMergeSha !== '41601b267d076534412b7e13c86bee32c
 if (decisionReport.next_prompt !== nextPrompt) fail('next prompt drift in QA decision report')
 if (decisionReport.productReadyLocalOssTools !== 0) fail('product-ready local OSS count must remain 0')
 if (decisionReport.trackBFFmpegFFprobeOwnershipPreserved !== true) fail('Track B FFmpeg/FFprobe ownership must be preserved')
-if (decisionReport.blocker !== validationBlocker) fail('QA decision report must record the dependency validation blocker')
-if (decisionReport.validationStatus !== `blocked_${validationBlocker}`) fail('QA decision report validation status drift')
+if (decisionReport.blocker !== validationBlocker) fail('QA decision report must record the closed dependency validation blocker')
+if (decisionReport.validationStatus !== validationStatus) fail('QA decision report validation status drift')
 
 const audit = JSON.parse(read(`${packetDir}/source-of-truth-audit.json`))
 if (audit.decision !== decision) fail('decision drift in source audit')
@@ -316,17 +318,18 @@ const readiness = JSON.parse(read(`${packetDir}/readiness-report.json`))
 if (readiness.qaDecision !== decision) fail('readiness report QA decision drift')
 if (readiness.internalRepairStatus !== internalRepairStatus) fail('readiness report internal repair status drift')
 if (readiness.nextGate !== nextPrompt) fail('readiness report next gate drift')
-if (readiness.validationBlocker !== validationBlocker) fail('readiness report must record the dependency validation blocker')
-if (readiness.validationStatus !== `blocked_${validationBlocker}`) fail('readiness report validation status drift')
-if (readiness.dependencyValidation !== 'blocked') fail('readiness report dependency validation must be blocked')
+if (readiness.validationBlocker !== validationBlocker) fail('readiness report must record the closed dependency validation blocker')
+if (readiness.validationStatus !== validationStatus) fail('readiness report validation status drift')
+if (readiness.dependencyValidation !== 'passed') fail('readiness report dependency validation must be passed')
 
 const liveHeadReview = JSON.parse(read(`${packetDir}/live-head-draft-readiness-review.json`))
 if (liveHeadReview.liveHead !== '6e3d90c2e7065a7bc41c694ab80806b10c9bc722') fail('live-head readiness review head drift')
-if (liveHeadReview.draftDecision !== 'kept_draft') fail('live-head readiness review must keep PR draft')
+if (liveHeadReview.draftDecision !== 'ready_for_review_after_validation_closure') fail('live-head readiness review must record ready-for-review closure')
 if (liveHeadReview.canonicalDecision !== decision) fail('live-head readiness review canonical decision drift')
 if (liveHeadReview.internalRepairStatus !== internalRepairStatus) fail('live-head readiness review internal repair status drift')
 if (liveHeadReview.nextPrompt !== nextPrompt) fail('live-head readiness review next prompt drift')
 if (liveHeadReview.validationBlocker !== validationBlocker) fail('live-head readiness review validation blocker drift')
+if (liveHeadReview.validationStatus !== validationStatus) fail('live-head readiness review validation status drift')
 if (liveHeadReview.supabaseClassification?.write !== 'no') fail('live-head readiness review Supabase classification drift')
 
 const runtimeBoundary = JSON.parse(read(`${packetDir}/runtime-boundary-review.json`))

@@ -2,7 +2,7 @@
 
 live head: `6e3d90c2e7065a7bc41c694ab80806b10c9bc722`
 
-Draft decision: `kept_draft`
+Draft decision: `ready_for_review_after_validation_closure`
 
 PR #682 remains open, draft, and `CLEAN` on base `codex/rp-model-orchestration-qwen-schema-timeout-target-calibration` at `41601b267d076534412b7e13c86bee32cac23f7b`.
 
@@ -22,13 +22,13 @@ PR #680 is merged at `41601b267d076534412b7e13c86bee32cac23f7b` and remains cont
 
 ## Validation Blocker
 
-Validation status: `blocked_host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`
+Validation status: `full_validation_passed_after_disk_space_closure`
 
-Validation blocker: `host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`
+Validation blocker: `closed`
 
-Dependency validation current attempt: `not_run_disk_space_below_threshold`
+Dependency validation current attempt: `completed_after_disk_space_closure`
 
-The prior `npm ci` attempt failed with ENOSPC, partial `node_modules` was removed, and dependency validation remains blocked pending a larger validation environment or an explicit later waiver. PR #682 stays draft for that reason.
+The prior `npm ci` attempt failed with ENOSPC, but the validation closure completed after disk space temporarily rose above the `25GiB` threshold. Generated build outputs and macOS sidecars were removed before commit.
 
 ## Boundaries
 

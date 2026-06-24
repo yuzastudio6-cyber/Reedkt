@@ -1,18 +1,18 @@
 # Validation Results
 
-Validation status: `blocked_host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`
+Validation status: `full_validation_passed_after_disk_space_closure`
 
-Validation blocker: `host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`
+Validation blocker: `closed`
 
-Dependency validation result: `blocked`
+Dependency validation result: `passed`
 
-Dependency validation current attempt: `not_run_disk_space_below_threshold`
+Dependency validation current attempt: `completed_after_disk_space_closure`
 
-Dependency validation reason: local `/Volumes/backup` has only about `21GiB` free, below the required `25GiB` threshold for retrying `npm ci`.
+Dependency validation disk status: local `/Volumes/backup` temporarily had about `44GiB` free before validation, above the required `25GiB` threshold; after build-output cleanup it had about `15GiB` free.
 
 Prior dependency validation failure: local host returned repeated `ENOSPC: no space left on device` tar extraction errors during `npm ci`; partial generated `node_modules` state was removed and is not committed.
 
-Blocked commands not run because the environment remains below the disk-space threshold: `npm ci --no-audit --no-fund --progress=false`, `npm run lint`, `npm run typecheck:server`, `npm run build`, and `npm run build:server`.
+Validation closure commands passed: `npm ci --no-audit --no-fund --progress=false`, `git diff --check`, `npm run lint`, `npm run typecheck:server`, `npm run build`, `npm run build:server`, all listed GStreamer/MKVToolNix private fixture diagnostics, and `git diff --cached --check`.
 
 Required repair validation commands:
 
@@ -35,7 +35,7 @@ Required repair validation commands:
 
 Changed-file and staged safety scans are non-executing file-content scans only.
 
-Feasible repair checks while the larger-environment blocker remains are limited to `git diff --check`, Node-built-in diagnostics, `git diff --cached --check`, and non-executing file-content safety scans.
+Generated build outputs and macOS sidecar files from validation were removed before commit.
 
 Canonical QA decision: `tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup`
 

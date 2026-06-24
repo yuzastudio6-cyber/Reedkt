@@ -28,6 +28,12 @@
   "requiredBuildReadinessPlanDecision": "sound_runtime_media_gate_1i_docker_build_proof_readiness_plan_completed_with_warnings_ready_for_build_readiness_owner_review",
   "requiredBuildReadinessOwnerReviewMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKER-BUILD-READINESS-OWNER-REVIEW",
   "requiredBuildReadinessOwnerReviewDecision": "worker_runtime_jobs_sound_cpu_docker_build_readiness_owner_review_passed_with_warnings_ready_for_controlled_docker_build_proof",
+  "requiredBuildReadinessOwnerReviewSourceHead": "a8ed3c09f003b687425ee9b33945dc212ab875b5",
+  "controlledDockerBuildProofMayProceedAfterOwnerReview": true,
+  "acceptedForDockerBuildToday": false,
+  "acceptedForDockerPushToday": false,
+  "acceptedForDockerRunToday": false,
+  "acceptedForExecutionToday": "none",
   "purpose": "Plan a future local controlled Docker build proof after Dockerfile source and owner approval. This prompt itself remains planning-only and must not build, push, deploy, or execute workers.",
   "acceptedPlanningOnly": {
     "workers": [

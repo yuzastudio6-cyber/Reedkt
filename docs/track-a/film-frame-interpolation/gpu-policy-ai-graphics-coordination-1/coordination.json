@@ -1,0 +1,32 @@
+{
+  "packet": "TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1",
+  "decision": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy",
+  "execution": "completed_docs_only_gpu_policy_ai_graphics_coordination_no_install_or_runtime",
+  "sourceOfTruth": {
+    "filmScopeDecisionPr": "#721",
+    "filmScopeDecisionMergeSha": "77c878bf17939b2197e336b5b3f41da218934c0d",
+    "excludedPr": "#577"
+  },
+  "film": {
+    "capability": "film_frame_interpolation",
+    "owner": "atlas_tracka_scoped_capability_label_only",
+    "trackAResponsibility": "render_export_capability_label_acceptance_criteria_and_future_handoff_requirements",
+    "aiGraphicsWorkerResponsibility": "required_for_model_runtime_model_weights_gpu_execution_and_ml_dependency_policy",
+    "implementationStatus": "blocked_pending_ai_graphics_owner_acceptance_and_gpu_heavy_runtime_policy",
+    "installSource": "not_changed",
+    "runtime": "not_run",
+    "modelWeights": "not_accessed_and_not_approved",
+    "gpuRuntime": "not_configured_and_not_approved",
+    "installProofReadiness": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy",
+    "runtimeProofReadiness": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_model_weight_policy_and_worker_runtime_lane"
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "supabase": {
+    "classification": "not_applicable_docs_only",
+    "updateRequired": "none",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextAction": "none"
+  }
+}

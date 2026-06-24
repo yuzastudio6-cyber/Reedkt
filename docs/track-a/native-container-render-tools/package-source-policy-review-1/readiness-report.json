@@ -1,0 +1,21 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1",
+  "decision": "blocked_no_safe_package_source_policy_available",
+  "productReadyEndToEndLocalOssTools": 0,
+  "readiness": {
+    "TRACKA_NATIVE_CONTAINER_RENDER_TOOLS_INSTALL_PROOF_4": "blocked_pending_owner_or_environment_package_source_policy_changes",
+    "TRACKA_GPAC_MP4BOX_PACKAGE_SOURCE_RESOLUTION_1": "ready_for_owner_or_environment_package_source_policy_review",
+    "TRACKA_VAPOURSYNTH_PACKAGE_SOURCE_RESOLUTION_1": "ready_for_owner_or_environment_base_python_package_source_policy_review",
+    "TRACKA_REVIDEO_OWNER_APPROVAL_1": "blocked_pending_owner_approval",
+    "TRACKA_FILM_FRAME_INTERPOLATION_SCOPE_DECISION_1": "planning_only",
+    "TRACKA_VISUAL_VIDEO_PRIVATE_E2E_1": "still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates"
+  },
+  "supabase": {
+    "updateRequired": "none",
+    "status": "not_applicable_docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextAction": "none"
+  }
+}

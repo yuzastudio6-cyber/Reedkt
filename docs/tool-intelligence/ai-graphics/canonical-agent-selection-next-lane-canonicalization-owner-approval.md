@@ -1,0 +1,7 @@
+# Canonical Agent Selection Next Lane Canonicalization Owner Approval
+
+Decision: `ai_graphics_canonical_agent_selection_canonicalization_owner_approved_with_warnings`
+
+Records the recommended successor lane.
+
+Next prompt recommendation: `AI_GRAPHICS_CANONICAL_AGENT_SELECTION_CANONICALIZATION_OWNER_APPROVAL_QA_REVIEW`

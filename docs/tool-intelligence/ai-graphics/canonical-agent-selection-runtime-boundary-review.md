@@ -7,8 +7,8 @@ This review defines the runtime boundary for the canonical AI graphics agent-sel
 ## Branch And PR
 - Branch: `codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-review`
 - Base: `codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-approval-qa-review`
-- Draft PR: pending draft PR creation
-- Draft status: pending draft PR creation; source PR #692 open/draft/MERGEABLE at `8062496fa2c3b3ef2d7fdfca3d5fb4fede40f6ec` with empty check rollup
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/694
+- Draft status: PR #694 is OPEN/draft/MERGEABLE at `27c40d628fefb9f74073d34de7394740fb3d4cec`; status check rollup is empty at creation.
 - Duplicate search result: No exact runtime-boundary review PR, remote branch, or worktree existed at preflight.
 
 ## Source Evidence

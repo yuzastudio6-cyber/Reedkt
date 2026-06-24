@@ -9,10 +9,10 @@ This implementation records the QA/review-only lane for PR #714 owner approval.
 Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_owner_approval_qa_passed_with_warnings`
 
 - Branch: `codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-approval-qa-review`
-- Draft PR: pending creation
-- Draft status: pending creation
-- Head SHA: pending creation
-- Check rollup: pending creation
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/715
+- Draft status: OPEN/draft=true/mergeable=CLEAN
+- Head SHA: `d3aba1dc8c77b233dff90498664490c70636f760`
+- Check rollup: Empty check rollup after PR creation.
 - Duplicate search result: Preflight found no exact runtime-boundary canonicalization owner-approval QA PR, remote branch, or worktree.
 - PR #714 status used: open/draft/CLEAN at `9ee8d5aee571b130360a4df20bd0a14bd93ec600`
 - PR #710 status used: open/draft/CLEAN at `48a9537c870a936b56c4861edcfdc7c5a189e0b6`
@@ -88,4 +88,4 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_canonicalizati
 
 ## Validation
 
-Pending local validation and PR creation.
+Local validation passed before PR creation; PR #715 opened as draft with an empty check rollup.

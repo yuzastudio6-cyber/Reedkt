@@ -8,6 +8,10 @@ const baseRef = "origin/codex/rp-ai-graphics-canonical-agent-selection-runtime-b
 const expectedDecision = "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approved_with_warnings";
 const expectedScript = "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-diagnostics";
 const expectedScriptCommand = "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval-diagnostics.mjs";
+const allowedDescendantScripts = new Set([
+  expectedScript,
+  "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-qa-diagnostics"
+]);
 const failures = [];
 
 const fail = (message) => failures.push(message);
@@ -359,7 +363,7 @@ const scriptDrift = Object.keys(packageJson.scripts || {}).filter((key) =>
   JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key])
 );
 for (const key of scriptDrift) {
-  if (key !== expectedScript) fail("Unexpected script drift: " + key);
+  if (!allowedDescendantScripts.has(key)) fail("Unexpected script drift: " + key);
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) {
   if (!(key in (packageJson.scripts || {}))) fail("Removed package script: " + key);

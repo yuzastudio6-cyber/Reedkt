@@ -1,0 +1,60 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approval_qa_passed_with_warnings",
+  "ownerApprovalQaAccepted": true,
+  "runtimeBuckets": {
+    "planning_metadata_allowed_now": {
+      "bucket": "planning_metadata_allowed_now",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Planning metadata may be read and used for ranking/elimination."
+    },
+    "cpu_static_execution_previously_validated_but_not_agent_executable_now": {
+      "bucket": "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "browser_chart_runtime_later": {
+      "bucket": "browser_chart_runtime_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "animation_runtime_later": {
+      "bucket": "animation_runtime_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "browser_canvas_webgl_runtime_later": {
+      "bucket": "browser_canvas_webgl_runtime_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "model_cpu_gpu_runtime_later": {
+      "bucket": "model_cpu_gpu_runtime_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "tool_route_handoff_later": {
+      "bucket": "tool_route_handoff_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "worker_handoff_later": {
+      "bucket": "worker_handoff_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "public_artifact_and_signed_url_later": {
+      "bucket": "public_artifact_and_signed_url_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    }
+  }
+}

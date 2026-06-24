@@ -1,0 +1,1437 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approval_qa_passed_with_warnings",
+  "branch": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval-qa-review",
+  "baseBranch": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval",
+  "draftPrTitle": "[tools] AI graphics canonical agent selection runtime boundary handoff owner approval QA review",
+  "draftPr": {
+    "number": 727,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/727",
+    "title": "[tools] AI graphics canonical agent selection runtime boundary handoff owner approval QA review",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeable": "MERGEABLE",
+    "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval-qa-review",
+    "headRefOid": "6d75ae0e29aad33e5c149fe82f3e0e457408d57d",
+    "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval",
+    "statusCheckRollup": []
+  },
+  "duplicateSearchResult": "Preflight found no exact runtime-boundary handoff owner-approval QA PR, remote branch, or worktree.",
+  "reviewedOn": "2026-06-24",
+  "sourceRuntimeBoundaryHandoffOwnerApproval": {
+    "pr": 724,
+    "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approved_with_warnings",
+    "liveState": {
+      "number": 724,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary handoff owner approval",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval",
+      "headRefOid": "7e030fac095ba12bde54d7f21e6f20db0d51a155",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/724",
+      "statusCheckRollup": []
+    },
+    "recordedHeadInSourcePacket": "83ae6d45d961579824af3c0053346cbc7fb1adde",
+    "metadataWarning": "Source owner-approval packet records PR #724 metadata head 83ae6d45d961579824af3c0053346cbc7fb1adde; live PR #724 head is 7e030fac095ba12bde54d7f21e6f20db0d51a155. This is non-blocking PR-status metadata staleness because live PR #724 content remains compatible."
+  },
+  "sourceRuntimeBoundaryHandoffOwnerReview": {
+    "pr": 722,
+    "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_review_passed_with_warnings",
+    "liveState": {
+      "number": 722,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary handoff owner review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-review",
+      "headRefOid": "c97952a2b30a3580964b0aab3bb711dc85ded8a4",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/722",
+      "statusCheckRollup": []
+    }
+  },
+  "sourceRuntimeBoundaryHandoffQa": {
+    "pr": 719,
+    "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_qa_passed_with_warnings",
+    "liveState": {
+      "number": 719,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary handoff QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-qa-review",
+      "headRefOid": "fa62444977d7ab6e4f40095ac489ccfc5108e254",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/719",
+      "statusCheckRollup": []
+    }
+  },
+  "sourceRuntimeBoundaryHandoffReview": {
+    "pr": 718,
+    "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_review_passed_with_warnings",
+    "liveState": {
+      "number": 718,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary handoff review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-review",
+      "headRefOid": "d291277d68a5bf5e3bc076acd99cd1a0b3bd64a3",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-approval-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/718",
+      "statusCheckRollup": []
+    }
+  },
+  "sourceRuntimeBoundaryCanonicalizationOwnerApprovalQa": {
+    "pr": 715,
+    "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_owner_approval_qa_passed_with_warnings",
+    "liveState": {
+      "number": 715,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary canonicalization owner approval QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-approval-qa-review",
+      "headRefOid": "9ff65730f9a88041e9f0d2f1b8f273711bef1a1e",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-approval",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/715",
+      "statusCheckRollup": []
+    }
+  },
+  "sourcePrs": {
+    "361": {
+      "number": 361,
+      "title": "[tool-study] AI Tools creative graphics capability routing contract",
+      "state": "MERGED",
+      "draft": false,
+      "mergeable": "UNKNOWN",
+      "headRefName": "codex/rp-tool-study-0-ai-tools-creative-graphics",
+      "headRefOid": "f50690553990ab0e8421f338efd4b0e9869970ae",
+      "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+      "mergeCommit": "05d429f6029136f0f55fe01375809071b588791c",
+      "mergedAt": "2026-06-12T23:24:26Z",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/361",
+      "statusCheckRollup": []
+    },
+    "376": {
+      "number": 376,
+      "title": "[tool-study] AI_TOOLS_CREATIVE_GRAPHICS capability routing study",
+      "state": "MERGED",
+      "draft": false,
+      "mergeable": "UNKNOWN",
+      "headRefName": "codex/rp-tool-study-0-ai-tools-creative-graphics-clean",
+      "headRefOid": "552791d6dd94347fd79bf8804c088f9fe3eafb43",
+      "baseRefName": "codex/rp-tool-study-0-sound-music-audio-clean",
+      "mergeCommit": "9296a4a41a143c0a212415d890e6ff544f73bb4b",
+      "mergedAt": "2026-06-13T16:10:57Z",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/376",
+      "statusCheckRollup": []
+    },
+    "425": {
+      "number": 425,
+      "title": "[tools] AI_TOOLS_CREATIVE_GRAPHICS install proof batch 1 execution",
+      "state": "MERGED",
+      "draft": false,
+      "mergeable": "UNKNOWN",
+      "headRefName": "codex/rp-ai-tools-creative-graphics-install-proof-batch-1-execution",
+      "headRefOid": "4e79f14a03a441c0a6d9c8adaef55b7c8b693c12",
+      "baseRefName": "codex/rp-ai-tools-creative-graphics-package-lock-base-fix",
+      "mergeCommit": "a055ef045db2a6ce127a044bee6219d5933532c3",
+      "mergedAt": "2026-06-20T03:57:35Z",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/425",
+      "statusCheckRollup": []
+    },
+    "433": {
+      "number": 433,
+      "title": "[tools] AI_TOOLS_CREATIVE_GRAPHICS batch 2 install proof execution",
+      "state": "MERGED",
+      "draft": false,
+      "mergeable": "UNKNOWN",
+      "headRefName": "codex/rp-ai-tools-creative-graphics-batch-2-install-proof-execution",
+      "headRefOid": "5d7921f9d79e19641a9453440a6f9abe6272ea04",
+      "baseRefName": "codex/rp-ai-tools-creative-graphics-batch-2-approval-packet",
+      "mergeCommit": "dd8cb0a03d47da6463d8ca014cfb3e53b7531ea0",
+      "mergedAt": "2026-06-20T13:00:10Z",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/433",
+      "statusCheckRollup": []
+    },
+    "441": {
+      "number": 441,
+      "title": "[tools] AI_TOOLS_CREATIVE_GRAPHICS batch 3 install proof execution",
+      "state": "MERGED",
+      "draft": false,
+      "mergeable": "UNKNOWN",
+      "headRefName": "codex/rp-ai-tools-creative-graphics-batch-3-install-proof-execution",
+      "headRefOid": "92c1a52b53c4836a642ab6be8885aa8fb994e9c8",
+      "baseRefName": "codex/rp-ai-tools-creative-graphics-batch-3-approval-packet",
+      "mergeCommit": "d174de59471eacf05bed5a5511d661f2e5ba9f0f",
+      "mergedAt": "2026-06-20T14:20:26Z",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/441",
+      "statusCheckRollup": []
+    },
+    "542": {
+      "number": 542,
+      "title": "[tools] Track B media OSS steward owner registry",
+      "state": "MERGED",
+      "draft": false,
+      "mergeable": "UNKNOWN",
+      "headRefName": "codex/rp-trackb-media-oss-steward-owner-registry",
+      "headRefOid": "c2007f6bb20bc5cfae35d9e4eaef03feeca3218f",
+      "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+      "mergeCommit": "a66a1c0b72263e5e113d95216c373e0fad1071bb",
+      "mergedAt": "2026-06-19T19:07:30Z",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/542",
+      "statusCheckRollup": []
+    },
+    "544": {
+      "number": 544,
+      "title": "[tools] Register Track A visual render tool owner",
+      "state": "MERGED",
+      "draft": false,
+      "mergeable": "UNKNOWN",
+      "headRefName": "codex/rp-tool-owner-registry-1-atlas-tracka-visual-render-export",
+      "headRefOid": "318415fa8a9dbe33a4ac5f0f8a767ab761b73a4d",
+      "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+      "mergeCommit": "62f69c6b66d77abf155287ffdb2e9a380541d763",
+      "mergedAt": "2026-06-19T20:27:01Z",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/544",
+      "statusCheckRollup": []
+    },
+    "621": {
+      "number": 621,
+      "title": "[tools] AI graphics CPU static spec validation refreshed execution owner review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-cpu-static-spec-validation-refreshed-execution-owner-review",
+      "headRefOid": "cd6ab312d83bb5ebaa30f1ef30f41cf3891c3306",
+      "baseRefName": "codex/rp-ai-graphics-cpu-static-spec-validation-refreshed-execution-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/621",
+      "statusCheckRollup": []
+    },
+    "623": {
+      "number": 623,
+      "title": "[tools] AI graphics tool capability study and ranking matrix",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-ranking-matrix",
+      "headRefOid": "4952fb0103d05e8f7df1272c0acd7419426f0ea4",
+      "baseRefName": "codex/rp-ai-graphics-cpu-static-spec-validation-refreshed-execution-owner-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/623",
+      "statusCheckRollup": []
+    },
+    "638": {
+      "number": 638,
+      "title": "[tools] AI graphics canonical agent routing approval",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-approval",
+      "headRefOid": "61003fe69287a5ec490ec294a34ca72ef31f4367",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-ranking-matrix-owner-approval-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/638",
+      "statusCheckRollup": []
+    },
+    "642": {
+      "number": 642,
+      "title": "[tools] AI graphics canonical agent routing QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-qa-review",
+      "headRefOid": "494f37004eb59cf2fa431109cb60a4636bfd1037",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-approval",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/642",
+      "statusCheckRollup": []
+    },
+    "645": {
+      "number": 645,
+      "title": "[tools] AI graphics canonical agent routing owner review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-review",
+      "headRefOid": "244217ef84c6b2f721aab0ff74b926b6168855c9",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/645",
+      "statusCheckRollup": []
+    },
+    "646": {
+      "number": 646,
+      "title": "[tools] AI graphics canonical agent routing owner approval",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval",
+      "headRefOid": "917592a87fc85716761f98bd691f878bd6c20461",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/646",
+      "statusCheckRollup": []
+    },
+    "651": {
+      "number": 651,
+      "title": "[tools] AI graphics canonical agent routing owner approval QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-qa-review",
+      "headRefOid": "b0803fdda8d1d6fb725e7533b64746156517f9b5",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/651",
+      "statusCheckRollup": []
+    },
+    "656": {
+      "number": 656,
+      "title": "[tools] AI graphics canonical agent routing canonicalization review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-review",
+      "headRefOid": "d402d821519c2d03db49029c18def5dfadf0d79a",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/656",
+      "statusCheckRollup": []
+    },
+    "657": {
+      "number": 657,
+      "title": "[tools] AI graphics canonical agent routing canonicalization QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-qa-review",
+      "headRefOid": "6665c2a8175c575045070d74d4f7f6929f155f61",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/657",
+      "statusCheckRollup": []
+    },
+    "661": {
+      "number": 661,
+      "title": "[tools] AI graphics canonical agent routing canonicalization owner review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-owner-review",
+      "headRefOid": "b23a0446fe72521688d783e990da8eb84e847856",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/661",
+      "statusCheckRollup": []
+    },
+    "665": {
+      "number": 665,
+      "title": "[tools] AI graphics canonical agent routing canonicalization owner approval",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-owner-approval",
+      "headRefOid": "841ce60ec31b9e4c43202ed0d3e0363a4ce13869",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-owner-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/665",
+      "statusCheckRollup": []
+    },
+    "668": {
+      "number": 668,
+      "title": "[tools] AI graphics canonical agent routing canonicalization owner approval QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-owner-approval-qa-review",
+      "headRefOid": "d09b9287d3d6312d9ebe71f6657e830d0e903bb1",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-owner-approval",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/668",
+      "statusCheckRollup": []
+    },
+    "671": {
+      "number": 671,
+      "title": "[tools] AI graphics canonical agent selection review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-review",
+      "headRefOid": "01917db09617a06549f110858abd16a342226c7c",
+      "baseRefName": "codex/rp-ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-owner-approval-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/671",
+      "statusCheckRollup": []
+    },
+    "674": {
+      "number": 674,
+      "title": "[tools] AI graphics canonical agent selection QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-qa-review",
+      "headRefOid": "fc17ed6d647207e5b99b55ac19eba650e80cd42c",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/674",
+      "statusCheckRollup": []
+    },
+    "677": {
+      "number": 677,
+      "title": "[tools] AI graphics canonical agent selection owner review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-owner-review",
+      "headRefOid": "2ff1673b27ca6e9bea9735968dc99fbbc2e4253d",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/677",
+      "statusCheckRollup": []
+    },
+    "681": {
+      "number": 681,
+      "title": "[tools] AI graphics canonical agent selection owner approval",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-owner-approval",
+      "headRefOid": "c2d2c278c9af39b22414f8690d2d70c17da303ee",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-owner-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/681",
+      "statusCheckRollup": []
+    },
+    "683": {
+      "number": 683,
+      "title": "[tools] AI graphics canonical agent selection owner approval QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-owner-approval-qa-review",
+      "headRefOid": "487562a1d4245fc63ac7674d1f696140d0bf691e",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-owner-approval",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/683",
+      "statusCheckRollup": []
+    },
+    "685": {
+      "number": 685,
+      "title": "[tools] AI graphics canonical agent selection canonicalization review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-review",
+      "headRefOid": "b8db13e34a5201060baebfa39812c8bbd9eeb714",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-owner-approval-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/685",
+      "statusCheckRollup": []
+    },
+    "686": {
+      "number": 686,
+      "title": "[tools] AI graphics canonical agent selection canonicalization QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-qa-review",
+      "headRefOid": "74e89f2c0c6e76035c1fb7d19c31d827a8affd3f",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/686",
+      "statusCheckRollup": []
+    },
+    "688": {
+      "number": 688,
+      "title": "[tools] AI graphics canonical agent selection canonicalization owner review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-review",
+      "headRefOid": "b52cfbc492b97a0871f53e9c356e935995f45eb9",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/688",
+      "statusCheckRollup": []
+    },
+    "689": {
+      "number": 689,
+      "title": "[tools] AI graphics canonical agent selection canonicalization owner approval",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-approval",
+      "headRefOid": "1e32b1e4e182d9759fd6f443c5d3f06b1e21285f",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/689",
+      "statusCheckRollup": []
+    },
+    "692": {
+      "number": 692,
+      "title": "[tools] AI graphics canonical agent selection canonicalization owner approval QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-approval-qa-review",
+      "headRefOid": "8062496fa2c3b3ef2d7fdfca3d5fb4fede40f6ec",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-approval",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/692",
+      "statusCheckRollup": []
+    },
+    "694": {
+      "number": 694,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-review",
+      "headRefOid": "88ec8e9a28d583177c3bff92bd0fb554942813b5",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-approval-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/694",
+      "statusCheckRollup": []
+    },
+    "696": {
+      "number": 696,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-qa-review",
+      "headRefOid": "b7a034cb4ea3de57f393cc8b0d5d1496fbb7d82d",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/696",
+      "statusCheckRollup": []
+    },
+    "699": {
+      "number": 699,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary owner review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-owner-review",
+      "headRefOid": "5640b8852ff7fb2cd7823e3797a9697af0098bef",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/699",
+      "statusCheckRollup": []
+    },
+    "700": {
+      "number": 700,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary owner approval",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-owner-approval",
+      "headRefOid": "3d666ecf32c424a0df2cb5ed6bdb8cb894bcb9bd",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-owner-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/700",
+      "statusCheckRollup": []
+    },
+    "704": {
+      "number": 704,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary owner approval QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-owner-approval-qa-review",
+      "headRefOid": "2bb265991794b66c933c84a23d5e50bbbb8baf40",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-owner-approval",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/704",
+      "statusCheckRollup": []
+    },
+    "705": {
+      "number": 705,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary canonicalization review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-review",
+      "headRefOid": "73ffd8a071468facbb9366a5ed0dbe706691c38c",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-owner-approval-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/705",
+      "statusCheckRollup": []
+    },
+    "709": {
+      "number": 709,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary canonicalization QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-qa-review",
+      "headRefOid": "f01090f7f22d27ff8bde8bec8202c806f26a1637",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/709",
+      "statusCheckRollup": []
+    },
+    "710": {
+      "number": 710,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary canonicalization owner review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-review",
+      "headRefOid": "48a9537c870a936b56c4861edcfdc7c5a189e0b6",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/710",
+      "statusCheckRollup": []
+    },
+    "714": {
+      "number": 714,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary canonicalization owner approval",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-approval",
+      "headRefOid": "9ee8d5aee571b130360a4df20bd0a14bd93ec600",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/714",
+      "statusCheckRollup": []
+    },
+    "715": {
+      "number": 715,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary canonicalization owner approval QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-approval-qa-review",
+      "headRefOid": "9ff65730f9a88041e9f0d2f1b8f273711bef1a1e",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-approval",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/715",
+      "statusCheckRollup": []
+    },
+    "718": {
+      "number": 718,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary handoff review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-review",
+      "headRefOid": "d291277d68a5bf5e3bc076acd99cd1a0b3bd64a3",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-owner-approval-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/718",
+      "statusCheckRollup": []
+    },
+    "719": {
+      "number": 719,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary handoff QA review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-qa-review",
+      "headRefOid": "fa62444977d7ab6e4f40095ac489ccfc5108e254",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/719",
+      "statusCheckRollup": []
+    },
+    "722": {
+      "number": 722,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary handoff owner review",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-review",
+      "headRefOid": "c97952a2b30a3580964b0aab3bb711dc85ded8a4",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-qa-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/722",
+      "statusCheckRollup": []
+    },
+    "724": {
+      "number": 724,
+      "title": "[tools] AI graphics canonical agent selection runtime boundary handoff owner approval",
+      "state": "OPEN",
+      "draft": true,
+      "mergeable": "MERGEABLE",
+      "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval",
+      "headRefOid": "7e030fac095ba12bde54d7f21e6f20db0d51a155",
+      "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-review",
+      "mergeCommit": null,
+      "mergedAt": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/724",
+      "statusCheckRollup": []
+    }
+  },
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "transformers",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "sam2",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "birefnet",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "real_esrgan",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "kornia",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "rembg",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "transparent_background",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "d3",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "echarts",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "browser_chart_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "vega_lite",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "vega",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "satori",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "viz_js",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "lottie_web",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "animation_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "animejs",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "animation_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "three_js",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "browser_canvas_webgl_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "pixi_js",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "browser_canvas_webgl_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "konva",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "browser_canvas_webgl_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "babylonjs",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "browser_canvas_webgl_runtime_later"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    }
+  ],
+  "capabilities": [
+    {
+      "capabilityId": "chart_overlay",
+      "preferredPlanningTools": [
+        "vega_lite",
+        "d3"
+      ],
+      "fallbackPlanningTools": [
+        "vega"
+      ],
+      "conditionalPlanningTools": [
+        "echarts"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "data_visualization",
+      "preferredPlanningTools": [
+        "vega_lite",
+        "vega",
+        "d3"
+      ],
+      "fallbackPlanningTools": [
+        "echarts"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "svg_graphics",
+      "preferredPlanningTools": [
+        "svgdotjs_svg_js",
+        "satori"
+      ],
+      "fallbackPlanningTools": [
+        "d3"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "diagram_graphics",
+      "preferredPlanningTools": [
+        "viz_js"
+      ],
+      "fallbackPlanningTools": [
+        "svgdotjs_svg_js",
+        "d3"
+      ],
+      "conditionalPlanningTools": [
+        "vega_lite"
+      ],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "animation_overlay",
+      "preferredPlanningTools": [
+        "lottie_web",
+        "animejs"
+      ],
+      "fallbackPlanningTools": [
+        "satori"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "canvas_scene",
+      "preferredPlanningTools": [
+        "pixi_js",
+        "konva"
+      ],
+      "fallbackPlanningTools": [
+        "svgdotjs_svg_js"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "webgl_3d_scene",
+      "preferredPlanningTools": [
+        "three_js",
+        "babylonjs"
+      ],
+      "fallbackPlanningTools": [
+        "pixi_js"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "background_removal",
+      "preferredPlanningTools": [
+        "birefnet",
+        "sam2"
+      ],
+      "fallbackPlanningTools": [
+        "rembg",
+        "transparent_background"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "subject_segmentation",
+      "preferredPlanningTools": [
+        "sam2",
+        "birefnet"
+      ],
+      "fallbackPlanningTools": [
+        "kornia"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "upscaling",
+      "preferredPlanningTools": [
+        "real_esrgan"
+      ],
+      "fallbackPlanningTools": [
+        "kornia"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "tensor_image_ops",
+      "preferredPlanningTools": [
+        "kornia",
+        "torch_torchvision"
+      ],
+      "fallbackPlanningTools": [
+        "transformers"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    },
+    {
+      "capabilityId": "model_runtime_foundation",
+      "preferredPlanningTools": [
+        "torch_torchvision",
+        "transformers"
+      ],
+      "fallbackPlanningTools": [
+        "sam2",
+        "birefnet",
+        "real_esrgan"
+      ],
+      "conditionalPlanningTools": [],
+      "ownerApprovalQaAccepted": true,
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "tool_route_handoff_later",
+        "worker_handoff_later",
+        "public_artifact_and_signed_url_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "nextProofMilestone": "future runtime lane approval before execution"
+    }
+  ],
+  "runtimeBuckets": {
+    "planning_metadata_allowed_now": {
+      "bucket": "planning_metadata_allowed_now",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Planning metadata may be read and used for ranking/elimination."
+    },
+    "cpu_static_execution_previously_validated_but_not_agent_executable_now": {
+      "bucket": "cpu_static_execution_previously_validated_but_not_agent_executable_now",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "browser_chart_runtime_later": {
+      "bucket": "browser_chart_runtime_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "animation_runtime_later": {
+      "bucket": "animation_runtime_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "browser_canvas_webgl_runtime_later": {
+      "bucket": "browser_canvas_webgl_runtime_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "model_cpu_gpu_runtime_later": {
+      "bucket": "model_cpu_gpu_runtime_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "tool_route_handoff_later": {
+      "bucket": "tool_route_handoff_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "worker_handoff_later": {
+      "bucket": "worker_handoff_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    },
+    "public_artifact_and_signed_url_later": {
+      "bucket": "public_artifact_and_signed_url_later",
+      "ownerApprovalQaAccepted": true,
+      "approvedForExecutionNow": false,
+      "note": "Future-only runtime bucket; no execution approval now."
+    }
+  },
+  "schemaFields": [
+    "handoffId",
+    "sourceBoundaryDecision",
+    "sourceBoundaryPr",
+    "agentSelectionConsumer",
+    "requestedCapability",
+    "candidateTools",
+    "rankedTools",
+    "eliminatedTools",
+    "runtimeBoundaryByTool",
+    "runtimeBoundaryByCapability",
+    "proofStatusByTool",
+    "missingProofByTool",
+    "preferredPlanningTools",
+    "fallbackPlanningTools",
+    "executionAllowedNow",
+    "routeExecutionAllowedNow",
+    "workerExecutionAllowedNow",
+    "toolExecutionAllowedNow",
+    "browserWebglCanvasAllowedNow",
+    "gpuModelRuntimeAllowedNow",
+    "providerRuntimeAllowedNow",
+    "publicArtifactAllowedNow",
+    "signedUrlAllowedNow",
+    "runtimeReadyNow",
+    "internalBetaReadyNow",
+    "productionReadyNow",
+    "nextProofMilestone"
+  ],
+  "booleans": {
+    "canonicalAgentSelectionRuntimeBoundaryHandoffOwnerApprovalQaCompleted": true,
+    "sourceRuntimeBoundaryHandoffOwnerApprovalAccepted": true,
+    "sourceRuntimeBoundaryHandoffOwnerReviewAccepted": true,
+    "sourceRuntimeBoundaryHandoffQaAccepted": true,
+    "sourceRuntimeBoundaryHandoffReviewAccepted": true,
+    "sourceRuntimeBoundaryCanonicalizationOwnerApprovalQaAccepted": true,
+    "all21ToolsCoveredByRuntimeBoundaryHandoffOwnerApprovalQa": true,
+    "allRequiredCapabilitiesCoveredByRuntimeBoundaryHandoffOwnerApprovalQa": true,
+    "allRuntimeBucketsCoveredByRuntimeBoundaryHandoffOwnerApprovalQa": true,
+    "handoffSchemaOwnerApprovalQaAccepted": true,
+    "handoffContractOwnerApprovalQaAccepted": true,
+    "handoffToolMapOwnerApprovalQaAccepted": true,
+    "handoffCapabilityMapOwnerApprovalQaAccepted": true,
+    "handoffProofStatusOwnerApprovalQaAccepted": true,
+    "handoffMissingProofOwnerApprovalQaAccepted": true,
+    "handoffPlanningOnlyPolicyOwnerApprovalQaAccepted": true,
+    "handoffBlockedUseRegisterOwnerApprovalQaAccepted": true,
+    "toolRoutePlaceholderOwnerApprovalQaAccepted": true,
+    "workerPlaceholderOwnerApprovalQaAccepted": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "publicArtifactApprovedNow": false,
+    "signedUrlApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "allowedBehavior": [
+    "agent may read runtime-boundary metadata",
+    "agent may select tools for planning/study only",
+    "agent may rank tools",
+    "agent may eliminate tools",
+    "agent may explain missing proof",
+    "agent may recommend preferred and fallback tools for planning",
+    "agent may return next proof milestones",
+    "agent may explain why execution is blocked"
+  ],
+  "blockedBehavior": [
+    "no tool execution",
+    "no Tool Route execution",
+    "no Worker execution",
+    "no provider/model execution",
+    "no browser/WebGL/canvas runtime",
+    "no GPU/model runtime",
+    "no model-weight download",
+    "no media processing",
+    "no Supabase mutation",
+    "no SQL",
+    "no GCS upload",
+    "no signed URL",
+    "no public artifact",
+    "no beta unlock",
+    "no production unlock"
+  ],
+  "noScope": "No dependency install, package-lock mutation, CPU/static validation rerun, import smoke, synthetic fixtures, tool/worker/route/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, model downloads, media processing, Supabase/SQL/GCS, signed URLs, public artifacts, beta/production commands, PR merge, PR close, or PR retarget.",
+  "nextPrompt": "AI_GRAPHICS_CANONICAL_AGENT_SELECTION_RUNTIME_BOUNDARY_HANDOFF_CANONICALIZATION_REVIEW",
+  "validation": {
+    "localValidation": "passed",
+    "checkRollup": []
+  }
+}

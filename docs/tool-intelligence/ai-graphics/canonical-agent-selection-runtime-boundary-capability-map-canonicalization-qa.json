@@ -1,0 +1,81 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_qa_passed_with_warnings",
+  "qaAccepted": true,
+  "capabilities": [
+    {
+      "capabilityId": "chart_overlay",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "data_visualization",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "svg_graphics",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "diagram_graphics",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "animation_overlay",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "canvas_scene",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "webgl_3d_scene",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "background_removal",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "subject_segmentation",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "upscaling",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "tensor_image_ops",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    },
+    {
+      "capabilityId": "model_runtime_foundation",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "runtimeReadyNow": false
+    }
+  ],
+  "sourceCapabilityMapSummary": {
+    "capabilities": 12
+  }
+}

@@ -1,14 +1,16 @@
 # Prompt AI Graphics CPU Static Execution Proof Phase 0 Results
 
 - Branch: `codex/rp-ai-graphics-cpu-static-execution-proof-phase-0`
-- Draft PR: Pending creation.
-- Draft status: Pending creation.
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/728
+- Draft status: OPEN/draft=true/mergeable=MERGEABLE
+- Head SHA: `a9c4ebdc0d526b2d68a894141a75b3c7857c35ac`
+- Check rollup: empty
 - Decision: `ai_graphics_cpu_static_execution_proof_phase_0_completed_with_warnings`
 - `npm ci` status: passed_from_existing_package_lock_before_phase0_runner
 - Tool-by-tool proof status: d3=proof_passed, vega_lite=proof_passed, vega=proof_passed, satori=proof_blocked_missing_runtime, svgdotjs_svg_js=proof_passed, viz_js=proof_passed
 - Artifacts generated locally and ignored: `.local-artifacts/ai-graphics/cpu-static-proof/ai-graphics-cpu-static-execution-proof-phase-0-local`
 - Package-lock status: unchanged
-- Validation status: pending final validation and draft PR creation.
+- Validation status: passed locally; draft PR created and metadata recorded.
 
 ## Source PRs Used
 

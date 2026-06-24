@@ -355,5 +355,18 @@
     "runtimeReadyNow": false,
     "internalBetaReadyNow": false,
     "productionReadyNow": false
-  }
+  },
+  "draftPr": {
+    "number": 728,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/728",
+    "title": "[tools] AI graphics CPU static execution proof phase 0",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeable": "MERGEABLE",
+    "headRefName": "codex/rp-ai-graphics-cpu-static-execution-proof-phase-0",
+    "headRefOid": "a9c4ebdc0d526b2d68a894141a75b3c7857c35ac",
+    "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval",
+    "statusCheckRollup": []
+  },
+  "validationStatus": "passed_locally_pr_created"
 }

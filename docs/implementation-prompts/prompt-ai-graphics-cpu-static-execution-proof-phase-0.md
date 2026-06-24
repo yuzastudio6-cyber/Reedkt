@@ -13,11 +13,11 @@ Implemented the Phase 0 local CPU/static proof runner for `d3`, `vega_lite`, `ve
 
 ## Draft PR Metadata
 
-- Draft PR: Pending creation.
-- Draft status: Pending creation.
-- Head SHA: Pending creation.
-- Check rollup: Pending creation.
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/728
+- Draft status: OPEN/draft=true/mergeable=MERGEABLE
+- Head SHA: `a9c4ebdc0d526b2d68a894141a75b3c7857c35ac`
+- Check rollup: empty
 
 ## Validation
 
-Pending final validation and draft PR creation.
+Validation passed locally; draft PR created and metadata recorded.

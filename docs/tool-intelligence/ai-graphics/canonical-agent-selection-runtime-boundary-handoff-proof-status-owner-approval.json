@@ -1,0 +1,132 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approved_with_warnings",
+  "ownerApproved": true,
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "transformers",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "sam2",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "kornia",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "rembg",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "d3",
+      "proofStatus": "cpu_static_validation_previously_accepted_not_agent_executable",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "echarts",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "proofStatus": "cpu_static_validation_previously_accepted_not_agent_executable",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "vega",
+      "proofStatus": "cpu_static_validation_previously_accepted_not_agent_executable",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "satori",
+      "proofStatus": "cpu_static_validation_previously_accepted_not_agent_executable",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "proofStatus": "cpu_static_validation_previously_accepted_not_agent_executable",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "proofStatus": "cpu_static_validation_previously_accepted_not_agent_executable",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "animejs",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "three_js",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "konva",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "proofStatus": "planning_metadata_only_pending_future_runtime_proof",
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false
+    }
+  ]
+}

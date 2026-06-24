@@ -396,3 +396,7 @@ production readiness.
 - Agent/tool/route/worker/provider execution remains false.
 - Browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal beta, external beta, and production readiness remain false.
 - Track B exclusion remains under `TRACK_B_MEDIA_OSS_STEWARD`; Track A render/export exclusion remains evidence-only via PR #544.
+
+## AI Graphics Runtime Boundary Handoff Owner Approval
+
+Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approved_with_warnings`. PR #722 runtime-boundary handoff owner review, PR #719 QA, and PR #718 handoff review are owner-approved with warnings as planning/study metadata only across all 21 AI graphics tools, all 12 product-facing capabilities, and all nine runtime buckets. Agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal beta, external beta, and production remain false. Tool Route and Worker placeholders remain future-only.

@@ -1,0 +1,279 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approved_with_warnings",
+  "ownerApproved": true,
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "transformers",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "sam2",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "birefnet",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "real_esrgan",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "kornia",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "rembg",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "transparent_background",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "model_cpu_gpu_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "d3",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "echarts",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "browser_chart_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "vega_lite",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "vega",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "satori",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "viz_js",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "cpu_static_execution_previously_validated_but_not_agent_executable_now"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "lottie_web",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "animation_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "animejs",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "animation_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "three_js",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "browser_canvas_webgl_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "pixi_js",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "browser_canvas_webgl_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "konva",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "browser_canvas_webgl_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    },
+    {
+      "toolId": "babylonjs",
+      "runtimeBuckets": [
+        "planning_metadata_allowed_now",
+        "browser_canvas_webgl_runtime_later"
+      ],
+      "agentCanSelectForPlanning": true,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "nextProofMilestone": "future proof required before execution handoff"
+    }
+  ]
+}

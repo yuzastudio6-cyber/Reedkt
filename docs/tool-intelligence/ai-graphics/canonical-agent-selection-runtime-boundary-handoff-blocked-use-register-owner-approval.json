@@ -1,0 +1,24 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_approved_with_warnings",
+  "ownerApproved": true,
+  "blockedUse": {
+    "agentExecution": false,
+    "toolExecution": false,
+    "routeExecution": false,
+    "workerExecution": false,
+    "providerRuntime": false,
+    "browserWebglCanvasRuntime": false,
+    "gpuModelRuntime": false,
+    "modelWeightDownload": false,
+    "mediaProcessing": false,
+    "supabaseMutation": false,
+    "sql": false,
+    "gcsUpload": false,
+    "signedUrl": false,
+    "publicArtifact": false,
+    "internalBeta": false,
+    "externalBeta": false,
+    "production": false
+  },
+  "note": "Every blocked-use entry remains false; planning/study metadata only."
+}

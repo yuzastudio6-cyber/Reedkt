@@ -1,0 +1,64 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-RESOLUTION-BATCH-1",
+  "decision": "blocked_no_safe_package_source_resolution_available",
+  "execution": "completed_docs_only_package_source_resolution_no_install_changes",
+  "base": {
+    "integrationHead": "702cf924db4c8c29688f8c9335ef08f147314bd9",
+    "containsMerge": {
+      "pr": 697,
+      "mergeSha": "702cf924db4c8c29688f8c9335ef08f147314bd9"
+    }
+  },
+  "toolStatus": {
+    "bento4_mp4box_packaging_validation": {
+      "gpacMp4box": "blocked_gpac_mp4box_package_source_unavailable",
+      "bento4": "separate_not_selected_for_mp4box_command_path",
+      "readiness": "blocked_pending_safe_package_source"
+    },
+    "vapoursynth_frame_pipeline": {
+      "core": "blocked_core_vapoursynth_package_source_unavailable",
+      "plugins": "blocked_vapoursynth_native_plugin_policy_not_satisfied",
+      "readiness": "blocked_pending_safe_package_source"
+    },
+    "revideo_render_preview_alternative": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "hyperframe_render_handoff": "handoff_only_no_install_source_change",
+    "gstreamer_render_pipeline_support": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+    "mkvtoolnix_container_validation": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "sourceResolution": {
+    "gpacMp4box": "blocked_pending_safe_package_source",
+    "vapoursynthCore": "blocked_pending_safe_package_source",
+    "vapoursynthPlugins": "blocked_vapoursynth_native_plugin_policy_not_satisfied",
+    "nextMilestone": "owner_or_environment_package_source_review"
+  },
+  "sourceChanges": {
+    "dockerfileChanged": false,
+    "packageLockChanged": false,
+    "packageDependenciesChanged": false,
+    "pythonRequirementsChanged": false,
+    "runtimeSourceChanged": false
+  },
+  "executionInThisPhase": {
+    "gstreamer": false,
+    "mkvtoolnix": false,
+    "gpacMp4box": false,
+    "vapoursynth": false,
+    "revideo": false,
+    "ffmpeg": false,
+    "ffprobe": false,
+    "dockerBuild": false,
+    "dockerPushDeploy": false,
+    "remotion": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "packageInstallation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  },
+  "excludedSource": {
+    "pr577": "open_draft_blocked_excluded"
+  }
+}

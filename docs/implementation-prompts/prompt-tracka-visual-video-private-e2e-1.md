@@ -40,6 +40,8 @@ Track A native/container render tools rollup after GStreamer/MKVToolNix QA: `com
 
 Track A native/container render tools Install-Proof-3 decision: `blocked_no_safe_resolved_identity_install_source_available`.
 
+Track A native/container package source resolution Batch-1 decision: `blocked_no_safe_package_source_resolution_available`.
+
 GPAC/MP4Box readiness: `blocked_gpac_mp4box_package_source_unavailable`.
 
 VapourSynth readiness: `blocked_core_vapoursynth_package_source_unavailable`; `blocked_vapoursynth_native_plugin_policy_not_satisfied`.

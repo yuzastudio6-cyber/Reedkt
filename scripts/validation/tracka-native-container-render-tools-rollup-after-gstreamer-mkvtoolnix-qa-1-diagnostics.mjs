@@ -45,7 +45,26 @@ const installProof3Files = [
   'scripts/validation/tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...installProof3Files, 'package.json'])
+const packageSourceResolutionFiles = [
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/package-source-resolution-batch-1.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/package-source-resolution-batch-1.json',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/package-source-review.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/tool-status-matrix.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/blocked-scope-register.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/next-phase-plan.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/validation-results.md',
+  'docs/activation-phase-tracka-native-container-package-source-resolution-batch-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-native-container-render-tools-install-proof-4.md',
+  'scripts/validation/tracka-native-container-package-source-resolution-batch-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([
+  ...requiredFiles,
+  ...installProof3Files,
+  ...packageSourceResolutionFiles,
+  'package.json',
+])
 
 const requiredText = [
   'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1',

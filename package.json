@@ -555,7 +555,8 @@
     "ai-graphics:canonical-agent-selection:canonicalization-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-canonicalization-diagnostics.mjs",
     "ai-graphics:canonical-agent-selection:canonicalization-qa-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-canonicalization-qa-diagnostics.mjs",
     "ai-graphics:canonical-agent-selection:canonicalization-owner-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-canonicalization-owner-diagnostics.mjs",
-    "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-canonicalization-owner-approval-diagnostics.mjs"
+    "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-canonicalization-owner-approval-diagnostics.mjs",
+    "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-qa-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-canonicalization-owner-approval-qa-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

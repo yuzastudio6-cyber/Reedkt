@@ -7,8 +7,8 @@ QA-accepts PR #689 with warnings as the owner-approval source for canonical agen
 ## Branch And PR
 - Branch: `codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-approval-qa-review`
 - Base: `codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-approval`
-- Draft PR: pending draft PR creation
-- Draft status: pending draft PR creation; source PR #689 open/draft/MERGEABLE at 1e32b1e4e182d9759fd6f443c5d3f06b1e21285f with empty check rollup
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/692
+- Draft status: PR #692 is OPEN/draft/MERGEABLE at `b19de5bcabb22a1af92f023b6a67b8a39702aafe`; status check rollup is empty at creation.
 - Duplicate search result: No exact owner-approval QA PR, remote branch, or worktree existed at preflight.
 
 ## Source Evidence

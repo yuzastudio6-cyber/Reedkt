@@ -3,9 +3,9 @@
   "branch": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-approval-qa-review",
   "baseBranch": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-approval",
   "draftPrTitle": "[tools] AI graphics canonical agent selection canonicalization owner approval QA review",
-  "draftPr": "pending draft PR creation",
-  "draftPrStatus": "pending draft PR creation; source PR #689 open/draft/MERGEABLE at 1e32b1e4e182d9759fd6f443c5d3f06b1e21285f with empty check rollup",
-  "statusCheckRollup": "pending until draft PR creation; source PR #689 has empty check rollup",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/692",
+  "draftPrStatus": "PR #692 is OPEN/draft/MERGEABLE at b19de5bcabb22a1af92f023b6a67b8a39702aafe.",
+  "statusCheckRollup": "PR #692 status check rollup is empty at creation; source PR #689 has empty check rollup.",
   "sourceDecision": "ai_graphics_canonical_agent_selection_canonicalization_owner_approved_with_warnings",
   "duplicateSearchResult": "No exact owner-approval QA PR, remote branch, or worktree existed at preflight.",
   "sourcePrs": {

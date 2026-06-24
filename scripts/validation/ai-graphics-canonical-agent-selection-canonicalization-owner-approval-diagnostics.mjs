@@ -329,8 +329,11 @@ for (const key of scriptDrift) {
     key !== "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-qa-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-qa-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-owner-diagnostics"
-  ) fail("Unexpected script drift: " + key);
+    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-owner-diagnostics" &&
+    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-owner-approval-diagnostics"
+  ) {
+    fail("Unexpected script drift: " + key);
+  }
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) {
   if (!(key in (packageJson.scripts || {}))) fail("Removed package script: " + key);

@@ -4,9 +4,9 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_qa_pas
 
 - Branch: `codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-qa-review`
 - Base: `codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-review`
-- Draft PR: pending creation
-- Draft status: pending creation
-- Check status: pending creation
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/719
+- Draft status: OPEN/draft=true/mergeable=MERGEABLE
+- Check status: Empty check rollup after PR creation.
 - Duplicate search result: Preflight found no exact runtime-boundary handoff QA PR, remote branch, or worktree.
 
 ## Decision

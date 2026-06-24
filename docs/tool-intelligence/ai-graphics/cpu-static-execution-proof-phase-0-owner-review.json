@@ -401,11 +401,16 @@
     "No runtime readiness, internal beta, external beta, or production unlock."
   ],
   "draftPr": {
-    "url": null,
-    "state": "pending_creation",
+    "number": 733,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/733",
+    "state": "OPEN",
     "isDraft": true,
-    "headRefOid": null,
-    "statusCheckRollup": "pending_creation"
+    "mergeable": "MERGEABLE",
+    "baseRefName": "codex/rp-ai-graphics-cpu-static-execution-proof-phase-0-qa-review",
+    "headRefName": "codex/rp-ai-graphics-cpu-static-execution-proof-phase-0-owner-review",
+    "headRefOid": "96bf8fe0c11101bd05178b44e0ba4736e714e1c1",
+    "statusCheckRollup": [],
+    "recordedAfterPrCreation": true
   },
   "nextPrompt": "AI_GRAPHICS_CPU_STATIC_EXECUTION_PROOF_PHASE_0_OWNER_APPROVAL"
 }

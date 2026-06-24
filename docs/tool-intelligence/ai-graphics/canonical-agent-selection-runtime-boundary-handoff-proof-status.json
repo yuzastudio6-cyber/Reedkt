@@ -1,0 +1,152 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_review_passed_with_warnings",
+  "proofStatusByTool": {
+    "torch_torchvision": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "transformers": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "sam2": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "birefnet": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "real_esrgan": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "kornia": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "rembg": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "transparent_background": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "d3": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": true,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "echarts": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "vega_lite": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": true,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "vega": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": true,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "satori": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": true,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "svgdotjs_svg_js": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": true,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "viz_js": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": true,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "lottie_web": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "animejs": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "three_js": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "pixi_js": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "konva": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    },
+    "babylonjs": {
+      "sourceBoundary": "PR #715",
+      "planningMetadataAllowedNow": true,
+      "cpuStaticPreviouslyValidatedButNotAgentExecutableNow": false,
+      "executionAllowedNow": false,
+      "missingProof": "runtime, route/worker handoff, provider/model, artifact, beta, and production proof remain missing before execution"
+    }
+  }
+}

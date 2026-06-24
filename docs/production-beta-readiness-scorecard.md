@@ -363,3 +363,14 @@ production readiness.
 - Agent/tool/route/worker/provider execution remains false.
 - Browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal beta, external beta, and production readiness remain false.
 - Track B exclusion remains under `TRACK_B_MEDIA_OSS_STEWARD`; Track A render/export exclusion remains evidence-only via PR #544.
+
+## AI Graphics Runtime Boundary Handoff Review
+
+- Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_review_passed_with_warnings`.
+- Source: PR #715 runtime-boundary canonicalization owner-approval QA accepted with warnings.
+- Handoff: canonical agent selection may consume runtime-boundary metadata only for planning/study metadata.
+- Coverage: all 21 AI graphics tools, all 12 product-facing capabilities, and all nine runtime buckets.
+- Agent planning/study metadata selection remains allowed.
+- Agent/tool/route/worker/provider execution remains false.
+- Browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal beta, external beta, and production readiness remain false.
+- Track B exclusion remains under `TRACK_B_MEDIA_OSS_STEWARD`; Track A render/export exclusion remains evidence-only via PR #544.

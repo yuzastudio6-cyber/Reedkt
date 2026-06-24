@@ -76,7 +76,7 @@ No dependency install, package-lock mutation, CPU/static validation rerun, impor
 
 ## Draft PR Metadata
 
-- Draft PR: Pending creation.
-- Draft status: Pending creation.
-- Head SHA: Pending creation.
-- Check rollup: Pending creation.
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/724
+- Draft status: OPEN/draft=true/mergeable=MERGEABLE
+- Head SHA: `83ae6d45d961579824af3c0053346cbc7fb1adde`
+- Check rollup: Empty check rollup after PR creation.

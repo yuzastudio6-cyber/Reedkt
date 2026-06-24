@@ -555,5 +555,14 @@
     "441": "d174de59471eacf05bed5a5511d661f2e5ba9f0f"
   },
   "duplicateSearchResult": "Preflight found no exact runtime-boundary handoff owner-approval PR, remote branch, or worktree.",
-  "recordedOn": "2026-06-24"
+  "recordedOn": "2026-06-24",
+  "draftPr": {
+    "number": 724,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/724",
+    "state": "OPEN",
+    "draft": true,
+    "mergeable": "MERGEABLE",
+    "headRefOid": "83ae6d45d961579824af3c0053346cbc7fb1adde",
+    "statusCheckRollup": []
+  }
 }

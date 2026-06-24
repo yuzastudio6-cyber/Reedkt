@@ -3,7 +3,15 @@
   "branch": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval",
   "baseBranch": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-review",
   "draftPrTitle": "[tools] AI graphics canonical agent selection runtime boundary handoff owner approval",
-  "draftPr": null,
+  "draftPr": {
+    "number": 724,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/724",
+    "state": "OPEN",
+    "draft": true,
+    "mergeable": "MERGEABLE",
+    "headRefOid": "83ae6d45d961579824af3c0053346cbc7fb1adde",
+    "statusCheckRollup": []
+  },
   "duplicateSearchResult": "Preflight found no exact runtime-boundary handoff owner-approval PR, remote branch, or worktree.",
   "approvedOn": "2026-06-24",
   "sourceRuntimeBoundaryHandoffOwnerReview": {

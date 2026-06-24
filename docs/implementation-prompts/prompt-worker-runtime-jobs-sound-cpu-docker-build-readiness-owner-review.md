@@ -1,19 +1,15 @@
-# SOUND-RUNTIME-MEDIA-GATE-1I: Docker build proof readiness plan, no Docker build
+# WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKER-BUILD-READINESS-OWNER-REVIEW: review Docker build-proof readiness plan, no Docker build/GCP
 
-```json sound-runtime-media-gate-1i-docker-build-proof-readiness-plan
+```json worker-runtime-jobs-sound-cpu-docker-build-readiness-owner-review
 {
-  "prompt": "SOUND-RUNTIME-MEDIA-GATE-1I",
-  "title": "Docker build proof readiness plan, no Docker build",
-  "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1H",
-  "requiredStaticValidationDecision": "sound_runtime_media_gate_1h_dockerfile_static_validation_passed_with_warnings_ready_for_static_validation_owner_review",
+  "prompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKER-BUILD-READINESS-OWNER-REVIEW",
+  "title": "Review Docker build-proof readiness plan, no Docker build/GCP",
+  "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1I",
   "requiredStaticValidationOwnerReviewMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-VALIDATION-OWNER-REVIEW",
   "requiredStaticValidationOwnerReviewDecision": "worker_runtime_jobs_sound_cpu_dockerfile_static_validation_owner_review_passed_with_warnings_ready_for_build_proof_readiness_plan",
-  "acceptedStaticValidationOwnerReviewDecisions": [
-    "worker_runtime_jobs_sound_cpu_dockerfile_static_validation_owner_review_passed_with_warnings_ready_for_build_proof_readiness_plan",
-    "worker_runtime_jobs_sound_cpu_dockerfile_static_validation_owner_review_passed_with_warnings_ready_for_docker_build_proof_plan"
-  ],
+  "requiredStaticValidationOwnerReviewCompatibilityDecision": "worker_runtime_jobs_sound_cpu_dockerfile_static_validation_owner_review_passed_with_warnings_ready_for_docker_build_proof_plan",
   "requiredDockerfileSourcePath": "server/workers/sound-cpu/Dockerfile",
-  "purpose": "Plan future controlled Docker build proof readiness after static validation owner review. This prompt must not build, run, push, deploy, or execute workers.",
+  "purpose": "Worker owner reviews the future Docker build-proof readiness plan before any Docker build is proposed. This prompt must not build, push, run, deploy, or execute workers.",
   "acceptedPlanningOnly": {
     "workers": [
       "sound-cpu-analysis-worker",

@@ -7,8 +7,8 @@ Owner-approves PR #688 with warnings as the current owner-review source for cano
 ## Branch And PR
 - Branch: `codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-approval`
 - Base: `codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-review`
-- Draft PR: pending draft PR creation
-- Draft status: pending draft PR creation; source PR #688 open/draft/MERGEABLE at b52cfbc492b97a0871f53e9c356e935995f45eb9 with empty check rollup
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/689
+- Draft status: open/draft/MERGEABLE at 01130981faf20784322dac385277cba1dc161009; source PR #688 open/draft/MERGEABLE at b52cfbc492b97a0871f53e9c356e935995f45eb9 with empty check rollup
 - Duplicate search result: No exact owner-approval PR, remote branch, or worktree existed at preflight.
 
 ## Source Evidence

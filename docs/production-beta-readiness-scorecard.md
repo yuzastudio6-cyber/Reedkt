@@ -334,3 +334,9 @@ production readiness.
 - Browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal beta, external beta, and production readiness: false.
 - Track B exclusion under `TRACK_B_MEDIA_OSS_STEWARD` and Track A render/export exclusion via PR #544 remain evidence-only context.
 - No dependency install, package-lock mutation, CPU/static execution, import smoke, synthetic fixtures, browser/WebGL/canvas runtime, GPU/model runtime, Supabase/GCS, signed URL, public artifact, beta command, production command, PR merge, PR close, or PR retarget occurred.
+
+## AI Graphics Canonical Agent Selection Runtime Boundary Canonicalization QA Review - 2026-06-24
+
+- Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_qa_passed_with_warnings`.
+- Scope: QA-accepted PR #705 runtime-boundary canonicalization for planning/study metadata only across all 21 tools and all 12 capabilities.
+- Runtime/beta/production: no unlock; agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, internal beta, external beta, and production remain false.

@@ -1,0 +1,29 @@
+{
+  "decision": "tracka_gpac_mp4box_owner_environment_followup_blocked_no_owner_environment_source_approval",
+  "decisionType": "blocked",
+  "reason": "No explicit owner-approved GPAC/MP4Box source class exists for the current owner/environment gate.",
+  "gpacMp4box": {
+    "status": "blocked_no_owner_environment_source_approval_for_gpac_mp4box",
+    "allowedFutureInstallSource": "none_until_owner_environment_source_approval",
+    "provider": "GPAC/MP4Box",
+    "bento4Status": "separate_not_selected_for_mp4box_command_path"
+  },
+  "carryForward": {
+    "vapoursynth": "blocked_core_vapoursynth_package_source_policy_not_approved",
+    "revideo": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "hyperframe": "handoff_only_no_install_source_change",
+    "gstreamer": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+    "mkvtoolnix": "qa_passed_controlled_generated_private_fixture_execution_evidence"
+  },
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577Excluded": true,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no",
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

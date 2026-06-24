@@ -1,0 +1,10 @@
+{
+  "toolRow": "bento4_mp4box_packaging_validation",
+  "selectedCommandPath": "GPAC/MP4Box",
+  "bento4Status": "separate_not_selected_for_mp4box_command_path",
+  "bento4RuntimeStatus": "not_run",
+  "bento4PackageSourceStatus": "not_selected_no_source_change",
+  "mp4boxProvider": "GPAC",
+  "mp4boxPackageSourceStatus": "blocked_no_owner_environment_source_approval_for_gpac_mp4box",
+  "policyOutcome": "preserve_gpac_selection_without_install_or_execution"
+}

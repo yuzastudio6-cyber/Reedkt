@@ -304,3 +304,11 @@ agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime,
 GPU/model runtime, E2E proof, Supabase/GCS mutation, signed URLs, public
 artifacts, internal beta, external beta, paid production, or production
 readiness.
+
+AI graphics canonical agent-selection runtime-boundary owner approval decision
+`ai_graphics_canonical_agent_selection_runtime_boundary_owner_approved_with_warnings` accepts PR #699 owner review, PR #696 runtime-boundary QA, and
+PR #694 runtime-boundary review with warnings for planning/study metadata only.
+It does not approve agent/tool/route/worker/provider execution, browser/WebGL/
+canvas runtime, GPU/model runtime, E2E proof, Supabase/GCS mutation, signed
+URLs, public artifacts, internal beta, external beta, paid production, or
+production readiness.

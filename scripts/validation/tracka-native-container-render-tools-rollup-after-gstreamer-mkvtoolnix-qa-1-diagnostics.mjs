@@ -59,10 +59,29 @@ const packageSourceResolutionFiles = [
   'scripts/validation/tracka-native-container-package-source-resolution-batch-1-diagnostics.mjs',
 ]
 
+const packageSourcePolicyReviewFiles = [
+  'docs/track-a/native-container-render-tools/package-source-policy-review-1/package-source-policy-review-1.md',
+  'docs/track-a/native-container-render-tools/package-source-policy-review-1/package-source-policy-review-1.json',
+  'docs/track-a/native-container-render-tools/package-source-policy-review-1/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/package-source-policy-review-1/source-policy-review.md',
+  'docs/track-a/native-container-render-tools/package-source-policy-review-1/tool-status-matrix.md',
+  'docs/track-a/native-container-render-tools/package-source-policy-review-1/blocked-scope-register.md',
+  'docs/track-a/native-container-render-tools/package-source-policy-review-1/next-phase-plan.md',
+  'docs/track-a/native-container-render-tools/package-source-policy-review-1/validation-results.md',
+  'docs/track-a/native-container-render-tools/package-source-policy-review-1/readiness-report.json',
+  'docs/activation-phase-tracka-native-container-package-source-policy-review-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-native-container-render-tools-install-proof-4.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-package-source-resolution-1.md',
+  'docs/implementation-prompts/prompt-tracka-vapoursynth-package-source-resolution-1.md',
+  'docs/implementation-prompts/prompt-tracka-revideo-owner-approval-1.md',
+  'scripts/validation/tracka-native-container-package-source-policy-review-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
   ...installProof3Files,
   ...packageSourceResolutionFiles,
+  ...packageSourcePolicyReviewFiles,
   'package.json',
 ])
 

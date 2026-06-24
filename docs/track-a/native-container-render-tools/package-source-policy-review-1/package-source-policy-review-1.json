@@ -1,0 +1,68 @@
+{
+  "milestone": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1",
+  "decision": "blocked_no_safe_package_source_policy_available",
+  "decisionStatement": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-POLICY-REVIEW-1 decision: blocked_no_safe_package_source_policy_available",
+  "execution": "completed_docs_only_package_source_policy_review_no_install_changes",
+  "base": {
+    "integrationHead": "93d574f35f40eed1b7b8b87540201750b94df304",
+    "containsMerge": {
+      "pr": 702,
+      "mergeSha": "93d574f35f40eed1b7b8b87540201750b94df304"
+    }
+  },
+  "toolStatus": {
+    "bento4_mp4box_packaging_validation": {
+      "gpacMp4box": "blocked_gpac_mp4box_package_source_unavailable",
+      "bento4": "separate_not_selected_for_mp4box_command_path",
+      "readiness": "blocked_pending_safe_package_source"
+    },
+    "vapoursynth_frame_pipeline": {
+      "core": "blocked_core_vapoursynth_package_source_unavailable",
+      "plugins": "blocked_vapoursynth_native_plugin_policy_not_satisfied",
+      "readiness": "blocked_pending_safe_package_source"
+    },
+    "revideo_render_preview_alternative": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "hyperframe_render_handoff": "handoff_only_no_install_source_change",
+    "gstreamer_render_pipeline_support": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+    "mkvtoolnix_container_validation": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "policyReview": {
+    "renderWorkerBase": "node:24-bookworm",
+    "pythonBaseline": "Debian bookworm python3 3.11.2",
+    "gpacMp4box": "blocked_pending_safe_package_source",
+    "vapoursynthCore": "blocked_pending_safe_package_source",
+    "vapoursynthPlugins": "blocked_vapoursynth_native_plugin_policy_not_satisfied",
+    "nextMilestone": "owner_or_environment_package_source_review"
+  },
+  "sourceChanges": {
+    "dockerfileChanged": false,
+    "packageLockChanged": false,
+    "packageDependenciesChanged": false,
+    "pythonRequirementsChanged": false,
+    "runtimeSourceChanged": false
+  },
+  "executionInThisPhase": {
+    "gstreamer": false,
+    "mkvtoolnix": false,
+    "gpacMp4box": false,
+    "vapoursynth": false,
+    "revideo": false,
+    "ffmpeg": false,
+    "ffprobe": false,
+    "dockerBuild": false,
+    "dockerPushDeploy": false,
+    "remotion": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "packageInstallation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  },
+  "excludedSource": {
+    "pr577": "open_draft_blocked_excluded",
+    "pr701": "open_conflicting_historical_context_only_not_target_pr"
+  }
+}

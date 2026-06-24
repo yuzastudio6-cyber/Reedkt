@@ -81,6 +81,24 @@ const requiredText = [
   'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, private media processing, user media processing, GStreamer execution in this install-proof phase, MKVToolNix execution in this install-proof phase, GPAC/MP4Box execution, VapourSynth execution, Revideo execution, FFmpeg/FFprobe execution, Docker execution, Remotion execution, package installation, dependency mutation, or broad service-role handler was enabled.',
 ]
 
+const packageSourceResolutionFiles = [
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/package-source-resolution-batch-1.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/package-source-resolution-batch-1.json',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/package-source-review.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/tool-status-matrix.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/blocked-scope-register.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/next-phase-plan.md',
+  'docs/track-a/native-container-render-tools/package-source-resolution-batch-1/validation-results.md',
+  'docs/activation-phase-tracka-native-container-package-source-resolution-batch-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-native-container-render-tools-install-proof-4.md',
+  'scripts/validation/tracka-native-container-package-source-resolution-batch-1-diagnostics.mjs',
+]
+
+for (const file of packageSourceResolutionFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const forbiddenPatterns = [
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
   /internal beta unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,

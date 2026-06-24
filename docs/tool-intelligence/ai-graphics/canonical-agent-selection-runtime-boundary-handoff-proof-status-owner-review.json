@@ -1,0 +1,113 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_review_passed_with_warnings",
+  "ownerAccepted": true,
+  "proofStatusMappingAccepted": true,
+  "sourceProofStatusDecision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_qa_passed_with_warnings",
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "transformers",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "sam2",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "kornia",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "rembg",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "d3",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "echarts",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "vega",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "satori",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "animejs",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "three_js",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "konva",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "proofStatusOwnerAccepted": true,
+      "executionApprovedNow": false
+    }
+  ]
+}

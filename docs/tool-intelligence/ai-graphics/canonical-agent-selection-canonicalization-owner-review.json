@@ -3,9 +3,9 @@
   "branch": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-review",
   "baseBranch": "codex/rp-ai-graphics-canonical-agent-selection-canonicalization-qa-review",
   "draftPrTitle": "[tools] AI graphics canonical agent selection canonicalization owner review",
-  "draftPr": "TBD after draft PR creation",
-  "draftPrStatus": "TBD after draft PR creation; expected draft while PR #686 remains draft",
-  "statusCheckRollup": "TBD after draft PR creation",
+  "draftPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/688",
+  "draftPrStatus": "open/draft/MERGEABLE at eb88346a213e71b6ac30d27da4ab6386bff056ff",
+  "statusCheckRollup": "empty check rollup",
   "sourceDecision": "ai_graphics_canonical_agent_selection_canonicalization_qa_passed_with_warnings",
   "sourcePrs": {
     "361": {

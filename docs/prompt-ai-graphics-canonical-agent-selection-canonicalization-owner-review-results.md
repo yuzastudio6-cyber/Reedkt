@@ -5,9 +5,9 @@ Decision: `ai_graphics_canonical_agent_selection_canonicalization_owner_review_p
 ## Result
 - Branch: `codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-review`
 - Base: `codex/rp-ai-graphics-canonical-agent-selection-canonicalization-qa-review`
-- Draft PR: TBD after draft PR creation
-- Draft status: TBD after draft PR creation; expected draft while PR #686 remains draft
-- Check status: TBD after draft PR creation
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/688
+- Draft status: open/draft/MERGEABLE at `eb88346a213e71b6ac30d27da4ab6386bff056ff`
+- Check status: empty check rollup
 - Duplicate search result: no exact owner-review PR, remote branch, or worktree existed at preflight.
 - Source PR #686: OPEN/draft/MERGEABLE at `74e89f2c0c6e76035c1fb7d19c31d827a8affd3f`, empty check rollup.
 - Owner result: PR #686 canonicalization QA accepted with warnings.

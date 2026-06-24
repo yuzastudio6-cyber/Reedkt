@@ -6,9 +6,9 @@ Decision: `ai_graphics_canonical_agent_selection_canonicalization_owner_review_p
 
 Branch: `codex/rp-ai-graphics-canonical-agent-selection-canonicalization-owner-review`
 Base: `codex/rp-ai-graphics-canonical-agent-selection-canonicalization-qa-review`
-Draft PR: TBD after draft PR creation
-Draft status: TBD after draft PR creation; expected draft while PR #686 remains draft
-Check status: TBD after draft PR creation
+Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/688
+Draft status: open/draft/MERGEABLE at `eb88346a213e71b6ac30d27da4ab6386bff056ff`
+Check status: empty check rollup
 
 ## Scope
 Owner-accept PR #686 canonicalization QA with warnings for planning/study metadata selection only across all 21 AI graphics tools and all 12 product-facing capabilities.

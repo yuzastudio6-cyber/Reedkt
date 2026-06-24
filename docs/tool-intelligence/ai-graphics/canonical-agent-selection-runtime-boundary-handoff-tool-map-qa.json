@@ -1,0 +1,134 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_qa_passed_with_warnings",
+  "qaAccepted": true,
+  "toolCount": 21,
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "transformers",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "sam2",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "kornia",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "rembg",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "d3",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "echarts",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "vega",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "satori",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "animejs",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "three_js",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "konva",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    }
+  ],
+  "sourceToolMapDecision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_review_passed_with_warnings"
+}

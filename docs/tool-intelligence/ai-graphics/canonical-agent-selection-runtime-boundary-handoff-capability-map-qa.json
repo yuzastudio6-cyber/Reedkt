@@ -1,0 +1,80 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_qa_passed_with_warnings",
+  "qaAccepted": true,
+  "capabilityCount": 12,
+  "capabilities": [
+    {
+      "capabilityId": "chart_overlay",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "data_visualization",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "svg_graphics",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "diagram_graphics",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "animation_overlay",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "canvas_scene",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "webgl_3d_scene",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "background_removal",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "subject_segmentation",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "upscaling",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "tensor_image_ops",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    },
+    {
+      "capabilityId": "model_runtime_foundation",
+      "qaAccepted": true,
+      "planningMetadataAllowedNow": true,
+      "executionAllowedNow": false
+    }
+  ],
+  "sourceCapabilityMapDecision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_review_passed_with_warnings"
+}

@@ -4,9 +4,9 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_canonicalizati
 
 - Branch: `codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-qa-review`
 - Base: `codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-canonicalization-review`
-- Draft PR: pending creation
-- Draft status: pending creation
-- Check status: pending creation
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/709
+- Draft status: OPEN/draft=true/mergeable=MERGEABLE at `4b563dfbcd43c963be09a1365df55a238be22a7c`
+- Check status: empty check rollup at PR creation
 - Duplicate search result: No exact QA PR, remote branch, or worktree existed at preflight.
 
 ## QA Acceptance

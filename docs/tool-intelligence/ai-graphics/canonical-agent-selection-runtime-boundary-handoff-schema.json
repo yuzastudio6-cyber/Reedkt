@@ -1,0 +1,33 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_handoff_review_passed_with_warnings",
+  "schemaFields": [
+    "handoffId",
+    "sourceBoundaryDecision",
+    "sourceBoundaryPr",
+    "agentSelectionConsumer",
+    "requestedCapability",
+    "candidateTools",
+    "rankedTools",
+    "eliminatedTools",
+    "runtimeBoundaryByTool",
+    "runtimeBoundaryByCapability",
+    "proofStatusByTool",
+    "missingProofByTool",
+    "preferredPlanningTools",
+    "fallbackPlanningTools",
+    "executionAllowedNow",
+    "routeExecutionAllowedNow",
+    "workerExecutionAllowedNow",
+    "toolExecutionAllowedNow",
+    "browserWebglCanvasAllowedNow",
+    "gpuModelRuntimeAllowedNow",
+    "providerRuntimeAllowedNow",
+    "publicArtifactAllowedNow",
+    "signedUrlAllowedNow",
+    "runtimeReadyNow",
+    "internalBetaReadyNow",
+    "productionReadyNow",
+    "nextProofMilestone"
+  ],
+  "handoffId": "ai_graphics_runtime_boundary_to_canonical_agent_selection_planning_handoff"
+}

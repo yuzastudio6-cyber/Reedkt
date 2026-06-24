@@ -1,18 +1,19 @@
-# WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-SOURCE-OWNER-REVIEW: review future SOUND CPU Dockerfile source plan, no Docker build/GCP
+# WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-SOURCE-OWNER-REVIEW: review actual SOUND CPU Dockerfile source, no Docker build/GCP
 
 ```json worker-runtime-jobs-sound-cpu-dockerfile-source-owner-review
 {
   "prompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-SOURCE-OWNER-REVIEW",
-  "title": "Review future SOUND CPU Dockerfile source plan, no Docker build/GCP",
+  "title": "Review actual SOUND CPU Dockerfile source, no Docker build/GCP",
   "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1G",
   "requiredPriorMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-OWNER-REVIEW",
   "requiredPriorDecision": "worker_runtime_jobs_sound_cpu_dockerfile_static_owner_review_passed_with_warnings_ready_for_gate_1f_source_creation_plan",
   "requiredGate1FMilestone": "SOUND-RUNTIME-MEDIA-GATE-1F",
   "requiredGate1FDecision": "sound_runtime_media_gate_1f_dockerfile_source_creation_plan_completed_with_warnings_ready_for_actual_dockerfile_source_gate",
   "requiredGate1GMilestone": "SOUND-RUNTIME-MEDIA-GATE-1G",
-  "requiredGate1GDecision": "sound_runtime_media_gate_1g_actual_dockerfile_source_creation_completed_with_warnings_ready_for_source_owner_review",
+  "requiredGate1GDecision": "sound_runtime_media_gate_1g_actual_dockerfile_source_created_with_warnings_ready_for_dockerfile_source_owner_review",
   "requiredDockerfileSourcePath": "server/workers/sound-cpu/Dockerfile",
-  "purpose": "Review a future actual Dockerfile source after Gate 1F and Gate 1G without building images, pushing images, calling GCP, deploying Cloud Run, or executing workers.",
+  "actualDockerfileSourceReviewScope": "review static source contents only",
+  "purpose": "Review the actual Dockerfile source after Gate 1F and Gate 1G without building images, pushing images, calling GCP, deploying Cloud Run, or executing workers.",
   "acceptedPlanningOnly": {
     "workers": [
       "sound-cpu-analysis-worker",

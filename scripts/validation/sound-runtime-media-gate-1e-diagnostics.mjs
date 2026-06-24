@@ -8,6 +8,9 @@ const PR684_DECISION = 'worker_runtime_jobs_sound_cpu_dockerfile_static_review_p
 const PR679_DECISION = 'worker_runtime_jobs_sound_cpu_contract_owner_review_passed_with_warnings_ready_for_dockerfile_static_plan';
 const PR672_DECISION = 'worker_runtime_jobs_sound_cpu_static_contract_plan_completed_with_warnings_ready_for_contract_owner_review';
 const PR670_DECISION = 'worker_runtime_jobs_sound_cpu_handoff_review_passed_with_warnings_ready_for_static_contract_plan';
+const GATE1G_DECISION = 'sound_runtime_media_gate_1g_actual_dockerfile_source_created_with_warnings_ready_for_dockerfile_source_owner_review';
+const GATE1G_RESULT_PATH = 'docs/sound-runtime-media-gate-1g-actual-dockerfile-source-result.md';
+const GATE1G_DOCKERFILE_PATH = 'server/workers/sound-cpu/Dockerfile';
 const REQUIREMENTS_PATH = 'server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt';
 const NO_SCOPE = 'No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, or broad service-role handler was enabled.';
 
@@ -375,7 +378,13 @@ assert(
 
 assert(read('docs/cross-chat-tool-ownership-registry.md').includes('WORKER_RUNTIME_JOBS'), 'ownership registry missing WORKER_RUNTIME_JOBS');
 
-const forbiddenGateOutputs = findForbiddenGate1eOutputs();
+const gate1gSourceEvidencePresent =
+  existsSync(GATE1G_RESULT_PATH) &&
+  read(GATE1G_RESULT_PATH).includes(GATE1G_DECISION) &&
+  read(GATE1G_RESULT_PATH).includes(GATE1G_DOCKERFILE_PATH);
+const forbiddenGateOutputs = [...new Set(findForbiddenGate1eOutputs())].filter(
+  (path) => !(gate1gSourceEvidencePresent && path.endsWith(GATE1G_DOCKERFILE_PATH))
+);
 assert(forbiddenGateOutputs.length === 0, `Unexpected SOUND CPU Dockerfile output(s): ${forbiddenGateOutputs.join(', ')}`);
 
 assertRuntimeFlagsStayClosed(Object.values(parsed));

@@ -1,21 +1,19 @@
-# WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-OWNER-REVIEW: review SOUND CPU Dockerfile static plan output, no Docker build/GCP
+# WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKER-BUILD-PROOF-PLAN: plan controlled Docker build proof, no GCP
 
-```json worker-runtime-jobs-sound-cpu-dockerfile-static-owner-review
+```json worker-runtime-jobs-sound-cpu-docker-build-proof-plan
 {
-  "prompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-OWNER-REVIEW",
-  "title": "Review SOUND CPU Dockerfile static plan output, no Docker build/GCP",
-  "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1E",
-  "requiredSourceDecision": "sound_runtime_media_gate_1e_dockerfile_static_plan_completed_with_warnings_ready_for_dockerfile_static_owner_review",
-  "requiredSourceHead": "1188355ac866735f9ff9aa676c7bb30c4e9cb815",
-  "prerequisiteMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-REVIEW",
-  "prerequisiteDecision": "worker_runtime_jobs_sound_cpu_dockerfile_static_review_passed_with_warnings_ready_for_gate_1e_static_plan",
-  "purpose": "Review the future Gate 1E static Dockerfile plan output without creating Dockerfiles, building images, running Docker, calling GCP, deploying Cloud Run, or executing workers.",
+  "prompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKER-BUILD-PROOF-PLAN",
+  "title": "Plan controlled Docker build proof, no GCP",
+  "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1F",
+  "requiredPriorMilestone": "SOUND-RUNTIME-MEDIA-GATE-1E",
+  "requiredPriorDecision": "sound_runtime_media_gate_1e_dockerfile_static_plan_completed_with_warnings_ready_for_dockerfile_static_owner_review",
+  "purpose": "Plan a future local controlled Docker build proof after Dockerfile source and owner approval. This prompt itself remains planning-only and must not build, push, deploy, or execute workers.",
   "acceptedPlanningOnly": {
-    "workerNames": [
+    "workers": [
       "sound-cpu-analysis-worker",
       "sound-audio-metadata-worker"
     ],
-    "imageNames": [
+    "images": [
       "reeditpro/sound-cpu-analysis-worker",
       "reeditpro/sound-audio-metadata-worker"
     ],
@@ -24,14 +22,13 @@
       "sound.numeric_array_analysis",
       "sound.symbolic_midi_analysis",
       "sound.loudness_synthetic_analysis"
-    ]
+    ],
+    "requirementsSource": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt"
   },
   "blockedActions": [
-    "Dockerfile creation",
-    "Docker build",
-    "Docker push",
     "GCP API call",
     "Cloud Run execution",
+    "Artifact Registry push",
     "Secret Manager API call",
     "service account creation",
     "worker execution",
@@ -44,6 +41,19 @@
     "SQL execution",
     "billing or Stripe mutation",
     "beta or production unlock"
+  ],
+  "readinessClaimsRemainBlocked": [
+    "generated_local_fixture_passed",
+    "dry_run_passed",
+    "runtime_ready",
+    "worker_ready",
+    "media_ready",
+    "docker_ready",
+    "cloud_run_ready",
+    "supabase_ready",
+    "artifact_ready",
+    "beta_ready",
+    "production_ready"
   ],
   "supabaseClassification": {
     "updateRequired": "no",

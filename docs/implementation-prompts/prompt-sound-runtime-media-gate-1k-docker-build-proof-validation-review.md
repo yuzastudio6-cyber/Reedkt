@@ -8,6 +8,8 @@
   "requiredGate1JDecision": "sound_runtime_media_gate_1j_controlled_docker_build_proof_passed_with_warnings_ready_for_build_proof_owner_review",
   "requiredOwnerReviewPrompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKER-BUILD-PROOF-OWNER-REVIEW",
   "requiredBuildProofOwnerReviewDecision": "worker_runtime_jobs_sound_cpu_docker_build_proof_owner_review_passed_with_warnings_ready_for_image_hardening_plan",
+  "requiredImageHardeningPlanDecision": "worker_runtime_jobs_sound_cpu_image_hardening_plan_completed_with_warnings_ready_for_image_hardening_owner_review",
+  "requiredImageHardeningOwnerReviewPrompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-IMAGE-HARDENING-OWNER-REVIEW",
   "purpose": "Review Gate 1J controlled local Docker build proof evidence after owner review without running another Docker build, Docker run, Docker push, GCP, worker execution, media processing, Supabase, SQL, or artifact operation.",
   "requiredEvidence": [
     "docs/sound-runtime-media-gate-1j-controlled-docker-build-proof-result.md",

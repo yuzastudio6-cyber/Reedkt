@@ -1,0 +1,13 @@
+{
+  "runtimeToolExecution": false,
+  "productReadyClaim": false,
+  "trackBFFmpegFFprobeOwnershipDrift": false,
+  "privateUserRealMedia": false,
+  "renderExport": false,
+  "supabaseGcs": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "betaProductionUnlock": false,
+  "packageLockDockerfileDockerignoreRuntimeSourceMutation": false,
+  "rawPromptsSecrets": false
+}

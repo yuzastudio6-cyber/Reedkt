@@ -1,0 +1,8 @@
+{
+  "milestone": "TRACKA-POST-PR702-PR701-METADATA-RECONCILIATION-1",
+  "status": "ready_for_gpac_mp4box_package_source_policy_review",
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-POLICY-REVIEW-1",
+  "laterPrompt": "TRACKA-CLOSE-STALE-PR701-AFTER-POST-PR702-RECONCILIATION",
+  "blockedRuntimeScopesRemainBlocked": true,
+  "productReadyLocalOssTools": 0
+}

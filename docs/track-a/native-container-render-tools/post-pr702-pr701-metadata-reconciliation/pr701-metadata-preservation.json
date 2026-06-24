@@ -1,0 +1,18 @@
+{
+  "pr": 701,
+  "decisionPreserved": "tracka_install_proof_3_post_pr697_review_passed_pr697_supersedes_pushed_post_pr690_branch_ready_for_gpac_mp4box_source_resolution",
+  "pushedPostPr690BranchClassification": "superseded_by_pr697_context_only_no_reconciliation_required",
+  "supersededBy": {
+    "pr": 697,
+    "mergeCommit": "702cf924db4c8c29688f8c9335ef08f147314bd9"
+  },
+  "postPr702Status": {
+    "pr701MergeTarget": "stale_dirty_not_current_merge_target",
+    "directMergeAllowed": false,
+    "closeAllowedInThisPhase": false,
+    "contextPreservedByThisReconciliation": true
+  },
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577": "open_draft_blocked_excluded"
+}

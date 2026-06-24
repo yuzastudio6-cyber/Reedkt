@@ -1,0 +1,10 @@
+{
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-POLICY-REVIEW-1",
+  "reason": "PR #702 records GPAC/MP4Box package source still blocked, so the next safe lane is owner/environment package-source policy review rather than install proof or execution.",
+  "vapoursynth": "separate_lane_due_package_source_and_plugin_policy_blockers",
+  "notNext": [
+    "TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-RESOLUTION-1",
+    "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-4",
+    "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-BUILD-PROOF-4"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "pr": 701,
+  "contentPreservedByReconciliation": true,
+  "stateAfterPr702": "dirty_stale_open",
+  "directMergeRecommended": false,
+  "closeInThisPhase": false,
+  "laterClosePrompt": "TRACKA-CLOSE-STALE-PR701-AFTER-POST-PR702-RECONCILIATION",
+  "closePrerequisite": "reconciliation PR merged"
+}

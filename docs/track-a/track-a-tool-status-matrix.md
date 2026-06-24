@@ -32,6 +32,16 @@ Status vocabulary: `not_started`, `policy_only`, `generated_fixture_done`, `real
 
 Current Track A routing source-of-truth is the merged TOOL-STUDY-0 contract plus TOOL-ROUTE-1 and TOOL-ROUTE-2 planning evidence. Historical visual/video activation PRs provide important evidence, but most remain stacked on older phase branches and need retargeting, superseded closure, or visual review before they can be merged into the current integration branch.
 
+## Post-PR702 PR701 Metadata Reconciliation
+
+`TRACKA-POST-PR702-PR701-METADATA-RECONCILIATION-1` records decision `tracka_post_pr702_pr701_metadata_reconciliation_passed_pr701_context_preserved_ready_for_gpac_mp4box_policy_review`. PR #701 remains open/dirty/stale and is not a direct merge target; its pushed post-PR690 branch classification `superseded_by_pr697_context_only_no_reconciliation_required` is preserved as source-of-truth context after PR #702 merged at `93d574f35f40eed1b7b8b87540201750b94df304`.
+
+PR #702 remains package-source-resolution source-of-truth with decision `blocked_no_safe_package_source_resolution_available`. GPAC/MP4Box remains `blocked_gpac_mp4box_package_source_unavailable` and `blocked_pending_safe_package_source`; VapourSynth remains `blocked_core_vapoursynth_package_source_unavailable` plus `blocked_vapoursynth_native_plugin_policy_not_satisfied`; Revideo remains `evaluation_only_non_core_owner_approval_required_before_install_source`; Hyperframe remains `handoff_only_no_install_source_change`. Revideo is `separate_not_selected_for_mp4box_command_path`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Next prompt: `TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-POLICY-REVIEW-1`; later close prompt: `TRACKA-CLOSE-STALE-PR701-AFTER-POST-PR702-RECONCILIATION`.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
+
 ## No-Scope Statement
 
 No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.

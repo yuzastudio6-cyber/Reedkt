@@ -1,0 +1,10 @@
+{
+  "decision": "tracka_post_pr702_pr701_metadata_reconciliation_passed_pr701_context_preserved_ready_for_gpac_mp4box_policy_review",
+  "pr701ContextPreserved": true,
+  "pr702SourceOfTruthPreserved": true,
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577Excluded": true,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-PACKAGE-SOURCE-POLICY-REVIEW-1",
+  "laterClosePrompt": "TRACKA-CLOSE-STALE-PR701-AFTER-POST-PR702-RECONCILIATION"
+}

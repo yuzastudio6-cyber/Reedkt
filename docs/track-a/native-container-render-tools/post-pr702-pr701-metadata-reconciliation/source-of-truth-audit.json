@@ -1,0 +1,41 @@
+{
+  "milestone": "TRACKA-POST-PR702-PR701-METADATA-RECONCILIATION-1",
+  "base": {
+    "branch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+    "head": "93d574f35f40eed1b7b8b87540201750b94df304"
+  },
+  "pr701": {
+    "number": 701,
+    "state": "OPEN",
+    "draft": false,
+    "mergeStateStatus": "DIRTY",
+    "mergedAt": null,
+    "head": "6c75dd02a2ff090428912efa1df88ee6835bbca4",
+    "purpose": "post-PR697 source-of-truth review and pushed post-PR690 branch classification"
+  },
+  "pr702": {
+    "number": 702,
+    "state": "MERGED",
+    "mergedAt": "2026-06-24T14:50:47Z",
+    "mergeCommit": "93d574f35f40eed1b7b8b87540201750b94df304",
+    "head": "88ad565c678796369dfd46ca87b586959a0e4bcd",
+    "sourceOfTruth": "TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-RESOLUTION-BATCH-1"
+  },
+  "predecessorsMerged": [697, 690, 693, 682, 680, 673, 666, 662, 659, 652],
+  "pushedPostPr690Branch": {
+    "branch": "codex/rp-tracka-native-container-rollup-post-pr690-source-review",
+    "commit": "3c65ec6c3115655a55e93099a884ee45562cf3a9",
+    "classification": "preserved_context_only"
+  },
+  "reasonForReconciliation": "PR #702 merged before PR #701, making PR #701 stale while leaving useful PR #701 metadata unlanded.",
+  "crossChatDocs": {
+    "docs/cross-chat/CURRENT_HANDOFF.md": "absent",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md": "absent",
+    "docs/cross-chat/BLOCKED_SCOPES.md": "absent",
+    "PRODUCTION_FOUNDATION_STATUS.md": "absent"
+  },
+  "noScopeConfirmation": {
+    "runtimeToolsMediaDockerSupabaseGcsBetaProduction": false,
+    "packageLockDockerfileDockerignoreRuntimeSourceMutation": false
+  }
+}

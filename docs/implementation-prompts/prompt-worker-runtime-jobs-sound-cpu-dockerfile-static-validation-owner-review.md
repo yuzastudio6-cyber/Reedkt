@@ -1,15 +1,16 @@
-# SOUND-RUNTIME-MEDIA-GATE-1H: Dockerfile static validation, no Docker build
+# WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-VALIDATION-OWNER-REVIEW: review static Dockerfile validation, no Docker build/GCP
 
-```json sound-runtime-media-gate-1h-dockerfile-static-validation
+```json worker-runtime-jobs-sound-cpu-dockerfile-static-validation-owner-review
 {
-  "prompt": "SOUND-RUNTIME-MEDIA-GATE-1H",
-  "title": "Dockerfile static validation, no Docker build",
-  "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1G",
-  "requiredSourceDecision": "sound_runtime_media_gate_1g_actual_dockerfile_source_created_with_warnings_ready_for_dockerfile_source_owner_review",
+  "prompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-STATIC-VALIDATION-OWNER-REVIEW",
+  "title": "Review static Dockerfile validation, no Docker build/GCP",
+  "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1H",
   "requiredSourceOwnerReviewMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERFILE-SOURCE-OWNER-REVIEW",
   "requiredSourceOwnerReviewDecision": "worker_runtime_jobs_sound_cpu_dockerfile_source_owner_review_passed_with_warnings_ready_for_static_validation",
+  "requiredStaticValidationMilestone": "SOUND-RUNTIME-MEDIA-GATE-1H",
+  "requiredStaticValidationDecision": "sound_runtime_media_gate_1h_dockerfile_static_validation_passed_with_warnings_ready_for_docker_build_proof_planning",
   "requiredDockerfileSourcePath": "server/workers/sound-cpu/Dockerfile",
-  "purpose": "Run static source validation for the SOUND CPU Dockerfile without building an image, pushing an image, calling GCP, or executing workers.",
+  "purpose": "Review future static Dockerfile validation evidence without building, pushing, deploying, or executing workers.",
   "blockedActions": [
     "Docker build",
     "Docker push",
@@ -22,7 +23,7 @@
     "route execution",
     "tool execution",
     "media processing",
-    "FFmpeg or ffprobe",
+    "FFmpeg or ffprobe execution",
     "model download",
     "artifact write",
     "Supabase mutation",

@@ -6,6 +6,8 @@ const SOURCE_HEAD = '43d01f30a3564f961aaac50fed49f8d5ccbc925d';
 const PR698_DECISION = 'sound_runtime_media_gate_1f_dockerfile_source_creation_plan_completed_with_warnings_ready_for_actual_dockerfile_source_gate';
 const PR695_DECISION = 'worker_runtime_jobs_sound_cpu_dockerfile_static_owner_review_passed_with_warnings_ready_for_gate_1f_source_creation_plan';
 const PR691_DECISION = 'sound_runtime_media_gate_1e_dockerfile_static_plan_completed_with_warnings_ready_for_dockerfile_static_owner_review';
+const SOURCE_OWNER_REVIEW_DECISION = 'worker_runtime_jobs_sound_cpu_dockerfile_source_owner_review_passed_with_warnings_ready_for_static_validation';
+const SOURCE_OWNER_REVIEW_PATH = 'docs/worker-runtime-jobs-sound-cpu-dockerfile-source-owner-review.md';
 const DOCKERFILE_PATH = 'server/workers/sound-cpu/Dockerfile';
 const REQUIREMENTS_PATH = 'server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt';
 const NO_SCOPE = 'No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, or broad service-role handler was enabled.';
@@ -202,7 +204,11 @@ assert(ownerPrompt.requiredDockerfileSourcePath === DOCKERFILE_PATH, 'source own
 
 const buildProofPrompt = blocks.find((entry) => entry.label === 'worker-runtime-jobs-sound-cpu-docker-build-proof-plan').block;
 assert(buildProofPrompt.requiredActualDockerfileSourceDecision === DECISION, 'build proof prompt must require Gate 1G decision');
-assert(buildProofPrompt.requiredDockerfileSourceOwnerReviewDecision === 'worker_runtime_jobs_sound_cpu_dockerfile_source_owner_review_passed_with_warnings_ready_for_docker_build_proof_plan', 'build proof prompt must require owner review');
+const expectedSourceOwnerReviewDecision =
+  existsSync(SOURCE_OWNER_REVIEW_PATH) && read(SOURCE_OWNER_REVIEW_PATH).includes(SOURCE_OWNER_REVIEW_DECISION)
+    ? SOURCE_OWNER_REVIEW_DECISION
+    : 'worker_runtime_jobs_sound_cpu_dockerfile_source_owner_review_passed_with_warnings_ready_for_docker_build_proof_plan';
+assert(buildProofPrompt.requiredDockerfileSourceOwnerReviewDecision === expectedSourceOwnerReviewDecision, 'build proof prompt must require owner review');
 
 const staticPrompt = blocks.find((entry) => entry.label === 'sound-runtime-media-gate-1h-dockerfile-static-validation').block;
 assert(staticPrompt.requiredSourceDecision === DECISION, 'Gate 1H prompt source decision mismatch');

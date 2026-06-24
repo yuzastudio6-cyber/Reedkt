@@ -18,6 +18,7 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-diagnostics",
   "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-diagnostics",
+  "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:runtime-boundary-diagnostics",
   "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:canonicalization-owner-approval-diagnostics",

@@ -353,3 +353,13 @@ production readiness.
 - Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_owner_approved_with_warnings`
 - Owner-approves runtime-boundary canonicalization only for planning/study metadata across all 21 AI graphics tools and all 12 capabilities.
 - Runtime-ready: false. Internal beta-ready: false. Production-ready: false. No execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, or public artifacts are approved.
+
+## AI Graphics Runtime Boundary Canonicalization Owner Approval QA
+
+- Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_canonicalization_owner_approval_qa_passed_with_warnings`.
+- Source: PR #714 owner approval of PR #710/#709/#705 accepted with warnings.
+- Coverage: all 21 AI graphics tools, all 12 product-facing capabilities, and all nine runtime buckets.
+- Agent planning/study metadata selection remains allowed.
+- Agent/tool/route/worker/provider execution remains false.
+- Browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal beta, external beta, and production readiness remain false.
+- Track B exclusion remains under `TRACK_B_MEDIA_OSS_STEWARD`; Track A render/export exclusion remains evidence-only via PR #544.

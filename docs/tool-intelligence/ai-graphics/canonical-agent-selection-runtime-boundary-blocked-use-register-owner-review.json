@@ -1,0 +1,43 @@
+{
+  "decision": "ai_graphics_canonical_agent_selection_runtime_boundary_owner_review_passed_with_warnings",
+  "blockedRuntimeClaims": {
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "publicArtifactApprovedNow": false,
+    "signedUrlApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "generatedOutputCreated": false
+  },
+  "blockedReasons": [
+    "Agent execution remains blocked.",
+    "Tool Route execution remains blocked.",
+    "Worker execution remains blocked.",
+    "Browser/WebGL/canvas runtime remains blocked.",
+    "GPU/model runtime remains blocked.",
+    "Provider/model execution remains blocked.",
+    "Supabase/GCS mutation remains blocked.",
+    "Signed URLs and public artifacts remain blocked.",
+    "Runtime, internal beta, external beta, and production readiness remain blocked."
+  ],
+  "trackBExclusion": "Track B remains under TRACK_B_MEDIA_OSS_STEWARD and is evidence-only context.",
+  "trackAExclusion": "Track A render/export exclusion via PR #544 remains evidence-only context."
+}

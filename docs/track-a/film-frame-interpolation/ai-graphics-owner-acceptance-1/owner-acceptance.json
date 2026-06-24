@@ -1,0 +1,34 @@
+{
+  "packet": "TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1",
+  "decision": "blocked_pending_ai_graphics_owner_acceptance_for_film_runtime",
+  "execution": "completed_docs_only_owner_acceptance_check_no_install_or_runtime",
+  "aiGraphicsWorkerAcceptance": "not_present_in_source",
+  "productReadyEndToEndLocalOssTools": 0,
+  "filmOwnerStatus": "atlas_tracka_scoped_capability_label_only",
+  "trackAResponsibility": "render_export_capability_label_acceptance_criteria_and_future_handoff_requirements",
+  "aiGraphicsWorkerResponsibility": "required_for_model_runtime_model_weights_gpu_execution_and_ml_dependency_policy",
+  "filmImplementationStatus": "blocked_pending_ai_graphics_owner_acceptance_and_gpu_heavy_runtime_policy",
+  "filmInstallProofReadiness": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy",
+  "filmRuntimeProofReadiness": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_model_weight_policy_and_worker_runtime_lane",
+  "modelWeights": "not_accessed_and_not_approved",
+  "gpuRuntime": "not_configured_and_not_approved",
+  "nextRecommendedMilestone": "AI_GRAPHICS_FILM_OWNER_ACCEPTANCE_HANDOFF_1",
+  "sourceChain": {
+    "ownerInventoryContext": ["#544", "#547"],
+    "ownerDecisionContext": "#717",
+    "filmScopeDecision": "#721",
+    "filmGpuAiGraphicsCoordination": "#732",
+    "excluded": "#577 remains open/draft/blocked/conflicting and excluded as source-of-truth"
+  },
+  "supabase": {
+    "updateRequired": "none",
+    "updateStatus": "not_applicable_docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextAction": "none"
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "scope": "docs_status_diagnostics_only"
+}

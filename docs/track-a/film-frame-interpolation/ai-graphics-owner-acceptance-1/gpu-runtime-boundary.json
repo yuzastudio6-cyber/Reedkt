@@ -1,0 +1,8 @@
+{
+  "packet": "TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1",
+  "decision": "blocked_pending_ai_graphics_owner_acceptance_for_film_runtime",
+  "gpuRuntime": "not_configured_and_not_approved",
+  "filmRuntimeProofReadiness": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_model_weight_policy_and_worker_runtime_lane",
+  "aiGraphicsWorkerAcceptance": "not_present_in_source",
+  "productReadyEndToEndLocalOssTools": 0
+}

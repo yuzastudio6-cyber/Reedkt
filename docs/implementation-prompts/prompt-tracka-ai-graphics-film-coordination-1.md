@@ -10,6 +10,8 @@ Source-of-truth context:
 - Track A responsibility: `render_export_capability_label_acceptance_criteria_and_future_handoff_requirements`.
 - AI Graphics / Worker responsibility: `required_for_model_runtime_model_weights_gpu_execution_and_ml_dependency_policy`.
 - AI Graphics / Worker coordination: `required_before_any_install_or_runtime`.
+- AI Graphics / Worker acceptance: `not_present_in_source`.
+- `TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1 decision: blocked_pending_ai_graphics_owner_acceptance_for_film_runtime`.
 - Model weights: `not_accessed_and_not_approved`.
 - GPU runtime: `not_configured_and_not_approved`.
 - Runtime: `not_run`.
@@ -17,7 +19,7 @@ Source-of-truth context:
 
 Goal: coordinate whether FILM belongs in a future AI Graphics / Worker-owned heavy runtime path, and define ownership, model-weight policy, GPU runtime policy, artifact policy, cleanup policy, QA, and Track B media-evidence boundary before any install/runtime packet.
 
-Next prompt: `TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1`.
+Next prompt: `AI_GRAPHICS_FILM_OWNER_ACCEPTANCE_HANDOFF_1`.
 
 This prompt must not execute FILM, model weights, providers/models, Docker, FFmpeg/FFprobe, Remotion, workers, routes, Supabase, SQL, media processing, signed/public artifacts, beta/production/final delivery, or broad media.
 

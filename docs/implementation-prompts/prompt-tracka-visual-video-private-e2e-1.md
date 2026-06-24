@@ -52,7 +52,9 @@ Track A FILM frame interpolation scope decision: `TRACKA-FILM-FRAME-INTERPOLATIO
 
 Track A FILM GPU/AI Graphics coordination decision: `TRACKA-FILM-GPU-POLICY-AI-GRAPHICS-COORDINATION-1 decision: blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy`.
 
-FILM readiness: `blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy`; model weights `not_accessed_and_not_approved`; runtime `not_run`; GPU runtime `not_configured_and_not_approved`; AI Graphics / Worker responsibility `required_for_model_runtime_model_weights_gpu_execution_and_ml_dependency_policy`.
+Track A FILM AI Graphics owner acceptance decision: `TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1 decision: blocked_pending_ai_graphics_owner_acceptance_for_film_runtime`.
+
+FILM readiness: `blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy`; AI Graphics / Worker acceptance `not_present_in_source`; model weights `not_accessed_and_not_approved`; runtime `not_run`; GPU runtime `not_configured_and_not_approved`; AI Graphics / Worker responsibility `required_for_model_runtime_model_weights_gpu_execution_and_ml_dependency_policy`.
 
 GPAC/MP4Box readiness: `blocked_gpac_mp4box_package_source_unavailable`.
 

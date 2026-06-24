@@ -13,10 +13,12 @@ Source-of-truth context:
 - FILM implementation is `blocked_pending_ai_graphics_owner_acceptance_and_gpu_heavy_runtime_policy`.
 - Model weights are `not_accessed_and_not_approved`.
 - GPU runtime is `not_configured_and_not_approved`.
+- `TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1 decision: blocked_pending_ai_graphics_owner_acceptance_for_film_runtime`.
+- AI Graphics / Worker acceptance is `not_present_in_source`.
 - AI Graphics / Worker coordination is `required_before_any_install_or_runtime`.
 - Track B FFmpeg/FFprobe coordination is `required_for_future_media_evidence_only_if_needed`.
 
-Next prompt should route first to `TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1` before any install/runtime proof.
+Next prompt should route first to `AI_GRAPHICS_FILM_OWNER_ACCEPTANCE_HANDOFF_1` before any GPU policy, install, or runtime proof.
 
 Goal: decide whether a future FILM packet may propose a GPU/heavy ML runtime policy. This prompt must remain docs/status/diagnostics-only unless a later owner-approved execution packet explicitly authorizes install/runtime work.
 

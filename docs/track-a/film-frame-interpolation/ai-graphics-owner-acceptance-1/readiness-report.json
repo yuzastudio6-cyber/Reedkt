@@ -1,0 +1,56 @@
+{
+  "packet": "TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1",
+  "decision": "blocked_pending_ai_graphics_owner_acceptance_for_film_runtime",
+  "execution": "completed_docs_only_owner_acceptance_check_no_install_or_runtime",
+  "readiness": {
+    "filmInstallProofReadiness": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy",
+    "filmRuntimeProofReadiness": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_model_weight_policy_and_worker_runtime_lane",
+    "gpuPolicyReview": "blocked_pending_ai_graphics_owner_acceptance_for_film_runtime",
+    "visualVideoPrivateE2E": "still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates",
+    "nextRecommendedMilestone": "AI_GRAPHICS_FILM_OWNER_ACCEPTANCE_HANDOFF_1"
+  },
+  "matrix": {
+    "film_frame_interpolation": {
+      "ownerStatus": "atlas_tracka_scoped_capability_label_only",
+      "trackAResponsibility": "render_export_capability_label_acceptance_criteria_and_future_handoff_requirements",
+      "aiGraphicsWorkerAcceptance": "not_present_in_source",
+      "aiGraphicsWorkerResponsibility": "required_for_model_runtime_model_weights_gpu_execution_and_ml_dependency_policy",
+      "implementationStatus": "blocked_pending_ai_graphics_owner_acceptance_and_gpu_heavy_runtime_policy",
+      "installSourceStatus": "not_changed",
+      "runtimeExecution": "not_run",
+      "modelWeights": "not_accessed_and_not_approved",
+      "gpuRuntime": "not_configured_and_not_approved",
+      "readiness": "blocked_pending_ai_graphics_owner_acceptance_gpu_runtime_policy_and_model_weight_policy"
+    },
+    "revideo_render_preview_alternative": {
+      "status": "evaluation_only_non_core_owner_approval_required_before_install_source",
+      "readiness": "blocked_pending_owner_approval"
+    },
+    "gstreamer_render_pipeline_support": {
+      "status": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "runtimeExecution": "not_run_in_this_phase"
+    },
+    "mkvtoolnix_container_validation": {
+      "status": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "runtimeExecution": "not_run_in_this_phase"
+    },
+    "bento4_mp4box_packaging_validation": {
+      "status": "blocked_pending_owner_approved_package_source"
+    },
+    "vapoursynth_frame_pipeline": {
+      "status": "blocked_pending_owner_approved_package_source"
+    },
+    "hyperframe_render_handoff": {
+      "status": "handoff_only_no_install_source_change"
+    },
+    "shared_dependency_ffmpeg_trackb_owned": {
+      "execution": "not_run",
+      "coordinationRequiredForFutureUse": true
+    },
+    "shared_dependency_ffprobe_trackb_owned": {
+      "execution": "not_run",
+      "coordinationRequiredForFutureUse": true
+    }
+  },
+  "productReadyEndToEndLocalOssTools": 0
+}

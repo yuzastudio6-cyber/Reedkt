@@ -10,7 +10,8 @@ const expectedScript = "ai-graphics:canonical-agent-selection:runtime-boundary-q
 const expectedScriptCommand = "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-qa-diagnostics.mjs";
 const allowedDescendantScripts = new Set([
   "ai-graphics:canonical-agent-selection:runtime-boundary-owner-diagnostics",
-  "ai-graphics:canonical-agent-selection:runtime-boundary-owner-approval-diagnostics"
+  "ai-graphics:canonical-agent-selection:runtime-boundary-owner-approval-diagnostics",
+  "ai-graphics:canonical-agent-selection:runtime-boundary-owner-approval-qa-diagnostics"
 ]);
 const failures = [];
 const fail = (message) => failures.push(message);

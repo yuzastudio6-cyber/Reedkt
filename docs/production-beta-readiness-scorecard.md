@@ -312,3 +312,14 @@ It does not approve agent/tool/route/worker/provider execution, browser/WebGL/
 canvas runtime, GPU/model runtime, E2E proof, Supabase/GCS mutation, signed
 URLs, public artifacts, internal beta, external beta, paid production, or
 production readiness.
+
+## AI Graphics Canonical Agent Selection Runtime Boundary Owner Approval QA
+
+- Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_owner_approval_qa_passed_with_warnings`.
+- Source: PR #700 runtime-boundary owner approval accepted with warnings.
+- Coverage: all 21 AI graphics tools and all 12 product-facing capabilities.
+- Agent planning/study metadata selection: allowed.
+- Agent/tool/route/worker/provider execution: false.
+- Browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, runtime readiness, internal beta, external beta, and production readiness: false.
+- Track B exclusion under `TRACK_B_MEDIA_OSS_STEWARD` and Track A render/export exclusion via PR #544 remain evidence-only context.
+- No dependency install, package-lock mutation, CPU/static execution, import smoke, synthetic fixtures, browser/WebGL/canvas runtime, GPU/model runtime, Supabase/GCS, signed URL, public artifact, beta command, production command, PR merge, PR close, or PR retarget occurred.

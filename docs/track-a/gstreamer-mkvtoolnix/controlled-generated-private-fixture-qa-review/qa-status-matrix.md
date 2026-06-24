@@ -7,7 +7,9 @@
 
 Product-ready end-to-end local OSS tools: `0`
 
-Decision: `qa_passed_controlled_generated_private_fixture_execution_evidence`
+Decision: `tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup`
+
+Internal repair status: `qa_passed_controlled_generated_private_fixture_execution_evidence`
 
 Execution: `completed_docs_only_qa_review_no_runtime_execution`
 
@@ -15,4 +17,4 @@ QA scope: `source_evidence_review_only`
 
 Private fixture execution in this phase: `false`
 
-Next gate: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`
+Next gate: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1`

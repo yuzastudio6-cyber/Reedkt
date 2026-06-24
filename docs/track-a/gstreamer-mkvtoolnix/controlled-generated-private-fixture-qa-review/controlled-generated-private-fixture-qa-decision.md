@@ -1,6 +1,8 @@
 # Controlled Generated Private Fixture QA Decision
 
-Decision: `qa_passed_controlled_generated_private_fixture_execution_evidence`
+Decision: `tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup`
+
+Internal repair status: `qa_passed_controlled_generated_private_fixture_execution_evidence`
 
 Execution: `completed_docs_only_qa_review_no_runtime_execution`
 
@@ -30,7 +32,9 @@ MKVToolNix readiness: `qa_passed_ready_for_tracka_native_container_rollup_or_pri
 
 `TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates`
 
-Next prompt: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3`
+Next prompt: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1`
+
+Context-only readiness note: `TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 readiness: context_only_ready`
 
 Parallel planning-only prompt: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1`
 

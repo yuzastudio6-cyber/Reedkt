@@ -37,7 +37,9 @@ Changed-file and staged safety scans are non-executing file-content scans only.
 
 Feasible repair checks while the larger-environment blocker remains are limited to `git diff --check`, Node-built-in diagnostics, `git diff --cached --check`, and non-executing file-content safety scans.
 
-Repair decision: `qa_passed_controlled_generated_private_fixture_execution_evidence`
+Canonical QA decision: `tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup`
+
+Internal repair status: `qa_passed_controlled_generated_private_fixture_execution_evidence`
 
 Execution: `completed_docs_only_qa_review_no_runtime_execution`
 

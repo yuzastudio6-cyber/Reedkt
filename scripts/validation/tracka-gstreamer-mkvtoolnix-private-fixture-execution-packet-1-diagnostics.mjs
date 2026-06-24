@@ -20,6 +20,8 @@ const downstreamQaRepairFiles = [
   'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/source-of-truth-audit.md',
   'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/source-refresh-after-pr-680-drift.json',
   'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/source-refresh-after-pr-680-drift.md',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/live-head-draft-readiness-review.json',
+  'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/live-head-draft-readiness-review.md',
   'docs/track-a/gstreamer-mkvtoolnix/controlled-generated-private-fixture-qa-review/validation-results.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
   'docs/track-a/track-a-tool-status-matrix.md',

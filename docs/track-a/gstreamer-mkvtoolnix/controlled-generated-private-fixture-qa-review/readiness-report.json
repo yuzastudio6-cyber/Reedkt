@@ -1,13 +1,15 @@
 {
   "readyForNextGate": true,
-  "nextGate": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3",
-  "qaDecision": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+  "nextGate": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1",
+  "qaDecision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "internalRepairStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
   "execution": "completed_docs_only_qa_review_no_runtime_execution",
   "qaScope": "source_evidence_review_only",
   "privateFixtureExecutionInThisPhase": false,
   "gstreamerReadiness": "qa_passed_ready_for_tracka_native_container_rollup_or_private_e2e_planning",
   "mkvtoolnixReadiness": "qa_passed_ready_for_tracka_native_container_rollup_or_private_e2e_planning",
-  "trackaNativeContainerRenderToolsInstallProof3Readiness": "ready",
+  "trackaNativeContainerRenderToolsRollupReadiness": "ready_after_dependency_validation_blocker_resolution_or_waiver",
+  "trackaNativeContainerRenderToolsInstallProof3Readiness": "context_only_ready",
   "trackaVisualVideoPrivateE2EReadiness": "still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates",
   "acceptedTools": [
     "GStreamer",

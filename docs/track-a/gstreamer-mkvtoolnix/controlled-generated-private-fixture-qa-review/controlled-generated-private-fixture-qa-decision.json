@@ -1,9 +1,10 @@
 {
-  "decision": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+  "decision": "tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup",
+  "internalRepairStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
   "execution": "completed_docs_only_qa_review_no_runtime_execution",
   "qaScope": "source_evidence_review_only",
   "privateFixtureExecutionInThisPhase": false,
-  "next_prompt": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3",
+  "next_prompt": "TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1",
   "secondary_prompts": [
     "TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1",
     "TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1"

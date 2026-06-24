@@ -26,6 +26,8 @@ const requiredReports = [
   'validation-results.md',
   'source-refresh-after-pr-680-drift.json',
   'source-refresh-after-pr-680-drift.md',
+  'live-head-draft-readiness-review.json',
+  'live-head-draft-readiness-review.md',
 ].map((file) => `${packetDir}/${file}`)
 
 const predecessorFiles = [
@@ -91,9 +93,10 @@ const allowedChangedFiles = new Set([
   'package.json',
 ])
 
-const decision = 'qa_passed_controlled_generated_private_fixture_execution_evidence'
+const decision = 'tracka_gstreamer_mkvtoolnix_controlled_generated_private_fixture_qa_passed_ready_for_tracka_native_container_tools_rollup'
+const internalRepairStatus = 'qa_passed_controlled_generated_private_fixture_execution_evidence'
 const validationBlocker = 'host_resource_limit_no_space_left_on_device_requires_larger_validation_environment'
-const nextPrompt = 'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3'
+const nextPrompt = 'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-ROLLUP-AFTER-GSTREAMER-MKVTOOLNIX-QA-1'
 const tempRoot = '/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-controlled-generated-private-fixture-execution-1/2026-06-23T03-37-56-bc4d88cf'
 
 const requiredText = [
@@ -124,7 +127,10 @@ const requiredText = [
   '2487edd658e8459b7818baf0422c8db6679f693020d78aeb90d5be0fb5aa446b',
   'ea659dec22a7492be8af90a521be03f76367723e99570e32e9f3b59d68ec1b82',
   decision,
+  internalRepairStatus,
   validationBlocker,
+  'live head: `9d1d0248fadc2335870133be406765f7222469fe`',
+  'Draft decision: `kept_draft`',
   'Validation status: `blocked_host_resource_limit_no_space_left_on_device_requires_larger_validation_environment`',
   'Dependency validation current attempt: `not_run_disk_space_below_threshold`',
   'PR review state: `draft_pending_larger_validation_environment`',
@@ -132,7 +138,7 @@ const requiredText = [
   'QA scope: `source_evidence_review_only`',
   'Private fixture execution in this phase: `false`',
   nextPrompt,
-  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 readiness: ready',
+  'TRACKA-NATIVE-CONTAINER-RENDER-TOOLS-INSTALL-PROOF-3 readiness: context_only_ready',
   'TRACKA-VISUAL-VIDEO-PRIVATE-E2E-1 readiness: still_blocked_pending_worker_supabase_remotion_and_tracka_private_e2e_gates',
   'TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1',
   'PR #577 remains open, draft, blocked/conflicting, and excluded as source-of-truth',
@@ -243,6 +249,7 @@ for (const pattern of forbiddenPatterns) {
 
 const decisionReport = JSON.parse(read(`${packetDir}/controlled-generated-private-fixture-qa-decision.json`))
 if (decisionReport.decision !== decision) fail('decision drift in QA decision report')
+if (decisionReport.internalRepairStatus !== internalRepairStatus) fail('internal repair status drift in QA decision report')
 if (decisionReport.execution !== 'completed_docs_only_qa_review_no_runtime_execution') fail('execution drift in QA decision report')
 if (decisionReport.qaScope !== 'source_evidence_review_only') fail('QA scope drift in QA decision report')
 if (decisionReport.privateFixtureExecutionInThisPhase !== false) fail('private fixture execution must remain false in QA decision report')
@@ -256,6 +263,7 @@ if (decisionReport.validationStatus !== `blocked_${validationBlocker}`) fail('QA
 
 const audit = JSON.parse(read(`${packetDir}/source-of-truth-audit.json`))
 if (audit.decision !== decision) fail('decision drift in source audit')
+if (audit.internalRepairStatus !== internalRepairStatus) fail('internal repair status drift in source audit')
 if (audit.execution !== 'completed_docs_only_qa_review_no_runtime_execution') fail('execution drift in source audit')
 if (audit.qaScope !== 'source_evidence_review_only') fail('QA scope drift in source audit')
 if (audit.privateFixtureExecutionInThisPhase !== false) fail('private fixture execution must remain false in source audit')
@@ -293,6 +301,8 @@ for (const [scope, status] of Object.entries(boundary.blockedScope)) {
 
 const statusMatrix = JSON.parse(read(`${packetDir}/qa-status-matrix.json`))
 if (!Array.isArray(statusMatrix.rows) || statusMatrix.rows.length !== 2) fail('QA status matrix must include exactly two rows')
+if (statusMatrix.decision !== decision) fail('QA status matrix decision drift')
+if (statusMatrix.internalRepairStatus !== internalRepairStatus) fail('QA status matrix internal repair status drift')
 for (const row of statusMatrix.rows) {
   if (row.qaAccepted !== true) fail(`QA row must be accepted for ${row.tool}`)
   if (row.qaPhaseExecution !== false) fail(`QA row must not execute for ${row.tool}`)
@@ -303,9 +313,21 @@ for (const row of statusMatrix.rows) {
 }
 
 const readiness = JSON.parse(read(`${packetDir}/readiness-report.json`))
+if (readiness.qaDecision !== decision) fail('readiness report QA decision drift')
+if (readiness.internalRepairStatus !== internalRepairStatus) fail('readiness report internal repair status drift')
+if (readiness.nextGate !== nextPrompt) fail('readiness report next gate drift')
 if (readiness.validationBlocker !== validationBlocker) fail('readiness report must record the dependency validation blocker')
 if (readiness.validationStatus !== `blocked_${validationBlocker}`) fail('readiness report validation status drift')
 if (readiness.dependencyValidation !== 'blocked') fail('readiness report dependency validation must be blocked')
+
+const liveHeadReview = JSON.parse(read(`${packetDir}/live-head-draft-readiness-review.json`))
+if (liveHeadReview.liveHead !== '9d1d0248fadc2335870133be406765f7222469fe') fail('live-head readiness review head drift')
+if (liveHeadReview.draftDecision !== 'kept_draft') fail('live-head readiness review must keep PR draft')
+if (liveHeadReview.canonicalDecision !== decision) fail('live-head readiness review canonical decision drift')
+if (liveHeadReview.internalRepairStatus !== internalRepairStatus) fail('live-head readiness review internal repair status drift')
+if (liveHeadReview.nextPrompt !== nextPrompt) fail('live-head readiness review next prompt drift')
+if (liveHeadReview.validationBlocker !== validationBlocker) fail('live-head readiness review validation blocker drift')
+if (liveHeadReview.supabaseClassification?.write !== 'no') fail('live-head readiness review Supabase classification drift')
 
 const runtimeBoundary = JSON.parse(read(`${packetDir}/runtime-boundary-review.json`))
 for (const [key, value] of Object.entries(runtimeBoundary)) {

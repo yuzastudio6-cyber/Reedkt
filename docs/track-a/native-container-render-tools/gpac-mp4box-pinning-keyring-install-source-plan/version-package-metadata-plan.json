@@ -1,0 +1,33 @@
+{
+  "packageCandidate": "gpac",
+  "importsOrCommandsProposedForLater": [
+    "MP4Box"
+  ],
+  "observedVersionsFromPr729MainAmd64Packages": [
+    "2.4-rev0-g5d70253ac-HEAD",
+    "26.02-rev0-g118e60a90-HEAD"
+  ],
+  "futureVersionSelectionPolicy": {
+    "command": "apt-cache policy gpac",
+    "selection": "use_apt_candidate_after_main_only_source_and_package_only_pin_are_verified",
+    "installForm": "gpac=<candidate-version>",
+    "recordCandidateVersionBeforeInstall": true,
+    "blockIfCandidateNotFromMain": true,
+    "blockIfPackageMetadataUnexpected": true
+  },
+  "metadataRequiredBeforeInstall": [
+    "candidate version",
+    "source origin",
+    "component",
+    "architecture",
+    "package metadata",
+    "license metadata if exposed",
+    "dependency summary"
+  ],
+  "approvalBoundary": {
+    "versionSelectedNow": false,
+    "packageInstallApproved": false,
+    "mp4boxRuntimeApproved": false,
+    "productUseApproved": false
+  }
+}

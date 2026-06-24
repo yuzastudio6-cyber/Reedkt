@@ -1,0 +1,48 @@
+{
+  "decision": "tracka_gpac_mp4box_pinning_keyring_install_source_plan_passed_ready_for_official_apt_install_source_execution",
+  "decisionType": "passed_to_next_execution_gate",
+  "sourceClass": "official_gpac_apt_repository",
+  "repository": {
+    "uri": "https://dist.gpac.io/gpac/linux/debian",
+    "codename": "bookworm",
+    "component": "main",
+    "blockedComponent": "nightly",
+    "sourceFile": "/etc/apt/sources.list.d/gpac.sources",
+    "keyEndpoint": "https://dist.gpac.io/gpac/linux/gpg.asc",
+    "keyringPath": "/usr/share/keyrings/gpac-archive-keyring.gpg",
+    "preferencesFile": "/etc/apt/preferences.d/gpac.pref",
+    "packageCandidate": "gpac"
+  },
+  "futureExecutionPlan": {
+    "readyForOfficialAptInstallSourceExecution": true,
+    "installSourceExecutionPrompt": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-EXECUTION-1",
+    "dockerfileTarget": "docker/prod/render-worker/Dockerfile",
+    "packageInstallForm": "gpac=<candidate-version>",
+    "candidateSelection": "apt_candidate_after_main_only_source_and_package_only_pin_are_verified"
+  },
+  "approvalBoundary": {
+    "aptSourceMutationApprovedNow": false,
+    "aptKeyImportApprovedNow": false,
+    "aptUpdateApprovedNow": false,
+    "packageInstallApprovedNow": false,
+    "dockerfileMutationApprovedNow": false,
+    "runtimeApprovedNow": false,
+    "productUseApprovedNow": false
+  },
+  "bento4Status": "separate_not_selected_for_mp4box_command_path",
+  "vapoursynthStatus": "separate_blocked_pending_owner_environment_source_approval",
+  "revideoStatus": "evaluation_only_owner_gated",
+  "hyperframeStatus": "handoff_only",
+  "gstreamerMkvtoolnixStatus": "qa_accepted_bounded_generated_fixture_evidence_not_rerun",
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577Excluded": true,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-EXECUTION-1",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no",
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

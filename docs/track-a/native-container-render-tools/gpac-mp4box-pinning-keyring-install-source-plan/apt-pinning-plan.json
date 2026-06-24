@@ -1,0 +1,23 @@
+{
+  "futurePreferencesFile": "/etc/apt/preferences.d/gpac.pref",
+  "scope": "package_only_gpac",
+  "pinningTextOnly": [
+    "Package: gpac",
+    "Pin: origin \"dist.gpac.io\"",
+    "Pin-Priority: 501"
+  ],
+  "policy": {
+    "avoidBroadOriginPriority": true,
+    "componentMainOnly": true,
+    "componentNightlyBlocked": true,
+    "dependenciesMustResolveFromBaseOrApprovedSources": true,
+    "unexpectedCandidateSource": "block_and_request_owner_review"
+  },
+  "approvalBoundary": {
+    "preferencesMutationApproved": false,
+    "aptUpdateApproved": false,
+    "packageInstallApproved": false,
+    "runtimeApproved": false,
+    "productUseApproved": false
+  }
+}

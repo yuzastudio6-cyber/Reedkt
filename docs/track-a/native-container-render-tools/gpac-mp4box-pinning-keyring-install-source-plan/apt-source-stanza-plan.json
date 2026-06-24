@@ -1,0 +1,33 @@
+{
+  "sourceType": "deb822_sources_file",
+  "futureSourceFile": "/etc/apt/sources.list.d/gpac.sources",
+  "repository": {
+    "types": "deb",
+    "uris": "https://dist.gpac.io/gpac/linux/debian",
+    "suites": "bookworm",
+    "components": "main",
+    "signedBy": "/usr/share/keyrings/gpac-archive-keyring.gpg"
+  },
+  "blocked": {
+    "componentNightly": true,
+    "debianSid": true,
+    "debianBullseyeNativePath": true,
+    "randomBinaries": true,
+    "sourceBuild": true,
+    "bento4Fallback": "separate_not_selected_for_mp4box_command_path"
+  },
+  "futureStanzaTextOnly": [
+    "Types: deb",
+    "URIs: https://dist.gpac.io/gpac/linux/debian",
+    "Suites: bookworm",
+    "Components: main",
+    "Signed-By: /usr/share/keyrings/gpac-archive-keyring.gpg"
+  ],
+  "approvalBoundary": {
+    "sourceFileMutationApproved": false,
+    "aptUpdateApproved": false,
+    "packageInstallApproved": false,
+    "runtimeApproved": false,
+    "productUseApproved": false
+  }
+}

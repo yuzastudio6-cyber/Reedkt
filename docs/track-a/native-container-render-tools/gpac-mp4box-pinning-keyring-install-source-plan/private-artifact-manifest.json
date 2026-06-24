@@ -1,0 +1,13 @@
+{
+  "privateArtifacts": [],
+  "publicArtifacts": [],
+  "signedUrls": [],
+  "mediaArtifacts": [],
+  "generatedOutputsCommitted": [],
+  "runtimeOutputs": [],
+  "notes": [
+    "Metadata-only install-source plan.",
+    "No apt source, keyring, preferences, Dockerfile, requirements, package-lock, runtime source, Supabase, GCS, public artifact, signed URL, GPAC/MP4Box execution, Docker, or media mutation.",
+    "No private, user, or real media accessed."
+  ]
+}

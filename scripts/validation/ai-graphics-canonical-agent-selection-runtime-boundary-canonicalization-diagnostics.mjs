@@ -300,6 +300,9 @@ const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
 for (const key of scriptDrift) {
   if (
     key !== expectedScript &&
+    key !== "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics" &&
+    key !== "ai-graphics:cpu-static-execution-proof:phase0-diagnostics" &&
+    key !== "ai-graphics:cpu-static-execution-proof:phase0" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-qa-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-diagnostics" &&

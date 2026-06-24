@@ -13,6 +13,9 @@ const expectedScript =
 const expectedScriptCommand =
   "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-owner-approval-diagnostics.mjs";
 const allowedDescendantScripts = new Set([
+  "ai-graphics:cpu-static-execution-proof:phase0",
+  "ai-graphics:cpu-static-execution-proof:phase0-diagnostics",
+  "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:runtime-boundary-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:runtime-boundary-owner-diagnostics",
   "ai-graphics:canonical-agent-selection:runtime-boundary-owner-approval-diagnostics",

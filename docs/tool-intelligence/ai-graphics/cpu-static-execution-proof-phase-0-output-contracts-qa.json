@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "2026-06-24.ai-graphics.cpu-static-execution-proof.phase0.qa",
+  "decision": "ai_graphics_cpu_static_execution_proof_phase_0_qa_passed_with_warnings",
+  "contracts": [
+    {
+      "toolId": "d3",
+      "accepted": true,
+      "outputContractStatus": "checked",
+      "summaryKeys": [
+        "svgHash",
+        "pathData",
+        "pointCount",
+        "width",
+        "height",
+        "marker"
+      ],
+      "notes": "Accepted as deterministic CPU/static proof with output contract checked and no product runtime unlocked."
+    },
+    {
+      "toolId": "vega_lite",
+      "accepted": true,
+      "outputContractStatus": "checked",
+      "summaryKeys": [
+        "compiledHash",
+        "markCount",
+        "dataCount",
+        "scaleCount"
+      ],
+      "notes": "Accepted as deterministic CPU/static proof with output contract checked and no product runtime unlocked."
+    },
+    {
+      "toolId": "vega",
+      "accepted": true,
+      "outputContractStatus": "checked",
+      "summaryKeys": [
+        "parsedHash",
+        "operatorCount",
+        "streamCount",
+        "markCount"
+      ],
+      "notes": "Accepted as deterministic CPU/static proof with output contract checked and no product runtime unlocked."
+    },
+    {
+      "toolId": "satori",
+      "accepted": true,
+      "outputContractStatus": "blocked_contract_recorded",
+      "summaryKeys": [],
+      "notes": "Accepted as honest block because text SVG rendering requires an approved font fixture and no font asset was committed or fetched."
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "accepted": true,
+      "outputContractStatus": "checked",
+      "summaryKeys": [
+        "svgHash",
+        "svgLength",
+        "hasSvgRoot",
+        "hasRect",
+        "proofMarkerFound",
+        "nodeDomAdapterUsed"
+      ],
+      "notes": "Accepted with existing jsdom Node DOM adapter; no browser runtime was unlocked."
+    },
+    {
+      "toolId": "viz_js",
+      "accepted": true,
+      "outputContractStatus": "checked",
+      "summaryKeys": [
+        "svgHash",
+        "svgLength",
+        "hasSvgRoot",
+        "expectedNodeMarkersFound",
+        "dotHash"
+      ],
+      "notes": "Accepted as deterministic CPU/static proof with output contract checked and no product runtime unlocked."
+    }
+  ]
+}

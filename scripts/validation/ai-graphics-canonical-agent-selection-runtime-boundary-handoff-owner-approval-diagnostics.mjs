@@ -362,7 +362,8 @@ for (const key of scriptDrift) {
   if (
     key !== expectedScript &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0" &&
-    key !== "ai-graphics:cpu-static-execution-proof:phase0-diagnostics"
+    key !== "ai-graphics:cpu-static-execution-proof:phase0-diagnostics" &&
+    key !== "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics"
   ) fail("Unexpected script drift: " + key);
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) {

@@ -407,3 +407,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: local CPU/static proof imports and deterministic fixture attempts for `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, and `viz_js`.
 - Proof result: `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js` produced or validated deterministic local output contracts; `satori` imported but is blocked pending an approved font fixture for text SVG layout.
 - Runtime/beta/production: no unlock; agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, internal beta, external beta, and production remain false.
+
+## AI Graphics CPU Static Execution Proof Phase 0 QA Review
+
+- Decision: `ai_graphics_cpu_static_execution_proof_phase_0_qa_passed_with_warnings`.
+- Scope: QA accepts PR #728 Phase 0 proof evidence for `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, and `viz_js`.
+- QA result: `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js` remain accepted as `proof_passed`; `satori` remains accepted as `proof_blocked_missing_runtime` pending an approved font fixture for text SVG layout.
+- Runtime/beta/production: no unlock; agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, internal beta, external beta, and production remain false.

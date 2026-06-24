@@ -196,6 +196,14 @@
 - It preserves blocked scopes for worker dispatch, worker-router calls, job creation, worker claims, worker leases, static contract integration, imports, tools, media/audio, Docker/GCP/Cloud Run/Secret Manager, observability/retry/artifact/Supabase policy enablement, signed/public artifacts, beta, and production.
 - It does not duplicate Worker Runtime Jobs owner docs, Sound Gate 1D docs, worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Supabase runtime tables, migrations, SQL, or package-lock state.
 
+## Worker Runtime Sound CPU Contract Owner Review
+
+- Worker Runtime Sound CPU contract owner review reconciliation records PR #679 / `WORKER_RUNTIME_JOBS-SOUND-CPU-CONTRACT-OWNER-REVIEW` as merged owner source evidence using merge commit `1091f901729334389918f3b1ea28b584ebf7686b`.
+- It records accepted worker names, planned images, job types, static contract areas, static fields, and placeholder policies as future Dockerfile/static image planning terms only.
+- PR #684 Dockerfile static review is represented as candidate evidence unless live GitHub inspection proves it has merged; open/draft evidence is never treated as final source truth.
+- It preserves blocked scopes for worker dispatch, worker-router calls, job creation, worker claims, worker leases, worker-route dry-run, Dockerfile mutation, image builds, Docker/GCP/Cloud Run/Secret Manager, imports, tools, media/audio, Supabase/SQL, observability/retry/artifact policy enablement, signed/public artifacts, beta, and production.
+- It does not duplicate Worker Runtime Jobs owner docs, PR #678 compatibility supplement, PR #684 Dockerfile static review docs, worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Supabase runtime tables, migrations, SQL, or package-lock state.
+
 ## First-Class Coverage Expansion
 
 - This milestone adds explicit study cards and planning-only adapter contracts for all remaining first-class registry tools: `audioflux`, `babylon_js`, `cesium_js`, `d3`, `deck_gl`, `demucs`, `duckdb`, `echarts`, `essentia`, `hyperframe`, `konva`, `kornia`, `librosa`, `lottie`, `maplibre`, `mediapipe`, `pixijs`, `playwright`, `polars`, `rembg`, `revideo`, `rnnoise`, `rubber_band`, `signalsmith_stretch`, `soundtouch`, `three_js`, `transparent_background`, `turf`, `vapoursynth`, `vega_lite`, `whisper_cpp`.

@@ -24,7 +24,7 @@ TRACKA-RECON-0 records blocked runtime and delivery scope. It does not relax or 
 | BiRefNet runtime | blocked | No mask runtime is run. |
 | SAM2 runtime | blocked | No segmentation runtime is run. |
 | Real-ESRGAN runtime | blocked | No enhancement runtime is run. |
-| FILM runtime | blocked | No interpolation runtime is run. |
+| FILM runtime | blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination | `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1` records FILM as `film_frame_interpolation`, owner `atlas_tracka_scoped_capability_label_only`, implementation `blocked_pending_gpu_heavy_runtime_policy`, install source `not_changed`, runtime `not_run`, model weights `not_accessed`, GPU requirement `expected_gpu_heavy`, AI Graphics / Worker coordination `required`, and Track B FFmpeg/FFprobe coordination `required_for_future_media_evidence_only_if_needed`. |
 | Kornia runtime | blocked | No Kornia runtime is run. |
 | OpenColorIO runtime | blocked | No color management runtime is run. |
 | OpenImageIO runtime | blocked | No image pipeline runtime is run. |
@@ -56,7 +56,7 @@ PR #706 remains package-source-policy source-of-truth with `TRACKA-NATIVE-CONTAI
 
 Preserved context: PR #708 preserved PR #701 context after PR #702; the pushed post-PR690 branch classification `superseded_by_pr697_context_only_no_reconciliation_required` remains source truth; PR #701 and PR #708 may be closed later only by `TRACKA-CLOSE-STALE-PR701-PR708-AFTER-POST-PR706-RECONCILIATION`.
 
-Runtime status remains blocked: GPAC/MP4Box remains `blocked_gpac_mp4box_package_source_unavailable`; VapourSynth remains `blocked_core_vapoursynth_package_source_unavailable` plus `blocked_vapoursynth_native_plugin_policy_not_satisfied`; Revideo remains `evaluation_only_non_core_owner_approval_required_before_install_source`; Hyperframe remains `handoff_only_no_install_source_change`; GStreamer/MKVToolNix remain `qa_passed_controlled_generated_private_fixture_execution_evidence`.
+Runtime status remains blocked: GPAC/MP4Box remains `blocked_gpac_mp4box_package_source_unavailable`; VapourSynth remains `blocked_core_vapoursynth_package_source_unavailable` plus `blocked_vapoursynth_native_plugin_policy_not_satisfied`; Revideo remains `evaluation_only_non_core_owner_approval_required_before_install_source`; Hyperframe remains `handoff_only_no_install_source_change`; GStreamer/MKVToolNix remain `qa_passed_controlled_generated_private_fixture_execution_evidence`; FILM remains `blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination`.
 
 Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
 

@@ -1,0 +1,43 @@
+{
+  "phase": "TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1",
+  "decision": "blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination",
+  "execution": "completed_docs_only_scope_decision_no_install_or_runtime",
+  "toolMatrix": {
+    "film_frame_interpolation": {
+      "owner": "atlas_tracka_scoped_capability_label_only",
+      "implementation": "blocked_pending_gpu_heavy_runtime_policy",
+      "installSource": "not_changed",
+      "runtime": "not_run",
+      "modelWeights": "not_accessed",
+      "gpuRequirement": "expected_gpu_heavy",
+      "aiGraphicsCoordination": "required",
+      "readiness": "blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination"
+    },
+    "revideo_render_preview_alternative": {
+      "status": "evaluation_only_non_core_owner_approval_required_before_install_source",
+      "readiness": "blocked_pending_owner_approval"
+    },
+    "gstreamer_render_pipeline_support": {
+      "status": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "runtimeThisPhase": "not_run"
+    },
+    "mkvtoolnix_container_validation": {
+      "status": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "runtimeThisPhase": "not_run"
+    },
+    "bento4_mp4box_packaging_validation": {
+      "status": "blocked_pending_owner_approved_package_source"
+    },
+    "vapoursynth_frame_pipeline": {
+      "status": "blocked_pending_owner_approved_package_source"
+    },
+    "hyperframe_render_handoff": {
+      "status": "handoff_only_no_install_source_change"
+    }
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestones": [
+    "TRACKA-FILM-FRAME-INTERPOLATION-GPU-POLICY-REVIEW-1",
+    "TRACKA-AI-GRAPHICS-FILM-COORDINATION-1"
+  ]
+}

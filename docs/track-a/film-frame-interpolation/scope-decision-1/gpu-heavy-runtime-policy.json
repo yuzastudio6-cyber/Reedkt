@@ -1,0 +1,13 @@
+{
+  "phase": "TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1",
+  "filmCapability": "film_frame_interpolation",
+  "owner": "atlas_tracka_scoped_capability_label_only",
+  "implementation": "blocked_pending_gpu_heavy_runtime_policy",
+  "gpuRequirement": "expected_gpu_heavy",
+  "mlRuntimePolicy": "required_before_tensorflow_pytorch_or_equivalent_runtime",
+  "modelWeights": "not_accessed",
+  "installSource": "not_changed",
+  "runtime": "not_run",
+  "installProofReadiness": "blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination",
+  "runtimeProofReadiness": "blocked_pending_gpu_heavy_runtime_policy_and_model_weight_policy"
+}

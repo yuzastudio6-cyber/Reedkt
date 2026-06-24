@@ -2,7 +2,11 @@
 
 Goal: preserve the next FILM scope decision handoff after native/container Batch-2 and package identity Batch-1.
 
-Current readiness: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 readiness: ready_for_gpu_scope_decision_planning`
+Current decision: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 decision: blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination`
+
+Current execution: `completed_docs_only_scope_decision_no_install_or_runtime`
+
+Current readiness: `TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1 readiness: blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination`
 
 Source-of-truth: `TRACKA-GSTREAMER-MKVTOOLNIX-CONTROLLED-SYNTHETIC-FIXTURE-PROOF-1 decision: completed_gstreamer_mkvtoolnix_controlled_synthetic_fixture_proof`
 
@@ -20,7 +24,7 @@ Owner/environment package-source review context: `TRACKA-NATIVE-CONTAINER-PACKAG
 
 Owner package-source decision context: `TRACKA-NATIVE-CONTAINER-PACKAGE-SOURCE-OWNER-DECISION-1 decision: blocked_no_owner_package_source_approval_for_gpac_mp4box_or_core_vapoursynth`
 
-This prompt remains planning-only.
+This prompt is now satisfied by `docs/track-a/film-frame-interpolation/scope-decision-1/`. The next planning prompts are `TRACKA-FILM-FRAME-INTERPOLATION-GPU-POLICY-REVIEW-1` and `TRACKA-AI-GRAPHICS-FILM-COORDINATION-1`.
 
 Package identity context: #624 records GPAC/MP4Box, core VapourSynth, and Revideo evaluation identity as resolved for future planning only. Install-Proof-3, Package-Source-Resolution-Batch-1, Package-Source-Policy-Review-1, Owner-Environment-Review-1, and Owner-Decision-1 did not add GPAC/MP4Box, VapourSynth, or Revideo install-source declarations. FILM remains separate and must not inherit those approvals.
 
@@ -29,5 +33,7 @@ Private/user media used: `false`.
 Generated artifacts committed: `none`.
 
 Product-ready end-to-end local OSS tools: `0`.
+
+FILM status: owner `atlas_tracka_scoped_capability_label_only`; implementation `blocked_pending_gpu_heavy_runtime_policy`; install source `not_changed`; runtime `not_run`; model weights `not_accessed`; GPU requirement `expected_gpu_heavy`; AI Graphics / Worker coordination `required`; Track B FFmpeg/FFprobe coordination `required_for_future_media_evidence_only_if_needed`.
 
 Do not install FILM, download model weights, run interpolation, process media, run providers/models, mutate Supabase, run SQL, or unlock beta/production/final delivery.

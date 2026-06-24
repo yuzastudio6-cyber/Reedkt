@@ -1,0 +1,16 @@
+{
+  "phase": "TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1",
+  "decision": "blocked_pending_gpu_heavy_runtime_policy_and_ai_graphics_coordination",
+  "sourceOfTruth": {
+    "ownerRegistry": "#544",
+    "toolInventory": "#547",
+    "nativeContainerChain": ["#595", "#601", "#624", "#609", "#649", "#652", "#659", "#667", "#662", "#666", "#675", "#673", "#680", "#682", "#693", "#697", "#702", "#706", "#713", "#717"],
+    "latestIntegrationHead": "03286b3b155fedffd5173239877e36a937998440",
+    "latestOwnerDecisionMergeSha": "aeed9cfe534c88e0c91546d20873eed6a2e04b2c",
+    "historicalOnly": ["#54", "#55", "#58"],
+    "excluded": ["#577"]
+  },
+  "runtime": "not_run",
+  "modelWeights": "not_accessed",
+  "productReadyEndToEndLocalOssTools": 0
+}

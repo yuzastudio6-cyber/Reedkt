@@ -3,7 +3,18 @@
   "branch": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval-qa-review",
   "baseBranch": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval",
   "draftPrTitle": "[tools] AI graphics canonical agent selection runtime boundary handoff owner approval QA review",
-  "draftPr": null,
+  "draftPr": {
+    "number": 727,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/727",
+    "title": "[tools] AI graphics canonical agent selection runtime boundary handoff owner approval QA review",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeable": "MERGEABLE",
+    "headRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval-qa-review",
+    "headRefOid": "6d75ae0e29aad33e5c149fe82f3e0e457408d57d",
+    "baseRefName": "codex/rp-ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval",
+    "statusCheckRollup": []
+  },
   "duplicateSearchResult": "Preflight found no exact runtime-boundary handoff owner-approval QA PR, remote branch, or worktree.",
   "reviewedOn": "2026-06-24",
   "sourceRuntimeBoundaryHandoffOwnerApproval": {
@@ -1418,5 +1429,9 @@
     "no production unlock"
   ],
   "noScope": "No dependency install, package-lock mutation, CPU/static validation rerun, import smoke, synthetic fixtures, tool/worker/route/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, model downloads, media processing, Supabase/SQL/GCS, signed URLs, public artifacts, beta/production commands, PR merge, PR close, or PR retarget.",
-  "nextPrompt": "AI_GRAPHICS_CANONICAL_AGENT_SELECTION_RUNTIME_BOUNDARY_HANDOFF_CANONICALIZATION_REVIEW"
+  "nextPrompt": "AI_GRAPHICS_CANONICAL_AGENT_SELECTION_RUNTIME_BOUNDARY_HANDOFF_CANONICALIZATION_REVIEW",
+  "validation": {
+    "localValidation": "passed",
+    "checkRollup": []
+  }
 }

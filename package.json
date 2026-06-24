@@ -52,6 +52,7 @@
     "sound-runtime-media-gate-1g:diagnostics": "node scripts/validation/sound-runtime-media-gate-1g-diagnostics.mjs",
     "sound-runtime-media-gate-1h:diagnostics": "node scripts/validation/sound-runtime-media-gate-1h-diagnostics.mjs",
     "sound-runtime-media-gate-1i:diagnostics": "node scripts/validation/sound-runtime-media-gate-1i-diagnostics.mjs",
+    "sound-runtime-media-gate-1j:diagnostics": "node scripts/validation/sound-runtime-media-gate-1j-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-handoff-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-handoff-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-static-contract-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-static-contract-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-contract-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-contract-owner-review-diagnostics.mjs",

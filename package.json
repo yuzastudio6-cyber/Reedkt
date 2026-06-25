@@ -635,6 +635,7 @@
     "track-a:caption-quality-5:diagnostics": "node scripts/validation/track-a-caption-quality-5-diagnostics.mjs",
     "track-a:caption-quality-6:diagnostics": "node scripts/validation/track-a-caption-quality-6-diagnostics.mjs",
     "internal-beta:tracka-scope-decision-1:diagnostics": "node scripts/validation/internal-beta-tracka-scope-decision-1-diagnostics.mjs",
+    "internal-beta:readiness-1:diagnostics": "node scripts/validation/reeditpro-internal-beta-readiness-1-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

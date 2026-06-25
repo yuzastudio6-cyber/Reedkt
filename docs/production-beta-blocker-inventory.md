@@ -27,6 +27,20 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## ReEditPro End-To-End Internal Beta Readiness 1
+
+`REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.
+
+Restricted metadata/internal testing remains a candidate, but the upload-to-render internal beta lane is still `not_ready`. The required gates are Supabase schema/RLS/private storage, approved plan snapshot persistence, internal credit reservation ledger, backend job queue and leases, private artifact manifests/checksums/QA/cleanup, Remotion worker private preview/export, backend-only disabled-by-default provider adapters, and negative tests for approval/credit/public-artifact/frontend-provider boundaries.
+
+PR #736 is merged at `9b5665a5f830cabb4b550a5d4aee322821014844`. #577 remains open/draft/blocked and excluded as source-of-truth.
+
+Internal beta end-to-end status: `not_ready`. External beta status: `blocked`. Paid production status: `blocked`. Final delivery/export status: `blocked`.
+
+Product-ready local OSS tools: `0`. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## Track A GPAC/MP4Box Pinning Keyring Install Source Plan
 
 `TRACKA-GPAC-MP4BOX-PINNING-KEYRING-INSTALL-SOURCE-PLAN-1` is metadata-only and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_pinning_keyring_install_source_plan_passed_ready_for_official_apt_install_source_execution`.

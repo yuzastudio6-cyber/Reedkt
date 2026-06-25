@@ -73,6 +73,16 @@ No real timing/audio/transcript/media analysis, provider execution, rendering, b
 ## Current Recommendation
 
 Start with `RP-DATA-01` if the next priority is reliable project history, approved plan persistence, and Supabase visibility. Start with `RP-BACKEND-01` if the next priority is execution readiness and future worker queues. Both should preserve the current rule: workers execute approved snapshots, not raw chat.
+
+## ReEditPro Internal Beta Readiness 1
+
+`REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.
+
+The target is internal beta first, not full all-tools production. The current end-to-end beta lane remains `not_ready` until Supabase schema/RLS/private storage, approved plan snapshots, internal credit reservation, backend job queue, worker leases/events, private artifact manifest/QA/cleanup, Remotion private preview/export, runtime tool state separation, and backend-only provider adapters are in place.
+
+Next recommended sequence: `RP-DATA-01-SUPABASE-SCHEMA-MIGRATION-READINESS`, `RP-BACKEND-01-APPROVED-SNAPSHOT-JOB-QUEUE-SKELETON`, `RP-CREDITS-01-INTERNAL-CREDIT-LEDGER`, `RP-STORAGE-01-PRIVATE-ARTIFACT-BUCKETS`, `RP-RENDER-01-REMOTION-WORKER-SKELETON`, then `RP-INTERNAL-BETA-E2E-1`.
+
+External beta, paid production, public artifacts, broad media, and final delivery/export remain blocked.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

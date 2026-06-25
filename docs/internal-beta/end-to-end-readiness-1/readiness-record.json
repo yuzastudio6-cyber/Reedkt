@@ -1,0 +1,50 @@
+{
+  "packet": "REEDITPRO-INTERNAL-BETA-READINESS-1",
+  "decision": "blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates",
+  "execution": "completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock",
+  "integrationBase": "9b5665a5f830cabb4b550a5d4aee322821014844",
+  "internalBetaTarget": "narrow_safe_end_to_end_internal_beta_lane",
+  "internalBetaEndToEndStatus": "not_ready",
+  "restrictedMetadataTestingStatus": "restricted_internal_testing_candidate",
+  "externalBetaStatus": "blocked",
+  "paidProductionStatus": "blocked",
+  "finalDeliveryExportStatus": "blocked",
+  "productReadyEndToEndLocalOssTools": 0,
+  "sourceClosure": {
+    "pr736": "merged_at_9b5665a5f830cabb4b550a5d4aee322821014844",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "requiredGates": [
+    "supabase_schema_rls_private_storage",
+    "approved_plan_snapshot_persistence",
+    "internal_credit_reservation_ledger",
+    "backend_job_queue_leases_events",
+    "private_artifact_manifest_qa_cleanup",
+    "remotion_render_worker_private_preview_export",
+    "runtime_tool_registry_state_separation",
+    "backend_only_provider_adapters_disabled_by_default",
+    "negative_tests_for_approval_credit_public_artifact_and_frontend_provider_boundaries"
+  ],
+  "toolRuntimeMatrix": {
+    "gstreamer_render_pipeline_support": "qa_passed_controlled_generated_private_fixture_execution_evidence_blocked_pending_worker_route_private_artifact_and_internal_beta_e2e_gate",
+    "mkvtoolnix_container_validation": "qa_passed_controlled_generated_private_fixture_execution_evidence_blocked_pending_worker_route_private_artifact_and_internal_beta_e2e_gate",
+    "gpac_mp4box_packaging_validation": "official_apt_install_source_package_presence_evidence_blocked_pending_qa_worker_integration_and_no_media_runtime_gate",
+    "vapoursynth_frame_pipeline": "blocked_pending_owner_approved_package_source_and_plugin_policy",
+    "revideo_render_preview_alternative": "evaluation_only_non_core_owner_approval_required_before_install_source",
+    "film_frame_interpolation": "blocked_pending_ai_graphics_owner_acceptance_for_film_runtime",
+    "hyperframe_render_handoff": "handoff_only_no_install_source_change",
+    "remotion_render_worker": "blocked_pending_worker_render_lane_and_pr577_excluded"
+  },
+  "supabaseClassification": {
+    "updateRequired": "none",
+    "status": "not_applicable_docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextSupabaseAction": "RP-DATA-01-SUPABASE-SCHEMA-MIGRATION-READINESS"
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+  ,
+  "validationStatus": "full_validation_passed_with_npm_ci_enospc_warnings_exit_0"
+}

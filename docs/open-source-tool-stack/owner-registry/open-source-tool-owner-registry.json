@@ -222,6 +222,20 @@
         "externalBetaReady": false,
         "productionReady": false,
         "productReady": false
+      },
+      "limitedInternalBetaDryRunMonitoringQaReview": {
+        "decision": "trackb_media_oss_limited_internal_beta_dry_run_monitoring_qa_passed_ready_for_monitoring_closeout",
+        "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_CLOSEOUT",
+        "coveredToolCount": 16,
+        "boundedAcceptedProvenCount": 16,
+        "blockedNotInstalledProvenCount": 0,
+        "monitoringQaAccepted": true,
+        "readyForMonitoringCloseout": true,
+        "readyForDirectProductToolCalls": false,
+        "readyForLiveBetaRuntime": false,
+        "externalBetaReady": false,
+        "productionReady": false,
+        "productReady": false
       }
     }
   ],

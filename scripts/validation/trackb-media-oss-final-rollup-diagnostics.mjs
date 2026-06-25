@@ -46,6 +46,8 @@ const statusDocs = [
 
 const allowedChangedPrefixes = [
   `${reportDir}/`,
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review/',
   'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-review/',
   'docs/open-source-tool-stack/trackb-media-oss-callable-worker-contracts-implementation/',
   'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-rerun/',
@@ -59,15 +61,15 @@ const allowedChangedPrefixes = [
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-testing/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-readiness-review/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-testing-handoff/',
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring/',
 ]
 const allowedChangedFiles = new Set([
   'package.json',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-testing-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-readiness-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-testing-handoff-diagnostics.mjs',
-  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-activation-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-go-no-go-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-controlled-internal-beta-fixture-qa-review-diagnostics.mjs',
@@ -110,6 +112,7 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-testing-handoff.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-closeout.md',
   ...statusDocs,
 ])
 

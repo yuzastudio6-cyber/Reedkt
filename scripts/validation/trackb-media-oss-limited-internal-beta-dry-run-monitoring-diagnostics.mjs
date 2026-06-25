@@ -62,12 +62,15 @@ const statusDocs = [
 
 const allowedChangedPrefixes = [
   `${reportDir}/`,
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-testing-handoff/',
 ]
 
 const allowedChangedFiles = new Set([
   'package.json',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-testing-handoff-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-readiness-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-testing-diagnostics.mjs',
@@ -83,6 +86,7 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-closeout.md',
   ...statusDocs,
 ])
 
@@ -171,7 +175,6 @@ function isAllowedChangedFile(file) {
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of [
   ...statusDocs,
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review.md',
 ]) readText(file)
 
 const reports = {
@@ -279,6 +282,7 @@ const combinedText = [
   ...requiredReports.map((file) => readText(`${reportDir}/${file}`)),
   ...statusDocs.map((file) => readText(file)),
   readText('docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review.md'),
+  readText('docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-closeout.md'),
 ].join('\n')
 
 for (const required of [

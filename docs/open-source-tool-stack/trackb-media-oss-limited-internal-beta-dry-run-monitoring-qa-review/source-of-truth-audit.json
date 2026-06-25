@@ -1,0 +1,23 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaDryRunMonitoringQaReview.sourceAudit.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_dry_run_monitoring_qa_passed_ready_for_monitoring_closeout",
+  "sourceSha": "8bb3139c5d1d3ed0996ec750ee1d37be2338e90b",
+  "sourceEvidence": [
+    {
+      "pr": 808,
+      "state": "MERGED",
+      "head": "569578ae6eff530af929923e5fb018d96116acb0",
+      "mergeCommit": "8bb3139c5d1d3ed0996ec750ee1d37be2338e90b",
+      "acceptedAs": "dry_run_monitoring_packet_only"
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "duplicateMonitoringQaPrSearch": "no_open_duplicate_found_at_preflight",
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_CLOSEOUT"
+}

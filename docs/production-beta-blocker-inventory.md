@@ -209,6 +209,18 @@ Remote Supabase mutation, SQL execution, service-role route execution, approved 
 
 Next recommended milestone: `OWNER DECISION REQUIRED - name or reject the internal beta runtime target before runtime execution planning`.
 
+## RP-INTERNAL-BETA Runtime Target Owner Decision 1
+
+`RP-INTERNAL-BETA-RUNTIME-TARGET-OWNER-DECISION-1` records decision `blocked_owner_did_not_name_or_approve_internal_beta_runtime_target` and execution `completed_docs_only_runtime_target_owner_decision_no_runtime_unlock`.
+
+Owner decision evidence: `not_present_in_source`. Approved runtime target: `none`. Rejected runtime target: `not_explicitly_rejected`. Environment class: `not_approved`. Internal beta end-to-end status: `not_ready`. Product-ready end-to-end local OSS tools: `0`.
+
+Remote Supabase mutation, SQL execution, service-role route execution, approved snapshot persistence, credit mutation, job enqueue, worker dispatch, private artifact access, signed URL creation, provider/model calls, Remotion execution, preview/export creation, internal beta unlock, external beta unlock, production unlock, and final delivery/export remain blocked.
+
+No further docs-only packet can honestly convert this blocked state into runtime readiness. Runtime implementation requires the actual target/scope decision.
+
+Next recommended milestone: `OWNER INPUT REQUIRED - approve or reject the internal beta runtime target`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

@@ -240,6 +240,16 @@ No remote Supabase mutation, SQL execution, service-role route execution, approv
 
 Next recommended step: `OWNER DECISION REQUIRED - name or reject the internal beta runtime target before runtime execution planning`.
 
+## RP-INTERNAL-BETA Runtime Target Owner Decision 1
+
+`RP-INTERNAL-BETA-RUNTIME-TARGET-OWNER-DECISION-1` records decision `blocked_owner_did_not_name_or_approve_internal_beta_runtime_target` and execution `completed_docs_only_runtime_target_owner_decision_no_runtime_unlock`.
+
+Owner decision evidence is `not_present_in_source`, approved runtime target is `none`, rejected runtime target is `not_explicitly_rejected`, environment class is `not_approved`, and internal beta end-to-end status remains `not_ready`.
+
+No further docs-only packet can honestly convert this blocked state into runtime readiness. Runtime implementation requires the actual target/scope decision.
+
+Next recommended step: `OWNER INPUT REQUIRED - approve or reject the internal beta runtime target`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

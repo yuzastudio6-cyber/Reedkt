@@ -1,0 +1,22 @@
+{
+  "gpacCliHelpExecution": true,
+  "mp4boxVersionExecution": true,
+  "mp4boxMediaCommand": false,
+  "mediaProcessing": false,
+  "userPrivateRealMedia": false,
+  "renderExport": false,
+  "remotionExecutionAcceptedAsProof": false,
+  "ffmpegFfprobeExecution": false,
+  "gstreamerExecution": false,
+  "mkvtoolnixExecution": false,
+  "bento4Execution": false,
+  "vapoursynthExecution": false,
+  "workerRouteProviderExecution": false,
+  "supabaseGcsSql": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "betaUnlock": false,
+  "productionUnlock": false,
+  "productRuntimeApproval": false,
+  "supabase": "no write / environment none / SQL none / migration no"
+}

@@ -1,0 +1,31 @@
+{
+  "containerNetwork": "none",
+  "package": {
+    "name": "gpac",
+    "version": "26.02-rev0-g118e60a90-HEAD",
+    "architecture": "arm64"
+  },
+  "sourceFiles": {
+    "keyring": "/usr/share/keyrings/gpac-archive-keyring.gpg",
+    "sourceFile": "/etc/apt/sources.list.d/gpac.sources",
+    "preferencesFile": "/etc/apt/preferences.d/gpac.pref",
+    "repositoryUri": "https://dist.gpac.io/gpac/linux/debian",
+    "suite": "bookworm",
+    "component": "main",
+    "blockedComponent": "nightly"
+  },
+  "mp4box": {
+    "path": "/usr/bin/MP4Box",
+    "versionCommand": "MP4Box -version",
+    "versionCommandPassed": true,
+    "versionOutputFirstLine": "MP4Box - GPAC version 26.02-rev0-g118e60a90-HEAD",
+    "mediaCommandExecuted": false
+  },
+  "gpacCli": {
+    "path": "/usr/bin/gpac",
+    "helpCommand": "gpac -h",
+    "helpCommandPassed": true,
+    "containerLocalCredentialKeyCreated": true,
+    "containerLocalCredentialKeyCommitted": false
+  }
+}

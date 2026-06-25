@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.browser-runtime-proof",
+  "decision": "ai_graphics_browser_runtime_proof_completed_with_warnings",
+  "status": "completed_with_warnings",
+  "branch": "codex/rp-ai-graphics-browser-runtime-proof",
+  "base": "origin/codex/rp-ai-graphics-gpu-worker-install-proof",
+  "sourcePr": {
+    "number": 783,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/783",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headSha": "8eaa8eb0a1a4a04bde91bc1ee4044ea1c5f0dc56"
+  },
+  "sourceProofs": {
+    "nodeRuntimeProofDecision": "ai_graphics_node_runtime_proof_completed_with_warnings",
+    "gpuWorkerInstallProofDecision": "ai_graphics_gpu_worker_install_proof_hardened_with_warnings"
+  },
+  "proofScope": "headless_chromium_browser_svg_animation_canvas_and_webgl_runtime_for_7_js_graphics_tools",
+  "playwright": {
+    "browserName": "chromium",
+    "executablePath": "local-playwright-chromium-cache",
+    "headless": true,
+    "localServerOnly": true
+  },
+  "tools": [
+    {
+      "toolId": "echarts",
+      "packageName": "echarts",
+      "version": "6.1.0",
+      "status": "browser_svg_chart_runtime_proof_passed",
+      "renderer": "svg",
+      "seriesCount": 1,
+      "svgRendered": true,
+      "publicArtifactCreated": false
+    },
+    {
+      "toolId": "lottie_web",
+      "packageName": "lottie-web",
+      "version": "5.13.0",
+      "status": "browser_svg_animation_runtime_proof_passed",
+      "renderer": "svg",
+      "apiReady": true,
+      "publicArtifactCreated": false
+    },
+    {
+      "toolId": "animejs",
+      "packageName": "animejs",
+      "version": "4.4.1",
+      "status": "browser_dom_animation_runtime_proof_passed",
+      "transform": "translateX(24px)",
+      "publicArtifactCreated": false
+    },
+    {
+      "toolId": "three_js",
+      "packageName": "three",
+      "version": "0.184.0",
+      "status": "browser_webgl_runtime_proof_passed",
+      "renderer": "webgl",
+      "webglContextCreated": true,
+      "centerPixelRgba": [
+        255,
+        0,
+        0,
+        255
+      ],
+      "publicArtifactCreated": false
+    },
+    {
+      "toolId": "pixi_js",
+      "packageName": "pixi.js",
+      "version": "8.19.0",
+      "status": "browser_canvas_webgl_runtime_proof_passed",
+      "rendererType": 1,
+      "publicArtifactCreated": false
+    },
+    {
+      "toolId": "konva",
+      "packageName": "konva",
+      "version": "10.3.0",
+      "status": "browser_canvas_runtime_proof_passed",
+      "rectCount": 1,
+      "publicArtifactCreated": false
+    },
+    {
+      "toolId": "babylonjs",
+      "packageName": "babylonjs",
+      "version": "9.12.0",
+      "status": "browser_webgl_runtime_proof_passed",
+      "meshCount": 1,
+      "publicArtifactCreated": false
+    }
+  ],
+  "warnings": [],
+  "booleans": {
+    "browserRuntimeProofCompleted": true,
+    "all7BrowserRuntimeToolsProofAttempted": true,
+    "all7BrowserRuntimeToolsProofPassed": true,
+    "chromiumRuntimeUsed": true,
+    "browserRuntimeExecutedInLocalProof": true,
+    "publicArtifactCreated": false,
+    "generatedArtifactsCommitted": false,
+    "modelWeightsDownloaded": false,
+    "mediaProcessingPerformed": false,
+    "providerRuntimePerformed": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "toolRouteExecutionReadyNow": false,
+    "workerExecutionReadyNow": false,
+    "browserWebglCanvasRuntimeReadyNow": false,
+    "gpuModelRuntimeReadyNow": false,
+    "runtimeBetaReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "packageLockMutationPerformed": false,
+    "signedUrlCreated": false
+  },
+  "nextImplementationMilestones": [
+    "Route browser runtime proof into the canonical tool-selection readiness gate.",
+    "Run linux/amd64 GPU image import proof for the 8 GPU/model tools.",
+    "Add approved tool-route and worker execution gates only after runtime, storage, artifact, and beta policies pass."
+  ]
+}

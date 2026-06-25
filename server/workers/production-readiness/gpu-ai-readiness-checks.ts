@@ -15,6 +15,8 @@ import { buildGpuToolReadinessReport, type GpuToolReadinessReport } from './gpu-
 import type { ProductionToolId } from '../../tool-registry'
 
 export const M11_GPU_AI_TOOL_IDS: ProductionToolId[] = [
+  'torch_torchvision',
+  'transformers',
   'faster_whisper',
   'kornia',
   'birefnet',

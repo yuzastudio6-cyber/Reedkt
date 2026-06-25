@@ -58,8 +58,8 @@ const gpuRequirementChecks = {
 }
 
 const expectedMappings = {
-  torch_torchvision: null,
-  transformers: null,
+  torch_torchvision: 'torch_torchvision',
+  transformers: 'transformers',
   sam2: 'sam2',
   birefnet: 'birefnet',
   real_esrgan: 'real_esrgan',
@@ -69,12 +69,12 @@ const expectedMappings = {
   d3: 'd3',
   echarts: 'echarts',
   vega_lite: 'vega_lite',
-  vega: null,
-  satori: null,
-  svgdotjs_svg_js: null,
-  viz_js: null,
+  vega: 'vega',
+  satori: 'satori',
+  svgdotjs_svg_js: 'svgdotjs_svg_js',
+  viz_js: 'viz_js',
   lottie_web: 'lottie',
-  animejs: null,
+  animejs: 'animejs',
   three_js: 'three_js',
   pixi_js: 'pixijs',
   konva: 'konva',
@@ -204,6 +204,8 @@ if (contract.toolCounts.gpuModelInstallTargetsPrepared !== 8) fail('gpu_tool_cou
 if (contract.toolCounts.jsRuntimeProofEvidenceAligned !== 13) fail('js_runtime_proof_evidence_count_not_13')
 if (contract.toolCounts.browserRuntimeProofToolsAligned !== 7) fail('browser_runtime_proof_count_not_7')
 if (contract.toolCounts.satoriFontRuntimeProofAligned !== 1) fail('satori_font_runtime_proof_count_not_1')
+if (contract.toolCounts.productionToolIdMapped !== 21) fail('production_tool_mapping_count_not_21')
+if (contract.toolCounts.planningWrapperWithoutProductionToolId !== 0) fail('planning_wrapper_without_production_tool_count_not_zero')
 if (contract.toolCounts.agentExecutableNow !== 0) fail('agent_executable_count_not_zero')
 if (contract.toolCounts.runtimeReadyNow !== 0) fail('runtime_ready_count_not_zero')
 
@@ -265,6 +267,9 @@ for (const [tool, mapped] of Object.entries(expectedMappings)) {
 
 for (const tool of contract.planningWrapperWithoutProductionToolId) {
   if (contract.productionToolMappings[tool] !== null) fail(`planning_wrapper_has_production_mapping:${tool}`)
+}
+if (contract.planningWrapperWithoutProductionToolId.length !== 0) {
+  fail(`planning_wrapper_list_not_empty:${contract.planningWrapperWithoutProductionToolId.join(',')}`)
 }
 
 for (const tool of gpuTools) {

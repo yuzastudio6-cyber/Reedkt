@@ -43,6 +43,8 @@ const reportWorkerTypes: ProductionRegistryWorkerType[] = [
 ]
 
 const gpuWorkerOnlyToolIds = new Set<ProductionToolId>([
+  'torch_torchvision',
+  'transformers',
   'faster_whisper',
   'birefnet',
   'sam2',

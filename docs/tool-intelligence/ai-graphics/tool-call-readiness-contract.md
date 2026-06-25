@@ -26,8 +26,8 @@ This contract connects the 21 AI graphics tools to the agent-facing ranking and 
 - Node package-lock tools: 13.
 - GPU/model install targets: 8.
 - Node/Satori/browser proof evidence is aligned into the contract for the 13 JS graphics tools.
-- Production registry mappings: 14.
-- Planning-wrapper records without production IDs: 7.
+- Production registry mappings: 21.
+- Planning-wrapper records without production IDs: 0.
 - GPU-required runtime tools: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background`.
 - Agent can select tools for planning/study metadata: true.
 - Agent can execute tools now: false.
@@ -37,11 +37,11 @@ This contract connects the 21 AI graphics tools to the agent-facing ranking and 
 
 ## Production ID Mapping
 
-The contract preserves canonical AI graphics tool names while mapping to existing production registry IDs when they exist:
+The contract preserves canonical AI graphics tool names while mapping every AI graphics tool to a production registry ID:
 
-- Direct mappings: `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, `transparent_background`, `d3`, `echarts`, `vega_lite`, `three_js`, and `konva`.
+- Direct mappings: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, `transparent_background`, `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, `animejs`, `three_js`, and `konva`.
 - Alias mappings: `lottie_web -> lottie`, `pixi_js -> pixijs`, and `babylonjs -> babylon_js`.
-- Planning-only wrappers pending explicit production profiles: `torch_torchvision`, `transformers`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, and `animejs`.
+- Planning-only wrappers pending production profiles: none. Some mapped profiles remain `planning_only` or readiness-check-only and are still not executable.
 
 ## Capability Selection
 
@@ -66,7 +66,6 @@ The selections follow the canonical ranking matrix and retain elimination/fallba
 
 - Native NVIDIA GPU runtime readiness for the eight GPU/model tools.
 - Reviewed private model or model-cache manifests for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background.
-- Explicit production registry profiles for planning-only wrappers before Tool Route or Worker execution.
 - Tool Route, Worker, approved snapshot, credit gate, artifact boundary, and beta-readiness approvals before any JS proof-passed tool becomes agent-executable.
 
 ## No-Scope

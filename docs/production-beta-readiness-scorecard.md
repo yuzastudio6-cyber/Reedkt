@@ -447,7 +447,8 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`.
 - Scope: server-only contract connects all 21 AI graphics tools to canonical ranking, capability selection, install surface, production-tool aliases, runtime targets, and missing proof blockers.
-- Result: agent planning can now read a single contract for which tools are installed through `package-lock`, which tools are Docker/GPU install targets, which canonical IDs map to existing production tool IDs, and which canonical IDs remain planning-only wrappers pending production profiles.
+- Result: agent planning can now read a single contract for which tools are installed through `package-lock`, which tools are Docker/GPU install targets, and how all 21 canonical IDs map to production registry profiles.
 - Proof alignment: Node, browser, and Satori font proof evidence is reflected for the 13 JS graphics tools; those proof-passed records still do not approve Tool Route execution, Worker execution, public artifact creation, beta, or production.
+- Registry completion: all 21 AI graphics canonical tools now map to production registry profiles. `torch_torchvision` and `transformers` are GPU readiness-check profiles; `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, and `animejs` are planning-only profiles.
 - GPU routing: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background` remain GPU-runtime targeted, not CPU defaults.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.

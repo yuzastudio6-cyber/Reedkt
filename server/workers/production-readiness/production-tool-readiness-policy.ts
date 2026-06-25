@@ -66,6 +66,8 @@ export const productionContainerImageExpectations: ProductionContainerImageExpec
     imageName: 'reeditpro-gpu-worker',
     dockerfilePath: 'docker/prod/gpu-worker/Dockerfile',
     expectedToolIds: [
+      'torch_torchvision',
+      'transformers',
       'faster_whisper',
       'birefnet',
       'sam2',

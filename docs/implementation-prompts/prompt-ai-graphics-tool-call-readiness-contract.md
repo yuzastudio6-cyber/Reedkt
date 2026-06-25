@@ -18,7 +18,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 - Cover all 21 AI graphics tools.
 - Preserve canonical tool IDs and explicitly map to production registry IDs where they exist.
-- Mark unmatched canonical IDs as planning-only wrappers, not dropped tools.
+- Mark unmatched canonical IDs as planning-only wrappers, not dropped tools; follow-up registry completion maps all 21 canonical IDs to production registry profiles.
 - Link ranking/capability selection to install and runtime proof status.
 - Align completed Node, browser, and Satori font proof evidence into the readiness contract without enabling execution.
 - Keep agent selection planning-only.
@@ -35,6 +35,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Add `scripts/validation/ai-graphics-tool-call-readiness-diagnostics.mjs`.
 - Add package script `ai-graphics:tool-call-readiness:diagnostics`.
 - Follow-up alignment records Satori font proof and browser proof as passed evidence while keeping Tool Route, Worker, approved snapshot, credit, artifact, beta, and production gates blocked.
+- Follow-up registry completion adds production registry profiles for `torch_torchvision`, `transformers`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, and `animejs`, bringing AI graphics tool-call mapping to 21 of 21 while keeping execution gates blocked.
 
 ## Expected Validation
 

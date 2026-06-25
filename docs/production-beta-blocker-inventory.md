@@ -87,6 +87,18 @@ Next Supabase action: `RP-BACKEND-01-INTERNAL-BETA-SERVICE-ROLE-API-CONTRACTS`.
 
 External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## RP-BACKEND-02 Internal Beta Service-Role Runtime Scaffold
+
+`RP-BACKEND-02-INTERNAL-BETA-SERVICE-ROLE-RUNTIME-SCAFFOLD` records decision `completed_disabled_backend_service_role_runtime_scaffold_no_execution` and execution `completed_fail_closed_scaffold_no_route_execution`.
+
+Internal beta runtime scaffold status: `disabled_pending_runtime_gate`. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Disabled service-role runtime scaffold functions now exist for the eight internal beta contracts. They are not registered as live HTTP handlers or mock handlers, and they do not mutate Supabase, create credit reservations, enqueue jobs, dispatch workers, call providers/models, create private artifact access, render/export, create signed/public artifacts, or unlock beta/production.
+
+Next recommended milestone: `RP-CREDITS-01-INTERNAL-BETA-CREDIT-LEDGER-RUNTIME-SCAFFOLD`.
+
+External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

@@ -1,0 +1,16 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CONTROLLED-RUNTIME-PROOF-1",
+  "decision": "tracka_gpac_mp4box_controlled_runtime_proof_passed_ready_for_controlled_synthetic_media_command_proof",
+  "privateArtifacts": [],
+  "publicArtifacts": [],
+  "signedUrls": [],
+  "mediaArtifacts": [],
+  "generatedOutputsCommitted": [],
+  "runtimeOutputs": [],
+  "containerLocalOnlyArtifacts": [
+    "/root/.gpac/creds.key"
+  ],
+  "containerLocalOnlyArtifactsCommitted": false,
+  "transientLocalEvidenceCommitted": false,
+  "supabase": "no write / environment none / SQL none / migration no"
+}

@@ -1,0 +1,23 @@
+{
+  "imageTag": "reeditpro-tracka-gpac-mp4box-controlled-runtime-proof-1:20260625T1147Z-3ed9e38",
+  "imageId": "sha256:b9050399119a28535aa576573390fe520dbf0bb8e15474d962e8d9c36d8688fe",
+  "imageSizeBytes": 732523815,
+  "dockerfile": "docker/prod/render-worker/Dockerfile",
+  "buildResult": "passed",
+  "pushed": false,
+  "deployed": false,
+  "buildContext": {
+    "npmCiRan": true,
+    "packageLockSha256Before": "8a19532a335a579a29ec6819c6aa2460b9dd7b3edf1cecdfa33d79d634d3b023",
+    "packageLockSha256After": "8a19532a335a579a29ec6819c6aa2460b9dd7b3edf1cecdfa33d79d634d3b023",
+    "packageLockMutated": false,
+    "generatedDistInputs": [
+      "dist-server",
+      "dist-remotion-worker",
+      "dist-staging-fixture-worker",
+      "dist-staging-real-video-export-worker"
+    ],
+    "remotionExecution": false,
+    "renderExportExecution": false
+  }
+}

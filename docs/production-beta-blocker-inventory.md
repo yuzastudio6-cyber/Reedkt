@@ -191,6 +191,20 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/requirements/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## Track A GPAC/MP4Box Controlled Runtime Proof
+
+`TRACKA-GPAC-MP4BOX-CONTROLLED-RUNTIME-PROOF-1` is bounded non-media runtime proof only and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_controlled_runtime_proof_passed_ready_for_controlled_synthetic_media_command_proof`.
+
+The local render-worker image `reeditpro-tracka-gpac-mp4box-controlled-runtime-proof-1:20260625T1147Z-3ed9e38` built successfully. Network-disabled container checks proved `gpac=26.02-rev0-g118e60a90-HEAD` on `arm64`, `/usr/bin/MP4Box`, `MP4Box -version`, `/usr/bin/gpac`, and `gpac -h`.
+
+No MP4Box media command, GPAC media/filter-chain processing, user/private/real media, render/export, product runtime, beta, or production approval is granted.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-PROOF-1`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
+
+Package-lock/Dockerfile/.dockerignore/requirements/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## Track A GPAC/MP4Box Owner Source Classification
 
 `TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1` is metadata-only and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_owner_source_classification_passed_ready_for_official_gpac_apt_repo_approval`.

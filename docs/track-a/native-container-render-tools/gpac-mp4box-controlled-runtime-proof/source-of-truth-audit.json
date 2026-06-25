@@ -1,0 +1,14 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CONTROLLED-RUNTIME-PROOF-1",
+  "decision": "tracka_gpac_mp4box_controlled_runtime_proof_passed_ready_for_controlled_synthetic_media_command_proof",
+  "sourceSha": "3ed9e3849f086635fafe80d0047502d6aacf45d8",
+  "reviewedEvidence": {
+    "installSourceQaPr": 759,
+    "installSourceQaDecision": "tracka_gpac_mp4box_official_apt_install_source_qa_passed_ready_for_controlled_runtime_proof",
+    "installSourceExecutionPr": 738,
+    "installSourceExecutionDecision": "tracka_gpac_mp4box_official_apt_install_source_execution_passed_ready_for_install_source_qa"
+  },
+  "runtimeProofScope": "network_disabled_non_media_binary_runtime_checks_only",
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-PROOF-1",
+  "supabase": "no write / environment none / SQL none / migration no"
+}

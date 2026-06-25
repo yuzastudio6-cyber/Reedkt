@@ -1,0 +1,32 @@
+{
+  "schema": "trackb-media-oss-limited-internal-beta-dry-run-monitoring-register.v1",
+  "generatedAt": "2026-06-25T16:25:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_dry_run_monitoring_passed_ready_for_monitoring_qa_review",
+  "monitoringReadyForQaReview": true,
+  "dryRunOnly": true,
+  "coveredToolCount": 16,
+  "boundedAcceptedProvenCount": 16,
+  "blockedNotInstalledProvenCount": 0,
+  "requiredSignals": [
+    "toolId",
+    "rankingPosition",
+    "dryRunOnly",
+    "executionEnabled",
+    "approvedSnapshotGate",
+    "creditGate",
+    "privateArtifactGate",
+    "resultSchemaVersion",
+    "sanitizedLogsSummary",
+    "blockedScopeConfirmation"
+  ],
+  "directProductToolCallsEnabled": false,
+  "liveRouteRuntimeEnabled": false,
+  "workerDispatchEnabled": false,
+  "realToolExecutionEnabled": false,
+  "userMediaByDefaultEnabled": false,
+  "externalBetaReady": false,
+  "productionReady": false,
+  "productReady": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_QA_REVIEW"
+}

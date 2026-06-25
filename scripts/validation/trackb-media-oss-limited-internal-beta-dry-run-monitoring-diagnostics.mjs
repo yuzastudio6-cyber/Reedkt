@@ -7,12 +7,12 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-readiness-review'
+const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring'
 const decision =
-  'trackb_media_oss_limited_internal_beta_readiness_review_passed_ready_for_limited_internal_beta_testing_handoff'
-const nextPrompt = 'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_TESTING_HANDOFF'
+  'trackb_media_oss_limited_internal_beta_dry_run_monitoring_passed_ready_for_monitoring_qa_review'
+const nextPrompt = 'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_QA_REVIEW'
 const ownerId = 'TRACK_B_MEDIA_OSS_STEWARD'
-const sourceSha = '82132ce072c95d0e984e8bca558c220c0c2ba929'
+const sourceSha = '231abd26a31a60cde751cee3779d4f42800ca840'
 const baseRef = 'origin/codex/rp-github-merge-hygiene-open-pr-stack-audit'
 
 const expectedRanking = [
@@ -37,8 +37,8 @@ const expectedRanking = [
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'readiness-review.json',
-  'readiness-review.md',
+  'monitoring-register.json',
+  'monitoring-register.md',
   'tool-readiness-matrix.json',
   'tool-readiness-matrix.md',
   'runtime-boundary-review.json',
@@ -63,15 +63,13 @@ const statusDocs = [
 const allowedChangedPrefixes = [
   `${reportDir}/`,
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-testing-handoff/',
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring/',
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-testing/',
 ]
 
 const allowedChangedFiles = new Set([
   'package.json',
-  'scripts/validation/trackb-media-oss-limited-internal-beta-readiness-review-diagnostics.mjs',
-  'scripts/validation/trackb-media-oss-limited-internal-beta-testing-handoff-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-testing-handoff-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-readiness-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-testing-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-activation-diagnostics.mjs',
@@ -83,8 +81,6 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-readiness-review.md',
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-testing-handoff.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review.md',
   ...statusDocs,
@@ -175,12 +171,12 @@ function isAllowedChangedFile(file) {
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of [
   ...statusDocs,
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-testing-handoff.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review.md',
 ]) readText(file)
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  readinessReview: readJson(`${reportDir}/readiness-review.json`),
+  monitoring: readJson(`${reportDir}/monitoring-register.json`),
   matrix: readJson(`${reportDir}/tool-readiness-matrix.json`),
   runtime: readJson(`${reportDir}/runtime-boundary-review.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
@@ -191,19 +187,33 @@ const reports = {
 for (const [label, report] of Object.entries(reports)) requireDecision(label, report)
 
 if (reports.source.sourceSha !== sourceSha) fail(`source_sha_drift:${reports.source.sourceSha}`)
-if (reports.source.sourceEvidence?.find((entry) => entry.pr === 796)?.state !== 'MERGED') fail('missing_pr796_source')
+if (reports.source.sourceEvidence?.find((entry) => entry.pr === 803)?.state !== 'MERGED') fail('missing_pr803_source')
 if (reports.source.trackBTotals?.owned !== 16) fail('owned_total_drift')
 if (reports.source.trackBTotals?.boundedAcceptedProven !== 16) fail('accepted_total_drift')
 if (reports.source.trackBTotals?.blockedNotInstalledProven !== 0) fail('blocked_total_drift')
 if (reports.source.trackBTotals?.productReady !== 0) fail('product_ready_total_drift')
 if (reports.source.nextPrompt !== nextPrompt) fail(`source_next_prompt_drift:${reports.source.nextPrompt}`)
 
-if (reports.readinessReview.limitedInternalBetaTestingHandoffReady !== true) fail('handoff_ready_not_true')
-if (reports.readinessReview.dryRunOnly !== true) fail('dry_run_only_not_true')
-if (reports.readinessReview.coveredToolCount !== 16) fail('covered_tool_count_drift')
-if (reports.readinessReview.boundedAcceptedProvenCount !== 16) fail('accepted_count_drift')
-if (reports.readinessReview.blockedNotInstalledProvenCount !== 0) fail('blocked_count_drift')
-if (reports.readinessReview.nextPrompt !== nextPrompt) fail(`readiness_next_prompt_drift:${reports.readinessReview.nextPrompt}`)
+if (reports.monitoring.monitoringReadyForQaReview !== true) fail('monitoring_ready_not_true')
+if (reports.monitoring.dryRunOnly !== true) fail('dry_run_only_not_true')
+if (reports.monitoring.coveredToolCount !== 16) fail('covered_tool_count_drift')
+if (reports.monitoring.boundedAcceptedProvenCount !== 16) fail('accepted_count_drift')
+if (reports.monitoring.blockedNotInstalledProvenCount !== 0) fail('blocked_count_drift')
+if (reports.monitoring.nextPrompt !== nextPrompt) fail(`monitoring_next_prompt_drift:${reports.monitoring.nextPrompt}`)
+for (const requiredSignal of [
+  'toolId',
+  'rankingPosition',
+  'dryRunOnly',
+  'executionEnabled',
+  'approvedSnapshotGate',
+  'creditGate',
+  'privateArtifactGate',
+  'resultSchemaVersion',
+  'sanitizedLogsSummary',
+  'blockedScopeConfirmation',
+]) {
+  if (!reports.monitoring.requiredSignals?.includes(requiredSignal)) fail(`missing_monitoring_signal:${requiredSignal}`)
+}
 
 if (reports.matrix.toolCount !== 16) fail('matrix_tool_count_drift')
 if (reports.matrix.boundedAcceptedProvenTools !== 16) fail('matrix_accepted_count_drift')
@@ -218,14 +228,14 @@ if (reports.matrix.allEntriesDryRunOnly !== true) fail('matrix_dry_run_not_true'
 if (reports.matrix.allEntriesExecutionDisabled !== true) fail('matrix_execution_disabled_not_true')
 
 for (const [label, value] of Object.entries({
-  directProductToolCallsEnabled: reports.readinessReview.directProductToolCallsEnabled,
-  liveRouteRuntimeEnabled: reports.readinessReview.liveRouteRuntimeEnabled,
-  workerDispatchEnabled: reports.readinessReview.workerDispatchEnabled,
-  realToolExecutionEnabled: reports.readinessReview.realToolExecutionEnabled,
-  userMediaByDefaultEnabled: reports.readinessReview.userMediaByDefaultEnabled,
-  externalBetaReady: reports.readinessReview.externalBetaReady,
-  productionReady: reports.readinessReview.productionReady,
-  productReady: reports.readinessReview.productReady,
+  directProductToolCallsEnabled: reports.monitoring.directProductToolCallsEnabled,
+  liveRouteRuntimeEnabled: reports.monitoring.liveRouteRuntimeEnabled,
+  workerDispatchEnabled: reports.monitoring.workerDispatchEnabled,
+  realToolExecutionEnabled: reports.monitoring.realToolExecutionEnabled,
+  userMediaByDefaultEnabled: reports.monitoring.userMediaByDefaultEnabled,
+  externalBetaReady: reports.monitoring.externalBetaReady,
+  productionReady: reports.monitoring.productionReady,
+  productReady: reports.monitoring.productReady,
   runtimeApisChanged: reports.runtime.runtimeApisChanged,
   runtimeRouteRuntimeEnabled: reports.runtime.routeRuntimeEnabled,
   runtimeWorkerDispatchEnabled: reports.runtime.workerDispatchEnabled,
@@ -249,8 +259,8 @@ for (const [label, value] of Object.entries({
   if (value !== false) fail(`${label}_must_be_false`)
 }
 
-if (reports.decisionReport.readyForLimitedInternalBetaTestingHandoff !== true) fail('decision_handoff_ready_not_true')
-if (reports.readiness.readyForLimitedInternalBetaTestingHandoff !== true) fail('readiness_handoff_ready_not_true')
+if (reports.decisionReport.monitoringReadyForQaReview !== true) fail('decision_monitoring_ready_not_true')
+if (reports.readiness.monitoringReadyForQaReview !== true) fail('readiness_monitoring_ready_not_true')
 
 const contractText = readText('src/backend/contracts/trackb-media-oss-tool-call-contracts.ts')
 const rankingBlock = contractText.split('TRACKB_MEDIA_OSS_TOOL_CALL_RANKING')[1]?.split('] as const')[0] || ''
@@ -261,14 +271,14 @@ if (!contractText.includes('executionEnabled: false')) fail('contract_missing_ex
 
 const packageJson = readJson('package.json')
 if (
-  packageJson.scripts?.['trackb-media-oss:limited-internal-beta-readiness-review:diagnostics'] !==
-  'node scripts/validation/trackb-media-oss-limited-internal-beta-readiness-review-diagnostics.mjs'
+  packageJson.scripts?.['trackb-media-oss:limited-internal-beta-dry-run-monitoring:diagnostics'] !==
+  'node scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-diagnostics.mjs'
 ) fail('missing_package_script')
 
 const combinedText = [
   ...requiredReports.map((file) => readText(`${reportDir}/${file}`)),
   ...statusDocs.map((file) => readText(file)),
-  readText('docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-testing-handoff.md'),
+  readText('docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review.md'),
 ].join('\n')
 
 for (const required of [
@@ -307,7 +317,7 @@ const result = {
   ok: failures.length === 0,
   decision,
   nextPrompt,
-  readyForLimitedInternalBetaTestingHandoff: reports.readiness.readyForLimitedInternalBetaTestingHandoff === true,
+  monitoringReadyForQaReview: reports.readiness.monitoringReadyForQaReview === true,
   productReady: false,
   failures,
 }

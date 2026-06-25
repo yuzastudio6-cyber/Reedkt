@@ -48,7 +48,8 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:gpu-model-install-build-targets:diagnostics",
   "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics",
   "ai-graphics:tool-call-readiness:diagnostics",
-  "ai-graphics:21-tool-proper-install-audit:diagnostics"
+  "ai-graphics:21-tool-proper-install-audit:diagnostics",
+  "ai-graphics:tool-call-handoff:diagnostics"
 ]);
 const failures = [];
 const fail = (message) => failures.push(message);

@@ -38,6 +38,12 @@ Latest observed PR state after proof-evidence alignment: [#862](https://github.c
 - Heavy/model tools route to GPU runtime targets, not CPU runtime defaults.
 - Proper install audit result: 21 of 21 tools are correctly installed or represented for their intended ReeditPro surface; 13 use Node lockfile packages, 8 use GPU Docker install-proof targets, 0 heavy tools are incorrectly routed to CPU, and 0 tools are agent-executable now.
 - Model manifest type alignment: `sam2_checkpoint`, `birefnet_model`, `real_esrgan_model`, `rembg_model`, and `transparent_background_model` are all represented in the model-weight template ID type layer. This closes the focused TypeScript mismatch for `rembg_model` and `transparent_background_model`; reviewed model manifests and native GPU runtime proof are still pending.
+- Added server-only handoff contract:
+  - `server/tool-registry/ai-graphics-tool-call-handoff.ts`
+  - `docs/tool-intelligence/ai-graphics/tool-call-handoff-contract.md`
+  - `docs/tool-intelligence/ai-graphics/tool-call-handoff-contract.json`
+  - `ai-graphics:tool-call-handoff:diagnostics`
+- Handoff result: all 21 tools and all 12 product-facing capabilities are connected to future Tool Route / Worker handoff metadata with production tool IDs, worker types, runtime targets, ranked planning tools, blockers, and next proof milestones. Execution remains blocked.
 
 ## Runtime State
 
@@ -48,8 +54,13 @@ Latest observed PR state after proof-evidence alignment: [#862](https://github.c
 - `toolExecutionApprovedNow=false`
 - `browserWebglCanvasRuntimeApprovedNow=false`
 - `gpuRuntimeApprovedNow=false`
+- `modelWeightsApprovedNow=false`
+- `approvedPlanSnapshotRequired=true`
+- `creditReservationRequired=true`
+- `artifactBoundaryApprovalRequired=true`
 - `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
+- `externalBetaReadyNow=false`
 - `productionReadyNow=false`
 
 ## No-Scope

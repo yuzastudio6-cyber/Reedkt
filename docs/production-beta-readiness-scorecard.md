@@ -454,3 +454,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Model-weight manifest typing: AI graphics model-weight template IDs are type-aligned for `sam2_checkpoint`, `birefnet_model`, `real_esrgan_model`, `rembg_model`, and `transparent_background_model`; the manifests still need reviewed model sources, licenses, and native GPU runtime proof before beta execution.
 - GPU routing: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background` remain GPU-runtime targeted, not CPU defaults.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Tool Call Handoff Contract
+
+- Decision: `ai_graphics_tool_call_handoff_contract_prepared_with_execution_blocks`.
+- Scope: server-only handoff contract connects the 21-tool readiness and proper-install evidence to a future Tool Route / Worker handoff shape.
+- Result: future handoff records expose production tool IDs, worker types, runtime targets, ranked planning tools, blockers, and next proof milestones for all 21 tools and all 12 product-facing capabilities.
+- GPU routing: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background` remain GPU-runtime targeted, not CPU defaults.
+- Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

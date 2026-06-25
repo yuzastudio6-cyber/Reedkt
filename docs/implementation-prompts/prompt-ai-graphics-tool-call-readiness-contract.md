@@ -38,10 +38,12 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up registry completion adds production registry profiles for `torch_torchvision`, `transformers`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, and `animejs`, bringing AI graphics tool-call mapping to 21 of 21 while keeping execution gates blocked.
 - Follow-up proper install audit adds `docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.md`, `docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json`, and `ai-graphics:21-tool-proper-install-audit:diagnostics` to prove 21 of 21 tools are installed or represented on the correct ReeditPro surface: 13 Node lockfile tools and 8 GPU Docker install-proof tools.
 - Follow-up model manifest type alignment adds the missing `rembg_model` and `transparent_background_model` entries to the model-weight template ID type union, keeping all five AI graphics model-weight template IDs type-safe while model source/license/runtime proof remains blocked.
+- Follow-up handoff contract adds `server/tool-registry/ai-graphics-tool-call-handoff.ts`, `docs/tool-intelligence/ai-graphics/tool-call-handoff-contract.md`, `docs/tool-intelligence/ai-graphics/tool-call-handoff-contract.json`, and `ai-graphics:tool-call-handoff:diagnostics` so future Tool Route / Worker lanes can consume production tool IDs, worker types, runtime targets, ranked planning tools, blockers, and next proof milestones for all 21 tools and all 12 product-facing capabilities without approving execution.
 
 ## Expected Validation
 
 - `git diff --check`
+- `npm run --silent ai-graphics:tool-call-handoff:diagnostics`
 - `npm run --silent ai-graphics:tool-call-readiness:diagnostics`
 - Existing install/readiness diagnostics for the 21-tool, GPU model install, and GPU runtime-readiness lanes.
 - Typecheck where feasible without installing dependencies.

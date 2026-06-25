@@ -18,6 +18,8 @@ ENV HF_HUB_OFFLINE=1
 ENV TRANSFORMERS_OFFLINE=1
 ENV HF_DATASETS_OFFLINE=1
 ENV MODEL_DOWNLOADS_ENABLED=false
+ENV PIP_DEFAULT_TIMEOUT=120
+ENV PIP_RETRIES=10
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -37,9 +39,13 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
   && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 COPY docker/prod/birefnet-runtime/requirements.birefnet.txt /tmp/requirements.birefnet.txt
-RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.birefnet.txt
+RUN python3 -m pip install --no-cache-dir --retries 10 --timeout 120 -r /tmp/requirements.birefnet.txt
 COPY docker/prod/ai-graphics-gpu-install-smoke.py /tmp/ai-graphics-gpu-install-smoke.py
 RUN python3 /tmp/ai-graphics-gpu-install-smoke.py --profile birefnet
+
+FROM base AS ai_graphics_install_proof
+
+FROM base AS runtime
 
 COPY package*.json ./
 RUN npm ci --omit=dev

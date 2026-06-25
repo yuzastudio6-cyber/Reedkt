@@ -40,6 +40,7 @@ const modelTemplates = read("server/model-weights/model-weight-manifest-template
 const readinessSpecs = read("server/workers/production-readiness/production-tool-readiness-specs.ts");
 const gpuSmoke = read("server/smoke/production-gpu-ai-install-smoke.ts");
 const gpuRequirements = read("docker/prod/gpu-worker/requirements.gpu.txt");
+const gpuDockerfile = read("docker/prod/gpu-worker/Dockerfile");
 const modelLayout = read("docker/prod/gpu-worker/model-weight-layout.md");
 const gpuPlan = read("docs/production-gpu-ai-install-plan.md");
 const gpuPolicy = read("docs/production-gpu-worker-tool-install-policy.md");
@@ -199,11 +200,16 @@ for (const requirement of [
   "rembg[gpu]",
   "transparent-background",
   "realesrgan",
-  "git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4#egg=SAM-2",
 ]) {
   if (!hasRequirement(requirement)) {
     fail(`GPU requirements missing declaration ${requirement}`);
   }
+}
+if (!gpuDockerfile.includes("--no-build-isolation") || !gpuDockerfile.includes("facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4")) {
+  fail("GPU Dockerfile missing pinned SAM2 source install with --no-build-isolation after the pinned Torch stack.");
+}
+if (!gpuDockerfile.includes("TORCH_CUDA_ARCH_LIST=8.9")) {
+  fail("GPU Dockerfile missing TORCH_CUDA_ARCH_LIST=8.9 for the NVIDIA L4 install-proof target.");
 }
 
 for (const token of [

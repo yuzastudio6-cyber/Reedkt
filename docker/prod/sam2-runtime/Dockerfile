@@ -1,3 +1,4 @@
+# check=skip=InvalidBaseImagePlatform
 # ReeditPro Phase 35D SAM2 runtime image.
 # Extends the approved Phase 35C runtime for one approved bounded real-video sample only.
 # It must not include model weights, providers, Revideo, FILM, slow motion, or secrets.
@@ -24,11 +25,16 @@ RUN if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>
     && rm -rf /var/lib/apt/lists/*; \
   fi
 
+COPY docker/prod/ai-graphics-gpu-install-smoke.py ./ai-graphics-gpu-install-smoke.py
+RUN python3 ./ai-graphics-gpu-install-smoke.py --profile sam2
+
+FROM base AS ai_graphics_install_proof
+
+FROM base AS runtime
+
 COPY dist-staging-sam2-runtime-worker ./dist-staging-sam2-runtime-worker
 COPY docker/prod/sam2-runtime/sam2_runtime_local.py ./sam2-runtime/sam2_runtime_local.py
 COPY docker/prod/sam2-runtime/sam2_real_video_temporal.py ./sam2-runtime/sam2_real_video_temporal.py
 COPY docker/prod/sam2-runtime/sam2_feature_e2e.py ./sam2-runtime/sam2_feature_e2e.py
-COPY docker/prod/ai-graphics-gpu-install-smoke.py ./ai-graphics-gpu-install-smoke.py
-RUN python3 ./ai-graphics-gpu-install-smoke.py --profile sam2
 
 CMD ["node", "dist-staging-sam2-runtime-worker/staging-sam2-runtime-worker-cli.js"]

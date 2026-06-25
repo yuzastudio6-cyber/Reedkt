@@ -17,6 +17,8 @@ ENV PYTHONUNBUFFERED=1
 ENV MODEL_DOWNLOADS_ENABLED=false
 ENV PROVIDER_EXECUTION_ENABLED=false
 ENV REAL_ESRGAN_FACE_ENHANCE=false
+ENV PIP_DEFAULT_TIMEOUT=120
+ENV PIP_RETRIES=10
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -39,9 +41,23 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
 
 COPY docker/prod/real-esrgan-runtime/requirements.real-esrgan.txt /tmp/requirements.real-esrgan.txt
 RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
-RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.real-esrgan.txt
+RUN python3 -m pip install --no-cache-dir --retries 10 --timeout 120 -r /tmp/requirements.real-esrgan.txt
+RUN python3 - <<'PY'
+from pathlib import Path
+import torchvision.transforms
+
+transforms_dir = Path(torchvision.transforms.__file__).parent
+(transforms_dir / "functional_tensor.py").write_text(
+    "from .functional import rgb_to_grayscale\n",
+    encoding="utf-8",
+)
+PY
 COPY docker/prod/ai-graphics-gpu-install-smoke.py /tmp/ai-graphics-gpu-install-smoke.py
 RUN python3 /tmp/ai-graphics-gpu-install-smoke.py --profile real_esrgan
+
+FROM base AS ai_graphics_install_proof
+
+FROM base AS runtime
 
 COPY package*.json ./
 RUN npm ci --omit=dev

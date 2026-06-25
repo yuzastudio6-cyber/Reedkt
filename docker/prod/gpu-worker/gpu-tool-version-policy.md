@@ -8,12 +8,16 @@ review, benchmark approval, and runtime QA before production execution.
 M11 package declarations are grouped as:
 
 - package-declared and pinned for AI graphics install proof: PyTorch
-  `2.5.1+cu124`, TorchVision `0.20.1+cu124`, Transformers `4.57.6`,
-  Kornia `0.8.1`, OpenCV headless `4.12.0.88`, rembg GPU `2.0.76`,
+  `2.5.1+cu124`, TorchVision `0.20.1+cu124`, Torchaudio
+  `2.5.1+cu124`, NumPy `1.26.4`, Transformers `4.57.6`, Kornia
+  `0.8.1`, OpenCV/OpenCV headless `4.10.0.84`, rembg GPU `2.0.69`,
   transparent-background `1.3.4`, and Real-ESRGAN `0.3.0`;
 - package-declared for adjacent GPU worker lanes: CTranslate2,
   faster-whisper, DeepFilterNet, and Demucs;
-- source-declared: pinned facebookresearch/SAM2 source install;
+- source-declared: pinned facebookresearch/SAM2 source install with
+  `--no-build-isolation` after the CUDA 12.4 Torch stack is installed, with
+  `TORCH_CUDA_ARCH_LIST=8.9` set for the NVIDIA L4 build target because Docker
+  build does not expose a GPU for Torch extension architecture inference;
 - model-loader path: BiRefNet through Transformers plus an approved private
   model snapshot;
 - optional/planned: PaddleOCR and PaddlePaddle GPU;

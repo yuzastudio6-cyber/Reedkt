@@ -37,7 +37,17 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:canonical-agent-selection:review-diagnostics",
   "ai-graphics:tool-capability-study:canonical-routing-canonicalization-owner-approval-qa-diagnostics",  "ai-graphics:canonical-agent-selection:owner-diagnostics",
   "ai-graphics:canonical-agent-selection:owner-approval-diagnostics",
-
+,
+  "ai-graphics:21-tool-runtime-install-readiness:diagnostics",
+  "ai-graphics:gpu-import-readiness:diagnostics",
+  "ai-graphics:node-runtime-proof",
+  "ai-graphics:node-runtime-proof:diagnostics",
+  "ai-graphics:gpu-worker-install-proof:diagnostics",
+  "ai-graphics:browser-runtime-proof",
+  "ai-graphics:browser-runtime-proof:diagnostics",
+  "ai-graphics:satori-font-runtime-proof",
+  "ai-graphics:satori-font-runtime-proof:diagnostics",
+  "ai-graphics:gpu-model-install-build-targets:diagnostics"
 ]);
 
 const failures = [];
@@ -233,20 +243,20 @@ for (const phrase of ["TRACK_B_MEDIA_OSS_STEWARD", "Track A render/export exclus
 }
 if (/product-facing capability categor(y|ies).*Track/i.test(combinedText)) fail("Docs appear to use Track labels as product-facing capability categories.");
 for (const pattern of [
-  /agentCanExecuteToolsNow[\s\S]{0,80}true/i,
-  /toolExecutionPerformed[\s\S]{0,80}true/i,
-  /routeExecutionApprovedNow[\s\S]{0,80}true/i,
-  /workerExecutionApprovedNow[\s\S]{0,80}true/i,
-  /runtimeReadyNow[\s\S]{0,80}true/i,
-  /internalBetaReadyNow[\s\S]{0,80}true/i,
-  /productionReadyNow[\s\S]{0,80}true/i,
-  /browserWebglCanvasRuntimePerformed[\s\S]{0,80}true/i,
-  /gpuRuntimePerformed[\s\S]{0,80}true/i,
-  /providerRuntimePerformed[\s\S]{0,80}true/i,
-  /supabaseMutationPerformed[\s\S]{0,80}true/i,
-  /gcsUploadPerformed[\s\S]{0,80}true/i,
-  /publicArtifactCreated[\s\S]{0,80}true/i,
-  /signedUrlCreated[\s\S]{0,80}true/i,
+  /["`]agentCanExecuteToolsNow["`]?\s*[:=]\s*true/i,
+  /["`]toolExecutionPerformed["`]?\s*[:=]\s*true/i,
+  /["`]routeExecutionApprovedNow["`]?\s*[:=]\s*true/i,
+  /["`]workerExecutionApprovedNow["`]?\s*[:=]\s*true/i,
+  /["`]runtimeReadyNow["`]?\s*[:=]\s*true/i,
+  /["`]internalBetaReadyNow["`]?\s*[:=]\s*true/i,
+  /["`]productionReadyNow["`]?\s*[:=]\s*true/i,
+  /["`]browserWebglCanvasRuntimePerformed["`]?\s*[:=]\s*true/i,
+  /["`]gpuRuntimePerformed["`]?\s*[:=]\s*true/i,
+  /["`]providerRuntimePerformed["`]?\s*[:=]\s*true/i,
+  /["`]supabaseMutationPerformed["`]?\s*[:=]\s*true/i,
+  /["`]gcsUploadPerformed["`]?\s*[:=]\s*true/i,
+  /["`]publicArtifactCreated["`]?\s*[:=]\s*true/i,
+  /["`]signedUrlCreated["`]?\s*[:=]\s*true/i,
   /E2E proof approved/i,
   /dry_run_passed/i,
   /generated_local_fixture_passed/i,

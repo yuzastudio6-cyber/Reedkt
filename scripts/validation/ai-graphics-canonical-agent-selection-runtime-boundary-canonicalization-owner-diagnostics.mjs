@@ -317,6 +317,26 @@ for (const key of scriptDrift) {
     key !== expectedScript &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics" &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics" &&
+    key !== "ai-graphics:21-tool-runtime-install-readiness:diagnostics" &&
+    key !== "ai-graphics:gpu-import-readiness:diagnostics" &&
+    key !== "ai-graphics:node-runtime-proof" &&
+    key !== "ai-graphics:node-runtime-proof:diagnostics" &&
+    key !== "ai-graphics:gpu-worker-install-proof:diagnostics" &&
+    key !== "ai-graphics:browser-runtime-proof" &&
+    key !== "ai-graphics:browser-runtime-proof:diagnostics" &&
+    key !== "ai-graphics:satori-font-runtime-proof" &&
+    key !== "ai-graphics:satori-font-runtime-proof:diagnostics" &&
+    key !== "ai-graphics:gpu-model-install-build-targets:diagnostics" &&
+    key !== "ai-graphics:21-tool-runtime-install-readiness:diagnostics" &&
+    key !== "ai-graphics:gpu-import-readiness:diagnostics" &&
+    key !== "ai-graphics:node-runtime-proof" &&
+    key !== "ai-graphics:node-runtime-proof:diagnostics" &&
+    key !== "ai-graphics:gpu-worker-install-proof:diagnostics" &&
+    key !== "ai-graphics:browser-runtime-proof" &&
+    key !== "ai-graphics:browser-runtime-proof:diagnostics" &&
+    key !== "ai-graphics:satori-font-runtime-proof" &&
+    key !== "ai-graphics:satori-font-runtime-proof:diagnostics" &&
+    key !== "ai-graphics:gpu-model-install-build-targets:diagnostics" &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0-diagnostics" &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-diagnostics" &&

@@ -47,7 +47,17 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:tool-capability-study:canonical-routing-canonicalization-qa-diagnostics",
   "ai-graphics:tool-capability-study:canonical-routing-canonicalization-owner-diagnostics",  "ai-graphics:canonical-agent-selection:owner-diagnostics",
   "ai-graphics:canonical-agent-selection:owner-approval-diagnostics",
-
+,
+  "ai-graphics:21-tool-runtime-install-readiness:diagnostics",
+  "ai-graphics:gpu-import-readiness:diagnostics",
+  "ai-graphics:node-runtime-proof",
+  "ai-graphics:node-runtime-proof:diagnostics",
+  "ai-graphics:gpu-worker-install-proof:diagnostics",
+  "ai-graphics:browser-runtime-proof",
+  "ai-graphics:browser-runtime-proof:diagnostics",
+  "ai-graphics:satori-font-runtime-proof",
+  "ai-graphics:satori-font-runtime-proof:diagnostics",
+  "ai-graphics:gpu-model-install-build-targets:diagnostics"
 ]);
 
 const failures = [];

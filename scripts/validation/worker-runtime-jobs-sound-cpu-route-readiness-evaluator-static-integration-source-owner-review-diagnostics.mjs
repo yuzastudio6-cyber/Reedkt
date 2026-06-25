@@ -10,6 +10,30 @@ const sourceHead = '7972a9dfe3586f2d86d93eba7149a44b556b2de0'
 const pr840MergeCommit = '6bf0131d7872f0883183ab7b091b0f8cbb807e28'
 const evaluatorPath = 'server/workers/sound-cpu/route-readiness-evaluator.mjs'
 const integrationPath = 'server/workers/sound-cpu/route-readiness-evaluator-static-integration.mjs'
+const canonicalRejectedPayloadFields = [
+  'rawPrompt',
+  'uploadedMediaUri',
+  'signedUrl',
+  'publicArtifactUrl',
+  'mediaFilePath',
+  'providerOutputBlob',
+  'secretValue',
+  'serviceRolePayload',
+  'modelWeightPath',
+  'artifactWriteTarget',
+  'supabaseMutation',
+  'sqlText',
+  'dockerCommand',
+  'gcpCommand',
+]
+const nonCanonicalRejectedPayloadFields = [
+  'modelWeightLocation',
+  'ffmpegInput',
+  'supabaseRow',
+  'cloudRunJob',
+  'workerExecutionLease',
+  'billingMutation',
+]
 
 const docs = [
   ['docs/worker-runtime-jobs-sound-cpu-route-readiness-evaluator-static-integration-source-owner-review.md', 'worker-runtime-jobs-sound-cpu-route-readiness-evaluator-static-integration-source-owner-review'],
@@ -91,6 +115,12 @@ assert(integrationText.includes("from './route-readiness-evaluator.mjs'"), 'inte
 assert(!/\brequire\s*\(/.test(integrationText), 'integration source must not require dependencies')
 assert(!/\bfetch\s*\(/.test(integrationText), 'integration source must not call fetch')
 assert(!/child_process|execFile|execSync|spawn|spawnSync|new\s+Worker|process\.env|Deno\.|Bun\./i.test(integrationText), 'integration source contains prohibited runtime execution marker')
+for (const field of canonicalRejectedPayloadFields) {
+  assert(integrationText.includes(`'${field}'`), `integration source missing canonical rejected payload field ${field}`)
+}
+for (const field of nonCanonicalRejectedPayloadFields) {
+  assert(!integrationText.includes(`'${field}'`), `integration source retains non-canonical rejected payload field ${field}`)
+}
 assert(acceptance.acceptedForControlledStaticImportProofOnly === true, 'controlled import proof only missing')
 assertAllFalse(acceptance.acceptedForExecutionToday, 'accepted for execution today')
 assert(safety.sourceSafety.sourceImportedInOwnerReview === false, 'source import safety must remain false')

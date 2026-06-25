@@ -20,7 +20,7 @@ export const SOUND_CPU_ROUTE_READINESS_STATIC_FIXTURES = Object.freeze([
     imageName: 'reeditpro/sound-cpu-analysis-worker',
     jobType: 'sound.package_import_smoke',
     expectedOutcome: 'accepted',
-    rejectedPayloadFields: Object.freeze(['rawPrompt', 'mediaFilePath', 'signedUrl', 'serviceRolePayload']),
+    rejectedPayloadFields: Object.freeze(['rawPrompt', 'uploadedMediaUri', 'signedUrl', 'publicArtifactUrl']),
   }),
   Object.freeze({
     fixtureCaseId: 'sound-cpu-route-numeric-array-analysis-accepted',
@@ -30,7 +30,7 @@ export const SOUND_CPU_ROUTE_READINESS_STATIC_FIXTURES = Object.freeze([
     imageName: 'reeditpro/sound-cpu-analysis-worker',
     jobType: 'sound.numeric_array_analysis',
     expectedOutcome: 'accepted',
-    rejectedPayloadFields: Object.freeze(['providerOutputBlob', 'modelWeightLocation', 'artifactWriteTarget']),
+    rejectedPayloadFields: Object.freeze(['mediaFilePath', 'providerOutputBlob', 'secretValue', 'serviceRolePayload']),
   }),
   Object.freeze({
     fixtureCaseId: 'sound-cpu-route-symbolic-midi-analysis-accepted',
@@ -40,7 +40,7 @@ export const SOUND_CPU_ROUTE_READINESS_STATIC_FIXTURES = Object.freeze([
     imageName: 'reeditpro/sound-audio-metadata-worker',
     jobType: 'sound.symbolic_midi_analysis',
     expectedOutcome: 'accepted',
-    rejectedPayloadFields: Object.freeze(['ffmpegInput', 'supabaseRow', 'publicArtifactUrl']),
+    rejectedPayloadFields: Object.freeze(['modelWeightPath', 'artifactWriteTarget', 'supabaseMutation']),
   }),
   Object.freeze({
     fixtureCaseId: 'sound-cpu-route-loudness-synthetic-analysis-accepted',
@@ -50,7 +50,7 @@ export const SOUND_CPU_ROUTE_READINESS_STATIC_FIXTURES = Object.freeze([
     imageName: 'reeditpro/sound-audio-metadata-worker',
     jobType: 'sound.loudness_synthetic_analysis',
     expectedOutcome: 'accepted',
-    rejectedPayloadFields: Object.freeze(['cloudRunJob', 'workerExecutionLease', 'billingMutation']),
+    rejectedPayloadFields: Object.freeze(['sqlText', 'dockerCommand', 'gcpCommand']),
   }),
   Object.freeze({
     fixtureCaseId: 'sound-cpu-route-mismatch-route-worker',

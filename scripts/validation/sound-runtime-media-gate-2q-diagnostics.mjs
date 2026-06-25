@@ -10,6 +10,30 @@ const sourceHead = '6bf0131d7872f0883183ab7b091b0f8cbb807e28'
 const pr837MergeCommit = 'e31f0c44830bd70edfa87280680646d00b073248'
 const evaluatorPath = 'server/workers/sound-cpu/route-readiness-evaluator.mjs'
 const integrationPath = 'server/workers/sound-cpu/route-readiness-evaluator-static-integration.mjs'
+const canonicalRejectedPayloadFields = [
+  'rawPrompt',
+  'uploadedMediaUri',
+  'signedUrl',
+  'publicArtifactUrl',
+  'mediaFilePath',
+  'providerOutputBlob',
+  'secretValue',
+  'serviceRolePayload',
+  'modelWeightPath',
+  'artifactWriteTarget',
+  'supabaseMutation',
+  'sqlText',
+  'dockerCommand',
+  'gcpCommand',
+]
+const nonCanonicalRejectedPayloadFields = [
+  'modelWeightLocation',
+  'ffmpegInput',
+  'supabaseRow',
+  'cloudRunJob',
+  'workerExecutionLease',
+  'billingMutation',
+]
 
 const docs = [
   ['docs/sound-runtime-media-gate-2q-static-integration-source-result.md', 'sound-runtime-media-gate-2q-static-integration-source-result'],
@@ -112,6 +136,12 @@ assert(!/\brequire\s*\(/.test(integrationText), 'integration source must not req
 assert(!/\bfetch\s*\(/.test(integrationText), 'integration source must not call fetch')
 assert(!/child_process|execFile|execSync|spawn|spawnSync|new\s+Worker|process\.env|Deno\.|Bun\./i.test(integrationText), 'integration source contains prohibited runtime execution marker')
 assert(integrationText.includes('readinessClaim: false'), 'integration source readiness claim must remain false')
+for (const field of canonicalRejectedPayloadFields) {
+  assert(integrationText.includes(`'${field}'`), `integration source missing canonical rejected payload field ${field}`)
+}
+for (const field of nonCanonicalRejectedPayloadFields) {
+  assert(!integrationText.includes(`'${field}'`), `integration source retains non-canonical rejected payload field ${field}`)
+}
 
 assert(fixtures.staticFixtures.fixtureCount === 9, 'fixture register count mismatch')
 assert(fixtures.staticFixtures.acceptedJobTypes.length === 4, 'accepted job type count mismatch')

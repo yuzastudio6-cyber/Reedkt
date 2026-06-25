@@ -739,3 +739,14 @@ TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION:
 - Next prompt: `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN`.
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:start -->
+TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN:
+
+- Decision: `trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run`.
+- Steward state: all 16 Track B tools are bounded accepted/proven, callable contract metadata is fail-closed, and deterministic tool-call ranking metadata exists for every owned tool.
+- Ranking policy: least-risky matching tool first, with metadata/probe routes before heavier analysis, deterministic OCR before ML OCR, color config before image-buffer handling, and FFmpeg deferred to explicit transform recipes.
+- Controlled dry-run planning is the next lane; direct runtime tool calls, worker dispatch, live beta, production, and product-ready local OSS claims remain blocked.
+- Product-ready local OSS tools remain `0`.
+- Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN`.
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:end -->

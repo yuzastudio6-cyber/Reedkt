@@ -376,5 +376,18 @@
     "internalBetaReady": false,
     "productReady": false,
     "nextPrompt": "TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN"
+  },
+  "toolCallBetaReadinessRerun": {
+    "decision": "trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-rerun",
+    "coveredToolCount": 16,
+    "rankingMetadataImplemented": true,
+    "rankingEntryCount": 16,
+    "controlledDryRunPlanningReady": true,
+    "directToolCallRuntimeReady": false,
+    "internalBetaRuntimeReady": false,
+    "externalBetaReady": false,
+    "productReady": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN"
   }
 }

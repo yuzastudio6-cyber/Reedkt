@@ -89,6 +89,16 @@
         "directToolCallsReady": false,
         "internalBetaReady": false,
         "productReady": false
+      },
+      "toolCallBetaReadinessRerun": {
+        "decision": "trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run",
+        "nextPrompt": "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN",
+        "coveredToolCount": 16,
+        "rankingEntryCount": 16,
+        "controlledDryRunPlanningReady": true,
+        "directToolCallRuntimeReady": false,
+        "internalBetaRuntimeReady": false,
+        "productReady": false
       }
     }
   ],

@@ -1,0 +1,23 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssToolCallBetaReadinessRerun.callableContractsAcceptance.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "callableWorkerContractsAcceptedForDryRunPlanning": true,
+  "coveredToolCount": 16,
+  "routeMetadataPresent": true,
+  "routeCount": 3,
+  "routesDisabled": true,
+  "routesBackendRequired": true,
+  "payloadValidationRequiresApprovedSnapshot": true,
+  "payloadValidationRequiresEditPlan": true,
+  "payloadValidationRequiresCreditReservation": true,
+  "payloadValidationRequiresPrivateArtifacts": true,
+  "payloadValidationRejectsPublicOrSignedUrls": true,
+  "payloadValidationRejectsRawPromptPayloads": true,
+  "resultSchemaPresent": true,
+  "sanitizedLoggingOnly": true,
+  "directExecutionEnabled": false,
+  "runtimeWorkerDispatchEnabled": false,
+  "productRuntimeEnabled": false
+}

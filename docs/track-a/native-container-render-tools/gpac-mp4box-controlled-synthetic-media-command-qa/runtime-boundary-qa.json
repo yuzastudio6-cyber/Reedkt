@@ -1,0 +1,18 @@
+{
+  "boundedSyntheticMediaCommandQaAccepted": true,
+  "gpacPackagePresenceAccepted": true,
+  "mp4boxBinaryPresenceAccepted": true,
+  "mp4boxVersionRuntimeAccepted": true,
+  "mp4boxSyntheticSubtitleCommandAccepted": true,
+  "gpacMediaFilterRuntimeAccepted": false,
+  "userPrivateRealMediaAccepted": false,
+  "arbitraryMediaProbingAccepted": false,
+  "ffmpegFfprobeAccepted": false,
+  "renderExportAccepted": false,
+  "workerRouteProviderAccepted": false,
+  "productRuntimeAccepted": false,
+  "internalBetaAccepted": false,
+  "externalBetaAccepted": false,
+  "productionAccepted": false,
+  "supabase": "no write / environment none / SQL none / migration no"
+}

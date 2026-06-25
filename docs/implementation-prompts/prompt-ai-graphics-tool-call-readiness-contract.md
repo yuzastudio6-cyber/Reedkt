@@ -20,6 +20,8 @@ Latest observed PR state after beta-readiness gate completion: [#862](https://gi
 
 Latest observed PR state after Tool Route readiness completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `be83af7999853e3a26e826483eb0f8367448d2d1`, with an empty check rollup.
 
+Latest observed PR state after Worker handoff readiness completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `22d359df330bb68df66985504bbf06100fae7a82`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements

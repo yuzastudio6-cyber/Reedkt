@@ -38,6 +38,29 @@ const allowedChangedFiles = new Set([
   'package.json',
 ])
 
+for (const file of [
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-1/runtime-readiness-orchestrator.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-1/component-matrix.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-1/runtime-readiness-orchestrator-record.json',
+  'docs/activation-phase-rp-internal-beta-runtime-readiness-orchestrator-1-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-runtime-readiness-orchestrator-1.md',
+  'server/services/internal-beta-runtime-readiness-orchestrator.ts',
+  'server/smoke/internal-beta-runtime-readiness-orchestrator-smoke.ts',
+  'scripts/validation/rp-backend-02-internal-beta-service-role-runtime-scaffold-diagnostics.mjs',
+  'scripts/validation/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold-diagnostics.mjs',
+  'scripts/validation/rp-jobs-01-internal-beta-job-queue-runtime-scaffold-diagnostics.mjs',
+  'scripts/validation/rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold-diagnostics.mjs',
+  'scripts/validation/rp-render-01-internal-beta-remotion-render-worker-scaffold-diagnostics.mjs',
+  'scripts/validation/rp-provider-01-internal-beta-disabled-provider-adapter-scaffold-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'completed_disabled_internal_beta_credit_ledger_runtime_scaffold_no_spend',

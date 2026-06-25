@@ -450,6 +450,18 @@ No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage 
 
 Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
 
+## RP-INTERNAL-BETA Runtime Readiness Orchestrator
+
+`RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-1` records decision `completed_internal_beta_runtime_readiness_orchestrator_fail_closed` and execution `completed_local_orchestrator_scaffold_no_runtime_execution`.
+
+Current readiness status: `blocked_pending_supabase_target_validation_and_runtime_enablement`. The local orchestrator composes `46` disabled operations across service-role runtime, credit ledger, job queue, private artifact manifest, Remotion render worker, and provider adapter scaffolds.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generated artifacts committed: none.
+
+No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, final render/export, preview artifact creation, private media processing, user media processing, Remotion execution, FFmpeg execution, FFprobe execution, media processing, package installation beyond dependency validation, Dockerfile change, requirements change, or broad service-role handler was enabled.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

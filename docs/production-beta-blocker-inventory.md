@@ -23,6 +23,22 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next safe action is a confirmed read-only run of `npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed` with safe credential context. Next milestone after a passing confirmed run: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`.
 
+## SUPABASE-WORKER-RUNTIME Transactional RPC 4R Confirmed Runner
+
+`SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED` records decision `completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution` and execution `completed_guard_scaffold_no_remote_execution`.
+
+Current runner result: `blocked_pending_rpc_4r_confirmed_staging_sql_gates`. Current runner execution: `blocked_confirmation_absent_no_sql_execution`. Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`.
+
+Supabase update status: `blocked_sql_not_executed`. Supabase environment touched: `none`. SQL executed: `none`. Migration deployed: `no`. readbackStatus: `not_run`. Secret Manager payload printed: `false`. production touched: `false`. Internal beta unlocked: `false`. trackAInternalBetaUnlocked: `false`.
+
+The runner requires all six RPC-4R staging gates plus a successful `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` report before future staging SQL execution can be considered. This packet does not apply SQL and does not touch Supabase.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_guarded_staging_sql_execution`. WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_guarded_staging_sql_execution`. TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_transactional_contract`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_transactional_contract`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe action remains the confirmed Supabase target RLS/storage validation run. Next milestone after target validation and a separately approved staging SQL context: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION`.
+
 ## Track A GPAC/MP4Box Controlled Synthetic Media Command QA
 
 `TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1` records decision `tracka_gpac_mp4box_controlled_synthetic_media_command_qa_passed_ready_for_worker_contract_review`.

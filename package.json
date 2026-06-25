@@ -677,6 +677,8 @@
     "supabase-worker-runtime:transactional-rpc-3:diagnostics": "node scripts/validation/supabase-worker-runtime-transactional-rpc-3-diagnostics.mjs",
     "supabase-worker-runtime:transactional-rpc-4:diagnostics": "node scripts/validation/supabase-worker-runtime-transactional-rpc-4-diagnostics.mjs",
     "supabase-worker-runtime:transactional-rpc-4r:diagnostics": "node scripts/validation/supabase-worker-runtime-transactional-rpc-4r-diagnostics.mjs",
+    "supabase-worker-runtime:transactional-rpc-4r-confirmed": "node scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed.mjs",
+    "supabase-worker-runtime:transactional-rpc-4r-confirmed:diagnostics": "node scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed-diagnostics.mjs",
     "tool-route:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/tool-route-tracka-private-e2e-gate-1-diagnostics.mjs",
     "tool-route:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/tool-route-tracka-private-e2e-gate-2-diagnostics.mjs",
     "track-a:caption-runtime-path-1": "node scripts/validation/track-a-caption-runtime-path-1.mjs",

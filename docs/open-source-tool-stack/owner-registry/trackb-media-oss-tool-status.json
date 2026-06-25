@@ -1317,5 +1317,17 @@
     "productionReady": false,
     "productReady": false,
     "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_QA_REVIEW"
+  },
+  "limitedInternalBetaDryRunQaReview": {
+    "decision": "trackb_media_oss_limited_internal_beta_dry_run_qa_passed_ready_for_limited_internal_beta_dry_run_testing",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-qa-review",
+    "coveredToolCount": 16,
+    "readyForLimitedInternalBetaDryRunTesting": true,
+    "readyForDirectProductToolCalls": false,
+    "readyForLiveBetaRuntime": false,
+    "externalBetaReady": false,
+    "productionReady": false,
+    "productReady": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING"
   }
 }

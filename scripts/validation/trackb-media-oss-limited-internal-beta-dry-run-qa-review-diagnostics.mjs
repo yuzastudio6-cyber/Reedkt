@@ -7,21 +7,42 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-go-no-go-review'
+const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-qa-review'
 const decision =
-  'trackb_media_oss_limited_internal_beta_go_no_go_review_passed_ready_for_limited_internal_beta_dry_run_activation'
-const nextPrompt = 'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION'
+  'trackb_media_oss_limited_internal_beta_dry_run_qa_passed_ready_for_limited_internal_beta_dry_run_testing'
+const nextPrompt = 'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING'
 const ownerId = 'TRACK_B_MEDIA_OSS_STEWARD'
-const sourceSha = 'c8e47a6009364aa9f6280b284bec3d25bd2b8c9f'
+const sourceSha = '4ca5005c8861ff0d8f473b6673b73fd211fa4cf6'
 const baseRef = 'origin/codex/rp-github-merge-hygiene-open-pr-stack-audit'
+
+const expectedRanking = [
+  'ffprobe',
+  'mediainfo',
+  'exiftool',
+  'duckdb',
+  'polars_nodejs_polars',
+  'sharp_libvips',
+  'opencolorio',
+  'openimageio',
+  'imagemagick',
+  'opencv',
+  'pyav',
+  'pyscenedetect',
+  'tesseract',
+  'paddlepaddle',
+  'paddleocr',
+  'ffmpeg',
+]
 
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'go-no-go-matrix.json',
-  'go-no-go-matrix.md',
-  'beta-scope-review.json',
-  'beta-scope-review.md',
+  'qa-acceptance.json',
+  'qa-acceptance.md',
+  'ranking-qa.json',
+  'ranking-qa.md',
+  'runtime-boundary-review.json',
+  'runtime-boundary-review.md',
   'decision.json',
   'decision.md',
   'readiness-report.json',
@@ -41,9 +62,7 @@ const statusDocs = [
 
 const allowedChangedPrefixes = [
   `${reportDir}/`,
-  'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-fixture-qa-review/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-activation/',
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-qa-review/',
 ]
 
 const allowedChangedFiles = new Set([
@@ -58,8 +77,6 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-go-no-go-review.md',
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-activation.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-qa-review.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-testing.md',
   ...statusDocs,
@@ -137,6 +154,12 @@ function requireDecision(label, report) {
   if (report.ownerId !== ownerId) fail(`owner_drift:${label}:${report.ownerId}`)
 }
 
+function sameArray(actual, expected, label) {
+  if (JSON.stringify(actual || []) !== JSON.stringify(expected)) {
+    fail(`${label}_drift:${JSON.stringify(actual || [])}`)
+  }
+}
+
 function isAllowedChangedFile(file) {
   return allowedChangedFiles.has(file) || allowedChangedPrefixes.some((prefix) => file.startsWith(prefix))
 }
@@ -144,13 +167,14 @@ function isAllowedChangedFile(file) {
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of [
   ...statusDocs,
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-activation.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-testing.md',
 ]) readText(file)
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  matrix: readJson(`${reportDir}/go-no-go-matrix.json`),
-  scope: readJson(`${reportDir}/beta-scope-review.json`),
+  acceptance: readJson(`${reportDir}/qa-acceptance.json`),
+  ranking: readJson(`${reportDir}/ranking-qa.json`),
+  runtime: readJson(`${reportDir}/runtime-boundary-review.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
   readiness: readJson(`${reportDir}/readiness-report.json`),
   manifest: readJson(`${reportDir}/private-artifact-manifest.json`),
@@ -159,54 +183,82 @@ const reports = {
 for (const [label, report] of Object.entries(reports)) requireDecision(label, report)
 
 if (reports.source.sourceSha !== sourceSha) fail(`source_sha_drift:${reports.source.sourceSha}`)
-if (reports.source.sourceEvidence?.find((entry) => entry.pr === 788)?.state !== 'MERGED') fail('missing_pr788_source')
+if (reports.source.sourceEvidence?.find((entry) => entry.pr === 792)?.state !== 'MERGED') fail('missing_pr792_source')
 if (reports.source.trackBTotals?.owned !== 16) fail('owned_total_drift')
 if (reports.source.trackBTotals?.boundedAcceptedProven !== 16) fail('accepted_total_drift')
 if (reports.source.trackBTotals?.blockedNotInstalledProven !== 0) fail('blocked_total_drift')
 if (reports.source.trackBTotals?.productReady !== 0) fail('product_ready_total_drift')
 if (reports.source.nextPrompt !== nextPrompt) fail('source_next_prompt_drift')
 
-if (reports.matrix.coveredToolCount !== 16) fail('covered_tool_count_drift')
-if (reports.matrix.fixtureEvidenceAccepted !== true) fail('fixture_evidence_not_accepted')
-if (reports.matrix.callableContractsPresent !== true) fail('callable_contracts_not_present')
-if (reports.matrix.deterministicRankingPresent !== true) fail('ranking_not_present')
-if (reports.matrix.failClosedNegativeCasesAccepted !== true) fail('fail_closed_cases_not_accepted')
-if (reports.matrix.limitedInternalBetaDryRunAllowed !== true) fail('limited_internal_beta_dry_run_not_allowed')
+for (const field of [
+  'activationAccepted',
+  'deterministicRankingAccepted',
+  'failClosedContractsAccepted',
+  'approvedSnapshotGateAccepted',
+  'creditGateAccepted',
+  'privateArtifactGateAccepted',
+  'qaFallbackGateAccepted',
+  'resultSchemaGateAccepted',
+  'sanitizedLoggingGateAccepted',
+  'readyForLimitedInternalBetaDryRunTesting',
+]) {
+  if (reports.acceptance[field] !== true) fail(`${field}_not_true`)
+}
+if (reports.acceptance.coveredToolCount !== 16) fail('covered_tool_count_drift')
+if (reports.acceptance.boundedAcceptedProvenCount !== 16) fail('bounded_count_drift')
 
 for (const [label, value] of Object.entries({
-  directProductToolCallsReady: reports.matrix.directProductToolCallsReady,
-  userMediaByDefaultAllowed: reports.matrix.userMediaByDefaultAllowed,
-  externalBetaReady: reports.matrix.externalBetaReady,
-  productionReady: reports.matrix.productionReady,
-  productReady: reports.matrix.productReady,
-  readinessDirectProductToolCalls: reports.readiness.readyForDirectProductToolCalls,
-  readinessExternalBeta: reports.readiness.readyForExternalBeta,
-  readinessProduction: reports.readiness.readyForProduction,
-  readinessProductReady: reports.readiness.productReady,
+  directProductToolCallsReady: reports.acceptance.directProductToolCallsReady,
+  liveRouteRuntimeReady: reports.acceptance.liveRouteRuntimeReady,
+  workerDispatchReady: reports.acceptance.workerDispatchReady,
+  externalBetaReady: reports.acceptance.externalBetaReady,
+  productionReady: reports.acceptance.productionReady,
+  productReady: reports.acceptance.productReady,
+  runtimeApisChanged: reports.runtime.runtimeApisChanged,
+  routeRuntimeEnabled: reports.runtime.routeRuntimeEnabled,
+  workerDispatchEnabled: reports.runtime.workerDispatchEnabled,
+  toolExecutionEnabled: reports.runtime.toolExecutionEnabled,
+  dockerRun: reports.runtime.dockerRun,
+  installRun: reports.runtime.installRun,
+  mediaProcessingRun: reports.runtime.mediaProcessingRun,
+  supabaseGcsTouched: reports.runtime.supabaseGcsTouched,
+  publicArtifactsCreated: reports.runtime.publicArtifactsCreated,
+  signedUrlsCreated: reports.runtime.signedUrlsCreated,
   manifestPrivateArtifactsCommitted: reports.manifest.privateArtifactsCommitted,
   manifestPublicArtifactsCreated: reports.manifest.publicArtifactsCreated,
   manifestSignedUrlsCreated: reports.manifest.signedUrlsCreated,
   manifestUserMediaUsed: reports.manifest.userMediaUsed,
   manifestSupabaseGcsTouched: reports.manifest.supabaseGcsTouched,
+  readinessDirectProductToolCalls: reports.readiness.readyForDirectProductToolCalls,
+  readinessExternalBeta: reports.readiness.readyForExternalBeta,
+  readinessProduction: reports.readiness.readyForProduction,
+  readinessProductReady: reports.readiness.productReady,
 })) {
   if (value !== false) fail(`${label}_must_be_false`)
 }
 
-if (reports.scope.allowedNextScope !== 'limited_internal_beta_dry_run_activation_only') {
-  fail(`allowed_next_scope_drift:${reports.scope.allowedNextScope}`)
-}
-for (const [scope, blocked] of Object.entries(reports.scope.blockedScopes || {})) {
-  if (blocked !== true) fail(`blocked_scope_not_true:${scope}`)
-}
-if (reports.scope.supabaseClassification?.updateRequired !== 'no write') fail('supabase_update_required_drift')
-if (reports.scope.supabaseClassification?.environmentTouched !== 'none') fail('supabase_environment_drift')
-if (reports.scope.supabaseClassification?.sqlExecuted !== 'none') fail('supabase_sql_drift')
-if (reports.scope.supabaseClassification?.migrationDeployed !== 'no') fail('supabase_migration_drift')
+sameArray(reports.ranking.rankingOrder, expectedRanking, 'report_ranking_order')
+if (reports.ranking.rankingAccepted !== true) fail('ranking_not_accepted')
+if (reports.ranking.allEntriesDryRunOnly !== true) fail('ranking_dry_run_not_true')
+if (reports.ranking.allEntriesExecutionDisabled !== true) fail('ranking_execution_disabled_not_true')
+
+const contractText = readText('src/backend/contracts/trackb-media-oss-tool-call-contracts.ts')
+const rankingBlock = contractText.split('TRACKB_MEDIA_OSS_TOOL_CALL_RANKING')[1]?.split('] as const')[0] || ''
+const contractRanking = Array.from(rankingBlock.matchAll(/toolId: '([^']+)'/g)).map((match) => match[1])
+sameArray(contractRanking, expectedRanking, 'contract_ranking_order')
+if (!contractText.includes('betaDryRunOnly: true')) fail('contract_missing_beta_dry_run_only')
+if (!contractText.includes('executionEnabled: false')) fail('contract_missing_execution_disabled')
+
+const packageJson = readJson('package.json')
+if (
+  packageJson.scripts?.['trackb-media-oss:limited-internal-beta-dry-run-qa-review:diagnostics'] !==
+  'node scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-qa-review-diagnostics.mjs'
+) fail('missing_package_script')
 
 const combinedText = [
   ...requiredReports.map((file) => readText(`${reportDir}/${file}`)),
   ...statusDocs.map((file) => readText(file)),
-  readText('docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-activation.md'),
+  readText('docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-testing.md'),
 ].join('\n')
 
 for (const forbidden of [
@@ -235,7 +287,7 @@ const result = {
   ok: failures.length === 0,
   decision,
   nextPrompt,
-  limitedInternalBetaDryRunAllowed: reports.matrix.limitedInternalBetaDryRunAllowed === true,
+  readyForLimitedInternalBetaDryRunTesting: reports.acceptance.readyForLimitedInternalBetaDryRunTesting === true,
   productReady: false,
   failures,
 }

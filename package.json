@@ -759,7 +759,8 @@
     "smoke:trackb-media-oss-callable-worker-contracts": "tsx server/smoke/trackb-media-oss-callable-worker-contracts-smoke.ts",
     "trackb-media-oss:limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval-diagnostics.mjs",
     "trackb-media-oss:limited-internal-beta-product-tool-call-runtime-limited-internal-activation-execution:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-execution-diagnostics.mjs",
-    "trackb-media-oss:limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review-diagnostics.mjs"
+    "trackb-media-oss:limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review-diagnostics.mjs",
+    "trackb-media-oss:limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

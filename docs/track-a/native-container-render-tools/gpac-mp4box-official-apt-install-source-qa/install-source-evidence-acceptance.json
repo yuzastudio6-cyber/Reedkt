@@ -1,0 +1,25 @@
+{
+  "accepted": true,
+  "decision": "tracka_gpac_mp4box_official_apt_install_source_qa_passed_ready_for_controlled_runtime_proof",
+  "acceptedEvidence": {
+    "dockerBuildPassed": true,
+    "officialAptSourceWritten": true,
+    "signedByKeyringUsed": true,
+    "packageOnlyPinningUsed": true,
+    "nightlyComponentAbsent": true,
+    "aptPolicyRecorded": true,
+    "installSimulationPassed": true,
+    "installedExactly": "gpac=26.02-rev0-g118e60a90-HEAD",
+    "nonGpacPackagesFromGpacRepo": []
+  },
+  "notAcceptedAsEvidence": {
+    "gpacRuntimeBehavior": true,
+    "mp4boxRuntimeBehavior": true,
+    "mp4boxVersionExecution": true,
+    "mp4boxMediaCommand": true,
+    "mediaProcessing": true,
+    "productRuntime": true,
+    "beta": true,
+    "production": true
+  }
+}

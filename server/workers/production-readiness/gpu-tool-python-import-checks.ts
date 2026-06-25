@@ -2,8 +2,10 @@ import type { ProductionToolId } from '../../tool-registry'
 
 export type GpuPythonImportToolId =
   | ProductionToolId
+  | 'torch_torchvision'
   | 'pytorch'
   | 'torchvision'
+  | 'transformers'
   | 'ctranslate2'
   | 'paddlepaddle_gpu'
 
@@ -37,6 +39,15 @@ export const GPU_TOOL_PYTHON_IMPORT_CHECKS: GpuToolPythonImportCheckDefinition[]
     notes: ['Foundation vision package check; import only.'],
   },
   {
+    toolId: 'transformers',
+    checkName: 'python_import_transformers',
+    packageName: 'transformers',
+    importName: 'transformers',
+    optional: false,
+    modelWeightRequired: false,
+    notes: ['AI/model runtime foundation import only; no model loading, tokenizers, or provider calls.'],
+  },
+  {
     toolId: 'ctranslate2',
     checkName: 'python_import_ctranslate2',
     packageName: 'ctranslate2',
@@ -62,6 +73,53 @@ export const GPU_TOOL_PYTHON_IMPORT_CHECKS: GpuToolPythonImportCheckDefinition[]
     optional: false,
     modelWeightRequired: false,
     notes: ['GPU CV/mask refinement package import only.'],
+  },
+  {
+    toolId: 'birefnet',
+    checkName: 'python_import_transformers_for_birefnet',
+    packageName: 'transformers + approved ZhengPeng7/BiRefNet snapshot',
+    importName: 'transformers',
+    optional: false,
+    modelWeightRequired: true,
+    notes: [
+      'BiRefNet uses the Transformers model-loader path; import check must not call from_pretrained or fetch weights.',
+    ],
+  },
+  {
+    toolId: 'sam2',
+    checkName: 'python_import_sam2',
+    packageName: 'SAM-2 pinned source package',
+    importName: 'sam2',
+    optional: false,
+    modelWeightRequired: true,
+    notes: ['SAM2 package import only; no checkpoint load, mask prediction, CUDA execution, or media processing.'],
+  },
+  {
+    toolId: 'transparent_background',
+    checkName: 'python_import_transparent_background',
+    packageName: 'transparent-background',
+    importName: 'transparent_background',
+    optional: false,
+    modelWeightRequired: true,
+    notes: ['Background-removal package import only; no model cache fetch, inference, or media processing.'],
+  },
+  {
+    toolId: 'rembg',
+    checkName: 'python_import_rembg',
+    packageName: 'rembg[gpu]',
+    importName: 'rembg',
+    optional: false,
+    modelWeightRequired: true,
+    notes: ['Rembg package import only; no ONNX model download, session creation, or image processing.'],
+  },
+  {
+    toolId: 'real_esrgan',
+    checkName: 'python_import_realesrgan',
+    packageName: 'realesrgan',
+    importName: 'realesrgan',
+    optional: false,
+    modelWeightRequired: true,
+    notes: ['Real-ESRGAN package import only; no model construction, weight loading, or upscaling.'],
   },
   {
     toolId: 'opencv',
@@ -111,9 +169,6 @@ export const GPU_TOOL_PYTHON_IMPORT_CHECKS: GpuToolPythonImportCheckDefinition[]
 ]
 
 export const GPU_PENDING_SOURCE_INSTALL_REVIEW = [
-  { toolId: 'birefnet' as const, packageName: 'BiRefNet', reason: 'No stable package path is declared in M11.' },
-  { toolId: 'sam2' as const, packageName: 'SAM2', reason: 'Source/package selection requires review before install declaration.' },
-  { toolId: 'real_esrgan' as const, packageName: 'Real-ESRGAN', reason: 'Package/source path requires review before production image declaration.' },
   { toolId: 'film' as const, packageName: 'FILM', reason: 'Frame interpolation source path requires review before production image declaration.' },
 ]
 

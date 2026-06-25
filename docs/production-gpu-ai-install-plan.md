@@ -9,6 +9,11 @@ GPU tools remain worker-only and can execute only from approved snapshots in fut
 ## AI Graphics 21-Tool Install Readiness
 
 The AI graphics 21-tool install-readiness lane expands GPU worker declarations for `transformers`, SAM2, `rembg[gpu]`, `transparent-background`, and Real-ESRGAN, while keeping BiRefNet on the Transformers model-loader path. This is an install-readiness step only. It does not download model weights, run GPU imports, process media, or unlock beta. Beta readiness requires a later worker image build proof, GPU import smoke, approved private model-weight manifests, approved safe fixtures, Tool Route/Worker handoff gating, and runtime QA.
+
+## AI Graphics GPU Import Readiness Alignment
+
+The GPU import-readiness lane aligns the dry-run readiness contract with the 21-tool install-readiness declarations. `transformers`, SAM2, `rembg[gpu]`, `transparent-background`, and `realesrgan` now have explicit import-check definitions, while BiRefNet is checked through the `transformers` model-loader package path. Only FILM remains in pending source-install review. These checks are still dry-run by default and do not import heavy packages, load checkpoints, create CUDA contexts, process media, or unlock beta.
+
 ## Milestone 12 Validation
 
 M12 surfaces M11 GPU package declarations, model-weight templates, source-install review items, and GPU runtime policy in the unified readiness report. It does not run GPU jobs, import heavy GPU packages by default, load model weights, or download models.

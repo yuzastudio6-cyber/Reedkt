@@ -1,0 +1,26 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssInternalBetaFixtureGateReview.sourceAudit.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_internal_beta_fixture_gate_review_passed_ready_for_controlled_internal_beta_fixture_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "e04eb52d230d5f2b3b3c86d97369ede0f34b8da6",
+  "sourceEvidence": [
+    { "pr": 779, "state": "MERGED", "summary": "Controlled internal dry-run payload gate passed." },
+    { "pr": 776, "state": "MERGED", "summary": "Tool-call beta readiness rerun and ranking passed." },
+    { "pr": 771, "state": "MERGED", "summary": "Callable contracts landed fail-closed." },
+    { "pr": 741, "state": "MERGED", "summary": "OpenColorIO and OpenImageIO accepted as bounded proven." }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

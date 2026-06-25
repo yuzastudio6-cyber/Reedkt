@@ -1,0 +1,11 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssInternalBetaFixtureGateReview.decision.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_internal_beta_fixture_gate_review_passed_ready_for_controlled_internal_beta_fixture_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "reason": "Dry-run payload, ranking, disabled route, and fail-closed evidence is sufficient to plan a controlled internal fixture execution lane.",
+  "readyForControlledInternalBetaFixtureExecution": true,
+  "readyForLiveBetaRuntime": false,
+  "productReady": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION"
+}

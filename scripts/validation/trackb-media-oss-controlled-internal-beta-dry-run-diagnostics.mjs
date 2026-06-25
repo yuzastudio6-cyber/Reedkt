@@ -82,10 +82,12 @@ const statusDocs = [
 
 const allowedChangedPrefixes = [
   `${reportDir}/`,
+  'docs/open-source-tool-stack/trackb-media-oss-internal-beta-fixture-gate-review/',
 ]
 
 const allowedChangedFiles = new Set([
   'package.json',
+  'scripts/validation/trackb-media-oss-internal-beta-fixture-gate-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-controlled-internal-beta-dry-run-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
@@ -93,6 +95,7 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-internal-beta-fixture-gate-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-fixture-execution.md',
   ...statusDocs,
 ])
 

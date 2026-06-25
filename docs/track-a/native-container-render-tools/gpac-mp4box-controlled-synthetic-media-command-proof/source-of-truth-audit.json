@@ -1,0 +1,18 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-PROOF-1",
+  "decision": "tracka_gpac_mp4box_controlled_synthetic_media_command_proof_passed_ready_for_qa_review",
+  "sourceSha": "1f33b4a4dddc8403b7d6f1096eccb24e38d96879",
+  "baseContext": {
+    "runtimeProofMergeCommit": "56daf3c1845b801b1b556f393df39de098807df4",
+    "externalBaseAdvance": "1f33b4a4dddc8403b7d6f1096eccb24e38d96879",
+    "externalBaseAdvanceSummary": "internal-beta Remotion render worker scaffold"
+  },
+  "reviewedEvidence": {
+    "runtimeProofDecision": "tracka_gpac_mp4box_controlled_runtime_proof_passed_ready_for_controlled_synthetic_media_command_proof",
+    "installSourceQaDecision": "tracka_gpac_mp4box_official_apt_install_source_qa_passed_ready_for_controlled_runtime_proof",
+    "installSourceExecutionDecision": "tracka_gpac_mp4box_official_apt_install_source_execution_passed_ready_for_install_source_qa"
+  },
+  "proofScope": "generated_synthetic_subtitle_fixture_only_no_user_private_real_media",
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1",
+  "supabase": "no write / environment none / SQL none / migration no"
+}

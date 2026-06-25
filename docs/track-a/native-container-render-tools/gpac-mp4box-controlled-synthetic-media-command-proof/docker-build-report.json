@@ -1,0 +1,12 @@
+{
+  "imageTag": "reeditpro-tracka-gpac-mp4box-controlled-synthetic-media-command-proof-1:20260625T1158Z-1f33b4a",
+  "imageId": "sha256:c7c9c316a0cf54f8a4bf24e086e9a13372f77506418dbf9c4ff4559ab8d33e89",
+  "imageSizeBytes": 732524084,
+  "dockerfile": "docker/prod/render-worker/Dockerfile",
+  "buildResult": "passed",
+  "pushed": false,
+  "deployed": false,
+  "packageLockSha256Before": "8a19532a335a579a29ec6819c6aa2460b9dd7b3edf1cecdfa33d79d634d3b023",
+  "packageLockSha256After": "8a19532a335a579a29ec6819c6aa2460b9dd7b3edf1cecdfa33d79d634d3b023",
+  "packageLockMutated": false
+}

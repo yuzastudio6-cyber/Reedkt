@@ -1,0 +1,11 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-PROOF-1",
+  "decision": "tracka_gpac_mp4box_controlled_synthetic_media_command_proof_passed_ready_for_qa_review",
+  "syntheticMediaCommandProof": "passed",
+  "readyForQaReview": true,
+  "readyForProductRuntime": false,
+  "readyForInternalBeta": false,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1"
+}

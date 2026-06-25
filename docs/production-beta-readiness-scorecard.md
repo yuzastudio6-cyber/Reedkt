@@ -421,3 +421,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: owner review accepts PR #731 QA and PR #728 Phase 0 proof evidence for `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, and `viz_js`.
 - Owner result: `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js` remain owner-accepted as `proof_passed`; `satori` remains owner-accepted as `proof_blocked_missing_runtime` pending an approved font fixture for text SVG layout.
 - Runtime/beta/production: no unlock; agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime, GPU/model runtime, signed URLs, public artifacts, internal beta, external beta, and production remain false.
+
+## AI Graphics Satori Font Runtime Proof
+
+- Decision: `ai_graphics_satori_font_runtime_proof_completed_with_warnings`.
+- Scope: descendant proof resolves the prior Satori font-fixture gap by rendering a deterministic Satori text SVG layout in memory with the locked `three@0.184.0` package's `kenpixel.ttf` fixture.
+- Proof result: `satori` now has `satori_font_fixture_svg_layout_proof_passed`; no new dependency, package-lock mutation, committed font binary, SVG artifact, public artifact, signed URL, provider/model call, route execution, or worker execution is introduced.
+- Runtime/beta/production: no unlock; agent/tool/route/worker/provider execution, browser/WebGL/canvas runtime readiness, GPU/model runtime readiness, signed URLs, public artifacts, internal beta, external beta, paid production, and production remain false.

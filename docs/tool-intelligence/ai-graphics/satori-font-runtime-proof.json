@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.satori-font-runtime-proof",
+  "decision": "ai_graphics_satori_font_runtime_proof_completed_with_warnings",
+  "status": "completed_with_warnings",
+  "branch": "codex/rp-ai-graphics-satori-font-runtime-proof",
+  "base": "origin/codex/rp-ai-graphics-browser-runtime-proof",
+  "sourcePr": {
+    "number": 787,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/787",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headSha": "02f582b9c158026346cca4f83ae8f02c45b3aac9"
+  },
+  "proofPr": {
+    "number": 791,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/791",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headShaAtPrCreation": "ead737928df89c83aeb402ec743c805a6284ef63",
+    "statusCheckRollup": []
+  },
+  "sourceProofs": {
+    "nodeRuntimeProofDecision": "ai_graphics_node_runtime_proof_completed_with_warnings",
+    "browserRuntimeProofDecision": "ai_graphics_browser_runtime_proof_completed_with_warnings",
+    "gpuWorkerInstallProofDecision": "ai_graphics_gpu_worker_install_proof_hardened_with_warnings"
+  },
+  "proofScope": "satori_cpu_static_text_svg_layout_with_locked_package_font_fixture",
+  "tool": {
+    "toolId": "satori",
+    "packageName": "satori",
+    "version": "0.26.0",
+    "status": "satori_font_fixture_svg_layout_proof_passed",
+    "runtimeTarget": "node_cpu_static_svg_layout",
+    "fontFixture": {
+      "source": "locked_three_package_example_font",
+      "packageName": "three",
+      "packageVersion": "0.184.0",
+      "path": "node_modules/three/examples/fonts/ttf/kenpixel.ttf",
+      "family": "KenPixel",
+      "licenseContext": "provided by locked three package; no font binary committed by this lane",
+      "sha256": "fd42226067fc44707d41ef9f43597574c6a0fd415249416b38cf93371a7a611a",
+      "byteLength": 18068
+    },
+    "outputContract": {
+      "width": 640,
+      "height": 360,
+      "hasSvgRoot": true,
+      "hasExpectedViewBox": true,
+      "pathCount": 2,
+      "firstSvgSha256": "493883635425f0b56192e0ad2e0367db142cdeebbceb793848c26f151212abdb",
+      "secondSvgSha256": "493883635425f0b56192e0ad2e0367db142cdeebbceb793848c26f151212abdb",
+      "deterministic": true,
+      "svgLength": 6889,
+      "svgArtifactCommitted": false,
+      "publicArtifactCreated": false
+    },
+    "agentExecutableNow": false,
+    "routeExecutionUsed": false,
+    "workerExecutionUsed": false,
+    "providerRuntimeUsed": false,
+    "publicArtifactCreated": false
+  },
+  "booleans": {
+    "satoriFontRuntimeProofCompleted": true,
+    "lockedPackageFontFixtureUsed": true,
+    "committedFontBinary": false,
+    "satoriTextSvgLayoutProofPassed": true,
+    "all13JsGraphicsToolsHaveRuntimeProofEvidence": true,
+    "npmCiFromLockForValidation": true,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "generatedArtifactsCommitted": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "modelWeightsDownloaded": false,
+    "mediaProcessingPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "toolRouteExecutionReadyNow": false,
+    "workerExecutionReadyNow": false,
+    "browserWebglCanvasRuntimeReadyNow": false,
+    "gpuModelRuntimeReadyNow": false,
+    "runtimeBetaReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "remainingGaps": [
+    "8 model/GPU tools still require linux/amd64 NVIDIA image build and import/runtime proof.",
+    "Tool Route and Worker execution gates remain blocked until route contracts, worker handoff, approved fixtures, model manifests, and credit/snapshot gates are proven."
+  ]
+}

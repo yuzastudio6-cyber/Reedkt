@@ -43,6 +43,8 @@
     "ai-graphics:gpu-worker-install-proof:diagnostics": "node scripts/validation/ai-graphics-gpu-worker-install-proof-diagnostics.mjs",
     "ai-graphics:browser-runtime-proof": "node scripts/validation/ai-graphics-browser-runtime-proof.mjs",
     "ai-graphics:browser-runtime-proof:diagnostics": "node scripts/validation/ai-graphics-browser-runtime-proof-diagnostics.mjs",
+    "ai-graphics:satori-font-runtime-proof": "node scripts/validation/ai-graphics-satori-font-runtime-proof.mjs",
+    "ai-graphics:satori-font-runtime-proof:diagnostics": "node scripts/validation/ai-graphics-satori-font-runtime-proof-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

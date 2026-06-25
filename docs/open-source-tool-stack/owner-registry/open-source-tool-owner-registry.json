@@ -135,6 +135,17 @@
         "readyForLimitedInternalBetaGoNoGoReview": true,
         "readyForLiveBetaRuntime": false,
         "productReady": false
+      },
+      "limitedInternalBetaGoNoGoReview": {
+        "decision": "trackb_media_oss_limited_internal_beta_go_no_go_review_passed_ready_for_limited_internal_beta_dry_run_activation",
+        "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION",
+        "coveredToolCount": 16,
+        "limitedInternalBetaDryRunAllowed": true,
+        "readyForDirectProductToolCalls": false,
+        "readyForLiveBetaRuntime": false,
+        "externalBetaReady": false,
+        "productionReady": false,
+        "productReady": false
       }
     }
   ],

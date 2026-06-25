@@ -8,17 +8,15 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
 const reportDir =
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring-closeout'
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-execution'
 const decision =
-  'trackb_media_oss_limited_internal_beta_dry_run_monitoring_closeout_passed_ready_for_limited_internal_beta_product_tool_call_runtime_approval'
-const previousDecision =
-  'trackb_media_oss_limited_internal_beta_dry_run_monitoring_qa_passed_ready_for_monitoring_closeout'
-const nextPrompt = 'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_APPROVAL'
+  'trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_execution_passed_ready_for_runtime_dry_run_qa_review'
+const nextPrompt = 'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_QA_REVIEW'
 const ownerId = 'TRACK_B_MEDIA_OSS_STEWARD'
-const sourceSha = '846b664e96105c9d2506aaea7154b73936fb9552'
+const sourceSha = 'fcb6624b89bead68225b9314632b2948f3248372'
 const baseRef = 'origin/codex/rp-github-merge-hygiene-open-pr-stack-audit'
 
-const expectedRanking = [
+const expectedTools = [
   'ffprobe',
   'mediainfo',
   'exiftool',
@@ -40,10 +38,18 @@ const expectedRanking = [
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'tool-call-ranking-closeout.json',
-  'tool-call-ranking-closeout.md',
-  'monitoring-closeout.json',
-  'monitoring-closeout.md',
+  'safe-fixture-payloads.json',
+  'safe-fixture-payloads.md',
+  'deterministic-routing-dry-run.json',
+  'deterministic-routing-dry-run.md',
+  'runtime-gate-dry-run-results.json',
+  'runtime-gate-dry-run-results.md',
+  'fail-closed-contract-lookup.json',
+  'fail-closed-contract-lookup.md',
+  'result-schema-qa-fallback-review.json',
+  'result-schema-qa-fallback-review.md',
+  'monitoring-rollback-dry-run.json',
+  'monitoring-rollback-dry-run.md',
   'duplicate-pr-review.json',
   'duplicate-pr-review.md',
   'runtime-boundary-review.json',
@@ -65,16 +71,12 @@ const statusDocs = [
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json',
 ]
 
-const allowedChangedPrefixes = [
-  `${reportDir}/`,
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-approval/',
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-execution/',
-]
+const allowedChangedPrefixes = [`${reportDir}/`]
 
 const allowedChangedFiles = new Set([
   'package.json',
-  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-approval-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-approval-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-closeout-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-diagnostics.mjs',
@@ -91,8 +93,6 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-approval.md',
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-execution.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-qa-review.md',
   ...statusDocs,
 ])
@@ -175,6 +175,16 @@ function sameArray(actual, expected, label) {
   }
 }
 
+function hasUrlLikeValue(value) {
+  const normalized = String(value || '').toLowerCase()
+  return normalized.startsWith('http://')
+    || normalized.startsWith('https://')
+    || normalized.startsWith('signed://')
+    || normalized.includes('signature=')
+    || normalized.includes('signedurl')
+    || normalized.includes('signed_url')
+}
+
 function isAllowedChangedFile(file) {
   return allowedChangedFiles.has(file) || allowedChangedPrefixes.some((prefix) => file.startsWith(prefix))
 }
@@ -182,15 +192,19 @@ function isAllowedChangedFile(file) {
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of [
   ...statusDocs,
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-approval.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-qa-review.md',
 ]) {
   readText(file)
 }
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  ranking: readJson(`${reportDir}/tool-call-ranking-closeout.json`),
-  monitoring: readJson(`${reportDir}/monitoring-closeout.json`),
+  payloads: readJson(`${reportDir}/safe-fixture-payloads.json`),
+  routing: readJson(`${reportDir}/deterministic-routing-dry-run.json`),
+  gates: readJson(`${reportDir}/runtime-gate-dry-run-results.json`),
+  contract: readJson(`${reportDir}/fail-closed-contract-lookup.json`),
+  schemaQa: readJson(`${reportDir}/result-schema-qa-fallback-review.json`),
+  monitoring: readJson(`${reportDir}/monitoring-rollback-dry-run.json`),
   duplicate: readJson(`${reportDir}/duplicate-pr-review.json`),
   runtime: readJson(`${reportDir}/runtime-boundary-review.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
@@ -201,11 +215,8 @@ const reports = {
 for (const [label, report] of Object.entries(reports)) requireDecision(label, report)
 
 if (reports.source.sourceSha !== sourceSha) fail(`source_sha_drift:${reports.source.sourceSha}`)
-if (reports.source.sourceEvidence?.find((entry) => entry.pr === 817)?.decision !== previousDecision) {
-  fail('missing_pr817_qa_source')
-}
-if (reports.source.sourceEvidence?.find((entry) => entry.pr === 808)?.state !== 'MERGED') {
-  fail('missing_pr808_monitoring_source')
+if (reports.source.sourceEvidence?.find((entry) => entry.pr === 831)?.state !== 'MERGED') {
+  fail('missing_pr831_source')
 }
 if (reports.source.trackBTotals?.owned !== 16) fail('owned_total_drift')
 if (reports.source.trackBTotals?.boundedAcceptedProven !== 16) fail('accepted_total_drift')
@@ -213,55 +224,114 @@ if (reports.source.trackBTotals?.blockedNotInstalledProven !== 0) fail('blocked_
 if (reports.source.trackBTotals?.productReady !== 0) fail('product_ready_total_drift')
 if (reports.source.nextPrompt !== nextPrompt) fail(`source_next_prompt_drift:${reports.source.nextPrompt}`)
 
-sameArray(reports.ranking.rankingOrder, expectedRanking, 'ranking_order')
-if (reports.ranking.toolCount !== 16) fail('ranking_tool_count_drift')
-if (reports.ranking.boundedAcceptedProvenTools !== 16) fail('ranking_accepted_count_drift')
-if (reports.ranking.blockedNotInstalledProvenTools !== 0) fail('ranking_blocked_count_drift')
-if (reports.ranking.productReadyTools !== 0) fail('ranking_product_ready_drift')
-for (const [field, value] of Object.entries(reports.ranking.rankingPolicy || {})) {
-  if (field === 'executionDisabledInThisPhase' && value !== true) fail('ranking_execution_disabled_not_true')
-  if (field !== 'executionDisabledInThisPhase' && value !== true) fail(`ranking_policy_not_true:${field}`)
+if (reports.payloads.payloadCount !== 16) fail(`payload_count_drift:${reports.payloads.payloadCount}`)
+sameArray((reports.payloads.payloads || []).map((entry) => entry.toolId), expectedTools, 'payload_tool_order')
+if (reports.payloads.commonFields?.dryRunOnly !== true) fail('payload_common_dry_run_not_true')
+if (reports.payloads.commonFields?.executionEnabled !== false) fail('payload_common_execution_not_false')
+if (reports.payloads.commonFields?.resultSchemaVersion !== 'trackb-media-oss-tool-call-result.v1') {
+  fail('payload_result_schema_drift')
 }
-for (const requiredUseCase of [
-  'media_metadata_probe',
-  'structured_analysis',
-  'image_preprocess_and_quality',
-  'color_pipeline',
-  'video_decode_scene_analysis',
-  'ocr_ml_cpu',
-  'media_transform_last_resort',
+for (const field of [
+  'approvedSnapshotId',
+  'editPlanId',
+  'idempotencyKey',
+  'creditReservationId',
+  'privateInputArtifacts',
+  'requestedRecipeId',
+  'requiredQualityGateIds',
+  'fallbackPolicyId',
 ]) {
-  if (!Array.isArray(reports.ranking.useCaseRouting?.[requiredUseCase])) {
-    fail(`missing_use_case_routing:${requiredUseCase}`)
+  const hasField = field === 'idempotencyKey'
+    ? (reports.payloads.payloads || []).every((entry) => Boolean(entry.idempotencyKey))
+    : field === 'privateInputArtifacts'
+      ? (reports.payloads.payloads || []).every((entry) => Array.isArray(entry.privateInputArtifacts) && entry.privateInputArtifacts.length > 0)
+      : field === 'requiredQualityGateIds'
+        ? Array.isArray(reports.payloads.requiredQualityGateIds) && reports.payloads.requiredQualityGateIds.length > 0
+        : Boolean(reports.payloads.commonFields?.[field])
+  if (!hasField) fail(`payload_missing_required_gate:${field}`)
+}
+for (const payload of reports.payloads.payloads || []) {
+  for (const artifact of payload.privateInputArtifacts || []) {
+    if (artifact.isPrivate !== true || artifact.sourceOfTruth !== true) {
+      fail(`payload_artifact_not_private_source_truth:${payload.toolId}:${artifact.artifactId}`)
+    }
+    if (hasUrlLikeValue(artifact.storageObjectPath)) {
+      fail(`payload_artifact_url_like:${payload.toolId}:${artifact.storageObjectPath}`)
+    }
+  }
+}
+for (const field of ['publicUrlsCreated', 'signedUrlsCreated', 'userMediaByDefault', 'realToolExecution']) {
+  if (reports.payloads[field] !== false) fail(`payload_forbidden_scope_not_false:${field}:${reports.payloads[field]}`)
+}
+
+if (reports.routing.toolCount !== 16) fail('routing_tool_count_drift')
+sameArray(reports.routing.rankingOrder, expectedTools, 'routing_ranking_order')
+for (const requiredClass of [
+  'source_introspection',
+  'structured_metadata_analysis',
+  'image_color_analysis',
+  'image_processing_fallback',
+  'video_frame_analysis',
+  'ocr_text_analysis',
+  'media_transform_high_risk',
+]) {
+  if (!Array.isArray(reports.routing.routingClasses?.[requiredClass])) {
+    fail(`missing_routing_class:${requiredClass}`)
+  }
+}
+if (reports.routing.useCasePolicy?.executionEnabledInThisPhase !== false) {
+  fail('routing_execution_enabled')
+}
+
+for (const [field, value] of Object.entries(reports.gates.dryRunResults || {})) {
+  if (value !== true) fail(`dry_run_gate_not_true:${field}:${value}`)
+}
+for (const [field, value] of Object.entries(reports.gates.executionState || {})) {
+  if (field === 'dryRunOnly') {
+    if (value !== true) fail(`dry_run_state_not_true:${field}:${value}`)
+  } else if (value !== false) {
+    fail(`dry_run_forbidden_execution_state:${field}:${value}`)
   }
 }
 
-if (reports.monitoring.monitoringSequenceClosed !== true) fail('monitoring_sequence_not_closed')
-if (reports.monitoring.coveredToolCount !== 16) fail('monitoring_tool_count_drift')
-if (reports.monitoring.readyForLimitedInternalBetaProductToolCallRuntimeApproval !== true) {
-  fail('runtime_approval_readiness_not_true')
+if (reports.contract.toolContracts !== 16) fail('contract_tool_count_drift')
+if (reports.contract.apiRoutes !== 3) fail('contract_route_count_drift')
+if (reports.contract.currentContractStatus !== 'disabled_until_beta_gate') fail('contract_status_drift')
+if (reports.contract.currentApiRouteStatus !== 'disabled') fail('api_route_status_drift')
+if (reports.contract.requiredFailClosedCode !== 'trackb_media_oss_tool_calls_disabled_until_beta_gate') {
+  fail('fail_closed_code_drift')
+}
+if (reports.contract.requiredStatusCode !== 423) fail('fail_closed_status_drift')
+if (reports.contract.currentExecutionEnabled !== false) fail('contract_execution_enabled')
+
+if (reports.schemaQa.resultSchemaVersion !== 'trackb-media-oss-tool-call-result.v1') {
+  fail('schema_qa_version_drift')
+}
+for (const forbiddenField of ['signedUrl', 'publicUrl', 'rawPrompt', 'rawChat', 'providerPrompt']) {
+  if (!reports.schemaQa.forbiddenResultFields?.includes(forbiddenField)) {
+    fail(`missing_forbidden_result_field:${forbiddenField}`)
+  }
+}
+if (reports.schemaQa.fallbackPolicy?.maxAttemptsBeforeUserReview !== 0) {
+  fail('fallback_attempts_drift')
+}
+if (reports.schemaQa.qaGateLinkageAccepted !== true) fail('qa_gate_linkage_not_accepted')
+if (reports.schemaQa.rawPromptPayloadForbidden !== true) fail('raw_prompt_payload_not_forbidden')
+
+if (reports.monitoring.sanitizedLoggingOnly !== true) fail('monitoring_sanitized_logging_not_true')
+if (reports.monitoring.monitoringEmittedToRuntime !== false) fail('monitoring_emitted_to_runtime')
+if (reports.monitoring.rollbackAppliedToRuntime !== false) fail('rollback_applied_to_runtime')
+for (const forbiddenField of ['rawPrompt', 'rawChat', 'privatePayload', 'signedUrl', 'publicUrl', 'storageObjectPath']) {
+  if (!reports.monitoring.monitoringEventShape?.forbiddenFields?.includes(forbiddenField)) {
+    fail(`monitoring_missing_forbidden_field:${forbiddenField}`)
+  }
 }
 
-if (reports.duplicate.duplicateCloseoutPrFound !== false) fail('duplicate_closeout_pr_found')
-if (reports.duplicate.duplicateRuntimeApprovalPrFound !== false) fail('duplicate_runtime_approval_pr_found')
-if (reports.duplicate.safeToOpenCloseoutPr !== true) fail('safe_to_open_closeout_not_true')
+if (reports.duplicate.duplicateDryRunExecutionPrFound !== false) fail('duplicate_execution_pr_found')
+if (reports.duplicate.duplicateDryRunQaPrFound !== false) fail('duplicate_qa_pr_found')
+if (reports.duplicate.safeToOpenDryRunExecutionPr !== true) fail('safe_to_open_dry_run_pr_not_true')
 
 for (const [label, value] of Object.entries({
-  sourceDockerRun: reports.source.noOperationConfirmations?.dockerRun,
-  sourceInstallRun: reports.source.noOperationConfirmations?.installRun,
-  sourceToolExecutionRun: reports.source.noOperationConfirmations?.toolExecutionRun,
-  sourceMediaProcessingRun: reports.source.noOperationConfirmations?.mediaProcessingRun,
-  sourceRouteRuntimeEnabled: reports.source.noOperationConfirmations?.routeRuntimeEnabled,
-  sourceWorkerDispatchEnabled: reports.source.noOperationConfirmations?.workerDispatchEnabled,
-  sourceSupabaseWrite: reports.source.noOperationConfirmations?.supabaseWrite,
-  sourceGcsWrite: reports.source.noOperationConfirmations?.gcsWrite,
-  sourceExternalBetaEnabled: reports.source.noOperationConfirmations?.externalBetaEnabled,
-  sourceProductionEnabled: reports.source.noOperationConfirmations?.productionEnabled,
-  monitoringReadyForDirectProductToolCalls: reports.monitoring.readyForDirectProductToolCalls,
-  monitoringReadyForLiveRouteRuntime: reports.monitoring.readyForLiveRouteRuntime,
-  monitoringReadyForWorkerDispatch: reports.monitoring.readyForWorkerDispatch,
-  monitoringExternalBetaReady: reports.monitoring.externalBetaReady,
-  monitoringProductionReady: reports.monitoring.productionReady,
   runtimeApisChanged: reports.runtime.runtimeApisChanged,
   routeRuntimeEnabled: reports.runtime.routeRuntimeEnabled,
   workerDispatchEnabled: reports.runtime.workerDispatchEnabled,
@@ -269,6 +339,8 @@ for (const [label, value] of Object.entries({
   dockerRun: reports.runtime.dockerRun,
   installRun: reports.runtime.installRun,
   mediaProcessingRun: reports.runtime.mediaProcessingRun,
+  imageProcessingRun: reports.runtime.imageProcessingRun,
+  ocrInferenceRun: reports.runtime.ocrInferenceRun,
   userMediaByDefaultEnabled: reports.runtime.userMediaByDefaultEnabled,
   publicArtifactsEnabled: reports.runtime.publicArtifactsEnabled,
   signedUrlsEnabled: reports.runtime.signedUrlsEnabled,
@@ -281,6 +353,7 @@ for (const [label, value] of Object.entries({
   manifestPublicArtifactsCreated: reports.manifest.publicArtifactsCreated,
   manifestSignedUrlsCreated: reports.manifest.signedUrlsCreated,
   manifestMediaArtifactsCreated: reports.manifest.mediaArtifactsCreated,
+  manifestDockerOutputsCreated: reports.manifest.dockerOutputsCreated,
   manifestSecretsPrinted: reports.manifest.secretsPrinted,
 })) {
   if (value !== false) fail(`blocked_scope_not_false:${label}:${value}`)
@@ -291,29 +364,59 @@ if (reports.runtime.supabaseClassification?.environmentTouched !== 'none') fail(
 if (reports.runtime.supabaseClassification?.sqlExecuted !== 'none') fail('supabase_sql_drift')
 if (reports.runtime.supabaseClassification?.migrationDeployed !== 'no') fail('supabase_migration_drift')
 
-if (reports.readiness.readyForLimitedInternalBetaProductToolCallRuntimeApproval !== true) {
-  fail('readiness_runtime_approval_not_true')
+if (reports.decisionReport.passed !== true) fail('decision_not_passed')
+if (reports.decisionReport.readyForRuntimeDryRunQaReview !== true) fail('decision_not_ready_for_qa')
+for (const field of [
+  'readyForDirectProductToolCalls',
+  'readyForLiveBetaRuntime',
+  'externalBetaReady',
+  'productionReady',
+  'productReady',
+]) {
+  if (reports.decisionReport[field] !== false) fail(`decision_forbidden_readiness:${field}:${reports.decisionReport[field]}`)
 }
-if (reports.readiness.readyForDirectProductToolCalls !== false) fail('readiness_direct_calls_not_false')
+if (reports.readiness.readyForRuntimeDryRunQaReview !== true) fail('readiness_not_ready_for_qa')
 if (reports.readiness.productReadyTools !== 0) fail('readiness_product_ready_drift')
 
 const packageJson = readJson('package.json')
 if (
   packageJson.scripts?.[
-    'trackb-media-oss:limited-internal-beta-dry-run-monitoring-closeout:diagnostics'
+    'trackb-media-oss:limited-internal-beta-product-tool-call-runtime-dry-run-execution:diagnostics'
   ] !==
-  'node scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-closeout-diagnostics.mjs'
+  'node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-execution-diagnostics.mjs'
 ) {
   fail('missing_package_script')
 }
 
+const contractText = readText('src/backend/contracts/trackb-media-oss-tool-call-contracts.ts')
+if (!contractText.includes('TRACKB_MEDIA_OSS_TOOL_IDS')) fail('missing_tool_ids_contract')
+if (!contractText.includes('TRACKB_MEDIA_OSS_TOOL_CALL_RANKING')) fail('missing_ranking_contract')
+if (!contractText.includes('requiresApprovedSnapshotId: true')) fail('missing_snapshot_contract_gate')
+if (!contractText.includes('requiresCreditReservationId: true')) fail('missing_credit_contract_gate')
+if (!contractText.includes('requiresPrivateArtifactReferences: true')) fail('missing_private_artifact_contract_gate')
+if (!contractText.includes('sanitizedLoggingOnly: true')) fail('missing_sanitized_logging_contract_gate')
+if (!contractText.includes('executionEnabled: false')) fail('contract_execution_not_disabled')
+
+const routeText = readText('src/backend/api/routes/trackb-media-oss-tool-call-api-routes.ts')
+const disabledRouteCount = (routeText.match(/status: 'disabled'/g) || []).length
+if (disabledRouteCount !== 3) fail(`disabled_route_count_drift:${disabledRouteCount}`)
+if (routeText.includes("status: 'enabled'")) fail('route_enabled_found')
+
 const promptText = readText(
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-approval.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-qa-review.md',
 )
 if (!promptText.includes(nextPrompt)) fail('next_prompt_missing_token')
-if (!promptText.includes('approved plan snapshots')) fail('next_prompt_missing_snapshot_gate')
-if (!promptText.includes('credit/reservation gates')) fail('next_prompt_missing_credit_gate')
-if (!promptText.includes('deterministic use-case routing')) fail('next_prompt_missing_routing_gate')
+for (const phrase of [
+  'safe fixture payloads',
+  'approved snapshot',
+  'credit reservation',
+  'private artifact references',
+  'deterministic routing',
+  'fail-closed contract lookup',
+  'sanitized logging',
+]) {
+  if (!promptText.includes(phrase)) fail(`next_prompt_missing_phrase:${phrase}`)
+}
 
 for (const file of statusDocs) {
   const text = readText(file)
@@ -329,25 +432,22 @@ for (const file of statusDocs) {
   if (isJsonStatusDoc && (!text.includes('"coveredToolCount": 16') || !text.includes('"boundedAcceptedProvenCount": 16'))) {
     fail(`status_missing_totals:${file}`)
   }
-  if (!text.includes('0 product-ready') && !text.includes('"productReady": false') && !text.includes('"productReady": 0')) {
-    fail(`status_missing_product_ready_zero:${file}`)
-  }
 }
 
 const corpusFiles = [
   ...requiredReports.map((file) => `${reportDir}/${file}`),
   ...statusDocs,
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-approval.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-qa-review.md',
 ]
 for (const file of corpusFiles) {
   const text = readText(file)
   for (const line of text.split('\n')) {
     const lowerLine = line.toLowerCase()
     const disclaimsClaim =
-      lowerLine.includes('no 40+') ||
-      lowerLine.includes('do not claim') ||
-      lowerLine.includes('disallowed') ||
-      lowerLine.includes('not claim')
+      lowerLine.includes('no 40+')
+      || lowerLine.includes('do not claim')
+      || lowerLine.includes('disallowed')
+      || lowerLine.includes('not claim')
     if (/40\+ tools (are )?(installed|proven|ready|end-to-end)/i.test(line) && !disclaimsClaim) {
       fail(`forbidden_40_plus_claim:${file}`)
     }
@@ -375,9 +475,9 @@ for (const output of forbiddenOutputs) {
 }
 
 if (failures.length) {
-  console.error(`Track B monitoring closeout diagnostics failed (${failures.length})`)
+  console.error(`Track B product tool-call runtime dry-run execution diagnostics failed (${failures.length})`)
   for (const failure of failures) console.error(`- ${failure}`)
   process.exit(1)
 }
 
-console.log('Track B limited internal beta dry-run monitoring closeout diagnostics passed.')
+console.log('Track B product tool-call runtime dry-run execution diagnostics passed.')

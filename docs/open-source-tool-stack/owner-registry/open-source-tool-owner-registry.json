@@ -271,6 +271,28 @@
         "externalBetaReady": false,
         "productionReady": false,
         "productReady": false
+      },
+      "limitedInternalBetaProductToolCallRuntimeDryRunExecution": {
+        "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_execution_passed_ready_for_runtime_dry_run_qa_review",
+        "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_QA_REVIEW",
+        "coveredToolCount": 16,
+        "boundedAcceptedProvenCount": 16,
+        "blockedNotInstalledProvenCount": 0,
+        "productReadyCount": 0,
+        "safeFixturePayloadsAccepted": true,
+        "approvedSnapshotGateDryRunPassed": true,
+        "creditGateDryRunPassed": true,
+        "privateArtifactPolicyDryRunPassed": true,
+        "deterministicRoutingDryRunPassed": true,
+        "failClosedContractLookupDryRunPassed": true,
+        "resultSchemaQaFallbackDryRunPassed": true,
+        "monitoringRollbackShapeDryRunPassed": true,
+        "readyForRuntimeDryRunQaReview": true,
+        "readyForDirectProductToolCalls": false,
+        "readyForLiveBetaRuntime": false,
+        "externalBetaReady": false,
+        "productionReady": false,
+        "productReady": false
       }
     }
   ],

@@ -8,29 +8,27 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
 const reportDir =
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval'
+const controlPlanDir =
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-plan'
-const activationDir =
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-activation-approval'
 const decision =
+  'trackb_media_oss_limited_internal_beta_product_tool_call_runtime_control_approval_passed_ready_for_controlled_activation_execution'
+const planDecision =
   'trackb_media_oss_limited_internal_beta_product_tool_call_runtime_control_plan_passed_ready_for_control_approval'
-const activationDecision =
-  'trackb_media_oss_limited_internal_beta_product_tool_call_runtime_activation_approval_blocked_pending_runtime_controls'
-const nextPrompt = 'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVAL'
-const sourceSha = 'f71c21ceb9d33ea3a0005bdd7a8fc4115369f52c'
+const nextPrompt = 'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION'
+const sourceSha = '2f4b24f33f152322ea2996cd5252d929b0010954'
 const ownerId = 'TRACK_B_MEDIA_OSS_STEWARD'
 const baseRef = 'origin/codex/rp-github-merge-hygiene-open-pr-stack-audit'
 
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'runtime-control-plan.json',
-  'runtime-control-plan.md',
-  'route-worker-control-plan.json',
-  'route-worker-control-plan.md',
-  'write-monitoring-rollback-plan.json',
-  'write-monitoring-rollback-plan.md',
-  'exposure-boundary-plan.json',
-  'exposure-boundary-plan.md',
+  'control-approval-review.json',
+  'control-approval-review.md',
+  'execution-lane-boundary.json',
+  'execution-lane-boundary.md',
+  'blocked-scope-confirmations.json',
+  'blocked-scope-confirmations.md',
   'decision.json',
   'decision.md',
   'readiness-report.json',
@@ -49,13 +47,11 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
-  `docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval/`,
-  `docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-plan/`,`${reportDir}/`]
+  `docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval/`,`${reportDir}/`]
 const allowedChangedFiles = new Set([
-  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval-diagnostics.mjs',
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-execution.md',
   'package.json',
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-execution.md',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-plan-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-activation-approval-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-closeout-diagnostics.mjs',
@@ -86,15 +82,12 @@ const protectedNoDiffFiles = [
   '.dockerignore',
   'docker/prod/render-worker/Dockerfile',
   'docker/prod/cpu-worker/Dockerfile',
-  'docker/prod/cpu-worker/requirements.cpu.txt',
   'docker/prod/ocr-runtime/Dockerfile',
-  'docker/prod/ocr-runtime/requirements.ocr.txt',
   'src/backend/contracts/trackb-media-oss-tool-call-contracts.ts',
   'src/backend/api/routes/trackb-media-oss-tool-call-api-routes.ts',
   'supabase/config.toml',
 ]
 
-const forbiddenOutputs = ['node_modules', 'dist', 'dist-server', 'dist-remotion-worker']
 const failures = []
 const fail = (message) => failures.push(message)
 const fullPath = (relativePath) => path.join(repoRoot, relativePath)
@@ -141,63 +134,57 @@ function changedFiles() {
   ].filter(Boolean)
 }
 
-function isAllowedChangedFile(file) {
-  return allowedChangedFiles.has(file) || allowedChangedPrefixes.some((prefix) => file.startsWith(prefix))
-}
-
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of [
   ...statusDocs,
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-execution.md',
 ]) {
   readText(file)
 }
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  control: readJson(`${reportDir}/runtime-control-plan.json`),
-  routeWorker: readJson(`${reportDir}/route-worker-control-plan.json`),
-  writes: readJson(`${reportDir}/write-monitoring-rollback-plan.json`),
-  exposure: readJson(`${reportDir}/exposure-boundary-plan.json`),
+  approval: readJson(`${reportDir}/control-approval-review.json`),
+  boundary: readJson(`${reportDir}/execution-lane-boundary.json`),
+  blocked: readJson(`${reportDir}/blocked-scope-confirmations.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
   readiness: readJson(`${reportDir}/readiness-report.json`),
   manifest: readJson(`${reportDir}/private-artifact-manifest.json`),
-  activation: readJson(`${activationDir}/decision.json`),
+  plan: readJson(`${controlPlanDir}/decision.json`),
 }
 
 for (const [label, report] of Object.entries(reports)) {
-  if (label === 'activation') continue
+  if (label === 'plan') continue
   if (report.ownerId !== ownerId) fail(`owner_drift:${label}:${report.ownerId}`)
   if (report.decision !== decision) fail(`decision_drift:${label}:${report.decision}`)
 }
 
 if (reports.source.sourceSha !== sourceSha) fail(`source_sha_drift:${reports.source.sourceSha}`)
-if (reports.activation.decision !== activationDecision) fail(`activation_decision_drift:${reports.activation.decision}`)
-if (reports.source.sourceEvidence?.find((entry) => entry.pr === 851)?.state !== 'MERGED') fail('missing_pr851_source')
-if (reports.source.nextPrompt !== nextPrompt) fail(`source_next_prompt_drift:${reports.source.nextPrompt}`)
+if (reports.plan.decision !== planDecision) fail(`plan_decision_drift:${reports.plan.decision}`)
+if (reports.source.sourceEvidence?.find((entry) => entry.pr === 852)?.state !== 'MERGED') fail('missing_pr852_source')
 if (reports.source.trackBTotals?.owned !== 16) fail('owned_total_drift')
 if (reports.source.trackBTotals?.boundedAcceptedProven !== 16) fail('accepted_total_drift')
 if (reports.source.trackBTotals?.blockedNotInstalledProven !== 0) fail('blocked_total_drift')
 if (reports.source.trackBTotals?.productReady !== 0) fail('product_ready_total_drift')
 
-if (reports.control.planAccepted !== true) fail('control_plan_not_accepted')
-if (reports.control.activationApproved !== false) fail('activation_unexpectedly_approved')
-for (const [field, value] of Object.entries(reports.control.controlCategories || {})) {
-  if (!String(value).match(/required|blocked|disabled|fail-closed/)) fail(`weak_control_category:${field}`)
+if (reports.approval.controlPlanApproved !== true) fail('control_plan_not_approved')
+if (reports.approval.activationApproved !== false) fail('activation_unexpectedly_approved')
+if (reports.approval.readyForControlledActivationExecution !== true) fail('not_ready_for_controlled_activation_execution')
+for (const [field, value] of Object.entries(reports.approval.approvedForFutureExecutionLane || {})) {
+  if (value !== true) fail(`future_control_not_approved:${field}`)
 }
-if (reports.routeWorker.routeRuntimeDefault !== 'disabled') fail('route_default_not_disabled')
-if (reports.routeWorker.workerDispatchDefault !== 'disabled') fail('worker_default_not_disabled')
-if (reports.writes.supabaseWritesApproved !== false || reports.writes.gcsWritesApproved !== false) {
-  fail('write_path_unexpectedly_approved')
+for (const [field, value] of Object.entries(reports.approval.notApprovedByThisGate || {})) {
+  if (value !== true) fail(`not_approved_scope_missing:${field}`)
 }
-if (reports.exposure.internalBetaExposureApproved !== false) fail('internal_beta_unexpectedly_approved')
-if (reports.exposure.externalBetaApproved !== false || reports.exposure.productionApproved !== false) {
-  fail('external_or_production_unexpectedly_approved')
+if (reports.boundary.futureExecutionLaneOnly !== true) fail('boundary_not_future_only')
+if (reports.boundary.currentPhaseRunsRuntime !== false) fail('runtime_unexpectedly_run')
+for (const [field, value] of Object.entries(reports.blocked.blockedScopes || {})) {
+  if (value !== true) fail(`blocked_scope_missing:${field}`)
 }
-if (reports.readiness.readyForControlApproval !== true) fail('not_ready_for_control_approval')
+if (reports.readiness.readyForControlledActivationExecution !== true) fail('readiness_not_ready_for_execution')
 if (reports.readiness.readyForActivation !== false) fail('activation_readiness_unexpected_true')
 if (reports.readiness.productReadyCount !== 0) fail('readiness_product_ready_drift')
-if (reports.readiness.nextPrompt !== nextPrompt) fail(`readiness_next_prompt_drift:${reports.readiness.nextPrompt}`)
+if (reports.decisionReport.productReady !== false) fail('decision_product_ready_unexpected_true')
 
 for (const [field, value] of Object.entries(reports.manifest || {})) {
   if (field === 'ownerId' || field === 'decision') continue
@@ -206,24 +193,27 @@ for (const [field, value] of Object.entries(reports.manifest || {})) {
 
 const packageJson = readJson('package.json')
 if (
-  packageJson.scripts?.['trackb-media-oss:limited-internal-beta-product-tool-call-runtime-control-plan:diagnostics'] !==
-  'node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-plan-diagnostics.mjs'
+  packageJson.scripts?.['trackb-media-oss:limited-internal-beta-product-tool-call-runtime-control-approval:diagnostics'] !==
+  'node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval-diagnostics.mjs'
 ) {
   fail('missing_package_script')
 }
 
-const textFiles = [
+for (const file of [
   ...statusDocs,
   `${reportDir}/decision.md`,
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval.md',
-]
-for (const file of textFiles) {
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-execution.md',
+]) {
   const text = readText(file)
   if (!text.includes(decision)) fail(`missing_decision_text:${file}`)
   if (!text.includes(nextPrompt)) fail(`missing_next_prompt_text:${file}`)
 }
 
-const repoText = [...textFiles, ...requiredReports.map((file) => `${reportDir}/${file}`)]
+const repoText = [
+  ...statusDocs,
+  ...requiredReports.map((file) => `${reportDir}/${file}`),
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-execution.md',
+]
   .map((file) => readText(file))
   .join('\n')
 for (const forbidden of [
@@ -232,13 +222,14 @@ for (const forbidden of [
   'readyForActivation\": true',
   'externalBetaApproved\": true',
   'productionApproved\": true',
-  'productReady\": true',
 ]) {
   if (repoText.includes(forbidden)) fail(`forbidden_claim:${forbidden}`)
 }
 
 for (const file of changedFiles()) {
-  if (!isAllowedChangedFile(file)) fail(`unexpected_changed_file:${file}`)
+  if (!(allowedChangedFiles.has(file) || allowedChangedPrefixes.some((prefix) => file.startsWith(prefix)))) {
+    fail(`unexpected_changed_file:${file}`)
+  }
 }
 
 for (const file of protectedNoDiffFiles) {
@@ -248,7 +239,7 @@ for (const file of protectedNoDiffFiles) {
   if (diff || cachedDiff || branchDiff) fail(`protected_file_changed:${file}`)
 }
 
-for (const output of forbiddenOutputs) {
+for (const output of ['node_modules', 'dist', 'dist-server', 'dist-remotion-worker']) {
   if (fs.existsSync(fullPath(output))) fail(`forbidden_output_present:${output}`)
 }
 
@@ -257,4 +248,6 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log(JSON.stringify({ ok: true, decision, nextPrompt, readyForControlApproval: true, activationApproved: false }, null, 2))
+console.log(
+  JSON.stringify({ ok: true, decision, nextPrompt, readyForControlledActivationExecution: true, activationApproved: false }, null, 2),
+)

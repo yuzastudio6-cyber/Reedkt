@@ -306,6 +306,18 @@ No Google Cloud API call, Cloud Run service/job creation, IAM mutation, Secret M
 
 Next recommended step: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1`.
 
+## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1` records decision `blocked_pending_named_supabase_target_rls_storage_validation` and execution `completed_docs_only_supabase_target_rls_storage_validation_review_no_remote_execution`.
+
+The runtime config still names only Supabase reference names. Remote Supabase target is `not_named`, Supabase target project remains `source_reference_names_recorded_no_remote_target_selected`, RLS validation is `not_run`, storage validation is `not_run`, and service-role runtime remains `blocked_pending_named_supabase_target_rls_storage_validation`.
+
+Readiness is `blocked_pending_named_non_production_supabase_target_and_guarded_remote_validation`. Internal beta end-to-end status is `not_ready_pending_supabase_target_rls_storage_and_runtime_implementation`. Product-ready end-to-end local OSS tools remains `0`.
+
+No remote Supabase mutation, SQL execution, migration execution, RLS policy apply, storage bucket/object access, service-role secret payload access, service-role route execution, signed URL creation, public artifact creation, Google Cloud API call, worker execution, provider/model call, render/export, deployment, or internal beta unlock is enabled by this packet.
+
+Next recommended step: `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-INPUT-1`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

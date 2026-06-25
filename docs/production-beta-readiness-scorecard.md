@@ -462,3 +462,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: future handoff records expose production tool IDs, worker types, runtime targets, ranked planning tools, blockers, and next proof milestones for all 21 tools and all 12 product-facing capabilities.
 - GPU routing: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background` remain GPU-runtime targeted, not CPU defaults.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Tool Call Plan Evaluator
+
+- Decision: `ai_graphics_tool_call_plan_evaluator_prepared_with_execution_blocks`.
+- Scope: server-only evaluator converts requested AI graphics capabilities into ranked planning selections backed by the handoff contract and production registry IDs.
+- Result: future Tool Route / Worker lanes can request a capability and receive selected tools, production tool IDs, worker types, runtime targets, blockers, and next milestones while execution remains blocked.
+- GPU routing: all eight GPU/model tools remain GPU-runtime targeted and are never converted to CPU defaults by the evaluator.
+- Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

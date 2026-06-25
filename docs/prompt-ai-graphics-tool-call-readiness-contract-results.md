@@ -46,6 +46,12 @@ Latest observed PR state after handoff-contract completion: [#862](https://githu
   - `docs/tool-intelligence/ai-graphics/tool-call-handoff-contract.json`
   - `ai-graphics:tool-call-handoff:diagnostics`
 - Handoff result: all 21 tools and all 12 product-facing capabilities are connected to future Tool Route / Worker handoff metadata with production tool IDs, worker types, runtime targets, ranked planning tools, blockers, and next proof milestones. Execution remains blocked.
+- Added server-only plan evaluator:
+  - `server/tool-registry/ai-graphics-tool-call-plan-evaluator.ts`
+  - `docs/tool-intelligence/ai-graphics/tool-call-plan-evaluator.md`
+  - `docs/tool-intelligence/ai-graphics/tool-call-plan-evaluator.json`
+  - `ai-graphics:tool-call-plan-evaluator:diagnostics`
+- Evaluator result: a future Tool Route can request a product-facing AI graphics capability and receive ranked planning tools, production tool IDs, worker types, runtime targets, blockers, eliminated requested tools, and missing execution gates. Execution requests still return blocked decisions until approved plan, credit, artifact, Tool Route, Worker, and runtime proof gates pass.
 
 ## Runtime State
 

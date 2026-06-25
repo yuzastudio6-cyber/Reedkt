@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssInternalBetaFixtureGateReview.runtimeBoundary.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_internal_beta_fixture_gate_review_passed_ready_for_controlled_internal_beta_fixture_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "toolsExecuted": false,
+  "dockerRun": false,
+  "workerDispatchRun": false,
+  "mediaProcessingRun": false,
+  "imageProcessingRun": false,
+  "ocrInferenceRun": false,
+  "supabaseWrites": false,
+  "gcsUploads": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "liveBetaRuntimeApproved": false,
+  "productionApproved": false,
+  "productReadyApproved": false
+}

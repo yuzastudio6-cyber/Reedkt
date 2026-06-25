@@ -110,6 +110,13 @@
         "workerDispatchEnabled": false,
         "readyForLiveBetaRuntime": false,
         "productReady": false
+      },
+      "internalBetaFixtureGateReview": {
+        "decision": "trackb_media_oss_internal_beta_fixture_gate_review_passed_ready_for_controlled_internal_beta_fixture_execution",
+        "nextPrompt": "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION",
+        "readyForControlledInternalBetaFixtureExecution": true,
+        "readyForLiveBetaRuntime": false,
+        "productReady": false
       }
     }
   ],

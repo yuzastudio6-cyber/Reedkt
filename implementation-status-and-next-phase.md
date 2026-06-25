@@ -394,9 +394,9 @@ Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
 
 Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`.
 
-Observed confirmation: `absent_or_not_true`.
+Observed confirmation: `present_true`.
 
-Current run status: `not_run_confirmation_absent`.
+Current run status: `blocked_missing_supabase_access_token_for_readonly_target_identity`.
 
 The runner `npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed` now fails closed when confirmation or safe credential context is absent. When explicitly confirmed, it may run read-only Supabase target identity and public/storage advisor lint checks, writing sanitized reports only under `/tmp`.
 

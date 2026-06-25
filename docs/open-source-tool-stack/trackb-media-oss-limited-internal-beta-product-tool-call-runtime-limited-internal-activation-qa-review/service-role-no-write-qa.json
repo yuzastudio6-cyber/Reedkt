@@ -1,0 +1,65 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_qa_passed_ready_for_limited_internal_activation_closeout",
+  "sourceSha": "8fcf0be79ebabc4f4a8d7b925f117a4bdbc32653",
+  "sourceEvidence": [
+    {
+      "pr": 883,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_execution_passed_ready_for_limited_internal_activation_qa_review",
+      "mergeCommit": "8fcf0be79ebabc4f4a8d7b925f117a4bdbc32653",
+      "head": "4bbd67114e08d406ff951b4e29fbb585fb8cfe36"
+    },
+    {
+      "pr": 877,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_approval_passed_ready_for_limited_internal_activation_execution"
+    },
+    {
+      "pr": 872,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_closeout_passed_ready_for_limited_internal_activation_approval"
+    },
+    {
+      "pr": 808,
+      "state": "MERGED",
+      "role": "dry-run monitoring packet source evidence"
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_CLOSEOUT",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "serviceRoleNoWriteQa": {
+    "serviceRoleBoundaryAccepted": true,
+    "serviceRoleUsedInThisPhase": false,
+    "supabaseWritesAccepted": false,
+    "gcsWritesAccepted": false,
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "noWritePolicyAcceptedForCloseout": true
+  },
+  "boundary": {
+    "liveRouteRuntimeAcceptedForProduct": false,
+    "workerDispatchAcceptedForProduct": false,
+    "realToolExecutionAccepted": false,
+    "realMediaProcessingAccepted": false,
+    "supabaseWritesAccepted": false,
+    "gcsWritesAccepted": false,
+    "userMediaByDefaultAccepted": false,
+    "publicArtifactsAccepted": false,
+    "signedUrlsAccepted": false,
+    "externalBetaAccepted": false,
+    "productionAccepted": false,
+    "productReadyAccepted": false
+  }
+}

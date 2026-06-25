@@ -18,6 +18,9 @@ create table if not exists public.credit_estimates (
   created_at timestamptz not null default now()
 );
 
+alter table public.credit_estimates
+  add column if not exists edit_plan_version_id uuid references public.edit_plan_versions(id) on delete cascade;
+
 create table if not exists public.credit_estimate_items (
   id uuid primary key default gen_random_uuid(),
   credit_estimate_id uuid not null references public.credit_estimates(id) on delete cascade,
@@ -43,6 +46,9 @@ create table if not exists public.credit_reservations (
   updated_at timestamptz not null default now()
 );
 
+alter table public.credit_reservations
+  add column if not exists approved_plan_snapshot_id uuid;
+
 create table if not exists public.credit_ledger_entries (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
@@ -56,6 +62,9 @@ create table if not exists public.credit_ledger_entries (
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+alter table public.credit_ledger_entries
+  add column if not exists approved_plan_snapshot_id uuid;
 
 create table if not exists public.refund_records (
   id uuid primary key default gen_random_uuid(),

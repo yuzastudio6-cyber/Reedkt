@@ -18,6 +18,9 @@ create table if not exists public.generation_requests (
   updated_at timestamptz not null default now()
 );
 
+alter table public.generation_requests
+  add column if not exists approved_plan_snapshot_id uuid references public.approved_plan_snapshots(id) on delete restrict;
+
 create table if not exists public.generation_events (
   id uuid primary key default gen_random_uuid(),
   generation_request_id uuid not null references public.generation_requests(id) on delete cascade,
@@ -53,6 +56,9 @@ create table if not exists public.generated_asset_versions (
   status text not null default 'ready',
   created_at timestamptz not null default now()
 );
+
+alter table public.generated_asset_versions
+  add column if not exists version integer;
 
 create table if not exists public.editing_jobs (
   id uuid primary key default gen_random_uuid(),

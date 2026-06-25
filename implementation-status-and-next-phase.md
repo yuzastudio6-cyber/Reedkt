@@ -74,7 +74,7 @@ No real timing/audio/transcript/media analysis, provider execution, rendering, b
 
 ## Current Recommendation
 
-Start with `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION` if the next priority is reliable project history, approved plan persistence, and Supabase visibility. Start with `RP-BACKEND-01` only after local Supabase migration validation proves the static migration draft and preserves the current rule: workers execute approved snapshots, not raw chat.
+Start with `RP-BACKEND-01-INTERNAL-BETA-SERVICE-ROLE-API-CONTRACTS` if the next priority is a narrow internal beta lane. RP-DATA-04 validated the local Supabase migration chain and preserved the current rule: workers execute approved snapshots, not raw chat.
 
 ## ReEditPro Internal Beta Readiness 1
 
@@ -109,6 +109,16 @@ Next recommended step: `RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATIO
 The data foundation is `static_migration_draft_ready_not_applied`: one repository migration draft was created at `supabase/migrations/20260625031135_rp_data_03_internal_beta_static_gap_contract.sql`, adding artifact manifest coverage, explicit Data API grants, RLS, and backend/service-role ownership comments for the internal beta data lane. No SQL ran, no Supabase environment was touched, no migration was deployed, and no bucket was created.
 
 Next recommended step: `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION`. Internal beta end-to-end remains `not_ready` until guarded local/staging validation, backend service-role APIs, credit gate, worker queue, private storage, render worker, QA, and cleanup gates pass.
+
+## RP-DATA-04 Guarded Local Supabase Migration Validation
+
+`RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION` records decision `completed_guarded_local_supabase_migration_validation` and execution `completed_local_only_supabase_db_reset_no_remote_execution`.
+
+The data foundation is `local_migration_validation_passed`: the Supabase migration chain resets locally through `supabase/migrations/20260625031135_rp_data_03_internal_beta_static_gap_contract.sql` on isolated RP-DATA-04 ports with `auto_expose_new_tables = false`. Local metadata checks confirmed artifact manifest tables, RLS, project-member select policies, authenticated `SELECT`-only artifact grants, service-role artifact mutation grants, private local buckets, and migration version `20260625031135`.
+
+Internal beta end-to-end remains `not_ready` until backend service-role APIs, credit gate, worker queue, private artifact access routes, render worker, QA, and cleanup gates pass.
+
+Next recommended step: `RP-BACKEND-01-INTERNAL-BETA-SERVICE-ROLE-API-CONTRACTS`.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

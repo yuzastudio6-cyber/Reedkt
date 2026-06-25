@@ -15,12 +15,15 @@ create table if not exists public.qa_reports (
   created_at timestamptz not null default now()
 );
 
+alter table public.qa_reports
+  add column if not exists approved_plan_snapshot_id uuid references public.approved_plan_snapshots(id) on delete set null;
+
 create table if not exists public.qa_check_results (
   id uuid primary key default gen_random_uuid(),
   qa_report_id uuid not null references public.qa_reports(id) on delete cascade,
   category text,
   label text,
-  check text,
+  check_name text,
   status text,
   severity text,
   fallback_actions_json jsonb not null default '[]'::jsonb,
@@ -53,6 +56,9 @@ create table if not exists public.final_exports (
   status text not null default 'planned',
   created_at timestamptz not null default now()
 );
+
+alter table public.final_exports
+  add column if not exists approved_plan_snapshot_id uuid references public.approved_plan_snapshots(id) on delete restrict;
 
 create table if not exists public.audit_events (
   id uuid primary key default gen_random_uuid(),

@@ -137,4 +137,14 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 - Depends on: RP-DATA-04 core/project/session/media/plan/credit/job/QA tables, RP-E2E-READY-01 runtime readiness tables, and existing project membership RLS helpers.
 - Creates: `artifact_manifests`, `artifact_manifest_items`, RLS policies for project-member reads, explicit authenticated Data API grants, service-role grants for backend/worker mutation, and backend-only table comments.
 - Does not create: remote Supabase execution, live storage buckets, signed URLs, deployed backend handlers, service-role credentials, worker execution, provider/model calls, render execution, Stripe, secret reads, real uploads, or production migration execution.
-- Notes: This migration is a repository static draft only until `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION` names and validates a local-only target.
+- Notes: This migration has passed local-only reset validation in `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION`. It remains blocked from staging/production until backend API/RLS tests and owner approval.
+
+## 16. RP-DATA-04 Guarded Local Supabase Migration Validation
+
+- File: no new migration file.
+- Purpose: Adds local Supabase CLI config and compatibility repairs so the full migration chain resets locally through RP-DATA-03.
+- Depends on: RP-DATA-03 static migration draft and the existing migration chain.
+- Creates: local validation docs/results, `supabase/config.toml`, and static compatibility repairs to existing migrations.
+- Validates: `supabase db reset --local --no-seed`, artifact manifest tables, RLS, authenticated `SELECT`-only artifact grants, service-role artifact mutation grants, private local buckets, and migration version `20260625031135`.
+- Does not create: remote Supabase execution, staging/production migration, service-role backend handlers, signed URL routes, worker execution, provider/model calls, render execution, Stripe, secret reads, real uploads, public artifacts, external beta, production, or final delivery.
+- Next migration: none until backend API/RLS test contracts require additional schema changes.

@@ -201,6 +201,16 @@ from authenticated;
 revoke all on table
   public.artifact_manifests,
   public.artifact_manifest_items
+from authenticated;
+
+grant select on table
+  public.artifact_manifests,
+  public.artifact_manifest_items
+to authenticated;
+
+revoke all on table
+  public.artifact_manifests,
+  public.artifact_manifest_items
 from public, anon;
 
 grant select, insert, update, delete on table

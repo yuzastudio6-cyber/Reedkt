@@ -67,6 +67,20 @@ Next Supabase action: `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION`.
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## RP-DATA-04 Guarded Local Supabase Migration Validation
+
+`RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION` records decision `completed_guarded_local_supabase_migration_validation` and execution `completed_local_only_supabase_db_reset_no_remote_execution`.
+
+Internal beta data foundation status: `local_migration_validation_passed`. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Supabase update required: `future_backend_api_and_rls_test_required`. Supabase update status: `local_validation_passed_not_remote`. Supabase environment touched: `local_supabase_db_only`. SQL executed: `local_only_supabase_db_reset_no_seed`. Migration deployed: `local_only`. Remote migration deployed: `no`. Storage buckets created: `local_only_private_buckets`.
+
+Local validation confirmed the migration chain resets through RP-DATA-03, artifact manifests exist with RLS, authenticated artifact grants are `SELECT` only, service-role artifact mutation grants remain backend-owned, private local buckets exist, and migration version `20260625031135` is recorded.
+
+Next Supabase action: `RP-BACKEND-01-INTERNAL-BETA-SERVICE-ROLE-API-CONTRACTS`.
+
+External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

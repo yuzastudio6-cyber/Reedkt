@@ -93,7 +93,12 @@ for (const key of [
   assert(review.reviewResult[key] === false, `reviewResult.${key} must remain false`)
 }
 
-assert(!fs.existsSync(path.join(root, plannedPath)), 'planned evaluator source must not exist in owner review')
+const gate2oSourceResultExists = fs.existsSync(path.join(root, 'docs/sound-runtime-media-gate-2o-actual-route-readiness-evaluator-source-result.md'))
+if (gate2oSourceResultExists) {
+  assert(fs.existsSync(path.join(root, plannedPath)), 'planned evaluator source should exist after Gate 2O source creation')
+} else {
+  assert(!fs.existsSync(path.join(root, plannedPath)), 'planned evaluator source must not exist in owner review')
+}
 assert(acceptance.acceptedSourceDecision === gate2nDecision, 'accepted source decision mismatch')
 assert(acceptance.acceptedForFutureActualSourceCreationOnly === true, 'future actual source only missing')
 assert(acceptance.acceptedEvaluatorSourcePlan.futureEvaluatorSourcePath === plannedPath, 'acceptance path mismatch')

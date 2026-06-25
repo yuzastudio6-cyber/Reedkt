@@ -1,0 +1,23 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_control_plan_passed_ready_for_control_approval",
+  "routeRuntimeDefault": "disabled",
+  "workerDispatchDefault": "disabled",
+  "requiredRouteControls": [
+    "approved snapshot id",
+    "approved edit plan id",
+    "credit reservation id",
+    "idempotency key",
+    "tool contract id",
+    "dry-run to live activation flag",
+    "per-tool kill switch"
+  ],
+  "requiredWorkerControls": [
+    "per-tool allowlist",
+    "private artifact input policy",
+    "output schema validation",
+    "QA fallback link",
+    "rollback record",
+    "sanitized logs only"
+  ]
+}

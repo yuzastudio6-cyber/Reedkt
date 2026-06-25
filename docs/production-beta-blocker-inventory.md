@@ -39,6 +39,20 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next safe action remains the confirmed Supabase target RLS/storage validation run. Next milestone after target validation and a separately approved staging SQL context: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION`.
 
+## SUPABASE-WORKER-RUNTIME Transactional RPC 4R External Staging SQL Gate
+
+`SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION` records decision `blocked_pending_confirmed_target_validation_before_external_staging_sql_execution` and execution `completed_docs_only_external_staging_sql_gate_no_sql_execution`.
+
+Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`. Approved SQL execution in this phase: false.
+
+Supabase update status: `blocked_sql_not_executed`. Supabase environment touched: `none`. SQL executed: `none`. Migration deployed: `no`. readbackStatus: `not_run`. Secret Manager payload printed: `false`. production touched: `false`. Internal beta unlocked: `false`. trackAInternalBetaUnlocked: `false`.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_guarded_staging_sql_execution`. WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_guarded_staging_sql_execution`. TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_transactional_contract`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_transactional_contract`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe action: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 ## Track A GPAC/MP4Box Controlled Synthetic Media Command QA
 
 `TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1` records decision `tracka_gpac_mp4box_controlled_synthetic_media_command_qa_passed_ready_for_worker_contract_review`.

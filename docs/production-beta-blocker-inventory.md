@@ -307,6 +307,48 @@ Remote Supabase mutation, SQL execution, migration execution, RLS policy apply, 
 
 Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-INPUT-1`.
 
+## RP-INTERNAL-BETA Supabase Target Owner Input 1
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-INPUT-1` records decision `blocked_pending_named_supabase_target_owner_input` and execution `completed_docs_only_supabase_target_owner_input_review_no_remote_execution`.
+
+Owner-approved non-production Supabase project ref: `not_present_in_source`.
+
+Target environment class: `not_approved`.
+
+Remote validation approval: `not_approved`.
+
+SQL/advisor/storage readback approval: `not_approved`.
+
+Rollback/cleanup boundary: `not_approved`.
+
+Service-role secret payload access: `forbidden`.
+
+Frontend service-role credential exposure: `forbidden`.
+
+Public bucket/artifact policy: `blocked`.
+
+Remote Supabase target: `not_named`.
+
+Supabase target project: `source_reference_names_recorded_no_remote_target_selected`.
+
+RLS validation: `not_run`.
+
+Storage validation: `not_run`.
+
+Service-role runtime: `blocked_pending_named_supabase_target_owner_input`.
+
+Readiness: `blocked_pending_owner_supabase_target_input`.
+
+Internal beta end-to-end status: `not_ready_pending_named_supabase_target_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`.
+
+Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Historical activation-era Supabase references are context only and are not adopted as the current internal-beta target without explicit owner approval.
+
+Remote Supabase mutation, SQL execution, migration execution, RLS policy apply, storage bucket/object access, service-role secret payload access, service-role route execution, frontend service-role credential exposure, signed URL creation, public artifact creation, Google Cloud API calls, worker execution, provider/model calls, render/export, deployment, internal beta unlock, external beta unlock, production unlock, and final delivery/export remain blocked.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-DECISION-1`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

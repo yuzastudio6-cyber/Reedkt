@@ -11,6 +11,18 @@ Active blockers remain:
 - Supabase production writes
 - model orchestration runtime calls
 
+## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Confirmed Runner
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_confirmed_validation_runner_fail_closed_without_remote_execution` and execution `completed_runner_scaffold_no_remote_execution`.
+
+Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`. Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`. Observed confirmation: `absent_or_not_true`. Current run status: `not_run_confirmation_absent`.
+
+Remote Supabase mutation: `false`. SQL mutation: `false`. Migration apply: `false`. Storage bucket creation: `false`. Storage object creation: `false`. Storage object read: `false`. Service-role secret payload access: `false`. Frontend service-role credential exposure: `false`. Internal beta unlock: `false`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe action is a confirmed read-only run of `npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed` with safe credential context. Next milestone after a passing confirmed run: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`.
+
 ## Track A GPAC/MP4Box Controlled Synthetic Media Command QA
 
 `TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1` records decision `tracka_gpac_mp4box_controlled_synthetic_media_command_qa_passed_ready_for_worker_contract_review`.

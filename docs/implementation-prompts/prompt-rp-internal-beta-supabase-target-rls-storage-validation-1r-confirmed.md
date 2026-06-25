@@ -34,3 +34,16 @@ Forbidden:
 Expected blocker if confirmation or safe credentials are absent:
 
 `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation`
+
+Preferred runner:
+
+```bash
+npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed
+```
+
+Additional safe credential context for a complete read-only run:
+
+- `SUPABASE_ACCESS_TOKEN` for target identity through `supabase projects list --output json`;
+- `REEDITPRO_SUPABASE_READONLY_DB_URL` for `supabase db lint --db-url [redacted] --schema public,storage --level warning --fail-on none`.
+
+The runner must isolate Supabase CLI home under `/tmp`, redact secret-like values from reports, and write only sanitized local evidence under `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/<runId>/`.

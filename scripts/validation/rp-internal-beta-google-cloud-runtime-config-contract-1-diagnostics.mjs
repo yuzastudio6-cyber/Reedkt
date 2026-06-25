@@ -37,7 +37,30 @@ const followOnSupabaseTargetRlsStorageValidationFiles = [
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...followOnSupabaseTargetRlsStorageValidationFiles, 'package.json'])
+const followOnSupabaseTargetOwnerDecisionFiles = [
+  'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
+]
+
+const followOnSupabaseTargetRlsStorageValidation1rConfirmedFiles = [
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.md',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([
+  ...requiredFiles,
+  ...followOnSupabaseTargetRlsStorageValidationFiles,
+  ...followOnSupabaseTargetOwnerDecisionFiles,
+  ...followOnSupabaseTargetRlsStorageValidation1rConfirmedFiles,
+  'package.json',
+])
 
 const requiredText = [
   packet,

@@ -24,12 +24,21 @@ const relatedFiles = [
   'docs/internal-beta/rp-internal-beta-supabase-target-owner-decision-1/supabase-target-owner-decision-record.json',
   'docs/activation-phase-rp-internal-beta-supabase-target-owner-decision-1-results.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-results.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-owner-input-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-google-cloud-runtime-config-contract-1-diagnostics.mjs',
 ]
 
 const requiredFiles = [...packetFiles, ...relatedFiles]

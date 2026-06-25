@@ -47,8 +47,26 @@ const followOnSupabaseTargetRlsStorageValidation1rFiles = [
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
 ]
 
+const followOnSupabaseTargetRlsStorageValidation1rConfirmedFiles = [
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-results.md',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-google-cloud-runtime-config-contract-1-diagnostics.mjs',
+]
+
 const requiredFiles = [...packetFiles, ...relatedFiles]
-const allowedChangedFiles = new Set([...packetFiles, ...relatedFiles, ...followOnSupabaseTargetRlsStorageValidation1rFiles, 'package.json'])
+const allowedChangedFiles = new Set([
+  ...packetFiles,
+  ...relatedFiles,
+  ...followOnSupabaseTargetRlsStorageValidation1rFiles,
+  ...followOnSupabaseTargetRlsStorageValidation1rConfirmedFiles,
+  'package.json',
+])
 
 const requiredText = [
   packet,

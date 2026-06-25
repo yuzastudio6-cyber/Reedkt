@@ -242,6 +242,7 @@ for (const key of scriptDrift) {
     key !== "ai-graphics:satori-font-runtime-proof:diagnostics" &&
     key !== "ai-graphics:gpu-model-install-build-targets:diagnostics" &&
     key !== "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics" &&
+    key !== "ai-graphics:tool-call-readiness:diagnostics" &&
     key !== "ai-graphics:21-tool-runtime-install-readiness:diagnostics" &&
     key !== "ai-graphics:gpu-import-readiness:diagnostics" &&
     key !== "ai-graphics:node-runtime-proof" &&
@@ -252,7 +253,8 @@ for (const key of scriptDrift) {
     key !== "ai-graphics:satori-font-runtime-proof" &&
     key !== "ai-graphics:satori-font-runtime-proof:diagnostics" &&
     key !== "ai-graphics:gpu-model-install-build-targets:diagnostics" &&
-    key !== "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics"
+    key !== "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics" &&
+    key !== "ai-graphics:tool-call-readiness:diagnostics"
   ) {
     fail("Unexpected script drift: " + key);
   }

@@ -44,7 +44,9 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:browser-runtime-proof:diagnostics",
   "ai-graphics:satori-font-runtime-proof",
   "ai-graphics:satori-font-runtime-proof:diagnostics",
-  "ai-graphics:gpu-model-install-build-targets:diagnostics"
+  "ai-graphics:gpu-model-install-build-targets:diagnostics",
+  "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics",
+  "ai-graphics:tool-call-readiness:diagnostics"
 ]);
 const failures = [];
 const fail = (message) => failures.push(message);

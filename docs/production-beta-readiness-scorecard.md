@@ -442,3 +442,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: descendant gate adds a native NVIDIA runtime readiness probe for `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background` across the shared GPU worker plus dedicated SAM2, BiRefNet, and Real-ESRGAN images.
 - Proof result: the probe is copied into the GPU images and requires `REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true`, `docker run --gpus all`, successful `nvidia-smi`, `torch.cuda.is_available()`, CUDA compute capability `8.9` or higher, a tiny CUDA tensor probe, and optional reviewed model manifest checks. The script refuses model downloads, provider execution, real media input, Tool Route execution, Worker execution, public artifacts, signed URLs, Supabase mutation, and GCS upload flags.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `runtimeBetaReadyNow=false`, and `productionReadyNow=false`. Native NVIDIA runtime, reviewed model manifests, model-loading proof, minimal fixture proof, Tool Route gating, Worker gating, QA, internal beta, external beta, paid production, and production remain false.
+
+## AI Graphics Tool Call Readiness Contract
+
+- Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`.
+- Scope: server-only contract connects all 21 AI graphics tools to canonical ranking, capability selection, install surface, production-tool aliases, runtime targets, and missing proof blockers.
+- Result: agent planning can now read a single contract for which tools are installed through `package-lock`, which tools are Docker/GPU install targets, which canonical IDs map to existing production tool IDs, and which canonical IDs remain planning-only wrappers pending production profiles.
+- GPU routing: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background` remain GPU-runtime targeted, not CPU defaults.
+- Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.

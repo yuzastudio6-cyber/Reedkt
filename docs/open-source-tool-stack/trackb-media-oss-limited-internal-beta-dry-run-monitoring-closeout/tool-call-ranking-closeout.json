@@ -1,0 +1,48 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaDryRunMonitoringCloseout.toolCallRanking.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_dry_run_monitoring_closeout_passed_ready_for_limited_internal_beta_product_tool_call_runtime_approval",
+  "toolCount": 16,
+  "boundedAcceptedProvenTools": 16,
+  "blockedNotInstalledProvenTools": 0,
+  "productReadyTools": 0,
+  "rankingOrder": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars",
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr",
+    "ffmpeg"
+  ],
+  "useCaseRouting": {
+    "media_metadata_probe": ["ffprobe", "mediainfo", "exiftool"],
+    "structured_analysis": ["duckdb", "polars_nodejs_polars"],
+    "image_preprocess_and_quality": ["sharp_libvips", "openimageio", "imagemagick", "opencv"],
+    "color_pipeline": ["opencolorio", "openimageio"],
+    "video_decode_scene_analysis": ["pyav", "pyscenedetect"],
+    "ocr_ml_cpu": ["tesseract", "paddlepaddle", "paddleocr"],
+    "media_transform_last_resort": ["ffmpeg"]
+  },
+  "rankingPolicy": {
+    "deterministicDefault": true,
+    "useCaseScoped": true,
+    "notUniversalQualityRanking": true,
+    "requiresApprovedSnapshot": true,
+    "requiresCreditGate": true,
+    "requiresFailClosedWorkerContract": true,
+    "requiresPrivateArtifactPolicy": true,
+    "requiresSanitizedLogging": true,
+    "executionDisabledInThisPhase": true
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_APPROVAL"
+}

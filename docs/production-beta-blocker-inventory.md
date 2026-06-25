@@ -221,6 +221,18 @@ No further docs-only packet can honestly convert this blocked state into runtime
 
 Next recommended milestone: `OWNER INPUT REQUIRED - approve or reject the internal beta runtime target`.
 
+## RP-INTERNAL-BETA Google Cloud Managed Runtime Target Approval 1
+
+`RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-TARGET-APPROVAL-1` records decision `approved_google_cloud_managed_runtime_target_for_internal_beta_planning` and execution `completed_docs_only_google_cloud_managed_runtime_target_approval_no_runtime_execution`.
+
+Owner decision evidence: `current_owner_prompt`. Approved runtime target: `google_cloud_managed_runtime_target`. Runtime target approval scope: `target_class_only_no_runtime_execution`. Environment class: `google_cloud_managed_internal_beta`.
+
+Internal beta end-to-end status: `not_ready_pending_runtime_implementation_and_validation`. Product-ready end-to-end local OSS tools: `0`.
+
+Remote Supabase mutation, SQL execution, Google Cloud API calls, Secret Manager payload access, GCS object access, service-role route execution, approved snapshot persistence, credit mutation, job enqueue, worker dispatch, private artifact access, signed URL creation, provider/model calls, Remotion execution, preview/export creation, deployment, internal beta unlock, external beta unlock, production unlock, and final delivery/export remain blocked.
+
+Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-IMPLEMENTATION-PLAN-1`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

@@ -250,6 +250,16 @@ No further docs-only packet can honestly convert this blocked state into runtime
 
 Next recommended step: `OWNER INPUT REQUIRED - approve or reject the internal beta runtime target`.
 
+## RP-INTERNAL-BETA Google Cloud Managed Runtime Target Approval 1
+
+`RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-TARGET-APPROVAL-1` records decision `approved_google_cloud_managed_runtime_target_for_internal_beta_planning` and execution `completed_docs_only_google_cloud_managed_runtime_target_approval_no_runtime_execution`.
+
+Owner decision evidence is `current_owner_prompt`, approved runtime target is `google_cloud_managed_runtime_target`, runtime target approval scope is `target_class_only_no_runtime_execution`, and environment class is `google_cloud_managed_internal_beta`.
+
+Internal beta end-to-end status remains `not_ready_pending_runtime_implementation_and_validation`. No Google Cloud API call, Secret Manager payload access, GCS object access, remote Supabase mutation, SQL execution, service-role route execution, worker dispatch, Remotion execution, provider/model call, deployment, or internal beta unlock is enabled by this packet.
+
+Next recommended step: `RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-IMPLEMENTATION-PLAN-1`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

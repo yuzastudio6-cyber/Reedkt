@@ -8,6 +8,11 @@ This lane proves the 13 JavaScript AI graphics packages from the existing lockfi
 
 - PR #775: [AI graphics GPU import readiness](https://github.com/yuzastudio6-cyber/Reedkt/pull/775), open/draft/CLEAN at `589a704339fb3b06a101a7cd51504ea681a8c0eb`.
 
+## Draft PR
+
+- PR #780: [AI graphics node runtime proof](https://github.com/yuzastudio6-cyber/Reedkt/pull/780), open/draft/CLEAN at creation head `fed35cd8d19b293d6320582ac18c77bedcda778d`.
+- Check rollup at PR creation: empty.
+
 ## Tool Results
 
 | Tool | Package | Version | Status | Scope |

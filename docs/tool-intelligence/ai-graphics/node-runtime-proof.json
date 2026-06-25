@@ -12,6 +12,15 @@
     "mergeStateStatus": "CLEAN",
     "headSha": "589a704339fb3b06a101a7cd51504ea681a8c0eb"
   },
+  "proofPr": {
+    "number": 780,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/780",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headShaAtPrCreation": "fed35cd8d19b293d6320582ac18c77bedcda778d",
+    "statusCheckRollup": []
+  },
   "proofScope": "node_import_api_and_in_memory_static_contracts_for_13_js_graphics_tools",
   "tools": [
     {

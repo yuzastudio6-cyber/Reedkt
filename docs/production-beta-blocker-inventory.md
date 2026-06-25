@@ -179,6 +179,16 @@ Next recommended milestone: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1`.
 
 External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## RP-INTERNAL-BETA Runtime Enablement Plan 1
+
+`RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1` records decision `blocked_pending_internal_beta_runtime_enablement_owner_approval` and execution `completed_docs_only_runtime_enablement_plan_no_runtime_unlock`.
+
+No runtime area is approved in this phase. Service-role runtime, remote Supabase target, credit ledger runtime, job queue runtime, worker dispatch, private artifact access, signed URL creation, Remotion render worker execution, and provider/model calls all remain `not_approved`. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Next recommended milestone: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-OWNER-APPROVAL-1`.
+
+External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

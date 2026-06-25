@@ -208,6 +208,17 @@ No Supabase mutation, credit mutation, credit reservation creation, credit spend
 Internal beta end-to-end remains `not_ready` until explicit runtime enablement, service-role mutation handlers, remote Supabase target approval, private artifact access policy, render worker execution proof, provider adapter approval, QA, cleanup, observability, and rollback gates pass.
 
 Next recommended step: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1`.
+## RP-INTERNAL-BETA Runtime Enablement Plan 1
+
+`RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1` records decision `blocked_pending_internal_beta_runtime_enablement_owner_approval` and execution `completed_docs_only_runtime_enablement_plan_no_runtime_unlock`.
+
+The first internal beta runtime lane is now mapped as an owner-approval plan, not an execution unlock. Service-role runtime, remote Supabase target, credit ledger runtime, job queue runtime, worker dispatch, private artifact access, signed URL creation, Remotion render worker execution, provider/model calls, and internal beta unlock all remain `not_approved`.
+
+No Supabase mutation, SQL execution, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, worker dispatch, worker execution, route execution, provider/model call, model call, raw prompt execution, render/export, storage object creation/read, signed URL creation, public artifact creation, internal beta unlock, external beta unlock, production unlock, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler is implemented.
+
+Internal beta end-to-end remains `not_ready` until the owner approves a named runtime target and each runtime class, then a separate implementation proves service-role mutation, RLS/storage isolation, credit/job/artifact transactionality, render/provider boundaries, negative-gate regression, observability, cleanup, and rollback.
+
+Next recommended step: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-OWNER-APPROVAL-1`.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

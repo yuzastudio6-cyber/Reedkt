@@ -1181,7 +1181,7 @@
       "migrationDeployed": "no"
     }
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_FINAL_ROLLUP",
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION",
   "sourceEvidence": {
     "trackbMilestone4ColorImagePipelineQaReviewDecision": "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup",
     "trackbAcceptedProvenBoundedAfterMilestone4Qa": 16,
@@ -1604,5 +1604,28 @@
     "productionReady": false,
     "productReady": false,
     "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_APPROVAL"
+  },
+  "limitedInternalBetaProductToolCallRuntimeLimitedInternalActivationApproval": {
+    "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_approval_passed_ready_for_limited_internal_activation_execution",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval",
+    "coveredToolCount": 16,
+    "boundedAcceptedProvenCount": 16,
+    "blockedNotInstalledProvenCount": 0,
+    "productReadyCount": 0,
+    "limitedInternalActivationApproved": true,
+    "readyForLimitedInternalActivationExecution": true,
+    "liveRouteRuntimeApprovedForExecutionGate": true,
+    "workerDispatchApprovedForExecutionGate": true,
+    "serviceRoleBoundaryApprovedForExecutionGate": true,
+    "supabaseGcsWritesApproved": false,
+    "monitoringEmissionApprovedForExecutionGate": true,
+    "rollbackExecutionApprovedForExecutionGate": true,
+    "limitedInternalExposureApprovedForExecutionGate": true,
+    "readyForDirectProductToolCalls": false,
+    "readyForLiveBetaRuntime": false,
+    "externalBetaReady": false,
+    "productionReady": false,
+    "productReady": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION"
   }
 }

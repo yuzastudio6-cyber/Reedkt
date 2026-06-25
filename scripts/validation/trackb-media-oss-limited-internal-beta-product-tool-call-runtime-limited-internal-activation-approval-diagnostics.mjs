@@ -8,29 +8,30 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
 const reportDir =
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval'
+const previousReportDir =
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-closeout'
-const qaReportDir =
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-qa-review'
 const decision =
+  'trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_approval_passed_ready_for_limited_internal_activation_execution'
+const previousDecision =
   'trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_closeout_passed_ready_for_limited_internal_activation_approval'
-const qaDecision =
-  'trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout'
-const nextPrompt = 'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_APPROVAL'
-const sourceSha = 'a1860c2e316e13ed61dfa237109c58533b21182b'
+const nextPrompt =
+  'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION'
+const sourceSha = '8e913a3da2b8d547eabdb2af821f55cb1e2e3db3'
 const ownerId = 'TRACK_B_MEDIA_OSS_STEWARD'
 const baseRef = 'origin/codex/rp-github-merge-hygiene-open-pr-stack-audit'
 
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'controlled-activation-closeout.json',
-  'controlled-activation-closeout.md',
-  'accepted-evidence-inventory.json',
-  'accepted-evidence-inventory.md',
-  'limited-internal-activation-approval-readiness.json',
-  'limited-internal-activation-approval-readiness.md',
-  'runtime-boundary-closeout.json',
-  'runtime-boundary-closeout.md',
+  'limited-internal-activation-approval.json',
+  'limited-internal-activation-approval.md',
+  'route-worker-service-role-approval.json',
+  'route-worker-service-role-approval.md',
+  'supabase-gcs-write-boundary.json',
+  'supabase-gcs-write-boundary.md',
+  'monitoring-rollback-exposure-controls.json',
+  'monitoring-rollback-exposure-controls.md',
   'decision.json',
   'decision.md',
   'readiness-report.json',
@@ -48,16 +49,7 @@ const statusDocs = [
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json',
 ]
 
-const allowedChangedPrefixes = [
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval/',
-  `${reportDir}/`,
-  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-closeout/',
-]
-const allowedChangedFiles = new Set([
-  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval-diagnostics.mjs',
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-execution.md',
-  'package.json',
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval.md',
+const predecessorDiagnostics = [
   'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-closeout-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-execution-diagnostics.mjs',
@@ -81,10 +73,18 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-controlled-internal-beta-fixture-execution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-internal-beta-fixture-gate-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-controlled-internal-beta-dry-run-diagnostics.mjs',
-  'scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
+]
+
+const allowedChangedPrefixes = [`${reportDir}/`]
+const allowedChangedFiles = new Set([
+  'package.json',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-execution.md',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval-diagnostics.mjs',
+  ...predecessorDiagnostics,
   ...statusDocs,
 ])
 
@@ -110,6 +110,12 @@ const forbiddenOutputs = [
   'dist-remotion-worker',
   'dist-staging-fixture-worker',
   'dist-staging-real-video-export-worker',
+]
+
+const forbiddenSubstrings = [
+  'external beta ready',
+  'production ready',
+  'product-ready local OSS tools: 16',
 ]
 
 const failures = []
@@ -170,160 +176,126 @@ function requireOwnerDecision(label, report) {
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of [
   ...statusDocs,
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-execution.md',
 ]) {
   readText(file)
 }
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  closeout: readJson(`${reportDir}/controlled-activation-closeout.json`),
-  inventory: readJson(`${reportDir}/accepted-evidence-inventory.json`),
-  activation: readJson(`${reportDir}/limited-internal-activation-approval-readiness.json`),
-  runtime: readJson(`${reportDir}/runtime-boundary-closeout.json`),
+  approval: readJson(`${reportDir}/limited-internal-activation-approval.json`),
+  routeWorker: readJson(`${reportDir}/route-worker-service-role-approval.json`),
+  writeBoundary: readJson(`${reportDir}/supabase-gcs-write-boundary.json`),
+  monitoringRollback: readJson(`${reportDir}/monitoring-rollback-exposure-controls.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
   readiness: readJson(`${reportDir}/readiness-report.json`),
   manifest: readJson(`${reportDir}/private-artifact-manifest.json`),
-  qaDecisionReport: readJson(`${qaReportDir}/decision.json`),
+  previousCloseout: readJson(`${previousReportDir}/decision.json`),
 }
 
 for (const [label, report] of Object.entries(reports)) {
-  if (label === 'qaDecisionReport') continue
+  if (label === 'previousCloseout') continue
   requireOwnerDecision(label, report)
 }
 
 if (reports.source.sourceSha !== sourceSha) fail(`source_sha_drift:${reports.source.sourceSha}`)
-if (reports.source.sourceEvidence?.find((entry) => entry.pr === 866)?.state !== 'MERGED') fail('missing_pr866_source')
+if (reports.source.sourceEvidence?.find((entry) => entry.pr === 872)?.state !== 'MERGED') fail('missing_pr872_source')
+if (reports.previousCloseout.decision !== previousDecision) fail(`previous_decision_drift:${reports.previousCloseout.decision}`)
 if (reports.source.trackBTotals?.owned !== 16) fail('owned_total_drift')
 if (reports.source.trackBTotals?.boundedAcceptedProven !== 16) fail('accepted_total_drift')
 if (reports.source.trackBTotals?.blockedNotInstalledProven !== 0) fail('blocked_total_drift')
 if (reports.source.trackBTotals?.productReady !== 0) fail('product_ready_total_drift')
 if (reports.source.nextPrompt !== nextPrompt) fail(`source_next_prompt_drift:${reports.source.nextPrompt}`)
-if (reports.qaDecisionReport.decision !== qaDecision) fail(`qa_decision_drift:${reports.qaDecisionReport.decision}`)
 
 for (const field of [
-  'closeoutAccepted',
-  'controlledActivationExecutionAccepted',
-  'controlledActivationQaAccepted',
-  'readyForLimitedInternalActivationApproval',
+  'limitedInternalActivationApproved',
+  'readyForLimitedInternalActivationExecution',
 ]) {
-  if (reports.closeout[field] !== true) fail(`closeout_${field}_not_true`)
-}
-for (const field of [
-  'liveActivationApproved',
-  'readyForDirectProductToolCalls',
-  'readyForLiveBetaRuntime',
-  'externalBetaReady',
-  'productionReady',
-  'productReady',
-]) {
-  if (reports.closeout[field] !== false) fail(`closeout_${field}_unexpected_true`)
-}
-if (reports.closeout.coveredToolCount !== 16) fail('closeout_tool_count_drift')
-if (reports.closeout.productReadyCount !== 0) fail('closeout_product_ready_drift')
-
-for (const [field, value] of Object.entries(reports.inventory.acceptedEvidence || {})) {
-  if (value !== true) fail(`accepted_evidence_not_true:${field}`)
-}
-for (const [field, value] of Object.entries(reports.inventory.notAcceptedEvidence || {})) {
-  if (value !== true) fail(`not_accepted_evidence_missing:${field}`)
+  if (reports.decisionReport[field] !== true) fail(`decision_${field}_not_true`)
+  if (reports.readiness[field] !== true) fail(`readiness_${field}_not_true`)
 }
 
-if (reports.activation.readyForLimitedInternalActivationApproval !== true) fail('activation_approval_readiness_false')
-for (const [field, value] of Object.entries(reports.activation.approvalStillRequiredFor || {})) {
-  if (value !== true) fail(`approval_requirement_missing:${field}`)
-}
-for (const [field, value] of Object.entries(reports.activation.approvalNotGrantedByCloseout || {})) {
-  if (value !== true) fail(`approval_not_granted_missing:${field}`)
+if (reports.approval.controlsAcceptedForExecutionGate?.failClosedRouteRuntime !== true) fail('route_control_not_accepted')
+if (reports.approval.controlsAcceptedForExecutionGate?.perToolWorkerDispatchAllowlists !== true) fail('worker_control_not_accepted')
+if (reports.approval.controlsAcceptedForExecutionGate?.serviceRoleBoundary !== true) fail('service_role_control_not_accepted')
+if (reports.approval.controlsAcceptedForExecutionGate?.sanitizedMonitoring !== true) fail('monitoring_control_not_accepted')
+if (reports.approval.controlsAcceptedForExecutionGate?.rollbackDisableControls !== true) fail('rollback_control_not_accepted')
+if (reports.approval.controlsAcceptedForExecutionGate?.limitedInternalExposureRules !== true) fail('exposure_control_not_accepted')
+
+for (const [label, report] of Object.entries({
+  approval: reports.approval,
+  routeWorker: reports.routeWorker,
+  writeBoundary: reports.writeBoundary,
+  monitoringRollback: reports.monitoringRollback,
+  decisionReport: reports.decisionReport,
+  readiness: reports.readiness,
+})) {
+  if (report.boundary?.externalBetaApproved !== false) fail(`external_beta_not_blocked:${label}`)
+  if (report.boundary?.productionApproved !== false) fail(`production_not_blocked:${label}`)
+  if (report.boundary?.userMediaByDefaultApproved !== false) fail(`user_media_default_not_blocked:${label}`)
+  if (report.boundary?.publicArtifactsApproved !== false) fail(`public_artifacts_not_blocked:${label}`)
+  if (report.boundary?.signedUrlsApproved !== false) fail(`signed_urls_not_blocked:${label}`)
+  if (report.boundary?.productReady !== false) fail(`product_ready_not_blocked:${label}`)
 }
 
-for (const [field, value] of Object.entries(reports.runtime.runtimeBoundary || {})) {
-  if (value !== false) fail(`runtime_boundary_unexpected_true:${field}`)
+if (reports.writeBoundary.supabaseWrites !== 'blocked in this approval phase and must be proven or remain disabled in the next execution lane') {
+  fail(`supabase_write_boundary_drift:${reports.writeBoundary.supabaseWrites}`)
 }
-if (reports.runtime.productReadyLocalOssCount !== 0) fail('runtime_product_ready_drift')
-if (reports.runtime.supabaseClassification !== 'no write / environment none / SQL none / migration no') {
-  fail(`supabase_classification_drift:${reports.runtime.supabaseClassification}`)
+if (reports.writeBoundary.gcsWrites !== 'blocked in this approval phase and must be proven or remain disabled in the next execution lane') {
+  fail(`gcs_write_boundary_drift:${reports.writeBoundary.gcsWrites}`)
 }
+if (reports.manifest.privateArtifactsCommitted !== false) fail('private_artifacts_committed')
+if (reports.manifest.publicArtifactsCommitted !== false) fail('public_artifacts_committed')
+if (reports.manifest.signedUrlsCommitted !== false) fail('signed_urls_committed')
+if (reports.manifest.secretsCommitted !== false) fail('secrets_committed')
+if (reports.manifest.mediaArtifactsCommitted !== false) fail('media_artifacts_committed')
 
-if (reports.decisionReport.controlledActivationCloseoutAccepted !== true) fail('decision_closeout_not_accepted')
-if (reports.decisionReport.readyForLimitedInternalActivationApproval !== true) fail('decision_not_ready_for_activation_approval')
-if (reports.decisionReport.liveActivationApproved !== false) fail('decision_live_activation_true')
-if (reports.decisionReport.productReady !== false) fail('decision_product_ready_true')
-
-if (reports.readiness.coveredToolCount !== 16) fail('readiness_tool_count_drift')
-if (reports.readiness.boundedAcceptedProvenCount !== 16) fail('readiness_accepted_drift')
-if (reports.readiness.blockedNotInstalledProvenCount !== 0) fail('readiness_blocked_drift')
-if (reports.readiness.productReadyCount !== 0) fail('readiness_product_ready_drift')
-if (reports.readiness.readyForLimitedInternalActivationApproval !== true) fail('readiness_not_ready_for_activation_approval')
-for (const field of ['readyForLiveActivation', 'readyForDirectProductToolCalls', 'readyForExternalBeta', 'readyForProduction']) {
-  if (reports.readiness[field] !== false) fail(`readiness_${field}_unexpected_true`)
+const statusText = statusDocs.map((file) => readText(file)).join('\n')
+if (!statusText.includes(decision)) fail('status_docs_missing_decision')
+if (!statusText.includes(nextPrompt)) fail('status_docs_missing_next_prompt')
+if (!statusText.includes('16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready')) {
+  fail('status_docs_missing_totals')
 }
 
-for (const [field, value] of Object.entries(reports.manifest || {})) {
-  if (field === 'ownerId' || field === 'decision') continue
-  if (value !== false) fail(`manifest_artifact_or_secret_created:${field}`)
-}
-
-const packageJson = readJson('package.json')
-if (
-  packageJson.scripts?.[
-    'trackb-media-oss:limited-internal-beta-product-tool-call-runtime-controlled-activation-closeout:diagnostics'
-  ] !==
-  'node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-closeout-diagnostics.mjs'
-) {
-  fail('missing_package_script')
-}
-
-for (const file of [
-  ...statusDocs,
-  `${reportDir}/decision.md`,
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval.md',
-]) {
-  const text = readText(file)
-  if (!text.includes(decision)) fail(`missing_decision_text:${file}`)
-  if (!text.includes(nextPrompt)) fail(`missing_next_prompt_text:${file}`)
-}
-
-const repoText = [
-  ...statusDocs,
-  ...requiredReports.map((file) => `${reportDir}/${file}`),
-  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval.md',
-]
-  .map((file) => readText(file))
-  .join('\n')
-
-for (const forbidden of [
-  '40+ tools proven end-to-end',
-  'liveActivationApproved\": true',
-  'readyForDirectProductToolCalls\": true',
-  'readyForLiveBetaRuntime\": true',
-  'externalBetaReady\": true',
-  'productionReady\": true',
-  'productReady\": true',
-  'routeRuntimeEnabled\": true',
-  'workerDispatchEnabled\": true',
-  'realToolExecutionEnabled\": true',
-]) {
-  if (repoText.includes(forbidden)) fail(`forbidden_claim:${forbidden}`)
-}
+const promptText = readText(
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-execution.md'
+)
+if (!promptText.includes(nextPrompt)) fail('next_prompt_file_missing_prompt')
+if (!promptText.includes('Do not enable external beta')) fail('next_prompt_missing_scope_boundary')
 
 for (const file of changedFiles()) {
   if (!isAllowedChangedFile(file)) fail(`unexpected_changed_file:${file}`)
 }
 
 for (const file of protectedNoDiffFiles) {
-  const diff = git(['diff', '--name-only', '--', file], true)
-  const cachedDiff = git(['diff', '--cached', '--name-only', '--', file], true)
-  const branchDiff = git(['diff', '--name-only', `${baseRef}...HEAD`, '--', file], true)
-  if (diff || cachedDiff || branchDiff) fail(`protected_file_changed:${file}`)
+  if (changedFiles().includes(file)) fail(`protected_file_changed:${file}`)
 }
 
 for (const output of forbiddenOutputs) {
   if (fs.existsSync(fullPath(output))) fail(`forbidden_output_present:${output}`)
 }
 
+for (const file of [...requiredReports.map((name) => `${reportDir}/${name}`), ...statusDocs]) {
+  const text = readText(file)
+  for (const forbidden of forbiddenSubstrings) {
+    if (text.includes(forbidden)) fail(`forbidden_claim:${file}:${forbidden}`)
+  }
+  for (const line of text.split('\n')) {
+    const normalizedLine = line.toLowerCase()
+    if (
+      line.includes('40+ tools') &&
+      !normalizedLine.includes('do not claim') &&
+      !normalizedLine.includes('no 40+')
+    ) {
+      fail(`forbidden_40_plus_claim:${file}:${line.trim()}`)
+    }
+  }
+  if (/sk-[A-Za-z0-9_-]{20,}/.test(text)) fail(`secret_like_token:${file}`)
+  if (new RegExp('https://[^\\s)]+X-Goog-Signature=').test(text)) fail(`signed_url:${file}`)
+}
+
 if (failures.length > 0) {
-  console.error(JSON.stringify({ ok: false, decision, failures }, null, 2))
+  console.error(JSON.stringify({ ok: false, failures }, null, 2))
   process.exit(1)
 }
 
@@ -333,12 +305,11 @@ console.log(
       ok: true,
       decision,
       nextPrompt,
-      controlledActivationCloseoutAccepted: true,
-      readyForLimitedInternalActivationApproval: true,
-      liveActivationApproved: false,
+      limitedInternalActivationApproved: true,
+      readyForLimitedInternalActivationExecution: true,
       productReadyCount: 0,
     },
     null,
-    2,
-  ),
+    2
+  )
 )

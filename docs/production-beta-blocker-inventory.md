@@ -11,6 +11,16 @@ Active blockers remain:
 - Supabase production writes
 - model orchestration runtime calls
 
+## Track A GPAC/MP4Box Controlled Synthetic Media Command QA
+
+`TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1` records decision `tracka_gpac_mp4box_controlled_synthetic_media_command_qa_passed_ready_for_worker_contract_review`.
+
+QA accepts GPAC/MP4Box as a bounded local toolchain proof only: official APT install-source, exact `gpac=26.02-rev0-g118e60a90-HEAD` package on `arm64`, `/usr/bin/MP4Box`, non-media runtime proof, and generated synthetic subtitle-only `MP4Box -add`/`MP4Box -info` evidence. This is not product runtime, worker route/provider, user/private/real media, arbitrary probing, render/export, beta, or production approval.
+
+Product-ready local OSS tools remain `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains excluded. Supabase classification: no write / environment none / SQL none / migration no.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-WORKER-CONTRACT-REVIEW-1`.
+
 Qwen/DeepSeek repo audit does not remove these blockers.
 
 ## Track A Post-PR706 PR708 Metadata Reconciliation

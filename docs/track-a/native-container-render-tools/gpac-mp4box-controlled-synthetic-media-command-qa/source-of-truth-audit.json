@@ -1,0 +1,31 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1",
+  "decision": "tracka_gpac_mp4box_controlled_synthetic_media_command_qa_passed_ready_for_worker_contract_review",
+  "sourceSha": "4489ff8d58886ddd3df1be534dbedf2e5c3e2f05",
+  "reviewedPullRequests": {
+    "installSourceExecution": 738,
+    "installSourceQa": 759,
+    "controlledRuntimeProof": 761,
+    "controlledSyntheticMediaCommandProof": 764
+  },
+  "reviewedDecisions": {
+    "installSourceExecution": "tracka_gpac_mp4box_official_apt_install_source_execution_passed_ready_for_install_source_qa",
+    "installSourceQa": "tracka_gpac_mp4box_official_apt_install_source_qa_passed_ready_for_controlled_runtime_proof",
+    "controlledRuntimeProof": "tracka_gpac_mp4box_controlled_runtime_proof_passed_ready_for_controlled_synthetic_media_command_proof",
+    "controlledSyntheticMediaCommandProof": "tracka_gpac_mp4box_controlled_synthetic_media_command_proof_passed_ready_for_qa_review"
+  },
+  "acceptedScope": "bounded_generated_synthetic_subtitle_media_command_evidence_only",
+  "notAcceptedScope": [
+    "user_private_real_media",
+    "arbitrary_media_probing",
+    "ffmpeg_ffprobe_execution",
+    "render_export",
+    "worker_route_provider_execution",
+    "product_runtime",
+    "internal_beta",
+    "external_beta",
+    "production"
+  ],
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-WORKER-CONTRACT-REVIEW-1",
+  "supabase": "no write / environment none / SQL none / migration no"
+}

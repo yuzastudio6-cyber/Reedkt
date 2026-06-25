@@ -1,0 +1,13 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1",
+  "decision": "tracka_gpac_mp4box_controlled_synthetic_media_command_qa_passed_ready_for_worker_contract_review",
+  "boundedLocalToolchainProofAccepted": true,
+  "readyForWorkerContractReview": true,
+  "readyForProductRuntime": false,
+  "readyForInternalBeta": false,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "productReadyLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-WORKER-CONTRACT-REVIEW-1",
+  "nextPromptFile": "docs/implementation-prompts/prompt-tracka-gpac-mp4box-worker-contract-review-1.md"
+}

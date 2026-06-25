@@ -1,0 +1,14 @@
+{
+  "schema": "trackb-media-oss-controlled-internal-beta-fixture-gate-qa.v1",
+  "generatedAt": "2026-06-25T14:55:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_controlled_internal_beta_fixture_qa_passed_ready_for_limited_internal_beta_go_no_go_review",
+  "approvedSnapshotGateAccepted": true,
+  "creditGateAccepted": true,
+  "privateArtifactGateAccepted": true,
+  "qaGateAccepted": true,
+  "fallbackGateAccepted": true,
+  "resultSchemaGateAccepted": true,
+  "sanitizedLoggingGateAccepted": true,
+  "negativeCasesAccepted": true
+}

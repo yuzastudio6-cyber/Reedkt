@@ -14,6 +14,12 @@ Observed confirmation: `absent_or_not_true`
 
 Current run status: `not_run_confirmation_absent`
 
+Credential alias support: `approved_env_aliases_supported_payloads_redacted`
+
+Accepted access-token env names: `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, `REEDITPRO_SUPABASE_ACCESS_TOKEN`
+
+Accepted read-only DB URL env names: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`
+
 Validation runner: `npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed`
 
 Diagnostics: `npm run --silent rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed:diagnostics`
@@ -44,9 +50,9 @@ Generated artifacts committed: `none`
 
 ## Local Fail-Closed Runner Evidence
 
-Run ID: `2026-06-25T19-41-49-031Z-856c55b2`
+Run ID: `2026-06-25T21-17-28-399Z-10e88920`
 
-Output directory: `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/2026-06-25T19-41-49-031Z-856c55b2`
+Output directory: `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/2026-06-25T21-17-28-399Z-10e88920`
 
 Result: `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation`
 
@@ -56,10 +62,12 @@ Commands executed by runner: `none`
 
 Credential presence: `supabaseAccessToken=false`, `readonlyDatabaseUrl=false`, `serviceRoleKey=false`, `databasePassword=false`
 
+Credential payloads printed: `false`
+
 Artifacts/checksums:
 
-- `validation-report.json`, `1624` bytes, SHA-256 `4a6089b62b4c72f9442f1cadc96475265ebec0db3afcf907abd0cb5fd86563a1`
-- `artifact-manifest.json`, `656` bytes, SHA-256 `9443147109e088eeb7e4b794e0b9b8f3650cfd4162778800a8e97a465588f0d0`
+- `validation-report.json`, `2107` bytes, SHA-256 `3d3dccbac6189a6cf1c4903b8a93a18daa5a22a6f3f6a4cab7ff64a8c001df28`
+- `artifact-manifest.json`, `974` bytes, SHA-256 `9049ab6a254d3aaa2012e909354bd45345a1ed03bea9b0cf70b38c7bab778635`
 
 Generated `/tmp` artifacts committed: `none`
 

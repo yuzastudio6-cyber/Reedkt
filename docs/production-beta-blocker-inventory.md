@@ -17,6 +17,8 @@ Active blockers remain:
 
 Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`. Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`. Observed confirmation: `absent_or_not_true`. Current run status: `not_run_confirmation_absent`.
 
+Credential alias support: `approved_env_aliases_supported_payloads_redacted`. The confirmed runner accepts `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, or `REEDITPRO_SUPABASE_ACCESS_TOKEN` for target identity, plus `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, or `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` for read-only advisor lint. Payloads remain forbidden.
+
 Remote Supabase mutation: `false`. SQL mutation: `false`. Migration apply: `false`. Storage bucket creation: `false`. Storage object creation: `false`. Storage object read: `false`. Service-role secret payload access: `false`. Frontend service-role credential exposure: `false`. Internal beta unlock: `false`.
 
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.

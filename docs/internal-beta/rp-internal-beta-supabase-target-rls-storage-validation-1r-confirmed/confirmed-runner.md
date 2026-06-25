@@ -18,9 +18,27 @@ Current run status: `not_run_confirmation_absent`
 
 If the confirmation is absent, the runner writes sanitized local evidence under `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/<runId>/` and exits with blocker `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation`.
 
-If the confirmation is present but `SUPABASE_ACCESS_TOKEN` is absent, the runner exits with blocker `blocked_missing_supabase_access_token_for_readonly_target_identity`.
+If the confirmation is present but no approved access-token environment reference is present, the runner exits with blocker `blocked_missing_supabase_access_token_for_readonly_target_identity`.
 
-If target identity passes but `REEDITPRO_SUPABASE_READONLY_DB_URL` is absent, the runner exits with blocker `blocked_missing_readonly_rls_storage_metadata_context`.
+If target identity passes but no approved read-only DB URL environment reference is present, the runner exits with blocker `blocked_missing_readonly_rls_storage_metadata_context`.
+
+## Approved Credential Environment Aliases
+
+Access-token aliases accepted by presence only:
+
+- `SUPABASE_ACCESS_TOKEN`
+- `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`
+- `REEDITPRO_SUPABASE_ACCESS_TOKEN`
+
+Read-only DB URL aliases accepted by presence only:
+
+- `REEDITPRO_SUPABASE_READONLY_DB_URL`
+- `REEDITPRO_STAGING_SUPABASE_DB_URL`
+- `SUPABASE_STAGING_DB_URL`
+- `STAGING_SUPABASE_DB_URL`
+- `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`
+
+The runner records only the selected environment variable name and boolean presence. It never writes, prints, or summarizes the access token or database URL payload.
 
 ## Allowed Confirmed Checks
 

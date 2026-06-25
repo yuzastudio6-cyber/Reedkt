@@ -10,7 +10,18 @@ const targetRef = 'wmyyttnynmteqgcdishd'
 const targetName = 'Reeditpro'
 const targetClass = 'staging'
 const confirmationVar = 'REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION'
-const readonlyDbUrlVar = 'REEDITPRO_SUPABASE_READONLY_DB_URL'
+const accessTokenEnvNames = [
+  'SUPABASE_ACCESS_TOKEN',
+  'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN',
+  'REEDITPRO_SUPABASE_ACCESS_TOKEN',
+]
+const readonlyDbUrlEnvNames = [
+  'REEDITPRO_SUPABASE_READONLY_DB_URL',
+  'REEDITPRO_STAGING_SUPABASE_DB_URL',
+  'SUPABASE_STAGING_DB_URL',
+  'STAGING_SUPABASE_DB_URL',
+  'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
+]
 const baseOutputDir = '/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed'
 const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${crypto.randomBytes(4).toString('hex')}`
 const outputDir = path.join(baseOutputDir, runId)
@@ -25,6 +36,9 @@ const evidence = {
   targetIdentity: 'not_run',
   advisorLint: 'not_run',
 }
+
+const accessTokenCredential = firstPresentEnv(accessTokenEnvNames)
+const readonlyDbUrlCredential = firstPresentEnv(readonlyDbUrlEnvNames)
 
 function sha256(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')
@@ -43,6 +57,14 @@ function bounded(text) {
   return clean.length > 4000 ? `${clean.slice(0, 4000)}\n[truncated]` : clean
 }
 
+function firstPresentEnv(names) {
+  const name = names.find((candidate) => Boolean(process.env[candidate]))
+  return {
+    name: name ?? null,
+    value: name ? process.env[name] : '',
+  }
+}
+
 function runSupabase(args, label, options = {}) {
   const command = `supabase ${args.join(' ')}`
   const startedAt = new Date().toISOString()
@@ -52,7 +74,7 @@ function runSupabase(args, label, options = {}) {
       env: {
         ...process.env,
         HOME: isolatedHome,
-        SUPABASE_ACCESS_TOKEN: process.env.SUPABASE_ACCESS_TOKEN ?? '',
+        SUPABASE_ACCESS_TOKEN: accessTokenCredential.value ?? '',
       },
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -98,8 +120,12 @@ function finish(decision, execution, extra = {}, exitCode = 1) {
     execution,
     confirmation: process.env[confirmationVar] === 'true' ? 'present_true' : 'absent_or_not_true',
     credentialPresence: {
-      supabaseAccessToken: Boolean(process.env.SUPABASE_ACCESS_TOKEN),
-      readonlyDatabaseUrl: Boolean(process.env[readonlyDbUrlVar]),
+      supabaseAccessToken: Boolean(accessTokenCredential.value),
+      supabaseAccessTokenEnv: accessTokenCredential.name,
+      readonlyDatabaseUrl: Boolean(readonlyDbUrlCredential.value),
+      readonlyDatabaseUrlEnv: readonlyDbUrlCredential.name,
+      acceptedAccessTokenEnvNames: accessTokenEnvNames,
+      acceptedReadonlyDbUrlEnvNames: readonlyDbUrlEnvNames,
       serviceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
       databasePassword: Boolean(process.env.SUPABASE_DB_PASSWORD),
     },
@@ -168,13 +194,13 @@ if (process.env[confirmationVar] !== 'true') {
   )
 }
 
-if (!process.env.SUPABASE_ACCESS_TOKEN) {
+if (!accessTokenCredential.value) {
   finish(
     'blocked_missing_supabase_access_token_for_readonly_target_identity',
     'blocked_no_remote_execution_missing_safe_credential_context',
     {
       blocker: 'blocked_missing_supabase_access_token_for_readonly_target_identity',
-      requiredCredentialContext: 'SUPABASE_ACCESS_TOKEN',
+      acceptedCredentialContext: accessTokenEnvNames,
     },
   )
 }
@@ -211,14 +237,14 @@ if (!targetProject) {
 
 evidence.targetIdentity = 'passed_readonly_management_api_project_list'
 
-if (!process.env[readonlyDbUrlVar]) {
+if (!readonlyDbUrlCredential.value) {
   finish(
     'blocked_missing_readonly_rls_storage_metadata_context',
     'blocked_remote_readonly_validation_incomplete_after_target_identity',
     {
       blocker: 'blocked_missing_readonly_rls_storage_metadata_context',
       targetIdentity: 'passed',
-      requiredCredentialContext: readonlyDbUrlVar,
+      acceptedCredentialContext: readonlyDbUrlEnvNames,
       note: 'Target identity passed, but RLS/storage advisor validation requires a read-only database URL provided by the execution environment. The URL is not printed or persisted.',
     },
   )
@@ -230,7 +256,7 @@ try {
       'db',
       'lint',
       '--db-url',
-      process.env[readonlyDbUrlVar],
+      readonlyDbUrlCredential.value,
       '--schema',
       'public,storage',
       '--level',

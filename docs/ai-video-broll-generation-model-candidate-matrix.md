@@ -1,0 +1,27 @@
+# AI Video B-roll Generation Model Candidate Matrix
+
+Status: `ai_video_broll_gen_0_model_matrix_no_execution`
+
+Gate 0 is docs and diagnostics only. No model weights are downloaded, no dependency install is performed, no model inference runs, no generated video is created, and no beta or runtime readiness is claimed.
+
+| Model | Classification | Role in ReEditPro | Product use cases | Input modes | Output capabilities | License/provenance status | Weight source | GPU/VRAM estimate | Expected dependency stack | Runtime requirement | Storage/weight policy need | Safety risks | Beta blocker | Next gate |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Wan / Wan2.1 family | primary | Realistic stock-style B-roll and generated filler when source footage is absent | Establishing shots, product/environment cutaways, realistic inserts, image-to-video support | Text-to-video, image-to-video, video editing variants according to official repo | Short generated video clips, potentially 480p to 720p depending on model | Needs compliance review; official repo reports Apache-2.0 code but each weight/model card still requires separate review | Official repo and linked Hugging Face/ModelScope sources: https://github.com/Wan-Video/Wan2.1 | Official repo documents T2V-1.3B around 8.19 GB VRAM for 5-second 480p on RTX 4090; larger variants need more review | Python, PyTorch/diffusers or official inference stack, CUDA GPU | GPU worker only; CPU orchestration/tests only | Approved source, checksum, model card snapshot, license snapshot, private storage | Realism can imply real people/brands/events; prompt safety and provenance labels required | License/weights/runtime/GPU/QA not approved | `AI-VIDEO-BROLL-GEN-1` |
+| LTX-Video / LTX | secondary | Fast preview, image-to-video, keyframe, and motion-graphics workflows | Preview B-roll, still-to-motion, abstract/stylized inserts, lightweight storyboard motion | Text-to-video, image-to-video, video-to-video, control workflows per official model card | High-frame-rate generated clips; model card describes 30 FPS and 1216x704 capabilities | Needs compliance review; official repo reports Apache-2.0 code and model card must be reviewed separately | Official repo and model card: https://github.com/Lightricks/ltx-video and https://huggingface.co/Lightricks/LTX-Video | Variant dependent; model card lists 2B and 13B workflows, with highest-quality 13B requiring more VRAM | Python, PyTorch/diffusers/ComfyUI-compatible workflows as future options | GPU worker only; possible future fast preview lane after owner approval | Weight manifest and approved cache policy required | Stylized outputs, dataset/provenance uncertainty, prompt compliance, watermark/provenance needs | Model weights and runtime not approved | `AI-VIDEO-BROLL-GEN-1` |
+| Mochi 1 | fallback/research | Permissive fallback and LoRA/research path if primary/secondary routes are blocked | Research comparison, high-motion prompt adherence tests, future LoRA study | Text-to-video; LoRA fine-tuning path documented by project | Generated video clips; project notes FFmpeg needed to turn outputs into videos | Needs compliance review; official repo states Apache-2.0, but weight source and commercial output policy still require review | Official repo and linked direct/Hugging Face weights: https://github.com/genmoai/mochi | Public discussions suggest high VRAM pressure; exact tier requires separate verification before any proof | Python, uv, PyTorch, optional flash attention, FFmpeg only in a future approved runtime | GPU worker only; research/fallback lane | Approved source/checksum/license snapshot required before any download | High compute cost, FFmpeg dependency, output safety, unreviewed weight provenance | Heavy runtime and model weights not approved | `AI-VIDEO-BROLL-GEN-1` |
+| HunyuanVideo | optional premium gated | High-end cinematic benchmark only after legal/GPU review | Premium benchmark comparisons, cinematic quality reference, possible future gated route | Text-to-video, image-to-video variants per official repos | High-quality generated video clips; official repo reports released weights and diffusers integration | Needs legal review; official license includes territory restrictions and model derivative terms | Official repo, Hugging Face weights, Hunyuan license: https://github.com/Tencent-Hunyuan/HunyuanVideo | Large model; FP8 weights exist, but GPU tier must be reviewed before any proof | Python, PyTorch/diffusers/xDiT or official stack | Premium gated GPU worker only, not default | Strict source, checksum, license, territory, storage, and attribution review required | Territory restrictions, commercial/legal risk, compute cost, likeness/deepfake risk | Legal/GPU/commercial approval not complete | `AI-VIDEO-BROLL-GEN-1` |
+
+## Product Use Cases Covered
+
+- Realistic stock-style B-roll.
+- Image-to-video from stills or project frames.
+- Motion graphics backgrounds.
+- Abstract or stylized inserts.
+- Establishing shots.
+- Product/environment cutaways.
+- Generated filler clips when user provides no footage.
+- Future video extension and keyframe-guided motion.
+
+## Gate 0 Decision
+
+Wan is primary, LTX is secondary, Mochi is fallback/research, and HunyuanVideo is optional premium gated. None is approved for beta, runtime, provider, worker, storage, or production execution in this prompt.

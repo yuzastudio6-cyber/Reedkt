@@ -79,6 +79,16 @@
           "opencolorio",
           "openimageio"
         ]
+      },
+      "callableWorkerContractsImplementation": {
+        "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+        "nextPrompt": "TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN",
+        "coveredToolCount": 16,
+        "routesDisabled": true,
+        "workerExecutionEnabled": false,
+        "directToolCallsReady": false,
+        "internalBetaReady": false,
+        "productReady": false
       }
     }
   ],

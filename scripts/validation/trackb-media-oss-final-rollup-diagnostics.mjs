@@ -33,6 +33,8 @@ const requiredReports = [
 const statusDocs = [
   'docs/open-source-tool-stack/open-source-tool-stack-decision.md',
   'docs/open-source-tool-stack/open-source-tool-stack-next-install-batches.md',
+  'docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.md',
+  'docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.json',
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.md',
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json',
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.md',
@@ -45,9 +47,11 @@ const statusDocs = [
 const allowedChangedPrefixes = [
   `${reportDir}/`,
   'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-callable-worker-contracts-implementation/',
 ]
 const allowedChangedFiles = new Set([
   'package.json',
+  'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-cpu-execution-diagnostics.mjs',
@@ -63,6 +67,13 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-review.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-callable-worker-contracts-implementation.md',
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs',
+  'server/smoke/trackb-media-oss-callable-worker-contracts-smoke.ts',
+  'src/backend/contracts/trackb-media-oss-tool-call-contracts.ts',
+  'src/backend/api/routes/trackb-media-oss-tool-call-api-routes.ts',
+  'src/backend/api/api-route-registry.ts',
+  'src/backend/api/index.ts',
+  'src/backend/contracts/index.ts',
+  'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-rerun.md',
   ...statusDocs,
 ])
 

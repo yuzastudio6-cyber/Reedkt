@@ -1,0 +1,31 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssCallableWorkerContracts.apiRoutes.v1",
+  "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+  "routesAdded": [
+    {
+      "id": "trackbMediaOss.toolCall.validate",
+      "path": "/api/jobs/trackb-media-oss/tool-calls/validate",
+      "status": "disabled",
+      "runtimeMode": "backend_required"
+    },
+    {
+      "id": "trackbMediaOss.toolCall.queue",
+      "path": "/api/jobs/trackb-media-oss/tool-calls",
+      "status": "disabled",
+      "runtimeMode": "backend_required"
+    },
+    {
+      "id": "trackbMediaOss.toolCall.status",
+      "path": "/api/jobs/trackb-media-oss/tool-calls/:toolCallId/status",
+      "status": "disabled",
+      "runtimeMode": "backend_required"
+    }
+  ],
+  "failClosed": true,
+  "routeRuntimeApprovedNow": false,
+  "directToolCallsReadyNow": false,
+  "notes": [
+    "Route metadata is registered so API inventory can see the future Track B lane.",
+    "All routes are disabled and backend-required until the beta-readiness rerun approves them."
+  ]
+}

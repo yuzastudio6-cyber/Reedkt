@@ -1,0 +1,15 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssCallableWorkerContracts.decision.v1",
+  "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+  "reason": "Track B callable route metadata, fail-closed worker contracts, payload validators, private artifact/result schema policy, QA/fallback links, and approved-snapshot/credit gate requirements are implemented without enabling direct execution.",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "readyForDirectToolCalls": false,
+  "readyForInternalBeta": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN",
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

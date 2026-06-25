@@ -727,3 +727,15 @@ TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW:
 - Next prompt: `TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION`.
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:start -->
+TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION:
+
+- Decision: `trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun`.
+- Track B install/proof coverage remains complete: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Implemented fail-closed route metadata for Track B tool-call validation, queueing, and status reads; all routes remain disabled and backend-required.
+- Implemented worker contract metadata and payload validation for all 16 Track B tools, requiring approved snapshot, edit plan, idempotency key, credit reservation, private artifact references, result schema, QA gates, fallback policy, and sanitized logging.
+- Direct tool calls, internal beta, external beta, production, public artifacts, signed URLs, raw prompts, Supabase/GCS, worker dispatch, media/image processing, and product-ready claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:end -->

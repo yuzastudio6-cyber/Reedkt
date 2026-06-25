@@ -1,0 +1,18 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssCallableWorkerContracts.qaFallbackLogging.v1",
+  "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+  "requiredQualityGates": [
+    "render_asset_integrity",
+    "render_timeline_integrity",
+    "final_delivery"
+  ],
+  "allowedFallbackActions": [
+    "block_preview",
+    "block_final_export",
+    "request_user_review"
+  ],
+  "retryWithoutUserReviewAllowed": false,
+  "sanitizedLoggingOnly": true,
+  "qaIntegrationApprovedNow": false,
+  "fallbackRuntimeApprovedNow": false
+}

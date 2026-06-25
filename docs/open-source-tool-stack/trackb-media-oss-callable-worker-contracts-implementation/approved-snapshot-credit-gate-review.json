@@ -1,0 +1,11 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssCallableWorkerContracts.approvedSnapshotCreditGate.v1",
+  "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+  "approvedSnapshotRequired": true,
+  "editPlanRequired": true,
+  "creditReservationRequired": true,
+  "idempotencyKeyRequired": true,
+  "productRulePreserved": "No expensive or sensitive tool work starts without approved plan snapshot and credit gate linkage.",
+  "creditSpendingApprovedNow": false,
+  "workerDispatchApprovedNow": false
+}

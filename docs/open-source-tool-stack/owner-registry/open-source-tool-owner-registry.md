@@ -49,3 +49,13 @@ TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:
 - Next prompt: `TRACKB_MEDIA_OSS_FINAL_ROLLUP`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:start -->
+TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION:
+
+- Decision: `trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun`.
+- Track B ownership remains 16 tools; all 16 are bounded accepted/proven and 0 are product-ready.
+- Fail-closed route metadata and worker contract metadata now cover Track B tool-call validation, queueing, status reads, payload validation, private artifact policy, result schema, QA, fallback, and sanitized logging.
+- Direct tool calls and beta remain blocked until the next rerun accepts the callable lane.
+- Next prompt: `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN`.
+<!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:end -->

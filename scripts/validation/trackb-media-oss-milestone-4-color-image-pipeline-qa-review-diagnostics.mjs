@@ -76,9 +76,12 @@ const forbiddenOutputs = [
 const allowedChangedPrefixes = [
   `${reportDir}/`,
   'docs/open-source-tool-stack/trackb-media-oss-final-rollup/',
+  'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-callable-worker-contracts-implementation/',
 ]
 const allowedChangedFiles = new Set([
   'package.json',
+  'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-cpu-execution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-approval-diagnostics.mjs',
@@ -93,6 +96,15 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-execution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-gpu-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-font-source-license-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs',
+  'server/smoke/trackb-media-oss-callable-worker-contracts-smoke.ts',
+  'src/backend/contracts/trackb-media-oss-tool-call-contracts.ts',
+  'src/backend/api/routes/trackb-media-oss-tool-call-api-routes.ts',
+  'src/backend/api/api-route-registry.ts',
+  'src/backend/api/index.ts',
+  'src/backend/contracts/index.ts',
+  'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-rerun.md',
   'scripts/validation/trackb-media-oss-milestone-3-exact-font-asset-source-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-2-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-2-video-analysis-execution-diagnostics.mjs',

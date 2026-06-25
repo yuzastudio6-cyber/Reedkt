@@ -11,6 +11,11 @@ rendered media, screenshots, SVG files, public artifacts, or signed URLs.
 
 - PR #783: [AI graphics GPU worker install proof](https://github.com/yuzastudio6-cyber/Reedkt/pull/783), open/draft/CLEAN at `8eaa8eb0a1a4a04bde91bc1ee4044ea1c5f0dc56`.
 
+## Draft PR
+
+- PR #787: [AI graphics browser runtime proof](https://github.com/yuzastudio6-cyber/Reedkt/pull/787), open/draft/CLEAN at creation head `dc5c1025bb77a8d34cac625a6bff85be0d4a4528`.
+- Check rollup at creation: empty.
+
 ## Tool Results
 
 | Tool | Package | Version | Status |

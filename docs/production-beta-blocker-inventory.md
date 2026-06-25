@@ -111,6 +111,18 @@ Next recommended milestone: `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD
 
 External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## RP-JOBS-01 Internal Beta Job Queue Runtime Scaffold
+
+`RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_job_queue_runtime_scaffold_no_worker_execution` and execution `completed_fail_closed_job_queue_scaffold_no_route_or_worker_execution`.
+
+Job queue runtime scaffold status: `disabled_pending_job_queue_runtime_gate`. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Disabled job queue runtime scaffold operations now exist for job batch creation, job enqueue, job status readback, event append, worker lease claim, worker heartbeat, retry scheduling, and cancellation. They are not registered as live HTTP handlers or mock handlers, and they do not enqueue jobs, append job events, claim worker leases, heartbeat workers, dispatch workers, mutate credits, mutate Supabase, call providers/models, render/export, create signed/public artifacts, or unlock beta/production.
+
+Next recommended milestone: `RP-ARTIFACTS-01-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-SCAFFOLD`.
+
+External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

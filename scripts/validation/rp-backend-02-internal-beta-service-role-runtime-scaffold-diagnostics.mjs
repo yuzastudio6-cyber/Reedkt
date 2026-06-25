@@ -16,11 +16,14 @@ const requiredFiles = [
   'docs/activation-phase-rp-backend-02-internal-beta-service-role-runtime-scaffold-results.md',
   'docs/implementation-prompts/prompt-rp-backend-02-internal-beta-service-role-runtime-scaffold.md',
   'docs/implementation-prompts/prompt-rp-credits-01-internal-beta-credit-ledger-runtime-scaffold.md',
+  'docs/implementation-prompts/prompt-rp-jobs-01-internal-beta-job-queue-runtime-scaffold.md',
+  'docs/implementation-prompts/prompt-rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
   'server/services/internal-beta-service-role-runtime-scaffold.ts',
   'scripts/validation/rp-backend-01-internal-beta-service-role-api-contracts-diagnostics.mjs',
   'scripts/validation/rp-backend-02-internal-beta-service-role-runtime-scaffold-diagnostics.mjs',
+  'scripts/validation/rp-jobs-01-internal-beta-job-queue-runtime-scaffold-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set([
@@ -35,6 +38,13 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-rp-jobs-01-internal-beta-job-queue-runtime-scaffold.md',
   'server/services/internal-beta-credit-ledger-runtime-scaffold.ts',
   'scripts/validation/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold-diagnostics.mjs',
+  'docs/internal-beta/rp-jobs-01-internal-beta-job-queue-runtime-scaffold/source-audit.md',
+  'docs/internal-beta/rp-jobs-01-internal-beta-job-queue-runtime-scaffold/job-queue-scaffold-matrix.md',
+  'docs/internal-beta/rp-jobs-01-internal-beta-job-queue-runtime-scaffold/worker-runtime-boundary.md',
+  'docs/internal-beta/rp-jobs-01-internal-beta-job-queue-runtime-scaffold/readiness-gate.md',
+  'docs/internal-beta/rp-jobs-01-internal-beta-job-queue-runtime-scaffold/job-scaffold-record.json',
+  'docs/activation-phase-rp-jobs-01-internal-beta-job-queue-runtime-scaffold-results.md',
+  'server/services/internal-beta-job-queue-runtime-scaffold.ts',
   'package.json',
 ])
 
@@ -142,6 +152,8 @@ function stripHistoricalSections(text) {
   return text
     .replace(/\n## RP-DATA-0[1-4][\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-BACKEND-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-CREDITS-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-JOBS-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 
 const docsCorpus = requiredFiles
@@ -264,6 +276,7 @@ for (const file of [...changedFiles, ...stagedFiles]) {
     (![
       'server/services/internal-beta-service-role-runtime-scaffold.ts',
       'server/services/internal-beta-credit-ledger-runtime-scaffold.ts',
+      'server/services/internal-beta-job-queue-runtime-scaffold.ts',
     ].includes(file) &&
       forbiddenPrefixes.some((prefix) => file.startsWith(prefix))) ||
     file.endsWith('.sql') ||

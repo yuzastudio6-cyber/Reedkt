@@ -643,6 +643,7 @@
     "rp-backend-01:internal-beta-service-role-api-contracts:diagnostics": "node scripts/validation/rp-backend-01-internal-beta-service-role-api-contracts-diagnostics.mjs",
     "rp-backend-02:internal-beta-service-role-runtime-scaffold:diagnostics": "node scripts/validation/rp-backend-02-internal-beta-service-role-runtime-scaffold-diagnostics.mjs",
     "rp-credits-01:internal-beta-credit-ledger-runtime-scaffold:diagnostics": "node scripts/validation/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold-diagnostics.mjs",
+    "rp-jobs-01:internal-beta-job-queue-runtime-scaffold:diagnostics": "node scripts/validation/rp-jobs-01-internal-beta-job-queue-runtime-scaffold-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

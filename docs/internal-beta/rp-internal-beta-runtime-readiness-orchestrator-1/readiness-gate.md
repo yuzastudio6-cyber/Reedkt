@@ -4,10 +4,13 @@ Internal beta end-to-end status: `not_ready`
 
 Current blocker: `blocked_pending_supabase_target_validation_and_runtime_enablement`
 
-The orchestrator is a source-level readiness check only. It proves the existing disabled scaffolds remain coherent and fail closed as a single internal-beta lane, but it does not approve remote Supabase validation, SQL, worker dispatch, provider/model calls, rendering, private artifact access, credit mutation, or beta unlock.
+Credential context blocker: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
+
+The orchestrator is a source-level readiness check only. It proves the existing disabled scaffolds remain coherent and fail closed as a single internal-beta lane, and it now carries the backend-safe credential context decision. It does not approve remote Supabase validation, SQL, worker dispatch, provider/model calls, rendering, private artifact access, credit mutation, or beta unlock.
 
 ## Required Before Runtime Enablement
 
+- `approved_supabase_credential_context_present`
 - `confirmed_supabase_target_rls_storage_validation`
 - `guarded_worker_runtime_rpc_staging_sql_execution`
 - `service_role_runtime_enablement`

@@ -6,6 +6,12 @@ Execution: `completed_local_orchestrator_scaffold_no_runtime_execution`
 
 Status: `blocked_pending_supabase_target_validation_and_runtime_enablement`
 
+Credential context decision: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
+
+Credential context execution: `blocked_no_remote_execution_missing_safe_credential_context`
+
+Required credential gate: `approved_supabase_credential_context_present`
+
 Internal beta end-to-end ready: `false`
 
 Product-ready end-to-end local OSS tools: `0`

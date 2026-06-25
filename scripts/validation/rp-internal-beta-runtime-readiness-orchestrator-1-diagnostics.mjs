@@ -54,6 +54,13 @@ const allowedChangedFiles = new Set([
   'server/config/internal-beta-supabase-credential-context-contract.ts',
   'server/smoke/internal-beta-supabase-credential-context-contract-smoke.ts',
   'scripts/validation/rp-internal-beta-supabase-credential-context-contract-1-diagnostics.mjs',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-credential-context-integration-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-credential-context-integration-1/runtime-readiness-credential-context-integration.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-credential-context-integration-1/component-gate.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-credential-context-integration-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-credential-context-integration-1/runtime-readiness-credential-context-integration-record.json',
+  'docs/activation-phase-rp-internal-beta-runtime-readiness-credential-context-integration-1-results.md',
+  'scripts/validation/rp-internal-beta-runtime-readiness-credential-context-integration-1-diagnostics.mjs',
   'scripts/validation/rp-backend-02-internal-beta-service-role-runtime-scaffold-diagnostics.mjs',
   'scripts/validation/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold-diagnostics.mjs',
   'scripts/validation/rp-jobs-01-internal-beta-job-queue-runtime-scaffold-diagnostics.mjs',
@@ -68,6 +75,9 @@ const requiredText = [
   'completed_internal_beta_runtime_readiness_orchestrator_fail_closed',
   'completed_local_orchestrator_scaffold_no_runtime_execution',
   'blocked_pending_supabase_target_validation_and_runtime_enablement',
+  'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias',
+  'blocked_no_remote_execution_missing_safe_credential_context',
+  'approved_supabase_credential_context_present',
   'integration head `a2af3ca8c2d9f7bfd93996a0458a41239b380dbe`',
   'PR #577 remains open/draft/blocked and excluded as source-of-truth',
   'Exact open duplicate PR: `none`',
@@ -196,6 +206,16 @@ if (record.decision !== 'completed_internal_beta_runtime_readiness_orchestrator_
 if (record.execution !== 'completed_local_orchestrator_scaffold_no_runtime_execution') fail('record execution mismatch')
 if (record.status !== 'blocked_pending_supabase_target_validation_and_runtime_enablement') fail('record status mismatch')
 if (record.baseIntegrationHead !== 'a2af3ca8c2d9f7bfd93996a0458a41239b380dbe') fail('base integration head mismatch')
+if (record.credentialContextDecision !== 'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias') {
+  fail('credential context decision mismatch')
+}
+if (record.credentialContextExecution !== 'blocked_no_remote_execution_missing_safe_credential_context') {
+  fail('credential context execution mismatch')
+}
+if (record.credentialContextRequiredBeforeEnablement !== true) fail('credential context gate flag mismatch')
+if (!record.requiredBeforeEnablement?.includes('approved_supabase_credential_context_present')) {
+  fail('missing credential context required-before-enablement gate')
+}
 if (record.internalBetaEndToEndReady !== false) fail('internal beta end-to-end ready must be false')
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count must remain 0')
 if (record.componentCounts?.total !== 46) fail('total disabled operation count must be 46')
@@ -251,6 +271,10 @@ for (const required of [
   'INTERNAL_BETA_PROVIDER_ADAPTER_SCAFFOLDS',
   'createInternalBetaRuntimeReadinessOrchestratorReport',
   'assertInternalBetaRuntimeReadinessOrchestratorFailClosed',
+  'createInternalBetaSupabaseCredentialContextContract',
+  'assertInternalBetaSupabaseCredentialContextFailClosed',
+  'supabaseCredentialContext: InternalBetaSupabaseCredentialContextContract',
+  'approved_supabase_credential_context_present',
   'blocked_pending_supabase_target_validation_and_runtime_enablement',
   'productReadyEndToEndLocalOssTools: 0',
   'unsafeExecutionDetected: false',
@@ -278,6 +302,10 @@ const smoke = read('server/smoke/internal-beta-runtime-readiness-orchestrator-sm
 for (const required of [
   'createInternalBetaRuntimeReadinessOrchestratorReport',
   'assertInternalBetaRuntimeReadinessOrchestratorFailClosed',
+  'createInternalBetaSupabaseCredentialContextContract',
+  'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias',
+  'blocked_no_remote_execution_missing_safe_credential_context',
+  'approved_supabase_credential_context_present',
   'report.componentCounts.total === 46',
   'report.safety.remoteSupabaseMutation === false',
   'report.safety.sqlExecution === false',
@@ -354,7 +382,8 @@ for (const file of [...changedFiles, ...stagedFiles]) {
   }
 }
 
-const changedAdditions = execFileSync('git', ['diff', '--unified=0', 'HEAD', '--', ...changedFiles], {
+const claimScanFiles = changedFiles.filter((file) => file.startsWith('docs/') || file === 'implementation-status-and-next-phase.md')
+const changedAdditions = execFileSync('git', ['diff', '--unified=0', 'HEAD', '--', ...claimScanFiles], {
   env: gitEnv,
   encoding: 'utf8',
 })

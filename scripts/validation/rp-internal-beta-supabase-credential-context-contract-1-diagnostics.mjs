@@ -26,7 +26,22 @@ const requiredFiles = [
   'package.json',
 ]
 
-const allowedChangedFiles = new Set(requiredFiles)
+const allowedChangedFiles = new Set([
+  ...requiredFiles,
+  'server/services/internal-beta-runtime-readiness-orchestrator.ts',
+  'server/smoke/internal-beta-runtime-readiness-orchestrator-smoke.ts',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-1/runtime-readiness-orchestrator.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-1/runtime-readiness-orchestrator-record.json',
+  'docs/activation-phase-rp-internal-beta-runtime-readiness-orchestrator-1-results.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-credential-context-integration-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-credential-context-integration-1/runtime-readiness-credential-context-integration.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-credential-context-integration-1/component-gate.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-credential-context-integration-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-credential-context-integration-1/runtime-readiness-credential-context-integration-record.json',
+  'docs/activation-phase-rp-internal-beta-runtime-readiness-credential-context-integration-1-results.md',
+  'scripts/validation/rp-internal-beta-runtime-readiness-credential-context-integration-1-diagnostics.mjs',
+])
 
 const requiredText = [
   packet,

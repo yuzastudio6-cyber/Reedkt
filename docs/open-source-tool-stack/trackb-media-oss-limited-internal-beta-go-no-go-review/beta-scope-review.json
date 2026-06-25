@@ -1,0 +1,25 @@
+{
+  "schema": "trackb-media-oss-limited-internal-beta-scope-review.v1",
+  "generatedAt": "2026-06-25T15:05:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_go_no_go_review_passed_ready_for_limited_internal_beta_dry_run_activation",
+  "allowedNextScope": "limited_internal_beta_dry_run_activation_only",
+  "blockedScopes": {
+    "liveRouteRuntime": true,
+    "workerDispatch": true,
+    "realToolExecution": true,
+    "userMediaByDefault": true,
+    "publicArtifacts": true,
+    "signedUrls": true,
+    "supabaseGcs": true,
+    "externalBeta": true,
+    "production": true,
+    "productReady": true
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

@@ -279,8 +279,12 @@ for (const [scriptName, command] of Object.entries(expectedScripts)) {
 for (const [scriptName, command] of Object.entries(basePackageJson.scripts ?? {})) {
   if (packageJson?.scripts?.[scriptName] !== command) fail(`existing_script_changed:${scriptName}`)
 }
+const allowedDescendantScripts = new Set([
+  'ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics',
+  'ai-graphics:21-tool-runtime-install-readiness:diagnostics',
+])
 for (const scriptName of Object.keys(packageJson?.scripts ?? {})) {
-  if (!basePackageJson.scripts?.[scriptName] && scriptName !== 'ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics') {
+  if (!basePackageJson.scripts?.[scriptName] && !allowedDescendantScripts.has(scriptName)) {
     fail(`unexpected_new_script:${scriptName}`)
   }
 }

@@ -21,7 +21,7 @@ FFmpeg distro package use is acceptable for dev/readiness declarations, but comm
 
 ## Milestone 11 GPU Install Foundation
 
-The GPU worker image now declares CUDA-compatible runtime, Python, Node support, PyTorch/TorchVision, CTranslate2, faster-whisper, Kornia, OpenCV headless, DeepFilterNet, and Demucs package foundations. PaddleOCR/PaddlePaddle GPU remain optional/planned, while BiRefNet, SAM2, Real-ESRGAN, and FILM remain pending source-install review.
+The GPU worker image now declares CUDA-compatible runtime, Python, Node support, PyTorch/TorchVision, CTranslate2, faster-whisper, Kornia, OpenCV headless, DeepFilterNet, Demucs, Transformers, rembg GPU, transparent-background, a pinned SAM2 source install, and the Real-ESRGAN package foundation. BiRefNet uses the Transformers model-loader path plus an approved private model snapshot; PaddleOCR/PaddlePaddle GPU and FILM remain optional/planned or pending source-install review.
 
 Model-weight directories are empty placeholders only. No model weights are downloaded, committed, baked into images, or treated as approved in M11.
 

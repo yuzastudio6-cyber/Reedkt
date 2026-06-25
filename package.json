@@ -36,6 +36,7 @@
     "ai-graphics:cpu-static-execution-proof:phase0-diagnostics": "node scripts/validation/ai-graphics-cpu-static-execution-proof-phase-0-diagnostics.mjs",
     "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics": "node scripts/validation/ai-graphics-cpu-static-execution-proof-phase-0-qa-diagnostics.mjs",
     "ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics": "node scripts/validation/ai-graphics-cpu-static-execution-proof-phase-0-owner-diagnostics.mjs",
+    "ai-graphics:21-tool-runtime-install-readiness:diagnostics": "node scripts/validation/ai-graphics-21-tool-runtime-install-readiness-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

@@ -233,6 +233,20 @@ Remote Supabase mutation, SQL execution, Google Cloud API calls, Secret Manager 
 
 Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-IMPLEMENTATION-PLAN-1`.
 
+## RP-INTERNAL-BETA Google Cloud Managed Runtime Implementation Plan 1
+
+`RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-IMPLEMENTATION-PLAN-1` records decision `completed_google_cloud_managed_runtime_implementation_plan_ready_for_guarded_runtime_scaffold_sequence` and execution `completed_docs_only_google_cloud_managed_runtime_implementation_plan_no_runtime_execution`.
+
+Approved runtime target: `google_cloud_managed_runtime_target`. Runtime implementation scope: `architecture_plan_only_no_cloud_runtime_execution`. Environment class: `google_cloud_managed_internal_beta`.
+
+The implementation sequence is now source-of-truth for guarded future packets: environment boundary, Supabase target/RLS/storage validation, secret-name policy, service-role API runtime, approved snapshot persistence, credit ledger runtime, job queue/worker lease runtime, private artifact manifest/access runtime, Remotion private preview/export runtime, provider/model runtime approval if needed, QA/cleanup runtime, and internal beta E2E validation.
+
+Internal beta end-to-end status: `not_ready_pending_runtime_implementation_and_validation`. Product-ready end-to-end local OSS tools: `0`.
+
+Google Cloud API calls, Cloud Run service/job creation, IAM mutation, Secret Manager payload access, GCS access, remote Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, Remotion execution, provider/model call, deployment, internal beta unlock, external beta unlock, production unlock, final delivery/export, public artifacts, and signed URL creation remain blocked.
+
+Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-BOUNDARY-1`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

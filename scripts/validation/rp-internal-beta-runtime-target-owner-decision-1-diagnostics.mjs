@@ -23,11 +23,21 @@ const requiredFiles = [
   'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-target-approval-1/readiness-gate.md',
   'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-target-approval-1/google-cloud-managed-runtime-target-approval-record.json',
   'docs/activation-phase-rp-internal-beta-google-cloud-managed-runtime-target-approval-1-results.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/google-cloud-runtime-architecture.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/runtime-gate-matrix.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/implementation-sequence.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/google-cloud-managed-runtime-implementation-plan-record.json',
+  'docs/activation-phase-rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-google-cloud-environment-boundary-1.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
   'scripts/validation/rp-internal-beta-named-runtime-target-approval-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-runtime-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-google-cloud-managed-runtime-target-approval-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
@@ -35,7 +45,9 @@ const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
 function isFollowOnGoogleCloudApprovalFile(file) {
   return file.includes('rp-internal-beta-google-cloud-managed-runtime-target-approval-1') ||
     file.includes('rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1') ||
-    file.includes('activation-phase-rp-internal-beta-google-cloud-managed-runtime-target-approval-1-results')
+    file.includes('activation-phase-rp-internal-beta-google-cloud-managed-runtime-target-approval-1-results') ||
+    file.includes('activation-phase-rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-results') ||
+    file.includes('rp-internal-beta-google-cloud-environment-boundary-1')
 }
 
 const requiredText = [
@@ -192,6 +204,7 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-INTERNAL-BETA Runtime Enablement Owner Approval 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Named Runtime Target Approval 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Google Cloud Managed Runtime Target Approval 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA Google Cloud Managed Runtime Implementation Plan 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## Track A[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 

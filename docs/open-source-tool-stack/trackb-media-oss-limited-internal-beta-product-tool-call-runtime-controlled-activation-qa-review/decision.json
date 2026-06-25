@@ -1,0 +1,10 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout",
+  "controlledActivationQaAccepted": true,
+  "boundedInternalActivationArtifactAccepted": true,
+  "readyForControlledActivationCloseout": true,
+  "liveActivationApproved": false,
+  "productReady": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT"
+}

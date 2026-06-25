@@ -391,6 +391,25 @@
         "externalBetaReady": false,
         "productionReady": false,
         "productReady": false
+      },
+      "limitedInternalBetaProductToolCallRuntimeControlledActivationQaReview": {
+        "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout",
+        "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-qa-review",
+        "coveredToolCount": 16,
+        "boundedAcceptedProvenCount": 16,
+        "blockedNotInstalledProvenCount": 0,
+        "productReadyCount": 0,
+        "controlledActivationQaAccepted": true,
+        "boundedInternalActivationArtifactAccepted": true,
+        "approvedControlReceiptAccepted": true,
+        "readyForControlledActivationCloseout": true,
+        "liveActivationApproved": false,
+        "readyForDirectProductToolCalls": false,
+        "readyForLiveBetaRuntime": false,
+        "externalBetaReady": false,
+        "productionReady": false,
+        "productReady": false,
+        "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT"
       }
     }
   ],

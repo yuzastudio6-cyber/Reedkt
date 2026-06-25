@@ -1,0 +1,27 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaProductToolCallRuntimeDryRunExecution.schemaQaFallback.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_execution_passed_ready_for_runtime_dry_run_qa_review",
+  "resultSchemaVersion": "trackb-media-oss-tool-call-result.v1",
+  "requiredResultFields": [
+    "toolId",
+    "status",
+    "approvedSnapshotId",
+    "editPlanId",
+    "idempotencyKey",
+    "inputArtifactIds",
+    "outputArtifactIds",
+    "qaGateIds",
+    "fallbackPolicyId",
+    "sanitizedLogsSummary"
+  ],
+  "forbiddenResultFields": ["signedUrl", "signed_url", "publicUrl", "rawPrompt", "rawChat", "providerPrompt"],
+  "requiredQualityGates": ["render_asset_integrity", "render_timeline_integrity", "final_delivery"],
+  "fallbackPolicy": {
+    "allowedActions": ["block_preview", "block_final_export", "request_user_review"],
+    "maxAttemptsBeforeUserReview": 0
+  },
+  "qaGateLinkageAccepted": true,
+  "rawPromptPayloadForbidden": true,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_QA_REVIEW"
+}

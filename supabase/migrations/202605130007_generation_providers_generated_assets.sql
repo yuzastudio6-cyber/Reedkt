@@ -715,7 +715,7 @@ insert into public.generation_provider_capabilities (
   supports_prompt_weights,
   capability_payload
 )
-select gp.id, capability, supports_transparency, supports_timing_constraints, supports_prompt_weights, payload
+select gp.id, seed.capability, seed.supports_transparency, seed.supports_timing_constraints, seed.supports_prompt_weights, seed.payload
 from public.generation_providers gp
 cross join lateral (
   values
@@ -745,7 +745,7 @@ insert into public.generation_provider_models (
   supports_seed,
   model_payload
 )
-select gp.id, model_key, model_name, display_name, description, default_quality_level, supports_transparent_background, supports_word_level_timing, supports_seed, payload
+select gp.id, seed.model_key, seed.model_name, seed.display_name, seed.description, seed.default_quality_level, seed.supports_transparent_background, seed.supports_word_level_timing, seed.supports_seed, seed.payload
 from public.generation_providers gp
 cross join lateral (
   values

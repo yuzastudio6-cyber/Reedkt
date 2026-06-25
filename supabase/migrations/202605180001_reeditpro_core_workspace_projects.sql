@@ -37,6 +37,9 @@ create table if not exists public.workspaces (
   updated_at timestamptz not null default now()
 );
 
+alter table public.workspaces
+  add column if not exists owner_id uuid references auth.users(id) on delete cascade;
+
 create table if not exists public.workspace_members (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
@@ -58,6 +61,10 @@ create table if not exists public.projects (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.projects
+  add column if not exists owner_id uuid references auth.users(id) on delete cascade,
+  add column if not exists current_edit_session_id uuid;
 
 create table if not exists public.edit_sessions (
   id uuid primary key default gen_random_uuid(),
@@ -92,6 +99,9 @@ create table if not exists public.chat_messages (
   metadata_json jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+alter table public.chat_messages
+  add column if not exists edit_session_id uuid references public.edit_sessions(id) on delete cascade;
 
 create table if not exists public.user_confirmations (
   id uuid primary key default gen_random_uuid(),

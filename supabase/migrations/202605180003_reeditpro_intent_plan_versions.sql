@@ -75,6 +75,9 @@ create table if not exists public.edit_plan_segments (
   created_at timestamptz not null default now()
 );
 
+alter table public.edit_plan_segments
+  add column if not exists edit_plan_version_id uuid references public.edit_plan_versions(id) on delete cascade;
+
 create table if not exists public.edit_operations (
   id uuid primary key default gen_random_uuid(),
   edit_plan_segment_id uuid not null references public.edit_plan_segments(id) on delete cascade,

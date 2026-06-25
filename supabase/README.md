@@ -364,7 +364,7 @@ It extends the existing `approved_plan_snapshots` table and adds:
 
 The migration adds helper functions for approved snapshot readiness and worker claim safety, enables RLS on the new tables, and keeps privileged writes reserved for future service-role backend/worker paths. Canonical storage records store bucket and object path only; signed URL audit events do not store the signed URL.
 
-This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, or spend credits.
+This migration has passed local-only reset validation through `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION`. It has not been run in staging or production. It does not connect to Supabase remotely, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, or spend credits.
 
 ### RP-DATA-03: Internal Beta Static Gap Contract
 
@@ -379,19 +379,34 @@ It adds:
 - service-role grants for future backend/worker mutation
 - backend-only comments for artifact manifests, worker events, credit reservations, editing jobs, and final exports
 
-This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, create buckets, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, spend credits, or unlock internal beta.
+This migration has passed local-only reset validation through `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION`. It has not been run in staging or production. It does not connect to Supabase remotely, create remote buckets, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, spend credits, or unlock internal beta.
+
+### RP-DATA-04: Guarded Local Supabase Migration Validation
+
+RP-DATA-04 adds local Supabase CLI config with isolated ports and `auto_expose_new_tables = false`, then validates the migration chain locally with `supabase db reset --local --no-seed`.
+
+Local validation confirmed:
+
+- the chain resets through `migrations/20260625031135_rp_data_03_internal_beta_static_gap_contract.sql`
+- `artifact_manifests` and `artifact_manifest_items` exist
+- RLS is enabled on artifact tables
+- authenticated artifact table privileges are `SELECT` only
+- service-role artifact mutation privileges remain backend-owned
+- local buckets are private
+- migration version `20260625031135` is recorded
+
+This is local-only validation. Remote staging/production migration, backend service-role APIs, private signed artifact routes, provider calls, workers, rendering, billing, external beta, production, and final delivery remain blocked.
 
 ## Future Migrations
 
 Later migrations should add, in order:
 
-- local-only guarded application and verification of RP-DATA-03 plus the existing runtime readiness chain
-- staging application only after local validation and owner approval
 - backend API service-role handlers for approved snapshots, idempotency, upload intents, storage records, signed URL events, worker claims, tool checks, provider attempts, and webhooks
+- staging application only after backend API/RLS tests and owner approval
 - signed storage route wiring
 - Cloud Run worker scaffolding for generation, media tools, QA, and rendering
 - Stripe and billing integration after the credit service boundary is implemented
 
 ## Local-Only Reminder
 
-These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-TIMING-03, RP-FIX-07, RP-FIX-11, RP-E2E-READY-01, and RP-DATA-03 do not connect to Supabase, run remote migrations, configure remote storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.
+These migrations are local repo artifacts until a later deployment task. RP-DATA-04 validates local reset only. RP-DB-03 through RP-TIMING-03, RP-FIX-07, RP-FIX-11, RP-E2E-READY-01, and RP-DATA-03 do not connect to Supabase remotely, run remote migrations, configure remote storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.

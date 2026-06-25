@@ -27,8 +27,40 @@ const requiredFiles = [
   'scripts/validation/rp-data-03-supabase-migration-draft-static-implementation-diagnostics.mjs',
 ]
 
+const rpData04MigrationFiles = [
+  'supabase/migrations/202605130007_generation_providers_generated_assets.sql',
+  'supabase/migrations/202605180001_reeditpro_core_workspace_projects.sql',
+  'supabase/migrations/202605180002_reeditpro_media_source_sequence.sql',
+  'supabase/migrations/202605180003_reeditpro_intent_plan_versions.sql',
+  'supabase/migrations/202605180004_reeditpro_credits_approval_snapshots.sql',
+  'supabase/migrations/202605180005_reeditpro_generation_assets_jobs.sql',
+  'supabase/migrations/202605180006_reeditpro_qa_exports_audit.sql',
+  'supabase/migrations/202605180007_reeditpro_rls_policies.sql',
+  'supabase/migrations/202605180008_reeditpro_storage_buckets_policies.sql',
+  'supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql',
+  migrationFile,
+]
+
+const rpData04Files = [
+  'docs/internal-beta/rp-data-04-guarded-local-supabase-migration-validation/source-audit.md',
+  'docs/internal-beta/rp-data-04-guarded-local-supabase-migration-validation/compatibility-repairs.md',
+  'docs/internal-beta/rp-data-04-guarded-local-supabase-migration-validation/local-validation-evidence.md',
+  'docs/internal-beta/rp-data-04-guarded-local-supabase-migration-validation/rls-grants-storage-evidence.md',
+  'docs/internal-beta/rp-data-04-guarded-local-supabase-migration-validation/readiness-gate.md',
+  'docs/internal-beta/rp-data-04-guarded-local-supabase-migration-validation/validation-record.json',
+  'docs/activation-phase-rp-data-04-guarded-local-supabase-migration-validation-results.md',
+  'docs/implementation-prompts/prompt-rp-backend-01-internal-beta-service-role-api-contracts.md',
+  'supabase/.gitignore',
+  'supabase/config.toml',
+  'supabase/README.md',
+  'supabase/migration-order.md',
+  'scripts/validation/rp-data-04-guarded-local-supabase-migration-validation-diagnostics.mjs',
+  ...rpData04MigrationFiles,
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
+  ...rpData04Files,
   'package.json',
 ])
 
@@ -146,9 +178,13 @@ function gitQuiet(args, label) {
   }
 }
 
+function stripSuccessorSections(text) {
+  return text.replace(/\n## RP-DATA-04 Guarded Local Supabase Migration Validation[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+}
+
 const docsCorpus = requiredFiles
   .filter((file) => !file.startsWith('scripts/validation/') && file !== migrationFile)
-  .map((file) => read(file))
+  .map((file) => stripSuccessorSections(read(file)))
   .join('\n')
 
 for (const text of requiredText) {
@@ -213,11 +249,12 @@ for (const file of [...changedFiles, ...stagedFiles]) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
   const isStaticMigration = file === migrationFile
   const isSupabaseSupportFile = file === 'supabase/README.md' || file === 'supabase/migration-order.md'
+  const isRpData04File = rpData04Files.includes(file)
   if (
-    forbiddenExactFiles.has(file) ||
-    forbiddenPrefixes.some((prefix) => file.startsWith(prefix)) ||
-    (!isStaticMigration && !isSupabaseSupportFile && file.startsWith('supabase/')) ||
-    (!isStaticMigration && file.endsWith('.sql')) ||
+    (!isRpData04File && forbiddenExactFiles.has(file)) ||
+    (!isRpData04File && forbiddenPrefixes.some((prefix) => file.startsWith(prefix))) ||
+    (!isRpData04File && !isStaticMigration && !isSupabaseSupportFile && file.startsWith('supabase/')) ||
+    (!isRpData04File && !isStaticMigration && file.endsWith('.sql')) ||
     file.endsWith('.mp4') ||
     file.endsWith('.mov') ||
     file.endsWith('.mkv') ||
@@ -233,8 +270,8 @@ for (const file of [...changedFiles, ...stagedFiles]) {
 
 for (const file of changedFiles) {
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) continue
-  if (file.startsWith('scripts/validation/')) continue
-  const text = read(file)
+  if (file.startsWith('scripts/validation/') || rpData04Files.includes(file)) continue
+  const text = stripSuccessorSections(read(file))
   for (const pattern of forbiddenClaims) {
     if (pattern.test(text)) fail(`forbidden changed-file claim in ${file}: ${pattern}`)
   }

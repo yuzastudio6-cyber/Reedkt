@@ -21,6 +21,11 @@ create table if not exists public.media_assets (
   updated_at timestamptz not null default now()
 );
 
+alter table public.media_assets
+  add column if not exists status text not null default 'uploaded',
+  add column if not exists size_bytes bigint,
+  add column if not exists metadata_json jsonb not null default '{}'::jsonb;
+
 create table if not exists public.uploaded_clips (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(id) on delete cascade,

@@ -4,6 +4,15 @@
   "status": "in_progress",
   "branch": "codex/rp-ai-graphics-21-tool-runtime-install-readiness",
   "base": "origin/codex/rp-ai-graphics-cpu-static-execution-proof-phase-0-owner-review",
+  "draftPr": {
+    "number": 770,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/770",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headSha": "f5e0711ac946d28271b72a030fda661a09a29182",
+    "statusCheckRollup": []
+  },
   "duplicateSearch": {
     "exactOpenHeadPrFound": false,
     "exactRemoteBranchFound": false,

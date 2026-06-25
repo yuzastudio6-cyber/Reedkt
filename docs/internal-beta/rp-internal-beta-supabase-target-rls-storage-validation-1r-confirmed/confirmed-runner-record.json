@@ -8,6 +8,19 @@
   "requiredConfirmation": "REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true",
   "observedConfirmation": "absent_or_not_true",
   "currentRunStatus": "not_run_confirmation_absent",
+  "credentialAliasSupport": "approved_env_aliases_supported_payloads_redacted",
+  "acceptedAccessTokenEnvNames": [
+    "SUPABASE_ACCESS_TOKEN",
+    "REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN",
+    "REEDITPRO_SUPABASE_ACCESS_TOKEN"
+  ],
+  "acceptedReadonlyDbUrlEnvNames": [
+    "REEDITPRO_SUPABASE_READONLY_DB_URL",
+    "REEDITPRO_STAGING_SUPABASE_DB_URL",
+    "SUPABASE_STAGING_DB_URL",
+    "STAGING_SUPABASE_DB_URL",
+    "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL"
+  ],
   "remoteSupabaseMutation": false,
   "sqlMutation": false,
   "migrationApply": false,

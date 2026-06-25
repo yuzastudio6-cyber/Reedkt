@@ -15,7 +15,7 @@ Product-ready end-to-end local OSS tools: `0`
 ## Remaining Runtime Gates
 
 - Run the guarded runner with `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`.
-- Provide safe credential context without printing or committing secret payloads.
+- Provide safe credential context through one approved access-token alias and one approved read-only DB URL alias without printing or committing secret payloads.
 - Complete target identity and read-only public/storage advisor lint evidence.
 - Only after that, proceed to `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`.
 

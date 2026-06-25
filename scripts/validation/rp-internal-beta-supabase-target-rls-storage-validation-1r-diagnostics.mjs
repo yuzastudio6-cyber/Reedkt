@@ -38,6 +38,7 @@ const relatedFiles = [
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-google-cloud-runtime-config-contract-1-diagnostics.mjs',
   'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed.md',
   'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-source-audit.md',

@@ -43,7 +43,7 @@ npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed
 
 Additional safe credential context for a complete read-only run:
 
-- `SUPABASE_ACCESS_TOKEN` for target identity through `supabase projects list --output json`;
-- `REEDITPRO_SUPABASE_READONLY_DB_URL` for `supabase db lint --db-url [redacted] --schema public,storage --level warning --fail-on none`.
+- one approved access-token env alias for target identity through `supabase projects list --output json`: `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, or `REEDITPRO_SUPABASE_ACCESS_TOKEN`;
+- one approved read-only DB URL env alias for `supabase db lint --db-url [redacted] --schema public,storage --level warning --fail-on none`: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, or `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`.
 
 The runner must isolate Supabase CLI home under `/tmp`, redact secret-like values from reports, and write only sanitized local evidence under `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/<runId>/`.

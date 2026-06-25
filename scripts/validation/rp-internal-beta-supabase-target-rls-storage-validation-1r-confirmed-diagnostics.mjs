@@ -21,6 +21,7 @@ const requiredFiles = [
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-google-cloud-runtime-config-contract-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-1-diagnostics.mjs',
   'package.json',
 ]
 
@@ -51,6 +52,16 @@ const requiredText = [
   'Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`',
   'Observed confirmation: `absent_or_not_true`',
   'Current run status: `not_run_confirmation_absent`',
+  'Credential alias support: `approved_env_aliases_supported_payloads_redacted`',
+  'SUPABASE_ACCESS_TOKEN',
+  'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN',
+  'REEDITPRO_SUPABASE_ACCESS_TOKEN',
+  'REEDITPRO_SUPABASE_READONLY_DB_URL',
+  'REEDITPRO_STAGING_SUPABASE_DB_URL',
+  'SUPABASE_STAGING_DB_URL',
+  'STAGING_SUPABASE_DB_URL',
+  'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
+  'The runner records only the selected environment variable name and boolean presence. It never writes, prints, or summarizes the access token or database URL payload.',
   'Remote Supabase mutation: `false`',
   'SQL mutation: `false`',
   'Migration apply: `false`',
@@ -141,6 +152,19 @@ if (record.execution !== 'completed_runner_scaffold_no_remote_execution') fail('
 if (record.requiredConfirmation !== 'REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true') fail('record confirmation mismatch')
 if (record.currentRunStatus !== 'not_run_confirmation_absent') fail('record run status mismatch')
 if (record.supabaseTargetProject !== 'wmyyttnynmteqgcdishd') fail('record target mismatch')
+if (record.credentialAliasSupport !== 'approved_env_aliases_supported_payloads_redacted') fail('record credential alias support mismatch')
+for (const name of ['SUPABASE_ACCESS_TOKEN', 'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN', 'REEDITPRO_SUPABASE_ACCESS_TOKEN']) {
+  if (!record.acceptedAccessTokenEnvNames?.includes(name)) fail(`missing access token alias ${name}`)
+}
+for (const name of [
+  'REEDITPRO_SUPABASE_READONLY_DB_URL',
+  'REEDITPRO_STAGING_SUPABASE_DB_URL',
+  'SUPABASE_STAGING_DB_URL',
+  'STAGING_SUPABASE_DB_URL',
+  'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
+]) {
+  if (!record.acceptedReadonlyDbUrlEnvNames?.includes(name)) fail(`missing DB URL alias ${name}`)
+}
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 for (const key of [
   'remoteSupabaseMutation',
@@ -170,6 +194,19 @@ for (const key of [
 const packageJson = JSON.parse(read('package.json'))
 if (packageJson.scripts?.['rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed'] !== 'node scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs') fail('missing runner package script')
 if (packageJson.scripts?.['rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed:diagnostics'] !== 'node scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs') fail('missing diagnostics package script')
+
+const runner = read('scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs')
+for (const required of [
+  'accessTokenEnvNames',
+  'readonlyDbUrlEnvNames',
+  'firstPresentEnv',
+  'accessTokenCredential.value',
+  'readonlyDbUrlCredential.value',
+  'acceptedAccessTokenEnvNames',
+  'acceptedReadonlyDbUrlEnvNames',
+]) {
+  if (!runner.includes(required)) fail(`runner missing alias contract ${required}`)
+}
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 for (const blocked of ['supabase/migrations', 'supabase/functions', 'server/routes', 'server/workers', 'server/config', 'docker', 'src', 'database', '.dockerignore']) {

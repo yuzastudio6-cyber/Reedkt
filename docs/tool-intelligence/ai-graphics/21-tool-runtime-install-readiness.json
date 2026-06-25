@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.21-tool-runtime-install-readiness",
+  "decision": "ai_graphics_21_tool_runtime_install_readiness_started_with_gpu_worker_install_declarations",
+  "status": "in_progress",
+  "branch": "codex/rp-ai-graphics-21-tool-runtime-install-readiness",
+  "base": "origin/codex/rp-ai-graphics-cpu-static-execution-proof-phase-0-owner-review",
+  "duplicateSearch": {
+    "exactOpenHeadPrFound": false,
+    "exactRemoteBranchFound": false,
+    "targetWorktreePreexisted": false,
+    "relatedOwnerLanesFound": [
+      "Track A native/container render tools install proof branches",
+      "sound/tool-calling runtime install branches",
+      "AI graphics package-proof, capability, routing, runtime-boundary, handoff, and CPU/static proof branches"
+    ],
+    "coordinationRule": "Do not duplicate Track A render/export ownership or Track B media ownership; AI graphics owns the 21-tool graphics/model planning and install-readiness path only."
+  },
+  "toolCounts": {
+    "total": 21,
+    "nodeDeclaredAndLocked": 13,
+    "gpuWorkerDeclared": 7,
+    "modelPathViaTransformers": 1,
+    "runtimeBetaReadyNow": 0,
+    "remainingRuntimeProofRequired": 21
+  },
+  "runtimeTargets": {
+    "nodePackageLock": [
+      "d3",
+      "echarts",
+      "vega_lite",
+      "vega",
+      "satori",
+      "svgdotjs_svg_js",
+      "viz_js",
+      "lottie_web",
+      "animejs",
+      "three_js",
+      "pixi_js",
+      "konva",
+      "babylonjs"
+    ],
+    "gpuAiWorkerRequirements": [
+      "torch_torchvision",
+      "transformers",
+      "sam2",
+      "real_esrgan",
+      "kornia",
+      "rembg",
+      "transparent_background"
+    ],
+    "gpuAiWorkerModelPathViaTransformers": [
+      "birefnet"
+    ]
+  },
+  "requiredGatesBeforeBeta": [
+    "build_gpu_worker_image_with_ai_graphics_requirements",
+    "run_gpu_worker_import_smoke_without_processing_user_media",
+    "approve_private_model_weight_manifests_for_sam2_birefnet_real_esrgan_rembg_transparent_background",
+    "run_synthetic_or_approved_fixture_runtime_smokes_for_all_21_tools",
+    "prove_browser_canvas_webgl_runtime_for_echarts_lottie_web_animejs_three_js_pixi_js_konva_babylonjs",
+    "prove_satori_text_svg_layout_with_approved_font_fixture",
+    "wire_tool_calling_handoff_to_approved_snapshot_and_worker_gates",
+    "keep_route_worker_provider_storage_public_artifact_and_beta_gates_false_until_runtime_proof_passes"
+  ],
+  "booleans": {
+    "all21ToolsCovered": true,
+    "all13NodeGraphicsPackagesDeclaredAndLocked": true,
+    "gpuWorkerInstallDeclarationsExpanded": true,
+    "sam2UsesPinnedGpuSourceInstall": true,
+    "birefnetUsesTransformersModelPath": true,
+    "heavyModelToolsTargetGpuWorker": true,
+    "coordinationDuplicateSearchCompleted": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "toolRouteExecutionReadyNow": false,
+    "workerExecutionReadyNow": false,
+    "browserWebglCanvasRuntimeReadyNow": false,
+    "gpuModelRuntimeReadyNow": false,
+    "runtimeBetaReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "packageLockMutationPerformed": false,
+    "modelWeightsDownloaded": false,
+    "mediaProcessingPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "installTarget": "gpu_ai_worker",
+      "installEvidence": ["torch", "torchvision"],
+      "installStatus": "declared_in_gpu_worker_requirements",
+      "runtimeStatus": "pending_gpu_import_smoke",
+      "betaReady": false
+    },
+    {
+      "toolId": "transformers",
+      "installTarget": "gpu_ai_worker",
+      "installEvidence": ["transformers"],
+      "installStatus": "declared_in_gpu_worker_requirements",
+      "runtimeStatus": "pending_gpu_import_smoke_and_model_boundary_review",
+      "betaReady": false
+    },
+    {
+      "toolId": "sam2",
+      "installTarget": "gpu_ai_worker",
+      "installEvidence": ["git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4#egg=SAM-2"],
+      "installStatus": "pinned_source_install_declared",
+      "runtimeStatus": "pending_gpu_build_import_smoke_and_private_checkpoint_manifest",
+      "betaReady": false
+    },
+    {
+      "toolId": "birefnet",
+      "installTarget": "gpu_ai_worker",
+      "installEvidence": ["transformers", "ZhengPeng7/BiRefNet private model snapshot required"],
+      "installStatus": "model_path_declared_via_transformers",
+      "runtimeStatus": "pending_private_model_manifest_and_gpu_import_smoke",
+      "betaReady": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "installTarget": "gpu_ai_worker",
+      "installEvidence": ["realesrgan"],
+      "installStatus": "declared_in_gpu_worker_requirements",
+      "runtimeStatus": "pending_private_weight_manifest_and_gpu_import_smoke",
+      "betaReady": false
+    },
+    {
+      "toolId": "kornia",
+      "installTarget": "gpu_ai_worker",
+      "installEvidence": ["kornia"],
+      "installStatus": "declared_in_gpu_worker_requirements",
+      "runtimeStatus": "pending_gpu_import_smoke",
+      "betaReady": false
+    },
+    {
+      "toolId": "rembg",
+      "installTarget": "gpu_ai_worker",
+      "installEvidence": ["rembg[gpu]"],
+      "installStatus": "declared_in_gpu_worker_requirements",
+      "runtimeStatus": "pending_gpu_import_smoke_and_model_cache_policy",
+      "betaReady": false
+    },
+    {
+      "toolId": "transparent_background",
+      "installTarget": "gpu_ai_worker",
+      "installEvidence": ["transparent-background"],
+      "installStatus": "declared_in_gpu_worker_requirements",
+      "runtimeStatus": "pending_gpu_import_smoke_and_model_cache_policy",
+      "betaReady": false
+    },
+    {
+      "toolId": "d3",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["d3@7.9.0"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "phase0_proof_passed_but_not_agent_executable",
+      "betaReady": false
+    },
+    {
+      "toolId": "echarts",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["echarts@6.1.0"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "pending_browser_chart_runtime_proof",
+      "betaReady": false
+    },
+    {
+      "toolId": "vega_lite",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["vega-lite@6.4.3"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "phase0_proof_passed_but_not_agent_executable",
+      "betaReady": false
+    },
+    {
+      "toolId": "vega",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["vega@6.2.0"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "phase0_proof_passed_but_not_agent_executable",
+      "betaReady": false
+    },
+    {
+      "toolId": "satori",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["satori@0.26.0"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "blocked_pending_approved_font_fixture_for_text_svg_layout",
+      "betaReady": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["@svgdotjs/svg.js@3.2.5"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "phase0_proof_passed_but_not_agent_executable",
+      "betaReady": false
+    },
+    {
+      "toolId": "viz_js",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["@viz-js/viz@3.28.0"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "phase0_proof_passed_but_not_agent_executable",
+      "betaReady": false
+    },
+    {
+      "toolId": "lottie_web",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["lottie-web@5.13.0"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "pending_animation_runtime_proof",
+      "betaReady": false
+    },
+    {
+      "toolId": "animejs",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["animejs@4.4.1"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "pending_animation_runtime_proof",
+      "betaReady": false
+    },
+    {
+      "toolId": "three_js",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["three@0.184.0"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "pending_browser_webgl_runtime_proof",
+      "betaReady": false
+    },
+    {
+      "toolId": "pixi_js",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["pixi.js@8.19.0"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "pending_browser_canvas_webgl_runtime_proof",
+      "betaReady": false
+    },
+    {
+      "toolId": "konva",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["konva@10.3.0"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "pending_canvas_runtime_proof",
+      "betaReady": false
+    },
+    {
+      "toolId": "babylonjs",
+      "installTarget": "node_package_lock",
+      "installEvidence": ["babylonjs@9.12.0"],
+      "installStatus": "declared_and_locked",
+      "runtimeStatus": "pending_browser_webgl_runtime_proof",
+      "betaReady": false
+    }
+  ],
+  "nextImplementationMilestones": [
+    "GPU worker image build proof for AI graphics requirements",
+    "GPU worker import-smoke proof for torch/torchvision, transformers, SAM2, Kornia, rembg, transparent-background, Real-ESRGAN, and BiRefNet model-loader path",
+    "approved private model-weight manifests for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background",
+    "browser/canvas/WebGL runtime sandbox proof for ECharts, Lottie, Anime.js, Three.js, PixiJS, Konva, and Babylon.js",
+    "Tool Route and Worker handoff integration only after approved snapshot and credit gates"
+  ]
+}

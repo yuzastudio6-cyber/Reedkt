@@ -4,17 +4,22 @@
 
 torch
 torchvision
+transformers
 ctranslate2
 faster-whisper
 kornia
 opencv-python-headless
+rembg[gpu]
+transparent-background
+realesrgan
+git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4#egg=SAM-2
 deepfilternet
 demucs
 
 # optional_planned: paddleocr
 # optional_planned: paddlepaddle-gpu
 
-# pending_source_install_review: BiRefNet
-# pending_source_install_review: SAM2
-# pending_source_install_review: Real-ESRGAN
+# BiRefNet package path: transformers + approved private ZhengPeng7/BiRefNet model snapshot.
+# SAM2 package path: pinned facebookresearch/sam2 source install above; checkpoints remain private/manifest-gated.
+# Real-ESRGAN package path: realesrgan PyPI package above; model weights remain private/manifest-gated.
 # pending_source_install_review: FILM frame interpolation

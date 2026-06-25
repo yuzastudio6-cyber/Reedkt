@@ -7,7 +7,7 @@
 # First Cloud Run GPU target: NVIDIA L4 (`nvidia-l4`), one GPU per instance, at least
 # 4 CPU and 16Gi memory, with --no-gpu-zonal-redundancy.
 
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 AS base
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -16,6 +16,8 @@ ENV REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV CUDA_HOME=/usr/local/cuda
+ENV SAM2_BUILD_ALLOW_ERRORS=0
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -26,6 +28,7 @@ RUN apt-get update \
     python3-pip \
     python3-venv \
     python3-setuptools \
+    git \
     nodejs \
     npm \
     ffmpeg \
@@ -39,8 +42,11 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages -r /tmp/requir
 
 RUN mkdir -p \
     /opt/reeditpro/model-weights/faster-whisper \
+    /opt/reeditpro/model-weights/transformers \
     /opt/reeditpro/model-weights/birefnet \
     /opt/reeditpro/model-weights/sam2 \
+    /opt/reeditpro/model-weights/rembg \
+    /opt/reeditpro/model-weights/transparent-background \
     /opt/reeditpro/model-weights/deepfilternet \
     /opt/reeditpro/model-weights/demucs \
     /opt/reeditpro/model-weights/real-esrgan \

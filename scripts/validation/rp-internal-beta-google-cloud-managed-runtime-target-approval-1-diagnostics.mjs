@@ -24,19 +24,32 @@ const requiredFiles = [
   'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/google-cloud-managed-runtime-implementation-plan-record.json',
   'docs/activation-phase-rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-results.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-google-cloud-environment-boundary-1.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-boundary-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-boundary-1/environment-boundary-decision.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-boundary-1/google-cloud-environment-matrix.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-boundary-1/supabase-target-boundary.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-boundary-1/secret-storage-boundary.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-boundary-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-boundary-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-boundary-1/google-cloud-environment-boundary-record.json',
+  'docs/activation-phase-rp-internal-beta-google-cloud-environment-boundary-1-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-google-cloud-environment-owner-input-1.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
   'scripts/validation/rp-internal-beta-runtime-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-google-cloud-managed-runtime-target-approval-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-google-cloud-environment-boundary-1-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
 
 function isFollowOnGoogleCloudImplementationFile(file) {
   return file.includes('rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1') ||
+    file.includes('rp-internal-beta-google-cloud-environment-boundary-1') ||
     file.includes('activation-phase-rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-results') ||
-    file.includes('rp-internal-beta-google-cloud-environment-boundary-1')
+    file.includes('activation-phase-rp-internal-beta-google-cloud-environment-boundary-1-results') ||
+    file.includes('rp-internal-beta-google-cloud-environment-owner-input-1')
 }
 
 const requiredText = [

@@ -2,59 +2,69 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1'
+const packet = 'RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
-const packetDir = 'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1'
+const packetDir = 'docs/internal-beta/rp-internal-beta-runtime-enablement-plan-1'
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/negative-gate-test-matrix.md`,
-  `${packetDir}/gate-safety-boundary.md`,
+  `${packetDir}/runtime-enablement-matrix.md`,
+  `${packetDir}/owner-approval-register.md`,
+  `${packetDir}/safety-boundary.md`,
   `${packetDir}/readiness-gate.md`,
-  `${packetDir}/negative-gate-record.json`,
-  'docs/activation-phase-rp-internal-beta-e2e-negative-gate-tests-1-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-e2e-negative-gate-tests-1.md',
+  `${packetDir}/runtime-enablement-record.json`,
+  'docs/activation-phase-rp-internal-beta-runtime-enablement-plan-1-results.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-runtime-enablement-plan-1.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-runtime-enablement-owner-approval-1.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
-  'server/smoke/internal-beta-e2e-negative-gate-tests-smoke.ts',
-  'scripts/validation/rp-provider-01-internal-beta-disabled-provider-adapter-scaffold-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-enablement-plan-1-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
 
-for (const file of [
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-plan-1/source-audit.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-plan-1/runtime-enablement-matrix.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-plan-1/owner-approval-register.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-plan-1/safety-boundary.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-plan-1/readiness-gate.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-plan-1/runtime-enablement-record.json',
-  'docs/activation-phase-rp-internal-beta-runtime-enablement-plan-1-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-runtime-enablement-owner-approval-1.md',
-  'scripts/validation/rp-internal-beta-runtime-enablement-plan-1-diagnostics.mjs',
-]) {
-  allowedChangedFiles.add(file)
-}
-
 const requiredText = [
   packet,
-  'completed_internal_beta_negative_gate_tests_for_disabled_runtime_lane',
-  'completed_tests_only_no_runtime_unlock',
-  '`RP-PROVIDER-01-INTERNAL-BETA-DISABLED-PROVIDER-ADAPTER-SCAFFOLD` is merged at `f7d8a79ed68b0505da33b6056cd0ea1424dc46f4`',
+  'blocked_pending_internal_beta_runtime_enablement_owner_approval',
+  'completed_docs_only_runtime_enablement_plan_no_runtime_unlock',
+  '`RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1` is merged at `df1eb7ac19b240d4a93bceb38dff641622bb2ffa`',
   'Internal beta end-to-end status: `not_ready`',
   'Product-ready end-to-end local OSS tools: `0`',
   '#577 remains open/draft/blocked and excluded as source-of-truth',
   'Exact open duplicate PR: `none`',
   'Exact remote duplicate branch: `none`',
-  'no generation before approved plan and credit approval',
-  'no credit spend without reservation',
-  'no frontend/direct provider or raw prompt execution path',
-  'no worker execution from raw chat',
-  'no public artifact or signed URL without a future private artifact policy',
-  'Basic/Pro no-Veo and Premium final-fallback-only Veo policy',
-  'Next recommended milestone: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1`',
+  'Historical/context-only matches: `codex/rp-gd-8-ai-tools-creative-graphics-package-runtime-enablement` and PR #99 are not the target branch/title/scope.',
+  'Service-role runtime approval: `not_approved`',
+  'Remote Supabase target approval: `not_approved`',
+  'Credit ledger runtime approval: `not_approved`',
+  'Job queue runtime approval: `not_approved`',
+  'Worker dispatch approval: `not_approved`',
+  'Private artifact access approval: `not_approved`',
+  'Signed URL approval: `not_approved`',
+  'Remotion render worker approval: `not_approved`',
+  'Provider/model call approval: `not_approved`',
+  'Route execution: `false`',
+  'Worker execution: `false`',
+  'Worker dispatch executed: `false`',
+  'Provider/model calls: `false`',
+  'Model call: `false`',
+  'Raw prompt execution: `false`',
+  'Credit mutation: `false`',
+  'Credit reservation creation: `false`',
+  'Credit spend: `false`',
+  'Supabase mutation: `false`',
+  'SQL execution: `false`',
+  'Storage object creation: `false`',
+  'Storage object read: `false`',
+  'Signed URL creation: `false`',
+  'Public artifact creation: `false`',
+  'Remotion execution: `false`',
+  'FFmpeg execution: `false`',
+  'FFprobe execution: `false`',
+  'Media processing: `false`',
+  'Internal beta unlock: `false`',
+  'Next recommended milestone: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-OWNER-APPROVAL-1`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
   'Supabase remote environment touched: `none`',
@@ -74,6 +84,15 @@ const forbiddenClaims = [
   /external beta unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /production unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
+  /Service-role runtime approval:\s*`?(approved|true|enabled|passed)/i,
+  /Remote Supabase target approval:\s*`?(approved|true|enabled|passed)/i,
+  /Credit ledger runtime approval:\s*`?(approved|true|enabled|passed)/i,
+  /Job queue runtime approval:\s*`?(approved|true|enabled|passed)/i,
+  /Worker dispatch approval:\s*`?(approved|true|enabled|passed)/i,
+  /Private artifact access approval:\s*`?(approved|true|enabled|passed)/i,
+  /Signed URL approval:\s*`?(approved|true|enabled|passed)/i,
+  /Remotion render worker approval:\s*`?(approved|true|enabled|passed)/i,
+  /Provider\/model call approval:\s*`?(approved|true|enabled|passed)/i,
   /Provider\/model calls(?: executed)?:\s*`?(true|completed|enabled|passed)/i,
   /Provider requests created:(?!\s*`?none`?)/i,
   /Model call:\s*`?true/i,
@@ -85,6 +104,11 @@ const forbiddenClaims = [
   /Credit reservation creation:\s*`?(true|completed|enabled|passed)/i,
   /Credit spend:\s*`?(true|completed|enabled|passed)/i,
   /Supabase mutation:\s*`?true/i,
+  /SQL execution:\s*`?true/i,
+  /Storage object creation:\s*`?true/i,
+  /Storage object read:\s*`?true/i,
+  /Signed URL creation:\s*`?true/i,
+  /Public artifact creation:\s*`?true/i,
   /Render\/export execution:(?!\s*`?(false|none)`?)/i,
   /Signed URLs created:(?!\s*`?none`?)/i,
   /Public artifacts created:(?!\s*`?none`?)/i,
@@ -137,8 +161,8 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-ARTIFACTS-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-RENDER-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-PROVIDER-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA-E2E[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## Track A[\s\S]*?(?=\n## |\n# |$)/g, '\n')
-    .replace(/\n## RP-INTERNAL-BETA Runtime[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 
 const docsCorpus = requiredFiles
@@ -154,23 +178,11 @@ for (const pattern of forbiddenClaims) {
   if (pattern.test(docsCorpus)) fail(`forbidden claim matched ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/negative-gate-record.json`))
-if (record.decision !== 'completed_internal_beta_negative_gate_tests_for_disabled_runtime_lane') fail('record decision mismatch')
-if (record.execution !== 'completed_tests_only_no_runtime_unlock') fail('record execution mismatch')
-if (record.baseMerge !== 'f7d8a79ed68b0505da33b6056cd0ea1424dc46f4') fail('base merge mismatch')
+const record = JSON.parse(read(`${packetDir}/runtime-enablement-record.json`))
+if (record.decision !== 'blocked_pending_internal_beta_runtime_enablement_owner_approval') fail('record decision mismatch')
+if (record.execution !== 'completed_docs_only_runtime_enablement_plan_no_runtime_unlock') fail('record execution mismatch')
+if (record.baseMerge !== 'df1eb7ac19b240d4a93bceb38dff641622bb2ffa') fail('base merge mismatch')
 if (record.internalBetaEndToEndStatus !== 'not_ready') fail('internal beta status must stay not_ready')
-if (!record.negativeGateSmokeAdded) fail('negative gate smoke flag missing')
-for (const gate of [
-  'no_generation_before_approval',
-  'no_credit_spend_without_reservation',
-  'no_frontend_provider_call_or_raw_prompt_execution',
-  'no_worker_execution_from_raw_chat',
-  'no_public_artifact_or_signed_url_without_policy',
-  'basic_pro_no_veo',
-  'premium_veo_final_fallback_only',
-]) {
-  if (!record.negativeGatesCovered?.includes(gate)) fail(`missing negative gate ${gate}`)
-}
 if (record.exactOpenDuplicatePr !== 'none') fail('exact open duplicate PR must be none')
 if (record.exactRemoteDuplicateBranch !== 'none') fail('exact remote duplicate branch must be none')
 for (const key of [
@@ -181,54 +193,28 @@ for (const key of [
   'modelCall',
   'rawPromptExecution',
   'creditMutation',
+  'creditReservationCreation',
+  'creditSpend',
   'supabaseMutation',
-  'renderExportExecution',
+  'sqlExecution',
+  'storageObjectCreation',
+  'storageObjectRead',
   'signedUrlCreation',
   'publicArtifactCreation',
+  'remotionExecution',
+  'ffmpegExecution',
+  'ffprobeExecution',
+  'mediaProcessing',
   'internalBetaUnlock',
+  'externalBetaUnlock',
+  'productionUnlock',
 ]) {
   if (record[key] !== false) fail(`${key} must remain false`)
 }
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready tool count must remain 0')
 
-const smoke = read('server/smoke/internal-beta-e2e-negative-gate-tests-smoke.ts')
-for (const required of [
-  'createInternalBetaCreditReservationRuntimeScaffold',
-  'spendInternalBetaReservedCreditsRuntimeScaffold',
-  'enqueueInternalBetaJobRuntimeScaffold',
-  'prepareInternalBetaProviderPromptPayloadScaffold',
-  'prepareInternalBetaRenderWorkerJobScaffold',
-  'prepareInternalBetaPrivateArtifactAccessScaffold',
-  'compileEditingIntent',
-  'Basic must reject Veo',
-  'Premium must keep Veo final fallback only',
-]) {
-  if (!smoke.includes(required)) fail(`smoke missing ${required}`)
-}
-for (const pattern of [
-  /\.from\(/,
-  /\.insert\(/,
-  /\.update\(/,
-  /\.delete\(/,
-  /\.rpc\(/,
-  /createClient\(/,
-  /fetch\(/,
-  /exec(File)?Sync\(/,
-  /spawn\(/,
-  /registerMockRouteHandler\(/,
-  /createSignedUrl/i,
-  /renderMedia\(/,
-  /renderStill\(/,
-  /bundle\(/,
-]) {
-  if (pattern.test(smoke)) fail(`smoke contains forbidden runtime signal ${pattern}`)
-}
-
 const packageJson = JSON.parse(read('package.json'))
-if (packageJson.scripts?.['smoke:internal-beta-e2e-negative-gate-tests'] !== 'tsx server/smoke/internal-beta-e2e-negative-gate-tests-smoke.ts') {
-  fail('missing smoke package script')
-}
-if (packageJson.scripts?.['rp-internal-beta-e2e-negative-gate-tests-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1-diagnostics.mjs') {
+if (packageJson.scripts?.['rp-internal-beta-runtime-enablement-plan-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-runtime-enablement-plan-1-diagnostics.mjs') {
   fail('missing diagnostics package script')
 }
 

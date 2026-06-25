@@ -704,3 +704,17 @@ TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:
 - Next prompt: `TRACKB_MEDIA_OSS_FINAL_ROLLUP`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_FINAL_ROLLUP_STATUS:start -->
+TRACKB_MEDIA_OSS_FINAL_ROLLUP:
+
+- Decision: `trackb_media_oss_final_rollup_passed_ready_for_tool_call_beta_readiness_review`
+- PR #741 Milestone 4 QA is merged and accepted as Track B source truth.
+- Track B counts: 16 owned tools, 16 bounded accepted/proven tools, 0 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- All Track B-owned tools have bounded install/import/version/API-shape or approved synthetic fixture evidence.
+- Direct tool calls and beta testing are not yet approved; callable route/worker contracts, approved snapshot gates, credit gates, private artifact policy, result schemas, QA integration, fallback handling, logging, and beta hardening still need a dedicated review.
+- Product runtime, image/media processing, render/export, GPU, FFmpeg/FFprobe reruns, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- No 40+ tools installed/proven end-to-end claim is allowed.
+- Next prompt: `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_FINAL_ROLLUP_STATUS:end -->

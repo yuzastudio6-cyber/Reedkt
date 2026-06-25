@@ -73,13 +73,22 @@ const forbiddenOutputs = [
   'dist-staging-real-video-export-worker',
 ]
 
-const allowedChangedPrefixes = [`${reportDir}/`]
+const allowedChangedPrefixes = [
+  `${reportDir}/`,
+  'docs/open-source-tool-stack/trackb-media-oss-final-rollup/',
+]
 const allowedChangedFiles = new Set([
   'package.json',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-cpu-execution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-approval-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-font-config-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-system-font-package-approval-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-blocker-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-execution-blocker-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-execution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-gpu-review-diagnostics.mjs',
@@ -92,6 +101,8 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-install-proof-milestone-plan-diagnostics.mjs',
   'scripts/validation/open-source-tool-owner-registry-trackb-media-oss-steward-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-final-rollup.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-review.md',
+  'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
   ...statusDocs,
 ])
 

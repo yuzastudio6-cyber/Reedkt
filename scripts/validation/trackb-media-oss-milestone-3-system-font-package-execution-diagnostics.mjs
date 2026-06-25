@@ -329,6 +329,8 @@ const systemFontExecutionValidationScripts = new Set([
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-cpu-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
 ])
 for (const file of changedFiles) {
   const allowed =

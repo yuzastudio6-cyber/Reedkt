@@ -722,3 +722,12 @@ TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:
 - Next prompt: `TRACKB_MEDIA_OSS_FINAL_ROLLUP`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_FINAL_ROLLUP_STATUS:start -->
+TRACKB_MEDIA_OSS_FINAL_ROLLUP:
+
+- Decision: `trackb_media_oss_final_rollup_passed_ready_for_tool_call_beta_readiness_review`
+- Still blocked: direct tool calls, worker/route runtime, real image/media processing, OCR inference, FFmpeg/FFprobe reruns, render/export, Supabase/GCS delivery, signed URLs, raw prompts, internal beta, external beta, and production.
+- Required next review: `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW`.
+- Track B product-ready tools remain `0`.
+<!-- TRACKB_MEDIA_OSS_FINAL_ROLLUP_STATUS:end -->

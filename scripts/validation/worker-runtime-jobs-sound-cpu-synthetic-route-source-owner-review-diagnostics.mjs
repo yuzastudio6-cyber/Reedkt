@@ -58,6 +58,10 @@ const policy = parseBlock(docs[5][0], docs[5][1])
 const gate2d = parseBlock('docs/sound-runtime-media-gate-2d-synthetic-worker-route-source-plan.md', 'sound-runtime-media-gate-2d-synthetic-worker-route-source-plan')
 const gate2dPaths = parseBlock('docs/sound-runtime-media-gate-2d-source-path-register.md', 'sound-runtime-media-gate-2d-source-path-register')
 const gate2dContracts = parseBlock('docs/sound-runtime-media-gate-2d-route-contract-source-map.md', 'sound-runtime-media-gate-2d-route-contract-source-map')
+const gate2eResultPath = 'docs/sound-runtime-media-gate-2e-actual-synthetic-worker-route-source-result.md'
+const gate2eResult = fs.existsSync(path.join(repoRoot, gate2eResultPath))
+  ? parseBlock(gate2eResultPath, 'sound-runtime-media-gate-2e-actual-synthetic-worker-route-source-result')
+  : undefined
 
 assert(review.decision === decision, 'owner review decision mismatch')
 assert(acceptance.decision === decision, 'acceptance decision mismatch')
@@ -75,7 +79,14 @@ assert(gate2dContracts.routeContracts.length === 4, 'Gate 2D route contract coun
 for (const approvedPath of approvedPaths) {
   assert(acceptance.acceptedFutureSourcePaths.includes(approvedPath), `missing accepted path ${approvedPath}`)
   assert(paths.pathApprovals.some((row) => row.path === approvedPath && row.approvedForFutureGate2e === true && row.createdNow === false), `missing path approval ${approvedPath}`)
-  assert(!fs.existsSync(path.join(repoRoot, approvedPath)), `owner review must not create source path ${approvedPath}`)
+  const sourceExists = fs.existsSync(path.join(repoRoot, approvedPath))
+  if (gate2eResult) {
+    assert(gate2eResult.actualSourceCreated === true, 'Gate 2E result must document source creation')
+    assert(gate2eResult.sourceFileCount === 3, 'Gate 2E source file count mismatch')
+    assert(sourceExists, `Gate 2E source path missing after approved creation ${approvedPath}`)
+  } else {
+    assert(!sourceExists, `owner review must not create source path ${approvedPath}`)
+  }
 }
 
 for (const jobType of expectedJobTypes) {

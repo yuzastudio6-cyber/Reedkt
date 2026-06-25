@@ -2,31 +2,22 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-OWNER-APPROVAL-1'
+const packet = 'RP-INTERNAL-BETA-NAMED-RUNTIME-TARGET-APPROVAL-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
-const packetDir = 'docs/internal-beta/rp-internal-beta-runtime-enablement-owner-approval-1'
+const packetDir = 'docs/internal-beta/rp-internal-beta-named-runtime-target-approval-1'
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/owner-approval-decision.md`,
-  `${packetDir}/runtime-approval-matrix.md`,
+  `${packetDir}/named-runtime-target-decision.md`,
+  `${packetDir}/target-approval-matrix.md`,
   `${packetDir}/safety-boundary.md`,
   `${packetDir}/readiness-gate.md`,
-  `${packetDir}/runtime-owner-approval-record.json`,
-  'docs/activation-phase-rp-internal-beta-runtime-enablement-owner-approval-1-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-runtime-enablement-owner-approval-1.md',
+  `${packetDir}/named-runtime-target-approval-record.json`,
+  'docs/activation-phase-rp-internal-beta-named-runtime-target-approval-1-results.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-named-runtime-target-approval-1.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-runtime-target-owner-decision-1.md',
-  'docs/internal-beta/rp-internal-beta-named-runtime-target-approval-1/source-audit.md',
-  'docs/internal-beta/rp-internal-beta-named-runtime-target-approval-1/named-runtime-target-decision.md',
-  'docs/internal-beta/rp-internal-beta-named-runtime-target-approval-1/target-approval-matrix.md',
-  'docs/internal-beta/rp-internal-beta-named-runtime-target-approval-1/safety-boundary.md',
-  'docs/internal-beta/rp-internal-beta-named-runtime-target-approval-1/readiness-gate.md',
-  'docs/internal-beta/rp-internal-beta-named-runtime-target-approval-1/named-runtime-target-approval-record.json',
-  'docs/activation-phase-rp-internal-beta-named-runtime-target-approval-1-results.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
-  'scripts/validation/rp-internal-beta-runtime-enablement-plan-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-runtime-enablement-owner-approval-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-named-runtime-target-approval-1-diagnostics.mjs',
 ]
@@ -35,12 +26,13 @@ const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
 
 const requiredText = [
   packet,
-  'blocked_pending_named_runtime_target_and_owner_approval',
-  'completed_docs_only_owner_approval_review_no_runtime_unlock',
-  '`RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1` merged at `2ef01940c0facae1a6da9846d5ab6a7d7af47f87`',
-  'Source-of-truth input: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1` merged at `2ef01940c0facae1a6da9846d5ab6a7d7af47f87`',
-  'Owner approval evidence: `not_present_in_source`',
-  'Named runtime target: `not_named`',
+  'blocked_no_named_internal_beta_runtime_target_approved',
+  'completed_docs_only_named_runtime_target_review_no_runtime_unlock',
+  '`RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-OWNER-APPROVAL-1` merged at `80f2d05aad3c3e810b6de9c708726f8f358d24ff`',
+  'Source-of-truth input: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-OWNER-APPROVAL-1` merged at `80f2d05aad3c3e810b6de9c708726f8f358d24ff`',
+  'Named runtime target approval evidence: `not_present_in_source`',
+  'Approved runtime target: `none`',
+  'Environment class: `not_approved`',
   'Internal beta end-to-end status: `not_ready`',
   'Product-ready end-to-end local OSS tools: `0`',
   '#577 remains open/draft/blocked and excluded as source-of-truth',
@@ -86,7 +78,7 @@ const requiredText = [
   'Render/export execution: `none`',
   'Signed URLs created: `none`',
   'Public artifacts created: `none`',
-  'Next recommended milestone: `RP-INTERNAL-BETA-NAMED-RUNTIME-TARGET-APPROVAL-1`',
+  'Next recommended milestone: `OWNER DECISION REQUIRED - name or reject the internal beta runtime target before runtime execution planning`',
   'No remote Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, raw prompt execution, worker execution, worker dispatch, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, storage object creation, storage object read, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.',
 ]
 
@@ -96,8 +88,9 @@ const forbiddenClaims = [
   /external beta unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /production unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
-  /Owner approval evidence:\s*`?(approved|present|accepted|true)/i,
-  /Named runtime target:\s*`(?!not_named`)/i,
+  /Named runtime target approval evidence:\s*`?(approved|present|accepted|true)/i,
+  /Approved runtime target:\s*`(?!none`)/i,
+  /Environment class:\s*`(?!not_approved`)/i,
   /Service-role runtime approval:\s*`?(approved|true|enabled|passed)/i,
   /Remote Supabase target approval:\s*`?(approved|true|enabled|passed)/i,
   /Approved snapshot persistence approval:\s*`?(approved|true|enabled|passed)/i,
@@ -177,6 +170,8 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-RENDER-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-PROVIDER-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA-E2E[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA Runtime Enablement Plan 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA Runtime Enablement Owner Approval 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## Track A[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 
@@ -193,13 +188,14 @@ for (const pattern of forbiddenClaims) {
   if (pattern.test(docsCorpus)) fail(`forbidden claim matched ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/runtime-owner-approval-record.json`))
+const record = JSON.parse(read(`${packetDir}/named-runtime-target-approval-record.json`))
 if (record.packet !== packet) fail('record packet mismatch')
-if (record.decision !== 'blocked_pending_named_runtime_target_and_owner_approval') fail('record decision mismatch')
-if (record.execution !== 'completed_docs_only_owner_approval_review_no_runtime_unlock') fail('record execution mismatch')
-if (record.sourceMerge !== '2ef01940c0facae1a6da9846d5ab6a7d7af47f87') fail('source merge mismatch')
-if (record.ownerApprovalEvidence !== 'not_present_in_source') fail('owner approval evidence mismatch')
-if (record.namedRuntimeTarget !== 'not_named') fail('named runtime target must stay not_named')
+if (record.decision !== 'blocked_no_named_internal_beta_runtime_target_approved') fail('record decision mismatch')
+if (record.execution !== 'completed_docs_only_named_runtime_target_review_no_runtime_unlock') fail('record execution mismatch')
+if (record.sourceMerge !== '80f2d05aad3c3e810b6de9c708726f8f358d24ff') fail('source merge mismatch')
+if (record.namedRuntimeTargetApprovalEvidence !== 'not_present_in_source') fail('target approval evidence mismatch')
+if (record.approvedRuntimeTarget !== 'none') fail('approved runtime target must stay none')
+if (record.environmentClass !== 'not_approved') fail('environment class must stay not_approved')
 if (record.internalBetaEndToEndStatus !== 'not_ready') fail('internal beta status must stay not_ready')
 if (record.exactOpenDuplicatePr !== 'none') fail('exact open duplicate PR must be none')
 if (record.exactRemoteDuplicateBranch !== 'none') fail('exact remote duplicate branch must be none')
@@ -232,7 +228,7 @@ for (const key of [
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready tool count must remain 0')
 
 const packageJson = JSON.parse(read('package.json'))
-if (packageJson.scripts?.['rp-internal-beta-runtime-enablement-owner-approval-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-runtime-enablement-owner-approval-1-diagnostics.mjs') {
+if (packageJson.scripts?.['rp-internal-beta-named-runtime-target-approval-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-named-runtime-target-approval-1-diagnostics.mjs') {
   fail('missing diagnostics package script')
 }
 

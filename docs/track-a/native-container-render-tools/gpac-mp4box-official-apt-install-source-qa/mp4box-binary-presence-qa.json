@@ -1,0 +1,10 @@
+{
+  "accepted": true,
+  "binary": "MP4Box",
+  "path": "/usr/bin/MP4Box",
+  "containerNetwork": "none",
+  "mp4boxExecuted": false,
+  "mp4boxVersionExecuted": false,
+  "mediaCommandExecuted": false,
+  "qaConclusion": "binary_presence_evidence_accepted_runtime_execution_still_requires_controlled_runtime_proof"
+}

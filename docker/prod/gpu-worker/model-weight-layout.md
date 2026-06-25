@@ -8,6 +8,9 @@ Expected future mount paths:
 - `/opt/reeditpro/model-weights/faster-whisper/`
 - `/opt/reeditpro/model-weights/birefnet/`
 - `/opt/reeditpro/model-weights/sam2/`
+- `/opt/reeditpro/model-weights/transformers/`
+- `/opt/reeditpro/model-weights/rembg/`
+- `/opt/reeditpro/model-weights/transparent-background/`
 - `/opt/reeditpro/model-weights/deepfilternet/`
 - `/opt/reeditpro/model-weights/demucs/`
 - `/opt/reeditpro/model-weights/real-esrgan/`

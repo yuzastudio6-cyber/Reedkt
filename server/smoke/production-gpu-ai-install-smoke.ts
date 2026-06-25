@@ -57,6 +57,9 @@ for (const expectedPath of [
   '/opt/reeditpro/model-weights/faster-whisper',
   '/opt/reeditpro/model-weights/birefnet',
   '/opt/reeditpro/model-weights/sam2',
+  '/opt/reeditpro/model-weights/transformers',
+  '/opt/reeditpro/model-weights/rembg',
+  '/opt/reeditpro/model-weights/transparent-background',
   '/opt/reeditpro/model-weights/deepfilternet',
   '/opt/reeditpro/model-weights/demucs',
   '/opt/reeditpro/model-weights/real-esrgan',
@@ -69,10 +72,15 @@ for (const expectedPath of [
 for (const required of [
   'torch',
   'torchvision',
+  'transformers',
   'ctranslate2',
   'faster-whisper',
   'kornia',
   'opencv-python-headless',
+  'rembg[gpu]',
+  'transparent-background',
+  'realesrgan',
+  'git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4#egg=SAM-2',
   'deepfilternet',
   'demucs',
 ]) {
@@ -83,8 +91,18 @@ for (const planned of ['paddleocr', 'paddlepaddle-gpu']) {
   check(gpuRequirements.includes(`optional_planned: ${planned}`), `GPU requirements must document ${planned} as optional/planned.`)
 }
 
-for (const pending of ['BiRefNet', 'SAM2', 'Real-ESRGAN', 'FILM']) {
+for (const pending of ['FILM']) {
   check(gpuRequirements.includes(`pending_source_install_review: ${pending}`), `GPU requirements must mark ${pending} pending source install review.`)
+}
+for (const noLongerPending of ['BiRefNet', 'SAM2', 'Real-ESRGAN']) {
+  check(!gpuRequirements.includes(`pending_source_install_review: ${noLongerPending}`), `${noLongerPending} must not remain pending source install review after AI graphics install-readiness declarations.`)
+}
+for (const requiredPathNote of [
+  'BiRefNet package path: transformers + approved private ZhengPeng7/BiRefNet model snapshot.',
+  'SAM2 package path: pinned facebookresearch/sam2 source install above; checkpoints remain private/manifest-gated.',
+  'Real-ESRGAN package path: realesrgan PyPI package above; model weights remain private/manifest-gated.',
+]) {
+  check(gpuRequirements.includes(requiredPathNote), `GPU requirements missing path note: ${requiredPathNote}`)
 }
 
 check(gpuVersionPolicy.includes('pending source install review'), 'GPU version policy must document source install review.')
@@ -96,6 +114,8 @@ for (const required of [
   'faster_whisper_model',
   'birefnet_model',
   'sam2_checkpoint',
+  'transparent_background_model',
+  'rembg_model',
   'deepfilternet_model',
   'demucs_model',
   'real_esrgan_model',

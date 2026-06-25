@@ -14,6 +14,10 @@ The GPU worker is for future model-backed AI tasks after model-weight and worker
 - PaddleOCR/PaddlePaddle GPU: optional/planned OCR path.
 - BiRefNet uses the Transformers model-loader path plus an approved private `ZhengPeng7/BiRefNet` snapshot. FILM remains pending source-install review before stable image declarations.
 
+## Import-Readiness Alignment
+
+GPU readiness must not keep SAM2 or Real-ESRGAN in pending source-install review after their package paths are declared. The readiness layer tracks `transformers`, SAM2, `rembg[gpu]`, `transparent-background`, Real-ESRGAN, Kornia, PyTorch, and TorchVision as dry-run import contracts. BiRefNet remains a model-loader path through `transformers`, with model-weight approval still required before inference.
+
 ## Boundaries
 
 GPU packages belong only in `gpu_ai_worker`. API, CPU, and render images must not carry model-heavy packages. Package declarations do not approve inference, model loading, media processing, production execution, or beta readiness. Those gates require worker image build proof, import smoke, approved private model-weight manifests, approved fixtures, and approved snapshot/credit gates.

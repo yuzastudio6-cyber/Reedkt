@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.gpu-import-readiness",
+  "decision": "ai_graphics_gpu_import_readiness_aligned_with_21_tool_install_plan",
+  "status": "in_progress",
+  "branch": "codex/rp-ai-graphics-gpu-import-readiness",
+  "base": "origin/codex/rp-ai-graphics-21-tool-runtime-install-readiness",
+  "draftPr": {
+    "number": 775,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/775",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headShaAtPrCreation": "e7ce783d9f9f7afdd8f94c8473f009414b569c73",
+    "statusCheckRollup": []
+  },
+  "sourcePr": {
+    "number": 770,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/770",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headSha": "d0c38ba3292b7f678e9bc8b16e314a32771fae25"
+  },
+  "toolCounts": {
+    "totalAiGraphicsTools": 21,
+    "nodePackageLockTools": 13,
+    "gpuImportReadinessMappedTools": 8,
+    "gpuModelWeightTemplateTools": 5,
+    "sourceInstallStillPending": 1,
+    "runtimeBetaReadyNow": 0
+  },
+  "gpuImportReadinessTools": [
+    {
+      "toolId": "torch_torchvision",
+      "checkNames": ["python_import_torch", "python_import_torchvision"],
+      "runtimeTarget": "gpu_ai_worker",
+      "importMode": "dry_run_declared",
+      "modelWeightRequired": false
+    },
+    {
+      "toolId": "transformers",
+      "checkNames": ["python_import_transformers"],
+      "runtimeTarget": "gpu_ai_worker",
+      "importMode": "dry_run_declared",
+      "modelWeightRequired": false
+    },
+    {
+      "toolId": "sam2",
+      "checkNames": ["python_import_sam2"],
+      "runtimeTarget": "gpu_ai_worker",
+      "importMode": "dry_run_declared",
+      "modelWeightRequired": true
+    },
+    {
+      "toolId": "birefnet",
+      "checkNames": ["python_import_transformers_for_birefnet"],
+      "runtimeTarget": "gpu_ai_worker",
+      "importMode": "dry_run_declared",
+      "modelWeightRequired": true,
+      "packagePath": "transformers + approved ZhengPeng7/BiRefNet snapshot"
+    },
+    {
+      "toolId": "real_esrgan",
+      "checkNames": ["python_import_realesrgan"],
+      "runtimeTarget": "gpu_ai_worker",
+      "importMode": "dry_run_declared",
+      "modelWeightRequired": true
+    },
+    {
+      "toolId": "kornia",
+      "checkNames": ["python_import_kornia"],
+      "runtimeTarget": "gpu_ai_worker",
+      "importMode": "dry_run_declared",
+      "modelWeightRequired": false
+    },
+    {
+      "toolId": "rembg",
+      "checkNames": ["python_import_rembg"],
+      "runtimeTarget": "gpu_ai_worker",
+      "importMode": "dry_run_declared",
+      "modelWeightRequired": true
+    },
+    {
+      "toolId": "transparent_background",
+      "checkNames": ["python_import_transparent_background"],
+      "runtimeTarget": "gpu_ai_worker",
+      "importMode": "dry_run_declared",
+      "modelWeightRequired": true
+    }
+  ],
+  "remainingSourceInstallReview": [
+    {
+      "toolId": "film",
+      "reason": "Frame interpolation source path remains outside the 21 AI graphics scope and still needs source review."
+    }
+  ],
+  "modelWeightTemplateTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "booleans": {
+    "gpuImportReadinessAligned": true,
+    "all21ToolsStillCovered": true,
+    "gpuHeavyToolsMappedToGpuWorker": true,
+    "sam2NoLongerPendingSourceInstallReview": true,
+    "realEsrganNoLongerPendingSourceInstallReview": true,
+    "birefnetUsesTransformersImportPath": true,
+    "rembgModelWeightTemplateAdded": true,
+    "transparentBackgroundModelWeightTemplateAdded": true,
+    "npmCiFromLockForValidation": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "toolRouteExecutionReadyNow": false,
+    "workerExecutionReadyNow": false,
+    "browserWebglCanvasRuntimeReadyNow": false,
+    "gpuModelRuntimeReadyNow": false,
+    "runtimeBetaReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "packageLockMutationPerformed": false,
+    "modelWeightsDownloaded": false,
+    "mediaProcessingPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "nextImplementationMilestones": [
+    "Build the GPU worker image from the declared requirements in an approved container build lane.",
+    "Run optional real Python import checks inside the GPU worker image without model loading or media processing.",
+    "Approve private model-weight manifests for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background.",
+    "Run safe fixture runtime proofs before enabling Tool Route or Worker execution.",
+    "Keep beta, production, signed URL, public artifact, provider, route, and worker execution gates false until the runtime proof chain passes."
+  ]
+}

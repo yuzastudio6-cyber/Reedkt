@@ -65,6 +65,17 @@ function firstPresentEnv(names) {
   }
 }
 
+function getCredentialContextDecision() {
+  const hasAccessToken = Boolean(accessTokenCredential.value)
+  const hasReadonlyDbUrl = Boolean(readonlyDbUrlCredential.value)
+  if (!hasAccessToken && !hasReadonlyDbUrl) {
+    return 'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias'
+  }
+  if (!hasAccessToken) return 'blocked_missing_approved_supabase_access_token_alias'
+  if (!hasReadonlyDbUrl) return 'blocked_missing_approved_supabase_readonly_db_url_alias'
+  return 'completed_approved_supabase_credential_alias_presence_preflight_no_payload_access'
+}
+
 function runSupabase(args, label, options = {}) {
   const command = `supabase ${args.join(' ')}`
   const startedAt = new Date().toISOString()
@@ -194,13 +205,17 @@ if (process.env[confirmationVar] !== 'true') {
   )
 }
 
-if (!accessTokenCredential.value) {
+const credentialContextDecision = getCredentialContextDecision()
+
+if (credentialContextDecision !== 'completed_approved_supabase_credential_alias_presence_preflight_no_payload_access') {
   finish(
-    'blocked_missing_supabase_access_token_for_readonly_target_identity',
+    credentialContextDecision,
     'blocked_no_remote_execution_missing_safe_credential_context',
     {
-      blocker: 'blocked_missing_supabase_access_token_for_readonly_target_identity',
-      acceptedCredentialContext: accessTokenEnvNames,
+      blocker: credentialContextDecision,
+      credentialContextContractPacket: 'RP-INTERNAL-BETA-SUPABASE-CREDENTIAL-CONTEXT-CONTRACT-1',
+      acceptedAccessTokenEnvNames: accessTokenEnvNames,
+      acceptedReadonlyDbUrlEnvNames: readonlyDbUrlEnvNames,
     },
   )
 }
@@ -236,19 +251,6 @@ if (!targetProject) {
 }
 
 evidence.targetIdentity = 'passed_readonly_management_api_project_list'
-
-if (!readonlyDbUrlCredential.value) {
-  finish(
-    'blocked_missing_readonly_rls_storage_metadata_context',
-    'blocked_remote_readonly_validation_incomplete_after_target_identity',
-    {
-      blocker: 'blocked_missing_readonly_rls_storage_metadata_context',
-      targetIdentity: 'passed',
-      acceptedCredentialContext: readonlyDbUrlEnvNames,
-      note: 'Target identity passed, but RLS/storage advisor validation requires a read-only database URL provided by the execution environment. The URL is not printed or persisted.',
-    },
-  )
-}
 
 try {
   const lintRaw = runSupabase(

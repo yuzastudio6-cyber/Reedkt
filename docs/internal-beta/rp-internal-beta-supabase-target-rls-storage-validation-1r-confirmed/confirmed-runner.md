@@ -12,15 +12,19 @@ Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STOR
 
 Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
-Current run status: `blocked_missing_supabase_access_token_for_readonly_target_identity`
+Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
 
 ## Fail-Closed Behavior
 
 If the confirmation is absent, the runner writes sanitized local evidence under `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/<runId>/` and exits with blocker `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation`.
 
-If the confirmation is present but no approved access-token environment reference is present, the runner exits with blocker `blocked_missing_supabase_access_token_for_readonly_target_identity`.
+If the confirmation is present but no complete approved credential context is present, the runner exits before any remote command with one of the shared credential-context blockers from `RP-INTERNAL-BETA-SUPABASE-CREDENTIAL-CONTEXT-CONTRACT-1`.
 
-If target identity passes but no approved read-only DB URL environment reference is present, the runner exits with blocker `blocked_missing_readonly_rls_storage_metadata_context`.
+- `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
+- `blocked_missing_approved_supabase_access_token_alias`
+- `blocked_missing_approved_supabase_readonly_db_url_alias`
+
+The runner no longer performs target identity readback before the approved access-token alias and approved read-only DB URL alias are both present.
 
 ## Approved Credential Environment Aliases
 

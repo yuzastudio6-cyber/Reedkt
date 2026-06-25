@@ -27,7 +27,23 @@ const requiredFiles = [
   'package.json',
 ]
 
-const allowedChangedFiles = new Set(requiredFiles)
+const allowedChangedFiles = new Set([
+  ...requiredFiles,
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-results.md',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1-diagnostics.mjs',
+  'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/confirmed-runner-hardening.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/confirmed-runner-credential-context-hardening-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1-results.md',
+  'scripts/validation/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1-diagnostics.mjs',
+])
 
 const requiredText = [
   packet,

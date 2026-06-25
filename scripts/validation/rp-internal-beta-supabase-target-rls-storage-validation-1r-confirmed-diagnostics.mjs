@@ -18,6 +18,13 @@ const requiredFiles = [
   'docs/production-beta-blocker-inventory.md',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
+  'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/confirmed-runner-hardening.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/confirmed-runner-credential-context-hardening-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1-results.md',
+  'scripts/validation/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-credential-context-integration-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-google-cloud-runtime-config-contract-1-diagnostics.mjs',
@@ -71,7 +78,8 @@ const requiredText = [
   'Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`',
   'Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`',
   'Observed confirmation: `present_true`',
-  'Current run status: `blocked_missing_supabase_access_token_for_readonly_target_identity`',
+  'Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`',
+  'RP-INTERNAL-BETA-SUPABASE-CREDENTIAL-CONTEXT-CONTRACT-1',
   'Credential alias support: `approved_env_aliases_supported_payloads_redacted`',
   'SUPABASE_ACCESS_TOKEN',
   'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN',
@@ -171,8 +179,10 @@ if (record.decision !== 'completed_guarded_confirmed_validation_runner_fail_clos
 if (record.execution !== 'completed_runner_scaffold_no_remote_execution') fail('record execution mismatch')
 if (record.requiredConfirmation !== 'REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true') fail('record confirmation mismatch')
 if (record.observedConfirmation !== 'present_true') fail('record observed confirmation mismatch')
-if (record.currentRunStatus !== 'blocked_missing_supabase_access_token_for_readonly_target_identity') fail('record run status mismatch')
+if (record.currentRunStatus !== 'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias') fail('record run status mismatch')
 if (record.credentialPreflightExecution !== 'blocked_no_remote_execution_missing_safe_credential_context') fail('record preflight execution mismatch')
+if (record.credentialContextContractPacket !== 'RP-INTERNAL-BETA-SUPABASE-CREDENTIAL-CONTEXT-CONTRACT-1') fail('record credential context packet mismatch')
+if (record.credentialContextRequiredBeforeRemoteCommand !== true) fail('record credential context gate mismatch')
 if (record.supabaseTargetProject !== 'wmyyttnynmteqgcdishd') fail('record target mismatch')
 if (record.credentialAliasSupport !== 'approved_env_aliases_supported_payloads_redacted') fail('record credential alias support mismatch')
 for (const name of ['SUPABASE_ACCESS_TOKEN', 'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN', 'REEDITPRO_SUPABASE_ACCESS_TOKEN']) {
@@ -224,6 +234,8 @@ for (const required of [
   'firstPresentEnv',
   'accessTokenCredential.value',
   'readonlyDbUrlCredential.value',
+  'getCredentialContextDecision',
+  'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias',
   'acceptedAccessTokenEnvNames',
   'acceptedReadonlyDbUrlEnvNames',
 ]) {

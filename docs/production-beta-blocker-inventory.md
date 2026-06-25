@@ -277,6 +277,22 @@ Google Cloud API calls, Cloud Run service/job creation, IAM mutation, Secret Man
 
 Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-RUNTIME-CONFIG-CONTRACT-1`.
 
+## RP-INTERNAL-BETA Google Cloud Runtime Config Contract 1
+
+`RP-INTERNAL-BETA-GOOGLE-CLOUD-RUNTIME-CONFIG-CONTRACT-1` records decision `completed_backend_only_google_cloud_runtime_config_contract_no_runtime_execution` and execution `completed_server_config_contract_no_cloud_or_supabase_execution`.
+
+Backend-only contract file: `server/config/internal-beta-google-cloud-runtime-config-contract.ts`.
+
+The internal beta Google Cloud names are now available to backend/server code as non-secret references. Runtime enabled remains `false`, runtime execution allowed remains `false`, deployment approved remains `false`, and Supabase target project remains `source_reference_names_recorded_no_remote_target_selected`.
+
+Readiness: `ready_for_supabase_target_rls_storage_validation`.
+
+Internal beta end-to-end status: `not_ready_pending_supabase_rls_storage_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`.
+
+Google Cloud API calls, Cloud Run service/job creation, IAM mutation, Secret Manager payload access, GCS access, remote Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, Remotion execution, provider/model call, deployment, internal beta unlock, external beta unlock, production unlock, final delivery/export, public artifacts, and signed URL creation remain blocked.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

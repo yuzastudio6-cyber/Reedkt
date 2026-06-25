@@ -2,77 +2,49 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-OWNER-INPUT-1'
-const packetDir = 'docs/internal-beta/rp-internal-beta-google-cloud-environment-owner-input-1'
+const packet = 'RP-INTERNAL-BETA-GOOGLE-CLOUD-RUNTIME-CONFIG-CONTRACT-1'
+const packetDir = 'docs/internal-beta/rp-internal-beta-google-cloud-runtime-config-contract-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
-  `${packetDir}/source-audit.md`,
-  `${packetDir}/source-derived-environment-map.md`,
-  `${packetDir}/supabase-target-boundary.md`,
-  `${packetDir}/runtime-boundary.md`,
-  `${packetDir}/readiness-gate.md`,
-  `${packetDir}/safety-boundary.md`,
-  `${packetDir}/google-cloud-environment-owner-input-record.json`,
-  'docs/activation-phase-rp-internal-beta-google-cloud-environment-owner-input-1-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-google-cloud-runtime-config-contract-1.md',
-  'docs/production-beta-blocker-inventory.md',
-  'implementation-status-and-next-phase.md',
-  'scripts/validation/rp-internal-beta-runtime-target-owner-decision-1-diagnostics.mjs',
-  'scripts/validation/rp-internal-beta-google-cloud-managed-runtime-target-approval-1-diagnostics.mjs',
-  'scripts/validation/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-diagnostics.mjs',
-  'scripts/validation/rp-internal-beta-google-cloud-environment-boundary-1-diagnostics.mjs',
-  'scripts/validation/rp-internal-beta-google-cloud-environment-owner-input-1-diagnostics.mjs',
-]
-
-const followOnRuntimeConfigContractFiles = [
   'server/config/internal-beta-google-cloud-runtime-config-contract.ts',
-  'docs/internal-beta/rp-internal-beta-google-cloud-runtime-config-contract-1/source-audit.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-runtime-config-contract-1/runtime-config-contract.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-runtime-config-contract-1/runtime-gate-matrix.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-runtime-config-contract-1/supabase-boundary.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-runtime-config-contract-1/safety-boundary.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-runtime-config-contract-1/readiness-gate.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-runtime-config-contract-1/google-cloud-runtime-config-contract-record.json',
+  `${packetDir}/source-audit.md`,
+  `${packetDir}/runtime-config-contract.md`,
+  `${packetDir}/runtime-gate-matrix.md`,
+  `${packetDir}/supabase-boundary.md`,
+  `${packetDir}/safety-boundary.md`,
+  `${packetDir}/readiness-gate.md`,
+  `${packetDir}/google-cloud-runtime-config-contract-record.json`,
   'docs/activation-phase-rp-internal-beta-google-cloud-runtime-config-contract-1-results.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1.md',
+  'docs/production-beta-blocker-inventory.md',
+  'implementation-status-and-next-phase.md',
+  'scripts/validation/rp-internal-beta-google-cloud-environment-owner-input-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-google-cloud-runtime-config-contract-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...followOnRuntimeConfigContractFiles, 'package.json'])
+const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
 
 const requiredText = [
   packet,
-  'completed_source_derived_google_cloud_environment_names_for_internal_beta_planning',
-  'completed_docs_only_source_derived_environment_owner_input_no_runtime_execution',
-  'Source merge: `d33a1c81b851ebb9042352a375d3ce7dc822e2a6`',
-  'Prior packet: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-BOUNDARY-1`',
+  'completed_backend_only_google_cloud_runtime_config_contract_no_runtime_execution',
+  'completed_server_config_contract_no_cloud_or_supabase_execution',
+  'Source merge: `643589bb30fb43a91312b292cd751b31b1dea6e0`',
+  'Prior packet: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-OWNER-INPUT-1`',
   'Approved runtime target: `google_cloud_managed_runtime_target`',
   'Environment class: `google_cloud_managed_internal_beta`',
-  'Environment boundary status: `source_derived_environment_names_recorded`',
-  'Readiness: `ready_for_internal_beta_runtime_config_contract_scaffold`',
-  'Internal beta end-to-end status: `not_ready_pending_backend_supabase_storage_worker_implementation`',
+  'Readiness: `ready_for_supabase_target_rls_storage_validation`',
+  'Internal beta end-to-end status: `not_ready_pending_supabase_rls_storage_and_runtime_implementation`',
   'Product-ready end-to-end local OSS tools: `0`',
-  'Closed blocker: `blocked_pending_google_cloud_environment_names`',
+  'Backend-only contract file: `server/config/internal-beta-google-cloud-runtime-config-contract.ts`',
+  'Runtime enabled: `false`',
+  'Runtime execution allowed: `false`',
+  'Deployment approved: `false`',
   'Google Cloud project ID: `reeditpro`',
   'Primary runtime region: `us-east1`',
   'Secondary runtime region: `europe-west1`',
   'Staging activation region: `us-central1`',
-  'Existing staging private service target: `reeditpro-staging-private-searxng`',
-  'Existing staging service account: `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com`',
   'Supabase target project: `source_reference_names_recorded_no_remote_target_selected`',
-  'Deployment approval: `not_approved`',
-  '#577 remains open/draft/blocked and excluded as source-of-truth',
-  '`reeditpro-prod-reeditpro-us-east1-source-media`',
-  '`reeditpro-prod-reeditpro-europe-west1-source-media`',
-  '`reeditpro-staging-reeditpro-generated-assets`',
-  '`reeditpro-staging-reeditpro-qa-artifacts`',
-  '`reeditpro-prod-supabase-url`',
-  '`reeditpro-prod-supabase-service-role-key`',
-  '`projects/reeditpro/topics/reeditpro-job-events`',
-  '`reeditpro-worker-dispatch`',
-  'Runtime implementation status: `not_started`',
-  'Runtime execution status: `false`',
   'Supabase remote environment touched: `none`',
   'SQL executed: `none`',
   'Migration deployed: `no`',
@@ -123,8 +95,25 @@ const requiredText = [
   'Render/export execution: `none`',
   'Signed URLs created: `none`',
   'Public artifacts created: `none`',
-  'Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-RUNTIME-CONFIG-CONTRACT-1`',
+  'Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1`',
   'No remote Supabase mutation, SQL execution, Secret Manager payload access, Google Cloud API call, Cloud Run service creation, Cloud Run job creation, Cloud Run deployment, IAM mutation, GCS bucket creation, GCS object access, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, service-role route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, storage object creation, storage object read, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.',
+]
+
+const requiredContractText = [
+  'INTERNAL_BETA_GOOGLE_CLOUD_RUNTIME_CONFIG_CONTRACT',
+  'validateInternalBetaGoogleCloudRuntimeConfigContract',
+  'completed_backend_only_google_cloud_runtime_config_contract_no_runtime_execution',
+  'completed_server_config_contract_no_cloud_or_supabase_execution',
+  'runtimeEnabled: false',
+  'runtimeExecutionAllowed: false',
+  'deploymentApproved: false',
+  "projectId: 'reeditpro'",
+  "primaryRuntimeRegion: 'us-east1'",
+  "secondaryRuntimeRegion: 'europe-west1'",
+  "stagingActivationRegion: 'us-central1'",
+  "targetProject: 'source_reference_names_recorded_no_remote_target_selected'",
+  "serviceRoleRuntime: 'blocked_pending_supabase_target_rls_storage_validation'",
+  "nextMilestone: 'RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1'",
 ]
 
 const forbiddenClaims = [
@@ -133,9 +122,9 @@ const forbiddenClaims = [
   /external beta unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /production unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
-  /Runtime implementation status:\s*`(?!not_started`)/i,
-  /Runtime execution status:\s*`(?!false`)/i,
-  /Deployment approval:\s*`(?!not_approved`)/i,
+  /Runtime enabled:\s*`?true/i,
+  /Runtime execution allowed:\s*`?true/i,
+  /Deployment approved:\s*`?true/i,
   /Google Cloud API calls? (?:executed|created)?:\s*`?(true|completed|enabled|passed|created)/i,
   /Google Cloud API call:\s*`?(true|completed|enabled|passed)/i,
   /Cloud Run service creation:\s*`?(true|completed|enabled|passed)/i,
@@ -232,7 +221,7 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-INTERNAL-BETA Google Cloud Managed Runtime Target Approval 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Google Cloud Managed Runtime Implementation Plan 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Google Cloud Environment Boundary 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
-    .replace(/\n## RP-INTERNAL-BETA Google Cloud Runtime Config Contract 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA Google Cloud Environment Owner Input 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## Track A[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 
@@ -249,25 +238,43 @@ for (const pattern of forbiddenClaims) {
   if (pattern.test(docsCorpus)) fail(`forbidden claim matched ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/google-cloud-environment-owner-input-record.json`))
+const contractText = read('server/config/internal-beta-google-cloud-runtime-config-contract.ts')
+for (const text of requiredContractText) {
+  if (!contractText.includes(text)) fail(`missing contract text: ${text}`)
+}
+for (const forbidden of [
+  '@google-cloud/',
+  '@supabase/',
+  'createClient(',
+  'process.env.SUPABASE_SERVICE_ROLE_KEY',
+  'process.env.GOOGLE_APPLICATION_CREDENTIALS',
+  'execFileSync(',
+  'fetch(',
+  'gcloud',
+  'SecretManagerServiceClient',
+  'Storage(',
+]) {
+  if (contractText.includes(forbidden)) fail(`contract contains forbidden runtime dependency or call: ${forbidden}`)
+}
+
+const record = JSON.parse(read(`${packetDir}/google-cloud-runtime-config-contract-record.json`))
 if (record.packet !== packet) fail('record packet mismatch')
-if (record.decision !== 'completed_source_derived_google_cloud_environment_names_for_internal_beta_planning') fail('record decision mismatch')
-if (record.execution !== 'completed_docs_only_source_derived_environment_owner_input_no_runtime_execution') fail('record execution mismatch')
-if (record.sourceMerge !== 'd33a1c81b851ebb9042352a375d3ce7dc822e2a6') fail('source merge mismatch')
-if (record.priorPacket !== 'RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-BOUNDARY-1') fail('prior packet mismatch')
+if (record.decision !== 'completed_backend_only_google_cloud_runtime_config_contract_no_runtime_execution') fail('record decision mismatch')
+if (record.execution !== 'completed_server_config_contract_no_cloud_or_supabase_execution') fail('record execution mismatch')
+if (record.sourceMerge !== '643589bb30fb43a91312b292cd751b31b1dea6e0') fail('source merge mismatch')
+if (record.priorPacket !== 'RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-OWNER-INPUT-1') fail('prior packet mismatch')
 if (record.approvedRuntimeTarget !== 'google_cloud_managed_runtime_target') fail('approved runtime target mismatch')
 if (record.environmentClass !== 'google_cloud_managed_internal_beta') fail('environment class mismatch')
-if (record.environmentBoundaryStatus !== 'source_derived_environment_names_recorded') fail('environment boundary status mismatch')
-if (record.readiness !== 'ready_for_internal_beta_runtime_config_contract_scaffold') fail('readiness mismatch')
-if (record.internalBetaEndToEndStatus !== 'not_ready_pending_backend_supabase_storage_worker_implementation') fail('internal beta status mismatch')
-if (record.closedBlocker !== 'blocked_pending_google_cloud_environment_names') fail('closed blocker mismatch')
+if (record.readiness !== 'ready_for_supabase_target_rls_storage_validation') fail('readiness mismatch')
+if (record.internalBetaEndToEndStatus !== 'not_ready_pending_supabase_rls_storage_and_runtime_implementation') fail('internal beta status mismatch')
+if (record.runtimeEnabled !== false) fail('runtime must remain disabled')
+if (record.runtimeExecutionAllowed !== false) fail('runtime execution must remain false')
+if (record.deploymentApproved !== false) fail('deployment approval must remain false')
 if (record.googleCloudProjectId !== 'reeditpro') fail('project id mismatch')
 if (record.primaryRuntimeRegion !== 'us-east1') fail('primary region mismatch')
 if (record.secondaryRuntimeRegion !== 'europe-west1') fail('secondary region mismatch')
 if (record.stagingActivationRegion !== 'us-central1') fail('staging region mismatch')
-if (record.stagingEnvironment !== 'staging') fail('staging env mismatch')
 if (record.supabaseTargetProject !== 'source_reference_names_recorded_no_remote_target_selected') fail('Supabase target must remain unresolved')
-if (record.deploymentApproval !== 'not_approved') fail('deployment must remain unapproved')
 for (const key of [
   'googleCloudApiCall',
   'cloudRunServiceCreation',
@@ -308,19 +315,11 @@ for (const key of [
 ]) {
   if (record[key] !== false) fail(`${key} must remain false`)
 }
-if (!record.cloudRunApiServiceNames.includes('reeditpro-api')) fail('missing reeditpro-api service name')
-if (!record.cloudRunApiServiceNames.includes('reeditpro-staging-private-searxng')) fail('missing staging private service name')
-if (!record.cloudRunWorkerJobNames.includes('reeditpro-render-worker')) fail('missing render worker job name')
-if (!record.serviceAccountNames.includes('sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com')) fail('missing Remotion render service account')
-if (!record.serviceAccountNames.includes('reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com')) fail('missing staging service account')
-if (!record.secretManagerSecretNames.includes('reeditpro-prod-supabase-service-role-key')) fail('missing Supabase service-role secret reference')
-if (!record.gcsPrivateArtifactBucketNames.includes('reeditpro-prod-reeditpro-us-east1-source-media')) fail('missing us-east1 source media bucket')
-if (!record.gcsPrivateArtifactBucketNames.includes('reeditpro-staging-reeditpro-qa-artifacts')) fail('missing staging QA bucket')
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready tool count must remain 0')
-if (record.nextMilestone !== 'RP-INTERNAL-BETA-GOOGLE-CLOUD-RUNTIME-CONFIG-CONTRACT-1') fail('next milestone mismatch')
+if (record.nextMilestone !== 'RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1') fail('next milestone mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
-if (packageJson.scripts?.['rp-internal-beta-google-cloud-environment-owner-input-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-google-cloud-environment-owner-input-1-diagnostics.mjs') {
+if (packageJson.scripts?.['rp-internal-beta-google-cloud-runtime-config-contract-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-google-cloud-runtime-config-contract-1-diagnostics.mjs') {
   fail('missing diagnostics package script')
 }
 

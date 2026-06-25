@@ -294,6 +294,18 @@ No Google Cloud API call, Cloud Run service/job creation, IAM mutation, Secret M
 
 Next recommended step: `RP-INTERNAL-BETA-GOOGLE-CLOUD-RUNTIME-CONFIG-CONTRACT-1`.
 
+## RP-INTERNAL-BETA Google Cloud Runtime Config Contract 1
+
+`RP-INTERNAL-BETA-GOOGLE-CLOUD-RUNTIME-CONFIG-CONTRACT-1` records decision `completed_backend_only_google_cloud_runtime_config_contract_no_runtime_execution` and execution `completed_server_config_contract_no_cloud_or_supabase_execution`.
+
+The backend-only contract `server/config/internal-beta-google-cloud-runtime-config-contract.ts` now exposes non-secret Google Cloud project, region, service/job, service account, bucket, queue/topic, Artifact Registry, and Secret Manager reference names for the internal beta runtime lane. Runtime enabled is `false`, runtime execution allowed is `false`, deployment approved is `false`, and Supabase target project remains `source_reference_names_recorded_no_remote_target_selected`.
+
+Readiness is `ready_for_supabase_target_rls_storage_validation`. Internal beta end-to-end status is `not_ready_pending_supabase_rls_storage_and_runtime_implementation`. Product-ready end-to-end local OSS tools remains `0`.
+
+No Google Cloud API call, Cloud Run service/job creation, IAM mutation, Secret Manager payload access, GCS access, remote Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, Remotion execution, provider/model call, deployment, or internal beta unlock is enabled by this packet.
+
+Next recommended step: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

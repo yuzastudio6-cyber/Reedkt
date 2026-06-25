@@ -1,0 +1,15 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1",
+  "decision": "tracka_gpac_mp4box_controlled_synthetic_media_command_qa_passed_ready_for_worker_contract_review",
+  "privateArtifacts": [],
+  "publicArtifacts": [],
+  "signedUrls": [],
+  "committedMediaArtifacts": [],
+  "generatedOutputsCommitted": [],
+  "runtimeOutputs": [],
+  "reviewedTransientContainerArtifacts": [
+    "generated-synthetic-subtitles.srt",
+    "generated-synthetic-subtitle-only.mp4"
+  ],
+  "supabase": "no write / environment none / SQL none / migration no"
+}

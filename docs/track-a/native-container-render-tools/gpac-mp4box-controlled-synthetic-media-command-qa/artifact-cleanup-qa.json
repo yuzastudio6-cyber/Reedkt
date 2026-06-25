@@ -1,0 +1,22 @@
+{
+  "transientContainerArtifactsReviewed": [
+    {
+      "path": "generated-synthetic-subtitles.srt",
+      "bytes": 73,
+      "sha256": "8070a36d0b5f724e75512fa1ab2f722b75aaba91ec46a37936d38cb6fa9f42ea",
+      "removed": true
+    },
+    {
+      "path": "generated-synthetic-subtitle-only.mp4",
+      "bytes": 857,
+      "sha256": "afc4c7fc017f5d41d817284aa633355d587958416df02a71c0fdd66df7829bb8",
+      "removed": true
+    }
+  ],
+  "committedMediaArtifacts": [],
+  "privateArtifacts": [],
+  "publicArtifacts": [],
+  "signedUrls": [],
+  "generatedOutputsCommitted": [],
+  "cleanupAccepted": true
+}

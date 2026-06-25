@@ -68,6 +68,10 @@ const blockers = parseBlock(docs[4][0], docs[4][1])
 const policy = parseBlock(docs[5][0], docs[5][1])
 const ownerReview = parseBlock('docs/worker-runtime-jobs-sound-cpu-synthetic-route-proof-owner-review.md', 'worker-runtime-jobs-sound-cpu-synthetic-route-proof-owner-review')
 const gate2c = parseBlock('docs/sound-runtime-media-gate-2c-controlled-synthetic-worker-route-proof-result.md', 'sound-runtime-media-gate-2c-controlled-synthetic-worker-route-proof-result')
+const gate2eResultPath = 'docs/sound-runtime-media-gate-2e-actual-synthetic-worker-route-source-result.md'
+const gate2eResult = fs.existsSync(path.join(repoRoot, gate2eResultPath))
+  ? parseBlock(gate2eResultPath, 'sound-runtime-media-gate-2e-actual-synthetic-worker-route-source-result')
+  : undefined
 
 assert(plan.decision === decision, 'Gate 2D plan decision mismatch')
 assert(paths.decision === decision, 'Gate 2D path decision mismatch')
@@ -91,7 +95,14 @@ for (const jobType of expectedJobTypes) {
 
 for (const proposedPath of proposedSourcePaths) {
   assert(paths.proposedFutureSourcePaths.some((row) => row.path === proposedPath && row.createdInGate2d === false), `missing proposed source path ${proposedPath}`)
-  assert(!fs.existsSync(path.join(repoRoot, proposedPath)), `Gate 2D must not create proposed source path ${proposedPath}`)
+  const sourceExists = fs.existsSync(path.join(repoRoot, proposedPath))
+  if (gate2eResult) {
+    assert(gate2eResult.actualSourceCreated === true, 'Gate 2E result must document approved source creation')
+    assert(gate2eResult.sourceFileCount === 3, 'Gate 2E source file count mismatch')
+    assert(sourceExists, `Gate 2E source path missing after approved creation ${proposedPath}`)
+  } else {
+    assert(!sourceExists, `Gate 2D must not create proposed source path ${proposedPath}`)
+  }
 }
 
 assert(paths.actualSourceCreated === false, 'actual source must not be created')

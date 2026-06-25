@@ -6,6 +6,14 @@ Branch: `codex/rp-ai-graphics-satori-font-runtime-proof`
 
 Base: `origin/codex/rp-ai-graphics-browser-runtime-proof`
 
+Draft PR:
+
+- PR #791: https://github.com/yuzastudio6-cyber/Reedkt/pull/791
+- Draft: `true`
+- Merge state at creation: `CLEAN`
+- Head SHA at creation: `ead737928df89c83aeb402ec743c805a6284ef63`
+- Check rollup at creation: empty
+
 Source evidence:
 
 - PR #787: AI graphics browser runtime proof, open/draft/CLEAN at `02f582b9c158026346cca4f83ae8f02c45b3aac9`.

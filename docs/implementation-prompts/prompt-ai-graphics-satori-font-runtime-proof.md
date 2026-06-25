@@ -12,6 +12,8 @@ Implemented result:
 
 - Decision: `ai_graphics_satori_font_runtime_proof_completed_with_warnings`.
 - Satori proof status: `satori_font_fixture_svg_layout_proof_passed`.
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/791
+- Draft PR status at creation: open/draft/CLEAN at `ead737928df89c83aeb402ec743c805a6284ef63`, empty check rollup.
 - Added `scripts/validation/ai-graphics-satori-font-runtime-proof.mjs`.
 - Added `scripts/validation/ai-graphics-satori-font-runtime-proof-diagnostics.mjs`.
 - Added package scripts:

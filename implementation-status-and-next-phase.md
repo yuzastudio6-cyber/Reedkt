@@ -153,6 +153,17 @@ No Supabase mutation, credit mutation, Stripe checkout/webhook/payment processin
 Internal beta end-to-end remains `not_ready` until transactional credit ledger runtime, approved snapshot commit runtime, worker queue/lease/event runtime, private artifact access policy, render worker, QA, cleanup, and negative safety tests pass.
 
 Next recommended step: `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD`.
+## RP-JOBS-01 Internal Beta Job Queue Runtime Scaffold
+
+`RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_job_queue_runtime_scaffold_no_worker_execution` and execution `completed_fail_closed_job_queue_scaffold_no_route_or_worker_execution`.
+
+Disabled job queue runtime scaffold operations now exist for job batch creation, job enqueue, job status readback, event append, worker lease claim, worker heartbeat, retry scheduling, and cancellation. They return `disabled_pending_job_queue_runtime_gate` and do not enqueue jobs, append events, claim leases, heartbeat workers, dispatch workers, or run worker outputs.
+
+No Supabase mutation, credit mutation, job enqueue, job event write, worker lease claim, worker heartbeat, worker dispatch, provider/model call, render/export, signed URL creation, public artifact creation, internal beta unlock, external beta unlock, production unlock, route execution, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler is implemented.
+
+Internal beta end-to-end remains `not_ready` until transactional job queue runtime, persistent worker leases/events, private artifact manifests/checksums/QA/cleanup, render worker, backend-only provider adapters, and negative safety tests pass.
+
+Next recommended step: `RP-ARTIFACTS-01-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-SCAFFOLD`.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

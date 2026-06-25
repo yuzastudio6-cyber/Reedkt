@@ -5,7 +5,14 @@
   "prompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-DOCKERIGNORE-SOURCE-PLAN",
   "title": "Plan future .dockerignore source creation, no Docker build",
   "sourceMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-IMAGE-HARDENING-PLAN",
+  "requiredPr737MergeCommit": "ab60df00af11930947dbf5aab55bf663dea153aa",
   "requiredImageHardeningPlanDecision": "worker_runtime_jobs_sound_cpu_image_hardening_plan_completed_with_warnings_ready_for_image_hardening_owner_review",
+  "requiredImageHardeningOwnerReviewDecision": "worker_runtime_jobs_sound_cpu_image_hardening_owner_review_passed_with_warnings_ready_for_dockerignore_source_plan",
+  "requiredImageHardeningOwnerReviewDocs": [
+    "docs/worker-runtime-jobs-sound-cpu-image-hardening-owner-review.md",
+    "docs/worker-runtime-jobs-sound-cpu-build-context-dockerignore-owner-register.md",
+    "docs/worker-runtime-jobs-sound-cpu-image-hardening-owner-claim-policy.md"
+  ],
   "purpose": "Plan future SOUND CPU .dockerignore source creation without Docker build, Docker push, Docker run, GCP, worker execution, media processing, Supabase, SQL, model weights, artifacts, beta, or production actions.",
   "targetDockerfilePath": "server/workers/sound-cpu/Dockerfile",
   "plannedDockerignoreScope": [
@@ -20,6 +27,7 @@
     "Docker runtime artifacts"
   ],
   "actualDockerignoreCreatedByThisPrompt": "no",
+  "dockerignoreSourcePlanningAcceptedByOwnerReview": "yes",
   "acceptedForDockerBuildToday": "no",
   "acceptedForDockerPushToday": "no",
   "acceptedForDockerRunToday": "no",

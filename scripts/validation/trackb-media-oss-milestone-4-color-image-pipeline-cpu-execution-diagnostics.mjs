@@ -69,6 +69,7 @@ const statusDocs = [
 const allowedChangedPrefixes = [
   `${reportDir}/`,
   'docs/open-source-tool-stack/trackb-media-oss-milestone-4-color-image-pipeline-qa-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-final-rollup/',
 ]
 const allowedChangedFiles = new Set([
   'package.json',
@@ -95,6 +96,8 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-milestone-4-color-image-pipeline-qa-review.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-final-rollup.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-review.md',
+  'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
   'docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.md',
   'docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.json',
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.md',

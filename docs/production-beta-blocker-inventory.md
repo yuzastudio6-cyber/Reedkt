@@ -147,6 +147,18 @@ Next recommended milestone: `RP-PROVIDER-01-INTERNAL-BETA-DISABLED-PROVIDER-ADAP
 
 External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## RP-PROVIDER-01 Internal Beta Disabled Provider Adapter Scaffold
+
+`RP-PROVIDER-01-INTERNAL-BETA-DISABLED-PROVIDER-ADAPTER-SCAFFOLD` records decision `completed_disabled_internal_beta_provider_adapter_scaffold_no_provider_calls` and execution `completed_fail_closed_provider_adapter_scaffold_no_model_execution`.
+
+Provider adapter scaffold status: `disabled_pending_provider_adapter_runtime_gate`. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Disabled provider adapter scaffold operations now exist for provider route read, request preflight, prompt payload preparation, cost cap check, secret boundary check, fallback policy preparation, status readback, and failure classification. They are not registered as live HTTP handlers or mock handlers, and they do not call providers/models, access secret payloads, execute raw prompts, dispatch workers, mutate credits, mutate Supabase, render/export, write storage, create signed/public artifacts, or unlock beta/production.
+
+Next recommended milestone: `RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1`.
+
+External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

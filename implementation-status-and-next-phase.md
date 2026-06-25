@@ -186,6 +186,17 @@ No Supabase mutation, credit mutation, worker dispatch, worker execution, Remoti
 Internal beta end-to-end remains `not_ready` until service-role route handlers, transactional credit/job/artifact runtimes, render worker execution proof, private artifact access policy, disabled-by-default provider adapters, QA, cleanup, and negative safety tests pass.
 
 Next recommended step: `RP-PROVIDER-01-INTERNAL-BETA-DISABLED-PROVIDER-ADAPTER-SCAFFOLD`.
+## RP-PROVIDER-01 Internal Beta Disabled Provider Adapter Scaffold
+
+`RP-PROVIDER-01-INTERNAL-BETA-DISABLED-PROVIDER-ADAPTER-SCAFFOLD` records decision `completed_disabled_internal_beta_provider_adapter_scaffold_no_provider_calls` and execution `completed_fail_closed_provider_adapter_scaffold_no_model_execution`.
+
+Disabled provider adapter scaffold operations now exist for provider route read, request preflight, prompt payload preparation, cost cap check, secret boundary check, fallback policy preparation, status readback, and failure classification. They return `disabled_pending_provider_adapter_runtime_gate` and do not call providers/models, access secret payloads, execute raw prompts, dispatch workers, mutate credits, mutate Supabase, render/export, write storage, create signed/public artifacts, or unlock beta/production.
+
+No Supabase mutation, credit mutation, provider/model call, model call, raw prompt execution, secret payload access, worker dispatch, worker execution, route execution, render/export, storage object creation, signed URL creation, public artifact creation, internal beta unlock, external beta unlock, production unlock, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler is implemented.
+
+Internal beta end-to-end remains `not_ready` until service-role route handlers, transactional credit/job/artifact runtimes, render worker execution proof, private artifact access policy, provider adapter runtime approval, QA, cleanup, and negative safety tests pass.
+
+Next recommended step: `RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1`.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

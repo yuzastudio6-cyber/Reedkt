@@ -34,6 +34,11 @@ import {
   type InternalBetaRuntimeScaffoldInput,
   type InternalBetaRuntimeScaffoldResult,
 } from './internal-beta-service-role-runtime-scaffold'
+import {
+  assertInternalBetaSupabaseCredentialContextFailClosed,
+  createInternalBetaSupabaseCredentialContextContract,
+  type InternalBetaSupabaseCredentialContextContract,
+} from '../config/internal-beta-supabase-credential-context-contract'
 import { nowIso, sanitizeJson } from './service-helpers'
 
 export type InternalBetaRuntimeReadinessOrchestratorStatus =
@@ -74,6 +79,7 @@ export interface InternalBetaRuntimeReadinessOrchestratorInput
   costCapId?: string
   fallbackPolicyId?: string
   reason?: string
+  supabaseCredentialContext?: InternalBetaSupabaseCredentialContextContract
 }
 
 type InternalBetaRuntimeReadinessScaffoldResult =
@@ -141,6 +147,7 @@ export interface InternalBetaRuntimeReadinessOrchestratorReport {
   componentCounts: InternalBetaRuntimeReadinessComponentCounts
   componentStatuses: Record<InternalBetaRuntimeReadinessComponent, string[]>
   componentSummaries: InternalBetaRuntimeReadinessComponentSummary[]
+  supabaseCredentialContext: InternalBetaSupabaseCredentialContextContract
   safety: InternalBetaRuntimeReadinessSafetySummary
   unsafeExecutionDetected: false
   requiredBeforeEnablement: string[]
@@ -159,6 +166,7 @@ export const INTERNAL_BETA_RUNTIME_READINESS_ORCHESTRATOR_COMPONENTS: InternalBe
 ]
 
 export const INTERNAL_BETA_RUNTIME_READINESS_ORCHESTRATOR_REQUIRED_BEFORE_ENABLEMENT = [
+  'approved_supabase_credential_context_present',
   'confirmed_supabase_target_rls_storage_validation',
   'guarded_worker_runtime_rpc_staging_sql_execution',
   'service_role_runtime_enablement',
@@ -200,6 +208,8 @@ const UNSAFE_BOOLEAN_KEYS = [
 export function createInternalBetaRuntimeReadinessOrchestratorReport(
   input: InternalBetaRuntimeReadinessOrchestratorInput = {},
 ): InternalBetaRuntimeReadinessOrchestratorReport {
+  const supabaseCredentialContext =
+    input.supabaseCredentialContext ?? createInternalBetaSupabaseCredentialContextContract()
   const normalizedInput: InternalBetaRuntimeReadinessOrchestratorInput = {
     workspaceId: input.workspaceId ?? 'internal_beta_runtime_readiness_workspace',
     projectId: input.projectId ?? 'internal_beta_runtime_readiness_project',
@@ -300,6 +310,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
       ...summarizeResults('remotion_render_worker', remotionRenderWorker),
       ...summarizeResults('provider_adapter', providerAdapter),
     ],
+    supabaseCredentialContext,
     safety: {
       remoteSupabaseMutation: false,
       sqlExecution: false,
@@ -335,6 +346,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
     inputSummary: sanitizeJson(normalizedInput),
     warnings: [
       'Internal beta runtime readiness orchestrator is fail-closed.',
+      `Supabase credential context decision: ${supabaseCredentialContext.decision}.`,
       'All composed service-role, credit-ledger, job-queue, private-artifact, Remotion render-worker, and provider-adapter scaffolds returned disabled runtime results.',
       'No Supabase mutation, SQL execution, worker execution, provider/model call, Remotion execution, media processing, artifact creation, credit mutation, signed URL creation, public artifact creation, internal beta unlock, external beta unlock, or production unlock occurred.',
     ],
@@ -353,6 +365,7 @@ export function assertInternalBetaRuntimeReadinessOrchestratorFailClosed(
   for (const [key, value] of Object.entries(report.safety)) {
     if (value !== false) throw new Error(`Safety flag ${key} must remain false.`)
   }
+  assertInternalBetaSupabaseCredentialContextFailClosed(report.supabaseCredentialContext)
   for (const component of report.componentSummaries) {
     if (component.ok !== false) throw new Error(`Component ${component.component}:${component.id} must remain disabled.`)
   }

@@ -450,6 +450,18 @@ No remote Supabase command, remote Supabase mutation, SQL execution, SQL mutatio
 
 Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
 
+## RP-INTERNAL-BETA Runtime Readiness Credential Context Integration 1
+
+`RP-INTERNAL-BETA-RUNTIME-READINESS-CREDENTIAL-CONTEXT-INTEGRATION-1` records decision `completed_runtime_readiness_credential_context_integration_fail_closed` and execution `completed_local_orchestrator_contract_integration_no_remote_execution`.
+
+The runtime readiness orchestrator now includes the backend-safe Supabase credential context contract in its fail-closed report. Current orchestrator status remains `blocked_pending_supabase_target_validation_and_runtime_enablement`. Current credential context decision is `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`, with execution `blocked_no_remote_execution_missing_safe_credential_context`.
+
+Required gate added: `approved_supabase_credential_context_present`. Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role secret payload access, frontend service-role credential exposure, service-role route execution, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, final render/export, preview artifact creation, private media processing, user media processing, Remotion execution, FFmpeg execution, FFprobe execution, media processing, package installation beyond dependency validation, Dockerfile change, requirements change, or broad service-role handler was enabled.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 ## SUPABASE-WORKER-RUNTIME Transactional RPC 4R Confirmed Runner
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED` records decision `completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution` and execution `completed_guard_scaffold_no_remote_execution`.

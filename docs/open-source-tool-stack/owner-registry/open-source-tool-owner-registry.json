@@ -99,6 +99,17 @@
         "directToolCallRuntimeReady": false,
         "internalBetaRuntimeReady": false,
         "productReady": false
+      },
+      "controlledInternalBetaDryRun": {
+        "decision": "trackb_media_oss_controlled_internal_beta_dry_run_passed_ready_for_internal_beta_fixture_gate_review",
+        "nextPrompt": "TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW",
+        "coveredToolCount": 16,
+        "validDryRunPayloadCount": 16,
+        "negativeCasesBlocked": true,
+        "routesDisabled": true,
+        "workerDispatchEnabled": false,
+        "readyForLiveBetaRuntime": false,
+        "productReady": false
       }
     }
   ],

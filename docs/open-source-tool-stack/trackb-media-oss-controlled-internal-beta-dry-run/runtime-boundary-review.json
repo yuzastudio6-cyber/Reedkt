@@ -1,0 +1,22 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssControlledInternalBetaDryRun.runtimeBoundaryReview.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_controlled_internal_beta_dry_run_passed_ready_for_internal_beta_fixture_gate_review",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "dockerRunAccepted": false,
+  "toolExecutionAccepted": false,
+  "workerDispatchAccepted": false,
+  "routeRuntimeAccepted": false,
+  "mediaProcessingAccepted": false,
+  "imageProcessingAccepted": false,
+  "ocrInferenceAccepted": false,
+  "renderExportAccepted": false,
+  "supabaseWritesAccepted": false,
+  "gcsUploadsAccepted": false,
+  "publicArtifactsAccepted": false,
+  "signedUrlsAccepted": false,
+  "rawPromptExecutionAccepted": false,
+  "liveBetaRuntimeAccepted": false,
+  "productionAccepted": false,
+  "productReadyAccepted": false
+}

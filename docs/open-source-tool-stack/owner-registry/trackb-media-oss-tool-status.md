@@ -211,6 +211,17 @@ TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN:
 - Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN`.
 <!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:end -->
 
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN_STATUS:start -->
+TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN:
+
+- Decision: `trackb_media_oss_controlled_internal_beta_dry_run_passed_ready_for_internal_beta_fixture_gate_review`.
+- Current Track B counts: 16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready.
+- Dry-run payload fixtures validated for FFmpeg, FFprobe, Sharp/libvips, DuckDB, Polars, ExifTool, MediaInfo, Tesseract, ImageMagick, OpenCV, PyAV, PySceneDetect, PaddlePaddle, PaddleOCR, OpenColorIO, and OpenImageIO.
+- Negative dry-run cases remain blocked: missing approved snapshot, `executionEnabled: true`, signed/public URL-like artifact path, and raw prompt metadata.
+- No tool execution, worker dispatch, live beta runtime, production, public artifact, signed URL, Supabase/GCS, or product-ready claim is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN_STATUS:end -->
+
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_STATUS:start -->
 TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION:
 

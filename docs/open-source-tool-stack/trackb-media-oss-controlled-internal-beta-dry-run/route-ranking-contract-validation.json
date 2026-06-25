@@ -1,0 +1,37 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssControlledInternalBetaDryRun.routeRankingContractValidation.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_controlled_internal_beta_dry_run_passed_ready_for_internal_beta_fixture_gate_review",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "routeIds": [
+    "trackbMediaOss.toolCall.validate",
+    "trackbMediaOss.toolCall.queue",
+    "trackbMediaOss.toolCall.status"
+  ],
+  "routesRemainDisabled": true,
+  "routesRemainBackendRequired": true,
+  "callableContractToolCount": 16,
+  "rankingEntryCount": 16,
+  "rankingSequence": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars",
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr",
+    "ffmpeg"
+  ],
+  "rankingEntriesDryRunOnly": true,
+  "rankingEntriesExecutionDisabled": true,
+  "directRuntimeRoutesEnabled": false,
+  "workerDispatchEnabled": false
+}

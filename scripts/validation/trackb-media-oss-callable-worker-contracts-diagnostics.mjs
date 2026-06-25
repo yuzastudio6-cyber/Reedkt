@@ -202,8 +202,10 @@ const changedFiles = Array.from(new Set([
 const allowedChangedPrefixes = [
   'docs/open-source-tool-stack/trackb-media-oss-callable-worker-contracts-implementation/',
   'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-rerun/',
+  'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-dry-run/',
   'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-rerun.md',
   'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-controlled-internal-beta-dry-run-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
@@ -215,6 +217,7 @@ const allowedChangedPrefixes = [
   'src/backend/api/index.ts',
   'src/backend/contracts/index.ts',
   'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-dry-run.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-internal-beta-fixture-gate-review.md',
   'package.json',
   'docs/open-source-tool-stack/open-source-tool-stack-decision.md',
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.md',

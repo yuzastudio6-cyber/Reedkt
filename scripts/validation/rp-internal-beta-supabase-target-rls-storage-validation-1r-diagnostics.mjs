@@ -2,86 +2,63 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-DECISION-1'
-const packetDir = 'docs/internal-beta/rp-internal-beta-supabase-target-owner-decision-1'
+const packet = 'RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R'
+const packetDir = 'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/owner-decision.md`,
-  `${packetDir}/target-boundary.md`,
-  `${packetDir}/remote-validation-planning-boundary.md`,
-  `${packetDir}/secret-service-role-boundary.md`,
+  `${packetDir}/target-validation.md`,
+  `${packetDir}/rls-readiness-review.md`,
+  `${packetDir}/storage-readiness-review.md`,
+  `${packetDir}/service-role-boundary.md`,
+  `${packetDir}/confirmation-gate.md`,
   `${packetDir}/readiness-gate.md`,
   `${packetDir}/safety-boundary.md`,
-  `${packetDir}/supabase-target-owner-decision-record.json`,
-  'docs/activation-phase-rp-internal-beta-supabase-target-owner-decision-1-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r.md',
+  `${packetDir}/supabase-target-rls-storage-validation-1r-record.json`,
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.md',
 ]
 
 const relatedFiles = [
-  'docs/internal-beta/rp-internal-beta-supabase-target-owner-input-1/supabase-target-owner-input-record.json',
-  'docs/activation-phase-rp-internal-beta-supabase-target-owner-input-1-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-owner-decision-1.md',
-  'docs/supabase-approved-staging-target-reference.md',
-  'docs/activation-phase-roadmap.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-owner-decision-1/supabase-target-owner-decision-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-owner-decision-1-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-owner-input-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
-]
-
-const followOnSupabaseTargetRlsStorageValidation1rFiles = [
-  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/source-audit.md',
-  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/target-validation.md',
-  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/rls-readiness-review.md',
-  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/storage-readiness-review.md',
-  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/service-role-boundary.md',
-  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/confirmation-gate.md',
-  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/readiness-gate.md',
-  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/safety-boundary.md',
-  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/supabase-target-rls-storage-validation-1r-record.json',
-  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.md',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
 ]
 
 const requiredFiles = [...packetFiles, ...relatedFiles]
-const allowedChangedFiles = new Set([...packetFiles, ...relatedFiles, ...followOnSupabaseTargetRlsStorageValidation1rFiles, 'package.json'])
+const allowedChangedFiles = new Set([...packetFiles, ...relatedFiles, 'package.json'])
 
 const requiredText = [
   packet,
-  'completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning',
-  'completed_docs_only_supabase_target_owner_decision_no_remote_execution',
-  'Source merge: `803b7198410082c9e426b7fe0c3b05685eb15682`',
-  'Prior packet: `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-INPUT-1`',
+  'blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation',
+  'completed_docs_only_named_target_validation_gate_no_remote_execution',
+  'Source merge: `78b70915467e93c23ae4d11aebbbab44b5fe531e`',
+  'Prior packet: `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-DECISION-1`',
   'Approved runtime target: `google_cloud_managed_runtime_target`',
   'Environment class: `google_cloud_managed_internal_beta`',
-  'Approved non-production Supabase target: `wmyyttnynmteqgcdishd`',
-  'Target name: `Reeditpro`',
-  'Target class: `staging`',
-  'Approval scope: `future_guarded_rls_storage_validation_planning_only`',
+  'Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`',
   'Remote Supabase target: `staging_named_for_guarded_validation_planning`',
   'Supabase target project: `wmyyttnynmteqgcdishd`',
-  'Target adoption status: `source_derived_owner_decision_recorded`',
-  'Remote mutation: `not_approved`',
-  'SQL/migration apply: `not_approved`',
-  'Remote validation approval: `guarded_prompt_required`',
-  'SQL/advisor/storage readback approval: `not_approved_until_guarded_validation_prompt`',
-  'Service-role secret payload access: `forbidden`',
-  'Frontend service-role credential exposure: `forbidden`',
-  'Public buckets/artifacts: `blocked`',
-  'RLS validation: `not_run`',
-  'Storage validation: `not_run`',
-  'Service-role runtime: `blocked_pending_guarded_rls_storage_validation`',
-  'Readiness: `ready_for_guarded_supabase_target_rls_storage_validation_1r`',
+  'Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`',
+  'Observed confirmation: `absent_or_not_true`',
+  'Safe credential state: `not_present_in_environment`',
+  'RLS validation: `not_run_confirmation_absent`',
+  'Storage validation: `not_run_confirmation_absent`',
+  'Service-role runtime: `blocked_pending_guarded_rls_storage_validation_confirmation`',
+  'Readiness: `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation`',
   'Internal beta end-to-end status: `not_ready_pending_guarded_supabase_rls_storage_validation_and_runtime_implementation`',
   'Product-ready end-to-end local OSS tools: `0`',
   'Supabase remote environment touched: `none`',
   'SQL executed: `none`',
   'Migration deployed: `no`',
-  'RLS/storage remote validation: `not_run`',
+  'RLS/storage remote validation: `not_run_confirmation_absent`',
   'Storage buckets created: `none`',
   'Storage objects created: `none`',
   'Remote Supabase mutation: `false`',
@@ -89,6 +66,8 @@ const requiredText = [
   'Storage bucket creation: `false`',
   'Storage object creation: `false`',
   'Storage object read: `false`',
+  'Service-role secret payload access: `false`',
+  'Frontend service-role credential exposure: `false`',
   'Service-role route execution: `false`',
   'Approved snapshot persistence: `false`',
   'Credit mutation: `false`',
@@ -117,12 +96,9 @@ const requiredText = [
   'Production unlock: `false`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  'PR #212 records the human/product-approved non-secret staging target reference as `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.',
-  'The cross-chat SOUND source path is not present in the current integration checkout, so it is not used as required source evidence for this packet.',
-  'PR #818 is the internal-beta source-of-truth predecessor',
   '#577 remains open/draft/blocked and excluded as source-of-truth.',
-  'Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R`',
-  'No remote Supabase mutation, SQL execution, migration execution, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, service-role route execution, frontend service-role credential exposure, Google Cloud API call, Cloud Run service creation, Cloud Run job creation, Cloud Run deployment, IAM mutation, GCS bucket creation, GCS object access, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.',
+  'Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED`',
+  'No remote Supabase mutation, SQL execution, migration execution, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, frontend service-role credential exposure, service-role route execution, Google Cloud API call, Cloud Run service creation, Cloud Run job creation, Cloud Run deployment, IAM mutation, GCS bucket creation, GCS object access, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.',
 ]
 
 const forbiddenClaims = [
@@ -131,16 +107,9 @@ const forbiddenClaims = [
   /external beta unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /production unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
-  /Remote mutation:\s*`(?!not_approved`)/i,
-  /SQL\/migration apply:\s*`(?!not_approved`)/i,
-  /Remote validation approval:\s*`(?!guarded_prompt_required`)/i,
-  /SQL\/advisor\/storage readback approval:\s*`(?!not_approved_until_guarded_validation_prompt`)/i,
-  /Service-role secret payload access:\s*`(?!forbidden`|false)/i,
-  /Frontend service-role credential exposure:\s*`(?!forbidden`|false)/i,
-  /Public buckets\/artifacts:\s*`(?!blocked`)/i,
-  /RLS validation:\s*`?(passed|completed|true|enabled)/i,
-  /Storage validation:\s*`?(passed|completed|true|enabled)/i,
-  /RLS\/storage remote validation:\s*`?(passed|completed|true|enabled)/i,
+  /RLS validation:\s*`?(?!not_run_confirmation_absent`)(passed|completed|true|enabled)/i,
+  /Storage validation:\s*`?(?!not_run_confirmation_absent`)(passed|completed|true|enabled)/i,
+  /RLS\/storage remote validation:\s*`?(?!not_run_confirmation_absent`)(passed|completed|true|enabled)/i,
   /Remote Supabase mutation:\s*`?true/i,
   /Supabase remote environment touched:(?!\s*`?none`?)/i,
   /SQL execution:\s*`?true/i,
@@ -152,6 +121,8 @@ const forbiddenClaims = [
   /Storage buckets created:(?!\s*`?none`?)/i,
   /Storage object (?:creation|read):\s*`?true/i,
   /Storage objects created:(?!\s*`?none`?)/i,
+  /Service-role secret payload access:\s*`?(true|completed|enabled|passed|accessed)/i,
+  /Frontend service-role credential exposure:\s*`?true/i,
   /Service-role route execution:\s*`?(true|completed|enabled|passed)/i,
   /Approved snapshot persistence:\s*`?(true|completed|enabled|passed)/i,
   /Credit mutation:\s*`?true/i,
@@ -226,8 +197,8 @@ function extractSection(text, heading) {
 
 const docsCorpus = [
   ...packetFiles.map(read),
-  extractSection(read('implementation-status-and-next-phase.md'), 'RP-INTERNAL-BETA Supabase Target Owner Decision 1'),
-  extractSection(read('docs/production-beta-blocker-inventory.md'), 'RP-INTERNAL-BETA Supabase Target Owner Decision 1'),
+  extractSection(read('implementation-status-and-next-phase.md'), 'RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R'),
+  extractSection(read('docs/production-beta-blocker-inventory.md'), 'RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R'),
 ].join('\n')
 
 for (const file of requiredFiles) {
@@ -242,43 +213,34 @@ for (const pattern of forbiddenClaims) {
   if (pattern.test(docsCorpus)) fail(`forbidden claim matched ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/supabase-target-owner-decision-record.json`))
+const record = JSON.parse(read(`${packetDir}/supabase-target-rls-storage-validation-1r-record.json`))
 const expected = {
   packet,
-  decision: 'completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning',
-  execution: 'completed_docs_only_supabase_target_owner_decision_no_remote_execution',
-  sourceMerge: '803b7198410082c9e426b7fe0c3b05685eb15682',
-  priorPacket: 'RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-INPUT-1',
+  decision: 'blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation',
+  execution: 'completed_docs_only_named_target_validation_gate_no_remote_execution',
+  sourceMerge: '78b70915467e93c23ae4d11aebbbab44b5fe531e',
+  priorPacket: 'RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-DECISION-1',
   approvedRuntimeTarget: 'google_cloud_managed_runtime_target',
   environmentClass: 'google_cloud_managed_internal_beta',
-  approvedNonProductionSupabaseTarget: 'wmyyttnynmteqgcdishd',
   targetName: 'Reeditpro',
   targetClass: 'staging',
-  approvalScope: 'future_guarded_rls_storage_validation_planning_only',
-  remoteSupabaseTarget: 'staging_named_for_guarded_validation_planning',
   supabaseTargetProject: 'wmyyttnynmteqgcdishd',
+  remoteSupabaseTarget: 'staging_named_for_guarded_validation_planning',
   targetAdoptionStatus: 'source_derived_owner_decision_recorded',
-  remoteMutationApproval: 'not_approved',
-  sqlMigrationApplyApproval: 'not_approved',
-  remoteValidationApproval: 'guarded_prompt_required',
-  sqlAdvisorStorageReadbackApproval: 'not_approved_until_guarded_validation_prompt',
-  serviceRoleSecretPayloadAccessPolicy: 'forbidden',
-  frontendServiceRoleCredentialExposure: 'forbidden',
-  publicBucketArtifactPolicy: 'blocked',
-  readiness: 'ready_for_guarded_supabase_target_rls_storage_validation_1r',
+  requiredConfirmation: 'REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true',
+  observedConfirmation: 'absent_or_not_true',
+  safeCredentialState: 'not_present_in_environment',
+  readiness: 'blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation',
   internalBetaEndToEndStatus: 'not_ready_pending_guarded_supabase_rls_storage_validation_and_runtime_implementation',
-  rlsValidation: 'not_run',
-  storageValidation: 'not_run',
-  serviceRoleRuntime: 'blocked_pending_guarded_rls_storage_validation',
-  pr818MergeSha: '803b7198410082c9e426b7fe0c3b05685eb15682',
-  pr212Reference: 'historical_supporting_open_pr_body',
-  soundContextReference: 'not_present_in_current_integration_not_used_as_required_source',
+  rlsValidation: 'not_run_confirmation_absent',
+  storageValidation: 'not_run_confirmation_absent',
+  serviceRoleRuntime: 'blocked_pending_guarded_rls_storage_validation_confirmation',
   supabaseTargetTouched: 'none',
   sqlExecuted: 'none',
   migrationDeployed: 'no',
   packageLock: 'unchanged',
   generatedArtifactsCommitted: 'none',
-  nextMilestone: 'RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R',
+  nextMilestone: 'RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED',
 }
 
 for (const [key, value] of Object.entries(expected)) {
@@ -333,13 +295,13 @@ for (const key of [
 
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready tool count must remain 0')
 
-const priorRecord = JSON.parse(read('docs/internal-beta/rp-internal-beta-supabase-target-owner-input-1/supabase-target-owner-input-record.json'))
-if (priorRecord.decision !== 'blocked_pending_named_supabase_target_owner_input') fail('prior owner-input decision changed')
-if (priorRecord.historicalTargetReferencesAdopted !== false) fail('prior owner-input record should remain historical')
+const priorRecord = JSON.parse(read('docs/internal-beta/rp-internal-beta-supabase-target-owner-decision-1/supabase-target-owner-decision-record.json'))
+if (priorRecord.decision !== 'completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning') fail('prior owner-decision record changed')
+if (priorRecord.supabaseTargetProject !== 'wmyyttnynmteqgcdishd') fail('prior owner-decision target mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
-if (packageJson.scripts?.['rp-internal-beta-supabase-target-owner-decision-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs') {
-  fail('missing owner decision diagnostics package script')
+if (packageJson.scripts?.['rp-internal-beta-supabase-target-rls-storage-validation-1r:diagnostics'] !== 'node scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs') {
+  fail('missing 1R diagnostics package script')
 }
 
 gitQuiet(['diff', '--quiet', '--', 'package-lock.json'], 'package-lock.json changed')
@@ -386,9 +348,8 @@ for (const file of [...changedFiles, ...stagedFiles]) {
 for (const file of changedFiles) {
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) continue
   if (file.startsWith('scripts/validation/')) continue
-  if (followOnSupabaseTargetRlsStorageValidation1rFiles.includes(file)) continue
   const text = file === 'implementation-status-and-next-phase.md' || file === 'docs/production-beta-blocker-inventory.md'
-    ? extractSection(fs.readFileSync(file, 'utf8'), 'RP-INTERNAL-BETA Supabase Target Owner Decision 1')
+    ? extractSection(fs.readFileSync(file, 'utf8'), 'RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R')
     : fs.readFileSync(file, 'utf8')
   for (const pattern of forbiddenClaims) {
     if (pattern.test(text)) fail(`forbidden claim ${pattern} in ${file}`)

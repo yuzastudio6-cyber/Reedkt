@@ -356,6 +356,36 @@ No remote Supabase mutation, SQL execution, migration execution, RLS policy appl
 
 Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R`.
 
+## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R` records decision `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation` and execution `completed_docs_only_named_target_validation_gate_no_remote_execution`.
+
+Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Remote Supabase target: `staging_named_for_guarded_validation_planning`.
+
+Supabase target project: `wmyyttnynmteqgcdishd`.
+
+Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`.
+
+Observed confirmation: `absent_or_not_true`.
+
+Safe credential state: `not_present_in_environment`.
+
+RLS validation: `not_run_confirmation_absent`.
+
+Storage validation: `not_run_confirmation_absent`.
+
+Service-role runtime: `blocked_pending_guarded_rls_storage_validation_confirmation`.
+
+Readiness: `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation`.
+
+Internal beta end-to-end status: `not_ready_pending_guarded_supabase_rls_storage_validation_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`.
+
+No remote Supabase mutation, SQL execution, migration execution, RLS policy apply, storage bucket/object access, service-role secret payload access, frontend service-role credential exposure, service-role route execution, signed URL creation, public artifact creation, Google Cloud API call, worker execution, provider/model call, render/export, deployment, or internal beta unlock is enabled by this packet.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

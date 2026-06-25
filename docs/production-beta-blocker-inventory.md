@@ -397,6 +397,38 @@ Remote Supabase mutation, SQL execution, migration execution, RLS policy apply, 
 
 Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R`.
 
+## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R` records decision `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation` and execution `completed_docs_only_named_target_validation_gate_no_remote_execution`.
+
+Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Remote Supabase target: `staging_named_for_guarded_validation_planning`.
+
+Supabase target project: `wmyyttnynmteqgcdishd`.
+
+Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`.
+
+Observed confirmation: `absent_or_not_true`.
+
+Safe credential state: `not_present_in_environment`.
+
+RLS validation: `not_run_confirmation_absent`.
+
+Storage validation: `not_run_confirmation_absent`.
+
+Service-role runtime: `blocked_pending_guarded_rls_storage_validation_confirmation`.
+
+Readiness: `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation`.
+
+Internal beta end-to-end status: `not_ready_pending_guarded_supabase_rls_storage_validation_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`.
+
+Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Remote Supabase mutation, SQL execution, migration execution, RLS policy apply, storage bucket/object access, service-role secret payload access, frontend service-role credential exposure, service-role route execution, signed URL creation, public artifact creation, Google Cloud API calls, worker execution, provider/model calls, render/export, deployment, internal beta unlock, external beta unlock, production unlock, and final delivery/export remain blocked.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

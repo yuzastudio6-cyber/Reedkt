@@ -51,7 +51,22 @@ const followOnSupabaseTargetOwnerDecisionFiles = [
   'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...followOnSupabaseTargetOwnerInputFiles, ...followOnSupabaseTargetOwnerDecisionFiles, 'package.json'])
+const followOnSupabaseTargetRlsStorageValidation1rFiles = [
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/target-validation.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/rls-readiness-review.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/storage-readiness-review.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/service-role-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/confirmation-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/supabase-target-rls-storage-validation-1r-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.md',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...followOnSupabaseTargetOwnerInputFiles, ...followOnSupabaseTargetOwnerDecisionFiles, ...followOnSupabaseTargetRlsStorageValidation1rFiles, 'package.json'])
 
 const requiredText = [
   packet,
@@ -222,6 +237,7 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-INTERNAL-BETA Google Cloud Runtime Config Contract 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Supabase Target Owner Input 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Supabase Target Owner Decision 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## Track A[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 
@@ -349,6 +365,7 @@ for (const file of changedFiles) {
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) continue
   if (file.startsWith('scripts/validation/')) continue
   if (followOnSupabaseTargetOwnerDecisionFiles.includes(file)) continue
+  if (followOnSupabaseTargetRlsStorageValidation1rFiles.includes(file)) continue
   const text = stripHistoricalSections(fs.readFileSync(file, 'utf8'))
   for (const pattern of forbiddenClaims) {
     if (pattern.test(text)) fail(`forbidden claim ${pattern} in ${file}`)

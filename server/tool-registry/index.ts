@@ -22,6 +22,7 @@ export * from './tool-qa-policy'
 export * from './ai-graphics-tool-call-readiness'
 export * from './ai-graphics-tool-call-handoff'
 export * from './ai-graphics-tool-call-plan-evaluator'
+export * from './ai-graphics-beta-readiness-gate'
 
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {
   return PRODUCTION_TOOL_IDS.includes(toolId as ProductionToolId)

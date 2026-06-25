@@ -64,7 +64,8 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:tool-call-readiness:diagnostics",
   "ai-graphics:21-tool-proper-install-audit:diagnostics",
   "ai-graphics:tool-call-handoff:diagnostics",
-  "ai-graphics:tool-call-plan-evaluator:diagnostics"
+  "ai-graphics:tool-call-plan-evaluator:diagnostics",
+  "ai-graphics:beta-readiness-gate:diagnostics"
 ]);
 
 const failures = [];

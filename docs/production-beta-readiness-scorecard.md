@@ -470,3 +470,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: future Tool Route / Worker lanes can request a capability and receive selected tools, production tool IDs, worker types, runtime targets, blockers, and next milestones while execution remains blocked.
 - GPU routing: all eight GPU/model tools remain GPU-runtime targeted and are never converted to CPU defaults by the evaluator.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Beta Readiness Gate
+
+- Decision: `ai_graphics_beta_readiness_gate_prepared_with_current_runtime_blocks`.
+- Scope: server-only gate aggregates install, production mapping, planning selection, runtime policy, license policy, model-weight policy, Tool Route, Worker, approved snapshot, credit, artifact, GPU, browser sandbox, and beta-owner gates for all 21 AI graphics tools.
+- Result: all 21 tools are installed or represented on the intended ReeditPro surface, all 21 map to production registry IDs, all 21 are planning-selectable, and all 8 heavy/model tools remain GPU-runtime targeted. Beta testing ready now remains 0 of 21 because required runtime and owner gates are not yet passed.
+- GPU routing: no heavy/model tool is allowed to fall back to CPU runtime.
+- Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

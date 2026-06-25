@@ -54,6 +54,12 @@ Latest observed PR state after tool-call plan evaluator completion: [#862](https
   - `docs/tool-intelligence/ai-graphics/tool-call-plan-evaluator.json`
   - `ai-graphics:tool-call-plan-evaluator:diagnostics`
 - Evaluator result: a future Tool Route can request a product-facing AI graphics capability and receive ranked planning tools, production tool IDs, worker types, runtime targets, blockers, eliminated requested tools, and missing execution gates. Execution requests still return blocked decisions until approved plan, credit, artifact, Tool Route, Worker, and runtime proof gates pass.
+- Added server-only beta readiness gate:
+  - `server/tool-registry/ai-graphics-beta-readiness-gate.ts`
+  - `docs/tool-intelligence/ai-graphics/beta-readiness-gate.md`
+  - `docs/tool-intelligence/ai-graphics/beta-readiness-gate.json`
+  - `ai-graphics:beta-readiness-gate:diagnostics`
+- Beta gate result: 21 of 21 tools are installed or represented, 21 of 21 map to production registry IDs, 21 of 21 are selectable for planning, 8 heavy/model tools remain GPU-runtime targeted, 0 heavy/model tools target CPU fallback, and 0 of 21 tools are beta-testing ready until the missing runtime/owner gates are passed.
 
 ## Runtime State
 
@@ -68,8 +74,8 @@ Latest observed PR state after tool-call plan evaluator completion: [#862](https
 - `approvedPlanSnapshotRequired=true`
 - `creditReservationRequired=true`
 - `artifactBoundaryApprovalRequired=true`
-- `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
+- `runtimeReadyNow=false`
 - `externalBetaReadyNow=false`
 - `productionReadyNow=false`
 

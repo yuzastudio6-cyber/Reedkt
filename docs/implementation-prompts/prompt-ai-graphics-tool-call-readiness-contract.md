@@ -44,10 +44,12 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up model manifest type alignment adds the missing `rembg_model` and `transparent_background_model` entries to the model-weight template ID type union, keeping all five AI graphics model-weight template IDs type-safe while model source/license/runtime proof remains blocked.
 - Follow-up handoff contract adds `server/tool-registry/ai-graphics-tool-call-handoff.ts`, `docs/tool-intelligence/ai-graphics/tool-call-handoff-contract.md`, `docs/tool-intelligence/ai-graphics/tool-call-handoff-contract.json`, and `ai-graphics:tool-call-handoff:diagnostics` so future Tool Route / Worker lanes can consume production tool IDs, worker types, runtime targets, ranked planning tools, blockers, and next proof milestones for all 21 tools and all 12 product-facing capabilities without approving execution.
 - Follow-up plan evaluator adds `server/tool-registry/ai-graphics-tool-call-plan-evaluator.ts`, `docs/tool-intelligence/ai-graphics/tool-call-plan-evaluator.md`, `docs/tool-intelligence/ai-graphics/tool-call-plan-evaluator.json`, and `ai-graphics:tool-call-plan-evaluator:diagnostics` so future Tool Route / Worker lanes can turn a requested product-facing capability into ranked planning tools, production tool IDs, worker types, runtime targets, blockers, eliminated requested tools, and missing gates without approving execution.
+- Follow-up beta readiness gate adds `server/tool-registry/ai-graphics-beta-readiness-gate.ts`, `docs/tool-intelligence/ai-graphics/beta-readiness-gate.md`, `docs/tool-intelligence/ai-graphics/beta-readiness-gate.json`, and `ai-graphics:beta-readiness-gate:diagnostics` so the system can report that all 21 tools are installed/mapped/planning-selectable while still showing 0 of 21 beta-ready until approved snapshot, credit, artifact, Tool Route, Worker, GPU/runtime, model-weight, browser sandbox, license, and owner beta gates pass.
 
 ## Expected Validation
 
 - `git diff --check`
+- `npm run --silent ai-graphics:beta-readiness-gate:diagnostics`
 - `npm run --silent ai-graphics:tool-call-handoff:diagnostics`
 - `npm run --silent ai-graphics:tool-call-plan-evaluator:diagnostics`
 - `npm run --silent ai-graphics:tool-call-readiness:diagnostics`

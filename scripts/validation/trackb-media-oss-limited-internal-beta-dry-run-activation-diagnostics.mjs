@@ -61,6 +61,7 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  `docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-activation-approval/`,
   `${reportDir}/`,
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring-closeout/',
@@ -77,6 +78,8 @@ const allowedChangedPrefixes = [
 ]
 
 const allowedChangedFiles = new Set([
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-plan.md',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-activation-approval-diagnostics.mjs',
   'package.json',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review-diagnostics.mjs',

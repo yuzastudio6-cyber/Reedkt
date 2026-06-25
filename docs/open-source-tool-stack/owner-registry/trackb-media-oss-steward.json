@@ -637,5 +637,22 @@
     "productionReady": false,
     "productReady": false,
     "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPROVAL"
+  },
+  "limitedInternalBetaProductToolCallRuntimeActivationApproval": {
+    "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_activation_approval_blocked_pending_runtime_controls",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-activation-approval",
+    "coveredToolCount": 16,
+    "boundedAcceptedProvenCount": 16,
+    "blockedNotInstalledProvenCount": 0,
+    "productReadyCount": 0,
+    "activationApproved": false,
+    "runtimeControlsRequired": true,
+    "readyForRuntimeControlPlan": true,
+    "readyForDirectProductToolCalls": false,
+    "readyForLiveBetaRuntime": false,
+    "externalBetaReady": false,
+    "productionReady": false,
+    "productReady": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN"
   }
 }

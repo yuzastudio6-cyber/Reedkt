@@ -16,6 +16,8 @@ Latest observed PR state after handoff-contract completion: [#862](https://githu
 
 Latest observed PR state after tool-call plan evaluator completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `afac06b7889bc61c0fe00c5587862f4735b79c9c`, with an empty check rollup.
 
+Latest observed PR state after beta-readiness gate completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `35e50f94e8458ffbe6190bd53b557355ff56950e`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.

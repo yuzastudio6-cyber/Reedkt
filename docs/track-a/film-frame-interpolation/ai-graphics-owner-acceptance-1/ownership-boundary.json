@@ -1,0 +1,10 @@
+{
+  "packet": "TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1",
+  "decision": "blocked_pending_ai_graphics_owner_acceptance_for_film_runtime",
+  "filmOwnerStatus": "atlas_tracka_scoped_capability_label_only",
+  "trackAResponsibility": "render_export_capability_label_acceptance_criteria_and_future_handoff_requirements",
+  "aiGraphicsWorkerAcceptance": "not_present_in_source",
+  "aiGraphicsWorkerResponsibility": "required_for_model_runtime_model_weights_gpu_execution_and_ml_dependency_policy",
+  "blockedUntil": "AI_GRAPHICS_FILM_OWNER_ACCEPTANCE_HANDOFF_1",
+  "productReadyEndToEndLocalOssTools": 0
+}

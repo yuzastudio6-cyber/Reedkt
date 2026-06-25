@@ -1,0 +1,15 @@
+{
+  "packet": "TRACKA-FILM-AI-GRAPHICS-OWNER-ACCEPTANCE-1",
+  "decision": "blocked_pending_ai_graphics_owner_acceptance_for_film_runtime",
+  "execution": "completed_docs_only_owner_acceptance_check_no_install_or_runtime",
+  "sourceSearchOutcome": "no_explicit_ai_graphics_worker_film_owner_acceptance_or_rejection_found",
+  "aiGraphicsWorkerAcceptance": "not_present_in_source",
+  "acceptedSourceChain": {
+    "ownerInventory": ["#544", "#547"],
+    "nativeContainerOwnerDecision": "#717",
+    "filmScopeDecision": "#721",
+    "filmGpuAiGraphicsCoordination": "#732"
+  },
+  "excludedSource": "#577 remains open/draft/blocked/conflicting and excluded as source-of-truth",
+  "productReadyEndToEndLocalOssTools": 0
+}

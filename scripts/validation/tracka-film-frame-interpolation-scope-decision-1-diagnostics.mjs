@@ -48,7 +48,26 @@ const allowedFollowupFiles = [
   'scripts/validation/tracka-film-gpu-policy-ai-graphics-coordination-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...allowedFollowupFiles, 'package.json'])
+const ownerAcceptancePacketDir = 'docs/track-a/film-frame-interpolation/ai-graphics-owner-acceptance-1'
+const allowedOwnerAcceptanceFiles = [
+  `${ownerAcceptancePacketDir}/owner-acceptance.md`,
+  `${ownerAcceptancePacketDir}/owner-acceptance.json`,
+  `${ownerAcceptancePacketDir}/source-of-truth-audit.md`,
+  `${ownerAcceptancePacketDir}/source-of-truth-audit.json`,
+  `${ownerAcceptancePacketDir}/ownership-boundary.md`,
+  `${ownerAcceptancePacketDir}/ownership-boundary.json`,
+  `${ownerAcceptancePacketDir}/model-weight-boundary.md`,
+  `${ownerAcceptancePacketDir}/model-weight-boundary.json`,
+  `${ownerAcceptancePacketDir}/gpu-runtime-boundary.md`,
+  `${ownerAcceptancePacketDir}/gpu-runtime-boundary.json`,
+  `${ownerAcceptancePacketDir}/blocked-scope-register.md`,
+  `${ownerAcceptancePacketDir}/readiness-report.json`,
+  'docs/activation-phase-tracka-film-ai-graphics-owner-acceptance-1-results.md',
+  'docs/implementation-prompts/prompt-ai-graphics-film-owner-acceptance-handoff-1.md',
+  'scripts/validation/tracka-film-ai-graphics-owner-acceptance-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...allowedFollowupFiles, ...allowedOwnerAcceptanceFiles, 'package.json'])
 
 const requiredText = [
   'TRACKA-FILM-FRAME-INTERPOLATION-SCOPE-DECISION-1',

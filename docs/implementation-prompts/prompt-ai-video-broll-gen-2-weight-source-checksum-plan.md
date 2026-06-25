@@ -1,18 +1,30 @@
 # AI-VIDEO-BROLL-GEN-2 Weight Source / Checksum Plan Prompt
 
-Goal: define approved future model weight source, version, checksum, storage/cache, cleanup, and manifest expectations for the selected open-source AI video B-roll model candidates.
+Goal: create a planning-only weight source and checksum packet for the Gate 1 eligible AI video B-roll candidates.
 
-This prompt must not download weights, clone model repositories, install runtimes, run inference, generate video, run Docker, call GCP, mutate Supabase, execute SQL, create storage objects, create signed URLs, call providers, dispatch workers, mutate credits, or unlock beta/production.
+Use Gate 1 as the source of truth:
 
-Inputs:
+- `docs/ai-video-broll-generation-license-provenance-approval.md`
+- `docs/ai-video-broll-generation-license-provenance-evidence-matrix.md`
+- `docs/ai-video-broll-generation-weight-source-eligibility-decision.md`
+- `docs/ai-video-broll-generation-license-blocker-register.md`
 
-- AI-VIDEO-BROLL-GEN-1 license/provenance approval result.
-- `docs/ai-video-broll-generation-weight-download-storage-policy.md`
-- `docs/production-model-weight-readiness-plan.md`
-- `docs/production-gpu-model-weight-policy.md`
+Eligible candidates:
+
+- Wan / Wan2.1 family.
+- LTX / LTX-Video only with exact version split.
+- Mochi 1 fallback/research.
+
+Blocked candidate:
+
+- HunyuanVideo until legal, territory, commercial, and output-use review is accepted.
+
+This prompt must not download weights, install runtimes, run inference, generate video, run Docker, call GCP, mutate Supabase, execute SQL, create storage objects, create signed URLs, call providers, dispatch workers, mutate credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
 Exit criteria:
 
-- Each candidate has planned source, version, checksum algorithm, local cache policy, private storage policy, cleanup requirement, and blocked public/signed artifact policy.
-- No model file is committed, downloaded, mounted, cached, or marked available.
-- Next prompt remains runtime/GPU owner review unless source/checksum conflicts block.
+- Each eligible candidate has exact upstream source URL, model identifier, license URL, model card URL, expected checksum strategy, private local/cache storage expectation, owner mapping, and blocked runtime flags.
+- LTX has an exact chosen version or an explicit split matrix that prevents license conflation.
+- Mochi excludes unreviewed direct/magnet/mirror paths unless separately approved.
+- Hunyuan remains blocked.
+- Next prompt is dependency/runtime install planning only if weight sources/checksum plans are accepted.

@@ -50,6 +50,7 @@
     "ai-video-broll-gen-9j-retry:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-retry-diagnostics.mjs",
     "ai-video-broll-gen-9j-runtime-setup:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-runtime-setup-diagnostics.mjs",
     "ai-video-broll-gen-9j-runner-author:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-runner-author-diagnostics.mjs",
+    "ai-video-broll-gen-9j-cache-layout:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-cache-layout-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

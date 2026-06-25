@@ -50,8 +50,8 @@ const requiredText = [
   'completed_runner_scaffold_no_remote_execution',
   'Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`',
   'Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`',
-  'Observed confirmation: `absent_or_not_true`',
-  'Current run status: `not_run_confirmation_absent`',
+  'Observed confirmation: `present_true`',
+  'Current run status: `blocked_missing_supabase_access_token_for_readonly_target_identity`',
   'Credential alias support: `approved_env_aliases_supported_payloads_redacted`',
   'SUPABASE_ACCESS_TOKEN',
   'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN',
@@ -150,7 +150,9 @@ const record = JSON.parse(read(`${dir}/confirmed-runner-record.json`))
 if (record.decision !== 'completed_guarded_confirmed_validation_runner_fail_closed_without_remote_execution') fail('record decision mismatch')
 if (record.execution !== 'completed_runner_scaffold_no_remote_execution') fail('record execution mismatch')
 if (record.requiredConfirmation !== 'REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true') fail('record confirmation mismatch')
-if (record.currentRunStatus !== 'not_run_confirmation_absent') fail('record run status mismatch')
+if (record.observedConfirmation !== 'present_true') fail('record observed confirmation mismatch')
+if (record.currentRunStatus !== 'blocked_missing_supabase_access_token_for_readonly_target_identity') fail('record run status mismatch')
+if (record.credentialPreflightExecution !== 'blocked_no_remote_execution_missing_safe_credential_context') fail('record preflight execution mismatch')
 if (record.supabaseTargetProject !== 'wmyyttnynmteqgcdishd') fail('record target mismatch')
 if (record.credentialAliasSupport !== 'approved_env_aliases_supported_payloads_redacted') fail('record credential alias support mismatch')
 for (const name of ['SUPABASE_ACCESS_TOKEN', 'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN', 'REEDITPRO_SUPABASE_ACCESS_TOKEN']) {

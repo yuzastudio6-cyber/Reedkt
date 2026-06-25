@@ -16,9 +16,9 @@ Prior source-of-truth:
 
 Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`
 
-Observed confirmation: `absent_or_not_true`
+Observed confirmation: `present_true`
 
-Current run status: `not_run_confirmation_absent`
+Current run status: `blocked_missing_supabase_access_token_for_readonly_target_identity`
 
 Credential alias support: `approved_env_aliases_supported_payloads_redacted`.
 
@@ -26,6 +26,6 @@ Approved access-token aliases: `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPAB
 
 Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`.
 
-This packet adds a guarded local runner for the next confirmed read-only validation attempt. It does not run the remote validation in this phase because the confirmation and safe credential context are absent. Alias names may be recorded by presence only; secret payloads remain forbidden.
+This packet adds a guarded local runner for the next confirmed read-only validation attempt. A confirmed local preflight was run with no approved credential aliases present, so it stopped before any Supabase command. Alias names may be recorded by presence only; secret payloads remain forbidden.
 
 #577 remains open/draft/blocked and excluded as source-of-truth.

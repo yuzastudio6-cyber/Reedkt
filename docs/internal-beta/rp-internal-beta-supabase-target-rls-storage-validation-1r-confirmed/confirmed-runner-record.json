@@ -6,8 +6,9 @@
   "targetClass": "staging",
   "supabaseTargetProject": "wmyyttnynmteqgcdishd",
   "requiredConfirmation": "REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true",
-  "observedConfirmation": "absent_or_not_true",
-  "currentRunStatus": "not_run_confirmation_absent",
+  "observedConfirmation": "present_true",
+  "currentRunStatus": "blocked_missing_supabase_access_token_for_readonly_target_identity",
+  "credentialPreflightExecution": "blocked_no_remote_execution_missing_safe_credential_context",
   "credentialAliasSupport": "approved_env_aliases_supported_payloads_redacted",
   "acceptedAccessTokenEnvNames": [
     "SUPABASE_ACCESS_TOKEN",

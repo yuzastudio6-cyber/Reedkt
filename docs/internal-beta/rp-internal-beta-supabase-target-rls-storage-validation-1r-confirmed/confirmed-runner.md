@@ -12,7 +12,7 @@ Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STOR
 
 Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
-Current run status: `not_run_confirmation_absent`
+Current run status: `blocked_missing_supabase_access_token_for_readonly_target_identity`
 
 ## Fail-Closed Behavior
 

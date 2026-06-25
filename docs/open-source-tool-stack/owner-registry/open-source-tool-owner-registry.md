@@ -54,7 +54,7 @@ TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:
 TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION:
 
 - Decision: `trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun`.
-- Track B ownership remains 16 tools; all 16 are bounded accepted/proven and 0 are product-ready.
+- Track B ownership remains 16 tools; all 16 are bounded accepted/proven and product-ready status remains blocked at 0.
 - Fail-closed route metadata and worker contract metadata now cover Track B tool-call validation, queueing, status reads, payload validation, private artifact policy, result schema, QA, fallback, and sanitized logging.
 - Direct tool calls and beta remain blocked until the next rerun accepts the callable lane.
 - Next prompt: `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN`.
@@ -64,7 +64,7 @@ TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION:
 TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN:
 
 - Decision: `trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run`.
-- Track B ownership remains 16 tools; all 16 are bounded accepted/proven and 0 are product-ready.
+- Track B ownership remains 16 tools; all 16 are bounded accepted/proven and product-ready status remains blocked at 0.
 - Callable contracts and deterministic ranking metadata now cover all Track B tools for a later controlled dry-run lane.
 - Direct runtime tool calls, worker dispatch, public artifacts, signed URLs, live beta, production, and product-ready claims remain blocked.
 - Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN`.
@@ -113,7 +113,7 @@ TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_GO_NO_GO_REVIEW:
 
 - Decision: `trackb_media_oss_limited_internal_beta_go_no_go_review_passed_ready_for_limited_internal_beta_dry_run_activation`.
 - Go/no-go result: go for limited internal beta dry-run activation only.
-- All 16 Track B owned tools are bounded accepted/proven; product-ready local OSS tools remain `0`.
+- All 16 Track B owned tools are bounded accepted/proven; product-ready local OSS tools remain blocked at `0`.
 - External beta, production, direct product tool calls, public artifacts, signed URLs, Supabase/GCS, user-media-by-default, and live worker dispatch remain blocked.
 - Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION`.
 <!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_GO_NO_GO_REVIEW_STATUS:end -->
@@ -269,3 +269,13 @@ TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVA
 - Runtime activation and product-ready status remain blocked.
 - Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION`.
 <!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review`.
+- Registry state: Track B controlled activation execution produced a bounded internal activation artifact for all 16 owned tools.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Runtime activation and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION_STATUS:end -->

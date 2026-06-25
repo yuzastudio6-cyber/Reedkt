@@ -964,3 +964,14 @@ TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVA
 - Live activation, route runtime, worker dispatch, real tool execution, Supabase/GCS writes, external beta, production, and product-ready local OSS status remain blocked until the execution lane proves the controls.
 - Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION`.
 <!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review`.
+- Controlled activation result: bounded internal activation artifact created as source-of-truth metadata only.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Approved controls are recorded as exercised by metadata: fail-closed route runtime, per-tool worker allowlists, approved snapshot/edit-plan/credit gates, service-role and write boundaries, private artifact policy, sanitized monitoring, rollback disable controls, and limited internal exposure rules.
+- Live activation, direct product tool calls, route runtime, worker dispatch, real tool execution, media/image/OCR processing, user-media-by-default, Supabase/GCS writes, public artifacts, signed URLs, external beta, production, and product-ready local OSS status remain blocked pending QA and later approval.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION_STATUS:end -->

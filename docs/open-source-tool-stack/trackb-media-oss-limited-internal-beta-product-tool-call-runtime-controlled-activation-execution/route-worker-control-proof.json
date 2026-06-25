@@ -1,0 +1,20 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
+  "routeWorkerProof": {
+    "routeRuntimeDefault": "disabled",
+    "routeRuntimeFlag": "not_set",
+    "routeRuntimeEnabled": false,
+    "validateRouteEnabled": false,
+    "queueRouteEnabled": false,
+    "statusRouteEnabled": false,
+    "workerDispatchDefault": "disabled",
+    "workerDispatchEnabled": false,
+    "perToolAllowlistRequired": true,
+    "perToolAllowlistCoversTools": 16,
+    "directToolCallsEnabled": false,
+    "realToolExecutionEnabled": false
+  },
+  "productRuntimeMutation": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW"
+}

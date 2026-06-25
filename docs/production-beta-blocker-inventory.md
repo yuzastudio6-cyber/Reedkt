@@ -293,6 +293,20 @@ Google Cloud API calls, Cloud Run service/job creation, IAM mutation, Secret Man
 
 Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1`.
 
+## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1` records decision `blocked_pending_named_supabase_target_rls_storage_validation` and execution `completed_docs_only_supabase_target_rls_storage_validation_review_no_remote_execution`.
+
+Remote Supabase target is `not_named`, Supabase target project remains `source_reference_names_recorded_no_remote_target_selected`, RLS validation is `not_run`, storage validation is `not_run`, and service-role runtime is `blocked_pending_named_supabase_target_rls_storage_validation`.
+
+Readiness: `blocked_pending_named_non_production_supabase_target_and_guarded_remote_validation`.
+
+Internal beta end-to-end status: `not_ready_pending_supabase_target_rls_storage_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`.
+
+Remote Supabase mutation, SQL execution, migration execution, RLS policy apply, storage bucket/object access, service-role secret payload access, service-role route execution, signed URL creation, public artifact creation, Google Cloud API calls, worker execution, provider/model calls, render/export, deployment, internal beta unlock, external beta unlock, production unlock, and final delivery/export remain blocked.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-INPUT-1`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

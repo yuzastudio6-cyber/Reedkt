@@ -23,7 +23,21 @@ const requiredFiles = [
   'scripts/validation/rp-internal-beta-google-cloud-runtime-config-contract-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
+const followOnSupabaseTargetRlsStorageValidationFiles = [
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1/target-validation.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1/rls-validation-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1/storage-validation-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1/service-role-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1/supabase-target-rls-storage-validation-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-owner-input-1.md',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...followOnSupabaseTargetRlsStorageValidationFiles, 'package.json'])
 
 const requiredText = [
   packet,
@@ -222,6 +236,7 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-INTERNAL-BETA Google Cloud Managed Runtime Implementation Plan 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Google Cloud Environment Boundary 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Google Cloud Environment Owner Input 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## Track A[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 

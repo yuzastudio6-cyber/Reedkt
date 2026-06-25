@@ -117,3 +117,13 @@ TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_GO_NO_GO_REVIEW:
 - External beta, production, direct product tool calls, public artifacts, signed URLs, Supabase/GCS, user-media-by-default, and live worker dispatch remain blocked.
 - Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION`.
 <!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_GO_NO_GO_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION:
+
+- Decision: `trackb_media_oss_limited_internal_beta_dry_run_activation_passed_ready_for_limited_internal_beta_dry_run_qa_review`.
+- Limited internal beta dry-run activation is source-truth only and ready for QA review.
+- Product-ready local OSS tools remain `0`; external beta and production remain blocked.
+- Direct product tool calls, live route runtime, worker dispatch, public artifacts, signed URLs, Supabase/GCS, and user-media-by-default remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_QA_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION_STATUS:end -->

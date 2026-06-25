@@ -1,0 +1,12 @@
+{
+  "schema": "trackb-media-oss-limited-internal-beta-dry-run-activation-decision.v1",
+  "generatedAt": "2026-06-25T15:15:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_dry_run_activation_passed_ready_for_limited_internal_beta_dry_run_qa_review",
+  "readyForLimitedInternalBetaDryRunQaReview": true,
+  "directProductToolCallsEnabled": false,
+  "externalBetaReady": false,
+  "productionReady": false,
+  "productReady": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_QA_REVIEW"
+}

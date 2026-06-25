@@ -738,6 +738,7 @@
     "trackb-media-oss:controlled-internal-beta-fixture-execution:diagnostics": "node scripts/validation/trackb-media-oss-controlled-internal-beta-fixture-execution-diagnostics.mjs",
     "trackb-media-oss:controlled-internal-beta-fixture-qa-review:diagnostics": "node scripts/validation/trackb-media-oss-controlled-internal-beta-fixture-qa-review-diagnostics.mjs",
     "trackb-media-oss:limited-internal-beta-go-no-go-review:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-go-no-go-review-diagnostics.mjs",
+    "trackb-media-oss:limited-internal-beta-dry-run-activation:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-activation-diagnostics.mjs",
     "smoke:trackb-media-oss-callable-worker-contracts": "tsx server/smoke/trackb-media-oss-callable-worker-contracts-smoke.ts"
   },
   "dependencies": {

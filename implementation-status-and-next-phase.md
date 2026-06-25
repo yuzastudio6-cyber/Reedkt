@@ -74,7 +74,7 @@ No real timing/audio/transcript/media analysis, provider execution, rendering, b
 
 ## Current Recommendation
 
-Start with `RP-BACKEND-02-INTERNAL-BETA-SERVICE-ROLE-RUNTIME-SCAFFOLD` if the next priority is a narrow internal beta lane. RP-DATA-04 validated the local Supabase migration chain and RP-BACKEND-01 registered backend-required route contracts while preserving the current rule: workers execute approved snapshots, not raw chat.
+Start with `RP-CREDITS-01-INTERNAL-BETA-CREDIT-LEDGER-RUNTIME-SCAFFOLD` if the next priority is a narrow internal beta lane. RP-DATA-04 validated the local Supabase migration chain, RP-BACKEND-01 registered backend-required route contracts, and RP-BACKEND-02 added disabled service-role runtime scaffolds while preserving the current rule: workers execute approved snapshots, not raw chat.
 
 ## ReEditPro Internal Beta Readiness 1
 
@@ -141,6 +141,18 @@ No Supabase mutation, credit mutation, worker dispatch, provider/model call, ren
 Internal beta end-to-end remains `not_ready` until transactional credit ledger runtime, approved snapshot commit runtime, worker queue/lease/event runtime, private artifact access policy, render worker, QA, cleanup, and negative safety tests pass.
 
 Next recommended step: `RP-CREDITS-01-INTERNAL-BETA-CREDIT-LEDGER-RUNTIME-SCAFFOLD`.
+
+## RP-CREDITS-01 Internal Beta Credit Ledger Runtime Scaffold
+
+`RP-CREDITS-01-INTERNAL-BETA-CREDIT-LEDGER-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_credit_ledger_runtime_scaffold_no_spend` and execution `completed_fail_closed_credit_ledger_scaffold_no_credit_mutation`.
+
+Disabled credit ledger runtime scaffold operations now exist for reservation creation, reservation validation, reserved-credit spend, reserved-credit release, failed-generation refund, and ledger readback. They return `disabled_pending_credit_ledger_runtime_gate` and do not reserve, spend, release, refund, or mutate credits.
+
+No Supabase mutation, credit mutation, Stripe checkout/webhook/payment processing, worker dispatch, provider/model call, render/export, signed URL creation, public artifact creation, internal beta unlock, external beta unlock, production unlock, route execution, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler is implemented.
+
+Internal beta end-to-end remains `not_ready` until transactional credit ledger runtime, approved snapshot commit runtime, worker queue/lease/event runtime, private artifact access policy, render worker, QA, cleanup, and negative safety tests pass.
+
+Next recommended step: `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD`.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

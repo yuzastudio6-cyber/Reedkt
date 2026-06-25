@@ -99,6 +99,18 @@ Next recommended milestone: `RP-CREDITS-01-INTERNAL-BETA-CREDIT-LEDGER-RUNTIME-S
 
 External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## RP-CREDITS-01 Internal Beta Credit Ledger Runtime Scaffold
+
+`RP-CREDITS-01-INTERNAL-BETA-CREDIT-LEDGER-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_credit_ledger_runtime_scaffold_no_spend` and execution `completed_fail_closed_credit_ledger_scaffold_no_credit_mutation`.
+
+Credit ledger runtime scaffold status: `disabled_pending_credit_ledger_runtime_gate`. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Disabled credit ledger runtime scaffold operations now exist for credit reservation creation, reservation validation, reserved-credit spend, reserved-credit release, failed-generation refund, and ledger readback. They are not registered as live HTTP handlers or mock handlers, and they do not mutate credits, call Stripe, mutate Supabase, enqueue jobs, dispatch workers, call providers/models, render/export, create signed/public artifacts, or unlock beta/production.
+
+Next recommended milestone: `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD`.
+
+External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

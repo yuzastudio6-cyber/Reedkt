@@ -70,14 +70,23 @@ Latest observed PR state after Tool Route readiness completion: [#862](https://g
   - `docs/tool-intelligence/ai-graphics/tool-route-readiness-contract.json`
   - `ai-graphics:tool-route-readiness:diagnostics`
 - Tool Route readiness result: all 12 product-facing AI graphics capabilities can return planning metadata through the route contract, and execution-request dry-runs fail closed for all 12 capabilities until approved snapshot, credit, artifact, Tool Route, Worker, runtime, model-weight, browser sandbox, and beta-owner gates pass.
+- Added server-only Worker handoff readiness contract:
+  - `server/tool-registry/ai-graphics-worker-handoff-readiness.ts`
+  - `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.md`
+  - `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.json`
+  - `ai-graphics:worker-handoff-readiness:diagnostics`
+- Worker handoff result: 21 of 21 tools have worker packet requirements prepared, while 0 tools are worker-queue-ready and 0 tools are worker-executable until approved snapshot, credit, private artifact manifest, idempotency, Tool Route, Worker, runtime, model-weight, browser sandbox, and beta-owner gates pass.
 
 ## Runtime State
 
 - `agentCanSelectForPlanning=true`
 - `routeCanReturnPlanningMetadataNow=true`
+- `workerHandoffCanPreparePacketsNow=true`
 - `agentCanExecuteToolsNow=false`
 - `routeExecutionApprovedNow=false`
 - `workerExecutionApprovedNow=false`
+- `workerCanQueueNow=false`
+- `workerCanExecuteToolsNow=false`
 - `toolExecutionApprovedNow=false`
 - `browserWebglCanvasRuntimeApprovedNow=false`
 - `gpuRuntimeApprovedNow=false`

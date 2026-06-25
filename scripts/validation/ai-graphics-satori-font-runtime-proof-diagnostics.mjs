@@ -188,7 +188,8 @@ for (const line of dependencyDiff.split(/\r?\n/)) {
       !line.includes("ai-graphics:tool-call-handoff:diagnostics") &&
       !line.includes("ai-graphics:tool-call-plan-evaluator:diagnostics") &&
       !line.includes("ai-graphics:beta-readiness-gate:diagnostics") &&
-      !line.includes("ai-graphics:tool-route-readiness:diagnostics")
+      !line.includes("ai-graphics:tool-route-readiness:diagnostics") &&
+      !line.includes("ai-graphics:worker-handoff-readiness:diagnostics")
     ) {
       fail(`Unexpected package.json addition: ${line}`);
     }

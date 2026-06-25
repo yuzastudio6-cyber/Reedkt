@@ -486,3 +486,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: all 12 product-facing AI graphics capabilities are planning-metadata route-ready, and 12 of 12 execution-request dry-runs fail closed. Execution-ready capabilities remain 0 because approved snapshot, credit, artifact, Tool Route, Worker, runtime, model-weight, browser sandbox, and beta-owner gates are still missing.
 - GPU routing: all 8 heavy/model tools remain GPU-runtime targeted; no heavy/model tool is allowed to fall back to CPU runtime.
 - Runtime/beta/production: no unlock; `routeCanReturnPlanningMetadataNow=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Worker Handoff Readiness Contract
+
+- Decision: `ai_graphics_worker_handoff_readiness_contract_prepared_with_execution_blocks`.
+- Scope: server-only Worker handoff readiness contract prepares per-tool worker packet requirements for all 21 AI graphics tools after Tool Route planning metadata selection.
+- Result: 21 of 21 worker handoff packets are prepared, but 0 tools are worker-queue-ready and 0 tools are worker-executable until approved snapshot, credit, private artifact manifest, idempotency, Tool Route, Worker, runtime, model-weight, browser sandbox, and beta-owner gates pass.
+- GPU routing: all 8 heavy/model tools remain GPU-runtime targeted; no heavy/model tool is allowed to fall back to CPU runtime.
+- Runtime/beta/production: no unlock; `workerHandoffCanPreparePacketsNow=true`, while `workerCanQueueNow=false`, `workerCanExecuteToolsNow=false`, `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

@@ -50,12 +50,14 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up plan evaluator adds `server/tool-registry/ai-graphics-tool-call-plan-evaluator.ts`, `docs/tool-intelligence/ai-graphics/tool-call-plan-evaluator.md`, `docs/tool-intelligence/ai-graphics/tool-call-plan-evaluator.json`, and `ai-graphics:tool-call-plan-evaluator:diagnostics` so future Tool Route / Worker lanes can turn a requested product-facing capability into ranked planning tools, production tool IDs, worker types, runtime targets, blockers, eliminated requested tools, and missing gates without approving execution.
 - Follow-up beta readiness gate adds `server/tool-registry/ai-graphics-beta-readiness-gate.ts`, `docs/tool-intelligence/ai-graphics/beta-readiness-gate.md`, `docs/tool-intelligence/ai-graphics/beta-readiness-gate.json`, and `ai-graphics:beta-readiness-gate:diagnostics` so the system can report that all 21 tools are installed/mapped/planning-selectable while still showing 0 of 21 beta-ready until approved snapshot, credit, artifact, Tool Route, Worker, GPU/runtime, model-weight, browser sandbox, license, and owner beta gates pass.
 - Follow-up Tool Route readiness contract adds `server/tool-registry/ai-graphics-tool-route-readiness.ts`, `docs/tool-intelligence/ai-graphics/tool-route-readiness-contract.md`, `docs/tool-intelligence/ai-graphics/tool-route-readiness-contract.json`, and `ai-graphics:tool-route-readiness:diagnostics` so future AI graphics Tool Routes can return ranked planning metadata for all 12 capabilities and fail closed for execution requests until all runtime and owner gates pass.
+- Follow-up Worker handoff readiness contract adds `server/tool-registry/ai-graphics-worker-handoff-readiness.ts`, `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.md`, `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.json`, and `ai-graphics:worker-handoff-readiness:diagnostics` so future AI graphics workers receive approved-snapshot, credit, private-manifest, idempotency, runtime, and owner gate requirements for all 21 tool packets without approving queue or execution.
 
 ## Expected Validation
 
 - `git diff --check`
 - `npm run --silent ai-graphics:beta-readiness-gate:diagnostics`
 - `npm run --silent ai-graphics:tool-route-readiness:diagnostics`
+- `npm run --silent ai-graphics:worker-handoff-readiness:diagnostics`
 - `npm run --silent ai-graphics:tool-call-handoff:diagnostics`
 - `npm run --silent ai-graphics:tool-call-plan-evaluator:diagnostics`
 - `npm run --silent ai-graphics:tool-call-readiness:diagnostics`

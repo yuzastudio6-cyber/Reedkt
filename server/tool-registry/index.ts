@@ -24,6 +24,7 @@ export * from './ai-graphics-tool-call-handoff'
 export * from './ai-graphics-tool-call-plan-evaluator'
 export * from './ai-graphics-beta-readiness-gate'
 export * from './ai-graphics-tool-route-readiness'
+export * from './ai-graphics-worker-handoff-readiness'
 
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {
   return PRODUCTION_TOOL_IDS.includes(toolId as ProductionToolId)

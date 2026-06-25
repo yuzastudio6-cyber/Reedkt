@@ -38,11 +38,17 @@ runtime/beta/production unlocks.
   `PIP_DEFAULT_TIMEOUT`/`PIP_RETRIES` environment settings to tolerate large
   CUDA wheel downloads.
 - The shared GPU worker installs pinned SAM2 source with
-  `--no-build-isolation` after the pinned Torch/TorchVision stack, then sets
-  `TORCH_CUDA_ARCH_LIST=8.9` for the NVIDIA L4 build target because Docker
-  build does not expose a GPU for Torch extension architecture inference.
+  `--no-build-isolation` after the pinned Torch/TorchVision stack.
+  `TORCH_CUDA_ARCH_LIST=8.9` remains set for the approved NVIDIA L4 target, and
+  build-time install proof sets `SAM2_BUILD_CUDA=0` to skip the optional SAM2
+  CUDA post-processing extension under Docker Desktop/QEMU while preserving the
+  CUDA Torch stack for later native NVIDIA runtime proof.
 - The shared GPU worker installs `python3-dev` before the SAM2 source extension
   build because Torch extension headers require `Python.h`.
+- The shared GPU worker import-only smoke sets `NUMBA_DISABLE_JIT=1` for the
+  smoke process because `rembg` imports `pymatting`, which triggers Numba
+  compilation during import. Native Numba/JIT runtime behavior remains a later
+  GPU-worker proof gate.
 
 ## Local Environment
 
@@ -57,7 +63,7 @@ runtime/beta/production unlocks.
 
 | Profile | Platform | Target | Result | Notes |
 | --- | --- | --- | --- | --- |
-| `gpu_worker_ai_graphics` | `linux/amd64` via Docker Desktop QEMU | `ai_graphics_install_proof` | `blocked_pending_native_linux_amd64_gpu_builder` | The main requirements install completed with the OpenCV/NumPy, rembg/Python 3.10, DeepFilterNet packaging, and BasicSR/TorchVision alignments preserved. SAM2 reached `nvcc` with `-gencode=arch=compute_89,code=sm_89` after `TORCH_CUDA_ARCH_LIST=8.9` and `python3-dev`, but QEMU segfaulted during the CUDA extension compile. Native linux/amd64 NVIDIA builder proof remains required. |
+| `gpu_worker_ai_graphics` | `linux/amd64` via Docker Desktop QEMU | `ai_graphics_install_proof` | `passed` | The shared GPU worker build completed with the OpenCV/NumPy, rembg/Python 3.10, DeepFilterNet packaging, BasicSR/TorchVision, SAM2 source-install, and import-only smoke alignments preserved. The smoke imported `torch==2.5.1+cu124`, `torchvision==0.20.1+cu124`, `transformers==4.57.6`, `kornia==0.8.1`, `rembg==2.0.69`, `transparent_background`, `realesrgan`, and `sam2`. Build-time proof uses `SAM2_BUILD_CUDA=0` and `NUMBA_DISABLE_JIT=1`; native NVIDIA runtime proof remains required before execution or beta readiness. |
 | `sam2` | `linux/amd64` | `ai_graphics_install_proof` | `passed` | Buildx completed the target and the import-only smoke reported `torch==2.5.1+cu124`, `torchvision==0.20.1+cu124`, `numpy==1.26.4`, `PIL==12.2.0`, `cv2==4.11.0`, `hydra==1.3.2`, `iopath==0.1.10`, and `sam2` import success. |
 | `real_esrgan` | `linux/amd64` | `ai_graphics_install_proof` | `passed` | Buildx completed the target after the OpenCV/NumPy pin alignment and BasicSR/TorchVision shim; the import-only smoke reported `torch==2.5.1+cu124`, `torchvision==0.20.1+cu124`, `numpy==1.26.4`, `PIL==10.4.0`, `cv2==4.11.0`, `basicsr==1.4.2`, and `realesrgan` import success. |
 | `birefnet` | `linux/amd64` | `ai_graphics_install_proof` | `passed` | Buildx completed the target after pip retry/timeout hardening; the import-only smoke reported `torch==2.5.1+cu124`, `torchvision==0.20.1+cu124`, `transformers==4.57.6`, `safetensors==0.7.0`, `numpy==1.26.4`, `timm==1.0.27`, `kornia==0.8.1`, and `skimage==0.25.2`. |
@@ -69,7 +75,7 @@ or create signed URLs.
 
 ## GPU Builder Commands Required Next
 
-Run these on a linux/amd64 builder with NVIDIA runtime access:
+Run these next on a linux/amd64 builder with NVIDIA runtime access:
 
 ```sh
 docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile .
@@ -77,6 +83,7 @@ docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f
 docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/birefnet-runtime/Dockerfile .
 docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/real-esrgan-runtime/Dockerfile .
 docker run --rm --gpus all <built-image> nvidia-smi
+docker run --rm --gpus all <built-image> python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics
 ```
 
 ## Gates

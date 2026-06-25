@@ -127,7 +127,7 @@ for (const [label, text] of [
 const expectedProfiles = {
   gpu_worker_ai_graphics: {
     dockerfile: "docker/prod/gpu-worker/Dockerfile",
-    smoke: "python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics",
+    smoke: "NUMBA_DISABLE_JIT=1 python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics",
     blockedBeforeTarget: ["COPY package*.json", "COPY dist-server"],
     tools: ["torch_torchvision", "transformers", "sam2", "real_esrgan", "kornia", "rembg", "transparent_background"],
   },
@@ -180,6 +180,12 @@ for (const [profileId, expected] of Object.entries(expectedProfiles)) {
     if (!dockerfile.includes("TORCH_CUDA_ARCH_LIST=8.9")) {
       fail(`${expected.dockerfile} must set TORCH_CUDA_ARCH_LIST=8.9 for the NVIDIA L4 install-proof target`);
     }
+    if (!dockerfile.includes("SAM2_BUILD_CUDA=0")) {
+      fail(`${expected.dockerfile} must set SAM2_BUILD_CUDA=0 for build-time install proof`);
+    }
+    if (!dockerfile.includes("NUMBA_DISABLE_JIT=1 python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics")) {
+      fail(`${expected.dockerfile} must disable Numba JIT only for the shared import smoke`);
+    }
     if (!dockerfile.includes("python3-dev")) {
       fail(`${expected.dockerfile} must install python3-dev before SAM2 source extension build`);
     }
@@ -230,21 +236,40 @@ if (!gpuWorkerBuild) {
   if (gpuWorkerBuild.dockerfile !== "docker/prod/gpu-worker/Dockerfile") fail("GPU worker build dockerfile mismatch.");
   if (gpuWorkerBuild.target !== "ai_graphics_install_proof") fail("GPU worker build target mismatch.");
   if (gpuWorkerBuild.platform !== "linux/amd64") fail("GPU worker build platform mismatch.");
-  if (gpuWorkerBuild.status !== "blocked_pending_native_linux_amd64_gpu_builder") {
-    fail("GPU worker local build must remain blocked pending native linux/amd64 GPU builder.");
+  if (gpuWorkerBuild.status !== "passed") {
+    fail("GPU worker local build must be passed.");
   }
-  if (gpuWorkerBuild.importSmokeStatus !== "not_run") fail("GPU worker import smoke must not be claimed locally.");
+  if (gpuWorkerBuild.importSmokeStatus !== "passed") fail("GPU worker import smoke must be passed.");
   if (gpuWorkerBuild.observedInstallProgress?.mainRequirementsInstall !== "passed") {
     fail("GPU worker build evidence must record main requirements install passed.");
   }
   if (gpuWorkerBuild.observedInstallProgress?.sam2TorchCudaArchList !== "8.9") {
     fail("GPU worker build evidence must record SAM2 TORCH_CUDA_ARCH_LIST=8.9.");
   }
-  if (!/compute_89/.test(gpuWorkerBuild.observedInstallProgress?.sam2NvccCommandObserved ?? "")) {
-    fail("GPU worker build evidence must record nvcc compute_89/sm_89 compile attempt.");
+  if (gpuWorkerBuild.observedInstallProgress?.sam2BuildCudaExtension !== "skipped_for_install_proof") {
+    fail("GPU worker build evidence must record SAM2 CUDA extension skipped for install proof.");
   }
-  if (!/QEMU/.test(gpuWorkerBuild.blockedReason ?? "") || !/segfault/.test(gpuWorkerBuild.blockedReason ?? "")) {
-    fail("GPU worker build evidence must record QEMU segfault local build blocker.");
+  if (gpuWorkerBuild.observedInstallProgress?.rembgNumbaJitDisabledForImportSmoke !== true) {
+    fail("GPU worker build evidence must record rembg Numba JIT disabled for import smoke.");
+  }
+  for (const [moduleName, version] of Object.entries({
+    torch: "2.5.1+cu124",
+    torchvision: "0.20.1+cu124",
+    transformers: "4.57.6",
+    kornia: "0.8.1",
+    rembg: "2.0.69",
+    transparent_background: "unknown",
+    sam2: "unknown",
+  })) {
+    if (gpuWorkerBuild.observedImportVersions?.[moduleName] !== version) {
+      fail(`GPU worker build evidence missing ${moduleName} ${version}`);
+    }
+  }
+  if (!/realesrgan/.test(gpuWorkerBuild.observedImportVersions?.realesrgan ?? "")) {
+    fail("GPU worker build evidence missing realesrgan import success.");
+  }
+  if (!/none_for_install_proof/.test(gpuWorkerBuild.blockedReason ?? "")) {
+    fail("GPU worker build evidence must record no install-proof blocker.");
   }
   for (const key of [
     "cudaRuntimeRequired",
@@ -384,13 +409,16 @@ for (const key of [
   "realEsrganInstallProofImportSmokePassed",
   "birefnetInstallProofTargetBuiltLocally",
   "birefnetInstallProofImportSmokePassed",
-  "linuxAmd64GpuBuilderStillRequired",
+  "all8GpuModelInstallProofTargetsBuiltLocally",
+  "nativeGpuRuntimeStillRequired",
+  "sam2CudaPostprocessExtensionRuntimeProofStillRequired",
+  "rembgNumbaRuntimeJitProofStillRequired",
   "agentCanSelectForPlanning",
 ]) {
   if (booleans[key] !== true) fail(`Expected ${key}=true`);
 }
 for (const key of [
-  "all8GpuModelInstallProofTargetsBuiltLocally",
+  "linuxAmd64GpuBuilderStillRequired",
   "appBundleRequiredForInstallProof",
   "modelWeightsRequiredForInstallProof",
   "localDockerGpuRuntimeAvailable",
@@ -426,9 +454,11 @@ for (const token of [
   "transformers==4.57.6",
   "kornia==0.8.1",
   "TORCH_CUDA_ARCH_LIST=8.9",
+  "SAM2_BUILD_CUDA=0",
+  "NUMBA_DISABLE_JIT=1",
   "Python.h",
-  "blocked_pending_native_linux_amd64_gpu_builder",
-  "QEMU",
+  "gpu_worker_ai_graphics",
+  "rembg==2.0.69",
   "nvidia-smi",
   "agentCanExecuteToolsNow=false",
   "gpuModelRuntimeReadyNow=false",
@@ -457,6 +487,7 @@ const requiredSmokeTokens = [
   '"real_esrgan"',
   'MODEL_DOWNLOADS_ENABLED must stay false',
   'PROVIDER_EXECUTION_ENABLED must stay false',
+  'per-import-timeout-seconds',
   '"modelWeightsLoaded": False',
   '"cudaRuntimeRequired": False',
 ];

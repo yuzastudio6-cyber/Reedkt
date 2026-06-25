@@ -49,6 +49,7 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends python3-dev \
   && rm -rf /var/lib/apt/lists/*
 ENV TORCH_CUDA_ARCH_LIST=8.9
+ENV SAM2_BUILD_CUDA=0
 RUN python3 -m pip install --no-cache-dir --no-build-isolation --retries 10 --timeout 120 \
   "git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4#egg=SAM-2"
 RUN python3 - <<'PY'
@@ -63,7 +64,7 @@ transforms_dir = Path(torchvision.transforms.__file__).parent
 PY
 
 COPY docker/prod/ai-graphics-gpu-install-smoke.py /tmp/ai-graphics-gpu-install-smoke.py
-RUN python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics
+RUN NUMBA_DISABLE_JIT=1 python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics
 
 FROM ai_graphics_install_base AS ai_graphics_install_proof
 

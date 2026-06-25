@@ -32,17 +32,19 @@ Implemented result:
   shim needed for `torchvision==0.20.1+cu124` imports.
 - Hardened GPU/model pip installs with `--retries 10 --timeout 120` for large
   CUDA wheel downloads.
-- Set `TORCH_CUDA_ARCH_LIST=8.9` for the shared GPU worker SAM2 source install
-  because Docker build has no visible NVIDIA device for Torch extension
-  architecture inference; 8.9 matches the approved NVIDIA L4 target.
+- Set `SAM2_BUILD_CUDA=0` for the shared GPU worker SAM2 source install so the
+  build-time install proof skips the optional SAM2 CUDA post-processing
+  extension under Docker Desktop/QEMU while preserving the CUDA Torch stack for
+  later native NVIDIA runtime proof.
 - Installed `python3-dev` before the shared GPU worker SAM2 source extension
   build because Torch extension headers require `Python.h`.
-- Recorded the shared `gpu_worker_ai_graphics` local target as
-  `blocked_pending_native_linux_amd64_gpu_builder`: its main requirements
-  install completed with dependency alignments preserved, but SAM2 CUDA
-  extension compilation reached `nvcc` for `sm_89` and then failed under local
-  Docker Desktop QEMU emulation. Native linux/amd64 NVIDIA builder proof remains
-  required.
+- Set `NUMBA_DISABLE_JIT=1` only for the shared GPU worker import-only smoke
+  process because `rembg` imports `pymatting`, which otherwise triggers slow
+  Numba compilation during import under QEMU.
+- Recorded the shared `gpu_worker_ai_graphics` local target as passed: its
+  `linux/amd64` build completed and import-only smoke passed for `torch`,
+  `torchvision`, `transformers`, `kornia`, `rembg`,
+  `transparent_background`, `realesrgan`, and `sam2`.
 - Observed local build evidence:
   - `docker/prod/sam2-runtime/Dockerfile` `ai_graphics_install_proof` built
     successfully for `linux/amd64` with import-only smoke passing for `sam2`
@@ -62,12 +64,13 @@ No-scope:
 - No Tool Route or Worker execution approval.
 - `gpuModelRuntimeReadyNow=false`.
 - No GPU runtime proof on this macOS arm64 host.
-- No claim that the shared GPU worker install-proof target is locally complete.
+- No claim that native NVIDIA runtime, model-weight loading, SAM2 optional CUDA
+  post-processing extension runtime, or rembg Numba/JIT runtime behavior is
+  beta-ready.
 - No package-lock mutation.
 - No internal beta, external beta, paid production, or production unlock.
 
 Next implementation lane:
 
-- Run the shared `gpu_worker_ai_graphics` `ai_graphics_install_proof` target on a
-  native linux/amd64 NVIDIA builder, then rerun the dedicated install-proof
-  targets and NVIDIA runtime checks inside the built images.
+- Rerun the four install-proof targets on a native linux/amd64 NVIDIA builder,
+  then run NVIDIA runtime checks inside the built images before beta execution.

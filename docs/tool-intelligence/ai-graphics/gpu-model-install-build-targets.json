@@ -39,7 +39,8 @@
     "sam2NoBuildIsolationInstall": {
       "appliesTo": "docker/prod/gpu-worker/Dockerfile",
       "torchCudaArchList": "8.9",
-      "reason": "SAM2 source wheel build isolation can select a newer Torch/CUDA build stack; the shared worker installs SAM2 with --no-build-isolation after torch==2.5.1+cu124 and torchvision==0.20.1+cu124 are installed. Docker build has no visible NVIDIA device for Torch extension architecture inference, so the install-proof target sets TORCH_CUDA_ARCH_LIST=8.9 for the approved NVIDIA L4 target."
+      "buildCudaExtension": false,
+      "reason": "SAM2 source wheel build isolation can select a newer Torch/CUDA build stack; the shared worker installs SAM2 with --no-build-isolation after torch==2.5.1+cu124 and torchvision==0.20.1+cu124 are installed. Docker build has no visible NVIDIA device for Torch extension architecture inference, so TORCH_CUDA_ARCH_LIST=8.9 remains set for the approved NVIDIA L4 target. The build-time install proof sets SAM2_BUILD_CUDA=0 so Docker Desktop/QEMU does not compile the optional SAM2 CUDA post-processing extension during package proof; the worker still uses the CUDA Torch stack and requires later native NVIDIA runtime proof before beta execution."
     },
     "sam2PythonDevHeaders": {
       "appliesTo": "docker/prod/gpu-worker/Dockerfile",
@@ -52,6 +53,11 @@
         "docker/prod/real-esrgan-runtime/Dockerfile"
       ],
       "reason": "basicsr 1.4.2 imports torchvision.transforms.functional_tensor.rgb_to_grayscale, which is absent from torchvision 0.20.1; the image adds a narrow compatibility shim that re-exports rgb_to_grayscale from torchvision.transforms.functional."
+    },
+    "rembgImportSmokeMode": {
+      "appliesTo": "docker/prod/gpu-worker/Dockerfile",
+      "numbaDisableJitForSmoke": true,
+      "reason": "rembg imports pymatting, which triggers Numba compilation during import. The build-time import-only smoke sets NUMBA_DISABLE_JIT=1 for the smoke process so package import can be proved under Docker Desktop/QEMU without precompiling CPU kernels; native runtime/JIT behavior remains a later GPU-worker proof gate."
     },
     "pipDownloadHardening": {
       "timeoutSeconds": 120,
@@ -79,19 +85,30 @@
       "target": "ai_graphics_install_proof",
       "platform": "linux/amd64",
       "command": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile --progress=plain .",
-      "status": "blocked_pending_native_linux_amd64_gpu_builder",
-      "importSmokeStatus": "not_run",
+      "status": "passed",
+      "importSmokeStatus": "passed",
       "observedInstallProgress": {
         "mainRequirementsInstall": "passed",
         "opencvNumpyAlignment": "passed",
         "rembgPython310Alignment": "passed",
         "deepfilternetPackagingConstraintPreserved": "passed",
-        "sam2NoBuildIsolationInstall": "attempted",
+        "sam2NoBuildIsolationInstall": "passed",
+        "sam2BuildCudaExtension": "skipped_for_install_proof",
         "sam2TorchCudaArchList": "8.9",
         "sam2PythonDevHeaders": "present",
-        "sam2NvccCommandObserved": "-gencode=arch=compute_89,code=sm_89"
+        "rembgNumbaJitDisabledForImportSmoke": true
       },
-      "blockedReason": "Local Docker Desktop on Apple Silicon builds linux/amd64 through QEMU; SAM2 CUDA extension compilation reaches nvcc for sm_89 but qemu segfaults during the compile. This is a local emulation/build-host block, not a package resolver block. Native linux/amd64 NVIDIA builder proof remains required.",
+      "observedImportVersions": {
+        "torch": "2.5.1+cu124",
+        "torchvision": "0.20.1+cu124",
+        "transformers": "4.57.6",
+        "kornia": "0.8.1",
+        "rembg": "2.0.69",
+        "transparent_background": "unknown",
+        "realesrgan": "<module 'realesrgan.version' from '/usr/local/lib/python3.10/dist-packages/realesrgan/version.py'>",
+        "sam2": "unknown"
+      },
+      "blockedReason": "none_for_install_proof; native linux/amd64 NVIDIA runtime proof remains required before GPU/model execution or beta readiness.",
       "cudaRuntimeRequired": false,
       "nvidiaRuntimeUsed": false,
       "modelWeightsLoaded": false,
@@ -191,7 +208,7 @@
       "profileId": "gpu_worker_ai_graphics",
       "dockerfile": "docker/prod/gpu-worker/Dockerfile",
       "target": "ai_graphics_install_proof",
-      "smokeCommand": "python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics",
+      "smokeCommand": "NUMBA_DISABLE_JIT=1 python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics",
       "tools": [
         "torch_torchvision",
         "transformers",
@@ -334,12 +351,15 @@
     "realEsrganInstallProofImportSmokePassed": true,
     "birefnetInstallProofTargetBuiltLocally": true,
     "birefnetInstallProofImportSmokePassed": true,
-    "all8GpuModelInstallProofTargetsBuiltLocally": false,
+    "all8GpuModelInstallProofTargetsBuiltLocally": true,
     "appBundleRequiredForInstallProof": false,
     "modelWeightsRequiredForInstallProof": false,
     "localDockerGpuRuntimeAvailable": false,
     "localGpuRuntimeExecuted": false,
-    "linuxAmd64GpuBuilderStillRequired": true,
+    "linuxAmd64GpuBuilderStillRequired": false,
+    "nativeGpuRuntimeStillRequired": true,
+    "sam2CudaPostprocessExtensionRuntimeProofStillRequired": true,
+    "rembgNumbaRuntimeJitProofStillRequired": true,
     "modelWeightsDownloaded": false,
     "mediaProcessingPerformed": false,
     "providerRuntimePerformed": false,

@@ -34,23 +34,23 @@ Result:
   pinned `torchvision==0.20.1+cu124` stack.
 - Hardened GPU/model pip installs with `--retries 10 --timeout 120` for large
   CUDA wheel downloads.
-- Set `TORCH_CUDA_ARCH_LIST=8.9` before the shared GPU worker SAM2 source
-  install because Docker build has no visible NVIDIA device for Torch extension
-  architecture inference; 8.9 matches the approved NVIDIA L4 target.
+- Set `SAM2_BUILD_CUDA=0` for the shared GPU worker SAM2 source install so
+  build-time install proof skips the optional SAM2 CUDA post-processing
+  extension under Docker Desktop/QEMU while preserving the CUDA Torch stack for
+  later native NVIDIA runtime proof.
 - Installed `python3-dev` before the shared GPU worker SAM2 source extension
   build because Torch extension headers require `Python.h`.
+- Set `NUMBA_DISABLE_JIT=1` only for the shared GPU worker import-only smoke
+  process because `rembg` imports `pymatting`, which otherwise triggers slow
+  Numba compilation during import under QEMU.
 
 Local validation:
 
 - Dockerfile checks passed for all four `ai_graphics_install_proof` targets.
-- The shared `gpu_worker_ai_graphics` target completed the main requirements
-  install with the OpenCV/NumPy, rembg/Python 3.10, DeepFilterNet packaging,
-  and BasicSR/TorchVision alignments preserved. It remains blocked for local
-  full target completion because Docker Desktop on Apple Silicon runs the
-  `linux/amd64` build through QEMU; SAM2 reached `nvcc` with
-  `-gencode=arch=compute_89,code=sm_89`, then QEMU segfaulted during CUDA
-  extension compilation. Native linux/amd64 NVIDIA builder proof remains
-  required.
+- The shared `gpu_worker_ai_graphics` target built successfully with
+  `docker buildx build --platform linux/amd64` and its import-only smoke passed
+  for `torch`, `torchvision`, `transformers`, `kornia`, `rembg`,
+  `transparent_background`, `realesrgan`, and `sam2`.
 - The dedicated SAM2 `ai_graphics_install_proof` target built successfully with
   `docker buildx build --platform linux/amd64` and its import-only smoke passed
   for `torch`, `torchvision`, `numpy`, `PIL`, `cv2`, `hydra`, `iopath`, and
@@ -78,7 +78,8 @@ Gates remain false:
 
 Next required proof:
 
-- Run the shared `gpu_worker_ai_graphics` install-proof target on a native
-  linux/amd64 NVIDIA builder.
-- Rerun the four install-proof targets on the NVIDIA builder for final parity.
-- Then run NVIDIA runtime checks and import smoke inside the built images.
+- Rerun the four install-proof targets on a native linux/amd64 NVIDIA builder
+  for cloud parity.
+- Run NVIDIA runtime checks and import smoke inside the built images.
+- Prove SAM2 optional CUDA post-processing extension behavior and rembg Numba
+  runtime/JIT behavior on the native GPU worker before beta execution.

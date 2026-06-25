@@ -283,6 +283,8 @@ const allowedDescendantScripts = new Set([
   'ai-graphics:node-runtime-proof',
   'ai-graphics:node-runtime-proof:diagnostics',
   'ai-graphics:gpu-worker-install-proof:diagnostics',
+  'ai-graphics:browser-runtime-proof',
+  'ai-graphics:browser-runtime-proof:diagnostics',
 ])
 for (const scriptName of Object.keys(packageJson?.scripts ?? {})) {
   if (!basePackageJson.scripts?.[scriptName] && !allowedDescendantScripts.has(scriptName)) {

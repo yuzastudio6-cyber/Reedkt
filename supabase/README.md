@@ -366,11 +366,27 @@ The migration adds helper functions for approved snapshot readiness and worker c
 
 This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, or spend credits.
 
+### RP-DATA-03: Internal Beta Static Gap Contract
+
+`migrations/20260625031135_rp_data_03_internal_beta_static_gap_contract.sql` is a repository static draft for the internal beta data lane after RP-DATA-01 and RP-DATA-02.
+
+It adds:
+
+- `artifact_manifests`
+- `artifact_manifest_items`
+- RLS policies for project-member reads
+- explicit authenticated Data API grants
+- service-role grants for future backend/worker mutation
+- backend-only comments for artifact manifests, worker events, credit reservations, editing jobs, and final exports
+
+This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, create buckets, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, spend credits, or unlock internal beta.
+
 ## Future Migrations
 
 Later migrations should add, in order:
 
-- local/staging application and verification of RP-E2E-READY-01 runtime readiness tables
+- local-only guarded application and verification of RP-DATA-03 plus the existing runtime readiness chain
+- staging application only after local validation and owner approval
 - backend API service-role handlers for approved snapshots, idempotency, upload intents, storage records, signed URL events, worker claims, tool checks, provider attempts, and webhooks
 - signed storage route wiring
 - Cloud Run worker scaffolding for generation, media tools, QA, and rendering
@@ -378,4 +394,4 @@ Later migrations should add, in order:
 
 ## Local-Only Reminder
 
-These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-TIMING-03, RP-FIX-07, RP-FIX-11, and RP-E2E-READY-01 do not connect to Supabase, run remote migrations, configure remote storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.
+These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-TIMING-03, RP-FIX-07, RP-FIX-11, RP-E2E-READY-01, and RP-DATA-03 do not connect to Supabase, run remote migrations, configure remote storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.

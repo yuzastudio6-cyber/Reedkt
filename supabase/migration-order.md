@@ -129,3 +129,12 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 - Creates: extensions to `approved_plan_snapshots`, `api_idempotency_keys`, `upload_intents`, `storage_object_records`, `signed_url_events`, `worker_job_claims`, `tool_runtime_checks`, `provider_request_attempts`, `provider_webhook_events`, helper functions `can_create_approved_plan_snapshot`, `active_worker_claim_exists`, and `can_claim_worker_job`, plus RLS, indexes, uniqueness constraints, and updated-at triggers.
 - Does not create: remote Supabase execution, deployed backend handlers, signed URL generation, Cloud Run workers, provider calls, render execution, Stripe, secret reads, real uploads, or production migration execution.
 - Notes: Workers must execute approved snapshots, not raw chat. Expensive work remains blocked until approved edit plan, approved credit estimate, credit reservation, idempotency, worker claim, storage, timing, and QA gates are implemented by future backend/service-role code.
+
+## 15. RP-DATA-03 Internal Beta Static Gap Contract
+
+- File: `migrations/20260625031135_rp_data_03_internal_beta_static_gap_contract.sql`
+- Purpose: Adds the internal beta artifact manifest gap contract and explicit Data API grants required by the RP-DATA-01/RP-DATA-02 internal beta data lane.
+- Depends on: RP-DATA-04 core/project/session/media/plan/credit/job/QA tables, RP-E2E-READY-01 runtime readiness tables, and existing project membership RLS helpers.
+- Creates: `artifact_manifests`, `artifact_manifest_items`, RLS policies for project-member reads, explicit authenticated Data API grants, service-role grants for backend/worker mutation, and backend-only table comments.
+- Does not create: remote Supabase execution, live storage buckets, signed URLs, deployed backend handlers, service-role credentials, worker execution, provider/model calls, render execution, Stripe, secret reads, real uploads, or production migration execution.
+- Notes: This migration is a repository static draft only until `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION` names and validates a local-only target.

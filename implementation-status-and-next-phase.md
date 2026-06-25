@@ -74,7 +74,7 @@ No real timing/audio/transcript/media analysis, provider execution, rendering, b
 
 ## Current Recommendation
 
-Start with `RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION` if the next priority is reliable project history, approved plan persistence, and Supabase visibility. Start with `RP-BACKEND-01` only after the static migration draft exists and preserves the current rule: workers execute approved snapshots, not raw chat.
+Start with `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION` if the next priority is reliable project history, approved plan persistence, and Supabase visibility. Start with `RP-BACKEND-01` only after local Supabase migration validation proves the static migration draft and preserves the current rule: workers execute approved snapshots, not raw chat.
 
 ## ReEditPro Internal Beta Readiness 1
 
@@ -82,7 +82,7 @@ Start with `RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION` if the ne
 
 The target is internal beta first, not full all-tools production. The current end-to-end beta lane remains `not_ready` until Supabase schema/RLS/private storage, approved plan snapshots, internal credit reservation, backend job queue, worker leases/events, private artifact manifest/QA/cleanup, Remotion private preview/export, runtime tool state separation, and backend-only provider adapters are in place.
 
-Next recommended sequence: `RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION`, guarded Supabase local/staging validation, `RP-BACKEND-01-APPROVED-SNAPSHOT-JOB-QUEUE-SKELETON`, `RP-CREDITS-01-INTERNAL-CREDIT-LEDGER`, `RP-STORAGE-01-PRIVATE-ARTIFACT-BUCKETS`, `RP-RENDER-01-REMOTION-WORKER-SKELETON`, then `RP-INTERNAL-BETA-E2E-1`.
+Next recommended sequence: `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION`, guarded staging validation when approved, `RP-BACKEND-01-APPROVED-SNAPSHOT-JOB-QUEUE-SKELETON`, `RP-CREDITS-01-INTERNAL-CREDIT-LEDGER`, `RP-STORAGE-01-PRIVATE-ARTIFACT-BUCKETS`, `RP-RENDER-01-REMOTION-WORKER-SKELETON`, then `RP-INTERNAL-BETA-E2E-1`.
 
 External beta, paid production, public artifacts, broad media, and final delivery/export remain blocked.
 
@@ -101,6 +101,14 @@ Next recommended step: `RP-DATA-02-SUPABASE-MIGRATION-SAFETY-PACKET`, then `RP-B
 The data foundation is `safety_packet_ready_not_applied`: migration file groups, target environment guardrails, RLS/storage advisor requirements, and rollback/recovery rules are documented, but no SQL ran, no Supabase environment was touched, no migration file was created, no migration was deployed, and no bucket was created.
 
 Next recommended step: `RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION`. Internal beta end-to-end remains `not_ready` until a static migration draft, guarded environment validation, backend service-role boundary, credit ledger, worker queue, private artifact storage, render worker, QA, and cleanup gates exist.
+
+## RP-DATA-03 Supabase Migration Draft Static Implementation
+
+`RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION` records decision `completed_static_migration_draft_ready_for_guarded_local_validation` and execution `completed_static_migration_draft_no_sql_execution`.
+
+The data foundation is `static_migration_draft_ready_not_applied`: one repository migration draft was created at `supabase/migrations/20260625031135_rp_data_03_internal_beta_static_gap_contract.sql`, adding artifact manifest coverage, explicit Data API grants, RLS, and backend/service-role ownership comments for the internal beta data lane. No SQL ran, no Supabase environment was touched, no migration was deployed, and no bucket was created.
+
+Next recommended step: `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION`. Internal beta end-to-end remains `not_ready` until guarded local/staging validation, backend service-role APIs, credit gate, worker queue, private storage, render worker, QA, and cleanup gates pass.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

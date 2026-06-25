@@ -53,6 +53,20 @@ Next Supabase action: `RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## RP-DATA-03 Supabase Migration Draft Static Implementation
+
+`RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION` records decision `completed_static_migration_draft_ready_for_guarded_local_validation` and execution `completed_static_migration_draft_no_sql_execution`.
+
+Internal beta data foundation status: `static_migration_draft_ready_not_applied`. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Supabase update required: `future_guarded_validation_required`. Supabase update status: `static_migration_draft_only`. Supabase environment touched: `none`. SQL executed: `none`. Migration files created: `one_static_draft`. Migration deployed: `no`. Storage buckets created: `none`.
+
+Static migration draft: `supabase/migrations/20260625031135_rp_data_03_internal_beta_static_gap_contract.sql`. It adds artifact manifest metadata tables, RLS, explicit Data API grants, and backend/service-role boundary comments. The draft was not applied.
+
+Next Supabase action: `RP-DATA-04-GUARDED-LOCAL-SUPABASE-MIGRATION-VALIDATION`.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

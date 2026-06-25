@@ -22,8 +22,25 @@ const requiredFiles = [
   'scripts/validation/rp-data-02-supabase-migration-safety-packet-diagnostics.mjs',
 ]
 
+const rpData03MigrationFile = 'supabase/migrations/20260625031135_rp_data_03_internal_beta_static_gap_contract.sql'
+const rpData03Files = [
+  'docs/internal-beta/rp-data-03-supabase-migration-draft-static-implementation/source-audit.md',
+  'docs/internal-beta/rp-data-03-supabase-migration-draft-static-implementation/migration-draft-review.md',
+  'docs/internal-beta/rp-data-03-supabase-migration-draft-static-implementation/rls-grant-review.md',
+  'docs/internal-beta/rp-data-03-supabase-migration-draft-static-implementation/storage-artifact-manifest-review.md',
+  'docs/internal-beta/rp-data-03-supabase-migration-draft-static-implementation/execution-gate.md',
+  'docs/internal-beta/rp-data-03-supabase-migration-draft-static-implementation/static-record.json',
+  'docs/activation-phase-rp-data-03-supabase-migration-draft-static-implementation-results.md',
+  'docs/implementation-prompts/prompt-rp-data-04-guarded-local-supabase-migration-validation.md',
+  'supabase/README.md',
+  'supabase/migration-order.md',
+  rpData03MigrationFile,
+  'scripts/validation/rp-data-03-supabase-migration-draft-static-implementation-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
+  ...rpData03Files,
   'package.json',
 ])
 
@@ -76,7 +93,6 @@ const forbiddenClaims = [
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
   /Supabase environment touched:(?!\s*`?none`?)/i,
   /SQL executed:(?!\s*`?none`?)/i,
-  /Migration files created:(?!\s*`?none`?)/i,
   /Migration deployed:(?!\s*`?no`?)/i,
   /Storage buckets created:(?!\s*`?none`?)/i,
   /Supabase update status:\s*`?(applied|deployed|executed|completed_remote)/i,
@@ -173,7 +189,6 @@ if (packageJson.scripts?.['rp-data-02:supabase-migration-safety-packet:diagnosti
 gitQuiet(['diff', '--quiet', '--', 'package-lock.json'], 'package-lock.json changed')
 for (const file of [
   '.dockerignore',
-  'supabase/migrations',
   'database/migration-drafts',
   'database/test-sql',
 ]) {
@@ -188,10 +203,12 @@ const stagedFiles = gitLines(['diff', '--cached', '--name-only'])
 
 for (const file of [...changedFiles, ...stagedFiles]) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
+  const isRpData03StaticMigration = file === rpData03MigrationFile
+  const isRpData03SupabaseSupportFile = file === 'supabase/README.md' || file === 'supabase/migration-order.md'
   if (
-    forbiddenExactFiles.has(file) ||
-    forbiddenPrefixes.some((prefix) => file.startsWith(prefix)) ||
-    file.endsWith('.sql') ||
+    (!isRpData03StaticMigration && forbiddenExactFiles.has(file)) ||
+    (!isRpData03StaticMigration && !isRpData03SupabaseSupportFile && forbiddenPrefixes.some((prefix) => file.startsWith(prefix))) ||
+    (!isRpData03StaticMigration && file.endsWith('.sql')) ||
     file.endsWith('.mp4') ||
     file.endsWith('.mov') ||
     file.endsWith('.mkv') ||

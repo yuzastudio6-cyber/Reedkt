@@ -657,6 +657,7 @@
     "rp-internal-beta-runtime-enablement-owner-approval-1:diagnostics": "node scripts/validation/rp-internal-beta-runtime-enablement-owner-approval-1-diagnostics.mjs",
     "rp-internal-beta-named-runtime-target-approval-1:diagnostics": "node scripts/validation/rp-internal-beta-named-runtime-target-approval-1-diagnostics.mjs",
     "rp-internal-beta-runtime-target-owner-decision-1:diagnostics": "node scripts/validation/rp-internal-beta-runtime-target-owner-decision-1-diagnostics.mjs",
+    "rp-internal-beta-google-cloud-managed-runtime-target-approval-1:diagnostics": "node scripts/validation/rp-internal-beta-google-cloud-managed-runtime-target-approval-1-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

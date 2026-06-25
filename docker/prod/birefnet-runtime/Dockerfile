@@ -42,6 +42,7 @@ COPY docker/prod/birefnet-runtime/requirements.birefnet.txt /tmp/requirements.bi
 RUN python3 -m pip install --no-cache-dir --retries 10 --timeout 120 -r /tmp/requirements.birefnet.txt
 COPY docker/prod/ai-graphics-gpu-install-smoke.py /tmp/ai-graphics-gpu-install-smoke.py
 RUN python3 /tmp/ai-graphics-gpu-install-smoke.py --profile birefnet
+COPY docker/prod/ai-graphics-gpu-runtime-readiness.py /usr/local/bin/ai-graphics-gpu-runtime-readiness.py
 
 FROM base AS ai_graphics_install_proof
 

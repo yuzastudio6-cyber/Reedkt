@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.gpu-model-runtime-readiness-gate",
+  "decision": "ai_graphics_gpu_model_runtime_readiness_gate_prepared_with_warnings",
+  "status": "prepared_blocked_pending_native_nvidia_runtime",
+  "branch": "codex/rp-ai-graphics-gpu-model-runtime-readiness-gate",
+  "base": "origin/codex/rp-ai-graphics-gpu-model-install-build-targets",
+  "pullRequest": {
+    "number": null,
+    "url": null,
+    "state": "pending",
+    "isDraft": true,
+    "mergeStateStatus": "pending",
+    "headSha": null,
+    "checkRollup": []
+  },
+  "sourcePr": {
+    "number": 833,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/833",
+    "decision": "ai_graphics_gpu_model_install_build_targets_prepared_with_warnings",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headSha": "a25ea6015039a794c8c03a21e4303acf8cae2902"
+  },
+  "proofScope": "native_gpu_runtime_readiness_gate_for_8_ai_graphics_gpu_model_tools",
+  "runtimeReadinessScript": {
+    "path": "docker/prod/ai-graphics-gpu-runtime-readiness.py",
+    "requiresExplicitOptInEnv": "REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true",
+    "requiresNativeNvidiaRuntime": true,
+    "requiresNvidiaSmi": true,
+    "requiresTorchCudaAvailable": true,
+    "minComputeCapability": "8.9",
+    "tinyCudaTensorProbe": true,
+    "modelWeightManifestCheckAvailable": true,
+    "modelWeightManifestFlag": "--require-model-weight-manifests",
+    "modelWeightsLoaded": false,
+    "mediaProcessed": false,
+    "providerRuntimeUsed": false,
+    "toolRouteExecutionReadyNow": false,
+    "workerExecutionReadyNow": false
+  },
+  "runtimeProfiles": [
+    {
+      "profileId": "gpu_worker_ai_graphics",
+      "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "scriptPathInImage": "/usr/local/bin/ai-graphics-gpu-runtime-readiness.py",
+      "requiredCommand": "docker run --rm --gpus all -e REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true -e MODEL_DOWNLOADS_ENABLED=false -e PROVIDER_EXECUTION_ENABLED=false <gpu-worker-image> python3 /usr/local/bin/ai-graphics-gpu-runtime-readiness.py --profile gpu_worker_ai_graphics --require-model-weight-manifests",
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background"
+      ],
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "status": "gate_prepared_runtime_not_executed_here"
+    },
+    {
+      "profileId": "sam2",
+      "dockerfile": "docker/prod/sam2-runtime/Dockerfile",
+      "scriptPathInImage": "/app/ai-graphics-gpu-runtime-readiness.py",
+      "requiredCommand": "docker run --rm --gpus all -e REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true -e MODEL_DOWNLOADS_ENABLED=false -e PROVIDER_EXECUTION_ENABLED=false <sam2-runtime-image> python3 ./ai-graphics-gpu-runtime-readiness.py --profile sam2 --require-model-weight-manifests",
+      "tools": [
+        "sam2",
+        "torch_torchvision"
+      ],
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
+      "status": "gate_prepared_runtime_not_executed_here"
+    },
+    {
+      "profileId": "birefnet",
+      "dockerfile": "docker/prod/birefnet-runtime/Dockerfile",
+      "scriptPathInImage": "/usr/local/bin/ai-graphics-gpu-runtime-readiness.py",
+      "requiredCommand": "docker run --rm --gpus all -e REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true -e MODEL_DOWNLOADS_ENABLED=false -e PROVIDER_EXECUTION_ENABLED=false <birefnet-runtime-image> python3 /usr/local/bin/ai-graphics-gpu-runtime-readiness.py --profile birefnet --require-model-weight-manifests",
+      "tools": [
+        "birefnet",
+        "transformers",
+        "kornia",
+        "torch_torchvision"
+      ],
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+      "status": "gate_prepared_runtime_not_executed_here"
+    },
+    {
+      "profileId": "real_esrgan",
+      "dockerfile": "docker/prod/real-esrgan-runtime/Dockerfile",
+      "scriptPathInImage": "/usr/local/bin/ai-graphics-gpu-runtime-readiness.py",
+      "requiredCommand": "docker run --rm --gpus all -e REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true -e MODEL_DOWNLOADS_ENABLED=false -e PROVIDER_EXECUTION_ENABLED=false <real-esrgan-runtime-image> python3 /usr/local/bin/ai-graphics-gpu-runtime-readiness.py --profile real_esrgan --require-model-weight-manifests",
+      "tools": [
+        "real_esrgan",
+        "torch_torchvision"
+      ],
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+      "status": "gate_prepared_runtime_not_executed_here"
+    }
+  ],
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "runtimeGate": "torch_cuda_available_and_tiny_cuda_tensor_probe",
+      "status": "runtime_gate_prepared_native_gpu_required"
+    },
+    {
+      "toolId": "transformers",
+      "runtimeGate": "import_with_no_provider_or_model_download_plus_optional_model_manifest",
+      "status": "runtime_gate_prepared_native_gpu_required"
+    },
+    {
+      "toolId": "sam2",
+      "runtimeGate": "import_plus_cuda_visibility_plus_reviewed_model_tree_manifest",
+      "status": "runtime_gate_prepared_native_gpu_required",
+      "knownRemainingBlock": "SAM2 optional CUDA post-processing extension was skipped during install proof and still needs native runtime proof."
+    },
+    {
+      "toolId": "birefnet",
+      "runtimeGate": "transformers_import_plus_cuda_visibility_plus_reviewed_model_tree_manifest",
+      "status": "runtime_gate_prepared_native_gpu_required"
+    },
+    {
+      "toolId": "real_esrgan",
+      "runtimeGate": "realesrgan_import_plus_cuda_visibility_plus_reviewed_model_tree_manifest",
+      "status": "runtime_gate_prepared_native_gpu_required"
+    },
+    {
+      "toolId": "kornia",
+      "runtimeGate": "kornia_import_plus_torch_cuda_tensor_probe",
+      "status": "runtime_gate_prepared_native_gpu_required"
+    },
+    {
+      "toolId": "rembg",
+      "runtimeGate": "rembg_import_plus_cuda_visibility_plus_reviewed_model_tree_manifest",
+      "status": "runtime_gate_prepared_native_gpu_required",
+      "knownRemainingBlock": "rembg/pymatting Numba runtime JIT behavior needs native runtime proof because install proof used NUMBA_DISABLE_JIT=1 only for import smoke."
+    },
+    {
+      "toolId": "transparent_background",
+      "runtimeGate": "transparent_background_import_plus_cuda_visibility_plus_reviewed_model_tree_manifest",
+      "status": "runtime_gate_prepared_native_gpu_required"
+    }
+  ],
+  "localGuardEvidence": {
+    "hostPlatform": "darwin_arm64",
+    "nativeNvidiaRuntimeAvailable": false,
+    "command": "python3 docker/prod/ai-graphics-gpu-runtime-readiness.py --profile gpu_worker_ai_graphics",
+    "expectedStatus": "blocked_missing_runtime_proof_opt_in",
+    "reason": "Local host can only prove the script refuses accidental runtime checks without explicit opt-in; it cannot prove native NVIDIA runtime readiness."
+  },
+  "nextRequiredProofs": [
+    "Build or pull the four GPU images on native linux/amd64.",
+    "Run the runtime readiness script with docker run --gpus all and REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true.",
+    "Mount reviewed private model_tree_manifest.json files for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background.",
+    "Run model-loading and minimal private fixture proofs in a later approved lane.",
+    "Only after runtime, model provenance, fixture, Tool Route, Worker, and QA gates pass may internal beta readiness be reconsidered."
+  ],
+  "booleans": {
+    "gpuModelRuntimeReadinessGatePrepared": true,
+    "all8GpuModelToolsCoveredByRuntimeGate": true,
+    "all4GpuRuntimeProfilesHaveRuntimeProbe": true,
+    "nativeNvidiaRuntimeRequired": true,
+    "explicitRuntimeProofOptInRequired": true,
+    "modelWeightManifestGatePrepared": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "toolRouteExecutionReadyNow": false,
+    "workerExecutionReadyNow": false,
+    "browserWebglCanvasRuntimeReadyNow": false,
+    "gpuModelRuntimeReadyNow": false,
+    "runtimeBetaReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformedOutsideDockerBuildTarget": false,
+    "packageLockMutationPerformed": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "mediaProcessingPerformed": false,
+    "providerRuntimePerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

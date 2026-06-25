@@ -54,6 +54,7 @@ transforms_dir = Path(torchvision.transforms.__file__).parent
 PY
 COPY docker/prod/ai-graphics-gpu-install-smoke.py /tmp/ai-graphics-gpu-install-smoke.py
 RUN python3 /tmp/ai-graphics-gpu-install-smoke.py --profile real_esrgan
+COPY docker/prod/ai-graphics-gpu-runtime-readiness.py /usr/local/bin/ai-graphics-gpu-runtime-readiness.py
 
 FROM base AS ai_graphics_install_proof
 

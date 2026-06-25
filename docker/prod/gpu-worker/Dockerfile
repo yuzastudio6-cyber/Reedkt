@@ -65,6 +65,7 @@ PY
 
 COPY docker/prod/ai-graphics-gpu-install-smoke.py /tmp/ai-graphics-gpu-install-smoke.py
 RUN NUMBA_DISABLE_JIT=1 python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics
+COPY docker/prod/ai-graphics-gpu-runtime-readiness.py /usr/local/bin/ai-graphics-gpu-runtime-readiness.py
 
 FROM ai_graphics_install_base AS ai_graphics_install_proof
 

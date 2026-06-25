@@ -175,6 +175,17 @@ No Supabase mutation, credit mutation, storage object creation, storage object r
 Internal beta end-to-end remains `not_ready` until service-role route handlers, transactional artifact manifest runtime, private storage access policy, render worker, backend-only provider adapters, QA, cleanup, and negative safety tests pass.
 
 Next recommended step: `RP-RENDER-01-INTERNAL-BETA-REMOTION-RENDER-WORKER-SCAFFOLD`.
+## RP-RENDER-01 Internal Beta Remotion Render Worker Scaffold
+
+`RP-RENDER-01-INTERNAL-BETA-REMOTION-RENDER-WORKER-SCAFFOLD` records decision `completed_disabled_internal_beta_remotion_render_worker_scaffold_no_render_execution` and execution `completed_fail_closed_render_worker_scaffold_no_preview_or_export`.
+
+Disabled Remotion render worker scaffold operations now exist for plan read, preflight, job prepare, artifact manifest expectation, QA gate prepare, cleanup policy prepare, status readback, and failure classification. They return `disabled_pending_remotion_render_worker_runtime_gate` and do not dispatch workers, execute Remotion, run FFmpeg/FFprobe, process media, create previews, or create exports.
+
+No Supabase mutation, credit mutation, worker dispatch, worker execution, Remotion execution, FFmpeg execution, FFprobe execution, media processing, preview artifact creation, final export creation, storage object creation, storage object read, signed URL creation, public artifact creation, provider/model call, internal beta unlock, external beta unlock, production unlock, route execution, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler is implemented.
+
+Internal beta end-to-end remains `not_ready` until service-role route handlers, transactional credit/job/artifact runtimes, render worker execution proof, private artifact access policy, disabled-by-default provider adapters, QA, cleanup, and negative safety tests pass.
+
+Next recommended step: `RP-PROVIDER-01-INTERNAL-BETA-DISABLED-PROVIDER-ADAPTER-SCAFFOLD`.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

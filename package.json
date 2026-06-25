@@ -645,6 +645,7 @@
     "rp-credits-01:internal-beta-credit-ledger-runtime-scaffold:diagnostics": "node scripts/validation/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold-diagnostics.mjs",
     "rp-jobs-01:internal-beta-job-queue-runtime-scaffold:diagnostics": "node scripts/validation/rp-jobs-01-internal-beta-job-queue-runtime-scaffold-diagnostics.mjs",
     "rp-artifacts-01:internal-beta-private-artifact-manifest-scaffold:diagnostics": "node scripts/validation/rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold-diagnostics.mjs",
+    "rp-render-01:internal-beta-remotion-render-worker-scaffold:diagnostics": "node scripts/validation/rp-render-01-internal-beta-remotion-render-worker-scaffold-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

@@ -1,0 +1,37 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-QA-1",
+  "decision": "tracka_gpac_mp4box_official_apt_install_source_qa_passed_ready_for_controlled_runtime_proof",
+  "sourceSha": "7250c11b96c46e99be2a1a97a810ee893ea87196",
+  "reviewedDecision": "tracka_gpac_mp4box_official_apt_install_source_execution_passed_ready_for_install_source_qa",
+  "qaAccepted": {
+    "officialAptSource": true,
+    "signedByKeyring": true,
+    "packageOnlyPinning": true,
+    "exactGpacPackage": "gpac=26.02-rev0-g118e60a90-HEAD",
+    "architecture": "arm64",
+    "mp4boxBinaryPath": "/usr/bin/MP4Box",
+    "networkDisabledPresenceChecks": true
+  },
+  "notAccepted": {
+    "gpacRuntimeBehavior": true,
+    "mp4boxRuntimeBehavior": true,
+    "mp4boxVersionExecution": true,
+    "mp4boxMediaCommand": true,
+    "mediaProcessing": true,
+    "productRuntime": true,
+    "beta": true,
+    "production": true
+  },
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577Excluded": true,
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no",
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-CONTROLLED-RUNTIME-PROOF-1",
+  "nextPromptFile": "docs/implementation-prompts/prompt-tracka-gpac-mp4box-controlled-runtime-proof-1.md"
+}

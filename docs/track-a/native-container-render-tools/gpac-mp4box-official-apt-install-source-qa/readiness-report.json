@@ -1,0 +1,12 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-QA-1",
+  "decision": "tracka_gpac_mp4box_official_apt_install_source_qa_passed_ready_for_controlled_runtime_proof",
+  "installSourceQa": "passed",
+  "readyForControlledRuntimeProof": true,
+  "readyForProductRuntime": false,
+  "readyForInternalBeta": false,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-CONTROLLED-RUNTIME-PROOF-1",
+  "nextPromptFile": "docs/implementation-prompts/prompt-tracka-gpac-mp4box-controlled-runtime-proof-1.md"
+}

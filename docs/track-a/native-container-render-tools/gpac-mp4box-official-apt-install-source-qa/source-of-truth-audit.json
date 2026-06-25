@@ -1,0 +1,53 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-QA-1",
+  "decision": "tracka_gpac_mp4box_official_apt_install_source_qa_passed_ready_for_controlled_runtime_proof",
+  "sourceSha": "7250c11b96c46e99be2a1a97a810ee893ea87196",
+  "reviewedEvidence": {
+    "installSourceExecutionPr": 738,
+    "installSourceExecutionMergeCommit": "bba6c200a444c2eb279ad72e5c51409b072099cb",
+    "installSourceExecutionDecision": "tracka_gpac_mp4box_official_apt_install_source_execution_passed_ready_for_install_source_qa",
+    "pinningPlanPr": 735,
+    "officialAptRepoApprovalPr": 729,
+    "ownerSourceClassificationPr": 725,
+    "ownerEnvironmentFollowupPr": 723
+  },
+  "predecessors": [
+    738,
+    735,
+    729,
+    725,
+    723,
+    711,
+    713,
+    706,
+    702,
+    697,
+    690,
+    693,
+    682,
+    680,
+    673,
+    666,
+    662,
+    659,
+    652
+  ],
+  "acceptedSourceFacts": {
+    "sourceClass": "official_gpac_apt_repository",
+    "repositoryUri": "https://dist.gpac.io/gpac/linux/debian",
+    "codename": "bookworm",
+    "component": "main",
+    "blockedComponent": "nightly",
+    "keyEndpoint": "https://dist.gpac.io/gpac/linux/gpg.asc",
+    "sourceFile": "/etc/apt/sources.list.d/gpac.sources",
+    "keyringPath": "/usr/share/keyrings/gpac-archive-keyring.gpg",
+    "preferencesFile": "/etc/apt/preferences.d/gpac.pref",
+    "packageName": "gpac",
+    "candidateVersion": "26.02-rev0-g118e60a90-HEAD",
+    "architecture": "arm64",
+    "mp4boxPath": "/usr/bin/MP4Box"
+  },
+  "qaScope": "source_evidence_review_only_no_runtime_execution",
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-CONTROLLED-RUNTIME-PROOF-1",
+  "supabase": "no write / environment none / SQL none / migration no"
+}

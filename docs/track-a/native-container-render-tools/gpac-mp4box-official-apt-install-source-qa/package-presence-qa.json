@@ -1,0 +1,9 @@
+{
+  "accepted": true,
+  "package": "gpac",
+  "version": "26.02-rev0-g118e60a90-HEAD",
+  "architecture": "arm64",
+  "dpkgQueryOutput": "gpac\t26.02-rev0-g118e60a90-HEAD\tarm64",
+  "installSource": "https://dist.gpac.io/gpac/linux/debian bookworm/main",
+  "qaConclusion": "package_presence_evidence_accepted_no_runtime_behavior_claim"
+}

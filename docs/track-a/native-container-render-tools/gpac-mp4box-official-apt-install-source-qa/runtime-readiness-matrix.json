@@ -1,0 +1,15 @@
+{
+  "gpacMp4box": {
+    "installSourceQa": "accepted",
+    "packagePresence": "accepted",
+    "binaryPresence": "accepted",
+    "runtimeVersionProof": "pending_controlled_runtime_proof",
+    "mediaCommandProof": "blocked_until_controlled_runtime_proof",
+    "productRuntime": "blocked",
+    "internalBeta": "blocked",
+    "externalBeta": "blocked",
+    "production": "blocked"
+  },
+  "nextGate": "TRACKA-GPAC-MP4BOX-CONTROLLED-RUNTIME-PROOF-1",
+  "productReadyLocalOssTools": 0
+}

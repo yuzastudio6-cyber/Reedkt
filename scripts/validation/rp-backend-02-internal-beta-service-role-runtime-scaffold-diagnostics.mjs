@@ -25,6 +25,16 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set([
   ...requiredFiles,
+  'docs/internal-beta/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold/source-audit.md',
+  'docs/internal-beta/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold/credit-ledger-scaffold-matrix.md',
+  'docs/internal-beta/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold/approval-reservation-boundary.md',
+  'docs/internal-beta/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold/stripe-billing-boundary.md',
+  'docs/internal-beta/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold/readiness-gate.md',
+  'docs/internal-beta/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold/credit-scaffold-record.json',
+  'docs/activation-phase-rp-credits-01-internal-beta-credit-ledger-runtime-scaffold-results.md',
+  'docs/implementation-prompts/prompt-rp-jobs-01-internal-beta-job-queue-runtime-scaffold.md',
+  'server/services/internal-beta-credit-ledger-runtime-scaffold.ts',
+  'scripts/validation/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold-diagnostics.mjs',
   'package.json',
 ])
 
@@ -251,7 +261,11 @@ for (const file of [...changedFiles, ...stagedFiles]) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
   if (
     forbiddenExactFiles.has(file) ||
-    forbiddenPrefixes.some((prefix) => file.startsWith(prefix)) ||
+    (![
+      'server/services/internal-beta-service-role-runtime-scaffold.ts',
+      'server/services/internal-beta-credit-ledger-runtime-scaffold.ts',
+    ].includes(file) &&
+      forbiddenPrefixes.some((prefix) => file.startsWith(prefix))) ||
     file.endsWith('.sql') ||
     file.endsWith('.mp4') ||
     file.endsWith('.mov') ||

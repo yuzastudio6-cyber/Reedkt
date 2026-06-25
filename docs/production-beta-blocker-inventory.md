@@ -27,6 +27,18 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## RP-DATA-01 Supabase Schema Migration Readiness
+
+`RP-DATA-01-SUPABASE-SCHEMA-MIGRATION-READINESS` records decision `completed_schema_migration_readiness_review_ready_for_migration_safety_packet` and execution `completed_docs_only_schema_rls_storage_readiness_no_sql_execution`.
+
+Internal beta data foundation status: `review_ready_not_applied`. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Supabase update required: `future_migration_required`. Supabase update status: `planning_only`. Supabase environment touched: `none`. SQL executed: `none`. Migration deployed: `no`. Storage buckets created: `none`.
+
+Next Supabase action: `RP-DATA-02-SUPABASE-MIGRATION-SAFETY-PACKET`.
+
+Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

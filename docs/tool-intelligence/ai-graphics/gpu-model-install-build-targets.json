@@ -4,6 +4,15 @@
   "status": "completed_with_warnings",
   "branch": "codex/rp-ai-graphics-gpu-model-install-build-targets",
   "base": "origin/codex/rp-ai-graphics-satori-font-runtime-proof",
+  "pullRequest": {
+    "number": 833,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/833",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headSha": "8330ba32634f41dd4e6ac681aecaa023979b09d4",
+    "checkRollup": []
+  },
   "sourcePr": {
     "number": 791,
     "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/791",

@@ -12,6 +12,7 @@ Goal:
 Implemented result:
 
 - Decision: `ai_graphics_gpu_model_install_build_targets_prepared_with_warnings`.
+- Draft PR: [#833](https://github.com/yuzastudio6-cyber/Reedkt/pull/833), open/draft/CLEAN at `8330ba32634f41dd4e6ac681aecaa023979b09d4`, with an empty check rollup at creation.
 - Added package script:
   - `ai-graphics:gpu-model-install-build-targets:diagnostics`
 - Added diagnostic:

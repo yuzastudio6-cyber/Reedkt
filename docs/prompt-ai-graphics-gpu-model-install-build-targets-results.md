@@ -6,6 +6,10 @@ Branch: `codex/rp-ai-graphics-gpu-model-install-build-targets`
 
 Base: `origin/codex/rp-ai-graphics-satori-font-runtime-proof`
 
+Draft PR: [#833](https://github.com/yuzastudio6-cyber/Reedkt/pull/833)
+
+PR status: open/draft/CLEAN at `8330ba32634f41dd4e6ac681aecaa023979b09d4`; check rollup empty at creation.
+
 Source evidence:
 
 - PR #791: AI graphics Satori font runtime proof, open/draft/CLEAN at `4a4f13716ac62a40a97f85a0d685a9a1ce09bddd`.

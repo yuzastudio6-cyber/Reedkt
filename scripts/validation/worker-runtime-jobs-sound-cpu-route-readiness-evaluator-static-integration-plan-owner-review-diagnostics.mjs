@@ -74,7 +74,12 @@ assert(gate2p.decision === gate2pDecision, 'Gate 2P decision mismatch')
 assert(sourceOwner.decision === sourceOwnerDecision, 'source owner decision mismatch')
 
 assert(fs.existsSync(path.join(root, evaluatorPath)), 'evaluator source must exist')
-assert(!fs.existsSync(path.join(root, integrationPath)), 'integration source must not exist in owner review')
+const gate2qSourceResultExists = fs.existsSync(path.join(root, 'docs/sound-runtime-media-gate-2q-static-integration-source-result.md'))
+if (gate2qSourceResultExists) {
+  assert(fs.existsSync(path.join(root, integrationPath)), 'integration source should exist after Gate 2Q source creation')
+} else {
+  assert(!fs.existsSync(path.join(root, integrationPath)), 'integration source must not exist in owner review')
+}
 assert(review.reviewResult.gate2pStaticIntegrationPlanAcceptedForSourceCreation === true, 'Gate 2P plan acceptance missing')
 assert(review.reviewResult.evaluatorSourcePath === evaluatorPath, 'evaluator source path mismatch')
 assert(review.reviewResult.plannedIntegrationSourcePath === integrationPath, 'integration source path mismatch')

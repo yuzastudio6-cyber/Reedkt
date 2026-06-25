@@ -76,7 +76,12 @@ assert(sourceOwner.decision === sourceOwnerDecision, 'source owner decision mism
 assert(gate2o.decision === gate2oDecision, 'Gate 2O decision mismatch')
 
 assert(fs.existsSync(path.join(root, evaluatorPath)), 'evaluator source must exist')
-assert(!fs.existsSync(path.join(root, integrationPath)), 'integration source must not exist in Gate 2P')
+const gate2qSourceResultExists = fs.existsSync(path.join(root, 'docs/sound-runtime-media-gate-2q-static-integration-source-result.md'))
+if (gate2qSourceResultExists) {
+  assert(fs.existsSync(path.join(root, integrationPath)), 'integration source should exist after Gate 2Q source creation')
+} else {
+  assert(!fs.existsSync(path.join(root, integrationPath)), 'integration source must not exist in Gate 2P')
+}
 assert(plan.staticIntegrationPlan.evaluatorSourcePath === evaluatorPath, 'evaluator path mismatch')
 assert(plan.staticIntegrationPlan.futureIntegrationBoundaryPlanned === true, 'future integration boundary missing')
 assert(plan.staticIntegrationPlan.futureStaticImportPlanOnly === true, 'static import plan-only flag missing')

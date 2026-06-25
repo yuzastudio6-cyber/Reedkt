@@ -2,31 +2,22 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1'
+const packet = 'RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-OWNER-APPROVAL-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
-const packetDir = 'docs/internal-beta/rp-internal-beta-runtime-enablement-plan-1'
+const packetDir = 'docs/internal-beta/rp-internal-beta-runtime-enablement-owner-approval-1'
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/runtime-enablement-matrix.md`,
-  `${packetDir}/owner-approval-register.md`,
+  `${packetDir}/owner-approval-decision.md`,
+  `${packetDir}/runtime-approval-matrix.md`,
   `${packetDir}/safety-boundary.md`,
   `${packetDir}/readiness-gate.md`,
-  `${packetDir}/runtime-enablement-record.json`,
-  'docs/activation-phase-rp-internal-beta-runtime-enablement-plan-1-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-runtime-enablement-plan-1.md',
+  `${packetDir}/runtime-owner-approval-record.json`,
+  'docs/activation-phase-rp-internal-beta-runtime-enablement-owner-approval-1-results.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-runtime-enablement-owner-approval-1.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-named-runtime-target-approval-1.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-owner-approval-1/source-audit.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-owner-approval-1/owner-approval-decision.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-owner-approval-1/runtime-approval-matrix.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-owner-approval-1/safety-boundary.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-owner-approval-1/readiness-gate.md',
-  'docs/internal-beta/rp-internal-beta-runtime-enablement-owner-approval-1/runtime-owner-approval-record.json',
-  'docs/activation-phase-rp-internal-beta-runtime-enablement-owner-approval-1-results.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
-  'scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-runtime-enablement-plan-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-runtime-enablement-owner-approval-1-diagnostics.mjs',
 ]
@@ -35,17 +26,20 @@ const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
 
 const requiredText = [
   packet,
-  'blocked_pending_internal_beta_runtime_enablement_owner_approval',
-  'completed_docs_only_runtime_enablement_plan_no_runtime_unlock',
-  '`RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1` is merged at `df1eb7ac19b240d4a93bceb38dff641622bb2ffa`',
+  'blocked_pending_named_runtime_target_and_owner_approval',
+  'completed_docs_only_owner_approval_review_no_runtime_unlock',
+  '`RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1` merged at `2ef01940c0facae1a6da9846d5ab6a7d7af47f87`',
+  'Source-of-truth input: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1` merged at `2ef01940c0facae1a6da9846d5ab6a7d7af47f87`',
+  'Owner approval evidence: `not_present_in_source`',
+  'Named runtime target: `not_named`',
   'Internal beta end-to-end status: `not_ready`',
   'Product-ready end-to-end local OSS tools: `0`',
   '#577 remains open/draft/blocked and excluded as source-of-truth',
   'Exact open duplicate PR: `none`',
   'Exact remote duplicate branch: `none`',
-  'Historical/context-only matches: `codex/rp-gd-8-ai-tools-creative-graphics-package-runtime-enablement` and PR #99 are not the target branch/title/scope.',
-  'Service-role runtime approval: `not_approved`',
   'Remote Supabase target approval: `not_approved`',
+  'Service-role runtime approval: `not_approved`',
+  'Approved snapshot persistence approval: `not_approved`',
   'Credit ledger runtime approval: `not_approved`',
   'Job queue runtime approval: `not_approved`',
   'Worker dispatch approval: `not_approved`',
@@ -73,7 +67,6 @@ const requiredText = [
   'FFprobe execution: `false`',
   'Media processing: `false`',
   'Internal beta unlock: `false`',
-  'Next recommended milestone: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-OWNER-APPROVAL-1`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
   'Supabase remote environment touched: `none`',
@@ -84,6 +77,7 @@ const requiredText = [
   'Render/export execution: `none`',
   'Signed URLs created: `none`',
   'Public artifacts created: `none`',
+  'Next recommended milestone: `RP-INTERNAL-BETA-NAMED-RUNTIME-TARGET-APPROVAL-1`',
   'No remote Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, raw prompt execution, worker execution, worker dispatch, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, storage object creation, storage object read, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.',
 ]
 
@@ -93,8 +87,11 @@ const forbiddenClaims = [
   /external beta unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /production unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
+  /Owner approval evidence:\s*`?(approved|present|accepted|true)/i,
+  /Named runtime target:\s*`(?!not_named`)/i,
   /Service-role runtime approval:\s*`?(approved|true|enabled|passed)/i,
   /Remote Supabase target approval:\s*`?(approved|true|enabled|passed)/i,
+  /Approved snapshot persistence approval:\s*`?(approved|true|enabled|passed)/i,
   /Credit ledger runtime approval:\s*`?(approved|true|enabled|passed)/i,
   /Job queue runtime approval:\s*`?(approved|true|enabled|passed)/i,
   /Worker dispatch approval:\s*`?(approved|true|enabled|passed)/i,
@@ -102,12 +99,12 @@ const forbiddenClaims = [
   /Signed URL approval:\s*`?(approved|true|enabled|passed)/i,
   /Remotion render worker approval:\s*`?(approved|true|enabled|passed)/i,
   /Provider\/model call approval:\s*`?(approved|true|enabled|passed)/i,
-  /Provider\/model calls(?: executed)?:\s*`?(true|completed|enabled|passed)/i,
   /Provider requests created:(?!\s*`?none`?)/i,
+  /Provider\/model calls(?: executed)?:\s*`?(true|completed|enabled|passed)/i,
   /Model call:\s*`?true/i,
   /Raw prompt execution:\s*`?true/i,
   /Worker dispatch executed:\s*`?true/i,
-  /Worker execution:(?!\s*`?(false|none)`?)/i,
+  /Worker execution:(?!\s*`?(false|none|not_run)`?)/i,
   /Route execution:\s*`?true/i,
   /Credit mutation:\s*`?true/i,
   /Credit reservation creation:\s*`?(true|completed|enabled|passed)/i,
@@ -118,7 +115,7 @@ const forbiddenClaims = [
   /Storage object read:\s*`?true/i,
   /Signed URL creation:\s*`?true/i,
   /Public artifact creation:\s*`?true/i,
-  /Render\/export execution:(?!\s*`?(false|none)`?)/i,
+  /Render\/export execution:(?!\s*`?(false|none|not_run)`?)/i,
   /Signed URLs created:(?!\s*`?none`?)/i,
   /Public artifacts created:(?!\s*`?none`?)/i,
   /Supabase remote environment touched:(?!\s*`?none`?)/i,
@@ -187,10 +184,13 @@ for (const pattern of forbiddenClaims) {
   if (pattern.test(docsCorpus)) fail(`forbidden claim matched ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/runtime-enablement-record.json`))
-if (record.decision !== 'blocked_pending_internal_beta_runtime_enablement_owner_approval') fail('record decision mismatch')
-if (record.execution !== 'completed_docs_only_runtime_enablement_plan_no_runtime_unlock') fail('record execution mismatch')
-if (record.baseMerge !== 'df1eb7ac19b240d4a93bceb38dff641622bb2ffa') fail('base merge mismatch')
+const record = JSON.parse(read(`${packetDir}/runtime-owner-approval-record.json`))
+if (record.packet !== packet) fail('record packet mismatch')
+if (record.decision !== 'blocked_pending_named_runtime_target_and_owner_approval') fail('record decision mismatch')
+if (record.execution !== 'completed_docs_only_owner_approval_review_no_runtime_unlock') fail('record execution mismatch')
+if (record.sourceMerge !== '2ef01940c0facae1a6da9846d5ab6a7d7af47f87') fail('source merge mismatch')
+if (record.ownerApprovalEvidence !== 'not_present_in_source') fail('owner approval evidence mismatch')
+if (record.namedRuntimeTarget !== 'not_named') fail('named runtime target must stay not_named')
 if (record.internalBetaEndToEndStatus !== 'not_ready') fail('internal beta status must stay not_ready')
 if (record.exactOpenDuplicatePr !== 'none') fail('exact open duplicate PR must be none')
 if (record.exactRemoteDuplicateBranch !== 'none') fail('exact remote duplicate branch must be none')
@@ -223,7 +223,7 @@ for (const key of [
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready tool count must remain 0')
 
 const packageJson = JSON.parse(read('package.json'))
-if (packageJson.scripts?.['rp-internal-beta-runtime-enablement-plan-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-runtime-enablement-plan-1-diagnostics.mjs') {
+if (packageJson.scripts?.['rp-internal-beta-runtime-enablement-owner-approval-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-runtime-enablement-owner-approval-1-diagnostics.mjs') {
   fail('missing diagnostics package script')
 }
 
@@ -267,9 +267,9 @@ for (const file of [...changedFiles, ...stagedFiles]) {
 for (const file of changedFiles) {
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) continue
   if (file.startsWith('scripts/validation/')) continue
-  const text = stripHistoricalSections(read(file))
+  const text = stripHistoricalSections(fs.readFileSync(file, 'utf8'))
   for (const pattern of forbiddenClaims) {
-    if (pattern.test(text)) fail(`forbidden changed-file claim in ${file}: ${pattern}`)
+    if (pattern.test(text)) fail(`forbidden claim ${pattern} in ${file}`)
   }
 }
 

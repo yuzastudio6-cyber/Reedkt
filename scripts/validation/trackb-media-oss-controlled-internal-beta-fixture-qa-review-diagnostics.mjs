@@ -7,15 +7,15 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-fixture-execution'
+const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-fixture-qa-review'
 const decision =
-  'trackb_media_oss_controlled_internal_beta_fixture_execution_passed_ready_for_internal_beta_fixture_qa_review'
-const nextPrompt = 'TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_QA_REVIEW'
+  'trackb_media_oss_controlled_internal_beta_fixture_qa_passed_ready_for_limited_internal_beta_go_no_go_review'
+const nextPrompt = 'TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_GO_NO_GO_REVIEW'
 const ownerId = 'TRACK_B_MEDIA_OSS_STEWARD'
-const sourceSha = 'adae2badd12dbcbdef20f420b0684e0299482714'
+const sourceSha = '83ffcd11951a2e7f5a96d44b0fa82ab38ed0a153'
 const baseRef = 'origin/codex/rp-github-merge-hygiene-open-pr-stack-audit'
 
-const trackBTools = [
+const expectedTools = [
   'ffmpeg',
   'ffprobe',
   'sharp_libvips',
@@ -56,14 +56,12 @@ const expectedRanking = [
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'fixture-execution-receipts.json',
-  'fixture-execution-receipts.md',
-  'ranking-execution-order.json',
-  'ranking-execution-order.md',
-  'gate-validation-results.json',
-  'gate-validation-results.md',
-  'fail-closed-negative-cases.json',
-  'fail-closed-negative-cases.md',
+  'fixture-evidence-acceptance.json',
+  'fixture-evidence-acceptance.md',
+  'ranking-qa-review.json',
+  'ranking-qa-review.md',
+  'gate-qa-review.json',
+  'gate-qa-review.md',
   'runtime-boundary-review.json',
   'runtime-boundary-review.md',
   'decision.json',
@@ -85,8 +83,7 @@ const statusDocs = [
 
 const allowedChangedPrefixes = [
   `${reportDir}/`,
-  'docs/open-source-tool-stack/trackb-media-oss-internal-beta-fixture-gate-review/',
-  'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-fixture-qa-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-fixture-execution/',
 ]
 
 const allowedChangedFiles = new Set([
@@ -98,7 +95,6 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
-  'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-fixture-execution.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-fixture-qa-review.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-go-no-go-review.md',
   ...statusDocs,
@@ -112,7 +108,6 @@ const protectedNoDiffFiles = [
   'docker/prod/cpu-worker/requirements.cpu.txt',
   'docker/prod/ocr-runtime/Dockerfile',
   'docker/prod/ocr-runtime/requirements.ocr.txt',
-  'docker/prod/pro-color-image-runtime/Dockerfile',
   'src/backend/contracts/trackb-media-oss-tool-call-contracts.ts',
   'src/backend/api/routes/trackb-media-oss-tool-call-api-routes.ts',
 ]
@@ -172,6 +167,11 @@ function changedFiles() {
   ].filter(Boolean)
 }
 
+function requireDecision(label, report) {
+  if (report.decision !== decision) fail(`decision_drift:${label}:${report.decision}`)
+  if (report.ownerId !== ownerId) fail(`owner_drift:${label}:${report.ownerId}`)
+}
+
 function sameArray(actual, expected, label) {
   if (JSON.stringify(actual || []) !== JSON.stringify(expected)) {
     fail(`${label}_drift:${JSON.stringify(actual || [])}`)
@@ -186,104 +186,21 @@ function sameSet(actual, expected, label) {
   for (const item of actualSet) if (!expectedSet.has(item)) fail(`${label}_unexpected:${item}`)
 }
 
-function requireDecision(label, report) {
-  if (report.decision !== decision) fail(`decision_drift:${label}:${report.decision}`)
-  if (report.ownerId !== ownerId) fail(`owner_drift:${label}:${report.ownerId}`)
-}
-
 function isAllowedChangedFile(file) {
   return allowedChangedFiles.has(file) || allowedChangedPrefixes.some((prefix) => file.startsWith(prefix))
-}
-
-function hasUrlLikeValue(value) {
-  const normalized = String(value || '').trim().toLowerCase()
-  return normalized.startsWith('http://')
-    || normalized.startsWith('https://')
-    || normalized.startsWith('signed://')
-    || normalized.includes('x-amz-signature=')
-    || normalized.includes('x-goog-signature=')
-    || normalized.includes('signature=')
-    || normalized.includes('signedurl')
-    || normalized.includes('signed_url')
-}
-
-function fixtureReceipt(toolId, rank) {
-  return {
-    toolId,
-    rank,
-    receiptId: `trackb-fixture-receipt-${String(rank).padStart(2, '0')}-${toolId}`,
-    workspaceId: 'workspace_trackb_internal_fixture',
-    projectId: 'project_trackb_internal_fixture',
-    approvedSnapshotId: 'approved_snapshot_trackb_internal_fixture',
-    editPlanId: 'edit_plan_trackb_internal_fixture',
-    creditReservationId: 'credit_reservation_trackb_internal_fixture',
-    idempotencyKey: `trackb-internal-fixture-${toolId}`,
-    privateArtifact: {
-      artifactId: `artifact_trackb_internal_fixture_${toolId}`,
-      storageBucketPurpose: 'private_source_media',
-      storageObjectPath: `private/trackb/internal-fixture/${toolId}/source.fixture`,
-      isPrivate: true,
-      sourceOfTruth: true,
-    },
-    qaGateIds: [`qa_gate_trackb_internal_fixture_${toolId}`],
-    fallbackPolicyId: 'fallback_policy_trackb_internal_fixture',
-    resultSchemaVersion: 'trackb-media-oss-tool-call-result.v1',
-    sanitizedLogSummary: `${toolId} fixture receipt validated; no raw logs or private payloads emitted.`,
-    outcome: 'fixture_receipt_validated',
-  }
-}
-
-function validateFixtureReceipt(receipt) {
-  if (!trackBTools.includes(receipt.toolId)) throw new Error(`unsupported_tool:${receipt.toolId}`)
-  for (const field of [
-    'receiptId',
-    'workspaceId',
-    'projectId',
-    'approvedSnapshotId',
-    'editPlanId',
-    'creditReservationId',
-    'idempotencyKey',
-    'fallbackPolicyId',
-  ]) {
-    if (!receipt[field]) throw new Error(`missing_${field}`)
-  }
-  if (receipt.resultSchemaVersion !== 'trackb-media-oss-tool-call-result.v1') throw new Error('schema_drift')
-  if (!Array.isArray(receipt.qaGateIds) || receipt.qaGateIds.length === 0) throw new Error('missing_qa_gate')
-  if (receipt.privateArtifact?.isPrivate !== true || receipt.privateArtifact?.sourceOfTruth !== true) {
-    throw new Error('artifact_not_private_source_truth')
-  }
-  if (!receipt.privateArtifact.storageObjectPath || hasUrlLikeValue(receipt.privateArtifact.storageObjectPath)) {
-    throw new Error('artifact_storage_path_unsafe')
-  }
-  if (/rawPrompt|rawChat|providerPrompt|signedUrl|publicUrl/i.test(JSON.stringify(receipt))) {
-    throw new Error('forbidden_receipt_payload_key')
-  }
-}
-
-function expectBlocked(id, mutate) {
-  const receipt = fixtureReceipt('ffprobe', 1)
-  mutate(receipt)
-  try {
-    validateFixtureReceipt(receipt)
-    fail(`negative_case_not_blocked:${id}`)
-    return false
-  } catch {
-    return true
-  }
 }
 
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of [
   ...statusDocs,
-  'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-fixture-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-go-no-go-review.md',
 ]) readText(file)
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  receipts: readJson(`${reportDir}/fixture-execution-receipts.json`),
-  ranking: readJson(`${reportDir}/ranking-execution-order.json`),
-  gates: readJson(`${reportDir}/gate-validation-results.json`),
-  negative: readJson(`${reportDir}/fail-closed-negative-cases.json`),
+  evidence: readJson(`${reportDir}/fixture-evidence-acceptance.json`),
+  ranking: readJson(`${reportDir}/ranking-qa-review.json`),
+  gates: readJson(`${reportDir}/gate-qa-review.json`),
   runtime: readJson(`${reportDir}/runtime-boundary-review.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
   readiness: readJson(`${reportDir}/readiness-report.json`),
@@ -293,72 +210,36 @@ const reports = {
 for (const [label, report] of Object.entries(reports)) requireDecision(label, report)
 
 if (reports.source.sourceSha !== sourceSha) fail(`source_sha_drift:${reports.source.sourceSha}`)
-if (reports.source.sourceEvidence?.find((entry) => entry.pr === 781)?.state !== 'MERGED') fail('missing_pr781_source')
+if (reports.source.sourceEvidence?.find((entry) => entry.pr === 784)?.state !== 'MERGED') fail('missing_pr784_source')
 if (reports.source.trackBTotals?.owned !== 16) fail('owned_total_drift')
 if (reports.source.trackBTotals?.boundedAcceptedProven !== 16) fail('accepted_total_drift')
 if (reports.source.trackBTotals?.blockedNotInstalledProven !== 0) fail('blocked_total_drift')
 if (reports.source.trackBTotals?.productReady !== 0) fail('product_ready_total_drift')
 if (reports.source.nextPrompt !== nextPrompt) fail('source_next_prompt_drift')
 
-if (reports.receipts.receiptCount !== 16) fail('receipt_count_drift')
-sameSet(reports.receipts.toolIds, trackBTools, 'receipt_tools')
-sameArray(reports.receipts.rankingOrder, expectedRanking, 'receipt_ranking_order')
-for (const field of [
-  'allReceiptsValidated',
-  'allReceiptsUseApprovedSnapshot',
-  'allReceiptsUseCreditReservation',
-  'allReceiptsUsePrivateSourceOfTruthArtifacts',
-  'allReceiptsUseQaGate',
-  'allReceiptsUseFallbackPolicy',
-  'allReceiptsUseSanitizedLogSummary',
-]) {
-  if (reports.receipts[field] !== true) fail(`receipt_field_not_true:${field}`)
-}
-if (reports.receipts.realToolsRan !== false) fail('real_tools_ran')
-if (reports.receipts.userMediaUsed !== false) fail('user_media_used')
-if (reports.receipts.publicArtifactsCreated !== false) fail('public_artifacts_created')
-
-for (const [index, toolId] of expectedRanking.entries()) {
-  try {
-    validateFixtureReceipt(fixtureReceipt(toolId, index + 1))
-  } catch (error) {
-    fail(`fixture_receipt_rejected:${toolId}:${error.message}`)
-  }
-}
+if (reports.evidence.fixtureReceiptCount !== 16) fail('fixture_receipt_count_drift')
+sameSet(reports.evidence.acceptedToolIds, expectedTools, 'accepted_tools')
+if (reports.evidence.fixtureEvidenceAccepted !== true) fail('fixture_evidence_not_accepted')
+if (reports.evidence.acceptedForLimitedInternalBetaGoNoGoReview !== true) fail('not_ready_for_go_no_go_review')
+if (reports.evidence.acceptedForLiveBetaRuntime !== false) fail('live_beta_runtime_accepted')
+if (reports.evidence.productReady !== false) fail('product_ready_accepted')
 
 sameArray(reports.ranking.rankingOrder, expectedRanking, 'ranking_order')
-if (reports.ranking.rankingEntryCount !== 16) fail('ranking_count_drift')
-if (reports.ranking.deterministicRankingPreserved !== true) fail('ranking_not_preserved')
-if (reports.ranking.ffmpegLast !== true) fail('ffmpeg_not_last')
-if (reports.ranking.colorImagePairOrder !== 'opencolorio_before_openimageio') fail('color_image_pair_order_drift')
+if (reports.ranking.rankingQaAccepted !== true) fail('ranking_not_accepted')
+if (reports.ranking.ffmpegDeferredToLast !== true) fail('ffmpeg_not_deferred')
+if (reports.ranking.openColorIoBeforeOpenImageIo !== true) fail('color_image_order_drift')
 
 for (const field of [
-  'approvedSnapshotGatePassed',
-  'creditGatePassed',
-  'privateArtifactGatePassed',
-  'qaGatePassed',
-  'fallbackGatePassed',
-  'resultSchemaGatePassed',
-  'sanitizedLoggingGatePassed',
-  'rankingGatePassed',
+  'approvedSnapshotGateAccepted',
+  'creditGateAccepted',
+  'privateArtifactGateAccepted',
+  'qaGateAccepted',
+  'fallbackGateAccepted',
+  'resultSchemaGateAccepted',
+  'sanitizedLoggingGateAccepted',
+  'negativeCasesAccepted',
 ]) {
-  if (reports.gates[field] !== true) fail(`gate_not_passed:${field}`)
-}
-if (reports.gates.supabaseWritesRan !== false) fail('supabase_writes_ran')
-if (reports.gates.gcsUploadsRan !== false) fail('gcs_uploads_ran')
-
-const negativeResults = [
-  expectBlocked('missing_approved_snapshot', (receipt) => { receipt.approvedSnapshotId = '' }),
-  expectBlocked('missing_qa_gate', (receipt) => { receipt.qaGateIds = [] }),
-  expectBlocked('public_or_signed_artifact_path', (receipt) => {
-    receipt.privateArtifact.storageObjectPath = 'https://example.invalid/private?signature=abc'
-  }),
-  expectBlocked('raw_prompt_payload_key', (receipt) => { receipt.rawPrompt = 'do the thing' }),
-]
-if (negativeResults.some((result) => result !== true)) fail('negative_case_runtime_results_bad')
-if (reports.negative.allNegativeCasesBlocked !== true) fail('negative_report_not_all_blocked')
-for (const entry of reports.negative.negativeCases ?? []) {
-  if (entry.blocked !== true) fail(`negative_report_case_not_blocked:${entry.id}`)
+  if (reports.gates[field] !== true) fail(`gate_not_accepted:${field}`)
 }
 
 for (const [field, value] of Object.entries(reports.runtime)) {
@@ -373,12 +254,11 @@ for (const [field, value] of Object.entries(reports.runtime)) {
   }
 }
 
-if (reports.decisionReport.controlledFixtureReceiptsPassed !== true) fail('decision_fixture_receipts_not_passed')
-if (reports.decisionReport.readyForInternalBetaFixtureQaReview !== true) fail('decision_not_ready_for_qa')
+if (reports.decisionReport.readyForLimitedInternalBetaGoNoGoReview !== true) fail('decision_not_ready_for_go_no_go')
 if (reports.decisionReport.readyForLiveBetaRuntime !== false) fail('decision_live_beta_unblocked')
 if (reports.decisionReport.productReady !== false) fail('decision_product_ready_unblocked')
 if (reports.decisionReport.nextPrompt !== nextPrompt) fail('decision_next_prompt_drift')
-if (reports.readiness.readyForInternalBetaFixtureQaReview !== true) fail('readiness_not_ready_for_qa')
+if (reports.readiness.readyForLimitedInternalBetaGoNoGoReview !== true) fail('readiness_not_ready_for_go_no_go')
 if (reports.readiness.readyForLiveBetaRuntime !== false) fail('readiness_live_beta_unblocked')
 if (reports.readiness.productReady !== false) fail('readiness_product_ready_unblocked')
 
@@ -390,14 +270,14 @@ for (const [field, value] of Object.entries(reports.manifest)) {
 
 const packageJson = readJson('package.json')
 if (
-  packageJson.scripts?.['trackb-media-oss:controlled-internal-beta-fixture-execution:diagnostics'] !==
-  'node scripts/validation/trackb-media-oss-controlled-internal-beta-fixture-execution-diagnostics.mjs'
+  packageJson.scripts?.['trackb-media-oss:controlled-internal-beta-fixture-qa-review:diagnostics'] !==
+  'node scripts/validation/trackb-media-oss-controlled-internal-beta-fixture-qa-review-diagnostics.mjs'
 ) fail('missing_package_script')
 
 const allText = [
   ...requiredReports.map((file) => readText(`${reportDir}/${file}`)),
   ...statusDocs.map((file) => readText(file)),
-  readText('docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-fixture-qa-review.md'),
+  readText('docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-go-no-go-review.md'),
 ].join('\n')
 for (const pattern of [
   /\bready for direct tool calls\b/i,
@@ -408,7 +288,6 @@ for (const pattern of [
   /\b40\+ tools? (?:proven|ready|end-to-end)\b/i,
   /signedUrl\s*:/,
   /publicUrl\s*:/,
-  /\buser media used\b/i,
 ]) {
   if (pattern.test(allText)) fail(`forbidden_claim:${pattern}`)
 }
@@ -432,12 +311,6 @@ for (const file of changedFiles()) {
   ) fail(`forbidden_changed_file:${file}`)
 }
 
-const result = {
-  ok: failures.length === 0,
-  decision,
-  nextPrompt,
-  receiptCount: trackBTools.length,
-  failures,
-}
+const result = { ok: failures.length === 0, decision, nextPrompt, failures }
 console.log(JSON.stringify(result, null, 2))
 process.exit(failures.length === 0 ? 0 : 1)

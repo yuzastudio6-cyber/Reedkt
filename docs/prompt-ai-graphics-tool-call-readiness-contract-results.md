@@ -62,10 +62,17 @@ Latest observed PR state after beta-readiness gate completion: [#862](https://gi
   - `docs/tool-intelligence/ai-graphics/beta-readiness-gate.json`
   - `ai-graphics:beta-readiness-gate:diagnostics`
 - Beta gate result: 21 of 21 tools are installed or represented, 21 of 21 map to production registry IDs, 21 of 21 are selectable for planning, 8 heavy/model tools remain GPU-runtime targeted, 0 heavy/model tools target CPU fallback, and 0 of 21 tools are beta-testing ready until the missing runtime/owner gates are passed.
+- Added server-only Tool Route readiness contract:
+  - `server/tool-registry/ai-graphics-tool-route-readiness.ts`
+  - `docs/tool-intelligence/ai-graphics/tool-route-readiness-contract.md`
+  - `docs/tool-intelligence/ai-graphics/tool-route-readiness-contract.json`
+  - `ai-graphics:tool-route-readiness:diagnostics`
+- Tool Route readiness result: all 12 product-facing AI graphics capabilities can return planning metadata through the route contract, and execution-request dry-runs fail closed for all 12 capabilities until approved snapshot, credit, artifact, Tool Route, Worker, runtime, model-weight, browser sandbox, and beta-owner gates pass.
 
 ## Runtime State
 
 - `agentCanSelectForPlanning=true`
+- `routeCanReturnPlanningMetadataNow=true`
 - `agentCanExecuteToolsNow=false`
 - `routeExecutionApprovedNow=false`
 - `workerExecutionApprovedNow=false`

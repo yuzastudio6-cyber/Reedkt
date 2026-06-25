@@ -478,3 +478,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: all 21 tools are installed or represented on the intended ReeditPro surface, all 21 map to production registry IDs, all 21 are planning-selectable, and all 8 heavy/model tools remain GPU-runtime targeted. Beta testing ready now remains 0 of 21 because required runtime and owner gates are not yet passed.
 - GPU routing: no heavy/model tool is allowed to fall back to CPU runtime.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Tool Route Readiness Contract
+
+- Decision: `ai_graphics_tool_route_readiness_contract_prepared_with_execution_blocks`.
+- Scope: server-only Tool Route readiness contract consumes the 21-tool plan evaluator and beta-readiness gate so a future AI graphics Tool Route can return ranked planning metadata, production tool IDs, worker types, runtime targets, blockers, and next proof milestones.
+- Result: all 12 product-facing AI graphics capabilities are planning-metadata route-ready, and 12 of 12 execution-request dry-runs fail closed. Execution-ready capabilities remain 0 because approved snapshot, credit, artifact, Tool Route, Worker, runtime, model-weight, browser sandbox, and beta-owner gates are still missing.
+- GPU routing: all 8 heavy/model tools remain GPU-runtime targeted; no heavy/model tool is allowed to fall back to CPU runtime.
+- Runtime/beta/production: no unlock; `routeCanReturnPlanningMetadataNow=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

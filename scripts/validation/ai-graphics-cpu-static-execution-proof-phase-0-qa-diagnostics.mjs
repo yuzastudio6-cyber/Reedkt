@@ -294,6 +294,7 @@ const allowedDescendantScripts = new Set([
   'ai-graphics:tool-call-handoff:diagnostics',
   'ai-graphics:tool-call-plan-evaluator:diagnostics',
   'ai-graphics:beta-readiness-gate:diagnostics',
+  'ai-graphics:tool-route-readiness:diagnostics',
 ])
 for (const scriptName of Object.keys(packageJson?.scripts ?? {})) {
   if (!basePackageJson.scripts?.[scriptName] && !allowedDescendantScripts.has(scriptName)) {

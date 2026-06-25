@@ -247,6 +247,7 @@ for (const key of scriptDrift) {
     key !== "ai-graphics:tool-call-handoff:diagnostics" &&
     key !== "ai-graphics:tool-call-plan-evaluator:diagnostics" &&
     key !== "ai-graphics:beta-readiness-gate:diagnostics" &&
+    key !== "ai-graphics:tool-route-readiness:diagnostics" &&
     key !== "ai-graphics:21-tool-runtime-install-readiness:diagnostics" &&
     key !== "ai-graphics:gpu-import-readiness:diagnostics" &&
     key !== "ai-graphics:node-runtime-proof" &&
@@ -262,7 +263,8 @@ for (const key of scriptDrift) {
     key !== "ai-graphics:21-tool-proper-install-audit:diagnostics" &&
     key !== "ai-graphics:tool-call-handoff:diagnostics" &&
     key !== "ai-graphics:tool-call-plan-evaluator:diagnostics" &&
-    key !== "ai-graphics:beta-readiness-gate:diagnostics"
+    key !== "ai-graphics:beta-readiness-gate:diagnostics" &&
+    key !== "ai-graphics:tool-route-readiness:diagnostics"
   ) {
     fail("Unexpected script drift: " + key);
   }

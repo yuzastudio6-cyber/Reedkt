@@ -5,12 +5,12 @@
   "branch": "codex/rp-ai-graphics-gpu-model-runtime-readiness-gate",
   "base": "origin/codex/rp-ai-graphics-gpu-model-install-build-targets",
   "pullRequest": {
-    "number": null,
-    "url": null,
-    "state": "pending",
+    "number": 856,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/856",
+    "state": "OPEN",
     "isDraft": true,
-    "mergeStateStatus": "pending",
-    "headSha": null,
+    "mergeStateStatus": "CLEAN",
+    "headSha": "cf1358b35a88d34982eabf30e5b025e705703ecf",
     "checkRollup": []
   },
   "sourcePr": {

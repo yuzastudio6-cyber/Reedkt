@@ -14,6 +14,7 @@ Goal:
 Implemented result:
 
 - Decision: `ai_graphics_gpu_model_runtime_readiness_gate_prepared_with_warnings`.
+- Draft PR: [#856](https://github.com/yuzastudio6-cyber/Reedkt/pull/856), open/draft/CLEAN at `cf1358b35a88d34982eabf30e5b025e705703ecf`, with an empty check rollup at creation.
 - Added runtime readiness probe:
   - `docker/prod/ai-graphics-gpu-runtime-readiness.py`
 - Copied the probe into:

@@ -6,6 +6,8 @@ Branch: `codex/rp-ai-graphics-gpu-model-runtime-readiness-gate`
 
 Base: `origin/codex/rp-ai-graphics-gpu-model-install-build-targets`
 
+Draft PR: [#856](https://github.com/yuzastudio6-cyber/Reedkt/pull/856), open/draft/CLEAN at `cf1358b35a88d34982eabf30e5b025e705703ecf`, with an empty check rollup at creation.
+
 Source PR: [#833](https://github.com/yuzastudio6-cyber/Reedkt/pull/833)
 
 Result:

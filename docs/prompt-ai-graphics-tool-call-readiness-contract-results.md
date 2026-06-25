@@ -28,10 +28,15 @@ Latest observed PR state after proof-evidence alignment: [#862](https://github.c
 
 - All 21 AI graphics tools are covered.
 - All 21 AI graphics tools now map to production registry IDs.
+- Added a strict 21-tool proper install audit:
+  - `docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.md`
+  - `docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json`
+  - `ai-graphics:21-tool-proper-install-audit:diagnostics`
 - 13 JS graphics tools remain tied to `package.json` and `package-lock.json`.
 - Node, browser, and Satori font runtime proof evidence is now reflected in the contract for the 13 JS graphics tools.
 - 8 ML/GPU tools remain tied to Docker/GPU worker install targets and runtime-readiness gates.
 - Heavy/model tools route to GPU runtime targets, not CPU runtime defaults.
+- Proper install audit result: 21 of 21 tools are correctly installed or represented for their intended ReeditPro surface; 13 use Node lockfile packages, 8 use GPU Docker install-proof targets, 0 heavy tools are incorrectly routed to CPU, and 0 tools are agent-executable now.
 
 ## Runtime State
 

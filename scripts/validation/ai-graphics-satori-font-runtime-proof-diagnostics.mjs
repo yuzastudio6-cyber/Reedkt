@@ -183,7 +183,8 @@ for (const line of dependencyDiff.split(/\r?\n/)) {
       !line.includes("scripts/validation/ai-graphics-satori-font-runtime-proof") &&
       !line.includes("ai-graphics:gpu-model-install-build-targets:diagnostics") &&
       !line.includes("ai-graphics:gpu-model-runtime-readiness-gate:diagnostics") &&
-      !line.includes("ai-graphics:tool-call-readiness:diagnostics")
+      !line.includes("ai-graphics:tool-call-readiness:diagnostics") &&
+      !line.includes("ai-graphics:21-tool-proper-install-audit:diagnostics")
     ) {
       fail(`Unexpected package.json addition: ${line}`);
     }

@@ -48,6 +48,7 @@
     "ai-graphics:gpu-model-install-build-targets:diagnostics": "node scripts/validation/ai-graphics-gpu-model-install-build-targets-diagnostics.mjs",
     "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics": "node scripts/validation/ai-graphics-gpu-model-runtime-readiness-gate-diagnostics.mjs",
     "ai-graphics:tool-call-readiness:diagnostics": "node scripts/validation/ai-graphics-tool-call-readiness-diagnostics.mjs",
+    "ai-graphics:21-tool-proper-install-audit:diagnostics": "node scripts/validation/ai-graphics-21-tool-proper-install-audit-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

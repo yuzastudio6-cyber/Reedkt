@@ -1,0 +1,256 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.21-tool-proper-install-audit",
+  "decision": "ai_graphics_21_tool_proper_install_audit_completed_with_runtime_blocks",
+  "status": "completed_with_runtime_blocks",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "sourceEvidence": {
+    "toolCallReadinessContract": "docs/tool-intelligence/ai-graphics/tool-call-readiness-contract.json",
+    "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
+    "gpuModelRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
+    "nodeRuntimeProof": "docs/tool-intelligence/ai-graphics/node-runtime-proof.json",
+    "browserRuntimeProof": "docs/tool-intelligence/ai-graphics/browser-runtime-proof.json",
+    "satoriFontRuntimeProof": "docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json",
+    "cpuStaticPhase0OwnerReview": "docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0-owner-review.json"
+  },
+  "counts": {
+    "totalTools": 21,
+    "properlyInstalledForPlannedSurface": 21,
+    "nodeLockfileTools": 13,
+    "gpuDockerInstallProofTools": 8,
+    "productionToolIdMapped": 21,
+    "unmappedPlanningWrappers": 0,
+    "heavyToolsTargetingGpu": 8,
+    "heavyToolsIncorrectlyTargetingCpu": 0,
+    "nativeGpuRuntimeProofPending": 8,
+    "modelWeightManifestPending": 5,
+    "toolRouteWorkerGatePending": 21,
+    "agentExecutableNow": 0,
+    "runtimeReadyNow": 0,
+    "betaTestingReadyNow": 0,
+    "productionReadyNow": 0
+  },
+  "booleans": {
+    "all21ToolsAudited": true,
+    "all21ToolsMappedToProductionRegistry": true,
+    "all13JsToolsDeclaredInPackageJson": true,
+    "all13JsToolsLockedInPackageLock": true,
+    "all8GpuModelToolsHaveDockerInstallProof": true,
+    "gpuHeavyToolsTargetGpuRuntime": true,
+    "gpuHeavyToolsTargetCpuRuntime": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformedInThisAudit": false,
+    "packageLockMutationPerformed": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "mediaProcessingPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "toolRows": [
+    {
+      "toolId": "torch_torchvision",
+      "packageName": "torch==2.5.1+cu124 + torchvision==0.20.1+cu124",
+      "productionToolId": "torch_torchvision",
+      "installSurface": "gpu_worker_requirements",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "transformers",
+      "packageName": "transformers==4.57.6",
+      "productionToolId": "transformers",
+      "installSurface": "gpu_worker_requirements",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "sam2",
+      "packageName": "facebookresearch/sam2 pinned source install",
+      "productionToolId": "sam2",
+      "installSurface": "dedicated_gpu_runtime_image",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_dedicated_runtime",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "packageName": "transformers + ZhengPeng7/BiRefNet model snapshot",
+      "productionToolId": "birefnet",
+      "installSurface": "dedicated_gpu_runtime_image",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_dedicated_runtime",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "packageName": "realesrgan==0.3.0",
+      "productionToolId": "real_esrgan",
+      "installSurface": "dedicated_gpu_runtime_image",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_dedicated_runtime",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "kornia",
+      "packageName": "kornia==0.8.1",
+      "productionToolId": "kornia",
+      "installSurface": "gpu_worker_requirements",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "rembg",
+      "packageName": "rembg[gpu]==2.0.69",
+      "productionToolId": "rembg",
+      "installSurface": "gpu_worker_requirements",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "packageName": "transparent-background==1.3.4",
+      "productionToolId": "transparent_background",
+      "installSurface": "gpu_worker_requirements",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "d3",
+      "packageName": "d3",
+      "productionToolId": "d3",
+      "installSurface": "node_package_lock",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "node_cpu_static",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "echarts",
+      "packageName": "echarts",
+      "productionToolId": "echarts",
+      "installSurface": "node_package_lock",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "browser_chart_runtime_later",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "packageName": "vega-lite",
+      "productionToolId": "vega_lite",
+      "installSurface": "node_package_lock",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "node_cpu_static",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "vega",
+      "packageName": "vega",
+      "productionToolId": "vega",
+      "installSurface": "node_package_lock",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "node_cpu_static",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "satori",
+      "packageName": "satori",
+      "productionToolId": "satori",
+      "installSurface": "node_package_lock",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "node_cpu_static",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "packageName": "@svgdotjs/svg.js",
+      "productionToolId": "svgdotjs_svg_js",
+      "installSurface": "node_package_lock",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "node_cpu_static",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "packageName": "@viz-js/viz",
+      "productionToolId": "viz_js",
+      "installSurface": "node_package_lock",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "node_cpu_static",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "packageName": "lottie-web",
+      "productionToolId": "lottie",
+      "installSurface": "node_package_lock_with_production_alias",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "browser_animation_runtime_later",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "animejs",
+      "packageName": "animejs",
+      "productionToolId": "animejs",
+      "installSurface": "node_package_lock",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "browser_animation_runtime_later",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "three_js",
+      "packageName": "three",
+      "productionToolId": "three_js",
+      "installSurface": "node_package_lock",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "packageName": "pixi.js",
+      "productionToolId": "pixijs",
+      "installSurface": "node_package_lock_with_production_alias",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "konva",
+      "packageName": "konva",
+      "productionToolId": "konva",
+      "installSurface": "node_package_lock",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "runtimeReadyNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "packageName": "babylonjs",
+      "productionToolId": "babylon_js",
+      "installSurface": "node_package_lock_with_production_alias",
+      "properlyInstalledForPlannedSurface": true,
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "runtimeReadyNow": false
+    }
+  ],
+  "nextWork": [
+    "Run native linux/amd64 NVIDIA L4 runtime proof for the eight GPU/model tools with REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true.",
+    "Add reviewed private model or model-cache manifests for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background.",
+    "Add Tool Route and Worker approval gates that consume the ranking/selection contract without bypassing approved snapshots, credits, artifact policy, or user approval."
+  ]
+}

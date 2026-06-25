@@ -1,0 +1,5 @@
+# SOUND-RUNTIME-MEDIA-GATE-2U: Route-readiness criteria plan, no route execution
+
+Create the next SOUND Gate 2U packet only after decision `worker_runtime_jobs_sound_cpu_bounded_route_readiness_static_review_owner_review_passed_with_warnings_ready_for_route_readiness_criteria_plan`.
+
+Gate 2U may define the criteria required before any future SOUND CPU route-readiness claim can be considered. It may use the Gate 2T static review, Gate 2S owner-review acceptance, and Gate 2R controlled static import proof as planning evidence only. It must not import route resolvers, import server route modules for execution, execute server routes, dispatch workers, execute workers, execute tools, open or process media, run FFmpeg/ffprobe, run Docker build/run/push, call GCP/Cloud Run, touch Supabase, execute SQL, create artifacts, create signed/public URLs, call providers/models, unlock beta, unlock production, claim `generated_local_fixture_passed`, claim `dry_run_passed`, or claim route/worker/runtime/media readiness.

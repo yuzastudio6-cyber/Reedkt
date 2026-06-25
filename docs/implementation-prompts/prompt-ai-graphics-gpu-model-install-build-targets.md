@@ -12,7 +12,7 @@ Goal:
 Implemented result:
 
 - Decision: `ai_graphics_gpu_model_install_build_targets_prepared_with_warnings`.
-- Draft PR: [#833](https://github.com/yuzastudio6-cyber/Reedkt/pull/833), open/draft/CLEAN at `8330ba32634f41dd4e6ac681aecaa023979b09d4`, with an empty check rollup at creation.
+- Draft PR: [#833](https://github.com/yuzastudio6-cyber/Reedkt/pull/833), open/draft/CLEAN at `2bb9788a3c31a942ac5c6a59e49bde803199ebcf`, with an empty check rollup after the shared GPU worker install-proof follow-up.
 - Added package script:
   - `ai-graphics:gpu-model-install-build-targets:diagnostics`
 - Added diagnostic:

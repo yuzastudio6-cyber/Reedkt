@@ -164,6 +164,17 @@ No Supabase mutation, credit mutation, job enqueue, job event write, worker leas
 Internal beta end-to-end remains `not_ready` until transactional job queue runtime, persistent worker leases/events, private artifact manifests/checksums/QA/cleanup, render worker, backend-only provider adapters, and negative safety tests pass.
 
 Next recommended step: `RP-ARTIFACTS-01-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-SCAFFOLD`.
+## RP-ARTIFACTS-01 Internal Beta Private Artifact Manifest Scaffold
+
+`RP-ARTIFACTS-01-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-SCAFFOLD` records decision `completed_disabled_internal_beta_private_artifact_manifest_scaffold_no_artifact_access` and execution `completed_fail_closed_artifact_manifest_scaffold_no_storage_or_signed_url`.
+
+Disabled private artifact manifest scaffold operations now exist for manifest write/read, checksum record, QA report link, cleanup policy record, private access preparation/readback, and retention mark. They return `disabled_pending_private_artifact_manifest_runtime_gate` and do not write manifests, read/write storage, create signed URLs, create public artifacts, or grant private artifact access.
+
+No Supabase mutation, credit mutation, storage object creation, storage object read, signed URL creation, public artifact creation, job enqueue, worker dispatch, provider/model call, render/export, internal beta unlock, external beta unlock, production unlock, route execution, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler is implemented.
+
+Internal beta end-to-end remains `not_ready` until service-role route handlers, transactional artifact manifest runtime, private storage access policy, render worker, backend-only provider adapters, QA, cleanup, and negative safety tests pass.
+
+Next recommended step: `RP-RENDER-01-INTERNAL-BETA-REMOTION-RENDER-WORKER-SCAFFOLD`.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

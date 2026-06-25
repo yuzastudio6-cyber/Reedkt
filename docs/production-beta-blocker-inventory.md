@@ -123,6 +123,18 @@ Next recommended milestone: `RP-ARTIFACTS-01-INTERNAL-BETA-PRIVATE-ARTIFACT-MANI
 
 External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## RP-ARTIFACTS-01 Internal Beta Private Artifact Manifest Scaffold
+
+`RP-ARTIFACTS-01-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-SCAFFOLD` records decision `completed_disabled_internal_beta_private_artifact_manifest_scaffold_no_artifact_access` and execution `completed_fail_closed_artifact_manifest_scaffold_no_storage_or_signed_url`.
+
+Private artifact manifest scaffold status: `disabled_pending_private_artifact_manifest_runtime_gate`. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Disabled private artifact manifest scaffold operations now exist for manifest write/read, checksum record, QA report link, cleanup policy record, private access preparation/readback, and retention mark. They are not registered as live HTTP handlers or mock handlers, and they do not write manifests, read/write storage, create signed URLs, create public artifacts, mutate Supabase, enqueue jobs, dispatch workers, call providers/models, render/export, or unlock beta/production.
+
+Next recommended milestone: `RP-RENDER-01-INTERNAL-BETA-REMOTION-RENDER-WORKER-SCAFFOLD`.
+
+External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

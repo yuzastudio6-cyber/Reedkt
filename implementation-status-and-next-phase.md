@@ -406,6 +406,28 @@ No remote Supabase mutation, SQL mutation, migration apply, RLS policy apply, st
 
 Next recommended milestone after a passing confirmed run: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`.
 
+## SUPABASE-WORKER-RUNTIME Transactional RPC 4R Confirmed Runner
+
+`SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED` records decision `completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution` and execution `completed_guard_scaffold_no_remote_execution`.
+
+Current runner result: `blocked_pending_rpc_4r_confirmed_staging_sql_gates`. Current runner execution: `blocked_confirmation_absent_no_sql_execution`. Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`.
+
+The runner writes sanitized local `/tmp` report and manifest evidence only. It requires the six RPC-4R confirmation gates and a successful `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` report before any future staging SQL path can be considered. In this source packet, Supabase update status is `blocked_sql_not_executed`, Supabase environment touched is `none`, SQL executed is `none`, migration deployed is `no`, readbackStatus is `not_run`, Secret Manager payload printed is `false`, production touched is `false`, internal beta unlocked is `false`, and `trackAInternalBetaUnlocked` is `false`.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: blocked_pending_guarded_staging_sql_execution
+
+WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: blocked_pending_guarded_staging_sql_execution
+
+TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: blocked_pending_worker_transactional_contract
+
+INTERNAL-BETA-READINESS-ROLLUP readiness: blocked_pending_worker_transactional_contract
+
+Product-ready end-to-end local OSS tools: 0. Package-lock: unchanged. Generated artifacts committed: none.
+
+No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.
+
+Next recommended milestone after a passing target validation and approved staging runner context: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

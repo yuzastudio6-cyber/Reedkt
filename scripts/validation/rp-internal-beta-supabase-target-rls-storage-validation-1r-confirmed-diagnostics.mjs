@@ -24,8 +24,23 @@ const requiredFiles = [
   'package.json',
 ]
 
+const rpc4rConfirmedFiles = [
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-source-audit.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-runner.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-readiness-gate.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-safety-boundary.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-record.json',
+  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-confirmed-results.md',
+  'docs/implementation-prompts/prompt-supabase-worker-runtime-transactional-rpc-4r-confirmed.md',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed.mjs',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed-diagnostics.mjs',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-diagnostics.mjs',
+]
+
 const allowedChanged = new Set([
   ...requiredFiles,
+  ...rpc4rConfirmedFiles,
 ])
 
 const requiredText = [

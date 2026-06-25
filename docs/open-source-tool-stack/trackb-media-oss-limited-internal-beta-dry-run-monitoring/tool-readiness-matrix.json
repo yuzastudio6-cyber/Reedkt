@@ -1,0 +1,40 @@
+{
+  "schema": "trackb-media-oss-limited-internal-beta-dry-run-monitoring-tool-readiness-matrix.v1",
+  "generatedAt": "2026-06-25T16:25:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_dry_run_monitoring_passed_ready_for_monitoring_qa_review",
+  "toolCount": 16,
+  "boundedAcceptedProvenTools": 16,
+  "pendingInstallTools": 0,
+  "productReadyTools": 0,
+  "opencolorio": {
+    "boundedAcceptedProven": true,
+    "pendingInstall": false,
+    "productReady": false
+  },
+  "openimageio": {
+    "boundedAcceptedProven": true,
+    "pendingInstall": false,
+    "productReady": false
+  },
+  "rankingOrder": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars",
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr",
+    "ffmpeg"
+  ],
+  "allEntriesDryRunOnly": true,
+  "allEntriesExecutionDisabled": true
+}

@@ -62,12 +62,14 @@ const statusDocs = [
 
 const allowedChangedPrefixes = [
   `${reportDir}/`,
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-readiness-review/',
 ]
 
 const allowedChangedFiles = new Set([
   'package.json',
   'scripts/validation/trackb-media-oss-limited-internal-beta-testing-handoff-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-readiness-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-testing-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-qa-review-diagnostics.mjs',
@@ -82,6 +84,7 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-testing-handoff.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review.md',
   ...statusDocs,
 ])
 

@@ -46,6 +46,7 @@
     "ai-video-broll-gen-9i:diagnostics": "node scripts/validation/ai-video-broll-gen-9i-diagnostics.mjs",
     "ai-video-broll-gen-9j:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-diagnostics.mjs",
     "ai-video-broll-gen-9j-fix:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-fix-diagnostics.mjs",
+    "ai-video-broll-gen-9j-fix-setup:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-fix-setup-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

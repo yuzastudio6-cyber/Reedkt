@@ -410,5 +410,16 @@
     "readyForLiveBetaRuntime": false,
     "productReady": false,
     "nextPrompt": "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION"
+  },
+  "controlledInternalBetaFixtureExecution": {
+    "decision": "trackb_media_oss_controlled_internal_beta_fixture_execution_passed_ready_for_internal_beta_fixture_qa_review",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-fixture-execution",
+    "coveredToolCount": 16,
+    "fixtureReceiptCount": 16,
+    "rankingPreserved": true,
+    "readyForInternalBetaFixtureQaReview": true,
+    "readyForLiveBetaRuntime": false,
+    "productReady": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_QA_REVIEW"
   }
 }

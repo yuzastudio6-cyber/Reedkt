@@ -32,6 +32,16 @@ const requiredFiles = [
   'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-run.md',
   'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1-diagnostics.mjs',
+  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/credential-context-contract.md',
+  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/alias-matrix.md',
+  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/credential-context-contract-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-credential-context-contract-1-results.md',
+  'server/config/internal-beta-supabase-credential-context-contract.ts',
+  'server/smoke/internal-beta-supabase-credential-context-contract-smoke.ts',
+  'scripts/validation/rp-internal-beta-supabase-credential-context-contract-1-diagnostics.mjs',
   'package.json',
 ]
 
@@ -221,7 +231,7 @@ for (const required of [
 }
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
-for (const blocked of ['supabase/migrations', 'supabase/functions', 'server/routes', 'server/workers', 'server/config', 'docker', 'src', 'database', '.dockerignore']) {
+for (const blocked of ['supabase/migrations', 'supabase/functions', 'server/routes', 'server/workers', 'docker', 'src', 'database', '.dockerignore']) {
   execFileSync('git', ['diff', '--quiet', '--', blocked], { env: gitEnv, stdio: 'pipe' })
 }
 

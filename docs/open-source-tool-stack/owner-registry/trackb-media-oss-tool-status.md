@@ -232,6 +232,17 @@ TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW:
 - Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION`.
 <!-- TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW_STATUS:end -->
 
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION:
+
+- Decision: `trackb_media_oss_controlled_internal_beta_fixture_execution_passed_ready_for_internal_beta_fixture_qa_review`.
+- Steward state: all 16 Track B tools have controlled internal fixture receipts with approved snapshot, credit, private artifact, QA, fallback, result schema, sanitized logging, and deterministic ranking gates.
+- OpenColorIO and OpenImageIO remain bounded accepted/proven; this phase does not reinstall or rerun CPU container package proofs.
+- Direct product tool calls, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
+- Product-ready local OSS tools remain `0`.
+- Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_QA_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION_STATUS:end -->
+
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_STATUS:start -->
 TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION:
 

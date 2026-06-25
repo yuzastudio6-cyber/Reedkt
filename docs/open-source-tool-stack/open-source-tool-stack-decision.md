@@ -771,3 +771,14 @@ TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW:
 - Product-ready local OSS tools remain `0`.
 - Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION`.
 <!-- TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION:
+
+- Decision: `trackb_media_oss_controlled_internal_beta_fixture_execution_passed_ready_for_internal_beta_fixture_qa_review`.
+- The controlled internal fixture lane validates 16 synthetic/private fixture receipts in deterministic ranking order with approved snapshot, credit reservation, private artifact, QA, fallback, result schema, and sanitized logging gates.
+- OpenColorIO and OpenImageIO remain included as bounded accepted/proven tools in the all-tool fixture receipt sequence; no reinstall is required.
+- Real tool execution, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
+- Product-ready local OSS tools remain `0`.
+- Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_QA_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION_STATUS:end -->

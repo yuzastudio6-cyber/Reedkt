@@ -148,3 +148,14 @@ TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW:
 - Required next owner action: implement callable worker/API contracts with fail-closed approved-snapshot, credit, private artifact, result schema, QA, fallback, logging, and hardening boundaries.
 - Next prompt: `TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION`.
 <!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:start -->
+TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION:
+
+- Decision: `trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun`.
+- Steward state: bounded install/proof is complete for all 16 tools, and callable contract metadata now exists.
+- Route metadata is fail-closed: validate, queue, and status routes are disabled and backend-required.
+- Worker contracts require approved snapshot, edit plan, idempotency, credit reservation, private artifact references, QA gates, fallback policy, result schema, and sanitized logging.
+- Direct tool calls and beta remain blocked until `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN`.
+- Product-ready local OSS tools remain `0`.
+<!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:end -->

@@ -1,0 +1,14 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssCallableWorkerContracts.privateArtifactManifest.v1",
+  "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+  "privateArtifactsCreated": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "privatePayloadsCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "secretsCommitted": false,
+  "notes": [
+    "This phase commits contracts, reports, diagnostics, and status metadata only.",
+    "No source media, generated media, private artifact, public artifact, signed URL, or secret is committed."
+  ]
+}

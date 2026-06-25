@@ -1201,5 +1201,19 @@
     "renderExportApproved": false,
     "workerRuntimeApproved": false,
     "betaProductionApproved": false
+  },
+  "callableWorkerContractsImplementation": {
+    "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-callable-worker-contracts-implementation",
+    "coveredToolCount": 16,
+    "routeMetadataImplemented": true,
+    "workerContractsImplemented": true,
+    "payloadValidationImplemented": true,
+    "routesDisabled": true,
+    "workerExecutionEnabled": false,
+    "directToolCallsReady": false,
+    "internalBetaReady": false,
+    "productReady": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN"
   }
 }

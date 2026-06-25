@@ -1,0 +1,18 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssCallableWorkerContracts.privateArtifactResultSchema.v1",
+  "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+  "privateArtifactsRequired": true,
+  "sourceOfTruthStorageRefsOnly": true,
+  "publicArtifactsAllowed": false,
+  "signedUrlsAllowed": false,
+  "resultSchemaVersion": "trackb-media-oss-tool-call-result.v1",
+  "forbiddenResultFields": [
+    "signedUrl",
+    "signed_url",
+    "publicUrl",
+    "rawPrompt",
+    "rawChat",
+    "providerPrompt"
+  ],
+  "sanitizedLogsSummaryRequired": true
+}

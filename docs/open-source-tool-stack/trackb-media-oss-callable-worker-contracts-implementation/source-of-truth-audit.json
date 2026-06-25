@@ -1,0 +1,44 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssCallableWorkerContracts.sourceAudit.v1",
+  "generatedAt": "2026-06-25T12:30:00Z",
+  "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceSha": "c9311b84be3688820ee5fa202991b0c525f1edb9",
+  "authoritativeEvidence": [
+    {
+      "pr": 755,
+      "state": "MERGED",
+      "role": "tool_call_beta_readiness_review",
+      "decision": "trackb_media_oss_tool_call_beta_readiness_review_blocked_pending_callable_worker_contracts"
+    },
+    {
+      "pr": 754,
+      "state": "MERGED",
+      "role": "track_b_final_rollup",
+      "decision": "trackb_media_oss_final_rollup_passed_ready_for_tool_call_beta_readiness_review"
+    },
+    {
+      "pr": 741,
+      "state": "MERGED",
+      "role": "milestone_4_color_image_qa",
+      "decision": "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup"
+    },
+    {
+      "pr": 648,
+      "state": "MERGED",
+      "role": "milestone_4_cpu_execution",
+      "decision": "trackb_media_oss_milestone4_color_image_pipeline_cpu_execution_passed_ready_for_qa"
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "duplicateOpenPrSearch": {
+    "TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION": "none",
+    "TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN": "none"
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN"
+}

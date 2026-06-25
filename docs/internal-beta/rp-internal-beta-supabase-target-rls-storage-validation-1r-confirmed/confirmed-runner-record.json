@@ -7,8 +7,10 @@
   "supabaseTargetProject": "wmyyttnynmteqgcdishd",
   "requiredConfirmation": "REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true",
   "observedConfirmation": "present_true",
-  "currentRunStatus": "blocked_missing_supabase_access_token_for_readonly_target_identity",
+  "currentRunStatus": "blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias",
   "credentialPreflightExecution": "blocked_no_remote_execution_missing_safe_credential_context",
+  "credentialContextContractPacket": "RP-INTERNAL-BETA-SUPABASE-CREDENTIAL-CONTEXT-CONTRACT-1",
+  "credentialContextRequiredBeforeRemoteCommand": true,
   "credentialAliasSupport": "approved_env_aliases_supported_payloads_redacted",
   "acceptedAccessTokenEnvNames": [
     "SUPABASE_ACCESS_TOKEN",

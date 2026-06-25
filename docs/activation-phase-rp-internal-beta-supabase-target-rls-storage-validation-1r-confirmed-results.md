@@ -12,7 +12,7 @@ Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STOR
 
 Observed confirmation: `present_true`
 
-Current run status: `blocked_missing_supabase_access_token_for_readonly_target_identity`
+Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
 
 Credential alias support: `approved_env_aliases_supported_payloads_redacted`
 
@@ -50,11 +50,11 @@ Generated artifacts committed: `none`
 
 ## Local Fail-Closed Runner Evidence
 
-Run ID: `2026-06-25T21-23-22-809Z-005abedf`
+Run ID: `2026-06-25T22-05-55-744Z-8ca7b12e`
 
-Output directory: `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/2026-06-25T21-23-22-809Z-005abedf`
+Output directory: `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/2026-06-25T22-05-55-744Z-8ca7b12e`
 
-Result: `blocked_missing_supabase_access_token_for_readonly_target_identity`
+Result: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
 
 Execution: `blocked_no_remote_execution_missing_safe_credential_context`
 
@@ -66,8 +66,8 @@ Credential payloads printed: `false`
 
 Artifacts/checksums:
 
-- `validation-report.json`, `2146` bytes, SHA-256 `3751bc9c1cf975f62eeef7ab543f81973716be614bf3e3d135842ca3853ff791`
-- `artifact-manifest.json`, `974` bytes, SHA-256 `d2261c88dc84cdfd8b7a745f6ca616fd6ee622272a60f695326c3cf71071fa8d`
+- `validation-report.json`, `2501` bytes, SHA-256 `eeb543b9d1e9fb8ac2aea4dd477305ee31815b296b0b7032ae4d7a2fe0670808`
+- `artifact-manifest.json`, `974` bytes, SHA-256 `fc626af2fff4f52c0c50f126eafd485e56fffd8e1db1801c1a2f543e05897ec1`
 
 Generated `/tmp` artifacts committed: `none`
 

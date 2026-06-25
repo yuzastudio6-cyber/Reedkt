@@ -15,7 +15,7 @@ Active blockers remain:
 
 `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_confirmed_validation_runner_fail_closed_without_remote_execution` and execution `completed_runner_scaffold_no_remote_execution`.
 
-Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`. Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`. Observed confirmation: `present_true`. Current run status: `blocked_missing_supabase_access_token_for_readonly_target_identity`.
+Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`. Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`. Observed confirmation: `present_true`. Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`.
 
 Credential alias support: `approved_env_aliases_supported_payloads_redacted`. The confirmed runner accepts `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, or `REEDITPRO_SUPABASE_ACCESS_TOKEN` for target identity, plus `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, or `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` for read-only advisor lint. Payloads remain forbidden.
 
@@ -148,6 +148,16 @@ The runtime readiness orchestrator now carries the backend-safe Supabase credent
 Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generated artifacts committed: none. Supabase classification: no write / environment none / SQL none / migration no.
 
 No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role secret payload access, frontend service-role credential exposure, service-role route execution, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, final render/export, preview artifact creation, private media processing, user media processing, Remotion execution, FFmpeg execution, FFprobe execution, media processing, package installation beyond dependency validation, Dockerfile change, requirements change, or broad service-role handler was enabled.
+
+## Internal Beta Supabase Confirmed Runner Credential Context Hardening
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-CONFIRMED-RUNNER-CREDENTIAL-CONTEXT-HARDENING-1` records decision `completed_confirmed_runner_credential_context_hardening_fail_closed`.
+
+The confirmed Supabase target RLS/storage validation runner now requires both an approved access-token alias and an approved read-only DB URL alias before any remote Supabase command can run. Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`. Commands executed by current run: `none`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generated artifacts committed: none. Supabase classification: no write / environment none / SQL none / migration no.
+
+No remote Supabase command, remote Supabase mutation, SQL execution, SQL mutation, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, frontend service-role credential exposure, service-role route execution, Google Cloud API call, Cloud Run service creation, Cloud Run job creation, Cloud Run deployment, IAM mutation, GCS bucket creation, GCS object access, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.
 
 ## RP-DATA-01 Supabase Schema Migration Readiness
 

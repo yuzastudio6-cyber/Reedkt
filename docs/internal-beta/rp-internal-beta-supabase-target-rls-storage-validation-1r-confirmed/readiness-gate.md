@@ -8,7 +8,7 @@ Execution: `completed_runner_scaffold_no_remote_execution`
 
 Readiness: `ready_for_confirmed_readonly_supabase_target_rls_storage_validation_attempt`
 
-Current run status: `blocked_missing_supabase_access_token_for_readonly_target_identity`
+Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
 
 Product-ready end-to-end local OSS tools: `0`
 

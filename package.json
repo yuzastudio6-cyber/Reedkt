@@ -668,6 +668,7 @@
     "rp-internal-beta-supabase-target-rls-storage-validation-1r:diagnostics": "node scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs",
     "rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed": "node scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs",
     "rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed:diagnostics": "node scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs",
+    "rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1:diagnostics": "node scripts/validation/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1-diagnostics.mjs",
     "rp-internal-beta-supabase-target-credential-context-preflight-1": "node scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1.mjs",
     "rp-internal-beta-supabase-target-credential-context-preflight-1:diagnostics": "node scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1-diagnostics.mjs",
     "smoke:internal-beta-supabase-credential-context-contract": "tsx server/smoke/internal-beta-supabase-credential-context-contract-smoke.ts",

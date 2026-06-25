@@ -6,8 +6,20 @@
   "title": "Review image hardening plan, no push/GCP/runtime",
   "sourceMilestone": "WORKER_RUNTIME_JOBS-SOUND-CPU-IMAGE-HARDENING-PLAN",
   "requiredBuildProofOwnerReviewDecision": "worker_runtime_jobs_sound_cpu_docker_build_proof_owner_review_passed_with_warnings_ready_for_image_hardening_plan",
+  "requiredImageHardeningPlanDecision": "worker_runtime_jobs_sound_cpu_image_hardening_plan_completed_with_warnings_ready_for_image_hardening_owner_review",
   "requiredImageHardeningPlanPrompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-IMAGE-HARDENING-PLAN",
   "purpose": "Owner-review a future SOUND CPU image-hardening plan without Docker build, Docker push, Docker run, GCP, worker execution, media processing, Supabase, SQL, model weights, artifacts, beta, or production actions.",
+  "requiredImageHardeningPlanDocs": [
+    "docs/worker-runtime-jobs-sound-cpu-image-hardening-plan.md",
+    "docs/worker-runtime-jobs-sound-cpu-image-hardening-topic-register.md",
+    "docs/worker-runtime-jobs-sound-cpu-base-image-digest-pinning-plan.md",
+    "docs/worker-runtime-jobs-sound-cpu-vulnerability-sbom-plan.md",
+    "docs/worker-runtime-jobs-sound-cpu-build-context-dockerignore-plan.md",
+    "docs/worker-runtime-jobs-sound-cpu-image-metadata-labels-plan.md",
+    "docs/worker-runtime-jobs-sound-cpu-runtime-disabled-hardening-plan.md",
+    "docs/worker-runtime-jobs-sound-cpu-image-hardening-blocker-register.md",
+    "docs/worker-runtime-jobs-sound-cpu-image-hardening-claim-policy.md"
+  ],
   "acceptedPlanningSurface": {
     "dockerfilePath": "server/workers/sound-cpu/Dockerfile",
     "requirementsSource": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",

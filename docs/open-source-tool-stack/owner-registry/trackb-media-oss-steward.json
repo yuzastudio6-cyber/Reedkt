@@ -766,5 +766,27 @@
     "productionReady": false,
     "productReady": false,
     "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION"
+  },
+  "limitedInternalBetaProductToolCallRuntimeLimitedInternalActivationExecution": {
+    "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_execution_passed_ready_for_limited_internal_activation_qa_review",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-execution",
+    "coveredToolCount": 16,
+    "boundedAcceptedProvenCount": 16,
+    "blockedNotInstalledProvenCount": 0,
+    "productReadyCount": 0,
+    "routeRuntimeFailClosedProofPassed": true,
+    "workerDispatchControlProofPassed": true,
+    "serviceRoleNoWriteBoundaryProofPassed": true,
+    "monitoringEmissionProofPassed": true,
+    "rollbackDisableControlProofPassed": true,
+    "limitedInternalExposureProofPassed": true,
+    "readyForLimitedInternalActivationQaReview": true,
+    "liveActivationApproved": false,
+    "readyForDirectProductToolCalls": false,
+    "readyForLiveBetaRuntime": false,
+    "externalBetaReady": false,
+    "productionReady": false,
+    "productReady": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_QA_REVIEW"
   }
 }

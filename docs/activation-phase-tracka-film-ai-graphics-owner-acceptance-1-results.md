@@ -25,24 +25,25 @@ AI Graphics / Worker remains required for `required_for_model_runtime_model_weig
 
 ## Validation Evidence
 
-Validation blocker: `host_resource_limit_npm_ci_exit_137_requires_larger_validation_environment`.
+Validation: `full_validation_passed_after_resource_closure`.
 
-Local validation volume: about `24GiB` free on `/Volumes/backup`, below the prior `25GiB` clean validation threshold used for this repo.
+Host-resource blocker: `closed`.
 
-- `npm ci --no-audit --no-fund --progress=false`: failed with exit `137`.
-- `npm_config_jobs=1 npm_config_foreground_scripts=false npm ci --no-audit --no-fund --progress=false`: failed with exit `137`.
-- `git diff --check`: passed before and after the dependency blocker.
-- `npm run lint`: skipped because dependency validation failed.
-- `npm run typecheck:server`: skipped because dependency validation failed.
-- `npm run build`: skipped because dependency validation failed.
-- `npm run build:server`: skipped because dependency validation failed.
-- `npm run --silent tracka:film-frame-interpolation-scope-decision-1:diagnostics`: passed before and after blocker recording.
-- `npm run --silent tracka:film-gpu-policy-ai-graphics-coordination-1:diagnostics`: passed before and after blocker recording.
-- `npm run --silent tracka:film-ai-graphics-owner-acceptance-1:diagnostics`: passed before and after blocker recording.
-- `git diff --cached --check`: passed after blocker recording.
-- non-executing changed-file and staged safety scans: passed after blocker recording.
+Local validation volume: about `44GiB` free on `/Volumes/backup`, above the `25GiB` retry threshold.
 
-PR status: `draft_pending_larger_validation_environment`.
+- `npm ci --no-audit --no-fund --progress=false`: passed.
+- `git diff --check`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck:server`: passed.
+- `npm run build`: passed.
+- `npm run build:server`: passed.
+- `npm run --silent tracka:film-frame-interpolation-scope-decision-1:diagnostics`: passed.
+- `npm run --silent tracka:film-gpu-policy-ai-graphics-coordination-1:diagnostics`: passed.
+- `npm run --silent tracka:film-ai-graphics-owner-acceptance-1:diagnostics`: passed.
+- `git diff --cached --check`: passed.
+- non-executing changed-file and staged safety scans: passed.
+
+PR status: `ready_for_review_after_validation_closure`.
 
 ## Supabase Classification
 

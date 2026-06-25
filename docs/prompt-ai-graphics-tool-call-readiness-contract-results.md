@@ -26,6 +26,7 @@ Duplicate search: no exact open head PR or remote branch existed for `codex/rp-a
 
 - All 21 AI graphics tools are covered.
 - 13 JS graphics tools remain tied to `package.json` and `package-lock.json`.
+- Node, browser, and Satori font runtime proof evidence is now reflected in the contract for the 13 JS graphics tools.
 - 8 ML/GPU tools remain tied to Docker/GPU worker install targets and runtime-readiness gates.
 - Heavy/model tools route to GPU runtime targets, not CPU runtime defaults.
 
@@ -48,4 +49,4 @@ No dependencies were installed, no `npm ci` was run, no `npm install` was run, n
 
 ## Next
 
-Run native GPU runtime proof, browser/canvas/WebGL runtime proof, Satori font fixture proof, and Tool Route/Worker handoff approval before any agent-executable beta lane.
+Run native GPU runtime proof and Tool Route/Worker handoff approval before any agent-executable beta lane. Production registry profiles are still required for planning-only wrappers before they can become callable tools.

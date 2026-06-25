@@ -107,6 +107,28 @@ const capabilities = [
   'model_runtime_foundation',
 ]
 
+const requiredSourceEvidence = {
+  installReadiness: 'docs/tool-intelligence/ai-graphics/21-tool-runtime-install-readiness.json',
+  gpuInstallBuildTargets: 'docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json',
+  gpuRuntimeReadinessGate: 'docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json',
+  cpuStaticPhase0OwnerReview: 'docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0-owner-review.json',
+  nodeRuntimeProof: 'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+  browserRuntimeProof: 'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+  satoriFontRuntimeProof: 'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+  rankingMatrix: 'docs/tool-intelligence/ai-graphics/tool-ranking-matrix.json',
+  canonicalAgentSelection: 'docs/tool-intelligence/ai-graphics/canonical-agent-selection-capability-map.json',
+}
+
+const expectedBrowserRuntimeProofs = {
+  echarts: 'browser_svg_chart_runtime_proof_passed',
+  lottie_web: 'browser_svg_animation_runtime_proof_passed',
+  animejs: 'browser_dom_animation_runtime_proof_passed',
+  three_js: 'browser_webgl_runtime_proof_passed',
+  pixi_js: 'browser_canvas_webgl_runtime_proof_passed',
+  konva: 'browser_canvas_runtime_proof_passed',
+  babylonjs: 'browser_webgl_runtime_proof_passed',
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-tool-call-readiness.ts',
   'docs/tool-intelligence/ai-graphics/tool-call-readiness-contract.md',
@@ -179,8 +201,52 @@ if (new Set(contract.allTools).size !== allTools.length) fail('contract_json_too
 if (contract.toolCounts.total !== 21) fail('tool_count_total_not_21')
 if (contract.toolCounts.nodeDeclaredLockedAndPresent !== 13) fail('node_tool_count_not_13')
 if (contract.toolCounts.gpuModelInstallTargetsPrepared !== 8) fail('gpu_tool_count_not_8')
+if (contract.toolCounts.jsRuntimeProofEvidenceAligned !== 13) fail('js_runtime_proof_evidence_count_not_13')
+if (contract.toolCounts.browserRuntimeProofToolsAligned !== 7) fail('browser_runtime_proof_count_not_7')
+if (contract.toolCounts.satoriFontRuntimeProofAligned !== 1) fail('satori_font_runtime_proof_count_not_1')
 if (contract.toolCounts.agentExecutableNow !== 0) fail('agent_executable_count_not_zero')
 if (contract.toolCounts.runtimeReadyNow !== 0) fail('runtime_ready_count_not_zero')
+
+for (const [key, sourcePath] of Object.entries(requiredSourceEvidence)) {
+  if (contract.sourceEvidence?.[key] !== sourcePath) fail(`missing_or_wrong_source_evidence:${key}`)
+  if (!exists(sourcePath)) fail(`source_evidence_file_missing:${sourcePath}`)
+}
+
+const nodeRuntimeProof = parseJson(requiredSourceEvidence.nodeRuntimeProof)
+if (nodeRuntimeProof.decision !== 'ai_graphics_node_runtime_proof_completed_with_warnings') {
+  fail(`unexpected_node_runtime_proof_decision:${nodeRuntimeProof.decision}`)
+}
+if (nodeRuntimeProof.booleans?.all13NodeGraphicsToolsProofAttempted !== true) {
+  fail('node_runtime_proof_did_not_cover_all_13_tools')
+}
+
+const browserRuntimeProof = parseJson(requiredSourceEvidence.browserRuntimeProof)
+if (browserRuntimeProof.decision !== 'ai_graphics_browser_runtime_proof_completed_with_warnings') {
+  fail(`unexpected_browser_runtime_proof_decision:${browserRuntimeProof.decision}`)
+}
+if (browserRuntimeProof.booleans?.all7BrowserRuntimeToolsProofPassed !== true) {
+  fail('browser_runtime_proof_did_not_pass_all_7_tools')
+}
+for (const [tool, expectedStatus] of Object.entries(expectedBrowserRuntimeProofs)) {
+  const proofRecord = browserRuntimeProof.tools?.find((entry) => entry.toolId === tool)
+  if (proofRecord?.status !== expectedStatus) fail(`browser_runtime_proof_status_mismatch:${tool}:${proofRecord?.status}`)
+  const toolRecordPattern = new RegExp(`toolId:\\s*'${tool}'[\\s\\S]*?installStatus:\\s*'declared_locked_and_browser_runtime_proof_passed'[\\s\\S]*?proofStatus:\\s*'${expectedStatus}'`)
+  if (!toolRecordPattern.test(ts)) fail(`contract_ts_not_aligned_to_browser_proof:${tool}`)
+}
+
+const satoriFontRuntimeProof = parseJson(requiredSourceEvidence.satoriFontRuntimeProof)
+if (satoriFontRuntimeProof.decision !== 'ai_graphics_satori_font_runtime_proof_completed_with_warnings') {
+  fail(`unexpected_satori_font_runtime_proof_decision:${satoriFontRuntimeProof.decision}`)
+}
+if (satoriFontRuntimeProof.booleans?.satoriTextSvgLayoutProofPassed !== true) {
+  fail('satori_font_runtime_proof_not_passed')
+}
+if (!/toolId:\s*'satori'[\s\S]*?installStatus:\s*'declared_locked_and_satori_font_runtime_proof_passed'[\s\S]*?proofStatus:\s*'satori_font_runtime_text_svg_layout_proof_passed'/.test(ts)) {
+  fail('contract_ts_not_aligned_to_satori_font_proof')
+}
+if (contract.requiredNextProofs.some((proof) => /Satori approved font fixture proof|browser chart runtime proof|animation runtime proof|browser\/canvas\/WebGL sandbox proof/i.test(proof))) {
+  fail('contract_required_next_proofs_still_list_completed_js_runtime_proofs')
+}
 
 for (const [tool, mapped] of Object.entries(expectedMappings)) {
   if (contract.productionToolMappings[tool] !== mapped) {

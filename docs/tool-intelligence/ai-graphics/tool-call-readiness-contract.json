@@ -18,6 +18,9 @@
     "gpuInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
     "gpuRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
     "cpuStaticPhase0OwnerReview": "docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0-owner-review.json",
+    "nodeRuntimeProof": "docs/tool-intelligence/ai-graphics/node-runtime-proof.json",
+    "browserRuntimeProof": "docs/tool-intelligence/ai-graphics/browser-runtime-proof.json",
+    "satoriFontRuntimeProof": "docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json",
     "rankingMatrix": "docs/tool-intelligence/ai-graphics/tool-ranking-matrix.json",
     "canonicalAgentSelection": "docs/tool-intelligence/ai-graphics/canonical-agent-selection-capability-map.json"
   },
@@ -31,6 +34,9 @@
     "total": 21,
     "nodeDeclaredLockedAndPresent": 13,
     "gpuModelInstallTargetsPrepared": 8,
+    "jsRuntimeProofEvidenceAligned": 13,
+    "browserRuntimeProofToolsAligned": 7,
+    "satoriFontRuntimeProofAligned": 1,
     "productionToolIdMapped": 14,
     "planningWrapperWithoutProductionToolId": 7,
     "gpuRequiredForRuntime": 8,
@@ -181,11 +187,8 @@
   "requiredNextProofs": [
     "native NVIDIA GPU runtime readiness for the 8 GPU/model tools",
     "reviewed private model or model-cache manifests for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background",
-    "Satori approved font fixture proof",
-    "browser chart runtime proof for ECharts",
-    "animation runtime proof for Lottie Web and Anime.js",
-    "browser/canvas/WebGL sandbox proof for Three.js, PixiJS, Konva, and Babylon.js",
-    "production registry profiles for planning-only wrappers before Tool Route or Worker execution"
+    "production registry profiles for planning-only wrappers before Tool Route or Worker execution",
+    "Tool Route, Worker, approved snapshot, credit gate, artifact boundary, and beta-readiness approvals before any JS proof-passed tool becomes agent-executable"
   ],
   "booleans": {
     "toolCallReadinessContractPrepared": true,

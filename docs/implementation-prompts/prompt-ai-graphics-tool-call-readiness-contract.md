@@ -18,6 +18,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Preserve canonical tool IDs and explicitly map to production registry IDs where they exist.
 - Mark unmatched canonical IDs as planning-only wrappers, not dropped tools.
 - Link ranking/capability selection to install and runtime proof status.
+- Align completed Node, browser, and Satori font proof evidence into the readiness contract without enabling execution.
 - Keep agent selection planning-only.
 - Keep all execution/runtime/storage/public/beta/production booleans false.
 - Route heavy/model tools to GPU runtime targets, especially SAM2, BiRefNet, Real-ESRGAN, rembg, transparent-background, Torch/Torchvision, Transformers, and Kornia.
@@ -31,6 +32,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Add `docs/tool-intelligence/ai-graphics/tool-call-readiness-contract.json`.
 - Add `scripts/validation/ai-graphics-tool-call-readiness-diagnostics.mjs`.
 - Add package script `ai-graphics:tool-call-readiness:diagnostics`.
+- Follow-up alignment records Satori font proof and browser proof as passed evidence while keeping Tool Route, Worker, approved snapshot, credit, artifact, beta, and production gates blocked.
 
 ## Expected Validation
 

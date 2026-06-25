@@ -14,6 +14,9 @@ This contract connects the 21 AI graphics tools to the agent-facing ranking and 
 - GPU/model install build targets: `docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json`
 - GPU runtime readiness gate: `docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json`
 - CPU/static Phase 0 owner review: `docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0-owner-review.json`
+- Node runtime proof: `docs/tool-intelligence/ai-graphics/node-runtime-proof.json`
+- Browser runtime proof: `docs/tool-intelligence/ai-graphics/browser-runtime-proof.json`
+- Satori font runtime proof: `docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json`
 - Ranking matrix: `docs/tool-intelligence/ai-graphics/tool-ranking-matrix.json`
 - Canonical agent selection: `docs/tool-intelligence/ai-graphics/canonical-agent-selection-capability-map.json`
 
@@ -22,6 +25,7 @@ This contract connects the 21 AI graphics tools to the agent-facing ranking and 
 - Tools covered: 21.
 - Node package-lock tools: 13.
 - GPU/model install targets: 8.
+- Node/Satori/browser proof evidence is aligned into the contract for the 13 JS graphics tools.
 - Production registry mappings: 14.
 - Planning-wrapper records without production IDs: 7.
 - GPU-required runtime tools: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background`.
@@ -62,11 +66,8 @@ The selections follow the canonical ranking matrix and retain elimination/fallba
 
 - Native NVIDIA GPU runtime readiness for the eight GPU/model tools.
 - Reviewed private model or model-cache manifests for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background.
-- Satori approved font fixture proof.
-- Browser chart runtime proof for ECharts.
-- Animation runtime proof for Lottie Web and Anime.js.
-- Browser/canvas/WebGL sandbox proof for Three.js, PixiJS, Konva, and Babylon.js.
 - Explicit production registry profiles for planning-only wrappers before Tool Route or Worker execution.
+- Tool Route, Worker, approved snapshot, credit gate, artifact boundary, and beta-readiness approvals before any JS proof-passed tool becomes agent-executable.
 
 ## No-Scope
 

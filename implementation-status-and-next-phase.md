@@ -229,6 +229,17 @@ Owner approval evidence is `not_present_in_source`, the named runtime target is 
 No remote Supabase mutation, SQL execution, service-role route execution, approved snapshot persistence, credit reservation, job enqueue, worker dispatch, private artifact access, signed URL creation, Remotion execution, provider/model call, preview/export creation, or internal beta unlock is approved by this packet.
 
 Next recommended step: `RP-INTERNAL-BETA-NAMED-RUNTIME-TARGET-APPROVAL-1`.
+
+## RP-INTERNAL-BETA Named Runtime Target Approval 1
+
+`RP-INTERNAL-BETA-NAMED-RUNTIME-TARGET-APPROVAL-1` records decision `blocked_no_named_internal_beta_runtime_target_approved` and execution `completed_docs_only_named_runtime_target_review_no_runtime_unlock`.
+
+Named runtime target approval evidence is `not_present_in_source`, the approved runtime target is `none`, environment class is `not_approved`, and internal beta end-to-end status remains `not_ready`.
+
+No remote Supabase mutation, SQL execution, service-role route execution, approved snapshot persistence, credit reservation, job enqueue, worker dispatch, private artifact access, signed URL creation, Remotion execution, provider/model call, preview/export creation, or internal beta unlock is approved by this packet.
+
+Next recommended step: `OWNER DECISION REQUIRED - name or reject the internal beta runtime target before runtime execution planning`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

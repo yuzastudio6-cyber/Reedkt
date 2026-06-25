@@ -199,6 +199,16 @@ Remote Supabase mutation, SQL execution, service-role route execution, approved 
 
 Next recommended milestone: `RP-INTERNAL-BETA-NAMED-RUNTIME-TARGET-APPROVAL-1`.
 
+## RP-INTERNAL-BETA Named Runtime Target Approval 1
+
+`RP-INTERNAL-BETA-NAMED-RUNTIME-TARGET-APPROVAL-1` records decision `blocked_no_named_internal_beta_runtime_target_approved` and execution `completed_docs_only_named_runtime_target_review_no_runtime_unlock`.
+
+Named runtime target approval evidence: `not_present_in_source`. Approved runtime target: `none`. Environment class: `not_approved`. Internal beta end-to-end status: `not_ready`. Product-ready end-to-end local OSS tools: `0`.
+
+Remote Supabase mutation, SQL execution, service-role route execution, approved snapshot persistence, credit mutation, job enqueue, worker dispatch, private artifact access, signed URL creation, provider/model calls, Remotion execution, preview/export creation, internal beta unlock, external beta unlock, production unlock, and final delivery/export remain blocked.
+
+Next recommended milestone: `OWNER DECISION REQUIRED - name or reject the internal beta runtime target before runtime execution planning`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

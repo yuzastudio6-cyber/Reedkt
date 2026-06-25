@@ -8,6 +8,8 @@ Branch: `codex/rp-ai-graphics-tool-call-readiness-contract`
 
 Base: `origin/codex/rp-ai-graphics-gpu-model-runtime-readiness-gate`
 
+Draft PR: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `30cf1a6aaa1839f53c362bf844a1512d08ee2136`, with an empty check rollup at creation.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements

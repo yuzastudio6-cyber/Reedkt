@@ -4,6 +4,15 @@
   "status": "prepared_with_runtime_execution_blocked",
   "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
   "base": "origin/codex/rp-ai-graphics-gpu-model-runtime-readiness-gate",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headSha": "30cf1a6aaa1839f53c362bf844a1512d08ee2136",
+    "checkRollup": []
+  },
   "sourceEvidence": {
     "installReadiness": "docs/tool-intelligence/ai-graphics/21-tool-runtime-install-readiness.json",
     "gpuInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",

@@ -1,0 +1,35 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaProductToolCallRuntimeCloseout.evidenceInventory.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_closeout_passed_ready_for_activation_approval",
+  "toolCount": 16,
+  "rankingOrder": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars",
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr",
+    "ffmpeg"
+  ],
+  "acceptedEvidence": {
+    "boundedInstallProofs": true,
+    "dryRunMonitoring": true,
+    "monitoringQa": true,
+    "monitoringCloseout": true,
+    "runtimeApproval": true,
+    "runtimeDryRunExecution": true,
+    "runtimeDryRunQa": true
+  },
+  "productReadyTools": 0,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPROVAL"
+}

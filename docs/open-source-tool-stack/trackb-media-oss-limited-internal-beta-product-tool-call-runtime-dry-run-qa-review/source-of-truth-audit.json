@@ -1,0 +1,48 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaProductToolCallRuntimeDryRunQaReview.sourceAudit.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_qa_passed_ready_for_runtime_closeout",
+  "sourceSha": "d2111d233af04710ca9a9c7011817dae69e16f55",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceEvidence": [
+    {
+      "pr": 838,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_execution_passed_ready_for_runtime_dry_run_qa_review",
+      "acceptedAs": "controlled_runtime_dry_run_execution_source_truth"
+    },
+    {
+      "pr": 831,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_approval_passed_ready_for_controlled_runtime_dry_run_execution",
+      "acceptedAs": "product_tool_call_runtime_approval_source_truth"
+    },
+    {
+      "pr": 825,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_dry_run_monitoring_closeout_passed_ready_for_limited_internal_beta_product_tool_call_runtime_approval",
+      "acceptedAs": "monitoring_closeout_source_truth"
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "duplicateSearches": [
+    {
+      "query": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_QA_REVIEW",
+      "openDuplicateFound": false
+    },
+    {
+      "query": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CLOSEOUT",
+      "openDuplicateFound": false
+    },
+    {
+      "query": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_qa",
+      "openDuplicateFound": false
+    }
+  ],
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CLOSEOUT"
+}

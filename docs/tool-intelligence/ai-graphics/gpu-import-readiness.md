@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_gpu_import_readiness_aligned_with_21_tool_install_plan`
 
-Draft PR: [#775](https://github.com/yuzastudio6-cyber/Reedkt/pull/775), opened as open/draft/CLEAN at head `e7ce783d9f9f7afdd8f94c8473f009414b569c73` with empty check rollup.
+Draft PR: [#775](https://github.com/yuzastudio6-cyber/Reedkt/pull/775), opened as open/draft/CLEAN at creation head `e7ce783d9f9f7afdd8f94c8473f009414b569c73` with empty check rollup.
 
 This lane aligns ReeditPro's dry-run GPU readiness checks with the 21-tool AI graphics install-readiness plan from PR #770. It does not install packages on the host, build a container image, run Python imports, load model weights, create a CUDA context, process media, call providers, create public artifacts, or unlock beta.
 

@@ -1,0 +1,13 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaProductToolCallRuntimeCloseout.privateArtifactManifest.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_closeout_passed_ready_for_activation_approval",
+  "privateArtifactsCreated": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "mediaArtifactsCreated": false,
+  "dockerOutputsCreated": false,
+  "secretsPrinted": false,
+  "manifestScope": "closeout_metadata_only",
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPROVAL"
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaDryRunMonitoringQaReview.toolMatrix.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_dry_run_monitoring_qa_passed_ready_for_monitoring_closeout",
+  "toolCount": 16,
+  "boundedAcceptedProvenTools": 16,
+  "pendingInstallTools": 0,
+  "productReadyTools": 0,
+  "opencolorio": {
+    "boundedAcceptedProven": true,
+    "pendingInstall": false,
+    "productReady": false
+  },
+  "openimageio": {
+    "boundedAcceptedProven": true,
+    "pendingInstall": false,
+    "productReady": false
+  },
+  "rankingOrder": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars",
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr",
+    "ffmpeg"
+  ],
+  "allEntriesDryRunOnly": true,
+  "allEntriesExecutionDisabled": true,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_CLOSEOUT"
+}

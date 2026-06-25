@@ -10,8 +10,8 @@
     "state": "OPEN",
     "isDraft": true,
     "mergeStateStatus": "CLEAN",
-    "headSha": "30cf1a6aaa1839f53c362bf844a1512d08ee2136",
-    "checkRollup": []
+    "headShaAtCreation": "30cf1a6aaa1839f53c362bf844a1512d08ee2136",
+    "checkRollupAtCreation": []
   },
   "sourceEvidence": {
     "installReadiness": "docs/tool-intelligence/ai-graphics/21-tool-runtime-install-readiness.json",

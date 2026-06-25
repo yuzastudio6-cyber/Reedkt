@@ -40,6 +40,7 @@
     "ai-graphics:gpu-import-readiness:diagnostics": "node scripts/validation/ai-graphics-gpu-import-readiness-diagnostics.mjs",
     "ai-graphics:node-runtime-proof": "node scripts/validation/ai-graphics-node-runtime-proof.mjs",
     "ai-graphics:node-runtime-proof:diagnostics": "node scripts/validation/ai-graphics-node-runtime-proof-diagnostics.mjs",
+    "ai-graphics:gpu-worker-install-proof:diagnostics": "node scripts/validation/ai-graphics-gpu-worker-install-proof-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

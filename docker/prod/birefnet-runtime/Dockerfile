@@ -38,6 +38,8 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
 
 COPY docker/prod/birefnet-runtime/requirements.birefnet.txt /tmp/requirements.birefnet.txt
 RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.birefnet.txt
+COPY docker/prod/ai-graphics-gpu-install-smoke.py /tmp/ai-graphics-gpu-install-smoke.py
+RUN python3 /tmp/ai-graphics-gpu-install-smoke.py --profile birefnet
 
 COPY package*.json ./
 RUN npm ci --omit=dev

@@ -119,8 +119,15 @@ const requiredRequirementLines = [
   "git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4#egg=SAM-2"
 ];
 
+function hasRequirement(requirement) {
+  return gpuRequirements.split(/\r?\n/).some((line) => {
+    const trimmed = line.trim();
+    return trimmed === requirement || trimmed.startsWith(`${requirement}==`);
+  });
+}
+
 for (const requirement of requiredRequirementLines) {
-  if (!gpuRequirements.split(/\r?\n/).some((line) => line.trim() === requirement)) {
+  if (!hasRequirement(requirement)) {
     fail(`GPU requirements missing ${requirement}`);
   }
 }

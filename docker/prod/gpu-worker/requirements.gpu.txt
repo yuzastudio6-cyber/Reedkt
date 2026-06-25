@@ -2,16 +2,18 @@
 # These are container image declarations only. Codex must not install them on the host.
 # No model weights are fetched by this file.
 
-torch
-torchvision
-transformers
+--extra-index-url https://download.pytorch.org/whl/cu124
+
+torch==2.5.1+cu124
+torchvision==0.20.1+cu124
+transformers==4.57.6
 ctranslate2
 faster-whisper
-kornia
-opencv-python-headless
-rembg[gpu]
-transparent-background
-realesrgan
+kornia==0.8.1
+opencv-python-headless==4.12.0.88
+rembg[gpu]==2.0.76
+transparent-background==1.3.4
+realesrgan==0.3.0
 git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4#egg=SAM-2
 deepfilternet
 demucs

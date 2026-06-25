@@ -40,6 +40,8 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
 COPY docker/prod/real-esrgan-runtime/requirements.real-esrgan.txt /tmp/requirements.real-esrgan.txt
 RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.real-esrgan.txt
+COPY docker/prod/ai-graphics-gpu-install-smoke.py /tmp/ai-graphics-gpu-install-smoke.py
+RUN python3 /tmp/ai-graphics-gpu-install-smoke.py --profile real_esrgan
 
 COPY package*.json ./
 RUN npm ci --omit=dev

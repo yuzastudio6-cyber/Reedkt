@@ -11,6 +11,11 @@ processing, Tool Route, Worker dispatch, beta, or production readiness.
 
 - PR #780: [AI graphics node runtime proof](https://github.com/yuzastudio6-cyber/Reedkt/pull/780), open/draft/CLEAN at `740a72818b4ca89bbec24ca9c9d22eae915d9a91`.
 
+## Draft PR
+
+- PR #783: [AI graphics GPU worker install proof](https://github.com/yuzastudio6-cyber/Reedkt/pull/783), open/draft/CLEAN at creation head `b6c7da82f3b73de9271fba94d8d8f0031a04be5f`.
+- Check rollup at PR creation: empty.
+
 ## GPU Install Surfaces
 
 | Profile | Dockerfile | Tools | Install proof |

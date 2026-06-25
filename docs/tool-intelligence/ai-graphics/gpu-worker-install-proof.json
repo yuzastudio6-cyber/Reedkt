@@ -12,6 +12,15 @@
     "mergeStateStatus": "CLEAN",
     "headSha": "740a72818b4ca89bbec24ca9c9d22eae915d9a91"
   },
+  "proofPr": {
+    "number": 783,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/783",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headShaAtPrCreation": "b6c7da82f3b73de9271fba94d8d8f0031a04be5f",
+    "statusCheckRollup": []
+  },
   "proofScope": "gpu_worker_image_install_contracts_and_build_time_import_smokes_for_ai_graphics_model_tools",
   "gpuInstallProfiles": [
     {

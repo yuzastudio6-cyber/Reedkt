@@ -83,6 +83,14 @@ The target is internal beta first, not full all-tools production. The current en
 Next recommended sequence: `RP-DATA-01-SUPABASE-SCHEMA-MIGRATION-READINESS`, `RP-BACKEND-01-APPROVED-SNAPSHOT-JOB-QUEUE-SKELETON`, `RP-CREDITS-01-INTERNAL-CREDIT-LEDGER`, `RP-STORAGE-01-PRIVATE-ARTIFACT-BUCKETS`, `RP-RENDER-01-REMOTION-WORKER-SKELETON`, then `RP-INTERNAL-BETA-E2E-1`.
 
 External beta, paid production, public artifacts, broad media, and final delivery/export remain blocked.
+
+## RP-DATA-01 Supabase Schema Migration Readiness
+
+`RP-DATA-01-SUPABASE-SCHEMA-MIGRATION-READINESS` records decision `completed_schema_migration_readiness_review_ready_for_migration_safety_packet` and execution `completed_docs_only_schema_rls_storage_readiness_no_sql_execution`.
+
+The data foundation is `review_ready_not_applied`: table, RLS, and private storage readiness have been reviewed for the internal beta lane, but no SQL ran, no Supabase environment was touched, no migration was deployed, and no bucket was created.
+
+Next recommended step: `RP-DATA-02-SUPABASE-MIGRATION-SAFETY-PACKET`, then `RP-BACKEND-01-APPROVED-SNAPSHOT-JOB-QUEUE-SKELETON` only after the migration safety packet defines the guarded environment and migration boundary.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

@@ -196,6 +196,19 @@
         "externalBetaReady": false,
         "productionReady": false,
         "productReady": false
+      },
+      "limitedInternalBetaTestingHandoff": {
+        "decision": "trackb_media_oss_limited_internal_beta_testing_handoff_passed_ready_for_constrained_internal_beta_dry_run_testing",
+        "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING",
+        "coveredToolCount": 16,
+        "boundedAcceptedProvenCount": 16,
+        "blockedNotInstalledProvenCount": 0,
+        "readyForConstrainedInternalBetaDryRunTesting": true,
+        "readyForDirectProductToolCalls": false,
+        "readyForLiveBetaRuntime": false,
+        "externalBetaReady": false,
+        "productionReady": false,
+        "productReady": false
       }
     }
   ],

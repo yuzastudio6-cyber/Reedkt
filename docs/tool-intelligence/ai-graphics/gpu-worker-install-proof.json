@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.gpu-worker-install-proof",
+  "decision": "ai_graphics_gpu_worker_install_proof_hardened_with_warnings",
+  "status": "completed_with_warnings",
+  "branch": "codex/rp-ai-graphics-gpu-worker-install-proof",
+  "base": "origin/codex/rp-ai-graphics-node-runtime-proof",
+  "sourcePr": {
+    "number": 780,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/780",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "headSha": "740a72818b4ca89bbec24ca9c9d22eae915d9a91"
+  },
+  "proofScope": "gpu_worker_image_install_contracts_and_build_time_import_smokes_for_ai_graphics_model_tools",
+  "gpuInstallProfiles": [
+    {
+      "profileId": "gpu_worker_ai_graphics",
+      "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "requirements": "docker/prod/gpu-worker/requirements.gpu.txt",
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background"
+      ],
+      "buildTimeImportSmoke": "docker/prod/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics"
+    },
+    {
+      "profileId": "sam2",
+      "dockerfile": "docker/prod/sam2-runtime/Dockerfile",
+      "requirements": "docker/prod/sam2-runtime/requirements.sam2.txt",
+      "tools": [
+        "sam2",
+        "torch_torchvision"
+      ],
+      "buildTimeImportSmoke": "docker/prod/ai-graphics-gpu-install-smoke.py --profile sam2"
+    },
+    {
+      "profileId": "birefnet",
+      "dockerfile": "docker/prod/birefnet-runtime/Dockerfile",
+      "requirements": "docker/prod/birefnet-runtime/requirements.birefnet.txt",
+      "tools": [
+        "birefnet",
+        "transformers",
+        "kornia",
+        "torch_torchvision"
+      ],
+      "buildTimeImportSmoke": "docker/prod/ai-graphics-gpu-install-smoke.py --profile birefnet"
+    },
+    {
+      "profileId": "real_esrgan",
+      "dockerfile": "docker/prod/real-esrgan-runtime/Dockerfile",
+      "requirements": "docker/prod/real-esrgan-runtime/requirements.real-esrgan.txt",
+      "tools": [
+        "real_esrgan",
+        "torch_torchvision"
+      ],
+      "buildTimeImportSmoke": "docker/prod/ai-graphics-gpu-install-smoke.py --profile real_esrgan"
+    }
+  ],
+  "pinnedPackages": {
+    "torch": "2.5.1+cu124",
+    "torchvision": "0.20.1+cu124",
+    "transformers": "4.57.6",
+    "kornia": "0.8.1",
+    "opencv-python-headless": "4.12.0.88",
+    "rembg[gpu]": "2.0.76",
+    "transparent-background": "1.3.4",
+    "realesrgan": "0.3.0",
+    "sam2": "git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4"
+  },
+  "tools": [
+    { "toolId": "torch_torchvision", "installStatus": "gpu_worker_pinned_install_declared_build_import_smoke_declared", "runtimeTarget": "nvidia_l4_gpu_worker", "agentExecutableNow": false },
+    { "toolId": "transformers", "installStatus": "gpu_worker_pinned_install_declared_build_import_smoke_declared", "runtimeTarget": "nvidia_l4_gpu_worker", "agentExecutableNow": false },
+    { "toolId": "sam2", "installStatus": "dedicated_sam2_runtime_pinned_install_declared_build_import_smoke_declared", "runtimeTarget": "nvidia_l4_sam2_runtime_worker", "agentExecutableNow": false },
+    { "toolId": "birefnet", "installStatus": "dedicated_birefnet_runtime_transformers_loader_pinned_install_declared_build_import_smoke_declared", "runtimeTarget": "nvidia_l4_birefnet_runtime_worker", "agentExecutableNow": false },
+    { "toolId": "real_esrgan", "installStatus": "dedicated_real_esrgan_runtime_pinned_install_declared_build_import_smoke_declared", "runtimeTarget": "nvidia_l4_real_esrgan_runtime_worker", "agentExecutableNow": false },
+    { "toolId": "kornia", "installStatus": "gpu_worker_and_existing_pro_color_image_runtime_pinned_install_declared", "runtimeTarget": "gpu_worker_or_cpu_color_image_worker_by_lane", "agentExecutableNow": false },
+    { "toolId": "rembg", "installStatus": "gpu_worker_pinned_install_declared_build_import_smoke_declared", "runtimeTarget": "nvidia_l4_gpu_worker", "agentExecutableNow": false },
+    { "toolId": "transparent_background", "installStatus": "gpu_worker_pinned_install_declared_build_import_smoke_declared", "runtimeTarget": "nvidia_l4_gpu_worker", "agentExecutableNow": false },
+    { "toolId": "d3", "installStatus": "node_runtime_proof_inherited_from_pr_780", "runtimeTarget": "node_render_worker_future", "agentExecutableNow": false },
+    { "toolId": "echarts", "installStatus": "node_import_proof_inherited_browser_runtime_pending", "runtimeTarget": "browser_chart_runtime_future", "agentExecutableNow": false },
+    { "toolId": "vega_lite", "installStatus": "node_runtime_compile_proof_inherited_from_pr_780", "runtimeTarget": "node_render_worker_future", "agentExecutableNow": false },
+    { "toolId": "vega", "installStatus": "node_runtime_parse_proof_inherited_from_pr_780", "runtimeTarget": "node_render_worker_future", "agentExecutableNow": false },
+    { "toolId": "satori", "installStatus": "node_import_proof_inherited_font_fixture_pending", "runtimeTarget": "node_svg_layout_future", "agentExecutableNow": false },
+    { "toolId": "svgdotjs_svg_js", "installStatus": "node_svg_construction_proof_inherited_from_pr_780", "runtimeTarget": "node_svg_worker_future", "agentExecutableNow": false },
+    { "toolId": "viz_js", "installStatus": "node_dot_to_svg_proof_inherited_from_pr_780", "runtimeTarget": "node_diagram_worker_future", "agentExecutableNow": false },
+    { "toolId": "lottie_web", "installStatus": "node_import_proof_inherited_player_runtime_pending", "runtimeTarget": "browser_animation_runtime_future", "agentExecutableNow": false },
+    { "toolId": "animejs", "installStatus": "node_import_proof_inherited_animation_runtime_pending", "runtimeTarget": "browser_animation_runtime_future", "agentExecutableNow": false },
+    { "toolId": "three_js", "installStatus": "node_import_proof_inherited_webgl_runtime_pending", "runtimeTarget": "browser_webgl_runtime_future", "agentExecutableNow": false },
+    { "toolId": "pixi_js", "installStatus": "node_import_proof_inherited_canvas_webgl_runtime_pending", "runtimeTarget": "browser_canvas_webgl_runtime_future", "agentExecutableNow": false },
+    { "toolId": "konva", "installStatus": "node_import_proof_inherited_canvas_runtime_pending", "runtimeTarget": "browser_canvas_runtime_future", "agentExecutableNow": false },
+    { "toolId": "babylonjs", "installStatus": "node_import_proof_inherited_webgl_runtime_pending", "runtimeTarget": "browser_webgl_runtime_future", "agentExecutableNow": false }
+  ],
+  "booleans": {
+    "gpuWorkerInstallProofHardened": true,
+    "all21ToolsStillCovered": true,
+    "all8ModelGpuToolsMappedToInstallSurface": true,
+    "dedicatedRuntimeImagesPreserved": true,
+    "buildTimeImportSmokeDeclared": true,
+    "directAiGraphicsGpuPackagesPinned": true,
+    "trackAOrTrackBRuntimeOwnershipDuplicated": false,
+    "localDockerGpuImageBuilt": false,
+    "localGpuRuntimeExecuted": false,
+    "modelWeightsDownloaded": false,
+    "mediaProcessingPerformed": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "toolRouteExecutionReadyNow": false,
+    "workerExecutionReadyNow": false,
+    "gpuModelRuntimeReadyNow": false,
+    "browserWebglCanvasRuntimeReadyNow": false,
+    "runtimeBetaReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "packageLockMutationPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "warnings": [
+    "Local Docker Desktop is aarch64 and this host has no NVIDIA runtime, so this lane declares build-time install smokes but does not claim a local CUDA image build or GPU execution.",
+    "Full beta readiness still requires successful linux/amd64 GPU image build/import proof on the target runner and approved model-weight mounts."
+  ],
+  "nextImplementationMilestones": [
+    "Run linux/amd64 GPU worker image build on CI or a GPU-capable build runner.",
+    "Run import-only container smoke for gpu_worker_ai_graphics, sam2, birefnet, and real_esrgan profiles.",
+    "Mount approved model weights and run bounded runtime smoke only after model, worker, route, storage, and artifact gates are approved."
+  ]
+}

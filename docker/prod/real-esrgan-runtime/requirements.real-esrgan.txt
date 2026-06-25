@@ -6,9 +6,9 @@
 --extra-index-url https://download.pytorch.org/whl/cu124
 torch==2.5.1+cu124
 torchvision==0.20.1+cu124
-numpy<2
-opencv-python-headless
-pillow
-tqdm
+numpy==1.26.4
+opencv-python-headless==4.12.0.88
+pillow==10.4.0
+tqdm==4.67.1
 basicsr==1.4.2
 realesrgan==0.3.0

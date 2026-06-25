@@ -16,3 +16,8 @@ memory, region/quota/cost approval, model-weight approval, and QA approval.
 
 Model-weight directories are empty placeholders. Production execution requires
 approved manifests and reviewed weights mounted or provided by a later milestone.
+
+The image runs `docker/prod/ai-graphics-gpu-install-smoke.py` during build to
+prove import-only installation for the AI graphics GPU package set. That smoke
+does not require a CUDA device, load model weights, process media, or call
+providers.

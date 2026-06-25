@@ -40,6 +40,9 @@ RUN apt-get update \
 COPY docker/prod/gpu-worker/requirements.gpu.txt /tmp/requirements.gpu.txt
 RUN python3 -m pip install --no-cache-dir --break-system-packages -r /tmp/requirements.gpu.txt
 
+COPY docker/prod/ai-graphics-gpu-install-smoke.py /tmp/ai-graphics-gpu-install-smoke.py
+RUN python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics
+
 RUN mkdir -p \
     /opt/reeditpro/model-weights/faster-whisper \
     /opt/reeditpro/model-weights/transformers \

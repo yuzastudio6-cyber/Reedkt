@@ -28,5 +28,7 @@ COPY dist-staging-sam2-runtime-worker ./dist-staging-sam2-runtime-worker
 COPY docker/prod/sam2-runtime/sam2_runtime_local.py ./sam2-runtime/sam2_runtime_local.py
 COPY docker/prod/sam2-runtime/sam2_real_video_temporal.py ./sam2-runtime/sam2_real_video_temporal.py
 COPY docker/prod/sam2-runtime/sam2_feature_e2e.py ./sam2-runtime/sam2_feature_e2e.py
+COPY docker/prod/ai-graphics-gpu-install-smoke.py ./ai-graphics-gpu-install-smoke.py
+RUN python3 ./ai-graphics-gpu-install-smoke.py --profile sam2
 
 CMD ["node", "dist-staging-sam2-runtime-worker/staging-sam2-runtime-worker-cli.js"]

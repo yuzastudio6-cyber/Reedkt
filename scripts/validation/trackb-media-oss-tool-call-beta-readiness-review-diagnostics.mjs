@@ -50,9 +50,11 @@ const allowedChangedPrefixes = [
   `${reportDir}/`,
   'docs/open-source-tool-stack/trackb-media-oss-callable-worker-contracts-implementation/',
   'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-rerun/',
+  'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-dry-run/',
 ]
 const allowedChangedFiles = new Set([
   'package.json',
+  'scripts/validation/trackb-media-oss-controlled-internal-beta-dry-run-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
@@ -67,6 +69,7 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-trackb-media-oss-callable-worker-contracts-implementation.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-rerun.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-dry-run.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-internal-beta-fixture-gate-review.md',
   ...statusDocs,
 ])
 

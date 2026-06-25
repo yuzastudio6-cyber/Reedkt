@@ -88,7 +88,7 @@ const forbiddenClaims = [
   /Provider requests created:(?!\s*`?none`?)/i,
   /Model call:\s*`?true/i,
   /Secret payload access:\s*`?(true|completed|enabled|passed)/i,
-  /Secret payload access:(?!\s*`?(false|none)`?)/i,
+  /(^|\n)\s*-?\s*Secret payload access:(?!\s*`?(false|none)`?)/i,
   /Raw prompt execution:\s*`?true/i,
   /Worker dispatch executed:\s*`?true/i,
   /Worker execution:\s*`?true/i,

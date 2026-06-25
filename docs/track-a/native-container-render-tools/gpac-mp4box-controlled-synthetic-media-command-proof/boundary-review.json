@@ -1,0 +1,21 @@
+{
+  "mp4boxSyntheticMediaCommand": true,
+  "mp4boxInfoCommand": true,
+  "generatedSyntheticFixtureOnly": true,
+  "userPrivateRealMedia": false,
+  "arbitraryMediaProbing": false,
+  "ffmpegFfprobeExecution": false,
+  "gstreamerExecution": false,
+  "mkvtoolnixExecution": false,
+  "bento4Execution": false,
+  "vapoursynthExecution": false,
+  "renderExport": false,
+  "workerRouteProviderExecution": false,
+  "supabaseGcsSql": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "betaUnlock": false,
+  "productionUnlock": false,
+  "productRuntimeApproval": false,
+  "supabase": "no write / environment none / SQL none / migration no"
+}

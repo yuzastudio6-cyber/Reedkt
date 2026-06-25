@@ -1,0 +1,31 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-PROOF-1",
+  "decision": "tracka_gpac_mp4box_controlled_synthetic_media_command_proof_passed_ready_for_qa_review",
+  "sourceSha": "1f33b4a4dddc8403b7d6f1096eccb24e38d96879",
+  "package": "gpac",
+  "version": "26.02-rev0-g118e60a90-HEAD",
+  "architecture": "arm64",
+  "mp4boxPath": "/usr/bin/MP4Box",
+  "proof": {
+    "dockerBuildPassed": true,
+    "networkDisabled": true,
+    "syntheticInputCreated": true,
+    "mp4boxAddPassed": true,
+    "mp4boxInfoPassed": true,
+    "outputBytes": 857,
+    "outputSha256": "afc4c7fc017f5d41d817284aa633355d587958416df02a71c0fdd66df7829bb8",
+    "cleanupPassed": true
+  },
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577Excluded": true,
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no",
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1",
+  "nextPromptFile": "docs/implementation-prompts/prompt-tracka-gpac-mp4box-controlled-synthetic-media-command-qa-1.md"
+}

@@ -286,6 +286,17 @@ TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_QA_REVIEW:
 - Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING`.
 <!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_QA_REVIEW_STATUS:end -->
 
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING:
+
+- Decision: `trackb_media_oss_limited_internal_beta_dry_run_testing_passed_ready_for_limited_internal_beta_readiness_review`.
+- Dry-run testing passed for the full 16-tool Track B set.
+- OpenColorIO and OpenImageIO remain bounded accepted/proven and are not pending reinstall.
+- Product-ready local OSS tools remain `0`; external beta and production remain blocked.
+- Direct product tool calls, live route runtime, worker dispatch, public artifacts, signed URLs, Supabase/GCS, and user-media-by-default remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_READINESS_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING_STATUS:end -->
+
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_STATUS:start -->
 TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION:
 

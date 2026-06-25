@@ -48,9 +48,11 @@ const allowedChangedPrefixes = [
   `${reportDir}/`,
   'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-review/',
   'docs/open-source-tool-stack/trackb-media-oss-callable-worker-contracts-implementation/',
+  'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-rerun/',
 ]
 const allowedChangedFiles = new Set([
   'package.json',
+  'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
@@ -74,6 +76,7 @@ const allowedChangedFiles = new Set([
   'src/backend/api/index.ts',
   'src/backend/contracts/index.ts',
   'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-rerun.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-dry-run.md',
   ...statusDocs,
 ])
 

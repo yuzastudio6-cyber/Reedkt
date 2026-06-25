@@ -185,18 +185,26 @@ for (const file of [
 }
 
 const changedFiles = Array.from(new Set([
-  ...execFileSync('git', ['diff', '--name-only', 'HEAD', '--'], { encoding: 'utf8' })
+  ...execFileSync('git', ['diff', '--name-only', 'HEAD', '--'], {
+    encoding: 'utf8',
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  })
     .split('\n')
     .filter(Boolean),
-  ...execFileSync('git', ['ls-files', '--others', '--exclude-standard'], { encoding: 'utf8' })
+  ...execFileSync('git', ['ls-files', '--others', '--exclude-standard'], {
+    encoding: 'utf8',
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  })
     .split('\n')
     .filter(Boolean),
 ]))
 
 const allowedChangedPrefixes = [
   'docs/open-source-tool-stack/trackb-media-oss-callable-worker-contracts-implementation/',
+  'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-rerun/',
   'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-rerun.md',
   'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs',
@@ -206,6 +214,7 @@ const allowedChangedPrefixes = [
   'src/backend/api/api-route-registry.ts',
   'src/backend/api/index.ts',
   'src/backend/contracts/index.ts',
+  'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-dry-run.md',
   'package.json',
   'docs/open-source-tool-stack/open-source-tool-stack-decision.md',
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.md',

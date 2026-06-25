@@ -1,0 +1,53 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssToolCallBetaReadinessRerun.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "583f05790d1be5b826da7d69cda52c94ef32a714",
+  "sourceEvidence": [
+    {
+      "pr": 771,
+      "state": "MERGED",
+      "head": "c850a69f3f30543ec916b36c8b5301f3384a2317",
+      "mergeCommit": "583f05790d1be5b826da7d69cda52c94ef32a714",
+      "summary": "Callable Track B route and worker contract metadata landed fail-closed."
+    },
+    {
+      "pr": 755,
+      "state": "MERGED",
+      "summary": "Prior beta readiness review blocked pending callable worker contracts."
+    },
+    {
+      "pr": 754,
+      "state": "MERGED",
+      "summary": "Track B final rollup recorded 16 owned tools, 16 bounded accepted/proven, 0 blocked/not installed-proven, and 0 product-ready."
+    },
+    {
+      "pr": 741,
+      "state": "MERGED",
+      "summary": "OpenColorIO and OpenImageIO bounded CPU import/API-shape evidence accepted."
+    },
+    {
+      "pr": 648,
+      "state": "MERGED",
+      "summary": "OpenColorIO and OpenImageIO were installed in the CPU worker image and proven without media/image processing."
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "duplicateSearches": {
+    "TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN": "none",
+    "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN": "none"
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

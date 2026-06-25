@@ -201,6 +201,16 @@ TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP:
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP_STATUS:end -->
 
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:start -->
+TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN:
+
+- Decision: `trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run`.
+- Current Track B counts: 16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready.
+- Tool-call ranking metadata now covers FFprobe, MediaInfo, ExifTool, DuckDB, Polars, Sharp/libvips, OpenColorIO, OpenImageIO, ImageMagick, OpenCV, PyAV, PySceneDetect, Tesseract, PaddlePaddle, PaddleOCR, and FFmpeg.
+- Ranking is a dry-run routing aid only. It does not authorize tool execution, media/image/OCR processing, worker dispatch, public artifacts, signed URLs, live beta, production, or product-ready claims.
+- Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN`.
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:end -->
+
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_STATUS:start -->
 TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION:
 

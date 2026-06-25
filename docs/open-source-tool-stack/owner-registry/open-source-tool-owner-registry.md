@@ -59,3 +59,13 @@ TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION:
 - Direct tool calls and beta remain blocked until the next rerun accepts the callable lane.
 - Next prompt: `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN`.
 <!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:start -->
+TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN:
+
+- Decision: `trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run`.
+- Track B ownership remains 16 tools; all 16 are bounded accepted/proven and 0 are product-ready.
+- Callable contracts and deterministic ranking metadata now cover all Track B tools for a later controlled dry-run lane.
+- Direct runtime tool calls, worker dispatch, public artifacts, signed URLs, live beta, production, and product-ready claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN`.
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:end -->

@@ -159,3 +159,15 @@ TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION:
 - Direct tool calls and beta remain blocked until `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN`.
 - Product-ready local OSS tools remain `0`.
 <!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:start -->
+TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN:
+
+- Decision: `trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run`.
+- Steward state: bounded install/proof is complete for all 16 tools; callable contracts and deterministic ranking metadata now cover all 16.
+- Tool-call ranking is dry-run-only and execution-disabled; it orders metadata/probe, structured metadata, color/image, video-analysis, OCR, and transform routes by least-risky matching tool first.
+- Controlled dry-run planning is ready as the next source-of-truth lane.
+- Direct runtime tool calls, live beta, production, and product-ready local OSS claims remain blocked.
+- Product-ready local OSS tools remain `0`.
+- Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN`.
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:end -->

@@ -2,33 +2,24 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-INTERNAL-BETA-SUPABASE-TARGET-CREDENTIAL-CONTEXT-PREFLIGHT-1'
-const packetDir = 'docs/internal-beta/rp-internal-beta-supabase-target-credential-context-preflight-1'
+const packet = 'RP-INTERNAL-BETA-SUPABASE-CREDENTIAL-CONTEXT-CONTRACT-1'
+const packetDir = 'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/credential-context-preflight.md`,
+  `${packetDir}/credential-context-contract.md`,
   `${packetDir}/alias-matrix.md`,
   `${packetDir}/readiness-gate.md`,
   `${packetDir}/safety-boundary.md`,
-  `${packetDir}/credential-context-preflight-record.json`,
-  'docs/activation-phase-rp-internal-beta-supabase-target-credential-context-preflight-1-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-run.md',
+  `${packetDir}/credential-context-contract-record.json`,
+  'docs/activation-phase-rp-internal-beta-supabase-credential-context-contract-1-results.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
-  'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1.mjs',
-  'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1-diagnostics.mjs',
-  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/source-audit.md',
-  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/credential-context-contract.md',
-  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/alias-matrix.md',
-  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/readiness-gate.md',
-  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/safety-boundary.md',
-  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/credential-context-contract-record.json',
-  'docs/activation-phase-rp-internal-beta-supabase-credential-context-contract-1-results.md',
   'server/config/internal-beta-supabase-credential-context-contract.ts',
   'server/smoke/internal-beta-supabase-credential-context-contract-smoke.ts',
   'scripts/validation/rp-internal-beta-supabase-credential-context-contract-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-1-diagnostics.mjs',
@@ -39,14 +30,16 @@ const allowedChangedFiles = new Set(requiredFiles)
 
 const requiredText = [
   packet,
-  'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias',
-  'blocked_no_remote_execution_missing_safe_credential_context',
+  'completed_backend_safe_supabase_credential_context_contract_no_payload_access',
+  'completed_server_config_contract_no_remote_execution',
   'Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`',
+  'Contract module: `server/config/internal-beta-supabase-credential-context-contract.ts`',
+  'Smoke: `npm run smoke:internal-beta-supabase-credential-context-contract`',
   'Approved access-token aliases: `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, `REEDITPRO_SUPABASE_ACCESS_TOKEN`.',
   'Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`.',
+  'Payload access: `forbidden`',
   'Credential payloads printed: `false`',
   'Credential payloads persisted: `false`',
-  'Commands executed by preflight: `none`',
   'Remote Supabase command: `false`',
   'Remote Supabase mutation: `false`',
   'SQL execution: `false`',
@@ -66,20 +59,16 @@ const requiredText = [
 ]
 
 const forbiddenClaims = [
-  /Internal beta unlock:\s*`?true/i,
-  /External beta unlock:\s*`?true/i,
-  /Production unlock:\s*`?true/i,
   /Remote Supabase command:\s*`?true/i,
   /Remote Supabase mutation:\s*`?true/i,
   /SQL execution:\s*`?true/i,
   /SQL mutation:\s*`?true/i,
   /Migration apply:\s*`?true/i,
-  /Storage bucket creation:\s*`?true/i,
-  /Storage object creation:\s*`?true/i,
   /Storage object read:\s*`?true/i,
   /Service-role secret payload access:\s*`?true/i,
   /Frontend service-role credential exposure:\s*`?true/i,
-  /Service-role route execution:\s*`?true/i,
+  /Credential payloads printed:\s*`?true/i,
+  /Credential payloads persisted:\s*`?true/i,
   /Worker execution:(?!\s*`?(false|none|not_run)`?)/i,
   /Provider\/model call:\s*`?true/i,
   /Remotion execution:\s*`?true/i,
@@ -88,8 +77,9 @@ const forbiddenClaims = [
   /Media processing:\s*`?true/i,
   /Signed URL creation:\s*`?true/i,
   /Public artifact creation:\s*`?true/i,
-  /Credential payloads printed:\s*`?true/i,
-  /Credential payloads persisted:\s*`?true/i,
+  /Internal beta unlock:\s*`?true/i,
+  /External beta unlock:\s*`?true/i,
+  /Production unlock:\s*`?true/i,
   /Package-lock:\s*`?changed/i,
   /Generated artifacts committed:(?!\s*`?none`?)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
@@ -97,14 +87,14 @@ const forbiddenClaims = [
 
 const forbiddenExactFiles = new Set(['package-lock.json', '.dockerignore'])
 const forbiddenPrefixes = [
-  'server/routes/',
-  'server/workers/',
   'supabase/',
   'database/',
   'docker/',
   'public/',
   'tests/',
   'src/',
+  'server/routes/',
+  'server/workers/',
 ]
 
 function fail(message) {
@@ -139,14 +129,13 @@ for (const text of requiredText) {
 }
 
 for (const pattern of forbiddenClaims) {
-  if (pattern.test(docsCorpus)) fail(`forbidden claim matched ${pattern}`)
+  if (pattern.test(docsCorpus)) fail(`forbidden docs claim matched ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/credential-context-preflight-record.json`))
-if (record.decision !== 'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias') fail('record decision mismatch')
-if (record.execution !== 'blocked_no_remote_execution_missing_safe_credential_context') fail('record execution mismatch')
+const record = JSON.parse(read(`${packetDir}/credential-context-contract-record.json`))
+if (record.decision !== 'completed_backend_safe_supabase_credential_context_contract_no_payload_access') fail('record decision mismatch')
+if (record.execution !== 'completed_server_config_contract_no_remote_execution') fail('record execution mismatch')
 if (record.supabaseTargetProject !== 'wmyyttnynmteqgcdishd') fail('record target mismatch')
-if (record.commandsExecuted !== 0) fail('commands executed must be zero')
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 for (const name of ['SUPABASE_ACCESS_TOKEN', 'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN', 'REEDITPRO_SUPABASE_ACCESS_TOKEN']) {
   if (!record.acceptedAccessTokenEnvNames?.includes(name)) fail(`missing access-token alias ${name}`)
@@ -169,6 +158,15 @@ for (const key of [
   'storageObjectRead',
   'serviceRoleSecretPayloadAccess',
   'frontendServiceRoleCredentialExposure',
+  'serviceRoleRouteExecution',
+  'workerExecution',
+  'providerModelCall',
+  'remotionExecution',
+  'ffmpegExecution',
+  'ffprobeExecution',
+  'mediaProcessing',
+  'signedUrlCreation',
+  'publicArtifactCreation',
   'internalBetaUnlock',
   'externalBetaUnlock',
   'productionUnlock',
@@ -176,21 +174,34 @@ for (const key of [
   if (record[key] !== false) fail(`${key} must remain false`)
 }
 
-const runner = read('scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1.mjs')
+const contract = read('server/config/internal-beta-supabase-credential-context-contract.ts')
 for (const required of [
-  'accessTokenEnvNames',
-  'readonlyDbUrlEnvNames',
-  'firstPresentEnvName',
-  'commandsExecuted: 0',
+  'createInternalBetaSupabaseCredentialContextContract',
+  'assertInternalBetaSupabaseCredentialContextFailClosed',
+  'INTERNAL_BETA_SUPABASE_ACCESS_TOKEN_ENV_NAMES',
+  'INTERNAL_BETA_SUPABASE_READONLY_DB_URL_ENV_NAMES',
   'credentialValuesPersisted: false',
+  'remoteSupabaseCommand: false',
 ]) {
-  if (!runner.includes(required)) fail(`runner missing contract ${required}`)
+  if (!contract.includes(required)) fail(`contract missing ${required}`)
 }
-if (/execFileSync|spawn|fetch\(|supabase ['"`]/.test(runner)) fail('preflight runner must not execute remote commands')
+for (const forbidden of ['createClient', '@supabase/', 'execFileSync', 'fetch(', 'SUPABASE_SERVICE_ROLE_KEY: string']) {
+  if (contract.includes(forbidden)) fail(`contract includes forbidden runtime/client marker ${forbidden}`)
+}
+
+const smoke = read('server/smoke/internal-beta-supabase-credential-context-contract-smoke.ts')
+for (const required of [
+  'secret_token_must_not_appear',
+  'service_role_payload_must_not_appear',
+  'JSON.stringify(complete).includes',
+  'internal-beta-supabase-credential-context-contract-smoke passed',
+]) {
+  if (!smoke.includes(required)) fail(`smoke missing payload leak check ${required}`)
+}
 
 const packageJson = JSON.parse(read('package.json'))
-if (packageJson.scripts?.['rp-internal-beta-supabase-target-credential-context-preflight-1'] !== 'node scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1.mjs') fail('missing preflight script')
-if (packageJson.scripts?.['rp-internal-beta-supabase-target-credential-context-preflight-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1-diagnostics.mjs') fail('missing diagnostics script')
+if (packageJson.scripts?.['smoke:internal-beta-supabase-credential-context-contract'] !== 'tsx server/smoke/internal-beta-supabase-credential-context-contract-smoke.ts') fail('missing smoke package script')
+if (packageJson.scripts?.['rp-internal-beta-supabase-credential-context-contract-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-supabase-credential-context-contract-1-diagnostics.mjs') fail('missing diagnostics package script')
 
 gitQuiet(['diff', '--quiet', '--', 'package-lock.json'], 'package-lock changed')
 for (const blocked of ['supabase', 'server/routes', 'server/workers', 'docker', 'src', 'database', '.dockerignore']) {

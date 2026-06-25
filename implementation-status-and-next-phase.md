@@ -386,6 +386,26 @@ No remote Supabase mutation, SQL execution, migration execution, RLS policy appl
 
 Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED`.
 
+## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Confirmed Runner
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_confirmed_validation_runner_fail_closed_without_remote_execution` and execution `completed_runner_scaffold_no_remote_execution`.
+
+Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`.
+
+Observed confirmation: `absent_or_not_true`.
+
+Current run status: `not_run_confirmation_absent`.
+
+The runner `npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed` now fails closed when confirmation or safe credential context is absent. When explicitly confirmed, it may run read-only Supabase target identity and public/storage advisor lint checks, writing sanitized reports only under `/tmp`.
+
+Readiness: `ready_for_confirmed_readonly_supabase_target_rls_storage_validation_attempt`. Internal beta end-to-end status remains `not_ready_pending_guarded_supabase_rls_storage_validation_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`.
+
+No remote Supabase mutation, SQL mutation, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, frontend service-role credential exposure, service-role route execution, Google Cloud API call, Cloud Run service creation, Cloud Run job creation, Cloud Run deployment, IAM mutation, GCS bucket creation, GCS object access, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.
+
+Next recommended milestone after a passing confirmed run: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

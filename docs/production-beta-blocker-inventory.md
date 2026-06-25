@@ -217,6 +217,20 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/requirements/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## Track A GPAC/MP4Box Controlled Synthetic Media Command Proof
+
+`TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-PROOF-1` is a bounded generated-fixture MP4Box command proof and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_controlled_synthetic_media_command_proof_passed_ready_for_qa_review`.
+
+The proof built local image `reeditpro-tracka-gpac-mp4box-controlled-synthetic-media-command-proof-1:20260625T1158Z-1f33b4a` and ran under `--network none`. It generated a 73-byte SRT fixture, ran `MP4Box -add generated-synthetic-subtitles.srt:hdlr=sbtl -new generated-synthetic-subtitle-only.mp4`, then ran `MP4Box -info` on the generated output. The output MP4 was 857 bytes with SHA-256 `afc4c7fc017f5d41d817284aa633355d587958416df02a71c0fdd66df7829bb8`, and `MP4Box -info` reported one `sbtl:tx3g` track.
+
+No user/private/real media, arbitrary media probing, FFmpeg/FFprobe, render/export, product runtime, beta, or production approval is granted.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1`.
+
+Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
+
+Package-lock/Dockerfile/.dockerignore/requirements/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## Track A GPAC/MP4Box Owner Source Classification
 
 `TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1` is metadata-only and preserves all production/beta blockers. Decision: `tracka_gpac_mp4box_owner_source_classification_passed_ready_for_official_gpac_apt_repo_approval`.

@@ -1,0 +1,9 @@
+{
+  "cleanup": "passed",
+  "containerTempFilesRemoved": true,
+  "repoMediaArtifactsCommitted": false,
+  "localDockerImageRemovedBeforeCommit": true,
+  "nodeModulesRemovedBeforeCommit": true,
+  "distOutputsRemovedBeforeCommit": true,
+  "tempLogsRemovedBeforeCommit": true
+}

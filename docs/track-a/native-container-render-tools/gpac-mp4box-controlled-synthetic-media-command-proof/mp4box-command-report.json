@@ -1,0 +1,25 @@
+{
+  "commands": [
+    {
+      "name": "MP4Box subtitle import",
+      "command": "MP4Box -add generated-synthetic-subtitles.srt:hdlr=sbtl -new generated-synthetic-subtitle-only.mp4",
+      "exitStatus": 0,
+      "accepted": true
+    },
+    {
+      "name": "MP4Box info",
+      "command": "MP4Box -info generated-synthetic-subtitle-only.mp4",
+      "exitStatus": 0,
+      "accepted": true
+    }
+  ],
+  "infoEvidence": {
+    "movieTracks": 1,
+    "duration": "00:00:01.000",
+    "mediaType": "sbtl:tx3g",
+    "codec": "tx3g",
+    "tool": "GPAC-26.02-rev0-g118e60a90-HEAD"
+  },
+  "ffmpegFfprobeUsed": false,
+  "userPrivateRealMediaUsed": false
+}

@@ -615,6 +615,7 @@
     "tracka:gpac-mp4box-official-apt-install-source-execution:diagnostics": "node scripts/validation/tracka-gpac-mp4box-official-apt-install-source-execution-diagnostics.mjs",
     "tracka:gpac-mp4box-official-apt-install-source-qa:diagnostics": "node scripts/validation/tracka-gpac-mp4box-official-apt-install-source-qa-diagnostics.mjs",
     "tracka:gpac-mp4box-controlled-runtime-proof:diagnostics": "node scripts/validation/tracka-gpac-mp4box-controlled-runtime-proof-diagnostics.mjs",
+    "tracka:gpac-mp4box-controlled-synthetic-media-command-proof:diagnostics": "node scripts/validation/tracka-gpac-mp4box-controlled-synthetic-media-command-proof-diagnostics.mjs",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",
     "track-a:visual-review-packet:diagnostics": "node scripts/validation/track-a-visual-review-packet-diagnostics.mjs",

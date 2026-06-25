@@ -294,7 +294,15 @@ if (status.milestone3ExactFontAssetSourceReview?.nextPrompt !== nextPrompt) fail
 const milestone3OcrMlCpuQaAccepted =
   status.milestone3OcrMlCpuQaReview?.decision ===
   'trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval'
-if (status.counts?.acceptedProvenBounded !== (milestone3OcrMlCpuQaAccepted ? 14 : 12) || status.counts?.endToEndProductReady !== 0) {
+const milestone4ColorImagePipelineQaAccepted =
+  status.milestone4ColorImagePipelineQaReview?.decision ===
+  'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
+const expectedCurrentAcceptedCount = milestone4ColorImagePipelineQaAccepted
+  ? 16
+  : milestone3OcrMlCpuQaAccepted
+  ? 14
+  : 12
+if (status.counts?.acceptedProvenBounded !== expectedCurrentAcceptedCount || status.counts?.endToEndProductReady !== 0) {
   fail('status_counts_drift')
 }
 

@@ -45,8 +45,8 @@ The first recommended next phase is `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUT
 
 | Tool | ID | Install status | Proof status | Next action |
 | --- | --- | --- | --- | --- |
-| OpenColorIO | opencolorio | docs_only | not_proven | Backlog optional color management review. |
-| OpenImageIO | openimageio | docs_only | not_proven | Backlog optional image IO review. |
+| OpenColorIO | opencolorio | package_declared_cpu_worker | bounded_import_api_proven | Accepted by Track B Milestone 4 QA; product runtime remains blocked. |
+| OpenImageIO | openimageio | package_declared_cpu_worker | bounded_import_api_proven | Accepted by Track B Milestone 4 QA; file I/O and product runtime remain blocked. |
 
 ## backlog_creative_graphics_review
 
@@ -916,3 +916,17 @@ TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION_STATUS:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:
+
+- Decision: `trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup`
+- PR #648 bounded CPU/container evidence is accepted for OpenColorIO and OpenImageIO.
+- OpenColorIO: `PyOpenColorIO` import/version 2.5.2 and raw `Config` API-shape proof accepted under `--network none`.
+- OpenImageIO: import/version 3.1.14.1 and `ImageSpec`/`ImageBuf` API-shape proof accepted under `--network none` without file I/O.
+- Track B counts after QA: 16 owned tools, 16 bounded accepted/proven tools, 0 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Product runtime, image/media processing, render/export, GPU, FFmpeg/FFprobe reruns, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- No 40+ tools installed/proven end-to-end claim is allowed.
+- Next prompt: `TRACKB_MEDIA_OSS_FINAL_ROLLUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:end -->

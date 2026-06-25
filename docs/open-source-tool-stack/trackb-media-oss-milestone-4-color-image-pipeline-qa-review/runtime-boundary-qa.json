@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-06-24T00:00:00.000Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "9a96e4ceb3d7bc0a05fdcea4b1c2527920e51c36",
+  "sourceEvidenceSha": "957e8f96900e9a374a8cd7990f00e761222ebb64",
+  "qaReviewMetadataOnly": true,
+  "toolExecutionRunInQaPhase": false,
+  "dockerBuildRunInQaPhase": false,
+  "dockerRunInQaPhase": false,
+  "npmCiRunInQaPhase": false,
+  "installRunInQaPhase": false,
+  "imageProcessingAccepted": false,
+  "mediaProcessingAccepted": false,
+  "mediaFileProbingAccepted": false,
+  "renderExportAccepted": false,
+  "gpuExecutionApproved": false,
+  "workerRuntimeAccepted": false,
+  "routeProviderRuntimeAccepted": false,
+  "supabaseGcsPublicDeliveryAccepted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "rawPromptExecutionAccepted": false,
+  "betaProductionAccepted": false,
+  "endToEndProductReadyTools": 0,
+  "fortyPlusEndToEndClaimAllowed": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

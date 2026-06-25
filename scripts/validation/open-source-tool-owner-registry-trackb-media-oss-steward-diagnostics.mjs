@@ -138,18 +138,37 @@ const milestone2QaAccepted =
 const milestone3OcrMlCpuQaAccepted =
   status.milestone3OcrMlCpuQaReview?.decision ===
   "trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval";
-const expectedAcceptedStatusTools = milestone3OcrMlCpuQaAccepted
+const milestone4ColorImagePipelineQaAccepted =
+  status.milestone4ColorImagePipelineQaReview?.decision ===
+  "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup";
+const expectedAcceptedStatusTools = milestone4ColorImagePipelineQaAccepted
+  ? [...acceptedStatusTools, "opencv", "pyav", "pyscenedetect", "paddlepaddle", "paddleocr", "opencolorio", "openimageio"]
+  : milestone3OcrMlCpuQaAccepted
   ? [...acceptedStatusTools, "opencv", "pyav", "pyscenedetect", "paddlepaddle", "paddleocr"]
   : milestone2QaAccepted
   ? [...acceptedStatusTools, "opencv", "pyav", "pyscenedetect"]
   : acceptedStatusTools;
-const expectedBlockedTools = milestone3OcrMlCpuQaAccepted
+const expectedBlockedTools = milestone4ColorImagePipelineQaAccepted
+  ? []
+  : milestone3OcrMlCpuQaAccepted
   ? ["opencolorio", "openimageio"]
   : milestone2QaAccepted
   ? ["paddleocr", "paddlepaddle", "opencolorio", "openimageio"]
   : blockedTools;
-const expectedAcceptedCount = milestone3OcrMlCpuQaAccepted ? 14 : milestone2QaAccepted ? 12 : 9;
-const expectedBlockedCount = milestone3OcrMlCpuQaAccepted ? 2 : milestone2QaAccepted ? 4 : 7;
+const expectedAcceptedCount = milestone4ColorImagePipelineQaAccepted
+  ? 16
+  : milestone3OcrMlCpuQaAccepted
+  ? 14
+  : milestone2QaAccepted
+  ? 12
+  : 9;
+const expectedBlockedCount = milestone4ColorImagePipelineQaAccepted
+  ? 0
+  : milestone3OcrMlCpuQaAccepted
+  ? 2
+  : milestone2QaAccepted
+  ? 4
+  : 7;
 
 if (registry.decision !== decision || steward.decision !== decision || status.decision !== decision) {
   fail("Decision drift detected in owner registry artifacts.");
@@ -232,6 +251,15 @@ for (const tool of steward.ownedTools) {
       fail(`${tool.id} must remain blocked/not installed-proven before Milestone 3 OCR/ML CPU QA.`);
     }
   }
+  if (["opencolorio", "openimageio"].includes(tool.id)) {
+    if (milestone4ColorImagePipelineQaAccepted) {
+      if (tool.status !== "accepted_proven_bounded_milestone4_color_image_cpu") {
+        fail(`${tool.id} must be accepted only as bounded Milestone 4 color/image CPU proof after Milestone 4 QA.`);
+      }
+    } else if (tool.status !== "blocked_not_installed_proven") {
+      fail(`${tool.id} must remain blocked/not installed-proven before Milestone 4 color/image QA.`);
+    }
+  }
   if (tool.id === "imagemagick_graphicsmagick" && tool.graphicsMagickAcceptedProven !== false) {
     fail("GraphicsMagick must remain optional fallback and not accepted/proven.");
   }
@@ -292,7 +320,7 @@ for (const relativePath of textScanFiles) {
     fail(`Potential secret material detected in ${relativePath}.`);
   }
   for (const line of text.split(/\r?\n/)) {
-    const negativeWarning = /\b(do not|must not|not allowed|remain blocked|blocked|false)\b/i.test(line);
+    const negativeWarning = /\b(no|do not|must not|not allowed|remain blocked|blocked|false)\b/i.test(line);
     for (const pattern of forbiddenPositivePatterns) {
       if (!negativeWarning && pattern.test(line)) {
         fail(`Forbidden positive scope claim in ${relativePath}: ${line.trim()}`);

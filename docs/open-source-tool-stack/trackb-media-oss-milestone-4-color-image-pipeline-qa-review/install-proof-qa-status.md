@@ -1,0 +1,42 @@
+# Install Proof QA Status
+
+Decision: `trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup`
+
+```json
+{
+  "generatedAt": "2026-06-24T00:00:00.000Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "9a96e4ceb3d7bc0a05fdcea4b1c2527920e51c36",
+  "sourceEvidenceSha": "957e8f96900e9a374a8cd7990f00e761222ebb64",
+  "packageStatus": {
+    "requirementsFile": "docker/prod/cpu-worker/requirements.cpu.txt",
+    "requiredLinesAccepted": [
+      "OpenColorIO",
+      "OpenImageIO"
+    ],
+    "pyOpenColorIODeclarationRejected": true,
+    "packageLockMutated": false,
+    "dockerfileMutatedInQaPhase": false,
+    "requirementsMutatedInQaPhase": false
+  },
+  "installedProofAcceptedTools": [
+    {
+      "id": "opencolorio",
+      "version": "2.5.2",
+      "acceptedProvenBounded": true
+    },
+    {
+      "id": "openimageio",
+      "version": "3.1.14.1",
+      "acceptedProvenBounded": true
+    }
+  ],
+  "notAccepted": {
+    "mediaProcessing": true,
+    "renderExport": true,
+    "workerRuntime": true,
+    "productRuntime": true
+  }
+}
+```

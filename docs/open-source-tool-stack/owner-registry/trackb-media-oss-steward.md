@@ -32,10 +32,10 @@ The steward owns Track B media OSS install-proof coordination. It does not own A
 | ExifTool | Blocked/not installed-proven | Future Track B install-proof milestone required |
 | ImageMagick / GraphicsMagick | Blocked/not installed-proven | Future Track B install-proof milestone required |
 | Tesseract | Blocked/not installed-proven | Future Track B install-proof milestone required |
-| OpenColorIO | Blocked/not installed-proven | Future Track B install-proof milestone required |
-| OpenImageIO | Blocked/not installed-proven | Future Track B install-proof milestone required |
+| OpenColorIO | Accepted/proven bounded Milestone 4 color/image CPU | Import/version/raw Config API-shape proof only; no image processing |
+| OpenImageIO | Accepted/proven bounded Milestone 4 color/image CPU | Import/version/ImageSpec/ImageBuf API-shape proof only; no file I/O or image processing |
 
-Counts: 16 owned tools, 5 accepted/proven bounded, 11 blocked/not installed-proven, 0 end-to-end product-ready tools.
+Counts: 16 owned tools, 16 accepted/proven bounded, 0 blocked/not installed-proven, 0 end-to-end product-ready tools.
 
 Do not claim 40+ tools are installed/proven end-to-end. Media processing, render/export, workers, routes, providers, Supabase/GCS, public delivery, signed URLs, raw prompts, beta, and production remain blocked.
 
@@ -115,3 +115,17 @@ TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP:
 - Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_FOLLOWUP_RESOLUTION`
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:
+
+- Decision: `trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup`
+- PR #648 bounded CPU/container evidence is accepted for OpenColorIO and OpenImageIO.
+- OpenColorIO: `PyOpenColorIO` import/version 2.5.2 and raw `Config` API-shape proof accepted under `--network none`.
+- OpenImageIO: import/version 3.1.14.1 and `ImageSpec`/`ImageBuf` API-shape proof accepted under `--network none` without file I/O.
+- Track B counts after QA: 16 owned tools, 16 bounded accepted/proven tools, 0 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Product runtime, image/media processing, render/export, GPU, FFmpeg/FFprobe reruns, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- No 40+ tools installed/proven end-to-end claim is allowed.
+- Next prompt: `TRACKB_MEDIA_OSS_FINAL_ROLLUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:end -->

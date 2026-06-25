@@ -4,8 +4,8 @@
   "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
   "counts": {
     "ownedTools": 16,
-    "acceptedProvenBounded": 14,
-    "blockedNotInstalledProven": 2,
+    "acceptedProvenBounded": 16,
+    "blockedNotInstalledProven": 0,
     "endToEndProductReady": 0
   },
   "acceptedProvenBounded": [
@@ -55,7 +55,6 @@
       "name": "MediaInfo",
       "sourcePr": 557,
       "version": "23.04",
-      "versionEvidence": "MediaInfo Command line,\nMediaInfoLib - v23.04",
       "versionProven": true,
       "fixtureProven": true,
       "acceptedProvenBounded": true,
@@ -73,7 +72,6 @@
       "acceptedVariant": "dejavu_sans_bold_large_psm7",
       "expectedNormalizedOutput": "REEDITPRO",
       "observedNormalizedOutput": "REEDITPRO",
-      "priorRejectedOutput": "REEDLTPRU",
       "acceptedProvenBounded": true,
       "rerunInQaPhase": false,
       "proofBoundary": "container_version_from_pr557_and_exact_synthetic_ocr_fixture_from_pr559"
@@ -84,7 +82,6 @@
       "sourcePr": 557,
       "followupFixtureSourcePr": 559,
       "version": "6.9.11-60",
-      "versionEvidence": "Version: ImageMagick 6.9.11-60 Q16 aarch64 2021-01-25 https://imagemagick.org\nCopyright: (C) 1999-2021 ImageMagick Studio LLC\nLicense: https://imagemagick.org/script/license.php\nFeatures: Cipher DPC Modules OpenMP(4.5)\nDelegates (built-in): bzlib djvu fftw fontconfig freetype heic jbig jng jp2 jpeg lcms lqr ltdl lzma openexr pangocairo png tiff webp wmf x xml zlib",
       "versionProven": true,
       "fixtureProven": true,
       "acceptedProvenBounded": true,
@@ -160,12 +157,50 @@
       "fontAssetsUsed": false,
       "endToEndProductReady": false,
       "proofBoundary": "ocr_runtime_container_cpu_import_version_api_shape_local_noto_font_config_no_instantiation_no_inference_no_model_assets"
+    },
+    {
+      "id": "opencolorio",
+      "name": "OpenColorIO",
+      "packageName": "OpenColorIO",
+      "importName": "PyOpenColorIO",
+      "version": "2.5.2",
+      "sourcePr": 648,
+      "requirementsPatched": true,
+      "importVersionProven": true,
+      "apiShapeProven": true,
+      "rawConfigCreated": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "cpuOnly": true,
+      "gpuUsed": false,
+      "realMediaUsed": false,
+      "imageProcessingRun": false,
+      "endToEndProductReady": false,
+      "proofBoundary": "cpu_worker_container_import_version_raw_config_api_shape_no_media_processing"
+    },
+    {
+      "id": "openimageio",
+      "name": "OpenImageIO",
+      "packageName": "OpenImageIO",
+      "importName": "OpenImageIO",
+      "version": "3.1.14.1",
+      "sourcePr": 648,
+      "requirementsPatched": true,
+      "importVersionProven": true,
+      "apiShapeProven": true,
+      "imageSpecImageBufApiShapeProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "cpuOnly": true,
+      "gpuUsed": false,
+      "realMediaUsed": false,
+      "fileIoUsed": false,
+      "imageProcessingRun": false,
+      "endToEndProductReady": false,
+      "proofBoundary": "cpu_worker_container_import_version_imagespec_imagebuf_api_shape_no_file_io_no_media_processing"
     }
   ],
-  "blockedNotInstalledProven": [
-    "opencolorio",
-    "openimageio"
-  ],
+  "blockedNotInstalledProven": [],
   "blockedScopes": {
     "mediaProcessingAccepted": false,
     "mediaFileProbingAccepted": false,
@@ -1145,5 +1180,26 @@
       "sqlExecuted": "none",
       "migrationDeployed": "no"
     }
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_FINAL_ROLLUP",
+  "sourceEvidence": {
+    "trackbMilestone4ColorImagePipelineQaReviewDecision": "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup",
+    "trackbAcceptedProvenBoundedAfterMilestone4Qa": 16,
+    "trackbStillBlockedAfterMilestone4Qa": 0
+  },
+  "milestone4ColorImagePipelineQaReview": {
+    "decision": "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-4-color-image-pipeline-qa-review",
+    "acceptedMilestone4Tools": [
+      "opencolorio",
+      "openimageio"
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_FINAL_ROLLUP",
+    "executionRunInThisPhase": false,
+    "imageProcessingAccepted": false,
+    "mediaProcessingApproved": false,
+    "renderExportApproved": false,
+    "workerRuntimeApproved": false,
+    "betaProductionApproved": false
   }
 }

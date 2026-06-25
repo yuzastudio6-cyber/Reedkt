@@ -173,8 +173,14 @@ const milestone2QaAccepted =
 const milestone3OcrMlCpuQaAccepted =
   status.milestone3OcrMlCpuQaReview?.decision ===
   'trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval'
+const milestone4ColorImagePipelineQaAccepted =
+  status.milestone4ColorImagePipelineQaReview?.decision ===
+  'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
 if (status.counts?.ownedTools !== 16) fail('owned_count_drift')
-if (milestone3OcrMlCpuQaAccepted) {
+if (milestone4ColorImagePipelineQaAccepted) {
+  if (status.counts?.acceptedProvenBounded !== 16) fail('accepted_count_after_milestone4_qa_drift')
+  if (status.counts?.blockedNotInstalledProven !== 0) fail('blocked_count_after_milestone4_qa_drift')
+} else if (milestone3OcrMlCpuQaAccepted) {
   if (status.counts?.acceptedProvenBounded !== 14) fail('accepted_count_after_milestone3_qa_drift')
   if (status.counts?.blockedNotInstalledProven !== 2) fail('blocked_count_after_milestone3_qa_drift')
 } else if (milestone2QaAccepted) {
@@ -187,7 +193,9 @@ if (milestone3OcrMlCpuQaAccepted) {
 if (status.counts?.endToEndProductReady !== 0) fail('product_ready_count_drift')
 sameSet(
   status.blockedNotInstalledProven,
-  milestone3OcrMlCpuQaAccepted
+  milestone4ColorImagePipelineQaAccepted
+    ? []
+    : milestone3OcrMlCpuQaAccepted
     ? ['opencolorio', 'openimageio']
     : milestone2QaAccepted
     ? ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio']

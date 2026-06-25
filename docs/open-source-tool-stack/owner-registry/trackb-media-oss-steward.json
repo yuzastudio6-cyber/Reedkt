@@ -23,8 +23,8 @@
   },
   "statusCounts": {
     "ownedTools": 16,
-    "acceptedProvenBounded": 14,
-    "blockedNotInstalledProven": 2,
+    "acceptedProvenBounded": 16,
+    "blockedNotInstalledProven": 0,
     "endToEndProductReady": 0
   },
   "installProofMilestonePlan": {
@@ -203,16 +203,39 @@
     {
       "id": "opencolorio",
       "name": "OpenColorIO",
-      "status": "blocked_not_installed_proven",
-      "reason": "Future Track B install-proof milestone required; color pipeline execution remains blocked.",
-      "endToEndProductReady": false
+      "status": "accepted_proven_bounded_milestone4_color_image_cpu",
+      "reason": "PR #648 CPU-worker install/API-shape evidence accepted by Milestone 4 QA; image processing remains blocked.",
+      "endToEndProductReady": false,
+      "proofBoundary": "cpu_worker_container_import_version_raw_config_api_shape_no_media_processing",
+      "packageName": "OpenColorIO",
+      "importName": "PyOpenColorIO",
+      "version": "2.5.2",
+      "sourcePr": 648,
+      "importVersionProven": true,
+      "apiShapeProven": true,
+      "rawConfigCreated": true,
+      "gpuUsed": false,
+      "imageProcessingAccepted": false,
+      "mediaProcessingAccepted": false
     },
     {
       "id": "openimageio",
       "name": "OpenImageIO",
-      "status": "blocked_not_installed_proven",
-      "reason": "Future Track B install-proof milestone required; image IO/media processing remains blocked.",
-      "endToEndProductReady": false
+      "status": "accepted_proven_bounded_milestone4_color_image_cpu",
+      "reason": "PR #648 CPU-worker install/API-shape evidence accepted by Milestone 4 QA; image processing and file I/O remain blocked.",
+      "endToEndProductReady": false,
+      "proofBoundary": "cpu_worker_container_import_version_imagespec_imagebuf_api_shape_no_file_io_no_media_processing",
+      "packageName": "OpenImageIO",
+      "importName": "OpenImageIO",
+      "version": "3.1.14.1",
+      "sourcePr": 648,
+      "importVersionProven": true,
+      "apiShapeProven": true,
+      "imageSpecImageBufApiShapeProven": true,
+      "fileIoUsed": false,
+      "gpuUsed": false,
+      "imageProcessingAccepted": false,
+      "mediaProcessingAccepted": false
     }
   ],
   "sourceEvidence": {
@@ -220,7 +243,7 @@
     "batch1AcceptedMatrix": "docs/open-source-tool-stack/batch-1-final-rollup-after-ffmpeg-ffprobe-proof/batch-1-accepted-tools-matrix.json",
     "ownerLaneCounts": "docs/open-source-tool-stack/owner-lane-reconciliation-after-batch-1-rollup/reconciled-tool-count-summary.json"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL",
+  "nextPrompt": "TRACKB_MEDIA_OSS_FINAL_ROLLUP",
   "supabaseClassification": {
     "updateRequired": "no write",
     "environmentTouched": "none",
@@ -320,6 +343,21 @@
     "executionRunInThisPhase": false,
     "ocrInferenceAccepted": false,
     "gpuExecutionApproved": false,
+    "mediaProcessingApproved": false,
+    "renderExportApproved": false,
+    "workerRuntimeApproved": false,
+    "betaProductionApproved": false
+  },
+  "milestone4ColorImagePipelineQaReview": {
+    "decision": "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-4-color-image-pipeline-qa-review",
+    "acceptedMilestone4Tools": [
+      "opencolorio",
+      "openimageio"
+    ],
+    "nextPrompt": "TRACKB_MEDIA_OSS_FINAL_ROLLUP",
+    "executionRunInThisPhase": false,
+    "imageProcessingAccepted": false,
     "mediaProcessingApproved": false,
     "renderExportApproved": false,
     "workerRuntimeApproved": false,

@@ -68,20 +68,37 @@ const statusDocs = [
 
 const allowedChangedPrefixes = [
   `${reportDir}/`,
+  'docs/open-source-tool-stack/trackb-media-oss-milestone-4-color-image-pipeline-qa-review/',
 ]
 const allowedChangedFiles = new Set([
   'package.json',
   'docker/prod/cpu-worker/requirements.cpu.txt',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-cpu-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
+  'scripts/validation/open-source-tool-owner-registry-trackb-media-oss-steward-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-font-config-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-blocker-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-system-font-package-approval-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-font-source-license-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-exact-font-asset-source-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-execution-blocker-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-gpu-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-2-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-2-video-analysis-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-2-video-analysis-approval-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-1-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-install-proof-milestone-plan-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-milestone-4-color-image-pipeline-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-final-rollup.md',
+  'docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.md',
+  'docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.json',
+  'docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.md',
+  'docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.json',
   ...statusDocs,
 ])
 
@@ -294,9 +311,14 @@ if (reports.manifest.publicArtifactsCreated !== false || reports.manifest.signed
 }
 
 const statusJson = readJson('docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json')
+const milestone4ColorImagePipelineQaAccepted =
+  statusJson.milestone4ColorImagePipelineQaReview?.decision ===
+  'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
+const currentAcceptedCount = milestone4ColorImagePipelineQaAccepted ? 16 : 14
+const currentBlockedCount = milestone4ColorImagePipelineQaAccepted ? 0 : 2
 if (statusJson.counts?.ownedTools !== 16) fail('status_owned_count_drift')
-if (statusJson.counts?.acceptedProvenBounded !== 14) fail('status_accepted_count_drift')
-if (statusJson.counts?.blockedNotInstalledProven !== 2) fail('status_blocked_count_drift')
+if (statusJson.counts?.acceptedProvenBounded !== currentAcceptedCount) fail('status_accepted_count_drift')
+if (statusJson.counts?.blockedNotInstalledProven !== currentBlockedCount) fail('status_blocked_count_drift')
 if (statusJson.counts?.endToEndProductReady !== 0) fail('status_product_ready_drift')
 if (statusJson.milestone4ColorImagePipelineCpuExecution?.decision !== decision) {
   fail('status_json_execution_decision_missing')

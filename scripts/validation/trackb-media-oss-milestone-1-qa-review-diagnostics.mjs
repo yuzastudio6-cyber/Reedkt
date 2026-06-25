@@ -161,12 +161,19 @@ const milestone2QaAccepted =
 const milestone3OcrMlCpuQaAccepted =
   status.milestone3OcrMlCpuQaReview?.decision ===
   'trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval'
-const expectedAcceptedStatus = milestone3OcrMlCpuQaAccepted
+const milestone4ColorImagePipelineQaAccepted =
+  status.milestone4ColorImagePipelineQaReview?.decision ===
+  'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
+const expectedAcceptedStatus = milestone4ColorImagePipelineQaAccepted
+  ? ['ffmpeg', 'ffprobe', 'sharp_libvips', 'duckdb', 'polars_nodejs_polars', 'exiftool', 'mediainfo', 'tesseract', 'imagemagick', 'opencv', 'pyav', 'pyscenedetect', 'paddlepaddle', 'paddleocr', 'opencolorio', 'openimageio']
+  : milestone3OcrMlCpuQaAccepted
   ? ['ffmpeg', 'ffprobe', 'sharp_libvips', 'duckdb', 'polars_nodejs_polars', 'exiftool', 'mediainfo', 'tesseract', 'imagemagick', 'opencv', 'pyav', 'pyscenedetect', 'paddlepaddle', 'paddleocr']
   : milestone2QaAccepted
   ? ['ffmpeg', 'ffprobe', 'sharp_libvips', 'duckdb', 'polars_nodejs_polars', 'exiftool', 'mediainfo', 'tesseract', 'imagemagick', 'opencv', 'pyav', 'pyscenedetect']
   : ['ffmpeg', 'ffprobe', 'sharp_libvips', 'duckdb', 'polars_nodejs_polars', 'exiftool', 'mediainfo', 'tesseract', 'imagemagick']
-const expectedBlockedStatus = milestone3OcrMlCpuQaAccepted
+const expectedBlockedStatus = milestone4ColorImagePipelineQaAccepted
+  ? []
+  : milestone3OcrMlCpuQaAccepted
   ? ['opencolorio', 'openimageio']
   : milestone2QaAccepted
   ? ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio']
@@ -174,7 +181,10 @@ const expectedBlockedStatus = milestone3OcrMlCpuQaAccepted
 sameSet(status.acceptedProvenBounded?.map((tool) => tool.id), expectedAcceptedStatus, 'status_accepted_after_qa')
 sameSet(status.blockedNotInstalledProven, expectedBlockedStatus, 'status_blocked_after_qa')
 
-if (milestone3OcrMlCpuQaAccepted) {
+if (milestone4ColorImagePipelineQaAccepted) {
+  if (status.counts?.acceptedProvenBounded !== 16 || steward.statusCounts?.acceptedProvenBounded !== 16) fail('owner_status_accepted_count_not_16_after_milestone4_qa')
+  if (status.counts?.blockedNotInstalledProven !== 0 || steward.statusCounts?.blockedNotInstalledProven !== 0) fail('owner_status_blocked_count_not_0_after_milestone4_qa')
+} else if (milestone3OcrMlCpuQaAccepted) {
   if (status.counts?.acceptedProvenBounded !== 14 || steward.statusCounts?.acceptedProvenBounded !== 14) fail('owner_status_accepted_count_not_14_after_milestone3_ocr_ml_cpu_qa')
   if (status.counts?.blockedNotInstalledProven !== 2 || steward.statusCounts?.blockedNotInstalledProven !== 2) fail('owner_status_blocked_count_not_2_after_milestone3_ocr_ml_cpu_qa')
 } else if (milestone2QaAccepted) {
@@ -187,7 +197,11 @@ if (milestone3OcrMlCpuQaAccepted) {
 if (status.counts?.endToEndProductReady !== 0 || steward.statusCounts?.endToEndProductReady !== 0) fail('owner_product_ready_not_zero')
 const owner = ownerRegistry.owners?.find((entry) => entry.ownerId === ownerId)
 if (!owner) fail('missing_trackb_owner')
-if (milestone3OcrMlCpuQaAccepted) {
+if (milestone4ColorImagePipelineQaAccepted) {
+  if (owner?.acceptedProvenBoundedCount !== 16 || owner?.blockedNotInstalledProvenCount !== 0 || owner?.endToEndProductReadyToolCount !== 0) {
+    fail('registry_owner_counts_after_milestone4_qa_drift')
+  }
+} else if (milestone3OcrMlCpuQaAccepted) {
   if (owner?.acceptedProvenBoundedCount !== 14 || owner?.blockedNotInstalledProvenCount !== 2 || owner?.endToEndProductReadyToolCount !== 0) {
     fail('registry_owner_counts_after_milestone3_ocr_ml_cpu_qa_drift')
   }

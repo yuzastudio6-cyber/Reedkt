@@ -5,6 +5,8 @@ export type GpuModelWeightTemplateId =
   | 'faster_whisper_model'
   | 'birefnet_model'
   | 'sam2_checkpoint'
+  | 'transparent_background_model'
+  | 'rembg_model'
   | 'deepfilternet_model'
   | 'demucs_model'
   | 'real_esrgan_model'

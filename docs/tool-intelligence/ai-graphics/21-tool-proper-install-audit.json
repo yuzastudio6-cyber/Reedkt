@@ -22,6 +22,7 @@
     "heavyToolsTargetingGpu": 8,
     "heavyToolsIncorrectlyTargetingCpu": 0,
     "nativeGpuRuntimeProofPending": 8,
+    "aiGraphicsModelWeightTemplateTypes": 5,
     "modelWeightManifestPending": 5,
     "toolRouteWorkerGatePending": 21,
     "agentExecutableNow": 0,
@@ -35,6 +36,7 @@
     "all13JsToolsDeclaredInPackageJson": true,
     "all13JsToolsLockedInPackageLock": true,
     "all8GpuModelToolsHaveDockerInstallProof": true,
+    "aiGraphicsModelWeightTemplateTypesAligned": true,
     "gpuHeavyToolsTargetGpuRuntime": true,
     "gpuHeavyToolsTargetCpuRuntime": false,
     "agentCanSelectForPlanning": true,
@@ -247,6 +249,13 @@
       "runtimeTarget": "browser_canvas_webgl_runtime_later",
       "runtimeReadyNow": false
     }
+  ],
+  "aiGraphicsModelWeightTemplateTypes": [
+    "sam2_checkpoint",
+    "birefnet_model",
+    "real_esrgan_model",
+    "rembg_model",
+    "transparent_background_model"
   ],
   "nextWork": [
     "Run native linux/amd64 NVIDIA L4 runtime proof for the eight GPU/model tools with REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true.",

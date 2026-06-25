@@ -92,6 +92,13 @@ const expectedGpuTools = [
 ]
 
 const expectedInstallProfiles = ['gpu_worker_ai_graphics', 'sam2', 'real_esrgan', 'birefnet']
+const expectedAiGraphicsModelTemplateIds = [
+  'sam2_checkpoint',
+  'birefnet_model',
+  'real_esrgan_model',
+  'rembg_model',
+  'transparent_background_model',
+]
 
 const errors = []
 
@@ -130,6 +137,8 @@ const auditMd = read('docs/tool-intelligence/ai-graphics/21-tool-proper-install-
 const contract = json('docs/tool-intelligence/ai-graphics/tool-call-readiness-contract.json')
 const gpuInstall = json('docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json')
 const gpuGate = json('docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json')
+const modelWeightTypes = read('server/model-weights/model-weight-manifest-types.ts')
+const modelWeightTemplates = read('server/model-weights/model-weight-manifest-templates.ts')
 
 if (pkg.scripts?.[scriptName] !== scriptCommand) fail(`missing_package_script:${scriptName}`)
 if (audit.decision !== 'ai_graphics_21_tool_proper_install_audit_completed_with_runtime_blocks') fail(`unexpected_decision:${audit.decision}`)
@@ -141,6 +150,7 @@ if (audit.counts?.productionToolIdMapped !== 21) fail('production_mapping_count_
 if (audit.counts?.unmappedPlanningWrappers !== 0) fail('unmapped_planning_wrapper_count_not_zero')
 if (audit.counts?.heavyToolsTargetingGpu !== 8) fail('heavy_gpu_target_count_not_8')
 if (audit.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) fail('heavy_tools_cpu_target_count_not_zero')
+if (audit.counts?.aiGraphicsModelWeightTemplateTypes !== 5) fail('ai_graphics_model_template_count_not_5')
 if (audit.counts?.runtimeReadyNow !== 0) fail('runtime_ready_count_not_zero')
 if (audit.counts?.betaTestingReadyNow !== 0) fail('beta_testing_ready_count_not_zero')
 
@@ -213,6 +223,7 @@ const requiredTrue = [
   'all13JsToolsDeclaredInPackageJson',
   'all13JsToolsLockedInPackageLock',
   'all8GpuModelToolsHaveDockerInstallProof',
+  'aiGraphicsModelWeightTemplateTypesAligned',
   'gpuHeavyToolsTargetGpuRuntime',
   'agentCanSelectForPlanning',
 ]
@@ -240,6 +251,12 @@ const requiredFalse = [
   'signedUrlCreated',
 ]
 for (const key of requiredFalse) if (audit.booleans?.[key] !== false) fail(`required_false_boolean_not_false:${key}`)
+
+for (const templateId of expectedAiGraphicsModelTemplateIds) {
+  if (!modelWeightTypes.includes(`| '${templateId}'`)) fail(`model_weight_template_id_missing_from_type:${templateId}`)
+  if (!modelWeightTemplates.includes(`id: '${templateId}'`)) fail(`model_weight_template_missing:${templateId}`)
+  if (!audit.aiGraphicsModelWeightTemplateTypes?.includes(templateId)) fail(`audit_missing_model_weight_template_id:${templateId}`)
+}
 
 const combinedText = [auditMd, JSON.stringify(audit), JSON.stringify(contract), JSON.stringify(gpuGate)].join('\n')
 for (const pattern of [

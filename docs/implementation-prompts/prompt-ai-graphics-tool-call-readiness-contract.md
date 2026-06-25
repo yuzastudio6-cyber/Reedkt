@@ -37,6 +37,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up alignment records Satori font proof and browser proof as passed evidence while keeping Tool Route, Worker, approved snapshot, credit, artifact, beta, and production gates blocked.
 - Follow-up registry completion adds production registry profiles for `torch_torchvision`, `transformers`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, and `animejs`, bringing AI graphics tool-call mapping to 21 of 21 while keeping execution gates blocked.
 - Follow-up proper install audit adds `docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.md`, `docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json`, and `ai-graphics:21-tool-proper-install-audit:diagnostics` to prove 21 of 21 tools are installed or represented on the correct ReeditPro surface: 13 Node lockfile tools and 8 GPU Docker install-proof tools.
+- Follow-up model manifest type alignment adds the missing `rembg_model` and `transparent_background_model` entries to the model-weight template ID type union, keeping all five AI graphics model-weight template IDs type-safe while model source/license/runtime proof remains blocked.
 
 ## Expected Validation
 

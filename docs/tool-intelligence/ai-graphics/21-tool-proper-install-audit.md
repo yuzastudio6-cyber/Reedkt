@@ -12,6 +12,7 @@ This audit answers the narrow install question for the 21 AI graphics tools: whe
 - Properly installed for planned surface: 21.
 - JS tools declared in `package.json` and locked in `package-lock.json`: 13.
 - GPU/model tools with Docker install-proof evidence: 8.
+- AI graphics model-weight template IDs type-aligned: 5.
 - Production registry mappings: 21.
 - Unmapped planning wrappers: 0.
 - Heavy tools incorrectly targeting CPU runtime: 0.
@@ -66,6 +67,7 @@ Remaining blockers:
 
 - Native NVIDIA L4 runtime proof for the eight GPU/model tools.
 - Reviewed private model or model-cache manifests for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`.
+- Type-safe model-weight template IDs are present for `sam2_checkpoint`, `birefnet_model`, `real_esrgan_model`, `rembg_model`, and `transparent_background_model`.
 - Tool Route and Worker approval gates.
 - Approved plan snapshot, credit gate, artifact boundary, and user approval integration.
 - Browser/canvas/WebGL sandbox approval for browser-rendered graphics tools.

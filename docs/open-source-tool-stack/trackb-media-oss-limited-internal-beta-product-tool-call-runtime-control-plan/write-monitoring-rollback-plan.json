@@ -1,0 +1,33 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_control_plan_passed_ready_for_control_approval",
+  "supabaseWritesApproved": false,
+  "gcsWritesApproved": false,
+  "publicArtifactsApproved": false,
+  "signedUrlsApproved": false,
+  "requiredBeforeWrites": [
+    "service-role boundary review",
+    "private bucket/path policy",
+    "retention policy",
+    "secret redaction policy",
+    "rollback/delete policy"
+  ],
+  "monitoringRequired": [
+    "sanitized event schema",
+    "tool id",
+    "route id",
+    "snapshot id",
+    "result class",
+    "latency bucket",
+    "no raw media path",
+    "no signed URL",
+    "no secret payload"
+  ],
+  "rollbackRequired": [
+    "global Track B disable",
+    "per-tool disable",
+    "per-route disable",
+    "queued job drain/cancel plan",
+    "artifact cleanup plan"
+  ]
+}

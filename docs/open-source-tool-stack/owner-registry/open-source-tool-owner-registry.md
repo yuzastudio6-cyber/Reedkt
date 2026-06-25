@@ -249,3 +249,13 @@ TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPR
 - Current route runtime, worker dispatch, direct product tool calls, real tool execution, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready claims remain blocked.
 - Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN`.
 <!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_control_plan_passed_ready_for_control_approval`.
+- Owner state: runtime controls are planned and ready for approval review.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, route runtime, worker dispatch, writes, beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVAL`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN_STATUS:end -->

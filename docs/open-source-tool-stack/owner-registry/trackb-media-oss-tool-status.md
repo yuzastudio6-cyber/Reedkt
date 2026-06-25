@@ -644,3 +644,12 @@ TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPR
 - No direct product tool calls, real tool execution, media processing, user-media-by-default, public artifacts, signed URLs, external beta, or production are approved.
 - Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN`.
 <!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_control_plan_passed_ready_for_control_approval`.
+- Tool status: all 16 tools remain bounded accepted/proven for dry-run metadata only; product-ready local OSS tools remain `0`.
+- Runtime controls are planned for approval, but live activation, worker dispatch, direct product calls, media processing, writes, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVAL`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN_STATUS:end -->

@@ -105,7 +105,12 @@ for (const key of [
 
 assert(pathRegister.approvedForPlanningOnly.futureEvaluatorSourcePath === plannedPath, 'path register mismatch')
 assert(pathRegister.approvedForPlanningOnly.pathExistsToday === false, 'planned path must remain absent')
-assert(!fs.existsSync(path.join(root, plannedPath)), 'planned evaluator source must not exist in Gate 2N')
+const gate2oSourceResultExists = fs.existsSync(path.join(root, 'docs/sound-runtime-media-gate-2o-actual-route-readiness-evaluator-source-result.md'))
+if (gate2oSourceResultExists) {
+  assert(fs.existsSync(path.join(root, plannedPath)), 'planned evaluator source should exist after Gate 2O source creation')
+} else {
+  assert(!fs.existsSync(path.join(root, plannedPath)), 'planned evaluator source must not exist in Gate 2N')
+}
 assert(pathRegister.approvedForPlanningOnly.sourceCreatedToday === false, 'sourceCreatedToday must remain false')
 assert(pathRegister.pathBoundaries.mayUseExistingSoundCpuDirectory === true, 'sound-cpu directory use planning missing')
 for (const [key, value] of Object.entries(pathRegister.pathBoundaries)) {

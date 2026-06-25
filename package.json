@@ -91,6 +91,7 @@
     "sound-runtime-media-gate-2k:diagnostics": "node scripts/validation/sound-runtime-media-gate-2k-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-route-readiness-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-route-readiness-owner-review-diagnostics.mjs",
     "sound-runtime-media-gate-2l:diagnostics": "node scripts/validation/sound-runtime-media-gate-2l-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-bounded-route-readiness-next-step-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-bounded-route-readiness-next-step-owner-review-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

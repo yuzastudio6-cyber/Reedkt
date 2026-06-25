@@ -2,29 +2,10 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED'
+const packet = 'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
-  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed.md',
-  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-source-audit.md',
-  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-runner.md',
-  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-readiness-gate.md',
-  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-safety-boundary.md',
-  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-record.json',
-  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-confirmed-results.md',
-  'docs/implementation-prompts/prompt-supabase-worker-runtime-transactional-rpc-4r-confirmed.md',
-  'implementation-status-and-next-phase.md',
-  'docs/production-beta-blocker-inventory.md',
-  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed.mjs',
-  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed-diagnostics.mjs',
-  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-diagnostics.mjs',
-  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
-  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
-  'package.json',
-]
-
-const externalStagingSqlGateFiles = [
   'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution.md',
   'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-source-audit.md',
   'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-readiness-gate.md',
@@ -32,24 +13,20 @@ const externalStagingSqlGateFiles = [
   'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-record.json',
   'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-results.md',
   'docs/implementation-prompts/prompt-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution.md',
+  'implementation-status-and-next-phase.md',
+  'docs/production-beta-blocker-inventory.md',
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-diagnostics.mjs',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed-diagnostics.mjs',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-diagnostics.mjs',
+  'package.json',
 ]
 
 const requiredText = [
-  'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED',
-  'completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution',
-  'completed_guard_scaffold_no_remote_execution',
-  'blocked_pending_rpc_4r_confirmed_staging_sql_gates',
-  'blocked_confirmation_absent_no_sql_execution',
+  packet,
+  'blocked_pending_confirmed_target_validation_before_external_staging_sql_execution',
+  'completed_docs_only_external_staging_sql_gate_no_sql_execution',
   'blocked_pending_confirmed_supabase_target_rls_storage_validation',
-  'RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED',
-  'REEDITPRO_SUPABASE_TARGET_RLS_STORAGE_VALIDATION_REPORT',
-  'REEDITPRO_CONFIRM_SUPABASE_WORKER_RUNTIME_RPC_MIGRATION=true',
-  'REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL=true',
-  'REEDITPRO_CONFIRM_WORKER_RUNTIME_TRANSACTIONAL_RPC_SCOPE=true',
-  'REEDITPRO_CONFIRM_SUPABASE_TARGET_IS_STAGING=true',
-  'REEDITPRO_CONFIRM_NO_PRODUCTION_SUPABASE=true',
-  'REEDITPRO_CONFIRM_SECRET_MANAGER_BACKEND_CREDENTIAL_RESOLUTION=true',
+  'Approved SQL execution in this phase: false',
   'Supabase update status: blocked_sql_not_executed',
   'Supabase environment touched: none',
   'SQL executed: none',
@@ -62,48 +39,35 @@ const requiredText = [
   'Product-ready end-to-end local OSS tools: 0',
   'Package-lock: unchanged',
   'Generated artifacts committed: none',
+  'RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED',
+  'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED',
+  'supabase/migrations/202606180001_worker_runtime_transactional_rpc.sql',
+  'REEDITPRO_CONFIRM_SUPABASE_WORKER_RUNTIME_RPC_MIGRATION=true',
+  'REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL=true',
+  'REEDITPRO_CONFIRM_WORKER_RUNTIME_TRANSACTIONAL_RPC_SCOPE=true',
+  'REEDITPRO_CONFIRM_SUPABASE_TARGET_IS_STAGING=true',
+  'REEDITPRO_CONFIRM_NO_PRODUCTION_SUPABASE=true',
+  'REEDITPRO_CONFIRM_SECRET_MANAGER_BACKEND_CREDENTIAL_RESOLUTION=true',
   'WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: blocked_pending_guarded_staging_sql_execution',
   'WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: blocked_pending_guarded_staging_sql_execution',
   'TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: blocked_pending_worker_transactional_contract',
   'INTERNAL-BETA-READINESS-ROLLUP readiness: blocked_pending_worker_transactional_contract',
-  'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION',
   'No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.',
 ]
 
 const forbidden = [
+  /Approved SQL execution in this phase:\s*`?true/i,
   /Internal beta unlocked:\s*`?true/i,
   /trackAInternalBetaUnlocked:\s*`?true/i,
-  /internalBetaReady:\s*`?true/i,
-  /productionReady:\s*`?true/i,
-  /externalBetaReady:\s*`?true/i,
-  /finalDeliveryReady:\s*`?true/i,
   /Supabase environment touched:(?!\s*`?none`?)/i,
   /SQL executed:(?!\s*`?none`?)/i,
   /Migration deployed:(?!\s*`?no`?)/i,
   /readbackStatus:(?!\s*`?not_run`?)/i,
   /Secret Manager payload printed:(?!\s*`?false`?)/i,
   /production touched:(?!\s*`?false`?)/i,
-  /remoteSupabaseMutation:\s*true/i,
-  /sqlExecution:\s*true/i,
-  /migrationApply:\s*true/i,
-  /rlsPolicyApply:\s*true/i,
-  /storageBucketCreation:\s*true/i,
-  /storageObjectCreation:\s*true/i,
-  /storageObjectRead:\s*true/i,
-  /serviceRoleRouteExecution:\s*true/i,
-  /workerExecution:\s*true/i,
-  /workerDispatch:\s*true/i,
-  /workerLeaseClaim:\s*true/i,
-  /providerModelCall:\s*true/i,
-  /signedUrlCreation:\s*true/i,
-  /publicArtifactCreation:\s*true/i,
-  /creditMutation:\s*true/i,
-  /internalBetaUnlock:\s*true/i,
-  /externalBetaUnlock:\s*true/i,
-  /productionUnlock:\s*true/i,
-  /finalRenderExport:\s*true/i,
-  /Package-lock:\s*`?changed/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
+  /Package-lock:\s*`?changed/i,
+  /Generated artifacts committed:(?!\s*`?none`?)/i,
   /completed_guarded_staging_sql_execution_readback_passed/i,
   /SQL execution passed/i,
   /migration deployment passed/i,
@@ -144,30 +108,29 @@ function extractSection(text, heading) {
 for (const file of requiredFiles) read(file)
 
 const corpus = [
-  read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed.md'),
-  read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-source-audit.md'),
-  read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-runner.md'),
-  read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-readiness-gate.md'),
-  read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-safety-boundary.md'),
-  read('docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-confirmed-results.md'),
-  read('docs/implementation-prompts/prompt-supabase-worker-runtime-transactional-rpc-4r-confirmed.md'),
-  extractSection(read('implementation-status-and-next-phase.md'), 'SUPABASE-WORKER-RUNTIME Transactional RPC 4R Confirmed Runner'),
-  extractSection(read('docs/production-beta-blocker-inventory.md'), 'SUPABASE-WORKER-RUNTIME Transactional RPC 4R Confirmed Runner'),
+  read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution.md'),
+  read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-source-audit.md'),
+  read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-readiness-gate.md'),
+  read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-safety-boundary.md'),
+  read('docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-results.md'),
+  read('docs/implementation-prompts/prompt-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution.md'),
+  extractSection(read('implementation-status-and-next-phase.md'), 'SUPABASE-WORKER-RUNTIME Transactional RPC 4R External Staging SQL Gate'),
+  extractSection(read('docs/production-beta-blocker-inventory.md'), 'SUPABASE-WORKER-RUNTIME Transactional RPC 4R External Staging SQL Gate'),
 ].join('\n')
 
-for (const token of requiredText) {
-  if (!corpus.includes(token)) fail(`missing required text: ${token}`)
+for (const text of requiredText) {
+  if (!corpus.includes(text)) fail(`missing required text: ${text}`)
 }
 
 for (const pattern of forbidden) {
   if (pattern.test(corpus)) fail(`forbidden claim matched: ${pattern}`)
 }
 
-const record = JSON.parse(read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-record.json'))
-if (record.decision !== 'completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution') fail('record decision mismatch')
-if (record.execution !== 'completed_guard_scaffold_no_remote_execution') fail('record execution mismatch')
-if (record.currentRunnerResult !== 'blocked_pending_rpc_4r_confirmed_staging_sql_gates') fail('record current runner result mismatch')
-if (record.targetValidationDependency !== 'blocked_pending_confirmed_supabase_target_rls_storage_validation') fail('record target validation dependency mismatch')
+const record = JSON.parse(read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-record.json'))
+if (record.decision !== 'blocked_pending_confirmed_target_validation_before_external_staging_sql_execution') fail('record decision mismatch')
+if (record.execution !== 'completed_docs_only_external_staging_sql_gate_no_sql_execution') fail('record execution mismatch')
+if (record.targetValidationDependency !== 'blocked_pending_confirmed_supabase_target_rls_storage_validation') fail('record target dependency mismatch')
+if (record.approvedSqlExecutionInThisPhase !== false) fail('SQL approval must be false')
 if (record.supabaseEnvironmentTouched !== 'none') fail('record environment touched mismatch')
 if (record.sqlExecuted !== 'none') fail('record sql executed mismatch')
 if (record.migrationDeployed !== 'no') fail('record migration deployed mismatch')
@@ -179,11 +142,11 @@ if (record.packageLock !== 'unchanged') fail('record package-lock mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('record generated artifact mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
-if (packageJson.scripts?.['supabase-worker-runtime:transactional-rpc-4r-confirmed'] !== 'node scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed.mjs') {
-  fail('missing confirmed runner package script')
-}
-if (packageJson.scripts?.['supabase-worker-runtime:transactional-rpc-4r-confirmed:diagnostics'] !== 'node scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed-diagnostics.mjs') {
-  fail('missing confirmed diagnostics package script')
+if (
+  packageJson.scripts?.['supabase-worker-runtime:transactional-rpc-4r-external-staging-sql-execution:diagnostics'] !==
+  'node scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-diagnostics.mjs'
+) {
+  fail('missing external staging SQL gate diagnostics package script')
 }
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
@@ -208,9 +171,10 @@ const changed = [...new Set([
   ...gitLines(['diff', '--cached', '--name-only']),
 ])]
 
-const allowedChanged = new Set([...requiredFiles, ...externalStagingSqlGateFiles])
+const allowedChanged = new Set(requiredFiles)
 
 for (const file of changed) {
+  if (!allowedChanged.has(file)) fail(`unexpected changed file: ${file}`)
   if (file === 'package-lock.json') fail('package-lock.json changed')
   if (file.includes('/._') || file.startsWith('._') || file.includes('.DS_Store')) fail(`metadata artifact changed: ${file}`)
   if (file.endsWith('.sql')) fail(`SQL file changed: ${file}`)
@@ -218,7 +182,6 @@ for (const file of changed) {
   if (file.startsWith('server/') || file.startsWith('src/') || file.startsWith('docker/') || file.startsWith('database/')) fail(`runtime file changed: ${file}`)
   if (file.startsWith('.env') || file.includes('/.env')) fail(`env file changed: ${file}`)
   if (file.endsWith('.mp4') || file.endsWith('.mov') || file.endsWith('.mkv') || file.endsWith('.zip')) fail(`generated/media artifact changed: ${file}`)
-  if (!allowedChanged.has(file)) fail(`unexpected changed file: ${file}`)
 
   const text = read(file)
   for (const pattern of secretLike) {
@@ -227,9 +190,7 @@ for (const file of changed) {
 }
 
 console.log(`${packet} diagnostics passed`)
+console.log('Decision: blocked_pending_confirmed_target_validation_before_external_staging_sql_execution')
 console.log('Supabase update status: blocked_sql_not_executed')
-console.log('Supabase environment touched: none')
 console.log('SQL executed: none')
 console.log('Migration deployed: no')
-console.log('readbackStatus: not_run')
-console.log('Target validation dependency: blocked_pending_confirmed_supabase_target_rls_storage_validation')

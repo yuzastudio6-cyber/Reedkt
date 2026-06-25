@@ -160,6 +160,17 @@ const rpc4rConfirmedFiles = [
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
 ]
 
+const externalStagingSqlGateFiles = [
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-source-audit.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-readiness-gate.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-safety-boundary.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-record.json',
+  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-results.md',
+  'docs/implementation-prompts/prompt-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution.md',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-diagnostics.mjs',
+]
+
 function fail(message) {
   console.error(message)
   process.exit(1)
@@ -224,6 +235,7 @@ const untrackedFiles = execFileSync('git', ['ls-files', '--others', '--exclude-s
 const allowedFiles = new Set([
   ...requiredFiles.filter((file) => file !== migrationFile),
   ...rpc4rConfirmedFiles,
+  ...externalStagingSqlGateFiles,
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-diagnostics.mjs',
   'package.json',
 ])

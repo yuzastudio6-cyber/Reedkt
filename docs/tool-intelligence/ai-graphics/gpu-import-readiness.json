@@ -110,6 +110,7 @@
     "birefnetUsesTransformersImportPath": true,
     "rembgModelWeightTemplateAdded": true,
     "transparentBackgroundModelWeightTemplateAdded": true,
+    "npmCiFromLockForValidation": true,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,
     "toolRouteExecutionReadyNow": false,

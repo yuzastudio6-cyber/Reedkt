@@ -104,6 +104,7 @@ if (readiness) {
     "birefnetUsesTransformersImportPath",
     "rembgModelWeightTemplateAdded",
     "transparentBackgroundModelWeightTemplateAdded",
+    "npmCiFromLockForValidation",
     "agentCanSelectForPlanning",
   ]) {
     if (booleans[key] !== true) fail(`Expected ${key}=true`);

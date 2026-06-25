@@ -20,6 +20,8 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates \
+    curl \
+    gnupg \
     build-essential \
     pkg-config \
     ffmpeg \
@@ -38,6 +40,42 @@ RUN apt-get update \
     libvips-dev \
     mkvtoolnix \
   && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+  install -d -m 0755 /usr/share/keyrings /etc/apt/sources.list.d /etc/apt/preferences.d; \
+  curl -fsSL https://dist.gpac.io/gpac/linux/gpg.asc \
+    | gpg --dearmor -o /usr/share/keyrings/gpac-archive-keyring.gpg; \
+  chmod 0644 /usr/share/keyrings/gpac-archive-keyring.gpg; \
+  printf '%s\n' \
+    'Types: deb' \
+    'URIs: https://dist.gpac.io/gpac/linux/debian' \
+    'Suites: bookworm' \
+    'Components: main' \
+    'Signed-By: /usr/share/keyrings/gpac-archive-keyring.gpg' \
+    > /etc/apt/sources.list.d/gpac.sources; \
+  printf '%s\n' \
+    'Package: gpac' \
+    'Pin: origin "dist.gpac.io"' \
+    'Pin-Priority: 501' \
+    > /etc/apt/preferences.d/gpac.pref; \
+  apt-get update; \
+  apt-cache policy gpac | tee /tmp/reeditpro-gpac-policy.txt; \
+  candidate="$(apt-cache policy gpac | awk '/Candidate:/ {print $2}')"; \
+  test -n "$candidate"; \
+  test "$candidate" != "(none)"; \
+  grep -F 'https://dist.gpac.io/gpac/linux/debian bookworm/main' /tmp/reeditpro-gpac-policy.txt; \
+  ! grep -F 'nightly' /tmp/reeditpro-gpac-policy.txt; \
+  apt-get install -s --no-install-recommends "gpac=${candidate}" | tee /tmp/reeditpro-gpac-install-simulate.txt; \
+  for package_name in $(awk '/^Inst / {print $2}' /tmp/reeditpro-gpac-install-simulate.txt); do \
+    if [ "$package_name" != 'gpac' ] && apt-cache policy "$package_name" | grep -Fq 'https://dist.gpac.io'; then \
+      echo "unexpected GPAC repository package in install simulation: ${package_name}" >&2; \
+      exit 1; \
+    fi; \
+  done; \
+  apt-get install -y --no-install-recommends "gpac=${candidate}"; \
+  dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' gpac; \
+  command -v MP4Box; \
+  rm -rf /var/lib/apt/lists/* /tmp/reeditpro-gpac-policy.txt /tmp/reeditpro-gpac-install-simulate.txt
 
 COPY docker/prod/render-worker/requirements.render.txt /tmp/requirements.render.txt
 RUN python3 -m pip install --no-cache-dir --break-system-packages -r /tmp/requirements.render.txt

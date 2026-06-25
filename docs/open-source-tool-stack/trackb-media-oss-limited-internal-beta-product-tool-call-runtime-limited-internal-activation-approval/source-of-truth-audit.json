@@ -1,0 +1,45 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_approval_passed_ready_for_limited_internal_activation_execution",
+  "sourceSha": "8e913a3da2b8d547eabdb2af821f55cb1e2e3db3",
+  "sourceEvidence": [
+    {
+      "pr": 872,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_closeout_passed_ready_for_limited_internal_activation_approval",
+      "mergeCommit": "8e913a3da2b8d547eabdb2af821f55cb1e2e3db3"
+    },
+    {
+      "pr": 866,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout"
+    },
+    {
+      "pr": 860,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review"
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "duplicateReview": "no duplicate limited internal activation execution PR found during preflight",
+  "protectedFilesMutated": false,
+  "broadProductionDocsCreated": false,
+  "absentAuditFacts": [
+    "docs/beta-readiness-scorecard.md absent",
+    "docs/production-beta-blocker-inventory.md absent if still absent on branch",
+    "PRODUCTION_FOUNDATION_STATUS.md absent"
+  ]
+}

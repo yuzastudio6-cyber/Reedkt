@@ -140,3 +140,11 @@ TRACKB_MEDIA_OSS_FINAL_ROLLUP:
 - Direct tool calls, internal beta, external beta, and production remain blocked until the next gate proves callable worker/route contracts and beta hardening.
 - Next prompt: `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW`
 <!-- TRACKB_MEDIA_OSS_FINAL_ROLLUP_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW:
+
+- Decision: `trackb_media_oss_tool_call_beta_readiness_review_blocked_pending_callable_worker_contracts`.
+- Steward state: install/proof is complete, but beta-callable runtime is not.
+- Required next owner action: implement callable worker/API contracts with fail-closed approved-snapshot, credit, private artifact, result schema, QA, fallback, logging, and hardening boundaries.
+- Next prompt: `TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION`.
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:end -->

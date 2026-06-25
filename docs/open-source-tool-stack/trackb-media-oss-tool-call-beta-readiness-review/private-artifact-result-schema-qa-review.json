@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssToolCallBetaReadiness.privateArtifactResultSchemaQaReview.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_tool_call_beta_readiness_review_blocked_pending_callable_worker_contracts",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "privateArtifactPolicyReadyForTrackBToolCalls": false,
+  "resultSchemaReadyForTrackBToolCalls": false,
+  "qaGateIntegrationReadyForTrackBToolCalls": false,
+  "fallbackPolicyReadyForTrackBToolCalls": false,
+  "loggingAndObservabilityReadyForTrackBToolCalls": false,
+  "requiredMissingEvidence": [
+    "private input artifact resolver for Track B tool families",
+    "private output artifact manifest contract",
+    "tool-result schema mapped to accepted artifacts and QA gates",
+    "fallback matrix for each Track B tool family",
+    "sanitized logging policy for tool-call beta runs"
+  ],
+  "publicArtifactsAllowed": false,
+  "signedUrlsAsSourceOfTruthAllowed": false
+}

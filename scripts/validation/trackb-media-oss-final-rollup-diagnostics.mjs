@@ -42,7 +42,10 @@ const statusDocs = [
   'docs/cross-chat/BLOCKED_SCOPES.md',
 ]
 
-const allowedChangedPrefixes = [`${reportDir}/`]
+const allowedChangedPrefixes = [
+  `${reportDir}/`,
+  'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-review/',
+]
 const allowedChangedFiles = new Set([
   'package.json',
   'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
@@ -58,6 +61,8 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-followup-diagnostics.mjs',
   'scripts/validation/open-source-tool-owner-registry-trackb-media-oss-steward-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-callable-worker-contracts-implementation.md',
+  'scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs',
   ...statusDocs,
 ])
 

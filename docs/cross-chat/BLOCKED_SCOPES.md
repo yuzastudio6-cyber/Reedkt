@@ -731,3 +731,10 @@ TRACKB_MEDIA_OSS_FINAL_ROLLUP:
 - Required next review: `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW`.
 - Track B product-ready tools remain `0`.
 <!-- TRACKB_MEDIA_OSS_FINAL_ROLLUP_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW:
+
+- Blocked decision: `trackb_media_oss_tool_call_beta_readiness_review_blocked_pending_callable_worker_contracts`.
+- Blocked until separate implementation and review: Track B direct tool calls, callable worker runtime, route runtime execution, internal beta, external beta, production, Supabase/GCS writes, public artifacts, signed URLs, raw prompt execution, and frontend direct tool execution.
+- Product-ready local OSS tools remain `0`.
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:end -->

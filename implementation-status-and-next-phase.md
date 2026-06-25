@@ -318,6 +318,24 @@ No remote Supabase mutation, SQL execution, migration execution, RLS policy appl
 
 Next recommended step: `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-INPUT-1`.
 
+## RP-INTERNAL-BETA Supabase Target Owner Input 1
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-INPUT-1` records decision `blocked_pending_named_supabase_target_owner_input` and execution `completed_docs_only_supabase_target_owner_input_review_no_remote_execution`.
+
+The prior Supabase target RLS/storage validation packet remains blocked because the owner-approved non-production Supabase project ref is `not_present_in_source`. Target environment class is `not_approved`, remote validation approval is `not_approved`, SQL/advisor/storage readback approval is `not_approved`, rollback/cleanup boundary is `not_approved`, service-role secret payload access remains `forbidden`, frontend service-role credential exposure remains `forbidden`, and public bucket/artifact policy remains `blocked`.
+
+Remote Supabase target is `not_named`, Supabase target project remains `source_reference_names_recorded_no_remote_target_selected`, RLS validation is `not_run`, storage validation is `not_run`, and service-role runtime is `blocked_pending_named_supabase_target_owner_input`.
+
+Historical activation-era Supabase references are recorded as context only and are not adopted as the current internal-beta target without explicit owner approval.
+
+Readiness: `blocked_pending_owner_supabase_target_input`.
+
+Internal beta end-to-end status: `not_ready_pending_named_supabase_target_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`.
+
+No remote Supabase mutation, SQL execution, migration execution, RLS policy apply, storage bucket/object access, service-role secret payload access, service-role route execution, frontend service-role credential exposure, signed URL creation, public artifact creation, Google Cloud API call, worker execution, provider/model call, render/export, deployment, or internal beta unlock is enabled by this packet.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-DECISION-1`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

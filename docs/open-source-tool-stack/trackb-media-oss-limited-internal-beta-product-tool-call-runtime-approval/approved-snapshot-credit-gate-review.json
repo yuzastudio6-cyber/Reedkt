@@ -1,0 +1,17 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaProductToolCallRuntimeApproval.snapshotCredit.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_approval_passed_ready_for_controlled_runtime_dry_run_execution",
+  "approvedSnapshotGate": {
+    "required": true,
+    "sourceEvidence": "src/backend/contracts/trackb-media-oss-tool-call-contracts.ts",
+    "fields": ["approvedSnapshotId", "editPlanId", "idempotencyKey"]
+  },
+  "creditGate": {
+    "required": true,
+    "sourceEvidence": "src/backend/contracts/trackb-media-oss-tool-call-contracts.ts",
+    "fields": ["creditReservationId"]
+  },
+  "currentRuntimeMutation": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_EXECUTION"
+}

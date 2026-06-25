@@ -309,3 +309,14 @@ TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_CLOSEOUT:
 - Direct product tool calls, live route runtime, worker dispatch, real tool execution, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
 - Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_APPROVAL`.
 <!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_CLOSEOUT_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_APPROVAL:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_approval_passed_ready_for_controlled_runtime_dry_run_execution`.
+- Steward state: Track B product tool-call runtime approval passes for the next controlled dry-run execution gate only.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Approved gates: approved snapshot, edit plan, idempotency, credit reservation, private artifacts, deterministic routing, fail-closed contracts, result schema, QA/fallbacks, sanitized logging, monitoring, and rollback.
+- Current route runtime, worker dispatch, real tool execution, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_EXECUTION`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_APPROVAL_STATUS:end -->

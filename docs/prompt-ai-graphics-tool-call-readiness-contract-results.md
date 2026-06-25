@@ -10,6 +10,8 @@ Draft PR: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/dra
 
 Duplicate search: no exact open head PR or remote branch existed for `codex/rp-ai-graphics-tool-call-readiness-contract` before implementation.
 
+Latest observed PR state after proof-evidence alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `1bceb2af24d26109a91170ba561e6eddb83de3fb`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.

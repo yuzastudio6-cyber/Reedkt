@@ -11,6 +11,11 @@
     "isDraft": true,
     "mergeStateStatus": "CLEAN",
     "headShaAtCreation": "30cf1a6aaa1839f53c362bf844a1512d08ee2136",
+    "latestObservedHeadSha": "1bceb2af24d26109a91170ba561e6eddb83de3fb",
+    "latestObservedState": "OPEN",
+    "latestObservedIsDraft": true,
+    "latestObservedMergeStateStatus": "CLEAN",
+    "latestObservedCheckRollup": [],
     "checkRollupAtCreation": []
   },
   "sourceEvidence": {

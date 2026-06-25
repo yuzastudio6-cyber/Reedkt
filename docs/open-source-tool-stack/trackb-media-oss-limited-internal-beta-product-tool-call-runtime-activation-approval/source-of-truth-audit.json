@@ -1,0 +1,35 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "563c6d3e74a95bdbb0374c52449548f075d602c3",
+  "sourceEvidence": [
+    {
+      "pr": 848,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_closeout_passed_ready_for_activation_approval"
+    },
+    {
+      "pr": 843,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_qa_passed_ready_for_runtime_closeout"
+    },
+    {
+      "pr": 838,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_execution_passed_ready_for_runtime_dry_run_qa_review"
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_activation_approval_blocked_pending_runtime_controls",
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

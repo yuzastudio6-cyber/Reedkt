@@ -761,3 +761,10 @@ TRACKB_MEDIA_OSS_FINAL_ROLLUP:
 - That lane must prove callable route/worker contracts, approved snapshot gates, credit gates, private artifact controls, QA gates, fallback behavior, logging, and beta hardening before any beta testing claim.
 - Product-ready tools remain `0`; no 40+ installed/proven end-to-end claim is allowed.
 <!-- TRACKB_MEDIA_OSS_FINAL_ROLLUP_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW:
+
+- Next safe lane: `TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION`.
+- Purpose: add fail-closed Track B callable worker/API contracts before any beta tool-call claim.
+- Still blocked: direct tool execution, internal beta, external beta, production, Supabase/GCS writes, public artifacts, signed URLs, raw prompt execution, and frontend direct tool calls.
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:end -->

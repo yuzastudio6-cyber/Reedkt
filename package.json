@@ -729,7 +729,8 @@
     "trackb-media-oss:milestone-4-color-image-pipeline-approval:diagnostics": "node scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-approval-diagnostics.mjs",
     "trackb-media-oss:milestone-4-color-image-pipeline-cpu-execution:diagnostics": "node scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-cpu-execution-diagnostics.mjs",
     "trackb-media-oss:milestone-4-color-image-pipeline-qa-review:diagnostics": "node scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs",
-    "trackb-media-oss:final-rollup:diagnostics": "node scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs"
+    "trackb-media-oss:final-rollup:diagnostics": "node scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs",
+    "trackb-media-oss:tool-call-beta-readiness-review:diagnostics": "node scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

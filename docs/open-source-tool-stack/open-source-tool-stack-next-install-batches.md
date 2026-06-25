@@ -940,3 +940,10 @@ TRACKB_MEDIA_OSS_FINAL_ROLLUP:
 - Required next evidence: worker/route invocation contracts, approved snapshot and credit-gate checks, private artifact policies, result schemas, QA gate wiring, fallback handling, logging, and beta hardening.
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_FINAL_ROLLUP_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW:
+
+- Track B no longer has install/proof blockers, but it is not beta-callable yet.
+- The next safe batch is not another install batch; it is `TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION`.
+- Product-ready local OSS tool count remains `0`.
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:end -->

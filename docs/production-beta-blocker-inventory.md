@@ -169,6 +169,16 @@ Next recommended milestone: `RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1`.
 
 External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## RP-INTERNAL-BETA-E2E Negative Gate Tests 1
+
+`RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1` records decision `completed_internal_beta_negative_gate_tests_for_disabled_runtime_lane` and execution `completed_tests_only_no_runtime_unlock`.
+
+Negative tests now cover no generation before approved plan and credit approval, no credit spend without reservation, no direct provider/raw prompt execution, no worker execution from raw chat, no public artifact or signed URL without policy, Basic/Pro no-Veo, and Premium final-fallback-only Veo. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Next recommended milestone: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1`.
+
+External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

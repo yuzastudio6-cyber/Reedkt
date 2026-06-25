@@ -24,6 +24,15 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set([
   ...requiredFiles,
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1/negative-gate-test-matrix.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1/gate-safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1/negative-gate-record.json',
+  'docs/activation-phase-rp-internal-beta-e2e-negative-gate-tests-1-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-runtime-enablement-plan-1.md',
+  'server/smoke/internal-beta-e2e-negative-gate-tests-smoke.ts',
+  'scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1-diagnostics.mjs',
   'package.json',
 ])
 
@@ -147,6 +156,7 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-JOBS-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-ARTIFACTS-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-RENDER-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA-E2E[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## Track A[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 

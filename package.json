@@ -651,6 +651,8 @@
     "rp-artifacts-01:internal-beta-private-artifact-manifest-scaffold:diagnostics": "node scripts/validation/rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold-diagnostics.mjs",
     "rp-render-01:internal-beta-remotion-render-worker-scaffold:diagnostics": "node scripts/validation/rp-render-01-internal-beta-remotion-render-worker-scaffold-diagnostics.mjs",
     "rp-provider-01:internal-beta-disabled-provider-adapter-scaffold:diagnostics": "node scripts/validation/rp-provider-01-internal-beta-disabled-provider-adapter-scaffold-diagnostics.mjs",
+    "smoke:internal-beta-e2e-negative-gate-tests": "tsx server/smoke/internal-beta-e2e-negative-gate-tests-smoke.ts",
+    "rp-internal-beta-e2e-negative-gate-tests-1:diagnostics": "node scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

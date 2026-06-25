@@ -197,6 +197,17 @@ No Supabase mutation, credit mutation, provider/model call, model call, raw prom
 Internal beta end-to-end remains `not_ready` until service-role route handlers, transactional credit/job/artifact runtimes, render worker execution proof, private artifact access policy, provider adapter runtime approval, QA, cleanup, and negative safety tests pass.
 
 Next recommended step: `RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1`.
+## RP-INTERNAL-BETA-E2E Negative Gate Tests 1
+
+`RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1` records decision `completed_internal_beta_negative_gate_tests_for_disabled_runtime_lane` and execution `completed_tests_only_no_runtime_unlock`.
+
+The disabled runtime lane now has smoke coverage for no generation before approved plan and credit approval, no credit spend without reservation, no direct provider/raw prompt execution, no worker execution from raw chat, no public artifact or signed URL without policy, Basic/Pro no-Veo, and Premium final-fallback-only Veo. These tests call only local fail-closed scaffolds and deterministic planner code.
+
+No Supabase mutation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, worker dispatch, worker execution, route execution, provider/model call, model call, raw prompt execution, render/export, storage object creation/read, signed URL creation, public artifact creation, internal beta unlock, external beta unlock, production unlock, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler is implemented.
+
+Internal beta end-to-end remains `not_ready` until explicit runtime enablement, service-role mutation handlers, remote Supabase target approval, private artifact access policy, render worker execution proof, provider adapter approval, QA, cleanup, observability, and rollback gates pass.
+
+Next recommended step: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1`.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

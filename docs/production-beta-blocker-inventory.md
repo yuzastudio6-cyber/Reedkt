@@ -79,6 +79,20 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## Internal Beta Runtime Readiness Orchestrator
+
+`RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-1` is a local fail-closed source check and does not unlock internal beta. Decision: `completed_internal_beta_runtime_readiness_orchestrator_fail_closed`.
+
+The orchestrator proves `46` existing disabled runtime scaffold operations remain blocked across service-role runtime, credit ledger, job queue, private artifact manifest, Remotion render worker, and provider adapter classes.
+
+Current blocker: `blocked_pending_supabase_target_validation_and_runtime_enablement`.
+
+Still blocked for internal beta: confirmed Supabase target RLS/storage validation, guarded worker runtime RPC staging SQL execution, service-role runtime enablement, approved snapshot persistence, credit ledger runtime, job queue/lease/event runtime, private artifact storage runtime, Remotion private preview/export runtime, provider runtime owner approval where needed, QA/cleanup/observability/rollback gates, and negative runtime gate regression.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generated artifacts committed: none. Supabase classification: no write / environment none / SQL none / migration no.
+
+No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, final render/export, preview artifact creation, private media processing, user media processing, Remotion execution, FFmpeg execution, FFprobe execution, media processing, package installation beyond dependency validation, Dockerfile change, requirements change, or broad service-role handler was enabled.
+
 ## RP-DATA-01 Supabase Schema Migration Readiness
 
 `RP-DATA-01-SUPABASE-SCHEMA-MIGRATION-READINESS` records decision `completed_schema_migration_readiness_review_ready_for_migration_safety_packet` and execution `completed_docs_only_schema_rls_storage_readiness_no_sql_execution`.

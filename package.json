@@ -637,6 +637,7 @@
     "internal-beta:tracka-scope-decision-1:diagnostics": "node scripts/validation/internal-beta-tracka-scope-decision-1-diagnostics.mjs",
     "internal-beta:readiness-1:diagnostics": "node scripts/validation/reeditpro-internal-beta-readiness-1-diagnostics.mjs",
     "rp-data-01:supabase-schema-migration-readiness:diagnostics": "node scripts/validation/rp-data-01-supabase-schema-migration-readiness-diagnostics.mjs",
+    "rp-data-02:supabase-migration-safety-packet:diagnostics": "node scripts/validation/rp-data-02-supabase-migration-safety-packet-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

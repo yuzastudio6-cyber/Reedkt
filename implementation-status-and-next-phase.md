@@ -42,9 +42,11 @@ This document summarizes the current ReeditPro foundation before the next phase.
 
 ## Next Recommended Phase
 
-The recommended next phase is `RP-DATA-01` so the current planning architecture can be bridged into reviewed Supabase schema/migration work before backend execution begins. If execution readiness becomes more urgent, `RP-BACKEND-01` can follow after the data bridge.
+The recommended next phase is `RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION` so the reviewed Supabase schema/RLS/storage foundation can move from readiness and safety planning into a static migration draft without touching a Supabase environment. If execution readiness becomes more urgent, `RP-BACKEND-01` can follow only after the data bridge has a reviewed migration draft and guarded execution boundary.
 
-- `RP-DATA-01: Supabase Schema Planning To Migration Bridge`: turn existing database architecture into a reviewed migration plan for the `reeditpro` Supabase project without running remote migrations yet.
+- `RP-DATA-03: Supabase Migration Draft Static Implementation`: create repository migration draft files and static diagnostics without running SQL or touching a Supabase environment.
+- `RP-DATA-02: Supabase Migration Safety Packet`: completed docs-only safety packet that maps RP-DATA-01 readiness into migration, advisor, rollback, and guarded execution requirements.
+- `RP-DATA-01: Supabase Schema Planning To Migration Bridge`: completed schema/RLS/storage readiness review for the internal beta data lane.
 - `RP-BACKEND-01: Approved Snapshot Persistence + Job Queue Skeleton`: create backend-only persistence and job queue skeletons around approved snapshots.
 - `RP-PROVIDER-01: Provider Client Architecture, No Real Calls`: formalize provider adapters and disabled real paths beyond the current mock contracts.
 - `RP-RENDER-01: Remotion Composition Skeleton, No Final Render`: scaffold a typed Remotion composition boundary without export execution.
@@ -72,7 +74,7 @@ No real timing/audio/transcript/media analysis, provider execution, rendering, b
 
 ## Current Recommendation
 
-Start with `RP-DATA-01` if the next priority is reliable project history, approved plan persistence, and Supabase visibility. Start with `RP-BACKEND-01` if the next priority is execution readiness and future worker queues. Both should preserve the current rule: workers execute approved snapshots, not raw chat.
+Start with `RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION` if the next priority is reliable project history, approved plan persistence, and Supabase visibility. Start with `RP-BACKEND-01` only after the static migration draft exists and preserves the current rule: workers execute approved snapshots, not raw chat.
 
 ## ReEditPro Internal Beta Readiness 1
 
@@ -80,7 +82,7 @@ Start with `RP-DATA-01` if the next priority is reliable project history, approv
 
 The target is internal beta first, not full all-tools production. The current end-to-end beta lane remains `not_ready` until Supabase schema/RLS/private storage, approved plan snapshots, internal credit reservation, backend job queue, worker leases/events, private artifact manifest/QA/cleanup, Remotion private preview/export, runtime tool state separation, and backend-only provider adapters are in place.
 
-Next recommended sequence: `RP-DATA-01-SUPABASE-SCHEMA-MIGRATION-READINESS`, `RP-BACKEND-01-APPROVED-SNAPSHOT-JOB-QUEUE-SKELETON`, `RP-CREDITS-01-INTERNAL-CREDIT-LEDGER`, `RP-STORAGE-01-PRIVATE-ARTIFACT-BUCKETS`, `RP-RENDER-01-REMOTION-WORKER-SKELETON`, then `RP-INTERNAL-BETA-E2E-1`.
+Next recommended sequence: `RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION`, guarded Supabase local/staging validation, `RP-BACKEND-01-APPROVED-SNAPSHOT-JOB-QUEUE-SKELETON`, `RP-CREDITS-01-INTERNAL-CREDIT-LEDGER`, `RP-STORAGE-01-PRIVATE-ARTIFACT-BUCKETS`, `RP-RENDER-01-REMOTION-WORKER-SKELETON`, then `RP-INTERNAL-BETA-E2E-1`.
 
 External beta, paid production, public artifacts, broad media, and final delivery/export remain blocked.
 
@@ -91,6 +93,14 @@ External beta, paid production, public artifacts, broad media, and final deliver
 The data foundation is `review_ready_not_applied`: table, RLS, and private storage readiness have been reviewed for the internal beta lane, but no SQL ran, no Supabase environment was touched, no migration was deployed, and no bucket was created.
 
 Next recommended step: `RP-DATA-02-SUPABASE-MIGRATION-SAFETY-PACKET`, then `RP-BACKEND-01-APPROVED-SNAPSHOT-JOB-QUEUE-SKELETON` only after the migration safety packet defines the guarded environment and migration boundary.
+
+## RP-DATA-02 Supabase Migration Safety Packet
+
+`RP-DATA-02-SUPABASE-MIGRATION-SAFETY-PACKET` records decision `completed_migration_safety_packet_ready_for_static_migration_draft` and execution `completed_docs_only_migration_safety_packet_no_sql_execution`.
+
+The data foundation is `safety_packet_ready_not_applied`: migration file groups, target environment guardrails, RLS/storage advisor requirements, and rollback/recovery rules are documented, but no SQL ran, no Supabase environment was touched, no migration file was created, no migration was deployed, and no bucket was created.
+
+Next recommended step: `RP-DATA-03-SUPABASE-MIGRATION-DRAFT-STATIC-IMPLEMENTATION`. Internal beta end-to-end remains `not_ready` until a static migration draft, guarded environment validation, backend service-role boundary, credit ledger, worker queue, private artifact storage, render worker, QA, and cleanup gates exist.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

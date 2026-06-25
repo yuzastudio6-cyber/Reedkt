@@ -25,7 +25,20 @@ const requiredFiles = [
   'scripts/validation/rp-internal-beta-google-cloud-environment-boundary-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
+const ownerInputAllowedFiles = [
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-owner-input-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-owner-input-1/source-derived-environment-map.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-owner-input-1/supabase-target-boundary.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-owner-input-1/runtime-boundary.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-owner-input-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-owner-input-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-google-cloud-environment-owner-input-1/google-cloud-environment-owner-input-record.json',
+  'docs/activation-phase-rp-internal-beta-google-cloud-environment-owner-input-1-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-google-cloud-runtime-config-contract-1.md',
+  'scripts/validation/rp-internal-beta-google-cloud-environment-owner-input-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...ownerInputAllowedFiles, 'package.json'])
 
 const requiredText = [
   packet,
@@ -224,6 +237,8 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-INTERNAL-BETA Runtime Target Owner Decision 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Google Cloud Managed Runtime Target Approval 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Google Cloud Managed Runtime Implementation Plan 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA Google Cloud Environment Owner Input 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/^# RP-INTERNAL-BETA Google Cloud Environment Owner Input 1[\s\S]*/g, '\n')
     .replace(/\n## Track A[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 
@@ -343,6 +358,7 @@ for (const file of [...changedFiles, ...stagedFiles]) {
 for (const file of changedFiles) {
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) continue
   if (file.startsWith('scripts/validation/')) continue
+  if (ownerInputAllowedFiles.includes(file)) continue
   const text = stripHistoricalSections(fs.readFileSync(file, 'utf8'))
   for (const pattern of forbiddenClaims) {
     if (pattern.test(text)) fail(`forbidden claim ${pattern} in ${file}`)

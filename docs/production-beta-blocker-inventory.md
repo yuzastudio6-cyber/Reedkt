@@ -261,6 +261,22 @@ Google Cloud API calls, Cloud Run service/job creation, IAM mutation, Secret Man
 
 Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-OWNER-INPUT-1`.
 
+## RP-INTERNAL-BETA Google Cloud Environment Owner Input 1
+
+`RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-OWNER-INPUT-1` records decision `completed_source_derived_google_cloud_environment_names_for_internal_beta_planning` and execution `completed_docs_only_source_derived_environment_owner_input_no_runtime_execution`.
+
+Closed blocker: `blocked_pending_google_cloud_environment_names`.
+
+Source-derived environment names now include Google Cloud project `reeditpro`, primary runtime region `us-east1`, secondary runtime region `europe-west1`, staging activation region `us-central1`, existing staging private service `reeditpro-staging-private-searxng`, existing staging private buckets `reeditpro-staging-reeditpro-generated-assets` and `reeditpro-staging-reeditpro-qa-artifacts`, production private bucket names, service accounts, Secret Manager reference names, Pub/Sub topics, and Cloud Tasks queues.
+
+Supabase target project remains `source_reference_names_recorded_no_remote_target_selected`. Deployment approval remains `not_approved`.
+
+Internal beta end-to-end status: `not_ready_pending_backend_supabase_storage_worker_implementation`. Product-ready end-to-end local OSS tools: `0`.
+
+Google Cloud API calls, Cloud Run service/job creation, IAM mutation, Secret Manager payload access, GCS access, remote Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, Remotion execution, provider/model call, deployment, internal beta unlock, external beta unlock, production unlock, final delivery/export, public artifacts, and signed URL creation remain blocked.
+
+Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-RUNTIME-CONFIG-CONTRACT-1`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

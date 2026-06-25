@@ -49,7 +49,8 @@ function isFollowOnGoogleCloudImplementationFile(file) {
     file.includes('rp-internal-beta-google-cloud-environment-boundary-1') ||
     file.includes('activation-phase-rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-results') ||
     file.includes('activation-phase-rp-internal-beta-google-cloud-environment-boundary-1-results') ||
-    file.includes('rp-internal-beta-google-cloud-environment-owner-input-1')
+    file.includes('rp-internal-beta-google-cloud-environment-owner-input-1') ||
+    file.includes('prompt-rp-internal-beta-google-cloud-runtime-config-contract-1')
 }
 
 const requiredText = [
@@ -302,7 +303,7 @@ const changedFiles = [...new Set([
 const stagedFiles = gitLines(['diff', '--cached', '--name-only'])
 
 for (const file of [...changedFiles, ...stagedFiles]) {
-  if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
+  if (!allowedChangedFiles.has(file) && !isFollowOnGoogleCloudImplementationFile(file)) fail(`unexpected changed file ${file}`)
   if (
     forbiddenExactFiles.has(file) ||
     forbiddenPrefixes.some((prefix) => file.startsWith(prefix)) ||

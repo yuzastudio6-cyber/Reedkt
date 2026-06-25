@@ -282,6 +282,18 @@ Internal beta end-to-end status is `not_ready_pending_environment_boundary`. No 
 
 Next recommended step: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-OWNER-INPUT-1`.
 
+## RP-INTERNAL-BETA Google Cloud Environment Owner Input 1
+
+`RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-OWNER-INPUT-1` records decision `completed_source_derived_google_cloud_environment_names_for_internal_beta_planning` and execution `completed_docs_only_source_derived_environment_owner_input_no_runtime_execution`.
+
+The prior blocker `blocked_pending_google_cloud_environment_names` is closed for source-derived planning only. Source records now identify Google Cloud project `reeditpro`, primary region `us-east1`, secondary region `europe-west1`, staging activation region `us-central1`, production live resource names, existing staging private service `reeditpro-staging-private-searxng`, Secret Manager reference names, private bucket names, service accounts, queues, and topics.
+
+Environment boundary status is `source_derived_environment_names_recorded`, readiness is `ready_for_internal_beta_runtime_config_contract_scaffold`, and internal beta end-to-end status is `not_ready_pending_backend_supabase_storage_worker_implementation`.
+
+No Google Cloud API call, Cloud Run service/job creation, IAM mutation, Secret Manager payload access, GCS access, remote Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, Remotion execution, provider/model call, deployment, or internal beta unlock is enabled by this packet.
+
+Next recommended step: `RP-INTERNAL-BETA-GOOGLE-CLOUD-RUNTIME-CONFIG-CONTRACT-1`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

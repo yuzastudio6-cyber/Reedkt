@@ -89,11 +89,14 @@ const allowedChangedPrefixes = [
   `${reportDir}/`,
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-reconciliation/',
 ]
 const allowedChangedFiles = new Set([
   'package.json',
   'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-readiness-reconciliation-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-reconciliation.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-go-no-go-review.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout.md',
   ...predecessorDiagnostics,
   ...statusDocs,

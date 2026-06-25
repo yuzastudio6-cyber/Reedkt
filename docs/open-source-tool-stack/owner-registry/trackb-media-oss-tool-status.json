@@ -1181,7 +1181,7 @@
       "migrationDeployed": "no"
     }
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_GO_NO_GO_REVIEW",
   "sourceEvidence": {
     "trackbMilestone4ColorImagePipelineQaReviewDecision": "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup",
     "trackbAcceptedProvenBoundedAfterMilestone4Qa": 16,
@@ -1691,5 +1691,23 @@
     "productionReady": false,
     "productReady": false,
     "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_RECONCILIATION"
+  },
+  "productBetaReadinessReconciliation": {
+    "decision": "trackb_media_oss_product_beta_readiness_reconciliation_passed_ready_for_product_beta_go_no_go_review",
+    "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_GO_NO_GO_REVIEW",
+    "sourcePr": 893,
+    "sourceSha": "a68027ebf1d473d6016ff02b33c34f55bc2a0895",
+    "coveredToolCount": 16,
+    "boundedAcceptedProvenCount": 16,
+    "blockedNotInstalledProvenCount": 0,
+    "productReadyCount": 0,
+    "productBetaReadinessReconciled": true,
+    "deterministicDryRunRankingPreserved": true,
+    "readyForProductBetaGoNoGoReview": true,
+    "readyForDirectProductToolCalls": false,
+    "readyForLiveBetaRuntime": false,
+    "externalBetaReady": false,
+    "productionReady": false,
+    "productReady": false
   }
 }

@@ -14,6 +14,7 @@ const requiredFiles = [
   `${packetDir}/job-scaffold-record.json`,
   'docs/activation-phase-rp-jobs-01-internal-beta-job-queue-runtime-scaffold-results.md',
   'docs/implementation-prompts/prompt-rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold.md',
+  'docs/implementation-prompts/prompt-rp-render-01-internal-beta-remotion-render-worker-scaffold.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
   'server/services/internal-beta-job-queue-runtime-scaffold.ts',
@@ -21,10 +22,18 @@ const requiredFiles = [
   'scripts/validation/rp-backend-02-internal-beta-service-role-runtime-scaffold-diagnostics.mjs',
   'scripts/validation/rp-credits-01-internal-beta-credit-ledger-runtime-scaffold-diagnostics.mjs',
   'scripts/validation/rp-jobs-01-internal-beta-job-queue-runtime-scaffold-diagnostics.mjs',
+  'scripts/validation/rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set([
   ...requiredFiles,
+  'docs/internal-beta/rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold/source-audit.md',
+  'docs/internal-beta/rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold/artifact-manifest-scaffold-matrix.md',
+  'docs/internal-beta/rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold/private-artifact-boundary.md',
+  'docs/internal-beta/rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold/readiness-gate.md',
+  'docs/internal-beta/rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold/artifact-scaffold-record.json',
+  'docs/activation-phase-rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold-results.md',
+  'server/services/internal-beta-private-artifact-manifest-scaffold.ts',
   'package.json',
 ])
 
@@ -136,6 +145,7 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-DATA-0[1-4][\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-BACKEND-0[1-2][\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-CREDITS-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-ARTIFACTS-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 
 const docsCorpus = requiredFiles
@@ -245,7 +255,10 @@ for (const file of [...changedFiles, ...stagedFiles]) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
   if (
     forbiddenExactFiles.has(file) ||
-    (file !== 'server/services/internal-beta-job-queue-runtime-scaffold.ts' &&
+    (![
+      'server/services/internal-beta-job-queue-runtime-scaffold.ts',
+      'server/services/internal-beta-private-artifact-manifest-scaffold.ts',
+    ].includes(file) &&
       forbiddenPrefixes.some((prefix) => file.startsWith(prefix))) ||
     file.endsWith('.sql') ||
     file.endsWith('.mp4') ||

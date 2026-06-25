@@ -247,6 +247,20 @@ Google Cloud API calls, Cloud Run service/job creation, IAM mutation, Secret Man
 
 Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-BOUNDARY-1`.
 
+## RP-INTERNAL-BETA Google Cloud Environment Boundary 1
+
+`RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-BOUNDARY-1` records decision `blocked_pending_google_cloud_environment_names` and execution `completed_docs_only_google_cloud_environment_boundary_review_no_runtime_execution`.
+
+Approved runtime target: `google_cloud_managed_runtime_target`. Environment class: `google_cloud_managed_internal_beta`. Environment boundary status: `blocked_pending_owner_named_environment`.
+
+No Google Cloud project ID, region, Cloud Run service/job names, service account names, Secret Manager secret names, GCS/private artifact bucket names, Supabase target project, or deployment boundary was supplied.
+
+Internal beta end-to-end status: `not_ready_pending_environment_boundary`. Product-ready end-to-end local OSS tools: `0`.
+
+Google Cloud API calls, Cloud Run service/job creation, IAM mutation, Secret Manager payload access, GCS access, remote Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, Remotion execution, provider/model call, deployment, internal beta unlock, external beta unlock, production unlock, final delivery/export, public artifacts, and signed URL creation remain blocked.
+
+Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-OWNER-INPUT-1`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

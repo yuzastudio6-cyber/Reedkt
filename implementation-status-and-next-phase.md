@@ -272,6 +272,16 @@ Internal beta end-to-end status remains `not_ready_pending_runtime_implementatio
 
 Next recommended step: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-BOUNDARY-1`.
 
+## RP-INTERNAL-BETA Google Cloud Environment Boundary 1
+
+`RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-BOUNDARY-1` records decision `blocked_pending_google_cloud_environment_names` and execution `completed_docs_only_google_cloud_environment_boundary_review_no_runtime_execution`.
+
+Approved runtime target remains `google_cloud_managed_runtime_target`, but no owner-supplied Google Cloud project ID, region, Cloud Run service/job names, service account names, Secret Manager secret names, GCS/private artifact bucket names, Supabase target project, or deployment boundary exists in source.
+
+Internal beta end-to-end status is `not_ready_pending_environment_boundary`. No Google Cloud API call, Cloud Run service/job creation, IAM mutation, Secret Manager payload access, GCS access, remote Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, Remotion execution, provider/model call, deployment, or internal beta unlock is enabled by this packet.
+
+Next recommended step: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-OWNER-INPUT-1`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

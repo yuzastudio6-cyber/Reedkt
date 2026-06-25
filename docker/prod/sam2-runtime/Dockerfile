@@ -27,6 +27,7 @@ RUN if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>
 
 COPY docker/prod/ai-graphics-gpu-install-smoke.py ./ai-graphics-gpu-install-smoke.py
 RUN python3 ./ai-graphics-gpu-install-smoke.py --profile sam2
+COPY docker/prod/ai-graphics-gpu-runtime-readiness.py ./ai-graphics-gpu-runtime-readiness.py
 
 FROM base AS ai_graphics_install_proof
 

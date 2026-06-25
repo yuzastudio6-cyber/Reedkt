@@ -2,109 +2,112 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-TARGET-APPROVAL-1'
+const packet = 'RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-IMPLEMENTATION-PLAN-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
-const packetDir = 'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-target-approval-1'
+const packetDir = 'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1'
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/target-approval-decision.md`,
-  `${packetDir}/google-cloud-managed-target-matrix.md`,
+  `${packetDir}/google-cloud-runtime-architecture.md`,
+  `${packetDir}/runtime-gate-matrix.md`,
+  `${packetDir}/implementation-sequence.md`,
   `${packetDir}/safety-boundary.md`,
   `${packetDir}/readiness-gate.md`,
-  `${packetDir}/google-cloud-managed-runtime-target-approval-record.json`,
-  'docs/activation-phase-rp-internal-beta-google-cloud-managed-runtime-target-approval-1-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/source-audit.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/google-cloud-runtime-architecture.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/runtime-gate-matrix.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/implementation-sequence.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/safety-boundary.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/readiness-gate.md',
-  'docs/internal-beta/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1/google-cloud-managed-runtime-implementation-plan-record.json',
+  `${packetDir}/google-cloud-managed-runtime-implementation-plan-record.json`,
   'docs/activation-phase-rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-results.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-google-cloud-environment-boundary-1.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
-  'scripts/validation/rp-internal-beta-runtime-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-google-cloud-managed-runtime-target-approval-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set([...requiredFiles, 'package.json'])
 
-function isFollowOnGoogleCloudImplementationFile(file) {
-  return file.includes('rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1') ||
-    file.includes('activation-phase-rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-results') ||
-    file.includes('rp-internal-beta-google-cloud-environment-boundary-1')
-}
-
 const requiredText = [
   packet,
-  'approved_google_cloud_managed_runtime_target_for_internal_beta_planning',
-  'completed_docs_only_google_cloud_managed_runtime_target_approval_no_runtime_execution',
-  '`RP-INTERNAL-BETA-RUNTIME-TARGET-OWNER-DECISION-1` merged at `873c737ff99ea0ba1e98d58785ff2cdbbbf33711`',
-  'Source-of-truth input: `RP-INTERNAL-BETA-RUNTIME-TARGET-OWNER-DECISION-1` merged at `873c737ff99ea0ba1e98d58785ff2cdbbbf33711`',
-  'Owner decision evidence: `current_owner_prompt`',
+  'completed_google_cloud_managed_runtime_implementation_plan_ready_for_guarded_runtime_scaffold_sequence',
+  'completed_docs_only_google_cloud_managed_runtime_implementation_plan_no_runtime_execution',
+  'Source-of-truth input: `RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-TARGET-APPROVAL-1` merged at `26865fb80e55719a78a6808555de4afe05a4ec48`',
+  'Source merge: `26865fb80e55719a78a6808555de4afe05a4ec48`',
   'Approved runtime target: `google_cloud_managed_runtime_target`',
-  'Runtime target approval scope: `target_class_only_no_runtime_execution`',
+  'Runtime implementation scope: `architecture_plan_only_no_cloud_runtime_execution`',
   'Environment class: `google_cloud_managed_internal_beta`',
   'Internal beta end-to-end status: `not_ready_pending_runtime_implementation_and_validation`',
   'Product-ready end-to-end local OSS tools: `0`',
-  '#577 remains open/draft/blocked and excluded as source-of-truth',
   'Exact open duplicate PR: `none`',
   'Exact remote duplicate branch: `none`',
-  'Google Cloud managed runtime target: `approved_for_internal_beta_planning`',
+  '#577 remains open/draft/blocked and excluded as source-of-truth',
+  'Google Cloud project ID: `not_named_pending_owner_environment_packet`',
+  'Region: `not_named_pending_owner_environment_packet`',
+  'Supabase target: `not_named_pending_owner_environment_packet`',
+  'Cloud Run services: `planned_not_created`',
+  'Cloud Run jobs: `planned_not_created`',
+  'Secret Manager secrets: `planned_names_only_no_payload_access`',
+  'GCS/private artifact buckets: `planned_not_created`',
+  'Service accounts/IAM: `planned_not_created`',
+  'Remote Supabase mutation approval: `not_approved_in_this_packet`',
+  'SQL execution approval: `not_approved_in_this_packet`',
+  'Service-role route execution approval: `not_approved_in_this_packet`',
+  'Credit reservation approval: `not_approved_in_this_packet`',
+  'Job enqueue approval: `not_approved_in_this_packet`',
+  'Worker dispatch approval: `not_approved_in_this_packet`',
+  'GCS object access approval: `not_approved_in_this_packet`',
+  'Signed URL creation approval: `not_approved_in_this_packet`',
+  'Remotion execution approval: `not_approved_in_this_packet`',
+  'Provider/model call approval: `not_approved_in_this_packet`',
+  'Deployment approval: `not_approved_in_this_packet`',
+  'Internal beta unlock approval: `not_approved_in_this_packet`',
   'Google Cloud API call: `false`',
+  'Cloud Run service creation: `false`',
+  'Cloud Run job creation: `false`',
+  'Cloud Run deployment: `false`',
+  'IAM mutation: `false`',
   'Secret Manager payload access: `false`',
+  'GCS bucket creation: `false`',
   'GCS object creation: `false`',
   'GCS object read: `false`',
-  'Remote Supabase target approval: `not_named`',
-  'Service-role runtime approval: `not_approved_pending_separate_runtime_packet`',
-  'Approved snapshot persistence approval: `not_approved_pending_separate_runtime_packet`',
-  'Credit ledger runtime approval: `not_approved_pending_separate_runtime_packet`',
-  'Job queue runtime approval: `not_approved_pending_separate_runtime_packet`',
-  'Worker dispatch approval: `not_approved_pending_separate_runtime_packet`',
-  'Private artifact access approval: `not_approved_pending_separate_runtime_packet`',
-  'Signed URL approval: `not_approved_pending_signed_url_policy`',
-  'Remotion render worker approval: `not_approved_pending_separate_runtime_packet`',
-  'Provider/model call approval: `not_approved_pending_separate_provider_runtime_packet`',
-  'Route execution: `false`',
-  'Worker execution: `false`',
-  'Worker dispatch executed: `false`',
-  'Provider/model calls: `false`',
-  'Model call: `false`',
-  'Raw prompt execution: `false`',
+  'Remote Supabase mutation: `false`',
+  'SQL execution: `false`',
+  'Service-role route execution: `false`',
+  'Approved snapshot persistence: `false`',
   'Credit mutation: `false`',
   'Credit reservation creation: `false`',
   'Credit spend: `false`',
-  'Supabase mutation: `false`',
-  'SQL execution: `false`',
-  'Storage object creation: `false`',
-  'Storage object read: `false`',
-  'Signed URL creation: `false`',
-  'Public artifact creation: `false`',
+  'Job enqueue: `false`',
+  'Job event write: `false`',
+  'Worker lease claim: `false`',
+  'Worker dispatch: `false`',
+  'Worker execution: `false`',
+  'Provider/model call: `false`',
+  'Model call: `false`',
+  'Raw prompt execution: `false`',
   'Remotion execution: `false`',
   'FFmpeg execution: `false`',
   'FFprobe execution: `false`',
   'Media processing: `false`',
-  'Deployment: `false`',
+  'Storage object creation: `false`',
+  'Storage object read: `false`',
+  'Signed URL creation: `false`',
+  'Public artifact creation: `false`',
   'Internal beta unlock: `false`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
+  'Google Cloud API calls executed: `none`',
+  'Cloud Run service creation: `none`',
+  'Cloud Run job creation: `none`',
+  'GCS object access: `none`',
   'Supabase remote environment touched: `none`',
   'SQL executed: `none`',
-  'Google Cloud API calls executed: `none`',
-  'Secret Manager payload access: `none`',
-  'GCS object access: `none`',
   'Provider requests created: `none`',
   'Provider/model calls executed: `none`',
   'Worker execution: `none`',
   'Render/export execution: `none`',
   'Signed URLs created: `none`',
   'Public artifacts created: `none`',
-  'Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-IMPLEMENTATION-PLAN-1`',
-  'No remote Supabase mutation, SQL execution, Secret Manager payload access, Google Cloud API call, GCS object access, provider call, model call, raw prompt execution, worker execution, worker dispatch, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, storage object creation, storage object read, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.',
+  'Next recommended milestone: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-BOUNDARY-1`',
+  'No remote Supabase mutation, SQL execution, Secret Manager payload access, Google Cloud API call, Cloud Run service creation, Cloud Run job creation, Cloud Run deployment, IAM mutation, GCS bucket creation, GCS object access, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, service-role route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, storage object creation, storage object read, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.',
 ]
 
 const forbiddenClaims = [
@@ -113,34 +116,41 @@ const forbiddenClaims = [
   /external beta unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /production unlock(?:ed)?:\s*`?(true|enabled|unlocked|passed)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
-  /Runtime target approval scope:\s*`(?!target_class_only_no_runtime_execution`)/i,
+  /Runtime implementation scope:\s*`(?!architecture_plan_only_no_cloud_runtime_execution`)/i,
   /Google Cloud API calls? (?:executed|created)?:\s*`?(true|completed|enabled|passed|created)/i,
   /Google Cloud API call:\s*`?(true|completed|enabled|passed)/i,
+  /Cloud Run service creation:\s*`?(true|completed|enabled|passed)(?!_not_created)/i,
+  /Cloud Run job creation:\s*`?(true|completed|enabled|passed)(?!_not_created)/i,
+  /Cloud Run deployment:\s*`?(true|completed|enabled|passed)/i,
+  /IAM mutation:\s*`?(true|completed|enabled|passed)/i,
   /Secret Manager payload access:\s*`?(true|completed|enabled|passed|accessed)/i,
+  /GCS bucket creation:\s*`?(true|completed|enabled|passed)/i,
   /GCS object (?:creation|read):\s*`?true/i,
   /GCS object access:\s*`?(true|completed|enabled|passed|accessed|created|read)/i,
-  /Service-role runtime approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
-  /Remote Supabase target approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
-  /Approved snapshot persistence approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
-  /Credit ledger runtime approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
-  /Job queue runtime approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
-  /Worker dispatch approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
-  /Private artifact access approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
-  /Signed URL approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
-  /Remotion render worker approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
-  /Provider\/model call approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
-  /Provider requests created:(?!\s*`?none`?)/i,
-  /Provider\/model calls(?: executed)?:\s*`?(true|completed|enabled|passed)/i,
-  /Model call:\s*`?true/i,
-  /Raw prompt execution:\s*`?true/i,
-  /Worker dispatch executed:\s*`?true/i,
-  /Worker execution:(?!\s*`?(false|none|not_run)`?)/i,
-  /Route execution:\s*`?true/i,
+  /Remote Supabase mutation:\s*`?true/i,
+  /Remote Supabase mutation approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
+  /SQL execution:\s*`?true/i,
+  /SQL execution approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
+  /Service-role route execution:\s*`?(true|completed|enabled|passed)/i,
+  /Service-role route execution approval:\s*`?(approved|true|enabled|passed)(?!_pending)/i,
+  /Approved snapshot persistence:\s*`?(true|completed|enabled|passed)/i,
   /Credit mutation:\s*`?true/i,
   /Credit reservation creation:\s*`?(true|completed|enabled|passed)/i,
   /Credit spend:\s*`?(true|completed|enabled|passed)/i,
-  /Supabase mutation:\s*`?true/i,
-  /SQL execution:\s*`?true/i,
+  /Job enqueue:\s*`?(true|completed|enabled|passed)/i,
+  /Job event write:\s*`?(true|completed|enabled|passed)/i,
+  /Worker lease claim:\s*`?(true|completed|enabled|passed)/i,
+  /Worker dispatch:\s*`?(true|completed|enabled|passed)/i,
+  /Worker execution:(?!\s*`?(false|none|not_run)`?)/i,
+  /Provider requests created:(?!\s*`?none`?)/i,
+  /Provider\/model calls?(?: executed)?:\s*`?(true|completed|enabled|passed)/i,
+  /Provider\/model call:\s*`?(true|completed|enabled|passed)/i,
+  /Model call:\s*`?true/i,
+  /Raw prompt execution:\s*`?true/i,
+  /Remotion execution:\s*`?(true|completed|enabled|passed)/i,
+  /FFmpeg execution:\s*`?(true|completed|enabled|passed)/i,
+  /FFprobe execution:\s*`?(true|completed|enabled|passed)/i,
+  /Media processing:\s*`?(true|completed|enabled|passed)/i,
   /Storage object creation:\s*`?true/i,
   /Storage object read:\s*`?true/i,
   /Signed URL creation:\s*`?true/i,
@@ -150,7 +160,6 @@ const forbiddenClaims = [
   /Public artifacts created:(?!\s*`?none`?)/i,
   /Supabase remote environment touched:(?!\s*`?none`?)/i,
   /SQL executed:(?!\s*`?none`?)/i,
-  /Deployment:\s*`?true/i,
   /deployment:\s*`?(completed|enabled|true|passed)/i,
   /package-lock:\s*`?changed/i,
   /dependency mutation:\s*`?(completed|enabled|true|passed)/i,
@@ -166,6 +175,7 @@ const forbiddenPrefixes = [
   'public/',
   'tests/',
   'supabase/migrations/',
+  'supabase/functions/',
 ]
 
 function fail(message) {
@@ -204,11 +214,12 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-INTERNAL-BETA Runtime Enablement Owner Approval 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Named Runtime Target Approval 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-INTERNAL-BETA Runtime Target Owner Decision 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA Google Cloud Managed Runtime Target Approval 1[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## Track A[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 
 const docsCorpus = requiredFiles
-  .filter((file) => (file.startsWith('docs/') || file === 'implementation-status-and-next-phase.md') && !isFollowOnGoogleCloudImplementationFile(file))
+  .filter((file) => file.startsWith('docs/') || file === 'implementation-status-and-next-phase.md')
   .map((file) => stripHistoricalSections(read(file)))
   .join('\n')
 
@@ -220,34 +231,44 @@ for (const pattern of forbiddenClaims) {
   if (pattern.test(docsCorpus)) fail(`forbidden claim matched ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/google-cloud-managed-runtime-target-approval-record.json`))
+const record = JSON.parse(read(`${packetDir}/google-cloud-managed-runtime-implementation-plan-record.json`))
 if (record.packet !== packet) fail('record packet mismatch')
-if (record.decision !== 'approved_google_cloud_managed_runtime_target_for_internal_beta_planning') fail('record decision mismatch')
-if (record.execution !== 'completed_docs_only_google_cloud_managed_runtime_target_approval_no_runtime_execution') fail('record execution mismatch')
-if (record.sourceMerge !== '873c737ff99ea0ba1e98d58785ff2cdbbbf33711') fail('source merge mismatch')
-if (record.ownerDecisionEvidence !== 'current_owner_prompt') fail('owner decision evidence mismatch')
+if (record.decision !== 'completed_google_cloud_managed_runtime_implementation_plan_ready_for_guarded_runtime_scaffold_sequence') fail('record decision mismatch')
+if (record.execution !== 'completed_docs_only_google_cloud_managed_runtime_implementation_plan_no_runtime_execution') fail('record execution mismatch')
+if (record.sourceMerge !== '26865fb80e55719a78a6808555de4afe05a4ec48') fail('source merge mismatch')
+if (record.sourcePacket !== 'RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-TARGET-APPROVAL-1') fail('source packet mismatch')
 if (record.approvedRuntimeTarget !== 'google_cloud_managed_runtime_target') fail('approved runtime target mismatch')
-if (record.runtimeTargetApprovalScope !== 'target_class_only_no_runtime_execution') fail('approval scope mismatch')
+if (record.runtimeImplementationScope !== 'architecture_plan_only_no_cloud_runtime_execution') fail('runtime implementation scope mismatch')
 if (record.environmentClass !== 'google_cloud_managed_internal_beta') fail('environment class mismatch')
+if (record.readiness !== 'ready_for_google_cloud_environment_boundary_planning') fail('readiness mismatch')
 if (record.internalBetaEndToEndStatus !== 'not_ready_pending_runtime_implementation_and_validation') fail('internal beta status must stay not ready')
 if (record.exactOpenDuplicatePr !== 'none') fail('exact open duplicate PR must be none')
 if (record.exactRemoteDuplicateBranch !== 'none') fail('exact remote duplicate branch must be none')
 for (const key of [
-  'routeExecution',
-  'workerExecution',
-  'workerDispatchExecuted',
-  'providerModelCalls',
-  'modelCall',
-  'rawPromptExecution',
+  'serviceRoleRouteExecution',
+  'approvedSnapshotPersistence',
   'creditMutation',
   'creditReservationCreation',
   'creditSpend',
-  'supabaseMutation',
-  'sqlExecution',
+  'jobEnqueue',
+  'jobEventWrite',
+  'workerLeaseClaim',
+  'workerDispatch',
+  'workerExecution',
+  'providerModelCall',
+  'modelCall',
+  'rawPromptExecution',
   'googleCloudApiCall',
+  'cloudRunServiceCreation',
+  'cloudRunJobCreation',
+  'cloudRunDeployment',
+  'iamMutation',
   'secretManagerPayloadAccess',
+  'gcsBucketCreation',
   'gcsObjectCreation',
   'gcsObjectRead',
+  'remoteSupabaseMutation',
+  'sqlExecution',
   'storageObjectCreation',
   'storageObjectRead',
   'signedUrlCreation',
@@ -264,20 +285,23 @@ for (const key of [
   if (record[key] !== false) fail(`${key} must remain false`)
 }
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready tool count must remain 0')
+if (record.nextMilestone !== 'RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-BOUNDARY-1') fail('next milestone mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
-if (packageJson.scripts?.['rp-internal-beta-google-cloud-managed-runtime-target-approval-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-google-cloud-managed-runtime-target-approval-1-diagnostics.mjs') {
+if (packageJson.scripts?.['rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1:diagnostics'] !== 'node scripts/validation/rp-internal-beta-google-cloud-managed-runtime-implementation-plan-1-diagnostics.mjs') {
   fail('missing diagnostics package script')
 }
 
 gitQuiet(['diff', '--quiet', '--', 'package-lock.json'], 'package-lock.json changed')
 for (const file of [
   'supabase/migrations',
+  'supabase/functions',
   '.dockerignore',
   'database/migration-drafts',
   'database/test-sql',
   'server/routes',
   'server/workers',
+  'docker',
 ]) {
   gitQuiet(['diff', '--quiet', '--', file], `${file} changed`)
 }
@@ -310,7 +334,6 @@ for (const file of [...changedFiles, ...stagedFiles]) {
 for (const file of changedFiles) {
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) continue
   if (file.startsWith('scripts/validation/')) continue
-  if (isFollowOnGoogleCloudImplementationFile(file)) continue
   const text = stripHistoricalSections(fs.readFileSync(file, 'utf8'))
   for (const pattern of forbiddenClaims) {
     if (pattern.test(text)) fail(`forbidden claim ${pattern} in ${file}`)

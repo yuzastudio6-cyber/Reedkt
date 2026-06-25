@@ -260,6 +260,18 @@ Internal beta end-to-end status remains `not_ready_pending_runtime_implementatio
 
 Next recommended step: `RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-IMPLEMENTATION-PLAN-1`.
 
+## RP-INTERNAL-BETA Google Cloud Managed Runtime Implementation Plan 1
+
+`RP-INTERNAL-BETA-GOOGLE-CLOUD-MANAGED-RUNTIME-IMPLEMENTATION-PLAN-1` records decision `completed_google_cloud_managed_runtime_implementation_plan_ready_for_guarded_runtime_scaffold_sequence` and execution `completed_docs_only_google_cloud_managed_runtime_implementation_plan_no_runtime_execution`.
+
+Approved runtime target remains `google_cloud_managed_runtime_target`, runtime implementation scope is `architecture_plan_only_no_cloud_runtime_execution`, and environment class remains `google_cloud_managed_internal_beta`.
+
+The concrete implementation sequence now routes through Google Cloud environment boundary naming, Supabase target/RLS/storage validation, Secret Manager name policy, service-role API runtime, approved snapshot persistence, credit ledger runtime, job queue/worker lease runtime, private artifact manifest/access runtime, Remotion private preview/export runtime, provider/model runtime approval if needed, QA/cleanup runtime, and then internal beta E2E validation.
+
+Internal beta end-to-end status remains `not_ready_pending_runtime_implementation_and_validation`. No Google Cloud API call, Cloud Run service/job creation, IAM mutation, Secret Manager payload access, GCS access, remote Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, Remotion execution, provider/model call, deployment, or internal beta unlock is enabled by this packet.
+
+Next recommended step: `RP-INTERNAL-BETA-GOOGLE-CLOUD-ENVIRONMENT-BOUNDARY-1`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

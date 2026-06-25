@@ -1,0 +1,15 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_control_approval_passed_ready_for_controlled_activation_execution",
+  "futureExecutionLaneOnly": true,
+  "executionLaneMustProve": [
+    "routes remain disabled until explicit activation flag",
+    "worker dispatch remains per-tool allowlisted",
+    "approved snapshot and credit gates are enforced",
+    "service-role and write paths remain backend-only",
+    "monitoring events are sanitized",
+    "rollback disables route, tool, and worker paths",
+    "beta exposure remains internal and explicitly scoped"
+  ],
+  "currentPhaseRunsRuntime": false
+}

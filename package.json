@@ -752,6 +752,7 @@
     "trackb-media-oss:limited-internal-beta-product-tool-call-runtime-closeout:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-closeout-diagnostics.mjs",
     "trackb-media-oss:limited-internal-beta-product-tool-call-runtime-activation-approval:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-activation-approval-diagnostics.mjs",
     "trackb-media-oss:limited-internal-beta-product-tool-call-runtime-control-plan:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-plan-diagnostics.mjs",
+    "trackb-media-oss:limited-internal-beta-product-tool-call-runtime-control-approval:diagnostics": "node scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval-diagnostics.mjs",
     "smoke:trackb-media-oss-callable-worker-contracts": "tsx server/smoke/trackb-media-oss-callable-worker-contracts-smoke.ts"
   },
   "dependencies": {

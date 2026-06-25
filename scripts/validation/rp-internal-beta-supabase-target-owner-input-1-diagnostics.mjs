@@ -43,8 +43,23 @@ const followOnSupabaseTargetOwnerDecisionFiles = [
   'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
 ]
 
+const followOnSupabaseTargetRlsStorageValidation1rFiles = [
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/target-validation.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/rls-readiness-review.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/storage-readiness-review.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/service-role-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/confirmation-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r/supabase-target-rls-storage-validation-1r-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.md',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-diagnostics.mjs',
+]
+
 const requiredFiles = [...packetFiles, ...relatedFiles]
-const allowedChangedFiles = new Set([...packetFiles, ...relatedFiles, ...followOnSupabaseTargetOwnerDecisionFiles, 'package.json'])
+const allowedChangedFiles = new Set([...packetFiles, ...relatedFiles, ...followOnSupabaseTargetOwnerDecisionFiles, ...followOnSupabaseTargetRlsStorageValidation1rFiles, 'package.json'])
 
 const requiredText = [
   packet,
@@ -380,6 +395,7 @@ for (const file of changedFiles) {
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) continue
   if (file.startsWith('scripts/validation/')) continue
   if (followOnSupabaseTargetOwnerDecisionFiles.includes(file)) continue
+  if (followOnSupabaseTargetRlsStorageValidation1rFiles.includes(file)) continue
   const text = file === 'implementation-status-and-next-phase.md' || file === 'docs/production-beta-blocker-inventory.md'
     ? extractSection(fs.readFileSync(file, 'utf8'), 'RP-INTERNAL-BETA Supabase Target Owner Input 1')
     : fs.readFileSync(file, 'utf8')

@@ -1,0 +1,36 @@
+# RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED
+
+Run the guarded read-only Supabase target RLS/storage validation after `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R`.
+
+Named target:
+
+- Project name: `Reeditpro`
+- Project ref: `wmyyttnynmteqgcdishd`
+- Environment class: `staging`
+
+Required confirmation:
+
+`REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`
+
+Allowed validation only after confirmation:
+
+- read-only target identity confirmation;
+- read-only RLS, policy, advisor, and status checks;
+- read-only storage bucket and policy status checks;
+- sanitized result docs with no secret payloads.
+
+Forbidden:
+
+- SQL mutation or migration apply;
+- storage bucket/object creation;
+- storage object readback unless the prompt names exact approved read-only metadata commands;
+- service-role secret payload logging or docs;
+- frontend service-role credential exposure;
+- signed URL creation;
+- public artifact creation;
+- worker/provider/model/render/media execution;
+- beta, production, final delivery, or public artifact unlock.
+
+Expected blocker if confirmation or safe credentials are absent:
+
+`blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation`

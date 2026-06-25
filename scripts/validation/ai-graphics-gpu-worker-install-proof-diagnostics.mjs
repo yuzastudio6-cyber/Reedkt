@@ -124,13 +124,22 @@ for (const line of [
   "torchvision==0.20.1+cu124",
   "transformers==4.57.6",
   "kornia==0.8.1",
-  "opencv-python-headless==4.12.0.88",
-  "rembg[gpu]==2.0.76",
+  "opencv-python==4.10.0.84",
+  "opencv-python-headless==4.10.0.84",
+  "rembg[gpu]==2.0.69",
   "transparent-background==1.3.4",
   "realesrgan==0.3.0",
-  "git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4#egg=SAM-2",
 ]) {
   requireLine(files.gpuRequirements, line, "gpu-worker requirements");
+}
+if (!files.gpuDocker.includes("--no-build-isolation") || !files.gpuDocker.includes("facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4")) {
+  fail("gpu-worker Dockerfile must install pinned SAM2 source with --no-build-isolation after the pinned Torch stack.");
+}
+if (!files.gpuDocker.includes("TORCH_CUDA_ARCH_LIST=8.9")) {
+  fail("gpu-worker Dockerfile must set TORCH_CUDA_ARCH_LIST=8.9 for the NVIDIA L4 install-proof target.");
+}
+if (!files.gpuDocker.includes("python3-dev")) {
+  fail("gpu-worker Dockerfile must install python3-dev before SAM2 source extension build.");
 }
 
 for (const line of [
@@ -141,7 +150,7 @@ for (const line of [
   "tqdm==4.67.1",
   "hydra-core==1.3.3",
   "iopath==0.1.10",
-  "opencv-python-headless==4.12.0.88",
+  "opencv-python-headless==4.10.0.84",
   "git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4",
 ]) {
   requireLine(files.sam2Requirements, line, "SAM2 requirements");
@@ -153,7 +162,7 @@ for (const line of [
   "transformers==4.57.6",
   "safetensors==0.7.0",
   "pillow==10.4.0",
-  "opencv-python-headless==4.12.0.88",
+  "opencv-python-headless==4.10.0.84",
   "numpy==1.26.4",
   "timm==1.0.27",
   "kornia==0.8.1",
@@ -168,7 +177,7 @@ for (const line of [
   "torch==2.5.1+cu124",
   "torchvision==0.20.1+cu124",
   "numpy==1.26.4",
-  "opencv-python-headless==4.12.0.88",
+  "opencv-python-headless==4.10.0.84",
   "pillow==10.4.0",
   "tqdm==4.67.1",
   "basicsr==1.4.2",

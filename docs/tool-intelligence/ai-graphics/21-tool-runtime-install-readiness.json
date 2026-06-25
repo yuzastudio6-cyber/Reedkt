@@ -10,7 +10,7 @@
     "state": "OPEN",
     "isDraft": true,
     "mergeStateStatus": "CLEAN",
-    "headSha": "f5e0711ac946d28271b72a030fda661a09a29182",
+    "headShaAtCreation": "f5e0711ac946d28271b72a030fda661a09a29182",
     "statusCheckRollup": []
   },
   "duplicateSearch": {

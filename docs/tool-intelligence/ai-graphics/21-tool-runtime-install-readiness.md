@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_21_tool_runtime_install_readiness_started_with_gpu_worker_install_declarations`
 
-Draft PR: [#770](https://github.com/yuzastudio6-cyber/Reedkt/pull/770), open/draft/CLEAN at `f5e0711ac946d28271b72a030fda661a09a29182` with empty check rollup.
+Draft PR: [#770](https://github.com/yuzastudio6-cyber/Reedkt/pull/770), opened as open/draft/CLEAN at creation head `f5e0711ac946d28271b72a030fda661a09a29182` with empty check rollup.
 
 This lane starts the real install-readiness path for the full 21-tool AI graphics set. It does not claim final beta readiness yet. It makes the next truthful state better: all 13 JavaScript graphics tools remain declared and locked in the Node package lock, and the GPU worker now declares the missing AI/model/background-removal install candidates that belong in GPU worker scope.
 

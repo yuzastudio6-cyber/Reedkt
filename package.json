@@ -640,6 +640,7 @@
     "rp-data-02:supabase-migration-safety-packet:diagnostics": "node scripts/validation/rp-data-02-supabase-migration-safety-packet-diagnostics.mjs",
     "rp-data-03:supabase-migration-draft-static-implementation:diagnostics": "node scripts/validation/rp-data-03-supabase-migration-draft-static-implementation-diagnostics.mjs",
     "rp-data-04:guarded-local-supabase-migration-validation:diagnostics": "node scripts/validation/rp-data-04-guarded-local-supabase-migration-validation-diagnostics.mjs",
+    "rp-backend-01:internal-beta-service-role-api-contracts:diagnostics": "node scripts/validation/rp-backend-01-internal-beta-service-role-api-contracts-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

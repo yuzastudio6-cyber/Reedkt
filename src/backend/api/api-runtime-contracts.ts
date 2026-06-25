@@ -33,6 +33,7 @@ export type ApiDomain =
   | 'jobs'
   | 'generation'
   | 'render'
+  | 'internalBeta'
   | 'music'
   | 'sfx'
   | 'storytiming'

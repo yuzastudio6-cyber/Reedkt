@@ -77,6 +77,12 @@ Supabase update required: `future_backend_api_and_rls_test_required`. Supabase u
 
 Local validation confirmed the migration chain resets through RP-DATA-03, artifact manifests exist with RLS, authenticated artifact grants are `SELECT` only, service-role artifact mutation grants remain backend-owned, private local buckets exist, and migration version `20260625031135` is recorded.
 
+## RP-BACKEND-01 Internal Beta Service-Role API Contracts
+
+Internal beta backend contracts status: `completed_contract_registry_only_no_route_execution`. Internal beta end-to-end status: `not_ready`. Product-ready local OSS tools: `0`.
+
+Backend-required route contracts now exist for the narrow internal beta lane, but route handlers, service-role runtime execution, worker dispatch, provider/model calls, render/export, private artifact access, Stripe/payment processing, external beta, production, public artifacts, and final delivery remain blocked.
+
 Next Supabase action: `RP-BACKEND-01-INTERNAL-BETA-SERVICE-ROLE-API-CONTRACTS`.
 
 External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.

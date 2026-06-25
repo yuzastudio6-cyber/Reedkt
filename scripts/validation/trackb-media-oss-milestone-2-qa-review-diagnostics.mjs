@@ -169,6 +169,9 @@ if (statusUpdate.fortyPlusEndToEndClaimAllowed !== false || decisionReport.forty
 const milestone3OcrMlCpuQaAccepted =
   status.milestone3OcrMlCpuQaReview?.decision ===
   'trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval'
+const milestone4ColorImagePipelineQaAccepted =
+  status.milestone4ColorImagePipelineQaReview?.decision ===
+  'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
 const currentExpectedAccepted = [
   'ffmpeg',
   'ffprobe',
@@ -183,12 +186,23 @@ const currentExpectedAccepted = [
   'pyav',
   'pyscenedetect',
   ...(milestone3OcrMlCpuQaAccepted ? ['paddlepaddle', 'paddleocr'] : []),
+  ...(milestone4ColorImagePipelineQaAccepted ? ['opencolorio', 'openimageio'] : []),
 ]
-const currentExpectedBlocked = milestone3OcrMlCpuQaAccepted
+const currentExpectedBlocked = milestone4ColorImagePipelineQaAccepted
+  ? []
+  : milestone3OcrMlCpuQaAccepted
   ? ['opencolorio', 'openimageio']
   : ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio']
-const currentExpectedAcceptedCount = milestone3OcrMlCpuQaAccepted ? 14 : 12
-const currentExpectedBlockedCount = milestone3OcrMlCpuQaAccepted ? 2 : 4
+const currentExpectedAcceptedCount = milestone4ColorImagePipelineQaAccepted
+  ? 16
+  : milestone3OcrMlCpuQaAccepted
+  ? 14
+  : 12
+const currentExpectedBlockedCount = milestone4ColorImagePipelineQaAccepted
+  ? 0
+  : milestone3OcrMlCpuQaAccepted
+  ? 2
+  : 4
 sameSet(status.acceptedProvenBounded?.map((tool) => tool.id), currentExpectedAccepted, 'status_accepted_after_qa')
 sameSet(status.blockedNotInstalledProven, currentExpectedBlocked, 'status_blocked_after_qa')
 if (

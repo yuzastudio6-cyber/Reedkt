@@ -137,6 +137,9 @@ const registry = readJson('docs/open-source-tool-stack/owner-registry/open-sourc
 const pr635Decision = readJson(
   'docs/open-source-tool-stack/trackb-media-oss-milestone-3-font-config-followup/font-config-followup-decision.json',
 )
+const milestone4ColorImagePipelineQaAccepted =
+  status.milestone4ColorImagePipelineQaReview?.decision ===
+  'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
 
 for (const [label, report] of Object.entries({
   source,
@@ -223,31 +226,42 @@ if (decisionReport.fortyPlusEndToEndClaimAllowed !== false || statusUpdate.forty
   fail('forty_plus_claim_allowed')
 }
 
-if (status.counts?.acceptedProvenBounded !== 14 || steward.statusCounts?.acceptedProvenBounded !== 14) {
-  fail('status_accepted_count_not_14')
+const currentAcceptedCount = milestone4ColorImagePipelineQaAccepted ? 16 : 14
+const currentBlockedCount = milestone4ColorImagePipelineQaAccepted ? 0 : 2
+const currentBlockedTools = milestone4ColorImagePipelineQaAccepted ? [] : ['opencolorio', 'openimageio']
+const currentAcceptedTools = [
+  'ffmpeg',
+  'ffprobe',
+  'sharp_libvips',
+  'duckdb',
+  'polars_nodejs_polars',
+  'exiftool',
+  'mediainfo',
+  'tesseract',
+  'imagemagick',
+  'opencv',
+  'pyav',
+  'pyscenedetect',
+  'paddlepaddle',
+  'paddleocr',
+  ...(milestone4ColorImagePipelineQaAccepted ? ['opencolorio', 'openimageio'] : []),
+]
+if (
+  status.counts?.acceptedProvenBounded !== currentAcceptedCount ||
+  steward.statusCounts?.acceptedProvenBounded !== currentAcceptedCount
+) {
+  fail(`status_accepted_count_not_${currentAcceptedCount}`)
 }
-if (status.counts?.blockedNotInstalledProven !== 2 || steward.statusCounts?.blockedNotInstalledProven !== 2) {
-  fail('status_blocked_count_not_2')
+if (
+  status.counts?.blockedNotInstalledProven !== currentBlockedCount ||
+  steward.statusCounts?.blockedNotInstalledProven !== currentBlockedCount
+) {
+  fail(`status_blocked_count_not_${currentBlockedCount}`)
 }
-sameSet(status.blockedNotInstalledProven, ['opencolorio', 'openimageio'], 'status_blocked')
+sameSet(status.blockedNotInstalledProven, currentBlockedTools, 'status_blocked')
 sameSet(
   status.acceptedProvenBounded?.map((tool) => tool.id),
-  [
-    'ffmpeg',
-    'ffprobe',
-    'sharp_libvips',
-    'duckdb',
-    'polars_nodejs_polars',
-    'exiftool',
-    'mediainfo',
-    'tesseract',
-    'imagemagick',
-    'opencv',
-    'pyav',
-    'pyscenedetect',
-    'paddlepaddle',
-    'paddleocr',
-  ],
+  currentAcceptedTools,
   'status_accepted',
 )
 for (const id of ['paddlepaddle', 'paddleocr']) {
@@ -265,7 +279,10 @@ for (const id of ['paddlepaddle', 'paddleocr']) {
 }
 const owner = registry.owners?.find((entry) => entry.ownerId === ownerId)
 if (!owner) fail('missing_trackb_owner')
-if (owner?.acceptedProvenBoundedCount !== 14 || owner?.blockedNotInstalledProvenCount !== 2) {
+if (
+  owner?.acceptedProvenBoundedCount !== currentAcceptedCount ||
+  owner?.blockedNotInstalledProvenCount !== currentBlockedCount
+) {
   fail('registry_owner_counts_drift')
 }
 if (owner?.endToEndProductReadyToolCount !== 0) fail('registry_owner_product_ready_not_zero')
@@ -382,8 +399,8 @@ console.log(
       acceptedMilestone3Tools: ['paddlepaddle', 'paddleocr'],
       counts: {
         ownedTools: 16,
-        acceptedProvenBounded: 14,
-        blockedNotInstalledProven: 2,
+        acceptedProvenBounded: currentAcceptedCount,
+        blockedNotInstalledProven: currentBlockedCount,
         endToEndProductReady: 0,
       },
       nextPrompt,

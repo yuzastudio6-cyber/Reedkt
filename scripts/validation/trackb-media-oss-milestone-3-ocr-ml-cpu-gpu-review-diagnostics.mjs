@@ -238,9 +238,22 @@ if (decisionReport.fortyPlusEndToEndClaimAllowed !== false) fail('forty_plus_cla
 const milestone3OcrMlCpuQaAccepted =
   status.milestone3OcrMlCpuQaReview?.decision ===
   'trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval'
-const expectedCurrentAcceptedCount = milestone3OcrMlCpuQaAccepted ? 14 : 12
-const expectedCurrentBlockedCount = milestone3OcrMlCpuQaAccepted ? 2 : 4
-const expectedCurrentBlockedTools = milestone3OcrMlCpuQaAccepted
+const milestone4ColorImagePipelineQaAccepted =
+  status.milestone4ColorImagePipelineQaReview?.decision ===
+  'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
+const expectedCurrentAcceptedCount = milestone4ColorImagePipelineQaAccepted
+  ? 16
+  : milestone3OcrMlCpuQaAccepted
+  ? 14
+  : 12
+const expectedCurrentBlockedCount = milestone4ColorImagePipelineQaAccepted
+  ? 0
+  : milestone3OcrMlCpuQaAccepted
+  ? 2
+  : 4
+const expectedCurrentBlockedTools = milestone4ColorImagePipelineQaAccepted
+  ? []
+  : milestone3OcrMlCpuQaAccepted
   ? ['opencolorio', 'openimageio']
   : ['paddleocr', 'paddlepaddle', 'opencolorio', 'openimageio']
 if (

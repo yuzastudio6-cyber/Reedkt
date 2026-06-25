@@ -168,9 +168,14 @@ const milestone2QaAccepted =
 const milestone3OcrMlCpuQaAccepted =
   ownerStatus.milestone3OcrMlCpuQaReview?.decision ===
   "trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval";
+const milestone4ColorImagePipelineQaAccepted =
+  ownerStatus.milestone4ColorImagePipelineQaReview?.decision ===
+  "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup";
 sameSet(
   ownerStatus.blockedNotInstalledProven || [],
-  milestone3OcrMlCpuQaAccepted
+  milestone4ColorImagePipelineQaAccepted
+    ? []
+    : milestone3OcrMlCpuQaAccepted
     ? ["opencolorio", "openimageio"]
     : milestone2QaAccepted
     ? ["paddleocr", "paddlepaddle", "opencolorio", "openimageio"]
@@ -179,7 +184,9 @@ sameSet(
 );
 sameSet(
   ownerStatus.acceptedProvenBounded?.map((tool) => tool.id) || [],
-  milestone3OcrMlCpuQaAccepted
+  milestone4ColorImagePipelineQaAccepted
+    ? [...acceptedStatusTools, "opencv", "pyav", "pyscenedetect", "paddlepaddle", "paddleocr", "opencolorio", "openimageio"]
+    : milestone3OcrMlCpuQaAccepted
     ? [...acceptedStatusTools, "opencv", "pyav", "pyscenedetect", "paddlepaddle", "paddleocr"]
     : milestone2QaAccepted
     ? [...acceptedStatusTools, "opencv", "pyav", "pyscenedetect"]

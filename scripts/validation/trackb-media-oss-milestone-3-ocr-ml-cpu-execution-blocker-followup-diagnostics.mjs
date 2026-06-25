@@ -317,7 +317,13 @@ if (status.counts?.ownedTools !== 16) fail('owned_count_drift')
 const milestone3OcrMlCpuQaAccepted =
   status.milestone3OcrMlCpuQaReview?.decision ===
   'trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval'
-if (milestone3OcrMlCpuQaAccepted) {
+const milestone4ColorImagePipelineQaAccepted =
+  status.milestone4ColorImagePipelineQaReview?.decision ===
+  'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
+if (milestone4ColorImagePipelineQaAccepted) {
+  if (status.counts?.acceptedProvenBounded !== 16) fail('canonical_accepted_count_should_be_16_after_milestone4_qa')
+  if (status.counts?.blockedNotInstalledProven !== 0) fail('canonical_blocked_count_should_be_0_after_milestone4_qa')
+} else if (milestone3OcrMlCpuQaAccepted) {
   if (status.counts?.acceptedProvenBounded !== 14) fail('canonical_accepted_count_should_be_14_after_qa')
   if (status.counts?.blockedNotInstalledProven !== 2) fail('canonical_blocked_count_should_be_2_after_qa')
 } else {

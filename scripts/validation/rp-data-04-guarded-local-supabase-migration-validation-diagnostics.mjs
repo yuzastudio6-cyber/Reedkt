@@ -38,9 +38,27 @@ const allowedMigrationFiles = [
   'supabase/migrations/20260625031135_rp_data_03_internal_beta_static_gap_contract.sql',
 ]
 
+const rpBackend01Files = [
+  'docs/internal-beta/rp-backend-01-internal-beta-service-role-api-contracts/source-audit.md',
+  'docs/internal-beta/rp-backend-01-internal-beta-service-role-api-contracts/route-contract-matrix.md',
+  'docs/internal-beta/rp-backend-01-internal-beta-service-role-api-contracts/service-role-boundary.md',
+  'docs/internal-beta/rp-backend-01-internal-beta-service-role-api-contracts/approval-credit-job-flow.md',
+  'docs/internal-beta/rp-backend-01-internal-beta-service-role-api-contracts/private-artifact-boundary.md',
+  'docs/internal-beta/rp-backend-01-internal-beta-service-role-api-contracts/readiness-gate.md',
+  'docs/internal-beta/rp-backend-01-internal-beta-service-role-api-contracts/contract-record.json',
+  'docs/activation-phase-rp-backend-01-internal-beta-service-role-api-contracts-results.md',
+  'docs/implementation-prompts/prompt-rp-backend-01-internal-beta-service-role-api-contracts.md',
+  'docs/implementation-prompts/prompt-rp-backend-02-internal-beta-service-role-runtime-scaffold.md',
+  'src/backend/api/api-runtime-contracts.ts',
+  'src/backend/api/api-route-registry.ts',
+  'src/backend/api/routes/internal-beta-api-routes.ts',
+  'scripts/validation/rp-backend-01-internal-beta-service-role-api-contracts-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
   ...allowedMigrationFiles,
+  ...rpBackend01Files,
   'scripts/validation/rp-data-01-supabase-schema-migration-readiness-diagnostics.mjs',
   'scripts/validation/rp-data-02-supabase-migration-safety-packet-diagnostics.mjs',
   'scripts/validation/rp-data-03-supabase-migration-draft-static-implementation-diagnostics.mjs',
@@ -127,9 +145,13 @@ function gitQuiet(args, label) {
   }
 }
 
+function stripSuccessorSections(text) {
+  return text.replace(/\n## RP-BACKEND-01 Internal Beta Service-Role API Contracts[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+}
+
 const docsCorpus = requiredFiles
   .filter((file) => !file.startsWith('scripts/validation/') && !file.startsWith('supabase/'))
-  .map((file) => read(file))
+  .map((file) => stripSuccessorSections(read(file)))
   .join('\n')
 
 for (const text of requiredText) {
@@ -211,6 +233,7 @@ const stagedFiles = gitLines(['diff', '--cached', '--name-only'])
 
 for (const file of [...changedFiles, ...stagedFiles]) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
+  const isRpBackend01File = rpBackend01Files.includes(file)
   const isAllowedSupabaseFile = file.startsWith('supabase/') && (
     file === 'supabase/.gitignore' ||
     file === 'supabase/config.toml' ||
@@ -219,8 +242,8 @@ for (const file of [...changedFiles, ...stagedFiles]) {
     allowedMigrationFiles.includes(file)
   )
   if (
-    forbiddenExactFiles.has(file) ||
-    forbiddenPrefixes.some((prefix) => file.startsWith(prefix)) ||
+    (!isRpBackend01File && forbiddenExactFiles.has(file)) ||
+    (!isRpBackend01File && forbiddenPrefixes.some((prefix) => file.startsWith(prefix))) ||
     (!isAllowedSupabaseFile && file.startsWith('supabase/')) ||
     (!allowedMigrationFiles.includes(file) && file.endsWith('.sql')) ||
     file.endsWith('.mp4') ||
@@ -238,8 +261,8 @@ for (const file of [...changedFiles, ...stagedFiles]) {
 
 for (const file of changedFiles) {
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) continue
-  if (file.startsWith('scripts/validation/') || allowedMigrationFiles.includes(file)) continue
-  const text = read(file)
+  if (file.startsWith('scripts/validation/') || allowedMigrationFiles.includes(file) || rpBackend01Files.includes(file)) continue
+  const text = stripSuccessorSections(read(file))
   for (const pattern of forbiddenClaims) {
     if (pattern.test(text)) fail(`forbidden changed-file claim in ${file}: ${pattern}`)
   }

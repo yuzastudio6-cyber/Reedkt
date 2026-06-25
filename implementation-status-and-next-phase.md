@@ -119,6 +119,16 @@ The data foundation is `local_migration_validation_passed`: the Supabase migrati
 Internal beta end-to-end remains `not_ready` until backend service-role APIs, credit gate, worker queue, private artifact access routes, render worker, QA, and cleanup gates pass.
 
 Next recommended step: `RP-BACKEND-01-INTERNAL-BETA-SERVICE-ROLE-API-CONTRACTS`.
+
+## RP-BACKEND-01 Internal Beta Service-Role API Contracts
+
+`RP-BACKEND-01-INTERNAL-BETA-SERVICE-ROLE-API-CONTRACTS` records decision `completed_backend_service_role_api_contracts_no_runtime_execution` and execution `completed_contract_registry_only_no_route_execution`.
+
+The internal beta backend contract layer now registers backend-required route metadata for session creation, approved-plan commit, internal credit reservation, job enqueue/status, artifact manifest write, private artifact access, and QA report readback. The mock router blocks these contracts because they are backend-required, service-role, or disabled. No route handlers, worker dispatch, provider/model calls, rendering, media processing, signed URL creation, public artifact creation, Stripe/payment processing, remote Supabase mutation, or internal beta unlock is implemented.
+
+Internal beta end-to-end remains `not_ready` until service-role route handlers, transactional credit ledger runtime, worker queue, private artifact access policy, render worker, QA, and cleanup gates pass.
+
+Next recommended step: `RP-BACKEND-02-INTERNAL-BETA-SERVICE-ROLE-RUNTIME-SCAFFOLD`.
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

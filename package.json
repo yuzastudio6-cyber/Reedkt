@@ -27,6 +27,7 @@
     "cross-chat-tool-ownership:diagnostics": "node scripts/validation/cross-chat-tool-ownership-registry-diagnostics.mjs",
     "ai-video-broll-gen-0:diagnostics": "node scripts/validation/ai-video-broll-gen-0-diagnostics.mjs",
     "ai-video-broll-gen-1:diagnostics": "node scripts/validation/ai-video-broll-gen-1-diagnostics.mjs",
+    "ai-video-broll-gen-2:diagnostics": "node scripts/validation/ai-video-broll-gen-2-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

@@ -2,9 +2,9 @@
 
 Packet: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED`
 
-Decision: `completed_guarded_confirmed_validation_runner_fail_closed_without_remote_execution`
+Decision: `completed_guarded_supabase_target_rls_storage_readonly_validation`
 
-Execution: `completed_runner_scaffold_no_remote_execution`
+Execution: `completed_readonly_target_identity_and_advisor_validation_no_mutation`
 
 Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
@@ -12,7 +12,7 @@ Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STOR
 
 Observed confirmation: `present_true`
 
-Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
+Current run status: `completed_guarded_supabase_target_rls_storage_readonly_validation`
 
 Credential alias support: `approved_env_aliases_supported_payloads_redacted`
 
@@ -48,29 +48,46 @@ Package-lock: `unchanged`
 
 Generated artifacts committed: `none`
 
-## Local Fail-Closed Runner Evidence
+## Confirmed Read-Only Runner Evidence
 
-Run ID: `2026-06-25T22-05-55-744Z-8ca7b12e`
+Run ID: `2026-06-26T14-39-42-178Z-ec258ac5`
 
-Output directory: `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/2026-06-25T22-05-55-744Z-8ca7b12e`
+Output directory: `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/2026-06-26T14-39-42-178Z-ec258ac5`
 
-Result: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
+Result: `completed_guarded_supabase_target_rls_storage_readonly_validation`
 
-Execution: `blocked_no_remote_execution_missing_safe_credential_context`
+Execution: `completed_readonly_target_identity_and_advisor_validation_no_mutation`
 
-Commands executed by runner: `none`
+Commands executed by runner:
 
-Credential presence: `supabaseAccessToken=false`, `readonlyDatabaseUrl=false`, `serviceRoleKey=false`, `databasePassword=false`
+- `supabase projects list --output json`: `passed`
+- `supabase db lint --db-url postgresql://[redacted] --schema public,storage --level warning --fail-on none`: `passed`
+
+Target identity: `passed_readonly_management_api_project_list`
+
+RLS validation: `passed_readonly_advisor_lint`
+
+Storage validation: `passed_readonly_storage_schema_advisor_lint`
+
+Advisor output bytes: `1547`
+
+Credential presence: `supabaseAccessToken=true`, `readonlyDatabaseUrl=true`, `serviceRoleKey=false`, `databasePassword=false`
+
+Selected access-token alias: `SUPABASE_ACCESS_TOKEN`
+
+Selected read-only DB URL alias: `REEDITPRO_STAGING_SUPABASE_DB_URL`
 
 Credential payloads printed: `false`
 
 Artifacts/checksums:
 
-- `validation-report.json`, `2501` bytes, SHA-256 `eeb543b9d1e9fb8ac2aea4dd477305ee31815b296b0b7032ae4d7a2fe0670808`
-- `artifact-manifest.json`, `974` bytes, SHA-256 `fc626af2fff4f52c0c50f126eafd485e56fffd8e1db1801c1a2f543e05897ec1`
+- `validation-report.json`, `5837` bytes, SHA-256 `9723d72a02ab2a9d2aa930c5ecbc85a2841857d5be11c570754bb8f1516c0b57`
+- `artifact-manifest.json`, `656` bytes, SHA-256 `c71d7f9bd030ac89d8a36488f82d91532d68a088dfe146c833d7cd91b0c3d438`
 
 Generated `/tmp` artifacts committed: `none`
 
-Next milestone after a confirmed passing run: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`.
+The access-token and read-only DB URL secret payloads were read from Google Cloud Secret Manager only as an operator handoff into ephemeral process environment variables. They were not printed, committed, persisted in repo docs, or written to the sanitized runner report.
+
+Next milestone after confirmed passing run: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`.
 
 No remote Supabase mutation, SQL mutation, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, frontend service-role credential exposure, service-role route execution, Google Cloud API call, Cloud Run service creation, Cloud Run job creation, Cloud Run deployment, IAM mutation, GCS bucket creation, GCS object access, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.

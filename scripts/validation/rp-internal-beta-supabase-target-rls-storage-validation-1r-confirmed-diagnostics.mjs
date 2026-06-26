@@ -76,6 +76,7 @@ const currentEnvironmentClosureFiles = [
   'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1-results.md',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-4-service-role-persistence-guard-integration-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs',
   'docs/internal-beta/rp-internal-beta-local-readiness-gate-rollup-1/readiness-matrix.md',
 ]
 
@@ -87,12 +88,21 @@ const allowedChanged = new Set([
 
 const requiredText = [
   'RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED',
-  'completed_guarded_confirmed_validation_runner_fail_closed_without_remote_execution',
-  'completed_runner_scaffold_no_remote_execution',
+  'completed_guarded_supabase_target_rls_storage_readonly_validation',
+  'completed_readonly_target_identity_and_advisor_validation_no_mutation',
   'Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`',
   'Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`',
   'Observed confirmation: `present_true`',
-  'Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`',
+  'Current run status: `completed_guarded_supabase_target_rls_storage_readonly_validation`',
+  'Run ID: `2026-06-26T14-39-42-178Z-ec258ac5`',
+  'Target identity: `passed_readonly_management_api_project_list`',
+  'Advisor lint: `passed_readonly_public_storage_schema_lint`',
+  'RLS validation: `passed_readonly_advisor_lint`',
+  'Storage validation: `passed_readonly_storage_schema_advisor_lint`',
+  'Selected access-token alias: `SUPABASE_ACCESS_TOKEN`',
+  'Selected read-only DB URL alias: `REEDITPRO_STAGING_SUPABASE_DB_URL`',
+  'supabase db lint --db-url postgresql://[redacted] --schema public,storage --level warning --fail-on none',
+  'The access-token and read-only DB URL secret payloads were read from Google Cloud Secret Manager only as an operator handoff into ephemeral process environment variables. They were not printed, committed, persisted in repo docs, or written to the sanitized runner report.',
   'RP-INTERNAL-BETA-SUPABASE-CREDENTIAL-CONTEXT-CONTRACT-1',
   'Credential alias support: `approved_env_aliases_supported_payloads_redacted`',
   'SUPABASE_ACCESS_TOKEN',
@@ -189,16 +199,28 @@ for (const pattern of forbidden) {
 }
 
 const record = JSON.parse(read(`${dir}/confirmed-runner-record.json`))
-if (record.decision !== 'completed_guarded_confirmed_validation_runner_fail_closed_without_remote_execution') fail('record decision mismatch')
-if (record.execution !== 'completed_runner_scaffold_no_remote_execution') fail('record execution mismatch')
+if (record.decision !== 'completed_guarded_supabase_target_rls_storage_readonly_validation') fail('record decision mismatch')
+if (record.execution !== 'completed_readonly_target_identity_and_advisor_validation_no_mutation') fail('record execution mismatch')
 if (record.requiredConfirmation !== 'REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true') fail('record confirmation mismatch')
 if (record.observedConfirmation !== 'present_true') fail('record observed confirmation mismatch')
-if (record.currentRunStatus !== 'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias') fail('record run status mismatch')
-if (record.credentialPreflightExecution !== 'blocked_no_remote_execution_missing_safe_credential_context') fail('record preflight execution mismatch')
+if (record.currentRunStatus !== 'completed_guarded_supabase_target_rls_storage_readonly_validation') fail('record run status mismatch')
+if (record.credentialPreflightExecution !== 'completed_approved_supabase_credential_alias_presence_preflight_no_payload_access') fail('record preflight execution mismatch')
 if (record.credentialContextContractPacket !== 'RP-INTERNAL-BETA-SUPABASE-CREDENTIAL-CONTEXT-CONTRACT-1') fail('record credential context packet mismatch')
 if (record.credentialContextRequiredBeforeRemoteCommand !== true) fail('record credential context gate mismatch')
 if (record.supabaseTargetProject !== 'wmyyttnynmteqgcdishd') fail('record target mismatch')
 if (record.credentialAliasSupport !== 'approved_env_aliases_supported_payloads_redacted') fail('record credential alias support mismatch')
+if (record.confirmedRunId !== '2026-06-26T14-39-42-178Z-ec258ac5') fail('record confirmed run id mismatch')
+if (record.targetIdentity !== 'passed_readonly_management_api_project_list') fail('record target identity mismatch')
+if (record.rlsValidation !== 'passed_readonly_advisor_lint') fail('record RLS validation mismatch')
+if (record.storageValidation !== 'passed_readonly_storage_schema_advisor_lint') fail('record storage validation mismatch')
+if (record.advisorLint !== 'passed_readonly_public_storage_schema_lint') fail('record advisor lint mismatch')
+if (record.advisorOutputBytes !== 1547) fail('record advisor output bytes mismatch')
+if (record.selectedAccessTokenEnvName !== 'SUPABASE_ACCESS_TOKEN') fail('record selected access token alias mismatch')
+if (record.selectedReadonlyDbUrlEnvName !== 'REEDITPRO_STAGING_SUPABASE_DB_URL') fail('record selected readonly DB URL alias mismatch')
+if (record.sanitizedCommandLogging !== 'postgresql://[redacted]') fail('record sanitized command logging mismatch')
+if (record.credentialPayloadHandoff !== 'google_cloud_secret_manager_to_ephemeral_process_env_only') fail('record credential payload handoff mismatch')
+if (record.credentialPayloadsPrinted !== false) fail('record credential payload print policy mismatch')
+if (record.credentialPayloadsCommitted !== false) fail('record credential payload commit policy mismatch')
 for (const name of ['SUPABASE_ACCESS_TOKEN', 'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN', 'REEDITPRO_SUPABASE_ACCESS_TOKEN']) {
   if (!record.acceptedAccessTokenEnvNames?.includes(name)) fail(`missing access token alias ${name}`)
 }
@@ -252,6 +274,7 @@ for (const required of [
   'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias',
   'acceptedAccessTokenEnvNames',
   'acceptedReadonlyDbUrlEnvNames',
+  "const command = sanitize(`supabase ${args.join(' ')}`)",
 ]) {
   if (!runner.includes(required)) fail(`runner missing alias contract ${required}`)
 }

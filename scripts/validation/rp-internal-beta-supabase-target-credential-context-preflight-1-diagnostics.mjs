@@ -55,6 +55,7 @@ const allowedChangedFiles = new Set([
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-4-service-role-persistence-guard-integration-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs',
   'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/source-audit.md',
   'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/confirmed-runner-hardening.md',
   'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/safety-boundary.md',

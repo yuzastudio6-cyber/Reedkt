@@ -13,11 +13,13 @@ Active blockers remain:
 
 ## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Confirmed Runner
 
-`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_confirmed_validation_runner_fail_closed_without_remote_execution` and execution `completed_runner_scaffold_no_remote_execution`.
+`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_supabase_target_rls_storage_readonly_validation` and execution `completed_readonly_target_identity_and_advisor_validation_no_mutation`.
 
-Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`. Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`. Observed confirmation: `present_true`. Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`.
+Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`. Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`. Observed confirmation: `present_true`. Current run status: `completed_guarded_supabase_target_rls_storage_readonly_validation`.
 
-Credential alias support: `approved_env_aliases_supported_payloads_redacted`. The confirmed runner accepts `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, or `REEDITPRO_SUPABASE_ACCESS_TOKEN` for target identity, plus `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, or `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` for read-only advisor lint. Payloads remain forbidden.
+Credential alias support: `approved_env_aliases_supported_payloads_redacted`. The confirmed runner accepts `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, or `REEDITPRO_SUPABASE_ACCESS_TOKEN` for target identity, plus `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, or `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` for read-only advisor lint. The confirmed run used `SUPABASE_ACCESS_TOKEN` and `REEDITPRO_STAGING_SUPABASE_DB_URL`; payload values were read only as ephemeral process environment handoff and were not printed, committed, or persisted in repo docs.
+
+Run ID: `2026-06-26T14-39-42-178Z-ec258ac5`. Target identity: `passed_readonly_management_api_project_list`. Advisor lint: `passed_readonly_public_storage_schema_lint`. RLS validation: `passed_readonly_advisor_lint`. Storage validation: `passed_readonly_storage_schema_advisor_lint`.
 
 Remote Supabase mutation: `false`. SQL mutation: `false`. Migration apply: `false`. Storage bucket creation: `false`. Storage object creation: `false`. Storage object read: `false`. Service-role secret payload access: `false`. Frontend service-role credential exposure: `false`. Internal beta unlock: `false`.
 

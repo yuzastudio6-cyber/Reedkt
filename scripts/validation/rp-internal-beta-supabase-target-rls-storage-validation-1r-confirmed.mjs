@@ -77,7 +77,7 @@ function getCredentialContextDecision() {
 }
 
 function runSupabase(args, label, options = {}) {
-  const command = `supabase ${args.join(' ')}`
+  const command = sanitize(`supabase ${args.join(' ')}`)
   const startedAt = new Date().toISOString()
   try {
     const stdout = execFileSync('supabase', args, {

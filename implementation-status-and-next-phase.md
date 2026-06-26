@@ -560,7 +560,7 @@ Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDA
 
 ## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Confirmed Runner
 
-`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_confirmed_validation_runner_fail_closed_without_remote_execution` and execution `completed_runner_scaffold_no_remote_execution`.
+`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_supabase_target_rls_storage_readonly_validation` and execution `completed_readonly_target_identity_and_advisor_validation_no_mutation`.
 
 Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
 
@@ -568,13 +568,15 @@ Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STOR
 
 Observed confirmation: `present_true`.
 
-Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`.
+Current run status: `completed_guarded_supabase_target_rls_storage_readonly_validation`.
 
-The runner `npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed` now fails closed when confirmation or safe credential context is absent. When explicitly confirmed, it may run read-only Supabase target identity and public/storage advisor lint checks, writing sanitized reports only under `/tmp`.
+The runner `npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed` fails closed when confirmation or safe credential context is absent. With explicit confirmation and approved aliases present, it completed read-only Supabase target identity and public/storage advisor lint checks, writing sanitized reports only under `/tmp`.
 
-Credential alias support: `approved_env_aliases_supported_payloads_redacted`. Accepted access-token aliases are `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, and `REEDITPRO_SUPABASE_ACCESS_TOKEN`. Accepted read-only DB URL aliases are `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, and `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`. Only the selected env name and boolean presence may be recorded; payloads remain forbidden.
+Credential alias support: `approved_env_aliases_supported_payloads_redacted`. Accepted access-token aliases are `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, and `REEDITPRO_SUPABASE_ACCESS_TOKEN`. Accepted read-only DB URL aliases are `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, and `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`. The confirmed run used `SUPABASE_ACCESS_TOKEN` and `REEDITPRO_STAGING_SUPABASE_DB_URL`; payload values were read only as ephemeral process environment handoff and were not printed, committed, or persisted in repo docs.
 
-Readiness: `ready_for_confirmed_readonly_supabase_target_rls_storage_validation_attempt`. Internal beta end-to-end status remains `not_ready_pending_guarded_supabase_rls_storage_validation_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`.
+Run ID: `2026-06-26T14-39-42-178Z-ec258ac5`. Target identity: `passed_readonly_management_api_project_list`. Advisor lint: `passed_readonly_public_storage_schema_lint`. RLS validation: `passed_readonly_advisor_lint`. Storage validation: `passed_readonly_storage_schema_advisor_lint`.
+
+Readiness: `ready_for_supabase_worker_runtime_transactional_rpc_4r_confirmed`. Internal beta end-to-end status remains `not_ready_pending_service_role_runtime_persistence_jobs_artifacts_render_qa_cleanup_observability_and_negative_gates`. Product-ready end-to-end local OSS tools: `0`.
 
 No remote Supabase mutation, SQL mutation, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, frontend service-role credential exposure, service-role route execution, Google Cloud API call, Cloud Run service creation, Cloud Run job creation, Cloud Run deployment, IAM mutation, GCS bucket creation, GCS object access, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.
 

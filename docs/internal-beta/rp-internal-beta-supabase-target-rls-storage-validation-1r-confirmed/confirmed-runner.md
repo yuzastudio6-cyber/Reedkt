@@ -2,9 +2,9 @@
 
 Packet: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED`
 
-Decision: `completed_guarded_confirmed_validation_runner_fail_closed_without_remote_execution`
+Decision: `completed_guarded_supabase_target_rls_storage_readonly_validation`
 
-Execution: `completed_runner_scaffold_no_remote_execution`
+Execution: `completed_readonly_target_identity_and_advisor_validation_no_mutation`
 
 Runner: `npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed`
 
@@ -12,7 +12,7 @@ Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STOR
 
 Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
-Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
+Current run status: `completed_guarded_supabase_target_rls_storage_readonly_validation`
 
 ## Fail-Closed Behavior
 
@@ -52,3 +52,29 @@ The runner records only the selected environment variable name and boolean prese
 The runner isolates `HOME` under the `/tmp` proof directory so Supabase CLI telemetry/profile state is not written to the user's home directory or the repository.
 
 No secret payloads, access tokens, database URLs, service-role keys, anon keys, signed URLs, or private artifact paths may be written to reports.
+
+## Confirmed Run Evidence
+
+Run ID: `2026-06-26T14-39-42-178Z-ec258ac5`
+
+Output directory: `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/2026-06-26T14-39-42-178Z-ec258ac5`
+
+Result: `completed_guarded_supabase_target_rls_storage_readonly_validation`
+
+Target identity: `passed_readonly_management_api_project_list`
+
+Advisor lint: `passed_readonly_public_storage_schema_lint`
+
+Commands:
+
+- `supabase projects list --output json`: `passed`
+- `supabase db lint --db-url postgresql://[redacted] --schema public,storage --level warning --fail-on none`: `passed`
+
+Credential context:
+
+- Access-token alias: `SUPABASE_ACCESS_TOKEN`
+- Read-only DB URL alias: `REEDITPRO_STAGING_SUPABASE_DB_URL`
+- Service-role key: `false`
+- Database password env var: `false`
+
+The access-token and read-only DB URL secret payloads were read from Google Cloud Secret Manager only as an operator handoff into ephemeral process environment variables. They were not printed, committed, persisted in repo docs, or written to the sanitized runner report.

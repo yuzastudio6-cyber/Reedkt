@@ -4,7 +4,9 @@ import {
 } from './ai-graphics-beta-readiness-gate'
 import {
   AI_GRAPHICS_GPU_RUNTIME_PROOF_RESULT_DECISION,
+  aiGraphicsExpectedGpuRuntimeTargetForTool,
   listAiGraphicsGpuRuntimeProofRequiredProfiles,
+  listAiGraphicsExpectedGpuRuntimeTargets,
   type AiGraphicsGpuRuntimeProofResultPacket,
   type AiGraphicsGpuRuntimeProofResultValidation,
 } from './ai-graphics-gpu-runtime-proof-result'
@@ -43,6 +45,8 @@ export interface AiGraphicsBetaEvidenceBundleToolRow {
   installReadyForPlannedSurface: true
   productionMapped: true
   planningSelectable: true
+  gpuRequiredForRuntime: boolean
+  runtimeTargetForPlannedSurface: string | null
   betaTestingReadyNow: boolean
   evidenceMissing: string[]
   blockers: string[]
@@ -69,8 +73,17 @@ export interface AiGraphicsBetaEvidenceBundle {
     satoriFontRuntimeProofPacketProvided: boolean
     modelWeightManifestReviewPacketAccepted: boolean
     nativeGpuRuntimeProofResultPacketAccepted: boolean
+    nativeGpuRuntimeProofTargetsExact: boolean
     modelWeightManifestReviewPacketProvided: boolean
     nativeGpuRuntimeProofResultPacketProvided: boolean
+  }
+  gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
+  expectedGpuRuntimeTargets: Record<string, string>
+  gpuRuntimePolicy: {
+    onDemandOnly: true
+    noIdleGpuRuntimeApproved: true
+    startsOnlyForApprovedWorkerOrToolCall: true
+    cpuFallbackAllowedForHeavyTools: false
   }
   tools: AiGraphicsBetaEvidenceBundleToolRow[]
   missingEvidence: string[]
@@ -82,6 +95,8 @@ export interface AiGraphicsBetaEvidenceBundle {
     all21ToolsMappedToProductionRegistry: true
     all21ToolsPlanningSelectable: true
     agentCanSelectForPlanning: true
+    gpuRuntimeTargetsExact: true
+    gpuRuntimeOnDemandOnly: true
     all21BetaEvidenceReady: boolean
     all21TechnicalEvidenceReadyBeforeOwnerApproval: boolean
     readyForInternalBetaOwnerGate: boolean
@@ -190,11 +205,30 @@ function gpuRuntimePacketAccepted(
       packet.runtimeProofResultsProvided === requiredProfiles.length &&
       packet.runtimeProofResultsAcceptedForOwnerReview === requiredProfiles.length &&
       packet.nativeGpuRuntimeProofResultsAccepted === true &&
+      gpuRuntimeTargetsExact(packet) &&
       packet.booleans?.nativeGpuRuntimeProofResultsAcceptedForOwnerReview === true &&
+      packet.booleans?.gpuRuntimeTargetsExact === true &&
+      packet.booleans?.gpuRuntimeOnDemandOnly === true &&
       packet.booleans?.gpuRuntimeApprovedNow === false &&
       packet.booleans?.runtimeReadyNow === false &&
       perProfileRowsAccepted,
   )
+}
+
+function gpuRuntimeTargetsExact(
+  packet: Partial<AiGraphicsGpuRuntimeProofResultPacket> | undefined,
+): boolean {
+  if (!packet) return false
+  const expectedTargets = listAiGraphicsExpectedGpuRuntimeTargets()
+  const actualTargets = packet.expectedGpuRuntimeTargets
+  if (typeof actualTargets !== 'object' || actualTargets === null || Array.isArray(actualTargets)) {
+    return false
+  }
+
+  const actual = actualTargets as Record<string, unknown>
+  const expectedEntries = Object.entries(expectedTargets)
+  return expectedEntries.length === Object.keys(actual).length &&
+    expectedEntries.every(([toolId, runtimeTarget]) => actual[toolId] === runtimeTarget)
 }
 
 function gpuRuntimeValidationResultAccepted(
@@ -370,6 +404,8 @@ export function buildAiGraphicsBetaEvidenceBundle(
     satoriFontRuntimeProofPacketAccepted
   const modelWeightManifestReviewPacketAccepted = modelWeightPacketAccepted(input.modelWeightManifestReviewPacket)
   const nativeGpuRuntimeProofResultPacketAccepted = gpuRuntimePacketAccepted(input.gpuRuntimeProofResultPacket)
+  const nativeGpuRuntimeProofTargetsExact = gpuRuntimeTargetsExact(input.gpuRuntimeProofResultPacket)
+  const expectedGpuRuntimeTargets = listAiGraphicsExpectedGpuRuntimeTargets()
 
   const evidence: Required<AiGraphicsBetaReadinessEvidence> = {
     approvedPlanSnapshotGatePassed: input.approvedPlanSnapshotGatePassed === true,
@@ -400,6 +436,8 @@ export function buildAiGraphicsBetaEvidenceBundle(
       installReadyForPlannedSurface: true,
       productionMapped: true,
       planningSelectable: true,
+      gpuRequiredForRuntime: aiGraphicsExpectedGpuRuntimeTargetForTool(tool.toolId) !== null,
+      runtimeTargetForPlannedSurface: aiGraphicsExpectedGpuRuntimeTargetForTool(tool.toolId),
       betaTestingReadyNow: tool.betaTestingReadyNow,
       evidenceMissing: toolMissingEvidence({
         toolId: tool.toolId,
@@ -446,8 +484,17 @@ export function buildAiGraphicsBetaEvidenceBundle(
       satoriFontRuntimeProofPacketProvided: packetProvided(input.satoriFontRuntimeProofPacket),
       modelWeightManifestReviewPacketAccepted,
       nativeGpuRuntimeProofResultPacketAccepted,
+      nativeGpuRuntimeProofTargetsExact,
       modelWeightManifestReviewPacketProvided: packetProvided(input.modelWeightManifestReviewPacket),
       nativeGpuRuntimeProofResultPacketProvided: packetProvided(input.gpuRuntimeProofResultPacket),
+    },
+    gpuRuntimeTargetedTools: Object.keys(expectedGpuRuntimeTargets) as AiGraphicsCanonicalToolId[],
+    expectedGpuRuntimeTargets,
+    gpuRuntimePolicy: {
+      onDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      cpuFallbackAllowedForHeavyTools: false,
     },
     tools,
     missingEvidence: buildMissingEvidence(evidence, input, jsRuntimeProofsAccepted),
@@ -459,6 +506,8 @@ export function buildAiGraphicsBetaEvidenceBundle(
       all21ToolsMappedToProductionRegistry: true,
       all21ToolsPlanningSelectable: true,
       agentCanSelectForPlanning: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
       all21BetaEvidenceReady,
       all21TechnicalEvidenceReadyBeforeOwnerApproval,
       readyForInternalBetaOwnerGate: all21TechnicalEvidenceReadyBeforeOwnerApproval,

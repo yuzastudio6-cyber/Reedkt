@@ -15,6 +15,38 @@ export type AiGraphicsGpuRuntimeProofAggregateStatus =
   | 'invalid_native_gpu_runtime_proof_results'
   | 'ready_for_owner_review_not_beta_ready'
 
+const gpuRuntimeTargetedTools = [
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+] as const satisfies readonly AiGraphicsCanonicalToolId[]
+
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+} as const satisfies Record<(typeof gpuRuntimeTargetedTools)[number], string>
+
+export function listAiGraphicsExpectedGpuRuntimeTargets(): Record<(typeof gpuRuntimeTargetedTools)[number], string> {
+  return { ...expectedGpuRuntimeTargets }
+}
+
+export function aiGraphicsExpectedGpuRuntimeTargetForTool(
+  toolId: AiGraphicsCanonicalToolId,
+): string | null {
+  return expectedGpuRuntimeTargets[toolId as (typeof gpuRuntimeTargetedTools)[number]] ?? null
+}
+
 export interface AiGraphicsGpuRuntimeProofResultValidation {
   profileId: AiGraphicsGpuRuntimeProofProfileId
   resultProvided: boolean
@@ -35,6 +67,7 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
   status: AiGraphicsGpuRuntimeProofAggregateStatus
   totalAiGraphicsTools: 21
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
+  expectedGpuRuntimeTargets: Record<(typeof gpuRuntimeTargetedTools)[number], string>
   modelWeightManifestRequiredTools: AiGraphicsModelWeightManifestToolId[]
   runtimeProfilesRequired: AiGraphicsGpuRuntimeProofProfileId[]
   runtimeProofResultsProvided: number
@@ -47,6 +80,8 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
     all8GpuRuntimeToolsCovered: true
     all5ModelWeightManifestToolsCovered: true
     all4RuntimeProfilesCovered: true
+    gpuRuntimeTargetsExact: true
+    gpuRuntimeOnDemandOnly: true
     privateArtifactRefsNotLogged: true
     nativeGpuRuntimeProofResultsAcceptedForOwnerReview: boolean
     ownerReviewStillRequired: true
@@ -74,17 +109,6 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
     signedUrlCreated: false
   }
 }
-
-const gpuRuntimeTargetedTools = [
-  'torch_torchvision',
-  'transformers',
-  'sam2',
-  'birefnet',
-  'real_esrgan',
-  'kornia',
-  'rembg',
-  'transparent_background',
-] as const satisfies readonly AiGraphicsCanonicalToolId[]
 
 const modelWeightManifestRequiredTools = [
   'sam2',
@@ -516,6 +540,7 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
     status,
     totalAiGraphicsTools: 21,
     gpuRuntimeTargetedTools: [...gpuRuntimeTargetedTools],
+    expectedGpuRuntimeTargets: listAiGraphicsExpectedGpuRuntimeTargets(),
     modelWeightManifestRequiredTools: [...modelWeightManifestRequiredTools],
     runtimeProfilesRequired: [...runtimeProfilesRequired],
     runtimeProofResultsProvided,
@@ -528,6 +553,8 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
       all8GpuRuntimeToolsCovered: true,
       all5ModelWeightManifestToolsCovered: true,
       all4RuntimeProfilesCovered: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
       privateArtifactRefsNotLogged: true,
       nativeGpuRuntimeProofResultsAcceptedForOwnerReview: nativeGpuRuntimeProofResultsAccepted,
       ownerReviewStillRequired: true,

@@ -20,6 +20,17 @@ const gpuRuntimeTools = [
   'transparent_background',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const modelWeightTools = [
   'sam2',
   'birefnet',
@@ -139,6 +150,22 @@ function parseOutput(output, label) {
   } catch (error) {
     fail(`invalid_validate_output:${label}:${error.message}`)
     return {}
+  }
+}
+
+function assertExpectedGpuRuntimeTargets(container, label) {
+  const actual = container?.expectedGpuRuntimeTargets
+  if (!actual || typeof actual !== 'object' || Array.isArray(actual)) {
+    fail(`${label}_missing_expected_gpu_runtime_targets`)
+    return
+  }
+  for (const [toolId, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+    if (actual[toolId] !== runtimeTarget) {
+      fail(`${label}_gpu_runtime_target_mismatch:${toolId}:${actual[toolId]}`)
+    }
+  }
+  if (Object.keys(actual).length !== Object.keys(expectedGpuRuntimeTargets).length) {
+    fail(`${label}_unexpected_gpu_runtime_target_count:${Object.keys(actual).length}`)
   }
 }
 
@@ -279,7 +306,23 @@ for (const tool of gpuRuntimeTools) {
   if (!packet.gpuRuntimeTargetedTools?.includes(tool)) fail(`packet_missing_gpu_tool:${tool}`)
   if (!moduleSource.includes(`'${tool}'`)) fail(`module_missing_gpu_tool:${tool}`)
   if (!markdown.includes(`\`${tool}\``)) fail(`markdown_missing_gpu_tool:${tool}`)
+  if (!markdown.includes(`\`${expectedGpuRuntimeTargets[tool]}\``)) {
+    fail(`markdown_missing_gpu_runtime_target:${tool}`)
+  }
+  if (!moduleSource.includes(expectedGpuRuntimeTargets[tool])) {
+    fail(`module_missing_gpu_runtime_target:${tool}`)
+  }
 }
+assertExpectedGpuRuntimeTargets(packet, 'packet')
+if (packet.gpuRuntimePolicy?.onDemandOnly !== true) fail('packet_gpu_runtime_policy_not_on_demand')
+if (packet.gpuRuntimePolicy?.noIdleGpuRuntimeApproved !== true) fail('packet_gpu_runtime_policy_idle_gpu_allowed')
+if (packet.gpuRuntimePolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+  fail('packet_gpu_runtime_policy_not_worker_call_scoped')
+}
+if (packet.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+  fail('packet_gpu_runtime_policy_cpu_fallback_not_blocked')
+}
+if (!markdown.includes('GPU runtime is on-demand only')) fail('markdown_missing_gpu_on_demand_policy')
 
 for (const tool of modelWeightTools) {
   if (!packet.modelWeightManifestRequiredTools?.includes(tool)) fail(`packet_missing_model_weight_tool:${tool}`)
@@ -352,6 +395,8 @@ for (const key of [
   'all8GpuRuntimeToolsCovered',
   'all5ModelWeightManifestToolsCovered',
   'all4RuntimeProfilesCovered',
+  'gpuRuntimeTargetsExact',
+  'gpuRuntimeOnDemandOnly',
   'privateArtifactRefsNotLogged',
   'ownerReviewStillRequired',
   'agentCanSelectForPlanning',
@@ -393,6 +438,9 @@ if (noInputPacket.status !== 'missing_native_gpu_runtime_proof_results') {
 }
 if (noInputPacket.runtimeProofResultsProvided !== 0) fail('no_input_results_provided_not_zero')
 if (noInputPacket.input?.privateArtifactRefsLogged !== 0) fail('no_input_private_refs_logged_not_zero')
+assertExpectedGpuRuntimeTargets(noInputPacket, 'no_input_packet')
+if (noInputPacket.booleans?.gpuRuntimeTargetsExact !== true) fail('no_input_gpu_targets_exact_not_true')
+if (noInputPacket.booleans?.gpuRuntimeOnDemandOnly !== true) fail('no_input_gpu_on_demand_not_true')
 
 const validDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-valid-'))
 writeProofFixtures(validDir)
@@ -404,6 +452,9 @@ if (validPacket.status !== 'ready_for_owner_review_not_beta_ready') {
 if (validPacket.runtimeProofResultsProvided !== 4) fail('valid_results_provided_not_4')
 if (validPacket.runtimeProofResultsAcceptedForOwnerReview !== 4) fail('valid_results_accepted_not_4')
 if (validPacket.nativeGpuRuntimeProofResultsAccepted !== true) fail('valid_results_not_accepted')
+assertExpectedGpuRuntimeTargets(validPacket, 'valid_packet')
+if (validPacket.booleans?.gpuRuntimeTargetsExact !== true) fail('valid_gpu_targets_exact_not_true')
+if (validPacket.booleans?.gpuRuntimeOnDemandOnly !== true) fail('valid_gpu_on_demand_not_true')
 for (const result of validPacket.validationResults || []) {
   if (result.proofMetadataAccepted !== true) fail(`valid_result_metadata_not_accepted:${result.profileId}`)
 }

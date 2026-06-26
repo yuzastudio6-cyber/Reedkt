@@ -24,6 +24,17 @@ const runtimeProfiles = [
   'real_esrgan',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const requiredImportsByProfile = {
   gpu_worker_ai_graphics: [
     'torch',
@@ -111,6 +122,22 @@ function parseOutput(output, label) {
   } catch (error) {
     fail(`invalid_json_output:${label}:${error.message}`)
     return {}
+  }
+}
+
+function assertExpectedGpuRuntimeTargets(container, label) {
+  const actual = container?.expectedGpuRuntimeTargets
+  if (!actual || typeof actual !== 'object' || Array.isArray(actual)) {
+    fail(`${label}_missing_expected_gpu_runtime_targets`)
+    return
+  }
+  for (const [toolId, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+    if (actual[toolId] !== runtimeTarget) {
+      fail(`${label}_gpu_runtime_target_mismatch:${toolId}:${actual[toolId]}`)
+    }
+  }
+  if (Object.keys(actual).length !== Object.keys(expectedGpuRuntimeTargets).length) {
+    fail(`${label}_unexpected_gpu_runtime_target_count:${Object.keys(actual).length}`)
   }
 }
 
@@ -309,6 +336,8 @@ for (const token of [
   'fullEvidencePacketsIncluded: false',
   'validatorOnly: true',
   'gpuRuntimePerformed: false',
+  'expectedGpuRuntimeTargets',
+  'gpuRuntimePolicy',
 ]) {
   if (!cliSource.includes(token)) fail(`cli_missing:${token}`)
 }
@@ -322,8 +351,22 @@ for (const token of [
   '--require-all-21-beta-ready',
   '--full-output',
   'sanitized_summary',
+  'native_linux_amd64_nvidia_l4_sam2_runtime',
+  'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  'GPU capacity is a future',
 ]) {
   if (!markdown.includes(token) && !JSON.stringify(packet).includes(token)) fail(`docs_missing:${token}`)
+}
+
+assertExpectedGpuRuntimeTargets(packet, 'packet')
+if (packet.gpuRuntimePolicy?.onDemandOnly !== true) fail('packet_gpu_runtime_policy_not_on_demand')
+if (packet.gpuRuntimePolicy?.noIdleGpuRuntimeApproved !== true) fail('packet_gpu_runtime_policy_idle_gpu_allowed')
+if (packet.gpuRuntimePolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+  fail('packet_gpu_runtime_policy_not_worker_call_scoped')
+}
+if (packet.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+  fail('packet_gpu_runtime_policy_cpu_fallback_not_blocked')
 }
 
 for (const [key, expected] of Object.entries({
@@ -342,6 +385,8 @@ for (const [key, expected] of Object.entries({
 for (const key of [
   'betaEvidenceLocalAssemblyPrepared',
   'defaultCliOutputSanitized',
+  'gpuRuntimeTargetsExact',
+  'gpuRuntimeOnDemandOnly',
   'agentCanSelectForPlanning',
 ]) {
   if (packet.booleans?.[key] !== true) fail(`required_true_not_true:${key}`)
@@ -396,6 +441,10 @@ if ('gpuRuntimeProofResultPacket' in defaultAssembly) fail('default_summary_incl
 if ('betaEvidenceBundle' in defaultAssembly) fail('default_summary_includes_beta_bundle')
 if (defaultAssembly.betaEvidence?.betaTestingReadyTools !== 0) fail('default_ready_not_0')
 if (defaultAssembly.betaEvidence?.all21BetaEvidenceReady !== false) fail('default_all21_not_false')
+assertExpectedGpuRuntimeTargets(defaultAssembly.gpuRuntimeProof, 'default_summary_gpu_runtime_proof')
+if (defaultAssembly.gpuRuntimeProof?.gpuRuntimePolicy?.onDemandOnly !== true) {
+  fail('default_summary_gpu_policy_not_on_demand')
+}
 if (!defaultAssembly.localEvidence?.missingLocalEvidence?.includes('reviewed_private_model_weight_manifest_records')) {
   fail('default_missing_manifest_gap')
 }
@@ -432,6 +481,9 @@ if (ownerGateAssembly.booleans?.readyForInternalBetaOwnerGate !== true) {
 if (ownerGateAssembly.booleans?.all21BetaEvidenceReady !== false) {
   fail('owner_gate_all21_beta_boolean_should_be_false')
 }
+assertExpectedGpuRuntimeTargets(ownerGateAssembly.gpuRuntimeProof, 'owner_gate_summary_gpu_runtime_proof')
+if (ownerGateAssembly.booleans?.gpuRuntimeTargetsExact !== true) fail('owner_gate_gpu_targets_exact_not_true')
+if (ownerGateAssembly.booleans?.gpuRuntimeOnDemandOnly !== true) fail('owner_gate_gpu_on_demand_not_true')
 
 const fullOutput = runNpm(assemblyScriptName, [
   '--manifest-dir',
@@ -457,6 +509,10 @@ if (fullAssembly.betaEvidenceBundle?.all21TechnicalEvidenceReadyBeforeOwnerAppro
 }
 if (fullAssembly.booleans?.committedJsRuntimeProofsAccepted !== true) fail('full_js_proofs_not_accepted')
 if (fullAssembly.booleans?.readyForInternalBetaOwnerGate !== true) fail('full_not_ready_for_owner_gate')
+if (fullAssembly.booleans?.gpuRuntimeTargetsExact !== true) fail('full_gpu_targets_exact_not_true')
+if (fullAssembly.booleans?.gpuRuntimeOnDemandOnly !== true) fail('full_gpu_on_demand_not_true')
+assertExpectedGpuRuntimeTargets(fullAssembly, 'full_assembly')
+assertExpectedGpuRuntimeTargets(fullAssembly.betaEvidenceBundle, 'full_assembly_beta_bundle')
 if (fullOutput.includes('private://reeditpro')) fail('full_output_leaked_private_ref')
 
 const badRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-beta-evidence-local-assembly-bad-'))

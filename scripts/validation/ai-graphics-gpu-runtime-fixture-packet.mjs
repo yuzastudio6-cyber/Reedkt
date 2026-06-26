@@ -24,6 +24,17 @@ export const gpuRuntimeProfiles = [
   'real_esrgan',
 ]
 
+export const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 export function acceptedGpuRuntimeProofValidationResults() {
   return gpuRuntimeProfiles.map((profileId) => ({
     profileId,
@@ -47,6 +58,7 @@ export function acceptedGpuRuntimeProofResultPacket() {
     status: 'ready_for_owner_review_not_beta_ready',
     totalAiGraphicsTools: 21,
     gpuRuntimeTargetedTools,
+    expectedGpuRuntimeTargets,
     modelWeightManifestRequiredTools: gpuModelWeightManifestTools,
     runtimeProfilesRequired: gpuRuntimeProfiles,
     runtimeProofResultsProvided: gpuRuntimeProfiles.length,
@@ -61,6 +73,8 @@ export function acceptedGpuRuntimeProofResultPacket() {
       all8GpuRuntimeToolsCovered: true,
       all5ModelWeightManifestToolsCovered: true,
       all4RuntimeProfilesCovered: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
       privateArtifactRefsNotLogged: true,
       nativeGpuRuntimeProofResultsAcceptedForOwnerReview: true,
       ownerReviewStillRequired: true,

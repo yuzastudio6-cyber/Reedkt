@@ -43,6 +43,13 @@ export interface AiGraphicsBetaEvidenceLocalAssembly {
   nativeGpuRuntimeProfilesRequired: 4
   localManifestRecordsProvided: number
   localGpuRuntimeProofResultsProvided: number
+  expectedGpuRuntimeTargets: Record<string, string>
+  gpuRuntimePolicy: {
+    onDemandOnly: true
+    noIdleGpuRuntimeApproved: true
+    startsOnlyForApprovedWorkerOrToolCall: true
+    cpuFallbackAllowedForHeavyTools: false
+  }
   modelWeightManifestReviewPacket: AiGraphicsModelWeightManifestReviewPacket
   gpuRuntimeProofResultPacket: AiGraphicsGpuRuntimeProofResultPacket
   betaEvidenceBundle: AiGraphicsBetaEvidenceBundle
@@ -53,6 +60,8 @@ export interface AiGraphicsBetaEvidenceLocalAssembly {
     modelWeightManifestReviewPacketBuiltFromLocalInput: boolean
     gpuRuntimeProofResultPacketBuiltFromLocalInput: boolean
     committedJsRuntimeProofsAccepted: boolean
+    gpuRuntimeTargetsExact: true
+    gpuRuntimeOnDemandOnly: true
     all21TechnicalEvidenceReadyBeforeOwnerApproval: boolean
     all21BetaEvidenceReady: boolean
     readyForInternalBetaOwnerGate: boolean
@@ -153,6 +162,8 @@ export function buildAiGraphicsBetaEvidenceLocalAssembly(
     nativeGpuRuntimeProfilesRequired: 4,
     localManifestRecordsProvided: manifestRecords.length,
     localGpuRuntimeProofResultsProvided: gpuRuntimeProofResults.length,
+    expectedGpuRuntimeTargets: betaEvidenceBundle.expectedGpuRuntimeTargets,
+    gpuRuntimePolicy: betaEvidenceBundle.gpuRuntimePolicy,
     modelWeightManifestReviewPacket,
     gpuRuntimeProofResultPacket,
     betaEvidenceBundle,
@@ -166,6 +177,8 @@ export function buildAiGraphicsBetaEvidenceLocalAssembly(
         gpuRuntimeProofResultPacket.nativeGpuRuntimeProofResultsAccepted,
       committedJsRuntimeProofsAccepted:
         betaEvidenceBundle.evidenceSources.jsRuntimeProofsAccepted,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
       all21TechnicalEvidenceReadyBeforeOwnerApproval:
         betaEvidenceBundle.all21TechnicalEvidenceReadyBeforeOwnerApproval,
       all21BetaEvidenceReady: betaEvidenceBundle.all21BetaEvidenceReady,

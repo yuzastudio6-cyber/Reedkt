@@ -65,6 +65,22 @@
     "rembg",
     "transparent_background"
   ],
+  "expectedGpuRuntimeTargets": {
+    "torch_torchvision": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transformers": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "sam2": "native_linux_amd64_nvidia_l4_sam2_runtime",
+    "birefnet": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+    "real_esrgan": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+    "kornia": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "rembg": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
+  },
+  "gpuRuntimePolicy": {
+    "onDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false
+  },
   "requiredEvidence": [
     "js_node_runtime_proof_packet",
     "js_browser_runtime_proof_packet",
@@ -142,6 +158,8 @@
       "errors"
     ],
     "requiredStatus": "ready_for_owner_review_not_beta_ready",
+    "expectedGpuRuntimeTargetsRequired": true,
+    "gpuRuntimeOnDemandOnly": true,
     "gpuRuntimeApprovedNow": false
   },
   "ownerApprovalGate": "internal_beta_owner_approval",
@@ -153,6 +171,8 @@
     "all21ToolsPlanningSelectable": true,
     "committedJsRuntimeProofsAccepted": true,
     "evidenceOverrideFlagsIgnoredForBetaReadiness": true,
+    "gpuRuntimeTargetsExact": true,
+    "gpuRuntimeOnDemandOnly": true,
     "agentCanSelectForPlanning": true,
     "defaultAll21BetaEvidenceReady": false,
     "defaultAll21TechnicalEvidenceReadyBeforeOwnerApproval": false,

@@ -20,14 +20,18 @@ create artifacts, or unlock beta/production.
 
 ## GPU Runtime Targeted Tools
 
-- `torch_torchvision`
-- `transformers`
-- `sam2`
-- `birefnet`
-- `real_esrgan`
-- `kornia`
-- `rembg`
-- `transparent_background`
+- `torch_torchvision`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transformers`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `sam2`: `native_linux_amd64_nvidia_l4_sam2_runtime`
+- `birefnet`: `native_linux_amd64_nvidia_l4_birefnet_runtime`
+- `real_esrgan`: `native_linux_amd64_nvidia_l4_real_esrgan_runtime`
+- `kornia`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `rembg`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transparent_background`: `native_linux_amd64_nvidia_l4_gpu_worker`
+
+The target map is exact. GPU runtime is on-demand only for a future approved
+worker/tool-call handoff, no idle GPU service is approved, and CPU fallback is
+blocked for heavy model paths.
 
 ## Required Profiles
 

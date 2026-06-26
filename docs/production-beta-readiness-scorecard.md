@@ -793,13 +793,14 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Owner-gate clarity: the beta evidence bundle now distinguishes `all21TechnicalEvidenceReadyBeforeOwnerApproval=true` from `all21BetaEvidenceReady=true`, so owner review can happen before owner approval is claimed.
 - Model-weight packet hardening: the beta evidence bundle now rejects count-only model-weight manifest packets and requires exact per-tool validation rows for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`, with private refs redacted and execution still false.
 - GPU proof packet hardening: the beta evidence bundle now rejects count-only native GPU proof packets and requires exact per-profile validation rows for `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`, with approved probe metadata, CUDA/import/model-manifest checks, raw ref redaction, and false side-effect fields.
+- GPU target hardening: the beta evidence bundle now requires the exact eight-tool NVIDIA L4 target map, keeps `sam2`, `birefnet`, and `real_esrgan` on dedicated runtime targets, records GPU runtime as on-demand only, blocks idle GPU service claims, and rejects CPU fallback for heavy model paths.
 - Runtime/beta/production: no committed unlock; the evaluator is report-only and does not execute tools, routes, workers, providers, browser/WebGL/canvas, GPU/model runtime, model downloads, media processing, or artifact creation.
 
 ## AI Graphics Beta Tool Call Readiness
 
 - Decision: `ai_graphics_beta_tool_call_readiness_contract_prepared_with_fail_closed_defaults`.
 - Scope: server-only join between the canonical ranking/selection system and the beta evidence bundle for all 21 AI graphics tools and all 12 product-facing capabilities.
-- Result: default committed evidence keeps 0 of 21 tools beta-callable. A complete proof packet path can mark all 21 tools beta-callable for a future owner gate, but partial evidence does not create a callable subset.
+- Result: default committed evidence keeps 0 of 21 tools beta-callable. A complete proof packet path can mark all 21 tools beta-callable for a future owner gate, but partial evidence does not create a callable subset. The beta-call contract also exposes the exact eight-tool NVIDIA L4 target map and records GPU runtime as on-demand only for a future approved worker/tool-call handoff, not a standing GPU service.
 - Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Internal Beta Owner Approval

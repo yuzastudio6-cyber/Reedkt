@@ -206,6 +206,8 @@ const sanitizedSummary = {
   },
   gpuRuntimeProof: {
     status: assembly.gpuRuntimeProofResultPacket.status,
+    expectedGpuRuntimeTargets: assembly.expectedGpuRuntimeTargets,
+    gpuRuntimePolicy: assembly.gpuRuntimePolicy,
     runtimeProfilesRequired: assembly.gpuRuntimeProofResultPacket.runtimeProfilesRequired,
     runtimeProofResultsProvided: assembly.gpuRuntimeProofResultPacket.runtimeProofResultsProvided,
     runtimeProofResultsAcceptedForOwnerReview:

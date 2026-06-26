@@ -67,6 +67,21 @@ remain GPU-runtime targeted: `torch_torchvision`, `transformers`, `sam2`,
 `birefnet`, `real_esrgan`, `kornia`, `rembg`, and
 `transparent_background`.
 
+The required runtime target map is exact and on-demand only:
+
+- `torch_torchvision`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transformers`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `sam2`: `native_linux_amd64_nvidia_l4_sam2_runtime`
+- `birefnet`: `native_linux_amd64_nvidia_l4_birefnet_runtime`
+- `real_esrgan`: `native_linux_amd64_nvidia_l4_real_esrgan_runtime`
+- `kornia`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `rembg`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transparent_background`: `native_linux_amd64_nvidia_l4_gpu_worker`
+
+GPU runtime is not an idle or standing service in this bundle. It is a future
+native NVIDIA L4 worker target that may start only for an approved worker or
+tool-call handoff, and CPU fallback is not allowed for these heavy runtime paths.
+
 ## No Runtime Unlock
 
 The bundle validator does not install dependencies, mutate `package-lock.json`,

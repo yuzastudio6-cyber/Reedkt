@@ -42,6 +42,22 @@
     "tensor_image_ops",
     "model_runtime_foundation"
   ],
+  "expectedGpuRuntimeTargets": {
+    "torch_torchvision": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transformers": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "sam2": "native_linux_amd64_nvidia_l4_sam2_runtime",
+    "birefnet": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+    "real_esrgan": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+    "kornia": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "rembg": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
+  },
+  "gpuRuntimePolicy": {
+    "onDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false
+  },
   "counts": {
     "totalTools": 21,
     "totalProductFacingCapabilities": 12,
@@ -62,6 +78,8 @@
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "rankingSystemConnected": true,
+    "gpuRuntimeTargetsExact": true,
+    "gpuRuntimeOnDemandOnly": true,
     "all21BetaCallableWhenEvidenceBundlePasses": true,
     "all12CapabilitiesHaveBetaCallableSelectionWhenEvidenceBundlePasses": true,
     "agentCanSelectForPlanning": true,

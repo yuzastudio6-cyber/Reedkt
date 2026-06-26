@@ -28,6 +28,8 @@ export interface AiGraphicsBetaToolCallReadinessTool {
   installReadyForPlannedSurface: true
   productionMapped: true
   planningSelectable: true
+  gpuRequiredForRuntime: boolean
+  runtimeTargetForPlannedSurface: string | null
   betaEvidenceReadyForTool: boolean
   betaToolCallableWithProvidedEvidence: boolean
   betaToolCallableNow: false
@@ -53,6 +55,9 @@ export interface AiGraphicsBetaToolCallReadiness {
   all21BetaCallableWhenEvidenceBundlePasses: boolean
   capabilitiesWithBetaCallablePlanningTools: number
   sourceBetaEvidenceBundleAccepted: boolean
+  gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
+  expectedGpuRuntimeTargets: Record<string, string>
+  gpuRuntimePolicy: AiGraphicsBetaEvidenceBundle['gpuRuntimePolicy']
   missingEvidence: string[]
   tools: AiGraphicsBetaToolCallReadinessTool[]
   capabilities: AiGraphicsBetaToolCallReadinessCapability[]
@@ -62,6 +67,8 @@ export interface AiGraphicsBetaToolCallReadiness {
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
     rankingSystemConnected: true
+    gpuRuntimeTargetsExact: true
+    gpuRuntimeOnDemandOnly: true
     all21BetaCallableWhenEvidenceBundlePasses: boolean
     all12CapabilitiesHaveBetaCallableSelectionWhenEvidenceBundlePasses: boolean
     agentCanSelectForPlanning: true
@@ -135,6 +142,8 @@ export function buildAiGraphicsBetaToolCallReadiness(
       installReadyForPlannedSurface: true,
       productionMapped: true,
       planningSelectable: true,
+      gpuRequiredForRuntime: evidenceRow.gpuRequiredForRuntime,
+      runtimeTargetForPlannedSurface: evidenceRow.runtimeTargetForPlannedSurface,
       betaEvidenceReadyForTool: evidenceRow.betaTestingReadyNow,
       betaToolCallableWithProvidedEvidence,
       betaToolCallableNow: false,
@@ -189,6 +198,9 @@ export function buildAiGraphicsBetaToolCallReadiness(
     all21BetaCallableWhenEvidenceBundlePasses,
     capabilitiesWithBetaCallablePlanningTools,
     sourceBetaEvidenceBundleAccepted: evidenceBundle.all21BetaEvidenceReady,
+    gpuRuntimeTargetedTools: evidenceBundle.gpuRuntimeTargetedTools,
+    expectedGpuRuntimeTargets: evidenceBundle.expectedGpuRuntimeTargets,
+    gpuRuntimePolicy: evidenceBundle.gpuRuntimePolicy,
     missingEvidence: unique([
       ...evidenceBundle.missingEvidence,
       ...(!evidenceBundle.all21BetaEvidenceReady ? ['all21_beta_evidence_bundle'] : []),
@@ -201,6 +213,8 @@ export function buildAiGraphicsBetaToolCallReadiness(
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       rankingSystemConnected: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
       all21BetaCallableWhenEvidenceBundlePasses,
       all12CapabilitiesHaveBetaCallableSelectionWhenEvidenceBundlePasses,
       agentCanSelectForPlanning: true,

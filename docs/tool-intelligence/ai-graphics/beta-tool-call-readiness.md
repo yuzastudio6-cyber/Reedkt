@@ -9,6 +9,7 @@ This contract joins the canonical AI graphics ranking system to the beta evidenc
 - Default committed evidence keeps beta tool-call eligibility at `0` of `21`.
 - A complete evidence packet can make `21` of `21` tools beta-callable for the future owner gate.
 - Partial evidence does not create a callable subset. The contract requires the complete 21-tool evidence bundle before any beta tool-call handoff is considered eligible.
+- The eight heavy/model tools preserve exact native NVIDIA L4 runtime targets through the beta-call contract. GPU use is on-demand only for a future approved worker or tool-call handoff; no idle GPU runtime is approved, and CPU fallback is blocked for heavy model paths.
 - The CLI and diagnostic are evaluator-only. They do not execute tools, workers, routes, providers, browser/WebGL/canvas runtimes, GPU/model runtimes, model downloads, media processing, public artifact creation, or signed URL creation.
 
 ## Tool Coverage
@@ -34,6 +35,17 @@ This contract joins the canonical AI graphics ranking system to the beta evidenc
 - `pixi_js`
 - `konva`
 - `babylonjs`
+
+## GPU Runtime Targets
+
+- `torch_torchvision`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transformers`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `sam2`: `native_linux_amd64_nvidia_l4_sam2_runtime`
+- `birefnet`: `native_linux_amd64_nvidia_l4_birefnet_runtime`
+- `real_esrgan`: `native_linux_amd64_nvidia_l4_real_esrgan_runtime`
+- `kornia`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `rembg`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transparent_background`: `native_linux_amd64_nvidia_l4_gpu_worker`
 
 ## Capability Coverage
 

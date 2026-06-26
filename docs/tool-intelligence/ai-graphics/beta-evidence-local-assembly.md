@@ -63,6 +63,20 @@ npm run --silent ai-graphics:beta-evidence-local-assembly -- \
   - `docs/tool-intelligence/ai-graphics/browser-runtime-proof.json`
   - `docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json`
 
+## GPU Runtime Target Policy
+
+The assembler preserves the exact on-demand runtime targets from the beta
+evidence bundle. The shared heavy-tool target is
+`native_linux_amd64_nvidia_l4_gpu_worker`; `sam2`, `birefnet`, and
+`real_esrgan` keep dedicated targets:
+`native_linux_amd64_nvidia_l4_sam2_runtime`,
+`native_linux_amd64_nvidia_l4_birefnet_runtime`, and
+`native_linux_amd64_nvidia_l4_real_esrgan_runtime`.
+
+No idle GPU service is approved by this assembler. GPU capacity is a future
+worker/tool-call runtime target only when an approved job uses one of these
+tools; CPU fallback for the heavy model paths stays blocked.
+
 ## Current Public State
 
 - PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/862

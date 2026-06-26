@@ -48,6 +48,11 @@ Both roots are local-only and must not be staged or committed.
 
 ## Current Public State
 
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/862
+- Draft: `true`
+- Merge state: `CLEAN`
+- Head: `19a23c29bedbc456b9a2c2de57dc1063a8226efa`
+- Check rollup: empty
 - Manifest input status: `missing_private_manifests`
 - Proof result input status: `missing_native_gpu_runtime_proof_results`
 - Model manifests ready for GPU proof: `false`

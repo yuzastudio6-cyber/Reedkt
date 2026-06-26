@@ -186,6 +186,8 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Beta rollup GPU runtime target propagation: beta activation gap and beta/production readiness rollup outputs now expose and validate the exact eight-tool GPU runtime target map and record `gpuRuntimeOnDemandOnly=true`. This carries the on-demand GPU cost guardrail into the final readiness answer while keeping internal beta, external beta, and production false.
 - Beta evidence exact GPU propagation: the GPU proof result packet, beta evidence bundle, local evidence assembly, and beta tool-call readiness outputs now all expose and validate the exact eight-tool NVIDIA L4 runtime target map. `sam2`, `birefnet`, and `real_esrgan` keep their dedicated runtime targets, GPU runtime is recorded as on-demand only for a future approved worker/tool-call handoff, idle GPU service remains unapproved, and CPU fallback for heavy model paths stays blocked.
 - Latest observed PR state after beta evidence exact GPU propagation: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `3cafb7cf8b3d2ca3d146257e1934b080d7d3342a`, with an empty check rollup.
+- Ephemeral GPU runtime policy hardening: the GPU proof command plan, local preflight, proof result packet, beta evidence bundle, local evidence assembly, and beta tool-call readiness now all require exact GPU targets, on-demand GPU runtime, no idle GPU runtime, ephemeral `docker run --rm --gpus all` proof/runtime containers, and blocked CPU fallback for heavy/model paths. GPU capacity starts only for an approved proof command or future approved Worker/Tool Route handoff, then releases after the command or job finishes.
+- Latest observed PR state after ephemeral GPU runtime policy hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `128b8bce09ee83d4b9c6971f1b872066f663c37a`, with an empty check rollup.
 
 ## Runtime State
 
@@ -217,6 +219,9 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - `betaToolCallGpuRuntimeTargetsExact=true`
 - `betaRollupGpuRuntimeTargetsExact=true`
 - `gpuRuntimeOnDemandOnly=true`
+- `gpuRuntimeProofContainersEphemeral=true`
+- `noIdleGpuRuntimeApproved=true`
+- `cpuFallbackAllowedForHeavyTools=false`
 - `betaActivationGapReportPrepared=true`
 - `betaReadinessEvidenceEvaluationPrepared=true`
 - `internalBetaProductionWorkerJobReadinessPrepared=true`

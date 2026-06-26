@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "2026-06-26.ai-graphics.beta-evidence-local-assembly",
+  "decision": "ai_graphics_beta_evidence_local_assembly_prepared_with_directory_inputs",
+  "status": "missing_local_evidence",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "latestObservedHeadSha": "1826fe93811115d380bdc273bdc5070bf5cadbf2",
+    "latestObservedCheckRollup": []
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-beta-evidence-local-assembly.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "cli": "server/cli/ai-graphics-beta-evidence-local-assembly.ts",
+    "packageScript": "ai-graphics:beta-evidence-local-assembly",
+    "diagnostic": "scripts/validation/ai-graphics-beta-evidence-local-assembly-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:beta-evidence-local-assembly:diagnostics"
+  },
+  "sourceEvidence": {
+    "betaEvidenceBundle": "docs/tool-intelligence/ai-graphics/beta-evidence-bundle.json",
+    "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "gpuRuntimeProofResultPacket": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json",
+    "gpuRuntimeProofLocalPreflight": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-local-preflight.json",
+    "nodeRuntimeProof": "docs/tool-intelligence/ai-graphics/node-runtime-proof.json",
+    "browserRuntimeProof": "docs/tool-intelligence/ai-graphics/browser-runtime-proof.json",
+    "satoriFontRuntimeProof": "docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json"
+  },
+  "localEvidenceRoots": {
+    "modelWeightManifests": ".local-artifacts/ai-graphics/model-weight-manifests",
+    "gpuRuntimeProofResults": ".local-artifacts/ai-graphics/gpu-runtime-proof-results"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "modelWeightManifestRequiredTools": 5,
+    "nativeGpuRuntimeProfilesRequired": 4,
+    "localManifestRecordsProvided": 0,
+    "localGpuRuntimeProofResultsProvided": 0,
+    "defaultBetaTestingReadyTools": 0,
+    "fullEvidenceBetaTestingReadyTools": 21
+  },
+  "defaultMissingLocalEvidence": [
+    "reviewed_private_model_weight_manifest_records",
+    "native_gpu_runtime_proof_result_records"
+  ],
+  "requiredCommand": "npm run --silent ai-graphics:beta-evidence-local-assembly -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --use-committed-js-runtime-proofs --all-shared-gates-passed --browser-canvas-webgl-sandbox-passed --require-all-21-beta-ready",
+  "booleans": {
+    "betaEvidenceLocalAssemblyPrepared": true,
+    "modelWeightManifestReviewPacketBuiltFromLocalInput": false,
+    "gpuRuntimeProofResultPacketBuiltFromLocalInput": false,
+    "committedJsRuntimeProofsAccepted": false,
+    "all21BetaEvidenceReady": false,
+    "readyForInternalBetaOwnerGate": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

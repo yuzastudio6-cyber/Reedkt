@@ -32,6 +32,7 @@ export * from './ai-graphics-gpu-runtime-proof-result'
 export * from './ai-graphics-gpu-runtime-proof-local-preflight'
 export * from './ai-graphics-beta-activation-gap-report'
 export * from './ai-graphics-beta-evidence-bundle'
+export * from './ai-graphics-beta-evidence-local-assembly'
 
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {
   return PRODUCTION_TOOL_IDS.includes(toolId as ProductionToolId)

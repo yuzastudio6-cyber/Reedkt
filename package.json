@@ -57,6 +57,8 @@
     "ai-graphics:beta-activation-gap-report:diagnostics": "node scripts/validation/ai-graphics-beta-activation-gap-report-diagnostics.mjs",
     "ai-graphics:beta-evidence-bundle:validate": "tsx server/cli/ai-graphics-beta-evidence-bundle.ts",
     "ai-graphics:beta-evidence-bundle:diagnostics": "node scripts/validation/ai-graphics-beta-evidence-bundle-diagnostics.mjs",
+    "ai-graphics:beta-evidence-local-assembly": "tsx server/cli/ai-graphics-beta-evidence-local-assembly.ts",
+    "ai-graphics:beta-evidence-local-assembly:diagnostics": "node scripts/validation/ai-graphics-beta-evidence-local-assembly-diagnostics.mjs",
     "ai-graphics:tool-route-readiness:diagnostics": "node scripts/validation/ai-graphics-tool-route-readiness-diagnostics.mjs",
     "ai-graphics:worker-handoff-readiness:diagnostics": "node scripts/validation/ai-graphics-worker-handoff-readiness-diagnostics.mjs",
     "ai-graphics:model-weight-manifest-readiness:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-readiness-diagnostics.mjs",

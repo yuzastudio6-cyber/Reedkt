@@ -57,6 +57,30 @@ The native GPU proof expects reviewed private manifest files at:
 
 The generated commands use `<local-private-model-weight-root>` placeholders. Real private paths must stay outside committed docs and source.
 
+## Result Capture
+
+Each native GPU proof command must write its JSON output to the local-only proof
+result directory:
+
+```bash
+.local-artifacts/ai-graphics/gpu-runtime-proof-results
+```
+
+Expected local result files:
+
+- `.local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu_worker_ai_graphics.json`
+- `.local-artifacts/ai-graphics/gpu-runtime-proof-results/sam2.json`
+- `.local-artifacts/ai-graphics/gpu-runtime-proof-results/birefnet.json`
+- `.local-artifacts/ai-graphics/gpu-runtime-proof-results/real_esrgan.json`
+
+After all four profile results are captured, validate them with:
+
+```bash
+npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results
+```
+
+The result directory is local evidence only and must not be staged or committed.
+
 ## Current Public Packet State
 
 - Manifest records provided: `0`

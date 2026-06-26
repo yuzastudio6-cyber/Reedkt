@@ -59,6 +59,8 @@
     "transparent_background"
   ],
   "nativeGpuProofInputStatus": "missing_private_manifests",
+  "localProofResultDirectory": ".local-artifacts/ai-graphics/gpu-runtime-proof-results",
+  "proofResultValidatorCommand": "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
   "runtimeProfiles": [
     {
       "profileId": "gpu_worker_ai_graphics",
@@ -81,6 +83,8 @@
         "rembg",
         "transparent_background"
       ],
+      "requiredModelWeightDirEnv": "REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights",
+      "localProofResultPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu_worker_ai_graphics.json",
       "status": "planned_not_executed"
     },
     {
@@ -95,6 +99,8 @@
       "requiresModelWeightManifests": [
         "sam2"
       ],
+      "requiredModelWeightDirEnv": "REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights",
+      "localProofResultPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/sam2.json",
       "status": "planned_not_executed"
     },
     {
@@ -111,6 +117,8 @@
       "requiresModelWeightManifests": [
         "birefnet"
       ],
+      "requiredModelWeightDirEnv": "REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights",
+      "localProofResultPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/birefnet.json",
       "status": "planned_not_executed"
     },
     {
@@ -125,6 +133,8 @@
       "requiresModelWeightManifests": [
         "real_esrgan"
       ],
+      "requiredModelWeightDirEnv": "REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights",
+      "localProofResultPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/real_esrgan.json",
       "status": "planned_not_executed"
     }
   ],

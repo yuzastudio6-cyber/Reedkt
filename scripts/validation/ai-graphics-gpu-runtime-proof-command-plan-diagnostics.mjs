@@ -197,6 +197,16 @@ for (const [key, expected] of Object.entries({
   if (packet.counts?.[key] !== expected) fail(`unexpected_count:${key}:${packet.counts?.[key]}`)
 }
 
+if (packet.localProofResultDirectory !== '.local-artifacts/ai-graphics/gpu-runtime-proof-results') {
+  fail('packet_missing_local_proof_result_directory')
+}
+if (
+  packet.proofResultValidatorCommand !==
+  'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results'
+) {
+  fail('packet_missing_proof_result_validator_command')
+}
+
 for (const tool of gpuRuntimeTools) {
   if (!packet.gpuRuntimeTargetedTools?.includes(tool)) fail(`packet_missing_gpu_runtime_tool:${tool}`)
   if (!moduleSource.includes(`'${tool}'`)) fail(`module_missing_gpu_runtime_tool:${tool}`)
@@ -219,6 +229,12 @@ for (const [profileId, expected] of Object.entries(expectedProfiles)) {
   if (profile?.dockerfile !== expected.dockerfile) fail(`profile_dockerfile_mismatch:${profileId}`)
   if (profile?.status !== 'planned_not_executed') fail(`profile_status_mismatch:${profileId}`)
   if (profile?.requiresDockerGpuFlag !== true) fail(`profile_missing_docker_gpu_flag:${profileId}`)
+  if (profile?.requiredModelWeightDirEnv !== 'REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights') {
+    fail(`profile_missing_model_weight_dir_env:${profileId}`)
+  }
+  if (profile?.localProofResultPath !== `.local-artifacts/ai-graphics/gpu-runtime-proof-results/${profileId}.json`) {
+    fail(`profile_missing_local_proof_result_path:${profileId}`)
+  }
   for (const tool of expected.tools) {
     if (!profile?.tools?.includes(tool)) fail(`profile_missing_tool:${profileId}:${tool}`)
   }
@@ -237,10 +253,13 @@ for (const token of [
   'docker run',
   '--gpus all',
   'REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true',
+  'REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights',
   'MODEL_DOWNLOADS_ENABLED=false',
   'PROVIDER_EXECUTION_ENABLED=false',
   '--require-model-weight-manifests',
   '<local-private-model-weight-root>',
+  '.local-artifacts/ai-graphics/gpu-runtime-proof-results',
+  'ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results',
   'model_tree_manifest.json',
 ]) {
   if (!moduleSource.includes(token)) fail(`module_missing:${token}`)
@@ -312,6 +331,23 @@ if (noManifestPlan.manifestReviewPacket?.manifestRecordsProvided !== 0) {
 if ((noManifestPlan.runtimeProfiles || []).length !== 4) {
   fail(`no_manifest_runtime_profile_count:${noManifestPlan.runtimeProfiles?.length}`)
 }
+if (noManifestPlan.localProofResultDirectory !== '.local-artifacts/ai-graphics/gpu-runtime-proof-results') {
+  fail('no_manifest_missing_local_proof_result_directory')
+}
+if (!String(noManifestPlan.proofResultValidatorCommand || '').includes('ai-graphics:gpu-runtime-proof-result:validate')) {
+  fail('no_manifest_missing_result_validator_command')
+}
+for (const profile of noManifestPlan.runtimeProfiles || []) {
+  if (!String(profile.localProofResultPath || '').endsWith(`${profile.profileId}.json`)) {
+    fail(`no_manifest_profile_missing_result_path:${profile.profileId}`)
+  }
+  if (!String(profile.resultCaptureCommand || '').includes('> .local-artifacts/ai-graphics/gpu-runtime-proof-results/')) {
+    fail(`no_manifest_profile_missing_result_capture_redirect:${profile.profileId}`)
+  }
+  if (!String(profile.command || '').includes('REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights')) {
+    fail(`no_manifest_profile_missing_model_weight_dir_env:${profile.profileId}`)
+  }
+}
 
 const validDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-plan-valid-'))
 writeManifestFixtures(validDir)
@@ -328,8 +364,15 @@ if (validPlan.input?.privateArtifactRefsLogged !== 0) fail('valid_manifest_priva
 if (validOutput.includes('private://')) fail('valid_manifest_output_leaked_private_ref')
 if (!validOutput.includes('--gpus all')) fail('valid_manifest_output_missing_gpus_all')
 if (!validOutput.includes('REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true')) fail('valid_manifest_output_missing_opt_in_env')
+if (!validOutput.includes('REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights')) fail('valid_manifest_output_missing_model_weight_dir_env')
 if (!validOutput.includes('<local-private-model-weight-root>/sam2')) fail('valid_manifest_output_missing_mount_placeholder')
 if (!validOutput.includes('--require-model-weight-manifests')) fail('valid_manifest_output_missing_manifest_flag')
+if (!validOutput.includes('.local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu_worker_ai_graphics.json')) {
+  fail('valid_manifest_output_missing_profile_result_path')
+}
+if (!validOutput.includes('ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results')) {
+  fail('valid_manifest_output_missing_result_validator_command')
+}
 
 const invalidDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-plan-invalid-'))
 writeManifestFixtures(invalidDir, {

@@ -36,11 +36,14 @@ export interface AiGraphicsGpuRuntimeProofProfilePlan {
     REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF: 'true'
     MODEL_DOWNLOADS_ENABLED: 'false'
     PROVIDER_EXECUTION_ENABLED: 'false'
+    REEDITPRO_MODEL_WEIGHT_DIR: '/opt/reeditpro/model-weights'
   }
   requiredDockerFlags: ['--rm', '--gpus all']
   modelWeightManifestFlag: '--require-model-weight-manifests'
   modelWeightManifestMounts: AiGraphicsGpuRuntimeProofManifestMount[]
   command: string
+  localProofResultPath: string
+  resultCaptureCommand: string
   status: 'planned_not_executed'
 }
 
@@ -53,6 +56,8 @@ export interface AiGraphicsGpuRuntimeProofCommandPlan {
   manifestReviewPacket: AiGraphicsModelWeightManifestReviewPacket
   nativeGpuProofInputStatus: AiGraphicsGpuRuntimeProofInputStatus
   runtimeProfiles: AiGraphicsGpuRuntimeProofProfilePlan[]
+  localProofResultDirectory: '.local-artifacts/ai-graphics/gpu-runtime-proof-results'
+  proofResultValidatorCommand: 'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results'
   blockers: string[]
   booleans: {
     gpuRuntimeProofCommandPlanPrepared: true
@@ -124,6 +129,10 @@ const localDirectoryByTool = {
   rembg: 'rembg',
   transparent_background: 'transparent-background',
 } as const satisfies Record<AiGraphicsModelWeightManifestToolId, string>
+
+const localProofResultDirectory = '.local-artifacts/ai-graphics/gpu-runtime-proof-results'
+const proofResultValidatorCommand =
+  'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results'
 
 const runtimeProfileSpecs = [
   {
@@ -235,12 +244,15 @@ function buildProfilePlan(
     '-e REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true',
     '-e MODEL_DOWNLOADS_ENABLED=false',
     '-e PROVIDER_EXECUTION_ENABLED=false',
+    '-e REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights',
     ...mounts.map((mount) => mount.dockerMountPlaceholder),
     spec.imagePlaceholder,
     spec.scriptCommand,
     `--profile ${spec.profileId}`,
     '--require-model-weight-manifests',
   ].join(' ')
+  const localProofResultPath = `${localProofResultDirectory}/${spec.profileId}.json`
+  const resultCaptureCommand = `mkdir -p ${localProofResultDirectory} && ${command} > ${localProofResultPath}`
 
   return {
     profileId: spec.profileId,
@@ -253,11 +265,14 @@ function buildProfilePlan(
       REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF: 'true',
       MODEL_DOWNLOADS_ENABLED: 'false',
       PROVIDER_EXECUTION_ENABLED: 'false',
+      REEDITPRO_MODEL_WEIGHT_DIR: '/opt/reeditpro/model-weights',
     },
     requiredDockerFlags: ['--rm', '--gpus all'],
     modelWeightManifestFlag: '--require-model-weight-manifests',
     modelWeightManifestMounts: mounts,
     command,
+    localProofResultPath,
+    resultCaptureCommand,
     status: 'planned_not_executed',
   }
 }
@@ -288,6 +303,8 @@ export function buildAiGraphicsGpuRuntimeProofCommandPlan(
     manifestReviewPacket,
     nativeGpuProofInputStatus,
     runtimeProfiles: runtimeProfileSpecs.map(buildProfilePlan),
+    localProofResultDirectory,
+    proofResultValidatorCommand,
     blockers,
     booleans: {
       gpuRuntimeProofCommandPlanPrepared: true,

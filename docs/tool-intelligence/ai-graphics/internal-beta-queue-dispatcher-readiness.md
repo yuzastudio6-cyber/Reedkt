@@ -22,6 +22,9 @@ This packet verifies that the all-21 AI graphics queue-adapter submissions can t
 - In-memory dispatcher lease records released: 21
 - In-memory dispatcher events recorded: 189
 - GPU runtime targeted tools: 8
+- GPU runtime targets exact: true
+- GPU runtime on-demand only: true
+- Idle GPU runtime approved now: false
 - Heavy tools incorrectly targeting CPU: 0
 - Live backend queue submissions now: 0
 - Live worker leases created now: 0
@@ -93,6 +96,12 @@ This packet verifies that the all-21 AI graphics queue-adapter submissions can t
 - `canDispatchLiveProductionWorkerNow`
 - `canExecuteToolNow`
 
+## GPU Runtime Target Policy
+
+Dispatcher probes preserve exact native NVIDIA L4 runtime targets for all eight GPU/model tools. `sam2` uses `native_linux_amd64_nvidia_l4_sam2_runtime`, `birefnet` uses `native_linux_amd64_nvidia_l4_birefnet_runtime`, and `real_esrgan` uses `native_linux_amd64_nvidia_l4_real_esrgan_runtime`; `torch_torchvision`, `transformers`, `kornia`, `rembg`, and `transparent_background` use `native_linux_amd64_nvidia_l4_gpu_worker`.
+
+GPU runtime remains on-demand only. The dispatcher probe is in-memory and mock-safe; it does not dispatch live workers or keep an idle GPU running. GPU startup is allowed only after a future approved worker job calls the GPU tool.
+
 ## Allowed Probe Actions
 
 - run all 21 adapter payloads through the in-memory production worker dispatcher probe
@@ -139,6 +148,8 @@ This packet verifies that the all-21 AI graphics queue-adapter submissions can t
 - `providerRuntimeApprovedNow=false`
 - `browserWebglCanvasRuntimeApprovedNow=false`
 - `gpuRuntimeApprovedNow=false`
+- `gpuRuntimeTargetsExact=true`
+- `gpuRuntimeOnDemandOnly=true`
 - `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
 - `externalBetaReadyNow=false`

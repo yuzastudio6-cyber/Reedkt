@@ -100,6 +100,8 @@ export interface AiGraphicsInternalBetaQueueDispatcherReadiness {
     allDispatcherRoutesMockOnly: boolean
     allInMemoryLeaseRecordsReleased: boolean
     gpuHeavyToolsTargetGpuRuntime: boolean
+    gpuRuntimeTargetsExact: boolean
+    gpuRuntimeOnDemandOnly: true
     privateArtifactManifestOnly: boolean
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
@@ -193,6 +195,17 @@ const nextMilestones = [
   'Require private artifact manifests, approved snapshots, credit reservations, and quality gates before any live worker dispatch.',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+} as const
+
 function statusFromSource(
   sourceQueueAdapterAccepted: boolean,
 ): AiGraphicsInternalBetaQueueDispatcherReadinessStatus {
@@ -228,6 +241,18 @@ function skippedProbeResult(
     canExecuteToolNow: false,
     blockedRuntimeActions,
   }
+}
+
+function gpuRuntimeTargetsExact(
+  results: AiGraphicsInternalBetaQueueDispatcherProbeResult[],
+): boolean {
+  return Object.entries(expectedGpuRuntimeTargets).every(([toolId, runtimeTarget]) => (
+    results.some((result) => (
+      result.toolId === toolId &&
+      result.workerType === 'gpu_ai_worker' &&
+      result.runtimeTarget === runtimeTarget
+    ))
+  ))
 }
 
 async function dispatchProbeResult(input: {
@@ -349,6 +374,7 @@ export async function buildAiGraphicsInternalBetaQueueDispatcherReadiness(
     dispatcherProbeResults.every((result) => result.mockOnlyRoute)
   const gpuRuntimeTargetedTools =
     dispatcherProbeResults.filter((result) => result.workerType === 'gpu_ai_worker').length
+  const gpuRuntimeTargetsExactForResults = gpuRuntimeTargetsExact(dispatcherProbeResults)
 
   return {
     decision: AI_GRAPHICS_INTERNAL_BETA_QUEUE_DISPATCHER_READINESS_DECISION,
@@ -392,6 +418,8 @@ export async function buildAiGraphicsInternalBetaQueueDispatcherReadiness(
         inMemoryDispatcherLeaseRecordsCreated === 21 &&
         inMemoryDispatcherLeaseRecordsReleased === 21,
       gpuHeavyToolsTargetGpuRuntime: gpuRuntimeTargetedTools === 8,
+      gpuRuntimeTargetsExact: gpuRuntimeTargetsExactForResults,
+      gpuRuntimeOnDemandOnly: true,
       privateArtifactManifestOnly:
         sourceQueueAdapterReadiness.booleans.privateArtifactManifestOnly,
       agentCanSelectForPlanning: true,

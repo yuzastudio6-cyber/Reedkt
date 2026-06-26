@@ -64,6 +64,17 @@ const gpuTools = [
   'transparent_background',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const falseGateKeys = [
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
@@ -302,6 +313,29 @@ for (const [key, expected] of Object.entries({
   if (docs.counts?.[key] !== expected) fail(`docs_count_mismatch:${key}:${docs.counts?.[key]}`)
 }
 
+for (const [key, expected] of Object.entries({
+  gpuToolsUseNativeL4: true,
+  gpuRuntimeTargetsExact: true,
+  gpuRuntimeOnDemandOnly: true,
+  dispatcherProbePreservesExactGpuRuntimeTargets: true,
+  idleGpuRuntimeApprovedNow: false,
+  gpuStartsOnlyAfterApprovedWorkerJob: true,
+})) {
+  if (docs.runtimeTargets?.[key] !== expected) {
+    fail(`docs_runtime_target_policy_mismatch:${key}:${docs.runtimeTargets?.[key]}`)
+  }
+}
+for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  if (docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool] !== runtimeTarget) {
+    fail(`docs_expected_gpu_runtime_target_mismatch:${tool}:${docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool]}`)
+  }
+  if (!markdown.includes(runtimeTarget)) fail(`markdown_missing_gpu_runtime_target:${tool}`)
+  if (!moduleSource.includes(runtimeTarget)) fail(`module_missing_gpu_runtime_target:${tool}`)
+}
+if (!markdown.includes('GPU runtime remains on-demand only')) {
+  fail('markdown_missing_gpu_on_demand_policy')
+}
+
 for (const action of [
   'run all 21 adapter payloads through the in-memory production worker dispatcher probe',
   'evaluate production worker gates, idempotency, lease lifecycle, event emission, and placeholder routing',
@@ -341,6 +375,8 @@ for (const [key, expected] of Object.entries({
   allDispatcherRoutesMockOnly: true,
   allInMemoryLeaseRecordsReleased: true,
   gpuHeavyToolsTargetGpuRuntime: true,
+  gpuRuntimeTargetsExact: true,
+  gpuRuntimeOnDemandOnly: true,
   privateArtifactManifestOnly: true,
   agentCanSelectForPlanning: true,
 })) {
@@ -393,6 +429,16 @@ for (const tool of gpuTools) {
   const result = approvedOutput.dispatcherProbeResults?.find((item) => item.toolId === tool)
   if (!result) fail(`approved_missing_gpu_tool_result:${tool}`)
   if (result?.workerType !== 'gpu_ai_worker') fail(`approved_gpu_tool_not_gpu_worker:${tool}`)
+}
+if (approvedOutput.booleans?.gpuRuntimeTargetsExact !== true) fail('approved_gpu_runtime_targets_not_exact')
+if (approvedOutput.booleans?.gpuRuntimeOnDemandOnly !== true) fail('approved_gpu_runtime_not_on_demand')
+for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  const result = approvedOutput.dispatcherProbeResults?.find((item) => item.toolId === tool)
+  if (!result) fail(`approved_missing_gpu_tool_result:${tool}`)
+  if (result?.workerType !== 'gpu_ai_worker') fail(`approved_gpu_tool_not_gpu_worker:${tool}`)
+  if (result?.runtimeTarget !== runtimeTarget) {
+    fail(`approved_gpu_runtime_target_mismatch:${tool}:${result?.runtimeTarget}`)
+  }
 }
 for (const result of approvedOutput.dispatcherProbeResults ?? []) {
   if (result.productionWorkerJobStatus !== 'completed') fail(`probe_not_completed:${result.toolId}`)

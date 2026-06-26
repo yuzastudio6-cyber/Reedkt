@@ -52,6 +52,17 @@ const capabilities = [
   'model_runtime_foundation',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const adapterFields = [
   'toolId',
   'productionToolId',
@@ -280,6 +291,29 @@ for (const [key, expected] of Object.entries({
   if (docs.counts?.[key] !== expected) fail(`docs_count_mismatch:${key}:${docs.counts?.[key]}`)
 }
 
+for (const [key, expected] of Object.entries({
+  gpuToolsUseNativeL4: true,
+  gpuRuntimeTargetsExact: true,
+  gpuRuntimeOnDemandOnly: true,
+  queueAdapterSubmissionsPreserveExactGpuRuntimeTargets: true,
+  idleGpuRuntimeApprovedNow: false,
+  gpuStartsOnlyAfterApprovedWorkerJob: true,
+})) {
+  if (docs.runtimeTargets?.[key] !== expected) {
+    fail(`docs_runtime_target_policy_mismatch:${key}:${docs.runtimeTargets?.[key]}`)
+  }
+}
+for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  if (docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool] !== runtimeTarget) {
+    fail(`docs_expected_gpu_runtime_target_mismatch:${tool}:${docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool]}`)
+  }
+  if (!markdown.includes(runtimeTarget)) fail(`markdown_missing_gpu_runtime_target:${tool}`)
+  if (!moduleSource.includes(runtimeTarget)) fail(`module_missing_gpu_runtime_target:${tool}`)
+}
+if (!markdown.includes('GPU runtime remains on-demand only')) {
+  fail('markdown_missing_gpu_on_demand_policy')
+}
+
 for (const action of [
   'shape all 21 queue-admission packets into backend queue adapter submission candidates',
   'reuse canonical ProductionWorkerJobPayload records without dispatching them',
@@ -317,6 +351,8 @@ for (const [key, expected] of Object.entries({
   all12CapabilityScenariosReadyWithProvidedEvidence: true,
   allAdapterPayloadsMatchQueueAdmission: true,
   gpuHeavyToolsTargetGpuRuntime: true,
+  gpuRuntimeTargetsExact: true,
+  gpuRuntimeOnDemandOnly: true,
   privateArtifactManifestOnly: true,
   agentCanSelectForPlanning: true,
 })) {
@@ -359,6 +395,16 @@ if (approvedOutput.queueAdapterSubmissions?.filter((submission) => submission.wo
 }
 if (approvedOutput.booleans?.allAdapterPayloadsMatchQueueAdmission !== true) {
   fail('approved_adapter_payloads_do_not_match_queue_admission')
+}
+if (approvedOutput.booleans?.gpuRuntimeTargetsExact !== true) fail('approved_gpu_runtime_targets_not_exact')
+if (approvedOutput.booleans?.gpuRuntimeOnDemandOnly !== true) fail('approved_gpu_runtime_not_on_demand')
+for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  const submission = approvedOutput.queueAdapterSubmissions?.find((item) => item.toolId === tool)
+  if (!submission) fail(`approved_missing_gpu_tool_submission:${tool}`)
+  if (submission?.workerType !== 'gpu_ai_worker') fail(`approved_gpu_tool_not_gpu_worker:${tool}`)
+  if (submission?.runtimeTarget !== runtimeTarget) {
+    fail(`approved_gpu_runtime_target_mismatch:${tool}:${submission?.runtimeTarget}`)
+  }
 }
 for (const submission of approvedOutput.queueAdapterSubmissions ?? []) {
   if (submission.canSubmitToBackendQueueNow !== false) fail(`submission_can_submit_not_false:${submission.toolId}`)

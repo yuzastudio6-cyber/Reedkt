@@ -16,6 +16,9 @@ This contract shapes the all-21 AI graphics queue-admission packets into backend
 - Queue adapter capability scenarios prepared: 12
 - Queue adapter capability scenarios ready with provided evidence: 12
 - GPU runtime targeted tools: 8
+- GPU runtime targets exact: true
+- GPU runtime on-demand only: true
+- Idle GPU runtime approved now: false
 - Heavy tools incorrectly targeting CPU: 0
 - Live backend queue submissions now: 0
 - Live worker leases created now: 0
@@ -83,6 +86,12 @@ This contract shapes the all-21 AI graphics queue-admission packets into backend
 - `canDispatchProductionWorkerNow`
 - `canExecuteToolNow`
 
+## GPU Runtime Target Policy
+
+Queue adapter submissions preserve exact native NVIDIA L4 runtime targets for all eight GPU/model tools. `sam2` uses `native_linux_amd64_nvidia_l4_sam2_runtime`, `birefnet` uses `native_linux_amd64_nvidia_l4_birefnet_runtime`, and `real_esrgan` uses `native_linux_amd64_nvidia_l4_real_esrgan_runtime`; `torch_torchvision`, `transformers`, `kornia`, `rembg`, and `transparent_background` use `native_linux_amd64_nvidia_l4_gpu_worker`.
+
+GPU runtime remains on-demand only. Queue adapter readiness does not submit work or keep an idle GPU running; GPU startup is allowed only after a future approved worker job calls the GPU tool.
+
 ## Allowed Preparation Actions
 
 - shape all 21 queue-admission packets into backend queue adapter submission candidates
@@ -126,6 +135,8 @@ This contract shapes the all-21 AI graphics queue-admission packets into backend
 - `productionWorkerRouteExecutionApprovedNow=false`
 - `workerLeaseCreationApprovedNow=false`
 - `toolExecutionApprovedNow=false`
+- `gpuRuntimeTargetsExact=true`
+- `gpuRuntimeOnDemandOnly=true`
 - `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
 - `externalBetaReadyNow=false`

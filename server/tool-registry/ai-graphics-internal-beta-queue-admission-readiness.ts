@@ -92,6 +92,8 @@ export interface AiGraphicsInternalBetaQueueAdmissionReadiness {
     all12CapabilitiesReadyWithProvidedEvidence: boolean
     privateArtifactManifestOnly: boolean
     gpuHeavyToolsTargetGpuRuntime: boolean
+    gpuRuntimeTargetsExact: boolean
+    gpuRuntimeOnDemandOnly: true
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
     routeExecutionApprovedNow: false
@@ -174,6 +176,17 @@ const nextMilestones = [
   'Require private artifact manifests and approved plan snapshots for every queue candidate before live enqueue.',
   'Run external beta and production launch approvals separately after internal beta runtime evidence exists.',
 ]
+
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+} as const
 
 const productFacingCapabilities = [
   'chart_overlay',
@@ -265,6 +278,18 @@ function toPacket(
   }
 }
 
+function gpuRuntimeTargetsExact(
+  packets: AiGraphicsInternalBetaQueueAdmissionPacket[],
+): boolean {
+  return Object.entries(expectedGpuRuntimeTargets).every(([toolId, runtimeTarget]) => (
+    packets.some((packet) => (
+      packet.toolId === toolId &&
+      packet.workerType === 'gpu_ai_worker' &&
+      packet.runtimeTarget === runtimeTarget
+    ))
+  ))
+}
+
 export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
   input: AiGraphicsInternalBetaQueueAdmissionReadinessInput = {},
 ): AiGraphicsInternalBetaQueueAdmissionReadiness {
@@ -300,6 +325,7 @@ export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
     )).length
   const gpuRuntimeTargetedTools =
     queueAdmissionPackets.filter((packet) => packet.gpuRequiredForRuntime).length
+  const gpuRuntimeTargetsExactForPackets = gpuRuntimeTargetsExact(queueAdmissionPackets)
 
   return {
     decision: AI_GRAPHICS_INTERNAL_BETA_QUEUE_ADMISSION_READINESS_DECISION,
@@ -339,6 +365,8 @@ export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
       gpuHeavyToolsTargetGpuRuntime:
         gpuRuntimeTargetedTools === 8 &&
         sourceRuntimeEnqueueApproval.heavyToolsIncorrectlyTargetingCpu === 0,
+      gpuRuntimeTargetsExact: gpuRuntimeTargetsExactForPackets,
+      gpuRuntimeOnDemandOnly: true,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
       routeExecutionApprovedNow: false,

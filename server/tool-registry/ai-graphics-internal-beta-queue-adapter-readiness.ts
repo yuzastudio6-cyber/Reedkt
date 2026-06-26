@@ -99,6 +99,8 @@ export interface AiGraphicsInternalBetaQueueAdapterReadiness {
     all12CapabilityScenariosReadyWithProvidedEvidence: boolean
     allAdapterPayloadsMatchQueueAdmission: boolean
     gpuHeavyToolsTargetGpuRuntime: boolean
+    gpuRuntimeTargetsExact: boolean
+    gpuRuntimeOnDemandOnly: true
     privateArtifactManifestOnly: boolean
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
@@ -192,6 +194,17 @@ const nextMilestones = [
   'Run internal beta runtime smoke on private projects before external beta or production approval.',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+} as const
+
 function statusFromSources(input: {
   queueAdmissionAccepted: boolean
   productionWorkerJobsAccepted: boolean
@@ -269,6 +282,18 @@ function toSubmission(input: {
   }
 }
 
+function gpuRuntimeTargetsExact(
+  submissions: AiGraphicsInternalBetaQueueAdapterSubmission[],
+): boolean {
+  return Object.entries(expectedGpuRuntimeTargets).every(([toolId, runtimeTarget]) => (
+    submissions.some((submission) => (
+      submission.toolId === toolId &&
+      submission.workerType === 'gpu_ai_worker' &&
+      submission.runtimeTarget === runtimeTarget
+    ))
+  ))
+}
+
 export function buildAiGraphicsInternalBetaQueueAdapterReadiness(
   input: AiGraphicsInternalBetaQueueAdapterReadinessInput = {},
 ): AiGraphicsInternalBetaQueueAdapterReadiness {
@@ -337,6 +362,7 @@ export function buildAiGraphicsInternalBetaQueueAdapterReadiness(
     queueAdapterSubmissions.every((submission) => submission.adapterPayloadMatchesQueueAdmission)
   const gpuRuntimeTargetedTools =
     queueAdapterSubmissions.filter((submission) => submission.workerType === 'gpu_ai_worker').length
+  const gpuRuntimeTargetsExactForSubmissions = gpuRuntimeTargetsExact(queueAdapterSubmissions)
 
   return {
     decision: AI_GRAPHICS_INTERNAL_BETA_QUEUE_ADAPTER_READINESS_DECISION,
@@ -375,6 +401,8 @@ export function buildAiGraphicsInternalBetaQueueAdapterReadiness(
         queueAdapterCapabilityScenariosReadyWithProvidedEvidence === 12,
       allAdapterPayloadsMatchQueueAdmission,
       gpuHeavyToolsTargetGpuRuntime: gpuRuntimeTargetedTools === 8,
+      gpuRuntimeTargetsExact: gpuRuntimeTargetsExactForSubmissions,
+      gpuRuntimeOnDemandOnly: true,
       privateArtifactManifestOnly:
         sourceQueueAdmissionReadiness.booleans.privateArtifactManifestOnly,
       agentCanSelectForPlanning: true,

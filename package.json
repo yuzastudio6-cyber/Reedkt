@@ -74,6 +74,7 @@
     "ai-video-broll-private-cache-prefix-approval:diagnostics": "node scripts/validation/ai-video-broll-private-cache-prefix-approval-diagnostics.mjs",
     "ai-video-broll-wan-cache-conversion-plan:diagnostics": "node scripts/validation/ai-video-broll-wan-cache-conversion-plan-diagnostics.mjs",
     "ai-video-broll-wan-original-cache-adapter-contract:diagnostics": "node scripts/validation/ai-video-broll-wan-original-cache-adapter-contract-diagnostics.mjs",
+    "qwen2-5-vl-7b-stack-tool:diagnostics": "node scripts/validation/qwen2-5-vl-7b-stack-tool-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

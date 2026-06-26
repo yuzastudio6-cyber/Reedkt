@@ -50,6 +50,17 @@ export const PRODUCTION_TOOL_FALLBACK_CHAINS: ProductionFallbackChain[] = [
     ],
   },
   {
+    chainId: 'vlm_visual_understanding_fallback',
+    trigger: 'Qwen2.5-VL unavailable, model-weight blocked, weak structured visual output, unsafe prompt boundary, or visual-understanding QA failure.',
+    steps: [
+      { action: 'retry_same_tool', toolIds: ['qwen_vl'], reason: 'Retry only after approved snapshot, private model path, bounded visual-token budget, and GPU readiness gates remain satisfied.' },
+      { action: 'switch_tool', toolIds: ['paddleocr'], reason: 'Use deterministic OCR when text/layout evidence is the primary uncertainty.' },
+      { action: 'use_simpler_recipe', toolIds: ['opencv', 'remotion'], reason: 'Use conservative sampled-region and Remotion safe-zone planning when VLM output is uncertain.' },
+      { action: 'request_user_review', toolIds: ['qwen_vl', 'paddleocr', 'opencv'], reason: 'Human review is required for ambiguous visual facts, private media risk, or important on-screen text uncertainty.', requiresUserReview: true },
+      { action: 'block_final_export', toolIds: ['qwen_vl'], reason: 'Block final export if required visual-understanding evidence remains unresolved.', blocksFinalExport: true },
+    ],
+  },
+  {
     chainId: 'enhancement_fallback',
     trigger: 'Real-ESRGAN artifacts, hallucinated detail, face/product risk, or enhancement QA failure.',
     steps: [
@@ -103,6 +114,7 @@ const fallbackChainByTool: Record<ProductionToolId, string[]> = {
   faster_whisper: ['speech_transcript_fallback'],
   whisper_cpp: ['speech_transcript_fallback'],
   paddleocr: ['ocr_fallback'],
+  qwen_vl: ['vlm_visual_understanding_fallback', 'ocr_fallback'],
   pyscenedetect: [],
   opencv: ['background_removal_fallback', 'ocr_fallback'],
   mediapipe: ['background_removal_fallback'],

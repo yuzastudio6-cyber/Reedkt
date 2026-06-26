@@ -100,6 +100,18 @@ export const GPU_TOOL_PYTHON_IMPORT_CHECKS: GpuToolPythonImportCheckDefinition[]
     notes: ['Optional/planned GPU OCR package; model review required before production.'],
   },
   {
+    toolId: 'qwen_vl',
+    checkName: 'python_import_qwen_vl_utils_optional',
+    packageName: 'qwen-vl-utils',
+    importName: 'qwen_vl_utils',
+    optional: true,
+    modelWeightRequired: true,
+    notes: [
+      'Optional/planned Qwen2.5-VL helper import only; do not import vLLM, load model weights, or run VLM inference in readiness checks.',
+      'Exact Qwen2.5-VL model revision/checksum and private model path acceptance remain separate gates.',
+    ],
+  },
+  {
     toolId: 'paddlepaddle_gpu',
     checkName: 'python_import_paddle_optional',
     packageName: 'paddlepaddle-gpu',

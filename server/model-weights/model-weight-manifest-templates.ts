@@ -220,6 +220,28 @@ export const GPU_MODEL_WEIGHT_MANIFEST_TEMPLATES: ProductionModelWeightManifestT
     requiredForProduction: true,
     blocksProductionIfMissing: true,
   },
+  {
+    id: 'qwen2_5_vl_7b_model',
+    toolId: 'qwen_vl',
+    modelName: 'Qwen2.5-VL 7B Instruct model',
+    modelVersion: 'Qwen/Qwen2.5-VL-7B-Instruct@placeholder-exact-revision-required',
+    expectedPath: `${basePath}/vlm/qwen2.5-vl-7b-instruct/`,
+    source: 'Official model source: https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct; exact revision, file list, and checksum manifest required before download or inference.',
+    license: 'Apache-2.0 model-card evidence; commercial paid-production use still requires exact revision, checksum, security, GPU, and owner acceptance.',
+    commercialUseAllowed: false,
+    commercialUseStatus: 'needs_review',
+    redistributionAllowed: false,
+    requiresAttribution: false,
+    reviewStatus: 'needs_review',
+    riskNotes: [
+      'Qwen2.5-VL 7B is registered as a planned visual-understanding stack tool only; no weights are downloaded or loaded by this template.',
+      'Future execution must use an approved private local model path, never model-hub auto-download during worker execution.',
+      'Initial GPU target is NVIDIA L4 / Google Cloud G2 with bounded image/frame inputs; longer video or higher-throughput routes require separate GPU owner review.',
+      'The VLM must provide advisory structured planning/QA signals and must not replace deterministic tools where exact text, charts, maps, captions, or final render output are required.',
+    ],
+    requiredForProduction: true,
+    blocksProductionIfMissing: true,
+  },
 ]
 
 export function listGpuModelWeightManifestTemplates(): ProductionModelWeightManifestTemplate[] {

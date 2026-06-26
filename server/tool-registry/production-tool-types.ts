@@ -14,6 +14,7 @@ export type ProductionToolId =
   | 'faster_whisper'
   | 'whisper_cpp'
   | 'paddleocr'
+  | 'qwen_vl'
   | 'pyscenedetect'
   | 'opencv'
   | 'mediapipe'
@@ -69,6 +70,7 @@ export const PRODUCTION_TOOL_IDS = [
   'faster_whisper',
   'whisper_cpp',
   'paddleocr',
+  'qwen_vl',
   'pyscenedetect',
   'opencv',
   'mediapipe',

@@ -29,6 +29,7 @@ export const M11_GPU_AI_TOOL_IDS: ProductionToolId[] = [
   'hunyuan_video',
   'opencv',
   'paddleocr',
+  'qwen_vl',
 ]
 
 export const M11_GPU_MODEL_WEIGHT_TOOL_IDS: ProductionToolId[] = [
@@ -44,6 +45,7 @@ export const M11_GPU_MODEL_WEIGHT_TOOL_IDS: ProductionToolId[] = [
   'mochi_video',
   'hunyuan_video',
   'paddleocr',
+  'qwen_vl',
 ]
 
 export type GpuAiReadinessCheckKind =

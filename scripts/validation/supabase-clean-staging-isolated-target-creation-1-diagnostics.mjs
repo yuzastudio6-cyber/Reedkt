@@ -2,102 +2,87 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1'
+const packet = 'SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
+const reportPath = 'docs/activation-supabase-clean-staging-isolated-target-creation-1-reports/clean_staging_isolated_target_creation_report.json'
+const manifestPath = 'docs/activation-supabase-clean-staging-isolated-target-creation-1-reports/clean_staging_isolated_target_creation_manifest.json'
 
 const requiredFiles = [
-  'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-owner-decision-1.md',
-  'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-owner-decision-1-record.json',
-  'docs/activation-phase-supabase-clean-staging-isolated-target-owner-decision-1-results.md',
-  'docs/implementation-prompts/prompt-supabase-clean-staging-isolated-target-creation-1.md',
-  'docs/implementation-prompts/prompt-supabase-clean-staging-unadopted-branch-cleanup-1.md',
-  'docs/supabase-worker-runtime/supabase-clean-staging-branch-replacement-history-source-mapping-1.md',
-  'docs/supabase-worker-runtime/supabase-clean-staging-branch-replacement-history-source-mapping-1-record.json',
-  'docs/supabase-worker-runtime/supabase-clean-staging-branch-replacement-execution-1.md',
-  'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-history-source-derived-owner-decision-1.md',
-  'docs/product-internal-beta-readiness-aggregation.md',
-  'docs/production-beta-blocker-inventory.md',
-  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
-  'implementation-status-and-next-phase.md',
-  'scripts/validation/supabase-clean-staging-isolated-target-owner-decision-1-diagnostics.mjs',
-  'package.json',
-]
-
-const packetFiles = [
-  'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-owner-decision-1.md',
-  'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-owner-decision-1-record.json',
-  'docs/activation-phase-supabase-clean-staging-isolated-target-owner-decision-1-results.md',
-  'docs/implementation-prompts/prompt-supabase-clean-staging-isolated-target-creation-1.md',
-]
-
-const allowedChangedFiles = new Set([
-  ...packetFiles,
-  'docs/product-internal-beta-readiness-aggregation.md',
-  'docs/production-beta-blocker-inventory.md',
-  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
-  'implementation-status-and-next-phase.md',
-  'scripts/validation/supabase-clean-staging-isolated-target-owner-decision-1-diagnostics.mjs',
-  'scripts/validation/supabase-clean-staging-isolated-target-creation-1.mjs',
-  'scripts/validation/supabase-clean-staging-isolated-target-creation-1-diagnostics.mjs',
-  'scripts/validation/supabase-clean-staging-branch-replacement-history-source-mapping-1-diagnostics.mjs',
-  'scripts/validation/supabase-clean-staging-branch-replacement-execution-1-diagnostics.mjs',
-  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
   'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-creation-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-creation-1-record.json',
   'docs/activation-phase-supabase-clean-staging-isolated-target-creation-1-results.md',
   'docs/implementation-prompts/prompt-supabase-clean-staging-isolated-target-migration-chain-apply-1.md',
-  'docs/activation-supabase-clean-staging-isolated-target-creation-1-reports/clean_staging_isolated_target_creation_report.json',
-  'docs/activation-supabase-clean-staging-isolated-target-creation-1-reports/clean_staging_isolated_target_creation_manifest.json',
+  'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-owner-decision-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-owner-decision-1-record.json',
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-replacement-history-source-mapping-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-replacement-history-source-mapping-1-record.json',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'docs/production-beta-blocker-inventory.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'implementation-status-and-next-phase.md',
+  'scripts/validation/supabase-clean-staging-isolated-target-creation-1.mjs',
+  'scripts/validation/supabase-clean-staging-isolated-target-creation-1-diagnostics.mjs',
+  'package.json',
+]
+
+const packetFiles = [
+  'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-creation-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-creation-1-record.json',
+  'docs/activation-phase-supabase-clean-staging-isolated-target-creation-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-clean-staging-isolated-target-migration-chain-apply-1.md',
+]
+
+const optionalReportFiles = [reportPath, manifestPath]
+
+const allowedChangedFiles = new Set([
+  ...packetFiles,
+  ...optionalReportFiles,
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'docs/production-beta-blocker-inventory.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'implementation-status-and-next-phase.md',
+  'scripts/validation/supabase-clean-staging-isolated-target-creation-1.mjs',
+  'scripts/validation/supabase-clean-staging-isolated-target-creation-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-isolated-target-owner-decision-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-replacement-history-source-mapping-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-replacement-execution-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
   'package.json',
 ])
 
 const requiredText = [
   packet,
-  'approved_isolated_clean_staging_target_path_for_source_aligned_validation_planning',
-  'completed_docs_only_isolated_target_owner_decision_no_remote_execution',
+  'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_ISOLATED_TARGET_CREATION=true',
+  'reeditpro-clean-staging-isolated-v1',
   'new_isolated_non_production_supabase_target',
-  'future_explicitly_gated_source_aligned_target_creation_planning_only',
-  'blocked_remote_only_migration_20260626162800_unmapped',
-  'blocked_remote_only_migration_20260626163138_unmapped',
-  'blocked_pending_schema_equivalence_evidence_or_explicit_repair_policy',
-  'Remote Supabase command class: `none_in_this_phase`',
-  'Secret Manager payload access: `false`',
-  'SQL execution: `none`',
+  'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
   'SQL mutation: `none`',
   'Migration dry-run: `not_run`',
   'Migration deployed: `no`',
   'Migration history manual edit: `no`',
   'Supabase db pull: `false`',
-  'Branch creation: `not_run`',
   'Branch cleanup/delete: `not_run`',
-  'DB URL secret rotation: `not_run`',
   'Internal beta unlocked: `false`',
   'External beta unlocked: `false`',
   'Production unlocked: `false`',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  'fnjiylwirntrqdcwpbho',
-  'rjenorvzqsxwljvvvtxd',
-  'SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1',
-  'SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1',
+  'SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1',
   'PR #577',
 ]
 
 const forbiddenPatterns = [
-  /remoteSupabaseCommand"?\s*:\s*true/i,
-  /remoteSupabaseMutation"?\s*:\s*true/i,
-  /secretManagerPayloadAccess"?\s*:\s*true/i,
-  /sqlExecution"?\s*:\s*true/i,
+  /credentialPayloadPrinted"?\s*:\s*true/i,
+  /credentialPayloadPersistedInRepo"?\s*:\s*true/i,
   /sqlMutation"?\s*:\s*true/i,
   /migrationDryRun"?\s*:\s*true/i,
   /migrationApply"?\s*:\s*true/i,
   /migrationHistoryManualEdit"?\s*:\s*true/i,
   /supabaseDbPull"?\s*:\s*true/i,
-  /branchCreation"?\s*:\s*true/i,
+  /branchCreate"?\s*:\s*true/i,
   /branchDelete"?\s*:\s*true/i,
   /branchReset"?\s*:\s*true/i,
-  /dbUrlSecretRotation"?\s*:\s*true/i,
   /storageObjectCreation"?\s*:\s*true/i,
   /storageObjectRead"?\s*:\s*true/i,
   /serviceRoleRouteExecution"?\s*:\s*true/i,
@@ -109,7 +94,6 @@ const forbiddenPatterns = [
   /internalBetaUnlock"?\s*:\s*true/i,
   /externalBetaUnlock"?\s*:\s*true/i,
   /productionUnlock"?\s*:\s*true/i,
-  /SQL execution:\s*`(?!(none|false)`)/i,
   /SQL mutation:\s*`(?!(none|false)`)/i,
   /Migration deployed:\s*`(?!(no|false|local_only)`)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
@@ -121,6 +105,7 @@ const secretPatterns = [
   [/https:\/\/[a-z0-9-]+\.supabase\.co/i, 'Supabase URL leaked'],
   [/"db_pass"\s*:\s*"[^"]+"/i, 'database password leaked'],
   [/"jwt_secret"\s*:\s*"[^"]+"/i, 'JWT secret leaked'],
+  [/"orgId"\s*:\s*"(?!\[present\])[^"]+"/i, 'organization id leaked'],
 ]
 
 function fail(message) {
@@ -131,6 +116,10 @@ function fail(message) {
 function read(file) {
   if (!fs.existsSync(file)) fail(`missing required file: ${file}`)
   return fs.readFileSync(file, 'utf8')
+}
+
+function exists(file) {
+  return fs.existsSync(file)
 }
 
 function gitLines(args) {
@@ -163,49 +152,72 @@ for (const text of requiredText) {
 
 const packetCorpus = packetFiles.map((file) => read(file)).join('\n')
 for (const pattern of forbiddenPatterns) {
-  if (pattern.test(packetCorpus)) fail(`forbidden claim matched: ${pattern}`)
+  if (pattern.test(packetCorpus)) fail(`forbidden claim matched in packet docs: ${pattern}`)
 }
 
-const record = JSON.parse(read('docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-owner-decision-1-record.json'))
-if (record.decision !== 'approved_isolated_clean_staging_target_path_for_source_aligned_validation_planning') fail('record decision mismatch')
-if (record.execution !== 'completed_docs_only_isolated_target_owner_decision_no_remote_execution') fail('record execution mismatch')
-if (record.ownerDecision?.approvedFutureTargetClass !== 'new_isolated_non_production_supabase_target') fail('future target class mismatch')
-if (record.ownerDecision?.approvedScope !== 'future_explicitly_gated_source_aligned_target_creation_planning_only') fail('approved scope mismatch')
-if (record.ownerDecision?.currentCleanBranchAdoption !== 'blocked_remote_only_migration_20260626162800_unmapped') fail('current branch adoption mismatch')
-if (record.ownerDecision?.replacementBranchAdoption !== 'blocked_remote_only_migration_20260626163138_unmapped') fail('replacement branch adoption mismatch')
-if (record.ownerDecision?.migrationHistoryRepairPolicy !== 'blocked_pending_schema_equivalence_evidence_or_explicit_repair_policy') fail('repair policy mismatch')
-if (record.blockedTargets?.currentCleanBranch?.adopted !== false) fail('current clean branch must not be adopted')
-if (record.blockedTargets?.replacementBranch?.adopted !== false) fail('replacement branch must not be adopted')
-if (record.blockedTargets?.replacementBranch?.cleanupRun !== false) fail('replacement cleanup must not run')
-if (record.safety?.remoteSupabaseCommand !== false) fail('remote Supabase command must be false')
-if (record.safety?.remoteSupabaseMutation !== false) fail('remote Supabase mutation must be false')
-if (record.safety?.secretManagerPayloadAccess !== false) fail('secret payload access must be false')
-if (record.safety?.sqlExecution !== false) fail('SQL execution must be false')
+const record = JSON.parse(read('docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-creation-1-record.json'))
+if (record.packet !== packet) fail('record packet mismatch')
+if (record.confirmationVar !== 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_ISOLATED_TARGET_CREATION') fail('confirmation var mismatch')
+if (record.target?.projectName !== 'reeditpro-clean-staging-isolated-v1') fail('target name mismatch')
+if (record.target?.targetClass !== 'new_isolated_non_production_supabase_target') fail('target class mismatch')
+if (record.target?.dbUrlSecret !== 'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL') fail('target secret mismatch')
+if (record.safety?.credentialPayloadPrinted !== false) fail('credential payload printed must be false')
+if (record.safety?.credentialPayloadPersistedInRepo !== false) fail('credential payload persisted must be false')
 if (record.safety?.sqlMutation !== false) fail('SQL mutation must be false')
 if (record.safety?.migrationDryRun !== false) fail('migration dry-run must be false')
 if (record.safety?.migrationApply !== false) fail('migration apply must be false')
+if (record.safety?.migrationHistoryManualEdit !== false) fail('migration history manual edit must be false')
 if (record.safety?.supabaseDbPull !== false) fail('Supabase db pull must be false')
-if (record.safety?.branchCreation !== false) fail('branch creation must be false')
+if (record.safety?.branchCreate !== false) fail('branch create must be false')
 if (record.safety?.branchDelete !== false) fail('branch delete must be false')
 if (record.safety?.branchReset !== false) fail('branch reset must be false')
-if (record.safety?.dbUrlSecretRotation !== false) fail('DB URL secret rotation must be false')
+if (record.safety?.storageObjectCreation !== false) fail('storage object creation must be false')
+if (record.safety?.storageObjectRead !== false) fail('storage object read must be false')
 if (record.safety?.internalBetaUnlock !== false) fail('internal beta unlock must be false')
 if (record.safety?.externalBetaUnlock !== false) fail('external beta unlock must be false')
 if (record.safety?.productionUnlock !== false) fail('production unlock must be false')
-if (!record.nextMilestones?.includes('SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1')) fail('isolated target creation next milestone missing')
-if (!record.nextMilestones?.includes('SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1')) fail('cleanup next milestone missing')
+if (!record.nextMilestones?.includes('SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1')) fail('migration-chain apply next milestone missing')
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.packageLock !== 'unchanged') fail('package-lock mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts mismatch')
 
-const sourceMapping = JSON.parse(read('docs/supabase-worker-runtime/supabase-clean-staging-branch-replacement-history-source-mapping-1-record.json'))
-if (sourceMapping.remoteOnlyMigration?.sourceMapping !== 'unmapped') fail('source mapping record must remain unmapped')
-if (sourceMapping.replacementBranch?.adoptedAsCleanStagingTarget !== false) fail('source mapping replacement branch adoption changed')
+if (exists(reportPath)) {
+  if (!exists(manifestPath)) fail('report exists without manifest')
+  const report = JSON.parse(read(reportPath))
+  if (report.packet !== packet) fail('report packet mismatch')
+  if (report.targetProjectName !== 'reeditpro-clean-staging-isolated-v1') fail('report target mismatch')
+  if (report.safety?.credentialPayloadPrinted !== false) fail('report credential payload printed must be false')
+  if (report.safety?.credentialPayloadPersistedInRepo !== false) fail('report credential payload persisted must be false')
+  if (report.safety?.sqlMutation !== false) fail('report SQL mutation must be false')
+  if (report.safety?.migrationApply !== false) fail('report migration apply must be false')
+  if (report.safety?.migrationDryRun !== false) fail('report migration dry-run must be false')
+  if (report.safety?.migrationHistoryManualEdit !== false) fail('report migration history manual edit must be false')
+  if (report.safety?.supabaseDbPull !== false) fail('report Supabase db pull must be false')
+  if (report.safety?.branchCreate !== false) fail('report branch create must be false')
+  if (report.safety?.branchDelete !== false) fail('report branch delete must be false')
+  if (report.safety?.branchReset !== false) fail('report branch reset must be false')
+  if (report.safety?.storageObjectCreation !== false) fail('report storage object creation must be false')
+  if (report.safety?.storageObjectRead !== false) fail('report storage object read must be false')
+  if (report.safety?.internalBetaUnlock !== false) fail('report internal beta unlock must be false')
+  if (report.safety?.externalBetaUnlock !== false) fail('report external beta unlock must be false')
+  if (report.safety?.productionUnlock !== false) fail('report production unlock must be false')
+  if (report.decision === 'completed_isolated_clean_staging_target_creation_source_aligned_secret_rotation') {
+    if (report.dbUrlSecretRotation !== 'completed') fail('completed report must rotate DB URL secret')
+    if (report.migrationHistoryEvidence?.sourceAlignedNoRemoteOnlyMigrations !== true) fail('completed report must prove source alignment')
+    if (!report.selectedProjectRef) fail('completed report missing selected project ref')
+  }
+}
 
 const packageJson = JSON.parse(read('package.json'))
 if (
-  packageJson.scripts?.['supabase-clean-staging-isolated-target-owner-decision-1:diagnostics'] !==
-  'node scripts/validation/supabase-clean-staging-isolated-target-owner-decision-1-diagnostics.mjs'
+  packageJson.scripts?.['supabase-clean-staging-isolated-target-creation-1'] !==
+  'node scripts/validation/supabase-clean-staging-isolated-target-creation-1.mjs'
+) {
+  fail('missing runner package script')
+}
+if (
+  packageJson.scripts?.['supabase-clean-staging-isolated-target-creation-1:diagnostics'] !==
+  'node scripts/validation/supabase-clean-staging-isolated-target-creation-1-diagnostics.mjs'
 ) {
   fail('missing diagnostics package script')
 }
@@ -222,6 +234,7 @@ for (const file of changedFiles()) {
   if (file.includes('/._') || file.startsWith('._') || file.includes('.DS_Store')) fail(`metadata artifact changed: ${file}`)
   const text = read(file)
     .replaceAll('postgresql://[redacted]', '')
+    .replaceAll('supabase migration list --db-url [redacted]', '')
     .replaceAll('supabase migration list --db-url [REDACTED_REPLACEMENT_BRANCH_DB_URL]', '')
   for (const [pattern, message] of secretPatterns) {
     if (pattern.test(text)) fail(`${message} in ${file}`)
@@ -229,5 +242,4 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: approved_isolated_clean_staging_target_path_for_source_aligned_validation_planning')
-console.log('Next milestone: SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1')
+console.log(`Decision: ${record.decision}`)

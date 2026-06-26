@@ -1,0 +1,198 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1",
+  "runId": "2026-06-26T19-56-42-471Z-36bd38cd",
+  "outputDir": "/tmp/reeditpro-supabase-clean-staging-isolated-target-creation-1/2026-06-26T19-56-42-471Z-36bd38cd",
+  "generatedAt": "2026-06-26T19:59:01.700Z",
+  "targetProjectName": "reeditpro-clean-staging-isolated-v1",
+  "targetSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+  "decision": "completed_isolated_clean_staging_target_creation_source_aligned_secret_rotation",
+  "execution": "completed_guarded_isolated_target_creation_migration_history_readback_and_db_url_secret_rotation_no_sql_mutation",
+  "blocker": "none",
+  "confirmationVar": "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_ISOLATED_TARGET_CREATION",
+  "accessTokenSecretMetadata": {
+    "present": true,
+    "name": "projects/390722338345/secrets/SUPABASE_ACCESS_TOKEN/versions/5",
+    "state": "ENABLED",
+    "createTime": "2026-06-26T14:36:16.988496Z"
+  },
+  "targetSecretMetadataBefore": {
+    "present": true,
+    "name": "projects/390722338345/secrets/REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL/versions/1",
+    "state": "ENABLED",
+    "createTime": "2026-06-26T17:57:40.759269Z"
+  },
+  "targetSecretMetadataAfter": {
+    "present": true,
+    "name": "projects/390722338345/secrets/REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL/versions/2",
+    "state": "ENABLED",
+    "createTime": "2026-06-26T19:59:00.940100Z"
+  },
+  "orgResolution": {
+    "status": "resolved_from_parent_project",
+    "orgId": "[present]",
+    "parentProject": {
+      "name": "Reeditpro",
+      "ref": "wmyyttnynmteqgcdishd",
+      "region": "us-west-1",
+      "status": "ACTIVE_HEALTHY",
+      "organizationIdPresent": true
+    }
+  },
+  "regionResolution": {
+    "status": "resolved_from_parent_project",
+    "region": "us-west-1",
+    "parentProject": {
+      "name": "Reeditpro",
+      "ref": "wmyyttnynmteqgcdishd",
+      "region": "us-west-1",
+      "status": "ACTIVE_HEALTHY",
+      "organizationIdPresent": true
+    }
+  },
+  "createCommand": {
+    "commandClass": "supabase projects create [TARGET_PROJECT] --org-id [ORG] --db-password [redacted] --region [REGION] --size [SIZE]",
+    "status": "passed",
+    "exitCode": 0,
+    "stdout": {
+      "byteLength": 277,
+      "lineCount": 1,
+      "snippet": "{\"id\":\"fajinbvwhcjnutkaumkm\",\"ref\":\"fajinbvwhcjnutkaumkm\",\"organization_id\":\"[present]\",\"organization_slug\":\"[present]\",\"name\":\"reeditpro-clean-staging-isolated-v1\",\"region\":\"us-west-1\",\"created_at\":\"2026-06-26T19:56:48.434346Z\",\"status\":\"UNKNOWN\",\"message\":\"Created project\"}",
+      "secretPatternDetected": false
+    },
+    "stderr": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "snippet": "",
+      "secretPatternDetected": false
+    }
+  },
+  "targetAction": "created",
+  "selectedProject": {
+    "name": "reeditpro-clean-staging-isolated-v1",
+    "ref": "fajinbvwhcjnutkaumkm",
+    "region": "us-west-1",
+    "status": "ACTIVE_HEALTHY",
+    "organizationIdPresent": true
+  },
+  "selectedProjectRef": "fajinbvwhcjnutkaumkm",
+  "migrationHistoryReadback": "completed_source_aligned_no_remote_only_migrations",
+  "migrationHistoryEvidence": {
+    "status": "passed",
+    "commandClass": "supabase migration list --db-url [redacted]",
+    "commandResult": {
+      "commandClass": "supabase migration list --db-url [redacted]",
+      "status": "passed",
+      "exitCode": 0,
+      "stdout": {
+        "byteLength": 1305,
+        "lineCount": 26,
+        "snippet": "Local          | Remote | Time (UTC)          \n  ----------------|--------|---------------------\n   202605130001   |        | 202605130001        \n   202605130002   |        | 202605130002        \n   202605130003   |        | 202605130003        \n   202605130004   |        | 202605130004        \n   202605130005   |        | 202605130005        \n   202605130006   |        | 202605130006        \n   202605130007   |        | 202605130007        \n   202605130008   |        | 202605130008        \n   202605180001   |        | 202605180001        \n   202605180002   |        | 202605180002        \n   202605180003   |        | 202605180003        \n   202605180004   |        | 202605180004        \n   202605180005   |        | 202605180005        \n   202605180006   |        | 202605180006        \n   202605180007   |        | 202605180007        \n   202605180008   |        | 202605180008        \n   202605190001   |        | 202605190001        \n   202605190002   |        | 202605190002        \n   202605200001   |        | 202605200001        \n   202605200002   |        | 202605200002        \n   202605210001   |        | 202605210001        \n   202606050001   |        | 202606050001        \n   202606180001   |        | 202606180001        \n   20260625031135 |        | 2026-06-25 03:11:35",
+        "secretPatternDetected": false
+      },
+      "stderr": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "snippet": "",
+        "secretPatternDetected": false
+      }
+    },
+    "migrationHistoryParsed": false,
+    "localMigrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001",
+      "202606180001",
+      "20260625031135"
+    ],
+    "remoteMigrationIds": [],
+    "pendingLocalMigrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001",
+      "202606180001",
+      "20260625031135"
+    ],
+    "remoteOnlyMigrationIds": [],
+    "requiredMigrationIds": [
+      "202606050001",
+      "202606180001",
+      "20260625031135"
+    ],
+    "sourceAlignedNoRemoteOnlyMigrations": true
+  },
+  "dbUrlSecretRotation": "completed",
+  "targetSecretCreated": false,
+  "targetSecretVersionAdded": "unknown",
+  "nextMilestone": "SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1",
+  "safety": {
+    "secretManagerPayloadAccess": true,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "supabaseProjectList": true,
+    "supabaseOrgList": true,
+    "supabaseProjectCreate": true,
+    "remoteSupabaseCommand": true,
+    "remoteSupabaseMutation": true,
+    "remoteSupabaseReadCommand": true,
+    "sqlExecution": true,
+    "sqlMutation": false,
+    "migrationListRead": true,
+    "migrationApply": false,
+    "migrationDryRun": false,
+    "migrationHistoryManualEdit": false,
+    "supabaseDbPull": false,
+    "branchCreate": false,
+    "branchDelete": false,
+    "branchReset": false,
+    "dbUrlSecretRotation": true,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "providerCall": false,
+    "modelCall": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  }
+}

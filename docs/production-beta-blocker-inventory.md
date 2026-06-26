@@ -365,6 +365,18 @@ Internal beta remains `blocked_pending_isolated_clean_staging_target_creation_an
 
 Next recommended milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.
 
+## Supabase Clean Staging Isolated Target Creation 1
+
+`SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1` records `completed_isolated_clean_staging_target_creation_source_aligned_secret_rotation`.
+
+Target project name: `reeditpro-clean-staging-isolated-v1`. Selected project ref: `fajinbvwhcjnutkaumkm`. Confirmation gate: `REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_ISOLATED_TARGET_CREATION=true`.
+
+The packet rotated `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` to version `2` after read-only migration-history inspection proved no remote-only migration history. It does not approve migration apply, migration dry-run, migration history edits, Supabase db pull, storage object creation/read, service-role route execution, worker dispatch, signed/public artifacts, or beta unlocks.
+
+Internal beta remains `blocked_pending_isolated_target_migration_chain_apply` until the repository migration chain is applied and read back against the isolated target under a separate explicit gate.
+
+Next recommended milestone: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1`.
+
 ## Internal Beta Local Readiness Gate Rollup
 
 `RP-INTERNAL-BETA-LOCAL-READINESS-GATE-ROLLUP-1` records decision `blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates` and execution `completed_local_readiness_gate_rollup_no_remote_execution`.

@@ -1,0 +1,75 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1",
+  "decision": "completed_isolated_clean_staging_target_creation_source_aligned_secret_rotation",
+  "execution": "completed_guarded_isolated_target_creation_migration_history_readback_and_db_url_secret_rotation_no_sql_mutation",
+  "integrationHead": "b4fb7bfba080e611631706df9840ceeb3766296e",
+  "confirmationVar": "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_ISOLATED_TARGET_CREATION",
+  "sourceDependencies": {
+    "pr1078": "supabase_clean_staging_isolated_target_owner_decision_1",
+    "pr1074": "supabase_clean_staging_branch_replacement_history_source_mapping_1",
+    "pr1070": "supabase_clean_staging_branch_replacement_execution_1",
+    "pr1064": "supabase_clean_staging_branch_migration_history_source_derived_owner_decision_1",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "target": {
+    "projectName": "reeditpro-clean-staging-isolated-v1",
+    "targetClass": "new_isolated_non_production_supabase_target",
+    "dbUrlSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+    "creationStatus": "completed",
+    "selectedProjectRef": "fajinbvwhcjnutkaumkm",
+    "region": "us-west-1",
+    "migrationHistoryReadback": "completed_source_aligned_no_remote_only_migrations",
+    "remoteOnlyMigrationIds": [],
+    "dbUrlSecretRotation": "completed",
+    "targetSecretVersionAfter": "projects/390722338345/secrets/REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL/versions/2"
+  },
+  "readiness": {
+    "workerRuntimeTransactionalContract2": "blocked_pending_isolated_target_migration_chain_apply",
+    "workerRuntimeTrackaPrivateE2eExecutionGate2r": "blocked_pending_source_aligned_clean_staging_target_and_migration_chain_apply",
+    "trackaPrivateE2eRevalidation2": "blocked_pending_worker_transactional_contract",
+    "internalBetaReadinessRollup": "blocked_pending_isolated_target_migration_chain_apply",
+    "externalProductBeta": "blocked_pending_internal_beta_evidence_security_privacy_support_cost_and_deployment_gates"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": true,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "remoteSupabaseCommand": true,
+    "remoteSupabaseMutation": true,
+    "sqlExecution": true,
+    "sqlMutation": false,
+    "migrationDryRun": false,
+    "migrationApply": false,
+    "migrationHistoryManualEdit": false,
+    "supabaseDbPull": false,
+    "branchCreate": false,
+    "branchDelete": false,
+    "branchReset": false,
+    "dbUrlSecretRotation": true,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "providerCall": false,
+    "modelCall": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "nextMilestones": [
+    "SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1",
+    "SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1"
+  ],
+  "evidence": {
+    "runId": "2026-06-26T19-56-42-471Z-36bd38cd",
+    "report": "docs/activation-supabase-clean-staging-isolated-target-creation-1-reports/clean_staging_isolated_target_creation_report.json",
+    "reportSha256": "c183322d6aba29a52e3cd7f7f7e01681a895e4323dc71f426b2b2946b3d79899",
+    "manifest": "docs/activation-supabase-clean-staging-isolated-target-creation-1-reports/clean_staging_isolated_target_creation_manifest.json",
+    "manifestSha256": "11bd54e8c04c1744f7eafad4c2c2b086b10d81dd93e3d9fa1aa322ca4a8f16e1"
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

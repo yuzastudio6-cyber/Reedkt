@@ -129,6 +129,23 @@ for (const file of privateArtifactAccessPolicyLocalRuntimeFiles) {
   allowedChangedFiles.add(file)
 }
 
+const localE2EChainSmokeFiles = [
+  'docs/internal-beta/rp-internal-beta-local-e2e-chain-smoke-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-local-e2e-chain-smoke-1/runtime-contract.md',
+  'docs/internal-beta/rp-internal-beta-local-e2e-chain-smoke-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-local-e2e-chain-smoke-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-local-e2e-chain-smoke-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-local-e2e-chain-smoke-1/local-e2e-chain-smoke-record.json',
+  'docs/activation-phase-rp-internal-beta-local-e2e-chain-smoke-1-results.md',
+  'server/services/internal-beta-local-e2e-chain-smoke.ts',
+  'server/smoke/internal-beta-local-e2e-chain-smoke.ts',
+  'scripts/validation/rp-internal-beta-local-e2e-chain-smoke-1-diagnostics.mjs',
+]
+
+for (const file of localE2EChainSmokeFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const remotionPrivatePreviewExportLocalRuntimeFiles = [
   'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/source-audit.md',
   'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/runtime-contract.md',

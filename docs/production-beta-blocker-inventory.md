@@ -205,6 +205,20 @@ Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tool
 
 Next safe milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
 
+## Internal Beta Local E2E Chain Smoke
+
+`RP-INTERNAL-BETA-LOCAL-E2E-CHAIN-SMOKE-1` records decision `completed_local_internal_beta_e2e_chain_smoke_no_remote_runtime` and execution `completed_backend_local_e2e_chain_metadata_composition_no_remote_execution`.
+
+The accepted chain smoke validates local metadata composition across approved snapshot, credit reservation, job queue, private artifact manifest, private artifact access policy, Remotion private preview/export metadata, and QA cleanup observability. It keeps the upload-to-render internal beta lane blocked pending approved Supabase credential context, confirmed RLS/storage validation, service-role runtime enablement, transactional job/credit/artifact persistence, and negative runtime regressions.
+
+Remote Supabase mutation, SQL execution, migration apply, storage object creation/read/delete, signed URL creation, public artifact creation, service-role route execution, worker dispatch/execution, provider/model call, Remotion execution, FFmpeg/FFprobe execution, media processing, credit mutation, and internal beta unlock remain `false`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Pre-validation caveat: a local `npx tsx` smoke probe fetched `tsx` into npm cache before accepted validation, did not modify repository files, is not accepted validation evidence, and must not be repeated.
+
+Next safe action remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN` only after approved credential aliases are present.
+
 ## Internal Beta Remotion Private Preview Export Local Runtime
 
 `RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-LOCAL-RUNTIME-1` records decision `completed_local_remotion_private_preview_export_runtime_no_render_execution` and execution `completed_backend_local_remotion_preview_export_validation_no_render_or_media`.

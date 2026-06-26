@@ -70,6 +70,7 @@
     "ai-video-broll-model-weight-evidence-alignment:diagnostics": "node scripts/validation/ai-video-broll-model-weight-evidence-alignment-diagnostics.mjs",
     "ai-video-broll-wan-mount-source-install-plan:diagnostics": "node scripts/validation/ai-video-broll-wan-mount-source-install-plan-diagnostics.mjs",
     "ai-video-broll-wan-mount-validator:diagnostics": "node scripts/validation/ai-video-broll-wan-mount-validator-diagnostics.mjs",
+    "ai-video-broll-wan-private-cache-validator-result:diagnostics": "node scripts/validation/ai-video-broll-wan-private-cache-validator-result-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

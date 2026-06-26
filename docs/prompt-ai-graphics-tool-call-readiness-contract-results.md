@@ -44,6 +44,8 @@ Latest observed PR state after per-profile native GPU proof evidence hardening: 
 
 Latest observed PR state after duplicate GPU proof profile hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ca2579ccd81f660017c8833eab27681a586bfbeb`, with an empty check rollup.
 
+Latest observed PR state after dedicated GPU runtime target alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `7333352da8c44a03e0b146b775a9506484680c1f`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.

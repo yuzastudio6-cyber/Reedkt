@@ -40,9 +40,26 @@ const serviceRolePersistenceGuardFiles = [
   'scripts/validation/rp-internal-beta-approved-snapshot-service-role-persistence-guard-1-diagnostics.mjs',
 ]
 
+const creditReservationLocalRuntimeFiles = [
+  'docs/internal-beta/rp-internal-beta-credit-reservation-local-runtime-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-credit-reservation-local-runtime-1/runtime-contract.md',
+  'docs/internal-beta/rp-internal-beta-credit-reservation-local-runtime-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-credit-reservation-local-runtime-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-credit-reservation-local-runtime-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-credit-reservation-local-runtime-1/credit-reservation-local-runtime-record.json',
+  'docs/activation-phase-rp-internal-beta-credit-reservation-local-runtime-1-results.md',
+  'server/services/internal-beta-credit-reservation-local-runtime.ts',
+  'server/smoke/internal-beta-credit-reservation-local-runtime-smoke.ts',
+  'scripts/validation/rp-internal-beta-credit-reservation-local-runtime-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set(requiredFiles)
 
 for (const file of serviceRolePersistenceGuardFiles) {
+  allowedChangedFiles.add(file)
+}
+
+for (const file of creditReservationLocalRuntimeFiles) {
   allowedChangedFiles.add(file)
 }
 

@@ -153,6 +153,18 @@ No Supabase mutation, credit mutation, Stripe checkout/webhook/payment processin
 Internal beta end-to-end remains `not_ready` until transactional credit ledger runtime, approved snapshot commit runtime, worker queue/lease/event runtime, private artifact access policy, render worker, QA, cleanup, and negative safety tests pass.
 
 Next recommended step: `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD`.
+
+## RP-INTERNAL-BETA Credit Reservation Local Runtime
+
+`RP-INTERNAL-BETA-CREDIT-RESERVATION-LOCAL-RUNTIME-1` records decision `completed_local_credit_reservation_runtime_no_remote_credit_mutation` and execution `completed_backend_local_credit_reservation_validation_no_stripe_or_supabase`.
+
+The beta lane now has a backend-local deterministic reservation metadata runtime. It validates approved estimate state, idempotency, approved snapshot reference metadata, and unsafe input rejection, then creates local-only reservation and reservation-ledger metadata that future approved snapshot persistence can reference.
+
+This is not a real wallet mutation, Stripe/payment operation, Supabase write, service-role route, job enqueue, worker dispatch, provider/model call, render/export, signed/public artifact, or internal beta unlock.
+
+Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended step: `RP-INTERNAL-BETA-JOB-QUEUE-LOCAL-RUNTIME-1`.
 ## RP-JOBS-01 Internal Beta Job Queue Runtime Scaffold
 
 `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_job_queue_runtime_scaffold_no_worker_execution` and execution `completed_fail_closed_job_queue_scaffold_no_route_or_worker_execution`.

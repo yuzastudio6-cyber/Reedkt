@@ -657,6 +657,8 @@
     "rp-internal-beta-approved-snapshot-persistence-local-runtime-1:diagnostics": "node scripts/validation/rp-internal-beta-approved-snapshot-persistence-local-runtime-1-diagnostics.mjs",
     "smoke:internal-beta-approved-snapshot-service-role-persistence-guard": "tsx server/smoke/internal-beta-approved-snapshot-service-role-persistence-guard-smoke.ts",
     "rp-internal-beta-approved-snapshot-service-role-persistence-guard-1:diagnostics": "node scripts/validation/rp-internal-beta-approved-snapshot-service-role-persistence-guard-1-diagnostics.mjs",
+    "smoke:internal-beta-credit-reservation-local-runtime": "tsx server/smoke/internal-beta-credit-reservation-local-runtime-smoke.ts",
+    "rp-internal-beta-credit-reservation-local-runtime-1:diagnostics": "node scripts/validation/rp-internal-beta-credit-reservation-local-runtime-1-diagnostics.mjs",
     "rp-internal-beta-runtime-enablement-plan-1:diagnostics": "node scripts/validation/rp-internal-beta-runtime-enablement-plan-1-diagnostics.mjs",
     "rp-internal-beta-runtime-enablement-owner-approval-1:diagnostics": "node scripts/validation/rp-internal-beta-runtime-enablement-owner-approval-1-diagnostics.mjs",
     "rp-internal-beta-named-runtime-target-approval-1:diagnostics": "node scripts/validation/rp-internal-beta-named-runtime-target-approval-1-diagnostics.mjs",

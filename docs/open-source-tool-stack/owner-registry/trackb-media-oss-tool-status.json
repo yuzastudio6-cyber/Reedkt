@@ -2122,5 +2122,22 @@
     "readyForExternalBeta": false,
     "readyForProduction": false,
     "supabaseClassification": "no write / environment none / SQL none / migration no"
+  },
+  "productBetaToolsCallLaneReadyHandoff": {
+    "decision": "trackb_media_oss_product_beta_tools_call_lane_handoff_passed_ready_for_external_beta_production_readiness_gap_review",
+    "previousDecision": "trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane",
+    "nextPrompt": "TRACKB_MEDIA_OSS_EXTERNAL_BETA_PRODUCTION_READINESS_GAP_REVIEW",
+    "sourceSha": "edb16ba56c85b18c559ce57b15f1ae19581bfe1e",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-tools-call-lane-ready-handoff",
+    "trackBTotals": {
+      "owned": 16,
+      "boundedAcceptedProven": 16,
+      "blockedNotInstalledProven": 0,
+      "productReady": 16
+    },
+    "readyForRankedToolCallLane": true,
+    "readyForExternalBeta": false,
+    "readyForProduction": false,
+    "supabaseClassification": "no write / environment none / SQL none / migration no"
   }
 }

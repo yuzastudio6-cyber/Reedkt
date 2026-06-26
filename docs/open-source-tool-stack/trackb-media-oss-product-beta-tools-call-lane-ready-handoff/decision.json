@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.trackbMediaOss.productBetaToolsCallLaneReadyHandoff.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_tools_call_lane_handoff_passed_ready_for_external_beta_production_readiness_gap_review",
+  "previousDecision": "trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane",
+  "nextPrompt": "TRACKB_MEDIA_OSS_EXTERNAL_BETA_PRODUCTION_READINESS_GAP_REVIEW",
+  "sourceSha": "edb16ba56c85b18c559ce57b15f1ae19581bfe1e",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-tools-call-lane-ready-handoff",
+  "report": "decision",
+  "decisionSummary": "Track B tools-call lane is ready for handoff; external beta and production remain blocked pending broader readiness gap review.",
+  "readyForRankedToolCallLane": true,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "readyForSupabaseGcsWrites": false,
+  "readyForPublicArtifacts": false,
+  "readyForSignedUrls": false,
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 16
+  },
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

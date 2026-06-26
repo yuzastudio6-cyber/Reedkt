@@ -2,19 +2,19 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-INTERNAL-BETA-API-ROUTE-RUNTIME-FACADE-1'
-const packetDir = 'docs/internal-beta/rp-internal-beta-api-route-runtime-facade-1'
+const packet = 'RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-3-API-ROUTE-FACADE-INTEGRATION'
+const packetDir = 'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/route-facade-matrix.md`,
-  `${packetDir}/fail-closed-boundary.md`,
+  `${packetDir}/orchestrator-facade-integration.md`,
   `${packetDir}/readiness-gate.md`,
-  `${packetDir}/api-route-runtime-facade-record.json`,
+  `${packetDir}/safety-boundary.md`,
+  `${packetDir}/runtime-readiness-orchestrator-3-record.json`,
   `${packetDir}/validation-results.md`,
-  'docs/activation-phase-rp-internal-beta-api-route-runtime-facade-1-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-api-route-runtime-facade-1.md',
+  'docs/activation-phase-rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration.md',
 ]
 
 const touchedStatusFiles = [
@@ -23,47 +23,32 @@ const touchedStatusFiles = [
 ]
 
 const codeFiles = [
-  'server/services/internal-beta-api-route-runtime-facade.ts',
-  'server/smoke/internal-beta-api-route-runtime-facade-smoke.ts',
-  'scripts/validation/rp-internal-beta-api-route-runtime-facade-1-diagnostics.mjs',
-  'package.json',
-]
-
-const requiredFiles = [...packetFiles, ...touchedStatusFiles, ...codeFiles]
-const allowedChangedFiles = new Set(requiredFiles)
-
-for (const file of [
-  'docs/activation-phase-rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration-results.md',
-  'docs/implementation-prompts/prompt-rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration.md',
-  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration/source-audit.md',
-  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration/orchestrator-facade-integration.md',
-  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration/readiness-gate.md',
-  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration/safety-boundary.md',
-  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration/runtime-readiness-orchestrator-3-record.json',
-  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration/validation-results.md',
   'server/services/internal-beta-runtime-readiness-orchestrator.ts',
   'server/smoke/internal-beta-runtime-readiness-orchestrator-smoke.ts',
   'server/smoke/internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration-smoke.ts',
   'server/smoke/internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration-smoke.ts',
+  'scripts/validation/rp-internal-beta-api-route-runtime-facade-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration-diagnostics.mjs',
-]) {
-  allowedChangedFiles.add(file)
-}
+  'package.json',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...touchedStatusFiles, ...codeFiles])
 
 const requiredText = [
   packet,
-  'completed_fail_closed_internal_beta_api_route_runtime_facade_no_route_execution',
-  'completed_backend_api_facade_mapping_no_route_handler_registration',
+  'completed_internal_beta_runtime_readiness_orchestrator_api_route_facade_integration_fail_closed',
+  'completed_orchestrator_api_route_facade_integration_no_route_execution',
   'blocked_pending_supabase_target_validation_and_runtime_enablement',
-  'RP-BACKEND-01-INTERNAL-BETA-SERVICE-ROLE-API-CONTRACTS',
-  'RP-BACKEND-02-INTERNAL-BETA-SERVICE-ROLE-RUNTIME-SCAFFOLD',
+  'RP-INTERNAL-BETA-API-ROUTE-RUNTIME-FACADE-1',
   'RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-2-LOCAL-E2E-CHAIN-INTEGRATION',
   'RP-INTERNAL-BETA-SUPABASE-CREDENTIAL-CONTEXT-CONTRACT-1',
   'RP-INTERNAL-BETA-SUPABASE-TARGET-CREDENTIAL-CONTEXT-PREFLIGHT-1',
   'PR #577 remains open/draft/blocked and excluded as source-of-truth',
   'Exact open duplicate PR: `none`',
   'Exact remote duplicate branch: `none`',
-  'Route facade count: `8`',
+  'Integrated component: `api_route_runtime_facade`',
+  'API route facade response count: `8`',
+  'Total disabled runtime component count: `54`',
   'Route handler registration: `false`',
   'Mock handler registration: `false`',
   'Route execution: `false`',
@@ -89,20 +74,20 @@ const requiredText = [
   'No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, API route handler registration, mock route handler registration, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, final render/export, preview artifact creation, private media processing, user media processing, Remotion execution, FFmpeg execution, FFprobe execution, media processing, package installation beyond dependency validation, Dockerfile change, requirements change, or broad service-role handler was enabled.',
 ]
 
-const forbiddenClaims = [
+const forbiddenPacketClaims = [
   /Internal beta end-to-end ready:\s*`?true/i,
   /Internal beta end-to-end status:\s*`?(ready|enabled|unlocked)/i,
   /internal beta unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,
   /external beta unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,
   /production unlock(?:ed)?:\s*`?(true|enabled|unlocked)/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
-  /Route facade count:\s*`?(?!8\b)\d+/i,
+  /Total disabled runtime component count:\s*`?(?!54\b)\d+/i,
+  /API route facade response count:\s*`?(?!8\b)\d+/i,
   /Route handler registration:\s*`?true/i,
   /Mock handler registration:\s*`?true/i,
   /Route execution:\s*`?true/i,
   /Service-role route execution:\s*`?true/i,
   /Remote Supabase mutation:\s*`?true/i,
-  /Supabase mutation:\s*`?true/i,
   /SQL execution:\s*`?true/i,
   /SQL executed:(?!\s*`?none`?)/i,
   /Migration deployed:(?!\s*`?no`?)/i,
@@ -113,19 +98,12 @@ const forbiddenClaims = [
   /Worker dispatch:\s*`?true/i,
   /Worker execution:\s*`?true/i,
   /Provider\/model call:\s*`?true/i,
-  /Model call:\s*`?true/i,
   /Render\/export execution:\s*`?true/i,
-  /Media processing:\s*`?true/i,
   /Package-lock:\s*`?(changed|mutated)/i,
   /Generated artifacts committed:(?!\s*`?none`?)/i,
-  /service-role route handler implementation:\s*`?(completed|enabled|true|passed)/i,
 ]
 
-const forbiddenExactFiles = new Set([
-  'package-lock.json',
-  '.dockerignore',
-])
-
+const forbiddenExactFiles = new Set(['package-lock.json', '.dockerignore'])
 const forbiddenPrefixes = [
   'server/routes/',
   'server/workers/',
@@ -168,25 +146,27 @@ for (const token of requiredText) {
   if (!docsCorpus.includes(token)) fail(`missing required text: ${token}`)
 }
 
-for (const pattern of forbiddenClaims) {
+for (const pattern of forbiddenPacketClaims) {
   if (pattern.test(packetCorpus)) fail(`forbidden packet claim matched ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/api-route-runtime-facade-record.json`))
+const record = JSON.parse(read(`${packetDir}/runtime-readiness-orchestrator-3-record.json`))
 if (record.packet !== packet) fail('record packet mismatch')
-if (record.decision !== 'completed_fail_closed_internal_beta_api_route_runtime_facade_no_route_execution') {
+if (record.decision !== 'completed_internal_beta_runtime_readiness_orchestrator_api_route_facade_integration_fail_closed') {
   fail('record decision mismatch')
 }
-if (record.execution !== 'completed_backend_api_facade_mapping_no_route_handler_registration') {
+if (record.execution !== 'completed_orchestrator_api_route_facade_integration_no_route_execution') {
   fail('record execution mismatch')
 }
 if (record.status !== 'blocked_pending_supabase_target_validation_and_runtime_enablement') fail('record status mismatch')
-if (record.baseIntegrationHead !== '1307dc7353cbb3ed1e4e052a42c2dc8f183238ad') fail('base integration head mismatch')
-if (record.routeCount !== 8) fail('route count mismatch')
-if (record.backendRequiredRouteCount !== 7) fail('backend-required route count mismatch')
-if (record.disabledRouteCount !== 1) fail('disabled route count mismatch')
+if (record.baseIntegrationHead !== 'd7286c39f4ccaa919d0700f28797bacc68fcba15') fail('base integration head mismatch')
+if (record.componentCounts?.apiRouteRuntimeFacade !== 8) fail('API route facade count mismatch')
+if (record.componentCounts?.totalDisabledOperations !== 54) fail('total disabled operation count mismatch')
+if (record.localEvidenceCounts?.localE2EChainSmoke !== 1 || record.localEvidenceCounts?.total !== 1) {
+  fail('local evidence count mismatch')
+}
 if (record.facadeStatus !== 'blocked_pending_supabase_target_validation_and_runtime_enablement') fail('facade status mismatch')
-if (record.internalBetaEndToEndReady !== false) fail('internal beta readiness must stay false')
+if (record.internalBetaEndToEndReady !== false) fail('internal beta readiness must remain false')
 if (record.internalBetaEndToEndStatus !== 'not_ready') fail('internal beta status must remain not_ready')
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count must remain 0')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
@@ -224,42 +204,19 @@ for (const key of [
   if (record[key] !== false) fail(`${key} must be false`)
 }
 
-const facade = read('server/services/internal-beta-api-route-runtime-facade.ts')
-if (!facade.includes('INTERNAL_BETA_API_ROUTES')) fail('facade must import the API route contract matrix')
-for (const routeId of [
-  'internalBeta.session.create',
-  'internalBeta.approvedPlan.commit',
-  'internalBeta.creditReservation.create',
-  'internalBeta.job.enqueue',
-  'internalBeta.job.status.get',
-  'internalBeta.artifactManifest.write',
-  'internalBeta.privateArtifactAccess.create',
-  'internalBeta.qaReport.read',
+const orchestrator = read('server/services/internal-beta-runtime-readiness-orchestrator.ts')
+for (const token of [
+  'createInternalBetaApiRouteRuntimeFacadeReport',
+  'api_route_runtime_facade',
+  'apiRouteRuntimeFacade',
+  'api_route_runtime_facade: uniqueStatuses(apiRouteRuntimeFacade.facadeResponses)',
+  "...summarizeResults('api_route_runtime_facade', apiRouteRuntimeFacade.facadeResponses)",
+  'api_route_runtime_facade_validation',
+  'providerModelCall',
+  'routeHandlerRegistered',
+  'mockHandlerRegistered',
 ]) {
-  if (!docsCorpus.includes(routeId)) fail(`docs missing route id ${routeId}`)
-}
-for (const required of [
-  "status: 'blocked_pending_supabase_target_validation_and_runtime_enablement'",
-  'routeHandlerRegistered: false',
-  'mockHandlerRegistered: false',
-  'routeExecution: false',
-  'serviceRoleRouteExecution: false',
-  'remoteSupabaseMutation: false',
-  'sqlExecution: false',
-  'storageWrite: false',
-  'storageRead: false',
-  'signedUrlCreation: false',
-  'publicArtifactCreation: false',
-  'creditMutation: false',
-  'workerDispatch: false',
-  'workerExecution: false',
-  'providerModelCall: false',
-  'renderExportExecution: false',
-  'internalBetaUnlock: false',
-  'externalBetaUnlock: false',
-  'productionUnlock: false',
-]) {
-  if (!facade.includes(required)) fail(`facade missing safety field ${required}`)
+  if (!orchestrator.includes(token)) fail(`orchestrator missing token ${token}`)
 }
 for (const pattern of [
   /\.from\(/,
@@ -271,28 +228,35 @@ for (const pattern of [
   /fetch\(/,
   /exec(File)?Sync\(/,
   /spawn\(/,
-  /registerMockRouteHandler\(/,
-  /app\.(get|post|put|patch|delete)\(/,
+  /renderMedia\(/,
+  /renderStill\(/,
+  /bundle\(/,
 ]) {
-  if (pattern.test(facade)) fail(`facade contains forbidden runtime signal ${pattern}`)
+  if (pattern.test(orchestrator)) fail(`orchestrator contains forbidden runtime signal ${pattern}`)
 }
 
-const smoke = read('server/smoke/internal-beta-api-route-runtime-facade-smoke.ts')
-if (!smoke.includes('assertInternalBetaApiRouteRuntimeFacadeFailClosed')) fail('smoke missing fail-closed assertion')
-if (!smoke.includes('must_not_appear')) fail('smoke must assert sanitization')
+const smoke = read('server/smoke/internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration-smoke.ts')
+for (const token of [
+  'API route facade component count mismatch',
+  'total disabled operation count mismatch',
+  'API route facade validation gate',
+  'internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration-smoke passed',
+]) {
+  if (!smoke.includes(token)) fail(`packet smoke missing token ${token}`)
+}
 
 const packageJson = JSON.parse(read('package.json'))
 if (
-  packageJson.scripts?.['smoke:internal-beta-api-route-runtime-facade'] !==
-  'tsx server/smoke/internal-beta-api-route-runtime-facade-smoke.ts'
+  packageJson.scripts?.['smoke:internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration'] !==
+  'tsx server/smoke/internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration-smoke.ts'
 ) {
-  fail('missing smoke package script')
+  fail('missing packet smoke script')
 }
 if (
-  packageJson.scripts?.['rp-internal-beta-api-route-runtime-facade-1:diagnostics'] !==
-  'node scripts/validation/rp-internal-beta-api-route-runtime-facade-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration:diagnostics'] !==
+  'node scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-3-api-route-facade-integration-diagnostics.mjs'
 ) {
-  fail('missing diagnostics package script')
+  fail('missing packet diagnostics script')
 }
 
 gitQuiet(['diff', '--quiet', '--', 'package-lock.json'], 'package-lock.json changed')
@@ -340,7 +304,7 @@ for (const file of changedFiles) {
   if (file.startsWith('scripts/validation/')) continue
   if (touchedStatusFiles.includes(file)) continue
   const text = read(file)
-  for (const pattern of forbiddenClaims) {
+  for (const pattern of forbiddenPacketClaims) {
     if (pattern.test(text)) fail(`forbidden changed-file claim in ${file}: ${pattern}`)
   }
 }

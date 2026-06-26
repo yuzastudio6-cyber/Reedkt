@@ -4,33 +4,27 @@ import path from "node:path";
 
 const ROOT = process.cwd();
 const EXPECTED_DECISION =
-  "ai_video_broll_gen_9j_wheelhouse_prep_blocked_missing_linux_gpu_runtime_wheels";
+  "ai_video_broll_gen_9j_wheelhouse_fix_complete_private_binary_wheelhouse_ready_for_iap_transfer_preflight";
 const EXPECTED_NEXT_PROMPT =
-  "AI-VIDEO-BROLL-GEN-9J-WHEELHOUSE-FIX: resolve Torch Linux GPU runtime wheel source, no VM/no inference";
+  "AI-VIDEO-BROLL-GEN-9J-VM-PREFLIGHT-4: verify IAP wheelhouse transfer readiness, no VM/no inference";
 const EXPECTED_WHEELHOUSE =
-  "/Volumes/backup/reeditpro-model-cache/ai-video-broll/wheelhouses/wan-l4-proof-python-deps/python313-linux_x86_64".replace(
-    "linux_x86_64",
-    "linux-x86_64"
-  );
+  "/Volumes/backup/reeditpro-model-cache/ai-video-broll/wheelhouses/wan-l4-proof-python-deps/python313-linux-x86_64";
 const EXPECTED_MANIFEST = path.join(EXPECTED_WHEELHOUSE, "SHA256SUMS.json");
 const EXPECTED_AGGREGATE_SHA =
-  "655519c2a7e281ac4c2b50bf8f0117f4bf9c83132fdb626a80a1dffe70f96ce3";
-const SUPERSEDING_FIX_PHASE = "AI-VIDEO-BROLL-GEN-9J-WHEELHOUSE-FIX";
-const SUPERSEDING_FIX_STATUS =
-  "complete_private_binary_wheelhouse_ready_for_iap_transfer_preflight";
+  "366835269639cd0d7bd24fcb876d39f94bca2bb9c4772735a16fa2458dfbfc11";
 
 const REQUIRED_FILES = [
+  "docs/ai-video-broll-generation-gcp-private-wheelhouse-fix-result.md",
+  "docs/ai-video-broll-generation-gcp-private-wheelhouse-fix-change-log.md",
+  "docs/implementation-prompts/prompt-ai-video-broll-gen-9j-vm-preflight-4.md",
   "docs/ai-video-broll-generation-gcp-private-wheelhouse-prep-result.md",
-  "docs/ai-video-broll-generation-gcp-private-wheelhouse-prep-change-log.md",
   "docs/implementation-prompts/prompt-ai-video-broll-gen-9j-wheelhouse-fix.md",
-  "docs/implementation-prompts/prompt-ai-video-broll-gen-9j-wheelhouse-prep.md",
-  "docs/ai-video-broll-generation-gcp-private-vm-preflight-3-result.md",
   "server/workers/ai-video-broll-controlled-install/requirements.ai-video-broll.txt",
-  "scripts/validation/ai-video-broll-gen-9j-wheelhouse-prep-diagnostics.mjs",
+  "scripts/validation/ai-video-broll-gen-9j-wheelhouse-fix-diagnostics.mjs",
   "package.json"
 ];
 
-const REQUIRED_DIRECT_WHEEL_PREFIXES = [
+const REQUIRED_WHEEL_PREFIXES = [
   "torch-2.12.1-",
   "torchvision-0.27.1-",
   "diffusers-0.38.0-",
@@ -42,18 +36,31 @@ const REQUIRED_DIRECT_WHEEL_PREFIXES = [
   "protobuf-7.35.1-",
   "einops-0.8.2-",
   "numpy-2.5.0-",
-  "pillow-12.2.0-"
+  "pillow-12.2.0-",
+  "cuda_toolkit-13.0.2-",
+  "nvidia_cublas-13.1.0.3-",
+  "cuda_bindings-13.3.1-",
+  "cuda_pathfinder-1.5.5-",
+  "nvidia_cudnn_cu13-9.20.0.48-",
+  "nvidia_cusparselt_cu13-0.8.1-",
+  "nvidia_nccl_cu13-2.29.7-",
+  "nvidia_nvshmem_cu13-3.4.5-",
+  "triton-3.7.1-",
+  "nvidia_cuda_runtime-13.0.96-",
+  "nvidia_cufft-12.0.0.61-",
+  "nvidia_cufile-1.15.1.6-",
+  "nvidia_cuda_cupti-13.0.85-",
+  "nvidia_curand-10.4.0.35-",
+  "nvidia_cusolver-12.0.4.66-",
+  "nvidia_cusparse-12.6.3.3-",
+  "nvidia_nvjitlink-13.0.88-",
+  "nvidia_cuda_nvrtc-13.0.88-",
+  "nvidia_nvtx-13.0.85-"
 ];
 
-const REQUIRED_UNRESOLVED = [
-  "cuda-toolkit",
-  "nvidia-cublas",
-  "cuda-bindings",
-  "nvidia-cudnn-cu13",
-  "nvidia-cusparselt-cu13",
-  "nvidia-nccl-cu13",
-  "nvidia-nvshmem-cu13",
-  "triton"
+const REJECTED_WHEEL_PREFIXES = [
+  "nvidia_cublas-13.1.1.3-",
+  "nvidia_cuda_nvrtc-13.3.33-"
 ];
 
 const UNSAFE_PATTERNS = [
@@ -106,88 +113,72 @@ function ensureSafeText(files) {
 for (const file of REQUIRED_FILES) {
   check(fs.existsSync(path.join(ROOT, file)), `Missing required file: ${file}`);
 }
-
 check(fs.existsSync(EXPECTED_MANIFEST), `Missing private wheelhouse manifest: ${EXPECTED_MANIFEST}`);
 
 const packageJson = JSON.parse(read("package.json"));
 check(
-  packageJson.scripts?.["ai-video-broll-gen-9j-wheelhouse-prep:diagnostics"] ===
-    "node scripts/validation/ai-video-broll-gen-9j-wheelhouse-prep-diagnostics.mjs",
-  "package.json must expose ai-video-broll-gen-9j-wheelhouse-prep:diagnostics"
+  packageJson.scripts?.["ai-video-broll-gen-9j-wheelhouse-fix:diagnostics"] ===
+    "node scripts/validation/ai-video-broll-gen-9j-wheelhouse-fix-diagnostics.mjs",
+  "package.json must expose ai-video-broll-gen-9j-wheelhouse-fix:diagnostics"
 );
 
 const result = parseBlock(
-  "docs/ai-video-broll-generation-gcp-private-wheelhouse-prep-result.md",
-  "ai-video-broll-gen-9j-wheelhouse-prep-result"
+  "docs/ai-video-broll-generation-gcp-private-wheelhouse-fix-result.md",
+  "ai-video-broll-gen-9j-wheelhouse-fix-result"
 );
 const changeLog = parseBlock(
-  "docs/ai-video-broll-generation-gcp-private-wheelhouse-prep-change-log.md",
-  "ai-video-broll-gen-9j-wheelhouse-prep-change-log"
+  "docs/ai-video-broll-generation-gcp-private-wheelhouse-fix-change-log.md",
+  "ai-video-broll-gen-9j-wheelhouse-fix-change-log"
 );
 const manifest = JSON.parse(fs.readFileSync(EXPECTED_MANIFEST, "utf8"));
-const manifestSupersededByFix =
-  manifest.phase === SUPERSEDING_FIX_PHASE && manifest.status === SUPERSEDING_FIX_STATUS;
 
 check(result.decision === EXPECTED_DECISION, "Result decision mismatch");
 check(changeLog.decision === EXPECTED_DECISION, "Change log decision mismatch");
 check(result.nextPrompt === EXPECTED_NEXT_PROMPT, "Result next prompt mismatch");
 check(changeLog.nextPrompt === EXPECTED_NEXT_PROMPT, "Change log next prompt mismatch");
-
 check(result.targetWheelhouse === EXPECTED_WHEELHOUSE, "Result wheelhouse path mismatch");
 check(result.checksumManifest === EXPECTED_MANIFEST, "Result manifest path mismatch");
 check(manifest.wheelhousePath === EXPECTED_WHEELHOUSE, "Manifest wheelhouse path mismatch");
-check(manifest.requirementsManifest === result.requirementsManifest, "Manifest requirements mismatch");
+check(manifest.phase === "AI-VIDEO-BROLL-GEN-9J-WHEELHOUSE-FIX", "Manifest phase mismatch");
+check(
+  manifest.status === "complete_private_binary_wheelhouse_ready_for_iap_transfer_preflight",
+  "Manifest status mismatch"
+);
 
-check(result.target?.pythonVersion === "3.13", "Target Python version mismatch");
-check(result.target?.abi === "cp313", "Target ABI mismatch");
-check(result.target?.platforms?.includes("manylinux_2_28_x86_64"), "Missing manylinux_2_28 target");
-check(result.target?.platforms?.includes("manylinux2014_x86_64"), "Missing manylinux2014 target");
-
-check(result.wheelhouseManifest?.realWheelCount === 47, "Result wheel count mismatch");
-check(result.wheelhouseManifest?.aggregateBytes === 606414976, "Result aggregate bytes mismatch");
+check(result.wheelhouseManifest?.realWheelCount === 66, "Result wheel count mismatch");
+check(result.wheelhouseManifest?.aggregateBytes === 2802293613, "Result aggregate bytes mismatch");
 check(result.wheelhouseManifest?.aggregateSha256 === EXPECTED_AGGREGATE_SHA, "Result aggregate SHA mismatch");
-check(result.wheelhouseManifest?.appleDoubleSidecarsExcluded === true, "Sidecar exclusion must be recorded");
-if (manifestSupersededByFix) {
-  check(manifest.realWheelCount >= 47, "Superseding manifest must keep the original wheels");
-  check(manifest.wheelhouseComplete === true, "Superseding manifest must be complete");
-  check(
-    manifest.wheelhouseReadyForIapTransferPreflight === true,
-    "Superseding manifest must be ready for IAP transfer preflight"
-  );
-  check(manifest.offlineNoIndexResolverCopyPassed === true, "Superseding manifest must have offline resolver proof");
-} else {
-  check(manifest.realWheelCount === 47, "Manifest wheel count mismatch");
-  check(manifest.aggregateBytes === 606414976, "Manifest aggregate bytes mismatch");
-  check(manifest.aggregateSha256 === EXPECTED_AGGREGATE_SHA, "Manifest aggregate SHA mismatch");
-  check(Array.isArray(manifest.wheels) && manifest.wheels.length === 47, "Manifest wheel list mismatch");
-}
+check(manifest.realWheelCount === 66, "Manifest wheel count mismatch");
+check(manifest.aggregateBytes === 2802293613, "Manifest aggregate bytes mismatch");
+check(manifest.aggregateSha256 === EXPECTED_AGGREGATE_SHA, "Manifest aggregate SHA mismatch");
+check(Array.isArray(manifest.wheels) && manifest.wheels.length === 66, "Manifest wheel list mismatch");
 
 const wheelNames = manifest.wheels.map((wheel) => wheel.fileName);
-for (const prefix of REQUIRED_DIRECT_WHEEL_PREFIXES) {
-  check(wheelNames.some((name) => name.startsWith(prefix)), `Missing direct wheel prefix: ${prefix}`);
+for (const prefix of REQUIRED_WHEEL_PREFIXES) {
+  check(wheelNames.some((name) => name.startsWith(prefix)), `Missing wheel prefix: ${prefix}`);
+}
+for (const prefix of REJECTED_WHEEL_PREFIXES) {
+  check(!wheelNames.some((name) => name.startsWith(prefix)), `Superseded wheel must be pruned: ${prefix}`);
 }
 check(wheelNames.every((name) => name.endsWith(".whl")), "Manifest must list only wheel files");
 check(wheelNames.every((name) => !name.startsWith("._")), "Manifest must exclude AppleDouble sidecars");
 
-const unresolvedText = [
-  ...(result.unresolvedTorchLinuxRuntimeDependencies ?? []),
-  ...(manifest.unresolvedTorchLinuxRuntimeDependencies ?? [])
-].join("\n");
-for (const required of REQUIRED_UNRESOLVED) {
-  check(unresolvedText.includes(required), `Missing unresolved runtime dependency: ${required}`);
-}
-
-check(result.dependencyStatus?.directRequirementsWheelDownloadPassed === true, "Direct requirements should pass");
-check(result.dependencyStatus?.linuxRuntimeDependencyResolutionPassed === false, "Linux runtime dependency resolution must fail");
-check(result.dependencyStatus?.wheelhouseComplete === false, "Wheelhouse must be incomplete");
-check(result.dependencyStatus?.wheelhouseReadyForIapTransfer === false, "Wheelhouse must not be transfer-ready");
-check(result.dependencyStatus?.vmCreateAllowedNext === false, "VM creation must remain blocked");
+check(result.dependencyStatus?.directRequirementsWheelDownloadPassed === true, "Direct requirements must pass");
+check(result.dependencyStatus?.linuxRuntimeDependencyResolutionPassed === true, "Linux runtime deps must pass");
+check(result.dependencyStatus?.cudaToolkitLinuxExtrasExplicitlyBundled === true, "CUDA extras must be explicit");
+check(result.dependencyStatus?.offlineNoIndexResolverCopyPassed === true, "Offline resolver-copy must pass");
+check(result.dependencyStatus?.offlineResolvedWheelCount === 66, "Offline resolved count mismatch");
+check(result.dependencyStatus?.sourceBuildsUsed === false, "Source builds must not be used");
+check(result.dependencyStatus?.wheelhouseComplete === true, "Wheelhouse must be complete");
 check(
-  result.dependencyStatus?.firstResolutionFailure?.includes("nvidia-cublas"),
-  "First resolution failure must record nvidia-cublas"
+  result.dependencyStatus?.wheelhouseReadyForIapTransferPreflight === true,
+  "Wheelhouse must be ready for IAP transfer preflight"
 );
-check(result.dependencyStatus?.python311MetadataMatchedTorchLinuxRuntimeDependencies === true, "cp311 metadata probe must be recorded");
-check(result.dependencyStatus?.python312MetadataMatchedTorchLinuxRuntimeDependencies === true, "cp312 metadata probe must be recorded");
+check(result.dependencyStatus?.vmCreateAllowedNext === false, "VM creation must remain blocked");
+check(result.dependencyStatus?.nextGateRequiresIapTransferPreflight === true, "Next gate mismatch");
+check(manifest.offlineNoIndexResolverCopyPassed === true, "Manifest offline proof mismatch");
+check(manifest.wheelhouseComplete === true, "Manifest completion mismatch");
+check(manifest.vmCreateAllowedNext === false, "Manifest VM gate mismatch");
 
 for (const [flag, value] of Object.entries(result.runtimeFlags ?? {})) {
   check(value === false, `Runtime flag ${flag} must be false`);
@@ -199,25 +190,25 @@ for (const [flag, value] of Object.entries(manifest.runtimeFlags ?? {})) {
   check(value === false, `Manifest runtime flag ${flag} must be false`);
 }
 
-const followUpPrompt = read("docs/implementation-prompts/prompt-ai-video-broll-gen-9j-wheelhouse-fix.md");
+const nextPrompt = read("docs/implementation-prompts/prompt-ai-video-broll-gen-9j-vm-preflight-4.md");
 for (const expected of [
   EXPECTED_NEXT_PROMPT,
-  "repair the private dependency wheelhouse plan",
-  "Torch Linux GPU runtime dependencies",
-  "AI-VIDEO-BROLL-GEN-9J-VM-PREFLIGHT-4",
+  "verify the future IAP transfer command shape without running it",
+  "verify the future no-index install command shape without running it",
   "Do not create a VM",
+  "Do not run IAP transfer commands",
   "Do not import models"
 ]) {
-  check(followUpPrompt.includes(expected), `Follow-up prompt missing: ${expected}`);
+  check(nextPrompt.includes(expected), `VM preflight 4 prompt missing: ${expected}`);
 }
 
 const sidecars = fs.readdirSync(EXPECTED_WHEELHOUSE).filter((name) => name.startsWith("._"));
 check(sidecars.length === 0, `Wheelhouse contains AppleDouble sidecars: ${sidecars.join(", ")}`);
 
 ensureSafeText([
-  "docs/ai-video-broll-generation-gcp-private-wheelhouse-prep-result.md",
-  "docs/ai-video-broll-generation-gcp-private-wheelhouse-prep-change-log.md",
-  "docs/implementation-prompts/prompt-ai-video-broll-gen-9j-wheelhouse-fix.md"
+  "docs/ai-video-broll-generation-gcp-private-wheelhouse-fix-result.md",
+  "docs/ai-video-broll-generation-gcp-private-wheelhouse-fix-change-log.md",
+  "docs/implementation-prompts/prompt-ai-video-broll-gen-9j-vm-preflight-4.md"
 ]);
 
 console.log(JSON.stringify({
@@ -228,14 +219,17 @@ console.log(JSON.stringify({
   realWheelCount: manifest.realWheelCount,
   aggregateBytes: manifest.aggregateBytes,
   aggregateSha256: manifest.aggregateSha256,
-  manifestSupersededByFix,
   directRequirementsWheelDownloadPassed: result.dependencyStatus.directRequirementsWheelDownloadPassed,
   linuxRuntimeDependencyResolutionPassed: result.dependencyStatus.linuxRuntimeDependencyResolutionPassed,
+  cudaToolkitLinuxExtrasExplicitlyBundled: result.dependencyStatus.cudaToolkitLinuxExtrasExplicitlyBundled,
+  offlineNoIndexResolverCopyPassed: result.dependencyStatus.offlineNoIndexResolverCopyPassed,
+  offlineResolvedWheelCount: result.dependencyStatus.offlineResolvedWheelCount,
+  sourceBuildsUsed: result.dependencyStatus.sourceBuildsUsed,
   wheelhouseComplete: result.dependencyStatus.wheelhouseComplete,
-  wheelhouseReadyForIapTransfer: result.dependencyStatus.wheelhouseReadyForIapTransfer,
+  wheelhouseReadyForIapTransferPreflight: result.dependencyStatus.wheelhouseReadyForIapTransferPreflight,
   vmCreateAllowedNext: result.dependencyStatus.vmCreateAllowedNext,
-  firstResolutionFailure: result.dependencyStatus.firstResolutionFailure,
   vmCreated: false,
+  dependencyInstalledOnVm: false,
   modelDownloaded: false,
   modelImported: false,
   modelInferenceRun: false,

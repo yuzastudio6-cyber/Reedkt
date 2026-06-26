@@ -26,6 +26,9 @@ export interface AiGraphicsBetaEvidenceBundleInput {
   internalBetaOwnerApprovalGranted?: boolean
   modelWeightManifestReviewPacket?: Partial<AiGraphicsModelWeightManifestReviewPacket>
   gpuRuntimeProofResultPacket?: Partial<AiGraphicsGpuRuntimeProofResultPacket>
+  nodeRuntimeProofPacket?: Record<string, unknown>
+  browserRuntimeProofPacket?: Record<string, unknown>
+  satoriFontRuntimeProofPacket?: Record<string, unknown>
   modelWeightManifestsApprovedOverride?: boolean
   nativeGpuRuntimeProofPassedOverride?: boolean
 }
@@ -51,6 +54,13 @@ export interface AiGraphicsBetaEvidenceBundle {
   all21BetaEvidenceReady: boolean
   evidence: Required<AiGraphicsBetaReadinessEvidence>
   evidenceSources: {
+    jsRuntimeProofsAccepted: boolean
+    nodeRuntimeProofPacketAccepted: boolean
+    browserRuntimeProofPacketAccepted: boolean
+    satoriFontRuntimeProofPacketAccepted: boolean
+    nodeRuntimeProofPacketProvided: boolean
+    browserRuntimeProofPacketProvided: boolean
+    satoriFontRuntimeProofPacketProvided: boolean
     modelWeightManifestReviewPacketAccepted: boolean
     nativeGpuRuntimeProofResultPacketAccepted: boolean
     modelWeightManifestReviewPacketProvided: boolean
@@ -67,15 +77,15 @@ export interface AiGraphicsBetaEvidenceBundle {
     agentCanSelectForPlanning: true
     all21BetaEvidenceReady: boolean
     agentCanExecuteToolsNow: false
-    routeExecutionApprovedNow: boolean
-    workerExecutionApprovedNow: boolean
+    routeExecutionApprovedNow: false
+    workerExecutionApprovedNow: false
     toolExecutionApprovedNow: false
     providerRuntimeApprovedNow: false
-    browserWebglCanvasRuntimeApprovedNow: boolean
-    gpuRuntimeApprovedNow: boolean
-    modelWeightManifestsApprovedNow: boolean
+    browserWebglCanvasRuntimeApprovedNow: false
+    gpuRuntimeApprovedNow: false
+    modelWeightManifestsApprovedNow: false
     runtimeReadyNow: false
-    internalBetaReadyNow: boolean
+    internalBetaReadyNow: false
     externalBetaReadyNow: false
     productionReadyNow: false
     dependencyInstallPerformed: false
@@ -129,8 +139,90 @@ function gpuRuntimePacketAccepted(
   )
 }
 
-function buildMissingEvidence(evidence: Required<AiGraphicsBetaReadinessEvidence>): string[] {
+function booleanAt(packet: Record<string, unknown> | undefined, key: string): boolean {
+  const booleans = packet?.booleans
+  return typeof booleans === 'object' &&
+    booleans !== null &&
+    !Array.isArray(booleans) &&
+    (booleans as Record<string, unknown>)[key] === true
+}
+
+function falseBooleanAt(packet: Record<string, unknown> | undefined, key: string): boolean {
+  const booleans = packet?.booleans
+  return typeof booleans === 'object' &&
+    booleans !== null &&
+    !Array.isArray(booleans) &&
+    (booleans as Record<string, unknown>)[key] === false
+}
+
+function nodeRuntimeProofAccepted(packet: Record<string, unknown> | undefined): boolean {
+  return Boolean(
+    packet &&
+      packet.decision === 'ai_graphics_node_runtime_proof_completed_with_warnings' &&
+      packet.status === 'completed_with_warnings' &&
+      Array.isArray(packet.tools) &&
+      packet.tools.length === 13 &&
+      booleanAt(packet, 'nodeRuntimeProofCompleted') &&
+      booleanAt(packet, 'all13NodeGraphicsToolsProofAttempted') &&
+      booleanAt(packet, 'd3NodeRuntimeProofPassed') &&
+      booleanAt(packet, 'vegaLiteNodeCompilePassed') &&
+      booleanAt(packet, 'vegaNodeParsePassed') &&
+      booleanAt(packet, 'svgdotjsNodeSvgConstructionPassed') &&
+      booleanAt(packet, 'vizJsNodeDotToSvgPassed') &&
+      booleanAt(packet, 'satoriImportApiPassedFontFixturePending') &&
+      falseBooleanAt(packet, 'agentCanExecuteToolsNow') &&
+      falseBooleanAt(packet, 'runtimeBetaReadyNow'),
+  )
+}
+
+function browserRuntimeProofAccepted(packet: Record<string, unknown> | undefined): boolean {
+  return Boolean(
+    packet &&
+      packet.decision === 'ai_graphics_browser_runtime_proof_completed_with_warnings' &&
+      packet.status === 'completed_with_warnings' &&
+      Array.isArray(packet.tools) &&
+      packet.tools.length === 7 &&
+      booleanAt(packet, 'browserRuntimeProofCompleted') &&
+      booleanAt(packet, 'all7BrowserRuntimeToolsProofAttempted') &&
+      booleanAt(packet, 'all7BrowserRuntimeToolsProofPassed') &&
+      booleanAt(packet, 'browserRuntimeExecutedInLocalProof') &&
+      falseBooleanAt(packet, 'agentCanExecuteToolsNow') &&
+      falseBooleanAt(packet, 'runtimeBetaReadyNow') &&
+      falseBooleanAt(packet, 'publicArtifactCreated'),
+  )
+}
+
+function satoriFontRuntimeProofAccepted(packet: Record<string, unknown> | undefined): boolean {
+  const tool = packet?.tool
+  const toolRecord = typeof tool === 'object' && tool !== null && !Array.isArray(tool)
+    ? tool as Record<string, unknown>
+    : {}
+
+  return Boolean(
+    packet &&
+      packet.decision === 'ai_graphics_satori_font_runtime_proof_completed_with_warnings' &&
+      packet.status === 'completed_with_warnings' &&
+      toolRecord.toolId === 'satori' &&
+      toolRecord.status === 'satori_font_fixture_svg_layout_proof_passed' &&
+      booleanAt(packet, 'satoriFontRuntimeProofCompleted') &&
+      booleanAt(packet, 'satoriTextSvgLayoutProofPassed') &&
+      booleanAt(packet, 'all13JsGraphicsToolsHaveRuntimeProofEvidence') &&
+      falseBooleanAt(packet, 'agentCanExecuteToolsNow') &&
+      falseBooleanAt(packet, 'runtimeBetaReadyNow') &&
+      falseBooleanAt(packet, 'publicArtifactCreated'),
+  )
+}
+
+function buildMissingEvidence(
+  evidence: Required<AiGraphicsBetaReadinessEvidence>,
+  input: AiGraphicsBetaEvidenceBundleInput,
+  jsRuntimeProofsAccepted: boolean,
+): string[] {
   return [
+    !nodeRuntimeProofAccepted(input.nodeRuntimeProofPacket) ? 'js_node_runtime_proof_packet' : undefined,
+    !browserRuntimeProofAccepted(input.browserRuntimeProofPacket) ? 'js_browser_runtime_proof_packet' : undefined,
+    !satoriFontRuntimeProofAccepted(input.satoriFontRuntimeProofPacket) ? 'satori_font_runtime_proof_packet' : undefined,
+    !jsRuntimeProofsAccepted ? 'complete_js_runtime_proof_bundle' : undefined,
     !evidence.approvedPlanSnapshotGatePassed ? 'approved_plan_snapshot_gate' : undefined,
     !evidence.creditReservationGatePassed ? 'credit_reservation_gate' : undefined,
     !evidence.artifactBoundaryGatePassed ? 'artifact_boundary_gate' : undefined,
@@ -147,11 +239,31 @@ function toolMissingEvidence(input: {
   toolId: AiGraphicsCanonicalToolId
   blockers: readonly string[]
   evidence: Required<AiGraphicsBetaReadinessEvidence>
+  bundleInput: AiGraphicsBetaEvidenceBundleInput
+  jsRuntimeProofsAccepted: boolean
 }): string[] {
-  const missing = buildMissingEvidence(input.evidence)
+  const missing = buildMissingEvidence(input.evidence, input.bundleInput, input.jsRuntimeProofsAccepted)
   const toolBlockers = input.blockers.join('\n').toLowerCase()
+  const gpuModelTools: readonly AiGraphicsCanonicalToolId[] = [
+    'torch_torchvision',
+    'transformers',
+    'sam2',
+    'birefnet',
+    'real_esrgan',
+    'kornia',
+    'rembg',
+    'transparent_background',
+  ]
 
   return missing.filter((entry) => {
+    if (
+      entry === 'js_node_runtime_proof_packet' ||
+      entry === 'js_browser_runtime_proof_packet' ||
+      entry === 'satori_font_runtime_proof_packet' ||
+      entry === 'complete_js_runtime_proof_bundle'
+    ) {
+      return !gpuModelTools.includes(input.toolId)
+    }
     if (entry === 'browser_canvas_webgl_sandbox_proof') {
       return toolBlockers.includes('browser') ||
         toolBlockers.includes('canvas') ||
@@ -171,6 +283,13 @@ function toolMissingEvidence(input: {
 export function buildAiGraphicsBetaEvidenceBundle(
   input: AiGraphicsBetaEvidenceBundleInput = {},
 ): AiGraphicsBetaEvidenceBundle {
+  const nodeRuntimeProofPacketAccepted = nodeRuntimeProofAccepted(input.nodeRuntimeProofPacket)
+  const browserRuntimeProofPacketAccepted = browserRuntimeProofAccepted(input.browserRuntimeProofPacket)
+  const satoriFontRuntimeProofPacketAccepted = satoriFontRuntimeProofAccepted(input.satoriFontRuntimeProofPacket)
+  const jsRuntimeProofsAccepted =
+    nodeRuntimeProofPacketAccepted &&
+    browserRuntimeProofPacketAccepted &&
+    satoriFontRuntimeProofPacketAccepted
   const modelWeightManifestReviewPacketAccepted =
     input.modelWeightManifestsApprovedOverride === true ||
     modelWeightPacketAccepted(input.modelWeightManifestReviewPacket)
@@ -206,11 +325,16 @@ export function buildAiGraphicsBetaEvidenceBundle(
         toolId: tool.toolId,
         blockers: tool.blockers,
         evidence,
+        bundleInput: input,
+        jsRuntimeProofsAccepted,
       }),
       blockers: tool.blockers,
     }
   })
-  const all21BetaEvidenceReady = gate.betaTestingReadyTools === 21 && gate.blockedTools === 0
+  const all21BetaEvidenceReady =
+    gate.betaTestingReadyTools === 21 &&
+    gate.blockedTools === 0 &&
+    jsRuntimeProofsAccepted
 
   return {
     decision: AI_GRAPHICS_BETA_EVIDENCE_BUNDLE_DECISION,
@@ -223,13 +347,20 @@ export function buildAiGraphicsBetaEvidenceBundle(
     all21BetaEvidenceReady,
     evidence,
     evidenceSources: {
+      jsRuntimeProofsAccepted,
+      nodeRuntimeProofPacketAccepted,
+      browserRuntimeProofPacketAccepted,
+      satoriFontRuntimeProofPacketAccepted,
+      nodeRuntimeProofPacketProvided: packetProvided(input.nodeRuntimeProofPacket),
+      browserRuntimeProofPacketProvided: packetProvided(input.browserRuntimeProofPacket),
+      satoriFontRuntimeProofPacketProvided: packetProvided(input.satoriFontRuntimeProofPacket),
       modelWeightManifestReviewPacketAccepted,
       nativeGpuRuntimeProofResultPacketAccepted,
       modelWeightManifestReviewPacketProvided: packetProvided(input.modelWeightManifestReviewPacket),
       nativeGpuRuntimeProofResultPacketProvided: packetProvided(input.gpuRuntimeProofResultPacket),
     },
     tools,
-    missingEvidence: buildMissingEvidence(evidence),
+    missingEvidence: buildMissingEvidence(evidence, input, jsRuntimeProofsAccepted),
     booleans: {
       betaEvidenceBundleValidatorPrepared: true,
       all21ToolsCovered: true,

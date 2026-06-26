@@ -338,7 +338,15 @@ for (const token of [
   'buildAiGraphicsBetaReadinessGate',
   'modelWeightManifestsApprovedOverride',
   'nativeGpuRuntimeProofPassedOverride',
+  'nodeRuntimeProofPacketAccepted',
+  'browserRuntimeProofPacketAccepted',
+  'satoriFontRuntimeProofPacketAccepted',
+  'jsRuntimeProofsAccepted',
   'all21BetaEvidenceReady',
+  '--use-committed-js-runtime-proofs',
+  '--node-runtime-proof-packet',
+  '--browser-runtime-proof-packet',
+  '--satori-font-runtime-proof-packet',
   '--model-weight-manifest-review-packet',
   '--gpu-runtime-proof-result-packet',
   '--require-all-21-beta-ready',
@@ -347,6 +355,10 @@ for (const token of [
 }
 
 for (const token of [
+  'js_node_runtime_proof_packet',
+  'js_browser_runtime_proof_packet',
+  'satori_font_runtime_proof_packet',
+  'complete_js_runtime_proof_bundle',
   'approved_plan_snapshot_gate',
   'credit_reservation_gate',
   'artifact_boundary_gate',
@@ -380,16 +392,34 @@ for (const tool of allTools) {
   if (row?.betaTestingReadyNow !== false) fail(`default_bundle_tool_unexpected_ready:${tool}`)
 }
 
-const fullFlagBundle = parseJsonOutput(runNpm(validateScriptName, [
-  '--all-shared-gates-passed',
-  '--browser-canvas-webgl-sandbox-passed',
-  '--native-gpu-runtime-proof-passed',
-  '--model-weight-manifests-approved',
-  '--require-all-21-beta-ready',
-]), 'full_flag_bundle')
+let fullFlagExited = false
+let fullFlagOutput = ''
+try {
+  fullFlagOutput = runNpm(validateScriptName, [
+    '--all-shared-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--native-gpu-runtime-proof-passed',
+    '--model-weight-manifests-approved',
+    '--require-all-21-beta-ready',
+  ])
+} catch (error) {
+  fullFlagExited = true
+  fullFlagOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+const fullFlagBundle = parseJsonOutput(fullFlagOutput, 'full_flag_bundle')
+if (!fullFlagExited) fail('full_flag_bundle_without_js_proofs_did_not_exit_nonzero')
 if (fullFlagBundle.betaTestingReadyTools !== 21) fail('full_flag_bundle_ready_not_21')
 if (fullFlagBundle.blockedTools !== 0) fail('full_flag_bundle_blocked_not_0')
-if (fullFlagBundle.all21BetaEvidenceReady !== true) fail('full_flag_bundle_all21_not_true')
+if (fullFlagBundle.all21BetaEvidenceReady !== false) fail('full_flag_bundle_all21_not_false_without_js_proofs')
+if (fullFlagBundle.evidenceSources?.jsRuntimeProofsAccepted !== false) fail('full_flag_bundle_js_proofs_unexpectedly_accepted')
+for (const token of [
+  'js_node_runtime_proof_packet',
+  'js_browser_runtime_proof_packet',
+  'satori_font_runtime_proof_packet',
+  'complete_js_runtime_proof_bundle',
+]) {
+  if (!fullFlagBundle.missingEvidence?.includes(token)) fail(`full_flag_bundle_missing_js_gap:${token}`)
+}
 for (const row of fullFlagBundle.tools || []) {
   if (row.betaTestingReadyNow !== true) fail(`full_flag_bundle_tool_not_ready:${row.toolId}`)
   if (row.blockers?.length) fail(`full_flag_bundle_tool_has_blockers:${row.toolId}`)
@@ -397,6 +427,7 @@ for (const row of fullFlagBundle.tools || []) {
 
 const { manifestPacketPath, gpuPacketPath } = writePacketFixtures()
 const fullPacketBundle = parseJsonOutput(runNpm(validateScriptName, [
+  '--use-committed-js-runtime-proofs',
   '--all-shared-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
   '--model-weight-manifest-review-packet',
@@ -406,6 +437,11 @@ const fullPacketBundle = parseJsonOutput(runNpm(validateScriptName, [
   '--require-all-21-beta-ready',
 ]), 'full_packet_bundle')
 if (fullPacketBundle.betaTestingReadyTools !== 21) fail('full_packet_bundle_ready_not_21')
+if (fullPacketBundle.all21BetaEvidenceReady !== true) fail('full_packet_bundle_all21_not_true')
+if (fullPacketBundle.evidenceSources?.jsRuntimeProofsAccepted !== true) fail('full_packet_bundle_js_proofs_not_accepted')
+if (fullPacketBundle.evidenceSources?.nodeRuntimeProofPacketAccepted !== true) fail('full_packet_bundle_node_proof_not_accepted')
+if (fullPacketBundle.evidenceSources?.browserRuntimeProofPacketAccepted !== true) fail('full_packet_bundle_browser_proof_not_accepted')
+if (fullPacketBundle.evidenceSources?.satoriFontRuntimeProofPacketAccepted !== true) fail('full_packet_bundle_satori_proof_not_accepted')
 if (fullPacketBundle.evidenceSources?.modelWeightManifestReviewPacketProvided !== true) fail('full_packet_bundle_model_packet_not_provided')
 if (fullPacketBundle.evidenceSources?.nativeGpuRuntimeProofResultPacketProvided !== true) fail('full_packet_bundle_gpu_packet_not_provided')
 if (fullPacketBundle.evidenceSources?.modelWeightManifestReviewPacketAccepted !== true) fail('full_packet_bundle_model_packet_not_accepted')

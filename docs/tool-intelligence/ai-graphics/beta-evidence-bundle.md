@@ -14,12 +14,15 @@ and which tools still lack the evidence required before beta tool calls.
 - Selectable by the agent for planning/study metadata: 21.
 - Beta-ready with no supplied evidence bundle: 0.
 - Blocked with no supplied evidence bundle: 21.
-- Beta-eligible when every required evidence gate is supplied: 21.
+- Beta-eligible when every required proof packet and evidence gate is supplied: 21.
 
 ## Required Evidence Bundle
 
 The validator stays fail-closed until all of these are supplied:
 
+- Node runtime proof packet for the 13 JS graphics tools.
+- Browser runtime proof packet for the seven browser/player/canvas/WebGL tools.
+- Satori font runtime proof packet.
 - Approved plan snapshot gate.
 - Credit reservation gate.
 - Artifact boundary gate.

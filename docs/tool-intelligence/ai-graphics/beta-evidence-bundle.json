@@ -65,6 +65,10 @@
     "transparent_background"
   ],
   "requiredEvidence": [
+    "js_node_runtime_proof_packet",
+    "js_browser_runtime_proof_packet",
+    "satori_font_runtime_proof_packet",
+    "complete_js_runtime_proof_bundle",
     "approved_plan_snapshot_gate",
     "credit_reservation_gate",
     "artifact_boundary_gate",
@@ -81,6 +85,7 @@
     "all21ToolsInstallReadyForPlannedSurface": true,
     "all21ToolsMappedToProductionRegistry": true,
     "all21ToolsPlanningSelectable": true,
+    "committedJsRuntimeProofsAccepted": true,
     "agentCanSelectForPlanning": true,
     "defaultAll21BetaEvidenceReady": false,
     "fullEvidenceAll21BetaEvidenceReady": true,

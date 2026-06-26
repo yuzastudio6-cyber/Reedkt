@@ -188,9 +188,22 @@ for (const line of dependencyDiff.split(/\r?\n/)) {
       !line.includes("ai-graphics:tool-call-handoff:diagnostics") &&
       !line.includes("ai-graphics:tool-call-plan-evaluator:diagnostics") &&
       !line.includes("ai-graphics:beta-readiness-gate:diagnostics") &&
+      !line.includes("ai-graphics:beta-readiness-gate:evaluate") &&
+      !line.includes("ai-graphics:beta-activation-gap-report") &&
+      !line.includes("ai-graphics:beta-activation-gap-report:diagnostics") &&
+      !line.includes("ai-graphics:beta-evidence-bundle:validate") &&
+      !line.includes("ai-graphics:beta-evidence-bundle:diagnostics") &&
       !line.includes("ai-graphics:tool-route-readiness:diagnostics") &&
       !line.includes("ai-graphics:worker-handoff-readiness:diagnostics") &&
-      !line.includes("ai-graphics:model-weight-manifest-readiness:diagnostics")
+      !line.includes("ai-graphics:model-weight-manifest-readiness:diagnostics") &&
+      !line.includes("ai-graphics:model-weight-manifest-review:validate") &&
+      !line.includes("ai-graphics:model-weight-manifest-review-packet:diagnostics") &&
+      !line.includes("ai-graphics:gpu-runtime-proof-command-plan") &&
+      !line.includes("ai-graphics:gpu-runtime-proof-command-plan:diagnostics") &&
+      !line.includes("ai-graphics:gpu-runtime-proof-result:validate") &&
+      !line.includes("ai-graphics:gpu-runtime-proof-result:diagnostics") &&
+      !line.includes("ai-graphics:model-weight-manifest-scaffold") &&
+      !line.includes("ai-graphics:model-weight-manifest-scaffold:diagnostics")
     ) {
       fail(`Unexpected package.json addition: ${line}`);
     }

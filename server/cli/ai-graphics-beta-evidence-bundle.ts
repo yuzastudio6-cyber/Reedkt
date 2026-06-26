@@ -26,6 +26,22 @@ function readJsonFile(flag: string): unknown | undefined {
   return JSON.parse(readFileSync(resolvedPath, 'utf8'))
 }
 
+function readJsonPath(filePath: string): unknown {
+  const resolvedPath = resolve(filePath)
+  if (!existsSync(resolvedPath)) {
+    throw new Error(`Evidence packet file does not exist: ${filePath}`)
+  }
+
+  return JSON.parse(readFileSync(resolvedPath, 'utf8'))
+}
+
+function readProofPacket(flag: string, committedPath: string): unknown | undefined {
+  const fromFlag = readJsonFile(flag)
+  if (fromFlag) return fromFlag
+  if (hasFlag('--use-committed-js-runtime-proofs')) return readJsonPath(committedPath)
+  return undefined
+}
+
 const allSharedGatesPassed = hasFlag('--all-shared-gates-passed')
 const input: AiGraphicsBetaEvidenceBundleInput = {
   approvedPlanSnapshotGatePassed: allSharedGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
@@ -37,6 +53,18 @@ const input: AiGraphicsBetaEvidenceBundleInput = {
   internalBetaOwnerApprovalGranted: allSharedGatesPassed || hasFlag('--internal-beta-owner-approval-granted'),
   modelWeightManifestReviewPacket: readJsonFile('--model-weight-manifest-review-packet') as AiGraphicsBetaEvidenceBundleInput['modelWeightManifestReviewPacket'],
   gpuRuntimeProofResultPacket: readJsonFile('--gpu-runtime-proof-result-packet') as AiGraphicsBetaEvidenceBundleInput['gpuRuntimeProofResultPacket'],
+  nodeRuntimeProofPacket: readProofPacket(
+    '--node-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+  ) as AiGraphicsBetaEvidenceBundleInput['nodeRuntimeProofPacket'],
+  browserRuntimeProofPacket: readProofPacket(
+    '--browser-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+  ) as AiGraphicsBetaEvidenceBundleInput['browserRuntimeProofPacket'],
+  satoriFontRuntimeProofPacket: readProofPacket(
+    '--satori-font-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+  ) as AiGraphicsBetaEvidenceBundleInput['satoriFontRuntimeProofPacket'],
   modelWeightManifestsApprovedOverride: hasFlag('--model-weight-manifests-approved'),
   nativeGpuRuntimeProofPassedOverride: hasFlag('--native-gpu-runtime-proof-passed'),
 }
@@ -49,7 +77,11 @@ const output = {
     evidencePacketFilesRead: [
       valueAfterFlag('--model-weight-manifest-review-packet'),
       valueAfterFlag('--gpu-runtime-proof-result-packet'),
+      valueAfterFlag('--node-runtime-proof-packet'),
+      valueAfterFlag('--browser-runtime-proof-packet'),
+      valueAfterFlag('--satori-font-runtime-proof-packet'),
     ].filter(Boolean).length,
+    committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

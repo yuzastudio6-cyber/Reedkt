@@ -10,6 +10,9 @@ const jsonPath = path.join(docsDir, "satori-font-runtime-proof.json");
 const markdownPath = path.join(docsDir, "satori-font-runtime-proof.md");
 const fontRelativePath = "node_modules/three/examples/fonts/ttf/kenpixel.ttf";
 const fontPath = path.join(root, fontRelativePath);
+const existingProof = fs.existsSync(jsonPath)
+  ? JSON.parse(fs.readFileSync(jsonPath, "utf8"))
+  : null;
 
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(root, relativePath), "utf8"));
@@ -102,6 +105,7 @@ const proof = {
     mergeStateStatus: "CLEAN",
     headSha: "02f582b9c158026346cca4f83ae8f02c45b3aac9",
   },
+  ...(existingProof?.proofPr ? { proofPr: existingProof.proofPr } : {}),
   sourceProofs: {
     nodeRuntimeProofDecision: "ai_graphics_node_runtime_proof_completed_with_warnings",
     browserRuntimeProofDecision: "ai_graphics_browser_runtime_proof_completed_with_warnings",
@@ -202,7 +206,12 @@ signed URLs, or unlock agent/tool/runtime/beta/production execution.
 
 - PR #787: [AI graphics browser runtime proof](https://github.com/yuzastudio6-cyber/Reedkt/pull/787), open/draft/CLEAN at \`02f582b9c158026346cca4f83ae8f02c45b3aac9\`.
 - Node runtime proof decision: \`ai_graphics_node_runtime_proof_completed_with_warnings\`.
-- Browser runtime proof decision: \`ai_graphics_browser_runtime_proof_completed_with_warnings\`.
+- Browser runtime proof decision: \`ai_graphics_browser_runtime_proof_completed_with_warnings\`.${existingProof?.proofPr ? `
+
+## Draft PR
+
+- PR #${existingProof.proofPr.number}: [AI graphics satori font runtime proof](${existingProof.proofPr.url}), open/draft/${existingProof.proofPr.mergeStateStatus} at creation head \`${existingProof.proofPr.headShaAtPrCreation}\`.
+- Check rollup at creation: empty.` : ""}
 
 ## Tool Result
 

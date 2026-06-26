@@ -28,6 +28,9 @@ Latest observed PR state after beta evidence bundle completion: [#862](https://g
 - GPU worker install-target tools: 8.
 - Default beta-ready tools: 0.
 - Full evidence bundle beta-eligible tools: 21.
+- Full evidence now requires the committed Node runtime proof, browser runtime
+  proof, and Satori font runtime proof packets in addition to shared, GPU,
+  model-weight, browser-sandbox, and owner gates.
 
 ## No Runtime Unlock
 

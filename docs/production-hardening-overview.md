@@ -104,3 +104,12 @@ Production and external beta remain blocked until human approvals cover deployme
 - Required future proof: named approvals for release, runtime worker, incident, support, privacy/storage, billing/credit, and security owners, followed by a separate activation plan with staging smoke scope, worker/provider authorization boundaries, storage and signed URL dry-run evidence, credit ledger dry-run evidence, support escalation acceptance, and rollback kill-switch verification.
 - Still blocked: limited external beta activation, external beta user exposure, public delivery, billing or credit mutation, storage writes, signed URL execution, and production activation.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Limited External Beta Named Owner Approvals Request Status
+
+- Decision: `reeditpro_limited_external_beta_named_owner_approvals_request_passed_ready_for_owner_response_intake`
+- Next prompt: `REEDITPRO_LIMITED_EXTERNAL_BETA_NAMED_OWNER_APPROVALS_RESPONSE_INTAKE`
+- Hardening status: named owner approval request metadata is ready; owner responses and activation approval remain unproven.
+- Required future proof: explicit named approval or rejection for each required owner slot, with shared constrained scope, timestamp, duties, exclusions, and source/evidence reference.
+- Still blocked: limited external beta activation, external beta user exposure, public delivery, billing or credit mutation, storage writes, signed URL execution, and production activation.
+- Supabase classification: no write / environment none / SQL none / migration no.

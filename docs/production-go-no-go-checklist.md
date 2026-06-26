@@ -114,3 +114,14 @@ M17 does not grant go approval. Phase 18 also does not grant go approval; it onl
 - The next safe action is a named owner approvals request. It must collect owner names, roles, approved scope, approval timestamp, accepted duty or explicit rejection, and explicit exclusions before any activation plan can be considered.
 - No worker dispatch, provider call, media processing, render/export, public artifact, signed URL, storage write, Supabase/GCS write, SQL, migration, billing/credit mutation, external beta, or production command is authorized by this execution review.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Limited External Beta Named Owner Approvals Request Status
+
+- Decision: `reeditpro_limited_external_beta_named_owner_approvals_request_passed_ready_for_owner_response_intake`
+- Next prompt: `REEDITPRO_LIMITED_EXTERNAL_BETA_NAMED_OWNER_APPROVALS_RESPONSE_INTAKE`
+- Current status: external beta and production remain blocked.
+- Request outcome: the named owner approval request packet is ready to send to required owners, but no owner responses or approvals are recorded in this phase.
+- Required response fields: owner name, owner role, owner slot, approval decision, approved or rejected scope, approval timestamp, accepted duty or rejection reason, explicit exclusions, and evidence reference.
+- Partial approval is not enough for activation. Every required owner must approve the same constrained limited external beta scope before a later activation plan can be considered.
+- No worker dispatch, provider call, media processing, render/export, public artifact, signed URL, storage write, Supabase/GCS write, SQL, migration, billing/credit mutation, external beta, or production command is authorized by this request.
+- Supabase classification: no write / environment none / SQL none / migration no.

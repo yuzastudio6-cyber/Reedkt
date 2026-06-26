@@ -34,7 +34,7 @@ Latest observed PR state after model-weight manifest review packet completion: [
 
 Latest observed PR state after private manifest validator completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `cdcb51169be3c7a6b54293f4a2e4a65fd80fe9cb`, with an empty check rollup.
 
-Latest observed PR state after GPU runtime proof command-plan bridge completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `02881584f75de20063fde45214293cf8ce3d8a1e`, with an empty check rollup.
+Latest observed PR state after GPU runtime proof command-plan bridge completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `a0945f30d2d5b75c8f8f977ec263061aa9cd7342`, with an empty check rollup.
 
 ## Result
 

@@ -1,0 +1,61 @@
+{
+  "packet": "RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1",
+  "decision": "completed_reeditpro_main_supabase_target_migration_history_sync",
+  "execution": "completed_guarded_main_staging_migration_apply_and_readonly_validation",
+  "sourceBase": "7fc216c101d74b68ae175830ab5fa34b3e956d33",
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "class": "staging",
+    "activeProject": true
+  },
+  "historicalSandbox": {
+    "projectName": "reeditpro-clean-staging-isolated-v1",
+    "projectRef": "fajinbvwhcjnutkaumkm",
+    "activeProject": false,
+    "dataCopiedToMain": false
+  },
+  "sourceMappedRemoteOnlyMigration": {
+    "version": "20260626163138",
+    "name": "public_production_edit_session_brief_qwen_gates",
+    "file": "supabase/migrations/20260626163138_public_production_edit_session_brief_qwen_gates.sql",
+    "statementSha256": "1e21925ef1dcdbcc7dba2bed22de275df26a76ce05b42e7dca90c6b186498357",
+    "repairAsReverted": false
+  },
+  "appliedPendingMigrationCount": 18,
+  "lintFixMigration": "supabase/migrations/20260626224600_worker_runtime_fail_retry_count_lint_fix.sql",
+  "finalMigrationHistory": "source_aligned_and_up_to_date_through_20260626224600",
+  "finalDryRun": "remote_database_is_up_to_date",
+  "supabaseLint": "passed_no_schema_errors_found",
+  "targetValidationRunId": "2026-06-26T22-47-09-777Z-898c9851",
+  "statuses": {
+    "productReadyEndToEndLocalOssTools": 0,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExportUnlock": false,
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": "ephemeral_process_handoff_only",
+    "credentialPayloadPrinted": false,
+    "credentialPayloadCommitted": false,
+    "remoteSupabaseMutation": "guarded_staging_migration_apply_only",
+    "productionSupabaseMutation": false,
+    "manualMigrationHistoryRepair": false,
+    "isolatedProjectDataCopy": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "providerCall": false,
+    "modelCall": false,
+    "mediaProcessing": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "packageLockMutation": false,
+    "generatedArtifactsCommitted": "none"
+  },
+  "nextRecommendedMilestone": "RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1"
+}

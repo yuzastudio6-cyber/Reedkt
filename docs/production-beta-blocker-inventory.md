@@ -11,21 +11,37 @@ Active blockers remain:
 - Supabase production writes
 - model orchestration runtime calls
 
+## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
+
+`RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1` records decision `completed_reeditpro_main_supabase_target_migration_history_sync` and execution `completed_guarded_main_staging_migration_apply_and_readonly_validation`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`. Historical sandbox `reeditpro-clean-staging-isolated-v1` / `fajinbvwhcjnutkaumkm` is not active and no data was copied from it.
+
+The packet source-maps remote-only main-target migration `20260626163138` as `supabase/migrations/20260626163138_public_production_edit_session_brief_qwen_gates.sql`, applies the 18 pending repo migrations to the main Reeditpro staging target, and applies lint-fix migration `20260626224600_worker_runtime_fail_retry_count_lint_fix.sql`.
+
+Final migration history: `source_aligned_and_up_to_date_through_20260626224600`. Final dry-run: `Remote database is up to date.` Supabase lint: `No schema errors found`. Confirmed RLS/storage validation run ID: `2026-06-26T22-47-09-777Z-898c9851`.
+
+Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+The active blocker is no longer main Supabase migration history. Remaining blockers are service-role route/runtime validation, approved snapshot persistence write validation, credit reservation/ledger validation, job lease/event validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1`.
+
 ## RP External Product Beta Current Readiness Rollup 1
 
-`RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.
+`RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.
 
-Current integration head: `4648c70b0f47ec34f1c4668cb42f69cd55053b50`. Source closure: PR #1019 / `SUPABASE-STAGING-MIGRATION-HISTORY-OWNER-DECISION-1`.
+Current integration head: `7fc216c101d74b68ae175830ab5fa34b3e956d33`. Source closure: `RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1`.
 
-The Supabase target and credential-validation lane is no longer the active blocker: source records `completed_guarded_supabase_target_rls_storage_readonly_validation`, and non-secret Secret Manager metadata showed `SUPABASE_ACCESS_TOKEN` version `5` as `enabled`. The token payload was not accessed, printed, summarized, committed, or written to docs.
+The Supabase target, credential-validation, and main staging migration-history lanes are no longer the active blocker: source records `completed_guarded_supabase_target_rls_storage_readonly_validation`, the single active target is `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`, final dry-run records `Remote database is up to date.`, and Supabase lint records `No schema errors found`.
 
-The active blocker is `blocked_no_owner_approval_for_staging_migration_apply_or_clean_target`. Remote staging is aligned only through `202605130006`; PR #1013 dry-run evidence showed `18` pending migrations. PR #1019 records no owner approval for full reviewed pending-set staging apply and no owner approval for a clean staging target/branch/project.
+The active blocker is `blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync`. Remaining blockers are service-role route/runtime validation, approved snapshot persistence write validation, credit reservation/ledger validation, job lease/event validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
 
-Internal beta status: `blocked_pending_explicit_staging_migration_path_approval`. External product beta status: `blocked`. Paid production status: `blocked`. Final delivery/export status: `blocked`.
+Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`. External product beta status: `blocked`. Paid production status: `blocked`. Final delivery/export status: `blocked`.
 
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-Next safe action remains `OWNER ACTION REQUIRED - approve full reviewed staging migration set or clean staging target before RPC 4R SQL execution`.
+Next safe action: `RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1`.
 
 ## SUPABASE Clean Staging Target Owner Approval 1
 

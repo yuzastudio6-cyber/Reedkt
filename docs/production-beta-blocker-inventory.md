@@ -191,6 +191,20 @@ Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tool
 
 Next safe milestone: `RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-LOCAL-RUNTIME-1`.
 
+## Internal Beta Private Artifact Access Policy Local Runtime
+
+`RP-INTERNAL-BETA-PRIVATE-ARTIFACT-ACCESS-POLICY-LOCAL-RUNTIME-1` records decision `completed_local_private_artifact_access_policy_runtime_no_storage_read` and execution `completed_backend_local_private_artifact_access_policy_validation_no_route_or_signed_url`.
+
+The beta lane now has backend-local deterministic private artifact access policy metadata. It validates workspace/project membership flags, approved snapshot references, artifact manifest references, artifact checksum metadata, access mode, idempotency, file-name-only artifact metadata, and unsafe input rejection.
+
+This is not a storage read, storage write, storage delete, signed URL creation, public artifact creation, service-role route execution, worker dispatch, provider/model call, Remotion execution, FFmpeg/FFprobe execution, media processing, or internal beta unlock.
+
+Local access policy recorded: `true`. Access granted now: `false`. Storage object read: `false`. Signed URL creation: `false`. Public artifact creation: `false`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 ## Internal Beta Remotion Private Preview Export Local Runtime
 
 `RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-LOCAL-RUNTIME-1` records decision `completed_local_remotion_private_preview_export_runtime_no_render_execution` and execution `completed_backend_local_remotion_preview_export_validation_no_render_or_media`.

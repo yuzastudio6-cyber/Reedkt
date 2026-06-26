@@ -78,6 +78,7 @@
     "qwen2-5-vl-7b-revision-checksum-plan:diagnostics": "node scripts/validation/qwen2-5-vl-7b-revision-checksum-plan-diagnostics.mjs",
     "qwen2-5-vl-7b-controlled-private-download-manifest:diagnostics": "node scripts/validation/qwen2-5-vl-7b-controlled-private-download-manifest-diagnostics.mjs",
     "qwen2-5-vl-7b-private-loader-import-gate:diagnostics": "node scripts/validation/qwen2-5-vl-7b-private-loader-import-gate-diagnostics.mjs",
+    "qwen2-5-vl-7b-runtime-dependency-install-plan:diagnostics": "node scripts/validation/qwen2-5-vl-7b-runtime-dependency-install-plan-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

@@ -583,7 +583,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_gpu_runtime_proof_command_plan_prepared_with_manifest_blocks`.
 - Scope: server-only command-plan bridge for native GPU proof of `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background`.
-- Result: all four runtime profiles and all five private model-weight manifest mount paths are represented. The CLI can validate local-only private manifests and emit redacted `docker run --rm --gpus all` command plans with `<local-private-model-weight-root>` placeholders. Current public state remains `missing_private_manifests`.
+- Result: all four runtime profiles and all five private model-weight manifest mount paths are represented. The CLI can validate local-only private manifests and emit redacted `docker run --rm --gpus all` command plans with `$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT` host bind mounts. Current public state remains `missing_private_manifests`.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsDownloaded=false`, `modelWeightsLoaded=false`, `modelInferencePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Model-Weight Manifest Scaffold
@@ -628,3 +628,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: server-only owner approval packet for the all-21 AI graphics beta evidence chain.
 - Result: default evidence is missing technical proof, technical evidence can reach `awaiting_owner_approval`, and explicit `AI_TOOLS_CREATIVE_GRAPHICS_OWNER` approval can produce `owner_approved_all21_beta_evidence_ready` with 21 of 21 tools beta-callable by evidence.
 - Runtime/beta/production: no runtime unlock; `agentCanExecuteToolsNow=false`, `toolExecutionApprovedNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Beta/Production Readiness Rollup
+
+- Decision: `ai_graphics_beta_production_readiness_rollup_prepared_with_runtime_blocks`.
+- Scope: final server-only rollup across the 21-tool install/mapping audit, cross-owner duplicate checks, GPU targeting, beta evidence bundle, owner evidence, worker payloads, and production worker gate checks.
+- Result: all 21 tools are installed or represented for the planned ReeditPro surface, all 21 map to production registry IDs, duplicate production mappings are 0, all 8 heavy/model tools target GPU runtime, and a complete provided-evidence path can accept 21 of 21 production worker gate checks with 0 hard failures. The rollup still reports 0 tools internal-beta-ready now, 0 tools external-beta-ready now, and 0 tools production-ready now.
+- Runtime/beta/production: no unlock; `internalBetaGoNoGoReadyWithProvidedEvidence=true` can be used for the next explicit owner go/no-go packet, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

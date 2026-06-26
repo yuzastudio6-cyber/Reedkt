@@ -440,6 +440,8 @@ const allowedPackageAdditions = new Set([
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   '+    "ai-graphics:internal-beta-production-worker-gate-readiness": "tsx server/cli/ai-graphics-internal-beta-production-worker-gate-readiness.ts",',
   '+    "ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-production-worker-gate-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:beta-production-readiness-rollup": "tsx server/cli/ai-graphics-beta-production-readiness-rollup.ts",',
+  '+    "ai-graphics:beta-production-readiness-rollup:diagnostics": "node scripts/validation/ai-graphics-beta-production-readiness-rollup-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

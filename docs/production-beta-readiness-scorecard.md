@@ -111,3 +111,12 @@ approval.
 - Go/no-go result: no-go for external beta and no-go for production. The next safe action is a metadata-only limited external beta runtime owner approval plan.
 - This is not external beta activation, live user exposure, paid beta, production, public delivery, signed URL execution, storage execution, route runtime, worker dispatch, provider execution, or media processing.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Limited External Beta Runtime Owner Approval Plan Status
+
+- Decision: `reeditpro_limited_external_beta_runtime_owner_approval_plan_passed_ready_for_owner_approval_execution`
+- Next prompt: `REEDITPRO_LIMITED_EXTERNAL_BETA_RUNTIME_OWNER_APPROVAL_EXECUTION`
+- Scorecard status: external beta and production remain blocked.
+- Owner approval plan defines invite-only small cohort constraints, required owner slots, runtime evidence requirements, privacy/storage and billing guardrails, support/incident/rollback guardrails, and downstream activation prerequisites.
+- This is not external beta activation, live user exposure, paid beta, production, public delivery, signed URL execution, storage execution, route runtime, worker dispatch, provider execution, or media processing.
+- Supabase classification: no write / environment none / SQL none / migration no.

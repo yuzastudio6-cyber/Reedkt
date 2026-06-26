@@ -2,23 +2,26 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
-const runScriptName = 'ai-graphics:internal-beta-service-role-rpc-local-smoke'
+const runScriptName = 'ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke'
 const runScriptCommand =
-  'node scripts/validation/ai-graphics-internal-beta-service-role-rpc-local-smoke.mjs'
-const diagnosticScriptName = 'ai-graphics:internal-beta-service-role-rpc-local-smoke:diagnostics'
+  'tsx server/cli/ai-graphics-internal-beta-service-role-rpc-adapter-local-smoke.ts'
+const diagnosticScriptName =
+  'ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-internal-beta-service-role-rpc-local-smoke-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-internal-beta-service-role-rpc-adapter-local-smoke-diagnostics.mjs'
 
 const docsJsonFile =
-  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-local-smoke-proof.json'
+  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-adapter-local-smoke-proof.json'
 const docsMdFile =
-  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-local-smoke-proof.md'
-const sourceSmokeDocsFile =
+  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-adapter-local-smoke-proof.md'
+const sourceLocalSmokeDocsFile =
+  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-local-smoke-proof.json'
+const sourceSmokeReadinessDocsFile =
   'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-smoke-readiness.json'
 const sourceImplementationDocsFile =
   'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-implementation-readiness.json'
-const runScriptFile = 'scripts/validation/ai-graphics-internal-beta-service-role-rpc-local-smoke.mjs'
-const migrationFile = 'supabase/migrations/202606260002_ai_graphics_tool_runtime_service_role_rpcs.sql'
+const runScriptFile = 'server/cli/ai-graphics-internal-beta-service-role-rpc-adapter-local-smoke.ts'
+const serviceFile = 'server/services/ai-graphics-tool-runtime-queue-service.ts'
 
 const requiredRpcs = [
   'enqueue_ai_graphics_tool_runtime_jobs',
@@ -28,26 +31,30 @@ const requiredRpcs = [
 ]
 
 const trueBooleans = [
-  'internalBetaServiceRoleRpcLocalSmokeProofCompleted',
+  'internalBetaServiceRoleRpcAdapterLocalSmokeProofCompleted',
+  'sourceServiceRoleRpcLocalSmokeProofAccepted',
   'sourceServiceRoleRpcSmokeReadinessAccepted',
   'sourceServiceRoleRpcImplementationReadinessAccepted',
-  'all21ToolsCoveredByReadinessEvidence',
-  'all12CapabilitiesCoveredByReadinessEvidence',
-  'localRpcMigrationApplied',
+  'all21ToolsSubmittedThroughAdapter',
+  'all12CapabilitiesCoveredBySubmittedPayloads',
+  'backendServiceAdapterExercised',
+  'localSupabaseHttpRpcExercised',
   'localRpcFunctionsPresent',
-  'localRollbackFixtureSmokePassed',
-  'localEnqueueRpcSmokePassed',
-  'localClaimRpcSmokePassed',
-  'localWorkerEventRpcSmokePassed',
-  'localAuditRpcSmokePassed',
-  'localSmokeFixtureRowsRolledBack',
+  'postgrestSchemaReloadNotified',
+  'localAdapterEnqueuePassed',
+  'localAdapterClaimPassed',
+  'localAdapterWorkerEventPassed',
+  'localAdapterAuditPassed',
+  'localAdapterCleanupPassed',
   'privateArtifactManifestGuardUsed',
   'reservedCreditReservationGuardUsed',
   'approvedSnapshotGuardUsed',
+  'gpuHeavyToolsTargetGpuRuntime',
   'agentCanSelectForPlanning',
 ]
 
 const falseBooleans = [
+  'serviceRoleKeyCommitted',
   'persistentSmokeFixtureRowsCreated',
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
@@ -112,7 +119,7 @@ function runNpm(scriptName, args = []) {
     encoding: 'utf8',
     env: {
       ...process.env,
-      REEDITPRO_CONFIRM_AI_GRAPHICS_LOCAL_RPC_SMOKE: '',
+      REEDITPRO_CONFIRM_AI_GRAPHICS_RPC_ADAPTER_LOCAL_SMOKE: '',
     },
     maxBuffer: 64 * 1024 * 1024,
   }).trim()
@@ -121,10 +128,11 @@ function runNpm(scriptName, args = []) {
 for (const file of [
   docsJsonFile,
   docsMdFile,
-  sourceSmokeDocsFile,
+  sourceLocalSmokeDocsFile,
+  sourceSmokeReadinessDocsFile,
   sourceImplementationDocsFile,
   runScriptFile,
-  migrationFile,
+  serviceFile,
   'package.json',
   'docs/production-beta-readiness-scorecard.md',
 ]) {
@@ -133,11 +141,12 @@ for (const file of [
 
 const pkg = json('package.json')
 const docs = json(docsJsonFile)
-const sourceSmokeDocs = json(sourceSmokeDocsFile)
+const sourceLocalSmokeDocs = json(sourceLocalSmokeDocsFile)
+const sourceSmokeReadinessDocs = json(sourceSmokeReadinessDocsFile)
 const sourceImplementationDocs = json(sourceImplementationDocsFile)
 const markdown = read(docsMdFile)
 const runScript = read(runScriptFile)
-const migration = read(migrationFile)
+const service = read(serviceFile)
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_script:${runScriptName}`)
@@ -145,14 +154,17 @@ if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
   fail(`missing_package_script:${diagnosticScriptName}`)
 }
 
-if (docs.decision !== 'ai_graphics_internal_beta_service_role_rpc_local_smoke_passed_with_rollback_fixtures') {
+if (docs.decision !== 'ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup') {
   fail(`unexpected_decision:${docs.decision}`)
 }
-if (docs.status !== 'local_rpc_smoke_passed_with_rollback_fixtures_no_tool_execution') {
+if (docs.status !== 'adapter_local_smoke_passed_with_cleanup_no_tool_execution') {
   fail(`unexpected_status:${docs.status}`)
 }
-if (sourceSmokeDocs.decision !== 'ai_graphics_internal_beta_service_role_rpc_smoke_readiness_contract_prepared_live_smoke_blocked') {
-  fail(`unexpected_source_smoke_decision:${sourceSmokeDocs.decision}`)
+if (sourceLocalSmokeDocs.decision !== 'ai_graphics_internal_beta_service_role_rpc_local_smoke_passed_with_rollback_fixtures') {
+  fail(`unexpected_source_local_smoke_decision:${sourceLocalSmokeDocs.decision}`)
+}
+if (sourceSmokeReadinessDocs.decision !== 'ai_graphics_internal_beta_service_role_rpc_smoke_readiness_contract_prepared_live_smoke_blocked') {
+  fail(`unexpected_source_smoke_readiness_decision:${sourceSmokeReadinessDocs.decision}`)
 }
 if (
   sourceImplementationDocs.decision !==
@@ -160,66 +172,77 @@ if (
 ) {
   fail(`unexpected_source_implementation_decision:${sourceImplementationDocs.decision}`)
 }
-if (docs.migrationFile !== migrationFile) fail(`docs_migration_file:${docs.migrationFile}`)
-if (docs.localSmokeScript !== runScriptFile) fail(`docs_local_smoke_script:${docs.localSmokeScript}`)
 
 for (const rpc of requiredRpcs) {
-  if (!docs.localDatabaseEvidence?.rpcFunctionsPresentAfterApply?.includes(rpc)) fail(`docs_missing_local_rpc:${rpc}`)
-  if (!docs.localSmokeCoverage?.serviceRoleRpcsExercised?.includes(rpc)) fail(`docs_missing_exercised_rpc:${rpc}`)
+  if (!docs.adapterSmokeCoverage?.serviceRoleRpcsExercised?.includes(rpc)) fail(`docs_missing_rpc:${rpc}`)
   if (!runScript.includes(rpc)) fail(`run_script_missing_rpc:${rpc}`)
+  if (!service.includes(rpc)) fail(`service_missing_rpc:${rpc}`)
 }
 
 for (const token of [
-  'REEDITPRO_CONFIRM_AI_GRAPHICS_LOCAL_RPC_SMOKE',
-  '--execute-local-smoke',
-  'AI graphics local service-role RPC smoke is blocked in production.',
-  'local_rpc_smoke_passed_with_rollback_fixtures',
-  'rollback;',
-  'private://ai-graphics/local-rpc-smoke/d3/manifest.json',
-  "'reserved'::public.credit_reservation_status",
-  "'ai_graphics_tool_runtime'::public.job_type",
+  'createAiGraphicsToolRuntimeQueueService',
+  'buildAiGraphicsServiceRoleRpcSmokeJobs',
+  'createSupabaseAdminClient',
+  'REEDITPRO_CONFIRM_AI_GRAPHICS_RPC_ADAPTER_LOCAL_SMOKE',
+  '--execute-local-adapter-smoke',
+  'AI graphics RPC adapter local smoke is blocked in production.',
+  "smokeEnv !== 'local'",
+  "notify pgrst, 'reload schema'",
+  'set local session_replication_role = replica',
+  'jobsSubmittedToAdapter',
+  'insertedJobCount',
+  'fixtureRowsPersistedAfterCleanup',
 ]) {
   if (!runScript.includes(token)) fail(`run_script_missing_token:${token}`)
 }
 
-if (!migration.includes("cr.status in ('reserved', 'partially_spent')")) {
-  fail('migration_missing_reserved_partially_spent_guard')
+if (docs.localDatabaseEvidence?.serviceRoleKeyCommitted !== false) fail('docs_service_role_key_committed_not_false')
+if (docs.localDatabaseEvidence?.localServiceRoleJwtGeneratedInProcess !== true) {
+  fail('docs_local_service_role_jwt_not_generated_in_process')
 }
-if (migration.includes("'reserved', 'active', 'partially_spent'")) {
-  fail('migration_uses_invalid_active_credit_reservation_status')
+if (docs.localDatabaseEvidence?.rpcFunctionsPresentBeforeAdapterSmoke !== 4) {
+  fail(`docs_rpc_presence:${docs.localDatabaseEvidence?.rpcFunctionsPresentBeforeAdapterSmoke}`)
 }
+if (docs.localDatabaseEvidence?.approvedPlanSnapshotColumnsPresentBeforeAdapterSmoke !== 2) {
+  fail(`docs_snapshot_columns:${docs.localDatabaseEvidence?.approvedPlanSnapshotColumnsPresentBeforeAdapterSmoke}`)
+}
+if (docs.localDatabaseEvidence?.postgrestSchemaReloadNotified !== true) fail('docs_postgrest_reload_not_notified')
 
-if (docs.localDatabaseEvidence?.correctedMigrationAppliedLocally !== true) {
-  fail('docs_corrected_migration_not_applied_locally')
+if (docs.adapterSmokeCoverage?.toolsSubmittedToAdapterEnqueue !== 21) {
+  fail(`docs_tools_submitted:${docs.adapterSmokeCoverage?.toolsSubmittedToAdapterEnqueue}`)
 }
-if (docs.localDatabaseEvidence?.schemaMigrationsRecordedByManualApply !== false) {
-  fail('docs_schema_migrations_recorded_unexpectedly')
+if (docs.adapterSmokeCoverage?.jobsInsertedThenCleanedUp !== 21) {
+  fail(`docs_jobs_inserted_cleaned:${docs.adapterSmokeCoverage?.jobsInsertedThenCleanedUp}`)
 }
-if (docs.localDatabaseEvidence?.jobTypeEnumValuePresentAfterApply !== 'ai_graphics_tool_runtime') {
-  fail(`docs_job_type_after_apply:${docs.localDatabaseEvidence?.jobTypeEnumValuePresentAfterApply}`)
+if (docs.adapterSmokeCoverage?.jobIdsReturned !== 21) fail(`docs_job_ids:${docs.adapterSmokeCoverage?.jobIdsReturned}`)
+if (docs.adapterSmokeCoverage?.workerClaimsInsertedThenCleanedUp !== 1) {
+  fail(`docs_claims:${docs.adapterSmokeCoverage?.workerClaimsInsertedThenCleanedUp}`)
 }
-if (docs.localDatabaseEvidence?.approvedPlanSnapshotColumnsPresentAfterApply !== 2) {
-  fail(`docs_approved_snapshot_columns:${docs.localDatabaseEvidence?.approvedPlanSnapshotColumnsPresentAfterApply}`)
+if (docs.adapterSmokeCoverage?.backendServiceAdapterExercised !== serviceFile) {
+  fail(`docs_service_adapter:${docs.adapterSmokeCoverage?.backendServiceAdapterExercised}`)
 }
-if (docs.localSmokeCoverage?.toolsRepresentedByReadinessEvidence !== 21) {
-  fail(`docs_tools_represented:${docs.localSmokeCoverage?.toolsRepresentedByReadinessEvidence}`)
+if (docs.adapterSmokeCoverage?.toolExecutionPerformedBySmoke !== false) fail('docs_tool_execution_by_smoke_not_false')
+if (docs.cleanupEvidence?.cleanupRequiredBecauseApprovedSnapshotsAreImmutable !== true) {
+  fail('docs_cleanup_immutability_missing')
 }
-if (!docs.localSmokeCoverage?.toolsExercisedByLocalSmoke?.includes('d3')) fail('docs_missing_d3_smoke_tool')
-if (docs.localSmokeCoverage?.toolExecutionPerformedBySmoke !== false) fail('docs_smoke_tool_execution_not_false')
+if (docs.cleanupEvidence?.cleanupMode !== 'local_only_trigger_bypass_for_prefixed_smoke_fixtures') {
+  fail(`docs_cleanup_mode:${docs.cleanupEvidence?.cleanupMode}`)
+}
+if (docs.cleanupEvidence?.fixtureRowsPersistedAfterCleanup !== 0) {
+  fail(`docs_fixture_rows_after_cleanup:${docs.cleanupEvidence?.fixtureRowsPersistedAfterCleanup}`)
+}
 
 if (docs.counts?.totalAiGraphicsTools !== 21) fail(`docs_total_tools:${docs.counts?.totalAiGraphicsTools}`)
 if (docs.counts?.totalProductFacingCapabilities !== 12) {
   fail(`docs_total_capabilities:${docs.counts?.totalProductFacingCapabilities}`)
 }
 if (docs.counts?.serviceRoleRpcsExercised !== 4) fail(`docs_rpc_count:${docs.counts?.serviceRoleRpcsExercised}`)
-if (docs.counts?.localSchemaMigrationsAppliedNow !== 1) {
-  fail(`docs_local_migrations:${docs.counts?.localSchemaMigrationsAppliedNow}`)
+if (docs.counts?.adapterEnqueueJobPayloadsSubmitted !== 21) {
+  fail(`docs_adapter_payloads:${docs.counts?.adapterEnqueueJobPayloadsSubmitted}`)
 }
-if (docs.counts?.localRollbackFixtureTransactionsPerformed !== 1) {
-  fail(`docs_local_rollback_transactions:${docs.counts?.localRollbackFixtureTransactionsPerformed}`)
-}
-if (docs.counts?.persistentSmokeFixtureRowsAfterRollback !== 0) {
-  fail(`docs_persistent_fixture_rows:${docs.counts?.persistentSmokeFixtureRowsAfterRollback}`)
+if (docs.counts?.adapterInsertedJobCount !== 21) fail(`docs_inserted_count:${docs.counts?.adapterInsertedJobCount}`)
+if (docs.counts?.fixtureRowsPersistedAfterCleanup !== 0) {
+  fail(`docs_count_fixture_rows:${docs.counts?.fixtureRowsPersistedAfterCleanup}`)
 }
 for (const countKey of [
   'toolExecutionsNow',
@@ -248,29 +271,31 @@ let defaultOutput = {}
 try {
   defaultOutput = JSON.parse(runNpm(runScriptName))
 } catch (error) {
-  fail(`default_local_smoke_contract_failed:${error.message}`)
+  fail(`default_adapter_smoke_contract_failed:${error.message}`)
 }
-if (defaultOutput.status !== 'local_rpc_smoke_prepared_not_executed') {
+if (defaultOutput.status !== 'adapter_local_smoke_prepared_not_executed') {
   fail(`default_output_status:${defaultOutput.status}`)
 }
-if (defaultOutput.localRpcSmokeExecutedNow !== false) fail('default_output_executed_without_confirmation')
+if (defaultOutput.adapterLocalSmokeExecutedNow !== false) fail('default_output_executed_without_confirmation')
 if (defaultOutput.toolExecutionPerformed !== false) fail('default_output_tool_execution_not_false')
 
 for (const token of [
-  'ai_graphics_internal_beta_service_role_rpc_local_smoke_passed_with_rollback_fixtures',
-  '`ai-graphics:internal-beta-service-role-rpc-local-smoke`',
-  'Persistent smoke fixture rows after rollback: 0',
+  'ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup',
+  '`ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke`',
+  'Tools submitted to adapter enqueue: 21',
+  'Fixture rows persisted after cleanup: 0',
   '`agentCanExecuteToolsNow`: false',
   '`runtimeReadyNow`: false',
   '`productionReadyNow`: false',
 ]) {
   if (!markdown.includes(token)) fail(`markdown_missing_token:${token}`)
 }
-if (!scorecard.includes('ai_graphics_internal_beta_service_role_rpc_local_smoke_passed_with_rollback_fixtures')) {
-  fail('scorecard_missing_local_smoke_proof')
+if (!scorecard.includes('ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup')) {
+  fail('scorecard_missing_adapter_local_smoke_proof')
 }
 
 const forbiddenPatterns = [
+  /SUPABASE_SERVICE_ROLE_KEY=[A-Za-z0-9._-]{20,}/i,
   /agentCanExecuteToolsNow["'`:\s=]+true/i,
   /routeExecutionApprovedNow["'`:\s=]+true/i,
   /workerExecutionApprovedNow["'`:\s=]+true/i,
@@ -315,10 +340,10 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:internal-beta-service-role-rpc-implementation-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-implementation-readiness-diagnostics.mjs",',
   '+    "ai-graphics:internal-beta-service-role-rpc-smoke-readiness": "tsx server/cli/ai-graphics-internal-beta-service-role-rpc-smoke-readiness.ts",',
   '+    "ai-graphics:internal-beta-service-role-rpc-smoke-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-smoke-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-service-role-rpc-local-smoke": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-local-smoke.mjs",',
+  '+    "ai-graphics:internal-beta-service-role-rpc-local-smoke:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-local-smoke-diagnostics.mjs",',
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke": "tsx server/cli/ai-graphics-internal-beta-service-role-rpc-adapter-local-smoke.ts",',
-  '+    "ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-adapter-local-smoke-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue
@@ -345,7 +370,7 @@ try {
 
 if (failures.length > 0) {
   console.error([
-    'AI graphics internal beta service-role RPC local smoke diagnostics failed:',
+    'AI graphics internal beta service-role RPC adapter local smoke diagnostics failed:',
     ...failures.map((failure) => `- ${failure}`),
   ].join('\n'))
   process.exit(1)
@@ -355,12 +380,10 @@ console.log(JSON.stringify({
   ok: true,
   decision: docs.decision,
   status: docs.status,
-  tools: docs.counts.totalAiGraphicsTools,
-  capabilities: docs.counts.totalProductFacingCapabilities,
+  toolsSubmittedToAdapterEnqueue: docs.adapterSmokeCoverage.toolsSubmittedToAdapterEnqueue,
+  adapterInsertedJobCount: docs.counts.adapterInsertedJobCount,
   serviceRoleRpcsExercised: docs.counts.serviceRoleRpcsExercised,
-  localSchemaMigrationsAppliedNow: docs.counts.localSchemaMigrationsAppliedNow,
-  localRollbackFixtureTransactionsPerformed: docs.counts.localRollbackFixtureTransactionsPerformed,
-  persistentSmokeFixtureRowsAfterRollback: docs.counts.persistentSmokeFixtureRowsAfterRollback,
+  fixtureRowsPersistedAfterCleanup: docs.counts.fixtureRowsPersistedAfterCleanup,
   toolExecutionsNow: docs.counts.toolExecutionsNow,
   agentCanExecuteToolsNow: docs.booleans.agentCanExecuteToolsNow,
   runtimeReadyNow: docs.booleans.runtimeReadyNow,

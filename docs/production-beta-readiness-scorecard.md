@@ -145,6 +145,18 @@ audit event, and then rolled back all fixture rows. Persistent smoke fixture
 rows after rollback are 0, tool executions are 0, signed URLs/public artifacts
 are 0, and internal beta runtime, external beta, and production remain blocked.
 
+AI graphics internal beta service-role RPC adapter local smoke proof decision
+`ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup`
+records the backend adapter proof for the local service-role RPC path. The
+smoke uses a local Supabase service-role admin client through
+`createAiGraphicsToolRuntimeQueueService`, submits all 21 AI graphics job
+payloads to the enqueue RPC, claims one returned job, records one worker event,
+records one audit event, and cleans every prefixed fixture row. It confirms the
+actual adapter-to-RPC path while keeping tool execution, worker execution, route
+execution, provider/model runtime, browser/canvas/WebGL runtime, GPU/model
+runtime, media processing, signed URLs, public artifacts, internal beta runtime,
+external beta, and production blocked.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

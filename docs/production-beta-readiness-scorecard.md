@@ -122,6 +122,18 @@ worker dispatch, tool execution, browser/canvas/WebGL runtime, GPU/model
 runtime, media processing, signed URLs, public artifacts, internal beta runtime,
 external beta, and production remain blocked.
 
+AI graphics internal beta service-role RPC smoke readiness decision
+`ai_graphics_internal_beta_service_role_rpc_smoke_readiness_contract_prepared_live_smoke_blocked`
+adds the guarded non-production smoke harness for the all-21 service-role RPC
+path. It prepares 21 smoke cases, covers all 12 product-facing capabilities,
+validates the backend RPC adapter in mock mode, and documents the future
+local/staging-only command requiring an already-applied static migration,
+service-role credentials, approved snapshot and credit reservation fixtures, and
+private artifact manifests. The smoke is not run in this lane; live Supabase
+writes, worker claims, worker dispatch, tool execution, browser/canvas/WebGL
+runtime, GPU/model runtime, media processing, signed URLs, public artifacts,
+internal beta runtime, external beta, and production remain blocked.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

@@ -2,18 +2,27 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
-const scriptName = 'ai-graphics:internal-beta-service-role-rpc-implementation-readiness:diagnostics'
-const scriptCommand =
-  'node scripts/validation/ai-graphics-internal-beta-service-role-rpc-implementation-readiness-diagnostics.mjs'
+const runScriptName = 'ai-graphics:internal-beta-service-role-rpc-smoke-readiness'
+const runScriptCommand =
+  'tsx server/cli/ai-graphics-internal-beta-service-role-rpc-smoke-readiness.ts'
+const diagnosticScriptName =
+  'ai-graphics:internal-beta-service-role-rpc-smoke-readiness:diagnostics'
+const diagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-internal-beta-service-role-rpc-smoke-readiness-diagnostics.mjs'
 
-const migrationFile = 'supabase/migrations/202606260001_ai_graphics_tool_runtime_service_role_rpcs.sql'
 const docsJsonFile =
-  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-implementation-readiness.json'
+  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-smoke-readiness.json'
 const docsMdFile =
-  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-implementation-readiness.md'
-const serviceFile = 'server/services/ai-graphics-tool-runtime-queue-service.ts'
-const sourceDocsFile =
+  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-smoke-readiness.md'
+const sourceQueueDocsFile =
   'docs/tool-intelligence/ai-graphics/internal-beta-service-role-queue-transaction-readiness.json'
+const sourceRpcDocsFile =
+  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-implementation-readiness.json'
+const registryFile =
+  'server/tool-registry/ai-graphics-internal-beta-service-role-rpc-smoke-readiness.ts'
+const cliFile =
+  'server/cli/ai-graphics-internal-beta-service-role-rpc-smoke-readiness.ts'
+const serviceFile = 'server/services/ai-graphics-tool-runtime-queue-service.ts'
 
 const allTools = [
   'torch_torchvision',
@@ -54,6 +63,18 @@ const capabilities = [
   'model_runtime_foundation',
 ]
 
+const runtimeBuckets = [
+  'planning_metadata_allowed_now',
+  'cpu_static_execution_previously_validated_but_not_agent_executable_now',
+  'browser_chart_runtime_later',
+  'animation_runtime_later',
+  'browser_canvas_webgl_runtime_later',
+  'model_cpu_gpu_runtime_later',
+  'tool_route_handoff_later',
+  'worker_handoff_later',
+  'public_artifact_and_signed_url_later',
+]
+
 const requiredRpcs = [
   'enqueue_ai_graphics_tool_runtime_jobs',
   'claim_ai_graphics_tool_runtime_job',
@@ -62,24 +83,28 @@ const requiredRpcs = [
 ]
 
 const trueBooleans = [
-  'internalBetaServiceRoleRpcImplementationReadinessPrepared',
+  'internalBetaServiceRoleRpcSmokeReadinessPrepared',
   'sourceServiceRoleQueueTransactionReadinessAccepted',
+  'sourceServiceRoleRpcImplementationReadinessAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
-  'aiGraphicsJobTypeEnumPrepared',
-  'approvedSnapshotColumnsPrepared',
-  'serviceRoleRpcMigrationPrepared',
-  'backendServiceAdapterPrepared',
-  'serviceRoleOnlyExecuteGrantsPrepared',
-  'approvedSnapshotCreditReservationGuardsPrepared',
-  'privateArtifactManifestGuardPrepared',
+  'all21RpcSmokeCasesPrepared',
+  'all21RpcSmokeCasesReadyWithProvidedEvidence',
+  'backendServiceAdapterMockValidated',
+  'liveSmokeCommandPrepared',
+  'staticMigrationRequiredBeforeLiveSmoke',
+  'nonProductionEnvironmentRequired',
+  'serviceRoleCredentialsRequired',
+  'approvedSnapshotFixtureRequired',
+  'creditReservationFixtureRequired',
+  'privateArtifactManifestOnly',
   'gpuHeavyToolsTargetGpuRuntime',
   'agentCanSelectForPlanning',
 ]
 
 const falseBooleans = [
+  'serviceRoleRpcSmokeApprovedNow',
   'serviceRoleRpcMigrationAppliedNow',
-  'serviceRoleQueueTransactionApprovedNow',
   'serviceRoleSupabaseWritesApprovedNow',
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
@@ -102,6 +127,7 @@ const falseBooleans = [
   'backendQueueSubmissionPerformed',
   'supabaseMutationPerformed',
   'serviceRoleTransactionPerformed',
+  'serviceRoleRpcSmokePerformed',
   'serviceRoleMigrationApplyPerformed',
   'productionWorkerDispatchPerformed',
   'providerRuntimePerformed',
@@ -146,12 +172,22 @@ function git(args) {
   }).trim()
 }
 
+function runNpm(scriptName, args = []) {
+  return execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
+    encoding: 'utf8',
+    env: { ...process.env, REEDITPRO_CONFIRM_AI_GRAPHICS_SERVICE_ROLE_RPC_SMOKE: '' },
+    maxBuffer: 64 * 1024 * 1024,
+  }).trim()
+}
+
 for (const file of [
-  migrationFile,
   docsJsonFile,
   docsMdFile,
+  sourceQueueDocsFile,
+  sourceRpcDocsFile,
+  registryFile,
+  cliFile,
   serviceFile,
-  sourceDocsFile,
   'package.json',
   'docs/production-beta-readiness-scorecard.md',
 ]) {
@@ -160,24 +196,31 @@ for (const file of [
 
 const pkg = json('package.json')
 const docs = json(docsJsonFile)
-const sourceDocs = json(sourceDocsFile)
-const migration = read(migrationFile)
+const sourceQueueDocs = json(sourceQueueDocsFile)
+const sourceRpcDocs = json(sourceRpcDocsFile)
 const markdown = read(docsMdFile)
+const registry = read(registryFile)
+const cli = read(cliFile)
 const service = read(serviceFile)
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
-if (pkg.scripts?.[scriptName] !== scriptCommand) fail(`missing_package_script:${scriptName}`)
-if (sourceDocs.decision !== 'ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope') {
-  fail(`unexpected_source_decision:${sourceDocs.decision}`)
+if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_script:${runScriptName}`)
+if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
+  fail(`missing_package_script:${diagnosticScriptName}`)
 }
-if (docs.decision !== 'ai_graphics_internal_beta_service_role_rpc_implementation_readiness_contract_prepared_with_static_migration') {
+
+if (sourceQueueDocs.decision !== 'ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope') {
+  fail(`unexpected_source_queue_decision:${sourceQueueDocs.decision}`)
+}
+if (sourceRpcDocs.decision !== 'ai_graphics_internal_beta_service_role_rpc_implementation_readiness_contract_prepared_with_static_migration') {
+  fail(`unexpected_source_rpc_decision:${sourceRpcDocs.decision}`)
+}
+if (docs.decision !== 'ai_graphics_internal_beta_service_role_rpc_smoke_readiness_contract_prepared_live_smoke_blocked') {
   fail(`unexpected_decision:${docs.decision}`)
 }
-if (docs.status !== 'static_service_role_rpc_migration_prepared_not_applied') {
+if (docs.status !== 'service_role_rpc_smoke_harness_prepared_live_smoke_blocked') {
   fail(`unexpected_status:${docs.status}`)
 }
-if (docs.migrationFile !== migrationFile) fail(`docs_migration_file:${docs.migrationFile}`)
-if (docs.serviceAdapter !== serviceFile) fail(`docs_service_file:${docs.serviceAdapter}`)
 
 for (const tool of allTools) {
   if (!docs.toolsCovered?.includes(tool)) fail(`docs_missing_tool:${tool}`)
@@ -187,66 +230,63 @@ for (const capability of capabilities) {
   if (!docs.capabilitiesCovered?.includes(capability)) fail(`docs_missing_capability:${capability}`)
   if (!markdown.includes(`\`${capability}\``)) fail(`markdown_missing_capability:${capability}`)
 }
+for (const bucket of runtimeBuckets) {
+  if (!docs.runtimeBuckets?.includes(bucket)) fail(`docs_missing_runtime_bucket:${bucket}`)
+}
 for (const rpc of requiredRpcs) {
-  if (!docs.serviceRoleRpcsPrepared?.includes(rpc)) fail(`docs_missing_rpc:${rpc}`)
-  if (!migration.includes(`function public.${rpc}`)) fail(`migration_missing_function:${rpc}`)
-  if (!migration.includes(`grant execute on function public.${rpc}`)) fail(`migration_missing_service_role_grant:${rpc}`)
-  if (!migration.includes(`revoke execute on function public.${rpc}`)) fail(`migration_missing_revoke:${rpc}`)
-  if (!service.includes(rpc)) fail(`service_missing_rpc_call:${rpc}`)
+  if (!docs.requiredServiceRoleRpcs?.includes(rpc)) fail(`docs_missing_rpc:${rpc}`)
+  if (!registry.includes(rpc)) fail(`registry_missing_rpc:${rpc}`)
+  if (!cli.includes(rpc)) fail(`cli_missing_rpc:${rpc}`)
+  if (!service.includes(rpc)) fail(`service_missing_rpc:${rpc}`)
 }
 
 for (const token of [
-  "alter type public.job_type add value if not exists 'ai_graphics_tool_runtime'",
-  'add column if not exists approved_plan_snapshot_id uuid references public.approved_plan_snapshots',
-  'job_batches_approved_plan_snapshot_id_idx',
-  'jobs_approved_plan_snapshot_id_idx',
-  "'ai_graphics_tool_runtime'::public.job_type",
-  'public.active_worker_claim_exists',
-  'private://%',
-  'signed.?url',
-  'public://',
-  'https?://',
-  'gcs://',
-  'toolExecutionPerformed',
+  'REEDITPRO_CONFIRM_AI_GRAPHICS_SERVICE_ROLE_RPC_SMOKE',
+  'REEDITPRO_AI_GRAPHICS_SERVICE_ROLE_RPC_SMOKE_ENV',
+  '--execute-live-smoke',
+  '--smoke-env',
+  '--workspace-id',
+  '--project-id',
+  '--approved-plan-snapshot-id',
+  '--credit-reservation-id',
+  'AI graphics service-role RPC smoke is blocked in production.',
+  'createSupabaseAdminClient',
+  'buildAiGraphicsServiceRoleRpcSmokeJobs',
 ]) {
-  if (!migration.includes(token)) fail(`migration_missing_token:${token}`)
+  if (!cli.includes(token)) fail(`cli_missing_guard:${token}`)
 }
-
 for (const token of [
   'createAiGraphicsToolRuntimeQueueService',
-  'enqueueToolRuntimeJobs',
-  'claimToolRuntimeJob',
-  'recordWorkerEvent',
-  'recordAuditEvent',
-  "context.clients.admin.rpc('enqueue_ai_graphics_tool_runtime_jobs'",
-  "context.clients.admin.rpc('claim_ai_graphics_tool_runtime_job'",
-  "context.clients.admin.rpc('record_ai_graphics_worker_event'",
-  "context.clients.admin.rpc('record_ai_graphics_audit_event'",
-  'mockOnly',
-  'privateArtifactManifestRef.startsWith',
+  'buildAiGraphicsServiceRoleRpcSmokeJobs',
+  'listAiGraphicsToolCallReadiness',
+  'private://ai-graphics/internal-beta/service-role-rpc-smoke',
+  'toolExecutionApprovedNow: false',
+  'workerExecutionApprovedNow: false',
+  'gpuHeavyToolsTargetGpuRuntime',
 ]) {
-  if (!service.includes(token)) fail(`service_missing_token:${token}`)
+  if (!registry.includes(token)) fail(`registry_missing_token:${token}`)
 }
 
-if (docs.databaseChangesPrepared?.jobTypeEnumValuePrepared !== 'ai_graphics_tool_runtime') {
-  fail(`docs_job_type_enum:${docs.databaseChangesPrepared?.jobTypeEnumValuePrepared}`)
-}
 if (docs.counts?.totalAiGraphicsTools !== 21) fail(`docs_total_tools:${docs.counts?.totalAiGraphicsTools}`)
 if (docs.counts?.totalProductFacingCapabilities !== 12) {
   fail(`docs_total_capabilities:${docs.counts?.totalProductFacingCapabilities}`)
 }
-if (docs.counts?.serviceRoleRpcsPrepared !== 4) fail(`docs_rpc_count:${docs.counts?.serviceRoleRpcsPrepared}`)
-if (docs.counts?.staticMigrationFilesPrepared !== 1) {
-  fail(`docs_migration_count:${docs.counts?.staticMigrationFilesPrepared}`)
+if (docs.counts?.rpcSmokeCasesPrepared !== 21) fail(`docs_smoke_case_count:${docs.counts?.rpcSmokeCasesPrepared}`)
+if (docs.counts?.rpcSmokeCasesReadyWithProvidedEvidence !== 21) {
+  fail(`docs_smoke_ready_count:${docs.counts?.rpcSmokeCasesReadyWithProvidedEvidence}`)
 }
-if (docs.counts?.backendServiceAdaptersPrepared !== 1) {
-  fail(`docs_service_count:${docs.counts?.backendServiceAdaptersPrepared}`)
+if (docs.counts?.serviceRoleRpcsCovered !== 4) fail(`docs_rpc_count:${docs.counts?.serviceRoleRpcsCovered}`)
+if (docs.counts?.gpuRuntimeTargetedTools !== 8) fail(`docs_gpu_count:${docs.counts?.gpuRuntimeTargetedTools}`)
+if (docs.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) {
+  fail(`docs_heavy_cpu_count:${docs.counts?.heavyToolsIncorrectlyTargetingCpu}`)
 }
 for (const countKey of [
+  'liveServiceRoleRpcSmokeExecutedNow',
   'liveMigrationAppliesNow',
-  'liveServiceRoleTransactionsNow',
   'liveJobRowsInsertedNow',
   'liveWorkerClaimRowsInsertedNow',
+  'liveWorkerEventRowsInsertedNow',
+  'liveAuditEventRowsInsertedNow',
   'liveToolExecutionsNow',
   'internalBetaReadyNowTools',
   'externalBetaReadyNowTools',
@@ -261,8 +301,33 @@ for (const key of falseBooleans) {
   if (docs.booleans?.[key] !== false) fail(`docs_false_boolean_not_false:${key}`)
 }
 
-if (!scorecard.includes('ai_graphics_internal_beta_service_role_rpc_implementation_readiness_contract_prepared_with_static_migration')) {
-  fail('scorecard_missing_service_role_rpc_implementation_readiness')
+let dryOutput = {}
+try {
+  dryOutput = JSON.parse(runNpm(runScriptName))
+} catch (error) {
+  fail(`dry_readiness_command_failed:${error.message}`)
+}
+if (dryOutput.decision !== docs.decision) fail(`dry_output_decision:${dryOutput.decision}`)
+if (dryOutput.rpcSmokeCasesPrepared !== 21) fail(`dry_output_smoke_cases:${dryOutput.rpcSmokeCasesPrepared}`)
+if (dryOutput.rpcSmokeCasesReadyWithProvidedEvidence !== 21) {
+  fail(`dry_output_ready_cases:${dryOutput.rpcSmokeCasesReadyWithProvidedEvidence}`)
+}
+const dryOutputTools = Array.isArray(dryOutput.rpcSmokeCases)
+  ? dryOutput.rpcSmokeCases.map((record) => record.toolId)
+  : []
+for (const tool of allTools) {
+  if (!dryOutputTools.includes(tool)) fail(`dry_output_missing_tool:${tool}`)
+}
+if (dryOutput.liveServiceRoleRpcSmokeExecutedNow !== 0) {
+  fail(`dry_output_live_smoke:${dryOutput.liveServiceRoleRpcSmokeExecutedNow}`)
+}
+if (dryOutput.booleans?.agentCanExecuteToolsNow !== false) fail('dry_output_agent_execution_not_false')
+if (dryOutput.booleans?.serviceRoleSupabaseWritesApprovedNow !== false) {
+  fail('dry_output_supabase_writes_not_false')
+}
+
+if (!scorecard.includes('ai_graphics_internal_beta_service_role_rpc_smoke_readiness_contract_prepared_live_smoke_blocked')) {
+  fail('scorecard_missing_service_role_rpc_smoke_readiness')
 }
 
 const forbiddenPatterns = [
@@ -270,6 +335,7 @@ const forbiddenPatterns = [
   /routeExecutionApprovedNow["'`:\s=]+true/i,
   /workerExecutionApprovedNow["'`:\s=]+true/i,
   /toolExecutionApprovedNow["'`:\s=]+true/i,
+  /serviceRoleRpcSmokeApprovedNow["'`:\s=]+true/i,
   /serviceRoleRpcMigrationAppliedNow["'`:\s=]+true/i,
   /serviceRoleSupabaseWritesApprovedNow["'`:\s=]+true/i,
   /runtimeReadyNow["'`:\s=]+true/i,
@@ -282,7 +348,7 @@ const forbiddenPatterns = [
 for (const [label, content] of Object.entries({
   docs: JSON.stringify(docs),
   markdown,
-  service,
+  registry,
 })) {
   for (const pattern of forbiddenPatterns) {
     if (pattern.test(content)) fail(`forbidden_runtime_claim:${label}:${pattern}`)
@@ -309,9 +375,8 @@ try {
 
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
-  `+    "${scriptName}": "${scriptCommand}",`,
-  '+    "ai-graphics:internal-beta-service-role-rpc-smoke-readiness": "tsx server/cli/ai-graphics-internal-beta-service-role-rpc-smoke-readiness.ts",',
-  '+    "ai-graphics:internal-beta-service-role-rpc-smoke-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-smoke-readiness-diagnostics.mjs",',
+  `+    "${runScriptName}": "${runScriptCommand}",`,
+  `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue
@@ -338,7 +403,7 @@ try {
 
 if (failures.length > 0) {
   console.error([
-    'AI graphics internal beta service-role RPC implementation readiness diagnostics failed:',
+    'AI graphics internal beta service-role RPC smoke readiness diagnostics failed:',
     ...failures.map((failure) => `- ${failure}`),
   ].join('\n'))
   process.exit(1)
@@ -350,13 +415,14 @@ console.log(JSON.stringify({
   status: docs.status,
   tools: docs.toolsCovered.length,
   capabilities: docs.capabilitiesCovered.length,
-  serviceRoleRpcsPrepared: docs.counts.serviceRoleRpcsPrepared,
-  staticMigrationFilesPrepared: docs.counts.staticMigrationFilesPrepared,
-  backendServiceAdaptersPrepared: docs.counts.backendServiceAdaptersPrepared,
+  rpcSmokeCasesPrepared: docs.counts.rpcSmokeCasesPrepared,
+  rpcSmokeCasesReadyWithProvidedEvidence: docs.counts.rpcSmokeCasesReadyWithProvidedEvidence,
+  serviceRoleRpcsCovered: docs.counts.serviceRoleRpcsCovered,
+  gpuRuntimeTargetedTools: docs.counts.gpuRuntimeTargetedTools,
+  liveServiceRoleRpcSmokeExecutedNow: docs.counts.liveServiceRoleRpcSmokeExecutedNow,
   liveMigrationAppliesNow: docs.counts.liveMigrationAppliesNow,
-  liveServiceRoleTransactionsNow: docs.counts.liveServiceRoleTransactionsNow,
   liveToolExecutionsNow: docs.counts.liveToolExecutionsNow,
-  serviceRoleRpcMigrationAppliedNow: docs.booleans.serviceRoleRpcMigrationAppliedNow,
+  serviceRoleRpcSmokeApprovedNow: docs.booleans.serviceRoleRpcSmokeApprovedNow,
   serviceRoleSupabaseWritesApprovedNow: docs.booleans.serviceRoleSupabaseWritesApprovedNow,
   agentCanExecuteToolsNow: docs.booleans.agentCanExecuteToolsNow,
   runtimeReadyNow: docs.booleans.runtimeReadyNow,

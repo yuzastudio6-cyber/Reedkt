@@ -252,6 +252,21 @@ if (bundleDocs.decision !== 'ai_graphics_beta_evidence_bundle_validator_prepared
 if (preflightDocs.decision !== 'ai_graphics_gpu_runtime_proof_local_preflight_prepared_with_manifest_and_result_blocks') {
   fail('source_local_preflight_not_accepted')
 }
+if (packet.contractSurface?.defaultCliOutputMode !== 'sanitized_summary') {
+  fail(`unexpected_default_output_mode:${packet.contractSurface?.defaultCliOutputMode}`)
+}
+if (packet.contractSurface?.fullOutputFlag !== '--full-output') {
+  fail(`unexpected_full_output_flag:${packet.contractSurface?.fullOutputFlag}`)
+}
+if (packet.outputSafety?.defaultCliOutputMode !== 'sanitized_summary') {
+  fail(`unexpected_output_safety_default_mode:${packet.outputSafety?.defaultCliOutputMode}`)
+}
+if (packet.outputSafety?.fullEvidencePacketsIncludedByDefault !== false) {
+  fail('output_safety_full_packets_included_by_default')
+}
+if (packet.outputSafety?.rawPrivateArtifactRefsAllowedInOutput !== false) {
+  fail('output_safety_allows_raw_private_refs')
+}
 
 for (const token of [
   'buildAiGraphicsBetaEvidenceLocalAssembly',
@@ -275,6 +290,9 @@ for (const token of [
   '--browser-canvas-webgl-sandbox-passed',
   '--require-ready-for-owner-gate',
   '--require-all-21-beta-ready',
+  '--full-output',
+  'sanitized_summary',
+  'fullEvidencePacketsIncluded: false',
   'validatorOnly: true',
   'gpuRuntimePerformed: false',
 ]) {
@@ -288,6 +306,8 @@ for (const token of [
   'browser-runtime-proof.json',
   'satori-font-runtime-proof.json',
   '--require-all-21-beta-ready',
+  '--full-output',
+  'sanitized_summary',
 ]) {
   if (!markdown.includes(token) && !JSON.stringify(packet).includes(token)) fail(`docs_missing:${token}`)
 }
@@ -307,12 +327,14 @@ for (const [key, expected] of Object.entries({
 
 for (const key of [
   'betaEvidenceLocalAssemblyPrepared',
+  'defaultCliOutputSanitized',
   'agentCanSelectForPlanning',
 ]) {
   if (packet.booleans?.[key] !== true) fail(`required_true_not_true:${key}`)
 }
 
 for (const key of [
+  'fullEvidencePacketsIncludedByDefault',
   'modelWeightManifestReviewPacketBuiltFromLocalInput',
   'gpuRuntimeProofResultPacketBuiltFromLocalInput',
   'committedJsRuntimeProofsAccepted',
@@ -352,12 +374,18 @@ for (const key of [
 
 const defaultAssembly = parseOutput(runNpm(assemblyScriptName), 'default_assembly')
 if (defaultAssembly.status !== 'missing_local_evidence') fail(`default_status:${defaultAssembly.status}`)
-if (defaultAssembly.betaEvidenceBundle?.betaTestingReadyTools !== 0) fail('default_ready_not_0')
-if (defaultAssembly.betaEvidenceBundle?.all21BetaEvidenceReady !== false) fail('default_all21_not_false')
-if (!defaultAssembly.missingLocalEvidence?.includes('reviewed_private_model_weight_manifest_records')) {
+if (defaultAssembly.outputMode !== 'sanitized_summary') fail(`default_output_mode:${defaultAssembly.outputMode}`)
+if (defaultAssembly.sanitizedSummary !== true) fail('default_summary_not_marked_sanitized')
+if (defaultAssembly.fullEvidencePacketsIncluded !== false) fail('default_full_packets_included')
+if ('modelWeightManifestReviewPacket' in defaultAssembly) fail('default_summary_includes_manifest_packet')
+if ('gpuRuntimeProofResultPacket' in defaultAssembly) fail('default_summary_includes_gpu_packet')
+if ('betaEvidenceBundle' in defaultAssembly) fail('default_summary_includes_beta_bundle')
+if (defaultAssembly.betaEvidence?.betaTestingReadyTools !== 0) fail('default_ready_not_0')
+if (defaultAssembly.betaEvidence?.all21BetaEvidenceReady !== false) fail('default_all21_not_false')
+if (!defaultAssembly.localEvidence?.missingLocalEvidence?.includes('reviewed_private_model_weight_manifest_records')) {
   fail('default_missing_manifest_gap')
 }
-if (!defaultAssembly.missingLocalEvidence?.includes('native_gpu_runtime_proof_result_records')) {
+if (!defaultAssembly.localEvidence?.missingLocalEvidence?.includes('native_gpu_runtime_proof_result_records')) {
   fail('default_missing_gpu_gap')
 }
 
@@ -374,13 +402,14 @@ const ownerGateOutput = runNpm(assemblyScriptName, [
   '--require-ready-for-owner-gate',
 ])
 const ownerGateAssembly = parseOutput(ownerGateOutput, 'owner_gate_assembly')
+if (ownerGateAssembly.outputMode !== 'sanitized_summary') fail(`owner_gate_output_mode:${ownerGateAssembly.outputMode}`)
 if (ownerGateAssembly.status !== 'assembled_technical_evidence_ready_for_owner_gate') {
   fail(`owner_gate_status:${ownerGateAssembly.status}`)
 }
-if (ownerGateAssembly.betaEvidenceBundle?.all21TechnicalEvidenceReadyBeforeOwnerApproval !== true) {
+if (ownerGateAssembly.betaEvidence?.all21TechnicalEvidenceReadyBeforeOwnerApproval !== true) {
   fail('owner_gate_technical_evidence_not_true')
 }
-if (ownerGateAssembly.betaEvidenceBundle?.all21BetaEvidenceReady !== false) {
+if (ownerGateAssembly.betaEvidence?.all21BetaEvidenceReady !== false) {
   fail('owner_gate_beta_evidence_should_not_be_true_before_owner_approval')
 }
 if (ownerGateAssembly.booleans?.readyForInternalBetaOwnerGate !== true) {
@@ -399,6 +428,7 @@ const fullOutput = runNpm(assemblyScriptName, [
   '--all-shared-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
   '--require-all-21-beta-ready',
+  '--full-output',
 ])
 const fullAssembly = parseOutput(fullOutput, 'full_assembly')
 if (fullAssembly.status !== 'assembled_all21_beta_evidence_ready_for_owner_gate') {
@@ -429,6 +459,7 @@ try {
     '--all-shared-gates-passed',
     '--browser-canvas-webgl-sandbox-passed',
     '--require-all-21-beta-ready',
+    '--full-output',
   ])
 } catch (error) {
   badExited = true

@@ -128,6 +128,7 @@ const manifestFiles = manifestFilesFromArgs()
 const resultFiles = resultFilesFromArgs()
 const allSharedGatesPassed = hasFlag('--all-shared-gates-passed')
 const allTechnicalGatesPassed = allSharedGatesPassed || hasFlag('--all-technical-gates-passed')
+const fullOutputRequested = hasFlag('--full-output')
 
 const input: AiGraphicsBetaEvidenceLocalAssemblyInput = {
   manifestRecords: manifestFiles.flatMap(manifestRecordsFromJsonFile),
@@ -154,32 +155,92 @@ const input: AiGraphicsBetaEvidenceLocalAssemblyInput = {
 }
 
 const assembly = buildAiGraphicsBetaEvidenceLocalAssembly(input)
-const output = {
+
+const inputSummary = {
+  validatorOnly: true,
+  localPrivateManifestFilesRead: manifestFiles.length,
+  localGpuRuntimeProofResultFilesRead: resultFiles.length,
+  committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
+  privateArtifactRefsLogged: 0,
+  dependencyInstallPerformed: false,
+  packageLockMutationPerformed: false,
+  toolExecutionPerformed: false,
+  workerExecutionPerformed: false,
+  routeExecutionPerformed: false,
+  providerRuntimePerformed: false,
+  browserWebglCanvasRuntimePerformed: false,
+  gpuRuntimePerformed: false,
+  modelWeightsDownloaded: false,
+  modelWeightsLoaded: false,
+  modelInferencePerformed: false,
+  mediaProcessingPerformed: false,
+  publicArtifactCreated: false,
+  signedUrlCreated: false,
+}
+
+const sanitizedSummary = {
+  decision: assembly.decision,
+  status: assembly.status,
+  outputMode: 'sanitized_summary',
+  sanitizedSummary: true,
+  fullEvidencePacketsIncluded: false,
+  totalAiGraphicsTools: assembly.totalAiGraphicsTools,
+  localEvidence: {
+    modelWeightManifestRequiredTools: assembly.modelWeightManifestRequiredTools,
+    nativeGpuRuntimeProfilesRequired: assembly.nativeGpuRuntimeProfilesRequired,
+    localManifestRecordsProvided: assembly.localManifestRecordsProvided,
+    localGpuRuntimeProofResultsProvided: assembly.localGpuRuntimeProofResultsProvided,
+    missingLocalEvidence: assembly.missingLocalEvidence,
+  },
+  modelWeightManifestReview: {
+    manifestRecordsProvided: assembly.modelWeightManifestReviewPacket.manifestRecordsProvided,
+    schemaValidManifestRecords: assembly.modelWeightManifestReviewPacket.schemaValidManifestRecords,
+    reviewAcceptedManifestRecords: assembly.modelWeightManifestReviewPacket.reviewAcceptedManifestRecords,
+    nativeGpuProofInputEligibleRecords:
+      assembly.modelWeightManifestReviewPacket.nativeGpuProofInputEligibleRecords,
+    privateArtifactRefsLogged: assembly.modelWeightManifestReviewPacket.privateArtifactRefsLogged,
+    privateArtifactRefsNotLogged:
+      assembly.modelWeightManifestReviewPacket.booleans.privateArtifactRefsNotLogged,
+    publicOrSignedArtifactRefsRejected:
+      assembly.modelWeightManifestReviewPacket.booleans.publicOrSignedArtifactRefsRejected,
+  },
+  gpuRuntimeProof: {
+    status: assembly.gpuRuntimeProofResultPacket.status,
+    runtimeProfilesRequired: assembly.gpuRuntimeProofResultPacket.runtimeProfilesRequired,
+    runtimeProofResultsProvided: assembly.gpuRuntimeProofResultPacket.runtimeProofResultsProvided,
+    runtimeProofResultsAcceptedForOwnerReview:
+      assembly.gpuRuntimeProofResultPacket.runtimeProofResultsAcceptedForOwnerReview,
+    nativeGpuRuntimeProofResultsAccepted:
+      assembly.gpuRuntimeProofResultPacket.nativeGpuRuntimeProofResultsAccepted,
+    blockers: assembly.gpuRuntimeProofResultPacket.blockers,
+  },
+  betaEvidence: {
+    betaTestingReadyTools: assembly.betaEvidenceBundle.betaTestingReadyTools,
+    blockedTools: assembly.betaEvidenceBundle.blockedTools,
+    all21BetaEvidenceReady: assembly.betaEvidenceBundle.all21BetaEvidenceReady,
+    all21TechnicalEvidenceReadyBeforeOwnerApproval:
+      assembly.betaEvidenceBundle.all21TechnicalEvidenceReadyBeforeOwnerApproval,
+    missingEvidence: assembly.betaEvidenceBundle.missingEvidence,
+    missingTechnicalEvidenceBeforeOwnerApproval:
+      assembly.betaEvidenceBundle.missingTechnicalEvidenceBeforeOwnerApproval,
+    evidenceSources: assembly.betaEvidenceBundle.evidenceSources,
+    blockedToolIds: assembly.betaEvidenceBundle.tools
+      .filter((tool) => !tool.betaTestingReadyNow)
+      .map((tool) => tool.toolId),
+  },
+  booleans: assembly.booleans,
+  input: inputSummary,
+}
+
+const fullOutput = {
   ...assembly,
   input: {
-    validatorOnly: true,
-    localPrivateManifestFilesRead: manifestFiles.length,
-    localGpuRuntimeProofResultFilesRead: resultFiles.length,
-    committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
-    privateArtifactRefsLogged: 0,
-    dependencyInstallPerformed: false,
-    packageLockMutationPerformed: false,
-    toolExecutionPerformed: false,
-    workerExecutionPerformed: false,
-    routeExecutionPerformed: false,
-    providerRuntimePerformed: false,
-    browserWebglCanvasRuntimePerformed: false,
-    gpuRuntimePerformed: false,
-    modelWeightsDownloaded: false,
-    modelWeightsLoaded: false,
-    modelInferencePerformed: false,
-    mediaProcessingPerformed: false,
-    publicArtifactCreated: false,
-    signedUrlCreated: false,
+    ...inputSummary,
+    fullEvidencePacketsIncluded: true,
   },
 }
 
-console.log(JSON.stringify(output, null, 2))
+console.log(JSON.stringify(fullOutputRequested ? fullOutput : sanitizedSummary, null, 2))
 
 if (hasFlag('--require-all-21-beta-ready') && !assembly.betaEvidenceBundle.all21BetaEvidenceReady) {
   process.exitCode = 2

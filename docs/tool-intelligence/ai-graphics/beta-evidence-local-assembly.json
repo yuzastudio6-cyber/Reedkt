@@ -17,6 +17,8 @@
     "serverExport": "server/tool-registry/index.ts",
     "cli": "server/cli/ai-graphics-beta-evidence-local-assembly.ts",
     "packageScript": "ai-graphics:beta-evidence-local-assembly",
+    "defaultCliOutputMode": "sanitized_summary",
+    "fullOutputFlag": "--full-output",
     "diagnostic": "scripts/validation/ai-graphics-beta-evidence-local-assembly-diagnostics.mjs",
     "diagnosticScript": "ai-graphics:beta-evidence-local-assembly:diagnostics"
   },
@@ -43,6 +45,14 @@
     "fullTechnicalEvidenceReadyForOwnerGateTools": 21,
     "fullEvidenceBetaTestingReadyTools": 21
   },
+  "outputSafety": {
+    "defaultCliOutputMode": "sanitized_summary",
+    "fullEvidencePacketsIncludedByDefault": false,
+    "fullEvidencePacketsRequireFlag": "--full-output",
+    "privateArtifactRefsLogged": 0,
+    "rawPrivateArtifactRefsAllowedInOutput": false,
+    "publicOrSignedArtifactRefsAllowedInOutput": false
+  },
   "defaultMissingLocalEvidence": [
     "reviewed_private_model_weight_manifest_records",
     "native_gpu_runtime_proof_result_records"
@@ -51,6 +61,8 @@
   "requiredOwnerApprovedCommand": "npm run --silent ai-graphics:beta-evidence-local-assembly -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --use-committed-js-runtime-proofs --all-shared-gates-passed --browser-canvas-webgl-sandbox-passed --require-all-21-beta-ready",
   "booleans": {
     "betaEvidenceLocalAssemblyPrepared": true,
+    "defaultCliOutputSanitized": true,
+    "fullEvidencePacketsIncludedByDefault": false,
     "modelWeightManifestReviewPacketBuiltFromLocalInput": false,
     "gpuRuntimeProofResultPacketBuiltFromLocalInput": false,
     "committedJsRuntimeProofsAccepted": false,

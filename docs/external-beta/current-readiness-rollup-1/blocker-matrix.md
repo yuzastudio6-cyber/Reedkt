@@ -6,8 +6,8 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | --- | --- | --- |
 | Supabase target owner decision | `completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning` | Carry forward only |
 | Supabase read-only target validation | `completed_guarded_supabase_target_rls_storage_readonly_validation` | Carry forward only |
-| Staging migration path | `approved_clean_staging_branch_replacement_path_for_source_aligned_migration_chain` | explicitly gated clean branch replacement/recreation before migration-chain apply retry |
-| Worker RPC 4R | `blocked_pending_clean_staging_branch_replacement_and_migration_chain_apply` | replaced clean branch, source-aligned migration history, apply/currentness, and RPC readback |
+| Staging migration path | `completed_isolated_target_migration_chain_apply_and_readback` | carry forward isolated target migration-chain evidence |
+| Worker RPC 4R | `blocked_pending_worker_rpc_readback_and_service_role_runtime_validation` | isolated target worker RPC readback and service-role runtime validation |
 | Service-role route runtime | `blocked_pending_worker_transactional_contract` | post-RPC runtime validation |
 | Approved snapshot persistence | `blocked_pending_service_role_runtime_validation` | guarded Supabase persistence evidence |
 | Credit reservation ledger | `blocked_pending_service_role_runtime_validation` | guarded internal ledger mutation evidence |
@@ -70,3 +70,7 @@ Next recommended milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1`
 `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1` created `reeditpro-clean-staging-isolated-v1` / `fajinbvwhcjnutkaumkm`, proved no remote-only migrations by read-only migration-history inspection, and rotated `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` to version `2`. Internal beta remains blocked until the isolated target migration-chain apply/readback and later runtime gates pass.
 
 Next recommended milestone: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1`.
+
+`SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1` records `completed_isolated_target_migration_chain_apply_and_readback`. The isolated target migration chain is applied, required migrations `202606050001`, `202606180001`, and `20260625031135` are present, and read-only catalog/storage metadata shows no missing expected tables, RLS, private buckets, or public private buckets. Internal beta remains blocked pending worker RPC readback, service-role runtime validation, private artifact runtime gates, and end-to-end negative safety evidence.
+
+Next recommended milestone: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1`.

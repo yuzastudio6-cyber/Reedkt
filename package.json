@@ -742,6 +742,8 @@
     "supabase-clean-staging-isolated-target-owner-decision-1:diagnostics": "node scripts/validation/supabase-clean-staging-isolated-target-owner-decision-1-diagnostics.mjs",
     "supabase-clean-staging-isolated-target-creation-1": "node scripts/validation/supabase-clean-staging-isolated-target-creation-1.mjs",
     "supabase-clean-staging-isolated-target-creation-1:diagnostics": "node scripts/validation/supabase-clean-staging-isolated-target-creation-1-diagnostics.mjs",
+    "supabase-clean-staging-isolated-target-migration-chain-apply-1": "node scripts/validation/supabase-clean-staging-isolated-target-migration-chain-apply-1.mjs",
+    "supabase-clean-staging-isolated-target-migration-chain-apply-1:diagnostics": "node scripts/validation/supabase-clean-staging-isolated-target-migration-chain-apply-1-diagnostics.mjs",
     "tool-route:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/tool-route-tracka-private-e2e-gate-1-diagnostics.mjs",
     "tool-route:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/tool-route-tracka-private-e2e-gate-2-diagnostics.mjs",
     "track-a:caption-runtime-path-1": "node scripts/validation/track-a-caption-runtime-path-1.mjs",

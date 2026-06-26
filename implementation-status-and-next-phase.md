@@ -220,6 +220,16 @@ No Supabase mutation, SQL execution, service-role route execution, credit mutati
 Internal beta end-to-end remains `not_ready` until approved Supabase credential context, confirmed Supabase RLS/storage validation, service-role persistence, credit ledger runtime, job queue runtime, private artifact runtime, render worker runtime, QA/cleanup/observability, rollback, and runtime negative gates pass.
 
 Next recommended step after Supabase credential/target validation: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARD-1`.
+
+## RP-INTERNAL-BETA Approved Snapshot Service-Role Persistence Guard 1
+
+`RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARD-1` records decision `completed_approved_snapshot_service_role_persistence_guard_no_supabase_write` and execution `completed_backend_guard_no_route_or_remote_execution`.
+
+The guard `server/services/internal-beta-approved-snapshot-service-role-persistence-guard.ts` now blocks approved snapshot remote persistence until approved Supabase credential context, confirmed Supabase target RLS/storage validation, service-role persistence runtime approval, and explicit remote persistence confirmation are all present. When those prerequisites are simulated in the local smoke, the guard only reaches `ready_for_separate_service_role_persistence_implementation_no_supabase_write`; it still performs no Supabase write.
+
+Internal beta end-to-end remains `not_ready`. No Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, provider/model call, signed URL creation, public artifact creation, or internal beta unlock is enabled by this packet.
+
+Next recommended step after credential/target validation: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1`.
 ## RP-INTERNAL-BETA Runtime Enablement Plan 1
 
 `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1` records decision `blocked_pending_internal_beta_runtime_enablement_owner_approval` and execution `completed_docs_only_runtime_enablement_plan_no_runtime_unlock`.

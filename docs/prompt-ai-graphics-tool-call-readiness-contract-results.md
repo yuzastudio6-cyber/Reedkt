@@ -48,6 +48,8 @@ Latest observed PR state after dedicated GPU runtime target alignment: [#862](ht
 
 Latest observed PR state after on-demand GPU worker payload target hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `6c4530b703386c081f94f087785ffd733e12675d`, with an empty check rollup.
 
+Latest observed PR state after queue GPU runtime target hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `c7595193a04912a7b3bc7662786489b9ec6a2d31`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.
@@ -178,6 +180,7 @@ Latest observed PR state after on-demand GPU worker payload target hardening: [#
 - Duplicate native GPU proof profile hardening: the GPU proof result validator now rejects duplicate result records for required profiles (`gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`) so repeated profile files cannot be silently deduped into owner-review-ready proof. Duplicate profile evidence makes the aggregate packet `invalid_native_gpu_runtime_proof_results`.
 - Dedicated GPU runtime target alignment: SAM2, BiRefNet, and Real-ESRGAN now use exact profile-specific runtime targets (`native_linux_amd64_nvidia_l4_sam2_runtime`, `native_linux_amd64_nvidia_l4_birefnet_runtime`, and `native_linux_amd64_nvidia_l4_real_esrgan_runtime`) in the tool-call readiness contract, proper install audit, and model-weight manifest readiness contract. Diagnostics cross-check the readiness contract against the GPU runtime gate and GPU proof command plan so future Tool Route / Worker handoff cannot collapse dedicated images back into a generic runtime bucket. Execution/runtime/beta/production remain false.
 - On-demand GPU worker payload hardening: production worker job and gate readiness diagnostics now independently require exact GPU runtime targets for all eight GPU tools and exact dedicated targets for SAM2, BiRefNet, and Real-ESRGAN. This keeps GPU use as on-demand worker runtime only when an approved job calls a GPU tool, rejects generic target drift at the queue/gate boundary, and does not keep idle GPU workers running.
+- Queue GPU runtime target hardening: queue admission, queue adapter, and queue dispatcher readiness now expose and validate exact GPU runtime targets for all eight GPU tools, preserve the dedicated SAM2/BiRefNet/Real-ESRGAN runtime targets, and record `gpuRuntimeOnDemandOnly=true`. Live queue submission, live dispatch, and idle GPU runtime remain unapproved.
 
 ## Runtime State
 
@@ -204,6 +207,7 @@ Latest observed PR state after on-demand GPU worker payload target hardening: [#
 - `gpuRuntimeProofDuplicateProfilesRejected=true`
 - `dedicatedGpuRuntimeTargetsExact=true`
 - `productionWorkerDedicatedGpuRuntimeTargetsExact=true`
+- `queueGpuRuntimeTargetsExact=true`
 - `gpuRuntimeOnDemandOnly=true`
 - `betaActivationGapReportPrepared=true`
 - `betaReadinessEvidenceEvaluationPrepared=true`

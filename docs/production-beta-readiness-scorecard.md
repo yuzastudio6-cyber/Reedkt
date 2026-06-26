@@ -61,6 +61,9 @@ groups ready with provided evidence, while keeping live queue enqueue, worker
 dispatch, route execution, tool execution, browser/canvas/WebGL runtime,
 GPU/model runtime, model-weight loading, media processing, signed URLs, public
 artifacts, internal beta runtime, external beta, and production blocked.
+It also preserves exact native NVIDIA L4 runtime targets for all eight
+GPU/model tools and records GPU runtime as on-demand only; no idle GPU runtime
+is approved.
 
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
@@ -72,6 +75,9 @@ metadata, and keeps backend queue submission, worker lease creation, worker
 dispatch, route execution, tool execution, browser/canvas/WebGL runtime,
 GPU/model runtime, model-weight loading, media processing, signed URLs, public
 artifacts, internal beta runtime, external beta, and production blocked.
+It preserves the exact GPU runtime target map from queue admission through
+adapter submissions and keeps GPU startup limited to future approved worker
+jobs.
 
 AI graphics internal beta queue-dispatcher readiness decision
 `ai_graphics_internal_beta_queue_dispatcher_readiness_contract_prepared_with_mock_safe_dispatcher`
@@ -80,11 +86,14 @@ production worker dispatcher probe with gate checks, idempotency, in-memory
 lease lifecycle, event emission, and mock-only placeholder routing. It reports
 21 of 21 dispatcher probe jobs completed with provided evidence, 12 of 12
 capability scenarios covered, 0 hard gate blocks, all 8 heavy/model tools still
-targeting `gpu_ai_worker`, and 0 heavy/model tools targeting CPU. It keeps live
+targeting exact native NVIDIA L4 GPU runtime targets, and 0 heavy/model tools
+targeting CPU. It keeps live
 backend queue submission, live worker lease creation, live worker dispatch,
 route execution, tool execution, browser/canvas/WebGL runtime, GPU/model
 runtime, model-weight loading, media processing, signed URLs, public artifacts,
 internal beta runtime, external beta, and production blocked.
+The dispatcher probe is mock-safe and does not keep any idle GPU runtime
+running.
 
 AI graphics internal beta backend queue storage readiness decision
 `ai_graphics_internal_beta_backend_queue_storage_readiness_contract_prepared_with_mock_service_records`

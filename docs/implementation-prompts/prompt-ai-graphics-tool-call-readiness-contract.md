@@ -56,6 +56,8 @@ Latest observed PR state after dedicated GPU runtime target alignment: [#862](ht
 
 Latest observed PR state after on-demand GPU worker payload target hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `6c4530b703386c081f94f087785ffd733e12675d`, with an empty check rollup.
 
+Latest observed PR state after queue GPU runtime target hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `c7595193a04912a7b3bc7662786489b9ec6a2d31`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements
@@ -102,6 +104,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up duplicate native GPU proof profile hardening updates the GPU proof result validator so repeated result records for a required profile are rejected instead of silently deduped. A duplicate `gpu_worker_ai_graphics`, `sam2`, `birefnet`, or `real_esrgan` result makes the aggregate packet `invalid_native_gpu_runtime_proof_results` and keeps runtime/beta/production false.
 - Follow-up dedicated GPU runtime target alignment updates the tool-call readiness contract, 21-tool proper install audit, and model-weight manifest readiness contract so SAM2, BiRefNet, and Real-ESRGAN point to their exact dedicated native GPU runtime targets instead of a generic dedicated runtime bucket. Diagnostics now cross-check those targets against the GPU runtime gate and GPU proof command plan while keeping execution/runtime/beta/production false.
 - Follow-up on-demand GPU worker payload hardening updates production worker job and gate readiness diagnostics/docs so all eight GPU tools must preserve exact GPU runtime targets at the queue/gate boundary. SAM2, BiRefNet, and Real-ESRGAN cannot collapse back into a generic GPU runtime target, and GPU use remains on-demand only for approved worker jobs.
+- Follow-up queue GPU runtime target hardening updates queue admission, queue adapter, and queue dispatcher readiness diagnostics/docs so all eight GPU tools must preserve exact runtime targets through admission, adapter submission, and dispatcher probe metadata. GPU runtime remains on-demand only for future approved worker jobs, and no idle GPU runtime is approved.
 
 ## Expected Validation
 

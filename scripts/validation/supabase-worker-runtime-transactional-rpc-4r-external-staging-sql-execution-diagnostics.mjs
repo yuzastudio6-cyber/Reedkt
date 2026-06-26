@@ -51,6 +51,13 @@ const migrationHistoryReconciliationFiles = [
   'scripts/validation/supabase-migration-history-reconciliation-1-diagnostics.mjs',
 ]
 
+const stagingMigrationHistoryOwnerDecisionFiles = [
+  'docs/supabase-worker-runtime/supabase-staging-migration-history-owner-decision-1.md',
+  'docs/supabase-worker-runtime/supabase-staging-migration-history-owner-decision-1-record.json',
+  'docs/activation-phase-supabase-staging-migration-history-owner-decision-1-results.md',
+  'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'blocked_pending_external_guarded_staging_sql_execution',
@@ -208,6 +215,7 @@ const allowedChanged = new Set([
   ...confirmedClosureFiles,
   ...externalSqlHistoryBlockerFiles,
   ...migrationHistoryReconciliationFiles,
+  ...stagingMigrationHistoryOwnerDecisionFiles,
 ])
 
 for (const file of changed) {

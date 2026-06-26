@@ -28,6 +28,13 @@ const migrationHistoryReconciliationFiles = [
   'scripts/validation/supabase-migration-history-reconciliation-1-diagnostics.mjs',
 ]
 
+const stagingMigrationHistoryOwnerDecisionFiles = [
+  'docs/supabase-worker-runtime/supabase-staging-migration-history-owner-decision-1.md',
+  'docs/supabase-worker-runtime/supabase-staging-migration-history-owner-decision-1-record.json',
+  'docs/activation-phase-supabase-staging-migration-history-owner-decision-1-results.md',
+  'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
+]
+
 const pendingMigrations = [
   '202605130007_generation_providers_generated_assets.sql',
   '202605130008_render_preview_export_revision_qa.sql',
@@ -194,7 +201,11 @@ const changed = [...new Set([
   ...gitLines(['diff', '--cached', '--name-only']),
   ...gitLines(['ls-files', '--others', '--exclude-standard']),
 ])]
-const allowed = new Set([...requiredFiles, ...migrationHistoryReconciliationFiles])
+const allowed = new Set([
+  ...requiredFiles,
+  ...migrationHistoryReconciliationFiles,
+  ...stagingMigrationHistoryOwnerDecisionFiles,
+])
 
 for (const file of changed) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)

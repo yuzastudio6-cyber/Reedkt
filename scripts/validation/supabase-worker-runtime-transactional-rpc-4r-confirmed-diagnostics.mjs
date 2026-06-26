@@ -59,6 +59,13 @@ const migrationHistoryReconciliationFiles = [
   'scripts/validation/supabase-migration-history-reconciliation-1-diagnostics.mjs',
 ]
 
+const stagingMigrationHistoryOwnerDecisionFiles = [
+  'docs/supabase-worker-runtime/supabase-staging-migration-history-owner-decision-1.md',
+  'docs/supabase-worker-runtime/supabase-staging-migration-history-owner-decision-1-record.json',
+  'docs/activation-phase-supabase-staging-migration-history-owner-decision-1-results.md',
+  'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
+]
+
 const requiredText = [
   'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED',
   'completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution',
@@ -251,6 +258,7 @@ const allowedChanged = new Set([
   ...credentialContextHardeningFiles,
   ...externalSqlHistoryBlockerFiles,
   ...migrationHistoryReconciliationFiles,
+  ...stagingMigrationHistoryOwnerDecisionFiles,
 ])
 
 for (const file of changed) {

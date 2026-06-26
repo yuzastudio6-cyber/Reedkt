@@ -115,6 +115,10 @@ export const GPU_PENDING_SOURCE_INSTALL_REVIEW = [
   { toolId: 'sam2' as const, packageName: 'SAM2', reason: 'Source/package selection requires review before install declaration.' },
   { toolId: 'real_esrgan' as const, packageName: 'Real-ESRGAN', reason: 'Package/source path requires review before production image declaration.' },
   { toolId: 'film' as const, packageName: 'FILM', reason: 'Frame interpolation source path requires review before production image declaration.' },
+  { toolId: 'wan_video' as const, packageName: 'Wan/Wan2.1', reason: 'Primary AI B-roll source/runtime path requires approved source install, GPU cost, and model-weight review before import checks.' },
+  { toolId: 'ltx_video' as const, packageName: 'LTX-Video', reason: 'Secondary AI B-roll source/runtime path requires version-specific license and source install review before import checks.' },
+  { toolId: 'mochi_video' as const, packageName: 'Mochi 1', reason: 'Fallback/research source/runtime path requires owner approval before import checks.' },
+  { toolId: 'hunyuan_video' as const, packageName: 'HunyuanVideo', reason: 'Premium-gated candidate is blocked pending legal, territory, commercial, GPU, and source install review.' },
 ]
 
 export function listGpuToolPythonImportChecks(): GpuToolPythonImportCheckDefinition[] {

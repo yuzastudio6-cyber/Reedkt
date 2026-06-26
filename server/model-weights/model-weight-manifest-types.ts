@@ -9,6 +9,10 @@ export type GpuModelWeightTemplateId =
   | 'demucs_model'
   | 'real_esrgan_model'
   | 'film_model'
+  | 'wan_video_model'
+  | 'ltx_video_model'
+  | 'mochi_video_model'
+  | 'hunyuan_video_model'
   | 'paddleocr_model'
 
 export type ModelWeightCommercialUseStatus =

@@ -96,6 +96,7 @@
     "qwen2-5-vl-7b-l4-capacity-assurance-plan:diagnostics": "node scripts/validation/qwen2-5-vl-7b-l4-capacity-assurance-plan-diagnostics.mjs",
     "qwen2-5-vl-7b-l4-reservation-approval:diagnostics": "node scripts/validation/qwen2-5-vl-7b-l4-reservation-approval-diagnostics.mjs",
     "qwen2-5-vl-7b-l4-reservation-create:diagnostics": "node scripts/validation/qwen2-5-vl-7b-l4-reservation-create-diagnostics.mjs",
+    "qwen2-5-vl-7b-l4-reservation-capacity-followup:diagnostics": "node scripts/validation/qwen2-5-vl-7b-l4-reservation-capacity-followup-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

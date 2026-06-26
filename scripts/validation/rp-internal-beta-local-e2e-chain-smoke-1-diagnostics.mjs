@@ -29,6 +29,32 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 
+const runtimeReadinessOrchestrator2Files = [
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/orchestrator-integration.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/local-chain-evidence.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/runtime-readiness-orchestrator-2-record.json',
+  'docs/activation-phase-rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration.md',
+  'docs/internal-beta/rp-internal-beta-local-readiness-gate-rollup-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-local-readiness-gate-rollup-1/local-readiness-gate-rollup.md',
+  'docs/internal-beta/rp-internal-beta-local-readiness-gate-rollup-1/readiness-matrix.md',
+  'docs/internal-beta/rp-internal-beta-local-readiness-gate-rollup-1/local-readiness-gate-rollup-record.json',
+  'server/services/internal-beta-runtime-readiness-orchestrator.ts',
+  'server/smoke/internal-beta-runtime-readiness-orchestrator-smoke.ts',
+  'server/smoke/internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration-smoke.ts',
+  'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-credential-context-integration-1-diagnostics.mjs',
+]
+
+for (const file of runtimeReadinessOrchestrator2Files) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'completed_local_internal_beta_e2e_chain_smoke_no_remote_runtime',

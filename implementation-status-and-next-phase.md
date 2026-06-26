@@ -660,7 +660,9 @@ Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDA
 
 `RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-1` records decision `completed_internal_beta_runtime_readiness_orchestrator_fail_closed` and execution `completed_local_orchestrator_scaffold_no_runtime_execution`.
 
-Current readiness status: `blocked_pending_supabase_target_validation_and_runtime_enablement`. The local orchestrator composes `46` disabled operations across service-role runtime, credit ledger, job queue, private artifact manifest, Remotion render worker, and provider adapter scaffolds.
+`RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-2-LOCAL-E2E-CHAIN-INTEGRATION` records decision `completed_internal_beta_runtime_readiness_orchestrator_local_e2e_chain_integration_fail_closed` and execution `completed_local_orchestrator_e2e_chain_integration_no_remote_execution`.
+
+Current readiness status: `blocked_pending_supabase_target_validation_and_runtime_enablement`. The local orchestrator composes `46` disabled operations across service-role runtime, credit ledger, job queue, private artifact manifest, Remotion render worker, and provider adapter scaffolds. It also records local E2E chain evidence status `local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime` with local evidence count `1`.
 
 Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generated artifacts committed: none.
 
@@ -696,6 +698,8 @@ This remains documentation and typed mock planning only. It does not implement r
 `RP-INTERNAL-BETA-LOCAL-READINESS-GATE-ROLLUP-1` records decision `blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates` and execution `completed_local_readiness_gate_rollup_no_remote_execution`.
 
 Current Supabase credential context: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`. Current Supabase validation: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`. Runtime readiness status: `blocked_pending_supabase_target_validation_and_runtime_enablement`.
+
+Runtime readiness orchestrator local E2E chain integration: `completed_internal_beta_runtime_readiness_orchestrator_local_e2e_chain_integration_fail_closed`. Local E2E evidence status: `local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime`.
 
 Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 

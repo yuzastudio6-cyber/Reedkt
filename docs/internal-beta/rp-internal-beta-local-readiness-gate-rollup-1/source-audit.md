@@ -19,6 +19,7 @@ This packet aggregates the current internal-beta source chain after the confirme
 - `RP-RENDER-01-INTERNAL-BETA-REMOTION-RENDER-WORKER-SCAFFOLD` records disabled render worker scaffolds.
 - `RP-PROVIDER-01-INTERNAL-BETA-DISABLED-PROVIDER-ADAPTER-SCAFFOLD` records disabled provider adapter scaffolds.
 - `RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-1` records `46` disabled operations and the runtime blocker `blocked_pending_supabase_target_validation_and_runtime_enablement`.
+- `RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-2-LOCAL-E2E-CHAIN-INTEGRATION` records local E2E chain evidence status `local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime` inside the fail-closed runtime readiness report.
 - `RP-INTERNAL-BETA-RUNTIME-READINESS-CREDENTIAL-CONTEXT-INTEGRATION-1` records the required gate `approved_supabase_credential_context_present`.
 - `RP-INTERNAL-BETA-SUPABASE-TARGET-CREDENTIAL-CONTEXT-PREFLIGHT-1` records the current credential blocker `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`.
 - `RP-INTERNAL-BETA-SUPABASE-TARGET-CONFIRMED-RUNNER-CREDENTIAL-CONTEXT-HARDENING-1` records that the confirmed runner exits before remote commands when approved aliases are absent.

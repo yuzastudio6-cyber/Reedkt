@@ -17,6 +17,10 @@ import {
   type InternalBetaJobQueueRuntimeScaffoldResult,
 } from './internal-beta-job-queue-runtime-scaffold'
 import {
+  createInternalBetaLocalE2EChainSmoke,
+  type InternalBetaLocalE2EChainSmokeResult,
+} from './internal-beta-local-e2e-chain-smoke'
+import {
   INTERNAL_BETA_PRIVATE_ARTIFACT_MANIFEST_SCAFFOLDS,
   createDisabledInternalBetaPrivateArtifactManifestScaffoldResult,
   type InternalBetaPrivateArtifactManifestInput,
@@ -138,6 +142,21 @@ export interface InternalBetaRuntimeReadinessComponentCounts {
   total: number
 }
 
+export interface InternalBetaRuntimeReadinessLocalEvidenceCounts {
+  localE2EChainSmoke: 1
+  total: 1
+}
+
+export interface InternalBetaRuntimeReadinessLocalE2EChainSummary {
+  ok: true
+  status: 'local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime'
+  localOnly: true
+  persistedToSupabase: false
+  internalBetaEndToEndReady: false
+  stepSummary: InternalBetaLocalE2EChainSmokeResult['steps']
+  requiredBeforeInternalBeta: string[]
+}
+
 export interface InternalBetaRuntimeReadinessOrchestratorReport {
   ok: false
   status: InternalBetaRuntimeReadinessOrchestratorStatus
@@ -145,8 +164,10 @@ export interface InternalBetaRuntimeReadinessOrchestratorReport {
   internalBetaEndToEndReady: false
   productReadyEndToEndLocalOssTools: 0
   componentCounts: InternalBetaRuntimeReadinessComponentCounts
+  localEvidenceCounts: InternalBetaRuntimeReadinessLocalEvidenceCounts
   componentStatuses: Record<InternalBetaRuntimeReadinessComponent, string[]>
   componentSummaries: InternalBetaRuntimeReadinessComponentSummary[]
+  localE2EChainSmoke: InternalBetaRuntimeReadinessLocalE2EChainSummary
   supabaseCredentialContext: InternalBetaSupabaseCredentialContextContract
   safety: InternalBetaRuntimeReadinessSafetySummary
   unsafeExecutionDetected: false
@@ -174,6 +195,7 @@ export const INTERNAL_BETA_RUNTIME_READINESS_ORCHESTRATOR_REQUIRED_BEFORE_ENABLE
   'credit_ledger_transaction_runtime',
   'job_queue_lease_event_runtime',
   'private_artifact_manifest_storage_runtime',
+  'private_artifact_access_runtime',
   'remotion_private_preview_export_runtime',
   'provider_runtime_owner_approval_if_needed',
   'qa_cleanup_observability_rollback_gates',
@@ -262,6 +284,23 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
   const providerAdapter = INTERNAL_BETA_PROVIDER_ADAPTER_SCAFFOLDS.map((definition) =>
     createDisabledInternalBetaProviderAdapterScaffoldResult(definition.operation, normalizedInput),
   )
+  const localE2EChainSmoke = createInternalBetaLocalE2EChainSmoke({
+    workspaceId: normalizedInput.workspaceId,
+    projectId: normalizedInput.projectId,
+    userId: normalizedInput.userId,
+    chatSessionId: normalizedInput.requestId,
+    editPlanId: normalizedInput.editPlanId,
+    editPlanVersionId: normalizedInput.approvedPlanSnapshotId,
+    creditEstimateId: normalizedInput.creditEstimateId,
+    creditApprovalId: normalizedInput.creditApprovalId,
+    idempotencyKey: `${normalizedInput.idempotencyKey}:runtime-readiness-local-e2e-chain`,
+    estimatedCredits: 1,
+    approvedAt: '2026-06-26T00:00:00.000Z',
+    metadata: {
+      source: 'internal_beta_runtime_readiness_orchestrator_2_local_e2e_chain_integration',
+      localEvidenceOnly: true,
+    },
+  })
 
   const allResults: InternalBetaRuntimeReadinessScaffoldResult[] = [
     ...serviceRoleRuntime,
@@ -282,7 +321,17 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
     total: allResults.length,
   }
 
-  const unsafeExecutionDetected = allResults.some(hasUnsafeBoolean)
+  if (!localE2EChainSmoke.ok) {
+    throw new Error(`Internal beta runtime readiness orchestrator local E2E chain evidence failed: ${localE2EChainSmoke.status}.`)
+  }
+  if (localE2EChainSmoke.status !== 'local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime') {
+    throw new Error('Internal beta runtime readiness orchestrator local E2E chain evidence status mismatch.')
+  }
+  if (localE2EChainSmoke.localOnly !== true || localE2EChainSmoke.persistedToSupabase !== false) {
+    throw new Error('Internal beta runtime readiness orchestrator local E2E chain evidence must remain local-only.')
+  }
+
+  const unsafeExecutionDetected = allResults.some(hasUnsafeBoolean) || Object.values(localE2EChainSmoke.safety).some(Boolean)
   if (unsafeExecutionDetected) {
     throw new Error('Internal beta runtime readiness orchestrator detected an enabled runtime execution flag.')
   }
@@ -294,6 +343,10 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
     internalBetaEndToEndReady: false,
     productReadyEndToEndLocalOssTools: 0,
     componentCounts,
+    localEvidenceCounts: {
+      localE2EChainSmoke: 1,
+      total: 1,
+    },
     componentStatuses: {
       service_role_runtime: uniqueStatuses(serviceRoleRuntime),
       credit_ledger_runtime: uniqueStatuses(creditLedgerRuntime),
@@ -310,6 +363,15 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
       ...summarizeResults('remotion_render_worker', remotionRenderWorker),
       ...summarizeResults('provider_adapter', providerAdapter),
     ],
+    localE2EChainSmoke: {
+      ok: true,
+      status: 'local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime',
+      localOnly: true,
+      persistedToSupabase: false,
+      internalBetaEndToEndReady: false,
+      stepSummary: localE2EChainSmoke.steps,
+      requiredBeforeInternalBeta: localE2EChainSmoke.requiredBeforeInternalBeta,
+    },
     supabaseCredentialContext,
     safety: {
       remoteSupabaseMutation: false,
@@ -348,6 +410,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
       'Internal beta runtime readiness orchestrator is fail-closed.',
       `Supabase credential context decision: ${supabaseCredentialContext.decision}.`,
       'All composed service-role, credit-ledger, job-queue, private-artifact, Remotion render-worker, and provider-adapter scaffolds returned disabled runtime results.',
+      'Local E2E chain smoke evidence is composed and validated as local metadata only; it does not unlock internal beta.',
       'No Supabase mutation, SQL execution, worker execution, provider/model call, Remotion execution, media processing, artifact creation, credit mutation, signed URL creation, public artifact creation, internal beta unlock, external beta unlock, or production unlock occurred.',
     ],
   }
@@ -368,6 +431,17 @@ export function assertInternalBetaRuntimeReadinessOrchestratorFailClosed(
   assertInternalBetaSupabaseCredentialContextFailClosed(report.supabaseCredentialContext)
   for (const component of report.componentSummaries) {
     if (component.ok !== false) throw new Error(`Component ${component.component}:${component.id} must remain disabled.`)
+  }
+  if (report.localEvidenceCounts.localE2EChainSmoke !== 1 || report.localEvidenceCounts.total !== 1) {
+    throw new Error('Local E2E chain evidence count must remain 1.')
+  }
+  if (report.localE2EChainSmoke.ok !== true) throw new Error('Local E2E chain evidence must pass locally.')
+  if (report.localE2EChainSmoke.localOnly !== true) throw new Error('Local E2E chain evidence must remain local-only.')
+  if (report.localE2EChainSmoke.persistedToSupabase !== false) {
+    throw new Error('Local E2E chain evidence must not persist to Supabase.')
+  }
+  if (report.localE2EChainSmoke.internalBetaEndToEndReady !== false) {
+    throw new Error('Local E2E chain evidence must not mark internal beta ready.')
   }
 
   return true

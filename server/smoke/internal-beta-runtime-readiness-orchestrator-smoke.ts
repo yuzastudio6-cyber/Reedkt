@@ -39,7 +39,31 @@ assert(report.componentCounts.privateArtifactManifest === 8, 'private artifact m
 assert(report.componentCounts.remotionRenderWorker === 8, 'Remotion render worker count mismatch')
 assert(report.componentCounts.providerAdapter === 8, 'provider adapter count mismatch')
 assert(report.componentCounts.total === 46, 'total disabled operation count mismatch')
+assert(report.localEvidenceCounts.localE2EChainSmoke === 1, 'local E2E chain evidence count mismatch')
+assert(report.localEvidenceCounts.total === 1, 'local evidence total count mismatch')
 assert(report.componentSummaries.length === 46, 'component summaries must include every disabled operation')
+assert(report.localE2EChainSmoke.ok === true, 'local E2E chain evidence must pass locally')
+assert(
+  report.localE2EChainSmoke.status === 'local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime',
+  'local E2E chain evidence status mismatch',
+)
+assert(report.localE2EChainSmoke.localOnly === true, 'local E2E chain evidence must remain local-only')
+assert(report.localE2EChainSmoke.persistedToSupabase === false, 'local E2E chain evidence must not persist to Supabase')
+assert(report.localE2EChainSmoke.internalBetaEndToEndReady === false, 'local E2E chain evidence must not unlock beta')
+assert(report.localE2EChainSmoke.stepSummary.approvedSnapshot === true, 'local E2E approved snapshot step mismatch')
+assert(report.localE2EChainSmoke.stepSummary.creditReservation === true, 'local E2E credit reservation step mismatch')
+assert(report.localE2EChainSmoke.stepSummary.jobQueue === true, 'local E2E job queue step mismatch')
+assert(report.localE2EChainSmoke.stepSummary.privateArtifactManifest === true, 'local E2E artifact manifest step mismatch')
+assert(report.localE2EChainSmoke.stepSummary.privateArtifactAccessPolicy === true, 'local E2E artifact access step mismatch')
+assert(
+  report.localE2EChainSmoke.stepSummary.remotionPrivatePreviewExportMetadata === true,
+  'local E2E Remotion metadata step mismatch',
+)
+assert(report.localE2EChainSmoke.stepSummary.qaCleanupObservability === true, 'local E2E QA cleanup step mismatch')
+assert(
+  report.localE2EChainSmoke.requiredBeforeInternalBeta.includes('confirmed_supabase_target_rls_storage_validation'),
+  'local E2E evidence must preserve Supabase target gate',
+)
 assert(
   report.supabaseCredentialContext.decision ===
     'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias',

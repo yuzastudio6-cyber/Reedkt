@@ -22,6 +22,29 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 
+const runtimeReadinessOrchestrator2Files = [
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/orchestrator-integration.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/local-chain-evidence.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/runtime-readiness-orchestrator-2-record.json',
+  'docs/activation-phase-rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration-results.md',
+  'docs/implementation-prompts/prompt-rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration.md',
+  'server/services/internal-beta-runtime-readiness-orchestrator.ts',
+  'server/smoke/internal-beta-runtime-readiness-orchestrator-smoke.ts',
+  'server/smoke/internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration-smoke.ts',
+  'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-local-e2e-chain-smoke-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-credential-context-integration-1-diagnostics.mjs',
+]
+
+for (const file of runtimeReadinessOrchestrator2Files) {
+  allowedChangedFiles.add(file)
+}
+
 const approvedSnapshotLocalRuntimeFiles = [
   'docs/internal-beta/rp-internal-beta-approved-snapshot-persistence-local-runtime-1/source-audit.md',
   'docs/internal-beta/rp-internal-beta-approved-snapshot-persistence-local-runtime-1/runtime-contract.md',

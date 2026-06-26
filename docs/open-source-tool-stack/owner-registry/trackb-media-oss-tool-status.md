@@ -769,3 +769,15 @@ TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_CLOSEOUT:
 - Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_APPROVAL`.
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_CLOSEOUT_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_APPROVAL:
+
+- Decision: `trackb_media_oss_product_beta_runtime_approval_passed_ready_for_product_beta_runtime_controlled_activation_execution`.
+- Runtime approval result: approved for a future controlled product beta runtime activation execution gate only.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Accepted controls remain fail-closed metadata: route/runtime guards, per-tool worker allowlists, approved snapshot/edit-plan/credit gates, service-role/no-write checks, sanitized monitoring, rollback controls, and limited internal exposure rules.
+- Live product calls, direct route dispatch, worker dispatch to real tools, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_APPROVAL_STATUS:end -->

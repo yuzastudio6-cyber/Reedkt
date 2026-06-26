@@ -1,0 +1,36 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_approval_passed_ready_for_product_beta_runtime_controlled_activation_execution",
+  "previousDecision": "trackb_media_oss_product_beta_readiness_closeout_passed_ready_for_product_beta_runtime_approval",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-approval",
+  "sourceSha": "48135cb415071593e062fb1d94142516ac0a8de7",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION",
+  "liveProductCallsApproved": false,
+  "directRouteDispatchApproved": false,
+  "workerDispatchToRealToolsApproved": false,
+  "realToolExecutionApproved": false,
+  "dockerOrInstallApproved": false,
+  "mediaProcessingApproved": false,
+  "userMediaByDefaultApproved": false,
+  "supabaseGcsWritesApproved": false,
+  "publicArtifactApproved": false,
+  "signedUrlApproved": false,
+  "externalBetaApproved": false,
+  "productionApproved": false,
+  "productReadyStatusApproved": false,
+  "allowedByThisApproval": [
+    "source_truth_runtime_approval",
+    "future_controlled_activation_execution_prompt",
+    "deterministic_ranking_review_artifact"
+  ],
+  "blockedScopeSummary": "This approval does not enable live product calls, direct route dispatch, worker dispatch to real tools, real tool execution, media processing, Supabase/GCS writes, external beta, production, or product-ready status."
+}

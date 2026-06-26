@@ -51,6 +51,14 @@ const externalSqlHistoryBlockerFiles = [
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-diagnostics.mjs',
 ]
 
+const migrationHistoryReconciliationFiles = [
+  'docs/supabase-worker-runtime/supabase-migration-history-reconciliation-1.md',
+  'docs/supabase-worker-runtime/supabase-migration-history-reconciliation-1-record.json',
+  'docs/activation-phase-supabase-migration-history-reconciliation-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-staging-migration-history-owner-decision-1.md',
+  'scripts/validation/supabase-migration-history-reconciliation-1-diagnostics.mjs',
+]
+
 const requiredText = [
   'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED',
   'completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution',
@@ -242,6 +250,7 @@ const allowedChanged = new Set([
   ...externalStagingSqlGateFiles,
   ...credentialContextHardeningFiles,
   ...externalSqlHistoryBlockerFiles,
+  ...migrationHistoryReconciliationFiles,
 ])
 
 for (const file of changed) {

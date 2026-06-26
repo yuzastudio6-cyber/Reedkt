@@ -30,8 +30,9 @@ create artifacts, or unlock beta/production.
 - `transparent_background`: `native_linux_amd64_nvidia_l4_gpu_worker`
 
 The target map is exact. GPU runtime is on-demand only for a future approved
-worker/tool-call handoff, no idle GPU service is approved, and CPU fallback is
-blocked for heavy model paths.
+worker/tool-call handoff. Proof/runtime containers must be ephemeral
+`docker run --rm --gpus all` jobs, no idle GPU service is approved, and CPU
+fallback is blocked for heavy model paths.
 
 ## Required Profiles
 

@@ -48,6 +48,7 @@ export interface AiGraphicsBetaEvidenceLocalAssembly {
     onDemandOnly: true
     noIdleGpuRuntimeApproved: true
     startsOnlyForApprovedWorkerOrToolCall: true
+    proofContainerIsEphemeral: true
     cpuFallbackAllowedForHeavyTools: false
   }
   modelWeightManifestReviewPacket: AiGraphicsModelWeightManifestReviewPacket

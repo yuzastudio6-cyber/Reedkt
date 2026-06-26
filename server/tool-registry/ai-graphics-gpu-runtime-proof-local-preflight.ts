@@ -1,5 +1,6 @@
 import {
   buildAiGraphicsGpuRuntimeProofCommandPlan,
+  type AiGraphicsGpuRuntimeProofActivationPolicy,
   type AiGraphicsGpuRuntimeProofInputStatus,
 } from './ai-graphics-gpu-runtime-proof-command-plan'
 import {
@@ -34,6 +35,8 @@ export interface AiGraphicsGpuRuntimeProofLocalPreflight {
   decision: typeof AI_GRAPHICS_GPU_RUNTIME_PROOF_LOCAL_PREFLIGHT_DECISION
   totalAiGraphicsTools: 21
   gpuRuntimeTargetedTools: 8
+  expectedGpuRuntimeTargets: Record<string, string>
+  gpuRuntimePolicy: AiGraphicsGpuRuntimeProofActivationPolicy
   modelWeightManifestRequiredTools: 5
   runtimeProfilesRequired: 4
   localManifestFilesRead: number
@@ -55,6 +58,11 @@ export interface AiGraphicsGpuRuntimeProofLocalPreflight {
     all8GpuRuntimeToolsCovered: true
     all5ModelWeightManifestToolsCovered: true
     all4RuntimeProfilesCovered: true
+    gpuRuntimeTargetsExact: true
+    gpuRuntimeOnDemandOnly: true
+    noIdleGpuRuntimeApproved: true
+    startsOnlyForApprovedWorkerOrToolCall: true
+    cpuFallbackAllowedForHeavyTools: false
     privateArtifactRefsNotLogged: true
     modelManifestsReadyForGpuProof: boolean
     nativeGpuProofResultsAcceptedForOwnerReview: boolean
@@ -145,6 +153,8 @@ export function buildAiGraphicsGpuRuntimeProofLocalPreflight(input: {
     decision: AI_GRAPHICS_GPU_RUNTIME_PROOF_LOCAL_PREFLIGHT_DECISION,
     totalAiGraphicsTools: 21,
     gpuRuntimeTargetedTools: 8,
+    expectedGpuRuntimeTargets: commandPlan.expectedGpuRuntimeTargets,
+    gpuRuntimePolicy: commandPlan.gpuRuntimePolicy,
     modelWeightManifestRequiredTools: 5,
     runtimeProfilesRequired: 4,
     localManifestFilesRead: input.localManifestFilesRead ?? 0,
@@ -166,6 +176,11 @@ export function buildAiGraphicsGpuRuntimeProofLocalPreflight(input: {
       all8GpuRuntimeToolsCovered: true,
       all5ModelWeightManifestToolsCovered: true,
       all4RuntimeProfilesCovered: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      cpuFallbackAllowedForHeavyTools: false,
       privateArtifactRefsNotLogged: true,
       modelManifestsReadyForGpuProof,
       nativeGpuProofResultsAcceptedForOwnerReview,

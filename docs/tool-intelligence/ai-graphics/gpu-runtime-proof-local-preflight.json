@@ -35,6 +35,23 @@
     "localManifestFilesRead": 0,
     "localProofResultFilesRead": 0
   },
+  "expectedGpuRuntimeTargets": {
+    "torch_torchvision": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transformers": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "sam2": "native_linux_amd64_nvidia_l4_sam2_runtime",
+    "birefnet": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+    "real_esrgan": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+    "kornia": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "rembg": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
+  },
+  "gpuRuntimePolicy": {
+    "onDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "proofContainerIsEphemeral": true,
+    "cpuFallbackAllowedForHeavyTools": false
+  },
   "localEvidenceRoots": {
     "modelWeightManifests": ".local-artifacts/ai-graphics/model-weight-manifests",
     "gpuRuntimeProofResults": ".local-artifacts/ai-graphics/gpu-runtime-proof-results",
@@ -80,6 +97,11 @@
     "all8GpuRuntimeToolsCovered": true,
     "all5ModelWeightManifestToolsCovered": true,
     "all4RuntimeProfilesCovered": true,
+    "gpuRuntimeTargetsExact": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false,
     "privateArtifactRefsNotLogged": true,
     "modelManifestsReadyForGpuProof": false,
     "nativeGpuProofResultsAcceptedForOwnerReview": false,

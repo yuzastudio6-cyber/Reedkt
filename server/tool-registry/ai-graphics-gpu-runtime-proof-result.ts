@@ -68,6 +68,13 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
   totalAiGraphicsTools: 21
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
   expectedGpuRuntimeTargets: Record<(typeof gpuRuntimeTargetedTools)[number], string>
+  gpuRuntimePolicy: {
+    onDemandOnly: true
+    noIdleGpuRuntimeApproved: true
+    startsOnlyForApprovedWorkerOrToolCall: true
+    proofContainerIsEphemeral: true
+    cpuFallbackAllowedForHeavyTools: false
+  }
   modelWeightManifestRequiredTools: AiGraphicsModelWeightManifestToolId[]
   runtimeProfilesRequired: AiGraphicsGpuRuntimeProofProfileId[]
   runtimeProofResultsProvided: number
@@ -82,6 +89,9 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
     all4RuntimeProfilesCovered: true
     gpuRuntimeTargetsExact: true
     gpuRuntimeOnDemandOnly: true
+    noIdleGpuRuntimeApproved: true
+    startsOnlyForApprovedWorkerOrToolCall: true
+    cpuFallbackAllowedForHeavyTools: false
     privateArtifactRefsNotLogged: true
     nativeGpuRuntimeProofResultsAcceptedForOwnerReview: boolean
     ownerReviewStillRequired: true
@@ -541,6 +551,13 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
     totalAiGraphicsTools: 21,
     gpuRuntimeTargetedTools: [...gpuRuntimeTargetedTools],
     expectedGpuRuntimeTargets: listAiGraphicsExpectedGpuRuntimeTargets(),
+    gpuRuntimePolicy: {
+      onDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      proofContainerIsEphemeral: true,
+      cpuFallbackAllowedForHeavyTools: false,
+    },
     modelWeightManifestRequiredTools: [...modelWeightManifestRequiredTools],
     runtimeProfilesRequired: [...runtimeProfilesRequired],
     runtimeProofResultsProvided,
@@ -555,6 +572,9 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
       all4RuntimeProfilesCovered: true,
       gpuRuntimeTargetsExact: true,
       gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      cpuFallbackAllowedForHeavyTools: false,
       privateArtifactRefsNotLogged: true,
       nativeGpuRuntimeProofResultsAcceptedForOwnerReview: nativeGpuRuntimeProofResultsAccepted,
       ownerReviewStillRequired: true,

@@ -57,6 +57,23 @@
     "toolRouteExecutionReadyNow": false,
     "workerExecutionReadyNow": false
   },
+  "expectedGpuRuntimeTargets": {
+    "torch_torchvision": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transformers": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "sam2": "native_linux_amd64_nvidia_l4_sam2_runtime",
+    "birefnet": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+    "real_esrgan": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+    "kornia": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "rembg": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
+  },
+  "gpuRuntimePolicy": {
+    "onDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "proofContainerIsEphemeral": true,
+    "cpuFallbackAllowedForHeavyTools": false
+  },
   "runtimeProfiles": [
     {
       "profileId": "gpu_worker_ai_graphics",
@@ -73,6 +90,13 @@
         "transparent_background"
       ],
       "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "status": "gate_prepared_runtime_not_executed_here"
     },
     {
@@ -85,6 +109,13 @@
         "torch_torchvision"
       ],
       "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "status": "gate_prepared_runtime_not_executed_here"
     },
     {
@@ -99,6 +130,13 @@
         "torch_torchvision"
       ],
       "runtimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "status": "gate_prepared_runtime_not_executed_here"
     },
     {
@@ -111,6 +149,13 @@
         "torch_torchvision"
       ],
       "runtimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "status": "gate_prepared_runtime_not_executed_here"
     }
   ],
@@ -178,6 +223,11 @@
     "all4GpuRuntimeProfilesHaveRuntimeProbe": true,
     "nativeNvidiaRuntimeRequired": true,
     "explicitRuntimeProofOptInRequired": true,
+    "gpuRuntimeTargetsExact": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false,
     "modelWeightManifestGatePrepared": true,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,

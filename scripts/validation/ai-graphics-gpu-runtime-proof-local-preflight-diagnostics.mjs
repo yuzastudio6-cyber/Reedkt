@@ -76,6 +76,17 @@ const directoryNameByTool = {
   transparent_background: 'transparent-background',
 }
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const failures = []
 
 function fail(message) {
@@ -119,6 +130,26 @@ function parseOutput(output, label) {
   } catch (error) {
     fail(`invalid_output:${label}:${error.message}`)
     return {}
+  }
+}
+
+function assertGpuRuntimePolicy(container, label) {
+  if (container?.gpuRuntimePolicy?.onDemandOnly !== true) fail(`${label}_gpu_policy_not_on_demand`)
+  if (container?.gpuRuntimePolicy?.noIdleGpuRuntimeApproved !== true) fail(`${label}_gpu_policy_idle_gpu_allowed`)
+  if (container?.gpuRuntimePolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+    fail(`${label}_gpu_policy_not_worker_or_tool_call_scoped`)
+  }
+  if (container?.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) fail(`${label}_gpu_policy_not_ephemeral`)
+  if (container?.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+    fail(`${label}_gpu_policy_cpu_fallback_allowed`)
+  }
+  for (const [toolId, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+    if (container?.expectedGpuRuntimeTargets?.[toolId] !== runtimeTarget) {
+      fail(`${label}_expected_gpu_runtime_target_mismatch:${toolId}:${container?.expectedGpuRuntimeTargets?.[toolId]}`)
+    }
+  }
+  if (Object.keys(container?.expectedGpuRuntimeTargets || {}).length !== Object.keys(expectedGpuRuntimeTargets).length) {
+    fail(`${label}_expected_gpu_runtime_target_count_mismatch`)
   }
 }
 
@@ -331,6 +362,10 @@ if (!JSON.stringify(packet.requiredNextCommands || []).includes('--detect-host -
 if (!JSON.stringify(packet.requiredNextCommands || []).includes('--script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh')) {
   fail('packet_missing_native_runner_script_generation_command')
 }
+assertGpuRuntimePolicy(packet, 'packet')
+assertGpuRuntimePolicy(commandPlanPacket, 'command_plan_packet')
+assertGpuRuntimePolicy(resultPacket, 'result_packet')
+assertGpuRuntimePolicy(betaEvidence, 'beta_evidence')
 
 for (const key of [
   'gpuRuntimeProofLocalPreflightPrepared',
@@ -339,11 +374,19 @@ for (const key of [
   'all8GpuRuntimeToolsCovered',
   'all5ModelWeightManifestToolsCovered',
   'all4RuntimeProfilesCovered',
+  'gpuRuntimeTargetsExact',
+  'gpuRuntimeOnDemandOnly',
+  'noIdleGpuRuntimeApproved',
+  'startsOnlyForApprovedWorkerOrToolCall',
   'privateArtifactRefsNotLogged',
   'nativeGpuProofHostCheckAvailable',
   'agentCanSelectForPlanning',
 ]) {
   if (packet.booleans?.[key] !== true) fail(`required_true_boolean_not_true:${key}`)
+}
+
+if (packet.booleans?.cpuFallbackAllowedForHeavyTools !== false) {
+  fail('required_false_boolean_not_false:cpuFallbackAllowedForHeavyTools')
 }
 
 for (const key of [
@@ -389,6 +432,7 @@ const noInput = parseOutput(noInputOutput, 'no_input')
 if (noInput.manifestInputStatus !== 'missing_private_manifests') fail('no_input_manifest_status_not_missing')
 if (noInput.proofResultInputStatus !== 'missing_native_gpu_runtime_proof_results') fail('no_input_result_status_not_missing')
 if (noInput.allGpuRuntimeEvidenceReadyForOwnerReview !== false) fail('no_input_unexpected_ready')
+assertGpuRuntimePolicy(noInput, 'no_input')
 
 const detectedHostOutput = runNpm([preflightScriptName, '--', '--detect-host'])
 const detectedHost = parseOutput(detectedHostOutput, 'detected_host')
@@ -428,6 +472,7 @@ const manifestOnly = parseOutput(manifestOnlyOutput, 'manifest_only')
 if (manifestOnly.modelManifestsReadyForGpuProof !== true) fail('manifest_only_not_ready_for_gpu_proof')
 if (manifestOnly.nativeGpuProofResultsAcceptedForOwnerReview !== false) fail('manifest_only_unexpected_gpu_results_ready')
 if (manifestOnly.allGpuRuntimeEvidenceReadyForOwnerReview !== false) fail('manifest_only_unexpected_all_ready')
+assertGpuRuntimePolicy(manifestOnly, 'manifest_only')
 if (manifestOnlyOutput.includes('private://reeditpro')) fail('manifest_only_output_leaked_private_ref')
 
 const resultDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-local-preflight-results-'))
@@ -448,6 +493,7 @@ if (full.allGpuRuntimeEvidenceReadyForOwnerReview !== true) fail('full_all_not_r
 if (full.localManifestFilesRead !== 5) fail(`full_manifest_file_count:${full.localManifestFilesRead}`)
 if (full.localProofResultFilesRead !== 4) fail(`full_result_file_count:${full.localProofResultFilesRead}`)
 if (full.missingLocalEvidence?.length !== 0) fail('full_missing_local_evidence_not_empty')
+assertGpuRuntimePolicy(full, 'full')
 if (fullOutput.includes('private://reeditpro')) fail('full_output_leaked_private_ref')
 
 const badResultDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-local-preflight-bad-results-'))

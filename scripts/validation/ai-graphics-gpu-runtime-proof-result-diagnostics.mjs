@@ -319,6 +319,9 @@ if (packet.gpuRuntimePolicy?.noIdleGpuRuntimeApproved !== true) fail('packet_gpu
 if (packet.gpuRuntimePolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
   fail('packet_gpu_runtime_policy_not_worker_call_scoped')
 }
+if (packet.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) {
+  fail('packet_gpu_runtime_policy_not_ephemeral')
+}
 if (packet.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) {
   fail('packet_gpu_runtime_policy_cpu_fallback_not_blocked')
 }
@@ -397,6 +400,8 @@ for (const key of [
   'all4RuntimeProfilesCovered',
   'gpuRuntimeTargetsExact',
   'gpuRuntimeOnDemandOnly',
+  'noIdleGpuRuntimeApproved',
+  'startsOnlyForApprovedWorkerOrToolCall',
   'privateArtifactRefsNotLogged',
   'ownerReviewStillRequired',
   'agentCanSelectForPlanning',
@@ -441,6 +446,7 @@ if (noInputPacket.input?.privateArtifactRefsLogged !== 0) fail('no_input_private
 assertExpectedGpuRuntimeTargets(noInputPacket, 'no_input_packet')
 if (noInputPacket.booleans?.gpuRuntimeTargetsExact !== true) fail('no_input_gpu_targets_exact_not_true')
 if (noInputPacket.booleans?.gpuRuntimeOnDemandOnly !== true) fail('no_input_gpu_on_demand_not_true')
+if (noInputPacket.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) fail('no_input_gpu_policy_not_ephemeral')
 
 const validDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-valid-'))
 writeProofFixtures(validDir)
@@ -455,6 +461,7 @@ if (validPacket.nativeGpuRuntimeProofResultsAccepted !== true) fail('valid_resul
 assertExpectedGpuRuntimeTargets(validPacket, 'valid_packet')
 if (validPacket.booleans?.gpuRuntimeTargetsExact !== true) fail('valid_gpu_targets_exact_not_true')
 if (validPacket.booleans?.gpuRuntimeOnDemandOnly !== true) fail('valid_gpu_on_demand_not_true')
+if (validPacket.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) fail('valid_gpu_policy_not_ephemeral')
 for (const result of validPacket.validationResults || []) {
   if (result.proofMetadataAccepted !== true) fail(`valid_result_metadata_not_accepted:${result.profileId}`)
 }

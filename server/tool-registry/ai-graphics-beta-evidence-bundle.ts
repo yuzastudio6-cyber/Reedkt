@@ -83,6 +83,7 @@ export interface AiGraphicsBetaEvidenceBundle {
     onDemandOnly: true
     noIdleGpuRuntimeApproved: true
     startsOnlyForApprovedWorkerOrToolCall: true
+    proofContainerIsEphemeral: true
     cpuFallbackAllowedForHeavyTools: false
   }
   tools: AiGraphicsBetaEvidenceBundleToolRow[]
@@ -494,6 +495,7 @@ export function buildAiGraphicsBetaEvidenceBundle(
       onDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       startsOnlyForApprovedWorkerOrToolCall: true,
+      proofContainerIsEphemeral: true,
       cpuFallbackAllowedForHeavyTools: false,
     },
     tools,

@@ -64,6 +64,21 @@ Native GPU proof must run on a native `linux/amd64` host with Docker targeting
 NVIDIA GPU. Apple Silicon, CPU-only Docker, emulated Linux, and hosts without
 the NVIDIA container runtime must fail the `--require-host-eligible` preflight.
 
+## GPU Runtime Activation Policy
+
+The preflight accepts only exact GPU targets for the eight GPU/model tools:
+`torch_torchvision`, `transformers`, `kornia`, `rembg`, and
+`transparent_background` use `native_linux_amd64_nvidia_l4_gpu_worker`; `sam2`
+uses `native_linux_amd64_nvidia_l4_sam2_runtime`; `birefnet` uses
+`native_linux_amd64_nvidia_l4_birefnet_runtime`; and `real_esrgan` uses
+`native_linux_amd64_nvidia_l4_real_esrgan_runtime`.
+
+GPU runtime is on-demand only. The proof containers are ephemeral
+`docker run --rm --gpus all` commands and must not be kept as idle resident GPU
+services. They can start only for an approved native proof command or a future
+approved Worker/Tool Route handoff. CPU fallback remains disallowed for the
+heavy/model tools when a GPU runtime proof or runtime call is required.
+
 ## Current Public State
 
 - PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/862
@@ -76,6 +91,10 @@ the NVIDIA container runtime must fail the `--require-host-eligible` preflight.
 - Model manifests ready for GPU proof: `false`
 - Native GPU proof results accepted for owner review: `false`
 - All GPU runtime evidence ready for owner review: `false`
+- GPU runtime targets exact: `true`
+- GPU runtime on-demand only: `true`
+- Idle GPU runtime approved: `false`
+- CPU fallback allowed for heavy/model tools: `false`
 - Host check mode: `not_requested`
 - Host eligible for native GPU proof: `false`
 - Agent can execute tools now: `false`

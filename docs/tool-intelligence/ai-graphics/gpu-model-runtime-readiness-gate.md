@@ -125,6 +125,23 @@ docker run --rm --gpus all \
   --require-model-weight-manifests
 ```
 
+## GPU Runtime Activation Policy
+
+The runtime gate requires exact native GPU targets for the eight GPU/model tools:
+
+- `torch_torchvision`, `transformers`, `kornia`, `rembg`, and
+  `transparent_background`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `sam2`: `native_linux_amd64_nvidia_l4_sam2_runtime`
+- `birefnet`: `native_linux_amd64_nvidia_l4_birefnet_runtime`
+- `real_esrgan`: `native_linux_amd64_nvidia_l4_real_esrgan_runtime`
+
+GPU runtime is on-demand only. The readiness commands use ephemeral
+`docker run --rm --gpus all` containers and do not approve always-on GPU
+workers. GPU work may start only for an approved proof command or a future
+approved Worker/Tool Route handoff, then must release after that command or job
+finishes. CPU fallback is not allowed for these heavy/model tools when GPU
+runtime proof or execution is required.
+
 ## Current State
 
 Local host: `darwin_arm64`.
@@ -164,6 +181,11 @@ outside an approved native NVIDIA proof lane.
 - `all4GpuRuntimeProfilesHaveRuntimeProbe=true`
 - `nativeNvidiaRuntimeRequired=true`
 - `explicitRuntimeProofOptInRequired=true`
+- `gpuRuntimeTargetsExact=true`
+- `gpuRuntimeOnDemandOnly=true`
+- `noIdleGpuRuntimeApproved=true`
+- `startsOnlyForApprovedWorkerOrToolCall=true`
+- `cpuFallbackAllowedForHeavyTools=false`
 - `modelWeightManifestGatePrepared=true`
 - `agentCanSelectForPlanning=true`
 - `agentCanExecuteToolsNow=false`

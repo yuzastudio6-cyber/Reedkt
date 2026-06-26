@@ -80,7 +80,9 @@ The required runtime target map is exact and on-demand only:
 
 GPU runtime is not an idle or standing service in this bundle. It is a future
 native NVIDIA L4 worker target that may start only for an approved worker or
-tool-call handoff, and CPU fallback is not allowed for these heavy runtime paths.
+tool-call handoff. Proof/runtime containers must be ephemeral
+`docker run --rm --gpus all` jobs that release after the command or future job
+finishes, and CPU fallback is not allowed for these heavy runtime paths.
 
 ## No Runtime Unlock
 

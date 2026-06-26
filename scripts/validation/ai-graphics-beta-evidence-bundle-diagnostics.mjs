@@ -500,6 +500,9 @@ if (docs.gpuRuntimePolicy?.noIdleGpuRuntimeApproved !== true) fail('docs_gpu_run
 if (docs.gpuRuntimePolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
   fail('docs_gpu_runtime_policy_not_worker_call_scoped')
 }
+if (docs.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) {
+  fail('docs_gpu_runtime_policy_not_ephemeral')
+}
 if (docs.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) {
   fail('docs_gpu_runtime_policy_cpu_fallback_not_blocked')
 }
@@ -535,6 +538,7 @@ assertExpectedGpuRuntimeTargets(defaultBundle, 'default_bundle')
 if (defaultBundle.booleans?.gpuRuntimeTargetsExact !== true) fail('default_bundle_gpu_targets_exact_not_true')
 if (defaultBundle.booleans?.gpuRuntimeOnDemandOnly !== true) fail('default_bundle_gpu_on_demand_not_true')
 if (defaultBundle.gpuRuntimePolicy?.onDemandOnly !== true) fail('default_bundle_gpu_policy_not_on_demand')
+if (defaultBundle.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) fail('default_bundle_gpu_policy_not_ephemeral')
 for (const tool of allTools) {
   const row = defaultBundle.tools?.find((entry) => entry.toolId === tool)
   if (!row) fail(`default_bundle_missing_tool:${tool}`)
@@ -685,6 +689,7 @@ if (fullPacketBundle.evidenceSources?.nativeGpuRuntimeProofTargetsExact !== true
 assertExpectedGpuRuntimeTargets(fullPacketBundle, 'full_packet_bundle')
 if (fullPacketBundle.booleans?.gpuRuntimeTargetsExact !== true) fail('full_packet_bundle_gpu_targets_exact_not_true')
 if (fullPacketBundle.booleans?.gpuRuntimeOnDemandOnly !== true) fail('full_packet_bundle_gpu_on_demand_not_true')
+if (fullPacketBundle.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) fail('full_packet_bundle_gpu_policy_not_ephemeral')
 
 let countOnlyExited = false
 let countOnlyOutput = ''

@@ -74,6 +74,25 @@ refer to the variable name only.
 - CUDA compute capability `8.9` or higher
 - Tiny CUDA tensor probe
 
+## GPU Runtime Activation Policy
+
+The eight GPU/model tools have exact runtime targets:
+
+- `torch_torchvision` -> `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transformers` -> `native_linux_amd64_nvidia_l4_gpu_worker`
+- `sam2` -> `native_linux_amd64_nvidia_l4_sam2_runtime`
+- `birefnet` -> `native_linux_amd64_nvidia_l4_birefnet_runtime`
+- `real_esrgan` -> `native_linux_amd64_nvidia_l4_real_esrgan_runtime`
+- `kornia` -> `native_linux_amd64_nvidia_l4_gpu_worker`
+- `rembg` -> `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transparent_background` -> `native_linux_amd64_nvidia_l4_gpu_worker`
+
+GPU runtime is on-demand only. The command plan uses ephemeral
+`docker run --rm --gpus all` proof containers and does not approve idle resident
+GPU services. A GPU container may start only for an approved proof command or a
+future approved Worker/Tool Route handoff. CPU fallback is not allowed for these
+heavy/model tools when a GPU runtime proof or runtime call is required.
+
 ## Model Manifest Mounts
 
 The native GPU proof expects reviewed private manifest files at:
@@ -131,6 +150,10 @@ The result directory is local evidence only and must not be staged or committed.
 - Private artifact refs logged: `0`
 - Native proof runner script generator prepared: `true`
 - Native proof runner script generated now: `false`
+- GPU runtime targets exact: `true`
+- GPU runtime on-demand only: `true`
+- Idle GPU runtime approved: `false`
+- CPU fallback allowed for heavy/model tools: `false`
 - Native GPU runtime proof executed: `false`
 - Runtime ready now: `false`
 - Internal beta ready now: `false`

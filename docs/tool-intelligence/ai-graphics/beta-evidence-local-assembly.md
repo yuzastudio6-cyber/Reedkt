@@ -75,7 +75,9 @@ evidence bundle. The shared heavy-tool target is
 
 No idle GPU service is approved by this assembler. GPU capacity is a future
 worker/tool-call runtime target only when an approved job uses one of these
-tools; CPU fallback for the heavy model paths stays blocked.
+tools. Proof/runtime containers must be ephemeral `docker run --rm --gpus all`
+jobs that release after the command or future job finishes; CPU fallback for the
+heavy model paths stays blocked.
 
 ## Current Public State
 

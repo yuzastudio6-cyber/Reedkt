@@ -365,6 +365,9 @@ if (packet.gpuRuntimePolicy?.noIdleGpuRuntimeApproved !== true) fail('packet_gpu
 if (packet.gpuRuntimePolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
   fail('packet_gpu_runtime_policy_not_worker_call_scoped')
 }
+if (packet.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) {
+  fail('packet_gpu_runtime_policy_not_ephemeral')
+}
 if (packet.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) {
   fail('packet_gpu_runtime_policy_cpu_fallback_not_blocked')
 }
@@ -445,6 +448,9 @@ assertExpectedGpuRuntimeTargets(defaultAssembly.gpuRuntimeProof, 'default_summar
 if (defaultAssembly.gpuRuntimeProof?.gpuRuntimePolicy?.onDemandOnly !== true) {
   fail('default_summary_gpu_policy_not_on_demand')
 }
+if (defaultAssembly.gpuRuntimeProof?.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) {
+  fail('default_summary_gpu_policy_not_ephemeral')
+}
 if (!defaultAssembly.localEvidence?.missingLocalEvidence?.includes('reviewed_private_model_weight_manifest_records')) {
   fail('default_missing_manifest_gap')
 }
@@ -484,6 +490,9 @@ if (ownerGateAssembly.booleans?.all21BetaEvidenceReady !== false) {
 assertExpectedGpuRuntimeTargets(ownerGateAssembly.gpuRuntimeProof, 'owner_gate_summary_gpu_runtime_proof')
 if (ownerGateAssembly.booleans?.gpuRuntimeTargetsExact !== true) fail('owner_gate_gpu_targets_exact_not_true')
 if (ownerGateAssembly.booleans?.gpuRuntimeOnDemandOnly !== true) fail('owner_gate_gpu_on_demand_not_true')
+if (ownerGateAssembly.gpuRuntimeProof?.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) {
+  fail('owner_gate_gpu_policy_not_ephemeral')
+}
 
 const fullOutput = runNpm(assemblyScriptName, [
   '--manifest-dir',
@@ -511,6 +520,7 @@ if (fullAssembly.booleans?.committedJsRuntimeProofsAccepted !== true) fail('full
 if (fullAssembly.booleans?.readyForInternalBetaOwnerGate !== true) fail('full_not_ready_for_owner_gate')
 if (fullAssembly.booleans?.gpuRuntimeTargetsExact !== true) fail('full_gpu_targets_exact_not_true')
 if (fullAssembly.booleans?.gpuRuntimeOnDemandOnly !== true) fail('full_gpu_on_demand_not_true')
+if (fullAssembly.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) fail('full_gpu_policy_not_ephemeral')
 assertExpectedGpuRuntimeTargets(fullAssembly, 'full_assembly')
 assertExpectedGpuRuntimeTargets(fullAssembly.betaEvidenceBundle, 'full_assembly_beta_bundle')
 if (fullOutput.includes('private://reeditpro')) fail('full_output_leaked_private_ref')

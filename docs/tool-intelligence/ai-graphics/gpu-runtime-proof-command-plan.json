@@ -51,6 +51,23 @@
     "rembg",
     "transparent_background"
   ],
+  "expectedGpuRuntimeTargets": {
+    "torch_torchvision": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transformers": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "sam2": "native_linux_amd64_nvidia_l4_sam2_runtime",
+    "birefnet": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+    "real_esrgan": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+    "kornia": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "rembg": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
+  },
+  "gpuRuntimePolicy": {
+    "onDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "proofContainerIsEphemeral": true,
+    "cpuFallbackAllowedForHeavyTools": false
+  },
   "modelWeightManifestRequiredTools": [
     "sam2",
     "birefnet",
@@ -89,6 +106,13 @@
       "localProofImageTag": "reeditpro/ai-graphics-gpu-worker:proof-local",
       "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "requiresDockerGpuFlag": true,
       "requiredHostEnv": [
         "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
@@ -114,6 +138,13 @@
       "localProofImageTag": "reeditpro/ai-graphics-sam2-runtime:proof-local",
       "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/sam2-runtime/Dockerfile -t reeditpro/ai-graphics-sam2-runtime:proof-local .",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "requiresDockerGpuFlag": true,
       "requiredHostEnv": [
         "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
@@ -137,6 +168,13 @@
       "localProofImageTag": "reeditpro/ai-graphics-birefnet-runtime:proof-local",
       "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/birefnet-runtime/Dockerfile -t reeditpro/ai-graphics-birefnet-runtime:proof-local .",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "requiresDockerGpuFlag": true,
       "requiredHostEnv": [
         "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
@@ -158,6 +196,13 @@
       "localProofImageTag": "reeditpro/ai-graphics-real-esrgan-runtime:proof-local",
       "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/real-esrgan-runtime/Dockerfile -t reeditpro/ai-graphics-real-esrgan-runtime:proof-local .",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "requiresDockerGpuFlag": true,
       "requiredHostEnv": [
         "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
@@ -203,6 +248,11 @@
     "all8GpuRuntimeToolsCovered": true,
     "all5ModelWeightManifestToolsCovered": true,
     "all4RuntimeProfilesCovered": true,
+    "gpuRuntimeTargetsExact": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false,
     "privateArtifactRefsNotLogged": true,
     "dockerGpuFlagRequired": true,
     "explicitRuntimeProofOptInRequired": true,

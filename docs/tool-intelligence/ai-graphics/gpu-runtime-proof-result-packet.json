@@ -62,6 +62,7 @@
     "onDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
     "startsOnlyForApprovedWorkerOrToolCall": true,
+    "proofContainerIsEphemeral": true,
     "cpuFallbackAllowedForHeavyTools": false
   },
   "modelWeightManifestRequiredTools": [
@@ -118,6 +119,9 @@
     "all4RuntimeProfilesCovered": true,
     "gpuRuntimeTargetsExact": true,
     "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false,
     "privateArtifactRefsNotLogged": true,
     "nativeGpuRuntimeProofResultsAcceptedForOwnerReview": false,
     "ownerReviewStillRequired": true,

@@ -44,28 +44,43 @@ const expectedManifestPaths = {
   transparent_background: '/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json',
 }
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const expectedProfiles = {
   gpu_worker_ai_graphics: {
     dockerfile: 'docker/prod/gpu-worker/Dockerfile',
     imageTag: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_gpu_worker',
     tools: ['torch_torchvision', 'transformers', 'sam2', 'real_esrgan', 'kornia', 'rembg', 'transparent_background'],
     manifestTools: modelWeightTools,
   },
   sam2: {
     dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
     imageTag: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_sam2_runtime',
     tools: ['sam2', 'torch_torchvision'],
     manifestTools: ['sam2'],
   },
   birefnet: {
     dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
     imageTag: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
     tools: ['birefnet', 'transformers', 'kornia', 'torch_torchvision'],
     manifestTools: ['birefnet'],
   },
   real_esrgan: {
     dockerfile: 'docker/prod/real-esrgan-runtime/Dockerfile',
     imageTag: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
     tools: ['real_esrgan', 'torch_torchvision'],
     manifestTools: ['real_esrgan'],
   },
@@ -114,6 +129,26 @@ function parsePlanOutput(output, label) {
   } catch (error) {
     fail(`invalid_plan_output:${label}:${error.message}`)
     return {}
+  }
+}
+
+function assertGpuRuntimePolicy(container, label) {
+  if (container?.gpuRuntimePolicy?.onDemandOnly !== true) fail(`${label}_gpu_policy_not_on_demand`)
+  if (container?.gpuRuntimePolicy?.noIdleGpuRuntimeApproved !== true) fail(`${label}_gpu_policy_idle_gpu_allowed`)
+  if (container?.gpuRuntimePolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+    fail(`${label}_gpu_policy_not_worker_or_tool_call_scoped`)
+  }
+  if (container?.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) fail(`${label}_gpu_policy_not_ephemeral`)
+  if (container?.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+    fail(`${label}_gpu_policy_cpu_fallback_allowed`)
+  }
+  for (const [toolId, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+    if (container?.expectedGpuRuntimeTargets?.[toolId] !== runtimeTarget) {
+      fail(`${label}_expected_gpu_runtime_target_mismatch:${toolId}:${container?.expectedGpuRuntimeTargets?.[toolId]}`)
+    }
+  }
+  if (Object.keys(container?.expectedGpuRuntimeTargets || {}).length !== Object.keys(expectedGpuRuntimeTargets).length) {
+    fail(`${label}_expected_gpu_runtime_target_count_mismatch`)
   }
 }
 
@@ -257,6 +292,16 @@ for (const [profileId, expected] of Object.entries(expectedProfiles)) {
   if (!profile) fail(`missing_runtime_profile:${profileId}`)
   if (profile?.dockerfile !== expected.dockerfile) fail(`profile_dockerfile_mismatch:${profileId}`)
   if (profile?.localProofImageTag !== expected.imageTag) fail(`profile_image_tag_mismatch:${profileId}`)
+  if (profile?.runtimeTarget !== expected.runtimeTarget) fail(`profile_runtime_target_mismatch:${profileId}`)
+  if (profile?.runtimeActivationPolicy?.onDemandOnly !== true) fail(`profile_policy_not_on_demand:${profileId}`)
+  if (profile?.runtimeActivationPolicy?.noIdleGpuRuntimeApproved !== true) fail(`profile_policy_idle_gpu_allowed:${profileId}`)
+  if (profile?.runtimeActivationPolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+    fail(`profile_policy_not_worker_or_tool_call_scoped:${profileId}`)
+  }
+  if (profile?.runtimeActivationPolicy?.proofContainerIsEphemeral !== true) fail(`profile_policy_not_ephemeral:${profileId}`)
+  if (profile?.runtimeActivationPolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+    fail(`profile_policy_cpu_fallback_allowed:${profileId}`)
+  }
   if (!String(profile?.localProofBuildCommand || '').includes(`-t ${expected.imageTag}`)) {
     fail(`profile_missing_local_build_command:${profileId}`)
   }
@@ -297,6 +342,13 @@ for (const token of [
   'REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights',
   'MODEL_DOWNLOADS_ENABLED=false',
   'PROVIDER_EXECUTION_ENABLED=false',
+  'gpuRuntimeActivationPolicy',
+  'listAiGraphicsExpectedGpuRuntimeTargets',
+  'onDemandOnly',
+  'noIdleGpuRuntimeApproved',
+  'startsOnlyForApprovedWorkerOrToolCall',
+  'proofContainerIsEphemeral',
+  'cpuFallbackAllowedForHeavyTools',
   '--require-model-weight-manifests',
   '$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
   'run-native-gpu-proof.sh',
@@ -331,6 +383,10 @@ for (const key of [
   'all8GpuRuntimeToolsCovered',
   'all5ModelWeightManifestToolsCovered',
   'all4RuntimeProfilesCovered',
+  'gpuRuntimeTargetsExact',
+  'gpuRuntimeOnDemandOnly',
+  'noIdleGpuRuntimeApproved',
+  'startsOnlyForApprovedWorkerOrToolCall',
   'privateArtifactRefsNotLogged',
   'dockerGpuFlagRequired',
   'explicitRuntimeProofOptInRequired',
@@ -341,6 +397,11 @@ for (const key of [
 ]) {
   if (packet.booleans?.[key] !== true) fail(`required_true_boolean_not_true:${key}`)
 }
+
+if (packet.booleans?.cpuFallbackAllowedForHeavyTools !== false) {
+  fail('required_false_boolean_not_false:cpuFallbackAllowedForHeavyTools')
+}
+assertGpuRuntimePolicy(packet, 'packet')
 
 for (const key of [
   'agentCanExecuteToolsNow',
@@ -380,6 +441,7 @@ if (noManifestPlan.manifestReviewPacket?.manifestRecordsProvided !== 0) {
 if ((noManifestPlan.runtimeProfiles || []).length !== 4) {
   fail(`no_manifest_runtime_profile_count:${noManifestPlan.runtimeProfiles?.length}`)
 }
+assertGpuRuntimePolicy(noManifestPlan, 'no_manifest')
 if (noManifestPlan.localProofResultDirectory !== '.local-artifacts/ai-graphics/gpu-runtime-proof-results') {
   fail('no_manifest_missing_local_proof_result_directory')
 }
@@ -401,6 +463,11 @@ for (const profile of noManifestPlan.runtimeProfiles || []) {
   }
   if (!String(profile.command || '').includes('REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights')) {
     fail(`no_manifest_profile_missing_model_weight_dir_env:${profile.profileId}`)
+  }
+  if (profile.runtimeActivationPolicy?.onDemandOnly !== true) fail(`no_manifest_profile_not_on_demand:${profile.profileId}`)
+  if (profile.runtimeActivationPolicy?.proofContainerIsEphemeral !== true) fail(`no_manifest_profile_not_ephemeral:${profile.profileId}`)
+  if (profile.runtimeActivationPolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+    fail(`no_manifest_profile_cpu_fallback_allowed:${profile.profileId}`)
   }
   if (!String(profile.localProofBuildCommand || '').includes(`-t ${profile.localProofImageTag}`)) {
     fail(`no_manifest_profile_missing_build_tag:${profile.profileId}`)
@@ -428,6 +495,7 @@ if (validPlan.manifestReviewPacket?.schemaValidManifestRecords !== 5) fail('vali
 if (validPlan.manifestReviewPacket?.reviewAcceptedManifestRecords !== 5) fail('valid_manifest_review_accepted_not_5')
 if (validPlan.manifestReviewPacket?.nativeGpuProofInputEligibleRecords !== 5) fail('valid_manifest_gpu_input_not_5')
 if (validPlan.input?.privateArtifactRefsLogged !== 0) fail('valid_manifest_private_refs_logged_not_zero')
+assertGpuRuntimePolicy(validPlan, 'valid_manifest')
 if (validOutput.includes('private://')) fail('valid_manifest_output_leaked_private_ref')
 if (!validOutput.includes('--gpus all')) fail('valid_manifest_output_missing_gpus_all')
 if (!validOutput.includes('REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true')) fail('valid_manifest_output_missing_opt_in_env')
@@ -466,6 +534,8 @@ for (const token of [
   'ai-graphics:model-weight-manifest-review:validate -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
   'docker build --platform linux/amd64 --target ai_graphics_install_proof',
   'docker run --rm --gpus all',
+  'GPU containers are on-demand proof containers',
+  'Do not convert these commands into idle resident GPU services.',
   'REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true',
   'MODEL_DOWNLOADS_ENABLED=false',
   'PROVIDER_EXECUTION_ENABLED=false',

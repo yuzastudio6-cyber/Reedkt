@@ -401,6 +401,9 @@ if (docs.gpuRuntimePolicy?.noIdleGpuRuntimeApproved !== true) fail('docs_gpu_run
 if (docs.gpuRuntimePolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
   fail('docs_gpu_runtime_policy_not_worker_call_scoped')
 }
+if (docs.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) {
+  fail('docs_gpu_runtime_policy_not_ephemeral')
+}
 if (docs.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) {
   fail('docs_gpu_runtime_policy_cpu_fallback_not_blocked')
 }

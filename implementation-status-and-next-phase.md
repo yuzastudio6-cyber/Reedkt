@@ -176,6 +176,19 @@ This is not a real job enqueue, event write, worker lease claim, worker heartbea
 Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended step: `RP-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-LOCAL-RUNTIME-1`.
+## RP-INTERNAL-BETA Private Artifact Manifest Local Runtime
+
+`RP-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-LOCAL-RUNTIME-1` records decision `completed_local_private_artifact_manifest_runtime_no_storage_access` and execution `completed_backend_local_artifact_manifest_validation_no_storage_or_signed_url`.
+
+The beta lane now has backend-local deterministic private artifact manifest metadata. It validates approved snapshot references, job references, credit reservation references, idempotency, file-name-only artifact metadata, SHA-256 checksums, QA-link metadata, cleanup-policy metadata, and unsafe input rejection.
+
+This is not a storage write, storage read, storage object creation, storage object read, signed URL creation, public artifact creation, private/user media processing, QA execution, cleanup job execution, Supabase write, service-role route, job enqueue, worker dispatch, provider/model call, render/export, preview artifact creation, final export creation, or internal beta unlock.
+
+Local private artifact manifest runtime status: `local_private_artifact_manifest_validated_no_storage_access`. Local manifest record created: `true`. Local artifact records created: `2`. Local checksum records created: `2`. Local QA report link created: `true`. Local cleanup policy recorded: `true`.
+
+Internal beta end-to-end ready: `false`. Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended step: `RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-LOCAL-RUNTIME-1`.
 ## RP-JOBS-01 Internal Beta Job Queue Runtime Scaffold
 
 `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_job_queue_runtime_scaffold_no_worker_execution` and execution `completed_fail_closed_job_queue_scaffold_no_route_or_worker_execution`.

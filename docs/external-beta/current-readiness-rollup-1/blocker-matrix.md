@@ -6,8 +6,8 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | --- | --- | --- |
 | Supabase target owner decision | `completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning` | Carry forward only |
 | Supabase read-only target validation | `completed_guarded_supabase_target_rls_storage_readonly_validation` | Carry forward only |
-| Staging migration path | `blocked_clean_branch_migration_history_not_current` | guarded clean branch migration-chain apply or continued block decision |
-| Worker RPC 4R | `blocked_pending_clean_staging_migration_chain_currentness` | clean branch migration chain currentness, then RPC readback |
+| Staging migration path | `blocked_clean_branch_remote_migration_history_has_untracked_versions` | clean branch migration-history reconciliation before any apply retry |
+| Worker RPC 4R | `blocked_pending_clean_staging_migration_history_reconciliation` | source-aligned clean branch migration history, then apply/currentness and RPC readback |
 | Service-role route runtime | `blocked_pending_worker_transactional_contract` | post-RPC runtime validation |
 | Approved snapshot persistence | `blocked_pending_service_role_runtime_validation` | guarded Supabase persistence evidence |
 | Credit reservation ledger | `blocked_pending_service_role_runtime_validation` | guarded internal ledger mutation evidence |
@@ -23,4 +23,4 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-CHAIN-APPLY-1`
+`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1`

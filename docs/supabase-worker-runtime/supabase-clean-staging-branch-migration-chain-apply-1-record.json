@@ -1,0 +1,116 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-CHAIN-APPLY-1",
+  "decision": "blocked_clean_branch_remote_migration_history_has_untracked_versions",
+  "execution": "blocked_before_migration_apply_no_sql_mutation",
+  "integrationHead": "e4e39d9e64f6637fc394af14c76d839b11061de3",
+  "sourceDependencies": {
+    "pr1048": "supabase_clean_staging_branch_current_target_guarded_validation_1",
+    "pr1041": "supabase_clean_staging_branch_db_url_secret_handoff_1",
+    "pr1037": "supabase_clean_staging_branch_current_target_revalidation_1",
+    "pr1032": "supabase_clean_staging_target_owner_approval_1",
+    "pr1028": "rp_external_product_beta_current_readiness_rollup_1",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "cleanTarget": {
+    "parentProjectName": "Reeditpro",
+    "parentProjectRef": "wmyyttnynmteqgcdishd",
+    "branchName": "reeditpro-internal-staging-clean",
+    "branchRef": "fnjiylwirntrqdcwpbho",
+    "environment": "clean_staging"
+  },
+  "credentialMetadata": {
+    "supabaseAccessTokenSecretName": "SUPABASE_ACCESS_TOKEN",
+    "supabaseAccessTokenLatestVersion": "5",
+    "supabaseAccessTokenLatestVersionState": "enabled",
+    "cleanBranchDbUrlSecretName": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+    "cleanBranchDbUrlLatestVersion": "1",
+    "cleanBranchDbUrlLatestVersionState": "enabled",
+    "secretManagerPayloadAccess": "true_guarded_clean_branch_db_url_only",
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersisted": false
+  },
+  "dryRunValidation": {
+    "confirmation": "present_true",
+    "remoteSupabaseCommandClasses": [
+      "supabase migration list --db-url [redacted]",
+      "supabase db push --dry-run --db-url [redacted]"
+    ],
+    "dryRunStatus": "blocked",
+    "untrackedRemoteMigrationIds": [
+      "20260610235210",
+      "20260626162800"
+    ],
+    "pendingLocalMigrationIds": [
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001",
+      "202606180001",
+      "20260625031135"
+    ],
+    "missingRequiredMigrationIds": [
+      "202606050001",
+      "202606180001",
+      "20260625031135"
+    ],
+    "migrationApply": "not_run_dry_run_blocked",
+    "schemaRlsReadback": "not_run_dry_run_blocked",
+    "storageBucketMetadataReadback": "not_run_dry_run_blocked",
+    "workerRpcReadback": "not_run_dry_run_blocked"
+  },
+  "runEvidence": {
+    "runId": "2026-06-26T18-32-12-934Z-5959eece",
+    "report": "docs/activation-supabase-clean-staging-branch-migration-chain-apply-1-reports/clean_staging_branch_migration_chain_apply_report.json",
+    "reportSha256": "2f46073bf7933ba1affb7059828511c25a4971af314a1465574de98e0cad8883",
+    "manifest": "docs/activation-supabase-clean-staging-branch-migration-chain-apply-1-reports/clean_staging_branch_migration_chain_apply_manifest.json",
+    "manifestSha256": "5fca0a1a246b45df2947472b13305929b4e9602f4c38bcf52b63ffd46f47b091"
+  },
+  "readiness": {
+    "workerRuntimeTransactionalContract2": "blocked_pending_clean_staging_migration_history_reconciliation",
+    "workerRuntimeTrackaPrivateE2eExecutionGate2r": "blocked_pending_clean_staging_migration_history_reconciliation",
+    "trackaPrivateE2eRevalidation2": "blocked_pending_worker_transactional_contract",
+    "internalBetaReadinessRollup": "blocked_pending_clean_staging_migration_history_reconciliation",
+    "externalProductBeta": "blocked_pending_internal_beta_evidence_security_privacy_support_cost_and_deployment_gates"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": true,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "remoteSupabaseReadCommand": true,
+    "remoteSupabaseMutation": false,
+    "sqlExecution": false,
+    "sqlMutation": false,
+    "migrationDryRun": true,
+    "migrationApply": false,
+    "migrationHistoryTableManualEdit": false,
+    "migrationHistoryUpdatedBySupabaseCliApply": false,
+    "rlsPolicyApplyByMigration": false,
+    "storageBucketMetadataUpsertByMigration": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "storageBucketMetadataRead": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "nextMilestone": "SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

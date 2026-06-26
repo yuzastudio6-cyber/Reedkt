@@ -1,0 +1,20 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-CHAIN-APPLY-1",
+  "runId": "2026-06-26T18-32-12-934Z-5959eece",
+  "outputDir": "/tmp/reeditpro-supabase-clean-staging-branch-migration-chain-apply-1/2026-06-26T18-32-12-934Z-5959eece",
+  "generatedAt": "2026-06-26T18:32:20.794Z",
+  "artifacts": [
+    {
+      "fileName": "clean_staging_branch_migration_chain_apply_report.json",
+      "path": "docs/activation-supabase-clean-staging-branch-migration-chain-apply-1-reports/clean_staging_branch_migration_chain_apply_report.json",
+      "bytes": 7637,
+      "sha256": "2f46073bf7933ba1affb7059828511c25a4971af314a1465574de98e0cad8883"
+    },
+    {
+      "fileName": "clean_staging_branch_migration_chain_apply_manifest.json",
+      "path": "docs/activation-supabase-clean-staging-branch-migration-chain-apply-1-reports/clean_staging_branch_migration_chain_apply_manifest.json",
+      "bytes": 650,
+      "sha256": "5fca0a1a246b45df2947472b13305929b4e9602f4c38bcf52b63ffd46f47b091"
+    }
+  ]
+}

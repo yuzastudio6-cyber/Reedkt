@@ -299,6 +299,24 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## SUPABASE Clean Staging Branch Migration Chain Apply 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-CHAIN-APPLY-1` records decision `blocked_clean_branch_remote_migration_history_has_untracked_versions` and execution `blocked_before_migration_apply_no_sql_mutation`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd`; clean branch `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho`.
+
+Clean branch DB URL secret: `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` / version `1` / `enabled`. Supabase access-token secret metadata: `SUPABASE_ACCESS_TOKEN` version `5` / `enabled`.
+
+Remote Supabase command classes: `supabase migration list --db-url [redacted]` and `supabase db push --dry-run --db-url [redacted]`. The dry-run blocked before apply because clean branch history contains remote-only versions `20260610235210` and `20260626162800`.
+
+SQL execution: `none`. SQL mutation: `none`. Migration deployed: `no`. Migration history manual edit: `no`. Storage object creation/read: `false`. Service-role route execution: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_clean_staging_migration_history_reconciliation`. WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_clean_staging_migration_history_reconciliation`. TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_transactional_contract`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_clean_staging_migration_history_reconciliation`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1`.
+
 ## Internal Beta Local Readiness Gate Rollup
 
 `RP-INTERNAL-BETA-LOCAL-READINESS-GATE-ROLLUP-1` records decision `blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates` and execution `completed_local_readiness_gate_rollup_no_remote_execution`.

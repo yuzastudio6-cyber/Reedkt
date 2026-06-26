@@ -552,3 +552,13 @@ This is documentation and typed mock planning only. It does not implement real w
 The frontend mock now includes an `AgentQAFallbackPlan` that adds QA gates, likely failure scenarios, fallback actions, fallback decisions, and local/global failure handling to the agent execution architecture.
 
 This remains documentation and typed mock planning only. It does not implement real QA, retries, fallback execution, provider calls, workers, storage, backend queues, billing, Remotion rendering, or media processing.
+
+## RP-INTERNAL-BETA Local Readiness Gate Rollup 1
+
+`RP-INTERNAL-BETA-LOCAL-READINESS-GATE-ROLLUP-1` records decision `blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates` and execution `completed_local_readiness_gate_rollup_no_remote_execution`.
+
+Current Supabase credential context: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`. Current Supabase validation: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`. Runtime readiness status: `blocked_pending_supabase_target_validation_and_runtime_enablement`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+The next safe gate remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`, but only after the approved Supabase access-token alias and approved read-only DB URL alias are present. This packet does not run remote Supabase commands, SQL, migrations, storage readback, service-role routes, workers, providers, Remotion, media processing, signed/public artifact flows, credit mutation, Stripe/payment processing, internal beta unlock, external beta unlock, production unlock, or final render/export.

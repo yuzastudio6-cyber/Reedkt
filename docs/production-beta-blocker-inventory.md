@@ -123,6 +123,18 @@ Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains pre
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
+## Internal Beta Local Readiness Gate Rollup
+
+`RP-INTERNAL-BETA-LOCAL-READINESS-GATE-ROLLUP-1` records decision `blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates` and execution `completed_local_readiness_gate_rollup_no_remote_execution`.
+
+Internal beta end-to-end ready: `false`. Current Supabase credential context: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`. Current Supabase validation: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`. Runtime readiness status: `blocked_pending_supabase_target_validation_and_runtime_enablement`.
+
+Still required before internal beta: `approved_supabase_credential_context_present`, `confirmed_supabase_target_rls_storage_validation`, `guarded_worker_runtime_rpc_staging_sql_execution`, `service_role_runtime_enablement`, `approved_snapshot_persistence_runtime`, `credit_ledger_transaction_runtime`, `job_queue_lease_event_runtime`, `private_artifact_manifest_storage_runtime`, `remotion_private_preview_export_runtime`, `provider_runtime_owner_approval_if_needed`, `qa_cleanup_observability_rollback_gates`, and `negative_e2e_runtime_gate_regression`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generated artifacts committed: none. Supabase classification: no write / environment none / SQL none / migration no.
+
+Next safe action remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN` only after approved credential aliases are present.
+
 ## Internal Beta Runtime Readiness Orchestrator
 
 `RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-1` is a local fail-closed source check and does not unlock internal beta. Decision: `completed_internal_beta_runtime_readiness_orchestrator_fail_closed`.

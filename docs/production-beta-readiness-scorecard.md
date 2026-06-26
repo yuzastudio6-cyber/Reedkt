@@ -29,3 +29,12 @@ record. It is not tool runtime execution, model inference, media processing,
 web search, map rendering, browser capture, provider execution, public
 artifact, external beta, paid production, broad real media, or production
 approval.
+
+## ReEditPro External Beta / Production Remediation Plan Status
+
+- Decision: `reeditpro_external_beta_production_readiness_remediation_plan_passed_ready_for_deployment_rollback_readiness_plan`
+- Next prompt: `REEDITPRO_DEPLOYMENT_ROLLBACK_READINESS_PLAN`
+- Scorecard status: external beta and production remain blocked.
+- Track B tools-lane handoff: accepted as product-ready tools-lane evidence only; it does not unlock live product calls, route runtime, real user media beta, paid production, public delivery, signed URLs, Supabase/GCS writes, or final export.
+- Whole-product blockers remain open for deployment/rollback, model/license/security/cost, private storage/deletion, observability, incident response, backend/database/billing/credit ledger, real generation/export worker E2E, delivery/share policy, and final go/no-go.
+- Supabase classification: no write / environment none / SQL none / migration no.

@@ -74,6 +74,7 @@ const forbiddenOutputs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-go-no-go-review/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-reconciliation/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout/',
@@ -86,6 +87,8 @@ const allowedChangedPrefixes = [
   'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-dry-run/',
 ]
 const allowedChangedFiles = new Set([
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-closeout.md',
+  'scripts/validation/trackb-media-oss-product-beta-go-no-go-review-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-go-no-go-review.md',
   'scripts/validation/trackb-media-oss-product-beta-readiness-reconciliation-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review-diagnostics.mjs',

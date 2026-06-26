@@ -792,7 +792,8 @@
     "reeditpro:external-beta-production-go-no-go-review:diagnostics": "node scripts/validation/reeditpro-external-beta-production-go-no-go-review-diagnostics.mjs",
     "reeditpro:limited-external-beta-runtime-owner-approval-plan:diagnostics": "node scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-plan-diagnostics.mjs",
     "reeditpro:limited-external-beta-runtime-owner-approval-execution:diagnostics": "node scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-execution-diagnostics.mjs",
-    "reeditpro:limited-external-beta-named-owner-approvals-request:diagnostics": "node scripts/validation/reeditpro-limited-external-beta-named-owner-approvals-request-diagnostics.mjs"
+    "reeditpro:limited-external-beta-named-owner-approvals-request:diagnostics": "node scripts/validation/reeditpro-limited-external-beta-named-owner-approvals-request-diagnostics.mjs",
+    "reeditpro:limited-external-beta-named-owner-approvals-response-intake:diagnostics": "node scripts/validation/reeditpro-limited-external-beta-named-owner-approvals-response-intake-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

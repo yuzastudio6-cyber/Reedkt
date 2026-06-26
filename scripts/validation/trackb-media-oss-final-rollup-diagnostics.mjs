@@ -45,6 +45,7 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/reeditpro-limited-external-beta-named-owner-approvals-response-intake/',
   'docs/reeditpro-limited-external-beta-named-owner-approvals-request/',
   'docs/reeditpro-limited-external-beta-runtime-owner-approval-execution/',
   'docs/reeditpro-limited-external-beta-runtime-owner-approval-plan/',
@@ -253,11 +254,13 @@ const allowedChangedFiles = new Set([
   'scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-plan-diagnostics.mjs',
   'scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-execution-diagnostics.mjs',
   'scripts/validation/reeditpro-limited-external-beta-named-owner-approvals-request-diagnostics.mjs',
+  'scripts/validation/reeditpro-limited-external-beta-named-owner-approvals-response-intake-diagnostics.mjs',
   'docs/implementation-prompts/prompt-reeditpro-external-beta-production-go-no-go-review.md',
   'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-runtime-owner-approval-plan.md',
   'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-runtime-owner-approval-execution.md',
   'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-named-owner-approvals-request.md',
   'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-named-owner-approvals-response-intake.md',
+  'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-submit-named-owner-approval-responses.md',
   ...statusDocs,
 ])
 

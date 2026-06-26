@@ -1,0 +1,36 @@
+{
+  "schema": "reeditpro.limitedExternalBetaNamedOwnerApprovalsResponseIntake.v1",
+  "ownerId": "REEDITPRO_LIMITED_EXTERNAL_BETA_OWNER_APPROVAL_STEWARD",
+  "decision": "reeditpro_limited_external_beta_named_owner_approvals_response_intake_blocked_pending_submitted_owner_responses",
+  "previousDecision": "reeditpro_limited_external_beta_named_owner_approvals_request_passed_ready_for_owner_response_intake",
+  "nextPrompt": "REEDITPRO_LIMITED_EXTERNAL_BETA_SUBMIT_NAMED_OWNER_APPROVAL_RESPONSES",
+  "sourceSha": "6587fa5e4edf0389326eef6f47e0b97c093032da",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-limited-external-beta-named-owner-approvals-response-intake",
+  "report": "owner-response-status",
+  "requiredOwnerSlots": [
+    "release owner",
+    "runtime worker owner",
+    "incident owner",
+    "support owner",
+    "privacy storage owner",
+    "billing credit owner",
+    "security owner"
+  ],
+  "ownerResponseStatus": {
+    "release owner": "missing_submitted_response",
+    "runtime worker owner": "missing_submitted_response",
+    "incident owner": "missing_submitted_response",
+    "support owner": "missing_submitted_response",
+    "privacy storage owner": "missing_submitted_response",
+    "billing credit owner": "missing_submitted_response",
+    "security owner": "missing_submitted_response"
+  },
+  "allOwnerResponsesRequired": true,
+  "partialApprovalAllowedForActivationPlan": false,
+  "readyForSubmittedOwnerResponses": true,
+  "readyForLimitedExternalBetaActivationPlan": false,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

@@ -1,0 +1,287 @@
+{
+  "schemaVersion": "2026-06-26.ai-graphics.internal-beta-runtime-enqueue-approval",
+  "decision": "ai_graphics_internal_beta_runtime_enqueue_approval_contract_prepared_with_runtime_blocks",
+  "status": "internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked",
+  "sourceDecision": "ai_graphics_internal_beta_go_no_go_owner_approved_with_runtime_blocks",
+  "tools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background",
+    "d3",
+    "echarts",
+    "vega_lite",
+    "vega",
+    "satori",
+    "svgdotjs_svg_js",
+    "viz_js",
+    "lottie_web",
+    "animejs",
+    "three_js",
+    "pixi_js",
+    "konva",
+    "babylonjs"
+  ],
+  "capabilities": [
+    "chart_overlay",
+    "data_visualization",
+    "svg_graphics",
+    "diagram_graphics",
+    "animation_overlay",
+    "canvas_scene",
+    "webgl_3d_scene",
+    "background_removal",
+    "subject_segmentation",
+    "upscaling",
+    "tensor_image_ops",
+    "model_runtime_foundation"
+  ],
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "totalProductFacingCapabilities": 12,
+    "enqueueScopeCandidateToolsWithProvidedEvidence": 21,
+    "enqueueScopeApprovedToolsWithProvidedEvidence": 21,
+    "gpuRuntimeTargetedTools": 8,
+    "heavyToolsIncorrectlyTargetingCpu": 0,
+    "liveWorkerQueueApprovedNowTools": 0,
+    "liveWorkerExecutionApprovedNowTools": 0,
+    "internalBetaReadyNowTools": 0,
+    "externalBetaReadyNowTools": 0,
+    "productionReadyNowTools": 0
+  },
+  "runtimeEnqueueApprovalRecord": {
+    "accepted": true,
+    "approverRole": "AI_TOOLS_CREATIVE_GRAPHICS_OWNER",
+    "approvalRef": "AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_PACKET",
+    "approvesLiveQueueNow": false,
+    "approvesRuntimeNow": false
+  },
+  "allowedRuntimeEnqueueScopeActions": [
+    "name productionToolId, workerType, runtimeTarget, and capability ids for each AI graphics tool",
+    "confirm internal beta enqueue scope candidates for all 21 tools with provided evidence",
+    "confirm eight heavy/model tools target GPU worker runtime lanes",
+    "record a future runtime-enqueue approval reference without enqueueing work",
+    "return live queue, execution, artifact, external beta, and production blockers"
+  ],
+  "blockedRuntimeActions": [
+    "live worker queue enqueue",
+    "worker execution",
+    "tool execution",
+    "Tool Route execution",
+    "production worker dispatch",
+    "production worker route execution",
+    "provider/model execution",
+    "browser/WebGL/canvas runtime execution",
+    "GPU/model runtime execution",
+    "model weight download or load",
+    "media processing",
+    "Supabase/GCS mutation",
+    "signed URL creation",
+    "public artifact creation",
+    "internal beta runtime unlock",
+    "external beta unlock",
+    "production unlock"
+  ],
+  "toolScopes": [
+    {
+      "toolId": "torch_torchvision",
+      "runtimeLane": "gpu_model_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "transformers",
+      "runtimeLane": "gpu_model_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "sam2",
+      "runtimeLane": "gpu_model_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "runtimeLane": "gpu_model_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "runtimeLane": "gpu_model_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "kornia",
+      "runtimeLane": "gpu_model_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "rembg",
+      "runtimeLane": "gpu_model_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "runtimeLane": "gpu_model_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "d3",
+      "runtimeLane": "node_worker_cpu_static_or_browser_chart_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "echarts",
+      "runtimeLane": "browser_chart_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "vega_lite",
+      "runtimeLane": "node_worker_cpu_static_chart_spec",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "vega",
+      "runtimeLane": "node_worker_cpu_static_chart_spec",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "satori",
+      "runtimeLane": "node_worker_svg_font_runtime",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "runtimeLane": "node_worker_svg_dom_adapter",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "viz_js",
+      "runtimeLane": "node_worker_dot_graph_runtime",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "lottie_web",
+      "runtimeLane": "browser_animation_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "animejs",
+      "runtimeLane": "browser_animation_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "three_js",
+      "runtimeLane": "browser_webgl_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "pixi_js",
+      "runtimeLane": "browser_canvas_webgl_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "konva",
+      "runtimeLane": "browser_canvas_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    },
+    {
+      "toolId": "babylonjs",
+      "runtimeLane": "browser_webgl_worker",
+      "enqueueScopeApprovedWithProvidedEvidence": true,
+      "liveWorkerQueueApprovedNow": false,
+      "liveWorkerExecutionApprovedNow": false
+    }
+  ],
+  "nextMilestones": [
+    "Create a live internal beta worker queue authorization that supplies approved snapshot, credit reservation, private artifact manifest, and owner runtime approval references.",
+    "Require reviewed private model-weight manifests and native NVIDIA runtime proof before any GPU/model tool can be queued.",
+    "Require browser/canvas/WebGL sandbox proof before browser-rendered graphics tools can be queued.",
+    "Keep external beta and production launch gates separate until internal beta runtime evidence exists."
+  ],
+  "booleans": {
+    "internalBetaRuntimeEnqueueApprovalPrepared": true,
+    "sourceGoNoGoOwnerApprovalAccepted": true,
+    "internalBetaRuntimeEnqueueApprovalRecordAccepted": true,
+    "all21ToolsCovered": true,
+    "all12CapabilitiesCovered": true,
+    "all21RuntimeEnqueueScopesPrepared": true,
+    "all21RuntimeEnqueueScopesApprovedWithProvidedEvidence": true,
+    "gpuHeavyToolsTargetGpuRuntime": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "workerQueueApprovedNow": false,
+    "productionWorkerJobEnqueueApprovedNow": false,
+    "productionWorkerDispatchApprovedNow": false,
+    "productionWorkerRouteExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "routeExecutionPerformed": false,
+    "productionWorkerDispatchPerformed": false,
+    "productionWorkerRouteExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "mediaProcessingPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

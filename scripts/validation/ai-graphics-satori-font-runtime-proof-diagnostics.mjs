@@ -215,6 +215,8 @@ for (const line of dependencyDiff.split(/\r?\n/)) {
       !line.includes("ai-graphics:internal-beta-go-no-go:diagnostics") &&
       !line.includes("ai-graphics:internal-beta-go-no-go-owner-approval") &&
       !line.includes("ai-graphics:internal-beta-go-no-go-owner-approval:diagnostics") &&
+      !line.includes("ai-graphics:internal-beta-runtime-enqueue-approval") &&
+      !line.includes("ai-graphics:internal-beta-runtime-enqueue-approval:diagnostics") &&
       !line.includes("ai-graphics:cross-owner-coordination") &&
       !line.includes("ai-graphics:cross-owner-coordination:diagnostics") &&
       !line.includes("ai-graphics:tool-route-readiness:diagnostics") &&

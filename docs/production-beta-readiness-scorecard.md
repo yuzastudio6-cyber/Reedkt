@@ -39,6 +39,18 @@ GPU/model runtime, download or load model weights, process media, create signed
 URLs or public artifacts, unlock internal beta runtime, unlock external beta,
 or unlock production.
 
+AI graphics internal beta runtime-enqueue approval decision
+`ai_graphics_internal_beta_runtime_enqueue_approval_contract_prepared_with_runtime_blocks`
+defines the exact all-21 AI graphics worker enqueue scope for a future internal
+beta runtime lane. It names `productionToolId`, worker type, runtime target, and
+capability IDs for each tool, confirms the eight heavy/model tools remain
+GPU-targeted, and records runtime-enqueue scope approval with provided evidence.
+It does not live-enqueue workers, dispatch workers, execute tools, run Tool
+Routes, call providers/models, run browser/canvas/WebGL, run GPU/model runtime,
+download or load model weights, process media, create signed URLs or public
+artifacts, unlock internal beta runtime, unlock external beta, or unlock
+production.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

@@ -562,3 +562,13 @@ Current Supabase credential context: `blocked_missing_approved_supabase_access_t
 Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 The next safe gate remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`, but only after the approved Supabase access-token alias and approved read-only DB URL alias are present. This packet does not run remote Supabase commands, SQL, migrations, storage readback, service-role routes, workers, providers, Remotion, media processing, signed/public artifact flows, credit mutation, Stripe/payment processing, internal beta unlock, external beta unlock, production unlock, or final render/export.
+
+## SUPABASE-WORKER-RUNTIME RPC 4R Credential Context Hardening 1
+
+`SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CREDENTIAL-CONTEXT-HARDENING-1` records decision `completed_rpc_4r_credential_context_hardening_fail_closed` and execution `completed_local_runner_hardening_no_sql_execution`.
+
+The RPC 4R confirmed runner now requires the same approved Supabase credential context before target-validation evidence or any future guarded staging SQL path can be considered. Current run status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`. Current run execution: `blocked_no_sql_execution_missing_safe_credential_context`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe action remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`; after that passes, retry `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED` only with complete approved credential context and passed target-validation evidence.

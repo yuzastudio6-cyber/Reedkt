@@ -203,6 +203,20 @@ Local Remotion private preview/export runtime status: `local_remotion_private_pr
 Internal beta end-to-end ready: `false`. Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended step: `RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-CONFIRMED-RUN-1`.
+
+## RP-INTERNAL-BETA Remotion Private Preview Export Confirmed Run
+
+`RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-CONFIRMED-RUN-1` records decision `completed_generated_local_remotion_private_preview_export_confirmed_run` and execution `completed_confirmation_gated_generated_local_remotion_render`.
+
+The beta lane now has confirmation-gated generated-local Remotion preview evidence. The run used only generated local fixture content, wrote output under `/tmp`, and recorded sanitized manifest/QA evidence in docs.
+
+Run status: `passed_generated_local_private_preview_fixture`. Run ID: `2026-06-26T02-01-33-203Z-a2710617`. Output file: `reeditpro-internal-beta-generated-local-preview.mp4`. Output bytes: `28686`. Output SHA-256: `55b41c9e0d5f073450b88d4b0a1982f1f16e15f6ca89b5d4b7a458777900b93a`.
+
+This did execute Remotion under the confirmation gate. It did not use user/private media input, mutate Supabase, run SQL, write/read storage objects, create signed URLs, create public artifacts, dispatch workers, execute routes, call providers/models, unlock internal beta, unlock external beta, unlock production, or commit generated `/tmp` artifacts. Direct FFmpeg command execution by runner: `false`. FFprobe execution: `false`.
+
+Internal beta end-to-end ready: `false`. Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended step: `RP-INTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-LOCAL-RUNTIME-1`.
 ## RP-JOBS-01 Internal Beta Job Queue Runtime Scaffold
 
 `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_job_queue_runtime_scaffold_no_worker_execution` and execution `completed_fail_closed_job_queue_scaffold_no_route_or_worker_execution`.

@@ -205,6 +205,20 @@ Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tool
 
 Next safe milestone: `RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-CONFIRMED-RUN-1`.
 
+## Internal Beta Remotion Private Preview Export Confirmed Run
+
+`RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-CONFIRMED-RUN-1` records decision `completed_generated_local_remotion_private_preview_export_confirmed_run` and execution `completed_confirmation_gated_generated_local_remotion_render`.
+
+The confirmed runner required `REEDITPRO_CONFIRM_RP_INTERNAL_BETA_REMOTION_PRIVATE_PREVIEW_EXPORT=true` and rendered only a generated local Remotion fixture under `/tmp`. It produced sanitized local evidence only: run ID `2026-06-26T02-01-33-203Z-a2710617`, output file `reeditpro-internal-beta-generated-local-preview.mp4`, output bytes `28686`, and SHA-256 `55b41c9e0d5f073450b88d4b0a1982f1f16e15f6ca89b5d4b7a458777900b93a`.
+
+Run status: `passed_generated_local_private_preview_fixture`. Generated local fixture only: `true`. User media input: `none`. Private media input: `none`. Remotion execution: `true`. Remotion renderer media encoding: `true`. Direct FFmpeg command execution by runner: `false`. FFprobe execution: `false`.
+
+Storage object creation: `false`. Storage object read: `false`. Signed URL creation: `false`. Public artifact creation: `false`. Supabase mutation: `false`. SQL execution: `false`. Worker execution: `false`. Route execution: `false`. Provider/model call: `false`. Internal beta unlock: `false`. External beta unlock: `false`. Production unlock: `false`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe milestone: `RP-INTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-LOCAL-RUNTIME-1`.
+
 ## SUPABASE-WORKER-RUNTIME RPC 4R Credential Context Hardening
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CREDENTIAL-CONTEXT-HARDENING-1` records decision `completed_rpc_4r_credential_context_hardening_fail_closed` and execution `completed_local_runner_hardening_no_sql_execution`.

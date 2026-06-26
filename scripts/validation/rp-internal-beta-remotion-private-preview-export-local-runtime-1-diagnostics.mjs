@@ -31,6 +31,22 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 
+const remotionPrivatePreviewExportConfirmedRunFiles = [
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/run-evidence.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/remotion-private-preview-export-confirmed-run-record.json',
+  'docs/activation-phase-rp-internal-beta-remotion-private-preview-export-confirmed-run-1-results.md',
+  'scripts/validation/rp-internal-beta-remotion-private-preview-export-confirmed-run-1.mjs',
+  'scripts/validation/rp-internal-beta-remotion-private-preview-export-confirmed-run-1-diagnostics.mjs',
+]
+
+for (const file of remotionPrivatePreviewExportConfirmedRunFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'completed_local_remotion_private_preview_export_runtime_no_render_execution',

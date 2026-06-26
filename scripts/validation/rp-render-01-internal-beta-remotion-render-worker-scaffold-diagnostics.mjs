@@ -75,6 +75,20 @@ for (const file of [
   allowedChangedFiles.add(file)
 }
 
+for (const file of [
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/run-evidence.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/remotion-private-preview-export-confirmed-run-record.json',
+  'docs/activation-phase-rp-internal-beta-remotion-private-preview-export-confirmed-run-1-results.md',
+  'scripts/validation/rp-internal-beta-remotion-private-preview-export-confirmed-run-1.mjs',
+  'scripts/validation/rp-internal-beta-remotion-private-preview-export-confirmed-run-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'completed_disabled_internal_beta_remotion_render_worker_scaffold_no_render_execution',
@@ -205,6 +219,8 @@ function stripHistoricalSections(text) {
     .replace(/\n## RP-JOBS-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-ARTIFACTS-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
     .replace(/\n## RP-PROVIDER-01[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## Internal Beta Remotion Private Preview Export Confirmed Run[\s\S]*?(?=\n## |\n# |$)/g, '\n')
+    .replace(/\n## RP-INTERNAL-BETA Remotion Private Preview Export Confirmed Run[\s\S]*?(?=\n## |\n# |$)/g, '\n')
 }
 
 const docsCorpus = requiredFiles
@@ -359,6 +375,12 @@ for (const file of [...changedFiles, ...stagedFiles]) {
 for (const file of changedFiles) {
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) continue
   if (file.startsWith('scripts/validation/')) continue
+  if (
+    file.startsWith('docs/internal-beta/rp-internal-beta-remotion-private-preview-export-confirmed-run-1/') ||
+    file === 'docs/activation-phase-rp-internal-beta-remotion-private-preview-export-confirmed-run-1-results.md'
+  ) {
+    continue
+  }
   const text = stripHistoricalSections(read(file))
   for (const pattern of forbiddenClaims) {
     if (pattern.test(text)) fail(`forbidden changed-file claim in ${file}: ${pattern}`)

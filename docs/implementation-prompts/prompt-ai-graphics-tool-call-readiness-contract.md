@@ -30,6 +30,8 @@ Latest observed PR state after runtime manifest schema hardening: [#862](https:/
 
 Latest observed PR state after manifest hardening metadata sync: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `bcc2b8690950ef9ae30fdf742c6cf81d757d6cbd`, with an empty check rollup.
 
+Latest observed PR state after model-weight manifest review packet completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ef5ef67d5d707b11443887a6fc076c871c95430a`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements

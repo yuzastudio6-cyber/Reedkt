@@ -790,7 +790,8 @@
     "reeditpro:worker-generation-export-e2e-readiness-plan:diagnostics": "node scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs",
     "reeditpro:delivery-share-policy-readiness-plan:diagnostics": "node scripts/validation/reeditpro-delivery-share-policy-readiness-plan-diagnostics.mjs",
     "reeditpro:external-beta-production-go-no-go-review:diagnostics": "node scripts/validation/reeditpro-external-beta-production-go-no-go-review-diagnostics.mjs",
-    "reeditpro:limited-external-beta-runtime-owner-approval-plan:diagnostics": "node scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-plan-diagnostics.mjs"
+    "reeditpro:limited-external-beta-runtime-owner-approval-plan:diagnostics": "node scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-plan-diagnostics.mjs",
+    "reeditpro:limited-external-beta-runtime-owner-approval-execution:diagnostics": "node scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-execution-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

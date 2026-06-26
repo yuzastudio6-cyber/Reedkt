@@ -6,6 +6,7 @@
 | Supabase target owner decision | `completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning` | `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-DECISION-1` |
 | Approved credential context | `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias` | `RP-INTERNAL-BETA-SUPABASE-TARGET-CREDENTIAL-CONTEXT-PREFLIGHT-1` |
 | Confirmed Supabase RLS/storage validation | `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias` | `RP-INTERNAL-BETA-SUPABASE-TARGET-CONFIRMED-RUNNER-CREDENTIAL-CONTEXT-HARDENING-1` |
+| Current Supabase validation environment closure | `blocked_current_environment_missing_confirmed_supabase_validation_context` | `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CURRENT-ENVIRONMENT-CLOSURE-1` |
 | Worker runtime RPC staging SQL | `blocked_pending_confirmed_supabase_target_rls_storage_validation` | `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED` |
 | Service-role runtime | `disabled_pending_runtime_gate` | `RP-BACKEND-02-INTERNAL-BETA-SERVICE-ROLE-RUNTIME-SCAFFOLD` |
 | Credit ledger runtime | `disabled_pending_credit_ledger_runtime_gate` | `RP-CREDITS-01-INTERNAL-BETA-CREDIT-LEDGER-RUNTIME-SCAFFOLD` |

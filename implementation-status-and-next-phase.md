@@ -580,6 +580,38 @@ No remote Supabase mutation, SQL mutation, migration apply, RLS policy apply, st
 
 Next recommended milestone after a passing confirmed run: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`.
 
+## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Current Environment Closure 1
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CURRENT-ENVIRONMENT-CLOSURE-1` records decision `blocked_current_environment_missing_confirmed_supabase_validation_context` and execution `completed_docs_only_current_environment_closure_no_remote_execution`.
+
+Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`.
+
+Observed confirmation: `absent_or_not_true`.
+
+Approved access-token alias presence: `absent`.
+
+Approved read-only DB URL alias presence: `absent`.
+
+Current confirmation blocker: `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation`.
+
+Current credential blocker: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`.
+
+Current validation status: `not_run_current_environment_incomplete`.
+
+Runtime readiness status: `blocked_pending_supabase_target_validation_and_runtime_enablement`.
+
+Remote Supabase command: `false`. Remote Supabase mutation: `false`. SQL execution: `false`. SQL mutation: `false`. Migration apply: `false`. Storage bucket creation: `false`. Storage object creation: `false`. Storage object read: `false`. Service-role secret payload access: `false`. Frontend service-role credential exposure: `false`. Service-role route execution: `false`. Internal beta unlock: `false`. External beta unlock: `false`. Production unlock: `false`.
+
+Internal beta end-to-end status: `not_ready_pending_guarded_supabase_rls_storage_validation_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+PR #577 remains open/draft/blocked and excluded as source-of-truth.
+
+No remote Supabase command, remote Supabase mutation, SQL execution, SQL mutation, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, frontend service-role credential exposure, service-role route execution, Google Cloud API call, Cloud Run service creation, Cloud Run job creation, Cloud Run deployment, IAM mutation, GCS bucket creation, GCS object access, provider call, model call, raw prompt execution, worker execution, worker dispatch, worker lease claim, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 ## RP-INTERNAL-BETA Supabase Target Credential Context Preflight 1
 
 `RP-INTERNAL-BETA-SUPABASE-TARGET-CREDENTIAL-CONTEXT-PREFLIGHT-1` records decision `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias` and execution `blocked_no_remote_execution_missing_safe_credential_context`.

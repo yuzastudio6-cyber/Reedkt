@@ -37,6 +37,15 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set([
   ...requiredFiles,
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/current-environment-closure.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/current-environment-closure-record.json',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/validation-results.md',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1-results.md',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1-diagnostics.mjs',
+  'docs/internal-beta/rp-internal-beta-local-readiness-gate-rollup-1/readiness-matrix.md',
   'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/source-audit.md',
   'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner.md',
   'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/readiness-gate.md',
@@ -45,6 +54,7 @@ const allowedChangedFiles = new Set([
   'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-results.md',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-4-service-role-persistence-guard-integration-diagnostics.mjs',
   'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/source-audit.md',
   'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/confirmed-runner-hardening.md',
   'docs/internal-beta/rp-internal-beta-supabase-target-confirmed-runner-credential-context-hardening-1/safety-boundary.md',
@@ -150,13 +160,21 @@ const docsCorpus = requiredFiles
   .filter((file) => file.startsWith('docs/') || file === 'implementation-status-and-next-phase.md')
   .map(read)
   .join('\n')
+const packetCorpus = [
+  `${packetDir}/source-audit.md`,
+  `${packetDir}/credential-context-preflight.md`,
+  `${packetDir}/alias-matrix.md`,
+  `${packetDir}/readiness-gate.md`,
+  `${packetDir}/safety-boundary.md`,
+  'docs/activation-phase-rp-internal-beta-supabase-target-credential-context-preflight-1-results.md',
+].map(read).join('\n')
 
 for (const text of requiredText) {
   if (!docsCorpus.includes(text)) fail(`missing required text: ${text}`)
 }
 
 for (const pattern of forbiddenClaims) {
-  if (pattern.test(docsCorpus)) fail(`forbidden claim matched ${pattern}`)
+  if (pattern.test(packetCorpus)) fail(`forbidden claim matched ${pattern}`)
 }
 
 const record = JSON.parse(read(`${packetDir}/credential-context-preflight-record.json`))

@@ -66,9 +66,23 @@ const rpc4rConfirmedFiles = [
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-diagnostics.mjs',
 ]
 
+const currentEnvironmentClosureFiles = [
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/current-environment-closure.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/current-environment-closure-record.json',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/validation-results.md',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1-results.md',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-4-service-role-persistence-guard-integration-diagnostics.mjs',
+  'docs/internal-beta/rp-internal-beta-local-readiness-gate-rollup-1/readiness-matrix.md',
+]
+
 const allowedChanged = new Set([
   ...requiredFiles,
   ...rpc4rConfirmedFiles,
+  ...currentEnvironmentClosureFiles,
 ])
 
 const requiredText = [

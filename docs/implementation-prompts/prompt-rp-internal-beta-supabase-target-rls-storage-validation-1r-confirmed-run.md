@@ -4,6 +4,12 @@ Run the confirmed read-only Supabase target validation only after `RP-INTERNAL-B
 
 Required target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
+Current environment closure packet:
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CURRENT-ENVIRONMENT-CLOSURE-1` records the current local environment state after #984: observed confirmation `absent_or_not_true`, approved access-token alias presence `absent`, approved read-only DB URL alias presence `absent`, current confirmation blocker `blocked_pending_guarded_supabase_target_rls_storage_validation_confirmation`, current credential blocker `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`, and current validation status `not_run_current_environment_incomplete`.
+
+Do not attempt remote validation from that current environment. Move forward only when the explicit confirmation and approved credential alias pair are present.
+
 Required confirmation:
 
 ```bash

@@ -101,6 +101,10 @@ const runtimeProfilesRequired = [
   'real_esrgan',
 ] as const satisfies readonly AiGraphicsGpuRuntimeProofProfileId[]
 
+export function listAiGraphicsGpuRuntimeProofRequiredProfiles(): readonly AiGraphicsGpuRuntimeProofProfileId[] {
+  return [...runtimeProfilesRequired]
+}
+
 const requiredImportsByProfile = {
   gpu_worker_ai_graphics: [
     'torch',

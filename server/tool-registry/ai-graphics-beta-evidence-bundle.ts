@@ -2,8 +2,11 @@ import {
   buildAiGraphicsBetaReadinessGate,
   type AiGraphicsBetaReadinessEvidence,
 } from './ai-graphics-beta-readiness-gate'
-import type {
-  AiGraphicsGpuRuntimeProofResultPacket,
+import {
+  AI_GRAPHICS_GPU_RUNTIME_PROOF_RESULT_DECISION,
+  listAiGraphicsGpuRuntimeProofRequiredProfiles,
+  type AiGraphicsGpuRuntimeProofResultPacket,
+  type AiGraphicsGpuRuntimeProofResultValidation,
 } from './ai-graphics-gpu-runtime-proof-result'
 import {
   AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_READINESS_DECISION,
@@ -168,14 +171,49 @@ function modelWeightValidationResultAccepted(
 function gpuRuntimePacketAccepted(
   packet: Partial<AiGraphicsGpuRuntimeProofResultPacket> | undefined,
 ): boolean {
+  if (!packet) return false
+
+  const requiredProfiles = listAiGraphicsGpuRuntimeProofRequiredProfiles()
+  const validationResults = Array.isArray(packet.validationResults) ? packet.validationResults : []
+  const perProfileRowsAccepted =
+    validationResults.length === requiredProfiles.length &&
+    requiredProfiles.every((profileId) => {
+      const matches = validationResults.filter((result) => result.profileId === profileId)
+      if (matches.length !== 1) return false
+
+      return gpuRuntimeValidationResultAccepted(matches[0], profileId)
+    })
+
   return Boolean(
-    packet &&
-      packet.runtimeProofResultsProvided === 4 &&
-      packet.runtimeProofResultsAcceptedForOwnerReview === 4 &&
+    packet.decision === AI_GRAPHICS_GPU_RUNTIME_PROOF_RESULT_DECISION &&
+      packet.status === 'ready_for_owner_review_not_beta_ready' &&
+      packet.runtimeProofResultsProvided === requiredProfiles.length &&
+      packet.runtimeProofResultsAcceptedForOwnerReview === requiredProfiles.length &&
       packet.nativeGpuRuntimeProofResultsAccepted === true &&
       packet.booleans?.nativeGpuRuntimeProofResultsAcceptedForOwnerReview === true &&
       packet.booleans?.gpuRuntimeApprovedNow === false &&
-      packet.booleans?.runtimeReadyNow === false,
+      packet.booleans?.runtimeReadyNow === false &&
+      perProfileRowsAccepted,
+  )
+}
+
+function gpuRuntimeValidationResultAccepted(
+  result: AiGraphicsGpuRuntimeProofResultValidation,
+  profileId: ReturnType<typeof listAiGraphicsGpuRuntimeProofRequiredProfiles>[number],
+): boolean {
+  return Boolean(
+    result.profileId === profileId &&
+      result.resultProvided === true &&
+      result.acceptedForOwnerReview === true &&
+      result.proofMetadataAccepted === true &&
+      result.requiredImportsPresent === true &&
+      result.nvidiaSmiAccepted === true &&
+      result.cudaAccepted === true &&
+      result.modelManifestChecksAccepted === true &&
+      result.rawPrivateRefsNotLogged === true &&
+      result.runtimeSideEffectsBlocked === true &&
+      Array.isArray(result.errors) &&
+      result.errors.length === 0,
   )
 }
 

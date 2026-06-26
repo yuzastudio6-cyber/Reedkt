@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
+import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:internal-beta-queue-dispatcher-readiness'
@@ -179,16 +180,11 @@ function writeAcceptedEvidencePackets() {
     `${JSON.stringify(acceptedModelWeightManifestReviewPacket(), null, 2)}\n`,
     'utf8',
   )
-  fs.writeFileSync(gpuPacketPath, `${JSON.stringify({
-    runtimeProofResultsProvided: 4,
-    runtimeProofResultsAcceptedForOwnerReview: 4,
-    nativeGpuRuntimeProofResultsAccepted: true,
-    booleans: {
-      nativeGpuRuntimeProofResultsAcceptedForOwnerReview: true,
-      gpuRuntimeApprovedNow: false,
-      runtimeReadyNow: false,
-    },
-  }, null, 2)}\n`, 'utf8')
+  fs.writeFileSync(
+    gpuPacketPath,
+    `${JSON.stringify(acceptedGpuRuntimeProofResultPacket(), null, 2)}\n`,
+    'utf8',
+  )
   return { manifestPacketPath, gpuPacketPath }
 }
 

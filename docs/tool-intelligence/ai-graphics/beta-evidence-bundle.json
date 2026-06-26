@@ -119,6 +119,31 @@
     "acceptedPrivateArtifactRefStatus": "present_private_ref_not_logged",
     "approvedForAgentExecutionNow": false
   },
+  "nativeGpuRuntimeProofResultPacketPolicy": {
+    "perProfileValidationResultsRequired": true,
+    "countOnlyPacketsRejected": true,
+    "requiredValidationResultProfiles": [
+      "gpu_worker_ai_graphics",
+      "sam2",
+      "birefnet",
+      "real_esrgan"
+    ],
+    "requiredValidationResultFields": [
+      "profileId",
+      "resultProvided",
+      "acceptedForOwnerReview",
+      "proofMetadataAccepted",
+      "requiredImportsPresent",
+      "nvidiaSmiAccepted",
+      "cudaAccepted",
+      "modelManifestChecksAccepted",
+      "rawPrivateRefsNotLogged",
+      "runtimeSideEffectsBlocked",
+      "errors"
+    ],
+    "requiredStatus": "ready_for_owner_review_not_beta_ready",
+    "gpuRuntimeApprovedNow": false
+  },
   "ownerApprovalGate": "internal_beta_owner_approval",
   "booleans": {
     "betaEvidenceBundleValidatorPrepared": true,

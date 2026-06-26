@@ -81,7 +81,7 @@ This packet converts the all-21 AI graphics service-role queue transaction envel
 ## Runtime Guards
 
 - Enqueue requires immutable approved plan snapshot evidence.
-- Enqueue requires active credit reservation evidence.
+- Enqueue requires reserved or partially spent credit reservation evidence.
 - Enqueue requires `private://` artifact manifest references.
 - Signed URLs, public URLs, raw GCS URLs, service-role secrets, provider keys, and authorization payloads are blocked from RPC metadata.
 - Worker claim requires a queued `ai_graphics_tool_runtime` job with approved snapshot and credit reservation references.

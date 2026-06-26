@@ -134,6 +134,17 @@ writes, worker claims, worker dispatch, tool execution, browser/canvas/WebGL
 runtime, GPU/model runtime, media processing, signed URLs, public artifacts,
 internal beta runtime, external beta, and production remain blocked.
 
+AI graphics internal beta service-role RPC local smoke proof decision
+`ai_graphics_internal_beta_service_role_rpc_local_smoke_passed_with_rollback_fixtures`
+records a local Supabase proof for the corrected `202606260002` AI graphics
+RPC migration. The local database now has the `ai_graphics_tool_runtime` enum,
+approved snapshot columns, and four service-role RPC functions. A rollback-only
+fixture smoke created an approved snapshot, reserved credit reservation, queued
+one `d3` AI graphics job, claimed it, recorded a worker event, recorded an
+audit event, and then rolled back all fixture rows. Persistent smoke fixture
+rows after rollback are 0, tool executions are 0, signed URLs/public artifacts
+are 0, and internal beta runtime, external beta, and production remain blocked.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

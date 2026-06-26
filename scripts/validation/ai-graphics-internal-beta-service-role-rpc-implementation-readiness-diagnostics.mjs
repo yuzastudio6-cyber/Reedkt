@@ -221,6 +221,7 @@ for (const token of [
   'add column if not exists approved_plan_snapshot_id uuid references public.approved_plan_snapshots',
   'job_batches_approved_plan_snapshot_id_idx',
   'jobs_approved_plan_snapshot_id_idx',
+  "cr.status in ('reserved', 'partially_spent')",
   "'ai_graphics_tool_runtime'::public.job_type",
   'public.active_worker_claim_exists',
   'private://%',
@@ -231,6 +232,15 @@ for (const token of [
   'toolExecutionPerformed',
 ]) {
   if (!migration.includes(token)) fail(`migration_missing_token:${token}`)
+}
+if (migration.includes("'reserved', 'active', 'partially_spent'")) {
+  fail('migration_uses_invalid_credit_reservation_active_status')
+}
+if (!JSON.stringify(docs.runtimeGuards ?? []).includes('reserved or partially spent credit reservation')) {
+  fail('docs_runtime_guard_missing_reserved_or_partially_spent_credit_reservation')
+}
+if (!markdown.includes('reserved or partially spent credit reservation evidence')) {
+  fail('markdown_missing_reserved_or_partially_spent_credit_reservation_guard')
 }
 
 for (const token of [
@@ -333,6 +343,8 @@ const allowedPackageAdditions = new Set([
   `+    "${scriptName}": "${scriptCommand}",`,
   '+    "ai-graphics:internal-beta-service-role-rpc-smoke-readiness": "tsx server/cli/ai-graphics-internal-beta-service-role-rpc-smoke-readiness.ts",',
   '+    "ai-graphics:internal-beta-service-role-rpc-smoke-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-smoke-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-service-role-rpc-local-smoke": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-local-smoke.mjs",',
+  '+    "ai-graphics:internal-beta-service-role-rpc-local-smoke:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-local-smoke-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

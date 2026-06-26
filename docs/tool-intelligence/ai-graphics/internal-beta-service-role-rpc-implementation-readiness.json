@@ -73,7 +73,7 @@
   },
   "runtimeGuards": [
     "approved immutable plan snapshot is required before enqueue",
-    "active credit reservation is required before enqueue",
+    "reserved or partially spent credit reservation is required before enqueue",
     "private artifact manifest references must use private://",
     "signed URLs, public URLs, raw GCS URLs, provider keys, and service-role secrets are rejected",
     "worker claim requires queued ai_graphics_tool_runtime job with approved snapshot and credit reservation",

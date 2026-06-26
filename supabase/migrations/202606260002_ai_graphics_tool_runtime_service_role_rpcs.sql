@@ -99,7 +99,7 @@ begin
     where cr.id = p_credit_reservation_id
       and cr.workspace_id = p_workspace_id
       and cr.project_id = p_project_id
-      and cr.status in ('reserved', 'active', 'partially_spent')
+      and cr.status in ('reserved', 'partially_spent')
       and (cr.expires_at is null or cr.expires_at > now())
   ) then
     raise exception 'active credit reservation is required before AI graphics tool-runtime enqueue';

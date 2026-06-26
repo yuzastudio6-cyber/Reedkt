@@ -27,7 +27,12 @@ assert(report.internalBetaEndToEndReady === false, 'internal beta readiness must
 assert(report.productReadyEndToEndLocalOssTools === 0, 'product-ready local OSS tools must remain 0')
 assert(report.componentCounts.apiRouteRuntimeFacade === 8, 'API route facade component count mismatch')
 assert(report.componentCounts.total === 54, 'disabled runtime component count mismatch')
+assert(
+  report.localEvidenceCounts.approvedSnapshotServiceRolePersistenceGuard === 1,
+  'approved snapshot service-role persistence guard evidence count mismatch',
+)
 assert(report.localEvidenceCounts.localE2EChainSmoke === 1, 'local E2E evidence count mismatch')
+assert(report.localEvidenceCounts.total === 2, 'local evidence total count mismatch')
 assert(
   report.localE2EChainSmoke.status === 'local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime',
   'local E2E chain status mismatch',
@@ -54,6 +59,10 @@ assert(
 assert(
   report.requiredBeforeEnablement.includes('api_route_runtime_facade_validation'),
   'orchestrator must keep API route facade gate',
+)
+assert(
+  report.requiredBeforeEnablement.includes('approved_snapshot_service_role_persistence_guard'),
+  'orchestrator must keep service-role persistence guard gate',
 )
 assert(report.safety.remoteSupabaseMutation === false, 'Supabase mutation must remain false')
 assert(report.safety.sqlExecution === false, 'SQL execution must remain false')

@@ -368,6 +368,18 @@ The guard `server/services/internal-beta-approved-snapshot-service-role-persiste
 Internal beta end-to-end remains `not_ready`. No Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, provider/model call, signed URL creation, public artifact creation, or internal beta unlock is enabled by this packet.
 
 Next recommended step after credential/target validation: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1`.
+
+## RP-INTERNAL-BETA Runtime Readiness Orchestrator 4 Service-Role Persistence Guard Integration
+
+`RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-4-SERVICE-ROLE-PERSISTENCE-GUARD-INTEGRATION` records decision `completed_internal_beta_runtime_readiness_orchestrator_service_role_persistence_guard_integration_fail_closed` and execution `completed_orchestrator_service_role_persistence_guard_integration_no_supabase_write`.
+
+The runtime readiness orchestrator now composes the approved snapshot service-role persistence guard as local evidence. The guard validates the local immutable approved snapshot runtime, reports `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias` in the default local context, and contributes `approved_snapshot_service_role_persistence_guard` to the readiness gates.
+
+Runtime readiness status remains `blocked_pending_supabase_target_validation_and_runtime_enablement`. Component counts remain `54` disabled runtime operations. Local evidence counts are now approved snapshot service-role persistence guard `1`, local E2E chain smoke `1`, total `2`.
+
+No Supabase mutation, SQL execution, service-role route execution, approved snapshot remote persistence, credit mutation, job enqueue, worker dispatch, provider/model call, signed URL creation, public artifact creation, render/export, media processing, Remotion execution, or internal beta unlock is enabled by this packet.
+
+Next recommended step remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
 ## RP-INTERNAL-BETA Runtime Enablement Plan 1
 
 `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1` records decision `blocked_pending_internal_beta_runtime_enablement_owner_approval` and execution `completed_docs_only_runtime_enablement_plan_no_runtime_unlock`.

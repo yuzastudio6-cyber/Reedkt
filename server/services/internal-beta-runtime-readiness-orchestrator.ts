@@ -10,6 +10,10 @@ import {
   type InternalBetaApiRouteRuntimeFacadeResponse,
 } from './internal-beta-api-route-runtime-facade'
 import {
+  evaluateInternalBetaApprovedSnapshotServiceRolePersistenceGuard,
+  type InternalBetaApprovedSnapshotServiceRolePersistenceGuardResult,
+} from './internal-beta-approved-snapshot-service-role-persistence-guard'
+import {
   INTERNAL_BETA_PROVIDER_ADAPTER_SCAFFOLDS,
   createDisabledInternalBetaProviderAdapterScaffoldResult,
   type InternalBetaProviderAdapterInput,
@@ -48,6 +52,7 @@ import {
   createInternalBetaSupabaseCredentialContextContract,
   type InternalBetaSupabaseCredentialContextContract,
 } from '../config/internal-beta-supabase-credential-context-contract'
+import type { ApprovedPlanSnapshotPayload } from '../../src/backend/cloud/approved-plan-snapshot-contracts'
 import { nowIso, sanitizeJson } from './service-helpers'
 
 export type InternalBetaRuntimeReadinessOrchestratorStatus =
@@ -90,6 +95,13 @@ export interface InternalBetaRuntimeReadinessOrchestratorInput
   costCapId?: string
   fallbackPolicyId?: string
   reason?: string
+  chatSessionId?: string
+  editPlanVersionId?: string
+  approvedByUserId?: string
+  approvedAt?: string
+  confirmedSupabaseTargetValidation?: boolean
+  serviceRolePersistenceRuntimeApproved?: boolean
+  remotePersistenceConfirmation?: boolean
   supabaseCredentialContext?: InternalBetaSupabaseCredentialContextContract
 }
 
@@ -152,8 +164,30 @@ export interface InternalBetaRuntimeReadinessComponentCounts {
 }
 
 export interface InternalBetaRuntimeReadinessLocalEvidenceCounts {
+  approvedSnapshotServiceRolePersistenceGuard: 1
   localE2EChainSmoke: 1
-  total: 1
+  total: 2
+}
+
+export interface InternalBetaRuntimeReadinessServiceRolePersistenceGuardSummary {
+  ok: boolean
+  status: InternalBetaApprovedSnapshotServiceRolePersistenceGuardResult['status']
+  localSnapshotRuntimeStatus: InternalBetaApprovedSnapshotServiceRolePersistenceGuardResult['localSnapshotRuntime']['status']
+  localSnapshotRuntimeOk: boolean
+  persistedToSupabase: false
+  routeExecution: false
+  serviceRoleRouteExecution: false
+  remoteSupabaseMutation: false
+  sqlExecution: false
+  migrationApply: false
+  creditMutation: false
+  jobEnqueue: false
+  workerExecution: false
+  workerDispatch: false
+  signedUrlCreation: false
+  publicArtifactCreation: false
+  internalBetaUnlock: false
+  requiredBeforePersistence: string[]
 }
 
 export interface InternalBetaRuntimeReadinessLocalE2EChainSummary {
@@ -176,6 +210,7 @@ export interface InternalBetaRuntimeReadinessOrchestratorReport {
   localEvidenceCounts: InternalBetaRuntimeReadinessLocalEvidenceCounts
   componentStatuses: Record<InternalBetaRuntimeReadinessComponent, string[]>
   componentSummaries: InternalBetaRuntimeReadinessComponentSummary[]
+  serviceRolePersistenceGuard: InternalBetaRuntimeReadinessServiceRolePersistenceGuardSummary
   localE2EChainSmoke: InternalBetaRuntimeReadinessLocalE2EChainSummary
   supabaseCredentialContext: InternalBetaSupabaseCredentialContextContract
   safety: InternalBetaRuntimeReadinessSafetySummary
@@ -201,6 +236,7 @@ export const INTERNAL_BETA_RUNTIME_READINESS_ORCHESTRATOR_REQUIRED_BEFORE_ENABLE
   'confirmed_supabase_target_rls_storage_validation',
   'guarded_worker_runtime_rpc_staging_sql_execution',
   'api_route_runtime_facade_validation',
+  'approved_snapshot_service_role_persistence_guard',
   'service_role_runtime_enablement',
   'approved_snapshot_persistence_runtime',
   'credit_ledger_transaction_runtime',
@@ -278,8 +314,15 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
     costCapId: input.costCapId ?? 'cost_cap_pending_runtime_validation',
     fallbackPolicyId: input.fallbackPolicyId ?? 'fallback_policy_pending_runtime_validation',
     editPlanId: input.editPlanId ?? 'edit_plan_pending_runtime_validation',
+    chatSessionId: input.chatSessionId ?? 'chat_session_pending_runtime_validation',
+    editPlanVersionId: input.editPlanVersionId ?? 'edit_plan_version_pending_runtime_validation',
     creditEstimateId: input.creditEstimateId ?? 'credit_estimate_pending_runtime_validation',
     creditApprovalId: input.creditApprovalId ?? 'credit_approval_pending_runtime_validation',
+    approvedByUserId: input.approvedByUserId ?? input.userId ?? 'approved_by_user_pending_runtime_validation',
+    approvedAt: input.approvedAt ?? '2026-06-26T00:00:00.000Z',
+    confirmedSupabaseTargetValidation: input.confirmedSupabaseTargetValidation === true,
+    serviceRolePersistenceRuntimeApproved: input.serviceRolePersistenceRuntimeApproved === true,
+    remotePersistenceConfirmation: input.remotePersistenceConfirmation === true,
     idempotencyKey: input.idempotencyKey ?? 'idempotency_key_pending_runtime_validation',
     reason: input.reason ?? 'internal_beta_runtime_readiness_orchestrator_fail_closed_check',
     payload: sanitizeJson(input.payload ?? {}),
@@ -304,6 +347,28 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
     createDisabledInternalBetaProviderAdapterScaffoldResult(definition.operation, normalizedInput),
   )
   const apiRouteRuntimeFacade = createInternalBetaApiRouteRuntimeFacadeReport(normalizedInput)
+  const serviceRolePersistenceGuard = evaluateInternalBetaApprovedSnapshotServiceRolePersistenceGuard({
+    workspaceId: normalizedInput.workspaceId,
+    projectId: normalizedInput.projectId,
+    chatSessionId: normalizedInput.chatSessionId,
+    editPlanId: normalizedInput.editPlanId,
+    editPlanVersionId: normalizedInput.editPlanVersionId,
+    creditEstimateId: normalizedInput.creditEstimateId,
+    creditApprovalId: normalizedInput.creditApprovalId,
+    creditReservationId: normalizedInput.creditReservationId,
+    approvedByUserId: normalizedInput.approvedByUserId,
+    approvedAt: normalizedInput.approvedAt,
+    idempotencyKey: `${normalizedInput.idempotencyKey}:approved-snapshot-service-role-persistence-guard`,
+    snapshotPayload: buildRuntimeReadinessSnapshotPayload(normalizedInput),
+    metadata: {
+      source: 'internal_beta_runtime_readiness_orchestrator_4_persistence_guard_integration',
+      localEvidenceOnly: true,
+    },
+    supabaseCredentialContext,
+    confirmedSupabaseTargetValidation: normalizedInput.confirmedSupabaseTargetValidation,
+    serviceRolePersistenceRuntimeApproved: normalizedInput.serviceRolePersistenceRuntimeApproved,
+    remotePersistenceConfirmation: normalizedInput.remotePersistenceConfirmation,
+  })
   const localE2EChainSmoke = createInternalBetaLocalE2EChainSmoke({
     workspaceId: normalizedInput.workspaceId,
     projectId: normalizedInput.projectId,
@@ -352,6 +417,17 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
   ) {
     throw new Error('Internal beta runtime readiness orchestrator API route facade must remain fail-closed.')
   }
+  if (serviceRolePersistenceGuard.localSnapshotRuntime.ok !== true) {
+    throw new Error(`Internal beta runtime readiness orchestrator approved snapshot local runtime failed: ${serviceRolePersistenceGuard.localSnapshotRuntime.status}.`)
+  }
+  if (
+    serviceRolePersistenceGuard.persistedToSupabase !== false ||
+    serviceRolePersistenceGuard.remoteSupabaseMutation !== false ||
+    serviceRolePersistenceGuard.sqlExecution !== false ||
+    serviceRolePersistenceGuard.serviceRoleRouteExecution !== false
+  ) {
+    throw new Error('Internal beta runtime readiness orchestrator service-role persistence guard executed a forbidden remote path.')
+  }
 
   if (!localE2EChainSmoke.ok) {
     throw new Error(`Internal beta runtime readiness orchestrator local E2E chain evidence failed: ${localE2EChainSmoke.status}.`)
@@ -366,6 +442,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
   const unsafeExecutionDetected =
     allResults.some(hasUnsafeBoolean) ||
     Object.values(apiRouteRuntimeFacade.safety).some(Boolean) ||
+    hasUnsafeServiceRolePersistenceGuardBoolean(serviceRolePersistenceGuard) ||
     Object.values(localE2EChainSmoke.safety).some(Boolean)
   if (unsafeExecutionDetected) {
     throw new Error('Internal beta runtime readiness orchestrator detected an enabled runtime execution flag.')
@@ -379,8 +456,9 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
     productReadyEndToEndLocalOssTools: 0,
     componentCounts,
     localEvidenceCounts: {
+      approvedSnapshotServiceRolePersistenceGuard: 1,
       localE2EChainSmoke: 1,
-      total: 1,
+      total: 2,
     },
     componentStatuses: {
       api_route_runtime_facade: uniqueStatuses(apiRouteRuntimeFacade.facadeResponses),
@@ -400,6 +478,26 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
       ...summarizeResults('remotion_render_worker', remotionRenderWorker),
       ...summarizeResults('provider_adapter', providerAdapter),
     ],
+    serviceRolePersistenceGuard: {
+      ok: serviceRolePersistenceGuard.ok,
+      status: serviceRolePersistenceGuard.status,
+      localSnapshotRuntimeStatus: serviceRolePersistenceGuard.localSnapshotRuntime.status,
+      localSnapshotRuntimeOk: serviceRolePersistenceGuard.localSnapshotRuntime.ok,
+      persistedToSupabase: false,
+      routeExecution: false,
+      serviceRoleRouteExecution: false,
+      remoteSupabaseMutation: false,
+      sqlExecution: false,
+      migrationApply: false,
+      creditMutation: false,
+      jobEnqueue: false,
+      workerExecution: false,
+      workerDispatch: false,
+      signedUrlCreation: false,
+      publicArtifactCreation: false,
+      internalBetaUnlock: false,
+      requiredBeforePersistence: serviceRolePersistenceGuard.requiredBeforePersistence,
+    },
     localE2EChainSmoke: {
       ok: true,
       status: 'local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime',
@@ -447,6 +545,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
       'Internal beta runtime readiness orchestrator is fail-closed.',
       `Supabase credential context decision: ${supabaseCredentialContext.decision}.`,
       'All composed API-route facade, service-role, credit-ledger, job-queue, private-artifact, Remotion render-worker, and provider-adapter scaffolds returned disabled runtime results.',
+      'Approved snapshot service-role persistence guard is evaluated as local metadata only; it does not write Supabase.',
       'Local E2E chain smoke evidence is composed and validated as local metadata only; it does not unlock internal beta.',
       'No Supabase mutation, SQL execution, worker execution, provider/model call, Remotion execution, media processing, artifact creation, credit mutation, signed URL creation, public artifact creation, internal beta unlock, external beta unlock, or production unlock occurred.',
     ],
@@ -469,8 +568,18 @@ export function assertInternalBetaRuntimeReadinessOrchestratorFailClosed(
   for (const component of report.componentSummaries) {
     if (component.ok !== false) throw new Error(`Component ${component.component}:${component.id} must remain disabled.`)
   }
-  if (report.localEvidenceCounts.localE2EChainSmoke !== 1 || report.localEvidenceCounts.total !== 1) {
-    throw new Error('Local E2E chain evidence count must remain 1.')
+  if (
+    report.localEvidenceCounts.approvedSnapshotServiceRolePersistenceGuard !== 1 ||
+    report.localEvidenceCounts.localE2EChainSmoke !== 1 ||
+    report.localEvidenceCounts.total !== 2
+  ) {
+    throw new Error('Local evidence counts must include service-role persistence guard and local E2E chain evidence.')
+  }
+  if (report.serviceRolePersistenceGuard.localSnapshotRuntimeOk !== true) {
+    throw new Error('Approved snapshot service-role persistence guard local snapshot runtime must pass.')
+  }
+  for (const [key, value] of Object.entries(report.serviceRolePersistenceGuard)) {
+    if (key.endsWith('Execution') && value === true) throw new Error(`Service-role persistence guard flag ${key} must remain false.`)
   }
   if (report.localE2EChainSmoke.ok !== true) throw new Error('Local E2E chain evidence must pass locally.')
   if (report.localE2EChainSmoke.localOnly !== true) throw new Error('Local E2E chain evidence must remain local-only.')
@@ -504,4 +613,52 @@ function uniqueStatuses(results: InternalBetaRuntimeReadinessScaffoldResult[]): 
 function hasUnsafeBoolean(result: InternalBetaRuntimeReadinessScaffoldResult): boolean {
   const record = result as unknown as Record<string, unknown>
   return UNSAFE_BOOLEAN_KEYS.some((key) => record[key] === true)
+}
+
+function hasUnsafeServiceRolePersistenceGuardBoolean(
+  result: InternalBetaApprovedSnapshotServiceRolePersistenceGuardResult,
+): boolean {
+  return [
+    result.persistedToSupabase,
+    result.routeExecution,
+    result.serviceRoleRouteExecution,
+    result.remoteSupabaseMutation,
+    result.sqlExecution,
+    result.migrationApply,
+    result.creditMutation,
+    result.jobEnqueue,
+    result.workerExecution,
+    result.workerDispatch,
+    result.signedUrlCreation,
+    result.publicArtifactCreation,
+    result.internalBetaUnlock,
+  ].some(Boolean)
+}
+
+function buildRuntimeReadinessSnapshotPayload(
+  input: InternalBetaRuntimeReadinessOrchestratorInput,
+): ApprovedPlanSnapshotPayload {
+  const editPlanId = input.editPlanId ?? 'edit_plan_pending_runtime_validation'
+  const projectId = input.projectId ?? 'project_pending_runtime_validation'
+  const creditEstimateId = input.creditEstimateId ?? 'credit_estimate_pending_runtime_validation'
+  const approvedByUserId = input.approvedByUserId ?? input.userId ?? 'approved_by_user_pending_runtime_validation'
+  const approvedAt = input.approvedAt ?? '2026-06-26T00:00:00.000Z'
+
+  return {
+    compiledIntent: { intentId: `${editPlanId}:compiled-intent`, source: 'structured_intent' },
+    confirmedSettings: { aspectRatio: '16:9', aspectRatioConfirmed: true, editLevel: 'basic' },
+    sourceOrder: [{ mediaAssetId: `${projectId}:media-asset-001`, order: 1 }],
+    professionalEditingDirective: { pacing: 'clean', qualityFloor: 'professional_basic' },
+    segmentOperations: [
+      { segmentId: `${editPlanId}:segment-001`, operationId: `${editPlanId}:operation-001`, operation: 'trim_cleanly' },
+    ],
+    visualAssetPlan: { items: [], policy: 'no_generation_without_approval' },
+    rendererPlan: { renderer: 'remotion_future_worker', execution: 'not_run' },
+    qaPlan: { checks: ['intent_match', 'professional_quality', 'private_artifact_policy'], execution: 'future_worker' },
+    providerRouting: { providers: [], realCalls: false },
+    modelTierPolicy: { basicProVeoAllowed: false, premiumVeoFinalFallbackOnly: true },
+    fallbackPolicy: { requiresUserReviewForMeaningChange: true },
+    creditEstimate: { creditEstimateId, credits: 1 },
+    approvalRecord: { approvedByUserId, approvedAt },
+  }
 }

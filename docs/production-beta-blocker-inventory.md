@@ -163,6 +163,20 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next safe milestone remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
 
+## Internal Beta Runtime Readiness Orchestrator 4 Service-Role Persistence Guard Integration
+
+`RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-4-SERVICE-ROLE-PERSISTENCE-GUARD-INTEGRATION` records decision `completed_internal_beta_runtime_readiness_orchestrator_service_role_persistence_guard_integration_fail_closed` and execution `completed_orchestrator_service_role_persistence_guard_integration_no_supabase_write`.
+
+Runtime readiness status: `blocked_pending_supabase_target_validation_and_runtime_enablement`. Service-role persistence guard status: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`. Local snapshot runtime status: `local_snapshot_persistence_validated_no_supabase_write`.
+
+The orchestrator now counts approved snapshot service-role persistence guard evidence as local metadata only. It keeps total disabled runtime component count `54` and local evidence count `2` while blocking approved snapshot remote persistence until credential context, target validation, runtime approval, and remote persistence confirmation are present.
+
+Remote Supabase mutation, SQL execution, migration apply, storage object creation/read/delete, signed URL creation, public artifact creation, service-role route execution, API route handler registration, mock route handler registration, worker dispatch/execution, provider/model call, Remotion execution, FFmpeg/FFprobe execution, media processing, credit mutation, approved snapshot remote persistence, and internal beta unlock remain `false`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe milestone remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 ## Internal Beta Approved Snapshot Persistence Local Runtime
 
 `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-LOCAL-RUNTIME-1` records decision `completed_local_approved_snapshot_persistence_runtime_no_supabase_write` and execution `completed_backend_local_snapshot_validation_no_route_or_remote_execution`.

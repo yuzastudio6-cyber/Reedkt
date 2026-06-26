@@ -708,6 +708,7 @@
     "rp-internal-beta-runtime-readiness-credential-context-integration-1:diagnostics": "node scripts/validation/rp-internal-beta-runtime-readiness-credential-context-integration-1-diagnostics.mjs",
     "rp-internal-beta-local-readiness-gate-rollup-1": "node scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1.mjs",
     "rp-internal-beta-local-readiness-gate-rollup-1:diagnostics": "node scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs",
+    "rp-external-product-beta-current-readiness-rollup-1:diagnostics": "node scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

@@ -76,6 +76,16 @@ No real timing/audio/transcript/media analysis, provider execution, rendering, b
 
 Start with `RP-CREDITS-01-INTERNAL-BETA-CREDIT-LEDGER-RUNTIME-SCAFFOLD` if the next priority is a narrow internal beta lane. RP-DATA-04 validated the local Supabase migration chain, RP-BACKEND-01 registered backend-required route contracts, and RP-BACKEND-02 added disabled service-role runtime scaffolds while preserving the current rule: workers execute approved snapshots, not raw chat.
 
+## RP External Product Beta Current Readiness Rollup 1
+
+`RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.
+
+The current integration head is `4648c70b0f47ec34f1c4668cb42f69cd55053b50`, including PR #1019. The Supabase target validation evidence is now source-closed as `completed_guarded_supabase_target_rls_storage_readonly_validation`, but PR #1019 keeps worker RPC, private E2E, internal beta, external beta, paid production, and final delivery blocked because there is no owner approval for full reviewed pending-set staging apply or a clean staging target/branch/project.
+
+Internal beta status: `blocked_pending_explicit_staging_migration_path_approval`. External product beta status: `blocked`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe action remains `OWNER ACTION REQUIRED - approve full reviewed staging migration set or clean staging target before RPC 4R SQL execution`.
+
 ## ReEditPro Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

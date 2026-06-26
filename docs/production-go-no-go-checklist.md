@@ -23,3 +23,12 @@ M17 does not grant go approval. Phase 18 also does not grant go approval; it onl
 - Accepted input: Track B media OSS tools lane is product-ready at `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready`, but that tools-lane readiness does not grant whole-product external beta or production readiness.
 - Required remediation gates remain: deployment and rollback, model/license/security/cost, private storage/deletion, observability and alert routing, incident response, backend/database/billing/credit ledger, real generation/export workers, delivery/share policy, and final external beta and production go/no-go.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Deployment / Rollback Readiness Plan Status
+
+- Decision: `reeditpro_deployment_rollback_readiness_plan_passed_ready_for_model_license_security_cost_readiness_plan`
+- Next prompt: `REEDITPRO_MODEL_LICENSE_SECURITY_COST_READINESS_PLAN`
+- Current status: external beta and production remain blocked.
+- Deployment and rollback readiness status: metadata requirements are defined for environment separation, release owner, rollback owner, incident owner, release freeze policy, rollback evidence, staging/production separation, and future validation commands.
+- No deployment, rollback, `gcloud`, Docker, Supabase/GCS, public artifact, signed URL, external beta, or production command is authorized by this plan.
+- Supabase classification: no write / environment none / SQL none / migration no.

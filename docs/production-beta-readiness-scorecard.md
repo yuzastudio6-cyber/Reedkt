@@ -38,3 +38,12 @@ approval.
 - Track B tools-lane handoff: accepted as product-ready tools-lane evidence only; it does not unlock live product calls, route runtime, real user media beta, paid production, public delivery, signed URLs, Supabase/GCS writes, or final export.
 - Whole-product blockers remain open for deployment/rollback, model/license/security/cost, private storage/deletion, observability, incident response, backend/database/billing/credit ledger, real generation/export worker E2E, delivery/share policy, and final go/no-go.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Deployment / Rollback Readiness Plan Status
+
+- Decision: `reeditpro_deployment_rollback_readiness_plan_passed_ready_for_model_license_security_cost_readiness_plan`
+- Next prompt: `REEDITPRO_MODEL_LICENSE_SECURITY_COST_READINESS_PLAN`
+- Scorecard status: external beta and production remain blocked.
+- Deployment/rollback metadata now defines required environment separation, owner slots, freeze policy, rollback evidence, and downstream validation prerequisites.
+- This is not deployment execution, rollback execution, live product traffic, user exposure, public delivery, signed URL, Supabase/GCS write, paid beta, or production approval.
+- Supabase classification: no write / environment none / SQL none / migration no.

@@ -781,7 +781,8 @@
     "trackb-media-oss:product-beta-runtime-product-ready-closeout:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs",
     "trackb-media-oss:product-beta-tools-call-lane-ready-handoff:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs",
     "trackb-media-oss:external-beta-production-readiness-gap-review:diagnostics": "node scripts/validation/trackb-media-oss-external-beta-production-readiness-gap-review-diagnostics.mjs",
-    "reeditpro:external-beta-production-readiness-remediation-plan:diagnostics": "node scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs"
+    "reeditpro:external-beta-production-readiness-remediation-plan:diagnostics": "node scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs",
+    "reeditpro:deployment-rollback-readiness-plan:diagnostics": "node scripts/validation/reeditpro-deployment-rollback-readiness-plan-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

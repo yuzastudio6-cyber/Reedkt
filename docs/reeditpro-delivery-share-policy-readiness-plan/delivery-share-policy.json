@@ -1,0 +1,30 @@
+{
+  "schema": "reeditpro.deliverySharePolicyReadinessPlan.v1",
+  "ownerId": "REEDITPRO_DELIVERY_SHARE_POLICY_STEWARD",
+  "decision": "reeditpro_delivery_share_policy_readiness_plan_passed_ready_for_external_beta_production_go_no_go_review",
+  "previousDecision": "reeditpro_worker_generation_export_e2e_readiness_plan_passed_ready_for_delivery_share_policy_readiness_plan",
+  "nextPrompt": "REEDITPRO_EXTERNAL_BETA_PRODUCTION_GO_NO_GO_REVIEW",
+  "sourceSha": "b6202be5cb88b9122d556f5d901922e6584f4c0d",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-delivery-share-policy-readiness-plan",
+  "report": "delivery-share-policy",
+  "deliveryPolicyDefined": true,
+  "allowedFutureDeliveryClasses": [
+    "private signed-url preview/download after approved plan and completed export",
+    "owner-approved export delivery with audit event",
+    "support-scoped redacted delivery evidence"
+  ],
+  "blockedDeliveryClasses": [
+    "public artifact by default",
+    "permanent unauthenticated URL",
+    "share before credit ledger settlement",
+    "share before artifact manifest readiness",
+    "share from mutable draft plan"
+  ],
+  "publicDeliveryEnabled": false,
+  "signedUrlsCreated": false,
+  "readyForExternalBetaProductionGoNoGoReview": true,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

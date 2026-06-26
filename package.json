@@ -787,7 +787,8 @@
     "reeditpro:private-storage-deletion-supabase-gcs-readiness-plan:diagnostics": "node scripts/validation/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan-diagnostics.mjs",
     "reeditpro:observability-incident-support-readiness-plan:diagnostics": "node scripts/validation/reeditpro-observability-incident-support-readiness-plan-diagnostics.mjs",
     "reeditpro:backend-database-billing-credit-ledger-readiness-plan:diagnostics": "node scripts/validation/reeditpro-backend-database-billing-credit-ledger-readiness-plan-diagnostics.mjs",
-    "reeditpro:worker-generation-export-e2e-readiness-plan:diagnostics": "node scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs"
+    "reeditpro:worker-generation-export-e2e-readiness-plan:diagnostics": "node scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs",
+    "reeditpro:delivery-share-policy-readiness-plan:diagnostics": "node scripts/validation/reeditpro-delivery-share-policy-readiness-plan-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

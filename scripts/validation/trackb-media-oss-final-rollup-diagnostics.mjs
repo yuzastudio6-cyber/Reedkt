@@ -45,6 +45,7 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/reeditpro-delivery-share-policy-readiness-plan/',
   'docs/reeditpro-worker-generation-export-e2e-readiness-plan/',
   'docs/reeditpro-backend-database-billing-credit-ledger-readiness-plan/',
   'docs/reeditpro-observability-incident-support-readiness-plan/',
@@ -243,6 +244,8 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-1-tesseract-fixture-proof-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-1-build-context-blocker-followup-diagnostics.mjs',
+  'scripts/validation/reeditpro-delivery-share-policy-readiness-plan-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-reeditpro-external-beta-production-go-no-go-review.md',
   ...statusDocs,
 ])
 

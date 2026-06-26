@@ -66,6 +66,8 @@
     "ai-graphics:gpu-runtime-proof-command-plan:diagnostics": "node scripts/validation/ai-graphics-gpu-runtime-proof-command-plan-diagnostics.mjs",
     "ai-graphics:gpu-runtime-proof-result:validate": "tsx server/cli/ai-graphics-gpu-runtime-proof-result.ts",
     "ai-graphics:gpu-runtime-proof-result:diagnostics": "node scripts/validation/ai-graphics-gpu-runtime-proof-result-diagnostics.mjs",
+    "ai-graphics:gpu-runtime-proof-local-preflight": "tsx server/cli/ai-graphics-gpu-runtime-proof-local-preflight.ts",
+    "ai-graphics:gpu-runtime-proof-local-preflight:diagnostics": "node scripts/validation/ai-graphics-gpu-runtime-proof-local-preflight-diagnostics.mjs",
     "ai-graphics:model-weight-manifest-scaffold": "tsx server/cli/ai-graphics-model-weight-manifest-scaffold.ts",
     "ai-graphics:model-weight-manifest-scaffold:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-scaffold-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",

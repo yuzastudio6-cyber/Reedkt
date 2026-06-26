@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "2026-06-26.ai-graphics.gpu-runtime-proof-local-preflight",
+  "decision": "ai_graphics_gpu_runtime_proof_local_preflight_prepared_with_manifest_and_result_blocks",
+  "status": "prepared_with_manifest_and_result_blocks",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "latestObservedHeadSha": "513adb87b2d271f35e9e6210f33cdd400d10b713",
+    "latestObservedCheckRollup": []
+  },
+  "sourceEvidence": {
+    "modelWeightManifestScaffold": "docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.json",
+    "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json",
+    "gpuRuntimeProofResultPacket": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json",
+    "betaEvidenceBundle": "docs/tool-intelligence/ai-graphics/beta-evidence-bundle.json"
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-gpu-runtime-proof-local-preflight.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "cli": "server/cli/ai-graphics-gpu-runtime-proof-local-preflight.ts",
+    "packageScript": "ai-graphics:gpu-runtime-proof-local-preflight",
+    "diagnostic": "scripts/validation/ai-graphics-gpu-runtime-proof-local-preflight-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:gpu-runtime-proof-local-preflight:diagnostics"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "gpuRuntimeTargetedTools": 8,
+    "modelWeightManifestRequiredTools": 5,
+    "runtimeProfilesRequired": 4,
+    "localManifestFilesRead": 0,
+    "localProofResultFilesRead": 0
+  },
+  "localEvidenceRoots": {
+    "modelWeightManifests": ".local-artifacts/ai-graphics/model-weight-manifests",
+    "gpuRuntimeProofResults": ".local-artifacts/ai-graphics/gpu-runtime-proof-results"
+  },
+  "manifestInputStatus": "missing_private_manifests",
+  "proofResultInputStatus": "missing_native_gpu_runtime_proof_results",
+  "missingLocalEvidence": [
+    "reviewed_private_model_weight_manifests",
+    "native_gpu_runtime_proof_results"
+  ],
+  "proofResultValidatorCommand": "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
+  "requiredNextCommands": [
+    "npm run --silent ai-graphics:model-weight-manifest-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-manifests",
+    "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests",
+    "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests",
+    "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
+    "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --require-ready-for-owner-review"
+  ],
+  "booleans": {
+    "gpuRuntimeProofLocalPreflightPrepared": true,
+    "commandPlanAccepted": true,
+    "proofResultPacketAccepted": true,
+    "all8GpuRuntimeToolsCovered": true,
+    "all5ModelWeightManifestToolsCovered": true,
+    "all4RuntimeProfilesCovered": true,
+    "privateArtifactRefsNotLogged": true,
+    "modelManifestsReadyForGpuProof": false,
+    "nativeGpuProofResultsAcceptedForOwnerReview": false,
+    "allGpuRuntimeEvidenceReadyForOwnerReview": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

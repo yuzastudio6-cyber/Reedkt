@@ -1,0 +1,69 @@
+{
+  "packet": "RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1",
+  "decision": "completed_main_supabase_service_role_runtime_grant_boundary_validation",
+  "execution": "completed_guarded_main_staging_grant_hardening_and_readonly_runtime_boundary_validation",
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "class": "staging"
+  },
+  "sourceBase": "6449de209fecd9dce43827fdc1bb1fa748e23327",
+  "hardeningMigration": "supabase/migrations/20260626233000_external_beta_public_grant_hardening.sql",
+  "run": {
+    "runId": "2026-06-26T23-41-52-998Z-818c6ba1",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-main-supabase-service-role-runtime-validation-1/2026-06-26T23-41-52-998Z-818c6ba1",
+    "reportSha256": "b0de58258882c2bbe0a7296c58ab3fc44b2f8eb645befe91bdd38adde55a83de",
+    "manifestSha256": "cc7e3b894c2c0fb13fcb2dd0a23da27cccfeab952dc6b2ffcecd0d75b7ed5647"
+  },
+  "validation": {
+    "dryRun": "passed_remote_database_is_up_to_date",
+    "publicWorkerRuntimeLint": "passed_no_warnings",
+    "storageLintReadback": "completed_with_managed_storage_warnings_allowed",
+    "unsafePublicMutationGrantCount": 0,
+    "unsafePublicSequenceGrantCount": 0,
+    "hardeningMigrationPresent": true,
+    "protectedRuntimeTableServiceRoleWrite": "passed",
+    "protectedRuntimeTablePublicMutationAbsence": "passed"
+  },
+  "readiness": {
+    "mainSupabaseServiceRoleGrantBoundary": "ready_for_approved_snapshot_persistence_guarded_remote_write_validation",
+    "serviceRoleRouteExecution": "not_run_pending_route_specific_guarded_write_validation",
+    "approvedSnapshotPersistence": "ready_for_guarded_remote_write_validation",
+    "externalProductBeta": "blocked_pending_remaining_runtime_gates"
+  },
+  "safety": {
+    "databaseUrlPayloadSource": "ephemeral_process_env_only",
+    "databaseUrlPrinted": false,
+    "databaseUrlPersistedInRepo": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "frontendServiceRoleCredentialExposure": false,
+    "remoteSupabaseMutation": "guarded_main_staging_public_grant_hardening_migration_apply_only",
+    "sqlExecution": "guarded_readonly_catalog_validation_after_migration_apply",
+    "sqlMutation": "guarded_main_staging_public_grant_hardening_migration_apply_only",
+    "migrationApply": "20260626233000_external_beta_public_grant_hardening",
+    "serviceRoleRouteExecution": false,
+    "routeExecution": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "workerLeaseClaim": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "creditReservationCreation": false,
+    "jobEnqueue": false,
+    "jobEventWrite": false,
+    "providerCall": false,
+    "modelCall": false,
+    "renderExport": false,
+    "mediaProcessing": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1"
+}

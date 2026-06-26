@@ -1,12 +1,12 @@
 # Activation Phase: RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Results
 
-Decision: `blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure`
+Decision: `blocked_external_product_beta_pending_remaining_runtime_gates_after_main_supabase_grant_boundary_validation`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `4648c70b0f47ec34f1c4668cb42f69cd55053b50`
+Current integration head: `6449de209fecd9dce43827fdc1bb1fa748e23327`
 
-Internal beta status: `blocked_pending_explicit_staging_migration_path_approval`
+Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
 External product beta status: `blocked`
 
@@ -22,12 +22,16 @@ Generated artifacts committed: `none`
 
 ## Result
 
-The Supabase target credential/target-validation lane has moved past the missing-token blocker. Non-secret Secret Manager metadata shows `SUPABASE_ACCESS_TOKEN` version `5` is enabled, and source evidence already records `completed_guarded_supabase_target_rls_storage_readonly_validation`.
+The Supabase target credential/target-validation lane has moved past the missing-token blocker. Non-secret Secret Manager metadata shows `SUPABASE_ACCESS_TOKEN` version `5` is enabled, and source evidence records `completed_guarded_supabase_target_rls_storage_readonly_validation`.
 
-The active blocker is `blocked_no_owner_approval_for_staging_migration_apply_or_clean_target`. PR #1019 records that no owner-approved path exists for either full reviewed pending-set staging apply or clean staging target/branch/project. Therefore external product beta remains blocked.
+`RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1` source-mapped remote-only migration `20260626163138`, applied the 18 pending repo migrations to the main Reeditpro staging target, applied lint-fix migration `20260626224600`, and recorded final `supabase db push --dry-run` as `Remote database is up to date.` Supabase lint records `No schema errors found`.
 
-Next safe action: `OWNER ACTION REQUIRED - approve full reviewed staging migration set or clean staging target before RPC 4R SQL execution`.
+`RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1` records decision `completed_main_supabase_service_role_runtime_grant_boundary_validation`, applied guarded grant hardening migration `20260626233000_external_beta_public_grant_hardening.sql`, and validated unsafe public mutation grants as `0` and unsafe public sequence grants as `0`.
+
+The active blocker is `blocked_external_product_beta_pending_remaining_runtime_gates_after_main_supabase_grant_boundary_validation`. Therefore external product beta remains blocked until approved snapshot persistence guarded remote write/readback, route-specific service-role execution validation, credit reservation/ledger validation, job lease/event validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, and security/privacy/support/cost/deployment review pass.
+
+Next safe action: `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1`.
 
 ## Safety
 
-No Supabase mutation, SQL mutation, migration apply, migration history table edit, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, Docker execution, Remotion execution, FFmpeg/FFprobe execution, or broad service-role handler was enabled.
+No service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, Docker execution, Remotion execution, FFmpeg/FFprobe execution, or broad service-role handler was enabled by this rollup. Remote Supabase mutation for the preceding sync and service-role validation packets was limited to guarded staging migration apply and guarded public grant hardening on the single main Reeditpro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project.

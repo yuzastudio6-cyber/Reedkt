@@ -712,6 +712,8 @@
     "rp-internal-beta-local-readiness-gate-rollup-1:diagnostics": "node scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs",
     "rp-external-product-beta-current-readiness-rollup-1:diagnostics": "node scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs",
     "rp-external-beta-reeditpro-supabase-main-target-migration-sync-1:diagnostics": "node scripts/validation/rp-external-beta-reeditpro-supabase-main-target-migration-sync-1-diagnostics.mjs",
+    "rp-external-beta-main-supabase-service-role-runtime-validation-1-confirmed": "node scripts/validation/rp-external-beta-main-supabase-service-role-runtime-validation-1-confirmed.mjs",
+    "rp-external-beta-main-supabase-service-role-runtime-validation-1:diagnostics": "node scripts/validation/rp-external-beta-main-supabase-service-role-runtime-validation-1-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

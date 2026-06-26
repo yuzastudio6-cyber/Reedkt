@@ -1,10 +1,11 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync",
+  "decision": "blocked_external_product_beta_pending_remaining_runtime_gates_after_main_supabase_grant_boundary_validation",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
   "integrationHead": "7fc216c101d74b68ae175830ab5fa34b3e956d33",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
+    "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
     "decision": "completed_reeditpro_main_supabase_target_migration_history_sync",
     "confirmedSupabaseTargetValidation": "completed_guarded_supabase_target_rls_storage_readonly_validation",
     "pr577": "open_draft_blocked_excluded"
@@ -29,18 +30,21 @@
     "projectRef": "wmyyttnynmteqgcdishd",
     "migrationHistory": "source_aligned_and_up_to_date_through_20260626224600",
     "supabaseLint": "passed_no_schema_errors_found",
+    "serviceRoleGrantBoundary": "completed_main_supabase_service_role_runtime_grant_boundary_validation",
+    "unsafePublicMutationGrantCount": 0,
+    "unsafePublicSequenceGrantCount": 0,
     "isolatedSandboxActive": false,
     "isolatedSandboxDataCopied": false
   },
   "requiredNextOwnerDecision": [
-    "RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1",
-    "RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARDED-REMOTE-WRITE-1",
+    "RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1",
+    "route_specific_service_role_execution_validation",
     "continue_blocked"
   ],
   "safety": {
-    "supabaseMutation": "guarded_main_staging_migration_apply_only",
-    "sqlMutation": "guarded_main_staging_migration_apply_only",
-    "migrationApply": "guarded_main_staging_migration_apply_only",
+    "supabaseMutation": "guarded_main_staging_migration_apply_and_grant_hardening_only",
+    "sqlMutation": "guarded_main_staging_migration_apply_and_grant_hardening_only",
+    "migrationApply": "guarded_main_staging_migration_apply_and_grant_hardening_only",
     "secretPayloadAccess": false,
     "workerExecution": false,
     "providerModelCall": false,

@@ -1,0 +1,31 @@
+{
+  "packet": "RP-INTERNAL-BETA-PRIVATE-ARTIFACT-ACCESS-POLICY-LOCAL-RUNTIME-1",
+  "decision": "completed_local_private_artifact_access_policy_runtime_no_storage_read",
+  "execution": "completed_backend_local_private_artifact_access_policy_validation_no_route_or_signed_url",
+  "status": "local_private_artifact_access_policy_validated_no_storage_read",
+  "invalidInputBlocker": "blocked_invalid_private_artifact_access_policy_input",
+  "localAccessPolicyRecorded": true,
+  "accessGrantedNow": false,
+  "storageObjectCreation": false,
+  "storageObjectRead": false,
+  "storageObjectDelete": false,
+  "signedUrlCreation": false,
+  "publicArtifactCreation": false,
+  "serviceRoleRouteExecution": false,
+  "workerExecution": false,
+  "workerDispatch": false,
+  "routeExecution": false,
+  "providerModelCall": false,
+  "remotionExecution": false,
+  "ffmpegExecution": false,
+  "ffprobeExecution": false,
+  "mediaProcessing": false,
+  "internalBetaEndToEndReady": false,
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN",
+  "excludedSource": {
+    "pr577": "open_draft_blocked_excluded"
+  }
+}

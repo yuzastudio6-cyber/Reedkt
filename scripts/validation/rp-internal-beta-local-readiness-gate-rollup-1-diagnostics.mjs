@@ -109,6 +109,26 @@ for (const file of privateArtifactManifestLocalRuntimeFiles) {
   allowedChangedFiles.add(file)
 }
 
+const privateArtifactAccessPolicyLocalRuntimeFiles = [
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/runtime-contract.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/private-artifact-access-policy-local-runtime-record.json',
+  'docs/activation-phase-rp-internal-beta-private-artifact-access-policy-local-runtime-1-results.md',
+  'server/services/internal-beta-private-artifact-access-policy-local-runtime.ts',
+  'server/smoke/internal-beta-private-artifact-access-policy-local-runtime-smoke.ts',
+  'scripts/validation/rp-internal-beta-private-artifact-access-policy-local-runtime-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-private-artifact-manifest-local-runtime-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1r-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs',
+]
+
+for (const file of privateArtifactAccessPolicyLocalRuntimeFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const remotionPrivatePreviewExportLocalRuntimeFiles = [
   'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/source-audit.md',
   'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/runtime-contract.md',

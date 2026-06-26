@@ -26,6 +26,18 @@ const allowedChangedFiles = new Set(requiredFiles)
 for (const file of [
   'scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-qa-cleanup-observability-local-runtime-1-diagnostics.mjs',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/runtime-contract.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-access-policy-local-runtime-1/private-artifact-access-policy-local-runtime-record.json',
+  'docs/activation-phase-rp-internal-beta-private-artifact-access-policy-local-runtime-1-results.md',
+  'server/services/internal-beta-private-artifact-access-policy-local-runtime.ts',
+  'server/smoke/internal-beta-private-artifact-access-policy-local-runtime-smoke.ts',
+  'scripts/validation/rp-internal-beta-private-artifact-access-policy-local-runtime-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-private-artifact-manifest-local-runtime-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs',
 ]) {
   allowedChangedFiles.add(file)
 }

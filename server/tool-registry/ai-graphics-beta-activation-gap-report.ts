@@ -41,6 +41,8 @@ export interface AiGraphicsBetaActivationToolGap {
   duplicateProductionMapping: false
   betaActivationReadyNow: false
   requiredEvidenceGates: string[]
+  acceptedEvidenceGates: string[]
+  remainingEvidenceGates: string[]
   policyGates: string[]
   profileMigrationGates: string[]
   routeWorkerGates: string[]
@@ -61,9 +63,18 @@ export interface AiGraphicsBetaActivationGapReport {
   blockedTools: 21
   tools: AiGraphicsBetaActivationToolGap[]
   duplicateMappingRows: []
+  committedRuntimeProofs: {
+    nodeRuntimeProofAccepted: boolean
+    browserRuntimeProofAccepted: boolean
+    satoriFontRuntimeProofAccepted: boolean
+    acceptedRuntimeProofGates: string[]
+  }
   activationSequence: string[]
   booleans: {
     betaActivationGapReportPrepared: true
+    committedNodeRuntimeProofAccepted: boolean
+    committedBrowserRuntimeProofAccepted: boolean
+    committedSatoriFontRuntimeProofAccepted: boolean
     sourceBetaReadinessGateAccepted: true
     all21ToolsCovered: true
     all21ToolsProperlyInstalledForPlannedSurface: true
@@ -93,6 +104,12 @@ export interface AiGraphicsBetaActivationGapReport {
   }
 }
 
+export interface AiGraphicsBetaActivationGapReportInput {
+  nodeRuntimeProofAccepted?: boolean
+  browserRuntimeProofAccepted?: boolean
+  satoriFontRuntimeProofAccepted?: boolean
+}
+
 const commonEvidenceGates = [
   'approved_plan_snapshot_gate',
   'credit_reservation_gate',
@@ -111,8 +128,8 @@ const activationSequence = [
   'Keep package/package-lock and GPU Docker install surfaces unchanged unless an explicit dependency milestone approves changes.',
   'Review private model-weight manifests for sam2, birefnet, real_esrgan, rembg, and transparent_background.',
   'Run native linux/amd64 NVIDIA L4 proof for gpu_worker_ai_graphics, sam2, birefnet, and real_esrgan, then validate with ai-graphics:gpu-runtime-proof-result:validate.',
-  'Package/profile license review is narrowed for all 21 AI graphics tools; model-weight, native GPU, browser/runtime, Tool Route, Worker, snapshot, credit, artifact, and beta owner gates remain evidence-driven.',
-  'Run browser/canvas/WebGL sandbox proof for chart, animation, canvas, and WebGL scene tools before runtime execution.',
+  'Use accepted committed Node, browser/canvas/WebGL, and Satori font runtime proof packets unless they drift; do not rerun those proofs just to satisfy this gap report.',
+  'Package/profile license review is narrowed for all 21 AI graphics tools; model-weight, native GPU, Tool Route, Worker, snapshot, credit, artifact, and beta owner gates remain evidence-driven.',
   'Pass approved plan snapshot, credit reservation, artifact boundary, Tool Route, Worker, and beta owner approval gates before any beta tool execution.',
 ]
 
@@ -152,6 +169,27 @@ function requiredEvidenceGatesForTool(input: {
   ])
 }
 
+function acceptedEvidenceGatesForTool(input: {
+  toolId: AiGraphicsCanonicalToolId
+  runtimeTarget: string
+  evidence: Required<AiGraphicsBetaActivationGapReportInput>
+}): string[] {
+  return unique([
+    input.runtimeTarget === 'browser_chart_runtime_later' && input.evidence.browserRuntimeProofAccepted
+      ? 'browser_chart_runtime_sandbox_proof'
+      : '',
+    input.runtimeTarget === 'browser_animation_runtime_later' && input.evidence.browserRuntimeProofAccepted
+      ? 'browser_animation_runtime_sandbox_proof'
+      : '',
+    input.runtimeTarget === 'browser_canvas_webgl_runtime_later' && input.evidence.browserRuntimeProofAccepted
+      ? 'browser_canvas_webgl_runtime_sandbox_proof'
+      : '',
+    input.toolId === 'satori' && input.evidence.satoriFontRuntimeProofAccepted
+      ? 'approved_satori_font_fixture_for_text_svg_layout'
+      : '',
+  ])
+}
+
 function nextActionForTool(input: {
   toolId: AiGraphicsCanonicalToolId
   gpuRequiredForRuntime: boolean
@@ -159,16 +197,43 @@ function nextActionForTool(input: {
   profileMigrationGates: string[]
   policyGates: string[]
   runtimeTarget: string
+  remainingEvidenceGates: string[]
 }): string {
   if (input.modelWeightsRequired) return `Review the private model-weight manifest and license/provenance evidence for ${input.toolId}.`
   if (input.gpuRequiredForRuntime) return `Run native NVIDIA L4 proof and validate the redacted proof result for ${input.toolId}.`
-  if (input.runtimeTarget.startsWith('browser_')) return `Run the approved browser/canvas/WebGL sandbox proof before enabling ${input.toolId} runtime.`
+  if (
+    input.runtimeTarget.startsWith('browser_') &&
+    input.remainingEvidenceGates.some((gate) => gate.includes('browser_'))
+  ) return `Run the approved browser/canvas/WebGL sandbox proof before enabling ${input.toolId} runtime.`
   if (input.profileMigrationGates.length) return `Promote ${input.toolId} from planning-only/future status through an owner-approved executable Tool Route/Worker lane.`
   if (input.policyGates.length) return `Complete policy review for ${input.toolId} before beta activation.`
   return `Pass shared approved-snapshot, credit, artifact, Tool Route, Worker, and beta owner gates for ${input.toolId}.`
 }
 
-export function buildAiGraphicsBetaActivationGapReport(): AiGraphicsBetaActivationGapReport {
+function normalizeEvidence(
+  input: AiGraphicsBetaActivationGapReportInput = {},
+): Required<AiGraphicsBetaActivationGapReportInput> {
+  return {
+    nodeRuntimeProofAccepted: input.nodeRuntimeProofAccepted === true,
+    browserRuntimeProofAccepted: input.browserRuntimeProofAccepted === true,
+    satoriFontRuntimeProofAccepted: input.satoriFontRuntimeProofAccepted === true,
+  }
+}
+
+function acceptedRuntimeProofGates(
+  evidence: Required<AiGraphicsBetaActivationGapReportInput>,
+): string[] {
+  return unique([
+    evidence.nodeRuntimeProofAccepted ? 'node_cpu_static_runtime_proof_packet' : '',
+    evidence.browserRuntimeProofAccepted ? 'browser_canvas_webgl_runtime_sandbox_proof_packet' : '',
+    evidence.satoriFontRuntimeProofAccepted ? 'satori_font_runtime_proof_packet' : '',
+  ])
+}
+
+export function buildAiGraphicsBetaActivationGapReport(
+  input: AiGraphicsBetaActivationGapReportInput = {},
+): AiGraphicsBetaActivationGapReport {
+  const evidence = normalizeEvidence(input)
   const betaGate = buildAiGraphicsBetaReadinessGate()
   const readinessRecords = listAiGraphicsToolCallReadiness()
   const productionIds = readinessRecords.map((record) => record.productionToolId).filter(Boolean)
@@ -190,6 +255,13 @@ export function buildAiGraphicsBetaActivationGapReport(): AiGraphicsBetaActivati
       gpuRequiredForRuntime: record.gpuRequiredForRuntime,
       modelWeightsRequired: profile.modelWeightsRequired,
     })
+    const acceptedEvidenceGates = acceptedEvidenceGatesForTool({
+      toolId: record.toolId,
+      runtimeTarget: record.runtimeTarget,
+      evidence,
+    })
+    const remainingEvidenceGates = requiredEvidenceGates
+      .filter((gate) => !acceptedEvidenceGates.includes(gate))
     const profileMigrationGates = unique([
       profile.workerType === 'planning_only' ? 'production profile workerType must move away from planning_only before beta execution' : '',
       profile.executionMode === 'planning_metadata' ? 'production profile executionMode must move away from planning_metadata before beta execution' : '',
@@ -223,6 +295,8 @@ export function buildAiGraphicsBetaActivationGapReport(): AiGraphicsBetaActivati
       duplicateProductionMapping: false,
       betaActivationReadyNow: false,
       requiredEvidenceGates,
+      acceptedEvidenceGates,
+      remainingEvidenceGates,
       policyGates,
       profileMigrationGates,
       routeWorkerGates,
@@ -239,6 +313,7 @@ export function buildAiGraphicsBetaActivationGapReport(): AiGraphicsBetaActivati
         profileMigrationGates,
         policyGates,
         runtimeTarget: record.runtimeTarget,
+        remainingEvidenceGates,
       }),
     }
   })
@@ -263,9 +338,18 @@ export function buildAiGraphicsBetaActivationGapReport(): AiGraphicsBetaActivati
     blockedTools: tools.length as 21,
     tools,
     duplicateMappingRows: [],
+    committedRuntimeProofs: {
+      nodeRuntimeProofAccepted: evidence.nodeRuntimeProofAccepted,
+      browserRuntimeProofAccepted: evidence.browserRuntimeProofAccepted,
+      satoriFontRuntimeProofAccepted: evidence.satoriFontRuntimeProofAccepted,
+      acceptedRuntimeProofGates: acceptedRuntimeProofGates(evidence),
+    },
     activationSequence,
     booleans: {
       betaActivationGapReportPrepared: true,
+      committedNodeRuntimeProofAccepted: evidence.nodeRuntimeProofAccepted,
+      committedBrowserRuntimeProofAccepted: evidence.browserRuntimeProofAccepted,
+      committedSatoriFontRuntimeProofAccepted: evidence.satoriFontRuntimeProofAccepted,
       sourceBetaReadinessGateAccepted: true,
       all21ToolsCovered: true,
       all21ToolsProperlyInstalledForPlannedSurface: true,

@@ -97,6 +97,9 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/beta-readiness-gate.json',
   'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
   'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json',
+  'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+  'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+  'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
 ]
 
 for (const file of requiredFiles) read(file)
@@ -106,6 +109,9 @@ const docPacket = json('docs/tool-intelligence/ai-graphics/beta-activation-gap-r
 const betaGate = json('docs/tool-intelligence/ai-graphics/beta-readiness-gate.json')
 const audit = json('docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json')
 const proofResultPacket = json('docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json')
+const nodeRuntimeProof = json('docs/tool-intelligence/ai-graphics/node-runtime-proof.json')
+const browserRuntimeProof = json('docs/tool-intelligence/ai-graphics/browser-runtime-proof.json')
+const satoriFontRuntimeProof = json('docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json')
 const moduleSource = read('server/tool-registry/ai-graphics-beta-activation-gap-report.ts')
 const cliSource = read('server/cli/ai-graphics-beta-activation-gap-report.ts')
 const profilesSource = read('server/tool-registry/production-tool-profiles.ts')
@@ -129,6 +135,15 @@ if (audit.counts?.properlyInstalledForPlannedSurface !== 21) {
 if (proofResultPacket.decision !== 'ai_graphics_gpu_runtime_proof_result_packet_prepared_with_no_runtime_results') {
   fail('gpu_runtime_proof_result_packet_missing')
 }
+if (nodeRuntimeProof.decision !== 'ai_graphics_node_runtime_proof_completed_with_warnings') {
+  fail('node_runtime_proof_packet_missing')
+}
+if (browserRuntimeProof.decision !== 'ai_graphics_browser_runtime_proof_completed_with_warnings') {
+  fail('browser_runtime_proof_packet_missing')
+}
+if (satoriFontRuntimeProof.decision !== 'ai_graphics_satori_font_runtime_proof_completed_with_warnings') {
+  fail('satori_font_runtime_proof_packet_missing')
+}
 
 const reportOutput = runReport()
 const report = JSON.parse(reportOutput)
@@ -144,6 +159,19 @@ if (report.betaActivationReadyTools !== 0) fail('report_beta_activation_ready_no
 if (report.blockedTools !== 21) fail('report_blocked_tools_not_21')
 if (report.duplicateMappingRows?.length !== 0) fail('report_duplicate_mapping_rows_not_empty')
 if (report.input?.reportOnly !== true) fail('report_input_not_report_only')
+if (report.input?.committedRuntimeProofPacketsRead !== true) fail('committed_runtime_proof_packets_not_read')
+if (report.input?.nodeRuntimeProofPacketAccepted !== true) fail('node_runtime_proof_packet_not_accepted')
+if (report.input?.browserRuntimeProofPacketAccepted !== true) fail('browser_runtime_proof_packet_not_accepted')
+if (report.input?.satoriFontRuntimeProofPacketAccepted !== true) fail('satori_font_runtime_proof_packet_not_accepted')
+if (report.committedRuntimeProofs?.nodeRuntimeProofAccepted !== true) fail('report_node_runtime_proof_not_accepted')
+if (report.committedRuntimeProofs?.browserRuntimeProofAccepted !== true) fail('report_browser_runtime_proof_not_accepted')
+if (report.committedRuntimeProofs?.satoriFontRuntimeProofAccepted !== true) fail('report_satori_runtime_proof_not_accepted')
+if (!report.committedRuntimeProofs?.acceptedRuntimeProofGates?.includes('browser_canvas_webgl_runtime_sandbox_proof_packet')) {
+  fail('report_missing_browser_runtime_accepted_gate')
+}
+if (docPacket.committedRuntimeProofs?.browserRuntimeProofAccepted !== true) {
+  fail('doc_browser_runtime_proof_not_accepted')
+}
 
 for (const tool of allTools) {
   if (!docPacket.allTools?.includes(tool)) fail(`doc_missing_tool:${tool}`)
@@ -156,9 +184,49 @@ for (const tool of allTools) {
   if (row.duplicateProductionMapping !== false) fail(`tool_duplicate_mapping:${tool}`)
   if (row.betaActivationReadyNow !== false) fail(`tool_beta_ready_now_not_false:${tool}`)
   if (!row.requiredEvidenceGates?.includes('approved_plan_snapshot_gate')) fail(`tool_missing_snapshot_gate:${tool}`)
+  if (!Array.isArray(row.acceptedEvidenceGates)) fail(`tool_missing_accepted_evidence_gates:${tool}`)
+  if (!Array.isArray(row.remainingEvidenceGates)) fail(`tool_missing_remaining_evidence_gates:${tool}`)
   if (!row.routeWorkerGates?.includes('tool_route_execution_approval')) fail(`tool_missing_route_gate:${tool}`)
   if (!row.routeWorkerGates?.includes('worker_execution_approval')) fail(`tool_missing_worker_gate:${tool}`)
   if (!row.nextAction) fail(`tool_missing_next_action:${tool}`)
+}
+
+for (const tool of ['echarts']) {
+  const row = (report.tools || []).find((entry) => entry.toolId === tool)
+  if (!row?.acceptedEvidenceGates?.includes('browser_chart_runtime_sandbox_proof')) {
+    fail(`browser_chart_tool_missing_accepted_browser_proof:${tool}`)
+  }
+  if (row?.remainingEvidenceGates?.includes('browser_chart_runtime_sandbox_proof')) {
+    fail(`browser_chart_tool_still_remaining_browser_proof:${tool}`)
+  }
+}
+
+for (const tool of ['lottie_web', 'animejs']) {
+  const row = (report.tools || []).find((entry) => entry.toolId === tool)
+  if (!row?.acceptedEvidenceGates?.includes('browser_animation_runtime_sandbox_proof')) {
+    fail(`browser_animation_tool_missing_accepted_browser_proof:${tool}`)
+  }
+  if (row?.remainingEvidenceGates?.includes('browser_animation_runtime_sandbox_proof')) {
+    fail(`browser_animation_tool_still_remaining_browser_proof:${tool}`)
+  }
+}
+
+for (const tool of ['three_js', 'pixi_js', 'konva', 'babylonjs']) {
+  const row = (report.tools || []).find((entry) => entry.toolId === tool)
+  if (!row?.acceptedEvidenceGates?.includes('browser_canvas_webgl_runtime_sandbox_proof')) {
+    fail(`browser_canvas_webgl_tool_missing_accepted_browser_proof:${tool}`)
+  }
+  if (row?.remainingEvidenceGates?.includes('browser_canvas_webgl_runtime_sandbox_proof')) {
+    fail(`browser_canvas_webgl_tool_still_remaining_browser_proof:${tool}`)
+  }
+}
+
+const satoriRow = (report.tools || []).find((entry) => entry.toolId === 'satori')
+if (!satoriRow?.acceptedEvidenceGates?.includes('approved_satori_font_fixture_for_text_svg_layout')) {
+  fail('satori_missing_accepted_font_runtime_proof')
+}
+if (satoriRow?.remainingEvidenceGates?.includes('approved_satori_font_fixture_for_text_svg_layout')) {
+  fail('satori_font_runtime_proof_still_remaining')
 }
 
 for (const tool of gpuTools) {
@@ -193,6 +261,12 @@ for (const token of [
   'native_gpu_runtime_proof_result_accepted',
   'reviewed_private_model_weight_manifest',
   'browser_canvas_webgl_runtime_sandbox_proof',
+  'acceptedEvidenceGates',
+  'remainingEvidenceGates',
+  'committedRuntimeProofs',
+  'nodeRuntimeProofAccepted',
+  'browserRuntimeProofAccepted',
+  'satoriFontRuntimeProofAccepted',
   'production profile workerType must move away from planning_only',
 ]) {
   if (!moduleSource.includes(token) && !markdown.includes(token) && !JSON.stringify(docPacket).includes(token)) {
@@ -202,6 +276,10 @@ for (const token of [
 
 for (const token of [
   'reportOnly: true',
+  'committedRuntimeProofPacketsRead: true',
+  'nodeRuntimeProofPacketAccepted',
+  'browserRuntimeProofPacketAccepted',
+  'satoriFontRuntimeProofPacketAccepted',
   'dependencyInstallPerformed: false',
   'gpuRuntimePerformed: false',
   'modelWeightsLoaded: false',
@@ -211,6 +289,9 @@ for (const token of [
 
 for (const key of [
   'betaActivationGapReportPrepared',
+  'committedNodeRuntimeProofAccepted',
+  'committedBrowserRuntimeProofAccepted',
+  'committedSatoriFontRuntimeProofAccepted',
   'sourceBetaReadinessGateAccepted',
   'all21ToolsCovered',
   'all21ToolsProperlyInstalledForPlannedSurface',
@@ -321,6 +402,7 @@ console.log(JSON.stringify({
   heavyToolsIncorrectlyTargetingCpu: report.heavyToolsIncorrectlyTargetingCpu,
   betaActivationReadyTools: report.betaActivationReadyTools,
   blockedTools: report.blockedTools,
+  committedBrowserRuntimeProofAccepted: report.committedRuntimeProofs?.browserRuntimeProofAccepted,
   agentCanExecuteToolsNow: report.booleans.agentCanExecuteToolsNow,
   runtimeReadyNow: report.booleans.runtimeReadyNow,
   packageLockChanged: false,

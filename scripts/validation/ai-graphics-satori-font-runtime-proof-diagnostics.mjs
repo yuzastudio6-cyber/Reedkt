@@ -193,6 +193,24 @@ for (const line of dependencyDiff.split(/\r?\n/)) {
       !line.includes("ai-graphics:beta-activation-gap-report:diagnostics") &&
       !line.includes("ai-graphics:beta-evidence-bundle:validate") &&
       !line.includes("ai-graphics:beta-evidence-bundle:diagnostics") &&
+      !line.includes("ai-graphics:beta-evidence-local-assembly") &&
+      !line.includes("ai-graphics:beta-evidence-local-assembly:diagnostics") &&
+      !line.includes("ai-graphics:beta-tool-call-readiness") &&
+      !line.includes("ai-graphics:beta-tool-call-readiness:diagnostics") &&
+      !line.includes("ai-graphics:internal-beta-owner-approval") &&
+      !line.includes("ai-graphics:internal-beta-owner-approval:diagnostics") &&
+      !line.includes("ai-graphics:beta-execution-handoff-readiness") &&
+      !line.includes("ai-graphics:beta-execution-handoff-readiness:diagnostics") &&
+      !line.includes("ai-graphics:internal-beta-dry-run-readiness") &&
+      !line.includes("ai-graphics:internal-beta-dry-run-readiness:diagnostics") &&
+      !line.includes("ai-graphics:internal-beta-worker-payload-readiness") &&
+      !line.includes("ai-graphics:internal-beta-worker-payload-readiness:diagnostics") &&
+      !line.includes("ai-graphics:internal-beta-production-worker-job-readiness") &&
+      !line.includes("ai-graphics:internal-beta-production-worker-job-readiness:diagnostics") &&
+      !line.includes("ai-graphics:internal-beta-production-worker-gate-readiness") &&
+      !line.includes("ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics") &&
+      !line.includes("ai-graphics:cross-owner-coordination") &&
+      !line.includes("ai-graphics:cross-owner-coordination:diagnostics") &&
       !line.includes("ai-graphics:tool-route-readiness:diagnostics") &&
       !line.includes("ai-graphics:worker-handoff-readiness:diagnostics") &&
       !line.includes("ai-graphics:model-weight-manifest-readiness:diagnostics") &&
@@ -202,6 +220,8 @@ for (const line of dependencyDiff.split(/\r?\n/)) {
       !line.includes("ai-graphics:gpu-runtime-proof-command-plan:diagnostics") &&
       !line.includes("ai-graphics:gpu-runtime-proof-result:validate") &&
       !line.includes("ai-graphics:gpu-runtime-proof-result:diagnostics") &&
+      !line.includes("ai-graphics:gpu-runtime-proof-local-preflight") &&
+      !line.includes("ai-graphics:gpu-runtime-proof-local-preflight:diagnostics") &&
       !line.includes("ai-graphics:model-weight-manifest-scaffold") &&
       !line.includes("ai-graphics:model-weight-manifest-scaffold:diagnostics")
     ) {

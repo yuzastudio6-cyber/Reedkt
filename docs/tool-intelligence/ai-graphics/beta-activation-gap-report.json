@@ -75,16 +75,34 @@
     "worker_idempotency_key_readiness",
     "internal_beta_owner_approval"
   ],
+  "committedRuntimeProofs": {
+    "nodeRuntimeProofAccepted": true,
+    "browserRuntimeProofAccepted": true,
+    "satoriFontRuntimeProofAccepted": true,
+    "acceptedRuntimeProofGates": [
+      "node_cpu_static_runtime_proof_packet",
+      "browser_canvas_webgl_runtime_sandbox_proof_packet",
+      "satori_font_runtime_proof_packet"
+    ],
+    "proofPackets": [
+      "docs/tool-intelligence/ai-graphics/node-runtime-proof.json",
+      "docs/tool-intelligence/ai-graphics/browser-runtime-proof.json",
+      "docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json"
+    ]
+  },
   "activationSequence": [
     "review_private_model_weight_manifests",
     "run_native_nvidia_l4_runtime_proof",
     "validate_redacted_gpu_proof_results",
     "finish_remaining_profile_license_model_weight_policy_reviews",
-    "run_browser_canvas_webgl_sandbox_proof",
+    "use_accepted_committed_js_browser_and_satori_runtime_proof_packets_unless_they_drift",
     "pass_snapshot_credit_artifact_route_worker_beta_owner_gates"
   ],
   "booleans": {
     "betaActivationGapReportPrepared": true,
+    "committedNodeRuntimeProofAccepted": true,
+    "committedBrowserRuntimeProofAccepted": true,
+    "committedSatoriFontRuntimeProofAccepted": true,
     "sourceBetaReadinessGateAccepted": true,
     "all21ToolsCovered": true,
     "all21ToolsProperlyInstalledForPlannedSurface": true,

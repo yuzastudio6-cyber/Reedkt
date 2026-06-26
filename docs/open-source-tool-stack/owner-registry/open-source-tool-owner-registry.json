@@ -719,7 +719,7 @@
     "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW",
     "supabaseClassification": "no write / environment none / SQL none / migration no"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_REVIEW",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_PLAN",
   "productBetaRuntimeControlledActivationQaReview": {
     "decision": "trackb_media_oss_product_beta_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout",
     "previousDecision": "trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
@@ -771,5 +771,32 @@
     "productReady": false,
     "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_REVIEW",
     "supabaseClassification": "no write / environment none / SQL none / migration no"
+  },
+  "productBetaRuntimeProductReadyReview": {
+    "decision": "trackb_media_oss_product_beta_runtime_product_ready_review_blocked_pending_live_product_runtime_proof",
+    "previousDecision": "trackb_media_oss_product_beta_runtime_controlled_activation_closeout_passed_ready_for_product_ready_review",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-review",
+    "sourcePr": 915,
+    "sourceSha": "0c16ffe006d5a3ddcb91de922ee3f856cbbb3616",
+    "sourceHead": "d053aa12d9fe38605db048386a4e0251fd5a3b31",
+    "coveredToolCount": 16,
+    "boundedAcceptedProvenCount": 16,
+    "blockedNotInstalledProvenCount": 0,
+    "productReadyCount": 0,
+    "controlledActivationCloseoutAccepted": true,
+    "productReadyReviewCompleted": true,
+    "evidenceSufficientForProductReady": false,
+    "deterministicRankingPreserved": true,
+    "readyForProductReadyProofPlan": true,
+    "liveProductCallsApproved": false,
+    "directRouteDispatchApproved": false,
+    "workerDispatchToRealToolsApproved": false,
+    "realToolExecutionApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false,
+    "productReady": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_PLAN",
+    "supabaseClassification": "no write / environment none / SQL none / migration no",
+    "trackBTotalsText": "16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready"
   }
 }

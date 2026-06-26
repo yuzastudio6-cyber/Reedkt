@@ -62,3 +62,7 @@ Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-S
 `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-SOURCE-MAPPING-1` records `blocked_replacement_remote_only_migration_20260626163138_unmapped`. The replacement branch candidate remains unadopted, DB URL secret rotation did not run, and internal beta remains blocked pending isolated clean staging target approval or explicit migration-history policy.
 
 Next recommended milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.
+
+`SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1` records `approved_isolated_clean_staging_target_path_for_source_aligned_validation_planning`. Current and replacement clean branches remain unadopted; the next approved future path is a separately gated `new_isolated_non_production_supabase_target` creation/readback packet. Internal beta remains blocked until that target exists, proves source-aligned migration history, and later migration-chain/runtime gates pass.
+
+Next recommended milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.

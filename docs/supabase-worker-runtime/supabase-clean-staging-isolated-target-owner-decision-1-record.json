@@ -1,0 +1,78 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1",
+  "decision": "approved_isolated_clean_staging_target_path_for_source_aligned_validation_planning",
+  "execution": "completed_docs_only_isolated_target_owner_decision_no_remote_execution",
+  "integrationHead": "e61ca3cd1406ce5ae9be5e64aca61c1bc7bc530d",
+  "sourceDependencies": {
+    "pr1074": "supabase_clean_staging_branch_replacement_history_source_mapping_1",
+    "pr1070": "supabase_clean_staging_branch_replacement_execution_1",
+    "pr1064": "supabase_clean_staging_branch_migration_history_source_derived_owner_decision_1",
+    "pr1061": "supabase_clean_staging_branch_migration_history_reconciliation_1",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "ownerDecision": {
+    "approvedFutureTargetClass": "new_isolated_non_production_supabase_target",
+    "approvedScope": "future_explicitly_gated_source_aligned_target_creation_planning_only",
+    "currentCleanBranchAdoption": "blocked_remote_only_migration_20260626162800_unmapped",
+    "replacementBranchAdoption": "blocked_remote_only_migration_20260626163138_unmapped",
+    "migrationHistoryRepairPolicy": "blocked_pending_schema_equivalence_evidence_or_explicit_repair_policy",
+    "dbUrlSecretRotation": "not_approved_until_source_alignment_is_proven"
+  },
+  "blockedTargets": {
+    "currentCleanBranch": {
+      "name": "reeditpro-internal-staging-clean",
+      "ref": "fnjiylwirntrqdcwpbho",
+      "remoteOnlyMigration": "20260626162800",
+      "adopted": false
+    },
+    "replacementBranch": {
+      "name": "reeditpro-clean-staging-v2",
+      "ref": "rjenorvzqsxwljvvvtxd",
+      "remoteOnlyMigration": "20260626163138",
+      "adopted": false,
+      "cleanupRun": false
+    }
+  },
+  "readiness": {
+    "workerRuntimeTransactionalContract2": "blocked_pending_isolated_clean_staging_target_creation_and_source_aligned_migration_readback",
+    "workerRuntimeTrackaPrivateE2eExecutionGate2r": "blocked_pending_source_aligned_clean_staging_target_and_migration_chain_apply",
+    "trackaPrivateE2eRevalidation2": "blocked_pending_worker_transactional_contract",
+    "internalBetaReadinessRollup": "blocked_pending_isolated_clean_staging_target_creation_and_source_aligned_migration_readback",
+    "externalProductBeta": "blocked_pending_internal_beta_evidence_security_privacy_support_cost_and_deployment_gates"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": false,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "remoteSupabaseCommand": false,
+    "remoteSupabaseMutation": false,
+    "sqlExecution": false,
+    "sqlMutation": false,
+    "migrationDryRun": false,
+    "migrationApply": false,
+    "migrationHistoryManualEdit": false,
+    "supabaseDbPull": false,
+    "branchCreation": false,
+    "branchDelete": false,
+    "branchReset": false,
+    "dbUrlSecretRotation": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "providerCall": false,
+    "modelCall": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "nextMilestones": [
+    "SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1",
+    "SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1"
+  ],
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

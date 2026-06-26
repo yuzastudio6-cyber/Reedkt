@@ -46,6 +46,11 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-supabase-clean-staging-isolated-target-owner-decision-1.md',
   'docs/implementation-prompts/prompt-supabase-clean-staging-unadopted-branch-cleanup-1.md',
   'scripts/validation/supabase-clean-staging-branch-replacement-history-source-mapping-1-diagnostics.mjs',
+  'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-owner-decision-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-isolated-target-owner-decision-1-record.json',
+  'docs/activation-phase-supabase-clean-staging-isolated-target-owner-decision-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-clean-staging-isolated-target-creation-1.md',
+  'scripts/validation/supabase-clean-staging-isolated-target-owner-decision-1-diagnostics.mjs',
 ])
 
 const requiredText = [

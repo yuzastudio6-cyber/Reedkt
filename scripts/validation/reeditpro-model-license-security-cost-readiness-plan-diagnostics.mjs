@@ -7,14 +7,13 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/reeditpro-deployment-rollback-readiness-plan'
-const modelSecurityCostDir = 'docs/reeditpro-model-license-security-cost-readiness-plan'
-const remediationDir = 'docs/reeditpro-external-beta-production-readiness-remediation-plan'
+const reportDir = 'docs/reeditpro-model-license-security-cost-readiness-plan'
+const previousDir = 'docs/reeditpro-deployment-rollback-readiness-plan'
 const decision =
-  'reeditpro_deployment_rollback_readiness_plan_passed_ready_for_model_license_security_cost_readiness_plan'
+  'reeditpro_model_license_security_cost_readiness_plan_passed_ready_for_private_storage_deletion_supabase_gcs_readiness_plan'
 const previousDecision =
-  'reeditpro_external_beta_production_readiness_remediation_plan_passed_ready_for_deployment_rollback_readiness_plan'
-const nextPrompt = 'REEDITPRO_MODEL_LICENSE_SECURITY_COST_READINESS_PLAN'
+  'reeditpro_deployment_rollback_readiness_plan_passed_ready_for_model_license_security_cost_readiness_plan'
+const nextPrompt = 'REEDITPRO_PRIVATE_STORAGE_DELETION_SUPABASE_GCS_READINESS_PLAN'
 const totals = {
   owned: 16,
   boundedAcceptedProven: 16,
@@ -24,12 +23,14 @@ const totals = {
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'environment-separation-plan.json',
-  'environment-separation-plan.md',
-  'release-rollback-owner-plan.json',
-  'release-rollback-owner-plan.md',
-  'rollback-freeze-policy.json',
-  'rollback-freeze-policy.md',
+  'model-license-owner-plan.json',
+  'model-license-owner-plan.md',
+  'provider-model-policy.json',
+  'provider-model-policy.md',
+  'security-review-prerequisites.json',
+  'security-review-prerequisites.md',
+  'cost-concurrency-kill-switch-plan.json',
+  'cost-concurrency-kill-switch-plan.md',
   'downstream-gate-prerequisites.json',
   'downstream-gate-prerequisites.md',
   'validation-command-plan.json',
@@ -71,14 +72,33 @@ const forbiddenOutputs = [
   'dist-staging-fixture-worker',
   'dist-staging-real-video-export-worker',
 ]
-const requiredEnvironments = ['local_development', 'internal_staging', 'production']
-const requiredRollbackEvidence = [
-  'rollback command plan',
-  'previous version target',
-  'data migration compatibility statement',
-  'post-rollback smoke validation plan',
-  'incident contact and escalation path',
-  'release freeze exception policy',
+const requiredOwnerSlots = [
+  'model_policy_owner_required_before_external_beta',
+  'model_license_owner_required_before_external_beta',
+  'provider_contract_owner_required_before_external_beta',
+  'security_review_owner_required_before_external_beta',
+  'cost_controls_owner_required_before_external_beta',
+]
+const requiredSecurityEvidence = [
+  'secret storage and rotation policy',
+  'provider key backend-only boundary',
+  'prompt and uploaded media privacy review',
+  'user data retention and deletion dependency',
+  'abuse monitoring and rate-limit policy',
+  'audit log policy for generation and export',
+  'model output safety and review path',
+  'incident escalation handoff',
+]
+const requiredCostEvidence = [
+  'per-provider budget',
+  'per-route budget',
+  'per-user spend limit',
+  'concurrency limit',
+  'queue depth limit',
+  'provider kill switch',
+  'route kill switch',
+  'credit estimate and reservation enforcement',
+  'refund/release policy for failed generation',
 ]
 const failures = []
 const fail = (message) => failures.push(message)
@@ -126,7 +146,7 @@ function changedFiles() {
 }
 
 function requireCommon(label, report) {
-  if (report.ownerId !== 'REEDITPRO_RELEASE_READINESS_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
+  if (report.ownerId !== 'REEDITPRO_MODEL_SECURITY_COST_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
   if (report.decision !== decision) fail(`${label}_decision_drift:${report.decision}`)
   if (report.previousDecision !== previousDecision) fail(`${label}_previous_decision_drift:${report.previousDecision}`)
   if (report.nextPrompt !== nextPrompt) fail(`${label}_next_prompt_drift:${report.nextPrompt}`)
@@ -139,13 +159,14 @@ function requireCommon(label, report) {
 
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of requiredProductionDocs) readText(file)
-readText('docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md')
+readText('docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md')
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  environment: readJson(`${reportDir}/environment-separation-plan.json`),
-  owners: readJson(`${reportDir}/release-rollback-owner-plan.json`),
-  rollback: readJson(`${reportDir}/rollback-freeze-policy.json`),
+  ownerPlan: readJson(`${reportDir}/model-license-owner-plan.json`),
+  providerPolicy: readJson(`${reportDir}/provider-model-policy.json`),
+  security: readJson(`${reportDir}/security-review-prerequisites.json`),
+  cost: readJson(`${reportDir}/cost-concurrency-kill-switch-plan.json`),
   downstream: readJson(`${reportDir}/downstream-gate-prerequisites.json`),
   validation: readJson(`${reportDir}/validation-command-plan.json`),
   runtime: readJson(`${reportDir}/runtime-boundary.json`),
@@ -155,37 +176,49 @@ const reports = {
 }
 for (const [label, report] of Object.entries(reports)) requireCommon(label, report)
 
-const remediationReadiness = readJson(`${remediationDir}/readiness-report.json`)
-if (remediationReadiness.decision !== previousDecision) fail(`remediation_decision_drift:${remediationReadiness.decision}`)
-if (remediationReadiness.readyForDeploymentRollbackReadinessPlan !== true) {
-  fail('remediation_not_ready_for_deployment_rollback_plan')
+const previousReadiness = readJson(`${previousDir}/readiness-report.json`)
+if (previousReadiness.decision !== previousDecision) fail(`previous_decision_drift:${previousReadiness.decision}`)
+if (previousReadiness.readyForModelLicenseSecurityCostReadinessPlan !== true) {
+  fail('previous_not_ready_for_model_license_security_cost_plan')
 }
-if (remediationReadiness.readyForExternalBeta !== false) fail('remediation_external_beta_unblocked')
-if (remediationReadiness.readyForProduction !== false) fail('remediation_production_unblocked')
+if (previousReadiness.readyForExternalBeta !== false) fail('previous_external_beta_unblocked')
+if (previousReadiness.readyForProduction !== false) fail('previous_production_unblocked')
 
 if (JSON.stringify(reports.source.trackBTotals ?? {}) !== JSON.stringify(totals)) fail('source_trackb_totals_drift')
-if (reports.source.readyForModelLicenseSecurityCostReadinessPlan !== true) fail('source_not_ready_for_model_license_security_cost_plan')
-if (reports.decisionReport.readyForModelLicenseSecurityCostReadinessPlan !== true) fail('decision_not_ready_for_model_license_security_cost_plan')
-if (reports.readiness.readyForModelLicenseSecurityCostReadinessPlan !== true) fail('readiness_not_ready_for_model_license_security_cost_plan')
+if (reports.source.readyForPrivateStorageDeletionSupabaseGcsReadinessPlan !== true) fail('source_not_ready_for_private_storage_plan')
+if (reports.decisionReport.readyForPrivateStorageDeletionSupabaseGcsReadinessPlan !== true) fail('decision_not_ready_for_private_storage_plan')
+if (reports.readiness.readyForPrivateStorageDeletionSupabaseGcsReadinessPlan !== true) fail('readiness_not_ready_for_private_storage_plan')
 
-const environments = new Set((reports.environment.environments ?? []).map((entry) => entry.id))
-for (const id of requiredEnvironments) {
-  if (!environments.has(id)) fail(`missing_environment:${id}`)
+const ownerSlots = new Set(reports.ownerPlan.requiredOwnerSlots ?? [])
+for (const slot of requiredOwnerSlots) {
+  if (!ownerSlots.has(slot)) fail(`missing_owner_slot:${slot}`)
 }
-for (const entry of reports.environment.environments ?? []) {
-  if (entry.externalUsersAllowed !== false) fail(`environment_external_users_allowed:${entry.id}`)
-  if (entry.productionDataAllowed !== false) fail(`environment_production_data_allowed:${entry.id}`)
+if (reports.providerPolicy.launchRouter?.stillKeyframeGraphicFrame !== 'GPT-Image-2') fail('provider_policy_gpt_image_route_drift')
+if (reports.providerPolicy.launchRouter?.animationPrimary !== 'Wan') fail('provider_policy_wan_route_drift')
+if (reports.providerPolicy.launchRouter?.animationFallback !== 'Hailuo') fail('provider_policy_hailuo_route_drift')
+if (reports.providerPolicy.launchRouter?.premiumFinalFallbackOnly !== 'Veo 3.1 Lite') fail('provider_policy_veo_route_drift')
+if (reports.providerPolicy.tierRestrictions?.basicVeoAllowed !== false) fail('basic_veo_allowed')
+if (reports.providerPolicy.tierRestrictions?.proVeoAllowed !== false) fail('pro_veo_allowed')
+if (reports.providerPolicy.tierRestrictions?.premiumVeoDefaultAllowed !== false) fail('premium_veo_default_allowed')
+if (reports.providerPolicy.providerCallsAuthorized !== false) fail('provider_calls_authorized')
+
+const securityEvidence = new Set(reports.security.requiredSecurityEvidence ?? [])
+for (const item of requiredSecurityEvidence) {
+  if (!securityEvidence.has(item)) fail(`missing_security_evidence:${item}`)
 }
-for (const field of ['releaseOwner', 'rollbackOwner', 'incidentCommander']) {
-  if (!String(reports.owners[field] ?? '').includes('required_before_external_beta')) fail(`owner_slot_not_blocked:${field}`)
+if (reports.security.securityToolsRun !== false) fail('security_tools_ran')
+if (reports.security.secretsMutated !== false) fail('secrets_mutated')
+const costEvidence = new Set(reports.cost.requiredCostEvidence ?? [])
+for (const item of requiredCostEvidence) {
+  if (!costEvidence.has(item)) fail(`missing_cost_evidence:${item}`)
 }
-if (reports.rollback.releaseFreezePolicy?.requiredBeforeExternalBeta !== true) fail('release_freeze_policy_not_required')
-const rollbackEvidence = new Set(reports.rollback.rollbackEvidenceRequirements ?? [])
-for (const requirement of requiredRollbackEvidence) {
-  if (!rollbackEvidence.has(requirement)) fail(`missing_rollback_evidence:${requirement}`)
+if (reports.cost.billingCreditLedgerStatus !== 'blocked_pending_backend_database_billing_credit_ledger_gate') {
+  fail(`billing_credit_ledger_status_drift:${reports.cost.billingCreditLedgerStatus}`)
 }
-if (!reports.downstream.downstreamGates?.includes('modelLicenseSecurityCost')) fail('downstream_missing_model_license_security_cost')
-if (reports.downstream.readyForModelLicenseSecurityCostReadinessPlan !== true) fail('downstream_not_ready_for_next_gate')
+if (reports.cost.costControlsExecuted !== false) fail('cost_controls_executed')
+if (reports.cost.providerCallsAuthorized !== false) fail('cost_provider_calls_authorized')
+if (!reports.downstream.downstreamGates?.includes('privateStorageDeletionSupabaseGcs')) fail('downstream_missing_private_storage')
+if (reports.downstream.readyForPrivateStorageDeletionSupabaseGcsReadinessPlan !== true) fail('downstream_not_ready_for_next_gate')
 if (reports.validation.noInstallBoundary !== true) fail('validation_no_install_boundary_missing')
 for (const [scope, value] of Object.entries(reports.runtime.blockedScopes ?? {})) {
   if (value !== false) fail(`runtime_scope_not_false:${scope}`)
@@ -197,14 +230,17 @@ for (const flag of [
   'publicArtifactsCreated',
   'signedUrlsCreated',
   'supabaseGcsWritesRan',
+  'providerCallsRan',
+  'modelDownloadsRan',
+  'secretsMutated',
 ]) {
   if (reports.manifest[flag] !== false) fail(`manifest_flag_not_false:${flag}`)
 }
 
 const packageJson = readJson('package.json')
 if (
-  packageJson.scripts?.['reeditpro:deployment-rollback-readiness-plan:diagnostics'] !==
-  'node scripts/validation/reeditpro-deployment-rollback-readiness-plan-diagnostics.mjs'
+  packageJson.scripts?.['reeditpro:model-license-security-cost-readiness-plan:diagnostics'] !==
+  'node scripts/validation/reeditpro-model-license-security-cost-readiness-plan-diagnostics.mjs'
 ) {
   fail('package_script_missing_or_drifted')
 }
@@ -225,7 +261,6 @@ for (const output of forbiddenOutputs) {
 for (const file of changedFiles()) {
   const allowed =
     file === 'package.json' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md' ||
     file === 'scripts/validation/reeditpro-model-license-security-cost-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-deployment-rollback-readiness-plan-diagnostics.mjs' ||
@@ -234,7 +269,6 @@ for (const file of changedFiles()) {
     file === 'scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs' ||
-    file.startsWith(`${modelSecurityCostDir}/`) ||
     file.startsWith(`${reportDir}/`) ||
     requiredProductionDocs.includes(file)
   if (!allowed) fail(`unexpected_changed_file:${file}`)
@@ -246,7 +280,7 @@ for (const file of changedFiles()) {
 const scanFiles = [
   ...requiredReports.map((file) => `${reportDir}/${file}`),
   ...requiredProductionDocs,
-  'docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md',
 ]
 for (const file of scanFiles) {
   const text = readText(file)
@@ -267,7 +301,7 @@ console.log(JSON.stringify({
   decision,
   previousDecision,
   nextPrompt,
-  readyForModelLicenseSecurityCostReadinessPlan: true,
+  readyForPrivateStorageDeletionSupabaseGcsReadinessPlan: true,
   readyForExternalBeta: false,
   readyForProduction: false,
   trackBTotals: totals,

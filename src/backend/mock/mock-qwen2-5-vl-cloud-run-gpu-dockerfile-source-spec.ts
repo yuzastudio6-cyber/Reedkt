@@ -1,0 +1,102 @@
+export const QWEN2_5_VL_CLOUD_RUN_GPU_DOCKERFILE_SOURCE_SPEC = {
+  workstream: "AI_VIDEO_BROLL_GENERATION",
+  toolId: "qwen2_5_vl_7b_instruct",
+  mode: "cloud_run_gpu_dockerfile_source_spec_only",
+  decision: "qwen2_5_vl_7b_cloud_run_gpu_dockerfile_source_spec_ready_for_private_cache_mount_review",
+  sourceFiles: {
+    dockerfile: "docker/prod/qwen2-5-vl-cloud-run-gpu/Dockerfile",
+    dockerignore: "docker/prod/qwen2-5-vl-cloud-run-gpu/Dockerfile.dockerignore",
+    requirements: "docker/prod/qwen2-5-vl-cloud-run-gpu/requirements.qwen2-5-vl.txt",
+    readme: "docker/prod/qwen2-5-vl-cloud-run-gpu/README.md",
+    serviceWrapper: "server/workers/qwen2_5_vl_cloud_run_gpu/service.py"
+  },
+  dockerfileSource: {
+    dockerfileSourceCreated: true,
+    serviceWrapperSourceCreated: true,
+    privateCacheMountSpecCreated: true,
+    baseImage: "pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime",
+    existingVlmLaneBoundaryReused: true,
+    duplicateRuntimeStackCreated: false,
+    modelWeightsInImage: false,
+    requestTimeDependencyInstall: false,
+    modelHubDownloadEnabled: false,
+    healthEndpointLoadsModel: false,
+    postExecutionAccepted: false
+  },
+  dependencySource: {
+    requirementsFileCreated: true,
+    vllmVersion: "0.11.0",
+    transformersVersion: "4.57.1",
+    qwenVlUtilsVersion: "0.0.11",
+    sglangVersion: "0.4.10.post2",
+    preparedWheelhouseCount: 158,
+    preparedWheelhouseSha256: "d3c782141f03882a0b1f103f68a24c3c27396a971b9fb4aedc15831935ba687c",
+    runtimeInstallAtRequestTimeRejected: true,
+    buildRequiresFutureWheelhousePolicyReview: true
+  },
+  privateModelCache: {
+    mountPath: "/models/qwen2.5-vl-7b-instruct",
+    model: "Qwen/Qwen2.5-VL-7B-Instruct",
+    revision: "cc594898137f460bfe9f0759e9844b3ce807cfb5",
+    totalBytes: 16595981281,
+    aggregateSha256: "46f05ffcc6127a4caa9a3e8c11ddf298b9a5263c8680afe6b5d017ea91702c8b",
+    bucketCreated: false,
+    objectUploaded: false,
+    volumeMounted: false,
+    iamBindingCreated: false,
+    publicModelSourceAllowed: false,
+    requestTimeModelDownloadAllowed: false,
+    modelCopiedIntoImage: false
+  },
+  serviceCarryForward: {
+    serviceName: "reeditpro-qwen2-5-vl-l4-worker",
+    region: "us-central1",
+    gpuType: "nvidia-l4",
+    gpuCount: 1,
+    cpu: 8,
+    memory: "32Gi",
+    minInstances: 0,
+    maxInstances: 1,
+    concurrency: 1,
+    timeoutSeconds: 900,
+    publicUnauthenticatedAccessAllowed: false,
+    backendOnlyInvocationRequired: true
+  },
+  runtimeFlags: {
+    dockerfileSourceCreated: true,
+    serviceWrapperSourceCreated: true,
+    privateCacheMountSpecCreated: true,
+    dockerBuildRun: false,
+    dockerPushRun: false,
+    cloudRunDeployCommandExecuted: false,
+    cloudRunServiceCreated: false,
+    cloudRunJobCreated: false,
+    artifactRegistryImageCreated: false,
+    gcsBucketCreated: false,
+    gcsObjectUploaded: false,
+    cloudRunVolumeMountCreated: false,
+    reservationCreated: false,
+    vmCreated: false,
+    dependencyInstallRun: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    modelInferenceRun: false,
+    apiServerStarted: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    creditMutationCreated: false,
+    betaUnlocked: false,
+    productionUnlocked: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false
+  },
+  nextPrompt:
+    "QWEN2_5_VL_STACK_TOOL_17-CLOUD-RUN-GPU-PRIVATE-CACHE-MOUNT-REVIEW: define private model cache bucket/mount/IAM plan, no upload/no deploy/no inference"
+} as const;
+
+export type Qwen25VlCloudRunGpuDockerfileSourceSpec =
+  typeof QWEN2_5_VL_CLOUD_RUN_GPU_DOCKERFILE_SOURCE_SPEC;

@@ -1,0 +1,9 @@
+*
+!docker/prod/qwen2-5-vl-cloud-run-gpu/
+!docker/prod/qwen2-5-vl-cloud-run-gpu/Dockerfile
+!docker/prod/qwen2-5-vl-cloud-run-gpu/Dockerfile.dockerignore
+!docker/prod/qwen2-5-vl-cloud-run-gpu/requirements.qwen2-5-vl.txt
+!server/
+!server/workers/
+!server/workers/qwen2_5_vl_cloud_run_gpu/
+!server/workers/qwen2_5_vl_cloud_run_gpu/**

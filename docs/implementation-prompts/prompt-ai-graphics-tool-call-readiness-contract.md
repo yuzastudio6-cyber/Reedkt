@@ -26,6 +26,8 @@ Latest observed PR state before model-weight manifest readiness completion: [#86
 
 Latest observed PR state after model-weight manifest readiness completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `a699844a162f18b7620dea0f87603d50f906c729`, with an empty check rollup.
 
+Latest observed PR state after runtime manifest schema hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `8f655ae6a72b61621e93a9e65eba988b371f462b`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements

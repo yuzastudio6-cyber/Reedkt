@@ -447,25 +447,47 @@ function validateProofResult(
   }
 }
 
-function dedupeProofResults(
+function proofResultsByProfile(
   results: readonly unknown[],
-): Partial<Record<AiGraphicsGpuRuntimeProofProfileId, unknown>> {
-  const byProfile: Partial<Record<AiGraphicsGpuRuntimeProofProfileId, unknown>> = {}
+): Record<AiGraphicsGpuRuntimeProofProfileId, unknown[]> {
+  const byProfile: Record<AiGraphicsGpuRuntimeProofProfileId, unknown[]> = {
+    gpu_worker_ai_graphics: [],
+    sam2: [],
+    birefnet: [],
+    real_esrgan: [],
+  }
   for (const result of results) {
     const profile = profileFromInput(result)
-    if (profile && byProfile[profile] === undefined) {
-      byProfile[profile] = result
+    if (profile) {
+      byProfile[profile].push(result)
     }
   }
   return byProfile
 }
 
+function validateProfileProofResults(
+  profileId: AiGraphicsGpuRuntimeProofProfileId,
+  proofResults: readonly unknown[],
+): AiGraphicsGpuRuntimeProofResultValidation {
+  const result = validateProofResult(profileId, proofResults[0])
+  return proofResults.length > 1
+    ? {
+        ...result,
+        acceptedForOwnerReview: false,
+        errors: [
+          ...result.errors,
+          `${profileId} has duplicate native GPU proof result records.`,
+        ],
+      }
+    : result
+}
+
 export function buildAiGraphicsGpuRuntimeProofResultPacket(
   proofResults: readonly unknown[] = [],
 ): AiGraphicsGpuRuntimeProofResultPacket {
-  const byProfile = dedupeProofResults(proofResults)
+  const byProfile = proofResultsByProfile(proofResults)
   const validationResults = runtimeProfilesRequired.map((profileId) => (
-    validateProofResult(profileId, byProfile[profileId])
+    validateProfileProofResults(profileId, byProfile[profileId])
   ))
   const runtimeProofResultsProvided = validationResults.filter((result) => result.resultProvided).length
   const runtimeProofResultsAcceptedForOwnerReview = validationResults.filter((result) => result.acceptedForOwnerReview).length

@@ -70,6 +70,7 @@
     "approved_probe_version",
     "native_linux_runtime_platform",
     "native_x86_64_or_amd64_runtime_machine",
+    "no_duplicate_profile_result_records",
     "exact_profile_id",
     "nvidia_smi_available",
     "cuda_available",

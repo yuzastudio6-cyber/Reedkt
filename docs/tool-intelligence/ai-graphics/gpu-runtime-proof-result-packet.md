@@ -48,6 +48,7 @@ include:
 - `proofMetadata.runtimeMachine=x86_64` or `amd64`
 - `proofMetadata.nativeGpuRuntimeProof=true`
 - `proofMetadata` side-effect fields false
+- no duplicate result records for the same required profile
 - exact profile ID
 - `nvidiaSmi.available=true`
 - `cuda.available=true`

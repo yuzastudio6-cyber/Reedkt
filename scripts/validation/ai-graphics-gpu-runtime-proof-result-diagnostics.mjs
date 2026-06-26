@@ -300,6 +300,7 @@ for (const token of [
   'approved_probe_version',
   'native_linux_runtime_platform',
   'native_x86_64_or_amd64_runtime_machine',
+  'no_duplicate_profile_result_records',
   'exact_profile_id',
   'nvidia_smi_available',
   'cuda_available',
@@ -325,6 +326,7 @@ for (const token of [
   'capability>=8.9',
   'privateArtifactRefStatus',
   'validated_not_loaded',
+  'duplicate native GPU proof result records',
 ]) {
   if (!moduleSource.includes(token) && !markdown.includes(token) && !JSON.stringify(packet).includes(token)) {
     fail(`missing_contract_token:${token}`)
@@ -440,6 +442,32 @@ if (invalidPacket.status !== 'invalid_native_gpu_runtime_proof_results') {
 }
 if (!JSON.stringify(invalidPacket).includes('capability>=8.9')) fail('invalid_results_missing_capability_error')
 if (!JSON.stringify(invalidPacket).includes('modelWeightsLoaded must be false')) fail('invalid_results_missing_false_gate_error')
+
+const duplicateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-duplicate-'))
+writeProofFixtures(duplicateDir)
+fs.writeFileSync(
+  path.join(duplicateDir, 'sam2-duplicate.json'),
+  `${JSON.stringify(proofResult('sam2'), null, 2)}\n`,
+  'utf8',
+)
+let duplicateExited = false
+let duplicateOutput = ''
+try {
+  duplicateOutput = runValidate(['--result-dir', duplicateDir])
+} catch (error) {
+  duplicateExited = true
+  duplicateOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+if (!duplicateExited) fail('duplicate_results_did_not_exit_nonzero')
+const duplicatePacket = parseOutput(duplicateOutput, 'duplicate_results')
+if (duplicatePacket.status !== 'invalid_native_gpu_runtime_proof_results') {
+  fail(`duplicate_results_status_mismatch:${duplicatePacket.status}`)
+}
+if (duplicatePacket.nativeGpuRuntimeProofResultsAccepted !== false) fail('duplicate_results_unexpectedly_accepted')
+const duplicateSam2 = duplicatePacket.validationResults?.find((result) => result.profileId === 'sam2')
+if (!duplicateSam2?.errors?.some((error) => error.includes('duplicate native GPU proof result records'))) {
+  fail('duplicate_profile_error_missing')
+}
 
 const badMetadataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-bad-metadata-'))
 writeProofFixtures(badMetadataDir, {

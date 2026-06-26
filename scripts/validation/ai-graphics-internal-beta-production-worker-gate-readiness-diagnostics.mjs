@@ -36,6 +36,28 @@ const allTools = [
   'babylonjs',
 ]
 
+const gpuTools = [
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+]
+
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const capabilities = [
   'chart_overlay',
   'data_visualization',
@@ -236,6 +258,16 @@ if (docs.counts?.ownerApprovedCapabilityProductionWorkerGateScenariosAcceptedWit
 }
 if (docs.counts?.hardFailedGateChecksWithProvidedEvidence !== 0) fail('docs_hard_failed_gate_checks_not_0')
 if (docs.counts?.productionWorkerGateChecksReadyNow !== 0) fail('docs_gate_checks_ready_now_not_0')
+if (docs.runtimeTargets?.gpuToolsUseNativeL4 !== true) fail('docs_missing_gpu_l4_target_guard')
+if (docs.runtimeTargets?.dedicatedGpuRuntimeTargetsExact !== true) fail('docs_missing_dedicated_gpu_runtime_target_guard')
+if (docs.runtimeTargets?.productionWorkerGateChecksValidateCanonicalAiGraphicsRegistry !== true) {
+  fail('docs_missing_canonical_registry_validation')
+}
+for (const [tool, expectedTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  if (docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool] !== expectedTarget) {
+    fail(`docs_expected_gpu_runtime_target_mismatch:${tool}:${docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool]}`)
+  }
+}
 
 const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_production_worker_gate')
 if (defaultOutput.status !== 'missing_technical_evidence') fail(`default_status:${defaultOutput.status}`)
@@ -304,6 +336,15 @@ for (const gateResult of approvedOutput.productionWorkerGateChecks ?? []) {
   if (gateResult.canDispatchProductionWorkerJobNow !== false) fail(`gate_dispatch_not_false:${gateResult.toolId}`)
   if (gateResult.canRunProductionWorkerRouteNow !== false) fail(`gate_route_not_false:${gateResult.toolId}`)
   if (gateResult.canExecuteToolNow !== false) fail(`gate_execute_not_false:${gateResult.toolId}`)
+  if (gpuTools.includes(gateResult.toolId)) {
+    if (gateResult.workerType !== 'gpu_ai_worker') fail(`gpu_tool_not_gpu_worker:${gateResult.toolId}:${gateResult.workerType}`)
+    if (!gateResult.runtimeTarget?.includes('nvidia_l4')) {
+      fail(`gpu_tool_not_l4_target:${gateResult.toolId}:${gateResult.runtimeTarget}`)
+    }
+    if (gateResult.runtimeTarget !== expectedGpuRuntimeTargets[gateResult.toolId]) {
+      fail(`gpu_tool_runtime_target_mismatch:${gateResult.toolId}:${gateResult.runtimeTarget}`)
+    }
+  }
   const gateNames = (gateResult.gateChecks ?? []).map((gate) => gate.gateName)
   for (const gateName of requiredGateNames) {
     if (!gateNames.includes(gateName)) fail(`gate_result_missing_gate:${gateResult.toolId}:${gateName}`)

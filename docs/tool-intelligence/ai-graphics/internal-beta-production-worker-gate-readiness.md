@@ -64,6 +64,8 @@ Each prepared payload is checked with the shared production worker gates:
 
 The payloads use shared production-worker idempotency keys and private storage reference IDs, so gate checks can verify shape and policy without executing the worker dispatcher.
 
+The gate checks also preserve exact GPU runtime targets for the dedicated model images: `sam2 -> native_linux_amd64_nvidia_l4_sam2_runtime`, `birefnet -> native_linux_amd64_nvidia_l4_birefnet_runtime`, and `real_esrgan -> native_linux_amd64_nvidia_l4_real_esrgan_runtime`. Runtime target validation remains metadata-only and does not start a GPU worker.
+
 ## Counts
 
 - Production worker gate checks prepared: 21

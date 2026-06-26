@@ -87,6 +87,8 @@ Each payload is also checked against the canonical AI graphics registry before i
 
 The heavy/model tools remain GPU-only. `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background` must map to `gpu_ai_worker` and the native Linux AMD64 NVIDIA L4 runtime target. CPU fallback remains disallowed for those tools.
 
+Dedicated GPU image tools must keep exact runtime targets in every prepared production-worker job payload: `sam2 -> native_linux_amd64_nvidia_l4_sam2_runtime`, `birefnet -> native_linux_amd64_nvidia_l4_birefnet_runtime`, and `real_esrgan -> native_linux_amd64_nvidia_l4_real_esrgan_runtime`. The readiness diagnostic rejects payloads that collapse those tools back into a generic GPU runtime bucket.
+
 Node/static and browser/render tools may have package or proof evidence, but this bridge still does not approve agent execution. It only prepares the typed production-worker payload candidate that a future approved beta queue lane can consume.
 
 ## Allowed Preparation Actions

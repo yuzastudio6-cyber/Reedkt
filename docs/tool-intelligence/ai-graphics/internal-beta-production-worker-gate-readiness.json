@@ -66,6 +66,24 @@
     "productionWorkerGateChecksReadyNow": 0,
     "capabilityProductionWorkerGateScenariosReadyNow": 0
   },
+  "runtimeTargets": {
+    "gpuToolsUseNativeL4": true,
+    "dedicatedGpuRuntimeTargetsExact": true,
+    "expectedGpuRuntimeTargets": {
+      "torch_torchvision": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "transformers": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "sam2": "native_linux_amd64_nvidia_l4_sam2_runtime",
+      "birefnet": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+      "real_esrgan": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+      "kornia": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "rembg": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
+    },
+    "productionWorkerGateChecksValidateCanonicalAiGraphicsRegistry": true,
+    "canEnqueueProductionWorkerJobNow": false,
+    "canDispatchProductionWorkerJobNow": false,
+    "canRunProductionWorkerRouteNow": false
+  },
   "allowedGateActions": [
     "run shared production worker gate checks against prepared payload candidates",
     "validate approved snapshot, idempotency, artifact, runtime registry, license/model-weight, credit, QA, and worker mode gates",

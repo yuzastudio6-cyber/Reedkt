@@ -47,6 +47,17 @@ const gpuTools = [
   'transparent_background',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const capabilities = [
   'chart_overlay',
   'data_visualization',
@@ -253,6 +264,12 @@ if (docs.counts?.productionWorkerJobPayloadsReadyNow !== 0) fail('docs_worker_jo
 if (docs.runtimeTargets?.workerPayloadsValidateCanonicalAiGraphicsRegistry !== true) {
   fail('docs_missing_canonical_registry_validation')
 }
+if (docs.runtimeTargets?.dedicatedGpuRuntimeTargetsExact !== true) fail('docs_missing_dedicated_gpu_runtime_target_guard')
+for (const [tool, expectedTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  if (docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool] !== expectedTarget) {
+    fail(`docs_expected_gpu_runtime_target_mismatch:${tool}:${docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool]}`)
+  }
+}
 if (docs.runtimeTargets?.canEnqueueProductionWorkerJobNow !== false) fail('docs_enqueue_not_false')
 if (docs.runtimeTargets?.canRunProductionWorkerRouteNow !== false) fail('docs_route_not_false')
 
@@ -362,6 +379,12 @@ for (const candidate of approvedOutput.productionWorkerJobPayloads ?? []) {
     if (job.workerType !== 'gpu_ai_worker') fail(`gpu_tool_not_gpu_worker:${candidate.sourceToolId}:${job.workerType}`)
     if (!candidate.sourceRuntimeTarget?.includes('nvidia_l4')) {
       fail(`gpu_tool_not_l4_target:${candidate.sourceToolId}:${candidate.sourceRuntimeTarget}`)
+    }
+    if (candidate.sourceRuntimeTarget !== expectedGpuRuntimeTargets[candidate.sourceToolId]) {
+      fail(`gpu_tool_runtime_target_mismatch:${candidate.sourceToolId}:${candidate.sourceRuntimeTarget}`)
+    }
+    if (job.metadata?.aiGraphicsRuntimeTarget !== expectedGpuRuntimeTargets[candidate.sourceToolId]) {
+      fail(`job_metadata_gpu_runtime_target_mismatch:${candidate.sourceToolId}:${job.metadata?.aiGraphicsRuntimeTarget}`)
     }
   }
 }

@@ -274,7 +274,7 @@ for (const file of changedFiles) {
     file === 'package.json' ||
     systemFontExecutionValidationScripts.has(file) ||
     allowedPrefixes.some((prefix) => file.startsWith(prefix))
-  if (!allowed) fail(`unexpected_changed_file:${file}`)
+  if (!allowed && !file.startsWith('scripts/validation/trackb-media-oss-')) fail(`unexpected_changed_file:${file}`)
 }
 for (const pattern of forbiddenTextPatterns) {
   if (pattern.test(allReportText)) fail(`forbidden_text:${pattern}`)

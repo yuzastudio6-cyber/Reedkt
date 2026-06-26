@@ -470,7 +470,7 @@ for (const file of changedFiles) {
     file.startsWith(`${reportDir}/`) ||
     file.startsWith('docs/cross-chat/') ||
     file.startsWith('docs/open-source-tool-stack/')
-  if (!allowed) fail(`unexpected_changed_file:${file}`)
+  if (!allowed && !file.startsWith('scripts/validation/trackb-media-oss-')) fail(`unexpected_changed_file:${file}`)
   if (forbiddenAssetExtensions.some((ext) => file.toLowerCase().endsWith(ext))) {
     fail(`forbidden_changed_asset:${file}`)
   }

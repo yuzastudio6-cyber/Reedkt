@@ -42,7 +42,9 @@
     "trackbProductBetaRuntimeProductReadyProofRerunPlanDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_plan_passed_ready_for_product_ready_proof_rerun_execution",
     "trackbProductBetaRuntimeProductReadyProofRerunPlanSourceSha": "019ad4061f96a302f02f89eaacbfec796a23f417",
     "trackbProductBetaRuntimeProductReadyProofRerunExecutionDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_execution_passed_ready_for_product_ready_proof_rerun_qa_review",
-    "trackbProductBetaRuntimeProductReadyProofRerunExecutionSha": "07909a2bb297b0012bc80ab61cb08cccf1806f37"
+    "trackbProductBetaRuntimeProductReadyProofRerunExecutionSha": "07909a2bb297b0012bc80ab61cb08cccf1806f37",
+    "trackbProductBetaRuntimeProductReadyProofRerunQaDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_qa_passed_ready_for_product_ready_closeout",
+    "trackbProductBetaRuntimeProductReadyProofRerunQaSha": "faace5952c0b8e0d73b8e624c6ebe0f80ac2d0d3"
   },
   "owners": [
     {
@@ -729,7 +731,7 @@
     "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW",
     "supabaseClassification": "no write / environment none / SQL none / migration no"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_QA_REVIEW",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_CLOSEOUT",
   "productBetaRuntimeControlledActivationQaReview": {
     "decision": "trackb_media_oss_product_beta_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout",
     "previousDecision": "trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
@@ -995,6 +997,25 @@
       "productReady": 0
     },
     "readyForProductReadyProofRerunQaReview": true,
+    "productReadyApproved": false,
+    "supabaseClassification": "no write / environment none / SQL none / migration no"
+  },
+  "productBetaRuntimeProductReadyProofRerunQaReview": {
+    "decision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_qa_passed_ready_for_product_ready_closeout",
+    "previousDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_execution_passed_ready_for_product_ready_proof_rerun_qa_review",
+    "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_CLOSEOUT",
+    "sourcePr": 965,
+    "sourceSha": "faace5952c0b8e0d73b8e624c6ebe0f80ac2d0d3",
+    "sourceHead": "6ba1a330c6cab322de185f8490452c7dd12e1689",
+    "productReadyCount": 0,
+    "productReadyCandidateCount": 16,
+    "trackBTotals": {
+      "owned": 16,
+      "boundedAcceptedProven": 16,
+      "blockedNotInstalledProven": 0,
+      "productReady": 0
+    },
+    "readyForProductReadyCloseout": true,
     "productReadyApproved": false,
     "supabaseClassification": "no write / environment none / SQL none / migration no"
   }

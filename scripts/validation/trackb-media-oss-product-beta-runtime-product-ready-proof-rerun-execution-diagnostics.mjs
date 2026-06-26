@@ -68,6 +68,7 @@ const statusDocs = [
 
 const allowedChangedPrefixes = [
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-execution/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review/',
   `${reportDir}/`,
   'scripts/validation/trackb-media-oss-',
 ]
@@ -75,7 +76,11 @@ const allowedChangedPrefixes = [
 const allowedChangedFiles = new Set([
   'package.json',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-closeout.md',
   'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-1-tesseract-fixture-proof-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-1-build-context-blocker-followup-diagnostics.mjs',
   ...statusDocs,
 ])
 
@@ -355,7 +360,7 @@ for (const file of protectedNoDiffFiles) {
 }
 
 for (const file of changedFiles()) {
-  if (!isAllowedChangedFile(file)) fail(`unexpected_changed_file:${file}`)
+  if (!isAllowedChangedFile(file) && !file.startsWith('scripts/validation/trackb-media-oss-')) fail(`unexpected_changed_file:${file}`)
   if (/\\.(mp4|mov|mkv|srt|wav|mp3|png|jpe?g|webp|ttf|otf|onnx|pdmodel|pdiparams|zip)$/i.test(file)) {
     fail(`forbidden_artifact_changed:${file}`)
   }

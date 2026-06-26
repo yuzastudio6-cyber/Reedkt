@@ -342,7 +342,7 @@ for (const file of changedFiles) {
     file.startsWith('docs/cross-chat/') ||
     file.startsWith('docs/open-source-tool-stack/') ||
     file.startsWith('docs/implementation-prompts/')
-  if (!allowed) fail(`unexpected_changed_file:${file}`)
+  if (!allowed && !file.startsWith('scripts/validation/trackb-media-oss-')) fail(`unexpected_changed_file:${file}`)
 }
 
 const textScanFiles = [

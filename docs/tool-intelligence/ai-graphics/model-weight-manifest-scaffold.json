@@ -9,7 +9,7 @@
     "state": "OPEN",
     "isDraft": true,
     "mergeStateStatus": "CLEAN",
-    "latestObservedHeadSha": "a031eca1790739af1f4b22ff5433b257a18ecd6a",
+    "latestObservedHeadSha": "4a225b2c1a191e638abf4e065fe10b3bd0cb875c",
     "latestObservedCheckRollup": []
   },
   "sourceEvidence": {

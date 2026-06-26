@@ -36,6 +36,8 @@ Latest observed PR state after private manifest validator completion: [#862](htt
 
 Latest observed PR state after GPU runtime proof command-plan bridge completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `a0945f30d2d5b75c8f8f977ec263061aa9cd7342`, with an empty check rollup.
 
+Latest observed PR state after model-weight manifest scaffold completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `4a225b2c1a191e638abf4e065fe10b3bd0cb875c`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.

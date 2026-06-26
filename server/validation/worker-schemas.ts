@@ -42,6 +42,7 @@ export const runWorkerJobSchema = z.object({
   dryRun: z.boolean().optional(),
   jobType: z.string().min(1).optional(),
   approvedPlanSnapshotId: idSchema.optional(),
+  creditEstimateId: idSchema.optional(),
   creditReservationId: idSchema.optional(),
   mediaAssetId: idSchema.optional(),
   storageObjectRecordId: idSchema.optional(),

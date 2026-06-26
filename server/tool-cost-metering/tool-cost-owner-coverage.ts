@@ -8,6 +8,13 @@ import {
   type ProductionToolProfile,
   type ProductionToolStatus,
 } from '../tool-registry/production-tool-types'
+import { productionToolReadinessSpecs } from '../workers/production-readiness/production-tool-readiness-specs'
+import type {
+  ProductionContainerImageRole,
+  ProductionReadinessCheckMode,
+  ProductionReadinessStatus,
+  ProductionToolReadinessSpec,
+} from '../workers/production-readiness/production-tool-readiness-types'
 import { TOOL_COST_RATE_CARD_VERSION } from './rate-card'
 import type {
   ToolCostComputeLevel,
@@ -52,6 +59,13 @@ export interface ToolCostOwnerCoverageRecord {
   gpuRequired: boolean
   modelWeightsRequired: boolean
   launchCore: boolean
+  expectedWorkerTypes: ProductionRegistryWorkerType[]
+  imageRoles: ProductionContainerImageRole[]
+  readinessCheckModes: ProductionReadinessCheckMode[]
+  readinessStatusWhenMissing: ProductionReadinessStatus
+  productionRequired: boolean
+  blocksProductionIfMissing: boolean
+  evaluationOnly: boolean
   rateCardVersion: string
   serviceFeeIncluded: false
   requiresApprovedPlanSnapshot: true
@@ -67,12 +81,15 @@ export interface ToolCostOwnerCoverageRecord {
 export interface ToolCostOwnerCoverageSummary {
   productionToolCount: number
   coveredToolCount: number
+  readinessSpecCoveredCount: number
   productReadyLocalOssCount: 0
   rateCardVersion: string
   serviceFeeIncluded: false
   productionBillingPersistence: ToolCostProductionBillingPersistence
   missingToolIds: ProductionToolId[]
+  missingReadinessSpecToolIds: ProductionToolId[]
   duplicateToolIds: ProductionToolId[]
+  duplicateReadinessSpecToolIds: ProductionToolId[]
   byMeteringOwner: Record<ToolCostMeteringOwner, number>
   byUsageCategory: Record<ToolCostUsageCategory, number>
   byProviderType: Record<ToolCostProviderType, number>
@@ -180,7 +197,9 @@ const zeroCountByProviderType: Record<ToolCostProviderType, number> = {
 
 export function buildToolCostOwnerCoverageMatrix(): ToolCostOwnerCoverageRecord[] {
   const profileByToolId = new Map<ProductionToolId, ProductionToolProfile>()
+  const readinessSpecByToolId = new Map<ProductionToolId, ProductionToolReadinessSpec>()
   const duplicateToolIds: ProductionToolId[] = []
+  const duplicateReadinessSpecToolIds: ProductionToolId[] = []
 
   for (const profile of productionToolProfiles) {
     if (profileByToolId.has(profile.toolId)) {
@@ -190,16 +209,32 @@ export function buildToolCostOwnerCoverageMatrix(): ToolCostOwnerCoverageRecord[
     profileByToolId.set(profile.toolId, profile)
   }
 
+  for (const spec of productionToolReadinessSpecs) {
+    if (readinessSpecByToolId.has(spec.toolId)) {
+      duplicateReadinessSpecToolIds.push(spec.toolId)
+      continue
+    }
+    readinessSpecByToolId.set(spec.toolId, spec)
+  }
+
   if (duplicateToolIds.length > 0) {
     throw new Error(`Duplicate production tool profiles found for metering coverage: ${duplicateToolIds.join(', ')}`)
   }
 
+  if (duplicateReadinessSpecToolIds.length > 0) {
+    throw new Error(`Duplicate production readiness specs found for metering coverage: ${duplicateReadinessSpecToolIds.join(', ')}`)
+  }
+
   return PRODUCTION_TOOL_IDS.map((toolId) => {
     const profile = profileByToolId.get(toolId)
+    const readinessSpec = readinessSpecByToolId.get(toolId)
     if (!profile) {
       throw new Error(`Missing production tool profile for metering coverage: ${toolId}`)
     }
-    return buildCoverageRecord(profile)
+    if (!readinessSpec) {
+      throw new Error(`Missing production readiness spec for metering coverage: ${toolId}`)
+    }
+    return buildCoverageRecord(profile, readinessSpec)
   })
 }
 
@@ -229,8 +264,11 @@ export function getToolCostOwnerCoverage(toolId: ProductionToolId): ToolCostOwne
 
 export function buildToolCostOwnerCoverageSummary(matrix = buildToolCostOwnerCoverageMatrix()): ToolCostOwnerCoverageSummary {
   const coveredToolIds = new Set(matrix.map((record) => record.toolId))
+  const readinessSpecIds = new Set(productionToolReadinessSpecs.map((spec) => spec.toolId))
   const seenToolIds = new Set<ProductionToolId>()
+  const seenReadinessSpecIds = new Set<ProductionToolId>()
   const duplicateToolIds: ProductionToolId[] = []
+  const duplicateReadinessSpecToolIds: ProductionToolId[] = []
   const byMeteringOwner = { ...zeroCountByOwner }
   const byUsageCategory = { ...zeroCountByUsageCategory }
   const byProviderType = { ...zeroCountByProviderType }
@@ -249,21 +287,32 @@ export function buildToolCostOwnerCoverageSummary(matrix = buildToolCostOwnerCov
     }
   }
 
+  for (const spec of productionToolReadinessSpecs) {
+    if (seenReadinessSpecIds.has(spec.toolId)) {
+      duplicateReadinessSpecToolIds.push(spec.toolId)
+    }
+    seenReadinessSpecIds.add(spec.toolId)
+  }
+
   return {
     productionToolCount: PRODUCTION_TOOL_IDS.length,
     coveredToolCount: matrix.length,
+    readinessSpecCoveredCount: productionToolReadinessSpecs.length,
     productReadyLocalOssCount: 0,
     rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
     serviceFeeIncluded: false,
     productionBillingPersistence: 'backend_required',
     missingToolIds: PRODUCTION_TOOL_IDS.filter((toolId) => !coveredToolIds.has(toolId)),
+    missingReadinessSpecToolIds: PRODUCTION_TOOL_IDS.filter((toolId) => !readinessSpecIds.has(toolId)),
     duplicateToolIds,
+    duplicateReadinessSpecToolIds,
     byMeteringOwner,
     byUsageCategory,
     byProviderType,
     blockedOrReviewToolIds,
     notes: [
       'Coverage is generated from the production tool registry so owners can see every registered tool case.',
+      'Each coverage case also references the matching production readiness spec for worker/image and production-blocker context.',
       'This is mock-safe metering coverage only; production billing persistence, wallet spend/release/refund, Stripe, and Supabase ledger writes remain backend-required.',
       'ReEditPro service fee is intentionally excluded from tool events.',
       'Product-ready local OSS tools remain 0 until separate production runtime and owner approval gates pass.',
@@ -271,7 +320,10 @@ export function buildToolCostOwnerCoverageSummary(matrix = buildToolCostOwnerCov
   }
 }
 
-function buildCoverageRecord(profile: ProductionToolProfile): ToolCostOwnerCoverageRecord {
+function buildCoverageRecord(
+  profile: ProductionToolProfile,
+  readinessSpec: ProductionToolReadinessSpec,
+): ToolCostOwnerCoverageRecord {
   return {
     toolId: profile.toolId,
     displayName: profile.displayName,
@@ -288,6 +340,13 @@ function buildCoverageRecord(profile: ProductionToolProfile): ToolCostOwnerCover
     gpuRequired: profile.gpuRequired,
     modelWeightsRequired: profile.modelWeightsRequired,
     launchCore: profile.launchCore,
+    expectedWorkerTypes: readinessSpec.expectedWorkerTypes,
+    imageRoles: readinessSpec.imageRoles,
+    readinessCheckModes: readinessSpec.checkMode,
+    readinessStatusWhenMissing: readinessSpec.readinessStatusWhenMissing,
+    productionRequired: readinessSpec.productionRequired,
+    blocksProductionIfMissing: readinessSpec.blocksProductionIfMissing,
+    evaluationOnly: readinessSpec.evaluationOnly,
     rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
     serviceFeeIncluded: false,
     requiresApprovedPlanSnapshot: true,
@@ -300,6 +359,7 @@ function buildCoverageRecord(profile: ProductionToolProfile): ToolCostOwnerCover
     notes: [
       `Default usage bucket: ${toolUsageOverrides[profile.toolId] ?? categoryUsageMap[profile.category]}.`,
       `Default metering owner follows worker type: ${profile.workerType}.`,
+      `Readiness fallback status when missing: ${readinessSpec.readinessStatusWhenMissing}.`,
       'Real production billing remains blocked until durable backend persistence and owner-approved rate cards are implemented.',
     ],
   }

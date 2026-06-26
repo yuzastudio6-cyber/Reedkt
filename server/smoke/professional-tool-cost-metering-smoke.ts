@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
 import { PRODUCTION_TOOL_IDS } from '../tool-registry/production-tool-types'
+import { productionToolReadinessSpecs } from '../workers/production-readiness/production-tool-readiness-specs'
 import { createToolCostMeteringService } from '../tool-cost-metering/tool-cost-metering-service'
 import {
   assertToolCostOwnerCoverageComplete,
@@ -266,8 +267,11 @@ const ownerCoverageSummary = buildToolCostOwnerCoverageSummary(ownerCoverage)
 assert.equal(ownerCoverage.length, PRODUCTION_TOOL_IDS.length, 'Every production registry tool should have metering owner coverage')
 assert.equal(ownerCoverageSummary.productionToolCount, PRODUCTION_TOOL_IDS.length, 'Coverage summary should track the production registry count')
 assert.equal(ownerCoverageSummary.coveredToolCount, PRODUCTION_TOOL_IDS.length, 'Coverage summary should cover every production tool')
+assert.equal(ownerCoverageSummary.readinessSpecCoveredCount, PRODUCTION_TOOL_IDS.length, 'Coverage summary should align with readiness specs')
 assert.equal(ownerCoverageSummary.missingToolIds.length, 0, 'Coverage summary should not miss registered tools')
+assert.equal(ownerCoverageSummary.missingReadinessSpecToolIds.length, 0, 'Coverage summary should not miss readiness specs')
 assert.equal(ownerCoverageSummary.duplicateToolIds.length, 0, 'Coverage summary should not duplicate tool records')
+assert.equal(ownerCoverageSummary.duplicateReadinessSpecToolIds.length, 0, 'Coverage summary should not duplicate readiness specs')
 assert.equal(ownerCoverageSummary.productReadyLocalOssCount, 0, 'Metering coverage must not claim product-ready local OSS tools')
 assert.equal(ownerCoverageSummary.serviceFeeIncluded, false, 'Owner coverage must preserve service-fee exclusion')
 assert.equal(ownerCoverageSummary.productionBillingPersistence, 'backend_required', 'Owner coverage must not imply real production billing persistence')
@@ -276,6 +280,10 @@ assert.equal(ownerCoverage.every((record) => record.requiresCreditEstimate), tru
 assert.equal(ownerCoverage.every((record) => record.requiresCreditReservation), true, 'Every tool case should require a credit reservation')
 assert.equal(ownerCoverage.every((record) => record.requiresIdempotentEvent), true, 'Every tool case should require idempotent cost events')
 assert.equal(ownerCoverage.every((record) => record.productReadyLocalOss === false), true, 'No tool case should become product-ready from metering coverage')
+assert.equal(ownerCoverage.every((record) => record.imageRoles.length > 0), true, 'Every tool case should expose readiness image roles')
+assert.equal(ownerCoverage.every((record) => record.expectedWorkerTypes.length > 0), true, 'Every tool case should expose readiness worker types')
+assert.equal(ownerCoverage.every((record) => record.readinessCheckModes.length > 0), true, 'Every tool case should expose readiness check modes')
+assert.equal(productionToolReadinessSpecs.length, PRODUCTION_TOOL_IDS.length, 'Readiness specs should cover the production registry')
 assert.equal(getToolCostOwnerCoverage('remotion').usageCategory, 'rendering', 'Remotion should map to rendering metering')
 assert.equal(getToolCostOwnerCoverage('ffmpeg').usageCategory, 'export', 'FFmpeg should map to export metering')
 assert.equal(getToolCostOwnerCoverage('faster_whisper').usageCategory, 'transcription', 'Whisper-class tools should map to transcription metering')
@@ -305,6 +313,7 @@ console.log(JSON.stringify({
   productionToolOwnerCoverage: {
     productionToolCount: ownerCoverageSummary.productionToolCount,
     coveredToolCount: ownerCoverageSummary.coveredToolCount,
+    readinessSpecCoveredCount: ownerCoverageSummary.readinessSpecCoveredCount,
     productReadyLocalOssCount: ownerCoverageSummary.productReadyLocalOssCount,
     blockedOrReviewToolCount: ownerCoverageSummary.blockedOrReviewToolIds.length,
   },

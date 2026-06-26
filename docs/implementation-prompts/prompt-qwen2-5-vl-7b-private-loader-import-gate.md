@@ -39,3 +39,11 @@ Verify that the controlled private Qwen2.5-VL 7B cache can be used by a future m
 - Auto-download remains blocked.
 - Import/runtime readiness is limited to a no-inference gate.
 - Qwen remains ranked as visual understanding/planning/QA, not AI-video generation.
+
+## Expected Outcome On Current Local Runtime
+
+The current local Python runtime is expected to block before metadata import because `transformers`, `torch`, and `qwen_vl_utils` are not installed. That blocked result is acceptable for this prompt as long as the private cache is checksum-verified, auto-download remains disabled, and no inference or runtime server starts.
+
+## Next Prompt
+
+`QWEN2_5_VL_STACK_TOOL_4: controlled Qwen2.5-VL runtime dependency install plan, no inference`

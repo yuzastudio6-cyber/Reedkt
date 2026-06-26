@@ -43,6 +43,14 @@ const credentialContextHardeningFiles = [
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-credential-context-hardening-1-diagnostics.mjs',
 ]
 
+const externalSqlHistoryBlockerFiles = [
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-record.json',
+  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-migration-history-reconciliation-1.md',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-diagnostics.mjs',
+]
+
 const requiredText = [
   'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED',
   'completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution',
@@ -229,7 +237,12 @@ const changed = [...new Set([
   ...gitLines(['diff', '--cached', '--name-only']),
 ])]
 
-const allowedChanged = new Set([...requiredFiles, ...externalStagingSqlGateFiles, ...credentialContextHardeningFiles])
+const allowedChanged = new Set([
+  ...requiredFiles,
+  ...externalStagingSqlGateFiles,
+  ...credentialContextHardeningFiles,
+  ...externalSqlHistoryBlockerFiles,
+])
 
 for (const file of changed) {
   if (file === 'package-lock.json') fail('package-lock.json changed')

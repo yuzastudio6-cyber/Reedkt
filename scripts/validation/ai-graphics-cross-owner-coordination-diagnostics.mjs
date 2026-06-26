@@ -265,6 +265,8 @@ const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:beta-tool-call-readiness": "tsx server/cli/ai-graphics-beta-tool-call-readiness.ts",',
+  '+    "ai-graphics:beta-tool-call-readiness:diagnostics": "node scripts/validation/ai-graphics-beta-tool-call-readiness-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

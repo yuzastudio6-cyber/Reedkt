@@ -556,3 +556,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: evidence-driven beta readiness evaluator for the existing 21-tool gate.
 - Result: default evidence keeps 0 tools beta-ready. When all currently modeled shared/runtime/model-weight evidence flags are supplied, the gate reports all 21 tools beta-eligible (`torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, `transparent_background`, `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs`) and keeps 0 tools blocked.
 - Runtime/beta/production: no committed unlock; the evaluator is report-only and does not execute tools, routes, workers, providers, browser/WebGL/canvas, GPU/model runtime, model downloads, media processing, or artifact creation.
+
+## AI Graphics Beta Tool Call Readiness
+
+- Decision: `ai_graphics_beta_tool_call_readiness_contract_prepared_with_fail_closed_defaults`.
+- Scope: server-only join between the canonical ranking/selection system and the beta evidence bundle for all 21 AI graphics tools and all 12 product-facing capabilities.
+- Result: default committed evidence keeps 0 of 21 tools beta-callable. A complete proof packet path can mark all 21 tools beta-callable for a future owner gate, but partial evidence does not create a callable subset.
+- Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

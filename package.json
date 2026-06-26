@@ -59,6 +59,8 @@
     "ai-graphics:beta-evidence-bundle:diagnostics": "node scripts/validation/ai-graphics-beta-evidence-bundle-diagnostics.mjs",
     "ai-graphics:beta-evidence-local-assembly": "tsx server/cli/ai-graphics-beta-evidence-local-assembly.ts",
     "ai-graphics:beta-evidence-local-assembly:diagnostics": "node scripts/validation/ai-graphics-beta-evidence-local-assembly-diagnostics.mjs",
+    "ai-graphics:beta-tool-call-readiness": "tsx server/cli/ai-graphics-beta-tool-call-readiness.ts",
+    "ai-graphics:beta-tool-call-readiness:diagnostics": "node scripts/validation/ai-graphics-beta-tool-call-readiness-diagnostics.mjs",
     "ai-graphics:cross-owner-coordination": "tsx server/cli/ai-graphics-cross-owner-coordination.ts",
     "ai-graphics:cross-owner-coordination:diagnostics": "node scripts/validation/ai-graphics-cross-owner-coordination-diagnostics.mjs",
     "ai-graphics:tool-route-readiness:diagnostics": "node scripts/validation/ai-graphics-tool-route-readiness-diagnostics.mjs",

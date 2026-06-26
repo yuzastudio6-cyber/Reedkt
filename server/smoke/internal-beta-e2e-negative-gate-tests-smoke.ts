@@ -8,6 +8,7 @@ import {
 import { enqueueInternalBetaJobRuntimeScaffold } from '../services/internal-beta-job-queue-runtime-scaffold'
 import { prepareInternalBetaPrivateArtifactAccessScaffold } from '../services/internal-beta-private-artifact-manifest-scaffold'
 import { prepareInternalBetaProviderPromptPayloadScaffold } from '../services/internal-beta-disabled-provider-adapter-scaffold'
+import { createInternalBetaQaCleanupObservabilityLocalRuntime } from '../services/internal-beta-qa-cleanup-observability-local-runtime'
 import { prepareInternalBetaRenderWorkerJobScaffold } from '../services/internal-beta-remotion-render-worker-scaffold'
 import { compileEditingIntent } from '../../src/lib/intent-compiler'
 import type { PlannerInput } from '../../src/types/reeditpro'
@@ -105,6 +106,46 @@ assert.equal(privateArtifactAccess.status, 'disabled_pending_private_artifact_ma
 assert.equal(privateArtifactAccess.signedUrlCreation, false)
 assert.equal(privateArtifactAccess.publicArtifactCreation, false)
 assert.equal(privateArtifactAccess.storageRead, false)
+
+const qaCleanupUnsafeInput = createInternalBetaQaCleanupObservabilityLocalRuntime({
+  workspaceId: 'workspace-negative-qa-cleanup',
+  projectId: 'project-negative-qa-cleanup',
+  approvedPlanSnapshotId: 'approved-snapshot-negative-qa-cleanup',
+  creditReservationId: 'credit-reservation-negative-qa-cleanup',
+  jobId: 'job-negative-qa-cleanup',
+  artifactManifestId: 'artifact-manifest-negative-qa-cleanup',
+  renderRequestId: 'render-request-negative-qa-cleanup',
+  idempotencyKey: 'idempotency-negative-qa-cleanup',
+  qaChecks: [
+    {
+      category: 'safety_boundary',
+      outcome: 'passed',
+      summary: 'Unsafe signed URL metadata must be rejected.',
+    },
+  ],
+  cleanupPolicies: [
+    {
+      artifactId: 'artifact-negative-qa-cleanup',
+      fileName: '../private-preview.mp4',
+    },
+  ],
+  observabilityEvents: [
+    {
+      eventType: 'safety_boundary_recorded',
+      severity: 'info',
+      message: 'Negative gate should not write remote observability.',
+    },
+  ],
+  metadata: { signedUrl: 'redacted-signed-url-placeholder' },
+})
+assert.equal(qaCleanupUnsafeInput.ok, false, 'QA cleanup unsafe input must fail closed')
+assert.equal(qaCleanupUnsafeInput.status, 'blocked_invalid_qa_cleanup_observability_input')
+assert.equal(qaCleanupUnsafeInput.safety.cleanupExecution, false)
+assert.equal(qaCleanupUnsafeInput.safety.rollbackExecution, false)
+assert.equal(qaCleanupUnsafeInput.safety.remoteObservabilitySinkWrite, false)
+assert.equal(qaCleanupUnsafeInput.safety.signedUrlCreation, false)
+assert.equal(qaCleanupUnsafeInput.safety.publicArtifactCreation, false)
+assert.equal(qaCleanupUnsafeInput.safety.internalBetaUnlock, false)
 
 function buildPlannerInput(editLevel: PlannerInput['editLevel']): PlannerInput {
   return {

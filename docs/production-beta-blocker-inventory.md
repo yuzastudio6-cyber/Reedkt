@@ -419,6 +419,16 @@ Negative tests now cover no generation before approved plan and credit approval,
 
 Next recommended milestone: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1`.
 
+## RP-INTERNAL-BETA-E2E Negative Gate Tests 1R
+
+`RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1R` records decision `completed_internal_beta_negative_gate_tests_1r_after_qa_cleanup_observability` and execution `completed_tests_only_no_runtime_unlock`.
+
+The negative gate smoke now covers the QA cleanup observability local runtime. It rejects signed URL metadata and path-like cleanup file names and confirms cleanup execution, rollback execution, remote observability sink write, signed URL creation, public artifact creation, and internal beta unlock remain false.
+
+Internal beta end-to-end status: `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 External beta, paid production, public artifacts, broad media, final delivery/export, remote Supabase mutation, and production migration remain blocked. Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
 
 ## RP-INTERNAL-BETA Runtime Enablement Plan 1

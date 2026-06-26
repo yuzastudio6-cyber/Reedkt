@@ -297,6 +297,16 @@ No Supabase mutation, SQL execution, service-role route execution, credit mutati
 
 Internal beta end-to-end remains `not_ready` until approved Supabase credential context, confirmed Supabase RLS/storage validation, service-role persistence, credit ledger runtime, job queue runtime, private artifact runtime, render worker runtime, QA/cleanup/observability, rollback, and runtime negative gates pass.
 
+## RP-INTERNAL-BETA-E2E Negative Gate Tests 1R
+
+`RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1R` records decision `completed_internal_beta_negative_gate_tests_1r_after_qa_cleanup_observability` and execution `completed_tests_only_no_runtime_unlock`.
+
+The negative gate smoke now includes the QA cleanup observability local runtime. It confirms unsafe signed URL metadata and path-like cleanup file names fail closed while cleanup execution, rollback execution, remote observability sink write, signed URL creation, public artifact creation, and beta unlock stay false.
+
+Internal beta end-to-end status: `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended step: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 Next recommended step after Supabase credential/target validation: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARD-1`.
 
 ## RP-INTERNAL-BETA Approved Snapshot Service-Role Persistence Guard 1

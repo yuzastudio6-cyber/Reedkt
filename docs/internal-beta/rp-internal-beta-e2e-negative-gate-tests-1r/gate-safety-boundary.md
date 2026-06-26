@@ -1,0 +1,5 @@
+# Gate Safety Boundary
+
+This 1R packet is tests/status/diagnostics only.
+
+No remote Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, raw prompt execution, worker execution, worker dispatch, route execution, browser capture, Remotion execution, FFmpeg execution, FFprobe execution, media processing, QA media inspection, cleanup execution, rollback execution, remote observability sink write, storage object creation, storage object read, storage object delete, signed URL creation, public artifact creation, credit mutation, credit reservation creation, credit spend, job enqueue, job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, final render/export, preview artifact creation, private media processing, user media processing, package installation beyond dependency validation, dependency mutation, package-lock mutation, Dockerfile change, requirements change, or broad service-role handler was enabled.

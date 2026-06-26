@@ -1,0 +1,26 @@
+{
+  "packet": "RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1R",
+  "decision": "completed_internal_beta_negative_gate_tests_1r_after_qa_cleanup_observability",
+  "execution": "completed_tests_only_no_runtime_unlock",
+  "sourcePacket": "RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1",
+  "newDependency": "RP-INTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-LOCAL-RUNTIME-1",
+  "qaCleanupUnsafeInputRejected": true,
+  "pathLikeCleanupFileNameRejected": true,
+  "signedUrlMetadataRejected": true,
+  "cleanupExecution": false,
+  "rollbackExecution": false,
+  "remoteObservabilitySinkWrite": false,
+  "signedUrlCreation": false,
+  "publicArtifactCreation": false,
+  "internalBetaEndToEndStatus": "not_ready",
+  "internalBetaUnlock": false,
+  "externalBetaUnlock": false,
+  "productionUnlock": false,
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "excludedSource": {
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "nextMilestone": "RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN"
+}

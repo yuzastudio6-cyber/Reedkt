@@ -5,6 +5,7 @@ import path from 'node:path'
 
 const packet = 'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED'
 const targetPacket = 'RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED'
+const credentialContextPacket = 'RP-INTERNAL-BETA-SUPABASE-CREDENTIAL-CONTEXT-CONTRACT-1'
 const migrationFile = 'supabase/migrations/202606180001_worker_runtime_transactional_rpc.sql'
 const targetValidationReportVar = 'REEDITPRO_SUPABASE_TARGET_RLS_STORAGE_VALIDATION_REPORT'
 const outputRoot = '/tmp/reeditpro-supabase-worker-runtime-transactional-rpc-4r-confirmed'
@@ -20,6 +21,20 @@ const requiredConfirmations = [
   'REEDITPRO_CONFIRM_SUPABASE_TARGET_IS_STAGING',
   'REEDITPRO_CONFIRM_NO_PRODUCTION_SUPABASE',
   'REEDITPRO_CONFIRM_SECRET_MANAGER_BACKEND_CREDENTIAL_RESOLUTION',
+]
+
+const approvedAccessTokenAliases = [
+  'SUPABASE_ACCESS_TOKEN',
+  'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN',
+  'REEDITPRO_SUPABASE_ACCESS_TOKEN',
+]
+
+const approvedReadonlyDbUrlAliases = [
+  'REEDITPRO_SUPABASE_READONLY_DB_URL',
+  'REEDITPRO_STAGING_SUPABASE_DB_URL',
+  'SUPABASE_STAGING_DB_URL',
+  'STAGING_SUPABASE_DB_URL',
+  'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
 ]
 
 fs.mkdirSync(outputDir, { recursive: true })
@@ -45,6 +60,33 @@ function confirmationState() {
 
 function missingConfirmations() {
   return requiredConfirmations.filter((name) => process.env[name] !== 'true')
+}
+
+function hasEnvValue(name) {
+  return typeof process.env[name] === 'string' && process.env[name].trim().length > 0
+}
+
+function credentialContextDecision() {
+  const hasAccessToken = approvedAccessTokenAliases.some(hasEnvValue)
+  const hasReadonlyDbUrl = approvedReadonlyDbUrlAliases.some(hasEnvValue)
+
+  if (!hasAccessToken && !hasReadonlyDbUrl) {
+    return 'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias'
+  }
+
+  if (!hasAccessToken) return 'blocked_missing_approved_supabase_access_token_alias'
+  if (!hasReadonlyDbUrl) return 'blocked_missing_approved_supabase_readonly_db_url_alias'
+
+  return 'completed_approved_supabase_credential_alias_presence_preflight_no_payload_access'
+}
+
+function credentialPresence() {
+  return {
+    supabaseAccessToken: approvedAccessTokenAliases.some(hasEnvValue),
+    readonlyDatabaseUrl: approvedReadonlyDbUrlAliases.some(hasEnvValue),
+    serviceRoleKey: false,
+    databasePassword: false,
+  }
 }
 
 function readTargetValidationReport() {
@@ -113,6 +155,16 @@ function finish(decision, execution, extra = {}, exitCode = 1) {
     execution,
     blocker: extra.blocker ?? decision,
     confirmationState: confirmationState(),
+    credentialContext: {
+      contractPacket: credentialContextPacket,
+      decision: extra.credentialContextDecision ?? 'not_checked',
+      requiredBeforeTargetValidationAndSql: true,
+      acceptedAccessTokenAliases: approvedAccessTokenAliases,
+      acceptedReadonlyDbUrlAliases: approvedReadonlyDbUrlAliases,
+      credentialPresence: credentialPresence(),
+      credentialPayloadsPrinted: false,
+      credentialPayloadsPersisted: false,
+    },
     targetValidationDependency: extra.targetValidationDependency ?? 'not_checked',
     migrationSource: {
       file: migrationFile,
@@ -137,6 +189,8 @@ function finish(decision, execution, extra = {}, exitCode = 1) {
       storageBucketCreation: false,
       storageObjectCreation: false,
       storageObjectRead: false,
+      serviceRoleSecretPayloadAccess: false,
+      frontendServiceRoleCredentialExposure: false,
       serviceRoleRouteExecution: false,
       workerExecution: false,
       workerDispatch: false,
@@ -197,6 +251,15 @@ if (absent.length > 0) {
       targetValidationDependency: 'not_checked_confirmation_absent',
     },
   )
+}
+
+const credentialDecision = credentialContextDecision()
+if (credentialDecision !== 'completed_approved_supabase_credential_alias_presence_preflight_no_payload_access') {
+  finish(credentialDecision, 'blocked_no_sql_execution_missing_safe_credential_context', {
+    blocker: credentialDecision,
+    credentialContextDecision: credentialDecision,
+    targetValidationDependency: 'not_checked_missing_safe_credential_context',
+  })
 }
 
 const targetValidation = readTargetValidationReport()

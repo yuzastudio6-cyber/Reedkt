@@ -89,12 +89,15 @@ const predecessorDiagnostics = [
 
 const allowedChangedPrefixes = [
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-go-no-go-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-closeout/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-reconciliation/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review/',
   'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout/',`${reportDir}/`]
 const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-closeout.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-approval.md',
   'scripts/validation/trackb-media-oss-product-beta-go-no-go-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-readiness-closeout-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-go-no-go-review.md',
   'scripts/validation/trackb-media-oss-product-beta-readiness-reconciliation-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',

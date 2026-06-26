@@ -343,6 +343,16 @@ Internal beta remains `blocked_pending_replacement_branch_remote_only_migration_
 
 Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-SOURCE-MAPPING-1`.
 
+## Supabase Clean Staging Branch Replacement History Source Mapping 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-SOURCE-MAPPING-1` records `blocked_replacement_remote_only_migration_20260626163138_unmapped`.
+
+The replacement branch candidate `reeditpro-clean-staging-v2` / `rjenorvzqsxwljvvvtxd` is not adopted as the clean staging target because remote-only migration `20260626163138` has no safe source mapping. `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` remains unrotated for this branch.
+
+Internal beta remains `blocked_pending_isolated_clean_staging_target_or_explicit_migration_history_policy`.
+
+Next recommended milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.
+
 ## Internal Beta Local Readiness Gate Rollup
 
 `RP-INTERNAL-BETA-LOCAL-READINESS-GATE-ROLLUP-1` records decision `blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates` and execution `completed_local_readiness_gate_rollup_no_remote_execution`.

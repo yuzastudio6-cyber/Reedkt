@@ -29,6 +29,7 @@ export * from './ai-graphics-model-weight-manifest-readiness'
 export * from './ai-graphics-gpu-runtime-proof-command-plan'
 export * from './ai-graphics-model-weight-manifest-scaffold'
 export * from './ai-graphics-gpu-runtime-proof-result'
+export * from './ai-graphics-beta-activation-gap-report'
 
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {
   return PRODUCTION_TOOL_IDS.includes(toolId as ProductionToolId)

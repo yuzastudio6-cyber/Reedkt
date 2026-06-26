@@ -40,6 +40,8 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
 
 Latest observed PR state after per-tool model-weight manifest evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `84fe8b030d2fc262336647621b8536c16a15abe6`, with an empty check rollup.
 
+Latest observed PR state after per-profile native GPU proof evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `03ba5e53ec88e03bdfdb56090aa5a63a34b58473`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.
@@ -166,6 +168,7 @@ Latest observed PR state after per-tool model-weight manifest evidence hardening
   - `ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics`
 - Production worker gate readiness result: owner-approved evidence can validate 21 of 21 production worker job payload candidates and 12 of 12 capability scenarios through the shared production worker gates with 0 hard failed gate checks. This does not enqueue jobs, dispatch workers, call `routeProductionWorkerJob`, execute tools, run browser/canvas/WebGL, run GPU/model runtime, load model weights, process media, or unlock beta/production.
 - Per-tool model-weight manifest evidence hardening: the beta evidence bundle now rejects count-only manifest packets and requires exact accepted `validationResults` rows for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. The shared diagnostics fixture now models the five accepted private-manifest rows without logging private refs, and execution remains blocked.
+- Per-profile native GPU proof evidence hardening: the beta evidence bundle now rejects count-only GPU proof packets and requires exact accepted `validationResults` rows for `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`, including approved probe metadata, imports, `nvidia-smi`, CUDA, model-manifest checks, raw ref redaction, and false side-effect gates.
 
 ## Runtime State
 
@@ -188,6 +191,7 @@ Latest observed PR state after per-tool model-weight manifest evidence hardening
 - `modelWeightManifestScaffoldPrepared=true`
 - `modelWeightManifestPerToolRowsRequired=true`
 - `gpuRuntimeProofResultValidatorPrepared=true`
+- `gpuRuntimeProofPerProfileRowsRequired=true`
 - `betaActivationGapReportPrepared=true`
 - `betaReadinessEvidenceEvaluationPrepared=true`
 - `internalBetaProductionWorkerJobReadinessPrepared=true`

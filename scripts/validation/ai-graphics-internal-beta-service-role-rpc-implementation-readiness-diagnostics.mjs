@@ -6,7 +6,7 @@ const scriptName = 'ai-graphics:internal-beta-service-role-rpc-implementation-re
 const scriptCommand =
   'node scripts/validation/ai-graphics-internal-beta-service-role-rpc-implementation-readiness-diagnostics.mjs'
 
-const migrationFile = 'supabase/migrations/202606260001_ai_graphics_tool_runtime_service_role_rpcs.sql'
+const migrationFile = 'supabase/migrations/202606260002_ai_graphics_tool_runtime_service_role_rpcs.sql'
 const docsJsonFile =
   'docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-implementation-readiness.json'
 const docsMdFile =
@@ -178,6 +178,27 @@ if (docs.status !== 'static_service_role_rpc_migration_prepared_not_applied') {
 }
 if (docs.migrationFile !== migrationFile) fail(`docs_migration_file:${docs.migrationFile}`)
 if (docs.serviceAdapter !== serviceFile) fail(`docs_service_file:${docs.serviceAdapter}`)
+if (docs.migrationVersion !== '202606260002') fail(`docs_migration_version:${docs.migrationVersion}`)
+if (docs.migrationVersionCollisionAvoidance?.renumberedFrom !== '202606260001') {
+  fail(`docs_collision_renumbered_from:${docs.migrationVersionCollisionAvoidance?.renumberedFrom}`)
+}
+if (docs.migrationVersionCollisionAvoidance?.renumberedTo !== '202606260002') {
+  fail(`docs_collision_renumbered_to:${docs.migrationVersionCollisionAvoidance?.renumberedTo}`)
+}
+if (docs.migrationVersionCollisionAvoidance?.observedLocalCollisionName !== 'public_production_edit_session_brief_qwen_gates') {
+  fail(`docs_collision_name:${docs.migrationVersionCollisionAvoidance?.observedLocalCollisionName}`)
+}
+if (docs.migrationVersionCollisionAvoidance?.liveRpcFunctionsPresentBeforeApply !== false) {
+  fail(`docs_collision_rpc_presence:${docs.migrationVersionCollisionAvoidance?.liveRpcFunctionsPresentBeforeApply}`)
+}
+for (const token of [
+  'Migration version: `202606260002`',
+  'Renumbered from: `202606260001`',
+  '`public_production_edit_session_brief_qwen_gates`',
+  'four AI graphics service-role RPC functions absent before apply',
+]) {
+  if (!markdown.includes(token)) fail(`markdown_missing_collision_token:${token}`)
+}
 
 for (const tool of allTools) {
   if (!docs.toolsCovered?.includes(tool)) fail(`docs_missing_tool:${tool}`)

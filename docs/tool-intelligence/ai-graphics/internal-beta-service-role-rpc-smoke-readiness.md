@@ -15,7 +15,7 @@ Supabase rows, dispatch workers, or execute tools.
 - Source RPC implementation decision:
   `ai_graphics_internal_beta_service_role_rpc_implementation_readiness_contract_prepared_with_static_migration`
 - Static migration:
-  `supabase/migrations/202606260001_ai_graphics_tool_runtime_service_role_rpcs.sql`
+  `supabase/migrations/202606260002_ai_graphics_tool_runtime_service_role_rpcs.sql`
 - Backend adapter:
   `server/services/ai-graphics-tool-runtime-queue-service.ts`
 

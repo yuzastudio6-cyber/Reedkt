@@ -14,9 +14,17 @@ This packet converts the all-21 AI graphics service-role queue transaction envel
 
 ## Files
 
-- Migration: `supabase/migrations/202606260001_ai_graphics_tool_runtime_service_role_rpcs.sql`
+- Migration: `supabase/migrations/202606260002_ai_graphics_tool_runtime_service_role_rpcs.sql`
 - Backend service adapter: `server/services/ai-graphics-tool-runtime-queue-service.ts`
 - Diagnostic: `scripts/validation/ai-graphics-internal-beta-service-role-rpc-implementation-readiness-diagnostics.mjs`
+
+## Migration Version Collision Avoidance
+
+- Migration version: `202606260002`
+- Renumbered from: `202606260001`
+- Local preflight observed `202606260001` already recorded as `public_production_edit_session_brief_qwen_gates`.
+- Local preflight found the four AI graphics service-role RPC functions absent before apply.
+- Decision: keep the AI graphics RPC migration on a fresh version before any local or staging apply, so the install path cannot be skipped by a prior `202606260001` record.
 
 ## Tools Covered
 

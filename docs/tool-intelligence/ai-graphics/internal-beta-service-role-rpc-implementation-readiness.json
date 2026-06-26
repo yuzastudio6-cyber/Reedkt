@@ -4,8 +4,17 @@
   "status": "static_service_role_rpc_migration_prepared_not_applied",
   "sourceDecision": "ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope",
   "sourcePr": 862,
-  "migrationFile": "supabase/migrations/202606260001_ai_graphics_tool_runtime_service_role_rpcs.sql",
+  "migrationVersion": "202606260002",
+  "migrationFile": "supabase/migrations/202606260002_ai_graphics_tool_runtime_service_role_rpcs.sql",
   "serviceAdapter": "server/services/ai-graphics-tool-runtime-queue-service.ts",
+  "migrationVersionCollisionAvoidance": {
+    "renumberedFrom": "202606260001",
+    "renumberedTo": "202606260002",
+    "observedLocalCollisionVersion": "202606260001",
+    "observedLocalCollisionName": "public_production_edit_session_brief_qwen_gates",
+    "collisionDecision": "renumber_static_ai_graphics_rpc_migration_before_local_or_staging_apply",
+    "liveRpcFunctionsPresentBeforeApply": false
+  },
   "toolsCovered": [
     "torch_torchvision",
     "transformers",

@@ -77,3 +77,12 @@ Production and external beta remain blocked until human approvals cover deployme
 - Required future proof: private signed URL implementation, expiration and revocation enforcement, artifact manifest coupling, support redaction evidence, delivery audit events, storage policy validation, and human go/no-go approval.
 - Still blocked: external beta go/no-go and production go/no-go.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro External Beta / Production Go No-Go Review Status
+
+- Decision: `reeditpro_external_beta_production_go_no_go_review_blocked_pending_runtime_owner_approval`
+- Next prompt: `REEDITPRO_LIMITED_EXTERNAL_BETA_RUNTIME_OWNER_APPROVAL_PLAN`
+- Hardening status: go/no-go review metadata is recorded; execution remains blocked.
+- Required future proof: named runtime/release/incident/support/privacy/billing owners, owner approval, bounded activation scope, support coverage acceptance, staging/live-smoke authorization, and a later production go/no-go after limited beta evidence.
+- Still blocked: external beta activation and production activation.
+- Supabase classification: no write / environment none / SQL none / migration no.

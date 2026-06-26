@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.externalBetaProductionGoNoGoReview.v1",
+  "ownerId": "REEDITPRO_EXTERNAL_BETA_PRODUCTION_STEWARD",
+  "decision": "reeditpro_external_beta_production_go_no_go_review_blocked_pending_runtime_owner_approval",
+  "previousDecision": "reeditpro_delivery_share_policy_readiness_plan_passed_ready_for_external_beta_production_go_no_go_review",
+  "nextPrompt": "REEDITPRO_LIMITED_EXTERNAL_BETA_RUNTIME_OWNER_APPROVAL_PLAN",
+  "sourceSha": "fc9ec026f6e088cc8fae3df22cf2dd92eb16d7b8",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-external-beta-production-go-no-go-review",
+  "report": "satisfied-gates",
+  "satisfiedMetadataGates": [
+    "deploymentRollback",
+    "modelLicenseSecurityCost",
+    "privateStorageDeletion",
+    "observabilityIncidentSupport",
+    "backendDatabaseBillingCreditLedger",
+    "workerGenerationExportE2E",
+    "deliverySharePolicy"
+  ],
+  "trackBToolsProductReady": 16,
+  "readyForLimitedExternalBetaRuntimeOwnerApprovalPlan": true,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

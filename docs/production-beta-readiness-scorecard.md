@@ -102,3 +102,12 @@ approval.
 - Delivery/share metadata defines private signed URL policy, expiration and revocation requirements, blocked public artifacts, support redaction requirements, export download eligibility, and downstream go/no-go prerequisites.
 - This is not signed URL creation, public delivery, storage execution, route runtime, user exposure, paid beta, or production approval.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro External Beta / Production Go No-Go Review Status
+
+- Decision: `reeditpro_external_beta_production_go_no_go_review_blocked_pending_runtime_owner_approval`
+- Next prompt: `REEDITPRO_LIMITED_EXTERNAL_BETA_RUNTIME_OWNER_APPROVAL_PLAN`
+- Scorecard status: external beta and production remain blocked.
+- Go/no-go result: no-go for external beta and no-go for production. The next safe action is a metadata-only limited external beta runtime owner approval plan.
+- This is not external beta activation, live user exposure, paid beta, production, public delivery, signed URL execution, storage execution, route runtime, worker dispatch, provider execution, or media processing.
+- Supabase classification: no write / environment none / SQL none / migration no.

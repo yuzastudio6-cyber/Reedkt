@@ -13,6 +13,7 @@ const remediationPlanDir = 'docs/reeditpro-external-beta-production-readiness-re
 const deploymentRollbackDir = 'docs/reeditpro-deployment-rollback-readiness-plan'
 const modelSecurityCostDir = 'docs/reeditpro-model-license-security-cost-readiness-plan'
 const privateStorageDir = 'docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan'
+const observabilityDir = 'docs/reeditpro-observability-incident-support-readiness-plan'
 const decision =
   'trackb_media_oss_external_beta_production_readiness_gap_review_blocked_pending_reeditpro_global_readiness_remediation_plan'
 const previousDecision =
@@ -267,6 +268,8 @@ for (const file of changedFiles()) {
     file === 'docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-observability-incident-support-readiness-plan.md' ||
+    file === 'docs/implementation-prompts/prompt-reeditpro-backend-database-billing-credit-ledger-readiness-plan.md' ||
+    file === 'scripts/validation/reeditpro-observability-incident-support-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-model-license-security-cost-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-deployment-rollback-readiness-plan-diagnostics.mjs' ||
@@ -278,6 +281,7 @@ for (const file of changedFiles()) {
     file.startsWith(`${remediationPlanDir}/`) ||
     file.startsWith(`${deploymentRollbackDir}/`) ||
     file.startsWith(`${modelSecurityCostDir}/`) ||
+    file.startsWith(`${observabilityDir}/`) ||
     file.startsWith(`${privateStorageDir}/`) ||
     file.startsWith(`${reportDir}/`) ||
     remediationProductionDocs.includes(file) ||

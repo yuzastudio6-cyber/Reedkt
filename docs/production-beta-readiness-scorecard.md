@@ -110,6 +110,18 @@ execution, browser/canvas/WebGL runtime, GPU/model runtime, model-weight
 loading, media processing, signed URLs, public artifacts, internal beta runtime,
 external beta, and production blocked.
 
+AI graphics internal beta service-role RPC implementation readiness decision
+`ai_graphics_internal_beta_service_role_rpc_implementation_readiness_contract_prepared_with_static_migration`
+adds a static Supabase migration and backend service adapter for the all-21 AI
+graphics service-role queue RPC path. It prepares the `ai_graphics_tool_runtime`
+database enum value, approved snapshot columns on job batches/jobs, four
+service-role-only RPCs, and the backend adapter that calls those RPCs in live
+backend mode while remaining mock-safe locally. The migration is not applied in
+this lane; live service-role transactions, live Supabase writes, worker claims,
+worker dispatch, tool execution, browser/canvas/WebGL runtime, GPU/model
+runtime, media processing, signed URLs, public artifacts, internal beta runtime,
+external beta, and production remain blocked.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

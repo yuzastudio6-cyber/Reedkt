@@ -200,6 +200,9 @@ const changedFiles = Array.from(new Set([
 ]))
 
 const allowedChangedPrefixes = [
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-approval/',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-controlled-activation-execution.md',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-approval-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-product-beta-go-no-go-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-product-beta-readiness-closeout-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-closeout.md',

@@ -1,0 +1,117 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_approval_passed_ready_for_product_beta_runtime_controlled_activation_execution",
+  "previousDecision": "trackb_media_oss_product_beta_readiness_closeout_passed_ready_for_product_beta_runtime_approval",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-approval",
+  "sourceSha": "48135cb415071593e062fb1d94142516ac0a8de7",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION",
+  "rankingPolicy": "least_risky_matching_tool_first_with_metadata_and_probe_routes_before_heavier_analysis_or_transform_routes",
+  "rankingEntryCount": 16,
+  "globalDryRunOrder": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars",
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr",
+    "ffmpeg"
+  ],
+  "metadataAnalysisOrder": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars"
+  ],
+  "videoAnalysisOrder": [
+    "ffprobe",
+    "mediainfo",
+    "pyav",
+    "opencv",
+    "pyscenedetect"
+  ],
+  "colorImageOrder": [
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv"
+  ],
+  "ocrOrder": [
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr"
+  ],
+  "highRiskTransformDeferredTool": "ffmpeg",
+  "allRankingEntriesDryRunOnly": true,
+  "allRankingEntriesExecutionDisabled": true,
+  "useCaseMatrix": [
+    {
+      "useCase": "metadata_probe",
+      "preferredOrder": [
+        "ffprobe",
+        "mediainfo",
+        "exiftool",
+        "duckdb",
+        "polars_nodejs_polars"
+      ],
+      "boundary": "dry_run_routing_only_no_media_probe_runtime"
+    },
+    {
+      "useCase": "video_analysis",
+      "preferredOrder": [
+        "ffprobe",
+        "mediainfo",
+        "pyav",
+        "opencv",
+        "pyscenedetect"
+      ],
+      "boundary": "dry_run_routing_only_no_frame_decode_or_user_media"
+    },
+    {
+      "useCase": "image_color_pipeline",
+      "preferredOrder": [
+        "sharp_libvips",
+        "opencolorio",
+        "openimageio",
+        "imagemagick",
+        "opencv"
+      ],
+      "boundary": "dry_run_routing_only_no_image_processing"
+    },
+    {
+      "useCase": "ocr_text_extraction",
+      "preferredOrder": [
+        "tesseract",
+        "paddlepaddle",
+        "paddleocr"
+      ],
+      "boundary": "dry_run_routing_only_no_ocr_inference"
+    },
+    {
+      "useCase": "high_risk_media_transform",
+      "preferredOrder": [
+        "ffmpeg"
+      ],
+      "boundary": "deferred_until_separate_product_runtime_execution_and_qa"
+    }
+  ]
+}

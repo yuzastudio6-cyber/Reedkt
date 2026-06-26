@@ -50,8 +50,13 @@ const statusDocs = [
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json',
 ]
 
-const allowedChangedPrefixes = [`${reportDir}/`]
+const allowedChangedPrefixes = [
+  `${reportDir}/`,
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-approval/',
+]
 const allowedChangedFiles = new Set([
+  'scripts/validation/trackb-media-oss-product-beta-runtime-approval-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-controlled-activation-execution.md',
   'package.json',
   'scripts/validation/trackb-media-oss-product-beta-readiness-closeout-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-product-beta-go-no-go-review-diagnostics.mjs',

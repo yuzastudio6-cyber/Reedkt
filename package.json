@@ -178,6 +178,7 @@
     "worker-runtime-jobs:sound-cpu-owner-evidence-lane-gap-closure-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-owner-evidence-lane-gap-closure-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-owner-evidence-lane-gap-closure-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-owner-evidence-lane-gap-closure-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-worker-dispatch-contract-gap-closure:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-worker-dispatch-contract-gap-closure-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-claim-lease-lifecycle-gap-closure:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-claim-lease-lifecycle-gap-closure-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

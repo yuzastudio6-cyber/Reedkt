@@ -1,0 +1,49 @@
+# source-of-truth-audit
+
+```json
+{
+  "schema": "reeditpro.trackbMediaOss.productRouteEnablementCloseout.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_product_route_enablement_closeout_passed_ready_for_product_ready_proof_rerun_plan",
+  "previousDecision": "trackb_media_oss_product_beta_runtime_product_route_enablement_qa_passed_ready_for_product_route_enablement_closeout",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_PLAN",
+  "sourcePr": 945,
+  "sourceSha": "34cbf88de1c8b87d55b1d38145c3913143d5d40f",
+  "sourceHead": "135481f576ef0ee055eb66f1327a79ce61fcee67",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "report": "source-of-truth-audit",
+  "acceptedSourceEvidence": [
+    {
+      "pr": 945,
+      "state": "MERGED",
+      "mergeCommit": "34cbf88de1c8b87d55b1d38145c3913143d5d40f",
+      "acceptedAs": "route_enablement_qa_source_truth"
+    },
+    {
+      "pr": 939,
+      "state": "MERGED",
+      "acceptedAs": "bounded_local_staging_route_harness_execution_evidence"
+    },
+    {
+      "pr": 932,
+      "state": "MERGED",
+      "acceptedAs": "route_enablement_plan_source_truth"
+    },
+    {
+      "pr": 930,
+      "state": "MERGED",
+      "acceptedAs": "prior_product_ready_proof_blocker_source_truth"
+    }
+  ],
+  "duplicateOpenCloseoutPrFound": false,
+  "protectedFileHashesCaptured": true,
+  "productRouteEnablementSequenceReadyToClose": true
+}
+```

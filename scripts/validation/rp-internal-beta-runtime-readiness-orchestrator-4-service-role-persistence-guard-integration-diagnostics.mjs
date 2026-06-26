@@ -36,6 +36,11 @@ const codeFiles = [
 
 const allowedChangedFiles = new Set([...packetFiles, ...touchedStatusFiles, ...codeFiles])
 for (const file of [
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-results.md',
   'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/source-audit.md',
   'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/current-environment-closure.md',
   'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/readiness-gate.md',
@@ -44,9 +49,11 @@ for (const file of [
   'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1/validation-results.md',
   'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1-results.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-run.md',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs',
 ]) {
   allowedChangedFiles.add(file)
 }

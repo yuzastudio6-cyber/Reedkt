@@ -22,6 +22,21 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 
+for (const file of [
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-results.md',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-4-service-role-persistence-guard-integration-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
+
 const runtimeReadinessOrchestrator2Files = [
   'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/source-audit.md',
   'docs/internal-beta/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration/orchestrator-integration.md',

@@ -18,6 +18,11 @@ const packetFiles = [
 ]
 
 const touchedStatusFiles = [
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner-record.json',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-results.md',
   'docs/implementation-prompts/prompt-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-run.md',
   'docs/internal-beta/rp-internal-beta-local-readiness-gate-rollup-1/readiness-matrix.md',
   'docs/production-beta-blocker-inventory.md',
@@ -25,10 +30,12 @@ const touchedStatusFiles = [
 ]
 
 const touchedDiagnosticsFiles = [
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-4-service-role-persistence-guard-integration-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-current-environment-closure-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs',
   'package.json',
 ]
 

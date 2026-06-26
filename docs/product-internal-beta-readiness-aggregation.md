@@ -44,3 +44,15 @@ Current status after this handoff is internal beta `blocked_pending_guarded_clea
 The clean branch DB URL secret exists and the guarded runner reached `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho` using `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `1`. The read-only migration history readback shows the clean branch remote history is current only through `202605130006`; required current migrations `202606050001`, `202606180001`, and `20260625031135` are missing.
 
 Current status after this guarded validation is internal beta `blocked_pending_clean_staging_migration_chain_currentness`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+## Clean Branch Migration Chain Apply Attempt
+
+`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-CHAIN-APPLY-1` records decision `blocked_clean_branch_remote_migration_history_has_untracked_versions` and execution `blocked_before_migration_apply_no_sql_mutation`.
+
+The guarded runner reached `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho` using `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `1`, ran migration history readback, and ran `supabase db push --dry-run --db-url [redacted]`. The dry-run blocked before apply because remote-only migration versions `20260610235210` and `20260626162800` are present in clean branch history but not as local migration files.
+
+No migration apply, SQL mutation, migration history manual edit, RLS policy apply, storage bucket metadata upsert, storage object creation/read, service-role route execution, worker execution, internal beta unlock, external beta unlock, production unlock, package-lock mutation, or generated artifact commit occurred.
+
+Current status after this apply attempt is internal beta `blocked_pending_clean_staging_migration_history_reconciliation`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1`.

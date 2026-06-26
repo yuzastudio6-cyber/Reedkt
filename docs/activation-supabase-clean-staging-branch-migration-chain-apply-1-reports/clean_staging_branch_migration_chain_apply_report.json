@@ -1,0 +1,195 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-CHAIN-APPLY-1",
+  "runId": "2026-06-26T18-32-12-934Z-5959eece",
+  "outputDir": "/tmp/reeditpro-supabase-clean-staging-branch-migration-chain-apply-1/2026-06-26T18-32-12-934Z-5959eece",
+  "generatedAt": "2026-06-26T18:32:20.794Z",
+  "parentProjectName": "Reeditpro",
+  "parentProjectRef": "wmyyttnynmteqgcdishd",
+  "cleanBranchName": "reeditpro-internal-staging-clean",
+  "cleanBranchRef": "fnjiylwirntrqdcwpbho",
+  "cleanBranchDbUrlSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+  "accessTokenSecret": "SUPABASE_ACCESS_TOKEN",
+  "decision": "blocked_clean_branch_remote_migration_history_has_untracked_versions",
+  "execution": "blocked_before_migration_apply_no_sql_mutation",
+  "blocker": "blocked_clean_branch_remote_migration_history_has_untracked_versions",
+  "confirmation": "present_true",
+  "credentialMetadata": {
+    "supabaseAccessTokenSecret": "SUPABASE_ACCESS_TOKEN",
+    "supabaseAccessTokenLatestVersion": {
+      "present": true,
+      "name": "5",
+      "state": "enabled",
+      "createTime": "2026-06-26T14:36:16"
+    },
+    "cleanBranchDbUrlSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+    "cleanBranchDbUrlLatestVersion": {
+      "present": true,
+      "name": "1",
+      "state": "enabled",
+      "createTime": "2026-06-26T17:57:40"
+    },
+    "dbUrlPayloadPrinted": false,
+    "dbUrlPayloadPersistedInRepo": false
+  },
+  "beforeMigrationHistory": {
+    "status": "passed",
+    "commandClass": "supabase migration list --db-url [redacted]",
+    "dbUrlPrinted": false,
+    "commandResult": {
+      "commandClass": "supabase migration list --db-url [redacted]",
+      "status": "passed",
+      "exitCode": 0,
+      "stdout": {
+        "byteLength": 1629,
+        "lineCount": 28,
+        "snippet": "Local          | Remote         | Time (UTC)          \n  ----------------|----------------|---------------------\n   202605130001   | 202605130001   | 202605130001        \n   202605130002   | 202605130002   | 202605130002        \n   202605130003   | 202605130003   | 202605130003        \n   202605130004   | 202605130004   | 202605130004        \n   202605130005   | 202605130005   | 202605130005        \n   202605130006   | 202605130006   | 202605130006        \n   202605130007   |                | 202605130007        \n   202605130008   |                | 202605130008        \n   202605180001   |                | 202605180001        \n   202605180002   |                | 202605180002        \n   202605180003   |                | 202605180003        \n   202605180004   |                | 202605180004        \n   202605180005   |                | 202605180005        \n   202605180006   |                | 202605180006        \n   202605180007   |                | 202605180007        \n   202605180008   |                | 202605180008        \n   202605190001   |                | 202605190001        \n   202605190002   |                | 202605190002        \n   202605200001   |                | 202605200001        \n   202605200002   |                | 202605200002        \n   202605210001   |                | 202605210001        \n   202606050001   |                | 202606050001        \n   202606180001   |                | 202606180001        \n                  | 20260610235210 | 2026-06-10 23:52:10 \n   20260625031135 |                | 2026-06-25 03:11:35 \n                  | 20260626162800 | 2026-06-26 16:28:00",
+        "secretPatternDetected": false
+      },
+      "stderr": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "snippet": "",
+        "secretPatternDetected": false
+      }
+    },
+    "migrationHistoryParsed": false,
+    "migrationHistoryTextParsed": true,
+    "migrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "20260610235210",
+      "20260626162800"
+    ],
+    "localMigrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001",
+      "202606180001",
+      "20260625031135"
+    ],
+    "remoteMigrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "20260610235210",
+      "20260626162800"
+    ],
+    "pendingLocalMigrationIds": [
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001",
+      "202606180001",
+      "20260625031135"
+    ],
+    "remoteOnlyMigrationIds": [
+      "20260610235210",
+      "20260626162800"
+    ],
+    "untrackedRemoteMigrationIds": [
+      "20260610235210",
+      "20260626162800"
+    ],
+    "targetRegistryMigrationPresent": false,
+    "workerRpcMigrationPresent": false,
+    "internalBetaGapMigrationPresent": false
+  },
+  "beforeMissingRequiredMigrationIds": [
+    "202606050001",
+    "202606180001",
+    "20260625031135"
+  ],
+  "untrackedRemoteMigrationIds": [
+    "20260610235210",
+    "20260626162800"
+  ],
+  "dryRun": {
+    "status": "blocked",
+    "commandClass": "supabase db push --dry-run --db-url [redacted]",
+    "dbUrlPrinted": false,
+    "commandResult": {
+      "commandClass": "supabase db push --dry-run --db-url [redacted]",
+      "status": "blocked",
+      "exitCode": 1,
+      "stdout": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "snippet": "",
+        "secretPatternDetected": false
+      },
+      "stderr": {
+        "byteLength": 417,
+        "lineCount": 9,
+        "snippet": "DRY RUN: migrations will *not* be pushed to the database.\nConnecting to remote database...\nRemote migration versions not found in local migrations directory.\n\nMake sure your local git repo is up-to-date. If the error persists, try repairing the migration history table:\nsupabase migration repair --status reverted 20260610235210 20260626162800\n\nAnd update local migrations to match remote database:\nsupabase db pull",
+        "secretPatternDetected": false
+      }
+    }
+  },
+  "safety": {
+    "secretManagerPayloadAccess": true,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "remoteSupabaseReadCommand": true,
+    "remoteSupabaseMutation": false,
+    "sqlExecution": false,
+    "sqlMutation": false,
+    "migrationDryRun": true,
+    "migrationApply": false,
+    "migrationHistoryTableManualEdit": false,
+    "migrationHistoryUpdatedBySupabaseCliApply": false,
+    "rlsPolicyApplyByMigration": false,
+    "readOnlyCatalogSql": false,
+    "storageBucketMetadataUpsertByMigration": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "storageBucketMetadataRead": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

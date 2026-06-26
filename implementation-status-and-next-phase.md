@@ -786,6 +786,20 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next recommended milestone: `SUPABASE-STAGING-MIGRATION-HISTORY-OWNER-DECISION-1`.
 
+## SUPABASE Clean Staging Branch Migration Chain Apply 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-CHAIN-APPLY-1` records decision `blocked_clean_branch_remote_migration_history_has_untracked_versions` and execution `blocked_before_migration_apply_no_sql_mutation`.
+
+The guarded runner used `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `1` for `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho`, ran `supabase migration list --db-url [redacted]`, then ran `supabase db push --dry-run --db-url [redacted]`. The dry-run refused to proceed because clean branch history has remote-only migration versions `20260610235210` and `20260626162800` that are not local migration files.
+
+Migration apply: `not_run_dry_run_blocked`. SQL execution: `none`. SQL mutation: `none`. Migration history manual edit: `no`. Storage object creation/read: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_clean_staging_migration_history_reconciliation`. WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_clean_staging_migration_history_reconciliation`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_clean_staging_migration_history_reconciliation`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1`.
+
 ## SUPABASE Staging Migration History Owner Decision 1
 
 `SUPABASE-STAGING-MIGRATION-HISTORY-OWNER-DECISION-1` records decision `blocked_no_owner_approval_for_staging_migration_apply_or_clean_target` and execution `completed_docs_only_staging_migration_history_owner_decision_no_sql_mutation`.

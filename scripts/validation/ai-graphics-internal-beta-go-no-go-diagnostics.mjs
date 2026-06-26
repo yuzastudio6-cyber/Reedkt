@@ -4,10 +4,11 @@ import os from 'node:os'
 import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
-const runScriptName = 'ai-graphics:internal-beta-production-worker-gate-readiness'
-const runScriptCommand = 'tsx server/cli/ai-graphics-internal-beta-production-worker-gate-readiness.ts'
-const diagnosticScriptName = 'ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics'
-const diagnosticScriptCommand = 'node scripts/validation/ai-graphics-internal-beta-production-worker-gate-readiness-diagnostics.mjs'
+const runScriptName = 'ai-graphics:internal-beta-go-no-go'
+const runScriptCommand = 'tsx server/cli/ai-graphics-internal-beta-go-no-go.ts'
+const diagnosticScriptName = 'ai-graphics:internal-beta-go-no-go:diagnostics'
+const diagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-internal-beta-go-no-go-diagnostics.mjs'
 
 const allTools = [
   'torch_torchvision',
@@ -48,20 +49,6 @@ const capabilities = [
   'model_runtime_foundation',
 ]
 
-const requiredGateNames = [
-  'approved_snapshot',
-  'idempotency',
-  'raw_prompt_block',
-  'signed_url_block',
-  'secret_block',
-  'registry_runtime',
-  'license_model_weight',
-  'credit_reservation',
-  'artifact_policy',
-  'qa_policy',
-  'worker_mode',
-]
-
 const falseGateKeys = [
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
@@ -91,6 +78,8 @@ const falseGateKeys = [
   'modelWeightsDownloaded',
   'modelWeightsLoaded',
   'mediaProcessingPerformed',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
   'publicArtifactCreated',
   'signedUrlCreated',
 ]
@@ -142,7 +131,7 @@ function parseJsonOutput(output, label) {
 }
 
 function writeAcceptedEvidencePackets() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-production-worker-gate-readiness-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-internal-beta-go-no-go-'))
   const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
   fs.writeFileSync(manifestPacketPath, `${JSON.stringify({
@@ -170,83 +159,135 @@ function writeAcceptedEvidencePackets() {
 }
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-internal-beta-production-worker-gate-readiness.ts',
-  'server/cli/ai-graphics-internal-beta-production-worker-gate-readiness.ts',
-  'scripts/validation/ai-graphics-internal-beta-production-worker-gate-readiness-diagnostics.mjs',
-  'docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.md',
-  'docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.json',
-  'docs/tool-intelligence/ai-graphics/internal-beta-production-worker-job-readiness.json',
-  'server/workers/production/production-worker-gates.ts',
-  'server/workers/production/production-worker-idempotency.ts',
+  'server/tool-registry/ai-graphics-internal-beta-go-no-go.ts',
+  'server/cli/ai-graphics-internal-beta-go-no-go.ts',
+  'scripts/validation/ai-graphics-internal-beta-go-no-go-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/internal-beta-go-no-go.md',
+  'docs/tool-intelligence/ai-graphics/internal-beta-go-no-go.json',
+  'docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json',
+  'docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.md',
+  'docs/production-beta-readiness-scorecard.md',
 ]
 
 for (const file of requiredFiles) read(file)
 
 const pkg = json('package.json')
-const docs = json('docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.json')
-const moduleSource = read('server/tool-registry/ai-graphics-internal-beta-production-worker-gate-readiness.ts')
-const cliSource = read('server/cli/ai-graphics-internal-beta-production-worker-gate-readiness.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/internal-beta-go-no-go.json')
+const moduleSource = read('server/tool-registry/ai-graphics-internal-beta-go-no-go.ts')
+const cliSource = read('server/cli/ai-graphics-internal-beta-go-no-go.ts')
 const indexSource = read('server/tool-registry/index.ts')
-const markdown = read('docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.md')
+const markdown = read('docs/tool-intelligence/ai-graphics/internal-beta-go-no-go.md')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_script:${runScriptName}`)
-if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) fail(`missing_package_script:${diagnosticScriptName}`)
-if (!indexSource.includes("export * from './ai-graphics-internal-beta-production-worker-gate-readiness'")) {
-  fail('server_registry_index_does_not_export_internal_beta_production_worker_gate_readiness')
+if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
+  fail(`missing_package_script:${diagnosticScriptName}`)
 }
-if (docs.decision !== 'ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime') {
+if (!indexSource.includes("export * from './ai-graphics-internal-beta-go-no-go'")) {
+  fail('server_registry_index_does_not_export_internal_beta_go_no_go')
+}
+
+if (docs.decision !== 'ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
-if (docs.sourceDecision !== 'ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime') {
-  fail(`unexpected_source_decision:${docs.sourceDecision}`)
+if (docs.status !== 'awaiting_internal_beta_go_no_go_approval') {
+  fail(`unexpected_docs_status:${docs.status}`)
 }
+if (docs.sourceDecision !== 'ai_graphics_beta_production_readiness_rollup_prepared_with_runtime_blocks') {
+  fail(`unexpected_docs_source_decision:${docs.sourceDecision}`)
+}
+
 for (const status of [
   'missing_technical_evidence',
-  'awaiting_owner_approval',
-  'owner_approved_production_worker_gate_checks_ready',
+  'awaiting_internal_beta_go_no_go_approval',
+  'internal_beta_go_no_go_approved_runtime_still_blocked',
 ]) {
-  if (!docs.states?.includes(status)) fail(`docs_missing_status:${status}`)
   if (!moduleSource.includes(status)) fail(`module_missing_status:${status}`)
 }
+
 for (const tool of allTools) {
   if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
   if (!markdown.includes(`\`${tool}\``)) fail(`markdown_missing_tool:${tool}`)
 }
 for (const capability of capabilities) {
   if (!docs.capabilities?.includes(capability)) fail(`docs_missing_capability:${capability}`)
+  if (!markdown.includes(`\`${capability}\``)) fail(`markdown_missing_capability:${capability}`)
 }
-for (const gateName of requiredGateNames) {
-  if (!docs.requiredGateNames?.includes(gateName)) fail(`docs_missing_gate:${gateName}`)
-  if (!moduleSource.includes(gateName)) fail(`module_missing_gate:${gateName}`)
-  if (!markdown.includes(`\`${gateName}\``)) fail(`markdown_missing_gate:${gateName}`)
+
+for (const [key, expected] of Object.entries({
+  totalAiGraphicsTools: 21,
+  totalProductFacingCapabilities: 12,
+  goNoGoCandidateToolsWithProvidedEvidence: 21,
+  goNoGoCandidateCapabilitiesWithProvidedEvidence: 12,
+  internalBetaGoNoGoApprovedToolsWithProvidedEvidence: 0,
+  internalBetaReadyNowTools: 0,
+  externalBetaReadyNowTools: 0,
+  productionReadyNowTools: 0,
+})) {
+  if (docs.counts?.[key] !== expected) fail(`docs_count_mismatch:${key}:${docs.counts?.[key]}`)
 }
-for (const token of [
-  'runProductionWorkerGates',
-  'getHardFailedGates',
-  'production worker dispatch',
-  'production worker route execution',
-  '--require-owner-approved-production-worker-gates-ready',
-]) {
-  if (!moduleSource.includes(token) && !cliSource.includes(token) && !JSON.stringify(docs).includes(token) && !markdown.includes(token)) {
-    fail(`source_missing:${token}`)
+
+for (const [key, expected] of Object.entries({
+  required: true,
+  approverRole: 'AI_TOOLS_CREATIVE_GRAPHICS_OWNER',
+  goNoGoRefRequired: true,
+  approvesRuntimeNow: false,
+})) {
+  if (docs.requiredApprovalRecord?.[key] !== expected) {
+    fail(`docs_approval_record_mismatch:${key}:${docs.requiredApprovalRecord?.[key]}`)
   }
 }
-if (docs.counts?.productionWorkerGateChecksPrepared !== 21) fail('docs_gate_checks_not_21')
-if (docs.counts?.capabilityProductionWorkerGateScenariosPrepared !== 12) fail('docs_capability_gate_scenarios_not_12')
-if (docs.counts?.ownerApprovedProductionWorkerGateChecksAcceptedWithProvidedEvidence !== 21) {
-  fail('docs_owner_gate_checks_not_21')
-}
-if (docs.counts?.ownerApprovedCapabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence !== 12) {
-  fail('docs_owner_capability_gate_scenarios_not_12')
-}
-if (docs.counts?.hardFailedGateChecksWithProvidedEvidence !== 0) fail('docs_hard_failed_gate_checks_not_0')
-if (docs.counts?.productionWorkerGateChecksReadyNow !== 0) fail('docs_gate_checks_ready_now_not_0')
 
-const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_production_worker_gate')
+for (const action of [
+  'accept all-21 install, ranking, GPU targeting, and cross-owner coordination evidence',
+  'accept all-21 production worker gate checks with provided evidence and zero hard failures',
+  'record owner go/no-go approval metadata for the future internal beta runtime lane',
+  'return explicit runtime, Tool Route, Worker, artifact, external beta, and production blockers',
+]) {
+  if (!docs.allowedGoNoGoActions?.includes(action)) fail(`docs_missing_allowed_action:${action}`)
+  if (!moduleSource.includes(action)) fail(`module_missing_allowed_action:${action}`)
+}
+
+for (const action of [
+  'Tool Route execution',
+  'Worker queue enqueue',
+  'production worker dispatch',
+  'browser/WebGL/canvas runtime execution',
+  'GPU/model runtime execution',
+  'model weight download or load',
+  'signed URL creation',
+  'public artifact creation',
+  'external beta unlock',
+  'production unlock',
+]) {
+  if (!docs.blockedRuntimeActions?.includes(action)) fail(`docs_missing_blocked_action:${action}`)
+  if (!moduleSource.includes(action)) fail(`module_missing_blocked_action:${action}`)
+}
+
+for (const key of [
+  'internalBetaGoNoGoContractPrepared',
+  'sourceBetaProductionReadinessRollupAccepted',
+  'internalBetaGoNoGoReadyWithProvidedEvidence',
+  'all21ToolsCovered',
+  'all12CapabilitiesCovered',
+  'agentCanSelectForPlanning',
+]) {
+  if (docs.booleans?.[key] !== true) fail(`docs_true_boolean_not_true:${key}`)
+}
+
+for (const key of [
+  'internalBetaGoNoGoApprovalRecordAccepted',
+  'all21ToolsInternalBetaGoNoGoApprovedWithProvidedEvidence',
+  ...falseGateKeys,
+]) {
+  if (docs.booleans?.[key] !== false) fail(`docs_false_boolean_not_false:${key}`)
+}
+
+const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_go_no_go')
 if (defaultOutput.status !== 'missing_technical_evidence') fail(`default_status:${defaultOutput.status}`)
-if (defaultOutput.ownerApprovedProductionWorkerGateEvidenceAccepted !== false) fail('default_owner_gate_not_false')
-if (defaultOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence !== 0) fail('default_gate_checks_not_0')
+if (defaultOutput.booleans?.internalBetaGoNoGoReadyWithProvidedEvidence !== false) {
+  fail('default_internal_beta_ready_with_evidence_not_false')
+}
 
 const { manifestPacketPath, gpuPacketPath } = writeAcceptedEvidencePackets()
 let awaitingExited = false
@@ -260,18 +301,28 @@ try {
     manifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     gpuPacketPath,
-    '--require-owner-approved-production-worker-gates-ready',
+    '--owner-approval-granted',
+    '--owner-approval-ref',
+    'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+    '--require-internal-beta-go-no-go-approved',
   ])
 } catch (error) {
   awaitingExited = true
   awaitingOutputText = `${error.stdout || ''}${error.stderr || ''}`
 }
-const awaitingOutput = parseJsonOutput(awaitingOutputText, 'awaiting_owner_approval')
-if (!awaitingExited) fail('awaiting_owner_approval_require_did_not_fail')
-if (awaitingOutput.status !== 'awaiting_owner_approval') fail(`awaiting_status:${awaitingOutput.status}`)
-if (awaitingOutput.ownerApprovedProductionWorkerGateEvidenceAccepted !== false) fail('awaiting_owner_gate_not_false')
+const awaitingOutput = parseJsonOutput(awaitingOutputText, 'awaiting_go_no_go')
+if (!awaitingExited) fail('awaiting_internal_beta_go_no_go_require_did_not_fail')
+if (awaitingOutput.status !== 'awaiting_internal_beta_go_no_go_approval') {
+  fail(`awaiting_status:${awaitingOutput.status}`)
+}
+if (awaitingOutput.booleans?.internalBetaGoNoGoReadyWithProvidedEvidence !== true) {
+  fail('awaiting_ready_with_provided_evidence_not_true')
+}
+if (awaitingOutput.booleans?.internalBetaGoNoGoApprovalRecordAccepted !== false) {
+  fail('awaiting_approval_record_not_false')
+}
 
-const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
+const approvedArgs = [
   '--use-committed-js-runtime-proofs',
   '--all-technical-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
@@ -282,44 +333,46 @@ const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   '--owner-approval-granted',
   '--owner-approval-ref',
   'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
-  '--require-owner-approved-production-worker-gates-ready',
-]), 'approved_production_worker_gate')
-
-if (approvedOutput.status !== 'owner_approved_production_worker_gate_checks_ready') {
+  '--internal-beta-go-no-go-approved',
+  '--internal-beta-go-no-go-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-approved',
+]
+const approvedOutput = parseJsonOutput(runNpm(runScriptName, approvedArgs), 'approved_go_no_go')
+if (approvedOutput.status !== 'internal_beta_go_no_go_approved_runtime_still_blocked') {
   fail(`approved_status:${approvedOutput.status}`)
 }
-if (approvedOutput.ownerApprovedProductionWorkerGateEvidenceAccepted !== true) fail('approved_owner_gate_not_true')
-if (approvedOutput.productionWorkerGateChecksPrepared !== 21) fail('approved_gate_checks_not_21')
-if (approvedOutput.capabilityProductionWorkerGateScenariosPrepared !== 12) fail('approved_capability_gate_scenarios_not_12')
-if (approvedOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence !== 21) fail('approved_gate_checks_accepted_not_21')
-if (approvedOutput.capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence !== 12) {
-  fail('approved_capability_gate_scenarios_accepted_not_12')
+if (approvedOutput.totalAiGraphicsTools !== 21) fail('approved_total_tools_not_21')
+if (approvedOutput.totalProductFacingCapabilities !== 12) fail('approved_capabilities_not_12')
+if (approvedOutput.goNoGoCandidateToolsWithProvidedEvidence !== 21) {
+  fail('approved_candidate_tools_not_21')
 }
-if (approvedOutput.hardFailedGateChecksWithProvidedEvidence !== 0) fail('approved_hard_failed_gate_checks_not_0')
-if (approvedOutput.productionWorkerGateChecksReadyNow !== 0) fail('approved_gate_checks_ready_now_not_0')
-if (approvedOutput.productionWorkerGateChecks?.length !== 21) fail('approved_gate_payload_length_not_21')
-if (approvedOutput.capabilityProductionWorkerGateScenarios?.length !== 12) {
-  fail('approved_capability_gate_payload_length_not_12')
+if (approvedOutput.goNoGoCandidateCapabilitiesWithProvidedEvidence !== 12) {
+  fail('approved_candidate_capabilities_not_12')
+}
+if (approvedOutput.internalBetaGoNoGoApprovedToolsWithProvidedEvidence !== 21) {
+  fail('approved_tools_not_21')
+}
+if (approvedOutput.internalBetaReadyNowTools !== 0) fail('approved_internal_beta_now_tools_not_0')
+if (approvedOutput.externalBetaReadyNowTools !== 0) fail('approved_external_beta_now_tools_not_0')
+if (approvedOutput.productionReadyNowTools !== 0) fail('approved_production_now_tools_not_0')
+if (approvedOutput.requiredApprovalRecord?.approverRole !== 'AI_TOOLS_CREATIVE_GRAPHICS_OWNER') {
+  fail('approved_required_role_mismatch')
+}
+if (approvedOutput.requiredApprovalRecord?.approvesRuntimeNow !== false) {
+  fail('approved_record_unexpectedly_approves_runtime')
+}
+if (approvedOutput.booleans?.all21ToolsInternalBetaGoNoGoApprovedWithProvidedEvidence !== true) {
+  fail('approved_all21_go_no_go_not_true')
 }
 
-for (const gateResult of approvedOutput.productionWorkerGateChecks ?? []) {
-  if (gateResult.gateCheckShapeValid !== true) fail(`gate_shape_invalid:${gateResult.toolId}`)
-  if (gateResult.gateChecksAcceptedWithProvidedEvidence !== true) fail(`gate_not_accepted:${gateResult.toolId}`)
-  if (gateResult.hardFailedGateNames?.length !== 0) fail(`gate_hard_failures:${gateResult.toolId}`)
-  if (gateResult.canEnqueueProductionWorkerJobNow !== false) fail(`gate_enqueue_not_false:${gateResult.toolId}`)
-  if (gateResult.canDispatchProductionWorkerJobNow !== false) fail(`gate_dispatch_not_false:${gateResult.toolId}`)
-  if (gateResult.canRunProductionWorkerRouteNow !== false) fail(`gate_route_not_false:${gateResult.toolId}`)
-  if (gateResult.canExecuteToolNow !== false) fail(`gate_execute_not_false:${gateResult.toolId}`)
-  const gateNames = (gateResult.gateChecks ?? []).map((gate) => gate.gateName)
-  for (const gateName of requiredGateNames) {
-    if (!gateNames.includes(gateName)) fail(`gate_result_missing_gate:${gateResult.toolId}:${gateName}`)
-  }
-  for (const gate of gateResult.gateChecks ?? []) {
-    if (!gate.gateName || !gate.status || typeof gate.hardBlock !== 'boolean' || !gate.message || !Array.isArray(gate.warnings)) {
-      fail(`gate_result_bad_shape:${gateResult.toolId}:${gate.gateName}`)
-    }
-  }
+let runtimeRequireExited = false
+try {
+  runNpm(runScriptName, [...approvedArgs, '--require-runtime-ready'])
+} catch {
+  runtimeRequireExited = true
 }
+if (!runtimeRequireExited) fail('require_runtime_ready_did_not_fail')
 
 for (const output of [defaultOutput, awaitingOutput, approvedOutput]) {
   for (const key of falseGateKeys) {
@@ -329,8 +382,11 @@ for (const output of [defaultOutput, awaitingOutput, approvedOutput]) {
   }
 }
 
-if (!scorecard.includes('ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime')) {
-  fail('scorecard_missing_internal_beta_production_worker_gate_readiness_decision')
+if (!scorecard.includes('ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks')) {
+  fail('scorecard_missing_internal_beta_go_no_go_decision')
+}
+if (!scorecard.includes('awaiting_internal_beta_go_no_go_approval')) {
+  fail('scorecard_missing_awaiting_internal_beta_go_no_go_status')
 }
 
 const forbiddenTruePatterns = [
@@ -364,10 +420,10 @@ const forbiddenTruePatterns = [
   /generated_local_fixture_passed/i,
 ]
 const combinedText = [
-  'docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.md',
-  'docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.json',
-  'server/tool-registry/ai-graphics-internal-beta-production-worker-gate-readiness.ts',
-  'server/cli/ai-graphics-internal-beta-production-worker-gate-readiness.ts',
+  'docs/tool-intelligence/ai-graphics/internal-beta-go-no-go.md',
+  'docs/tool-intelligence/ai-graphics/internal-beta-go-no-go.json',
+  'server/tool-registry/ai-graphics-internal-beta-go-no-go.ts',
+  'server/cli/ai-graphics-internal-beta-go-no-go.ts',
   'docs/production-beta-readiness-scorecard.md',
 ].map(read).join('\n')
 for (const pattern of forbiddenTruePatterns) {
@@ -397,14 +453,8 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
-  '+    "ai-graphics:internal-beta-production-worker-job-readiness": "tsx server/cli/ai-graphics-internal-beta-production-worker-job-readiness.ts",',
-  '+    "ai-graphics:internal-beta-production-worker-job-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-production-worker-job-readiness-diagnostics.mjs",',
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:beta-production-readiness-rollup": "tsx server/cli/ai-graphics-beta-production-readiness-rollup.ts",',
-  '+    "ai-graphics:beta-production-readiness-rollup:diagnostics": "node scripts/validation/ai-graphics-beta-production-readiness-rollup-diagnostics.mjs",',
-  '+    "ai-graphics:internal-beta-go-no-go": "tsx server/cli/ai-graphics-internal-beta-go-no-go.ts",',
-  '+    "ai-graphics:internal-beta-go-no-go:diagnostics": "node scripts/validation/ai-graphics-internal-beta-go-no-go-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue
@@ -420,17 +470,19 @@ if (failures.length) {
 console.log(JSON.stringify({
   status: 'passed',
   decision: docs.decision,
+  docsStatus: docs.status,
   defaultStatus: defaultOutput.status,
   awaitingStatus: awaitingOutput.status,
   approvedStatus: approvedOutput.status,
   toolsCovered: allTools.length,
-  productionWorkerGateChecksAcceptedWithProvidedEvidence:
-    approvedOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence,
-  capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence:
-    approvedOutput.capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence,
-  hardFailedGateChecksWithProvidedEvidence: approvedOutput.hardFailedGateChecksWithProvidedEvidence,
-  productionWorkerGateChecksReadyNow: approvedOutput.productionWorkerGateChecksReadyNow,
+  capabilitiesCovered: capabilities.length,
+  approvedToolsWithProvidedEvidence:
+    approvedOutput.internalBetaGoNoGoApprovedToolsWithProvidedEvidence,
   agentCanExecuteToolsNow: approvedOutput.booleans?.agentCanExecuteToolsNow,
+  routeExecutionApprovedNow: approvedOutput.booleans?.routeExecutionApprovedNow,
+  workerExecutionApprovedNow: approvedOutput.booleans?.workerExecutionApprovedNow,
   runtimeReadyNow: approvedOutput.booleans?.runtimeReadyNow,
+  internalBetaReadyNow: approvedOutput.booleans?.internalBetaReadyNow,
+  externalBetaReadyNow: approvedOutput.booleans?.externalBetaReadyNow,
   productionReadyNow: approvedOutput.booleans?.productionReadyNow,
 }, null, 2))

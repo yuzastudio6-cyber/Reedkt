@@ -15,6 +15,18 @@ browser/canvas/WebGL, run GPU/model runtime, download/load model weights,
 process media, create signed URLs or public artifacts, unlock internal/external
 beta, or unlock production.
 
+AI graphics internal beta go/no-go decision
+`ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`
+prepares the explicit owner go/no-go contract for the all-21 AI graphics
+technical evidence bundle. Current status is
+`awaiting_internal_beta_go_no_go_approval`: the technical rollup can be accepted
+with provided evidence, but the go/no-go approval record is still required.
+This contract does not execute tools, run Tool Routes, queue or dispatch
+Workers, call providers/models, run browser/canvas/WebGL, run GPU/model
+runtime, download or load model weights, process media, create signed URLs or
+public artifacts, unlock internal beta runtime, unlock external beta, or unlock
+production.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

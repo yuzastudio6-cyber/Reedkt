@@ -59,3 +59,12 @@ M17 does not grant go approval. Phase 18 also does not grant go approval; it onl
 - Observability and support metadata now defines required log coverage, metric coverage, error coverage, privacy-safe telemetry policy, alert routing, incident severity policy, support ownership, and escalation evidence.
 - No telemetry provider connection, live telemetry emission, alert route creation, incident tooling mutation, support queue creation, Supabase/GCS write, SQL, migration, worker dispatch, provider call, external beta, or production command is authorized by this plan.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Backend / Database / Billing / Credit Ledger Readiness Plan Status
+
+- Decision: `reeditpro_backend_database_billing_credit_ledger_readiness_plan_passed_ready_for_worker_generation_export_e2e_readiness_plan`
+- Next prompt: `REEDITPRO_WORKER_GENERATION_EXPORT_E2E_READINESS_PLAN`
+- Current status: external beta and production remain blocked.
+- Backend/database/billing/credit-ledger metadata now defines required owners, schema areas, migration evidence, billing integration proof, credit ledger states, audit logging prerequisites, and downstream worker E2E proof requirements.
+- No SQL, migration, Supabase mutation, billing provider connection, webhook creation, credit reservation/spend/refund, ledger mutation, worker dispatch, provider call, media processing, external beta, or production command is authorized by this plan.
+- Supabase classification: no write / environment none / SQL none / migration no.

@@ -1,0 +1,20 @@
+{
+  "packet": "SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1",
+  "runId": "2026-06-26T20-27-24-319Z-d8696635",
+  "outputDir": "/tmp/reeditpro-supabase-worker-runtime-transactional-rpc-isolated-target-readback-1/2026-06-26T20-27-24-319Z-d8696635",
+  "generatedAt": "2026-06-26T20:27:28.457Z",
+  "artifacts": [
+    {
+      "fileName": "worker_runtime_transactional_rpc_isolated_target_readback_report.json",
+      "path": "docs/activation-supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-reports/worker_runtime_transactional_rpc_isolated_target_readback_report.json",
+      "bytes": 11503,
+      "sha256": "a6548f0ef96d84686c75d89b30586a04c2dc3125b5e85552cad65a2ddb07cad5"
+    },
+    {
+      "fileName": "worker_runtime_transactional_rpc_isolated_target_readback_manifest.json",
+      "path": "docs/activation-supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-reports/worker_runtime_transactional_rpc_isolated_target_readback_manifest.json",
+      "bytes": 726,
+      "sha256": "bb92f1f91c07599365e5519e223012d364e50209f0658bdb44458e429d930c21"
+    }
+  ]
+}

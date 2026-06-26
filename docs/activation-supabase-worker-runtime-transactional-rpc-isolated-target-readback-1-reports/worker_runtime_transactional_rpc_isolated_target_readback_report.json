@@ -1,0 +1,240 @@
+{
+  "packet": "SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1",
+  "runId": "2026-06-26T20-27-24-319Z-d8696635",
+  "outputDir": "/tmp/reeditpro-supabase-worker-runtime-transactional-rpc-isolated-target-readback-1/2026-06-26T20-27-24-319Z-d8696635",
+  "generatedAt": "2026-06-26T20:27:28.457Z",
+  "targetProjectName": "reeditpro-clean-staging-isolated-v1",
+  "targetProjectRef": "fajinbvwhcjnutkaumkm",
+  "targetDbUrlSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+  "decision": "completed_worker_runtime_transactional_rpc_isolated_target_readback",
+  "execution": "completed_guarded_readonly_worker_rpc_catalog_readback_no_runtime_execution",
+  "blocker": "none",
+  "confirmation": "present_true",
+  "credentialMetadata": {
+    "targetDbUrlSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+    "targetDbUrlLatestVersion": {
+      "present": true,
+      "name": "projects/390722338345/secrets/REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL/versions/2",
+      "state": "ENABLED",
+      "createTime": "2026-06-26T19:59:00.940100Z"
+    },
+    "dbUrlPayloadPrinted": false,
+    "dbUrlPayloadPersistedInRepo": false
+  },
+  "readback": {
+    "status": "passed",
+    "commandClass": "psql readonly worker_runtime catalog query [db-url redacted]",
+    "commandResult": {
+      "commandClass": "psql readonly worker_runtime catalog query [db-url redacted]",
+      "status": "passed",
+      "exitCode": 0,
+      "stdout": {
+        "byteLength": 4199,
+        "lineCount": 1,
+        "snippet": "{\"policyCount\": 0, \"tableStatus\": [{\"present\": true, \"relname\": \"worker_job_artifacts\", \"anon_select\": false, \"rls_enabled\": true, \"public_select\": false, \"service_role_delete\": true, \"service_role_insert\": true, \"service_role_select\": true, \"service_role_update\": true, \"authenticated_select\": false}, {\"present\": true, \"relname\": \"worker_job_events\", \"anon_select\": false, \"rls_enabled\": true, \"public_select\": false, \"service_role_delete\": true, \"service_role_insert\": true, \"service_role_select\": true, \"service_role_update\": true, \"authenticated_select\": false}, {\"present\": true, \"relname\": \"worker_jobs\", \"anon_select\": false, \"rls_enabled\": true, \"public_select\": false, \"service_role_delete\": true, \"service_role_insert\": true, \"service_role_select\": true, \"service_role_update\": true, \"authenticated_select\": false}], \"missingTables\": [], \"schemaPresent\": true, \"expectedTables\": [\"worker_jobs\", \"worker_job_events\", \"worker_job_artifacts\"], \"functionStatus\": [{\"present\": true, \"proname\": \"append_tracka_private_e2e_event\", \"arguments\": \"p_worker_job_id uuid, p_event_type text, p_event_payload_sanitized jsonb DEFAULT '{}'::jsonb, p_actor_type text DEFAULT 'system'::text, p_actor_ref text DEFAULT NULL::text, p_idempotency_key text DEFAULT NULL::text\", \"anon_execute\": false, \"public_execute\": false, \"security_definer\": true, \"service_role_execute\": true, \"authenticated_execute\": false}, {\"present\": true, \"proname\": \"cancel_tracka_private_e2e_job\", \"arguments\": \"p_worker_job_id uuid, p_actor_ref text, p_cancel_reason text, p_idempotency_key text DEFAULT NULL::text\", \"anon_execute\": false, \"public_execute\": false, \"security_definer\": true, \"service_role_execute\": true, \"authenticated_execute\": false}, {\"present\": true, \"proname\": \"claim_tracka_private_e2e_job\", \"arguments\": \"p_worker_instance_id text, p_lease_owner text, p_idempotency_key text, p_lease_duration interval DEFAULT '00:15:00'::interval\", \"anon_execute\": false, \"public_execute\": false, \"security_definer\": true, \"service_role_execute\": true, \"authenticated_execute\": false}, {\"present\": true, \"proname\": \"complete_tracka_private_e2e_job\", \"arguments\": \"p_worker_job_id uuid, p_lease_owner text, p_artifact_manifes",
+        "secretPatternDetected": false
+      },
+      "stderr": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "snippet": "",
+        "secretPatternDetected": false
+      }
+    },
+    "catalogJsonParsed": true,
+    "readback": {
+      "policyCount": 0,
+      "tableStatus": [
+        {
+          "present": true,
+          "relname": "worker_job_artifacts",
+          "anon_select": false,
+          "rls_enabled": true,
+          "public_select": false,
+          "service_role_delete": true,
+          "service_role_insert": true,
+          "service_role_select": true,
+          "service_role_update": true,
+          "authenticated_select": false
+        },
+        {
+          "present": true,
+          "relname": "worker_job_events",
+          "anon_select": false,
+          "rls_enabled": true,
+          "public_select": false,
+          "service_role_delete": true,
+          "service_role_insert": true,
+          "service_role_select": true,
+          "service_role_update": true,
+          "authenticated_select": false
+        },
+        {
+          "present": true,
+          "relname": "worker_jobs",
+          "anon_select": false,
+          "rls_enabled": true,
+          "public_select": false,
+          "service_role_delete": true,
+          "service_role_insert": true,
+          "service_role_select": true,
+          "service_role_update": true,
+          "authenticated_select": false
+        }
+      ],
+      "missingTables": [],
+      "schemaPresent": true,
+      "expectedTables": [
+        "worker_jobs",
+        "worker_job_events",
+        "worker_job_artifacts"
+      ],
+      "functionStatus": [
+        {
+          "present": true,
+          "proname": "append_tracka_private_e2e_event",
+          "arguments": "p_worker_job_id uuid, p_event_type text, p_event_payload_sanitized jsonb DEFAULT '{}'::jsonb, p_actor_type text DEFAULT 'system'::text, p_actor_ref text DEFAULT NULL::text, p_idempotency_key text DEFAULT NULL::text",
+          "anon_execute": false,
+          "public_execute": false,
+          "security_definer": true,
+          "service_role_execute": true,
+          "authenticated_execute": false
+        },
+        {
+          "present": true,
+          "proname": "cancel_tracka_private_e2e_job",
+          "arguments": "p_worker_job_id uuid, p_actor_ref text, p_cancel_reason text, p_idempotency_key text DEFAULT NULL::text",
+          "anon_execute": false,
+          "public_execute": false,
+          "security_definer": true,
+          "service_role_execute": true,
+          "authenticated_execute": false
+        },
+        {
+          "present": true,
+          "proname": "claim_tracka_private_e2e_job",
+          "arguments": "p_worker_instance_id text, p_lease_owner text, p_idempotency_key text, p_lease_duration interval DEFAULT '00:15:00'::interval",
+          "anon_execute": false,
+          "public_execute": false,
+          "security_definer": true,
+          "service_role_execute": true,
+          "authenticated_execute": false
+        },
+        {
+          "present": true,
+          "proname": "complete_tracka_private_e2e_job",
+          "arguments": "p_worker_job_id uuid, p_lease_owner text, p_artifact_manifest_ref text, p_qa_report_ref text, p_idempotency_key text",
+          "anon_execute": false,
+          "public_execute": false,
+          "security_definer": true,
+          "service_role_execute": true,
+          "authenticated_execute": false
+        },
+        {
+          "present": true,
+          "proname": "fail_tracka_private_e2e_job",
+          "arguments": "p_worker_job_id uuid, p_lease_owner text, p_error_summary text, p_retry_after timestamp with time zone DEFAULT NULL::timestamp with time zone, p_idempotency_key text DEFAULT NULL::text",
+          "anon_execute": false,
+          "public_execute": false,
+          "security_definer": true,
+          "service_role_execute": true,
+          "authenticated_execute": false
+        },
+        {
+          "present": true,
+          "proname": "heartbeat_tracka_private_e2e_job",
+          "arguments": "p_worker_job_id uuid, p_lease_owner text, p_idempotency_key text, p_lease_duration interval DEFAULT '00:15:00'::interval",
+          "anon_execute": false,
+          "public_execute": false,
+          "security_definer": true,
+          "service_role_execute": true,
+          "authenticated_execute": false
+        },
+        {
+          "present": true,
+          "proname": "release_expired_tracka_private_e2e_leases",
+          "arguments": "p_batch_limit integer DEFAULT 50, p_idempotency_key text DEFAULT NULL::text",
+          "anon_execute": false,
+          "public_execute": false,
+          "security_definer": true,
+          "service_role_execute": true,
+          "authenticated_execute": false
+        }
+      ],
+      "schemaAnonUsage": false,
+      "missingFunctions": [],
+      "tablesMissingRls": [],
+      "expectedFunctions": [
+        "append_tracka_private_e2e_event",
+        "claim_tracka_private_e2e_job",
+        "heartbeat_tracka_private_e2e_job",
+        "complete_tracka_private_e2e_job",
+        "fail_tracka_private_e2e_job",
+        "cancel_tracka_private_e2e_job",
+        "release_expired_tracka_private_e2e_leases"
+      ],
+      "schemaPublicUsage": false,
+      "schemaServiceRoleUsage": true,
+      "tablesSelectableByAnon": [],
+      "schemaAuthenticatedUsage": false,
+      "tablesSelectableByPublic": [],
+      "functionsExecutableByAnon": [],
+      "functionsExecutableByPublic": [],
+      "nonSecurityDefinerFunctions": [],
+      "tablesMissingServiceRoleDml": [],
+      "tablesSelectableByAuthenticated": [],
+      "functionsExecutableByAuthenticated": [],
+      "functionsMissingServiceRoleExecute": []
+    }
+  },
+  "validationSummary": {
+    "schemaPresent": true,
+    "schemaServiceRoleUsage": true,
+    "schemaAnonUsage": true,
+    "schemaAuthenticatedUsage": true,
+    "schemaPublicUsage": true,
+    "missingFunctions": [],
+    "nonSecurityDefinerFunctions": [],
+    "functionsMissingServiceRoleExecute": [],
+    "functionsExecutableByAnon": [],
+    "functionsExecutableByAuthenticated": [],
+    "functionsExecutableByPublic": [],
+    "missingTables": [],
+    "tablesMissingRls": [],
+    "tablesMissingServiceRoleDml": [],
+    "tablesSelectableByAnon": [],
+    "tablesSelectableByAuthenticated": [],
+    "tablesSelectableByPublic": [],
+    "policyCount": 0
+  },
+  "readiness": {
+    "workerRuntimeTransactionalContract2": "ready_for_service_role_runtime_boundary_validation",
+    "workerRuntimeTrackaPrivateE2eExecutionGate2r": "blocked_pending_service_role_runtime_validation_and_job_fixture_gate",
+    "internalBetaReadinessRollup": "blocked_pending_service_role_runtime_private_storage_artifact_job_and_e2e_gates",
+    "externalProductBeta": "blocked_pending_internal_beta_evidence_security_privacy_support_cost_and_deployment_gates"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": true,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "remoteSupabaseReadCommand": true,
+    "remoteSupabaseMutation": false,
+    "sqlExecution": true,
+    "sqlMutation": false,
+    "rpcExecution": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "workerLeaseClaim": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

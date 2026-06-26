@@ -228,6 +228,8 @@ for (const file of changedFiles()) {
   const allowed =
     file === 'package.json' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-external-beta-production-go-no-go-review.md' ||
+    file === 'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-runtime-owner-approval-plan.md' ||
+    file === 'scripts/validation/reeditpro-external-beta-production-go-no-go-review-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-delivery-share-policy-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-backend-database-billing-credit-ledger-readiness-plan-diagnostics.mjs' ||
@@ -240,6 +242,7 @@ for (const file of changedFiles()) {
     file === 'scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs' ||
+    file.startsWith('docs/reeditpro-external-beta-production-go-no-go-review/') ||
     file.startsWith(`${reportDir}/`) ||
     requiredProductionDocs.includes(file)
   if (!allowed) fail(`unexpected_changed_file:${file}`)

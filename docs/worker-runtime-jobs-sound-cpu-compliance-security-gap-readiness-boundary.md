@@ -1,0 +1,50 @@
+# WORKER_RUNTIME_JOBS SOUND CPU Compliance Security Gap Readiness Boundary
+
+```json worker-runtime-jobs-sound-cpu-compliance-security-gap-readiness-boundary
+{
+  "owner": "WORKER_RUNTIME_JOBS",
+  "decision": "worker_runtime_jobs_sound_cpu_compliance_security_gap_closure_completed_with_warnings_ready_for_product_beta_readiness_gap_closure",
+  "readinessBoundary": {
+    "workerDispatchContractPlanningGapClosed": true,
+    "claimLeaseLifecyclePlanningGapClosed": true,
+    "soundRuntimeMediaPlanningGapClosed": true,
+    "supabaseSqlStoragePlanningGapClosed": true,
+    "artifactDeliveryPlanningGapClosed": true,
+    "billingStripeCreditsPlanningGapClosed": true,
+    "complianceSecurityPlanningGapClosed": true,
+    "productBetaReadinessGapClosureMayBePlanned": true,
+    "securityReviewRequiredBeforeExternalBeta": true,
+    "toolCandidateCount": 15,
+    "internalSyntheticToolCallPlanningMayContinue": true,
+    "liveToolCallsAllowed": false,
+    "workerExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "browserCaptureAllowed": false,
+    "secretMaterialAllowed": false,
+    "serviceAccountAllowed": false,
+    "secretManagerApiAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "providerOutputBlobAllowed": false,
+    "supabaseMutationAllowed": false,
+    "serviceRoleMutationAllowed": false,
+    "sqlExecutionAllowed": false,
+    "rlsExecutionAllowed": false,
+    "storageWriteAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "privateArtifactWriteAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "storageTransferAllowed": false,
+    "artifactDeliveryAllowed": false,
+    "creditMutationAllowed": false,
+    "stripeCheckoutAllowed": false,
+    "stripeWebhookAllowed": false,
+    "paymentProcessingAllowed": false,
+    "complianceSecurityReadinessClaimed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaAllowed": false,
+    "paidProductionAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}
+```

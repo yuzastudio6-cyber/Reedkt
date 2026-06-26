@@ -18,6 +18,7 @@ const evidence: AiGraphicsBetaReadinessEvidence = {
   browserCanvasWebglSandboxPassed: hasFlag('--browser-canvas-webgl-sandbox-passed'),
   nativeGpuRuntimeProofPassed: hasFlag('--native-gpu-runtime-proof-passed'),
   modelWeightManifestsApproved: hasFlag('--model-weight-manifests-approved'),
+  modelWeightManifestReviewPacketAccepted: hasFlag('--model-weight-review-packet-accepted'),
   internalBetaOwnerApprovalGranted: sharedGatesPassed || hasFlag('--internal-beta-owner-approval-granted'),
 }
 

@@ -199,6 +199,7 @@ function buildWorkerEvidenceInput(
     nativeGpuRuntimeProofPassed: evidence.nativeGpuRuntimeProofPassed,
     browserCanvasWebglSandboxPassed: evidence.browserCanvasWebglSandboxPassed,
     modelWeightManifestsApproved: evidence.modelWeightManifestsApproved,
+    modelWeightManifestReviewPacketAccepted: evidence.modelWeightManifestReviewPacketAccepted,
     internalBetaOwnerApprovalGranted: ownerApproval.ownerApprovalRecordAccepted,
   }
 }

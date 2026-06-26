@@ -21,6 +21,7 @@ export interface AiGraphicsBetaReadinessEvidence {
   browserCanvasWebglSandboxPassed?: boolean
   nativeGpuRuntimeProofPassed?: boolean
   modelWeightManifestsApproved?: boolean
+  modelWeightManifestReviewPacketAccepted?: boolean
   internalBetaOwnerApprovalGranted?: boolean
 }
 
@@ -69,6 +70,7 @@ const defaultEvidence: Required<AiGraphicsBetaReadinessEvidence> = {
   browserCanvasWebglSandboxPassed: false,
   nativeGpuRuntimeProofPassed: false,
   modelWeightManifestsApproved: false,
+  modelWeightManifestReviewPacketAccepted: false,
   internalBetaOwnerApprovalGranted: false,
 }
 
@@ -144,6 +146,12 @@ function buildRuntimeSpecificBlockers(input: {
   return blockers
 }
 
+function modelWeightManifestsAcceptedByEvidence(
+  evidence: Required<AiGraphicsBetaReadinessEvidence>,
+): boolean {
+  return evidence.modelWeightManifestsApproved && evidence.modelWeightManifestReviewPacketAccepted
+}
+
 function buildReadinessRecordBlockers(input: {
   toolId: AiGraphicsCanonicalToolId
   blockersBeforeExecution: readonly string[]
@@ -162,7 +170,7 @@ function buildReadinessRecordBlockers(input: {
 
     if (
       blocker.includes('approved private model-weight or model-cache manifests') &&
-      (!input.modelWeightsRequired || input.evidence.modelWeightManifestsApproved)
+      (!input.modelWeightsRequired || modelWeightManifestsAcceptedByEvidence(input.evidence))
     ) {
       continue
     }
@@ -213,7 +221,7 @@ function modelWeightPolicyAllowedByEvidence(input: {
 }): boolean {
   if (input.modelWeightResultAllowed) return true
   if (!input.modelWeightsRequired) return true
-  if (!input.evidence.modelWeightManifestsApproved) return false
+  if (!modelWeightManifestsAcceptedByEvidence(input.evidence)) return false
 
   return input.reviewStatus !== 'blocked' && input.commercialUseStatus !== 'blocked'
 }
@@ -250,7 +258,10 @@ export function buildAiGraphicsBetaReadinessGate(
       modelWeightPolicyAllowed,
       profileWorkerType: profile.workerType,
       productionStatus: profile.productionStatus,
-      evidence,
+      evidence: {
+        ...evidence,
+        modelWeightManifestsApproved: modelWeightManifestsAcceptedByEvidence(evidence),
+      },
     })
     const readinessBlockers = buildReadinessRecordBlockers({
       toolId: record.toolId,

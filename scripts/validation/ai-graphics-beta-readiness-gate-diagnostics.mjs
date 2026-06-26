@@ -165,6 +165,8 @@ for (const needle of [
   'approvedPlanSnapshotGatePassed',
   'nativeGpuRuntimeProofPassed',
   'modelWeightPolicyAllowedByEvidence',
+  'modelWeightManifestReviewPacketAccepted',
+  'modelWeightManifestsAcceptedByEvidence',
   'cpuFallbackAllowedForHeavyTool: false',
   'betaTestingReadyNow: uniqueBlockers.length === 0',
   'production registry profile is still future',
@@ -177,6 +179,7 @@ for (const needle of [
   '--browser-canvas-webgl-sandbox-passed',
   '--native-gpu-runtime-proof-passed',
   '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
   'evaluatorOnly: true',
 ]) {
   if (!evaluatorCli.includes(needle)) fail(`beta_gate_evaluator_missing:${needle}`)
@@ -192,8 +195,20 @@ if (gate.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) fail('gate_heavy_cpu_c
 if (gate.counts?.betaTestingReadyTools !== 0) fail('gate_beta_ready_count_not_zero')
 if (gate.counts?.blockedTools !== 21) fail('gate_blocked_tool_count_not_21')
 if (gate.evidenceEvaluationMode?.defaultEvidenceReadyTools !== 0) fail('gate_default_evidence_ready_not_zero')
-if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsReadyTools !== 21) fail('gate_all_evidence_ready_not_21')
-if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsStillBlockedTools !== 0) fail('gate_all_evidence_blocked_not_0')
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsReadyTools !== 16) fail('gate_all_evidence_without_review_packet_ready_not_16')
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsStillBlockedTools !== 5) fail('gate_all_evidence_without_review_packet_blocked_not_5')
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsRequireAcceptedModelReviewPacket !== true) {
+  fail('gate_missing_review_packet_requirement')
+}
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsPlusModelReviewPacketReadyTools !== 21) {
+  fail('gate_all_evidence_plus_review_packet_ready_not_21')
+}
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsPlusModelReviewPacketStillBlockedTools !== 0) {
+  fail('gate_all_evidence_plus_review_packet_blocked_not_0')
+}
+if (gate.evidenceEvaluationMode?.modelWeightManifestClaimAloneDoesNotUnblockModelTools !== true) {
+  fail('gate_model_weight_claim_alone_not_guarded')
+}
 if (gate.evidenceEvaluationMode?.readyOnlyWhenProfilesAndPoliciesAllow !== true) fail('gate_evidence_mode_policy_guard_missing')
 if (gate.evidenceEvaluationMode?.executionPerformedByEvaluator !== false) fail('gate_evaluator_execution_not_false')
 
@@ -223,20 +238,49 @@ const fullEvidenceOutput = runEvaluator([
   '--model-weight-manifests-approved',
 ])
 const fullEvidenceGate = parseJsonOutput(fullEvidenceOutput, 'full_evidence_evaluator')
-if (fullEvidenceGate.betaTestingReadyTools !== 21) {
-  fail(`full_evidence_ready_count_not_21:${fullEvidenceGate.betaTestingReadyTools}`)
+if (fullEvidenceGate.betaTestingReadyTools !== 16) {
+  fail(`full_evidence_without_review_packet_ready_count_not_16:${fullEvidenceGate.betaTestingReadyTools}`)
 }
-if (fullEvidenceGate.blockedTools !== 0) {
-  fail(`full_evidence_blocked_count_not_0:${fullEvidenceGate.blockedTools}`)
+if (fullEvidenceGate.blockedTools !== 5) {
+  fail(`full_evidence_without_review_packet_blocked_count_not_5:${fullEvidenceGate.blockedTools}`)
 }
 const fullEvidenceReadyTools = (fullEvidenceGate.tools || [])
   .filter((tool) => tool.betaTestingReadyNow === true)
   .map((tool) => tool.toolId)
-for (const tool of allTools) {
-  if (!fullEvidenceReadyTools.includes(tool)) fail(`full_evidence_expected_ready_tool_missing:${tool}`)
+for (const tool of allTools.filter((tool) => !['sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background'].includes(tool))) {
+  if (!fullEvidenceReadyTools.includes(tool)) fail(`full_evidence_without_review_packet_expected_ready_tool_missing:${tool}`)
 }
-for (const row of fullEvidenceGate.tools || []) {
-  if (row?.blockers?.length) fail(`full_evidence_unexpected_blockers:${row.toolId}:${row.blockers.join('|')}`)
+for (const tool of ['sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background']) {
+  const row = (fullEvidenceGate.tools || []).find((entry) => entry.toolId === tool)
+  if (!row) fail(`full_evidence_without_review_packet_missing_model_tool:${tool}`)
+  if (row?.betaTestingReadyNow !== false) fail(`full_evidence_without_review_packet_model_tool_unblocked:${tool}`)
+  if (!String(row?.blockers || '').includes('model-weight')) {
+    fail(`full_evidence_without_review_packet_model_tool_missing_model_weight_blocker:${tool}`)
+  }
+}
+
+const reviewPacketEvidenceOutput = runEvaluator([
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
+])
+const reviewPacketEvidenceGate = parseJsonOutput(reviewPacketEvidenceOutput, 'review_packet_evidence_evaluator')
+if (reviewPacketEvidenceGate.betaTestingReadyTools !== 21) {
+  fail(`review_packet_evidence_ready_count_not_21:${reviewPacketEvidenceGate.betaTestingReadyTools}`)
+}
+if (reviewPacketEvidenceGate.blockedTools !== 0) {
+  fail(`review_packet_evidence_blocked_count_not_0:${reviewPacketEvidenceGate.blockedTools}`)
+}
+const reviewPacketReadyTools = (reviewPacketEvidenceGate.tools || [])
+  .filter((tool) => tool.betaTestingReadyNow === true)
+  .map((tool) => tool.toolId)
+for (const tool of allTools) {
+  if (!reviewPacketReadyTools.includes(tool)) fail(`review_packet_evidence_expected_ready_tool_missing:${tool}`)
+}
+for (const row of reviewPacketEvidenceGate.tools || []) {
+  if (row?.blockers?.length) fail(`review_packet_evidence_unexpected_blockers:${row.toolId}:${row.blockers.join('|')}`)
 }
 for (const key of [
   'toolExecutionPerformed',
@@ -249,7 +293,7 @@ for (const key of [
   'modelWeightsLoaded',
   'mediaProcessingPerformed',
 ]) {
-  if (fullEvidenceGate.input?.[key] !== false) fail(`full_evidence_input_false_gate_not_false:${key}`)
+  if (reviewPacketEvidenceGate.input?.[key] !== false) fail(`review_packet_evidence_input_false_gate_not_false:${key}`)
 }
 
 for (const requiredGate of [
@@ -264,6 +308,7 @@ for (const requiredGate of [
   'browser/canvas/WebGL sandbox proof is required for browser runtime tools',
   'production registry profile must move away from planning_only before execution',
   'license and model-weight policies must be approved where currently under review',
+  'accepted model-weight review packet is required in addition to model-weight manifest approval claims',
 ]) {
   if (!gate.requiredCurrentGates?.includes(requiredGate)) fail(`required_current_gate_missing:${requiredGate}`)
 }

@@ -33,6 +33,7 @@ export interface AiGraphicsWorkerHandoffEvidence {
   nativeGpuRuntimeProofPassed?: boolean
   browserCanvasWebglSandboxPassed?: boolean
   modelWeightManifestsApproved?: boolean
+  modelWeightManifestReviewPacketAccepted?: boolean
   internalBetaOwnerApprovalGranted?: boolean
 }
 
@@ -89,6 +90,7 @@ const defaultEvidence: Required<AiGraphicsWorkerHandoffEvidence> = {
   nativeGpuRuntimeProofPassed: false,
   browserCanvasWebglSandboxPassed: false,
   modelWeightManifestsApproved: false,
+  modelWeightManifestReviewPacketAccepted: false,
   internalBetaOwnerApprovalGranted: false,
 }
 
@@ -166,6 +168,7 @@ function asBetaReadinessEvidence(
     browserCanvasWebglSandboxPassed: evidence.browserCanvasWebglSandboxPassed,
     nativeGpuRuntimeProofPassed: evidence.nativeGpuRuntimeProofPassed,
     modelWeightManifestsApproved: evidence.modelWeightManifestsApproved,
+    modelWeightManifestReviewPacketAccepted: evidence.modelWeightManifestReviewPacketAccepted,
     internalBetaOwnerApprovalGranted: evidence.internalBetaOwnerApprovalGranted,
   }
 }

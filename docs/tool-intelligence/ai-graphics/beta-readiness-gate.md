@@ -38,6 +38,7 @@ Evidence flags can model completed gates without running any tool:
 - `--browser-canvas-webgl-sandbox-passed`
 - `--native-gpu-runtime-proof-passed`
 - `--model-weight-manifests-approved`
+- `--model-weight-review-packet-accepted`
 
 When all evidence flags are supplied, only tools whose production profiles and
 policies are executable or explicitly satisfied by the supplied evidence can
@@ -45,13 +46,20 @@ become beta-eligible. Tools that are still `planning_only`, `future`,
 `evaluation_only`, license-review-blocked, or hard-blocked by model-weight
 policy remain blocked.
 
+The model-weight flags are intentionally split. `--model-weight-manifests-approved`
+records that model manifests are claimed as reviewed, but it does not unblock
+model/checkpoint tools unless `--model-weight-review-packet-accepted` is also
+present. That second flag represents the real private review packet with all five
+required model records accepted and no public or signed artifact references
+logged.
+
 Current full-evidence simulation result after the JS runtime-proof profile
 promotions and package/code license review narrowing:
 
-- Beta-eligible with all current evidence flags supplied: 21 tools.
-- Still blocked with all current evidence flags supplied: 0 tools.
-- Eligible set: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, `transparent_background`, `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs`.
-- Still blocked set: none after all modeled evidence flags are supplied.
+- Beta-eligible with shared/runtime/browser flags and a claimed model-manifest flag, but no accepted model review packet: 16 tools.
+- Still blocked without the accepted model review packet: 5 tools.
+- Blocked model/checkpoint tools until packet acceptance: `sam2`, `birefnet`, `real_esrgan`, `rembg`, `transparent_background`.
+- Beta-eligible with all current evidence flags plus accepted model review packet supplied: 21 tools.
 
 ## Current Required Gates
 

@@ -304,6 +304,7 @@ export function buildAiGraphicsBetaEvidenceBundle(
     browserCanvasWebglSandboxPassed: input.browserCanvasWebglSandboxPassed === true,
     nativeGpuRuntimeProofPassed: nativeGpuRuntimeProofResultPacketAccepted,
     modelWeightManifestsApproved: modelWeightManifestReviewPacketAccepted,
+    modelWeightManifestReviewPacketAccepted,
     internalBetaOwnerApprovalGranted: input.internalBetaOwnerApprovalGranted === true,
   }
 

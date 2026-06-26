@@ -42,10 +42,14 @@
   },
   "evidenceEvaluationMode": {
     "defaultEvidenceReadyTools": 0,
-    "allCurrentEvidenceFlagsReadyTools": 21,
-    "allCurrentEvidenceFlagsStillBlockedTools": 0,
+    "allCurrentEvidenceFlagsReadyTools": 16,
+    "allCurrentEvidenceFlagsStillBlockedTools": 5,
     "readyOnlyWhenProfilesAndPoliciesAllow": true,
-    "executionPerformedByEvaluator": false
+    "executionPerformedByEvaluator": false,
+    "allCurrentEvidenceFlagsRequireAcceptedModelReviewPacket": true,
+    "allCurrentEvidenceFlagsPlusModelReviewPacketReadyTools": 21,
+    "allCurrentEvidenceFlagsPlusModelReviewPacketStillBlockedTools": 0,
+    "modelWeightManifestClaimAloneDoesNotUnblockModelTools": true
   },
   "gpuRuntimeTargetedTools": [
     "torch_torchvision",
@@ -68,7 +72,8 @@
     "reviewed model-weight manifests are required for model/checkpoint tools",
     "browser/canvas/WebGL sandbox proof is required for browser runtime tools",
     "production registry profile must move away from planning_only before execution",
-    "license and model-weight policies must be approved where currently under review"
+    "license and model-weight policies must be approved where currently under review",
+    "accepted model-weight review packet is required in addition to model-weight manifest approval claims"
   ],
   "booleans": {
     "betaReadinessGatePrepared": true,

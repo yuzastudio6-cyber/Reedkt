@@ -8,8 +8,8 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Supabase read-only target validation | `completed_guarded_supabase_target_rls_storage_readonly_validation` | Carry forward only |
 | Staging migration path | `completed_isolated_target_migration_chain_apply_and_readback` | carry forward isolated target migration-chain evidence |
 | Worker RPC 4R | `completed_worker_runtime_transactional_rpc_isolated_target_readback` | carry forward isolated target RPC catalog/grant evidence |
-| Service-role route runtime | `blocked_pending_service_role_runtime_boundary_validation` | backend-only service-role runtime validation |
-| Approved snapshot persistence | `blocked_pending_service_role_runtime_validation` | guarded Supabase persistence evidence |
+| Service-role route runtime | `completed_service_role_runtime_boundary_validation` | carry forward backend-only service-role boundary validation |
+| Approved snapshot persistence | `blocked_pending_separate_service_role_persistence_implementation` | guarded Supabase persistence evidence |
 | Credit reservation ledger | `blocked_pending_service_role_runtime_validation` | guarded internal ledger mutation evidence |
 | Job queue leases/events | `blocked_pending_service_role_runtime_validation` | guarded job record/lease/event validation |
 | Private artifact storage/access | `blocked_pending_private_storage_runtime_validation` | private bucket/readback/access evidence |
@@ -23,7 +23,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1`
+`RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1`
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

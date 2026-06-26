@@ -140,3 +140,13 @@ The guarded runner used `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `2` an
 Current status after guarded execution is internal beta `blocked_pending_service_role_runtime_private_storage_artifact_job_and_e2e_gates`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestone: `SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1`.
+
+## Supabase Service-Role Runtime Boundary Validation 1
+
+`SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1` records decision `completed_service_role_runtime_boundary_validation` and execution `completed_guarded_secret_metadata_and_static_backend_boundary_validation_no_service_role_payload_or_runtime_execution`.
+
+The guarded runner used explicit confirmation and performed only Secret Manager metadata readback for approved references `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `2` and `SUPABASE_ACCESS_TOKEN` version `5`. It did not access, print, summarize, hash, or persist any secret payload. It also statically verified the backend service-role scaffold, approved snapshot service-role persistence guard, credential context boundary, runtime orchestrator boundary, and frontend service-role exposure scan.
+
+Current status after guarded execution is internal beta `blocked_pending_service_role_persistence_private_storage_artifact_job_and_e2e_gates`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestone: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1`.

@@ -27,6 +27,36 @@ The active blocker is no longer main Supabase migration history. Remaining block
 
 Next recommended milestone: `RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1`.
 
+## RP External Beta Main Supabase Service-Role Runtime Validation 1
+
+`RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1` records decision `completed_main_supabase_service_role_runtime_grant_boundary_validation` and execution `completed_guarded_main_staging_grant_hardening_and_readonly_runtime_boundary_validation`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Grant hardening migration: `supabase/migrations/20260626233000_external_beta_public_grant_hardening.sql`.
+
+Run ID: `2026-06-26T23-41-52-998Z-818c6ba1`.
+
+Validation:
+- final dry-run: `Remote database is up to date.`;
+- public/worker-runtime lint: `passed_no_warnings`;
+- storage lint readback: `completed_with_managed_storage_warnings_allowed`;
+- unsafe public mutation grants: `0`;
+- unsafe public sequence grants: `0`;
+- hardening migration present: `true`;
+- protected runtime table service-role write capability: `passed`;
+- protected runtime table public mutation absence: `passed`.
+
+Artifact checksums:
+- `validation-report.json`: `b0de58258882c2bbe0a7296c58ab3fc44b2f8eb645befe91bdd38adde55a83de`
+- `artifact-manifest.json`: `cc7e3b894c2c0fb13fcb2dd0a23da27cccfeab952dc6b2ffcecd0d75b7ed5647`
+
+Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+The active blocker is no longer broad public mutation grants on the main Reeditpro staging target. Remaining blockers are approved snapshot persistence guarded remote write/readback, route-specific service-role execution validation, credit reservation/ledger validation, job lease/event validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1`.
+
 ## RP External Product Beta Current Readiness Rollup 1
 
 `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.

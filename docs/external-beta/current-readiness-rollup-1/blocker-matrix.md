@@ -8,10 +8,11 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Supabase read-only target validation | `completed_guarded_supabase_target_rls_storage_readonly_validation` | Carry forward only |
 | Main Reeditpro staging migration history | `completed_reeditpro_main_supabase_target_migration_history_sync` | carry forward main target migration-history sync evidence |
 | Main Reeditpro staging lint/advisor | `passed_no_schema_errors_found_and_confirmed_readonly_target_validation` | carry forward final dry-run/lint/target validation |
+| Main Reeditpro public grant boundary | `completed_main_supabase_service_role_runtime_grant_boundary_validation` | carry forward public mutation grant hardening evidence |
 | Historical isolated target | `historical_sandbox_evidence_only_not_active` | do not use as active target |
 | Worker RPC 4R | `main_target_schema_present_pending_runtime_validation` | guarded main-target service-role/runtime readback |
-| Service-role route runtime | `blocked_pending_main_target_service_role_runtime_validation` | guarded backend-only service-role boundary validation |
-| Approved snapshot persistence | `completed_service_role_persistence_envelope_validated_no_remote_write` | guarded remote Supabase persistence write evidence |
+| Service-role route runtime | `not_run_pending_route_specific_guarded_write_validation` | guarded backend-only service-role route write/readback validation |
+| Approved snapshot persistence | `ready_for_guarded_remote_write_validation` | guarded remote Supabase persistence write/readback evidence |
 | Credit reservation ledger | `blocked_pending_service_role_runtime_validation` | guarded internal ledger mutation evidence |
 | Job queue leases/events | `blocked_pending_service_role_runtime_validation` | guarded job record/lease/event validation |
 | Private artifact storage/access | `blocked_pending_private_storage_runtime_validation` | private bucket/readback/access evidence |
@@ -25,7 +26,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1`
+`RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -42,6 +43,24 @@ Final migration history: `source_aligned_and_up_to_date_through_20260626224600`.
 Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended milestone: `RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1`.
+
+## RP External Beta Main Supabase Service-Role Runtime Validation 1
+
+`RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1` records decision `completed_main_supabase_service_role_runtime_grant_boundary_validation` and execution `completed_guarded_main_staging_grant_hardening_and_readonly_runtime_boundary_validation`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Grant hardening migration `supabase/migrations/20260626233000_external_beta_public_grant_hardening.sql` revoked broad `anon` / `authenticated` public-table mutation grants and public sequence privileges so backend/service-role paths own privileged writes. The confirmed runner validated final dry-run, public/worker-runtime lint, managed storage lint readback, hardening migration presence, service-role protected-table write capability, and public mutation absence.
+
+Run ID: `2026-06-26T23-41-52-998Z-818c6ba1`. Unsafe public mutation grants: `0`. Unsafe public sequence grants: `0`.
+
+Artifact checksums: `validation-report.json` `b0de58258882c2bbe0a7296c58ab3fc44b2f8eb645befe91bdd38adde55a83de`; `artifact-manifest.json` `cc7e3b894c2c0fb13fcb2dd0a23da27cccfeab952dc6b2ffcecd0d75b7ed5647`.
+
+Service-role route execution remains `not_run_pending_route_specific_guarded_write_validation`. Approved snapshot persistence is now `ready_for_guarded_remote_write_validation`.
+
+Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

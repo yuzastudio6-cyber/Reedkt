@@ -97,6 +97,19 @@ live worker dispatch, route execution, tool execution, browser/canvas/WebGL
 runtime, GPU/model runtime, model-weight loading, media processing, signed URLs,
 public artifacts, internal beta runtime, external beta, and production blocked.
 
+AI graphics internal beta service-role queue transaction readiness decision
+`ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope`
+defines the no-write service-role RPC envelope for the all-21 AI graphics queue
+path. It prepares 21 transaction envelopes, 12 capability scenarios, one future
+job batch row, 21 future job rows, 21 worker-claim transaction inputs, 42 worker
+event rows, and 21 audit event rows with idempotency, immutable approved
+snapshot, credit reservation, private artifact manifest, append-only event, and
+rollback requirements. It still performs 0 live service-role transactions and
+keeps Supabase writes, worker claims, live dispatch, route execution, tool
+execution, browser/canvas/WebGL runtime, GPU/model runtime, model-weight
+loading, media processing, signed URLs, public artifacts, internal beta runtime,
+external beta, and production blocked.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

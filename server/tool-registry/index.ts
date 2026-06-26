@@ -48,6 +48,7 @@ export * from './ai-graphics-internal-beta-queue-admission-readiness'
 export * from './ai-graphics-internal-beta-queue-adapter-readiness'
 export * from './ai-graphics-internal-beta-queue-dispatcher-readiness'
 export * from './ai-graphics-internal-beta-backend-queue-storage-readiness'
+export * from './ai-graphics-internal-beta-service-role-queue-transaction-readiness'
 export * from './ai-graphics-cross-owner-coordination'
 
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {

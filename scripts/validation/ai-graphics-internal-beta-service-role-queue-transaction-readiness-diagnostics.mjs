@@ -4,13 +4,13 @@ import os from 'node:os'
 import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
-const runScriptName = 'ai-graphics:internal-beta-backend-queue-storage-readiness'
+const runScriptName = 'ai-graphics:internal-beta-service-role-queue-transaction-readiness'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-internal-beta-backend-queue-storage-readiness.ts'
+  'tsx server/cli/ai-graphics-internal-beta-service-role-queue-transaction-readiness.ts'
 const diagnosticScriptName =
-  'ai-graphics:internal-beta-backend-queue-storage-readiness:diagnostics'
+  'ai-graphics:internal-beta-service-role-queue-transaction-readiness:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-internal-beta-backend-queue-storage-readiness-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-internal-beta-service-role-queue-transaction-readiness-diagnostics.mjs'
 
 const allTools = [
   'torch_torchvision',
@@ -62,30 +62,31 @@ const gpuTools = [
   'transparent_background',
 ]
 
-const requiredRecordFields = [
-  'toolId',
-  'productionToolId',
-  'jobId',
-  'jobType',
-  'workerType',
-  'runtimeTarget',
-  'capabilityIds',
-  'approvedPlanSnapshotId',
-  'creditReservationId',
-  'privateArtifactManifestRef',
-  'sourceDispatcherProbeCompletedWithProvidedEvidence',
-  'jobServiceRecordCreated',
-  'jobServiceRecordMockOnly',
-  'jobServiceStatus',
-  'jobServiceWarningCount',
-  'canWriteSupabaseJobNow',
-  'canCreateLiveWorkerClaimNow',
-  'canDispatchLiveWorkerNow',
-  'canExecuteToolNow',
+const requiredRpcs = [
+  'enqueue_ai_graphics_tool_runtime_jobs',
+  'claim_ai_graphics_tool_runtime_job',
+  'record_ai_graphics_worker_event',
+  'record_ai_graphics_audit_event',
+]
+
+const requiredTables = [
+  'job_batches',
+  'jobs',
+  'worker_job_claims',
+  'worker_events',
+  'approved_plan_snapshots',
+  'credit_reservations',
+  'audit_events',
 ]
 
 const falseGateKeys = [
+  'serviceRoleQueueTransactionApprovedNow',
   'serviceRoleSupabaseWritesApprovedNow',
+  'liveJobBatchInsertApprovedNow',
+  'liveJobInsertApprovedNow',
+  'liveWorkerClaimInsertApprovedNow',
+  'liveWorkerEventInsertApprovedNow',
+  'liveAuditEventInsertApprovedNow',
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
@@ -110,6 +111,7 @@ const falseGateKeys = [
   'routeExecutionPerformed',
   'backendQueueSubmissionPerformed',
   'supabaseMutationPerformed',
+  'serviceRoleTransactionPerformed',
   'workerLeaseCreated',
   'productionWorkerDispatchPerformed',
   'productionWorkerRouteExecutionPerformed',
@@ -132,6 +134,7 @@ const inputFalseKeys = [
   'routeExecutionPerformed',
   'backendQueueSubmissionPerformed',
   'supabaseMutationPerformed',
+  'serviceRoleTransactionPerformed',
   'liveWorkerClaimCreated',
   'liveWorkerLeaseCreated',
   'productionWorkerDispatchPerformed',
@@ -196,7 +199,7 @@ function parseJsonOutput(output, label) {
 }
 
 function writeAcceptedEvidencePackets() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-backend-queue-storage-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-service-role-queue-'))
   const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
   fs.writeFileSync(manifestPacketPath, `${JSON.stringify({
@@ -246,14 +249,12 @@ function acceptedArgs(manifestPacketPath, gpuPacketPath) {
 }
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-internal-beta-backend-queue-storage-readiness.ts',
-  'server/cli/ai-graphics-internal-beta-backend-queue-storage-readiness.ts',
-  'scripts/validation/ai-graphics-internal-beta-backend-queue-storage-readiness-diagnostics.mjs',
-  'docs/tool-intelligence/ai-graphics/internal-beta-backend-queue-storage-readiness.md',
+  'server/tool-registry/ai-graphics-internal-beta-service-role-queue-transaction-readiness.ts',
+  'server/cli/ai-graphics-internal-beta-service-role-queue-transaction-readiness.ts',
+  'scripts/validation/ai-graphics-internal-beta-service-role-queue-transaction-readiness-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-queue-transaction-readiness.md',
+  'docs/tool-intelligence/ai-graphics/internal-beta-service-role-queue-transaction-readiness.json',
   'docs/tool-intelligence/ai-graphics/internal-beta-backend-queue-storage-readiness.json',
-  'docs/tool-intelligence/ai-graphics/internal-beta-queue-dispatcher-readiness.json',
-  'server/services/job-service.ts',
-  'src/types/jobs.ts',
   'server/tool-registry/index.ts',
   'docs/production-beta-readiness-scorecard.md',
 ]
@@ -261,45 +262,34 @@ const requiredFiles = [
 for (const file of requiredFiles) read(file)
 
 const pkg = json('package.json')
-const docs = json('docs/tool-intelligence/ai-graphics/internal-beta-backend-queue-storage-readiness.json')
-const moduleSource = read('server/tool-registry/ai-graphics-internal-beta-backend-queue-storage-readiness.ts')
-const cliSource = read('server/cli/ai-graphics-internal-beta-backend-queue-storage-readiness.ts')
-const jobServiceSource = read('server/services/job-service.ts')
-const jobTypesSource = read('src/types/jobs.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/internal-beta-service-role-queue-transaction-readiness.json')
+const moduleSource = read('server/tool-registry/ai-graphics-internal-beta-service-role-queue-transaction-readiness.ts')
+const cliSource = read('server/cli/ai-graphics-internal-beta-service-role-queue-transaction-readiness.ts')
 const indexSource = read('server/tool-registry/index.ts')
-const markdown = read('docs/tool-intelligence/ai-graphics/internal-beta-backend-queue-storage-readiness.md')
+const markdown = read('docs/tool-intelligence/ai-graphics/internal-beta-service-role-queue-transaction-readiness.md')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_script:${runScriptName}`)
 if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
   fail(`missing_package_script:${diagnosticScriptName}`)
 }
-if (!indexSource.includes("export * from './ai-graphics-internal-beta-backend-queue-storage-readiness'")) {
-  fail('server_registry_index_does_not_export_internal_beta_backend_queue_storage_readiness')
-}
-if (!jobTypesSource.includes("| 'ai_graphics_tool_runtime'")) {
-  fail('job_type_union_missing_ai_graphics_tool_runtime')
-}
-if (!jobServiceSource.includes("'ai_graphics_tool_runtime'")) {
-  fail('job_service_execution_job_types_missing_ai_graphics_tool_runtime')
-}
-if (!jobServiceSource.includes('Execution jobs require approved snapshot and credit reservation IDs.')) {
-  fail('job_service_missing_execution_snapshot_credit_requirement')
+if (!indexSource.includes("export * from './ai-graphics-internal-beta-service-role-queue-transaction-readiness'")) {
+  fail('server_registry_index_does_not_export_internal_beta_service_role_queue_transaction_readiness')
 }
 
-if (docs.decision !== 'ai_graphics_internal_beta_backend_queue_storage_readiness_contract_prepared_with_mock_service_records') {
+if (docs.decision !== 'ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
-if (docs.status !== 'mock_service_queue_records_created_runtime_still_blocked') {
+if (docs.status !== 'service_role_queue_transaction_envelope_prepared_live_writes_blocked') {
   fail(`unexpected_docs_status:${docs.status}`)
 }
-if (docs.sourceDecisions?.queueDispatcher !== 'ai_graphics_internal_beta_queue_dispatcher_readiness_contract_prepared_with_mock_safe_dispatcher') {
-  fail(`unexpected_queue_dispatcher_source_decision:${docs.sourceDecisions?.queueDispatcher}`)
+if (docs.sourceDecisions?.backendQueueStorage !== 'ai_graphics_internal_beta_backend_queue_storage_readiness_contract_prepared_with_mock_service_records') {
+  fail(`unexpected_backend_queue_storage_source_decision:${docs.sourceDecisions?.backendQueueStorage}`)
 }
 
 for (const status of [
-  'missing_queue_dispatcher_evidence',
-  'mock_service_queue_records_created_runtime_still_blocked',
+  'missing_backend_queue_storage_evidence',
+  'service_role_queue_transaction_envelope_prepared_live_writes_blocked',
 ]) {
   if (!moduleSource.includes(status)) fail(`module_missing_status:${status}`)
 }
@@ -310,24 +300,28 @@ for (const tool of allTools) {
 for (const capability of capabilities) {
   if (!docs.capabilities?.includes(capability)) fail(`docs_missing_capability:${capability}`)
 }
-for (const field of requiredRecordFields) {
-  if (!docs.jobServiceRecordFields?.includes(field)) fail(`docs_missing_job_service_record_field:${field}`)
+for (const rpc of requiredRpcs) {
+  if (!docs.requiredServiceRoleRpcs?.includes(rpc)) fail(`docs_missing_rpc:${rpc}`)
+  if (!markdown.includes(`\`${rpc}\``)) fail(`markdown_missing_rpc:${rpc}`)
+  if (!moduleSource.includes(rpc)) fail(`module_missing_rpc:${rpc}`)
+}
+for (const table of requiredTables) {
+  if (!docs.requiredServiceRoleTables?.includes(table)) fail(`docs_missing_table:${table}`)
+  if (!markdown.includes(`\`${table}\``)) fail(`markdown_missing_table:${table}`)
 }
 for (const token of [
-  'createJobService',
-  'createJobBatch',
-  'createJob',
-  'ai_graphics_tool_runtime',
-  'approvedPlanSnapshotId',
-  'creditReservationId',
-  'privateArtifactManifestRef',
-  'mockJobServiceRecordsOnly',
-  'serviceRoleSupabaseWritesApprovedNow',
+  'approved_plan_snapshot',
+  'credit_reservation',
+  'private artifact manifest',
+  'idempotent',
+  'append-only',
+  'roll back',
 ]) {
-  if (!moduleSource.includes(token)) fail(`module_missing_token:${token}`)
+  if (!markdown.toLowerCase().includes(token)) fail(`markdown_missing_transaction_guarantee:${token}`)
 }
 for (const token of [
-  '--require-mock-service-queue-records-ready',
+  '--require-transaction-envelope-ready',
+  '--require-live-service-role-transaction',
   '--require-live-supabase-job-writes',
   '--require-live-worker-claims',
   '--require-runtime-ready',
@@ -335,64 +329,42 @@ for (const token of [
 ]) {
   if (!cliSource.includes(token)) fail(`cli_missing_flag:${token}`)
 }
-for (const table of [
-  'job_batches',
-  'jobs',
-  'worker_job_claims',
-  'worker_events',
-  'approved_plan_snapshots',
-  'credit_reservations',
-  'audit_events',
-]) {
-  if (!docs.requiredLiveServiceRoleTables?.includes(table)) fail(`docs_missing_required_table:${table}`)
-  if (!markdown.includes(`\`${table}\``)) fail(`markdown_missing_required_table:${table}`)
-}
-for (const action of [
-  'Supabase service-role job write',
-  'backend queue submission',
-  'live worker queue enqueue',
-  'live worker claim row creation',
-  'live worker lease creation',
-  'live production worker dispatch',
-  'tool execution',
-  'Tool Route execution',
-  'provider/model execution',
-  'browser/WebGL/canvas runtime execution',
-  'GPU/model runtime execution',
-  'signed URL creation',
-  'public artifact creation',
-  'production unlock',
-]) {
-  if (!docs.blockedRuntimeActions?.includes(action)) fail(`docs_missing_blocked_action:${action}`)
-  if (!markdown.includes(action)) fail(`markdown_missing_blocked_action:${action}`)
-}
 
 if (docs.counts?.totalAiGraphicsTools !== 21) fail(`docs_total_tools:${docs.counts?.totalAiGraphicsTools}`)
 if (docs.counts?.totalProductFacingCapabilities !== 12) {
   fail(`docs_total_capabilities:${docs.counts?.totalProductFacingCapabilities}`)
 }
-if (docs.counts?.backendQueueStorageRecordsPrepared !== 21) {
-  fail(`docs_records_prepared:${docs.counts?.backendQueueStorageRecordsPrepared}`)
+if (docs.counts?.serviceRoleTransactionRecordsPrepared !== 21) {
+  fail(`docs_records_prepared:${docs.counts?.serviceRoleTransactionRecordsPrepared}`)
 }
-if (docs.counts?.backendQueueStorageRecordsCreatedWithProvidedEvidence !== 21) {
-  fail(`docs_records_ready:${docs.counts?.backendQueueStorageRecordsCreatedWithProvidedEvidence}`)
+if (docs.counts?.serviceRoleTransactionRecordsReadyWithProvidedEvidence !== 21) {
+  fail(`docs_records_ready:${docs.counts?.serviceRoleTransactionRecordsReadyWithProvidedEvidence}`)
 }
-if (docs.counts?.backendQueueStorageCapabilityScenariosPrepared !== 12) {
-  fail(`docs_capability_scenarios_prepared:${docs.counts?.backendQueueStorageCapabilityScenariosPrepared}`)
+if (docs.counts?.serviceRoleCapabilityScenariosReadyWithProvidedEvidence !== 12) {
+  fail(`docs_capabilities_ready:${docs.counts?.serviceRoleCapabilityScenariosReadyWithProvidedEvidence}`)
 }
-if (docs.counts?.backendQueueStorageCapabilityScenariosCreatedWithProvidedEvidence !== 12) {
-  fail(`docs_capability_scenarios_ready:${docs.counts?.backendQueueStorageCapabilityScenariosCreatedWithProvidedEvidence}`)
+if (docs.counts?.serviceRoleJobBatchRowsPrepared !== 1) fail(`docs_batch_rows:${docs.counts?.serviceRoleJobBatchRowsPrepared}`)
+if (docs.counts?.serviceRoleJobRowsPrepared !== 21) fail(`docs_job_rows:${docs.counts?.serviceRoleJobRowsPrepared}`)
+if (docs.counts?.serviceRoleWorkerClaimTransactionInputsPrepared !== 21) {
+  fail(`docs_claim_inputs:${docs.counts?.serviceRoleWorkerClaimTransactionInputsPrepared}`)
 }
-if (docs.counts?.mockJobBatchCreated !== true) fail('docs_mock_job_batch_not_created')
-if (docs.counts?.mockJobBatchWarningCount !== 1) fail(`docs_batch_warning_count:${docs.counts?.mockJobBatchWarningCount}`)
-if (docs.counts?.mockJobServiceWarnings !== 22) fail(`docs_mock_job_service_warnings:${docs.counts?.mockJobServiceWarnings}`)
+if (docs.counts?.serviceRoleWorkerEventRowsPrepared !== 42) {
+  fail(`docs_worker_events:${docs.counts?.serviceRoleWorkerEventRowsPrepared}`)
+}
+if (docs.counts?.serviceRoleAuditEventRowsPrepared !== 21) {
+  fail(`docs_audit_events:${docs.counts?.serviceRoleAuditEventRowsPrepared}`)
+}
 if (docs.counts?.gpuRuntimeTargetedTools !== 8) fail(`docs_gpu_runtime_tools:${docs.counts?.gpuRuntimeTargetedTools}`)
 if (docs.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) {
   fail(`docs_heavy_tools_cpu:${docs.counts?.heavyToolsIncorrectlyTargetingCpu}`)
 }
 for (const countKey of [
-  'liveSupabaseJobWritesNow',
-  'liveWorkerClaimRowsNow',
+  'liveServiceRoleTransactionsNow',
+  'liveJobBatchRowsInsertedNow',
+  'liveJobRowsInsertedNow',
+  'liveWorkerClaimRowsInsertedNow',
+  'liveWorkerEventRowsInsertedNow',
+  'liveAuditEventRowsInsertedNow',
   'liveWorkerDispatchesNow',
   'liveToolExecutionsNow',
   'internalBetaReadyNowTools',
@@ -403,17 +375,19 @@ for (const countKey of [
 }
 
 for (const key of [
-  'internalBetaBackendQueueStorageReadinessPrepared',
-  'sourceQueueDispatcherAccepted',
+  'internalBetaServiceRoleQueueTransactionReadinessPrepared',
+  'sourceBackendQueueStorageAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
-  'all21BackendQueueStorageRecordsPrepared',
-  'all21BackendQueueStorageRecordsCreatedWithProvidedEvidence',
-  'all12CapabilityScenariosCreatedWithProvidedEvidence',
-  'aiGraphicsRuntimeJobTypeRequiresApprovedSnapshotAndCredit',
-  'mockJobServiceRecordsOnly',
-  'gpuHeavyToolsTargetGpuRuntime',
+  'all21ServiceRoleTransactionRecordsPrepared',
+  'all21ServiceRoleTransactionRecordsReadyWithProvidedEvidence',
+  'all12CapabilityTransactionScenariosReadyWithProvidedEvidence',
+  'serviceRoleRpcContractPrepared',
+  'serviceRoleTransactionRollbackPlanPrepared',
+  'all21IdempotencyKeysPrepared',
+  'all21ApprovedSnapshotCreditBindingsReady',
   'privateArtifactManifestOnly',
+  'gpuHeavyToolsTargetGpuRuntime',
   'agentCanSelectForPlanning',
 ]) {
   if (docs.booleans?.[key] !== true) fail(`docs_true_boolean_not_true:${key}`)
@@ -421,80 +395,89 @@ for (const key of [
 for (const key of falseGateKeys) {
   if (docs.booleans?.[key] !== false) fail(`docs_false_boolean_not_false:${key}`)
 }
-if (!scorecard.includes('ai_graphics_internal_beta_backend_queue_storage_readiness_contract_prepared_with_mock_service_records')) {
-  fail('scorecard_missing_internal_beta_backend_queue_storage_readiness')
+if (!scorecard.includes('ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope')) {
+  fail('scorecard_missing_internal_beta_service_role_queue_transaction_readiness')
 }
 
-const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_backend_queue_storage')
-if (defaultOutput.status !== 'missing_queue_dispatcher_evidence') fail(`default_status:${defaultOutput.status}`)
-if (defaultOutput.backendQueueStorageRecordsPrepared !== 21) {
-  fail(`default_records_prepared:${defaultOutput.backendQueueStorageRecordsPrepared}`)
+const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_service_role_queue_transaction')
+if (defaultOutput.status !== 'missing_backend_queue_storage_evidence') fail(`default_status:${defaultOutput.status}`)
+if (defaultOutput.serviceRoleTransactionRecordsPrepared !== 21) {
+  fail(`default_records_prepared:${defaultOutput.serviceRoleTransactionRecordsPrepared}`)
 }
-if (defaultOutput.backendQueueStorageRecordsCreatedWithProvidedEvidence !== 0) {
-  fail(`default_records_ready:${defaultOutput.backendQueueStorageRecordsCreatedWithProvidedEvidence}`)
+if (defaultOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence !== 0) {
+  fail(`default_records_ready:${defaultOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence}`)
 }
-if (defaultOutput.mockJobBatchCreated !== false) fail('default_mock_job_batch_created')
-if (defaultOutput.liveSupabaseJobWritesNow !== 0) fail('default_live_supabase_writes_not_0')
+if (defaultOutput.liveServiceRoleTransactionsNow !== 0) fail('default_live_transactions_not_0')
 
 const { manifestPacketPath, gpuPacketPath } = writeAcceptedEvidencePackets()
 const approvedOutput = parseJsonOutput(
   runNpm(runScriptName, [
     ...acceptedArgs(manifestPacketPath, gpuPacketPath),
-    '--require-mock-service-queue-records-ready',
+    '--require-transaction-envelope-ready',
   ]),
-  'approved_backend_queue_storage',
+  'approved_service_role_queue_transaction',
 )
-if (approvedOutput.status !== 'mock_service_queue_records_created_runtime_still_blocked') {
+if (approvedOutput.status !== 'service_role_queue_transaction_envelope_prepared_live_writes_blocked') {
   fail(`approved_status:${approvedOutput.status}`)
 }
-if (approvedOutput.backendQueueStorageRecordsCreatedWithProvidedEvidence !== 21) {
-  fail(`approved_records_ready:${approvedOutput.backendQueueStorageRecordsCreatedWithProvidedEvidence}`)
+if (approvedOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence !== 21) {
+  fail(`approved_records_ready:${approvedOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence}`)
 }
-if (approvedOutput.backendQueueStorageCapabilityScenariosCreatedWithProvidedEvidence !== 12) {
-  fail(`approved_capabilities_ready:${approvedOutput.backendQueueStorageCapabilityScenariosCreatedWithProvidedEvidence}`)
+if (approvedOutput.serviceRoleCapabilityScenariosReadyWithProvidedEvidence !== 12) {
+  fail(`approved_capabilities_ready:${approvedOutput.serviceRoleCapabilityScenariosReadyWithProvidedEvidence}`)
 }
-if (approvedOutput.mockJobBatchCreated !== true) fail('approved_mock_job_batch_not_created')
-if (approvedOutput.mockJobBatchWarningCount !== 1) fail(`approved_batch_warning_count:${approvedOutput.mockJobBatchWarningCount}`)
-if (approvedOutput.mockJobServiceWarnings !== 22) fail(`approved_mock_job_service_warnings:${approvedOutput.mockJobServiceWarnings}`)
-if (approvedOutput.backendQueueStorageRecords?.length !== 21) fail('approved_records_length_not_21')
-if (approvedOutput.backendQueueStorageCapabilityScenarios?.length !== 12) fail('approved_capabilities_length_not_12')
-if (approvedOutput.backendQueueStorageRecords?.filter((record) => record.workerType === 'gpu_ai_worker').length !== 8) {
+if (approvedOutput.serviceRoleJobBatchRowsPrepared !== 1) fail(`approved_batch_rows:${approvedOutput.serviceRoleJobBatchRowsPrepared}`)
+if (approvedOutput.serviceRoleJobRowsPrepared !== 21) fail(`approved_job_rows:${approvedOutput.serviceRoleJobRowsPrepared}`)
+if (approvedOutput.serviceRoleWorkerClaimTransactionInputsPrepared !== 21) {
+  fail(`approved_claim_inputs:${approvedOutput.serviceRoleWorkerClaimTransactionInputsPrepared}`)
+}
+if (approvedOutput.serviceRoleWorkerEventRowsPrepared !== 42) {
+  fail(`approved_worker_events:${approvedOutput.serviceRoleWorkerEventRowsPrepared}`)
+}
+if (approvedOutput.serviceRoleAuditEventRowsPrepared !== 21) {
+  fail(`approved_audit_events:${approvedOutput.serviceRoleAuditEventRowsPrepared}`)
+}
+if (approvedOutput.serviceRoleTransactionRecords?.length !== 21) fail('approved_records_length_not_21')
+if (approvedOutput.serviceRoleCapabilityScenarios?.length !== 12) fail('approved_capabilities_length_not_12')
+if (approvedOutput.serviceRoleTransactionRecords?.filter((record) => record.workerType === 'gpu_ai_worker').length !== 8) {
   fail('approved_gpu_records_not_8')
 }
 for (const tool of gpuTools) {
-  const record = approvedOutput.backendQueueStorageRecords?.find((item) => item.toolId === tool)
+  const record = approvedOutput.serviceRoleTransactionRecords?.find((item) => item.toolId === tool)
   if (!record) fail(`approved_missing_gpu_tool_record:${tool}`)
   if (record?.workerType !== 'gpu_ai_worker') fail(`approved_gpu_tool_not_gpu_worker:${tool}`)
 }
-for (const record of approvedOutput.backendQueueStorageRecords ?? []) {
+for (const record of approvedOutput.serviceRoleTransactionRecords ?? []) {
   if (record.jobType !== 'ai_graphics_tool_runtime') fail(`record_job_type:${record.toolId}:${record.jobType}`)
-  if (record.jobServiceStatus !== 'queued') fail(`record_status:${record.toolId}:${record.jobServiceStatus}`)
-  if (record.jobServiceRecordCreated !== true) fail(`record_not_created:${record.toolId}`)
-  if (record.jobServiceRecordMockOnly !== true) fail(`record_not_mock_only:${record.toolId}`)
-  if (record.jobServiceWarningCount !== 1) fail(`record_warning_count:${record.toolId}:${record.jobServiceWarningCount}`)
-  if (record.sourceDispatcherProbeCompletedWithProvidedEvidence !== true) fail(`record_source_not_ready:${record.toolId}`)
-  if (record.approvedPlanSnapshotId !== 'approved_snapshot_ai_graphics_internal_beta_fixture') {
-    fail(`record_approved_snapshot_id:${record.toolId}:${record.approvedPlanSnapshotId}`)
-  }
-  if (record.creditReservationId !== 'credit_reservation_ai_graphics_internal_beta_fixture') {
-    fail(`record_credit_reservation_id:${record.toolId}:${record.creditReservationId}`)
+  if (record.serviceRoleTransactionEnvelopeReadyWithProvidedEvidence !== true) fail(`record_not_ready:${record.toolId}`)
+  if (!String(record.idempotencyKey ?? '').startsWith('ai_graphics_internal_beta_service_role_queue:')) {
+    fail(`record_bad_idempotency_key:${record.toolId}:${record.idempotencyKey}`)
   }
   if (!String(record.privateArtifactManifestRef ?? '').startsWith('private://')) {
     fail(`record_private_manifest_ref:${record.toolId}:${record.privateArtifactManifestRef}`)
   }
-  if (record.canWriteSupabaseJobNow !== false) fail(`record_can_write_supabase:${record.toolId}`)
-  if (record.canCreateLiveWorkerClaimNow !== false) fail(`record_can_live_claim:${record.toolId}`)
-  if (record.canDispatchLiveWorkerNow !== false) fail(`record_can_live_dispatch:${record.toolId}`)
+  if (record.jobBatchRowPrepared !== true) fail(`record_batch_not_prepared:${record.toolId}`)
+  if (record.jobRowPrepared !== true) fail(`record_job_not_prepared:${record.toolId}`)
+  if (record.workerClaimTransactionInputPrepared !== true) fail(`record_claim_not_prepared:${record.toolId}`)
+  if (record.workerEventRowsPrepared !== 2) fail(`record_worker_events:${record.toolId}:${record.workerEventRowsPrepared}`)
+  if (record.auditEventRowsPrepared !== 1) fail(`record_audit_events:${record.toolId}:${record.auditEventRowsPrepared}`)
+  if (record.canRunServiceRoleTransactionNow !== false) fail(`record_can_transaction:${record.toolId}`)
+  if (record.canInsertJobBatchNow !== false) fail(`record_can_insert_batch:${record.toolId}`)
+  if (record.canInsertJobNow !== false) fail(`record_can_insert_job:${record.toolId}`)
+  if (record.canInsertWorkerClaimNow !== false) fail(`record_can_insert_claim:${record.toolId}`)
+  if (record.canInsertWorkerEventNow !== false) fail(`record_can_insert_worker_event:${record.toolId}`)
+  if (record.canInsertAuditEventNow !== false) fail(`record_can_insert_audit_event:${record.toolId}`)
+  if (record.canDispatchWorkerNow !== false) fail(`record_can_dispatch:${record.toolId}`)
   if (record.canExecuteToolNow !== false) fail(`record_can_execute:${record.toolId}`)
 }
-for (const scenario of approvedOutput.backendQueueStorageCapabilityScenarios ?? []) {
+for (const scenario of approvedOutput.serviceRoleCapabilityScenarios ?? []) {
   if (!capabilities.includes(scenario.capabilityId)) fail(`unknown_capability_scenario:${scenario.capabilityId}`)
-  if (scenario.selectedQueueStorageTools?.length < 1) fail(`scenario_no_selected_tools:${scenario.capabilityId}`)
-  if (scenario.scenarioQueueStorageReadyWithProvidedEvidence !== true) {
+  if (scenario.selectedTransactionTools?.length < 1) fail(`scenario_no_selected_tools:${scenario.capabilityId}`)
+  if (scenario.scenarioTransactionReadyWithProvidedEvidence !== true) {
     fail(`scenario_not_ready:${scenario.capabilityId}`)
   }
-  if (scenario.canWriteSupabaseJobsNow !== false) fail(`scenario_can_write_supabase:${scenario.capabilityId}`)
-  if (scenario.canCreateLiveWorkerClaimsNow !== false) fail(`scenario_can_claim:${scenario.capabilityId}`)
+  if (scenario.canRunServiceRoleTransactionNow !== false) fail(`scenario_can_transaction:${scenario.capabilityId}`)
+  if (scenario.canDispatchWorkersNow !== false) fail(`scenario_can_dispatch:${scenario.capabilityId}`)
   if (scenario.canExecuteToolsNow !== false) fail(`scenario_can_execute:${scenario.capabilityId}`)
 }
 for (const key of falseGateKeys) {
@@ -504,25 +487,29 @@ for (const key of inputFalseKeys) {
   if (approvedOutput.input?.[key] !== false) fail(`approved_input_false_gate_not_false:${key}`)
 }
 
-let liveWritesExited = false
+let liveTransactionExited = false
 try {
   runNpm(runScriptName, [
     ...acceptedArgs(manifestPacketPath, gpuPacketPath),
-    '--require-live-supabase-job-writes',
+    '--require-live-service-role-transaction',
   ])
 } catch {
-  liveWritesExited = true
+  liveTransactionExited = true
 }
-if (!liveWritesExited) fail('require_live_supabase_job_writes_did_not_fail_closed')
+if (!liveTransactionExited) fail('require_live_service_role_transaction_did_not_fail_closed')
 
 const forbiddenPatterns = [
+  /serviceRoleQueueTransactionApprovedNow["'`:\s=]+true/i,
   /serviceRoleSupabaseWritesApprovedNow["'`:\s=]+true/i,
+  /liveJobBatchInsertApprovedNow["'`:\s=]+true/i,
+  /liveJobInsertApprovedNow["'`:\s=]+true/i,
+  /liveWorkerClaimInsertApprovedNow["'`:\s=]+true/i,
+  /liveWorkerEventInsertApprovedNow["'`:\s=]+true/i,
+  /liveAuditEventInsertApprovedNow["'`:\s=]+true/i,
   /agentCanExecuteToolsNow["'`:\s=]+true/i,
   /workerQueueApprovedNow["'`:\s=]+true/i,
   /backendQueueSubmissionApprovedNow["'`:\s=]+true/i,
-  /productionWorkerJobEnqueueApprovedNow["'`:\s=]+true/i,
   /productionWorkerDispatchApprovedNow["'`:\s=]+true/i,
-  /productionWorkerRouteExecutionApprovedNow["'`:\s=]+true/i,
   /workerLeaseCreationApprovedNow["'`:\s=]+true/i,
   /toolExecutionApprovedNow["'`:\s=]+true/i,
   /browserWebglCanvasRuntimeApprovedNow["'`:\s=]+true/i,
@@ -567,8 +554,6 @@ const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:internal-beta-service-role-queue-transaction-readiness": "tsx server/cli/ai-graphics-internal-beta-service-role-queue-transaction-readiness.ts",',
-  '+    "ai-graphics:internal-beta-service-role-queue-transaction-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-queue-transaction-readiness-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue
@@ -595,7 +580,7 @@ try {
 
 if (failures.length > 0) {
   console.error([
-    'AI graphics internal beta backend queue storage readiness diagnostics failed:',
+    'AI graphics internal beta service-role queue transaction readiness diagnostics failed:',
     ...failures.map((failure) => `- ${failure}`),
   ].join('\n'))
   process.exit(1)
@@ -607,20 +592,20 @@ console.log(JSON.stringify({
   status: docs.status,
   tools: docs.tools.length,
   capabilities: docs.capabilities.length,
-  backendQueueStorageRecordsPrepared: docs.counts.backendQueueStorageRecordsPrepared,
-  backendQueueStorageRecordsCreatedWithProvidedEvidence:
-    docs.counts.backendQueueStorageRecordsCreatedWithProvidedEvidence,
-  backendQueueStorageCapabilityScenariosCreatedWithProvidedEvidence:
-    docs.counts.backendQueueStorageCapabilityScenariosCreatedWithProvidedEvidence,
-  mockJobBatchCreated: docs.counts.mockJobBatchCreated,
-  mockJobServiceWarnings: docs.counts.mockJobServiceWarnings,
-  liveSupabaseJobWritesNow: docs.counts.liveSupabaseJobWritesNow,
-  liveWorkerClaimRowsNow: docs.counts.liveWorkerClaimRowsNow,
-  liveWorkerDispatchesNow: docs.counts.liveWorkerDispatchesNow,
+  serviceRoleTransactionRecordsPrepared: docs.counts.serviceRoleTransactionRecordsPrepared,
+  serviceRoleTransactionRecordsReadyWithProvidedEvidence:
+    docs.counts.serviceRoleTransactionRecordsReadyWithProvidedEvidence,
+  serviceRoleCapabilityScenariosReadyWithProvidedEvidence:
+    docs.counts.serviceRoleCapabilityScenariosReadyWithProvidedEvidence,
+  serviceRoleJobRowsPrepared: docs.counts.serviceRoleJobRowsPrepared,
+  serviceRoleWorkerEventRowsPrepared: docs.counts.serviceRoleWorkerEventRowsPrepared,
+  serviceRoleAuditEventRowsPrepared: docs.counts.serviceRoleAuditEventRowsPrepared,
+  liveServiceRoleTransactionsNow: docs.counts.liveServiceRoleTransactionsNow,
+  liveJobRowsInsertedNow: docs.counts.liveJobRowsInsertedNow,
+  liveWorkerClaimRowsInsertedNow: docs.counts.liveWorkerClaimRowsInsertedNow,
   gpuRuntimeTargetedTools: docs.counts.gpuRuntimeTargetedTools,
-  serviceRoleSupabaseWritesApprovedNow:
-    docs.booleans.serviceRoleSupabaseWritesApprovedNow,
-  backendQueueSubmissionApprovedNow: docs.booleans.backendQueueSubmissionApprovedNow,
+  serviceRoleQueueTransactionApprovedNow:
+    docs.booleans.serviceRoleQueueTransactionApprovedNow,
   runtimeReadyNow: docs.booleans.runtimeReadyNow,
   productionReadyNow: docs.booleans.productionReadyNow,
 }, null, 2))

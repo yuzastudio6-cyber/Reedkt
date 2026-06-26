@@ -15,6 +15,15 @@ browser/canvas/WebGL, run GPU/model runtime, download/load model weights,
 process media, create signed URLs or public artifacts, unlock internal/external
 beta, or unlock production.
 
+AI graphics beta execution handoff readiness decision
+`ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
+bridges the owner-approved all-21 evidence packet into a future Tool Route and
+Worker handoff evidence shape. It confirms that owner-approved evidence can be
+passed forward for all 21 tools and all 12 product-facing capabilities, but
+keeps actual agent/tool/route/worker/provider execution, browser/canvas/WebGL,
+GPU/model runtime, model-weight loading, media processing, signed URLs, public
+artifacts, internal beta, external beta, and production blocked.
+
 Phase 35F SAM2 feature E2E evidence, when present, counts only toward internal
 SAM2 feature testing. It is not external beta, paid production, broad real
 media, provider, Revideo, FILM, slow-motion, Real-ESRGAN, public delivery, or

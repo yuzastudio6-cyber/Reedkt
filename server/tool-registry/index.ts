@@ -35,6 +35,7 @@ export * from './ai-graphics-beta-evidence-bundle'
 export * from './ai-graphics-beta-evidence-local-assembly'
 export * from './ai-graphics-beta-tool-call-readiness'
 export * from './ai-graphics-internal-beta-owner-approval'
+export * from './ai-graphics-beta-execution-handoff-readiness'
 export * from './ai-graphics-cross-owner-coordination'
 
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {

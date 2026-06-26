@@ -14,6 +14,7 @@ import {
 import {
   AI_GRAPHICS_BETA_READINESS_GATE_DECISION,
   buildAiGraphicsBetaReadinessGate,
+  type AiGraphicsBetaReadinessEvidence,
 } from './ai-graphics-beta-readiness-gate'
 import type { ProductionRegistryWorkerType, ProductionToolId } from './production-tool-types'
 
@@ -153,6 +154,22 @@ function buildGlobalBlockers(evidence: Required<AiGraphicsWorkerHandoffEvidence>
   ].filter((blocker): blocker is string => Boolean(blocker))
 }
 
+function asBetaReadinessEvidence(
+  evidence: Required<AiGraphicsWorkerHandoffEvidence>,
+): Required<AiGraphicsBetaReadinessEvidence> {
+  return {
+    approvedPlanSnapshotGatePassed: Boolean(evidence.approvedPlanSnapshotId),
+    creditReservationGatePassed: Boolean(evidence.creditReservationId),
+    artifactBoundaryGatePassed: evidence.artifactBoundaryApproved,
+    toolRouteGatePassed: Boolean(evidence.routeApprovalRef),
+    workerGatePassed: Boolean(evidence.workerApprovalRef),
+    browserCanvasWebglSandboxPassed: evidence.browserCanvasWebglSandboxPassed,
+    nativeGpuRuntimeProofPassed: evidence.nativeGpuRuntimeProofPassed,
+    modelWeightManifestsApproved: evidence.modelWeightManifestsApproved,
+    internalBetaOwnerApprovalGranted: evidence.internalBetaOwnerApprovalGranted,
+  }
+}
+
 function buildRuntimeBlockers(
   tool: AiGraphicsToolCallHandoffTool,
   evidence: Required<AiGraphicsWorkerHandoffEvidence>,
@@ -228,7 +245,7 @@ export function buildAiGraphicsWorkerHandoffReadinessContract(
   const evidence = normalizeEvidence(evidenceInput)
   const globalBlockers = buildGlobalBlockers(evidence)
   const routeReadiness = buildAiGraphicsToolRouteReadinessContract()
-  const betaGate = buildAiGraphicsBetaReadinessGate()
+  const betaGate = buildAiGraphicsBetaReadinessGate(asBetaReadinessEvidence(evidence))
   const handoff = buildAiGraphicsToolCallHandoffContract()
   const toolPackets = listAiGraphicsToolCallHandoffTools().map((tool) => asToolPacket(tool, evidence, [
     ...globalBlockers,

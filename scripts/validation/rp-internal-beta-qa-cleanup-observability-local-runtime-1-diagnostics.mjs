@@ -29,6 +29,20 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 
+for (const file of [
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1r/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1r/negative-gate-test-matrix.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1r/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1r/gate-safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1r/negative-gate-record.json',
+  'docs/activation-phase-rp-internal-beta-e2e-negative-gate-tests-1r-results.md',
+  'server/smoke/internal-beta-e2e-negative-gate-tests-smoke.ts',
+  'scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1r-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'completed_local_qa_cleanup_observability_runtime_no_remote_execution',
@@ -167,7 +181,9 @@ function assertChangedFilesSafe() {
     if (forbiddenFilePatterns.some((rx) => rx.test(file))) fail(`forbidden changed file pattern: ${file}`)
     if (fs.existsSync(file) && fs.statSync(file).isFile()) {
       const text = fs.readFileSync(file, 'utf8')
-      const isNegativeSmokeFixture = file === 'server/smoke/internal-beta-qa-cleanup-observability-local-runtime-smoke.ts'
+      const isNegativeSmokeFixture =
+        file === 'server/smoke/internal-beta-qa-cleanup-observability-local-runtime-smoke.ts' ||
+        file === 'server/smoke/internal-beta-e2e-negative-gate-tests-smoke.ts'
       if (!isNegativeSmokeFixture && /(["']?(serviceRoleKey|providerApiKey|signedUrl|publicUrl|mediaBytes|fileBuffer|renderedBytes)["']?\s*:)/i.test(text)) {
         fail(`forbidden secret/artifact/media key in changed file: ${file}`)
       }

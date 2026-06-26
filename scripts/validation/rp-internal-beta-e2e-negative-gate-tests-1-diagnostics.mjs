@@ -52,6 +52,14 @@ for (const file of [
   'scripts/validation/rp-provider-01-internal-beta-disabled-provider-adapter-scaffold-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-1-diagnostics.mjs',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1r/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1r/negative-gate-test-matrix.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1r/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1r/gate-safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-e2e-negative-gate-tests-1r/negative-gate-record.json',
+  'docs/activation-phase-rp-internal-beta-e2e-negative-gate-tests-1r-results.md',
+  'scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1r-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-qa-cleanup-observability-local-runtime-1-diagnostics.mjs',
 ]) {
   allowedChangedFiles.add(file)
 }

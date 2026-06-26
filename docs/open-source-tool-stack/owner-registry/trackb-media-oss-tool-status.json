@@ -1181,7 +1181,7 @@
       "migrationDeployed": "no"
     }
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_EXECUTION",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_QA_REVIEW",
   "sourceEvidence": {
     "trackbMilestone4ColorImagePipelineQaReviewDecision": "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup",
     "trackbAcceptedProvenBoundedAfterMilestone4Qa": 16,
@@ -1195,7 +1195,9 @@
     "trackbProductBetaRuntimeProductRouteEnablementCloseoutDecision": "trackb_media_oss_product_beta_runtime_product_route_enablement_closeout_passed_ready_for_product_ready_proof_rerun_plan",
     "trackbProductBetaRuntimeProductRouteEnablementCloseoutSourceSha": "34cbf88de1c8b87d55b1d38145c3913143d5d40f",
     "trackbProductBetaRuntimeProductReadyProofRerunPlanDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_plan_passed_ready_for_product_ready_proof_rerun_execution",
-    "trackbProductBetaRuntimeProductReadyProofRerunPlanSourceSha": "019ad4061f96a302f02f89eaacbfec796a23f417"
+    "trackbProductBetaRuntimeProductReadyProofRerunPlanSourceSha": "019ad4061f96a302f02f89eaacbfec796a23f417",
+    "trackbProductBetaRuntimeProductReadyProofRerunExecutionDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_execution_passed_ready_for_product_ready_proof_rerun_qa_review",
+    "trackbProductBetaRuntimeProductReadyProofRerunExecutionSha": "07909a2bb297b0012bc80ab61cb08cccf1806f37"
   },
   "milestone4ColorImagePipelineQaReview": {
     "decision": "trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup",
@@ -2049,5 +2051,23 @@
     "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_EXECUTION",
     "supabaseClassification": "no write / environment none / SQL none / migration no",
     "trackBTotalsText": "16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready"
+  },
+  "productBetaRuntimeProductReadyProofRerunExecution": {
+    "decision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_execution_passed_ready_for_product_ready_proof_rerun_qa_review",
+    "previousDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_plan_passed_ready_for_product_ready_proof_rerun_execution",
+    "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_QA_REVIEW",
+    "sourcePr": 958,
+    "sourceSha": "07909a2bb297b0012bc80ab61cb08cccf1806f37",
+    "sourceHead": "9f87daed4de2be534bd92300428d4cd572bb9e80",
+    "productReadyCount": 0,
+    "trackBTotals": {
+      "owned": 16,
+      "boundedAcceptedProven": 16,
+      "blockedNotInstalledProven": 0,
+      "productReady": 0
+    },
+    "readyForProductReadyProofRerunQaReview": true,
+    "productReadyApproved": false,
+    "supabaseClassification": "no write / environment none / SQL none / migration no"
   }
 }

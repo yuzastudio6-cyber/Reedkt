@@ -67,6 +67,7 @@
     "ai-video-broll-gen-9j-gpu-global-quota-fix:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-gpu-global-quota-fix-diagnostics.mjs",
     "ai-video-broll-tool-registry-model-weights:diagnostics": "node scripts/validation/ai-video-broll-tool-registry-model-weights-diagnostics.mjs",
     "ai-video-broll-tool-registry-owner-review:diagnostics": "node scripts/validation/ai-video-broll-tool-registry-owner-review-diagnostics.mjs",
+    "ai-video-broll-model-weight-evidence-alignment:diagnostics": "node scripts/validation/ai-video-broll-model-weight-evidence-alignment-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

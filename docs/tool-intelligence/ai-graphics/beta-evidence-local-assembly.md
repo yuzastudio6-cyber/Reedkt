@@ -20,8 +20,20 @@ Default fail-closed check:
 npm run --silent ai-graphics:beta-evidence-local-assembly
 ```
 
-Local assembly with reviewed manifests, native GPU proof results, and committed
-JS runtime proof packets:
+Local assembly with reviewed manifests, native GPU proof results, committed
+JS runtime proof packets, and non-owner technical gates ready for owner review:
+
+```bash
+npm run --silent ai-graphics:beta-evidence-local-assembly -- \
+  --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests \
+  --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results \
+  --use-committed-js-runtime-proofs \
+  --all-technical-gates-passed \
+  --browser-canvas-webgl-sandbox-passed \
+  --require-ready-for-owner-gate
+```
+
+Local assembly after owner approval is explicitly granted:
 
 ```bash
 npm run --silent ai-graphics:beta-evidence-local-assembly -- \
@@ -52,6 +64,7 @@ npm run --silent ai-graphics:beta-evidence-local-assembly -- \
 - Local manifest records provided: `0`
 - Local GPU proof results provided: `0`
 - Default all-21 beta evidence ready: `false`
+- Default all-21 technical evidence ready before owner approval: `false`
 - Agent can execute tools now: `false`
 - Runtime ready now: `false`
 - Internal beta ready now: `false`
@@ -64,6 +77,8 @@ override booleans. This assembler removes the manual packet-capture step from th
 operator flow by deriving the model-weight manifest review packet and native GPU
 runtime proof packet directly from local evidence directories.
 
-The gate remains fail-closed until the private manifest records, native GPU proof
-results, committed JS proof packets, browser sandbox proof, shared gates, and
-owner approval inputs all satisfy the existing beta evidence bundle.
+The owner-review gate remains fail-closed until the private manifest records,
+native GPU proof results, committed JS proof packets, browser sandbox proof, and
+non-owner shared gates are supplied. The final all-21 beta evidence gate remains
+fail-closed until owner approval is explicitly supplied after that technical
+evidence is complete.

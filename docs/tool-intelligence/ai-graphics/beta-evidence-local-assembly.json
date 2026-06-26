@@ -40,18 +40,21 @@
     "localManifestRecordsProvided": 0,
     "localGpuRuntimeProofResultsProvided": 0,
     "defaultBetaTestingReadyTools": 0,
+    "fullTechnicalEvidenceReadyForOwnerGateTools": 21,
     "fullEvidenceBetaTestingReadyTools": 21
   },
   "defaultMissingLocalEvidence": [
     "reviewed_private_model_weight_manifest_records",
     "native_gpu_runtime_proof_result_records"
   ],
-  "requiredCommand": "npm run --silent ai-graphics:beta-evidence-local-assembly -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --use-committed-js-runtime-proofs --all-shared-gates-passed --browser-canvas-webgl-sandbox-passed --require-all-21-beta-ready",
+  "requiredOwnerGateCommand": "npm run --silent ai-graphics:beta-evidence-local-assembly -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --use-committed-js-runtime-proofs --all-technical-gates-passed --browser-canvas-webgl-sandbox-passed --require-ready-for-owner-gate",
+  "requiredOwnerApprovedCommand": "npm run --silent ai-graphics:beta-evidence-local-assembly -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --use-committed-js-runtime-proofs --all-shared-gates-passed --browser-canvas-webgl-sandbox-passed --require-all-21-beta-ready",
   "booleans": {
     "betaEvidenceLocalAssemblyPrepared": true,
     "modelWeightManifestReviewPacketBuiltFromLocalInput": false,
     "gpuRuntimeProofResultPacketBuiltFromLocalInput": false,
     "committedJsRuntimeProofsAccepted": false,
+    "all21TechnicalEvidenceReadyBeforeOwnerApproval": false,
     "all21BetaEvidenceReady": false,
     "readyForInternalBetaOwnerGate": false,
     "agentCanSelectForPlanning": true,

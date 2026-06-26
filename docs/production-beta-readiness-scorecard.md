@@ -487,6 +487,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Decision: `ai_graphics_beta_readiness_gate_prepared_with_current_runtime_blocks`.
 - Scope: server-only gate aggregates install, production mapping, planning selection, runtime policy, license policy, model-weight policy, Tool Route, Worker, approved snapshot, credit, artifact, GPU, browser sandbox, and beta-owner gates for all 21 AI graphics tools.
 - Result: all 21 tools are installed or represented on the intended ReeditPro surface, all 21 map to production registry IDs, all 21 are planning-selectable, and all 8 heavy/model tools remain GPU-runtime targeted. Beta testing ready now remains 0 of 21 because required runtime and owner gates are not yet passed.
+- Owner-gate clarity: technical evidence can now be evaluated before owner approval; `internal_beta_owner_approval` remains a separate final gate rather than being folded into proof readiness.
 - GPU routing: no heavy/model tool is allowed to fall back to CPU runtime.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
@@ -555,6 +556,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Decision: `ai_graphics_beta_readiness_gate_prepared_with_current_runtime_blocks`.
 - Scope: evidence-driven beta readiness evaluator for the existing 21-tool gate.
 - Result: default evidence keeps 0 tools beta-ready. When all currently modeled shared/runtime/model-weight evidence flags are supplied, the gate reports all 21 tools beta-eligible (`torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, `transparent_background`, `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs`) and keeps 0 tools blocked.
+- Owner-gate clarity: the beta evidence bundle now distinguishes `all21TechnicalEvidenceReadyBeforeOwnerApproval=true` from `all21BetaEvidenceReady=true`, so owner review can happen before owner approval is claimed.
 - Runtime/beta/production: no committed unlock; the evaluator is report-only and does not execute tools, routes, workers, providers, browser/WebGL/canvas, GPU/model runtime, model downloads, media processing, or artifact creation.
 
 ## AI Graphics Beta Tool Call Readiness

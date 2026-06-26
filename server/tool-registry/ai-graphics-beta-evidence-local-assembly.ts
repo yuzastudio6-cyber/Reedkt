@@ -36,6 +36,7 @@ export interface AiGraphicsBetaEvidenceLocalAssembly {
     | 'missing_local_evidence'
     | 'invalid_local_evidence'
     | 'assembled_not_all21_beta_ready'
+    | 'assembled_technical_evidence_ready_for_owner_gate'
     | 'assembled_all21_beta_evidence_ready_for_owner_gate'
   totalAiGraphicsTools: 21
   modelWeightManifestRequiredTools: 5
@@ -52,6 +53,7 @@ export interface AiGraphicsBetaEvidenceLocalAssembly {
     modelWeightManifestReviewPacketBuiltFromLocalInput: boolean
     gpuRuntimeProofResultPacketBuiltFromLocalInput: boolean
     committedJsRuntimeProofsAccepted: boolean
+    all21TechnicalEvidenceReadyBeforeOwnerApproval: boolean
     all21BetaEvidenceReady: boolean
     readyForInternalBetaOwnerGate: boolean
     agentCanSelectForPlanning: true
@@ -109,6 +111,9 @@ function assemblyStatus(input: {
   if (input.betaEvidenceBundle.all21BetaEvidenceReady) {
     return 'assembled_all21_beta_evidence_ready_for_owner_gate'
   }
+  if (input.betaEvidenceBundle.all21TechnicalEvidenceReadyBeforeOwnerApproval) {
+    return 'assembled_technical_evidence_ready_for_owner_gate'
+  }
   return 'assembled_not_all21_beta_ready'
 }
 
@@ -161,8 +166,11 @@ export function buildAiGraphicsBetaEvidenceLocalAssembly(
         gpuRuntimeProofResultPacket.nativeGpuRuntimeProofResultsAccepted,
       committedJsRuntimeProofsAccepted:
         betaEvidenceBundle.evidenceSources.jsRuntimeProofsAccepted,
+      all21TechnicalEvidenceReadyBeforeOwnerApproval:
+        betaEvidenceBundle.all21TechnicalEvidenceReadyBeforeOwnerApproval,
       all21BetaEvidenceReady: betaEvidenceBundle.all21BetaEvidenceReady,
-      readyForInternalBetaOwnerGate: betaEvidenceBundle.all21BetaEvidenceReady,
+      readyForInternalBetaOwnerGate:
+        betaEvidenceBundle.all21TechnicalEvidenceReadyBeforeOwnerApproval,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
       routeExecutionApprovedNow: false,

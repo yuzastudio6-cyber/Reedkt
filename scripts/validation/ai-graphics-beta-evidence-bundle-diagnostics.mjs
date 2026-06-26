@@ -375,8 +375,18 @@ if (docs.counts?.totalTools !== 21) fail('docs_total_tools_not_21')
 if (docs.counts?.installReadyForPlannedSurfaceTools !== 21) fail('docs_install_ready_not_21')
 if (docs.counts?.defaultBetaTestingReadyTools !== 0) fail('docs_default_ready_not_0')
 if (docs.counts?.defaultBlockedTools !== 21) fail('docs_default_blocked_not_21')
+if (docs.counts?.fullTechnicalEvidenceReadyForOwnerGateTools !== 21) {
+  fail('docs_full_technical_owner_gate_not_21')
+}
 if (docs.counts?.fullEvidenceBetaTestingReadyTools !== 21) fail('docs_full_ready_not_21')
 if (docs.counts?.fullEvidenceBlockedTools !== 0) fail('docs_full_blocked_not_0')
+if (docs.ownerApprovalGate !== 'internal_beta_owner_approval') fail('docs_owner_gate_missing')
+if (!docs.requiredTechnicalEvidenceBeforeOwnerApproval?.includes('native_gpu_runtime_proof_packet')) {
+  fail('docs_required_technical_evidence_missing_gpu_packet')
+}
+if (docs.requiredTechnicalEvidenceBeforeOwnerApproval?.includes('internal_beta_owner_approval')) {
+  fail('docs_technical_evidence_should_not_include_owner_approval')
+}
 
 const defaultBundle = parseJsonOutput(runNpm(validateScriptName), 'default_bundle')
 if (defaultBundle.betaTestingReadyTools !== 0) fail('default_bundle_ready_not_0')
@@ -465,6 +475,32 @@ for (const token of [
 }
 
 const { manifestPacketPath, gpuPacketPath } = writePacketFixtures()
+const technicalPacketBundle = parseJsonOutput(runNpm(validateScriptName, [
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--model-weight-manifest-review-packet',
+  manifestPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuPacketPath,
+  '--require-ready-for-owner-gate',
+]), 'technical_packet_bundle')
+if (technicalPacketBundle.betaTestingReadyTools !== 0) fail('technical_packet_bundle_ready_should_still_be_0')
+if (technicalPacketBundle.blockedTools !== 21) fail('technical_packet_bundle_blocked_should_still_be_21')
+if (technicalPacketBundle.all21BetaEvidenceReady !== false) fail('technical_packet_bundle_all21_beta_should_be_false')
+if (technicalPacketBundle.all21TechnicalEvidenceReadyBeforeOwnerApproval !== true) {
+  fail('technical_packet_bundle_owner_gate_not_true')
+}
+if (technicalPacketBundle.booleans?.readyForInternalBetaOwnerGate !== true) {
+  fail('technical_packet_bundle_ready_for_owner_gate_boolean_not_true')
+}
+if (!technicalPacketBundle.missingEvidence?.includes('internal_beta_owner_approval')) {
+  fail('technical_packet_bundle_missing_owner_approval_gap')
+}
+if (technicalPacketBundle.missingTechnicalEvidenceBeforeOwnerApproval?.length !== 0) {
+  fail('technical_packet_bundle_has_missing_technical_evidence')
+}
+
 const fullPacketBundle = parseJsonOutput(runNpm(validateScriptName, [
   '--use-committed-js-runtime-proofs',
   '--all-shared-gates-passed',
@@ -477,6 +513,9 @@ const fullPacketBundle = parseJsonOutput(runNpm(validateScriptName, [
 ]), 'full_packet_bundle')
 if (fullPacketBundle.betaTestingReadyTools !== 21) fail('full_packet_bundle_ready_not_21')
 if (fullPacketBundle.all21BetaEvidenceReady !== true) fail('full_packet_bundle_all21_not_true')
+if (fullPacketBundle.all21TechnicalEvidenceReadyBeforeOwnerApproval !== true) {
+  fail('full_packet_bundle_owner_gate_not_true')
+}
 if (fullPacketBundle.evidenceSources?.jsRuntimeProofsAccepted !== true) fail('full_packet_bundle_js_proofs_not_accepted')
 if (fullPacketBundle.evidenceSources?.nodeRuntimeProofPacketAccepted !== true) fail('full_packet_bundle_node_proof_not_accepted')
 if (fullPacketBundle.evidenceSources?.browserRuntimeProofPacketAccepted !== true) fail('full_packet_bundle_browser_proof_not_accepted')
@@ -497,7 +536,7 @@ try {
 }
 if (!partialExited) fail('require_all21_did_not_exit_nonzero_when_evidence_missing')
 
-for (const output of [defaultBundle, fullFlagBundle, jsProofOverrideBundle, fullPacketBundle]) {
+for (const output of [defaultBundle, fullFlagBundle, jsProofOverrideBundle, technicalPacketBundle, fullPacketBundle]) {
   for (const key of [
     'agentCanExecuteToolsNow',
     'routeExecutionApprovedNow',

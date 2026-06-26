@@ -50,6 +50,7 @@ export interface AiGraphicsBetaEvidenceBundle {
   betaTestingReadyTools: number
   blockedTools: number
   all21BetaEvidenceReady: boolean
+  all21TechnicalEvidenceReadyBeforeOwnerApproval: boolean
   evidence: Required<AiGraphicsBetaReadinessEvidence>
   evidenceSources: {
     jsRuntimeProofsAccepted: boolean
@@ -66,6 +67,7 @@ export interface AiGraphicsBetaEvidenceBundle {
   }
   tools: AiGraphicsBetaEvidenceBundleToolRow[]
   missingEvidence: string[]
+  missingTechnicalEvidenceBeforeOwnerApproval: string[]
   booleans: {
     betaEvidenceBundleValidatorPrepared: true
     all21ToolsCovered: true
@@ -74,6 +76,8 @@ export interface AiGraphicsBetaEvidenceBundle {
     all21ToolsPlanningSelectable: true
     agentCanSelectForPlanning: true
     all21BetaEvidenceReady: boolean
+    all21TechnicalEvidenceReadyBeforeOwnerApproval: boolean
+    readyForInternalBetaOwnerGate: boolean
     agentCanExecuteToolsNow: false
     routeExecutionApprovedNow: false
     workerExecutionApprovedNow: false
@@ -304,6 +308,11 @@ export function buildAiGraphicsBetaEvidenceBundle(
   }
 
   const gate = buildAiGraphicsBetaReadinessGate(evidence)
+  const technicalEvidenceBeforeOwnerApproval: Required<AiGraphicsBetaReadinessEvidence> = {
+    ...evidence,
+    internalBetaOwnerApprovalGranted: true,
+  }
+  const technicalGateBeforeOwnerApproval = buildAiGraphicsBetaReadinessGate(technicalEvidenceBeforeOwnerApproval)
   const readinessRecords = listAiGraphicsToolCallReadiness()
   const tools = gate.tools.map((tool): AiGraphicsBetaEvidenceBundleToolRow => {
     const readiness = readinessRecords.find((record) => record.toolId === tool.toolId)
@@ -329,6 +338,15 @@ export function buildAiGraphicsBetaEvidenceBundle(
     gate.betaTestingReadyTools === 21 &&
     gate.blockedTools === 0 &&
     jsRuntimeProofsAccepted
+  const all21TechnicalEvidenceReadyBeforeOwnerApproval =
+    technicalGateBeforeOwnerApproval.betaTestingReadyTools === 21 &&
+    technicalGateBeforeOwnerApproval.blockedTools === 0 &&
+    jsRuntimeProofsAccepted
+  const missingTechnicalEvidenceBeforeOwnerApproval = buildMissingEvidence(
+    technicalEvidenceBeforeOwnerApproval,
+    input,
+    jsRuntimeProofsAccepted,
+  )
 
   return {
     decision: AI_GRAPHICS_BETA_EVIDENCE_BUNDLE_DECISION,
@@ -339,6 +357,7 @@ export function buildAiGraphicsBetaEvidenceBundle(
     betaTestingReadyTools: gate.betaTestingReadyTools,
     blockedTools: gate.blockedTools,
     all21BetaEvidenceReady,
+    all21TechnicalEvidenceReadyBeforeOwnerApproval,
     evidence,
     evidenceSources: {
       jsRuntimeProofsAccepted,
@@ -355,6 +374,7 @@ export function buildAiGraphicsBetaEvidenceBundle(
     },
     tools,
     missingEvidence: buildMissingEvidence(evidence, input, jsRuntimeProofsAccepted),
+    missingTechnicalEvidenceBeforeOwnerApproval,
     booleans: {
       betaEvidenceBundleValidatorPrepared: true,
       all21ToolsCovered: true,
@@ -363,6 +383,8 @@ export function buildAiGraphicsBetaEvidenceBundle(
       all21ToolsPlanningSelectable: true,
       agentCanSelectForPlanning: true,
       all21BetaEvidenceReady,
+      all21TechnicalEvidenceReadyBeforeOwnerApproval,
+      readyForInternalBetaOwnerGate: all21TechnicalEvidenceReadyBeforeOwnerApproval,
       agentCanExecuteToolsNow: false,
       routeExecutionApprovedNow: false,
       workerExecutionApprovedNow: false,

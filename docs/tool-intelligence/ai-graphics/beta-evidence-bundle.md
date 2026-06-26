@@ -14,7 +14,8 @@ and which tools still lack the evidence required before beta tool calls.
 - Selectable by the agent for planning/study metadata: 21.
 - Beta-ready with no supplied evidence bundle: 0.
 - Blocked with no supplied evidence bundle: 21.
-- Beta-eligible when every required proof packet and evidence gate is supplied: 21.
+- Technical evidence ready for owner review when every proof packet and non-owner gate is supplied: 21.
+- Beta-eligible when every required proof packet, non-owner evidence gate, and owner approval gate is supplied: 21.
 
 ## Required Evidence Bundle
 
@@ -32,6 +33,10 @@ The validator stays fail-closed until all of these are supplied:
 - Native NVIDIA L4 GPU runtime proof packet.
 - Reviewed private model-weight manifest packet.
 - Internal beta owner approval.
+
+The first eleven items form the technical owner-review packet. The final
+`internal_beta_owner_approval` item is intentionally separate: technical
+evidence can be ready for owner review before the owner grants the beta gate.
 
 Legacy boolean override flags for GPU proof or model-weight manifests are ignored
 by this bundle. They may be useful in lower-level simulation diagnostics, but

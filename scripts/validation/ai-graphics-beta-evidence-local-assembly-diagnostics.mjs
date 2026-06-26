@@ -258,6 +258,7 @@ for (const token of [
   'buildAiGraphicsBetaEvidenceBundle',
   'buildAiGraphicsModelWeightManifestReviewPacket',
   'buildAiGraphicsGpuRuntimeProofResultPacket',
+  'assembled_technical_evidence_ready_for_owner_gate',
   'assembled_all21_beta_evidence_ready_for_owner_gate',
   'reviewed_private_model_weight_manifest_records',
   'native_gpu_runtime_proof_result_records',
@@ -269,8 +270,10 @@ for (const token of [
   '--manifest-dir',
   '--result-dir',
   '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
   '--all-shared-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
+  '--require-ready-for-owner-gate',
   '--require-all-21-beta-ready',
   'validatorOnly: true',
   'gpuRuntimePerformed: false',
@@ -296,6 +299,7 @@ for (const [key, expected] of Object.entries({
   localManifestRecordsProvided: 0,
   localGpuRuntimeProofResultsProvided: 0,
   defaultBetaTestingReadyTools: 0,
+  fullTechnicalEvidenceReadyForOwnerGateTools: 21,
   fullEvidenceBetaTestingReadyTools: 21,
 })) {
   if (packet.counts?.[key] !== expected) fail(`unexpected_count:${key}:${packet.counts?.[key]}`)
@@ -312,6 +316,7 @@ for (const key of [
   'modelWeightManifestReviewPacketBuiltFromLocalInput',
   'gpuRuntimeProofResultPacketBuiltFromLocalInput',
   'committedJsRuntimeProofsAccepted',
+  'all21TechnicalEvidenceReadyBeforeOwnerApproval',
   'all21BetaEvidenceReady',
   'readyForInternalBetaOwnerGate',
   'agentCanExecuteToolsNow',
@@ -358,6 +363,33 @@ if (!defaultAssembly.missingLocalEvidence?.includes('native_gpu_runtime_proof_re
 
 const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-beta-evidence-local-assembly-'))
 const { manifestDir, resultDir } = writeFixtures(fixtureRoot)
+const ownerGateOutput = runNpm(assemblyScriptName, [
+  '--manifest-dir',
+  manifestDir,
+  '--result-dir',
+  resultDir,
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--require-ready-for-owner-gate',
+])
+const ownerGateAssembly = parseOutput(ownerGateOutput, 'owner_gate_assembly')
+if (ownerGateAssembly.status !== 'assembled_technical_evidence_ready_for_owner_gate') {
+  fail(`owner_gate_status:${ownerGateAssembly.status}`)
+}
+if (ownerGateAssembly.betaEvidenceBundle?.all21TechnicalEvidenceReadyBeforeOwnerApproval !== true) {
+  fail('owner_gate_technical_evidence_not_true')
+}
+if (ownerGateAssembly.betaEvidenceBundle?.all21BetaEvidenceReady !== false) {
+  fail('owner_gate_beta_evidence_should_not_be_true_before_owner_approval')
+}
+if (ownerGateAssembly.booleans?.readyForInternalBetaOwnerGate !== true) {
+  fail('owner_gate_ready_for_owner_gate_not_true')
+}
+if (ownerGateAssembly.booleans?.all21BetaEvidenceReady !== false) {
+  fail('owner_gate_all21_beta_boolean_should_be_false')
+}
+
 const fullOutput = runNpm(assemblyScriptName, [
   '--manifest-dir',
   manifestDir,
@@ -376,6 +408,9 @@ if (fullAssembly.localManifestRecordsProvided !== 5) fail(`full_manifest_records
 if (fullAssembly.localGpuRuntimeProofResultsProvided !== 4) fail(`full_gpu_results:${fullAssembly.localGpuRuntimeProofResultsProvided}`)
 if (fullAssembly.betaEvidenceBundle?.betaTestingReadyTools !== 21) fail('full_ready_not_21')
 if (fullAssembly.betaEvidenceBundle?.all21BetaEvidenceReady !== true) fail('full_all21_not_true')
+if (fullAssembly.betaEvidenceBundle?.all21TechnicalEvidenceReadyBeforeOwnerApproval !== true) {
+  fail('full_technical_owner_gate_not_true')
+}
 if (fullAssembly.booleans?.committedJsRuntimeProofsAccepted !== true) fail('full_js_proofs_not_accepted')
 if (fullAssembly.booleans?.readyForInternalBetaOwnerGate !== true) fail('full_not_ready_for_owner_gate')
 if (fullOutput.includes('private://reeditpro')) fail('full_output_leaked_private_ref')
@@ -484,6 +519,7 @@ console.log(JSON.stringify({
   fullStatus: fullAssembly.status,
   fullEvidenceBetaTestingReadyTools: fullAssembly.betaEvidenceBundle?.betaTestingReadyTools,
   all21BetaEvidenceReady: fullAssembly.betaEvidenceBundle?.all21BetaEvidenceReady,
+  readyForInternalBetaOwnerGate: ownerGateAssembly.booleans?.readyForInternalBetaOwnerGate,
   badStatus: badAssembly.status,
   agentCanExecuteToolsNow: fullAssembly.booleans?.agentCanExecuteToolsNow,
   runtimeReadyNow: fullAssembly.booleans?.runtimeReadyNow,

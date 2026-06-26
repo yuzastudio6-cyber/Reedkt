@@ -127,15 +127,16 @@ function readProofPacket(flag: string, committedPath: string): Record<string, un
 const manifestFiles = manifestFilesFromArgs()
 const resultFiles = resultFilesFromArgs()
 const allSharedGatesPassed = hasFlag('--all-shared-gates-passed')
+const allTechnicalGatesPassed = allSharedGatesPassed || hasFlag('--all-technical-gates-passed')
 
 const input: AiGraphicsBetaEvidenceLocalAssemblyInput = {
   manifestRecords: manifestFiles.flatMap(manifestRecordsFromJsonFile),
   gpuRuntimeProofResults: resultFiles.flatMap(proofResultsFromJsonFile),
-  approvedPlanSnapshotGatePassed: allSharedGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
-  creditReservationGatePassed: allSharedGatesPassed || hasFlag('--credit-reservation-gate-passed'),
-  artifactBoundaryGatePassed: allSharedGatesPassed || hasFlag('--artifact-boundary-gate-passed'),
-  toolRouteGatePassed: allSharedGatesPassed || hasFlag('--tool-route-gate-passed'),
-  workerGatePassed: allSharedGatesPassed || hasFlag('--worker-gate-passed'),
+  approvedPlanSnapshotGatePassed: allTechnicalGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
+  creditReservationGatePassed: allTechnicalGatesPassed || hasFlag('--credit-reservation-gate-passed'),
+  artifactBoundaryGatePassed: allTechnicalGatesPassed || hasFlag('--artifact-boundary-gate-passed'),
+  toolRouteGatePassed: allTechnicalGatesPassed || hasFlag('--tool-route-gate-passed'),
+  workerGatePassed: allTechnicalGatesPassed || hasFlag('--worker-gate-passed'),
   browserCanvasWebglSandboxPassed: hasFlag('--browser-canvas-webgl-sandbox-passed'),
   internalBetaOwnerApprovalGranted: allSharedGatesPassed || hasFlag('--internal-beta-owner-approval-granted'),
   nodeRuntimeProofPacket: readProofPacket(
@@ -181,5 +182,12 @@ const output = {
 console.log(JSON.stringify(output, null, 2))
 
 if (hasFlag('--require-all-21-beta-ready') && !assembly.betaEvidenceBundle.all21BetaEvidenceReady) {
+  process.exitCode = 2
+}
+
+if (
+  hasFlag('--require-ready-for-owner-gate') &&
+  !assembly.betaEvidenceBundle.all21TechnicalEvidenceReadyBeforeOwnerApproval
+) {
   process.exitCode = 2
 }

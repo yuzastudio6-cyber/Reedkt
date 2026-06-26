@@ -13,6 +13,7 @@
     "planningSelectableTools": 21,
     "defaultBetaTestingReadyTools": 0,
     "defaultBlockedTools": 21,
+    "fullTechnicalEvidenceReadyForOwnerGateTools": 21,
     "fullEvidenceBetaTestingReadyTools": 21,
     "fullEvidenceBlockedTools": 0
   },
@@ -79,6 +80,21 @@
     "model_weight_manifest_review_packet",
     "internal_beta_owner_approval"
   ],
+  "requiredTechnicalEvidenceBeforeOwnerApproval": [
+    "js_node_runtime_proof_packet",
+    "js_browser_runtime_proof_packet",
+    "satori_font_runtime_proof_packet",
+    "complete_js_runtime_proof_bundle",
+    "approved_plan_snapshot_gate",
+    "credit_reservation_gate",
+    "artifact_boundary_gate",
+    "tool_route_gate",
+    "worker_gate",
+    "browser_canvas_webgl_sandbox_proof",
+    "native_gpu_runtime_proof_packet",
+    "model_weight_manifest_review_packet"
+  ],
+  "ownerApprovalGate": "internal_beta_owner_approval",
   "booleans": {
     "betaEvidenceBundleValidatorPrepared": true,
     "all21ToolsCovered": true,
@@ -89,6 +105,9 @@
     "evidenceOverrideFlagsIgnoredForBetaReadiness": true,
     "agentCanSelectForPlanning": true,
     "defaultAll21BetaEvidenceReady": false,
+    "defaultAll21TechnicalEvidenceReadyBeforeOwnerApproval": false,
+    "fullTechnicalEvidenceReadyForOwnerGate": true,
+    "fullEvidenceReadyAfterOwnerApproval": true,
     "fullEvidenceAll21BetaEvidenceReady": true,
     "agentCanExecuteToolsNow": false,
     "routeExecutionApprovedNow": false,

@@ -44,7 +44,12 @@ assert(
   report.componentSummaries.filter((summary) => summary.component === 'api_route_runtime_facade').length === 8,
   'API route facade summary count mismatch',
 )
+assert(
+  report.localEvidenceCounts.approvedSnapshotServiceRolePersistenceGuard === 1,
+  'approved snapshot service-role persistence guard evidence count mismatch',
+)
 assert(report.localEvidenceCounts.localE2EChainSmoke === 1, 'local E2E evidence count mismatch')
+assert(report.localEvidenceCounts.total === 2, 'local evidence total count mismatch')
 assert(report.localE2EChainSmoke.localOnly === true, 'local E2E evidence must remain local-only')
 assert(report.localE2EChainSmoke.persistedToSupabase === false, 'local E2E evidence must not persist remotely')
 assert(report.localE2EChainSmoke.internalBetaEndToEndReady === false, 'local E2E evidence must not unlock beta')
@@ -55,6 +60,10 @@ assert(
 assert(
   report.requiredBeforeEnablement.includes('confirmed_supabase_target_rls_storage_validation'),
   'orchestrator must keep Supabase target validation gate',
+)
+assert(
+  report.requiredBeforeEnablement.includes('approved_snapshot_service_role_persistence_guard'),
+  'orchestrator must keep service-role persistence guard gate',
 )
 assert(report.safety.routeExecution === false, 'route execution must remain false')
 assert(report.safety.serviceRoleRouteExecution === false, 'service-role route execution must remain false')

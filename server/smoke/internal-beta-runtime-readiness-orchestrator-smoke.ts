@@ -40,9 +40,31 @@ assert(report.componentCounts.privateArtifactManifest === 8, 'private artifact m
 assert(report.componentCounts.remotionRenderWorker === 8, 'Remotion render worker count mismatch')
 assert(report.componentCounts.providerAdapter === 8, 'provider adapter count mismatch')
 assert(report.componentCounts.total === 54, 'total disabled operation count mismatch')
+assert(
+  report.localEvidenceCounts.approvedSnapshotServiceRolePersistenceGuard === 1,
+  'approved snapshot service-role persistence guard evidence count mismatch',
+)
 assert(report.localEvidenceCounts.localE2EChainSmoke === 1, 'local E2E chain evidence count mismatch')
-assert(report.localEvidenceCounts.total === 1, 'local evidence total count mismatch')
+assert(report.localEvidenceCounts.total === 2, 'local evidence total count mismatch')
 assert(report.componentSummaries.length === 54, 'component summaries must include every disabled operation')
+assert(
+  report.serviceRolePersistenceGuard.status ===
+    'blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias',
+  'service-role persistence guard status mismatch',
+)
+assert(
+  report.serviceRolePersistenceGuard.localSnapshotRuntimeStatus ===
+    'local_snapshot_persistence_validated_no_supabase_write',
+  'service-role persistence guard local snapshot status mismatch',
+)
+assert(report.serviceRolePersistenceGuard.localSnapshotRuntimeOk === true, 'service-role guard local runtime must pass')
+assert(report.serviceRolePersistenceGuard.persistedToSupabase === false, 'service-role guard must not persist remotely')
+assert(report.serviceRolePersistenceGuard.remoteSupabaseMutation === false, 'service-role guard Supabase mutation must remain false')
+assert(report.serviceRolePersistenceGuard.sqlExecution === false, 'service-role guard SQL execution must remain false')
+assert(
+  report.serviceRolePersistenceGuard.requiredBeforePersistence.includes('confirmed_supabase_target_rls_storage_validation'),
+  'service-role guard must preserve target validation gate',
+)
 assert(report.localE2EChainSmoke.ok === true, 'local E2E chain evidence must pass locally')
 assert(
   report.localE2EChainSmoke.status === 'local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime',
@@ -115,6 +137,10 @@ assert(report.requiredBeforeEnablement.includes('confirmed_supabase_target_rls_s
 assert(report.requiredBeforeEnablement.includes('approved_supabase_credential_context_present'), 'missing credential context gate')
 assert(report.requiredBeforeEnablement.includes('guarded_worker_runtime_rpc_staging_sql_execution'), 'missing RPC gate')
 assert(report.requiredBeforeEnablement.includes('api_route_runtime_facade_validation'), 'missing API route facade gate')
+assert(
+  report.requiredBeforeEnablement.includes('approved_snapshot_service_role_persistence_guard'),
+  'missing approved snapshot service-role persistence guard gate',
+)
 assert(!JSON.stringify(report.inputSummary).includes('must_not_appear'), 'secret-like fields must be sanitized')
 assertInternalBetaRuntimeReadinessOrchestratorFailClosed(report)
 

@@ -44,6 +44,14 @@ policies are already executable can become beta-eligible. Tools that are still
 `planning_only`, `future`, `evaluation_only`, license-review-blocked, or
 model-weight-review-blocked remain blocked.
 
+Current full-evidence simulation result after the JS runtime-proof profile
+promotions:
+
+- Beta-eligible with all current evidence flags supplied: 14 tools.
+- Still blocked with all current evidence flags supplied: 7 tools.
+- Eligible set: `kornia`, `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs`.
+- Still blocked set: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, `transparent_background`.
+
 ## Current Required Gates
 
 - Approved plan snapshot gate.

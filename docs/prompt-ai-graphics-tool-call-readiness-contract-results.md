@@ -144,7 +144,7 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
 - Added evidence-driven beta readiness gate evaluation:
   - `server/cli/ai-graphics-beta-readiness-gate-evaluate.ts`
   - `ai-graphics:beta-readiness-gate:evaluate`
-- Beta readiness gate evaluator result: default evidence still reports 0 beta-ready tools and 21 blocked tools. With all current shared/runtime evidence flags supplied, the gate reports 4 beta-eligible tools (`kornia`, `lottie_web`, `three_js`, `pixi_js`) and keeps 17 tools blocked by remaining production profile, license, model-weight, or policy gates. This creates a real activation path without changing the committed no-execution state.
+- Beta readiness gate evaluator result: default evidence still reports 0 beta-ready tools and 21 blocked tools. With all current shared/runtime evidence flags supplied, the gate now reports 14 beta-eligible tools (`kornia`, `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs`) and keeps 7 GPU/model/license tools blocked (`torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, `transparent_background`). This reflects the JS runtime-proof profile promotions without changing the committed no-execution state.
 
 ## Runtime State
 

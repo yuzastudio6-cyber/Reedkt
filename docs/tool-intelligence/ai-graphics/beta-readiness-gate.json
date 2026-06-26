@@ -41,8 +41,8 @@
   },
   "evidenceEvaluationMode": {
     "defaultEvidenceReadyTools": 0,
-    "allCurrentEvidenceFlagsReadyTools": 4,
-    "allCurrentEvidenceFlagsStillBlockedTools": 17,
+    "allCurrentEvidenceFlagsReadyTools": 14,
+    "allCurrentEvidenceFlagsStillBlockedTools": 7,
     "readyOnlyWhenProfilesAndPoliciesAllow": true,
     "executionPerformedByEvaluator": false
   },

@@ -42,6 +42,8 @@ Latest observed PR state after GPU runtime proof result validator completion: [#
 
 Latest observed PR state after beta activation gap report completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `630193db4170d492a8fd79576b4461dea742123c`, with an empty check rollup.
 
+Follow-up runtime-readiness movement: the proven JavaScript graphics tools were promoted from generic planning-only/future production profiles to their correct executable worker surfaces while keeping execution gates closed. CPU/static spec tools with proof now point at `cpu_analysis_worker` or `render_worker` as appropriate, browser/canvas/WebGL tools with proof now point at `render_worker`, and the evidence-mode beta gate reports 14 eligible tools only when all current shared/runtime evidence flags are supplied. The remaining blocked set is `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`; those still require license/model-weight/native-GPU policy work before beta eligibility.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements

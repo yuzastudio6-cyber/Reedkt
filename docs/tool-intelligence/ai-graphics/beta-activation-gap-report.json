@@ -79,7 +79,7 @@
     "review_private_model_weight_manifests",
     "run_native_nvidia_l4_runtime_proof",
     "validate_redacted_gpu_proof_results",
-    "promote_planning_only_future_evaluation_profiles_by_owner_approval",
+    "finish_remaining_profile_license_model_weight_policy_reviews",
     "run_browser_canvas_webgl_sandbox_proof",
     "pass_snapshot_credit_artifact_route_worker_beta_owner_gates"
   ],

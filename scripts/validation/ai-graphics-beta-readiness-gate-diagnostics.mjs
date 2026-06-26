@@ -166,8 +166,8 @@ if (gate.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) fail('gate_heavy_cpu_c
 if (gate.counts?.betaTestingReadyTools !== 0) fail('gate_beta_ready_count_not_zero')
 if (gate.counts?.blockedTools !== 21) fail('gate_blocked_tool_count_not_21')
 if (gate.evidenceEvaluationMode?.defaultEvidenceReadyTools !== 0) fail('gate_default_evidence_ready_not_zero')
-if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsReadyTools !== 4) fail('gate_all_evidence_ready_not_4')
-if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsStillBlockedTools !== 17) fail('gate_all_evidence_blocked_not_17')
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsReadyTools !== 14) fail('gate_all_evidence_ready_not_14')
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsStillBlockedTools !== 7) fail('gate_all_evidence_blocked_not_7')
 if (gate.evidenceEvaluationMode?.readyOnlyWhenProfilesAndPoliciesAllow !== true) fail('gate_evidence_mode_policy_guard_missing')
 if (gate.evidenceEvaluationMode?.executionPerformedByEvaluator !== false) fail('gate_evaluator_execution_not_false')
 
@@ -197,19 +197,19 @@ const fullEvidenceOutput = runEvaluator([
   '--model-weight-manifests-approved',
 ])
 const fullEvidenceGate = parseJsonOutput(fullEvidenceOutput, 'full_evidence_evaluator')
-if (fullEvidenceGate.betaTestingReadyTools !== 4) {
-  fail(`full_evidence_ready_count_not_4:${fullEvidenceGate.betaTestingReadyTools}`)
+if (fullEvidenceGate.betaTestingReadyTools !== 14) {
+  fail(`full_evidence_ready_count_not_14:${fullEvidenceGate.betaTestingReadyTools}`)
 }
-if (fullEvidenceGate.blockedTools !== 17) {
-  fail(`full_evidence_blocked_count_not_17:${fullEvidenceGate.blockedTools}`)
+if (fullEvidenceGate.blockedTools !== 7) {
+  fail(`full_evidence_blocked_count_not_7:${fullEvidenceGate.blockedTools}`)
 }
 const fullEvidenceReadyTools = (fullEvidenceGate.tools || [])
   .filter((tool) => tool.betaTestingReadyNow === true)
   .map((tool) => tool.toolId)
-for (const tool of ['kornia', 'lottie_web', 'three_js', 'pixi_js']) {
+for (const tool of ['kornia', 'd3', 'echarts', 'vega_lite', 'vega', 'satori', 'svgdotjs_svg_js', 'viz_js', 'lottie_web', 'animejs', 'three_js', 'pixi_js', 'konva', 'babylonjs']) {
   if (!fullEvidenceReadyTools.includes(tool)) fail(`full_evidence_expected_ready_tool_missing:${tool}`)
 }
-for (const tool of ['sam2', 'birefnet', 'real_esrgan', 'd3', 'echarts', 'vega_lite']) {
+for (const tool of ['torch_torchvision', 'transformers', 'sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background']) {
   const row = (fullEvidenceGate.tools || []).find((entry) => entry.toolId === tool)
   if (row?.betaTestingReadyNow !== false) fail(`full_evidence_unexpected_ready_tool:${tool}`)
   if (!row?.blockers?.length) fail(`full_evidence_expected_blockers_missing:${tool}`)

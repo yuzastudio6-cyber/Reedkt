@@ -48,7 +48,7 @@ fall back to CPU runtime:
 - Native GPU proof results for the four GPU runtime profiles.
 - Reviewed private model-weight manifests for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`.
 - Browser/canvas/WebGL sandbox proof for chart, animation, canvas, and WebGL tools.
-- Owner-approved migration for tools still marked `planning_only`, `future`, or `evaluation_only`.
+- Owner-approved migration remains for any profile still marked `planning_only`, `future`, or `evaluation_only`; the proven 13 JavaScript graphics tools now have executable worker-surface profile mappings, while runtime execution remains blocked by the shared beta gates.
 - License/model-weight policy approval where profiles still require review.
 
 ## Activation Sequence
@@ -56,7 +56,7 @@ fall back to CPU runtime:
 1. Keep package/package-lock and GPU Docker install surfaces unchanged unless an explicit dependency milestone approves changes.
 2. Review private model-weight manifests for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`.
 3. Run native linux/amd64 NVIDIA L4 proof for `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`, then validate with `ai-graphics:gpu-runtime-proof-result:validate`.
-4. Promote `planning_only`, `future`, and `evaluation_only` profiles only through owner-approved Tool Route and Worker execution lanes.
+4. Finish remaining profile, license, and model-weight policy reviews for the GPU/model group; JavaScript graphics profile promotion is recorded but still gated by Tool Route, Worker, artifact, snapshot, credit, and beta owner evidence.
 5. Run browser/canvas/WebGL sandbox proof for chart, animation, canvas, and WebGL scene tools before runtime execution.
 6. Pass approved plan snapshot, credit reservation, artifact boundary, Tool Route, Worker, and beta owner approval gates before any beta tool execution.
 

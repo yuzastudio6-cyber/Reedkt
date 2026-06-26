@@ -14,3 +14,5 @@ Do not install dependencies, mutate `package-lock.json`, run tools, run routes,
 run workers, call providers/models, run browser/WebGL/canvas runtime, run GPU
 runtime, download model weights, process media, mutate Supabase, upload to GCS,
 create signed URLs, create public artifacts, or unlock beta/production.
+
+Latest observed implementation PR state after completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `6e339a131a90177f454e653880fedf496defd400`, with an empty check rollup.

@@ -7,16 +7,13 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/reeditpro-external-beta-production-readiness-remediation-plan'
-const deploymentRollbackDir = 'docs/reeditpro-deployment-rollback-readiness-plan'
-const modelSecurityCostDir = 'docs/reeditpro-model-license-security-cost-readiness-plan'
-const privateStorageDir = 'docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan'
-const gapDir = 'docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review'
+const reportDir = 'docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan'
+const previousDir = 'docs/reeditpro-model-license-security-cost-readiness-plan'
 const decision =
-  'reeditpro_external_beta_production_readiness_remediation_plan_passed_ready_for_deployment_rollback_readiness_plan'
+  'reeditpro_private_storage_deletion_supabase_gcs_readiness_plan_passed_ready_for_observability_incident_support_readiness_plan'
 const previousDecision =
-  'trackb_media_oss_external_beta_production_readiness_gap_review_blocked_pending_reeditpro_global_readiness_remediation_plan'
-const nextPrompt = 'REEDITPRO_DEPLOYMENT_ROLLBACK_READINESS_PLAN'
+  'reeditpro_model_license_security_cost_readiness_plan_passed_ready_for_private_storage_deletion_supabase_gcs_readiness_plan'
+const nextPrompt = 'REEDITPRO_OBSERVABILITY_INCIDENT_SUPPORT_READINESS_PLAN'
 const totals = {
   owned: 16,
   boundedAcceptedProven: 16,
@@ -26,12 +23,18 @@ const totals = {
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'remediation-workstream-plan.json',
-  'remediation-workstream-plan.md',
-  'owner-gate-evidence-matrix.json',
-  'owner-gate-evidence-matrix.md',
-  'sequencing-plan.json',
-  'sequencing-plan.md',
+  'private-storage-boundary.json',
+  'private-storage-boundary.md',
+  'deletion-retention-policy.json',
+  'deletion-retention-policy.md',
+  'signed-url-delivery-policy.json',
+  'signed-url-delivery-policy.md',
+  'rls-service-role-prerequisites.json',
+  'rls-service-role-prerequisites.md',
+  'environment-bucket-separation.json',
+  'environment-bucket-separation.md',
+  'downstream-gate-prerequisites.json',
+  'downstream-gate-prerequisites.md',
   'validation-command-plan.json',
   'validation-command-plan.md',
   'runtime-boundary.json',
@@ -71,27 +74,36 @@ const forbiddenOutputs = [
   'dist-staging-fixture-worker',
   'dist-staging-real-video-export-worker',
 ]
-const requiredWorkstreams = [
-  'deploymentRollback',
-  'modelLicenseSecurityCost',
-  'privateStorageDeletionSupabaseGcs',
-  'observabilityIncidentSupport',
-  'backendDatabaseBillingCreditLedger',
-  'realGenerationExportWorkerE2E',
-  'publicArtifactSignedUrlDeliveryPolicy',
-  'externalBetaGoNoGo',
+const requiredBuckets = [
+  'source-media',
+  'generated-assets',
+  'processed-media',
+  'previews',
+  'exports',
+  'thumbnails',
+  'qa-artifacts',
+  'worker-temp',
 ]
-const requiredGateIds = [
-  'deploymentRollback',
-  'modelLicenseApprovals',
-  'securityReview',
-  'costBudgetsConcurrencyKillSwitches',
-  'privateStorageDeletionWorkflows',
-  'observabilityAlertRouting',
-  'incidentResponse',
-  'backendDatabaseBillingCreditLedger',
-  'realGenerationExportWorkers',
-  'publicArtifactSignedUrlDeliveryPolicy',
+const requiredRlsEvidence = [
+  'workspace/project membership select policy',
+  'approved snapshot immutability policy',
+  'worker/service-role write boundary',
+  'audit event append-only policy',
+  'credit/ledger service-only policy',
+  'media asset project scoping',
+  'storage object path ownership policy',
+  'service-role audit and non-frontend exposure policy',
+]
+const requiredDeletionEvidence = [
+  'project-scoped deletion request path',
+  'workspace owner/admin authorization policy',
+  'source media deletion behavior',
+  'generated asset deletion behavior',
+  'processed media deletion behavior',
+  'preview/export deletion behavior',
+  'worker-temp TTL cleanup',
+  'audit log retention exception policy',
+  'provider-side deletion/retention dependency review',
 ]
 const failures = []
 const fail = (message) => failures.push(message)
@@ -139,7 +151,7 @@ function changedFiles() {
 }
 
 function requireCommon(label, report) {
-  if (report.ownerId !== 'REEDITPRO_PRODUCT_READINESS_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
+  if (report.ownerId !== 'REEDITPRO_PRIVACY_STORAGE_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
   if (report.decision !== decision) fail(`${label}_decision_drift:${report.decision}`)
   if (report.previousDecision !== previousDecision) fail(`${label}_previous_decision_drift:${report.previousDecision}`)
   if (report.nextPrompt !== nextPrompt) fail(`${label}_next_prompt_drift:${report.nextPrompt}`)
@@ -152,13 +164,16 @@ function requireCommon(label, report) {
 
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of requiredProductionDocs) readText(file)
-readText('docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md')
+readText('docs/implementation-prompts/prompt-reeditpro-observability-incident-support-readiness-plan.md')
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  workstream: readJson(`${reportDir}/remediation-workstream-plan.json`),
-  matrix: readJson(`${reportDir}/owner-gate-evidence-matrix.json`),
-  sequence: readJson(`${reportDir}/sequencing-plan.json`),
+  storage: readJson(`${reportDir}/private-storage-boundary.json`),
+  deletion: readJson(`${reportDir}/deletion-retention-policy.json`),
+  signedUrl: readJson(`${reportDir}/signed-url-delivery-policy.json`),
+  rls: readJson(`${reportDir}/rls-service-role-prerequisites.json`),
+  environment: readJson(`${reportDir}/environment-bucket-separation.json`),
+  downstream: readJson(`${reportDir}/downstream-gate-prerequisites.json`),
   validation: readJson(`${reportDir}/validation-command-plan.json`),
   runtime: readJson(`${reportDir}/runtime-boundary.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
@@ -167,30 +182,44 @@ const reports = {
 }
 for (const [label, report] of Object.entries(reports)) requireCommon(label, report)
 
-const gapReadiness = readJson(`${gapDir}/readiness-report.json`)
-if (gapReadiness.decision !== previousDecision) fail(`gap_decision_drift:${gapReadiness.decision}`)
-if (gapReadiness.readyForRemediationPlan !== true && gapReadiness.readyForReeditProGlobalRemediationPlan !== true) {
-  fail('gap_not_ready_for_remediation_plan')
+const previousReadiness = readJson(`${previousDir}/readiness-report.json`)
+if (previousReadiness.decision !== previousDecision) fail(`previous_decision_drift:${previousReadiness.decision}`)
+if (previousReadiness.readyForPrivateStorageDeletionSupabaseGcsReadinessPlan !== true) {
+  fail('previous_not_ready_for_private_storage_plan')
 }
-if (gapReadiness.readyForExternalBeta !== false) fail('gap_external_beta_unblocked')
-if (gapReadiness.readyForProduction !== false) fail('gap_production_unblocked')
+if (previousReadiness.readyForExternalBeta !== false) fail('previous_external_beta_unblocked')
+if (previousReadiness.readyForProduction !== false) fail('previous_production_unblocked')
 
-if (JSON.stringify(reports.source.acceptedInputs?.trackBTotals ?? {}) !== JSON.stringify(totals)) fail('source_trackb_totals_drift')
-if (reports.source.readyForDeploymentRollbackReadinessPlan !== true) fail('source_not_ready_for_deployment_rollback_plan')
-if (reports.decisionReport.readyForDeploymentRollbackReadinessPlan !== true) fail('decision_not_ready_for_deployment_rollback_plan')
-if (reports.readiness.readyForDeploymentRollbackReadinessPlan !== true) fail('readiness_not_ready_for_deployment_rollback_plan')
-if (reports.readiness.acceptedTrackBToolsCallLaneReady !== true) fail('trackb_input_not_accepted')
+if (JSON.stringify(reports.source.trackBTotals ?? {}) !== JSON.stringify(totals)) fail('source_trackb_totals_drift')
+if (reports.source.readyForObservabilityIncidentSupportReadinessPlan !== true) fail('source_not_ready_for_observability_plan')
+if (reports.decisionReport.readyForObservabilityIncidentSupportReadinessPlan !== true) fail('decision_not_ready_for_observability_plan')
+if (reports.readiness.readyForObservabilityIncidentSupportReadinessPlan !== true) fail('readiness_not_ready_for_observability_plan')
 
-const workstreamIds = new Set((reports.workstream.workstreams ?? []).map((entry) => entry.id))
-for (const id of requiredWorkstreams) {
-  if (!workstreamIds.has(id)) fail(`missing_workstream:${id}`)
+if (reports.storage.privateByDefault !== true) fail('storage_not_private_by_default')
+if (reports.storage.publicBucketsAllowed !== false) fail('public_buckets_allowed')
+const buckets = new Set(reports.storage.plannedBuckets ?? [])
+for (const bucket of requiredBuckets) {
+  if (!buckets.has(bucket)) fail(`missing_bucket:${bucket}`)
 }
-const gateIds = new Set((reports.matrix.requiredGates ?? []).map((entry) => entry.id))
-for (const id of requiredGateIds) {
-  if (!gateIds.has(id)) fail(`missing_gate:${id}`)
+const deletionEvidence = new Set(reports.deletion.requiredDeletionWorkflowEvidence ?? [])
+for (const item of requiredDeletionEvidence) {
+  if (!deletionEvidence.has(item)) fail(`missing_deletion_evidence:${item}`)
 }
-if (reports.sequence.sequence?.[0] !== 'deploymentRollback') fail('first_sequence_not_deployment_rollback')
-if (reports.sequence.firstNextPrompt !== nextPrompt) fail('first_next_prompt_drift')
+if (reports.deletion.deletionJobsImplemented !== false) fail('deletion_jobs_implemented')
+if (reports.deletion.retentionEnforced !== false) fail('retention_enforced')
+if (reports.signedUrl.signedUrlsAuthorized !== false) fail('signed_urls_authorized')
+if (reports.signedUrl.publicArtifactsAuthorized !== false) fail('public_artifacts_authorized')
+const rlsEvidence = new Set(reports.rls.requiredRlsEvidence ?? [])
+for (const item of requiredRlsEvidence) {
+  if (!rlsEvidence.has(item)) fail(`missing_rls_evidence:${item}`)
+}
+if (reports.rls.sqlExecuted !== false) fail('sql_executed')
+if (reports.rls.migrationCreated !== false) fail('migration_created')
+if (reports.rls.supabaseClientMutation !== false) fail('supabase_client_mutation')
+if (reports.environment.environmentMutationRan !== false) fail('environment_mutation_ran')
+if (reports.environment.bucketCreated !== false) fail('bucket_created')
+if (!reports.downstream.downstreamGates?.includes('observabilityIncidentSupport')) fail('downstream_missing_observability')
+if (reports.downstream.readyForObservabilityIncidentSupportReadinessPlan !== true) fail('downstream_not_ready_for_next_gate')
 if (reports.validation.noInstallBoundary !== true) fail('validation_no_install_boundary_missing')
 for (const [scope, value] of Object.entries(reports.runtime.blockedScopes ?? {})) {
   if (value !== false) fail(`runtime_scope_not_false:${scope}`)
@@ -202,14 +231,19 @@ for (const flag of [
   'publicArtifactsCreated',
   'signedUrlsCreated',
   'supabaseGcsWritesRan',
+  'sqlRan',
+  'migrationCreated',
+  'bucketsCreated',
+  'uploadsRan',
+  'deletionJobsRan',
 ]) {
   if (reports.manifest[flag] !== false) fail(`manifest_flag_not_false:${flag}`)
 }
 
 const packageJson = readJson('package.json')
 if (
-  packageJson.scripts?.['reeditpro:external-beta-production-readiness-remediation-plan:diagnostics'] !==
-  'node scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs'
+  packageJson.scripts?.['reeditpro:private-storage-deletion-supabase-gcs-readiness-plan:diagnostics'] !==
+  'node scripts/validation/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan-diagnostics.mjs'
 ) {
   fail('package_script_missing_or_drifted')
 }
@@ -230,9 +264,6 @@ for (const output of forbiddenOutputs) {
 for (const file of changedFiles()) {
   const allowed =
     file === 'package.json' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-observability-incident-support-readiness-plan.md' ||
     file === 'scripts/validation/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-model-license-security-cost-readiness-plan-diagnostics.mjs' ||
@@ -242,9 +273,6 @@ for (const file of changedFiles()) {
     file === 'scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs' ||
-    file.startsWith(`${deploymentRollbackDir}/`) ||
-    file.startsWith(`${modelSecurityCostDir}/`) ||
-    file.startsWith(`${privateStorageDir}/`) ||
     file.startsWith(`${reportDir}/`) ||
     requiredProductionDocs.includes(file)
   if (!allowed) fail(`unexpected_changed_file:${file}`)
@@ -256,7 +284,7 @@ for (const file of changedFiles()) {
 const scanFiles = [
   ...requiredReports.map((file) => `${reportDir}/${file}`),
   ...requiredProductionDocs,
-  'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-observability-incident-support-readiness-plan.md',
 ]
 for (const file of scanFiles) {
   const text = readText(file)
@@ -277,7 +305,7 @@ console.log(JSON.stringify({
   decision,
   previousDecision,
   nextPrompt,
-  readyForDeploymentRollbackReadinessPlan: true,
+  readyForObservabilityIncidentSupportReadinessPlan: true,
   readyForExternalBeta: false,
   readyForProduction: false,
   trackBTotals: totals,

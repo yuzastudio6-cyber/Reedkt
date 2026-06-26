@@ -14,6 +14,7 @@ const qaDir =
 const remediationPlanDir = 'docs/reeditpro-external-beta-production-readiness-remediation-plan'
 const deploymentRollbackDir = 'docs/reeditpro-deployment-rollback-readiness-plan'
 const modelSecurityCostDir = 'docs/reeditpro-model-license-security-cost-readiness-plan'
+const privateStorageDir = 'docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan'
 const decision =
   'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane'
 const previousDecision =
@@ -280,6 +281,8 @@ for (const file of changedFiles()) {
 	    file === 'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md' ||
 	    file === 'docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md' ||
 	    file === 'docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md' ||
+	    file === 'docs/implementation-prompts/prompt-reeditpro-observability-incident-support-readiness-plan.md' ||
+	    file === 'scripts/validation/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan-diagnostics.mjs' ||
 	    file === 'scripts/validation/reeditpro-model-license-security-cost-readiness-plan-diagnostics.mjs' ||
 	    file === 'scripts/validation/reeditpro-deployment-rollback-readiness-plan-diagnostics.mjs' ||
 	    file === 'scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs' ||
@@ -289,6 +292,7 @@ for (const file of changedFiles()) {
 	    file.startsWith(`${remediationPlanDir}/`) ||
 	    file.startsWith(`${deploymentRollbackDir}/`) ||
 	    file.startsWith(`${modelSecurityCostDir}/`) ||
+	    file.startsWith(`${privateStorageDir}/`) ||
 	    file.startsWith(`${reportDir}/`) ||
     remediationProductionDocs.includes(file) ||
     statusDocs.includes(file)

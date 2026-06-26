@@ -41,3 +41,12 @@ M17 does not grant go approval. Phase 18 also does not grant go approval; it onl
 - Model/license/security/cost metadata now defines model owner requirements, provider policy constraints, license evidence, security prerequisites, cost budgets, concurrency limits, kill switches, and credit-ledger dependency status.
 - No provider calls, model downloads, model-weight staging, secret mutation, live security scans, billing/credit ledger mutation, Supabase/GCS, external beta, or production command is authorized by this plan.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Private Storage / Deletion / Supabase / GCS Readiness Plan Status
+
+- Decision: `reeditpro_private_storage_deletion_supabase_gcs_readiness_plan_passed_ready_for_observability_incident_support_readiness_plan`
+- Next prompt: `REEDITPRO_OBSERVABILITY_INCIDENT_SUPPORT_READINESS_PLAN`
+- Current status: external beta and production remain blocked.
+- Private storage/deletion metadata now defines private-by-default bucket boundaries, deletion workflow requirements, retention policy, signed URL policy, RLS/service-role prerequisites, and environment/bucket separation.
+- No Supabase/GCS write, SQL, migration, bucket creation, upload, signed URL, deletion job, runtime route mutation, external beta, or production command is authorized by this plan.
+- Supabase classification: no write / environment none / SQL none / migration no.

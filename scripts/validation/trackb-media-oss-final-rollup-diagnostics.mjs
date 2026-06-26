@@ -45,6 +45,7 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan/',
   'docs/reeditpro-model-license-security-cost-readiness-plan/',
   'docs/reeditpro-deployment-rollback-readiness-plan/',
   'docs/reeditpro-external-beta-production-readiness-remediation-plan/',
@@ -118,9 +119,11 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md',
   'docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md',
   'docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-observability-incident-support-readiness-plan.md',
   'docs/production-go-no-go-checklist.md',
   'docs/production-beta-readiness-scorecard.md',
   'docs/production-hardening-overview.md',
+  'scripts/validation/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan-diagnostics.mjs',
   'scripts/validation/reeditpro-model-license-security-cost-readiness-plan-diagnostics.mjs',
   'scripts/validation/reeditpro-deployment-rollback-readiness-plan-diagnostics.mjs',
   'scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs',

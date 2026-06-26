@@ -57,3 +57,12 @@ approval.
 - Required future evidence remains: provider terms/data-use policy, commercial-use/license review, backend-only secrets, security review, budgets, concurrency limits, kill switches, and credit estimate/reservation enforcement.
 - This is not provider execution, model download, secret mutation, live security scan, billing mutation, user exposure, public delivery, signed URL, Supabase/GCS write, paid beta, or production approval.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Private Storage / Deletion / Supabase / GCS Readiness Plan Status
+
+- Decision: `reeditpro_private_storage_deletion_supabase_gcs_readiness_plan_passed_ready_for_observability_incident_support_readiness_plan`
+- Next prompt: `REEDITPRO_OBSERVABILITY_INCIDENT_SUPPORT_READINESS_PLAN`
+- Scorecard status: external beta and production remain blocked.
+- Private-by-default storage, deletion/retention, signed URL, RLS/service-role, and environment/bucket separation requirements are defined as metadata only.
+- This is not Supabase/GCS execution, SQL, migration creation, bucket creation, upload, signed URL creation, deletion job execution, public delivery, paid beta, or production approval.
+- Supabase classification: no write / environment none / SQL none / migration no.

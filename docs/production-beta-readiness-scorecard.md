@@ -62,6 +62,17 @@ dispatch, route execution, tool execution, browser/canvas/WebGL runtime,
 GPU/model runtime, model-weight loading, media processing, signed URLs, public
 artifacts, internal beta runtime, external beta, and production blocked.
 
+AI graphics internal beta queue-adapter readiness decision
+`ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
+shapes the all-21 queue-admission packets into backend queue adapter submission
+candidates using canonical `ProductionWorkerJobPayload` metadata. It validates
+that each adapter candidate matches production tool ID, worker type, runtime
+target, approved snapshot, credit reservation, private manifest, and idempotency
+metadata, and keeps backend queue submission, worker lease creation, worker
+dispatch, route execution, tool execution, browser/canvas/WebGL runtime,
+GPU/model runtime, model-weight loading, media processing, signed URLs, public
+artifacts, internal beta runtime, external beta, and production blocked.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

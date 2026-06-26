@@ -50,3 +50,12 @@ M17 does not grant go approval. Phase 18 also does not grant go approval; it onl
 - Private storage/deletion metadata now defines private-by-default bucket boundaries, deletion workflow requirements, retention policy, signed URL policy, RLS/service-role prerequisites, and environment/bucket separation.
 - No Supabase/GCS write, SQL, migration, bucket creation, upload, signed URL, deletion job, runtime route mutation, external beta, or production command is authorized by this plan.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Observability / Incident Support Readiness Plan Status
+
+- Decision: `reeditpro_observability_incident_support_readiness_plan_passed_ready_for_backend_database_billing_credit_ledger_readiness_plan`
+- Next prompt: `REEDITPRO_BACKEND_DATABASE_BILLING_CREDIT_LEDGER_READINESS_PLAN`
+- Current status: external beta and production remain blocked.
+- Observability and support metadata now defines required log coverage, metric coverage, error coverage, privacy-safe telemetry policy, alert routing, incident severity policy, support ownership, and escalation evidence.
+- No telemetry provider connection, live telemetry emission, alert route creation, incident tooling mutation, support queue creation, Supabase/GCS write, SQL, migration, worker dispatch, provider call, external beta, or production command is authorized by this plan.
+- Supabase classification: no write / environment none / SQL none / migration no.

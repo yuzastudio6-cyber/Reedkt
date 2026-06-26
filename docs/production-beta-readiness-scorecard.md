@@ -66,3 +66,12 @@ approval.
 - Private-by-default storage, deletion/retention, signed URL, RLS/service-role, and environment/bucket separation requirements are defined as metadata only.
 - This is not Supabase/GCS execution, SQL, migration creation, bucket creation, upload, signed URL creation, deletion job execution, public delivery, paid beta, or production approval.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Observability / Incident Support Readiness Plan Status
+
+- Decision: `reeditpro_observability_incident_support_readiness_plan_passed_ready_for_backend_database_billing_credit_ledger_readiness_plan`
+- Next prompt: `REEDITPRO_BACKEND_DATABASE_BILLING_CREDIT_LEDGER_READINESS_PLAN`
+- Scorecard status: external beta and production remain blocked.
+- Log, metric, error, telemetry privacy, alert routing, incident severity, support ownership, and escalation requirements are defined as metadata only.
+- This is not live telemetry, alert-route creation, support queue creation, incident tooling, backend runtime, worker dispatch, provider execution, Supabase/GCS write, public delivery, paid beta, or production approval.
+- Supabase classification: no write / environment none / SQL none / migration no.

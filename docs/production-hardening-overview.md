@@ -41,3 +41,12 @@ Production and external beta remain blocked until human approvals cover deployme
 - Required future proof: private bucket policy, deletion workflow, retention enforcement, signed URL issuance policy, RLS/service-role policy, environment/bucket separation, audit events, and rollback-compatible storage behavior.
 - Still blocked: observability/alerting, incident response, backend/database/billing/credit ledger, real generation/export worker E2E, delivery/share policy, external beta go/no-go, and production go/no-go.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Observability / Incident Support Readiness Plan Status
+
+- Decision: `reeditpro_observability_incident_support_readiness_plan_passed_ready_for_backend_database_billing_credit_ledger_readiness_plan`
+- Next prompt: `REEDITPRO_BACKEND_DATABASE_BILLING_CREDIT_LEDGER_READINESS_PLAN`
+- Hardening status: observability, alerting, incident response, and support planning metadata is defined; execution remains blocked.
+- Required future proof: privacy-safe telemetry taxonomy, log and metric coverage, alert route owners, incident severity runbooks, support escalation owners, support artifact redaction, and audit-retention policy.
+- Still blocked: backend/database/billing/credit ledger, real generation/export worker E2E, delivery/share policy, external beta go/no-go, and production go/no-go.
+- Supabase classification: no write / environment none / SQL none / migration no.

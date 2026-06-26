@@ -7,17 +7,13 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/reeditpro-external-beta-production-readiness-remediation-plan'
-const deploymentRollbackDir = 'docs/reeditpro-deployment-rollback-readiness-plan'
-const modelSecurityCostDir = 'docs/reeditpro-model-license-security-cost-readiness-plan'
-const privateStorageDir = 'docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan'
-const observabilityDir = 'docs/reeditpro-observability-incident-support-readiness-plan'
-const gapDir = 'docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review'
+const reportDir = 'docs/reeditpro-observability-incident-support-readiness-plan'
+const previousDir = 'docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan'
 const decision =
-  'reeditpro_external_beta_production_readiness_remediation_plan_passed_ready_for_deployment_rollback_readiness_plan'
+  'reeditpro_observability_incident_support_readiness_plan_passed_ready_for_backend_database_billing_credit_ledger_readiness_plan'
 const previousDecision =
-  'trackb_media_oss_external_beta_production_readiness_gap_review_blocked_pending_reeditpro_global_readiness_remediation_plan'
-const nextPrompt = 'REEDITPRO_DEPLOYMENT_ROLLBACK_READINESS_PLAN'
+  'reeditpro_private_storage_deletion_supabase_gcs_readiness_plan_passed_ready_for_observability_incident_support_readiness_plan'
+const nextPrompt = 'REEDITPRO_BACKEND_DATABASE_BILLING_CREDIT_LEDGER_READINESS_PLAN'
 const totals = {
   owned: 16,
   boundedAcceptedProven: 16,
@@ -27,12 +23,18 @@ const totals = {
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'remediation-workstream-plan.json',
-  'remediation-workstream-plan.md',
-  'owner-gate-evidence-matrix.json',
-  'owner-gate-evidence-matrix.md',
-  'sequencing-plan.json',
-  'sequencing-plan.md',
+  'log-metric-error-coverage.json',
+  'log-metric-error-coverage.md',
+  'privacy-safe-telemetry-policy.json',
+  'privacy-safe-telemetry-policy.md',
+  'alert-routing-policy.json',
+  'alert-routing-policy.md',
+  'incident-severity-policy.json',
+  'incident-severity-policy.md',
+  'support-ownership-escalation.json',
+  'support-ownership-escalation.md',
+  'downstream-gate-prerequisites.json',
+  'downstream-gate-prerequisites.md',
   'validation-command-plan.json',
   'validation-command-plan.md',
   'runtime-boundary.json',
@@ -72,27 +74,21 @@ const forbiddenOutputs = [
   'dist-staging-fixture-worker',
   'dist-staging-real-video-export-worker',
 ]
-const requiredWorkstreams = [
-  'deploymentRollback',
-  'modelLicenseSecurityCost',
-  'privateStorageDeletionSupabaseGcs',
-  'observabilityIncidentSupport',
-  'backendDatabaseBillingCreditLedger',
-  'realGenerationExportWorkerE2E',
-  'publicArtifactSignedUrlDeliveryPolicy',
-  'externalBetaGoNoGo',
+const requiredLogCoverage = [
+  'request id and approved plan version id',
+  'credit reservation/spend/refund event',
+  'worker dispatch state transition',
+  'storage object lifecycle event',
+  'signed URL issuance audit event',
+  'deletion request and completion event',
 ]
-const requiredGateIds = [
-  'deploymentRollback',
-  'modelLicenseApprovals',
-  'securityReview',
-  'costBudgetsConcurrencyKillSwitches',
-  'privateStorageDeletionWorkflows',
-  'observabilityAlertRouting',
-  'incidentResponse',
-  'backendDatabaseBillingCreditLedger',
-  'realGenerationExportWorkers',
-  'publicArtifactSignedUrlDeliveryPolicy',
+const requiredMetrics = [
+  'api error rate by route class',
+  'queue age and worker success rate',
+  'provider latency and failure rate',
+  'credit ledger mismatch count',
+  'storage upload and delete failure count',
+  'cost budget burn and kill-switch state',
 ]
 const failures = []
 const fail = (message) => failures.push(message)
@@ -140,7 +136,7 @@ function changedFiles() {
 }
 
 function requireCommon(label, report) {
-  if (report.ownerId !== 'REEDITPRO_PRODUCT_READINESS_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
+  if (report.ownerId !== 'REEDITPRO_OPERATIONS_SUPPORT_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
   if (report.decision !== decision) fail(`${label}_decision_drift:${report.decision}`)
   if (report.previousDecision !== previousDecision) fail(`${label}_previous_decision_drift:${report.previousDecision}`)
   if (report.nextPrompt !== nextPrompt) fail(`${label}_next_prompt_drift:${report.nextPrompt}`)
@@ -153,13 +149,16 @@ function requireCommon(label, report) {
 
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of requiredProductionDocs) readText(file)
-readText('docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md')
+readText('docs/implementation-prompts/prompt-reeditpro-backend-database-billing-credit-ledger-readiness-plan.md')
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  workstream: readJson(`${reportDir}/remediation-workstream-plan.json`),
-  matrix: readJson(`${reportDir}/owner-gate-evidence-matrix.json`),
-  sequence: readJson(`${reportDir}/sequencing-plan.json`),
+  coverage: readJson(`${reportDir}/log-metric-error-coverage.json`),
+  privacy: readJson(`${reportDir}/privacy-safe-telemetry-policy.json`),
+  alerting: readJson(`${reportDir}/alert-routing-policy.json`),
+  incident: readJson(`${reportDir}/incident-severity-policy.json`),
+  support: readJson(`${reportDir}/support-ownership-escalation.json`),
+  downstream: readJson(`${reportDir}/downstream-gate-prerequisites.json`),
   validation: readJson(`${reportDir}/validation-command-plan.json`),
   runtime: readJson(`${reportDir}/runtime-boundary.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
@@ -168,30 +167,48 @@ const reports = {
 }
 for (const [label, report] of Object.entries(reports)) requireCommon(label, report)
 
-const gapReadiness = readJson(`${gapDir}/readiness-report.json`)
-if (gapReadiness.decision !== previousDecision) fail(`gap_decision_drift:${gapReadiness.decision}`)
-if (gapReadiness.readyForRemediationPlan !== true && gapReadiness.readyForReeditProGlobalRemediationPlan !== true) {
-  fail('gap_not_ready_for_remediation_plan')
+const previousReadiness = readJson(`${previousDir}/readiness-report.json`)
+if (previousReadiness.decision !== previousDecision) fail(`previous_decision_drift:${previousReadiness.decision}`)
+if (previousReadiness.readyForObservabilityIncidentSupportReadinessPlan !== true) {
+  fail('previous_not_ready_for_observability_plan')
 }
-if (gapReadiness.readyForExternalBeta !== false) fail('gap_external_beta_unblocked')
-if (gapReadiness.readyForProduction !== false) fail('gap_production_unblocked')
+if (previousReadiness.readyForExternalBeta !== false) fail('previous_external_beta_unblocked')
+if (previousReadiness.readyForProduction !== false) fail('previous_production_unblocked')
 
-if (JSON.stringify(reports.source.acceptedInputs?.trackBTotals ?? {}) !== JSON.stringify(totals)) fail('source_trackb_totals_drift')
-if (reports.source.readyForDeploymentRollbackReadinessPlan !== true) fail('source_not_ready_for_deployment_rollback_plan')
-if (reports.decisionReport.readyForDeploymentRollbackReadinessPlan !== true) fail('decision_not_ready_for_deployment_rollback_plan')
-if (reports.readiness.readyForDeploymentRollbackReadinessPlan !== true) fail('readiness_not_ready_for_deployment_rollback_plan')
-if (reports.readiness.acceptedTrackBToolsCallLaneReady !== true) fail('trackb_input_not_accepted')
+if (JSON.stringify(reports.source.trackBTotals ?? {}) !== JSON.stringify(totals)) fail('source_trackb_totals_drift')
+if (reports.source.readyForBackendDatabaseBillingCreditLedgerReadinessPlan !== true) fail('source_not_ready_for_backend_gate')
+if (reports.decisionReport.readyForBackendDatabaseBillingCreditLedgerReadinessPlan !== true) fail('decision_not_ready_for_backend_gate')
+if (reports.readiness.readyForBackendDatabaseBillingCreditLedgerReadinessPlan !== true) fail('readiness_not_ready_for_backend_gate')
 
-const workstreamIds = new Set((reports.workstream.workstreams ?? []).map((entry) => entry.id))
-for (const id of requiredWorkstreams) {
-  if (!workstreamIds.has(id)) fail(`missing_workstream:${id}`)
+for (const item of requiredLogCoverage) {
+  if (!reports.coverage.requiredLogCoverage?.includes(item)) fail(`missing_log_coverage:${item}`)
 }
-const gateIds = new Set((reports.matrix.requiredGates ?? []).map((entry) => entry.id))
-for (const id of requiredGateIds) {
-  if (!gateIds.has(id)) fail(`missing_gate:${id}`)
+for (const item of requiredMetrics) {
+  if (!reports.coverage.requiredMetrics?.includes(item)) fail(`missing_metric:${item}`)
 }
-if (reports.sequence.sequence?.[0] !== 'deploymentRollback') fail('first_sequence_not_deployment_rollback')
-if (reports.sequence.firstNextPrompt !== nextPrompt) fail('first_next_prompt_drift')
+if (reports.coverage.telemetryProvidersConnected !== false) fail('telemetry_provider_connected')
+if (reports.coverage.liveTelemetryEmitted !== false) fail('live_telemetry_emitted')
+
+for (const flag of [
+  'rawPromptLoggingAllowed',
+  'secretLoggingAllowed',
+  'signedUrlLoggingAllowed',
+  'mediaPayloadLoggingAllowed',
+]) {
+  if (reports.privacy[flag] !== false) fail(`privacy_flag_not_false:${flag}`)
+}
+if (reports.alerting.alertProvidersConnected !== false) fail('alert_provider_connected')
+if (reports.alerting.pagerRoutesCreated !== false) fail('pager_routes_created')
+if (reports.incident.incidentRunbooksImplemented !== false) fail('incident_runbooks_implemented')
+if (reports.incident.incidentOwnersNamed !== false) fail('incident_owners_named')
+if (reports.support.supportOwnersNamed !== false) fail('support_owners_named')
+if (reports.support.supportQueueConfigured !== false) fail('support_queue_configured')
+if (!reports.downstream.downstreamGates?.includes('backendDatabaseBillingCreditLedger')) {
+  fail('downstream_missing_backend_gate')
+}
+if (reports.downstream.readyForBackendDatabaseBillingCreditLedgerReadinessPlan !== true) {
+  fail('downstream_not_ready_for_backend_gate')
+}
 if (reports.validation.noInstallBoundary !== true) fail('validation_no_install_boundary_missing')
 for (const [scope, value] of Object.entries(reports.runtime.blockedScopes ?? {})) {
   if (value !== false) fail(`runtime_scope_not_false:${scope}`)
@@ -200,17 +217,21 @@ for (const flag of [
   'privateArtifactsCommitted',
   'generatedOutputsCommitted',
   'mediaArtifactsCommitted',
+  'telemetryPayloadsCreated',
   'publicArtifactsCreated',
   'signedUrlsCreated',
   'supabaseGcsWritesRan',
+  'sqlRan',
+  'migrationCreated',
+  'supportExportsCreated',
 ]) {
   if (reports.manifest[flag] !== false) fail(`manifest_flag_not_false:${flag}`)
 }
 
 const packageJson = readJson('package.json')
 if (
-  packageJson.scripts?.['reeditpro:external-beta-production-readiness-remediation-plan:diagnostics'] !==
-  'node scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs'
+  packageJson.scripts?.['reeditpro:observability-incident-support-readiness-plan:diagnostics'] !==
+  'node scripts/validation/reeditpro-observability-incident-support-readiness-plan-diagnostics.mjs'
 ) {
   fail('package_script_missing_or_drifted')
 }
@@ -231,10 +252,6 @@ for (const output of forbiddenOutputs) {
 for (const file of changedFiles()) {
   const allowed =
     file === 'package.json' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-observability-incident-support-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-backend-database-billing-credit-ledger-readiness-plan.md' ||
     file === 'scripts/validation/reeditpro-observability-incident-support-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan-diagnostics.mjs' ||
@@ -245,10 +262,6 @@ for (const file of changedFiles()) {
     file === 'scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs' ||
-    file.startsWith(`${observabilityDir}/`) ||
-    file.startsWith(`${deploymentRollbackDir}/`) ||
-    file.startsWith(`${modelSecurityCostDir}/`) ||
-    file.startsWith(`${privateStorageDir}/`) ||
     file.startsWith(`${reportDir}/`) ||
     requiredProductionDocs.includes(file)
   if (!allowed) fail(`unexpected_changed_file:${file}`)
@@ -260,7 +273,7 @@ for (const file of changedFiles()) {
 const scanFiles = [
   ...requiredReports.map((file) => `${reportDir}/${file}`),
   ...requiredProductionDocs,
-  'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-backend-database-billing-credit-ledger-readiness-plan.md',
 ]
 for (const file of scanFiles) {
   const text = readText(file)
@@ -281,7 +294,7 @@ console.log(JSON.stringify({
   decision,
   previousDecision,
   nextPrompt,
-  readyForDeploymentRollbackReadinessPlan: true,
+  readyForBackendDatabaseBillingCreditLedgerReadinessPlan: true,
   readyForExternalBeta: false,
   readyForProduction: false,
   trackBTotals: totals,

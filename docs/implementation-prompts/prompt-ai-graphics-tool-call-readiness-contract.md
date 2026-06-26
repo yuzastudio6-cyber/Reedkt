@@ -22,6 +22,8 @@ Latest observed PR state after Tool Route readiness completion: [#862](https://g
 
 Latest observed PR state after Worker handoff readiness completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `22d359df330bb68df66985504bbf06100fae7a82`, with an empty check rollup.
 
+Latest observed PR state before model-weight manifest readiness completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `71d9ef1ea8c42c82d24451e1e0d56656d33fdedf`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements
@@ -53,6 +55,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up beta readiness gate adds `server/tool-registry/ai-graphics-beta-readiness-gate.ts`, `docs/tool-intelligence/ai-graphics/beta-readiness-gate.md`, `docs/tool-intelligence/ai-graphics/beta-readiness-gate.json`, and `ai-graphics:beta-readiness-gate:diagnostics` so the system can report that all 21 tools are installed/mapped/planning-selectable while still showing 0 of 21 beta-ready until approved snapshot, credit, artifact, Tool Route, Worker, GPU/runtime, model-weight, browser sandbox, license, and owner beta gates pass.
 - Follow-up Tool Route readiness contract adds `server/tool-registry/ai-graphics-tool-route-readiness.ts`, `docs/tool-intelligence/ai-graphics/tool-route-readiness-contract.md`, `docs/tool-intelligence/ai-graphics/tool-route-readiness-contract.json`, and `ai-graphics:tool-route-readiness:diagnostics` so future AI graphics Tool Routes can return ranked planning metadata for all 12 capabilities and fail closed for execution requests until all runtime and owner gates pass.
 - Follow-up Worker handoff readiness contract adds `server/tool-registry/ai-graphics-worker-handoff-readiness.ts`, `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.md`, `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.json`, and `ai-graphics:worker-handoff-readiness:diagnostics` so future AI graphics workers receive approved-snapshot, credit, private-manifest, idempotency, runtime, and owner gate requirements for all 21 tool packets without approving queue or execution.
+- Follow-up model-weight manifest readiness contract adds `server/tool-registry/ai-graphics-model-weight-manifest-readiness.ts`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.md`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.json`, and `ai-graphics:model-weight-manifest-readiness:diagnostics` so SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background have explicit private manifest fields, template IDs, and fail-closed blockers before native GPU runtime or beta can be reconsidered.
 
 ## Expected Validation
 
@@ -60,6 +63,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - `npm run --silent ai-graphics:beta-readiness-gate:diagnostics`
 - `npm run --silent ai-graphics:tool-route-readiness:diagnostics`
 - `npm run --silent ai-graphics:worker-handoff-readiness:diagnostics`
+- `npm run --silent ai-graphics:model-weight-manifest-readiness:diagnostics`
 - `npm run --silent ai-graphics:tool-call-handoff:diagnostics`
 - `npm run --silent ai-graphics:tool-call-plan-evaluator:diagnostics`
 - `npm run --silent ai-graphics:tool-call-readiness:diagnostics`

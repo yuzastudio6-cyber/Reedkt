@@ -22,6 +22,8 @@ Latest observed PR state after Tool Route readiness completion: [#862](https://g
 
 Latest observed PR state after Worker handoff readiness completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `22d359df330bb68df66985504bbf06100fae7a82`, with an empty check rollup.
 
+Latest observed PR state before model-weight manifest readiness completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `71d9ef1ea8c42c82d24451e1e0d56656d33fdedf`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.
@@ -78,6 +80,12 @@ Latest observed PR state after Worker handoff readiness completion: [#862](https
   - `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.json`
   - `ai-graphics:worker-handoff-readiness:diagnostics`
 - Worker handoff result: 21 of 21 tools have worker packet requirements prepared, while 0 tools are worker-queue-ready and 0 tools are worker-executable until approved snapshot, credit, private artifact manifest, idempotency, Tool Route, Worker, runtime, model-weight, browser sandbox, and beta-owner gates pass.
+- Added server-only model-weight manifest readiness contract:
+  - `server/tool-registry/ai-graphics-model-weight-manifest-readiness.ts`
+  - `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.md`
+  - `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.json`
+  - `ai-graphics:model-weight-manifest-readiness:diagnostics`
+- Model-weight manifest result: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background` now have explicit required private manifest fields and template mappings. Manifest records provided remain 0, manifest records approved remain 0, beta-ready model-weight tools remain 0, and no model weights were downloaded or loaded.
 
 ## Runtime State
 
@@ -93,6 +101,10 @@ Latest observed PR state after Worker handoff readiness completion: [#862](https
 - `browserWebglCanvasRuntimeApprovedNow=false`
 - `gpuRuntimeApprovedNow=false`
 - `modelWeightsApprovedNow=false`
+- `modelWeightManifestsApprovedNow=false`
+- `modelWeightsDownloaded=false`
+- `modelWeightsLoaded=false`
+- `modelInferencePerformed=false`
 - `approvedPlanSnapshotRequired=true`
 - `creditReservationRequired=true`
 - `artifactBoundaryApprovalRequired=true`

@@ -151,6 +151,18 @@ Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tool
 
 Next safe milestone remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
 
+## Internal Beta Runtime Readiness Orchestrator 3 API Route Facade Integration
+
+`RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-3-API-ROUTE-FACADE-INTEGRATION` records decision `completed_internal_beta_runtime_readiness_orchestrator_api_route_facade_integration_fail_closed` and execution `completed_orchestrator_api_route_facade_integration_no_route_execution`.
+
+Runtime readiness status: `blocked_pending_supabase_target_validation_and_runtime_enablement`. API route facade response count: `8`. Total disabled runtime component count: `54`. Internal beta end-to-end ready: `false`.
+
+Remote Supabase mutation, SQL execution, migration apply, storage object creation/read/delete, signed URL creation, public artifact creation, service-role route execution, API route handler registration, mock route handler registration, worker dispatch/execution, provider/model call, Remotion execution, FFmpeg/FFprobe execution, media processing, credit mutation, and internal beta unlock remain `false`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe milestone remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 ## Internal Beta Approved Snapshot Persistence Local Runtime
 
 `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-LOCAL-RUNTIME-1` records decision `completed_local_approved_snapshot_persistence_runtime_no_supabase_write` and execution `completed_backend_local_snapshot_validation_no_route_or_remote_execution`.

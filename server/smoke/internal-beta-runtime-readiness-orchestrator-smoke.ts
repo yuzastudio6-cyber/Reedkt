@@ -32,16 +32,17 @@ assert(
 )
 assert(report.internalBetaEndToEndReady === false, 'internal beta must not be ready')
 assert(report.productReadyEndToEndLocalOssTools === 0, 'product-ready local OSS tools must remain 0')
+assert(report.componentCounts.apiRouteRuntimeFacade === 8, 'API route runtime facade count mismatch')
 assert(report.componentCounts.serviceRoleRuntime === 8, 'service-role runtime count mismatch')
 assert(report.componentCounts.creditLedgerRuntime === 6, 'credit ledger count mismatch')
 assert(report.componentCounts.jobQueueRuntime === 8, 'job queue count mismatch')
 assert(report.componentCounts.privateArtifactManifest === 8, 'private artifact manifest count mismatch')
 assert(report.componentCounts.remotionRenderWorker === 8, 'Remotion render worker count mismatch')
 assert(report.componentCounts.providerAdapter === 8, 'provider adapter count mismatch')
-assert(report.componentCounts.total === 46, 'total disabled operation count mismatch')
+assert(report.componentCounts.total === 54, 'total disabled operation count mismatch')
 assert(report.localEvidenceCounts.localE2EChainSmoke === 1, 'local E2E chain evidence count mismatch')
 assert(report.localEvidenceCounts.total === 1, 'local evidence total count mismatch')
-assert(report.componentSummaries.length === 46, 'component summaries must include every disabled operation')
+assert(report.componentSummaries.length === 54, 'component summaries must include every disabled operation')
 assert(report.localE2EChainSmoke.ok === true, 'local E2E chain evidence must pass locally')
 assert(
   report.localE2EChainSmoke.status === 'local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime',
@@ -113,6 +114,7 @@ assert(report.safety.productionUnlock === false, 'production unlock must remain 
 assert(report.requiredBeforeEnablement.includes('confirmed_supabase_target_rls_storage_validation'), 'missing target gate')
 assert(report.requiredBeforeEnablement.includes('approved_supabase_credential_context_present'), 'missing credential context gate')
 assert(report.requiredBeforeEnablement.includes('guarded_worker_runtime_rpc_staging_sql_execution'), 'missing RPC gate')
+assert(report.requiredBeforeEnablement.includes('api_route_runtime_facade_validation'), 'missing API route facade gate')
 assert(!JSON.stringify(report.inputSummary).includes('must_not_appear'), 'secret-like fields must be sanitized')
 assertInternalBetaRuntimeReadinessOrchestratorFailClosed(report)
 

@@ -5,6 +5,11 @@ import {
   type InternalBetaCreditLedgerRuntimeScaffoldResult,
 } from './internal-beta-credit-ledger-runtime-scaffold'
 import {
+  createInternalBetaApiRouteRuntimeFacadeReport,
+  type InternalBetaApiRouteRuntimeFacadeInput,
+  type InternalBetaApiRouteRuntimeFacadeResponse,
+} from './internal-beta-api-route-runtime-facade'
+import {
   INTERNAL_BETA_PROVIDER_ADAPTER_SCAFFOLDS,
   createDisabledInternalBetaProviderAdapterScaffoldResult,
   type InternalBetaProviderAdapterInput,
@@ -49,6 +54,7 @@ export type InternalBetaRuntimeReadinessOrchestratorStatus =
   'blocked_pending_supabase_target_validation_and_runtime_enablement'
 
 export type InternalBetaRuntimeReadinessComponent =
+  | 'api_route_runtime_facade'
   | 'service_role_runtime'
   | 'credit_ledger_runtime'
   | 'job_queue_runtime'
@@ -57,7 +63,8 @@ export type InternalBetaRuntimeReadinessComponent =
   | 'provider_adapter'
 
 export interface InternalBetaRuntimeReadinessOrchestratorInput
-  extends InternalBetaRuntimeScaffoldInput,
+  extends InternalBetaApiRouteRuntimeFacadeInput,
+    InternalBetaRuntimeScaffoldInput,
     InternalBetaCreditLedgerRuntimeInput,
     InternalBetaJobQueueRuntimeInput,
     InternalBetaPrivateArtifactManifestInput,
@@ -87,6 +94,7 @@ export interface InternalBetaRuntimeReadinessOrchestratorInput
 }
 
 type InternalBetaRuntimeReadinessScaffoldResult =
+  | InternalBetaApiRouteRuntimeFacadeResponse
   | InternalBetaRuntimeScaffoldResult
   | InternalBetaCreditLedgerRuntimeScaffoldResult
   | InternalBetaJobQueueRuntimeScaffoldResult
@@ -133,6 +141,7 @@ export interface InternalBetaRuntimeReadinessSafetySummary {
 }
 
 export interface InternalBetaRuntimeReadinessComponentCounts {
+  apiRouteRuntimeFacade: number
   serviceRoleRuntime: number
   creditLedgerRuntime: number
   jobQueueRuntime: number
@@ -178,6 +187,7 @@ export interface InternalBetaRuntimeReadinessOrchestratorReport {
 }
 
 export const INTERNAL_BETA_RUNTIME_READINESS_ORCHESTRATOR_COMPONENTS: InternalBetaRuntimeReadinessComponent[] = [
+  'api_route_runtime_facade',
   'service_role_runtime',
   'credit_ledger_runtime',
   'job_queue_runtime',
@@ -190,6 +200,7 @@ export const INTERNAL_BETA_RUNTIME_READINESS_ORCHESTRATOR_REQUIRED_BEFORE_ENABLE
   'approved_supabase_credential_context_present',
   'confirmed_supabase_target_rls_storage_validation',
   'guarded_worker_runtime_rpc_staging_sql_execution',
+  'api_route_runtime_facade_validation',
   'service_role_runtime_enablement',
   'approved_snapshot_persistence_runtime',
   'credit_ledger_transaction_runtime',
@@ -204,10 +215,16 @@ export const INTERNAL_BETA_RUNTIME_READINESS_ORCHESTRATOR_REQUIRED_BEFORE_ENABLE
 
 const UNSAFE_BOOLEAN_KEYS = [
   'routeExecution',
+  'routeHandlerRegistered',
+  'mockHandlerRegistered',
   'workerExecution',
   'workerDispatch',
   'providerModelCalls',
+  'providerModelCall',
   'modelCall',
+  'remoteSupabaseMutation',
+  'sqlExecution',
+  'migrationApply',
   'secretPayloadAccess',
   'rawPromptExecution',
   'remotionExecution',
@@ -223,6 +240,8 @@ const UNSAFE_BOOLEAN_KEYS = [
   'publicArtifactCreation',
   'creditMutation',
   'stripePaymentProcessing',
+  'externalBetaUnlock',
+  'productionUnlock',
   'supabaseMutation',
   'internalBetaUnlock',
 ] as const
@@ -284,6 +303,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
   const providerAdapter = INTERNAL_BETA_PROVIDER_ADAPTER_SCAFFOLDS.map((definition) =>
     createDisabledInternalBetaProviderAdapterScaffoldResult(definition.operation, normalizedInput),
   )
+  const apiRouteRuntimeFacade = createInternalBetaApiRouteRuntimeFacadeReport(normalizedInput)
   const localE2EChainSmoke = createInternalBetaLocalE2EChainSmoke({
     workspaceId: normalizedInput.workspaceId,
     projectId: normalizedInput.projectId,
@@ -303,6 +323,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
   })
 
   const allResults: InternalBetaRuntimeReadinessScaffoldResult[] = [
+    ...apiRouteRuntimeFacade.facadeResponses,
     ...serviceRoleRuntime,
     ...creditLedgerRuntime,
     ...jobQueueRuntime,
@@ -312,6 +333,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
   ]
 
   const componentCounts: InternalBetaRuntimeReadinessComponentCounts = {
+    apiRouteRuntimeFacade: apiRouteRuntimeFacade.facadeResponses.length,
     serviceRoleRuntime: serviceRoleRuntime.length,
     creditLedgerRuntime: creditLedgerRuntime.length,
     jobQueueRuntime: jobQueueRuntime.length,
@@ -319,6 +341,16 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
     remotionRenderWorker: remotionRenderWorker.length,
     providerAdapter: providerAdapter.length,
     total: allResults.length,
+  }
+
+  if (apiRouteRuntimeFacade.status !== 'blocked_pending_supabase_target_validation_and_runtime_enablement') {
+    throw new Error('Internal beta runtime readiness orchestrator API route facade status mismatch.')
+  }
+  if (
+    apiRouteRuntimeFacade.internalBetaEndToEndReady !== false ||
+    apiRouteRuntimeFacade.productReadyEndToEndLocalOssTools !== 0
+  ) {
+    throw new Error('Internal beta runtime readiness orchestrator API route facade must remain fail-closed.')
   }
 
   if (!localE2EChainSmoke.ok) {
@@ -331,7 +363,10 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
     throw new Error('Internal beta runtime readiness orchestrator local E2E chain evidence must remain local-only.')
   }
 
-  const unsafeExecutionDetected = allResults.some(hasUnsafeBoolean) || Object.values(localE2EChainSmoke.safety).some(Boolean)
+  const unsafeExecutionDetected =
+    allResults.some(hasUnsafeBoolean) ||
+    Object.values(apiRouteRuntimeFacade.safety).some(Boolean) ||
+    Object.values(localE2EChainSmoke.safety).some(Boolean)
   if (unsafeExecutionDetected) {
     throw new Error('Internal beta runtime readiness orchestrator detected an enabled runtime execution flag.')
   }
@@ -348,6 +383,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
       total: 1,
     },
     componentStatuses: {
+      api_route_runtime_facade: uniqueStatuses(apiRouteRuntimeFacade.facadeResponses),
       service_role_runtime: uniqueStatuses(serviceRoleRuntime),
       credit_ledger_runtime: uniqueStatuses(creditLedgerRuntime),
       job_queue_runtime: uniqueStatuses(jobQueueRuntime),
@@ -356,6 +392,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
       provider_adapter: uniqueStatuses(providerAdapter),
     },
     componentSummaries: [
+      ...summarizeResults('api_route_runtime_facade', apiRouteRuntimeFacade.facadeResponses),
       ...summarizeResults('service_role_runtime', serviceRoleRuntime),
       ...summarizeResults('credit_ledger_runtime', creditLedgerRuntime),
       ...summarizeResults('job_queue_runtime', jobQueueRuntime),
@@ -409,7 +446,7 @@ export function createInternalBetaRuntimeReadinessOrchestratorReport(
     warnings: [
       'Internal beta runtime readiness orchestrator is fail-closed.',
       `Supabase credential context decision: ${supabaseCredentialContext.decision}.`,
-      'All composed service-role, credit-ledger, job-queue, private-artifact, Remotion render-worker, and provider-adapter scaffolds returned disabled runtime results.',
+      'All composed API-route facade, service-role, credit-ledger, job-queue, private-artifact, Remotion render-worker, and provider-adapter scaffolds returned disabled runtime results.',
       'Local E2E chain smoke evidence is composed and validated as local metadata only; it does not unlock internal beta.',
       'No Supabase mutation, SQL execution, worker execution, provider/model call, Remotion execution, media processing, artifact creation, credit mutation, signed URL creation, public artifact creation, internal beta unlock, external beta unlock, or production unlock occurred.',
     ],

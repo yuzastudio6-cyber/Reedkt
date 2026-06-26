@@ -24,6 +24,16 @@ keeps actual agent/tool/route/worker/provider execution, browser/canvas/WebGL,
 GPU/model runtime, model-weight loading, media processing, signed URLs, public
 artifacts, internal beta, external beta, and production blocked.
 
+AI graphics internal beta dry-run readiness decision
+`ai_graphics_internal_beta_dry_run_readiness_contract_prepared_with_fail_closed_runtime`
+prepares metadata-only internal beta dry-run cases for all 21 AI graphics tools
+and all 12 product-facing capabilities when the owner-approved handoff evidence
+is supplied. It can build planning selections, Tool Route metadata packets,
+Worker metadata packets, blocker explanations, and next-proof milestones, but
+does not execute routes, queue workers, execute tools, run browser/canvas/WebGL,
+run GPU/model runtime, load model weights, process media, create artifacts,
+unlock internal beta runtime, unlock external beta, or unlock production.
+
 Phase 35F SAM2 feature E2E evidence, when present, counts only toward internal
 SAM2 feature testing. It is not external beta, paid production, broad real
 media, provider, Revideo, FILM, slow-motion, Real-ESRGAN, public delivery, or

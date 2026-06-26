@@ -247,9 +247,11 @@
     "trackbProductBetaRuntimeProductRouteEnablementExecutionDecision": "trackb_media_oss_product_beta_runtime_product_route_enablement_execution_passed_ready_for_product_route_enablement_qa_review",
     "trackbProductBetaRuntimeProductRouteEnablementExecutionSourceSha": "bfd406a3f847ff5c5b7e2e7f26d38d9186fdedaf",
     "trackbProductBetaRuntimeProductRouteEnablementQaReviewDecision": "trackb_media_oss_product_beta_runtime_product_route_enablement_qa_passed_ready_for_product_route_enablement_closeout",
-    "trackbProductBetaRuntimeProductRouteEnablementQaReviewSourceSha": "cf355808b4f6f75cd96d84bffda2ae3f088ce0d1"
+    "trackbProductBetaRuntimeProductRouteEnablementQaReviewSourceSha": "cf355808b4f6f75cd96d84bffda2ae3f088ce0d1",
+    "trackbProductBetaRuntimeProductRouteEnablementCloseoutDecision": "trackb_media_oss_product_beta_runtime_product_route_enablement_closeout_passed_ready_for_product_ready_proof_rerun_plan",
+    "trackbProductBetaRuntimeProductRouteEnablementCloseoutSourceSha": "34cbf88de1c8b87d55b1d38145c3913143d5d40f"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_CLOSEOUT",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_PLAN",
   "supabaseClassification": {
     "updateRequired": "no write",
     "environmentTouched": "none",
@@ -1134,6 +1136,29 @@
       "productReady": 0
     },
     "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_CLOSEOUT",
+    "supabaseClassification": "no write / environment none / SQL none / migration no"
+  },
+  "productBetaRuntimeProductRouteEnablementCloseout": {
+    "decision": "trackb_media_oss_product_beta_runtime_product_route_enablement_closeout_passed_ready_for_product_ready_proof_rerun_plan",
+    "previousDecision": "trackb_media_oss_product_beta_runtime_product_route_enablement_qa_passed_ready_for_product_route_enablement_closeout",
+    "sourcePr": 945,
+    "sourceSha": "34cbf88de1c8b87d55b1d38145c3913143d5d40f",
+    "sourceHead": "135481f576ef0ee055eb66f1327a79ce61fcee67",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout",
+    "routeEnablementCloseoutCompleted": true,
+    "routeEnablementQaAccepted": true,
+    "readyForProductReadyProofRerunPlan": true,
+    "liveProductCallsApproved": false,
+    "workerDispatchEnabled": false,
+    "realToolExecutionEnabled": false,
+    "productReadyCount": 0,
+    "trackBTotals": {
+      "owned": 16,
+      "boundedAcceptedProven": 16,
+      "blockedNotInstalledProven": 0,
+      "productReady": 0
+    },
+    "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_PLAN",
     "supabaseClassification": "no write / environment none / SQL none / migration no"
   }
 }

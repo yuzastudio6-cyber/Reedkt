@@ -98,10 +98,13 @@ const predecessorDiagnostics = [
 const allowedChangedPrefixes = [
   `${reportDir}/`,
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-go-no-go-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-closeout/',
 ]
 const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-closeout.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-approval.md',
   'scripts/validation/trackb-media-oss-product-beta-go-no-go-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-readiness-closeout-diagnostics.mjs',
   'package.json',
   'scripts/validation/trackb-media-oss-product-beta-readiness-reconciliation-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-go-no-go-review.md',

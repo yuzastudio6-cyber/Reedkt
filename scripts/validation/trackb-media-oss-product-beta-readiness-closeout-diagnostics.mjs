@@ -7,13 +7,12 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-product-beta-go-no-go-review'
-const reconciliationReportDir = 'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-reconciliation'
-const decision = 'trackb_media_oss_product_beta_go_no_go_passed_ready_for_product_beta_readiness_closeout'
-const previousDecision =
-  'trackb_media_oss_product_beta_readiness_reconciliation_passed_ready_for_product_beta_go_no_go_review'
-const nextPrompt = 'TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_CLOSEOUT'
-const sourceSha = '0e367aad50ecab99e4ebbd5873883f3c858876fd'
+const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-closeout'
+const goNoGoReportDir = 'docs/open-source-tool-stack/trackb-media-oss-product-beta-go-no-go-review'
+const decision = 'trackb_media_oss_product_beta_readiness_closeout_passed_ready_for_product_beta_runtime_approval'
+const previousDecision = 'trackb_media_oss_product_beta_go_no_go_passed_ready_for_product_beta_readiness_closeout'
+const nextPrompt = 'TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_APPROVAL'
+const sourceSha = 'b87cf35ba3c657fcac8d609e7a0f120bb5559eca'
 const ownerId = 'TRACK_B_MEDIA_OSS_STEWARD'
 const baseRef = 'origin/codex/rp-github-merge-hygiene-open-pr-stack-audit'
 const totals = {
@@ -26,12 +25,12 @@ const totals = {
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'product-beta-go-no-go-review.json',
-  'product-beta-go-no-go-review.md',
-  'tool-call-use-case-ranking-acceptance.json',
-  'tool-call-use-case-ranking-acceptance.md',
-  'runtime-boundary-review.json',
-  'runtime-boundary-review.md',
+  'product-beta-readiness-closeout.json',
+  'product-beta-readiness-closeout.md',
+  'tool-call-use-case-ranking-closeout.json',
+  'tool-call-use-case-ranking-closeout.md',
+  'runtime-boundary-closeout.json',
+  'runtime-boundary-closeout.md',
   'decision.json',
   'decision.md',
   'readiness-report.json',
@@ -51,14 +50,14 @@ const statusDocs = [
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json',
 ]
 
-const allowedChangedPrefixes = [
-  `${reportDir}/`,
-  'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-closeout/',
-]
+const allowedChangedPrefixes = [`${reportDir}/`]
 const allowedChangedFiles = new Set([
+  'package.json',
+  'scripts/validation/trackb-media-oss-product-beta-readiness-closeout-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-go-no-go-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-readiness-reconciliation-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
-  'scripts/validation/trackb-media-oss-product-beta-readiness-reconciliation-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-cpu-execution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-limited-internal-beta-testing-handoff-diagnostics.mjs',
@@ -90,10 +89,6 @@ const allowedChangedFiles = new Set([
   'scripts/validation/trackb-media-oss-controlled-internal-beta-fixture-execution-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-controlled-internal-beta-dry-run-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
-  'package.json',
-  'scripts/validation/trackb-media-oss-product-beta-go-no-go-review-diagnostics.mjs',
-  'scripts/validation/trackb-media-oss-product-beta-readiness-closeout-diagnostics.mjs',
-  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-closeout.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-approval.md',
   ...statusDocs,
 ])
@@ -186,60 +181,71 @@ function requireTotals(label, reportTotals) {
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of [
   ...statusDocs,
-  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-closeout.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-approval.md',
 ]) {
   readText(file)
 }
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  goNoGo: readJson(`${reportDir}/product-beta-go-no-go-review.json`),
-  ranking: readJson(`${reportDir}/tool-call-use-case-ranking-acceptance.json`),
-  runtime: readJson(`${reportDir}/runtime-boundary-review.json`),
+  closeout: readJson(`${reportDir}/product-beta-readiness-closeout.json`),
+  ranking: readJson(`${reportDir}/tool-call-use-case-ranking-closeout.json`),
+  runtime: readJson(`${reportDir}/runtime-boundary-closeout.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
   readiness: readJson(`${reportDir}/readiness-report.json`),
   manifest: readJson(`${reportDir}/private-artifact-manifest.json`),
-  priorReconciliation: readJson(`${reconciliationReportDir}/decision.json`),
+  priorGoNoGo: readJson(`${goNoGoReportDir}/decision.json`),
 }
 
 for (const [label, report] of Object.entries(reports)) {
-  if (label === 'priorReconciliation') continue
+  if (label === 'priorGoNoGo') continue
   requireOwnerDecision(label, report)
 }
 
 if (reports.source.sourceSha !== sourceSha) fail(`source_sha_drift:${reports.source.sourceSha}`)
-if (reports.source.sourceEvidence?.find((entry) => entry.pr === 896)?.state !== 'MERGED') fail('missing_pr896_source')
+if (reports.source.sourceEvidence?.find((entry) => entry.pr === 901)?.state !== 'MERGED') fail('missing_pr901_source')
 if (reports.source.previousDecision !== previousDecision) fail(`source_previous_decision_drift:${reports.source.previousDecision}`)
-if (reports.priorReconciliation.decision !== previousDecision) {
-  fail(`prior_reconciliation_decision_drift:${reports.priorReconciliation.decision}`)
-}
+if (reports.priorGoNoGo.decision !== previousDecision) fail(`prior_go_no_go_decision_drift:${reports.priorGoNoGo.decision}`)
 if (reports.source.nextPrompt !== nextPrompt) fail(`source_next_prompt_drift:${reports.source.nextPrompt}`)
 requireTotals('source', reports.source.trackBTotals)
-requireTotals('go_no_go', reports.goNoGo.trackBTotals)
+requireTotals('closeout', reports.closeout.trackBTotals)
 requireTotals('readiness', reports.readiness.trackBTotals)
 
 for (const field of [
-  'productBetaGoNoGoReviewed',
-  'reconciliationAccepted',
-  'rankingAccepted',
-  'goForProductBetaReadinessCloseout',
-  'readyForProductBetaReadinessCloseout',
+  'productBetaReadinessClosedOut',
+  'goNoGoAccepted',
+  'deterministicDryRunRankingClosed',
+  'readyForProductBetaRuntimeApproval',
 ]) {
-  if (reports.goNoGo[field] !== true) fail(`go_no_go_${field}_not_true`)
+  if (reports.closeout[field] !== true) fail(`closeout_${field}_not_true`)
   if (reports.decisionReport[field] !== true) fail(`decision_${field}_not_true`)
 }
 
 for (const field of [
-  'goForLiveProductCalls',
-  'goForRouteDispatch',
-  'goForWorkerDispatch',
-  'goForRealToolExecution',
-  'goForExternalBeta',
-  'goForProduction',
-  'goForProductReadyStatus',
+  'readyForLiveProductCalls',
+  'readyForRouteDispatch',
+  'readyForWorkerDispatch',
+  'readyForRealToolExecution',
+  'readyForExternalBeta',
+  'readyForProduction',
+  'productReady',
 ]) {
-  if (reports.goNoGo[field] !== false) fail(`go_no_go_${field}_unexpected_true`)
-  if (reports.decisionReport[field] !== false) fail(`decision_${field}_unexpected_true`)
+  if (reports.closeout[field] !== false) fail(`closeout_${field}_unexpected_true`)
+}
+
+for (const field of [
+  'liveProductCallsApproved',
+  'routeDispatchApproved',
+  'workerDispatchApproved',
+  'realToolExecutionApproved',
+  'dockerOrInstallApproved',
+  'mediaProcessingApproved',
+  'supabaseGcsWritesApproved',
+  'externalBetaApproved',
+  'productionApproved',
+  'productReadyStatusApproved',
+]) {
+  if (reports.runtime[field] !== false) fail(`runtime_${field}_unexpected_true`)
 }
 
 const expectedOrders = {
@@ -266,98 +272,89 @@ const expectedOrders = {
   videoAnalysisOrder: ['ffprobe', 'mediainfo', 'pyav', 'opencv', 'pyscenedetect'],
   metadataAnalysisOrder: ['ffprobe', 'mediainfo', 'exiftool', 'duckdb', 'polars_nodejs_polars'],
 }
+
 for (const [field, expected] of Object.entries(expectedOrders)) {
-  if (JSON.stringify(reports.ranking[field]) !== JSON.stringify(expected)) fail(`ranking_drift:${field}`)
+  const actual = reports.ranking[field]
+  if (!Array.isArray(actual) || actual.join('|') !== expected.join('|')) fail(`ranking_order_drift:${field}:${actual}`)
 }
-if (reports.ranking.rankingEntryCount !== 16) fail('ranking_entry_count_drift')
-if (reports.ranking.rankingAcceptedForGoNoGo !== true) fail('ranking_not_accepted')
+if (reports.ranking.rankingEntryCount !== 16) fail(`ranking_entry_count_drift:${reports.ranking.rankingEntryCount}`)
+if (reports.ranking.highRiskTransformDeferredTool !== 'ffmpeg') fail('ffmpeg_not_deferred')
 if (reports.ranking.allRankingEntriesDryRunOnly !== true) fail('ranking_not_dry_run_only')
 if (reports.ranking.allRankingEntriesExecutionDisabled !== true) fail('ranking_execution_enabled')
-if (reports.ranking.highRiskTransformDeferredTool !== 'ffmpeg') fail('ranking_ffmpeg_deferred_drift')
 
-for (const [field, value] of Object.entries(reports.runtime.blockedScopes || {})) {
-  if (value !== true) fail(`runtime_blocked_scope_missing:${field}`)
-}
-for (const [field, value] of Object.entries(reports.runtime.enabledScopes || {})) {
-  if (value !== false) fail(`runtime_enabled_scope_unexpected_true:${field}`)
-}
-if (reports.runtime.supabaseClassification !== 'no write / environment none / SQL none / migration no') {
-  fail(`supabase_classification_drift:${reports.runtime.supabaseClassification}`)
-}
-if (reports.runtime.productReadyLocalOssCount !== 0) fail('runtime_product_ready_drift')
+if (reports.manifest.privateArtifactCreated !== false) fail('private_artifact_created')
+if (reports.manifest.publicArtifactCreated !== false) fail('public_artifact_created')
+if (reports.manifest.signedUrlCreated !== false) fail('signed_url_created')
+if (reports.manifest.mediaArtifactCreated !== false) fail('media_artifact_created')
+if (reports.manifest.generatedOutputCreated !== false) fail('generated_output_created')
 
-if (reports.readiness.readyForProductBetaReadinessCloseout !== true) fail('readiness_not_ready_for_closeout')
-if (reports.readiness.readyForDirectProductToolCalls !== false) fail('readiness_direct_calls_true')
-if (reports.readiness.readyForLiveBetaRuntime !== false) fail('readiness_live_beta_true')
-if (reports.readiness.readyForExternalBeta !== false) fail('readiness_external_beta_true')
-if (reports.readiness.readyForProduction !== false) fail('readiness_production_true')
-if (reports.readiness.productReadyCount !== 0) fail('readiness_product_ready_drift')
+const allReportText = [
+  ...requiredReports.map((file) => readText(`${reportDir}/${file}`)),
+  ...statusDocs.map((file) => readText(file)),
+  readText('docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-approval.md'),
+].join('\n')
 
-for (const field of [
-  'privateArtifactsCommitted',
-  'publicArtifactsCommitted',
-  'signedUrlsCommitted',
-  'secretsCommitted',
-  'mediaArtifactsCommitted',
-  'dockerOutputsCommitted',
-  'rawPromptsCommitted',
+for (const required of [
+  decision,
+  previousDecision,
+  nextPrompt,
+  '16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready',
+  'no write / environment none / SQL none / migration no',
 ]) {
-  if (reports.manifest[field] !== false) fail(`manifest_${field}_unexpected_true`)
+  if (!allReportText.includes(required)) fail(`missing_required_text:${required}`)
+}
+for (const line of allReportText.split('\n')) {
+  const lower = line.toLowerCase()
+  const explicitNegative =
+    lower.includes('no ') ||
+    lower.includes('not approve') ||
+    lower.includes('blocked') ||
+    lower.includes('disabled') ||
+    lower.includes('remain fail-closed')
+  for (const forbidden of [
+    'product-ready local OSS tools: `16`',
+    'product-ready local OSS tools remain `16`',
+    'ready for production: yes',
+    'external beta ready: yes',
+    'direct product tool calls are approved',
+    'live product calls are approved',
+    'worker dispatch is approved',
+    'Supabase write approved',
+  ]) {
+    if (!explicitNegative && lower.includes(forbidden.toLowerCase())) fail(`forbidden_claim:${forbidden}`)
+  }
+  if (line.includes('40+ tools') && !lower.includes('do not claim') && !lower.includes('no 40+')) {
+    fail(`forbidden_40_plus_claim:${line.trim()}`)
+  }
 }
 
-const statusText = statusDocs.map((file) => readText(file)).join('\n')
-if (!statusText.includes(decision)) fail('status_docs_missing_decision')
-if (!statusText.includes(nextPrompt)) fail('status_docs_missing_next_prompt')
-if (!statusText.includes('16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready')) {
-  fail('status_docs_missing_totals')
+for (const output of forbiddenOutputs) {
+  if (fs.existsSync(fullPath(output))) fail(`generated_output_present:${output}`)
 }
-
-const promptText = readText('docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-closeout.md')
-if (!promptText.includes(nextPrompt)) fail('next_prompt_file_missing_prompt')
-if (!promptText.includes(decision)) fail('next_prompt_missing_decision')
-if (!promptText.includes('Do not')) fail('next_prompt_missing_scope_boundary')
-if (!promptText.includes('0 product-ready')) fail('next_prompt_missing_product_ready_boundary')
-
-const packageJson = readJson('package.json')
-if (
-  packageJson.scripts?.['trackb-media-oss:product-beta-go-no-go-review:diagnostics'] !==
-  'node scripts/validation/trackb-media-oss-product-beta-go-no-go-review-diagnostics.mjs'
-) {
-  fail('package_script_missing_or_drifted')
-}
-
-const changed = changedFiles()
-for (const file of changed) {
+for (const file of changedFiles()) {
   if (!isAllowedChangedFile(file)) fail(`unexpected_changed_file:${file}`)
 }
 for (const file of protectedNoDiffFiles) {
-  if (changed.includes(file)) fail(`protected_file_changed:${file}`)
-}
-for (const output of forbiddenOutputs) {
-  if (fs.existsSync(fullPath(output))) fail(`forbidden_output_present:${output}`)
+  if (git(['diff', '--name-only', '--', file], true) || git(['diff', '--cached', '--name-only', '--', file], true)) {
+    fail(`protected_file_changed:${file}`)
+  }
 }
 
-for (const file of [
-  ...requiredReports.map((name) => `${reportDir}/${name}`),
-  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-closeout.md',
-  ...statusDocs,
-]) {
+const suspiciousFiles = git(['ls-files'], true)
+  .split('\n')
+  .filter((file) => /\.(mp4|mov|mkv|srt|ttf|onnx|pdmodel|deb|gpg|asc)$/i.test(file))
+for (const file of suspiciousFiles) fail(`artifact_tracked:${file}`)
+
+for (const file of git(['ls-files'], true).split('\n').filter(Boolean)) {
+  if (!file.startsWith('docs/') && !file.startsWith('scripts/') && file !== 'package.json') continue
   const text = readText(file)
-  for (const line of text.split('\n')) {
-    const normalizedLine = line.toLowerCase()
-    if (
-      line.includes('40+ tools') &&
-      !normalizedLine.includes('do not claim') &&
-      !normalizedLine.includes('no 40+')
-    ) {
-      fail(`forbidden_40_plus_claim:${file}:${line.trim()}`)
-    }
+  if (/\b(sk-[A-Za-z0-9_-]{30,}|Bearer\s+[A-Za-z0-9._~+/-]{30,}|postgres(?:ql)?:\/\/|eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)\b/i.test(text)) {
+    fail(`secret_material:${file}`)
   }
-  if (/sk-[A-Za-z0-9_-]{20,}/.test(text)) fail(`secret_like_token:${file}`)
   if (new RegExp('https://[^\\s)]+X-Goog-Signature=').test(text)) fail(`signed_url:${file}`)
 }
 
-if (failures.length > 0) {
+if (failures.length) {
   console.error(JSON.stringify({ ok: false, failures }, null, 2))
   process.exit(1)
 }
@@ -368,11 +365,11 @@ console.log(
       ok: true,
       decision,
       nextPrompt,
-      productBetaGoNoGoReviewed: true,
+      productBetaReadinessClosedOut: true,
       trackBTotals: totals,
       productReadyCount: 0,
     },
     null,
-    2
-  )
+    2,
+  ),
 )

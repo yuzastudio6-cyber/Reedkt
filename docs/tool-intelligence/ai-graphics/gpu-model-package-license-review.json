@@ -7,7 +7,10 @@
     "number": 862,
     "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
     "state": "OPEN",
-    "isDraft": true
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "latestObservedHeadSha": "310460b09bdb1c816a6e8a6c2c157d2d08d0ea86",
+    "latestObservedCheckRollup": []
   },
   "reviewedPackageCodeTools": [
     "torch_torchvision",

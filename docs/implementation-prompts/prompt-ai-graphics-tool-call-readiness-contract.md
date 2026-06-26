@@ -44,6 +44,8 @@ Latest observed PR state after beta activation gap report completion: [#862](htt
 
 Follow-up runtime-readiness movement: the proven JavaScript graphics tools were promoted from generic planning-only/future production profiles to their correct executable worker surfaces while keeping execution gates closed. CPU/static spec tools with proof now point at `cpu_analysis_worker` or `render_worker` as appropriate, browser/canvas/WebGL tools with proof now point at `render_worker`, and the evidence-mode beta gate now treats approved model-weight manifest evidence as satisfying review-pending model-weight policy blockers while preserving hard policy blocks. Package/code license review narrowing also moves Torch/TorchVision, Transformers, SAM2, BiRefNet, Real-ESRGAN, and transparent-background out of unknown-license blocker state while keeping their runtime and model-weight proof gates evidence-only. The gate reports all 21 tools eligible only when all current shared/runtime/model-weight evidence flags are supplied.
 
+Latest observed PR state after beta evidence/profile blocker narrowing: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `310460b09bdb1c816a6e8a6c2c157d2d08d0ea86`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements

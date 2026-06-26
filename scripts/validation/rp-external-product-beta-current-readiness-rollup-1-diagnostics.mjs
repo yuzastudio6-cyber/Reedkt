@@ -34,6 +34,20 @@ const followOnSupabaseCleanStagingTargetOwnerApproval1Files = [
   'docs/product-internal-beta-readiness-aggregation.md',
 ]
 
+const followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files = [
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-current-target-revalidation-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-current-target-revalidation-1-record.json',
+  'docs/activation-phase-supabase-clean-staging-branch-current-target-revalidation-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-clean-staging-branch-db-url-secret-handoff-1.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'docs/production-beta-blocker-inventory.md',
+  'implementation-status-and-next-phase.md',
+  'scripts/validation/supabase-clean-staging-branch-current-target-revalidation-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-target-owner-approval-1-diagnostics.mjs',
+  'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure',
@@ -146,7 +160,12 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowed = new Set([...requiredFiles, ...relatedDiagnosticsAllowlist, ...followOnSupabaseCleanStagingTargetOwnerApproval1Files])
+const allowed = new Set([
+  ...requiredFiles,
+  ...relatedDiagnosticsAllowlist,
+  ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
+  ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
+])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)
   for (const blockedPath of blockedPaths) {

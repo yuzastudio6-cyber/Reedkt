@@ -1,0 +1,74 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-EXECUTION-CURRENT-TARGET-REVALIDATION-1",
+  "decision": "blocked_clean_staging_branch_current_target_revalidation_missing_clean_branch_db_url_secret",
+  "execution": "completed_docs_only_current_target_revalidation_no_remote_execution",
+  "integrationHead": "88c3da032a4732c378377aebfe85c1f755d91517",
+  "sourceDependencies": {
+    "pr1032": "supabase_clean_staging_target_owner_approval_1",
+    "pr1028": "rp_external_product_beta_current_readiness_rollup_1",
+    "cleanBranchExecutionReports": "existing_clean_staging_branch_plugin_evidence_present",
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "cleanTarget": {
+    "parentProjectName": "Reeditpro",
+    "parentProjectRef": "wmyyttnynmteqgcdishd",
+    "branchName": "reeditpro-internal-staging-clean",
+    "branchRef": "fnjiylwirntrqdcwpbho",
+    "environment": "clean_staging"
+  },
+  "credentialMetadata": {
+    "supabaseAccessTokenSecretName": "SUPABASE_ACCESS_TOKEN",
+    "supabaseAccessTokenLatestVersion": "5",
+    "supabaseAccessTokenLatestVersionState": "enabled",
+    "cleanBranchDbUrlSecretName": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+    "cleanBranchDbUrlSecretPresence": "missing",
+    "secretManagerPayloadAccess": false,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersisted": false
+  },
+  "currentRevalidation": {
+    "status": "not_run_missing_clean_branch_db_url_secret",
+    "remoteSupabaseCommandClass": "none_in_this_phase",
+    "migrationHistoryCurrentReadback": "not_run",
+    "schemaRlsCurrentReadback": "not_run",
+    "storageCurrentReadback": "not_run",
+    "workerRpcReadback": "not_run"
+  },
+  "existingCleanBranchSourceEvidence": {
+    "migrationHistoryStatus": "passed_supabase_plugin_list_migrations",
+    "schemaRlsStatus": "passed_supabase_plugin_readonly_catalog_queries",
+    "targetReferenceStatus": "passed",
+    "sourceEvidenceOnly": true,
+    "currentRemoteRerunInThisPhase": false
+  },
+  "readiness": {
+    "workerRuntimeTransactionalContract2": "blocked_pending_clean_branch_db_url_secret_and_guarded_current_target_revalidation",
+    "workerRuntimeTrackaPrivateE2eExecutionGate2r": "blocked_pending_clean_staging_target_migration_chain_and_rpc_readback",
+    "trackaPrivateE2eRevalidation2": "blocked_pending_worker_transactional_contract",
+    "internalBetaReadinessRollup": "blocked_pending_clean_branch_db_url_secret_and_runtime_gate_closure",
+    "externalProductBeta": "blocked_pending_internal_beta_evidence_security_privacy_support_cost_and_deployment_gates"
+  },
+  "safety": {
+    "remoteSupabaseCommand": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "sqlMutation": false,
+    "migrationApply": false,
+    "migrationHistoryTableEdited": false,
+    "storageBucketCreation": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "secretPayloadAccess": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "nextMilestone": "SUPABASE-CLEAN-STAGING-BRANCH-DB-URL-SECRET-HANDOFF-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

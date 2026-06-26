@@ -41,6 +41,24 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-EXECUTION-CURRENT-TARGET-REVALIDATION-1`.
 
+## SUPABASE Clean Staging Branch Current Target Revalidation 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-EXECUTION-CURRENT-TARGET-REVALIDATION-1` records decision `blocked_clean_staging_branch_current_target_revalidation_missing_clean_branch_db_url_secret` and execution `completed_docs_only_current_target_revalidation_no_remote_execution`.
+
+Clean staging path approval dependency: `approved_clean_staging_target_path_for_guarded_migration_chain_validation`. Existing clean branch source evidence: `existing_clean_staging_branch_plugin_evidence_present`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd`; clean branch `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho`.
+
+Supabase access-token secret metadata: `SUPABASE_ACCESS_TOKEN` version `5` / `enabled`. Clean branch DB URL secret: `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` / `missing`. Secret Manager payload access: `false`.
+
+Remote Supabase command class: `none_in_this_phase`. SQL execution: `none`. SQL mutation: `none`. Migration deployed: `no`. Migration history table edited: `no`. Storage readback: `none`. Service-role route execution: `false`. Production touched: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_clean_branch_db_url_secret_and_guarded_current_target_revalidation`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_clean_branch_db_url_secret_and_runtime_gate_closure`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-DB-URL-SECRET-HANDOFF-1`.
+
 ## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Confirmed Runner
 
 `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_supabase_target_rls_storage_readonly_validation` and execution `completed_readonly_target_identity_and_advisor_validation_no_mutation`.

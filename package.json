@@ -88,6 +88,7 @@
     "qwen2-5-vl-7b-l4-cuda-vllm-import-proof-retry:diagnostics": "node scripts/validation/qwen2-5-vl-7b-l4-cuda-vllm-import-proof-retry-diagnostics.mjs",
     "qwen2-5-vl-7b-l4-stockout-plan:diagnostics": "node scripts/validation/qwen2-5-vl-7b-l4-stockout-plan-diagnostics.mjs",
     "qwen2-5-vl-7b-l4-cuda-vllm-import-proof-us-central1-a:diagnostics": "node scripts/validation/qwen2-5-vl-7b-l4-cuda-vllm-import-proof-us-central1-a-diagnostics.mjs",
+    "qwen2-5-vl-7b-l4-cuda-vllm-import-proof-us-central1-c:diagnostics": "node scripts/validation/qwen2-5-vl-7b-l4-cuda-vllm-import-proof-us-central1-c-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

@@ -91,6 +91,10 @@ const trueBooleans = [
   'all21RpcSmokeCasesPrepared',
   'all21RpcSmokeCasesReadyWithProvidedEvidence',
   'backendServiceAdapterMockValidated',
+  'mockAdapterCanonicalRegistryValidation',
+  'mockAdapterRejectedNonCanonicalTool',
+  'mockAdapterRejectedProductionToolMismatch',
+  'mockAdapterRejectedCapabilityMismatch',
   'liveSmokeCommandPrepared',
   'staticMigrationRequiredBeforeLiveSmoke',
   'nonProductionEnvironmentRequired',
@@ -258,13 +262,28 @@ for (const token of [
 for (const token of [
   'createAiGraphicsToolRuntimeQueueService',
   'buildAiGraphicsServiceRoleRpcSmokeJobs',
+  'mockAdapterRejectsPatchedJob',
   'listAiGraphicsToolCallReadiness',
   'private://ai-graphics/internal-beta/service-role-rpc-smoke',
+  'not in the canonical 21-tool registry',
+  'productionToolId mismatch',
+  'capabilityId chart_overlay is not valid',
   'toolExecutionApprovedNow: false',
   'workerExecutionApprovedNow: false',
   'gpuHeavyToolsTargetGpuRuntime',
 ]) {
   if (!registry.includes(token)) fail(`registry_missing_token:${token}`)
+}
+for (const token of [
+  'getAiGraphicsToolCallReadiness',
+  'getAiGraphicsMappedProductionProfile',
+  'Duplicate AI graphics tool-runtime job is not allowed',
+  'productionToolId mismatch',
+  'workerType mismatch',
+  'runtimeTarget mismatch',
+  'capabilityId',
+]) {
+  if (!service.includes(token)) fail(`service_missing_canonical_validation:${token}`)
 }
 
 if (docs.counts?.totalAiGraphicsTools !== 21) fail(`docs_total_tools:${docs.counts?.totalAiGraphicsTools}`)
@@ -324,6 +343,18 @@ if (dryOutput.liveServiceRoleRpcSmokeExecutedNow !== 0) {
 if (dryOutput.booleans?.agentCanExecuteToolsNow !== false) fail('dry_output_agent_execution_not_false')
 if (dryOutput.booleans?.serviceRoleSupabaseWritesApprovedNow !== false) {
   fail('dry_output_supabase_writes_not_false')
+}
+if (dryOutput.booleans?.mockAdapterCanonicalRegistryValidation !== true) {
+  fail('dry_output_canonical_registry_validation_not_true')
+}
+if (dryOutput.booleans?.mockAdapterRejectedNonCanonicalTool !== true) {
+  fail('dry_output_noncanonical_tool_rejection_not_true')
+}
+if (dryOutput.booleans?.mockAdapterRejectedProductionToolMismatch !== true) {
+  fail('dry_output_production_tool_mismatch_rejection_not_true')
+}
+if (dryOutput.booleans?.mockAdapterRejectedCapabilityMismatch !== true) {
+  fail('dry_output_capability_mismatch_rejection_not_true')
 }
 
 if (!scorecard.includes('ai_graphics_internal_beta_service_role_rpc_smoke_readiness_contract_prepared_live_smoke_blocked')) {

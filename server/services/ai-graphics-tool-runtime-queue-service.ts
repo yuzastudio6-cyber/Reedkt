@@ -1,4 +1,8 @@
 import { ApiError } from '../errors/api-error'
+import {
+  getAiGraphicsMappedProductionProfile,
+  getAiGraphicsToolCallReadiness,
+} from '../tool-registry/ai-graphics-tool-call-readiness'
 import type { ServiceContext } from '../types'
 import { createMockId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
 
@@ -211,15 +215,93 @@ function validateEnqueueInput(input: EnqueueAiGraphicsToolRuntimeJobsInput): voi
     throw new ApiError('VALIDATION_FAILED', 'AI graphics tool-runtime enqueue requires 1 to 21 jobs.', 400)
   }
 
+  const toolIds = new Set<string>()
+  const jobIdempotencyKeys = new Set<string>()
   for (const job of input.jobs) {
-    if (!job.toolId || !job.productionToolId || !job.workerType || !job.runtimeTarget || !job.idempotencyKey) {
-      throw new ApiError('VALIDATION_FAILED', 'Each AI graphics tool-runtime job requires tool, worker, runtime, and idempotency metadata.', 400)
+    if (!job.toolId || !job.productionToolId || !job.workerType || !job.runtimeTarget || !job.idempotencyKey || !job.privateArtifactManifestRef) {
+      throw new ApiError('VALIDATION_FAILED', 'Each AI graphics tool-runtime job requires tool, worker, runtime, private artifact, and idempotency metadata.', 400)
     }
+    if (!Array.isArray(job.capabilityIds)) {
+      throw new ApiError('VALIDATION_FAILED', 'Each AI graphics tool-runtime job requires capabilityIds.', 400)
+    }
+    if (toolIds.has(job.toolId)) {
+      throw new ApiError('VALIDATION_FAILED', `Duplicate AI graphics tool-runtime job is not allowed: ${job.toolId}.`, 400)
+    }
+    toolIds.add(job.toolId)
+    if (jobIdempotencyKeys.has(job.idempotencyKey)) {
+      throw new ApiError('VALIDATION_FAILED', `Duplicate AI graphics tool-runtime job idempotency key is not allowed: ${job.idempotencyKey}.`, 400)
+    }
+    jobIdempotencyKeys.add(job.idempotencyKey)
     if (!job.privateArtifactManifestRef.startsWith('private://')) {
       throw new ApiError('VALIDATION_FAILED', 'AI graphics tool-runtime jobs require private artifact manifest references.', 400)
     }
     if (/signed.?url|public:\/\/|https?:\/\/|gcs:\/\//i.test(job.privateArtifactManifestRef)) {
       throw new ApiError('VALIDATION_FAILED', 'Signed URLs, public URLs, and raw GCS URLs are not valid artifact truth for AI graphics tool-runtime jobs.', 400)
+    }
+    validateCanonicalAiGraphicsRuntimeJob(job)
+  }
+}
+
+function validateCanonicalAiGraphicsRuntimeJob(job: AiGraphicsToolRuntimeQueueJobInput): void {
+  const readiness = getAiGraphicsToolCallReadiness(job.toolId)
+  if (!readiness || !readiness.productionToolId) {
+    throw new ApiError('VALIDATION_FAILED', `AI graphics tool-runtime job is not in the canonical 21-tool registry: ${job.toolId}.`, 400)
+  }
+
+  const productionProfile = getAiGraphicsMappedProductionProfile(readiness.toolId)
+  if (!productionProfile) {
+    throw new ApiError('VALIDATION_FAILED', `AI graphics production profile is missing for canonical tool: ${job.toolId}.`, 400)
+  }
+
+  if (job.productionToolId !== readiness.productionToolId) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `AI graphics productionToolId mismatch for ${job.toolId}: expected ${readiness.productionToolId}.`,
+      400,
+    )
+  }
+
+  if (productionProfile.toolId !== job.productionToolId) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `AI graphics production profile mismatch for ${job.toolId}: expected profile ${job.productionToolId}.`,
+      400,
+    )
+  }
+
+  if (job.workerType !== readiness.productionWorkerType || job.workerType !== productionProfile.workerType) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `AI graphics workerType mismatch for ${job.toolId}: expected ${productionProfile.workerType}.`,
+      400,
+    )
+  }
+
+  if (job.runtimeTarget !== readiness.runtimeTarget) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `AI graphics runtimeTarget mismatch for ${job.toolId}: expected ${readiness.runtimeTarget}.`,
+      400,
+    )
+  }
+
+  const allowedCapabilities = new Set<string>(
+    readiness.capabilities.filter((capability) => (
+      capability !== 'planning_metadata_only' &&
+      capability !== 'blocked_or_deferred'
+    )),
+  )
+  const submittedCapabilities = new Set(job.capabilityIds)
+  if (submittedCapabilities.size === 0) {
+    throw new ApiError('VALIDATION_FAILED', `AI graphics capabilityIds are required for ${job.toolId}.`, 400)
+  }
+  for (const capability of submittedCapabilities) {
+    if (!allowedCapabilities.has(capability)) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        `AI graphics capabilityId ${capability} is not valid for ${job.toolId}.`,
+        400,
+      )
     }
   }
 }

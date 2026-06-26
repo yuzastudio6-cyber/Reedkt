@@ -1,3 +1,4 @@
+import { ApiError } from '../errors/api-error'
 import { loadRuntimeEnv } from '../config/env'
 import { createAiGraphicsToolRuntimeQueueService, type AiGraphicsToolRuntimeQueueJobInput } from '../services/ai-graphics-tool-runtime-queue-service'
 import type { ServiceContext } from '../types'
@@ -51,6 +52,10 @@ export interface AiGraphicsInternalBetaServiceRoleRpcSmokeReadiness {
   mockAdapterClaimValidated: boolean
   mockAdapterWorkerEventValidated: boolean
   mockAdapterAuditEventValidated: boolean
+  mockAdapterCanonicalRegistryValidation: boolean
+  mockAdapterRejectedNonCanonicalTool: boolean
+  mockAdapterRejectedProductionToolMismatch: boolean
+  mockAdapterRejectedCapabilityMismatch: boolean
   liveServiceRoleRpcSmokeExecutedNow: 0
   liveMigrationAppliesNow: 0
   liveJobRowsInsertedNow: 0
@@ -73,6 +78,10 @@ export interface AiGraphicsInternalBetaServiceRoleRpcSmokeReadiness {
     all21RpcSmokeCasesPrepared: true
     all21RpcSmokeCasesReadyWithProvidedEvidence: boolean
     backendServiceAdapterMockValidated: boolean
+    mockAdapterCanonicalRegistryValidation: boolean
+    mockAdapterRejectedNonCanonicalTool: boolean
+    mockAdapterRejectedProductionToolMismatch: boolean
+    mockAdapterRejectedCapabilityMismatch: boolean
     liveSmokeCommandPrepared: true
     staticMigrationRequiredBeforeLiveSmoke: true
     nonProductionEnvironmentRequired: true
@@ -204,6 +213,37 @@ export function buildAiGraphicsServiceRoleRpcSmokeJobs(): AiGraphicsToolRuntimeQ
     }))
 }
 
+async function mockAdapterRejectsPatchedJob(
+  mockService: ReturnType<typeof createAiGraphicsToolRuntimeQueueService>,
+  validJob: AiGraphicsToolRuntimeQueueJobInput,
+  patch: Partial<AiGraphicsToolRuntimeQueueJobInput>,
+  expectedMessage: string,
+): Promise<boolean> {
+  try {
+    await mockService.enqueueToolRuntimeJobs({
+      workspaceId: 'workspace_ai_graphics_rpc_smoke_invalid_fixture',
+      projectId: 'project_ai_graphics_rpc_smoke_invalid_fixture',
+      approvedPlanSnapshotId: 'approved_snapshot_ai_graphics_rpc_smoke_invalid_fixture',
+      creditReservationId: 'credit_reservation_ai_graphics_rpc_smoke_invalid_fixture',
+      jobs: [{
+        ...validJob,
+        ...patch,
+        idempotencyKey:
+          patch.idempotencyKey ?? `ai_graphics_service_role_rpc_smoke:invalid:${expectedMessage}`,
+      }],
+      idempotencyKey: `ai_graphics_service_role_rpc_smoke:invalid_batch:${expectedMessage}`,
+      batchName: 'AI graphics service-role RPC smoke invalid fixture',
+      createdByAgent: 'ai_graphics_service_role_rpc_smoke_readiness',
+    })
+  } catch (error) {
+    return error instanceof ApiError &&
+      error.code === 'VALIDATION_FAILED' &&
+      error.message.includes(expectedMessage)
+  }
+
+  return false
+}
+
 export async function buildAiGraphicsInternalBetaServiceRoleRpcSmokeReadiness():
 Promise<AiGraphicsInternalBetaServiceRoleRpcSmokeReadiness> {
   const mockContext = createMockServiceContext()
@@ -249,11 +289,42 @@ Promise<AiGraphicsInternalBetaServiceRoleRpcSmokeReadiness> {
   const mockAdapterClaimValidated = claim.claimResult.mockOnly === true
   const mockAdapterWorkerEventValidated = workerEvent.eventResult.mockOnly === true
   const mockAdapterAuditEventValidated = auditEvent.auditResult.mockOnly === true
+  const mockAdapterRejectedNonCanonicalTool = await mockAdapterRejectsPatchedJob(
+    mockService,
+    firstJob,
+    {
+      toolId: 'remotion',
+      productionToolId: 'remotion',
+      workerType: 'render_worker',
+      runtimeTarget: 'node_cpu_static',
+      capabilityIds: ['chart_overlay'],
+      privateArtifactManifestRef:
+        'private://ai-graphics/internal-beta/service-role-rpc-smoke/remotion/manifest.json',
+    },
+    'not in the canonical 21-tool registry',
+  )
+  const mockAdapterRejectedProductionToolMismatch = await mockAdapterRejectsPatchedJob(
+    mockService,
+    firstJob,
+    { productionToolId: 'remotion' },
+    'productionToolId mismatch',
+  )
+  const mockAdapterRejectedCapabilityMismatch = await mockAdapterRejectsPatchedJob(
+    mockService,
+    firstJob,
+    { capabilityIds: ['chart_overlay'] },
+    'capabilityId chart_overlay is not valid',
+  )
+  const mockAdapterCanonicalRegistryValidation =
+    mockAdapterRejectedNonCanonicalTool &&
+    mockAdapterRejectedProductionToolMismatch &&
+    mockAdapterRejectedCapabilityMismatch
   const backendServiceAdapterMockValidated =
     mockAdapterEnqueueValidated &&
     mockAdapterClaimValidated &&
     mockAdapterWorkerEventValidated &&
-    mockAdapterAuditEventValidated
+    mockAdapterAuditEventValidated &&
+    mockAdapterCanonicalRegistryValidation
   const readinessRecords = listAiGraphicsToolCallReadiness()
   const rpcSmokeCases = jobs.map((job): AiGraphicsInternalBetaServiceRoleRpcSmokeCase => {
     const readiness = readinessRecords.find((record) => record.toolId === job.toolId)
@@ -312,6 +383,10 @@ Promise<AiGraphicsInternalBetaServiceRoleRpcSmokeReadiness> {
     mockAdapterClaimValidated,
     mockAdapterWorkerEventValidated,
     mockAdapterAuditEventValidated,
+    mockAdapterCanonicalRegistryValidation,
+    mockAdapterRejectedNonCanonicalTool,
+    mockAdapterRejectedProductionToolMismatch,
+    mockAdapterRejectedCapabilityMismatch,
     liveServiceRoleRpcSmokeExecutedNow: 0,
     liveMigrationAppliesNow: 0,
     liveJobRowsInsertedNow: 0,
@@ -335,6 +410,10 @@ Promise<AiGraphicsInternalBetaServiceRoleRpcSmokeReadiness> {
       all21RpcSmokeCasesReadyWithProvidedEvidence:
         rpcSmokeCasesReadyWithProvidedEvidence === 21,
       backendServiceAdapterMockValidated,
+      mockAdapterCanonicalRegistryValidation,
+      mockAdapterRejectedNonCanonicalTool,
+      mockAdapterRejectedProductionToolMismatch,
+      mockAdapterRejectedCapabilityMismatch,
       liveSmokeCommandPrepared: true,
       staticMigrationRequiredBeforeLiveSmoke: true,
       nonProductionEnvironmentRequired: true,

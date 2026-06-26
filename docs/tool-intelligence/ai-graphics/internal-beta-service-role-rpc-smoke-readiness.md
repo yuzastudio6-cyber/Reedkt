@@ -74,6 +74,12 @@ The dry readiness command validates the backend adapter in mock mode only. The
 future live smoke command is prepared but must be run only after the static
 migration is applied to a disposable local or staging Supabase database.
 
+The mock adapter also rejects malformed runtime-queue jobs before any RPC call:
+
+- non-canonical tools outside the 21 AI graphics records
+- mismatched `productionToolId` aliases
+- capability IDs that do not belong to the canonical tool record
+
 ## Prepared Commands
 
 Dry readiness:
@@ -168,6 +174,10 @@ Blocked now:
 - `all21RpcSmokeCasesPrepared`: true
 - `all21RpcSmokeCasesReadyWithProvidedEvidence`: true
 - `backendServiceAdapterMockValidated`: true
+- `mockAdapterCanonicalRegistryValidation`: true
+- `mockAdapterRejectedNonCanonicalTool`: true
+- `mockAdapterRejectedProductionToolMismatch`: true
+- `mockAdapterRejectedCapabilityMismatch`: true
 - `liveSmokeCommandPrepared`: true
 - `staticMigrationRequiredBeforeLiveSmoke`: true
 - `nonProductionEnvironmentRequired`: true

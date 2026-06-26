@@ -129,7 +129,9 @@ path. It prepares 21 smoke cases, covers all 12 product-facing capabilities,
 validates the backend RPC adapter in mock mode, and documents the future
 local/staging-only command requiring an already-applied static migration,
 service-role credentials, approved snapshot and credit reservation fixtures, and
-private artifact manifests. The smoke is not run in this lane; live Supabase
+private artifact manifests. The mock adapter now also rejects non-canonical
+tools, mismatched production-tool aliases, and invalid capability IDs before any
+RPC call can be attempted. The smoke is not run in this lane; live Supabase
 writes, worker claims, worker dispatch, tool execution, browser/canvas/WebGL
 runtime, GPU/model runtime, media processing, signed URLs, public artifacts,
 internal beta runtime, external beta, and production remain blocked.

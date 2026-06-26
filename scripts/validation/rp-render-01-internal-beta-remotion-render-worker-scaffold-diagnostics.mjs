@@ -58,6 +58,23 @@ for (const file of [
   allowedChangedFiles.add(file)
 }
 
+for (const file of [
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/runtime-contract.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/remotion-private-preview-export-local-runtime-record.json',
+  'docs/activation-phase-rp-internal-beta-remotion-private-preview-export-local-runtime-1-results.md',
+  'server/services/internal-beta-remotion-private-preview-export-local-runtime.ts',
+  'server/smoke/internal-beta-remotion-private-preview-export-local-runtime-smoke.ts',
+  'scripts/validation/rp-internal-beta-private-artifact-manifest-local-runtime-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-remotion-private-preview-export-local-runtime-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'completed_disabled_internal_beta_remotion_render_worker_scaffold_no_render_execution',

@@ -109,6 +109,24 @@ for (const file of privateArtifactManifestLocalRuntimeFiles) {
   allowedChangedFiles.add(file)
 }
 
+const remotionPrivatePreviewExportLocalRuntimeFiles = [
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/runtime-contract.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-remotion-private-preview-export-local-runtime-1/remotion-private-preview-export-local-runtime-record.json',
+  'docs/activation-phase-rp-internal-beta-remotion-private-preview-export-local-runtime-1-results.md',
+  'server/services/internal-beta-remotion-private-preview-export-local-runtime.ts',
+  'server/smoke/internal-beta-remotion-private-preview-export-local-runtime-smoke.ts',
+  'scripts/validation/rp-render-01-internal-beta-remotion-render-worker-scaffold-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-remotion-private-preview-export-local-runtime-1-diagnostics.mjs',
+]
+
+for (const file of remotionPrivatePreviewExportLocalRuntimeFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates',

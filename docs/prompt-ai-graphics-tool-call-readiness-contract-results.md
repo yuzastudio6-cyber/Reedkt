@@ -155,6 +155,14 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
   - `ai-graphics:internal-beta-production-worker-job-readiness`
   - `ai-graphics:internal-beta-production-worker-job-readiness:diagnostics`
 - Production worker job readiness result: owner-approved evidence can prepare 21 of 21 canonical `ProductionWorkerJobPayload` candidates and 12 of 12 capability job scenarios with requested production tool IDs, tool execution plan IDs, private storage references, dry-run execution mode, quality gate requirements, runtime-target metadata, and fail-closed enqueue/route/execute gates. This does not enqueue jobs, call `routeProductionWorkerJob`, execute tools, run browser/canvas/WebGL, run GPU/model runtime, load model weights, process media, or unlock beta/production.
+- Added server-only internal beta production worker gate readiness bridge:
+  - `server/tool-registry/ai-graphics-internal-beta-production-worker-gate-readiness.ts`
+  - `server/cli/ai-graphics-internal-beta-production-worker-gate-readiness.ts`
+  - `docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.md`
+  - `docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.json`
+  - `ai-graphics:internal-beta-production-worker-gate-readiness`
+  - `ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics`
+- Production worker gate readiness result: owner-approved evidence can validate 21 of 21 production worker job payload candidates and 12 of 12 capability scenarios through the shared production worker gates with 0 hard failed gate checks. This does not enqueue jobs, dispatch workers, call `routeProductionWorkerJob`, execute tools, run browser/canvas/WebGL, run GPU/model runtime, load model weights, process media, or unlock beta/production.
 
 ## Runtime State
 
@@ -181,6 +189,9 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
 - `internalBetaProductionWorkerJobReadinessPrepared=true`
 - `productionWorkerJobPayloadsReadyWithProvidedEvidence=21`
 - `productionWorkerJobPayloadsReadyNow=0`
+- `internalBetaProductionWorkerGateReadinessPrepared=true`
+- `productionWorkerGateChecksAcceptedWithProvidedEvidence=21`
+- `productionWorkerGateChecksReadyNow=0`
 - `nativeGpuRuntimeProofResultsAcceptedForOwnerReview=false`
 - `nativeGpuRuntimeProofStillRequired=true`
 - `approvedPlanSnapshotRequired=true`

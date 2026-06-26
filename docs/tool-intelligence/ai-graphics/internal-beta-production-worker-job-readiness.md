@@ -55,6 +55,8 @@ Each prepared job uses the canonical production worker payload fields:
 
 The payloads use `executionMode: "dry_run"` only as a payload contract mode. The lane does not enqueue the job and does not call `routeProductionWorkerJob`.
 
+Each payload also uses the shared production worker idempotency format from `buildWorkerIdempotencyKey`, so the next gate-readiness lane can validate the payloads with `runProductionWorkerGates` instead of accepting an AI-graphics-only idempotency string.
+
 ## Capability Scenarios
 
 - `chart_overlay`

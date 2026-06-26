@@ -277,6 +277,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:internal-beta-worker-payload-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-worker-payload-readiness-diagnostics.mjs",',
   '+    "ai-graphics:internal-beta-production-worker-job-readiness": "tsx server/cli/ai-graphics-internal-beta-production-worker-job-readiness.ts",',
   '+    "ai-graphics:internal-beta-production-worker-job-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-production-worker-job-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-production-worker-gate-readiness": "tsx server/cli/ai-graphics-internal-beta-production-worker-gate-readiness.ts",',
+  '+    "ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-production-worker-gate-readiness-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

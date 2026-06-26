@@ -9,6 +9,7 @@ import type {
   ProductionWorkerJobPayload,
   ProductionWorkerRuntimeType,
 } from '../workers/production/production-worker-types'
+import { buildWorkerIdempotencyKey } from '../workers/production/production-worker-idempotency'
 import type { ProductionRegistryWorkerType } from './production-tool-types'
 
 export const AI_GRAPHICS_INTERNAL_BETA_PRODUCTION_WORKER_JOB_READINESS_DECISION =
@@ -193,7 +194,7 @@ function recipeIdForPayload(payload: AiGraphicsInternalBetaWorkerPayload): strin
 function buildProductionWorkerJobPayload(
   payload: AiGraphicsInternalBetaWorkerPayload,
 ): ProductionWorkerJobPayload {
-  return {
+  const productionWorkerJobPayload: ProductionWorkerJobPayload = {
     jobId: payload.jobId.replace('-metadata-payload', '-production-worker-job-payload'),
     workspaceId: payload.workspaceId,
     projectId: payload.projectId,
@@ -202,7 +203,7 @@ function buildProductionWorkerJobPayload(
     toolExecutionPlanId: payload.toolStrategyId,
     workerType: asProductionWorkerRuntimeType(payload.workerType),
     executionMode: 'dry_run',
-    idempotencyKey: `${payload.idempotencyKey}_production_worker_job_v1`,
+    idempotencyKey: '',
     attempt: payload.attempt,
     maxAttempts: payload.maxAttempts,
     requestedToolIds: [payload.productionToolId],
@@ -222,6 +223,11 @@ function buildProductionWorkerJobPayload(
       canExecuteToolNow: false,
       blockedRuntimeActions,
     },
+  }
+
+  return {
+    ...productionWorkerJobPayload,
+    idempotencyKey: buildWorkerIdempotencyKey(productionWorkerJobPayload),
   }
 }
 

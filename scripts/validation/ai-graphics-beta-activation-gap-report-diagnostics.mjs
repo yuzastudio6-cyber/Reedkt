@@ -42,6 +42,17 @@ const gpuTools = [
   'transparent_background',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const modelWeightTools = [
   'sam2',
   'birefnet',
@@ -154,6 +165,10 @@ if (report.properInstallForPlannedSurface !== 21) fail('report_proper_install_no
 if (report.productionMappedTools !== 21) fail('report_production_mapped_not_21')
 if (report.duplicateProductionMappings !== 0) fail('report_duplicate_mappings_not_zero')
 if (report.gpuRuntimeTargetedTools?.length !== 8) fail('report_gpu_tool_count_not_8')
+if (report.gpuRuntimeTargetsExact !== true) fail('report_gpu_runtime_targets_not_exact')
+if (report.gpuRuntimeOnDemandOnly !== true) fail('report_gpu_runtime_not_on_demand')
+if (docPacket.gpuRuntimeTargetsExact !== true) fail('doc_gpu_runtime_targets_not_exact')
+if (docPacket.gpuRuntimeOnDemandOnly !== true) fail('doc_gpu_runtime_not_on_demand')
 if (report.heavyToolsIncorrectlyTargetingCpu !== 0) fail('report_heavy_cpu_count_not_zero')
 if (report.betaActivationReadyTools !== 0) fail('report_beta_activation_ready_not_zero')
 if (report.blockedTools !== 21) fail('report_blocked_tools_not_21')
@@ -239,6 +254,24 @@ for (const tool of gpuTools) {
     fail(`gpu_tool_missing_native_proof_gate:${tool}`)
   }
 }
+for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  if (docPacket.expectedGpuRuntimeTargets?.[tool] !== runtimeTarget) {
+    fail(`doc_expected_gpu_runtime_target_mismatch:${tool}:${docPacket.expectedGpuRuntimeTargets?.[tool]}`)
+  }
+  if (report.expectedGpuRuntimeTargets?.[tool] !== runtimeTarget) {
+    fail(`report_expected_gpu_runtime_target_mismatch:${tool}:${report.expectedGpuRuntimeTargets?.[tool]}`)
+  }
+  const row = (report.tools || []).find((entry) => entry.toolId === tool)
+  if (row?.workerType !== 'gpu_ai_worker') fail(`gpu_tool_not_gpu_worker:${tool}`)
+  if (row?.runtimeTarget !== runtimeTarget) {
+    fail(`gpu_tool_runtime_target_mismatch:${tool}:${row?.runtimeTarget}`)
+  }
+  if (!moduleSource.includes(runtimeTarget)) fail(`module_missing_gpu_runtime_target:${tool}`)
+  if (!markdown.includes(runtimeTarget)) fail(`markdown_missing_gpu_runtime_target:${tool}`)
+}
+if (!markdown.includes('GPU runtime remains on-demand only')) {
+  fail('markdown_missing_gpu_on_demand_policy')
+}
 
 for (const tool of modelWeightTools) {
   const row = (report.tools || []).find((entry) => entry.toolId === tool)
@@ -258,6 +291,8 @@ for (const token of [
   'buildAiGraphicsBetaActivationGapReport',
   'duplicateProductionMappings',
   'heavyToolsIncorrectlyTargetingCpu',
+  'gpuRuntimeTargetsExact',
+  'gpuRuntimeOnDemandOnly',
   'native_gpu_runtime_proof_result_accepted',
   'reviewed_private_model_weight_manifest',
   'browser_canvas_webgl_runtime_sandbox_proof',
@@ -298,6 +333,8 @@ for (const key of [
   'all21ToolsMappedToProductionRegistry',
   'noDuplicateProductionMappings',
   'gpuHeavyToolsTargetGpuRuntime',
+  'gpuRuntimeTargetsExact',
+  'gpuRuntimeOnDemandOnly',
   'agentCanSelectForPlanning',
 ]) {
   if (docPacket.booleans?.[key] !== true) fail(`doc_required_true_boolean_not_true:${key}`)
@@ -399,6 +436,8 @@ console.log(JSON.stringify({
   productionMappedTools: report.productionMappedTools,
   duplicateProductionMappings: report.duplicateProductionMappings,
   gpuRuntimeTargetedTools: report.gpuRuntimeTargetedTools.length,
+  gpuRuntimeTargetsExact: report.gpuRuntimeTargetsExact,
+  gpuRuntimeOnDemandOnly: report.gpuRuntimeOnDemandOnly,
   heavyToolsIncorrectlyTargetingCpu: report.heavyToolsIncorrectlyTargetingCpu,
   betaActivationReadyTools: report.betaActivationReadyTools,
   blockedTools: report.blockedTools,

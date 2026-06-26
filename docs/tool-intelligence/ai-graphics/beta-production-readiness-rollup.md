@@ -14,6 +14,8 @@ gate packets into a beta/external/production go/no-go answer.
 - Production registry mappings: 21
 - Duplicate production mappings: 0
 - GPU-heavy tools targeting GPU runtime: 8
+- GPU runtime targets exact: true
+- GPU runtime on-demand only: true
 - Heavy tools incorrectly targeting CPU: 0
 - Production worker gate checks accepted with provided evidence: 21
 - Capability production worker gate scenarios accepted with provided evidence: 12
@@ -60,6 +62,25 @@ gate packets into a beta/external/production go/no-go answer.
 - `upscaling`
 - `tensor_image_ops`
 - `model_runtime_foundation`
+
+## GPU Runtime Target Policy
+
+The rollup preserves the exact native NVIDIA L4 runtime target map from the
+tool-call, worker payload, queue admission, queue adapter, queue dispatcher, and
+production worker gate layers:
+
+- `torch_torchvision`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transformers`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `sam2`: `native_linux_amd64_nvidia_l4_sam2_runtime`
+- `birefnet`: `native_linux_amd64_nvidia_l4_birefnet_runtime`
+- `real_esrgan`: `native_linux_amd64_nvidia_l4_real_esrgan_runtime`
+- `kornia`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `rembg`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transparent_background`: `native_linux_amd64_nvidia_l4_gpu_worker`
+
+GPU runtime remains on-demand only. The rollup does not approve idle GPU workers,
+live queue dispatch, or live GPU runtime before an approved worker job calls a
+GPU tool.
 
 ## Final Go/No-Go Gates
 
@@ -112,6 +133,8 @@ gate packets into a beta/external/production go/no-go answer.
 - `routeExecutionApprovedNow=false`
 - `workerExecutionApprovedNow=false`
 - `toolExecutionApprovedNow=false`
+- `gpuRuntimeTargetsExact=true`
+- `gpuRuntimeOnDemandOnly=true`
 - `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
 - `externalBetaReadyNow=false`

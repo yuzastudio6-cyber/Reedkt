@@ -58,6 +58,9 @@ export interface AiGraphicsBetaActivationGapReport {
   productionMappedTools: 21
   duplicateProductionMappings: 0
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
+  gpuRuntimeTargetsExact: true
+  gpuRuntimeOnDemandOnly: true
+  expectedGpuRuntimeTargets: Record<string, string>
   heavyToolsIncorrectlyTargetingCpu: 0
   betaActivationReadyTools: 0
   blockedTools: 21
@@ -81,6 +84,8 @@ export interface AiGraphicsBetaActivationGapReport {
     all21ToolsMappedToProductionRegistry: true
     noDuplicateProductionMappings: true
     gpuHeavyToolsTargetGpuRuntime: true
+    gpuRuntimeTargetsExact: true
+    gpuRuntimeOnDemandOnly: true
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
     routeExecutionApprovedNow: false
@@ -133,8 +138,31 @@ const activationSequence = [
   'Pass approved plan snapshot, credit reservation, artifact boundary, Tool Route, Worker, and beta owner approval gates before any beta tool execution.',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+} as const
+
 function unique(values: readonly string[]): string[] {
   return Array.from(new Set(values.filter(Boolean)))
+}
+
+function gpuRuntimeTargetsExact(
+  tools: AiGraphicsBetaActivationToolGap[],
+): boolean {
+  return Object.entries(expectedGpuRuntimeTargets).every(([toolId, runtimeTarget]) => (
+    tools.some((tool) => (
+      tool.toolId === toolId &&
+      tool.workerType === 'gpu_ai_worker' &&
+      tool.runtimeTarget === runtimeTarget
+    ))
+  ))
 }
 
 function categoryList(input: {
@@ -321,6 +349,9 @@ export function buildAiGraphicsBetaActivationGapReport(
   if (tools.some((tool) => !tool.heavyToolTargetsGpu)) {
     throw new Error('One or more GPU-heavy AI graphics tools is not targeted to GPU runtime.')
   }
+  if (!gpuRuntimeTargetsExact(tools)) {
+    throw new Error('One or more GPU-heavy AI graphics tools is not using the exact expected GPU runtime target.')
+  }
   if (duplicateProductionIds.length) {
     throw new Error(`Duplicate AI graphics production mappings found: ${duplicateProductionIds.join(', ')}`)
   }
@@ -333,6 +364,9 @@ export function buildAiGraphicsBetaActivationGapReport(
     productionMappedTools: tools.length as 21,
     duplicateProductionMappings: 0,
     gpuRuntimeTargetedTools: betaGate.gpuRuntimeTargetedTools,
+    gpuRuntimeTargetsExact: true,
+    gpuRuntimeOnDemandOnly: true,
+    expectedGpuRuntimeTargets: { ...expectedGpuRuntimeTargets },
     heavyToolsIncorrectlyTargetingCpu: 0,
     betaActivationReadyTools: 0,
     blockedTools: tools.length as 21,
@@ -356,6 +390,8 @@ export function buildAiGraphicsBetaActivationGapReport(
       all21ToolsMappedToProductionRegistry: true,
       noDuplicateProductionMappings: true,
       gpuHeavyToolsTargetGpuRuntime: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
       routeExecutionApprovedNow: false,

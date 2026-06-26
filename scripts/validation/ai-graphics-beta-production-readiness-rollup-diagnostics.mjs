@@ -51,6 +51,17 @@ const capabilities = [
   'model_runtime_foundation',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const requiredFinalGoNoGoGates = [
   'accepted all-21 install and production mapping audit',
   'accepted cross-owner duplicate and reserved-tool coordination',
@@ -261,6 +272,18 @@ for (const [key, expected] of Object.entries({
 })) {
   if (docs.counts?.[key] !== expected) fail(`docs_count_mismatch:${key}:${docs.counts?.[key]}`)
 }
+if (docs.gpuRuntimeTargetsExact !== true) fail('docs_gpu_runtime_targets_not_exact')
+if (docs.gpuRuntimeOnDemandOnly !== true) fail('docs_gpu_runtime_not_on_demand')
+for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  if (docs.expectedGpuRuntimeTargets?.[tool] !== runtimeTarget) {
+    fail(`docs_expected_gpu_runtime_target_mismatch:${tool}:${docs.expectedGpuRuntimeTargets?.[tool]}`)
+  }
+  if (!moduleSource.includes('gpuRuntimeTargetsExact')) fail('module_missing_gpu_runtime_targets_exact')
+  if (!markdown.includes(runtimeTarget)) fail(`markdown_missing_gpu_runtime_target:${tool}`)
+}
+if (!markdown.includes('GPU runtime remains on-demand only')) {
+  fail('markdown_missing_gpu_on_demand_policy')
+}
 for (const key of [
   'betaProductionReadinessRollupPrepared',
   'sourceActivationGapAccepted',
@@ -272,6 +295,8 @@ for (const key of [
   'all21ToolsMappedToProductionRegistry',
   'noDuplicateProductionMappings',
   'gpuHeavyToolsTargetGpuRuntime',
+  'gpuRuntimeTargetsExact',
+  'gpuRuntimeOnDemandOnly',
   'productionWorkerGateHardFailuresWithProvidedEvidenceAbsent',
   'internalBetaGoNoGoReadyWithProvidedEvidence',
   'agentCanSelectForPlanning',
@@ -334,6 +359,13 @@ if (approvedOutput.status !== 'owner_approved_worker_gates_ready_runtime_still_b
 if (approvedOutput.totalAiGraphicsTools !== 21) fail('approved_total_tools_not_21')
 if (approvedOutput.totalProductFacingCapabilities !== 12) fail('approved_capabilities_not_12')
 if (approvedOutput.gpuRuntimeTargetedTools !== 8) fail('approved_gpu_targeted_not_8')
+if (approvedOutput.gpuRuntimeTargetsExact !== true) fail('approved_gpu_runtime_targets_not_exact')
+if (approvedOutput.gpuRuntimeOnDemandOnly !== true) fail('approved_gpu_runtime_not_on_demand')
+for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  if (approvedOutput.expectedGpuRuntimeTargets?.[tool] !== runtimeTarget) {
+    fail(`approved_expected_gpu_runtime_target_mismatch:${tool}:${approvedOutput.expectedGpuRuntimeTargets?.[tool]}`)
+  }
+}
 if (approvedOutput.heavyToolsIncorrectlyTargetingCpu !== 0) fail('approved_heavy_cpu_mismatch')
 if (approvedOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence !== 21) {
   fail('approved_gate_checks_not_21')
@@ -478,6 +510,8 @@ console.log(JSON.stringify({
   toolsCovered: allTools.length,
   capabilitiesCovered: capabilities.length,
   gpuRuntimeTargetedTools: approvedOutput.gpuRuntimeTargetedTools,
+  gpuRuntimeTargetsExact: approvedOutput.gpuRuntimeTargetsExact,
+  gpuRuntimeOnDemandOnly: approvedOutput.gpuRuntimeOnDemandOnly,
   productionWorkerGateChecksAcceptedWithProvidedEvidence:
     approvedOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence,
   hardFailedProductionWorkerGateChecksWithProvidedEvidence:

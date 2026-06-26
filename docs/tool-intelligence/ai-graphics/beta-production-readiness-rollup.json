@@ -59,6 +59,18 @@
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
+  "gpuRuntimeTargetsExact": true,
+  "gpuRuntimeOnDemandOnly": true,
+  "expectedGpuRuntimeTargets": {
+    "torch_torchvision": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transformers": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "sam2": "native_linux_amd64_nvidia_l4_sam2_runtime",
+    "birefnet": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+    "real_esrgan": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+    "kornia": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "rembg": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
+  },
   "requiredFinalGoNoGoGates": [
     "accepted all-21 install and production mapping audit",
     "accepted cross-owner duplicate and reserved-tool coordination",
@@ -111,6 +123,8 @@
     "all21ToolsMappedToProductionRegistry": true,
     "noDuplicateProductionMappings": true,
     "gpuHeavyToolsTargetGpuRuntime": true,
+    "gpuRuntimeTargetsExact": true,
+    "gpuRuntimeOnDemandOnly": true,
     "productionWorkerGateHardFailuresWithProvidedEvidenceAbsent": true,
     "internalBetaGoNoGoReadyWithProvidedEvidence": true,
     "externalBetaGoNoGoReadyWithProvidedEvidence": false,

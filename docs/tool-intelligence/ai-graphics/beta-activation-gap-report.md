@@ -14,6 +14,8 @@ still block runtime execution.
 - Production registry mappings: 21
 - Duplicate production mappings: 0
 - GPU-heavy tools targeting GPU runtime: 8
+- GPU runtime targets exact: true
+- GPU runtime on-demand only: true
 - Heavy tools incorrectly targeting CPU: 0
 - Beta activation ready now: 0
 - Blocked tools: 21
@@ -34,6 +36,20 @@ fall back to CPU runtime:
 - `kornia`
 - `rembg`
 - `transparent_background`
+
+Exact target map:
+
+- `torch_torchvision`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transformers`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `sam2`: `native_linux_amd64_nvidia_l4_sam2_runtime`
+- `birefnet`: `native_linux_amd64_nvidia_l4_birefnet_runtime`
+- `real_esrgan`: `native_linux_amd64_nvidia_l4_real_esrgan_runtime`
+- `kornia`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `rembg`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `transparent_background`: `native_linux_amd64_nvidia_l4_gpu_worker`
+
+GPU runtime remains on-demand only. Beta activation does not approve idle GPU
+workers or live GPU runtime before an approved worker job calls a GPU tool.
 
 ## Shared Missing Gates
 
@@ -71,6 +87,8 @@ fall back to CPU runtime:
 - `workerExecutionApprovedNow=false`
 - `toolExecutionApprovedNow=false`
 - `gpuRuntimeApprovedNow=false`
+- `gpuRuntimeTargetsExact=true`
+- `gpuRuntimeOnDemandOnly=true`
 - `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
 - `productionReadyNow=false`

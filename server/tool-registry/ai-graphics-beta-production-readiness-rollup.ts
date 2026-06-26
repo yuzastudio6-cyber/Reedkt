@@ -38,6 +38,9 @@ export interface AiGraphicsBetaProductionReadinessRollup {
   productionMappedTools: 21
   duplicateProductionMappings: 0
   gpuRuntimeTargetedTools: number
+  gpuRuntimeTargetsExact: boolean
+  gpuRuntimeOnDemandOnly: true
+  expectedGpuRuntimeTargets: Record<string, string>
   heavyToolsIncorrectlyTargetingCpu: 0
   productionWorkerGateChecksAcceptedWithProvidedEvidence: number
   capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence: number
@@ -62,6 +65,8 @@ export interface AiGraphicsBetaProductionReadinessRollup {
     all21ToolsMappedToProductionRegistry: boolean
     noDuplicateProductionMappings: boolean
     gpuHeavyToolsTargetGpuRuntime: boolean
+    gpuRuntimeTargetsExact: boolean
+    gpuRuntimeOnDemandOnly: true
     productionWorkerGateHardFailuresWithProvidedEvidenceAbsent: boolean
     internalBetaGoNoGoReadyWithProvidedEvidence: boolean
     externalBetaGoNoGoReadyWithProvidedEvidence: false
@@ -192,6 +197,9 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
     productionMappedTools: 21,
     duplicateProductionMappings: 0,
     gpuRuntimeTargetedTools: activationGapReport.gpuRuntimeTargetedTools.length,
+    gpuRuntimeTargetsExact: activationGapReport.booleans.gpuRuntimeTargetsExact,
+    gpuRuntimeOnDemandOnly: true,
+    expectedGpuRuntimeTargets: activationGapReport.expectedGpuRuntimeTargets,
     heavyToolsIncorrectlyTargetingCpu: 0,
     productionWorkerGateChecksAcceptedWithProvidedEvidence:
       productionWorkerGateReadiness.productionWorkerGateChecksAcceptedWithProvidedEvidence,
@@ -225,6 +233,8 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
       gpuHeavyToolsTargetGpuRuntime:
         activationGapReport.gpuRuntimeTargetedTools.length === 8 &&
         activationGapReport.heavyToolsIncorrectlyTargetingCpu === 0,
+      gpuRuntimeTargetsExact: activationGapReport.booleans.gpuRuntimeTargetsExact,
+      gpuRuntimeOnDemandOnly: true,
       productionWorkerGateHardFailuresWithProvidedEvidenceAbsent:
         productionWorkerGateReadiness.hardFailedGateChecksWithProvidedEvidence === 0,
       internalBetaGoNoGoReadyWithProvidedEvidence:

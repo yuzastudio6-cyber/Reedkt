@@ -219,6 +219,20 @@ Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tool
 
 Next safe milestone: `RP-INTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-LOCAL-RUNTIME-1`.
 
+## Internal Beta QA Cleanup Observability Local Runtime
+
+`RP-INTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-LOCAL-RUNTIME-1` records decision `completed_local_qa_cleanup_observability_runtime_no_remote_execution` and execution `completed_backend_local_qa_cleanup_observability_validation_no_remote_sink_or_cleanup_execution`.
+
+The beta lane now has backend-local deterministic QA gate, cleanup policy, observability event, and rollback gate metadata. It validates approved snapshot, credit reservation, job, artifact manifest, render request, idempotency, QA checks, cleanup policy records, observability events, rollback metadata, and unsafe input rejection.
+
+This is not QA media inspection, cleanup execution, rollback execution, remote observability sink write, Supabase write, SQL, service-role route execution, job enqueue, worker dispatch, provider/model call, Remotion execution, FFmpeg/FFprobe execution, media processing, signed/public artifact creation, or internal beta unlock.
+
+Local QA gate recorded: `true`. Local cleanup policies recorded: `true`. Local observability events recorded: `true`. Local rollback gate recorded: `true`. QA execution: `false`. Cleanup execution: `false`. Rollback execution: `false`. Remote observability sink write: `false`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe milestone: `RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1R`.
+
 ## SUPABASE-WORKER-RUNTIME RPC 4R Credential Context Hardening
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CREDENTIAL-CONTEXT-HARDENING-1` records decision `completed_rpc_4r_credential_context_hardening_fail_closed` and execution `completed_local_runner_hardening_no_sql_execution`.

@@ -217,6 +217,20 @@ This did execute Remotion under the confirmation gate. It did not use user/priva
 Internal beta end-to-end ready: `false`. Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended step: `RP-INTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-LOCAL-RUNTIME-1`.
+
+## RP-INTERNAL-BETA QA Cleanup Observability Local Runtime
+
+`RP-INTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-LOCAL-RUNTIME-1` records decision `completed_local_qa_cleanup_observability_runtime_no_remote_execution` and execution `completed_backend_local_qa_cleanup_observability_validation_no_remote_sink_or_cleanup_execution`.
+
+The beta lane now has backend-local deterministic QA gate, cleanup policy, observability event, and rollback gate metadata. It rejects raw prompt fields, signed/public URL fields, service-role fields, provider secret fields, token/secret fields, media-byte fields, rendered-byte fields, and path-like cleanup file names.
+
+This is not QA media inspection, cleanup execution, rollback execution, remote observability sink write, Supabase write, SQL, service-role route execution, job enqueue, worker dispatch, provider/model call, Remotion execution, FFmpeg/FFprobe execution, media processing, signed/public artifact creation, or internal beta unlock.
+
+Local QA cleanup observability runtime status: `local_qa_cleanup_observability_validated_no_remote_execution`. Local QA gate recorded: `true`. Local cleanup policies recorded: `true`. Local observability events recorded: `true`. Local rollback gate recorded: `true`.
+
+Internal beta end-to-end ready: `false`. Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended step: `RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1R`.
 ## RP-JOBS-01 Internal Beta Job Queue Runtime Scaffold
 
 `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_job_queue_runtime_scaffold_no_worker_execution` and execution `completed_fail_closed_job_queue_scaffold_no_route_or_worker_execution`.

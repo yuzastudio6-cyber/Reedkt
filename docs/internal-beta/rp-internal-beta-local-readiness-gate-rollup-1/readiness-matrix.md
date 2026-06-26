@@ -12,6 +12,7 @@
 | Job queue runtime | `disabled_pending_job_queue_runtime_gate` | `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD` |
 | Private artifact manifest runtime | `disabled_pending_private_artifact_manifest_runtime_gate` | `RP-ARTIFACTS-01-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-SCAFFOLD` |
 | Remotion private preview/export runtime | `disabled_pending_remotion_render_worker_runtime_gate` | `RP-RENDER-01-INTERNAL-BETA-REMOTION-RENDER-WORKER-SCAFFOLD` |
+| QA cleanup observability local runtime | `completed_local_qa_cleanup_observability_runtime_no_remote_execution` | `RP-INTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-LOCAL-RUNTIME-1` |
 | Provider adapter runtime | `disabled_pending_provider_runtime_gate` | `RP-PROVIDER-01-INTERNAL-BETA-DISABLED-PROVIDER-ADAPTER-SCAFFOLD` |
 | Negative runtime gate regression | `planned_after_runtime_enablement` | `RP-INTERNAL-BETA-E2E-NEGATIVE-GATE-TESTS-1` |
 

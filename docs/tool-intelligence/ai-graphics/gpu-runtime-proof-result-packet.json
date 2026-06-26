@@ -65,6 +65,11 @@
   "requiredRuntimeBucket": "native_linux_amd64_nvidia_l4_gpu_worker",
   "requiredProofChecks": [
     "status_passed",
+    "approved_probe_metadata_present",
+    "approved_probe_name",
+    "approved_probe_version",
+    "native_linux_runtime_platform",
+    "native_x86_64_or_amd64_runtime_machine",
     "exact_profile_id",
     "nvidia_smi_available",
     "cuda_available",
@@ -76,6 +81,19 @@
     "private_artifact_refs_not_logged",
     "runtime_side_effect_fields_false"
   ],
+  "requiredProofMetadata": {
+    "probeName": "reeditpro_ai_graphics_gpu_runtime_readiness",
+    "probeVersion": "2026-06-26.native-gpu-proof-v1",
+    "runtimePlatform": "linux",
+    "runtimeMachine": "x86_64_or_amd64",
+    "nativeGpuRuntimeProof": true,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "providerRuntimePerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
   "booleans": {
     "gpuRuntimeProofResultValidatorPrepared": true,
     "all8GpuRuntimeToolsCovered": true,

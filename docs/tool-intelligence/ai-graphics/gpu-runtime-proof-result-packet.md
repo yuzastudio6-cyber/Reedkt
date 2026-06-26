@@ -42,6 +42,12 @@ Each result must come from the approved native GPU readiness probe and must
 include:
 
 - `status: passed`
+- `proofMetadata.probeName=reeditpro_ai_graphics_gpu_runtime_readiness`
+- `proofMetadata.probeVersion=2026-06-26.native-gpu-proof-v1`
+- `proofMetadata.runtimePlatform=linux`
+- `proofMetadata.runtimeMachine=x86_64` or `amd64`
+- `proofMetadata.nativeGpuRuntimeProof=true`
+- `proofMetadata` side-effect fields false
 - exact profile ID
 - `nvidiaSmi.available=true`
 - `cuda.available=true`

@@ -19,6 +19,7 @@ export interface AiGraphicsGpuRuntimeProofResultValidation {
   profileId: AiGraphicsGpuRuntimeProofProfileId
   resultProvided: boolean
   acceptedForOwnerReview: boolean
+  proofMetadataAccepted: boolean
   requiredImportsPresent: boolean
   nvidiaSmiAccepted: boolean
   cudaAccepted: boolean
@@ -173,6 +174,8 @@ const falseRuntimeFields = [
 ] as const
 
 const sha256Pattern = /^[a-fA-F0-9]{64}$/
+const requiredProbeName = 'reeditpro_ai_graphics_gpu_runtime_readiness'
+const requiredProbeVersion = '2026-06-26.native-gpu-proof-v1'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -246,6 +249,52 @@ function profileFromInput(input: unknown): AiGraphicsGpuRuntimeProofProfileId | 
     : null
 }
 
+function validateProofMetadata(input: unknown, errors: string[]): boolean {
+  if (!isRecord(input) || !isRecord(input.proofMetadata)) {
+    errors.push('proofMetadata from the approved GPU runtime readiness probe is required.')
+    return false
+  }
+
+  const metadata = input.proofMetadata
+  let accepted = true
+  if (metadata.probeName !== requiredProbeName) {
+    errors.push(`proofMetadata.probeName must be ${requiredProbeName}.`)
+    accepted = false
+  }
+  if (metadata.probeVersion !== requiredProbeVersion) {
+    errors.push(`proofMetadata.probeVersion must be ${requiredProbeVersion}.`)
+    accepted = false
+  }
+  if (metadata.runtimePlatform !== 'linux') {
+    errors.push('proofMetadata.runtimePlatform must be linux.')
+    accepted = false
+  }
+  if (!['x86_64', 'amd64'].includes(String(metadata.runtimeMachine ?? '').toLowerCase())) {
+    errors.push('proofMetadata.runtimeMachine must be x86_64 or amd64.')
+    accepted = false
+  }
+  if (metadata.nativeGpuRuntimeProof !== true) {
+    errors.push('proofMetadata.nativeGpuRuntimeProof must be true.')
+    accepted = false
+  }
+
+  for (const field of [
+    'modelWeightsLoaded',
+    'modelInferencePerformed',
+    'mediaProcessingPerformed',
+    'providerRuntimePerformed',
+    'publicArtifactCreated',
+    'signedUrlCreated',
+  ]) {
+    if (metadata[field] !== false) {
+      errors.push(`proofMetadata.${field} must be false.`)
+      accepted = false
+    }
+  }
+
+  return accepted
+}
+
 function importLabels(input: unknown): Set<string> {
   if (!isRecord(input) || !Array.isArray(input.imports)) return new Set()
   return new Set(input.imports.flatMap((entry) => {
@@ -310,6 +359,7 @@ function validateProofResult(
       profileId,
       resultProvided: false,
       acceptedForOwnerReview: false,
+      proofMetadataAccepted: false,
       requiredImportsPresent: false,
       nvidiaSmiAccepted: false,
       cudaAccepted: false,
@@ -338,6 +388,7 @@ function validateProofResult(
     errors.push(`Proof result must not include raw private/public/signed artifact references: ${rawReferenceFailures.join(', ')}`)
   }
 
+  const proofMetadataAccepted = validateProofMetadata(input, errors)
   const labels = importLabels(input)
   const missingImports = requiredImportsByProfile[profileId].filter((label) => !labels.has(label))
   if (missingImports.length) {
@@ -380,6 +431,7 @@ function validateProofResult(
     profileId,
     resultProvided: true,
     acceptedForOwnerReview: errors.length === 0,
+    proofMetadataAccepted,
     requiredImportsPresent: missingImports.length === 0,
     nvidiaSmiAccepted,
     cudaAccepted,

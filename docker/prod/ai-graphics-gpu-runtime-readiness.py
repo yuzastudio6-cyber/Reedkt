@@ -15,6 +15,7 @@ import importlib
 import json
 import os
 from pathlib import Path
+import platform
 import re
 import shutil
 import subprocess
@@ -135,6 +136,9 @@ FORBIDDEN_TRUE_ENV = [
     "SUPABASE_MUTATION_ENABLED",
     "GCS_UPLOAD_ENABLED",
 ]
+
+PROBE_NAME = "reeditpro_ai_graphics_gpu_runtime_readiness"
+PROBE_VERSION = "2026-06-26.native-gpu-proof-v1"
 
 
 def version_for(module: object) -> str:
@@ -342,6 +346,20 @@ def main() -> int:
     print(json.dumps({
         "status": "passed",
         "profile": args.profile,
+        "proofMetadata": {
+            "probeName": PROBE_NAME,
+            "probeVersion": PROBE_VERSION,
+            "runtimePlatform": "linux",
+            "runtimeMachine": platform.machine(),
+            "pythonVersion": platform.python_version(),
+            "nativeGpuRuntimeProof": True,
+            "modelWeightsLoaded": False,
+            "modelInferencePerformed": False,
+            "mediaProcessingPerformed": False,
+            "providerRuntimePerformed": False,
+            "publicArtifactCreated": False,
+            "signedUrlCreated": False,
+        },
         "imports": imports,
         "nvidiaSmi": nvidia_smi,
         "cuda": {

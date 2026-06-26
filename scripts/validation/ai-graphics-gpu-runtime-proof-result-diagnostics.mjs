@@ -158,6 +158,20 @@ function proofResult(profile, overrides = {}) {
   return {
     status: 'passed',
     profile,
+    proofMetadata: {
+      probeName: 'reeditpro_ai_graphics_gpu_runtime_readiness',
+      probeVersion: '2026-06-26.native-gpu-proof-v1',
+      runtimePlatform: 'linux',
+      runtimeMachine: 'x86_64',
+      pythonVersion: '3.11.0',
+      nativeGpuRuntimeProof: true,
+      modelWeightsLoaded: false,
+      modelInferencePerformed: false,
+      mediaProcessingPerformed: false,
+      providerRuntimePerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
     imports: requiredImportsByProfile[profile].map((label) => ({
       label,
       module: label,
@@ -281,6 +295,11 @@ for (const profile of requiredProfiles) {
 
 for (const token of [
   'status_passed',
+  'approved_probe_metadata_present',
+  'approved_probe_name',
+  'approved_probe_version',
+  'native_linux_runtime_platform',
+  'native_x86_64_or_amd64_runtime_machine',
   'exact_profile_id',
   'nvidia_smi_available',
   'cuda_available',
@@ -297,6 +316,9 @@ for (const token of [
 
 for (const token of [
   'buildAiGraphicsGpuRuntimeProofResultPacket',
+  'reeditpro_ai_graphics_gpu_runtime_readiness',
+  '2026-06-26.native-gpu-proof-v1',
+  'proofMetadata',
   'ready_for_owner_review_not_beta_ready',
   'missing_native_gpu_runtime_proof_results',
   'invalid_native_gpu_runtime_proof_results',
@@ -380,6 +402,9 @@ if (validPacket.status !== 'ready_for_owner_review_not_beta_ready') {
 if (validPacket.runtimeProofResultsProvided !== 4) fail('valid_results_provided_not_4')
 if (validPacket.runtimeProofResultsAcceptedForOwnerReview !== 4) fail('valid_results_accepted_not_4')
 if (validPacket.nativeGpuRuntimeProofResultsAccepted !== true) fail('valid_results_not_accepted')
+for (const result of validPacket.validationResults || []) {
+  if (result.proofMetadataAccepted !== true) fail(`valid_result_metadata_not_accepted:${result.profileId}`)
+}
 if (validPacket.booleans?.gpuRuntimeApprovedNow !== false) fail('valid_results_gpu_runtime_approved_now_not_false')
 if (validPacket.booleans?.runtimeReadyNow !== false) fail('valid_results_runtime_ready_now_not_false')
 if (validPacket.booleans?.internalBetaReadyNow !== false) fail('valid_results_internal_beta_not_false')
@@ -415,6 +440,44 @@ if (invalidPacket.status !== 'invalid_native_gpu_runtime_proof_results') {
 }
 if (!JSON.stringify(invalidPacket).includes('capability>=8.9')) fail('invalid_results_missing_capability_error')
 if (!JSON.stringify(invalidPacket).includes('modelWeightsLoaded must be false')) fail('invalid_results_missing_false_gate_error')
+
+const badMetadataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-bad-metadata-'))
+writeProofFixtures(badMetadataDir, {
+  gpu_worker_ai_graphics: {
+    proofMetadata: {
+      probeName: 'unknown_probe',
+      probeVersion: '0',
+      runtimePlatform: 'darwin',
+      runtimeMachine: 'arm64',
+      nativeGpuRuntimeProof: true,
+      modelWeightsLoaded: false,
+      modelInferencePerformed: false,
+      mediaProcessingPerformed: false,
+      providerRuntimePerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  },
+})
+let badMetadataExited = false
+let badMetadataOutput = ''
+try {
+  badMetadataOutput = runValidate(['--result-dir', badMetadataDir])
+} catch (error) {
+  badMetadataExited = true
+  badMetadataOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+if (!badMetadataExited) fail('bad_metadata_results_did_not_exit_nonzero')
+const badMetadataPacket = parseOutput(badMetadataOutput, 'bad_metadata_results')
+if (badMetadataPacket.status !== 'invalid_native_gpu_runtime_proof_results') {
+  fail(`bad_metadata_status_mismatch:${badMetadataPacket.status}`)
+}
+if (!JSON.stringify(badMetadataPacket).includes('proofMetadata.probeName must be reeditpro_ai_graphics_gpu_runtime_readiness')) {
+  fail('bad_metadata_missing_probe_name_error')
+}
+if (!JSON.stringify(badMetadataPacket).includes('proofMetadata.runtimePlatform must be linux')) {
+  fail('bad_metadata_missing_platform_error')
+}
 
 const leakDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-leak-'))
 writeProofFixtures(leakDir, {

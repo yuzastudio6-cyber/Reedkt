@@ -760,7 +760,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_gpu_runtime_proof_result_packet_prepared_with_no_runtime_results`.
 - Scope: server-only validator for externally generated native NVIDIA GPU proof output from the four runtime profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`.
-- Result: current public packet has 0 proof results provided and 0 accepted. Future local proof JSON must pass exact profile, imports, `nvidia-smi`, CUDA capability >= 8.9, tiny tensor probe, model-manifest, redaction, and false-side-effect validation. If all four profiles pass, the status becomes `ready_for_owner_review_not_beta_ready`.
+- Result: current public packet has 0 proof results provided and 0 accepted. Future local proof JSON must pass approved probe metadata, native Linux x86_64/amd64 runtime metadata, exact profile, imports, `nvidia-smi`, CUDA capability >= 8.9, tiny tensor probe, model-manifest, redaction, and false-side-effect validation. If all four profiles pass, the status becomes `ready_for_owner_review_not_beta_ready`.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsDownloaded=false`, `modelWeightsLoaded=false`, `modelInferencePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Beta Activation Gap Report

@@ -186,6 +186,20 @@ function proofResult(profile) {
   return {
     status: 'passed',
     profile,
+    proofMetadata: {
+      probeName: 'reeditpro_ai_graphics_gpu_runtime_readiness',
+      probeVersion: '2026-06-26.native-gpu-proof-v1',
+      runtimePlatform: 'linux',
+      runtimeMachine: 'x86_64',
+      pythonVersion: '3.11.0',
+      nativeGpuRuntimeProof: true,
+      modelWeightsLoaded: false,
+      modelInferencePerformed: false,
+      mediaProcessingPerformed: false,
+      providerRuntimePerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
     imports: requiredImportsByProfile[profile].map((label) => ({
       label,
       module: label,

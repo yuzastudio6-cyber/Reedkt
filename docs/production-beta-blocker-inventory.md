@@ -11,6 +11,22 @@ Active blockers remain:
 - Supabase production writes
 - model orchestration runtime calls
 
+## RP External Product Beta Current Readiness Rollup 1
+
+`RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.
+
+Current integration head: `4648c70b0f47ec34f1c4668cb42f69cd55053b50`. Source closure: PR #1019 / `SUPABASE-STAGING-MIGRATION-HISTORY-OWNER-DECISION-1`.
+
+The Supabase target and credential-validation lane is no longer the active blocker: source records `completed_guarded_supabase_target_rls_storage_readonly_validation`, and non-secret Secret Manager metadata showed `SUPABASE_ACCESS_TOKEN` version `5` as `enabled`. The token payload was not accessed, printed, summarized, committed, or written to docs.
+
+The active blocker is `blocked_no_owner_approval_for_staging_migration_apply_or_clean_target`. Remote staging is aligned only through `202605130006`; PR #1013 dry-run evidence showed `18` pending migrations. PR #1019 records no owner approval for full reviewed pending-set staging apply and no owner approval for a clean staging target/branch/project.
+
+Internal beta status: `blocked_pending_explicit_staging_migration_path_approval`. External product beta status: `blocked`. Paid production status: `blocked`. Final delivery/export status: `blocked`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe action remains `OWNER ACTION REQUIRED - approve full reviewed staging migration set or clean staging target before RPC 4R SQL execution`.
+
 ## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Confirmed Runner
 
 `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_supabase_target_rls_storage_readonly_validation` and execution `completed_readonly_target_identity_and_advisor_validation_no_mutation`.

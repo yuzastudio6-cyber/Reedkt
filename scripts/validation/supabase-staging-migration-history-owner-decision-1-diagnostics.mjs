@@ -28,6 +28,18 @@ const inheritedFiles = [
   'scripts/validation/supabase-migration-history-reconciliation-1-diagnostics.mjs',
 ]
 
+const followOnExternalProductBetaCurrentReadinessRollup1Files = [
+  'docs/external-beta/current-readiness-rollup-1/readiness-gate.md',
+  'docs/external-beta/current-readiness-rollup-1/source-of-truth-audit.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/external-beta/current-readiness-rollup-1/rollup-record.json',
+  'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-product-beta-current-readiness-rollup-1-next.md',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'blocked_no_owner_approval_for_staging_migration_apply_or_clean_target',
@@ -163,7 +175,7 @@ const changed = [...new Set([
   ...gitLines(['diff', '--cached', '--name-only']),
   ...gitLines(['ls-files', '--others', '--exclude-standard']),
 ])]
-const allowed = new Set([...requiredFiles, ...inheritedFiles])
+const allowed = new Set([...requiredFiles, ...inheritedFiles, ...followOnExternalProductBetaCurrentReadinessRollup1Files])
 for (const file of changed) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)
   if (file === 'package-lock.json') fail('package-lock changed')

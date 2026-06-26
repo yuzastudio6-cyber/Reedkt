@@ -59,12 +59,25 @@ const followOnSupabaseTargetRlsStorageValidation1rConfirmedFiles = [
   'scripts/validation/rp-internal-beta-google-cloud-runtime-config-contract-1-diagnostics.mjs',
 ]
 
+const followOnExternalProductBetaCurrentReadinessRollup1Files = [
+  'docs/external-beta/current-readiness-rollup-1/readiness-gate.md',
+  'docs/external-beta/current-readiness-rollup-1/source-of-truth-audit.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/external-beta/current-readiness-rollup-1/rollup-record.json',
+  'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-product-beta-current-readiness-rollup-1-next.md',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
+]
+
 const requiredFiles = [...packetFiles, ...relatedFiles]
 const allowedChangedFiles = new Set([
   ...packetFiles,
   ...relatedFiles,
   ...followOnSupabaseTargetRlsStorageValidation1rFiles,
   ...followOnSupabaseTargetRlsStorageValidation1rConfirmedFiles,
+  ...followOnExternalProductBetaCurrentReadinessRollup1Files,
   'package.json',
 ])
 

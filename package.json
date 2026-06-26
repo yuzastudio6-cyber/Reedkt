@@ -53,6 +53,7 @@
     "ai-video-broll-gen-9j-cache-layout:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-cache-layout-diagnostics.mjs",
     "ai-video-broll-gen-9j-diffusers-cache-download:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-diffusers-cache-download-diagnostics.mjs",
     "ai-video-broll-gen-9j-cache-validate:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-cache-validate-diagnostics.mjs",
+    "ai-video-broll-gen-9j-vm-preflight-2:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-preflight-2-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

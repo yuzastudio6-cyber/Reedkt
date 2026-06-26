@@ -200,7 +200,7 @@ includesAll(manifestTemplates, [
   "id: 'qwen2_5_vl_7b_model'",
   "toolId: 'qwen_vl'",
   "modelName: 'Qwen2.5-VL 7B Instruct model'",
-  "Qwen/Qwen2.5-VL-7B-Instruct@placeholder-exact-revision-required",
+  "Qwen/Qwen2.5-VL-7B-Instruct@cc594898137f460bfe9f0759e9844b3ce807cfb5",
   "/vlm/qwen2.5-vl-7b-instruct/",
   "commercialUseAllowed: false",
   "commercialUseStatus: 'needs_review'",

@@ -157,6 +157,20 @@ execution, provider/model runtime, browser/canvas/WebGL runtime, GPU/model
 runtime, media processing, signed URLs, public artifacts, internal beta runtime,
 external beta, and production blocked.
 
+AI graphics internal beta service-role RPC worker-handoff local smoke proof
+decision
+`ai_graphics_internal_beta_service_role_rpc_worker_handoff_local_smoke_passed_with_cleanup`
+records the local claim-to-worker-boundary proof. The smoke uses the local
+service-role RPC queue adapter, claims all 21 AI graphics jobs, maps each
+claimed row into a `ProductionWorkerJobPayload`, runs each through the
+mock-safe in-memory production worker dispatcher boundary, records worker
+events and an audit event, and cleans all prefixed fixture rows including audit
+and job events. It confirms the claimed queue rows can cross the worker payload
+boundary while keeping live worker dispatch, worker execution, tool execution,
+route execution, provider/model runtime, browser/canvas/WebGL runtime,
+GPU/model runtime, media processing, signed URLs, public artifacts, internal
+beta runtime, external beta, and production blocked.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

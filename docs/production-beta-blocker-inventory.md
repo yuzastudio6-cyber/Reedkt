@@ -153,6 +153,18 @@ The service-role persistence guard is now source-of-truth for approved snapshot 
 
 Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generated artifacts committed: none. Internal beta remains blocked pending remote validation and runtime gates.
 
+## Internal Beta Credit Reservation Local Runtime
+
+`RP-INTERNAL-BETA-CREDIT-RESERVATION-LOCAL-RUNTIME-1` records decision `completed_local_credit_reservation_runtime_no_remote_credit_mutation` and execution `completed_backend_local_credit_reservation_validation_no_stripe_or_supabase`.
+
+The local runtime now creates deterministic local credit reservation and reservation-ledger metadata after approved estimate checks. It rejects missing idempotency, unapproved estimates, raw prompt fields, signed/public URL fields, service-role fields, Stripe secret fields, payment-intent fields, and secret-like metadata. It gives future approved snapshot persistence a local `creditReservationId` shape while keeping real wallet, Stripe, Supabase, job, worker, provider, render, storage, and beta unlock paths blocked.
+
+Local credit reservation record created: `true`. Local ledger entry created: `true`. Remote credit mutation: `false`. Real credit mutation: `false`. Wallet balance mutation: `false`. Stripe/payment processing: `false`. Supabase persistence: `false`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe milestone: `RP-INTERNAL-BETA-JOB-QUEUE-LOCAL-RUNTIME-1`.
+
 ## SUPABASE-WORKER-RUNTIME RPC 4R Credential Context Hardening
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CREDENTIAL-CONTEXT-HARDENING-1` records decision `completed_rpc_4r_credential_context_hardening_fail_closed` and execution `completed_local_runner_hardening_no_sql_execution`.

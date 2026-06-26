@@ -208,6 +208,18 @@ No Supabase mutation, credit mutation, credit reservation creation, credit spend
 Internal beta end-to-end remains `not_ready` until explicit runtime enablement, service-role mutation handlers, remote Supabase target approval, private artifact access policy, render worker execution proof, provider adapter approval, QA, cleanup, observability, and rollback gates pass.
 
 Next recommended step: `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1`.
+
+## RP-INTERNAL-BETA Approved Snapshot Persistence Local Runtime 1
+
+`RP-INTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-LOCAL-RUNTIME-1` records decision `completed_local_approved_snapshot_persistence_runtime_no_supabase_write` and execution `completed_backend_local_snapshot_validation_no_route_or_remote_execution`.
+
+The backend local runtime `server/services/internal-beta-approved-snapshot-persistence-local-runtime.ts` now constructs and validates immutable approved snapshot records using the existing cloud worker snapshot contract. It requires workspace/project/chat/edit-plan/credit-estimate/credit-reservation/user/idempotency IDs, rejects raw chat/raw prompt/signed URL/service-role fields, produces a deterministic SHA-256 snapshot hash, and remains local-only.
+
+No Supabase mutation, SQL execution, service-role route execution, credit mutation, credit reservation creation, job enqueue, worker dispatch, provider/model call, render/export, signed URL creation, public artifact creation, or internal beta unlock is enabled by this packet.
+
+Internal beta end-to-end remains `not_ready` until approved Supabase credential context, confirmed Supabase RLS/storage validation, service-role persistence, credit ledger runtime, job queue runtime, private artifact runtime, render worker runtime, QA/cleanup/observability, rollback, and runtime negative gates pass.
+
+Next recommended step after Supabase credential/target validation: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARD-1`.
 ## RP-INTERNAL-BETA Runtime Enablement Plan 1
 
 `RP-INTERNAL-BETA-RUNTIME-ENABLEMENT-PLAN-1` records decision `blocked_pending_internal_beta_runtime_enablement_owner_approval` and execution `completed_docs_only_runtime_enablement_plan_no_runtime_unlock`.

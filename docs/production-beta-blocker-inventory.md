@@ -135,6 +135,16 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generate
 
 Next safe action remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN` only after approved credential aliases are present.
 
+## Internal Beta Approved Snapshot Persistence Local Runtime
+
+`RP-INTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-LOCAL-RUNTIME-1` records decision `completed_local_approved_snapshot_persistence_runtime_no_supabase_write` and execution `completed_backend_local_snapshot_validation_no_route_or_remote_execution`.
+
+Approved snapshot persistence is now locally validated only. The runtime creates deterministic immutable approved snapshot records for backend validation, rejects raw chat/raw prompt/signed URL/service-role fields, and keeps Supabase persistence blocked.
+
+Service-role persistence remains blocked pending approved Supabase credential context, confirmed RLS/storage validation, and a separate service-role persistence guard. Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generated artifacts committed: none.
+
+No Supabase mutation, SQL execution, service-role route execution, credit mutation, credit reservation creation, job enqueue, worker dispatch, provider/model call, raw prompt execution, render/export, signed URL creation, public artifact creation, or internal beta unlock is enabled by this packet.
+
 ## SUPABASE-WORKER-RUNTIME RPC 4R Credential Context Hardening
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CREDENTIAL-CONTEXT-HARDENING-1` records decision `completed_rpc_4r_credential_context_hardening_fail_closed` and execution `completed_local_runner_hardening_no_sql_execution`.

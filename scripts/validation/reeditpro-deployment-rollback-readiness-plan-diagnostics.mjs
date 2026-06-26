@@ -12,6 +12,7 @@ const modelSecurityCostDir = 'docs/reeditpro-model-license-security-cost-readine
 const privateStorageDir = 'docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan'
 const observabilityDir = 'docs/reeditpro-observability-incident-support-readiness-plan'
 const backendReadinessDir = 'docs/reeditpro-backend-database-billing-credit-ledger-readiness-plan'
+const workerReadinessDir = 'docs/reeditpro-worker-generation-export-e2e-readiness-plan'
 const remediationDir = 'docs/reeditpro-external-beta-production-readiness-remediation-plan'
 const decision =
   'reeditpro_deployment_rollback_readiness_plan_passed_ready_for_model_license_security_cost_readiness_plan'
@@ -233,6 +234,8 @@ for (const file of changedFiles()) {
     file === 'docs/implementation-prompts/prompt-reeditpro-observability-incident-support-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-backend-database-billing-credit-ledger-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-worker-generation-export-e2e-readiness-plan.md' ||
+    file === 'docs/implementation-prompts/prompt-reeditpro-delivery-share-policy-readiness-plan.md' ||
+    file === 'scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-backend-database-billing-credit-ledger-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-observability-incident-support-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan-diagnostics.mjs' ||
@@ -243,6 +246,7 @@ for (const file of changedFiles()) {
     file === 'scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs' ||
+    file.startsWith(`${workerReadinessDir}/`) ||
     file.startsWith(`${backendReadinessDir}/`) ||
     file.startsWith(`${observabilityDir}/`) ||
     file.startsWith(`${modelSecurityCostDir}/`) ||

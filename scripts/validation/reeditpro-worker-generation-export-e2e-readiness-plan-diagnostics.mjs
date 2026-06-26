@@ -7,26 +7,28 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/reeditpro-backend-database-billing-credit-ledger-readiness-plan'
-const previousDir = 'docs/reeditpro-observability-incident-support-readiness-plan'
+const reportDir = 'docs/reeditpro-worker-generation-export-e2e-readiness-plan'
+const previousDir = 'docs/reeditpro-backend-database-billing-credit-ledger-readiness-plan'
 const decision =
-  'reeditpro_backend_database_billing_credit_ledger_readiness_plan_passed_ready_for_worker_generation_export_e2e_readiness_plan'
+  'reeditpro_worker_generation_export_e2e_readiness_plan_passed_ready_for_delivery_share_policy_readiness_plan'
 const previousDecision =
-  'reeditpro_observability_incident_support_readiness_plan_passed_ready_for_backend_database_billing_credit_ledger_readiness_plan'
-const nextPrompt = 'REEDITPRO_WORKER_GENERATION_EXPORT_E2E_READINESS_PLAN'
+  'reeditpro_backend_database_billing_credit_ledger_readiness_plan_passed_ready_for_worker_generation_export_e2e_readiness_plan'
+const nextPrompt = 'REEDITPRO_DELIVERY_SHARE_POLICY_READINESS_PLAN'
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'backend-ownership-plan.json',
-  'backend-ownership-plan.md',
-  'database-schema-migration-readiness.json',
-  'database-schema-migration-readiness.md',
-  'billing-integration-proof-plan.json',
-  'billing-integration-proof-plan.md',
-  'credit-ledger-policy.json',
-  'credit-ledger-policy.md',
-  'audit-logging-prerequisites.json',
-  'audit-logging-prerequisites.md',
+  'worker-e2e-dry-run-evidence.json',
+  'worker-e2e-dry-run-evidence.md',
+  'generation-export-state-machine-proof.json',
+  'generation-export-state-machine-proof.md',
+  'approved-plan-snapshot-coupling.json',
+  'approved-plan-snapshot-coupling.md',
+  'artifact-manifest-proof.json',
+  'artifact-manifest-proof.md',
+  'failure-retry-rollback-behavior.json',
+  'failure-retry-rollback-behavior.md',
+  'no-user-media-fixture-policy.json',
+  'no-user-media-fixture-policy.md',
   'downstream-gate-prerequisites.json',
   'downstream-gate-prerequisites.md',
   'validation-command-plan.json',
@@ -101,7 +103,7 @@ function changedFiles() {
 }
 
 function requireCommon(label, report) {
-  if (report.ownerId !== 'REEDITPRO_BACKEND_BILLING_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
+  if (report.ownerId !== 'REEDITPRO_WORKER_E2E_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
   if (report.decision !== decision) fail(`${label}_decision_drift:${report.decision}`)
   if (report.previousDecision !== previousDecision) fail(`${label}_previous_decision_drift:${report.previousDecision}`)
   if (report.nextPrompt !== nextPrompt) fail(`${label}_next_prompt_drift:${report.nextPrompt}`)
@@ -114,15 +116,16 @@ function requireCommon(label, report) {
 
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of requiredProductionDocs) readText(file)
-readText('docs/implementation-prompts/prompt-reeditpro-worker-generation-export-e2e-readiness-plan.md')
+readText('docs/implementation-prompts/prompt-reeditpro-delivery-share-policy-readiness-plan.md')
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  owners: readJson(`${reportDir}/backend-ownership-plan.json`),
-  database: readJson(`${reportDir}/database-schema-migration-readiness.json`),
-  billing: readJson(`${reportDir}/billing-integration-proof-plan.json`),
-  ledger: readJson(`${reportDir}/credit-ledger-policy.json`),
-  audit: readJson(`${reportDir}/audit-logging-prerequisites.json`),
+  dryRun: readJson(`${reportDir}/worker-e2e-dry-run-evidence.json`),
+  stateMachine: readJson(`${reportDir}/generation-export-state-machine-proof.json`),
+  snapshot: readJson(`${reportDir}/approved-plan-snapshot-coupling.json`),
+  manifestProof: readJson(`${reportDir}/artifact-manifest-proof.json`),
+  failure: readJson(`${reportDir}/failure-retry-rollback-behavior.json`),
+  fixture: readJson(`${reportDir}/no-user-media-fixture-policy.json`),
   downstream: readJson(`${reportDir}/downstream-gate-prerequisites.json`),
   validation: readJson(`${reportDir}/validation-command-plan.json`),
   runtime: readJson(`${reportDir}/runtime-boundary.json`),
@@ -134,30 +137,28 @@ for (const [label, report] of Object.entries(reports)) requireCommon(label, repo
 
 const previousReadiness = readJson(`${previousDir}/readiness-report.json`)
 if (previousReadiness.decision !== previousDecision) fail(`previous_decision_drift:${previousReadiness.decision}`)
-if (previousReadiness.readyForBackendDatabaseBillingCreditLedgerReadinessPlan !== true) fail('previous_not_ready_for_backend_gate')
+if (previousReadiness.readyForWorkerGenerationExportE2EReadinessPlan !== true) fail('previous_not_ready_for_worker_gate')
+if (reports.source.readyForDeliverySharePolicyReadinessPlan !== true) fail('source_not_ready_for_delivery_gate')
+if (reports.decisionReport.readyForDeliverySharePolicyReadinessPlan !== true) fail('decision_not_ready_for_delivery_gate')
+if (reports.readiness.readyForDeliverySharePolicyReadinessPlan !== true) fail('readiness_not_ready_for_delivery_gate')
 
-if (reports.source.readyForWorkerGenerationExportE2EReadinessPlan !== true) fail('source_not_ready_for_worker_gate')
-if (reports.decisionReport.readyForWorkerGenerationExportE2EReadinessPlan !== true) fail('decision_not_ready_for_worker_gate')
-if (reports.readiness.readyForWorkerGenerationExportE2EReadinessPlan !== true) fail('readiness_not_ready_for_worker_gate')
-if (!reports.owners.requiredOwners?.includes('credit ledger owner')) fail('missing_credit_ledger_owner')
-if (reports.owners.ownersNamed !== false) fail('owners_named')
-if (reports.owners.backendRuntimeImplemented !== false) fail('backend_runtime_implemented')
-if (!reports.database.requiredSchemaAreas?.includes('credit estimates, reservations, spends, releases, and refunds')) {
-  fail('missing_credit_schema_area')
-}
-for (const flag of ['sqlExecuted', 'migrationCreated', 'rlsPoliciesCreated', 'storagePoliciesCreated']) {
-  if (reports.database[flag] !== false) fail(`database_flag_not_false:${flag}`)
-}
-for (const flag of ['billingProviderConnected', 'webhooksCreated', 'paymentMutationRan']) {
-  if (reports.billing[flag] !== false) fail(`billing_flag_not_false:${flag}`)
-}
-for (const flag of ['creditsReserved', 'creditsSpent', 'creditsRefunded', 'ledgerMutationRan']) {
-  if (reports.ledger[flag] !== false) fail(`ledger_flag_not_false:${flag}`)
-}
-if (reports.audit.auditTablesCreated !== false) fail('audit_tables_created')
-if (reports.audit.auditEventsWritten !== false) fail('audit_events_written')
-if (!reports.downstream.downstreamGates?.includes('workerGenerationExportE2E')) fail('downstream_missing_worker_gate')
-if (reports.downstream.readyForWorkerGenerationExportE2EReadinessPlan !== true) fail('downstream_not_ready_for_worker_gate')
+if (!reports.dryRun.requiredFutureEvidence?.includes('approved plan snapshot loaded by worker')) fail('missing_snapshot_worker_evidence')
+if (reports.dryRun.workerDispatchRan !== false) fail('worker_dispatch_ran')
+if (reports.dryRun.providerCallsRan !== false) fail('provider_calls_ran')
+if (reports.dryRun.renderExportRan !== false) fail('render_export_ran')
+if (!reports.stateMachine.requiredStates?.includes('failed_refunded_or_released')) fail('missing_failure_state')
+if (reports.stateMachine.stateMachineImplemented !== false) fail('state_machine_implemented')
+if (!reports.snapshot.requiredCouplingEvidence?.includes('worker rejects mutable draft plan')) fail('missing_snapshot_rejection_evidence')
+if (reports.snapshot.snapshotRuntimeProofRan !== false) fail('snapshot_runtime_proof_ran')
+if (!reports.manifestProof.requiredManifestEvidence?.includes('deletion eligibility tag')) fail('missing_deletion_manifest_tag')
+if (reports.manifestProof.artifactManifestMutated !== false) fail('artifact_manifest_mutated')
+if (reports.failure.retryProofRan !== false) fail('retry_proof_ran')
+if (reports.failure.rollbackProofRan !== false) fail('rollback_proof_ran')
+if (reports.fixture.allowedFutureFixtureClass !== 'synthetic_no_user_media_fixture_only') fail('fixture_class_drift')
+if (reports.fixture.fixtureGenerated !== false) fail('fixture_generated')
+if (reports.fixture.mediaProcessed !== false) fail('media_processed')
+if (!reports.downstream.downstreamGates?.includes('deliverySharePolicy')) fail('downstream_missing_delivery_gate')
+if (reports.downstream.readyForDeliverySharePolicyReadinessPlan !== true) fail('downstream_not_ready_for_delivery_gate')
 if (reports.validation.noInstallBoundary !== true) fail('validation_no_install_boundary_missing')
 for (const [scope, value] of Object.entries(reports.runtime.blockedScopes ?? {})) {
   if (value !== false) fail(`runtime_scope_not_false:${scope}`)
@@ -171,20 +172,20 @@ for (const flag of [
   'supabaseGcsWritesRan',
   'sqlRan',
   'migrationCreated',
-  'billingProviderCallsRan',
-  'creditLedgerMutationsRan',
+  'workerDispatchRan',
+  'providerCallsRan',
+  'renderExportRan',
 ]) {
   if (reports.manifest[flag] !== false) fail(`manifest_flag_not_false:${flag}`)
 }
 
 const packageJson = readJson('package.json')
 if (
-  packageJson.scripts?.['reeditpro:backend-database-billing-credit-ledger-readiness-plan:diagnostics'] !==
-  'node scripts/validation/reeditpro-backend-database-billing-credit-ledger-readiness-plan-diagnostics.mjs'
+  packageJson.scripts?.['reeditpro:worker-generation-export-e2e-readiness-plan:diagnostics'] !==
+  'node scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs'
 ) {
   fail('package_script_missing_or_drifted')
 }
-
 for (const file of requiredProductionDocs) {
   const text = readText(file)
   if (!text.includes(decision)) fail(`production_doc_missing_decision:${file}`)
@@ -200,7 +201,6 @@ for (const output of forbiddenOutputs) {
 for (const file of changedFiles()) {
   const allowed =
     file === 'package.json' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-worker-generation-export-e2e-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-delivery-share-policy-readiness-plan.md' ||
     file === 'scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-backend-database-billing-credit-ledger-readiness-plan-diagnostics.mjs' ||
@@ -213,19 +213,16 @@ for (const file of changedFiles()) {
     file === 'scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs' ||
-    file.startsWith('docs/reeditpro-worker-generation-export-e2e-readiness-plan/') ||
     file.startsWith(`${reportDir}/`) ||
     requiredProductionDocs.includes(file)
   if (!allowed) fail(`unexpected_changed_file:${file}`)
-  if (/\.(ttf|otf|onnx|mp4|mov|mkv|srt|png|jpe?g|webp|gpg|asc|deb)$/i.test(file)) {
-    fail(`forbidden_artifact_changed:${file}`)
-  }
+  if (/\.(ttf|otf|onnx|mp4|mov|mkv|srt|png|jpe?g|webp|gpg|asc|deb)$/i.test(file)) fail(`forbidden_artifact_changed:${file}`)
 }
 
 const scanFiles = [
   ...requiredReports.map((file) => `${reportDir}/${file}`),
   ...requiredProductionDocs,
-  'docs/implementation-prompts/prompt-reeditpro-worker-generation-export-e2e-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-delivery-share-policy-readiness-plan.md',
 ]
 for (const file of scanFiles) {
   const text = readText(file)
@@ -244,7 +241,7 @@ console.log(JSON.stringify({
   decision,
   previousDecision,
   nextPrompt,
-  readyForWorkerGenerationExportE2EReadinessPlan: true,
+  readyForDeliverySharePolicyReadinessPlan: true,
   readyForExternalBeta: false,
   readyForProduction: false,
 }, null, 2))

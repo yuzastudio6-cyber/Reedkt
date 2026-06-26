@@ -34,8 +34,29 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-supabase-worker-runtime-transactional-rpc-isolated-target-readback-1.md',
 ]
 
+const followOnSupabaseServiceRoleRuntimeBoundaryValidation1Files = [
+  'docs/supabase-worker-runtime/supabase-service-role-runtime-boundary-validation-1.md',
+  'docs/supabase-worker-runtime/supabase-service-role-runtime-boundary-validation-1-record.json',
+  'docs/activation-phase-supabase-service-role-runtime-boundary-validation-1-results.md',
+  'docs/activation-supabase-service-role-runtime-boundary-validation-1-reports/service_role_runtime_boundary_validation_report.json',
+  'docs/activation-supabase-service-role-runtime-boundary-validation-1-reports/service_role_runtime_boundary_validation_manifest.json',
+  'docs/implementation-prompts/prompt-rp-internal-beta-approved-snapshot-service-role-persistence-implementation-1.md',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'docs/production-beta-blocker-inventory.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'implementation-status-and-next-phase.md',
+  'scripts/validation/supabase-service-role-runtime-boundary-validation-1.mjs',
+  'scripts/validation/supabase-service-role-runtime-boundary-validation-1-diagnostics.mjs',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-isolated-target-migration-chain-apply-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-isolated-target-creation-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  ...followOnSupabaseServiceRoleRuntimeBoundaryValidation1Files,
   reportPath,
   manifestPath,
   'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-isolated-target-readback-1.md',

@@ -133,6 +133,22 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next milestone: `SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1`.
 
+## SUPABASE Service-Role Runtime Boundary Validation 1
+
+`SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1` records decision `completed_service_role_runtime_boundary_validation` and execution `completed_guarded_secret_metadata_and_static_backend_boundary_validation_no_service_role_payload_or_runtime_execution`.
+
+Target: `reeditpro-clean-staging-isolated-v1` / `fajinbvwhcjnutkaumkm`. Approved Secret Manager metadata references: `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `2` / `ENABLED`, and `SUPABASE_ACCESS_TOKEN` latest version `5` / `ENABLED`.
+
+The guarded runner did not access any Secret Manager payload. It statically validated the backend service-role runtime scaffold, approved snapshot service-role persistence guard, Supabase credential context boundary, runtime orchestrator guard, and frontend service-role exposure scan.
+
+Remote Supabase command: `false`. SQL execution: `false`. SQL mutation: `none`. RPC execution: `false`. Service-role route execution: `false`. Worker execution: `false`. Worker dispatch: `false`. Worker lease claim: `false`. Storage object creation: `false`. Storage object read: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+Approved snapshot service-role persistence readiness: `ready_for_separate_service_role_persistence_implementation_no_supabase_write`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_service_role_persistence_private_storage_artifact_job_and_e2e_gates`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next milestone: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1`.
+
 ## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Confirmed Runner
 
 `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_supabase_target_rls_storage_readonly_validation` and execution `completed_readonly_target_identity_and_advisor_validation_no_mutation`.

@@ -1,0 +1,60 @@
+{
+  "packet": "RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1",
+  "decision": "completed_service_role_persistence_envelope_validated_no_remote_write",
+  "execution": "completed_backend_service_role_persistence_envelope_no_remote_execution",
+  "baseIntegrationHead": "c3136f22bef5bc2e8b437b5310c72f0e6540608e",
+  "sourceServiceRoleBoundaryMergeSha": "c3136f22bef5bc2e8b437b5310c72f0e6540608e",
+  "implementationService": "server/services/internal-beta-approved-snapshot-service-role-persistence-implementation.ts",
+  "smoke": "server/smoke/internal-beta-approved-snapshot-service-role-persistence-implementation-smoke.ts",
+  "envelopeStatus": "completed_service_role_persistence_envelope_validated_no_remote_write",
+  "readyStatus": "ready_for_guarded_remote_persistence_execution_packet_only_after_explicit_confirmation",
+  "nextMilestone": "RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARDED-REMOTE-WRITE-1",
+  "targetName": "Reeditpro",
+  "targetRef": "wmyyttnynmteqgcdishd",
+  "targetClass": "staging",
+  "targetPolicy": "single_active_reeditpro_supabase_project_for_internal_and_external_beta_readiness",
+  "historicalSandboxProject": {
+    "name": "reeditpro-clean-staging-isolated-v1",
+    "ref": "fajinbvwhcjnutkaumkm",
+    "status": "historical_sandbox_evidence_only_not_active_beta_target"
+  },
+  "approvedSecretMetadata": {
+    "dbUrlSecret": "REEDITPRO_STAGING_SUPABASE_DB_URL",
+    "dbUrlVersion": "latest_active_main_staging_alias_payload_not_accessed",
+    "accessTokenSecret": "SUPABASE_ACCESS_TOKEN",
+    "accessTokenLatestVersion": "5",
+    "secretPayloadAccess": false
+  },
+  "envelopeTables": [
+    "approved_plan_snapshots",
+    "approval_records",
+    "api_idempotency_keys",
+    "audit_events"
+  ],
+  "backendOnly": true,
+  "localOnly": true,
+  "persistedToSupabase": false,
+  "routeExecution": false,
+  "serviceRoleRouteExecution": false,
+  "remoteSupabaseMutation": false,
+  "sqlExecution": false,
+  "migrationApply": false,
+  "creditMutation": false,
+  "jobEnqueue": false,
+  "workerExecution": false,
+  "workerDispatch": false,
+  "storageObjectCreation": false,
+  "storageObjectRead": false,
+  "signedUrlCreation": false,
+  "publicArtifactCreation": false,
+  "internalBetaUnlock": false,
+  "externalBetaUnlock": false,
+  "productionUnlock": false,
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validationStatus": "full_validation_passed",
+  "excludedPrs": {
+    "577": "open_draft_blocked_excluded"
+  }
+}

@@ -124,7 +124,6 @@ const requiredText = [
   'REEDITPRO_STAGING_SUPABASE_DB_URL',
   'SUPABASE_STAGING_DB_URL',
   'STAGING_SUPABASE_DB_URL',
-  'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
   'The runner records only the selected environment variable name and boolean presence. It never writes, prints, or summarizes the access token or database URL payload.',
   'Remote Supabase mutation: `false`',
   'SQL mutation: `false`',
@@ -241,9 +240,11 @@ for (const name of [
   'REEDITPRO_STAGING_SUPABASE_DB_URL',
   'SUPABASE_STAGING_DB_URL',
   'STAGING_SUPABASE_DB_URL',
-  'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
 ]) {
   if (!record.acceptedReadonlyDbUrlEnvNames?.includes(name)) fail(`missing DB URL alias ${name}`)
+}
+if (record.acceptedReadonlyDbUrlEnvNames?.includes('REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL')) {
+  fail('clean-staging DB URL alias must not be accepted by the confirmed active beta target runner')
 }
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 for (const key of [
@@ -276,6 +277,9 @@ if (packageJson.scripts?.['rp-internal-beta-supabase-target-rls-storage-validati
 if (packageJson.scripts?.['rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed:diagnostics'] !== 'node scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs') fail('missing diagnostics package script')
 
 const runner = read('scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs')
+if (runner.includes('REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL')) {
+  fail('confirmed active beta target runner must not accept clean-staging DB URL alias')
+}
 for (const required of [
   'accessTokenEnvNames',
   'readonlyDbUrlEnvNames',

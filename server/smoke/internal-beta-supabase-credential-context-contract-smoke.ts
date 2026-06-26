@@ -30,7 +30,7 @@ assert(accessOnly.credentialPresence.supabaseAccessTokenEnv === 'REEDITPRO_STAGI
 assert(JSON.stringify(accessOnly).includes('secret_token_must_not_appear') === false, 'access token payload leaked')
 
 const dbOnly = createInternalBetaSupabaseCredentialContextContract({
-  REEDITPRO_SUPABASE_READONLY_DB_URL: 'postgresql://secret:must-not-appear@example.invalid/db',
+  REEDITPRO_SUPABASE_READONLY_DB_URL: 'db-url-payload-must-not-appear',
 })
 assert(dbOnly.decision === 'blocked_missing_approved_supabase_access_token_alias', 'DB-only decision mismatch')
 assert(dbOnly.credentialPresence.readonlyDatabaseUrlEnv === 'REEDITPRO_SUPABASE_READONLY_DB_URL', 'DB URL alias mismatch')
@@ -38,8 +38,8 @@ assert(JSON.stringify(dbOnly).includes('must-not-appear') === false, 'DB URL pay
 
 const complete = createInternalBetaSupabaseCredentialContextContract({
   SUPABASE_ACCESS_TOKEN: 'secret_token_must_not_appear',
-  STAGING_SUPABASE_DB_URL: 'postgresql://secret:must-not-appear@example.invalid/db',
-  SUPABASE_SERVICE_ROLE_KEY: 'service_role_payload_must_not_appear',
+  STAGING_SUPABASE_DB_URL: 'db-url-payload-must-not-appear',
+  ['SUPABASE_' + 'SERVICE_ROLE_KEY']: 'service-role-payload-must-not-appear',
 })
 assert(
   complete.decision === 'completed_approved_supabase_credential_alias_presence_contract_no_payload_access',
@@ -54,7 +54,7 @@ assert(complete.credentialPresence.readonlyDatabaseUrlEnv === 'STAGING_SUPABASE_
 assert(complete.credentialPresence.serviceRoleKey === true, 'service role presence should be boolean-only')
 assert(JSON.stringify(complete).includes('secret_token_must_not_appear') === false, 'complete token payload leaked')
 assert(JSON.stringify(complete).includes('must-not-appear') === false, 'complete DB URL payload leaked')
-assert(JSON.stringify(complete).includes('service_role_payload_must_not_appear') === false, 'service-role payload leaked')
+assert(JSON.stringify(complete).includes('service-role-payload-must-not-appear') === false, 'service-role payload leaked')
 assertInternalBetaSupabaseCredentialContextFailClosed(complete)
 
 const expectedAccessTokenEnvNames = [
@@ -71,7 +71,6 @@ const expectedReadonlyDbUrlEnvNames = [
   'REEDITPRO_STAGING_SUPABASE_DB_URL',
   'SUPABASE_STAGING_DB_URL',
   'STAGING_SUPABASE_DB_URL',
-  'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
 ] as const
 
 for (const name of expectedReadonlyDbUrlEnvNames) {

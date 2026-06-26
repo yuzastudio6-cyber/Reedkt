@@ -145,8 +145,18 @@ Next milestone: `SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1`.
 
 `SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1` records decision `completed_service_role_runtime_boundary_validation` and execution `completed_guarded_secret_metadata_and_static_backend_boundary_validation_no_service_role_payload_or_runtime_execution`.
 
-The guarded runner used explicit confirmation and performed only Secret Manager metadata readback for approved references `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `2` and `SUPABASE_ACCESS_TOKEN` version `5`. It did not access, print, summarize, hash, or persist any secret payload. It also statically verified the backend service-role scaffold, approved snapshot service-role persistence guard, credential context boundary, runtime orchestrator boundary, and frontend service-role exposure scan.
+The guarded runner used explicit confirmation and performed only Secret Manager metadata readback for historical sandbox references `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `2` and `SUPABASE_ACCESS_TOKEN` version `5`. It did not access, print, summarize, hash, or persist any secret payload. Current beta target policy now treats that isolated project as historical sandbox evidence only. The single active Supabase target for future internal and external beta readiness is `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`, using active-target aliases such as `REEDITPRO_STAGING_SUPABASE_DB_URL`.
 
 Current status after guarded execution is internal beta `blocked_pending_service_role_persistence_private_storage_artifact_job_and_e2e_gates`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestone: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1`.
+
+## Internal Beta Approved Snapshot Service-Role Persistence Implementation 1
+
+`RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1` records decision `completed_service_role_persistence_envelope_validated_no_remote_write` and execution `completed_backend_service_role_persistence_envelope_no_remote_execution`.
+
+The backend-only implementation validates the future approved snapshot service-role persistence envelope for the single active `Reeditpro` Supabase target contract. It covers `approved_plan_snapshots`, `approval_records`, `api_idempotency_keys`, and `audit_events`, creating deterministic local row shapes, an approved snapshot UUID, request hash, plan/credit/source/timing hashes, approval-record patch metadata, idempotency metadata, and append-only audit metadata without running a route, SQL, RPC, Supabase mutation, worker dispatch, storage operation, signed URL creation, public artifact creation, or beta unlock.
+
+Current status after implementation is internal beta `blocked_pending_guarded_remote_persistence_write_private_storage_artifact_job_and_e2e_gates`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestone: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARDED-REMOTE-WRITE-1`.

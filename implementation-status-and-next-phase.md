@@ -98,7 +98,7 @@ Internal beta remains blocked until clean staging migration history is source-al
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1` completed guarded read-only worker RPC catalog/grant readback on the isolated target. The private `worker_runtime` schema and service-role-only RPC/table grant posture are present; no RPC was executed, no worker lease was claimed, no service-role route ran, and beta remains locked.
 
-`SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1` completed guarded Secret Manager metadata readback and static backend/service-role boundary validation. `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `2` and `SUPABASE_ACCESS_TOKEN` version `5` are enabled as approved metadata references; no secret payload was accessed. The backend service-role scaffold, approved snapshot service-role persistence guard, Supabase credential context, runtime orchestrator guard, and frontend service-role exposure scan passed. Internal beta remains blocked pending separate service-role persistence, private storage/artifact/job, and E2E gates. Next safe gate: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1`.
+`SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1` completed guarded Secret Manager metadata readback and static backend/service-role boundary validation against historical isolated sandbox evidence; no secret payload was accessed. The active beta target policy now consolidates future internal and external beta readiness on the single `Reeditpro` Supabase project `wmyyttnynmteqgcdishd` / `staging`, with the isolated project treated as historical sandbox evidence only. The backend service-role scaffold, approved snapshot service-role persistence guard, Supabase credential context, runtime orchestrator guard, and frontend service-role exposure scan passed. `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1` now validates the backend-only approved snapshot service-role persistence envelope without remote writes. Internal and external beta remain blocked pending guarded remote persistence, private storage/artifact/job, and E2E gates. Next safe gate: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARDED-REMOTE-WRITE-1`.
 
 `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.
 
@@ -419,7 +419,11 @@ The guard `server/services/internal-beta-approved-snapshot-service-role-persiste
 
 Internal beta end-to-end remains `not_ready`. No Supabase mutation, SQL execution, service-role route execution, credit mutation, job enqueue, worker dispatch, provider/model call, signed URL creation, public artifact creation, or internal beta unlock is enabled by this packet.
 
-Next recommended step after credential/target validation: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1`.
+`RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1` records decision `completed_service_role_persistence_envelope_validated_no_remote_write` and execution `completed_backend_service_role_persistence_envelope_no_remote_execution`.
+
+The backend-only implementation validates deterministic local row envelopes for `approved_plan_snapshots`, `approval_records`, `api_idempotency_keys`, and `audit_events`; no Supabase write, SQL, RPC, route execution, worker dispatch, credit mutation, storage access, signed URL, public artifact, or beta unlock occurred.
+
+Next recommended step after credential/target validation and envelope implementation: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARDED-REMOTE-WRITE-1`.
 
 ## RP-INTERNAL-BETA Runtime Readiness Orchestrator 4 Service-Role Persistence Guard Integration
 
@@ -624,7 +628,7 @@ Current run status: `completed_guarded_supabase_target_rls_storage_readonly_vali
 
 The runner `npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed` fails closed when confirmation or safe credential context is absent. With explicit confirmation and approved aliases present, it completed read-only Supabase target identity and public/storage advisor lint checks, writing sanitized reports only under `/tmp`.
 
-Credential alias support: `approved_env_aliases_supported_payloads_redacted`. Accepted access-token aliases are `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, and `REEDITPRO_SUPABASE_ACCESS_TOKEN`. Accepted read-only DB URL aliases are `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, and `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`. The confirmed run used `SUPABASE_ACCESS_TOKEN` and `REEDITPRO_STAGING_SUPABASE_DB_URL`; payload values were read only as ephemeral process environment handoff and were not printed, committed, or persisted in repo docs.
+Credential alias support: `approved_env_aliases_supported_payloads_redacted`. Accepted access-token aliases are `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, and `REEDITPRO_SUPABASE_ACCESS_TOKEN`. Accepted read-only DB URL aliases are `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, and `STAGING_SUPABASE_DB_URL`. The confirmed run used `SUPABASE_ACCESS_TOKEN` and `REEDITPRO_STAGING_SUPABASE_DB_URL`; payload values were read only as ephemeral process environment handoff and were not printed, committed, or persisted in repo docs.
 
 Run ID: `2026-06-26T14-39-42-178Z-ec258ac5`. Target identity: `passed_readonly_management_api_project_list`. Advisor lint: `passed_readonly_public_storage_schema_lint`. RLS validation: `passed_readonly_advisor_lint`. Storage validation: `passed_readonly_storage_schema_advisor_lint`.
 
@@ -674,7 +678,7 @@ Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
 
 Approved access-token aliases: `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, `REEDITPRO_SUPABASE_ACCESS_TOKEN`.
 
-Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`.
+Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`.
 
 Commands executed by preflight: `none`. Credential payloads printed: `false`. Credential payloads persisted: `false`.
 
@@ -696,7 +700,7 @@ Contract module: `server/config/internal-beta-supabase-credential-context-contra
 
 Approved access-token aliases: `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, `REEDITPRO_SUPABASE_ACCESS_TOKEN`.
 
-Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`.
+Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`.
 
 Payload access: `forbidden`. Credential payloads printed: `false`. Credential payloads persisted: `false`.
 

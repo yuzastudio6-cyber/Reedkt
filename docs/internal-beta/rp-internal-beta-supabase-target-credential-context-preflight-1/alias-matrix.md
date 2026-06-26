@@ -10,7 +10,7 @@ Current environment status: `missing_approved_access_token_alias`.
 
 ## Read-Only Database URL Aliases
 
-Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`.
+Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`.
 
 Current environment status: `missing_approved_readonly_db_url_alias`.
 

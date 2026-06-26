@@ -88,3 +88,13 @@ The runner created replacement branch candidate `reeditpro-clean-staging-v2` / `
 Current status after this execution is internal beta `blocked_pending_replacement_branch_remote_only_migration_source_mapping`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-SOURCE-MAPPING-1`.
+
+## Supabase Clean Staging Branch Replacement History Source Mapping 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-SOURCE-MAPPING-1` records decision `blocked_replacement_remote_only_migration_20260626163138_unmapped` and execution `completed_docs_only_replacement_history_source_mapping_no_remote_execution`.
+
+Remote-only migration `20260626163138` on replacement branch candidate `reeditpro-clean-staging-v2` / `rjenorvzqsxwljvvvtxd` is not source-mapped. The adjacent committed local migration `20260625031135_rp_data_03_internal_beta_static_gap_contract.sql` remains local-only source evidence and must not be treated as staging-applied equivalent without additional schema equivalence evidence or explicit owner policy.
+
+Current status after this source mapping is internal beta `blocked_pending_isolated_clean_staging_target_or_explicit_migration_history_policy`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.

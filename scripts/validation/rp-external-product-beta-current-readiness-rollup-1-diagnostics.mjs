@@ -28,6 +28,7 @@ const relatedDiagnosticsAllowlist = [
   'scripts/validation/supabase-clean-staging-branch-current-target-guarded-validation-1-diagnostics.mjs',
   'scripts/validation/supabase-clean-staging-branch-migration-chain-apply-1-diagnostics.mjs',
   'scripts/validation/supabase-clean-staging-branch-replacement-execution-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-replacement-history-source-mapping-1-diagnostics.mjs',
 ]
 
 const followOnSupabaseCleanStagingTargetOwnerApproval1Files = [
@@ -159,6 +160,22 @@ const followOnSupabaseCleanStagingBranchReplacementExecution1Files = [
   'package.json',
 ]
 
+const followOnSupabaseCleanStagingBranchReplacementHistorySourceMapping1Files = [
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-replacement-history-source-mapping-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-replacement-history-source-mapping-1-record.json',
+  'docs/activation-phase-supabase-clean-staging-branch-replacement-history-source-mapping-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-clean-staging-isolated-target-owner-decision-1.md',
+  'docs/implementation-prompts/prompt-supabase-clean-staging-unadopted-branch-cleanup-1.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'docs/production-beta-blocker-inventory.md',
+  'implementation-status-and-next-phase.md',
+  'scripts/validation/supabase-clean-staging-branch-replacement-history-source-mapping-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-replacement-execution-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
+]
+
 const requiredText = [
   packet,
   'blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure',
@@ -281,6 +298,7 @@ const allowed = new Set([
   ...followOnSupabaseCleanStagingBranchMigrationHistoryReconciliation1Files,
   ...followOnSupabaseCleanStagingBranchMigrationHistorySourceDerivedOwnerDecision1Files,
   ...followOnSupabaseCleanStagingBranchReplacementExecution1Files,
+  ...followOnSupabaseCleanStagingBranchReplacementHistorySourceMapping1Files,
 ])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)

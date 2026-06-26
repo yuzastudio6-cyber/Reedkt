@@ -46,6 +46,8 @@ Latest observed PR state after duplicate GPU proof profile hardening: [#862](htt
 
 Latest observed PR state after dedicated GPU runtime target alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `7333352da8c44a03e0b146b775a9506484680c1f`, with an empty check rollup.
 
+Latest observed PR state after on-demand GPU worker payload target hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `6c4530b703386c081f94f087785ffd733e12675d`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.

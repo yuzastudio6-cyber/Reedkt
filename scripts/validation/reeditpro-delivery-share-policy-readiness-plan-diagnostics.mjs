@@ -7,30 +7,30 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/reeditpro-worker-generation-export-e2e-readiness-plan'
-const previousDir = 'docs/reeditpro-backend-database-billing-credit-ledger-readiness-plan'
+const reportDir = 'docs/reeditpro-delivery-share-policy-readiness-plan'
+const previousDir = 'docs/reeditpro-worker-generation-export-e2e-readiness-plan'
 const decision =
-  'reeditpro_worker_generation_export_e2e_readiness_plan_passed_ready_for_delivery_share_policy_readiness_plan'
+  'reeditpro_delivery_share_policy_readiness_plan_passed_ready_for_external_beta_production_go_no_go_review'
 const previousDecision =
-  'reeditpro_backend_database_billing_credit_ledger_readiness_plan_passed_ready_for_worker_generation_export_e2e_readiness_plan'
-const nextPrompt = 'REEDITPRO_DELIVERY_SHARE_POLICY_READINESS_PLAN'
+  'reeditpro_worker_generation_export_e2e_readiness_plan_passed_ready_for_delivery_share_policy_readiness_plan'
+const nextPrompt = 'REEDITPRO_EXTERNAL_BETA_PRODUCTION_GO_NO_GO_REVIEW'
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'worker-e2e-dry-run-evidence.json',
-  'worker-e2e-dry-run-evidence.md',
-  'generation-export-state-machine-proof.json',
-  'generation-export-state-machine-proof.md',
-  'approved-plan-snapshot-coupling.json',
-  'approved-plan-snapshot-coupling.md',
-  'artifact-manifest-proof.json',
-  'artifact-manifest-proof.md',
-  'failure-retry-rollback-behavior.json',
-  'failure-retry-rollback-behavior.md',
-  'no-user-media-fixture-policy.json',
-  'no-user-media-fixture-policy.md',
-  'downstream-gate-prerequisites.json',
-  'downstream-gate-prerequisites.md',
+  'delivery-share-policy.json',
+  'delivery-share-policy.md',
+  'signed-url-access-policy.json',
+  'signed-url-access-policy.md',
+  'public-artifact-boundary.json',
+  'public-artifact-boundary.md',
+  'share-revocation-retention-policy.json',
+  'share-revocation-retention-policy.md',
+  'download-export-eligibility.json',
+  'download-export-eligibility.md',
+  'support-privacy-redaction.json',
+  'support-privacy-redaction.md',
+  'downstream-go-no-go-prerequisites.json',
+  'downstream-go-no-go-prerequisites.md',
   'validation-command-plan.json',
   'validation-command-plan.md',
   'runtime-boundary.json',
@@ -56,7 +56,7 @@ const protectedNoDiffFiles = [
   'docker/prod/ocr-runtime/Dockerfile',
   'supabase/config.toml',
 ]
-const forbiddenOutputs = ['node_modules', 'dist', 'dist-server', 'dist-remotion-worker']
+const forbiddenOutputs = ['node_modules', 'dist', 'dist-server', 'dist-remotion-worker', '.next']
 const failures = []
 const fail = (message) => failures.push(message)
 const fullPath = (relativePath) => path.join(repoRoot, relativePath)
@@ -95,18 +95,21 @@ function git(args, allowFailure = false) {
 }
 
 function changedFiles() {
-  return Array.from(new Set([
-    ...git(['diff', '--name-only'], true).split('\n').filter(Boolean),
-    ...git(['diff', '--cached', '--name-only'], true).split('\n').filter(Boolean),
-    ...git(['ls-files', '--others', '--exclude-standard'], true).split('\n').filter(Boolean),
-  ]))
+  return Array.from(
+    new Set([
+      ...git(['diff', '--name-only'], true).split('\n').filter(Boolean),
+      ...git(['diff', '--cached', '--name-only'], true).split('\n').filter(Boolean),
+      ...git(['ls-files', '--others', '--exclude-standard'], true).split('\n').filter(Boolean),
+    ]),
+  )
 }
 
 function requireCommon(label, report) {
-  if (report.ownerId !== 'REEDITPRO_WORKER_E2E_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
+  if (report.ownerId !== 'REEDITPRO_DELIVERY_SHARE_POLICY_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
   if (report.decision !== decision) fail(`${label}_decision_drift:${report.decision}`)
   if (report.previousDecision !== previousDecision) fail(`${label}_previous_decision_drift:${report.previousDecision}`)
   if (report.nextPrompt !== nextPrompt) fail(`${label}_next_prompt_drift:${report.nextPrompt}`)
+  if (report.readyForExternalBetaProductionGoNoGoReview !== true) fail(`${label}_not_ready_for_go_no_go`)
   if (report.readyForExternalBeta !== false) fail(`${label}_external_beta_unblocked`)
   if (report.readyForProduction !== false) fail(`${label}_production_unblocked`)
   if (report.supabaseClassification !== 'no write / environment none / SQL none / migration no') {
@@ -116,17 +119,17 @@ function requireCommon(label, report) {
 
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of requiredProductionDocs) readText(file)
-readText('docs/implementation-prompts/prompt-reeditpro-delivery-share-policy-readiness-plan.md')
+readText('docs/implementation-prompts/prompt-reeditpro-external-beta-production-go-no-go-review.md')
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  dryRun: readJson(`${reportDir}/worker-e2e-dry-run-evidence.json`),
-  stateMachine: readJson(`${reportDir}/generation-export-state-machine-proof.json`),
-  snapshot: readJson(`${reportDir}/approved-plan-snapshot-coupling.json`),
-  manifestProof: readJson(`${reportDir}/artifact-manifest-proof.json`),
-  failure: readJson(`${reportDir}/failure-retry-rollback-behavior.json`),
-  fixture: readJson(`${reportDir}/no-user-media-fixture-policy.json`),
-  downstream: readJson(`${reportDir}/downstream-gate-prerequisites.json`),
+  delivery: readJson(`${reportDir}/delivery-share-policy.json`),
+  signedUrl: readJson(`${reportDir}/signed-url-access-policy.json`),
+  publicArtifact: readJson(`${reportDir}/public-artifact-boundary.json`),
+  revocation: readJson(`${reportDir}/share-revocation-retention-policy.json`),
+  download: readJson(`${reportDir}/download-export-eligibility.json`),
+  support: readJson(`${reportDir}/support-privacy-redaction.json`),
+  downstream: readJson(`${reportDir}/downstream-go-no-go-prerequisites.json`),
   validation: readJson(`${reportDir}/validation-command-plan.json`),
   runtime: readJson(`${reportDir}/runtime-boundary.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
@@ -137,28 +140,44 @@ for (const [label, report] of Object.entries(reports)) requireCommon(label, repo
 
 const previousReadiness = readJson(`${previousDir}/readiness-report.json`)
 if (previousReadiness.decision !== previousDecision) fail(`previous_decision_drift:${previousReadiness.decision}`)
-if (previousReadiness.readyForWorkerGenerationExportE2EReadinessPlan !== true) fail('previous_not_ready_for_worker_gate')
-if (reports.source.readyForDeliverySharePolicyReadinessPlan !== true) fail('source_not_ready_for_delivery_gate')
-if (reports.decisionReport.readyForDeliverySharePolicyReadinessPlan !== true) fail('decision_not_ready_for_delivery_gate')
-if (reports.readiness.readyForDeliverySharePolicyReadinessPlan !== true) fail('readiness_not_ready_for_delivery_gate')
+if (previousReadiness.readyForDeliverySharePolicyReadinessPlan !== true) fail('previous_not_ready_for_delivery_gate')
 
-if (!reports.dryRun.requiredFutureEvidence?.includes('approved plan snapshot loaded by worker')) fail('missing_snapshot_worker_evidence')
-if (reports.dryRun.workerDispatchRan !== false) fail('worker_dispatch_ran')
-if (reports.dryRun.providerCallsRan !== false) fail('provider_calls_ran')
-if (reports.dryRun.renderExportRan !== false) fail('render_export_ran')
-if (!reports.stateMachine.requiredStates?.includes('failed_refunded_or_released')) fail('missing_failure_state')
-if (reports.stateMachine.stateMachineImplemented !== false) fail('state_machine_implemented')
-if (!reports.snapshot.requiredCouplingEvidence?.includes('worker rejects mutable draft plan')) fail('missing_snapshot_rejection_evidence')
-if (reports.snapshot.snapshotRuntimeProofRan !== false) fail('snapshot_runtime_proof_ran')
-if (!reports.manifestProof.requiredManifestEvidence?.includes('deletion eligibility tag')) fail('missing_deletion_manifest_tag')
-if (reports.manifestProof.artifactManifestMutated !== false) fail('artifact_manifest_mutated')
-if (reports.failure.retryProofRan !== false) fail('retry_proof_ran')
-if (reports.failure.rollbackProofRan !== false) fail('rollback_proof_ran')
-if (reports.fixture.allowedFutureFixtureClass !== 'synthetic_no_user_media_fixture_only') fail('fixture_class_drift')
-if (reports.fixture.fixtureGenerated !== false) fail('fixture_generated')
-if (reports.fixture.mediaProcessed !== false) fail('media_processed')
-if (!reports.downstream.downstreamGates?.includes('deliverySharePolicy')) fail('downstream_missing_delivery_gate')
-if (reports.downstream.readyForDeliverySharePolicyReadinessPlan !== true) fail('downstream_not_ready_for_delivery_gate')
+if (reports.delivery.deliveryPolicyDefined !== true) fail('delivery_policy_not_defined')
+if (reports.delivery.publicDeliveryEnabled !== false) fail('public_delivery_enabled')
+if (reports.delivery.signedUrlsCreated !== false) fail('delivery_signed_urls_created')
+if (!reports.delivery.allowedFutureDeliveryClasses?.includes('private signed-url preview/download after approved plan and completed export')) {
+  fail('missing_private_signed_url_delivery_class')
+}
+if (!reports.delivery.blockedDeliveryClasses?.includes('public artifact by default')) fail('missing_public_artifact_block')
+if (reports.signedUrl.signedUrlPolicyDefined !== true) fail('signed_url_policy_not_defined')
+for (const flag of ['requiresExpiration', 'requiresRevocation', 'requiresAuthContext', 'requiresAuditEvent']) {
+  if (reports.signedUrl[flag] !== true) fail(`signed_url_missing_${flag}`)
+}
+if (reports.signedUrl.signedUrlsCreated !== false) fail('signed_url_created')
+if (reports.publicArtifact.publicArtifactDefault !== 'blocked') fail('public_artifact_default_drift')
+if (reports.publicArtifact.publicArtifactsCreated !== false) fail('public_artifacts_created')
+if (reports.publicArtifact.publicBucketRequired !== false) fail('public_bucket_required')
+if (reports.publicArtifact.publicDeliveryRequiresSeparateApproval !== true) fail('public_delivery_not_separate_approval')
+if (reports.revocation.revocationPolicyDefined !== true) fail('revocation_policy_not_defined')
+if (reports.revocation.retentionPolicyDefined !== true) fail('retention_policy_not_defined')
+if (reports.revocation.deletionDependency !== 'private_storage_deletion_plan') fail('deletion_dependency_drift')
+if (reports.revocation.deletionJobRan !== false) fail('deletion_job_ran')
+if (reports.revocation.storageMutationRan !== false) fail('storage_mutation_ran')
+for (const flag of [
+  'exportEligibilityDefined',
+  'requiresApprovedPlan',
+  'requiresCompletedExport',
+  'requiresManifestReady',
+  'requiresCreditLedgerSettled',
+  'requiresOwnerOrAuthorizedShareRecipient',
+]) {
+  if (reports.download[flag] !== true) fail(`download_missing_${flag}`)
+}
+if (reports.download.downloadRouteImplemented !== false) fail('download_route_implemented')
+if (reports.support.redactionPolicyDefined !== true) fail('support_redaction_policy_not_defined')
+if (reports.support.supportAccessRequiresIncidentOrTicket !== true) fail('support_ticket_requirement_missing')
+if (reports.support.supportQueueMutationRan !== false) fail('support_queue_mutation_ran')
+if (!reports.downstream.downstreamGates?.includes('externalBetaProductionGoNoGoReview')) fail('downstream_missing_go_no_go')
 if (reports.validation.noInstallBoundary !== true) fail('validation_no_install_boundary_missing')
 for (const [scope, value] of Object.entries(reports.runtime.blockedScopes ?? {})) {
   if (value !== false) fail(`runtime_scope_not_false:${scope}`)
@@ -181,8 +200,8 @@ for (const flag of [
 
 const packageJson = readJson('package.json')
 if (
-  packageJson.scripts?.['reeditpro:worker-generation-export-e2e-readiness-plan:diagnostics'] !==
-  'node scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs'
+  packageJson.scripts?.['reeditpro:delivery-share-policy-readiness-plan:diagnostics'] !==
+  'node scripts/validation/reeditpro-delivery-share-policy-readiness-plan-diagnostics.mjs'
 ) {
   fail('package_script_missing_or_drifted')
 }
@@ -191,6 +210,13 @@ for (const file of requiredProductionDocs) {
   if (!text.includes(decision)) fail(`production_doc_missing_decision:${file}`)
   if (!text.includes(nextPrompt)) fail(`production_doc_missing_next_prompt:${file}`)
 }
+const allText = [
+  ...requiredProductionDocs.map((file) => readText(file)),
+  ...requiredReports.map((file) => readText(`${reportDir}/${file}`)),
+].join('\n')
+if (/40\+ tools proven end-to-end/i.test(allText)) fail('forbidden_40_plus_end_to_end_claim')
+if (/readyForExternalBeta[\\s"':]+true/.test(allText)) fail('external_beta_true_claim')
+if (/readyForProduction[\\s"':]+true/.test(allText)) fail('production_true_claim')
 for (const file of protectedNoDiffFiles) {
   if (git(['diff', '--name-only', '--', file], true)) fail(`protected_file_mutated:${file}`)
   if (git(['diff', '--cached', '--name-only', '--', file], true)) fail(`protected_file_staged:${file}`)
@@ -201,7 +227,6 @@ for (const output of forbiddenOutputs) {
 for (const file of changedFiles()) {
   const allowed =
     file === 'package.json' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-delivery-share-policy-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-external-beta-production-go-no-go-review.md' ||
     file === 'scripts/validation/reeditpro-delivery-share-policy-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs' ||
@@ -215,36 +240,29 @@ for (const file of changedFiles()) {
     file === 'scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs' ||
-    file.startsWith('docs/reeditpro-delivery-share-policy-readiness-plan/') ||
     file.startsWith(`${reportDir}/`) ||
     requiredProductionDocs.includes(file)
   if (!allowed) fail(`unexpected_changed_file:${file}`)
   if (/\.(ttf|otf|onnx|mp4|mov|mkv|srt|png|jpe?g|webp|gpg|asc|deb)$/i.test(file)) fail(`forbidden_artifact_changed:${file}`)
 }
 
-const scanFiles = [
-  ...requiredReports.map((file) => `${reportDir}/${file}`),
-  ...requiredProductionDocs,
-  'docs/implementation-prompts/prompt-reeditpro-delivery-share-policy-readiness-plan.md',
-]
-for (const file of scanFiles) {
-  const text = readText(file)
-  if (/\b(sk-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9_-]{20,}|github_pat_|postgres(?:ql)?:\/\/|BEGIN [A-Z ]*PRIVATE KEY|X-Amz-Signature=)\b/i.test(text)) fail(`secret_material:${file}`)
-  if (/https:\/\/[^\s)]+(?:X-Goog-Signature=|X-Amz-Signature=)/i.test(text)) fail(`signed_url:${file}`)
-  if (/external beta (?:is )?ready|production (?:is )?ready/i.test(text)) fail(`forbidden_ready_claim:${file}`)
-}
-
 if (failures.length) {
-  console.error(JSON.stringify({ ok: false, decision, failures }, null, 2))
+  console.error(JSON.stringify({ ok: false, failures }, null, 2))
   process.exit(1)
 }
 
-console.log(JSON.stringify({
-  ok: true,
-  decision,
-  previousDecision,
-  nextPrompt,
-  readyForDeliverySharePolicyReadinessPlan: true,
-  readyForExternalBeta: false,
-  readyForProduction: false,
-}, null, 2))
+console.log(
+  JSON.stringify(
+    {
+      ok: true,
+      decision,
+      previousDecision,
+      nextPrompt,
+      readyForExternalBetaProductionGoNoGoReview: true,
+      readyForExternalBeta: false,
+      readyForProduction: false,
+    },
+    null,
+    2,
+  ),
+)

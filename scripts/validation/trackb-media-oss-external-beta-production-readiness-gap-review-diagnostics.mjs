@@ -273,6 +273,8 @@ for (const file of changedFiles()) {
     file === 'docs/implementation-prompts/prompt-reeditpro-backend-database-billing-credit-ledger-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-worker-generation-export-e2e-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-delivery-share-policy-readiness-plan.md' ||
+    file === 'docs/implementation-prompts/prompt-reeditpro-external-beta-production-go-no-go-review.md' ||
+    file === 'scripts/validation/reeditpro-delivery-share-policy-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-backend-database-billing-credit-ledger-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-observability-incident-support-readiness-plan-diagnostics.mjs' ||
@@ -291,6 +293,7 @@ for (const file of changedFiles()) {
     file.startsWith(`${workerReadinessDir}/`) ||
     file.startsWith(`${observabilityDir}/`) ||
     file.startsWith(`${privateStorageDir}/`) ||
+    file.startsWith('docs/reeditpro-delivery-share-policy-readiness-plan/') ||
     file.startsWith(`${reportDir}/`) ||
     remediationProductionDocs.includes(file) ||
     statusDocs.includes(file)

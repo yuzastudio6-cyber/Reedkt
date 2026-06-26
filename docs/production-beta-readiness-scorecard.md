@@ -93,3 +93,12 @@ approval.
 - Worker E2E dry-run, state-machine, snapshot-coupling, artifact-manifest, failure/retry/rollback, and synthetic no-user-media fixture requirements are defined as metadata only.
 - This is not worker dispatch, provider execution, render/export, media processing, artifact creation, public delivery, paid beta, or production approval.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Delivery / Share Policy Readiness Plan Status
+
+- Decision: `reeditpro_delivery_share_policy_readiness_plan_passed_ready_for_external_beta_production_go_no_go_review`
+- Next prompt: `REEDITPRO_EXTERNAL_BETA_PRODUCTION_GO_NO_GO_REVIEW`
+- Scorecard status: external beta and production remain blocked.
+- Delivery/share metadata defines private signed URL policy, expiration and revocation requirements, blocked public artifacts, support redaction requirements, export download eligibility, and downstream go/no-go prerequisites.
+- This is not signed URL creation, public delivery, storage execution, route runtime, user exposure, paid beta, or production approval.
+- Supabase classification: no write / environment none / SQL none / migration no.

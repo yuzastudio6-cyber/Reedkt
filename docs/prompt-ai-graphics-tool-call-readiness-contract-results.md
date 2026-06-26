@@ -172,6 +172,7 @@ Latest observed PR state after duplicate GPU proof profile hardening: [#862](htt
 - Per-tool model-weight manifest evidence hardening: the beta evidence bundle now rejects count-only manifest packets and requires exact accepted `validationResults` rows for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. The shared diagnostics fixture now models the five accepted private-manifest rows without logging private refs, and execution remains blocked.
 - Per-profile native GPU proof evidence hardening: the beta evidence bundle now rejects count-only GPU proof packets and requires exact accepted `validationResults` rows for `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`, including approved probe metadata, imports, `nvidia-smi`, CUDA, model-manifest checks, raw ref redaction, and false side-effect gates.
 - Duplicate native GPU proof profile hardening: the GPU proof result validator now rejects duplicate result records for required profiles (`gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`) so repeated profile files cannot be silently deduped into owner-review-ready proof. Duplicate profile evidence makes the aggregate packet `invalid_native_gpu_runtime_proof_results`.
+- Dedicated GPU runtime target alignment: SAM2, BiRefNet, and Real-ESRGAN now use exact profile-specific runtime targets (`native_linux_amd64_nvidia_l4_sam2_runtime`, `native_linux_amd64_nvidia_l4_birefnet_runtime`, and `native_linux_amd64_nvidia_l4_real_esrgan_runtime`) in the tool-call readiness contract, proper install audit, and model-weight manifest readiness contract. Diagnostics cross-check the readiness contract against the GPU runtime gate and GPU proof command plan so future Tool Route / Worker handoff cannot collapse dedicated images back into a generic runtime bucket. Execution/runtime/beta/production remain false.
 
 ## Runtime State
 
@@ -196,6 +197,7 @@ Latest observed PR state after duplicate GPU proof profile hardening: [#862](htt
 - `gpuRuntimeProofResultValidatorPrepared=true`
 - `gpuRuntimeProofPerProfileRowsRequired=true`
 - `gpuRuntimeProofDuplicateProfilesRejected=true`
+- `dedicatedGpuRuntimeTargetsExact=true`
 - `betaActivationGapReportPrepared=true`
 - `betaReadinessEvidenceEvaluationPrepared=true`
 - `internalBetaProductionWorkerJobReadinessPrepared=true`

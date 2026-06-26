@@ -13,6 +13,7 @@ This contract connects the 21 AI graphics tools to the agent-facing ranking and 
 - 21-tool install readiness: `docs/tool-intelligence/ai-graphics/21-tool-runtime-install-readiness.json`
 - GPU/model install build targets: `docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json`
 - GPU runtime readiness gate: `docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json`
+- GPU runtime proof command plan: `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json`
 - CPU/static Phase 0 owner review: `docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0-owner-review.json`
 - Node runtime proof: `docs/tool-intelligence/ai-graphics/node-runtime-proof.json`
 - Browser runtime proof: `docs/tool-intelligence/ai-graphics/browser-runtime-proof.json`
@@ -29,6 +30,7 @@ This contract connects the 21 AI graphics tools to the agent-facing ranking and 
 - Production registry mappings: 21.
 - Planning-wrapper records without production IDs: 0.
 - GPU-required runtime tools: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background`.
+- Dedicated GPU runtime targets: `sam2 -> native_linux_amd64_nvidia_l4_sam2_runtime`, `birefnet -> native_linux_amd64_nvidia_l4_birefnet_runtime`, and `real_esrgan -> native_linux_amd64_nvidia_l4_real_esrgan_runtime`.
 - Agent can select tools for planning/study metadata: true.
 - Agent can execute tools now: false.
 - Runtime-ready now: false.

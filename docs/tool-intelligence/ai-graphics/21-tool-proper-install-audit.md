@@ -57,6 +57,8 @@ These tools are installed through GPU worker requirements or dedicated GPU runti
 - `rembg`: `rembg[gpu]==2.0.69` in `docker/prod/gpu-worker/requirements.gpu.txt`.
 - `transparent_background`: `transparent-background==1.3.4` in `docker/prod/gpu-worker/requirements.gpu.txt`.
 
+Dedicated GPU image tools use exact runtime targets: `sam2 -> native_linux_amd64_nvidia_l4_sam2_runtime`, `birefnet -> native_linux_amd64_nvidia_l4_birefnet_runtime`, and `real_esrgan -> native_linux_amd64_nvidia_l4_real_esrgan_runtime`.
+
 The Docker install-proof evidence is recorded in `docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json`. Native NVIDIA runtime proof is still pending.
 
 ## Runtime Blocks

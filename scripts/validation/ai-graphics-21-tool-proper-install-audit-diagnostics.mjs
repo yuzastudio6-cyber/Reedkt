@@ -91,6 +91,17 @@ const expectedGpuTools = [
   'transparent_background',
 ]
 
+const expectedRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const expectedInstallProfiles = ['gpu_worker_ai_graphics', 'sam2', 'real_esrgan', 'birefnet']
 const expectedAiGraphicsModelTemplateIds = [
   'sam2_checkpoint',
@@ -190,6 +201,7 @@ for (const [tool, [filePath, ...needles]] of Object.entries(gpuRequirementNeedle
   }
   const row = auditRows.get(tool)
   if (!row?.runtimeTarget?.includes('nvidia_l4')) fail(`gpu_tool_not_targeting_l4:${tool}:${row?.runtimeTarget}`)
+  if (row?.runtimeTarget !== expectedRuntimeTargets[tool]) fail(`gpu_tool_runtime_target_mismatch:${tool}:${row?.runtimeTarget}`)
   if (!expectedGpuTools.includes(tool)) fail(`unexpected_gpu_tool:${tool}`)
 }
 

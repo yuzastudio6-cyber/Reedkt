@@ -92,6 +92,17 @@ const gpuTools = [
   'transparent_background',
 ]
 
+const expectedRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const capabilities = [
   'chart_overlay',
   'data_visualization',
@@ -111,6 +122,7 @@ const requiredSourceEvidence = {
   installReadiness: 'docs/tool-intelligence/ai-graphics/21-tool-runtime-install-readiness.json',
   gpuInstallBuildTargets: 'docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json',
   gpuRuntimeReadinessGate: 'docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json',
+  gpuRuntimeProofCommandPlan: 'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json',
   cpuStaticPhase0OwnerReview: 'docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0-owner-review.json',
   nodeRuntimeProof: 'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
   browserRuntimeProof: 'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
@@ -276,6 +288,25 @@ for (const tool of gpuTools) {
   if (!contract.gpuRequiredForRuntime.includes(tool)) fail(`gpu_required_list_missing:${tool}`)
   const target = contract.runtimeTargetByTool[tool]
   if (!target || !target.includes('nvidia_l4')) fail(`gpu_tool_not_targeting_nvidia_l4:${tool}:${target}`)
+  if (target !== expectedRuntimeTargets[tool]) fail(`gpu_tool_runtime_target_mismatch:${tool}:${target}`)
+}
+
+const gpuRuntimeGate = parseJson(requiredSourceEvidence.gpuRuntimeReadinessGate)
+const gpuRuntimeProofCommandPlan = parseJson(requiredSourceEvidence.gpuRuntimeProofCommandPlan)
+const expectedDedicatedRuntimeTargets = {
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+}
+for (const [profileId, expectedTarget] of Object.entries(expectedDedicatedRuntimeTargets)) {
+  const gateProfile = gpuRuntimeGate.runtimeProfiles?.find((entry) => entry.profileId === profileId)
+  const planProfile = gpuRuntimeProofCommandPlan.runtimeProfiles?.find((entry) => entry.profileId === profileId)
+  if (gateProfile?.runtimeTarget !== expectedTarget) {
+    fail(`gpu_runtime_gate_profile_target_mismatch:${profileId}:${gateProfile?.runtimeTarget}`)
+  }
+  if (planProfile?.runtimeTarget !== expectedTarget) {
+    fail(`gpu_runtime_command_plan_target_mismatch:${profileId}:${planProfile?.runtimeTarget}`)
+  }
 }
 
 for (const [tool, packageName] of Object.entries(jsPackageByTool)) {

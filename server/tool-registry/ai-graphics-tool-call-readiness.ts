@@ -101,7 +101,9 @@ export type AiGraphicsRuntimeTarget =
   | 'browser_animation_runtime_later'
   | 'browser_canvas_webgl_runtime_later'
   | 'native_linux_amd64_nvidia_l4_gpu_worker'
-  | 'native_linux_amd64_nvidia_l4_dedicated_runtime'
+  | 'native_linux_amd64_nvidia_l4_sam2_runtime'
+  | 'native_linux_amd64_nvidia_l4_birefnet_runtime'
+  | 'native_linux_amd64_nvidia_l4_real_esrgan_runtime'
   | 'planning_only_no_runtime'
 
 export type AiGraphicsReadinessStatus =
@@ -299,7 +301,7 @@ export const aiGraphicsToolCallReadinessRecords = [
     installSurface: 'dedicated_gpu_runtime_image',
     installEvidence: ['docker/prod/sam2-runtime/requirements.sam2.txt', 'pinned git source install at 2b90b9f5ceec907a1c18123530e92e794ad901a4'],
     installStatus: 'runtime_gate_prepared_pending_native_gpu',
-    runtimeTarget: 'native_linux_amd64_nvidia_l4_dedicated_runtime',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_sam2_runtime',
     proofStatus: 'docker_install_proof_target_prepared',
     runtimeStatus: 'blocked_pending_native_gpu_runtime_and_private_checkpoint_manifest',
     gpuRequiredForRuntime: true,
@@ -319,7 +321,7 @@ export const aiGraphicsToolCallReadinessRecords = [
     installSurface: 'dedicated_gpu_runtime_image',
     installEvidence: ['docker/prod/birefnet-runtime/requirements.birefnet.txt: transformers==4.57.6', 'private BiRefNet model snapshot required'],
     installStatus: 'runtime_gate_prepared_pending_native_gpu',
-    runtimeTarget: 'native_linux_amd64_nvidia_l4_dedicated_runtime',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
     proofStatus: 'docker_install_proof_target_prepared',
     runtimeStatus: 'blocked_pending_native_gpu_runtime_and_private_model_manifest',
     gpuRequiredForRuntime: true,
@@ -339,7 +341,7 @@ export const aiGraphicsToolCallReadinessRecords = [
     installSurface: 'dedicated_gpu_runtime_image',
     installEvidence: ['docker/prod/real-esrgan-runtime/requirements.real-esrgan.txt: realesrgan==0.3.0'],
     installStatus: 'runtime_gate_prepared_pending_native_gpu',
-    runtimeTarget: 'native_linux_amd64_nvidia_l4_dedicated_runtime',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
     proofStatus: 'docker_install_proof_target_prepared',
     runtimeStatus: 'blocked_pending_native_gpu_runtime_and_private_weight_manifest',
     gpuRequiredForRuntime: true,

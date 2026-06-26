@@ -56,6 +56,14 @@ const modelTemplateIds = [
   'transparent_background_model',
 ]
 
+const expectedRuntimeTargetByModelWeightTool = {
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const requiredManifestFields = [
   'manifestId',
   'toolId',
@@ -194,6 +202,10 @@ for (const tool of modelWeightTools) {
   if (!contract.modelWeightManifestRequiredTools?.includes(tool)) fail(`model_weight_tool_missing:${tool}`)
   if (!JSON.stringify(contract.requirements || []).includes(`"toolId":"${tool}"`)) fail(`requirement_missing_tool:${tool}`)
   if (!worker.modelWeightManifestRequiredTools?.includes(tool)) fail(`worker_missing_model_weight_tool:${tool}`)
+  const requirement = (contract.requirements || []).find((entry) => entry.toolId === tool)
+  if (requirement?.runtimeTarget !== expectedRuntimeTargetByModelWeightTool[tool]) {
+    fail(`model_weight_runtime_target_mismatch:${tool}:${requirement?.runtimeTarget}`)
+  }
 }
 for (const templateId of modelTemplateIds) {
   if (!contract.modelWeightTemplateIdsCovered?.includes(templateId)) fail(`contract_missing_template:${templateId}`)

@@ -84,7 +84,7 @@
       "productionToolId": "sam2",
       "installSurface": "dedicated_gpu_runtime_image",
       "properlyInstalledForPlannedSurface": true,
-      "runtimeTarget": "native_linux_amd64_nvidia_l4_dedicated_runtime",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
       "runtimeReadyNow": false
     },
     {
@@ -93,7 +93,7 @@
       "productionToolId": "birefnet",
       "installSurface": "dedicated_gpu_runtime_image",
       "properlyInstalledForPlannedSurface": true,
-      "runtimeTarget": "native_linux_amd64_nvidia_l4_dedicated_runtime",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
       "runtimeReadyNow": false
     },
     {
@@ -102,7 +102,7 @@
       "productionToolId": "real_esrgan",
       "installSurface": "dedicated_gpu_runtime_image",
       "properlyInstalledForPlannedSurface": true,
-      "runtimeTarget": "native_linux_amd64_nvidia_l4_dedicated_runtime",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
       "runtimeReadyNow": false
     },
     {

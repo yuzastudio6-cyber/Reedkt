@@ -83,6 +83,8 @@ Tool Route, Worker, approved snapshot, credit reservation, private artifact, ide
 
 `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background` remain GPU-runtime targeted. This contract does not introduce CPU fallback for heavy tools.
 
+Dedicated model image tools use exact native GPU runtime targets: `sam2 -> native_linux_amd64_nvidia_l4_sam2_runtime`, `birefnet -> native_linux_amd64_nvidia_l4_birefnet_runtime`, and `real_esrgan -> native_linux_amd64_nvidia_l4_real_esrgan_runtime`.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` or `npm install` ran, no package-lock mutation was performed, no model weights were downloaded or loaded, no model inference ran, no media was processed, no worker was queued, no tool/route/worker/provider executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

@@ -111,7 +111,7 @@
       "modelWeightsDownloaded": false,
       "modelWeightsLoaded": false,
       "gpuRequiredForRuntime": true,
-      "runtimeTarget": "native_linux_amd64_nvidia_l4_dedicated_runtime",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
       "nextProofMilestone": "sam2_private_checkpoint_manifest_review_then_native_gpu_fixture_runtime"
     },
     {
@@ -125,7 +125,7 @@
       "modelWeightsDownloaded": false,
       "modelWeightsLoaded": false,
       "gpuRequiredForRuntime": true,
-      "runtimeTarget": "native_linux_amd64_nvidia_l4_dedicated_runtime",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
       "nextProofMilestone": "birefnet_private_model_manifest_review_then_native_gpu_fixture_runtime"
     },
     {
@@ -139,7 +139,7 @@
       "modelWeightsDownloaded": false,
       "modelWeightsLoaded": false,
       "gpuRequiredForRuntime": true,
-      "runtimeTarget": "native_linux_amd64_nvidia_l4_dedicated_runtime",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
       "nextProofMilestone": "real_esrgan_private_weight_manifest_review_then_native_gpu_fixture_runtime"
     },
     {

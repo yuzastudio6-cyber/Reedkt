@@ -1,0 +1,134 @@
+{
+  "decision": "ai_graphics_cross_owner_coordination_verified_without_duplicate_owner_claims",
+  "status": "verified_with_runtime_blocks",
+  "ownerRoute": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "counts": {
+    "canonicalAiGraphicsTools": 21,
+    "toolCallRecords": 21,
+    "productionToolMappings": 21,
+    "uniqueAiGraphicsProductionToolIds": 21,
+    "productionRegistryProfiles": 56,
+    "productionRegistryDuplicateToolIds": 0,
+    "missingProductionProfiles": 0,
+    "duplicateCanonicalToolIds": 0,
+    "duplicateProductionToolIds": 0,
+    "trackAExcludedOverlaps": 0,
+    "nonAiGraphicsReservedOverlaps": 0,
+    "productFacingCapabilityIds": 12
+  },
+  "booleans": {
+    "crossOwnerCoordinationVerified": true,
+    "all21AiGraphicsToolsCovered": true,
+    "allAiGraphicsProductionMappingsPresent": true,
+    "allAiGraphicsProductionMappingsUnique": true,
+    "allAiGraphicsProductionProfilesExist": true,
+    "productionRegistryToolIdsUnique": true,
+    "trackAExcludedToolsNotClaimed": true,
+    "trackBExclusionPreservedAsEvidenceOnly": true,
+    "nonAiGraphicsReservedToolIdsNotClaimed": true,
+    "internalOwnerLabelsNotProductCapabilityIds": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "modelWeightsDownloaded": false,
+    "mediaProcessingPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "aiGraphicsProductionToolIds": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background",
+    "d3",
+    "echarts",
+    "vega_lite",
+    "vega",
+    "satori",
+    "svgdotjs_svg_js",
+    "viz_js",
+    "lottie",
+    "animejs",
+    "three_js",
+    "pixijs",
+    "konva",
+    "babylon_js"
+  ],
+  "productionToolIdByCanonicalToolId": {
+    "torch_torchvision": "torch_torchvision",
+    "transformers": "transformers",
+    "sam2": "sam2",
+    "birefnet": "birefnet",
+    "real_esrgan": "real_esrgan",
+    "kornia": "kornia",
+    "rembg": "rembg",
+    "transparent_background": "transparent_background",
+    "d3": "d3",
+    "echarts": "echarts",
+    "vega_lite": "vega_lite",
+    "vega": "vega",
+    "satori": "satori",
+    "svgdotjs_svg_js": "svgdotjs_svg_js",
+    "viz_js": "viz_js",
+    "lottie_web": "lottie",
+    "animejs": "animejs",
+    "three_js": "three_js",
+    "pixi_js": "pixijs",
+    "konva": "konva",
+    "babylonjs": "babylon_js"
+  },
+  "duplicateCanonicalToolIds": [],
+  "duplicateProductionToolIds": [],
+  "productionRegistryDuplicateToolIds": [],
+  "missingProductionProfiles": [],
+  "trackAExcludedOverlaps": [],
+  "nonAiGraphicsReservedOverlaps": [],
+  "ownerExclusionEvidence": {
+    "trackA": {
+      "ownerRoute": "TRACK_A_RENDER_EXPORT",
+      "excludedProductionToolIds": [
+        "remotion",
+        "revideo"
+      ],
+      "excludedPackageNames": [
+        "@remotion/renderer"
+      ],
+      "evidence": [
+        "PR #544 Track A render/export owner context",
+        "docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-excluded-tools.md",
+        "docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-tool-inventory.json"
+      ]
+    },
+    "trackB": {
+      "ownerRoute": "TRACK_B_MEDIA_OSS_STEWARD",
+      "status": "evidence_only_exclusion_context",
+      "evidence": [
+        "PR #542 Track B media OSS steward owner registry",
+        "PR #543 owner assignment and conflict sync",
+        "Track B labels are evidence-only context, not AI graphics product-facing capability categories"
+      ]
+    }
+  },
+  "coordinationNotes": [
+    "AI graphics owns only the 21 canonical tool-call planning records in this packet.",
+    "Track A render/export tools remain excluded from AI graphics ownership and execution claims.",
+    "Track B media ownership remains evidence-only exclusion context for this AI graphics lane.",
+    "Production registry aliases are intentional for lottie_web -> lottie, pixi_js -> pixijs, and babylonjs -> babylon_js.",
+    "This packet verifies uniqueness and owner boundaries; it does not execute tools or unlock runtime."
+  ]
+}

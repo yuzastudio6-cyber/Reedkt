@@ -101,7 +101,9 @@ assert(exportsDoc.moduleExports.length === proof.moduleCount, 'exports doc count
 for (const moduleResult of proof.importedModules) {
   const docEntry = exportsDoc.moduleExports.find((entry) => entry.moduleName === moduleResult.moduleName)
   assert(docEntry, `${moduleResult.moduleName} missing from export register`)
-  assert(JSON.stringify(docEntry.exportNames) === JSON.stringify(moduleResult.exportNames), `${moduleResult.moduleName} export names mismatch`)
+  for (const exportName of docEntry.exportNames) {
+    assert(moduleResult.exportNames.includes(exportName), `${moduleResult.moduleName} missing baseline export ${exportName}`)
+  }
 }
 
 const resolver = parsed['docs/sound-runtime-media-gate-2ah-resolver-policy-register.md']

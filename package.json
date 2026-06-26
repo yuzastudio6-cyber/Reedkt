@@ -666,6 +666,8 @@
     "rp-internal-beta-private-artifact-manifest-local-runtime-1:diagnostics": "node scripts/validation/rp-internal-beta-private-artifact-manifest-local-runtime-1-diagnostics.mjs",
     "smoke:internal-beta-private-artifact-access-policy-local-runtime": "tsx server/smoke/internal-beta-private-artifact-access-policy-local-runtime-smoke.ts",
     "rp-internal-beta-private-artifact-access-policy-local-runtime-1:diagnostics": "node scripts/validation/rp-internal-beta-private-artifact-access-policy-local-runtime-1-diagnostics.mjs",
+    "smoke:internal-beta-local-e2e-chain-smoke": "tsx server/smoke/internal-beta-local-e2e-chain-smoke.ts",
+    "rp-internal-beta-local-e2e-chain-smoke-1:diagnostics": "node scripts/validation/rp-internal-beta-local-e2e-chain-smoke-1-diagnostics.mjs",
     "smoke:internal-beta-remotion-private-preview-export-local-runtime": "tsx server/smoke/internal-beta-remotion-private-preview-export-local-runtime-smoke.ts",
     "rp-internal-beta-remotion-private-preview-export-local-runtime-1:diagnostics": "node scripts/validation/rp-internal-beta-remotion-private-preview-export-local-runtime-1-diagnostics.mjs",
     "rp-internal-beta-remotion-private-preview-export-confirmed-run-1": "node scripts/validation/rp-internal-beta-remotion-private-preview-export-confirmed-run-1.mjs",

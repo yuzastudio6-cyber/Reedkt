@@ -77,6 +77,8 @@
     "ai-graphics:beta-production-readiness-rollup:diagnostics": "node scripts/validation/ai-graphics-beta-production-readiness-rollup-diagnostics.mjs",
     "ai-graphics:internal-beta-go-no-go": "tsx server/cli/ai-graphics-internal-beta-go-no-go.ts",
     "ai-graphics:internal-beta-go-no-go:diagnostics": "node scripts/validation/ai-graphics-internal-beta-go-no-go-diagnostics.mjs",
+    "ai-graphics:internal-beta-go-no-go-owner-approval": "tsx server/cli/ai-graphics-internal-beta-go-no-go-owner-approval.ts",
+    "ai-graphics:internal-beta-go-no-go-owner-approval:diagnostics": "node scripts/validation/ai-graphics-internal-beta-go-no-go-owner-approval-diagnostics.mjs",
     "ai-graphics:cross-owner-coordination": "tsx server/cli/ai-graphics-cross-owner-coordination.ts",
     "ai-graphics:cross-owner-coordination:diagnostics": "node scripts/validation/ai-graphics-cross-owner-coordination-diagnostics.mjs",
     "ai-graphics:tool-route-readiness:diagnostics": "node scripts/validation/ai-graphics-tool-route-readiness-diagnostics.mjs",

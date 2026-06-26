@@ -27,6 +27,18 @@ runtime, download or load model weights, process media, create signed URLs or
 public artifacts, unlock internal beta runtime, unlock external beta, or unlock
 production.
 
+AI graphics internal beta go/no-go owner approval decision
+`ai_graphics_internal_beta_go_no_go_owner_approved_with_runtime_blocks`
+owner-approves the all-21 internal beta go/no-go evidence record with status
+`internal_beta_go_no_go_owner_approved_runtime_still_blocked`. It accepts the
+install, ranking, GPU targeting, duplicate coordination, and provided
+production-worker gate evidence for a future internal beta runtime-enqueue
+approval lane, but it does not execute tools, run Tool Routes, queue or
+dispatch Workers, call providers/models, run browser/canvas/WebGL, run
+GPU/model runtime, download or load model weights, process media, create signed
+URLs or public artifacts, unlock internal beta runtime, unlock external beta,
+or unlock production.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

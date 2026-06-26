@@ -30,7 +30,7 @@ const REQUIRED_REQUIREMENTS = [
   "qwen-vl-utils==0.0.11",
   "Pillow==10.4.0",
   "numpy==1.26.4",
-  "opencv-python-headless==4.10.0.84",
+  "opencv-python-headless==4.11.0.86",
   "google-cloud-storage==2.19.0"
 ];
 

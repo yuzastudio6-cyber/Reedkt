@@ -764,7 +764,8 @@
     "trackb-media-oss:product-beta-readiness-reconciliation:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-readiness-reconciliation-diagnostics.mjs",
     "trackb-media-oss:product-beta-go-no-go-review:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-go-no-go-review-diagnostics.mjs",
     "trackb-media-oss:product-beta-readiness-closeout:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-readiness-closeout-diagnostics.mjs",
-    "trackb-media-oss:product-beta-runtime-approval:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-runtime-approval-diagnostics.mjs"
+    "trackb-media-oss:product-beta-runtime-approval:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-runtime-approval-diagnostics.mjs",
+    "trackb-media-oss:product-beta-runtime-controlled-activation-execution:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-runtime-controlled-activation-execution-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

@@ -1,0 +1,90 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
+  "previousDecision": "trackb_media_oss_product_beta_runtime_approval_passed_ready_for_product_beta_runtime_controlled_activation_execution",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-controlled-activation-execution",
+  "sourceSha": "1dee0a124f6797cb56bffe1a88bd8410c40ef0fc",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW",
+  "routeDispatchEnabled": false,
+  "workerDispatchEnabled": false,
+  "realToolExecutionEnabled": false,
+  "perToolAllowlistMode": "metadata_only_fail_closed",
+  "ranking": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars",
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr",
+    "ffmpeg"
+  ],
+  "useCaseMatrix": [
+    {
+      "useCase": "metadata_probe",
+      "order": [
+        "ffprobe",
+        "mediainfo",
+        "exiftool",
+        "duckdb",
+        "polars_nodejs_polars"
+      ],
+      "activationMode": "fail_closed_metadata_route_only"
+    },
+    {
+      "useCase": "video_analysis",
+      "order": [
+        "ffprobe",
+        "mediainfo",
+        "pyav",
+        "opencv",
+        "pyscenedetect"
+      ],
+      "activationMode": "fail_closed_control_record_only_no_media_decode"
+    },
+    {
+      "useCase": "image_color_pipeline",
+      "order": [
+        "sharp_libvips",
+        "opencolorio",
+        "openimageio",
+        "imagemagick",
+        "opencv"
+      ],
+      "activationMode": "fail_closed_control_record_only_no_image_processing"
+    },
+    {
+      "useCase": "ocr_text_extraction",
+      "order": [
+        "tesseract",
+        "paddlepaddle",
+        "paddleocr"
+      ],
+      "activationMode": "fail_closed_control_record_only_no_ocr_inference"
+    },
+    {
+      "useCase": "high_risk_media_transform",
+      "order": [
+        "ffmpeg"
+      ],
+      "activationMode": "deferred_no_product_transform_runtime"
+    }
+  ]
+}

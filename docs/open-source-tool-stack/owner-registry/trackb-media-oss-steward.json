@@ -241,9 +241,11 @@
   "sourceEvidence": {
     "batch2CandidateInventory": "docs/open-source-tool-stack/batch-2-planning-after-batch-1-rollup/batch-2-candidate-inventory.json",
     "batch1AcceptedMatrix": "docs/open-source-tool-stack/batch-1-final-rollup-after-ffmpeg-ffprobe-proof/batch-1-accepted-tools-matrix.json",
-    "ownerLaneCounts": "docs/open-source-tool-stack/owner-lane-reconciliation-after-batch-1-rollup/reconciled-tool-count-summary.json"
+    "ownerLaneCounts": "docs/open-source-tool-stack/owner-lane-reconciliation-after-batch-1-rollup/reconciled-tool-count-summary.json",
+    "trackbProductBetaRuntimeControlledActivationExecutionDecision": "trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
+    "trackbProductBetaRuntimeControlledActivationExecutionSourceSha": "1dee0a124f6797cb56bffe1a88bd8410c40ef0fc"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW",
   "supabaseClassification": {
     "updateRequired": "no write",
     "environmentTouched": "none",
@@ -904,5 +906,29 @@
     "externalBetaReady": false,
     "productionReady": false,
     "productReady": false
+  },
+  "productBetaRuntimeControlledActivationExecution": {
+    "decision": "trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
+    "previousDecision": "trackb_media_oss_product_beta_runtime_approval_passed_ready_for_product_beta_runtime_controlled_activation_execution",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-controlled-activation-execution",
+    "sourceSha": "1dee0a124f6797cb56bffe1a88bd8410c40ef0fc",
+    "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+    "controlledActivationExecutionPassed": true,
+    "readyForControlledActivationQaReview": true,
+    "productReadyCount": 0,
+    "trackBTotals": {
+      "owned": 16,
+      "boundedAcceptedProven": 16,
+      "blockedNotInstalledProven": 0,
+      "productReady": 0
+    },
+    "liveProductCallsApproved": false,
+    "directRouteDispatchApproved": false,
+    "workerDispatchToRealToolsApproved": false,
+    "realToolExecutionApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW",
+    "supabaseClassification": "no write / environment none / SQL none / migration no"
   }
 }

@@ -57,6 +57,8 @@
     "ai-graphics:model-weight-manifest-readiness:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-readiness-diagnostics.mjs",
     "ai-graphics:model-weight-manifest-review:validate": "tsx server/cli/ai-graphics-model-weight-manifest-review.ts",
     "ai-graphics:model-weight-manifest-review-packet:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-review-packet-diagnostics.mjs",
+    "ai-graphics:gpu-runtime-proof-command-plan": "tsx server/cli/ai-graphics-gpu-runtime-proof-command-plan.ts",
+    "ai-graphics:gpu-runtime-proof-command-plan:diagnostics": "node scripts/validation/ai-graphics-gpu-runtime-proof-command-plan-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

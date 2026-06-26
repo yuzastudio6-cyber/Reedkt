@@ -34,6 +34,8 @@ Latest observed PR state after model-weight manifest review packet completion: [
 
 Latest observed PR state after private manifest validator completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `cdcb51169be3c7a6b54293f4a2e4a65fd80fe9cb`, with an empty check rollup.
 
+Latest observed PR state after GPU runtime proof command-plan bridge completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `02881584f75de20063fde45214293cf8ce3d8a1e`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.
@@ -103,6 +105,14 @@ Latest observed PR state after private manifest validator completion: [#862](htt
   - `ai-graphics:model-weight-manifest-review:validate`
   - `ai-graphics:model-weight-manifest-review-packet:diagnostics`
 - Manifest review packet result: all five private-manifest-required tools are covered with exact template IDs and required review fields. A local/private validator can read manifest files from `.local-artifacts` paths and emits only redacted `privateArtifactRefStatus` values. Public docs still contain 0 private manifest records, 0 schema-valid records, 0 review-accepted records, 0 native GPU proof input eligible records, 0 logged private artifact refs, and 0 beta-ready model-weight tools.
+- Added server-only GPU runtime proof command-plan bridge:
+  - `server/tool-registry/ai-graphics-gpu-runtime-proof-command-plan.ts`
+  - `server/cli/ai-graphics-gpu-runtime-proof-command-plan.ts`
+  - `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.md`
+  - `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json`
+  - `ai-graphics:gpu-runtime-proof-command-plan`
+  - `ai-graphics:gpu-runtime-proof-command-plan:diagnostics`
+- GPU runtime proof command-plan result: all eight GPU/model tools, all five private-manifest-required tools, and all four native GPU runtime profiles are covered. The command-plan CLI can read local-only private manifest JSON, produce redacted native GPU proof commands with `<local-private-model-weight-root>` mount placeholders, and classify readiness as `missing_private_manifests`, `invalid_private_manifests`, or `ready_for_native_gpu_runtime_probe_input`. It does not run Docker, use GPU, load models, run inference, process media, or approve execution.
 
 ## Runtime State
 
@@ -122,6 +132,7 @@ Latest observed PR state after private manifest validator completion: [#862](htt
 - `modelWeightsDownloaded=false`
 - `modelWeightsLoaded=false`
 - `modelInferencePerformed=false`
+- `nativeGpuRuntimeProofStillRequired=true`
 - `approvedPlanSnapshotRequired=true`
 - `creditReservationRequired=true`
 - `artifactBoundaryApprovalRequired=true`

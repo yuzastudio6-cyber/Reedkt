@@ -86,6 +86,17 @@ route execution, tool execution, browser/canvas/WebGL runtime, GPU/model
 runtime, model-weight loading, media processing, signed URLs, public artifacts,
 internal beta runtime, external beta, and production blocked.
 
+AI graphics internal beta backend queue storage readiness decision
+`ai_graphics_internal_beta_backend_queue_storage_readiness_contract_prepared_with_mock_service_records`
+maps the all-21 dispatcher-ready payloads into the existing backend
+`createJobService` boundary as mock-only `ai_graphics_tool_runtime` job-service
+records. It confirms that AI graphics runtime jobs require approved snapshot and
+credit reservation IDs, creates 21 mock job records and 12 capability scenarios
+with provided evidence, and keeps live Supabase job writes, worker claim rows,
+live worker dispatch, route execution, tool execution, browser/canvas/WebGL
+runtime, GPU/model runtime, model-weight loading, media processing, signed URLs,
+public artifacts, internal beta runtime, external beta, and production blocked.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

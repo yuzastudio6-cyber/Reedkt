@@ -2,7 +2,14 @@ import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import { createMockId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
 
-const EXECUTION_JOB_TYPES = new Set(['generation', 'render_preview', 'render_export', 'export', 'provider_request'])
+const EXECUTION_JOB_TYPES = new Set([
+  'generation',
+  'render_preview',
+  'render_export',
+  'export',
+  'provider_request',
+  'ai_graphics_tool_runtime',
+])
 
 export function createJobService(context: ServiceContext) {
   return {

@@ -1,0 +1,46 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-TARGET-OWNER-APPROVAL-1",
+  "decision": "approved_clean_staging_target_path_for_guarded_migration_chain_validation",
+  "execution": "completed_docs_only_clean_staging_target_owner_approval_no_remote_execution",
+  "integrationHead": "60a9a620f1e4b8aab5ac69d7f0a190abfec47873",
+  "sourceDependencies": {
+    "pr1028": "rp_external_product_beta_current_readiness_rollup_1",
+    "pr1019": "supabase_staging_migration_history_owner_decision_1",
+    "historicalCleanStagingApproval": "approved_for_future_clean_supabase_staging_branch",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "approval": {
+    "currentCleanStagingPathApproval": "approved_clean_non_production_staging_branch_or_project_for_future_guarded_execution",
+    "preferredCleanTarget": "clean_supabase_staging_branch",
+    "fallbackCleanTarget": "clean_supabase_staging_project",
+    "existingDivergentStagingFullPendingSetApplyApproval": "not_approved",
+    "existingDivergentStagingMutationApproval": "not_approved"
+  },
+  "readiness": {
+    "workerRuntimeTransactionalContract2": "ready_for_clean_staging_target_guarded_execution_plan",
+    "workerRuntimeTrackaPrivateE2eExecutionGate2r": "blocked_pending_clean_staging_target_migration_chain_and_rpc_readback",
+    "trackaPrivateE2eRevalidation2": "blocked_pending_worker_transactional_contract",
+    "internalBetaReadinessRollup": "blocked_pending_clean_staging_target_migration_chain_and_runtime_gate_closure",
+    "externalProductBeta": "blocked_pending_internal_beta_evidence_security_privacy_support_cost_and_deployment_gates"
+  },
+  "safety": {
+    "remoteSupabaseCommandClass": "none_in_this_phase",
+    "supabaseMutation": false,
+    "sqlMutation": false,
+    "migrationApply": false,
+    "migrationHistoryTableEdited": false,
+    "productionTouched": false,
+    "secretPayloadAccess": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "nextMilestone": "SUPABASE-CLEAN-STAGING-BRANCH-EXECUTION-CURRENT-TARGET-REVALIDATION-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

@@ -6,8 +6,8 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | --- | --- | --- |
 | Supabase target owner decision | `completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning` | Carry forward only |
 | Supabase read-only target validation | `completed_guarded_supabase_target_rls_storage_readonly_validation` | Carry forward only |
-| Staging migration path | `blocked_no_owner_approval_for_staging_migration_apply_or_clean_target` | `APPROVE CLEAN STAGING TARGET` or `APPROVE FULL REVIEWED STAGING MIGRATION SET APPLY` |
-| Worker RPC 4R | `blocked_pending_explicit_staging_migration_path_approval` | guarded SQL/migration path plus readback |
+| Staging migration path | `clean_target_path_owner_approved_after_rollup` | guarded clean target execution and readback |
+| Worker RPC 4R | `blocked_pending_clean_staging_target_migration_chain_and_rpc_readback` | guarded clean target migration path plus readback |
 | Service-role route runtime | `blocked_pending_worker_transactional_contract` | post-RPC runtime validation |
 | Approved snapshot persistence | `blocked_pending_service_role_runtime_validation` | guarded Supabase persistence evidence |
 | Credit reservation ledger | `blocked_pending_service_role_runtime_validation` | guarded internal ledger mutation evidence |
@@ -23,4 +23,4 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`OWNER ACTION REQUIRED - approve full reviewed staging migration set or clean staging target before RPC 4R SQL execution`
+`SUPABASE-CLEAN-STAGING-BRANCH-EXECUTION-CURRENT-TARGET-REVALIDATION-1`

@@ -16,3 +16,7 @@ Docs basis: https://supabase.com/docs/reference/cli/supabase-db-push, https://su
 The older `restricted_internal_testing_candidate` aggregation remains metadata-only context. It does not override the current blocker `blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure`.
 
 Current status: internal beta `blocked_pending_explicit_staging_migration_path_approval`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+## Clean Target Approval Follow-Up
+
+`SUPABASE-CLEAN-STAGING-TARGET-OWNER-APPROVAL-1` selects the clean non-production staging branch/project path for future guarded execution. It does not unlock internal beta or external beta. Current status after that owner approval remains internal beta `blocked_pending_clean_staging_target_migration_chain_and_runtime_gate_closure`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.

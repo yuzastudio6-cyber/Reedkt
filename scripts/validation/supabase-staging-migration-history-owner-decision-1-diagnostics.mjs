@@ -40,6 +40,16 @@ const followOnExternalProductBetaCurrentReadinessRollup1Files = [
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
 ]
 
+const followOnSupabaseCleanStagingTargetOwnerApproval1Files = [
+  'docs/supabase-worker-runtime/supabase-clean-staging-target-owner-approval-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-target-owner-approval-1-record.json',
+  'docs/activation-phase-supabase-clean-staging-target-owner-approval-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-clean-staging-branch-execution-current-target-revalidation-1.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'scripts/validation/supabase-clean-staging-target-owner-approval-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'blocked_no_owner_approval_for_staging_migration_apply_or_clean_target',
@@ -175,7 +185,12 @@ const changed = [...new Set([
   ...gitLines(['diff', '--cached', '--name-only']),
   ...gitLines(['ls-files', '--others', '--exclude-standard']),
 ])]
-const allowed = new Set([...requiredFiles, ...inheritedFiles, ...followOnExternalProductBetaCurrentReadinessRollup1Files])
+const allowed = new Set([
+  ...requiredFiles,
+  ...inheritedFiles,
+  ...followOnExternalProductBetaCurrentReadinessRollup1Files,
+  ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
+])
 for (const file of changed) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)
   if (file === 'package-lock.json') fail('package-lock changed')

@@ -23,6 +23,8 @@
   "contractSurface": {
     "serverModule": "server/tool-registry/ai-graphics-beta-readiness-gate.ts",
     "serverExport": "server/tool-registry/index.ts",
+    "evaluatorCli": "server/cli/ai-graphics-beta-readiness-gate-evaluate.ts",
+    "evaluatorScript": "ai-graphics:beta-readiness-gate:evaluate",
     "diagnostic": "scripts/validation/ai-graphics-beta-readiness-gate-diagnostics.mjs",
     "packageScript": "ai-graphics:beta-readiness-gate:diagnostics"
   },
@@ -36,6 +38,13 @@
     "heavyToolsIncorrectlyTargetingCpu": 0,
     "betaTestingReadyTools": 0,
     "blockedTools": 21
+  },
+  "evidenceEvaluationMode": {
+    "defaultEvidenceReadyTools": 0,
+    "allCurrentEvidenceFlagsReadyTools": 4,
+    "allCurrentEvidenceFlagsStillBlockedTools": 17,
+    "readyOnlyWhenProfilesAndPoliciesAllow": true,
+    "executionPerformedByEvaluator": false
   },
   "gpuRuntimeTargetedTools": [
     "torch_torchvision",

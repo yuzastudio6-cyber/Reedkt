@@ -80,11 +80,13 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up model-weight manifest scaffold adds `server/tool-registry/ai-graphics-model-weight-manifest-scaffold.ts`, `server/cli/ai-graphics-model-weight-manifest-scaffold.ts`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.md`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.json`, `ai-graphics:model-weight-manifest-scaffold`, and `ai-graphics:model-weight-manifest-scaffold:diagnostics` so operators can create local-only runtime mount layout templates for the five private model/checkpoint manifests without committing secrets or enabling runtime.
 - Follow-up GPU runtime proof result validator adds `server/tool-registry/ai-graphics-gpu-runtime-proof-result.ts`, `server/cli/ai-graphics-gpu-runtime-proof-result.ts`, `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.md`, `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json`, `ai-graphics:gpu-runtime-proof-result:validate`, and `ai-graphics:gpu-runtime-proof-result:diagnostics` so externally generated native NVIDIA proof JSON can be ingested, redacted, and classified as owner-review-ready without approving runtime or beta.
 - Follow-up beta activation gap report adds `server/tool-registry/ai-graphics-beta-activation-gap-report.ts`, `server/cli/ai-graphics-beta-activation-gap-report.ts`, `docs/tool-intelligence/ai-graphics/beta-activation-gap-report.md`, `docs/tool-intelligence/ai-graphics/beta-activation-gap-report.json`, `ai-graphics:beta-activation-gap-report`, and `ai-graphics:beta-activation-gap-report:diagnostics` so all 21 tools have a machine-readable activation gap checklist, duplicate production mapping check, and GPU-only verification for all eight heavy/model tools.
+- Follow-up evidence-driven beta gate evaluation updates `server/tool-registry/ai-graphics-beta-readiness-gate.ts`, adds `server/cli/ai-graphics-beta-readiness-gate-evaluate.ts`, and adds `ai-graphics:beta-readiness-gate:evaluate` so supplied owner/runtime evidence can clear conditional blockers while profile, license, and model-weight policy blockers remain enforced.
 
 ## Expected Validation
 
 - `git diff --check`
 - `npm run --silent ai-graphics:beta-readiness-gate:diagnostics`
+- `npm run --silent ai-graphics:beta-readiness-gate:evaluate`
 - `npm run --silent ai-graphics:beta-activation-gap-report:diagnostics`
 - `npm run --silent ai-graphics:tool-route-readiness:diagnostics`
 - `npm run --silent ai-graphics:worker-handoff-readiness:diagnostics`

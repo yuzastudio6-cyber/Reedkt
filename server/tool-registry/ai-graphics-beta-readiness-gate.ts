@@ -7,7 +7,7 @@ import {
   type AiGraphicsCanonicalToolId,
 } from './ai-graphics-tool-call-readiness'
 import { buildAiGraphicsToolCallHandoffContract } from './ai-graphics-tool-call-handoff'
-import type { ProductionRegistryWorkerType, ProductionToolId } from './production-tool-types'
+import type { ProductionRegistryWorkerType, ProductionToolId, ProductionToolStatus } from './production-tool-types'
 
 export const AI_GRAPHICS_BETA_READINESS_GATE_DECISION =
   'ai_graphics_beta_readiness_gate_prepared_with_current_runtime_blocks'
@@ -38,7 +38,8 @@ export interface AiGraphicsBetaReadinessToolGate {
   licensePolicyAllowed: boolean
   modelWeightPolicyAllowed: boolean
   runtimePolicyAllowed: boolean
-  betaTestingReadyNow: false
+  productionStatus: ProductionToolStatus
+  betaTestingReadyNow: boolean
   blockers: string[]
   warnings: string[]
 }
@@ -52,8 +53,8 @@ export interface AiGraphicsBetaReadinessGate {
   planningSelectableTools: 21
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
   heavyToolsIncorrectlyTargetingCpu: 0
-  betaTestingReadyTools: 0
-  blockedTools: 21
+  betaTestingReadyTools: number
+  blockedTools: number
   evidence: Required<AiGraphicsBetaReadinessEvidence>
   tools: AiGraphicsBetaReadinessToolGate[]
   globalBlockers: string[]
@@ -98,12 +99,21 @@ function buildRuntimeSpecificBlockers(input: {
   modelWeightsRequired: boolean
   modelWeightPolicyAllowed: boolean
   profileWorkerType: ProductionRegistryWorkerType
+  productionStatus: ProductionToolStatus
   evidence: Required<AiGraphicsBetaReadinessEvidence>
 }): string[] {
   const blockers: string[] = []
 
   if (input.profileWorkerType === 'planning_only') {
     blockers.push(`${input.toolId} production registry profile is still planning_only and needs an executable worker profile before beta execution.`)
+  }
+
+  if (input.productionStatus === 'future') {
+    blockers.push(`${input.toolId} production registry profile is still future and needs owner-approved beta promotion before beta execution.`)
+  }
+
+  if (input.productionStatus === 'evaluation_only') {
+    blockers.push(`${input.toolId} production registry profile is evaluation_only and needs owner-approved beta promotion before beta execution.`)
   }
 
   if (input.gpuRequiredForRuntime && !input.evidence.nativeGpuRuntimeProofPassed) {
@@ -134,6 +144,66 @@ function buildRuntimeSpecificBlockers(input: {
   return blockers
 }
 
+function buildReadinessRecordBlockers(input: {
+  toolId: AiGraphicsCanonicalToolId
+  blockersBeforeExecution: readonly string[]
+  modelWeightsRequired: boolean
+  evidence: Required<AiGraphicsBetaReadinessEvidence>
+}): string[] {
+  const blockers: string[] = []
+
+  for (const blocker of input.blockersBeforeExecution) {
+    if (
+      blocker.includes('native linux/amd64 NVIDIA L4 runtime proof') &&
+      input.evidence.nativeGpuRuntimeProofPassed
+    ) {
+      continue
+    }
+
+    if (
+      blocker.includes('approved private model-weight or model-cache manifests') &&
+      (!input.modelWeightsRequired || input.evidence.modelWeightManifestsApproved)
+    ) {
+      continue
+    }
+
+    if (
+      blocker.includes('worker execution must remain behind approved snapshot and credit gates') &&
+      input.evidence.approvedPlanSnapshotGatePassed &&
+      input.evidence.creditReservationGatePassed &&
+      input.evidence.workerGatePassed
+    ) {
+      continue
+    }
+
+    if (
+      blocker.includes('Tool Route and Worker execution approval') &&
+      input.evidence.toolRouteGatePassed &&
+      input.evidence.workerGatePassed
+    ) {
+      continue
+    }
+
+    if (
+      (blocker.includes('browser/canvas/WebGL runtime') || blocker.includes('Animation runtime')) &&
+      input.evidence.browserCanvasWebglSandboxPassed
+    ) {
+      continue
+    }
+
+    if (
+      (blocker.includes('render/export ownership') || blocker.includes('public artifact and signed URL gates')) &&
+      input.evidence.artifactBoundaryGatePassed
+    ) {
+      continue
+    }
+
+    blockers.push(blocker)
+  }
+
+  return blockers
+}
+
 export function buildAiGraphicsBetaReadinessGate(
   evidenceInput: AiGraphicsBetaReadinessEvidence = {},
 ): AiGraphicsBetaReadinessGate {
@@ -158,17 +228,25 @@ export function buildAiGraphicsBetaReadinessGate(
       modelWeightsRequired: profile.modelWeightsRequired,
       modelWeightPolicyAllowed: modelWeightResult.allowed,
       profileWorkerType: profile.workerType,
+      productionStatus: profile.productionStatus,
+      evidence,
+    })
+    const readinessBlockers = buildReadinessRecordBlockers({
+      toolId: record.toolId,
+      blockersBeforeExecution: record.blockersBeforeExecution,
+      modelWeightsRequired: profile.modelWeightsRequired,
       evidence,
     })
 
     const blockers = [
       ...sharedBlockers,
-      ...record.blockersBeforeExecution,
+      ...readinessBlockers,
       ...runtimeResult.blockingReasons,
       ...licenseResult.blockingReasons,
       ...modelWeightResult.blockingReasons,
       ...runtimeBlockers,
     ]
+    const uniqueBlockers = Array.from(new Set(blockers))
 
     return {
       toolId: record.toolId,
@@ -184,8 +262,9 @@ export function buildAiGraphicsBetaReadinessGate(
       licensePolicyAllowed: licenseResult.allowed,
       modelWeightPolicyAllowed: modelWeightResult.allowed,
       runtimePolicyAllowed: runtimeResult.allowed,
-      betaTestingReadyNow: false,
-      blockers: Array.from(new Set(blockers)),
+      productionStatus: profile.productionStatus,
+      betaTestingReadyNow: uniqueBlockers.length === 0,
+      blockers: uniqueBlockers,
       warnings: Array.from(new Set([
         ...runtimeResult.warnings,
         ...licenseResult.warnings,
@@ -198,6 +277,8 @@ export function buildAiGraphicsBetaReadinessGate(
     .filter((tool) => tool.gpuRequiredForRuntime)
     .map((tool) => tool.toolId)
   const globalBlockers = Array.from(new Set(tools.flatMap((tool) => tool.blockers)))
+  const betaTestingReadyTools = tools.filter((tool) => tool.betaTestingReadyNow).length
+  const blockedTools = tools.length - betaTestingReadyTools
 
   return {
     decision: AI_GRAPHICS_BETA_READINESS_GATE_DECISION,
@@ -208,8 +289,8 @@ export function buildAiGraphicsBetaReadinessGate(
     planningSelectableTools: tools.filter((tool) => tool.planningSelectable).length as 21,
     gpuRuntimeTargetedTools,
     heavyToolsIncorrectlyTargetingCpu: 0,
-    betaTestingReadyTools: 0,
-    blockedTools: tools.length as 21,
+    betaTestingReadyTools,
+    blockedTools,
     evidence,
     tools,
     globalBlockers,

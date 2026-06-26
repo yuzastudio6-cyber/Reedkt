@@ -4,6 +4,8 @@ import fs from 'node:fs'
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const scriptName = 'ai-graphics:beta-readiness-gate:diagnostics'
 const scriptCommand = 'node scripts/validation/ai-graphics-beta-readiness-gate-diagnostics.mjs'
+const evaluatorScriptName = 'ai-graphics:beta-readiness-gate:evaluate'
+const evaluatorScriptCommand = 'tsx server/cli/ai-graphics-beta-readiness-gate-evaluate.ts'
 
 const allTools = [
   'torch_torchvision',
@@ -70,8 +72,25 @@ function git(args) {
   }).trim()
 }
 
+function runEvaluator(args = []) {
+  return execFileSync('npm', ['run', '--silent', evaluatorScriptName, '--', ...args], {
+    encoding: 'utf8',
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  })
+}
+
+function parseJsonOutput(output, label) {
+  try {
+    return JSON.parse(output)
+  } catch (error) {
+    fail(`invalid_json_output:${label}:${error.message}`)
+    return {}
+  }
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-beta-readiness-gate.ts',
+  'server/cli/ai-graphics-beta-readiness-gate-evaluate.ts',
   'docs/tool-intelligence/ai-graphics/beta-readiness-gate.md',
   'docs/tool-intelligence/ai-graphics/beta-readiness-gate.json',
   'docs/tool-intelligence/ai-graphics/tool-call-plan-evaluator.json',
@@ -91,10 +110,12 @@ const readiness = json('docs/tool-intelligence/ai-graphics/tool-call-readiness-c
 const audit = json('docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json')
 const gpuGate = json('docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json')
 const source = read('server/tool-registry/ai-graphics-beta-readiness-gate.ts')
+const evaluatorCli = read('server/cli/ai-graphics-beta-readiness-gate-evaluate.ts')
 const index = read('server/tool-registry/index.ts')
 const markdown = read('docs/tool-intelligence/ai-graphics/beta-readiness-gate.md')
 
 if (pkg.scripts?.[scriptName] !== scriptCommand) fail(`missing_package_script:${scriptName}`)
+if (pkg.scripts?.[evaluatorScriptName] !== evaluatorScriptCommand) fail(`missing_package_script:${evaluatorScriptName}`)
 if (gate.decision !== 'ai_graphics_beta_readiness_gate_prepared_with_current_runtime_blocks') {
   fail(`unexpected_decision:${gate.decision}`)
 }
@@ -119,8 +140,20 @@ for (const needle of [
   'approvedPlanSnapshotGatePassed',
   'nativeGpuRuntimeProofPassed',
   'cpuFallbackAllowedForHeavyTool: false',
+  'betaTestingReadyNow: uniqueBlockers.length === 0',
+  'production registry profile is still future',
+  'production registry profile is evaluation_only',
 ]) {
   if (!source.includes(needle)) fail(`beta_gate_source_missing:${needle}`)
+}
+for (const needle of [
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  'evaluatorOnly: true',
+]) {
+  if (!evaluatorCli.includes(needle)) fail(`beta_gate_evaluator_missing:${needle}`)
 }
 
 if (gate.counts?.totalTools !== 21) fail('gate_total_tools_not_21')
@@ -132,6 +165,11 @@ if (gate.counts?.gpuRuntimeTargetedTools !== 8) fail('gate_gpu_tool_count_not_8'
 if (gate.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) fail('gate_heavy_cpu_count_not_zero')
 if (gate.counts?.betaTestingReadyTools !== 0) fail('gate_beta_ready_count_not_zero')
 if (gate.counts?.blockedTools !== 21) fail('gate_blocked_tool_count_not_21')
+if (gate.evidenceEvaluationMode?.defaultEvidenceReadyTools !== 0) fail('gate_default_evidence_ready_not_zero')
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsReadyTools !== 4) fail('gate_all_evidence_ready_not_4')
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsStillBlockedTools !== 17) fail('gate_all_evidence_blocked_not_17')
+if (gate.evidenceEvaluationMode?.readyOnlyWhenProfilesAndPoliciesAllow !== true) fail('gate_evidence_mode_policy_guard_missing')
+if (gate.evidenceEvaluationMode?.executionPerformedByEvaluator !== false) fail('gate_evaluator_execution_not_false')
 
 for (const tool of allTools) {
   if (!handoff.allTools?.includes(tool)) fail(`handoff_missing_tool:${tool}`)
@@ -144,6 +182,50 @@ for (const tool of gpuTools) {
   if (!handoff.gpuRuntimeTargetedTools?.includes(tool)) fail(`handoff_gpu_tool_missing:${tool}`)
   const row = (audit.toolRows || []).find((entry) => entry.toolId === tool)
   if (!row?.runtimeTarget?.includes('nvidia_l4')) fail(`gpu_tool_not_targeting_l4:${tool}:${row?.runtimeTarget}`)
+}
+
+const defaultOutput = runEvaluator()
+const defaultGate = parseJsonOutput(defaultOutput, 'default_evaluator')
+if (defaultGate.betaTestingReadyTools !== 0) fail(`default_evaluator_ready_not_zero:${defaultGate.betaTestingReadyTools}`)
+if (defaultGate.blockedTools !== 21) fail(`default_evaluator_blocked_not_21:${defaultGate.blockedTools}`)
+if (defaultGate.input?.evaluatorOnly !== true) fail('default_evaluator_not_evaluator_only')
+
+const fullEvidenceOutput = runEvaluator([
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+])
+const fullEvidenceGate = parseJsonOutput(fullEvidenceOutput, 'full_evidence_evaluator')
+if (fullEvidenceGate.betaTestingReadyTools !== 4) {
+  fail(`full_evidence_ready_count_not_4:${fullEvidenceGate.betaTestingReadyTools}`)
+}
+if (fullEvidenceGate.blockedTools !== 17) {
+  fail(`full_evidence_blocked_count_not_17:${fullEvidenceGate.blockedTools}`)
+}
+const fullEvidenceReadyTools = (fullEvidenceGate.tools || [])
+  .filter((tool) => tool.betaTestingReadyNow === true)
+  .map((tool) => tool.toolId)
+for (const tool of ['kornia', 'lottie_web', 'three_js', 'pixi_js']) {
+  if (!fullEvidenceReadyTools.includes(tool)) fail(`full_evidence_expected_ready_tool_missing:${tool}`)
+}
+for (const tool of ['sam2', 'birefnet', 'real_esrgan', 'd3', 'echarts', 'vega_lite']) {
+  const row = (fullEvidenceGate.tools || []).find((entry) => entry.toolId === tool)
+  if (row?.betaTestingReadyNow !== false) fail(`full_evidence_unexpected_ready_tool:${tool}`)
+  if (!row?.blockers?.length) fail(`full_evidence_expected_blockers_missing:${tool}`)
+}
+for (const key of [
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'routeExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+]) {
+  if (fullEvidenceGate.input?.[key] !== false) fail(`full_evidence_input_false_gate_not_false:${key}`)
 }
 
 for (const requiredGate of [

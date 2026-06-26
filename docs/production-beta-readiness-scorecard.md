@@ -538,3 +538,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: server-only activation checklist between proper install and beta tool execution for all 21 AI graphics tools.
 - Result: all 21 tools are properly installed or represented for their intended surface, all 21 map to production registry IDs, duplicate mappings are 0, and all eight heavy/model tools target GPU runtime with CPU fallback disabled. The report records the remaining per-tool blockers: native GPU proof, reviewed private model manifests, browser/canvas/WebGL sandbox proof, owner-approved profile migrations, Tool Route/Worker approvals, approved snapshots, credit reservation, artifact boundary, and beta owner approval.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Beta Readiness Evidence Evaluation
+
+- Decision: `ai_graphics_beta_readiness_gate_prepared_with_current_runtime_blocks`.
+- Scope: evidence-driven beta readiness evaluator for the existing 21-tool gate.
+- Result: default evidence keeps 0 tools beta-ready. When all currently modeled shared/runtime evidence flags are supplied, the gate reports 4 beta-eligible tools (`kornia`, `lottie_web`, `three_js`, `pixi_js`) and keeps 17 blocked by production profile, license, model-weight, or policy gates.
+- Runtime/beta/production: no committed unlock; the evaluator is report-only and does not execute tools, routes, workers, providers, browser/WebGL/canvas, GPU/model runtime, model downloads, media processing, or artifact creation.

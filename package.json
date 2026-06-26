@@ -52,6 +52,7 @@
     "ai-graphics:tool-call-handoff:diagnostics": "node scripts/validation/ai-graphics-tool-call-handoff-diagnostics.mjs",
     "ai-graphics:tool-call-plan-evaluator:diagnostics": "node scripts/validation/ai-graphics-tool-call-plan-evaluator-diagnostics.mjs",
     "ai-graphics:beta-readiness-gate:diagnostics": "node scripts/validation/ai-graphics-beta-readiness-gate-diagnostics.mjs",
+    "ai-graphics:beta-readiness-gate:evaluate": "tsx server/cli/ai-graphics-beta-readiness-gate-evaluate.ts",
     "ai-graphics:beta-activation-gap-report": "tsx server/cli/ai-graphics-beta-activation-gap-report.ts",
     "ai-graphics:beta-activation-gap-report:diagnostics": "node scripts/validation/ai-graphics-beta-activation-gap-report-diagnostics.mjs",
     "ai-graphics:tool-route-readiness:diagnostics": "node scripts/validation/ai-graphics-tool-route-readiness-diagnostics.mjs",

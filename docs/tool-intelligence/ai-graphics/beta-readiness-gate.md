@@ -12,6 +12,10 @@ This gate answers the real beta question for the 21 AI graphics tools: which too
 
 It does not approve execution. It converts the remaining blockers into explicit server-side checks so a future owner can promote tools only when the evidence is real.
 
+The default committed state remains fully blocked. The evaluator script can also
+accept evidence flags so future owner/runtime lanes can prove which tools become
+beta-eligible after their real gates pass.
+
 ## Current Result
 
 - Tools covered: 21.
@@ -23,6 +27,22 @@ It does not approve execution. It converts the remaining blockers into explicit 
 - Heavy tools incorrectly targeting CPU: 0.
 - Beta testing ready now: 0.
 - Blocked tools now: 21.
+
+## Evidence Evaluation Mode
+
+Script: `ai-graphics:beta-readiness-gate:evaluate`
+
+Evidence flags can model completed gates without running any tool:
+
+- `--all-shared-gates-passed`
+- `--browser-canvas-webgl-sandbox-passed`
+- `--native-gpu-runtime-proof-passed`
+- `--model-weight-manifests-approved`
+
+When all evidence flags are supplied, only tools whose production profiles and
+policies are already executable can become beta-eligible. Tools that are still
+`planning_only`, `future`, `evaluation_only`, license-review-blocked, or
+model-weight-review-blocked remain blocked.
 
 ## Current Required Gates
 

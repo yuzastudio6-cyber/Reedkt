@@ -141,6 +141,10 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
   - `ai-graphics:beta-activation-gap-report:diagnostics`
 - Beta activation gap result: all 21 tools are properly installed or represented for their planned ReeditPro surface, all 21 map to production registry IDs, duplicate production mappings are 0, all eight heavy/model tools now explicitly target GPU runtime with CPU fallback disabled, and beta activation ready tools remain 0 until native GPU proof, private model manifests, browser sandbox proof, profile migrations, Tool Route/Worker gates, approved snapshots, credit gates, artifact gates, and beta owner approval pass.
 - Latest observed PR state after beta activation gap report completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `630193db4170d492a8fd79576b4461dea742123c`, with an empty check rollup.
+- Added evidence-driven beta readiness gate evaluation:
+  - `server/cli/ai-graphics-beta-readiness-gate-evaluate.ts`
+  - `ai-graphics:beta-readiness-gate:evaluate`
+- Beta readiness gate evaluator result: default evidence still reports 0 beta-ready tools and 21 blocked tools. With all current shared/runtime evidence flags supplied, the gate reports 4 beta-eligible tools (`kornia`, `lottie_web`, `three_js`, `pixi_js`) and keeps 17 tools blocked by remaining production profile, license, model-weight, or policy gates. This creates a real activation path without changing the committed no-execution state.
 
 ## Runtime State
 
@@ -163,6 +167,7 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
 - `modelWeightManifestScaffoldPrepared=true`
 - `gpuRuntimeProofResultValidatorPrepared=true`
 - `betaActivationGapReportPrepared=true`
+- `betaReadinessEvidenceEvaluationPrepared=true`
 - `nativeGpuRuntimeProofResultsAcceptedForOwnerReview=false`
 - `nativeGpuRuntimeProofStillRequired=true`
 - `approvedPlanSnapshotRequired=true`

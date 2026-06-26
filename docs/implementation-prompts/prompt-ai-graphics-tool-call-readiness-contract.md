@@ -40,6 +40,8 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
 
 Latest observed PR state after GPU runtime proof result validator completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `556ca474476647e748334c9a1bc32a8f7a85d502`, with an empty check rollup.
 
+Latest observed PR state after beta activation gap report completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `630193db4170d492a8fd79576b4461dea742123c`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements

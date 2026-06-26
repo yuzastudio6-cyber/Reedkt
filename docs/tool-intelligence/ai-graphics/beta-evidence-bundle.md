@@ -42,6 +42,13 @@ Legacy boolean override flags for GPU proof or model-weight manifests are ignore
 by this bundle. They may be useful in lower-level simulation diagnostics, but
 they do not satisfy all-21 beta evidence.
 
+The reviewed private model-weight manifest packet must include exact per-tool
+validation rows for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and
+`transparent_background`. Count-only packets are rejected even when their summary
+counters say five records passed. Each accepted row must match the expected
+template, carry `present_private_ref_not_logged`, have no validation errors, and
+keep `approvedForAgentExecutionNow` false.
+
 ## Tool Groups
 
 The 13 JavaScript graphics tools are installed through the Node lockfile surface:

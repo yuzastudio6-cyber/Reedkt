@@ -5,8 +5,12 @@ import {
 import type {
   AiGraphicsGpuRuntimeProofResultPacket,
 } from './ai-graphics-gpu-runtime-proof-result'
-import type {
-  AiGraphicsModelWeightManifestReviewPacket,
+import {
+  AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_READINESS_DECISION,
+  AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_REVIEW_PACKET_DECISION,
+  listAiGraphicsModelWeightManifestRequiredTools,
+  type AiGraphicsModelWeightManifestReviewPacket,
+  type AiGraphicsModelWeightManifestValidationResult,
 } from './ai-graphics-model-weight-manifest-readiness'
 import {
   listAiGraphicsToolCallReadiness,
@@ -115,15 +119,49 @@ function packetProvided(value: unknown): boolean {
 function modelWeightPacketAccepted(
   packet: Partial<AiGraphicsModelWeightManifestReviewPacket> | undefined,
 ): boolean {
+  if (!packet) return false
+
+  const requiredTools = listAiGraphicsModelWeightManifestRequiredTools()
+  const validationResults = Array.isArray(packet.validationResults) ? packet.validationResults : []
+  const perToolRowsAccepted =
+    validationResults.length === requiredTools.length &&
+    requiredTools.every((expected) => {
+      const matches = validationResults.filter((result) => result.toolId === expected.toolId)
+      if (matches.length !== 1) return false
+
+      return modelWeightValidationResultAccepted(matches[0], expected)
+    })
+
   return Boolean(
-    packet &&
-      packet.manifestRecordsProvided === 5 &&
-      packet.schemaValidManifestRecords === 5 &&
-      packet.reviewAcceptedManifestRecords === 5 &&
-      packet.nativeGpuProofInputEligibleRecords === 5 &&
+    packet.decision === AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_REVIEW_PACKET_DECISION &&
+      packet.sourceManifestReadinessDecision === AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_READINESS_DECISION &&
+      packet.manifestRecordsProvided === requiredTools.length &&
+      packet.schemaValidManifestRecords === requiredTools.length &&
+      packet.reviewAcceptedManifestRecords === requiredTools.length &&
+      packet.nativeGpuProofInputEligibleRecords === requiredTools.length &&
       packet.privateArtifactRefsLogged === 0 &&
       packet.booleans?.privateArtifactRefsNotLogged === true &&
-      packet.booleans?.publicOrSignedArtifactRefsRejected === true,
+      packet.booleans?.publicOrSignedArtifactRefsRejected === true &&
+      perToolRowsAccepted,
+  )
+}
+
+function modelWeightValidationResultAccepted(
+  result: AiGraphicsModelWeightManifestValidationResult,
+  expected: ReturnType<typeof listAiGraphicsModelWeightManifestRequiredTools>[number],
+): boolean {
+  return Boolean(
+    result.toolId === expected.toolId &&
+      result.templateId === expected.templateId &&
+      result.expectedTemplateId === expected.templateId &&
+      result.manifestRecordProvided === true &&
+      result.schemaValid === true &&
+      result.reviewAccepted === true &&
+      result.eligibleForNativeGpuProofInput === true &&
+      result.approvedForAgentExecutionNow === false &&
+      result.privateArtifactRefStatus === 'present_private_ref_not_logged' &&
+      Array.isArray(result.errors) &&
+      result.errors.length === 0,
   )
 }
 

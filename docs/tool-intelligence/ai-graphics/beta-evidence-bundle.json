@@ -94,6 +94,31 @@
     "native_gpu_runtime_proof_packet",
     "model_weight_manifest_review_packet"
   ],
+  "modelWeightManifestReviewPacketPolicy": {
+    "perToolValidationResultsRequired": true,
+    "countOnlyPacketsRejected": true,
+    "requiredValidationResultTools": [
+      "sam2",
+      "birefnet",
+      "real_esrgan",
+      "rembg",
+      "transparent_background"
+    ],
+    "requiredValidationResultFields": [
+      "toolId",
+      "templateId",
+      "expectedTemplateId",
+      "manifestRecordProvided",
+      "schemaValid",
+      "reviewAccepted",
+      "eligibleForNativeGpuProofInput",
+      "approvedForAgentExecutionNow",
+      "privateArtifactRefStatus",
+      "errors"
+    ],
+    "acceptedPrivateArtifactRefStatus": "present_private_ref_not_logged",
+    "approvedForAgentExecutionNow": false
+  },
   "ownerApprovalGate": "internal_beta_owner_approval",
   "booleans": {
     "betaEvidenceBundleValidatorPrepared": true,

@@ -3,6 +3,8 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
+import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
+
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:internal-beta-queue-dispatcher-readiness'
 const runScriptCommand =
@@ -172,17 +174,11 @@ function writeAcceptedEvidencePackets() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-queue-dispatcher-'))
   const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
-  fs.writeFileSync(manifestPacketPath, `${JSON.stringify({
-    manifestRecordsProvided: 5,
-    schemaValidManifestRecords: 5,
-    reviewAcceptedManifestRecords: 5,
-    nativeGpuProofInputEligibleRecords: 5,
-    privateArtifactRefsLogged: 0,
-    booleans: {
-      privateArtifactRefsNotLogged: true,
-      publicOrSignedArtifactRefsRejected: true,
-    },
-  }, null, 2)}\n`, 'utf8')
+  fs.writeFileSync(
+    manifestPacketPath,
+    `${JSON.stringify(acceptedModelWeightManifestReviewPacket(), null, 2)}\n`,
+    'utf8',
+  )
   fs.writeFileSync(gpuPacketPath, `${JSON.stringify({
     runtimeProofResultsProvided: 4,
     runtimeProofResultsAcceptedForOwnerReview: 4,

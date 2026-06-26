@@ -271,6 +271,16 @@ const requiredModelManifestTools = [
   nextProofMilestone: string
 }[]
 
+export function listAiGraphicsModelWeightManifestRequiredTools(): readonly {
+  toolId: AiGraphicsModelWeightManifestToolId
+  templateId: GpuModelWeightTemplateId
+}[] {
+  return requiredModelManifestTools.map((tool) => ({
+    toolId: tool.toolId,
+    templateId: tool.templateId,
+  }))
+}
+
 const foundationGpuToolsWithoutModelManifest = [
   {
     toolId: 'torch_torchvision',

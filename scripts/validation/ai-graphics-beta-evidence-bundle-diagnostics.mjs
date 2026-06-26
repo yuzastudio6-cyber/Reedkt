@@ -285,11 +285,26 @@ function writePacketFixtures() {
     'gpu_packet_fixture',
   )
   const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
+  const countOnlyManifestPacketPath = path.join(root, 'count-only-model-weight-manifest-review-packet.json')
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
   fs.writeFileSync(manifestPacketPath, `${JSON.stringify(manifestPacket, null, 2)}\n`, 'utf8')
+  fs.writeFileSync(countOnlyManifestPacketPath, `${JSON.stringify({
+    decision: 'ai_graphics_model_weight_manifest_review_packet_prepared_with_no_private_records',
+    sourceManifestReadinessDecision:
+      'ai_graphics_model_weight_manifest_readiness_contract_prepared_with_review_blocks',
+    manifestRecordsProvided: 5,
+    schemaValidManifestRecords: 5,
+    reviewAcceptedManifestRecords: 5,
+    nativeGpuProofInputEligibleRecords: 5,
+    privateArtifactRefsLogged: 0,
+    booleans: {
+      privateArtifactRefsNotLogged: true,
+      publicOrSignedArtifactRefsRejected: true,
+    },
+  }, null, 2)}\n`, 'utf8')
   fs.writeFileSync(gpuPacketPath, `${JSON.stringify(gpuPacket, null, 2)}\n`, 'utf8')
 
-  return { manifestPacketPath, gpuPacketPath }
+  return { manifestPacketPath, countOnlyManifestPacketPath, gpuPacketPath }
 }
 
 const requiredFiles = [
@@ -363,6 +378,9 @@ for (const token of [
   '--model-weight-manifest-review-packet',
   '--gpu-runtime-proof-result-packet',
   '--require-all-21-beta-ready',
+  'listAiGraphicsModelWeightManifestRequiredTools',
+  'validationResults',
+  'present_private_ref_not_logged',
 ]) {
   if (!moduleSource.includes(token) && !cliSource.includes(token)) fail(`source_missing:${token}`)
 }
@@ -400,6 +418,23 @@ if (!docs.requiredTechnicalEvidenceBeforeOwnerApproval?.includes('native_gpu_run
 }
 if (docs.requiredTechnicalEvidenceBeforeOwnerApproval?.includes('internal_beta_owner_approval')) {
   fail('docs_technical_evidence_should_not_include_owner_approval')
+}
+if (docs.modelWeightManifestReviewPacketPolicy?.perToolValidationResultsRequired !== true) {
+  fail('docs_model_weight_per_tool_validation_results_not_required')
+}
+if (docs.modelWeightManifestReviewPacketPolicy?.countOnlyPacketsRejected !== true) {
+  fail('docs_model_weight_count_only_packets_not_rejected')
+}
+for (const tool of modelManifestTools) {
+  if (!docs.modelWeightManifestReviewPacketPolicy?.requiredValidationResultTools?.includes(tool)) {
+    fail(`docs_model_weight_policy_missing_tool:${tool}`)
+  }
+}
+if (!markdown.includes('Count-only packets are rejected')) {
+  fail('markdown_missing_count_only_packet_rejection')
+}
+if (!scorecard.includes('rejects count-only model-weight manifest packets')) {
+  fail('scorecard_missing_count_only_model_weight_packet_rejection')
 }
 
 const defaultBundle = parseJsonOutput(runNpm(validateScriptName), 'default_bundle')
@@ -488,7 +523,7 @@ for (const token of [
   if (!jsProofOverrideBundle.missingEvidence?.includes(token)) fail(`js_proof_override_bundle_missing_gap:${token}`)
 }
 
-const { manifestPacketPath, gpuPacketPath } = writePacketFixtures()
+const { manifestPacketPath, countOnlyManifestPacketPath, gpuPacketPath } = writePacketFixtures()
 const technicalPacketBundle = parseJsonOutput(runNpm(validateScriptName, [
   '--use-committed-js-runtime-proofs',
   '--all-technical-gates-passed',
@@ -539,6 +574,32 @@ if (fullPacketBundle.evidenceSources?.nativeGpuRuntimeProofResultPacketProvided 
 if (fullPacketBundle.evidenceSources?.modelWeightManifestReviewPacketAccepted !== true) fail('full_packet_bundle_model_packet_not_accepted')
 if (fullPacketBundle.evidenceSources?.nativeGpuRuntimeProofResultPacketAccepted !== true) fail('full_packet_bundle_gpu_packet_not_accepted')
 
+let countOnlyExited = false
+let countOnlyOutput = ''
+try {
+  countOnlyOutput = runNpm(validateScriptName, [
+    '--use-committed-js-runtime-proofs',
+    '--all-technical-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--model-weight-manifest-review-packet',
+    countOnlyManifestPacketPath,
+    '--gpu-runtime-proof-result-packet',
+    gpuPacketPath,
+    '--require-ready-for-owner-gate',
+  ])
+} catch (error) {
+  countOnlyExited = true
+  countOnlyOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+const countOnlyBundle = parseJsonOutput(countOnlyOutput, 'count_only_manifest_bundle')
+if (!countOnlyExited) fail('count_only_manifest_bundle_did_not_exit_nonzero')
+if (countOnlyBundle.evidenceSources?.modelWeightManifestReviewPacketAccepted !== false) {
+  fail('count_only_manifest_packet_unexpectedly_accepted')
+}
+if (!countOnlyBundle.missingEvidence?.includes('model_weight_manifest_review_packet')) {
+  fail('count_only_manifest_bundle_missing_manifest_gap')
+}
+
 let partialExited = false
 try {
   runNpm(validateScriptName, [
@@ -550,7 +611,14 @@ try {
 }
 if (!partialExited) fail('require_all21_did_not_exit_nonzero_when_evidence_missing')
 
-for (const output of [defaultBundle, fullFlagBundle, jsProofOverrideBundle, technicalPacketBundle, fullPacketBundle]) {
+for (const output of [
+  defaultBundle,
+  fullFlagBundle,
+  jsProofOverrideBundle,
+  technicalPacketBundle,
+  fullPacketBundle,
+  countOnlyBundle,
+]) {
   for (const key of [
     'agentCanExecuteToolsNow',
     'routeExecutionApprovedNow',

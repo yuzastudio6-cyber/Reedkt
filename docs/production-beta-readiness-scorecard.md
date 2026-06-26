@@ -34,6 +34,18 @@ does not execute routes, queue workers, execute tools, run browser/canvas/WebGL,
 run GPU/model runtime, load model weights, process media, create artifacts,
 unlock internal beta runtime, unlock external beta, or unlock production.
 
+AI graphics internal beta worker payload readiness decision
+`ai_graphics_internal_beta_worker_payload_readiness_contract_prepared_with_fail_closed_runtime`
+prepares approved-snapshot, idempotent worker payload metadata for all 21 AI
+graphics tools and all 12 product-facing capability scenarios when
+owner-approved dry-run evidence is supplied. It validates worker ownership,
+runtime targets, capability IDs, private manifest references, and expected
+metadata output refs, but does not enqueue workers, execute tools, run Tool
+Routes, call providers/models, run browser/canvas/WebGL, run GPU/model runtime,
+download/load model weights, process media, create signed URLs/public
+artifacts, unlock internal beta runtime, unlock external beta, or unlock
+production.
+
 Phase 35F SAM2 feature E2E evidence, when present, counts only toward internal
 SAM2 feature testing. It is not external beta, paid production, broad real
 media, provider, Revideo, FILM, slow-motion, Real-ESRGAN, public delivery, or

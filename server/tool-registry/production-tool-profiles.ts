@@ -69,6 +69,20 @@ function needsModelWeightReview(notes: string[]): ProductionModelWeightPolicy {
   }
 }
 
+function blockedModelWeightPolicy(notes: string[]): ProductionModelWeightPolicy {
+  return {
+    required: true,
+    reviewStatus: 'blocked',
+    commercialUseStatus: 'blocked',
+    checkpointReviewRequired: true,
+    notes: [
+      'Model/checkpoint/weight use is blocked before any download, inference, beta, or production routing.',
+      'Legal, commercial, territory, security, GPU, and owner acceptance are required before this can leave blocked status.',
+      ...notes,
+    ],
+  }
+}
+
 function profile(input: ProfileInput): ProductionToolProfile {
   const qaPolicy = getToolQAPolicy(input.toolId)
   const modelWeightPolicy = input.modelWeightPolicy ?? noModelWeights
@@ -774,6 +788,133 @@ export const productionToolProfiles: ProductionToolProfile[] = [
     license: 'Code and model weight review required.',
     ...needsLicenseReview,
     modelWeightPolicy: needsModelWeightReview(['FILM checkpoints/model weights require commercial-use review and warping benchmarks.']),
+  }),
+
+  profile({
+    toolId: 'wan_video',
+    displayName: 'Wan / Wan2.1',
+    category: 'ai_video_generation',
+    description: 'Primary open-source generated B-roll candidate for realistic stock-style filler and organic motion assets.',
+    productionStatus: 'planned',
+    workerType: 'gpu_ai_worker',
+    executionMode: 'worker_recipe',
+    gpuRequired: true,
+    cpuAllowed: false,
+    inputTypes: ['json_data', 'image', 'frame_sequence'],
+    outputTypes: ['processed_video', 'qa_report', 'json_spec'],
+    bestFor: ['Realistic stock-style B-roll', 'Generated filler clips', 'Organic cutaways', 'Premium fallback before proprietary video models'],
+    notBestFor: ['Exact charts/maps/captions/cards', 'Raw chat prompt execution', 'Final canvas/render/export', 'Basic/Pro Veo bypass'],
+    supportedActions: ['plan_text_to_video_broll', 'plan_image_to_video_broll', 'validate_fixture_payload', 'score_generated_broll_qa'],
+    fallbackToolIds: ['ltx_video', 'mochi_video', 'remotion'],
+    license: 'Wan/Wan2.1 repository appears Apache-2.0; checkpoint provenance, revision, checksum, and commercial-use evidence remain required.',
+    ...reviewPermissive,
+    modelWeightPolicy: needsModelWeightReview([
+      'Primary B-roll model route is metadata-only until checkpoint source, exact revision, checksum, storage path, GPU cost, and commercial-use evidence pass owner review.',
+      'Worker execution must use approved plan snapshots and structured asset requests, never raw chat prompts.',
+    ]),
+    runtimeNotes: [
+      'Future execution must run in a GPU worker from approved snapshot payloads with private artifact manifests and QA evidence.',
+      'No model download, inference, generated video, or beta route is unlocked by this registry entry.',
+    ],
+    productionReadinessNotes: [
+      'Primary model choice for open-source B-roll planning, but blocked by model-weight review, GPU quota/runtime readiness, QA, billing, and worker dispatch gates.',
+    ],
+  }),
+  profile({
+    toolId: 'ltx_video',
+    displayName: 'LTX-Video',
+    category: 'ai_video_generation',
+    description: 'Secondary open-source video candidate for fast preview, image-to-video, keyframe, and motion-graphics-adjacent B-roll workflows.',
+    productionStatus: 'needs_license_review',
+    workerType: 'gpu_ai_worker',
+    executionMode: 'worker_recipe',
+    gpuRequired: true,
+    cpuAllowed: false,
+    inputTypes: ['json_data', 'image', 'frame_sequence'],
+    outputTypes: ['processed_video', 'qa_report', 'json_spec'],
+    bestFor: ['Fast B-roll previews', 'Image-to-video tests', 'Keyframe motion', 'Motion-graphics adjacent generated clips'],
+    notBestFor: ['Launch default before version split review', 'Exact text/chart/map rendering', 'Final render/export ownership'],
+    supportedActions: ['plan_fast_preview_broll', 'plan_image_to_video_preview', 'validate_keyframe_motion_payload', 'score_preview_motion_qa'],
+    fallbackToolIds: ['wan_video', 'mochi_video', 'remotion'],
+    license: 'LTX-Video repository/model-card terms require version-specific review before commercial production routing.',
+    licenseFamily: 'model_card',
+    licenseRisk: 'medium',
+    commercialUseStatus: 'allowed_with_review',
+    distributionRisk: 'medium',
+    modelWeightPolicy: needsModelWeightReview([
+      'LTX model/version split must be resolved with exact checkpoint provenance, checksum, and commercial-use evidence.',
+      'Fast preview is still GPU worker execution and must not bypass approved plan, credit, QA, or private artifact gates.',
+    ]),
+    runtimeNotes: [
+      'Secondary route only; no preview generation, inference, model import, or local fixture execution is enabled by this profile.',
+    ],
+    productionReadinessNotes: [
+      'Blocked from production until license/provenance, weight source, GPU runtime, QA, and cost evidence are accepted.',
+    ],
+  }),
+  profile({
+    toolId: 'mochi_video',
+    displayName: 'Mochi 1',
+    category: 'ai_video_generation',
+    description: 'Fallback/research open-source video candidate for permissive-license comparison, LoRA/research planning, and resilience evaluation.',
+    productionStatus: 'evaluation_only',
+    workerType: 'gpu_ai_worker',
+    executionMode: 'evaluation_only',
+    gpuRequired: true,
+    cpuAllowed: false,
+    inputTypes: ['json_data', 'image', 'frame_sequence'],
+    outputTypes: ['processed_video', 'qa_report', 'json_spec'],
+    bestFor: ['Fallback research', 'Permissive checkpoint comparison', 'LoRA/research planning', 'Quality/cost benchmarks'],
+    notBestFor: ['Default production B-roll', 'Unreviewed LoRA training', 'Final render/export ownership'],
+    supportedActions: ['evaluate_broll_fallback', 'plan_research_comparison', 'validate_research_fixture_payload'],
+    fallbackToolIds: ['wan_video', 'ltx_video', 'remotion'],
+    license: 'Mochi 1 permissive/Apache claim requires checkpoint-level review before any paid production use.',
+    ...reviewPermissive,
+    modelWeightPolicy: needsModelWeightReview([
+      'Mochi remains fallback/research until quality, GPU cost, checkpoint provenance, checksum, and commercial-use evidence are accepted.',
+      'LoRA/research workflows are not enabled by this registry entry.',
+    ]),
+    runtimeNotes: [
+      'Evaluation-only route; no model download, inference, generated clip, or production fallback is enabled.',
+    ],
+    productionReadinessNotes: [
+      'Useful for resilience planning and benchmarks after owner approval, but not runtime-unlock-ready.',
+    ],
+  }),
+  profile({
+    toolId: 'hunyuan_video',
+    displayName: 'HunyuanVideo',
+    category: 'ai_video_generation',
+    description: 'Optional premium-gated generated-video candidate blocked pending legal, territory, GPU, commercial, and product review.',
+    productionStatus: 'blocked',
+    workerType: 'gpu_ai_worker',
+    executionMode: 'evaluation_only',
+    gpuRequired: true,
+    cpuAllowed: false,
+    inputTypes: ['json_data', 'image', 'frame_sequence'],
+    outputTypes: ['processed_video', 'qa_report', 'json_spec'],
+    bestFor: ['Future premium research after legal approval', 'Territory-reviewed quality comparison'],
+    notBestFor: ['Default route', 'Fallback route before legal approval', 'Basic/Pro generation', 'Any execution before commercial review'],
+    supportedActions: ['document_premium_candidate', 'review_legal_territory_constraints'],
+    fallbackToolIds: ['wan_video', 'ltx_video', 'mochi_video', 'remotion'],
+    license: 'Custom HunyuanVideo terms; blocked until legal, territory, commercial, GPU, billing, and owner review.',
+    licenseFamily: 'proprietary',
+    licenseRisk: 'blocked',
+    commercialUseStatus: 'blocked',
+    distributionRisk: 'blocked',
+    modelWeightPolicy: blockedModelWeightPolicy([
+      'Optional premium route only; must not download weights, import model code, infer, or appear in production fallback routing before legal approval.',
+      'Any later reconsideration must prove territory, commercial, GPU, safety, billing, and storage constraints.',
+    ]),
+    securityNotes: [
+      'Blocked metadata only; no provider key, model credential, signed URL, public artifact, or worker payload may be created.',
+    ],
+    runtimeNotes: [
+      'No runtime execution, model import, download, fallback, or beta route is allowed while blocked.',
+    ],
+    productionReadinessNotes: [
+      'Blocked premium-gated candidate; listed only so routing and diagnostics can explicitly prevent accidental use.',
+    ],
   }),
 
   profile({

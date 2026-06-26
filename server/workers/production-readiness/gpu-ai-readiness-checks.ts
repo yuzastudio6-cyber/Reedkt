@@ -23,6 +23,10 @@ export const M11_GPU_AI_TOOL_IDS: ProductionToolId[] = [
   'demucs',
   'real_esrgan',
   'film',
+  'wan_video',
+  'ltx_video',
+  'mochi_video',
+  'hunyuan_video',
   'opencv',
   'paddleocr',
 ]
@@ -35,6 +39,10 @@ export const M11_GPU_MODEL_WEIGHT_TOOL_IDS: ProductionToolId[] = [
   'demucs',
   'real_esrgan',
   'film',
+  'wan_video',
+  'ltx_video',
+  'mochi_video',
+  'hunyuan_video',
   'paddleocr',
 ]
 

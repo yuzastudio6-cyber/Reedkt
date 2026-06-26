@@ -85,6 +85,10 @@ const modelWeightNames: Partial<Record<ProductionToolId, string[]>> = {
   demucs: ['Demucs model'],
   real_esrgan: ['Real-ESRGAN model'],
   film: ['FILM checkpoint'],
+  wan_video: ['Wan/Wan2.1 video generation model'],
+  ltx_video: ['LTX-Video model'],
+  mochi_video: ['Mochi 1 video generation model'],
+  hunyuan_video: ['HunyuanVideo model'],
 }
 
 const workerOverrides: Partial<Record<ProductionToolId, ProductionRegistryWorkerType[]>> = {

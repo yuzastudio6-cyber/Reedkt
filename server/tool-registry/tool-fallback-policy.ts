@@ -68,6 +68,17 @@ export const PRODUCTION_TOOL_FALLBACK_CHAINS: ProductionFallbackChain[] = [
     ],
   },
   {
+    chainId: 'ai_video_broll_generation_fallback',
+    trigger: 'AI B-roll model unavailable, license-blocked, low quality, high cost, timing mismatch, unsafe prompt boundary, or generated clip QA failure.',
+    steps: [
+      { action: 'retry_same_tool', toolIds: ['wan_video'], reason: 'Retry Wan only after approved snapshot, model-weight, cost, and worker gates remain satisfied.' },
+      { action: 'switch_tool', toolIds: ['ltx_video'], reason: 'Use LTX only for approved fast-preview/image-to-video routes with version-specific license evidence.' },
+      { action: 'switch_tool', toolIds: ['mochi_video'], reason: 'Use Mochi only for approved fallback/research comparison; not a production default.' },
+      { action: 'use_simpler_recipe', toolIds: ['remotion'], reason: 'Use deterministic Remotion/cards/stills instead of generated video when exactness, safety, cost, or review gates fail.', requiresUserReview: true },
+      { action: 'block_final_export', toolIds: ['wan_video', 'ltx_video', 'mochi_video', 'hunyuan_video'], reason: 'Block final export if a required generated B-roll asset remains unresolved.', blocksFinalExport: true },
+    ],
+  },
+  {
     chainId: 'final_export_fallback',
     trigger: 'FFmpeg export failure, codec/container mismatch, stream sync failure, or final delivery QA failure.',
     steps: [
@@ -113,6 +124,10 @@ const fallbackChainByTool: Record<ProductionToolId, string[]> = {
   essentia: [],
   real_esrgan: ['enhancement_fallback'],
   film: ['slow_motion_fallback'],
+  wan_video: ['ai_video_broll_generation_fallback'],
+  ltx_video: ['ai_video_broll_generation_fallback'],
+  mochi_video: ['ai_video_broll_generation_fallback'],
+  hunyuan_video: ['ai_video_broll_generation_fallback'],
   pixijs: [],
   three_js: [],
   babylon_js: [],

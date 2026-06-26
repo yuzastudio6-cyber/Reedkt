@@ -35,6 +35,10 @@ export type ProductionToolId =
   | 'essentia'
   | 'real_esrgan'
   | 'film'
+  | 'wan_video'
+  | 'ltx_video'
+  | 'mochi_video'
+  | 'hunyuan_video'
   | 'pixijs'
   | 'three_js'
   | 'babylon_js'
@@ -86,6 +90,10 @@ export const PRODUCTION_TOOL_IDS = [
   'essentia',
   'real_esrgan',
   'film',
+  'wan_video',
+  'ltx_video',
+  'mochi_video',
+  'hunyuan_video',
   'pixijs',
   'three_js',
   'babylon_js',
@@ -130,6 +138,7 @@ export type ProductionToolCategory =
   | 'music_separation'
   | 'enhancement'
   | 'frame_interpolation'
+  | 'ai_video_generation'
   | 'motion_graphics'
   | 'browser_capture'
   | 'maps_geospatial'

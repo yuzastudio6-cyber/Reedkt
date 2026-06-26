@@ -55,6 +55,7 @@
     "ai-graphics:tool-route-readiness:diagnostics": "node scripts/validation/ai-graphics-tool-route-readiness-diagnostics.mjs",
     "ai-graphics:worker-handoff-readiness:diagnostics": "node scripts/validation/ai-graphics-worker-handoff-readiness-diagnostics.mjs",
     "ai-graphics:model-weight-manifest-readiness:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-readiness-diagnostics.mjs",
+    "ai-graphics:model-weight-manifest-review-packet:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-review-packet-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

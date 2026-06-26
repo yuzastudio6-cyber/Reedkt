@@ -28,6 +28,8 @@ Latest observed PR state after model-weight manifest readiness completion: [#862
 
 Latest observed PR state after runtime manifest schema hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `8f655ae6a72b61621e93a9e65eba988b371f462b`, with an empty check rollup.
 
+Latest observed PR state after manifest hardening metadata sync: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `bcc2b8690950ef9ae30fdf742c6cf81d757d6cbd`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements
@@ -61,6 +63,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up Worker handoff readiness contract adds `server/tool-registry/ai-graphics-worker-handoff-readiness.ts`, `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.md`, `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.json`, and `ai-graphics:worker-handoff-readiness:diagnostics` so future AI graphics workers receive approved-snapshot, credit, private-manifest, idempotency, runtime, and owner gate requirements for all 21 tool packets without approving queue or execution.
 - Follow-up model-weight manifest readiness contract adds `server/tool-registry/ai-graphics-model-weight-manifest-readiness.ts`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.md`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.json`, and `ai-graphics:model-weight-manifest-readiness:diagnostics` so SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background have explicit private manifest fields, template IDs, and fail-closed blockers before native GPU runtime or beta can be reconsidered.
 - Follow-up runtime manifest schema hardening updates `docker/prod/ai-graphics-gpu-runtime-readiness.py`, `docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.*`, and `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.*` so `--require-model-weight-manifests` validates manifest content instead of only file presence, while still blocking weight downloads, model loads, inference, workers, routes, public artifacts, beta, and production.
+- Follow-up model-weight manifest review packet adds `docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.md`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json`, and `ai-graphics:model-weight-manifest-review-packet:diagnostics` so the five model-weight tools have machine-checkable private manifest input validation before later native GPU proof. The packet logs no private artifact refs and does not approve execution.
 
 ## Expected Validation
 
@@ -69,6 +72,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - `npm run --silent ai-graphics:tool-route-readiness:diagnostics`
 - `npm run --silent ai-graphics:worker-handoff-readiness:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-readiness:diagnostics`
+- `npm run --silent ai-graphics:model-weight-manifest-review-packet:diagnostics`
 - `npm run --silent ai-graphics:gpu-model-runtime-readiness-gate:diagnostics`
 - `npm run --silent ai-graphics:tool-call-handoff:diagnostics`
 - `npm run --silent ai-graphics:tool-call-plan-evaluator:diagnostics`

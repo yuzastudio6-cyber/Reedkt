@@ -28,6 +28,8 @@ Latest observed PR state after model-weight manifest readiness completion: [#862
 
 Latest observed PR state after runtime manifest schema hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `8f655ae6a72b61621e93a9e65eba988b371f462b`, with an empty check rollup.
 
+Latest observed PR state after manifest hardening metadata sync: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `bcc2b8690950ef9ae30fdf742c6cf81d757d6cbd`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.
@@ -91,6 +93,11 @@ Latest observed PR state after runtime manifest schema hardening: [#862](https:/
   - `ai-graphics:model-weight-manifest-readiness:diagnostics`
 - Model-weight manifest result: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background` now have explicit required private manifest fields and template mappings. Manifest records provided remain 0, manifest records approved remain 0, beta-ready model-weight tools remain 0, and no model weights were downloaded or loaded.
 - Runtime manifest schema hardening: `docker/prod/ai-graphics-gpu-runtime-readiness.py` now validates `model_tree_manifest.json` content for exact `toolId`/`templateId`, non-empty private artifact and provenance refs, a 64-character SHA-256 checksum, all review booleans, no public or signed URL artifact refs, and no execution-completed claims. This strengthens the native GPU runtime proof without downloading weights, loading checkpoints, or enabling execution.
+- Added server-only model-weight manifest review packet:
+  - `docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.md`
+  - `docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json`
+  - `ai-graphics:model-weight-manifest-review-packet:diagnostics`
+- Manifest review packet result: all five private-manifest-required tools are covered with exact template IDs and required review fields. Public docs still contain 0 private manifest records, 0 schema-valid records, 0 review-accepted records, 0 native GPU proof input eligible records, 0 logged private artifact refs, and 0 beta-ready model-weight tools.
 
 ## Runtime State
 

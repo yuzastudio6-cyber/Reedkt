@@ -63,6 +63,14 @@ Workers, public artifacts, or signed URLs already executed.
 - Manifest records approved: 0.
 - Beta-ready model-weight tools: 0.
 
+Follow-up review packet:
+
+- `docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.md`
+- `docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json`
+- `ai-graphics:model-weight-manifest-review-packet:diagnostics`
+
+The review packet validates the exact private manifest input shape for the five model-weight tools while keeping private artifact refs out of public logs and docs.
+
 ## Runtime Boundary
 
 All five model-weight tools still require reviewed private manifests and native linux/amd64 NVIDIA L4 runtime proof before any model load or inference can be considered.

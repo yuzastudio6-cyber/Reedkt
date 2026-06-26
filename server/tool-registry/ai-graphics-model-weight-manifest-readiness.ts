@@ -19,6 +19,9 @@ import type { ProductionToolId } from './production-tool-types'
 export const AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_READINESS_DECISION =
   'ai_graphics_model_weight_manifest_readiness_contract_prepared_with_review_blocks'
 
+export const AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_REVIEW_PACKET_DECISION =
+  'ai_graphics_model_weight_manifest_review_packet_prepared_with_no_private_records'
+
 export type AiGraphicsModelWeightManifestToolId =
   | 'sam2'
   | 'birefnet'
@@ -123,6 +126,78 @@ export interface AiGraphicsModelWeightManifestReadinessContract {
   }
 }
 
+export type AiGraphicsPrivateArtifactRefStatus =
+  | 'missing'
+  | 'present_private_ref_not_logged'
+  | 'invalid_public_or_signed_ref'
+
+export interface AiGraphicsModelWeightManifestValidationResult {
+  toolId: AiGraphicsModelWeightManifestToolId | string
+  templateId: GpuModelWeightTemplateId | string
+  expectedTemplateId: GpuModelWeightTemplateId | null
+  manifestRecordProvided: boolean
+  schemaValid: boolean
+  reviewAccepted: boolean
+  eligibleForNativeGpuProofInput: boolean
+  approvedForAgentExecutionNow: false
+  privateArtifactRefStatus: AiGraphicsPrivateArtifactRefStatus
+  errors: string[]
+  warnings: string[]
+}
+
+export interface AiGraphicsModelWeightManifestReviewPacket {
+  decision: typeof AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_REVIEW_PACKET_DECISION
+  sourceManifestReadinessDecision: typeof AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_READINESS_DECISION
+  totalAiGraphicsTools: 21
+  modelWeightManifestRequiredTools: AiGraphicsModelWeightManifestToolId[]
+  requiredManifestFields: string[]
+  manifestRecordsProvided: number
+  schemaValidManifestRecords: number
+  reviewAcceptedManifestRecords: number
+  nativeGpuProofInputEligibleRecords: number
+  privateArtifactRefsLogged: 0
+  betaReadyModelWeightTools: 0
+  validationResults: AiGraphicsModelWeightManifestValidationResult[]
+  globalBlockers: string[]
+  booleans: {
+    modelWeightManifestReviewPacketPrepared: true
+    sourceManifestReadinessContractAccepted: true
+    all5ModelWeightToolsCovered: true
+    all5TemplateTypesCovered: true
+    manifestSchemaValidationReady: true
+    privateArtifactRefsNotLogged: true
+    publicOrSignedArtifactRefsRejected: true
+    checksumSha256Required: true
+    licenseReviewRequired: true
+    provenanceReviewRequired: true
+    qualityReviewRequired: true
+    securityReviewRequired: true
+    nativeGpuProofStillRequired: true
+    agentCanSelectForPlanning: true
+    agentCanExecuteToolsNow: false
+    routeExecutionApprovedNow: false
+    workerExecutionApprovedNow: false
+    toolExecutionApprovedNow: false
+    providerRuntimeApprovedNow: false
+    browserWebglCanvasRuntimeApprovedNow: false
+    gpuRuntimeApprovedNow: false
+    modelWeightsDownloaded: false
+    modelWeightsLoaded: false
+    modelInferencePerformed: false
+    runtimeReadyNow: false
+    internalBetaReadyNow: false
+    externalBetaReadyNow: false
+    productionReadyNow: false
+    dependencyInstallPerformed: false
+    packageLockMutationPerformed: false
+    mediaProcessingPerformed: false
+    supabaseMutationPerformed: false
+    gcsUploadPerformed: false
+    publicArtifactCreated: false
+    signedUrlCreated: false
+  }
+}
+
 const requiredManifestFields = [
   'manifestId',
   'toolId',
@@ -138,6 +213,25 @@ const requiredManifestFields = [
   'provenanceReviewed',
   'approvedForInternalBeta',
 ]
+
+const requiredManifestStringFields = [
+  'manifestId',
+  'privateArtifactRef',
+  'checksumSha256',
+  'sourceLicenseRef',
+  'modelCardRef',
+] as const satisfies readonly (keyof AiGraphicsModelWeightManifestEvidenceRecord)[]
+
+const requiredManifestReviewBooleanFields = [
+  'commercialUseReviewed',
+  'redistributionReviewed',
+  'qualityReviewed',
+  'securityReviewed',
+  'provenanceReviewed',
+  'approvedForInternalBeta',
+] as const satisfies readonly (keyof AiGraphicsModelWeightManifestEvidenceRecord)[]
+
+const sha256Pattern = /^[a-f0-9]{64}$/i
 
 const requiredModelManifestTools = [
   {
@@ -210,6 +304,21 @@ function hasText(value: string): boolean {
   return value.trim().length > 0
 }
 
+function privateArtifactRefStatus(privateArtifactRef: string | undefined): AiGraphicsPrivateArtifactRefStatus {
+  if (!privateArtifactRef || !hasText(privateArtifactRef)) {
+    return 'missing'
+  }
+
+  const normalizedRef = privateArtifactRef.trim()
+  const hasPublicUrl = /^https?:\/\//i.test(normalizedRef) || /^public:\/\//i.test(normalizedRef)
+  const hasSignedUrl = /^signed:\/\//i.test(normalizedRef) ||
+    /[?&](X-Goog-Signature|X-Amz-Signature|Signature)=/i.test(normalizedRef)
+
+  return hasPublicUrl || hasSignedUrl
+    ? 'invalid_public_or_signed_ref'
+    : 'present_private_ref_not_logged'
+}
+
 function manifestRecordIsApproved(
   record: AiGraphicsModelWeightManifestEvidenceRecord | undefined,
 ): record is AiGraphicsModelWeightManifestEvidenceRecord {
@@ -227,6 +336,118 @@ function manifestRecordIsApproved(
       record.provenanceReviewed &&
       record.approvedForInternalBeta,
   )
+}
+
+function requiredModelManifestToolByToolId(
+  toolId: AiGraphicsModelWeightManifestToolId | string | undefined,
+): typeof requiredModelManifestTools[number] | undefined {
+  return requiredModelManifestTools.find((input) => input.toolId === toolId)
+}
+
+function withValidationErrors(
+  result: AiGraphicsModelWeightManifestValidationResult,
+  errors: string[],
+): AiGraphicsModelWeightManifestValidationResult {
+  return {
+    ...result,
+    schemaValid: false,
+    reviewAccepted: false,
+    eligibleForNativeGpuProofInput: false,
+    errors: [...result.errors, ...errors],
+  }
+}
+
+export function validateAiGraphicsModelWeightManifestRecord(
+  record: Partial<AiGraphicsModelWeightManifestEvidenceRecord> | undefined,
+  expectedToolId?: AiGraphicsModelWeightManifestToolId,
+): AiGraphicsModelWeightManifestValidationResult {
+  const expectedTool = requiredModelManifestToolByToolId(expectedToolId) ??
+    requiredModelManifestToolByToolId(record?.toolId)
+  const toolId = expectedTool?.toolId ?? record?.toolId ?? expectedToolId ?? 'unknown_model_weight_tool'
+  const templateId = record?.templateId ?? expectedTool?.templateId ?? 'unknown_model_weight_template'
+  const errors: string[] = []
+  const warnings: string[] = [
+    `${toolId} remains blocked from agent, Tool Route, Worker, provider, public artifact, beta, and production execution.`,
+    `${toolId} still requires native linux/amd64 NVIDIA L4 runtime proof before model load or inference.`,
+  ]
+
+  if (!record) {
+    return {
+      toolId,
+      templateId,
+      expectedTemplateId: expectedTool?.templateId ?? null,
+      manifestRecordProvided: false,
+      schemaValid: false,
+      reviewAccepted: false,
+      eligibleForNativeGpuProofInput: false,
+      approvedForAgentExecutionNow: false,
+      privateArtifactRefStatus: 'missing',
+      errors: [`${toolId} reviewed private manifest record is missing.`],
+      warnings,
+    }
+  }
+
+  if (!expectedTool) {
+    errors.push(`${record.toolId ?? 'unknown'} is not an AI graphics model-weight manifest-required tool.`)
+  }
+  if (expectedTool && record.toolId !== expectedTool.toolId) {
+    errors.push(`toolId must be ${expectedTool.toolId}.`)
+  }
+  if (expectedTool && record.templateId !== expectedTool.templateId) {
+    errors.push(`templateId must be ${expectedTool.templateId}.`)
+  }
+
+  for (const field of requiredManifestStringFields) {
+    const value = record[field]
+    if (typeof value !== 'string' || !hasText(value)) {
+      errors.push(`${String(field)} must be a non-empty string.`)
+    }
+  }
+
+  if (typeof record.checksumSha256 === 'string' && !sha256Pattern.test(record.checksumSha256)) {
+    errors.push('checksumSha256 must be a 64-character hex SHA-256 digest.')
+  }
+
+  const artifactRefStatus = privateArtifactRefStatus(record.privateArtifactRef)
+  if (artifactRefStatus === 'invalid_public_or_signed_ref') {
+    errors.push('privateArtifactRef must be a private storage reference, not an HTTP(S), public, or signed URL.')
+  }
+
+  for (const field of requiredManifestReviewBooleanFields) {
+    if (record[field] !== true) {
+      errors.push(`${String(field)} must be true after owner review.`)
+    }
+  }
+
+  const schemaValid = errors.length === 0
+  const reviewAccepted = schemaValid && requiredManifestReviewBooleanFields.every((field) => record[field] === true)
+
+  return {
+    toolId,
+    templateId,
+    expectedTemplateId: expectedTool?.templateId ?? null,
+    manifestRecordProvided: true,
+    schemaValid,
+    reviewAccepted,
+    eligibleForNativeGpuProofInput: reviewAccepted,
+    approvedForAgentExecutionNow: false,
+    privateArtifactRefStatus: artifactRefStatus,
+    errors,
+    warnings,
+  }
+}
+
+export function validateAiGraphicsModelWeightManifestRecords(
+  evidenceRecords: readonly Partial<AiGraphicsModelWeightManifestEvidenceRecord>[] = [],
+): AiGraphicsModelWeightManifestValidationResult[] {
+  return requiredModelManifestTools.map((input) => {
+    const matchingRecords = evidenceRecords.filter((record) => record.toolId === input.toolId)
+    const result = validateAiGraphicsModelWeightManifestRecord(matchingRecords[0], input.toolId)
+
+    return matchingRecords.length > 1
+      ? withValidationErrors(result, [`${input.toolId} has duplicate manifest records.`])
+      : result
+  })
 }
 
 function buildRequirement(
@@ -286,6 +507,70 @@ export function listAiGraphicsModelWeightManifestRequirements(
   evidenceRecords: readonly AiGraphicsModelWeightManifestEvidenceRecord[] = [],
 ): AiGraphicsModelWeightManifestRequirement[] {
   return requiredModelManifestTools.map((input) => buildRequirement(input, evidenceRecords))
+}
+
+export function buildAiGraphicsModelWeightManifestReviewPacket(
+  evidenceRecords: readonly Partial<AiGraphicsModelWeightManifestEvidenceRecord>[] = [],
+): AiGraphicsModelWeightManifestReviewPacket {
+  const validationResults = validateAiGraphicsModelWeightManifestRecords(evidenceRecords)
+
+  return {
+    decision: AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_REVIEW_PACKET_DECISION,
+    sourceManifestReadinessDecision: AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_READINESS_DECISION,
+    totalAiGraphicsTools: 21,
+    modelWeightManifestRequiredTools: requiredModelManifestTools.map((tool) => tool.toolId),
+    requiredManifestFields,
+    manifestRecordsProvided: evidenceRecords.length,
+    schemaValidManifestRecords: validationResults.filter((result) => result.schemaValid).length,
+    reviewAcceptedManifestRecords: validationResults.filter((result) => result.reviewAccepted).length,
+    nativeGpuProofInputEligibleRecords: validationResults.filter((result) => result.eligibleForNativeGpuProofInput).length,
+    privateArtifactRefsLogged: 0,
+    betaReadyModelWeightTools: 0,
+    validationResults,
+    globalBlockers: [
+      'No private model/checkpoint artifact refs are logged in public docs or diagnostics.',
+      'Reviewed private manifests are only inputs to later native GPU proof; they do not approve model download, model load, or inference.',
+      'Native linux/amd64 NVIDIA L4 proof, Tool Route gating, Worker gating, approved snapshot, credit reservation, private artifact boundary, and owner beta gates remain blocked.',
+      'Agent/tool/route/worker/provider execution, media processing, signed URLs, public artifacts, beta, and production remain blocked.',
+    ],
+    booleans: {
+      modelWeightManifestReviewPacketPrepared: true,
+      sourceManifestReadinessContractAccepted: true,
+      all5ModelWeightToolsCovered: true,
+      all5TemplateTypesCovered: true,
+      manifestSchemaValidationReady: true,
+      privateArtifactRefsNotLogged: true,
+      publicOrSignedArtifactRefsRejected: true,
+      checksumSha256Required: true,
+      licenseReviewRequired: true,
+      provenanceReviewRequired: true,
+      qualityReviewRequired: true,
+      securityReviewRequired: true,
+      nativeGpuProofStillRequired: true,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      modelInferencePerformed: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      mediaProcessingPerformed: false,
+      supabaseMutationPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
 }
 
 export function buildAiGraphicsModelWeightManifestReadinessContract(

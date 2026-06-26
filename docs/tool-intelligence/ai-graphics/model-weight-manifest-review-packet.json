@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.model-weight-manifest-review-packet",
+  "decision": "ai_graphics_model_weight_manifest_review_packet_prepared_with_no_private_records",
+  "status": "prepared_with_no_private_records",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "latestObservedHeadSha": "bcc2b8690950ef9ae30fdf742c6cf81d757d6cbd",
+    "latestObservedCheckRollup": []
+  },
+  "sourceEvidence": {
+    "modelWeightManifestReadinessContract": "docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.json",
+    "gpuRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
+    "workerHandoffReadiness": "docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.json",
+    "betaReadinessGate": "docs/tool-intelligence/ai-graphics/beta-readiness-gate.json"
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-model-weight-manifest-readiness.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "diagnostic": "scripts/validation/ai-graphics-model-weight-manifest-review-packet-diagnostics.mjs",
+    "packageScript": "ai-graphics:model-weight-manifest-review-packet:diagnostics"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "gpuRuntimeTargetedTools": 8,
+    "modelWeightManifestRequiredTools": 5,
+    "manifestRecordsProvided": 0,
+    "schemaValidManifestRecords": 0,
+    "reviewAcceptedManifestRecords": 0,
+    "nativeGpuProofInputEligibleRecords": 0,
+    "privateArtifactRefsLogged": 0,
+    "betaReadyModelWeightTools": 0
+  },
+  "modelWeightManifestRequiredTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "modelWeightTemplateIdsCovered": [
+    "sam2_checkpoint",
+    "birefnet_model",
+    "real_esrgan_model",
+    "rembg_model",
+    "transparent_background_model"
+  ],
+  "requiredManifestFields": [
+    "manifestId",
+    "toolId",
+    "templateId",
+    "privateArtifactRef",
+    "checksumSha256",
+    "sourceLicenseRef",
+    "modelCardRef",
+    "commercialUseReviewed",
+    "redistributionReviewed",
+    "qualityReviewed",
+    "securityReviewed",
+    "provenanceReviewed",
+    "approvedForInternalBeta"
+  ],
+  "validationResults": [
+    {
+      "toolId": "sam2",
+      "templateId": "sam2_checkpoint",
+      "expectedTemplateId": "sam2_checkpoint",
+      "manifestRecordProvided": false,
+      "schemaValid": false,
+      "reviewAccepted": false,
+      "eligibleForNativeGpuProofInput": false,
+      "approvedForAgentExecutionNow": false,
+      "privateArtifactRefStatus": "missing",
+      "errors": ["sam2 reviewed private manifest record is missing."],
+      "warnings": [
+        "sam2 remains blocked from agent, Tool Route, Worker, provider, public artifact, beta, and production execution.",
+        "sam2 still requires native linux/amd64 NVIDIA L4 runtime proof before model load or inference."
+      ]
+    },
+    {
+      "toolId": "birefnet",
+      "templateId": "birefnet_model",
+      "expectedTemplateId": "birefnet_model",
+      "manifestRecordProvided": false,
+      "schemaValid": false,
+      "reviewAccepted": false,
+      "eligibleForNativeGpuProofInput": false,
+      "approvedForAgentExecutionNow": false,
+      "privateArtifactRefStatus": "missing",
+      "errors": ["birefnet reviewed private manifest record is missing."],
+      "warnings": [
+        "birefnet remains blocked from agent, Tool Route, Worker, provider, public artifact, beta, and production execution.",
+        "birefnet still requires native linux/amd64 NVIDIA L4 runtime proof before model load or inference."
+      ]
+    },
+    {
+      "toolId": "real_esrgan",
+      "templateId": "real_esrgan_model",
+      "expectedTemplateId": "real_esrgan_model",
+      "manifestRecordProvided": false,
+      "schemaValid": false,
+      "reviewAccepted": false,
+      "eligibleForNativeGpuProofInput": false,
+      "approvedForAgentExecutionNow": false,
+      "privateArtifactRefStatus": "missing",
+      "errors": ["real_esrgan reviewed private manifest record is missing."],
+      "warnings": [
+        "real_esrgan remains blocked from agent, Tool Route, Worker, provider, public artifact, beta, and production execution.",
+        "real_esrgan still requires native linux/amd64 NVIDIA L4 runtime proof before model load or inference."
+      ]
+    },
+    {
+      "toolId": "rembg",
+      "templateId": "rembg_model",
+      "expectedTemplateId": "rembg_model",
+      "manifestRecordProvided": false,
+      "schemaValid": false,
+      "reviewAccepted": false,
+      "eligibleForNativeGpuProofInput": false,
+      "approvedForAgentExecutionNow": false,
+      "privateArtifactRefStatus": "missing",
+      "errors": ["rembg reviewed private manifest record is missing."],
+      "warnings": [
+        "rembg remains blocked from agent, Tool Route, Worker, provider, public artifact, beta, and production execution.",
+        "rembg still requires native linux/amd64 NVIDIA L4 runtime proof before model load or inference."
+      ]
+    },
+    {
+      "toolId": "transparent_background",
+      "templateId": "transparent_background_model",
+      "expectedTemplateId": "transparent_background_model",
+      "manifestRecordProvided": false,
+      "schemaValid": false,
+      "reviewAccepted": false,
+      "eligibleForNativeGpuProofInput": false,
+      "approvedForAgentExecutionNow": false,
+      "privateArtifactRefStatus": "missing",
+      "errors": ["transparent_background reviewed private manifest record is missing."],
+      "warnings": [
+        "transparent_background remains blocked from agent, Tool Route, Worker, provider, public artifact, beta, and production execution.",
+        "transparent_background still requires native linux/amd64 NVIDIA L4 runtime proof before model load or inference."
+      ]
+    }
+  ],
+  "globalBlockers": [
+    "No private model/checkpoint artifact refs are logged in public docs or diagnostics.",
+    "Reviewed private manifests are only inputs to later native GPU proof; they do not approve model download, model load, or inference.",
+    "Native linux/amd64 NVIDIA L4 proof, Tool Route gating, Worker gating, approved snapshot, credit reservation, private artifact boundary, and owner beta gates remain blocked.",
+    "Agent/tool/route/worker/provider execution, media processing, signed URLs, public artifacts, beta, and production remain blocked."
+  ],
+  "booleans": {
+    "modelWeightManifestReviewPacketPrepared": true,
+    "sourceManifestReadinessContractAccepted": true,
+    "all5ModelWeightToolsCovered": true,
+    "all5TemplateTypesCovered": true,
+    "manifestSchemaValidationReady": true,
+    "privateArtifactRefsNotLogged": true,
+    "publicOrSignedArtifactRefsRejected": true,
+    "checksumSha256Required": true,
+    "licenseReviewRequired": true,
+    "provenanceReviewRequired": true,
+    "qualityReviewRequired": true,
+    "securityReviewRequired": true,
+    "nativeGpuProofStillRequired": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "mediaProcessingPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

@@ -503,3 +503,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Runtime probe hardening: the native GPU runtime readiness probe now validates `model_tree_manifest.json` content, including exact `toolId`/`templateId`, a 64-character SHA-256 checksum, non-public private artifact refs, all review booleans, and no execution-completed claims. The probe still does not download weights, load checkpoints, run inference, or unlock beta.
 - GPU routing: all 8 heavy/model tools remain GPU-runtime targeted; `torch_torchvision`, `transformers`, and `kornia` remain GPU foundation tools without standalone model manifests.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `modelWeightManifestsApprovedNow=false`, `modelWeightsDownloaded=false`, `modelWeightsLoaded=false`, `modelInferencePerformed=false`, `agentCanExecuteToolsNow=false`, `workerCanQueueNow=false`, `workerCanExecuteToolsNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Model-Weight Manifest Review Packet
+
+- Decision: `ai_graphics_model_weight_manifest_review_packet_prepared_with_no_private_records`.
+- Scope: server-only review input packet for the five AI graphics model/checkpoint tools that need private manifests before native GPU proof.
+- Result: all five manifest-required tools and template IDs are covered, with exact required fields and review booleans. Public docs contain 0 private manifest records, 0 schema-valid records, 0 review-accepted records, 0 native GPU proof input eligible records, 0 logged private artifact refs, and 0 beta-ready model-weight tools.
+- Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsDownloaded=false`, `modelWeightsLoaded=false`, `modelInferencePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

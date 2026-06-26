@@ -1,0 +1,7 @@
+# WORKER_RUNTIME_JOBS-SOUND-CPU-OWNER-EVIDENCE-INPUT-REQUEST: Request Required Owner Evidence, No Execution
+
+Request the missing owner-provided evidence after `worker_runtime_jobs_sound_cpu_owner_evidence_collection_blocked_missing_owner_input`.
+
+Use PR #1046, the blocked collection packet, and the seven packet shells as source evidence. Ask each required owner area to provide a written evidence statement for its packet shell: `WORKER_RUNTIME_JOBS`, `SOUND_RUNTIME_MEDIA`, `SUPABASE_RLS_STORAGE_DATABASE`, `PUBLIC_ARTIFACT_DELIVERY_POLICY`, `BILLING_STRIPE_CREDITS`, `COMPLIANCE_SECURITY`, and `PRODUCT_BETA_READINESS`. Do not collect fabricated evidence, approve evidence, submit evidence, accept evidence, approve dispatch contracts, dispatch workers, claim leases, execute workers/tools/routes, open/process/write media, run FFmpeg/ffprobe, run Docker build/run/push, call GCP/Cloud Run/Secret Manager, touch Supabase, execute SQL, create artifacts, create signed/public URLs, call providers/models, mutate credits/Stripe, unlock beta, unlock production, claim `generated_local_fixture_passed`, claim `dry_run_passed`, or claim worker/runtime/media/beta/production readiness.
+
+Preserve collected evidence count `0` unless owner-provided statements are actually present, submitted evidence count `0`, accepted evidence count `0`, completed owner signoffs `0`, closed gap count `0`, execution approvals `none`, and keep all dispatch/runtime gates closed.

@@ -1,7 +1,8 @@
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 import {
   buildAiGraphicsGpuRuntimeProofCommandPlan,
+  buildAiGraphicsGpuRuntimeProofNativeRunnerScript,
 } from '../tool-registry/ai-graphics-gpu-runtime-proof-command-plan'
 import type {
   AiGraphicsModelWeightManifestEvidenceRecord,
@@ -22,6 +23,15 @@ function valuesAfterFlag(flag: string): string[] {
     }
   }
   return values
+}
+
+function valueAfterFlag(flag: string): string | undefined {
+  const index = process.argv.indexOf(flag)
+  return index >= 0 ? process.argv[index + 1] : undefined
+}
+
+function hasFlag(flag: string): boolean {
+  return process.argv.includes(flag)
 }
 
 function jsonFilesInDirectory(directory: string): string[] {
@@ -75,12 +85,22 @@ function manifestFilesFromArgs(): string[] {
 const manifestFiles = manifestFilesFromArgs()
 const manifestRecords = manifestFiles.flatMap(recordsFromJsonFile)
 const plan = buildAiGraphicsGpuRuntimeProofCommandPlan(manifestRecords)
+const nativeRunnerScript = buildAiGraphicsGpuRuntimeProofNativeRunnerScript(plan)
+const scriptOut = valueAfterFlag('--script-out')
+if (scriptOut) {
+  const resolvedScriptOut = resolve(scriptOut)
+  mkdirSync(dirname(resolvedScriptOut), { recursive: true })
+  writeFileSync(resolvedScriptOut, nativeRunnerScript, 'utf8')
+  chmodSync(resolvedScriptOut, 0o700)
+}
 const output = {
   ...plan,
   input: {
     localPrivateManifestFilesRead: manifestFiles.length,
     privateArtifactRefsLogged: 0,
     commandPlanOnly: true,
+    nativeRunnerScriptGenerated: Boolean(scriptOut),
+    nativeRunnerScriptOutputPath: scriptOut ? resolve(scriptOut) : null,
     dockerExecuted: false,
     gpuRuntimeExecuted: false,
     modelWeightsLoaded: false,
@@ -88,7 +108,11 @@ const output = {
   },
 }
 
-console.log(JSON.stringify(output, null, 2))
+if (hasFlag('--emit-shell-script')) {
+  process.stdout.write(nativeRunnerScript)
+} else {
+  console.log(JSON.stringify(output, null, 2))
+}
 
 if (manifestRecords.length > 0 && plan.nativeGpuProofInputStatus !== 'ready_for_native_gpu_runtime_probe_input') {
   process.exitCode = 2

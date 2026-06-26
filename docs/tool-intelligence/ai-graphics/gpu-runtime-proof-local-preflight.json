@@ -68,6 +68,7 @@
     "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests",
     "export REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT=<local-only-private-model-weight-root>",
     "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests",
+    "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh",
     "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible",
     "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
     "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --require-ready-for-owner-review"

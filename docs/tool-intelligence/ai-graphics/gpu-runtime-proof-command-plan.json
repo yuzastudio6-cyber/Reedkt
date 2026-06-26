@@ -64,6 +64,15 @@
   },
   "localProofResultDirectory": ".local-artifacts/ai-graphics/gpu-runtime-proof-results",
   "proofResultValidatorCommand": "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
+  "nativeRunnerScript": {
+    "scriptOutputPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh",
+    "generatorCommand": "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh",
+    "requiredHostGateCommand": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible",
+    "resultValidationCommand": "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
+    "finalPreflightCommand": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --require-ready-for-owner-review",
+    "localOnly": true,
+    "generatedScriptCommitted": false
+  },
   "runtimeProfiles": [
     {
       "profileId": "gpu_worker_ai_graphics",
@@ -77,6 +86,8 @@
         "transparent_background"
       ],
       "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "localProofImageTag": "reeditpro/ai-graphics-gpu-worker:proof-local",
+      "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
       "requiresDockerGpuFlag": true,
       "requiredHostEnv": [
@@ -100,6 +111,8 @@
         "torch_torchvision"
       ],
       "dockerfile": "docker/prod/sam2-runtime/Dockerfile",
+      "localProofImageTag": "reeditpro/ai-graphics-sam2-runtime:proof-local",
+      "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/sam2-runtime/Dockerfile -t reeditpro/ai-graphics-sam2-runtime:proof-local .",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
       "requiresDockerGpuFlag": true,
       "requiredHostEnv": [
@@ -121,6 +134,8 @@
         "torch_torchvision"
       ],
       "dockerfile": "docker/prod/birefnet-runtime/Dockerfile",
+      "localProofImageTag": "reeditpro/ai-graphics-birefnet-runtime:proof-local",
+      "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/birefnet-runtime/Dockerfile -t reeditpro/ai-graphics-birefnet-runtime:proof-local .",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
       "requiresDockerGpuFlag": true,
       "requiredHostEnv": [
@@ -140,6 +155,8 @@
         "torch_torchvision"
       ],
       "dockerfile": "docker/prod/real-esrgan-runtime/Dockerfile",
+      "localProofImageTag": "reeditpro/ai-graphics-real-esrgan-runtime:proof-local",
+      "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/real-esrgan-runtime/Dockerfile -t reeditpro/ai-graphics-real-esrgan-runtime:proof-local .",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
       "requiresDockerGpuFlag": true,
       "requiredHostEnv": [
@@ -190,6 +207,8 @@
     "dockerGpuFlagRequired": true,
     "explicitRuntimeProofOptInRequired": true,
     "modelWeightManifestMountsPlanned": true,
+    "nativeProofRunnerScriptGeneratorPrepared": true,
+    "nativeProofRunnerScriptGeneratedNow": false,
     "nativeGpuRuntimeProofStillRequired": true,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,
@@ -217,6 +236,7 @@
   "nextWork": [
     "Add reviewed private model-weight manifests for sam2, birefnet, real_esrgan, rembg, and transparent_background outside the public repository.",
     "Run the command-plan CLI with --manifest-dir against local-only private manifest records and verify nativeGpuProofInputStatus is ready_for_native_gpu_runtime_probe_input.",
+    "Generate the local-only native proof runner script with --script-out and run it only after --detect-host --require-host-eligible passes on a native linux/amd64 NVIDIA host.",
     "Run the generated docker --gpus all commands in an approved native linux/amd64 NVIDIA L4 runtime proof lane."
   ]
 }

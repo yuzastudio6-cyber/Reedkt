@@ -314,6 +314,9 @@ if (!JSON.stringify(packet.requiredNextCommands || []).includes('export REEDITPR
 if (!JSON.stringify(packet.requiredNextCommands || []).includes('--detect-host --require-host-eligible')) {
   fail('packet_missing_host_eligible_preflight_command')
 }
+if (!JSON.stringify(packet.requiredNextCommands || []).includes('--script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh')) {
+  fail('packet_missing_native_runner_script_generation_command')
+}
 
 for (const key of [
   'gpuRuntimeProofLocalPreflightPrepared',

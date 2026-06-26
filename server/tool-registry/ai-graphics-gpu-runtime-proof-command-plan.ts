@@ -30,6 +30,8 @@ export interface AiGraphicsGpuRuntimeProofProfilePlan {
   profileId: 'gpu_worker_ai_graphics' | 'sam2' | 'birefnet' | 'real_esrgan'
   dockerfile: string
   imagePlaceholder: string
+  localProofImageTag: string
+  localProofBuildCommand: string
   runtimeTarget: string
   scriptPathInImage: string
   tools: AiGraphicsCanonicalToolId[]
@@ -46,9 +48,21 @@ export interface AiGraphicsGpuRuntimeProofProfilePlan {
   modelWeightManifestFlag: '--require-model-weight-manifests'
   modelWeightManifestMounts: AiGraphicsGpuRuntimeProofManifestMount[]
   command: string
+  localProofCommand: string
   localProofResultPath: string
   resultCaptureCommand: string
+  localProofResultCaptureCommand: string
   status: 'planned_not_executed'
+}
+
+export interface AiGraphicsGpuRuntimeProofNativeRunnerScript {
+  scriptOutputPath: '.local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh'
+  generatorCommand: 'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh'
+  requiredHostGateCommand: 'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible'
+  resultValidationCommand: 'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results'
+  finalPreflightCommand: 'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT" --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --require-ready-for-owner-review'
+  localOnly: true
+  generatedScriptCommitted: false
 }
 
 export interface AiGraphicsGpuRuntimeProofCommandPlan {
@@ -62,6 +76,7 @@ export interface AiGraphicsGpuRuntimeProofCommandPlan {
   runtimeProfiles: AiGraphicsGpuRuntimeProofProfilePlan[]
   localProofResultDirectory: '.local-artifacts/ai-graphics/gpu-runtime-proof-results'
   proofResultValidatorCommand: 'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results'
+  nativeRunnerScript: AiGraphicsGpuRuntimeProofNativeRunnerScript
   blockers: string[]
   booleans: {
     gpuRuntimeProofCommandPlanPrepared: true
@@ -73,6 +88,8 @@ export interface AiGraphicsGpuRuntimeProofCommandPlan {
     dockerGpuFlagRequired: true
     explicitRuntimeProofOptInRequired: true
     modelWeightManifestMountsPlanned: true
+    nativeProofRunnerScriptGeneratorPrepared: true
+    nativeProofRunnerScriptGeneratedNow: false
     nativeGpuRuntimeProofStillRequired: true
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
@@ -139,12 +156,21 @@ const proofResultValidatorCommand =
   'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results'
 const privateModelWeightRootEnv = 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
 const privateModelWeightRootMountPrefix = '$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+const nativeRunnerScriptOutputPath =
+  '.local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh'
+const nativeRunnerScriptGeneratorCommand =
+  'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh'
+const nativeRunnerHostGateCommand =
+  'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible'
+const nativeRunnerFinalPreflightCommand =
+  'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT" --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --require-ready-for-owner-review'
 
 const runtimeProfileSpecs = [
   {
     profileId: 'gpu_worker_ai_graphics',
     dockerfile: 'docker/prod/gpu-worker/Dockerfile',
     imagePlaceholder: '<gpu-worker-image>',
+    localProofImageTag: 'reeditpro/ai-graphics-gpu-worker:proof-local',
     scriptPathInImage: '/usr/local/bin/ai-graphics-gpu-runtime-readiness.py',
     runtimeTarget: 'native_linux_amd64_nvidia_l4_gpu_worker',
     tools: [
@@ -163,6 +189,7 @@ const runtimeProfileSpecs = [
     profileId: 'sam2',
     dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
     imagePlaceholder: '<sam2-runtime-image>',
+    localProofImageTag: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
     scriptPathInImage: '/app/ai-graphics-gpu-runtime-readiness.py',
     runtimeTarget: 'native_linux_amd64_nvidia_l4_sam2_runtime',
     tools: ['sam2', 'torch_torchvision'],
@@ -173,6 +200,7 @@ const runtimeProfileSpecs = [
     profileId: 'birefnet',
     dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
     imagePlaceholder: '<birefnet-runtime-image>',
+    localProofImageTag: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
     scriptPathInImage: '/usr/local/bin/ai-graphics-gpu-runtime-readiness.py',
     runtimeTarget: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
     tools: ['birefnet', 'transformers', 'kornia', 'torch_torchvision'],
@@ -183,6 +211,7 @@ const runtimeProfileSpecs = [
     profileId: 'real_esrgan',
     dockerfile: 'docker/prod/real-esrgan-runtime/Dockerfile',
     imagePlaceholder: '<real-esrgan-runtime-image>',
+    localProofImageTag: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
     scriptPathInImage: '/usr/local/bin/ai-graphics-gpu-runtime-readiness.py',
     runtimeTarget: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
     tools: ['real_esrgan', 'torch_torchvision'],
@@ -193,6 +222,7 @@ const runtimeProfileSpecs = [
   profileId: AiGraphicsGpuRuntimeProofProfilePlan['profileId']
   dockerfile: string
   imagePlaceholder: string
+  localProofImageTag: string
   scriptPathInImage: string
   runtimeTarget: string
   tools: readonly AiGraphicsCanonicalToolId[]
@@ -258,14 +288,27 @@ function buildProfilePlan(
     `--profile ${spec.profileId}`,
     '--require-model-weight-manifests',
   ].join(' ')
+  const localProofBuildCommand = [
+    'docker build',
+    '--platform linux/amd64',
+    '--target ai_graphics_install_proof',
+    `-f ${spec.dockerfile}`,
+    `-t ${spec.localProofImageTag}`,
+    '.',
+  ].join(' ')
+  const localProofCommand = command.replace(spec.imagePlaceholder, spec.localProofImageTag)
   const localProofResultPath = `${localProofResultDirectory}/${spec.profileId}.json`
   const hostEnvGuard = `test -n "$${privateModelWeightRootEnv}" && test -d "$${privateModelWeightRootEnv}"`
   const resultCaptureCommand = `${hostEnvGuard} && mkdir -p ${localProofResultDirectory} && ${command} > ${localProofResultPath}`
+  const localProofResultCaptureCommand =
+    `${hostEnvGuard} && mkdir -p ${localProofResultDirectory} && ${localProofCommand} > ${localProofResultPath}`
 
   return {
     profileId: spec.profileId,
     dockerfile: spec.dockerfile,
     imagePlaceholder: spec.imagePlaceholder,
+    localProofImageTag: spec.localProofImageTag,
+    localProofBuildCommand,
     runtimeTarget: spec.runtimeTarget,
     scriptPathInImage: spec.scriptPathInImage,
     tools: [...spec.tools],
@@ -283,10 +326,52 @@ function buildProfilePlan(
     modelWeightManifestFlag: '--require-model-weight-manifests',
     modelWeightManifestMounts: mounts,
     command,
+    localProofCommand,
     localProofResultPath,
     resultCaptureCommand,
+    localProofResultCaptureCommand,
     status: 'planned_not_executed',
   }
+}
+
+export function buildAiGraphicsGpuRuntimeProofNativeRunnerScript(
+  plan: Pick<AiGraphicsGpuRuntimeProofCommandPlan, 'runtimeProfiles' | 'proofResultValidatorCommand'>,
+): string {
+  const lines = [
+    '#!/usr/bin/env bash',
+    'set -euo pipefail',
+    '',
+    '# Generated by ai-graphics:gpu-runtime-proof-command-plan.',
+    '# Run only on an approved native linux/amd64 NVIDIA host.',
+    '# This script validates imports, CUDA visibility, and reviewed manifests only.',
+    '# It must not download weights, load model checkpoints, process media, call providers, or create public artifacts.',
+    '',
+    ': "${REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT:?Set to local-only private model-weight root before running GPU proof.}"',
+    'test -d "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+    '',
+    nativeRunnerHostGateCommand,
+    'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT" >/tmp/reeditpro-ai-graphics-model-weight-manifest-review.json',
+    `mkdir -p ${localProofResultDirectory}`,
+    '',
+  ]
+
+  for (const profile of plan.runtimeProfiles) {
+    lines.push(
+      `# Build proof target for ${profile.profileId}.`,
+      profile.localProofBuildCommand,
+      `# Run native GPU readiness proof for ${profile.profileId}.`,
+      profile.localProofResultCaptureCommand,
+      '',
+    )
+  }
+
+  lines.push(
+    plan.proofResultValidatorCommand,
+    nativeRunnerFinalPreflightCommand,
+    '',
+  )
+
+  return `${lines.join('\n')}\n`
 }
 
 export function buildAiGraphicsGpuRuntimeProofCommandPlan(
@@ -294,6 +379,7 @@ export function buildAiGraphicsGpuRuntimeProofCommandPlan(
 ): AiGraphicsGpuRuntimeProofCommandPlan {
   const manifestReviewPacket = buildAiGraphicsModelWeightManifestReviewPacket(evidenceRecords)
   const nativeGpuProofInputStatus = statusForManifestReviewPacket(manifestReviewPacket)
+  const runtimeProfiles = runtimeProfileSpecs.map(buildProfilePlan)
 
   const blockers = [
     nativeGpuProofInputStatus === 'missing_private_manifests'
@@ -314,9 +400,18 @@ export function buildAiGraphicsGpuRuntimeProofCommandPlan(
     modelWeightManifestRequiredTools: [...modelWeightManifestRequiredTools],
     manifestReviewPacket,
     nativeGpuProofInputStatus,
-    runtimeProfiles: runtimeProfileSpecs.map(buildProfilePlan),
+    runtimeProfiles,
     localProofResultDirectory,
     proofResultValidatorCommand,
+    nativeRunnerScript: {
+      scriptOutputPath: nativeRunnerScriptOutputPath,
+      generatorCommand: nativeRunnerScriptGeneratorCommand,
+      requiredHostGateCommand: nativeRunnerHostGateCommand,
+      resultValidationCommand: proofResultValidatorCommand,
+      finalPreflightCommand: nativeRunnerFinalPreflightCommand,
+      localOnly: true,
+      generatedScriptCommitted: false,
+    },
     blockers,
     booleans: {
       gpuRuntimeProofCommandPlanPrepared: true,
@@ -328,6 +423,8 @@ export function buildAiGraphicsGpuRuntimeProofCommandPlan(
       dockerGpuFlagRequired: true,
       explicitRuntimeProofOptInRequired: true,
       modelWeightManifestMountsPlanned: true,
+      nativeProofRunnerScriptGeneratorPrepared: true,
+      nativeProofRunnerScriptGeneratedNow: false,
       nativeGpuRuntimeProofStillRequired: true,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,

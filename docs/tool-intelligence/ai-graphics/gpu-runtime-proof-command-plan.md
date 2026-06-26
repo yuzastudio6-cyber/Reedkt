@@ -24,6 +24,24 @@ With local private manifest records, use:
 npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests
 ```
 
+To generate the local-only native proof runner script, use:
+
+```bash
+npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- \
+  --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests \
+  --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh
+```
+
+The generated shell script is local evidence tooling only. It must remain under
+`.local-artifacts`, must not be committed, and must only be run on a host that
+passes:
+
+```bash
+npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- \
+  --detect-host \
+  --require-host-eligible
+```
+
 If the local manifest directory has not been created yet, scaffold the runtime mount layout first:
 
 ```bash
@@ -93,6 +111,15 @@ After all four profile results are captured, validate them with:
 npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results
 ```
 
+The generated runner script also performs the final local preflight:
+
+```bash
+npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- \
+  --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT" \
+  --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results \
+  --require-ready-for-owner-review
+```
+
 The result directory is local evidence only and must not be staged or committed.
 
 ## Current Public Packet State
@@ -102,6 +129,8 @@ The result directory is local evidence only and must not be staged or committed.
 - Review-accepted manifest records: `0`
 - Native GPU proof input eligible records: `0`
 - Private artifact refs logged: `0`
+- Native proof runner script generator prepared: `true`
+- Native proof runner script generated now: `false`
 - Native GPU runtime proof executed: `false`
 - Runtime ready now: `false`
 - Internal beta ready now: `false`
@@ -113,4 +142,4 @@ This packet does not install dependencies, mutate `package-lock.json`, run Docke
 
 ## Next Proof Step
 
-Scaffold local manifest templates, replace placeholders with reviewed private evidence, run the manifest validator, run the command-plan CLI to verify redacted readiness, then run the generated Docker commands only in an approved native NVIDIA L4 runtime proof lane.
+Scaffold local manifest templates, replace placeholders with reviewed private evidence, run the manifest validator, run the command-plan CLI to verify redacted readiness, generate the local-only runner script, then run that script only in an approved native NVIDIA L4 runtime proof lane.

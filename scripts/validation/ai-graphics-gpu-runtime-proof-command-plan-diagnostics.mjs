@@ -47,21 +47,25 @@ const expectedManifestPaths = {
 const expectedProfiles = {
   gpu_worker_ai_graphics: {
     dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    imageTag: 'reeditpro/ai-graphics-gpu-worker:proof-local',
     tools: ['torch_torchvision', 'transformers', 'sam2', 'real_esrgan', 'kornia', 'rembg', 'transparent_background'],
     manifestTools: modelWeightTools,
   },
   sam2: {
     dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
+    imageTag: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
     tools: ['sam2', 'torch_torchvision'],
     manifestTools: ['sam2'],
   },
   birefnet: {
     dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
+    imageTag: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
     tools: ['birefnet', 'transformers', 'kornia', 'torch_torchvision'],
     manifestTools: ['birefnet'],
   },
   real_esrgan: {
     dockerfile: 'docker/prod/real-esrgan-runtime/Dockerfile',
+    imageTag: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
     tools: ['real_esrgan', 'torch_torchvision'],
     manifestTools: ['real_esrgan'],
   },
@@ -212,6 +216,21 @@ if (
 ) {
   fail('packet_missing_proof_result_validator_command')
 }
+if (packet.nativeRunnerScript?.scriptOutputPath !== '.local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh') {
+  fail('packet_missing_native_runner_script_output_path')
+}
+if (!String(packet.nativeRunnerScript?.generatorCommand || '').includes('--script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh')) {
+  fail('packet_missing_native_runner_generator_command')
+}
+if (packet.nativeRunnerScript?.requiredHostGateCommand !== 'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible') {
+  fail('packet_missing_native_runner_host_gate_command')
+}
+if (packet.nativeRunnerScript?.resultValidationCommand !== packet.proofResultValidatorCommand) {
+  fail('packet_native_runner_result_validator_mismatch')
+}
+if (packet.nativeRunnerScript?.localOnly !== true || packet.nativeRunnerScript?.generatedScriptCommitted !== false) {
+  fail('packet_native_runner_local_only_flags_wrong')
+}
 
 for (const tool of gpuRuntimeTools) {
   if (!packet.gpuRuntimeTargetedTools?.includes(tool)) fail(`packet_missing_gpu_runtime_tool:${tool}`)
@@ -237,6 +256,13 @@ for (const [profileId, expected] of Object.entries(expectedProfiles)) {
   const profile = profiles.get(profileId)
   if (!profile) fail(`missing_runtime_profile:${profileId}`)
   if (profile?.dockerfile !== expected.dockerfile) fail(`profile_dockerfile_mismatch:${profileId}`)
+  if (profile?.localProofImageTag !== expected.imageTag) fail(`profile_image_tag_mismatch:${profileId}`)
+  if (!String(profile?.localProofBuildCommand || '').includes(`-t ${expected.imageTag}`)) {
+    fail(`profile_missing_local_build_command:${profileId}`)
+  }
+  if (!String(profile?.localProofBuildCommand || '').includes('--target ai_graphics_install_proof')) {
+    fail(`profile_build_command_missing_install_proof_target:${profileId}`)
+  }
   if (profile?.status !== 'planned_not_executed') fail(`profile_status_mismatch:${profileId}`)
   if (profile?.requiresDockerGpuFlag !== true) fail(`profile_missing_docker_gpu_flag:${profileId}`)
   if (!profile?.requiredHostEnv?.includes('REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT')) {
@@ -259,6 +285,7 @@ for (const [profileId, expected] of Object.entries(expectedProfiles)) {
 for (const token of [
   'AI_GRAPHICS_GPU_RUNTIME_PROOF_COMMAND_PLAN_DECISION',
   'buildAiGraphicsGpuRuntimeProofCommandPlan',
+  'buildAiGraphicsGpuRuntimeProofNativeRunnerScript',
   'buildAiGraphicsModelWeightManifestReviewPacket',
   'ready_for_native_gpu_runtime_probe_input',
   'missing_private_manifests',
@@ -272,6 +299,9 @@ for (const token of [
   'PROVIDER_EXECUTION_ENABLED=false',
   '--require-model-weight-manifests',
   '$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
+  'run-native-gpu-proof.sh',
+  'docker build',
+  '--target ai_graphics_install_proof',
   '.local-artifacts/ai-graphics/gpu-runtime-proof-results',
   'ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results',
   'model_tree_manifest.json',
@@ -283,8 +313,11 @@ for (const token of [
   '--manifest-dir',
   '--manifest-file',
   '--manifest',
+  '--script-out',
+  '--emit-shell-script',
   'privateArtifactRefsLogged: 0',
   'commandPlanOnly: true',
+  'nativeRunnerScriptGenerated',
   'dockerExecuted: false',
   'gpuRuntimeExecuted: false',
   'modelInferencePerformed: false',
@@ -302,6 +335,7 @@ for (const key of [
   'dockerGpuFlagRequired',
   'explicitRuntimeProofOptInRequired',
   'modelWeightManifestMountsPlanned',
+  'nativeProofRunnerScriptGeneratorPrepared',
   'nativeGpuRuntimeProofStillRequired',
   'agentCanSelectForPlanning',
 ]) {
@@ -319,6 +353,7 @@ for (const key of [
   'modelWeightsDownloaded',
   'modelWeightsLoaded',
   'modelInferencePerformed',
+  'nativeProofRunnerScriptGeneratedNow',
   'mediaProcessingPerformed',
   'runtimeReadyNow',
   'internalBetaReadyNow',
@@ -367,6 +402,18 @@ for (const profile of noManifestPlan.runtimeProfiles || []) {
   if (!String(profile.command || '').includes('REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights')) {
     fail(`no_manifest_profile_missing_model_weight_dir_env:${profile.profileId}`)
   }
+  if (!String(profile.localProofBuildCommand || '').includes(`-t ${profile.localProofImageTag}`)) {
+    fail(`no_manifest_profile_missing_build_tag:${profile.profileId}`)
+  }
+  if (!String(profile.localProofCommand || '').includes(profile.localProofImageTag)) {
+    fail(`no_manifest_profile_missing_local_proof_image:${profile.profileId}`)
+  }
+  if (!String(profile.localProofResultCaptureCommand || '').includes(profile.localProofImageTag)) {
+    fail(`no_manifest_profile_missing_local_capture_image:${profile.profileId}`)
+  }
+  if (!String(profile.localProofResultCaptureCommand || '').includes('> .local-artifacts/ai-graphics/gpu-runtime-proof-results/')) {
+    fail(`no_manifest_profile_missing_local_capture_redirect:${profile.profileId}`)
+  }
 }
 
 const validDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-plan-valid-'))
@@ -402,6 +449,47 @@ if (!validOutput.includes('.local-artifacts/ai-graphics/gpu-runtime-proof-result
 if (!validOutput.includes('ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results')) {
   fail('valid_manifest_output_missing_result_validator_command')
 }
+
+const scriptDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-script-'))
+const scriptPath = path.join(scriptDir, 'run-native-gpu-proof.sh')
+const scriptJsonOutput = runPlan(['--manifest-dir', validDir, '--script-out', scriptPath])
+const scriptJson = parsePlanOutput(scriptJsonOutput, 'script_out')
+if (scriptJson.input?.nativeRunnerScriptGenerated !== true) fail('script_out_json_did_not_report_generation')
+if (!fs.existsSync(scriptPath)) fail('script_out_file_missing')
+const scriptMode = fs.statSync(scriptPath).mode & 0o777
+if (scriptMode !== 0o700) fail(`script_out_mode_not_700:${scriptMode.toString(8)}`)
+const scriptSource = read(scriptPath)
+for (const token of [
+  '#!/usr/bin/env bash',
+  'set -euo pipefail',
+  'ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible',
+  'ai-graphics:model-weight-manifest-review:validate -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+  'docker build --platform linux/amd64 --target ai_graphics_install_proof',
+  'docker run --rm --gpus all',
+  'REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true',
+  'MODEL_DOWNLOADS_ENABLED=false',
+  'PROVIDER_EXECUTION_ENABLED=false',
+  'REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights',
+  'reeditpro/ai-graphics-gpu-worker:proof-local',
+  'reeditpro/ai-graphics-sam2-runtime:proof-local',
+  'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+  'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  '.local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu_worker_ai_graphics.json',
+  '.local-artifacts/ai-graphics/gpu-runtime-proof-results/sam2.json',
+  '.local-artifacts/ai-graphics/gpu-runtime-proof-results/birefnet.json',
+  '.local-artifacts/ai-graphics/gpu-runtime-proof-results/real_esrgan.json',
+  'ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results',
+  'ai-graphics:gpu-runtime-proof-local-preflight -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT" --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --require-ready-for-owner-review',
+]) {
+  if (!scriptSource.includes(token)) fail(`script_missing:${token}`)
+}
+if (scriptSource.includes('private://')) fail('script_leaked_private_ref')
+if (scriptSource.includes('<gpu-worker-image>')) fail('script_contains_placeholder_image')
+
+const emittedScript = runPlan(['--manifest-dir', validDir, '--emit-shell-script'])
+if (!emittedScript.startsWith('#!/usr/bin/env bash')) fail('emitted_script_missing_shebang')
+if (!emittedScript.includes('docker build --platform linux/amd64')) fail('emitted_script_missing_build_commands')
+if (emittedScript.includes('private://')) fail('emitted_script_leaked_private_ref')
 
 const invalidDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-plan-invalid-'))
 writeManifestFixtures(invalidDir, {

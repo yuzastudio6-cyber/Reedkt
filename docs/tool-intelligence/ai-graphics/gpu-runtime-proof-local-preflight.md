@@ -86,6 +86,8 @@ the NVIDIA container runtime must fail the `--require-host-eligible` preflight.
 ## Next Step
 
 Fill reviewed private model-weight manifests locally, run the GPU runtime proof
-command plan on an approved native NVIDIA L4 runtime, capture all four result
-JSON files under `.local-artifacts`, then rerun this preflight with
+command plan, generate the local-only runner script at
+`.local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh`,
+run that script only on an approved native NVIDIA L4 runtime, capture all four
+result JSON files under `.local-artifacts`, then rerun this preflight with
 `--require-ready-for-owner-review`.

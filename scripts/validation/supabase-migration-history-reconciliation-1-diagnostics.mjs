@@ -2,30 +2,30 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-EXTERNAL-STAGING-SQL-HISTORY-BLOCKER-1'
+const packet = 'SUPABASE-MIGRATION-HISTORY-RECONCILIATION-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
-  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1.md',
-  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-record.json',
-  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution.md',
-  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-results.md',
-  'docs/implementation-prompts/prompt-supabase-migration-history-reconciliation-1.md',
+  'docs/supabase-worker-runtime/supabase-migration-history-reconciliation-1.md',
+  'docs/supabase-worker-runtime/supabase-migration-history-reconciliation-1-record.json',
+  'docs/activation-phase-supabase-migration-history-reconciliation-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-staging-migration-history-owner-decision-1.md',
   'implementation-status-and-next-phase.md',
   'docs/production-beta-blocker-inventory.md',
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-diagnostics.mjs',
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed-diagnostics.mjs',
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-diagnostics.mjs',
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-diagnostics.mjs',
+  'scripts/validation/supabase-migration-history-reconciliation-1-diagnostics.mjs',
   'package.json',
 ]
 
-const migrationHistoryReconciliationFiles = [
-  'docs/supabase-worker-runtime/supabase-migration-history-reconciliation-1.md',
-  'docs/supabase-worker-runtime/supabase-migration-history-reconciliation-1-record.json',
-  'docs/activation-phase-supabase-migration-history-reconciliation-1-results.md',
-  'docs/implementation-prompts/prompt-supabase-staging-migration-history-owner-decision-1.md',
-  'scripts/validation/supabase-migration-history-reconciliation-1-diagnostics.mjs',
+const inheritedHistoryBlockerFiles = [
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-record.json',
+  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-migration-history-reconciliation-1.md',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-diagnostics.mjs',
 ]
 
 const pendingMigrations = [
@@ -51,42 +51,43 @@ const pendingMigrations = [
 
 const requiredText = [
   packet,
+  'blocked_pending_owner_decision_for_staging_migration_history_reconciliation',
+  'completed_docs_only_migration_history_reconciliation_no_sql_mutation',
   'blocked_remote_migration_history_not_aligned_for_rpc_4r_sql_execution',
-  'completed_readonly_migration_history_audit_and_dry_run_no_sql_mutation',
   'passed_confirmed_supabase_target_rls_storage_validation',
-  'blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner',
-  'readonly_migration_history_and_db_push_dry_run',
+  'Remote Supabase command class: `none_in_this_phase`',
   'SQL mutation: `none`',
   'Migration deployed: `no`',
+  'Migration history table edited: `no`',
   'Production touched: `false`',
   'Internal beta unlocked: `false`',
   'External beta unlocked: `false`',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  'passed_readonly_migration_history_audit',
-  'blocked_dry_run_would_apply_unscoped_pending_migration_set',
-  'Dry-run pending migration count: `18`',
-  'Remote applied migrations currently align only through:',
-  '202605130006',
-  'supabase migration list --db-url [redacted]',
-  'supabase db push --dry-run --db-url [redacted]',
-  'SUPABASE-MIGRATION-HISTORY-RECONCILIATION-1',
-  'No Supabase mutation, SQL mutation, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.',
+  'option_c_keep_blocked_until_owner_environment_decision',
+  'SUPABASE-STAGING-MIGRATION-HISTORY-OWNER-DECISION-1',
+  'WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_staging_migration_history_owner_decision`',
+  'WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_staging_migration_history_owner_decision`',
+  'No Supabase mutation, SQL mutation, migration apply, migration history table edit, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.',
 ]
 
 const forbidden = [
   /remoteSupabaseMutation"?\s*:\s*true/i,
   /sqlExecution"?\s*:\s*true/i,
   /migrationApply"?\s*:\s*true/i,
+  /migrationHistoryTableEdited"?\s*:\s*true/i,
   /serviceRoleRouteExecution"?\s*:\s*true/i,
   /workerExecution"?\s*:\s*true/i,
   /workerDispatch"?\s*:\s*true/i,
+  /workerLeaseClaim"?\s*:\s*true/i,
   /signedUrlCreation"?\s*:\s*true/i,
   /publicArtifactCreation"?\s*:\s*true/i,
   /creditMutation"?\s*:\s*true/i,
   /providerModelCall"?\s*:\s*true/i,
   /completed_guarded_staging_sql_execution_readback_passed/i,
+  /full pending-set staging apply approved/i,
+  /clean staging target approved/i,
   /SQL execution passed/i,
   /migration deployment passed/i,
   /readback verification passed/i,
@@ -125,11 +126,11 @@ function extractSection(text, heading) {
 for (const file of requiredFiles) read(file)
 
 const corpus = [
-  read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1.md'),
-  read('docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-results.md'),
-  read('docs/implementation-prompts/prompt-supabase-migration-history-reconciliation-1.md'),
-  extractSection(read('implementation-status-and-next-phase.md'), 'SUPABASE-WORKER-RUNTIME Transactional RPC 4R External Staging SQL History Blocker'),
-  extractSection(read('docs/production-beta-blocker-inventory.md'), 'SUPABASE-WORKER-RUNTIME Transactional RPC 4R External Staging SQL History Blocker'),
+  read('docs/supabase-worker-runtime/supabase-migration-history-reconciliation-1.md'),
+  read('docs/activation-phase-supabase-migration-history-reconciliation-1-results.md'),
+  read('docs/implementation-prompts/prompt-supabase-staging-migration-history-owner-decision-1.md'),
+  extractSection(read('implementation-status-and-next-phase.md'), 'SUPABASE Migration History Reconciliation 1'),
+  extractSection(read('docs/production-beta-blocker-inventory.md'), 'SUPABASE Migration History Reconciliation 1'),
 ].join('\n')
 
 for (const text of requiredText) {
@@ -147,6 +148,7 @@ for (const pattern of forbidden) {
 const expectedLabelValues = new Map([
   ['SQL mutation', 'none'],
   ['Migration deployed', 'no'],
+  ['Migration history table edited', 'no'],
   ['Production touched', 'false'],
   ['Internal beta unlocked', 'false'],
   ['External beta unlocked', 'false'],
@@ -160,16 +162,18 @@ for (const [label, expected] of expectedLabelValues.entries()) {
   }
 }
 
-const record = JSON.parse(read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-record.json'))
-if (record.decision !== 'blocked_remote_migration_history_not_aligned_for_rpc_4r_sql_execution') fail('record decision mismatch')
-if (record.execution !== 'completed_readonly_migration_history_audit_and_dry_run_no_sql_mutation') fail('record execution mismatch')
+const record = JSON.parse(read('docs/supabase-worker-runtime/supabase-migration-history-reconciliation-1-record.json'))
+if (record.decision !== 'blocked_pending_owner_decision_for_staging_migration_history_reconciliation') fail('record decision mismatch')
+if (record.execution !== 'completed_docs_only_migration_history_reconciliation_no_sql_mutation') fail('record execution mismatch')
+if (record.sourceBlockerDependency !== 'blocked_remote_migration_history_not_aligned_for_rpc_4r_sql_execution') fail('record source blocker mismatch')
 if (record.targetValidationDependency !== 'passed_confirmed_supabase_target_rls_storage_validation') fail('record target dependency mismatch')
-if (record.remoteSupabaseCommandClass !== 'readonly_migration_history_and_db_push_dry_run') fail('record command class mismatch')
+if (record.remoteSupabaseCommandClass !== 'none_in_this_phase') fail('record command class mismatch')
 if (record.sqlMutation !== 'none') fail('record SQL mutation mismatch')
-if (record.migrationDeployed !== 'no') fail('record migration deployment mismatch')
-if (record.dryRunPendingMigrationCount !== 18) fail('record pending migration count mismatch')
-if (record.dryRunResult !== 'blocked_dry_run_would_apply_unscoped_pending_migration_set') fail('record dry-run result mismatch')
-if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
+if (record.migrationDeployed !== 'no') fail('record migration deployed mismatch')
+if (record.migrationHistoryTableEdited !== 'no') fail('record migration history edit mismatch')
+if (record.selectedCurrentOption !== 'option_c_keep_blocked_until_owner_environment_decision') fail('record selected option mismatch')
+if (record.dryRunPendingMigrationCountFromSource !== 18) fail('record pending migration count mismatch')
+if (record.productReadyEndToEndLocalOssTools !== 0) fail('record product-ready count changed')
 if (record.packageLock !== 'unchanged') fail('record package-lock mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('record generated artifact mismatch')
 for (const migration of pendingMigrations) {
@@ -178,8 +182,8 @@ for (const migration of pendingMigrations) {
 
 const packageJson = JSON.parse(read('package.json'))
 if (
-  packageJson.scripts?.['supabase-worker-runtime:transactional-rpc-4r-external-staging-sql-history-blocker-1:diagnostics'] !==
-  'node scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-diagnostics.mjs'
+  packageJson.scripts?.['supabase-migration-history-reconciliation-1:diagnostics'] !==
+  'node scripts/validation/supabase-migration-history-reconciliation-1-diagnostics.mjs'
 ) {
   fail('missing package diagnostics script')
 }
@@ -194,7 +198,7 @@ const changed = [...new Set([
   ...gitLines(['diff', '--cached', '--name-only']),
   ...gitLines(['ls-files', '--others', '--exclude-standard']),
 ])]
-const allowed = new Set([...requiredFiles, ...migrationHistoryReconciliationFiles])
+const allowed = new Set([...requiredFiles, ...inheritedHistoryBlockerFiles])
 
 for (const file of changed) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)
@@ -211,6 +215,6 @@ for (const file of changed) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_remote_migration_history_not_aligned_for_rpc_4r_sql_execution')
+console.log('Decision: blocked_pending_owner_decision_for_staging_migration_history_reconciliation')
 console.log('SQL mutation: none')
 console.log('Migration deployed: no')

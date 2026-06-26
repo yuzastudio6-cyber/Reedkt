@@ -740,6 +740,22 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next recommended milestone: `SUPABASE-MIGRATION-HISTORY-RECONCILIATION-1`.
 
+## SUPABASE Migration History Reconciliation 1
+
+`SUPABASE-MIGRATION-HISTORY-RECONCILIATION-1` records decision `blocked_pending_owner_decision_for_staging_migration_history_reconciliation` and execution `completed_docs_only_migration_history_reconciliation_no_sql_mutation`.
+
+Source blocker dependency: `blocked_remote_migration_history_not_aligned_for_rpc_4r_sql_execution`. Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`.
+
+Remote Supabase command class: `none_in_this_phase`. SQL mutation: `none`. Migration deployed: `no`. Migration history table edited: `no`. Production touched: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+Current selected option: `option_c_keep_blocked_until_owner_environment_decision`. The owner/environment decision must choose a full reviewed pending-set apply, a clean staging target, or continued block.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_staging_migration_history_owner_decision`. WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_staging_migration_history_owner_decision`. TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_transactional_contract`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_transactional_contract`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `SUPABASE-STAGING-MIGRATION-HISTORY-OWNER-DECISION-1`.
+
 ## RP-INTERNAL-BETA Runtime Readiness Orchestrator
 
 `RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-1` records decision `completed_internal_beta_runtime_readiness_orchestrator_fail_closed` and execution `completed_local_orchestrator_scaffold_no_runtime_execution`.

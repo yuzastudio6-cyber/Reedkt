@@ -91,6 +91,24 @@ for (const file of jobQueueLocalRuntimeFiles) {
   allowedChangedFiles.add(file)
 }
 
+const privateArtifactManifestLocalRuntimeFiles = [
+  'docs/internal-beta/rp-internal-beta-private-artifact-manifest-local-runtime-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-manifest-local-runtime-1/runtime-contract.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-manifest-local-runtime-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-manifest-local-runtime-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-manifest-local-runtime-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-private-artifact-manifest-local-runtime-1/private-artifact-manifest-local-runtime-record.json',
+  'docs/activation-phase-rp-internal-beta-private-artifact-manifest-local-runtime-1-results.md',
+  'server/services/internal-beta-private-artifact-manifest-local-runtime.ts',
+  'server/smoke/internal-beta-private-artifact-manifest-local-runtime-smoke.ts',
+  'scripts/validation/rp-artifacts-01-internal-beta-private-artifact-manifest-scaffold-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-private-artifact-manifest-local-runtime-1-diagnostics.mjs',
+]
+
+for (const file of privateArtifactManifestLocalRuntimeFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates',

@@ -177,6 +177,20 @@ Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tool
 
 Next safe milestone: `RP-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-LOCAL-RUNTIME-1`.
 
+## Internal Beta Private Artifact Manifest Local Runtime
+
+`RP-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-LOCAL-RUNTIME-1` records decision `completed_local_private_artifact_manifest_runtime_no_storage_access` and execution `completed_backend_local_artifact_manifest_validation_no_storage_or_signed_url`.
+
+The local runtime now creates deterministic private artifact manifest, artifact item, checksum, QA-link, and cleanup-policy metadata after approved snapshot, job, credit reservation, and idempotency reference checks. It rejects missing checksums, path-like file names, raw prompt fields, signed/public URL fields, media-byte fields, service-role fields, provider secret fields, and secret-like metadata.
+
+Local private artifact manifest runtime status: `local_private_artifact_manifest_validated_no_storage_access`. Invalid input blocker: `blocked_invalid_private_artifact_manifest_input`.
+
+Local manifest record created: `true`. Local artifact records created: `2`. Local checksum records created: `2`. Local QA report link created: `true`. Local cleanup policy recorded: `true`. Storage write: `false`. Storage read: `false`. Storage object creation: `false`. Storage object read: `false`. Signed URL creation: `false`. Public artifact creation: `false`. Private media processing: `false`. User media processing: `false`. QA execution: `false`. Cleanup job created: `false`. Cleanup executed: `false`. Supabase persistence: `false`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe milestone: `RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-LOCAL-RUNTIME-1`.
+
 ## SUPABASE-WORKER-RUNTIME RPC 4R Credential Context Hardening
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CREDENTIAL-CONTEXT-HARDENING-1` records decision `completed_rpc_4r_credential_context_hardening_fail_closed` and execution `completed_local_runner_hardening_no_sql_execution`.

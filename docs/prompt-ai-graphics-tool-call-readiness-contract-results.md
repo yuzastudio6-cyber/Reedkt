@@ -42,6 +42,8 @@ Latest observed PR state after per-tool model-weight manifest evidence hardening
 
 Latest observed PR state after per-profile native GPU proof evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `03ba5e53ec88e03bdfdb56090aa5a63a34b58473`, with an empty check rollup.
 
+Latest observed PR state after duplicate GPU proof profile hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ca2579ccd81f660017c8833eab27681a586bfbeb`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.
@@ -169,6 +171,7 @@ Latest observed PR state after per-profile native GPU proof evidence hardening: 
 - Production worker gate readiness result: owner-approved evidence can validate 21 of 21 production worker job payload candidates and 12 of 12 capability scenarios through the shared production worker gates with 0 hard failed gate checks. This does not enqueue jobs, dispatch workers, call `routeProductionWorkerJob`, execute tools, run browser/canvas/WebGL, run GPU/model runtime, load model weights, process media, or unlock beta/production.
 - Per-tool model-weight manifest evidence hardening: the beta evidence bundle now rejects count-only manifest packets and requires exact accepted `validationResults` rows for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. The shared diagnostics fixture now models the five accepted private-manifest rows without logging private refs, and execution remains blocked.
 - Per-profile native GPU proof evidence hardening: the beta evidence bundle now rejects count-only GPU proof packets and requires exact accepted `validationResults` rows for `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`, including approved probe metadata, imports, `nvidia-smi`, CUDA, model-manifest checks, raw ref redaction, and false side-effect gates.
+- Duplicate native GPU proof profile hardening: the GPU proof result validator now rejects duplicate result records for required profiles (`gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`) so repeated profile files cannot be silently deduped into owner-review-ready proof. Duplicate profile evidence makes the aggregate packet `invalid_native_gpu_runtime_proof_results`.
 
 ## Runtime State
 
@@ -192,6 +195,7 @@ Latest observed PR state after per-profile native GPU proof evidence hardening: 
 - `modelWeightManifestPerToolRowsRequired=true`
 - `gpuRuntimeProofResultValidatorPrepared=true`
 - `gpuRuntimeProofPerProfileRowsRequired=true`
+- `gpuRuntimeProofDuplicateProfilesRejected=true`
 - `betaActivationGapReportPrepared=true`
 - `betaReadinessEvidenceEvaluationPrepared=true`
 - `internalBetaProductionWorkerJobReadinessPrepared=true`

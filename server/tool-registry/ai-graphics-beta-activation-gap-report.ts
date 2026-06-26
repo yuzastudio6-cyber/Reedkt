@@ -111,7 +111,7 @@ const activationSequence = [
   'Keep package/package-lock and GPU Docker install surfaces unchanged unless an explicit dependency milestone approves changes.',
   'Review private model-weight manifests for sam2, birefnet, real_esrgan, rembg, and transparent_background.',
   'Run native linux/amd64 NVIDIA L4 proof for gpu_worker_ai_graphics, sam2, birefnet, and real_esrgan, then validate with ai-graphics:gpu-runtime-proof-result:validate.',
-  'Finish remaining profile, license, and model-weight policy reviews; only transparent_background still needs an evaluation/profile promotion after the JS runtime-proof profile promotions.',
+  'Package/profile license review is narrowed for all 21 AI graphics tools; model-weight, native GPU, browser/runtime, Tool Route, Worker, snapshot, credit, artifact, and beta owner gates remain evidence-driven.',
   'Run browser/canvas/WebGL sandbox proof for chart, animation, canvas, and WebGL scene tools before runtime execution.',
   'Pass approved plan snapshot, credit reservation, artifact boundary, Tool Route, Worker, and beta owner approval gates before any beta tool execution.',
 ]

@@ -40,17 +40,18 @@ Evidence flags can model completed gates without running any tool:
 - `--model-weight-manifests-approved`
 
 When all evidence flags are supplied, only tools whose production profiles and
-policies are already executable can become beta-eligible. Tools that are still
-`planning_only`, `future`, `evaluation_only`, license-review-blocked, or
-model-weight-review-blocked remain blocked.
+policies are executable or explicitly satisfied by the supplied evidence can
+become beta-eligible. Tools that are still `planning_only`, `future`,
+`evaluation_only`, license-review-blocked, or hard-blocked by model-weight
+policy remain blocked.
 
 Current full-evidence simulation result after the JS runtime-proof profile
-promotions:
+promotions and package/code license review narrowing:
 
-- Beta-eligible with all current evidence flags supplied: 14 tools.
-- Still blocked with all current evidence flags supplied: 7 tools.
-- Eligible set: `kornia`, `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs`.
-- Still blocked set: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, `transparent_background`.
+- Beta-eligible with all current evidence flags supplied: 21 tools.
+- Still blocked with all current evidence flags supplied: 0 tools.
+- Eligible set: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, `transparent_background`, `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs`.
+- Still blocked set: none after all modeled evidence flags are supplied.
 
 ## Current Required Gates
 

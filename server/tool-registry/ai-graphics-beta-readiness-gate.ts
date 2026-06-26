@@ -204,6 +204,20 @@ function buildReadinessRecordBlockers(input: {
   return blockers
 }
 
+function modelWeightPolicyAllowedByEvidence(input: {
+  modelWeightResultAllowed: boolean
+  modelWeightsRequired: boolean
+  evidence: Required<AiGraphicsBetaReadinessEvidence>
+  reviewStatus: string
+  commercialUseStatus: string
+}): boolean {
+  if (input.modelWeightResultAllowed) return true
+  if (!input.modelWeightsRequired) return true
+  if (!input.evidence.modelWeightManifestsApproved) return false
+
+  return input.reviewStatus !== 'blocked' && input.commercialUseStatus !== 'blocked'
+}
+
 export function buildAiGraphicsBetaReadinessGate(
   evidenceInput: AiGraphicsBetaReadinessEvidence = {},
 ): AiGraphicsBetaReadinessGate {
@@ -220,13 +234,20 @@ export function buildAiGraphicsBetaReadinessGate(
 
     const licenseResult = evaluateToolLicensePolicy(profile)
     const modelWeightResult = evaluateToolModelWeightPolicy(profile)
+    const modelWeightPolicyAllowed = modelWeightPolicyAllowedByEvidence({
+      modelWeightResultAllowed: modelWeightResult.allowed,
+      modelWeightsRequired: profile.modelWeightsRequired,
+      evidence,
+      reviewStatus: profile.modelWeightPolicy.reviewStatus,
+      commercialUseStatus: profile.modelWeightPolicy.commercialUseStatus,
+    })
     const runtimeResult = evaluateRuntimePolicy(profile, profile.workerType)
     const runtimeBlockers = buildRuntimeSpecificBlockers({
       toolId: record.toolId,
       runtimeTarget: record.runtimeTarget,
       gpuRequiredForRuntime: record.gpuRequiredForRuntime,
       modelWeightsRequired: profile.modelWeightsRequired,
-      modelWeightPolicyAllowed: modelWeightResult.allowed,
+      modelWeightPolicyAllowed,
       profileWorkerType: profile.workerType,
       productionStatus: profile.productionStatus,
       evidence,
@@ -243,7 +264,7 @@ export function buildAiGraphicsBetaReadinessGate(
       ...readinessBlockers,
       ...runtimeResult.blockingReasons,
       ...licenseResult.blockingReasons,
-      ...modelWeightResult.blockingReasons,
+      ...(modelWeightPolicyAllowed ? [] : modelWeightResult.blockingReasons),
       ...runtimeBlockers,
     ]
     const uniqueBlockers = Array.from(new Set(blockers))
@@ -260,7 +281,7 @@ export function buildAiGraphicsBetaReadinessGate(
       cpuFallbackAllowedForHeavyTool: false,
       modelWeightsRequired: profile.modelWeightsRequired,
       licensePolicyAllowed: licenseResult.allowed,
-      modelWeightPolicyAllowed: modelWeightResult.allowed,
+      modelWeightPolicyAllowed,
       runtimePolicyAllowed: runtimeResult.allowed,
       productionStatus: profile.productionStatus,
       betaTestingReadyNow: uniqueBlockers.length === 0,

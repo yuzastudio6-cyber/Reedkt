@@ -98,6 +98,8 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/tool-call-readiness-contract.json',
   'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
   'docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json',
+  'docs/tool-intelligence/ai-graphics/gpu-model-package-license-review.md',
+  'docs/tool-intelligence/ai-graphics/gpu-model-package-license-review.json',
 ]
 
 for (const file of requiredFiles) read(file)
@@ -109,10 +111,12 @@ const handoff = json('docs/tool-intelligence/ai-graphics/tool-call-handoff-contr
 const readiness = json('docs/tool-intelligence/ai-graphics/tool-call-readiness-contract.json')
 const audit = json('docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json')
 const gpuGate = json('docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json')
+const packageLicenseReview = json('docs/tool-intelligence/ai-graphics/gpu-model-package-license-review.json')
 const source = read('server/tool-registry/ai-graphics-beta-readiness-gate.ts')
 const evaluatorCli = read('server/cli/ai-graphics-beta-readiness-gate-evaluate.ts')
 const index = read('server/tool-registry/index.ts')
 const markdown = read('docs/tool-intelligence/ai-graphics/beta-readiness-gate.md')
+const packageLicenseMarkdown = read('docs/tool-intelligence/ai-graphics/gpu-model-package-license-review.md')
 
 if (pkg.scripts?.[scriptName] !== scriptCommand) fail(`missing_package_script:${scriptName}`)
 if (pkg.scripts?.[evaluatorScriptName] !== evaluatorScriptCommand) fail(`missing_package_script:${evaluatorScriptName}`)
@@ -127,6 +131,27 @@ if (handoff.counts?.totalTools !== 21) fail('handoff_tool_count_not_21')
 if (readiness.toolCounts?.productionToolIdMapped !== 21) fail('readiness_mapping_count_not_21')
 if (audit.counts?.properlyInstalledForPlannedSurface !== 21) fail('proper_install_count_not_21')
 if (gpuGate.tools?.length !== 8) fail('gpu_gate_tool_count_not_8')
+if (packageLicenseReview.decision !== 'ai_graphics_gpu_model_package_license_review_narrowed_with_model_weight_blocks') {
+  fail(`unexpected_package_license_review_decision:${packageLicenseReview.decision}`)
+}
+for (const tool of ['torch_torchvision', 'transformers', 'sam2', 'birefnet', 'real_esrgan', 'transparent_background']) {
+  if (!packageLicenseReview.reviewedPackageCodeTools?.includes(tool)) fail(`package_license_review_missing_tool:${tool}`)
+}
+if (packageLicenseReview.stillPackageProfileBlockedTools?.length !== 0) {
+  fail('package_license_review_still_has_package_profile_blocks')
+}
+for (const url of [
+  'https://github.com/pytorch/pytorch/blob/main/LICENSE',
+  'https://github.com/huggingface/transformers/blob/main/LICENSE',
+  'https://github.com/facebookresearch/sam2',
+  'https://github.com/ZhengPeng7/BiRefNet',
+  'https://github.com/xinntao/Real-ESRGAN/blob/master/LICENSE',
+  'https://github.com/plemeri/transparent-background/blob/main/LICENSE',
+]) {
+  if (!packageLicenseMarkdown.includes(url) && !JSON.stringify(packageLicenseReview).includes(url)) {
+    fail(`package_license_review_missing_source:${url}`)
+  }
+}
 
 if (!index.includes("export * from './ai-graphics-beta-readiness-gate'")) {
   fail('server_registry_index_does_not_export_beta_gate')
@@ -139,6 +164,7 @@ for (const needle of [
   'evaluateRuntimePolicy',
   'approvedPlanSnapshotGatePassed',
   'nativeGpuRuntimeProofPassed',
+  'modelWeightPolicyAllowedByEvidence',
   'cpuFallbackAllowedForHeavyTool: false',
   'betaTestingReadyNow: uniqueBlockers.length === 0',
   'production registry profile is still future',
@@ -166,8 +192,8 @@ if (gate.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) fail('gate_heavy_cpu_c
 if (gate.counts?.betaTestingReadyTools !== 0) fail('gate_beta_ready_count_not_zero')
 if (gate.counts?.blockedTools !== 21) fail('gate_blocked_tool_count_not_21')
 if (gate.evidenceEvaluationMode?.defaultEvidenceReadyTools !== 0) fail('gate_default_evidence_ready_not_zero')
-if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsReadyTools !== 14) fail('gate_all_evidence_ready_not_14')
-if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsStillBlockedTools !== 7) fail('gate_all_evidence_blocked_not_7')
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsReadyTools !== 21) fail('gate_all_evidence_ready_not_21')
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsStillBlockedTools !== 0) fail('gate_all_evidence_blocked_not_0')
 if (gate.evidenceEvaluationMode?.readyOnlyWhenProfilesAndPoliciesAllow !== true) fail('gate_evidence_mode_policy_guard_missing')
 if (gate.evidenceEvaluationMode?.executionPerformedByEvaluator !== false) fail('gate_evaluator_execution_not_false')
 
@@ -197,22 +223,20 @@ const fullEvidenceOutput = runEvaluator([
   '--model-weight-manifests-approved',
 ])
 const fullEvidenceGate = parseJsonOutput(fullEvidenceOutput, 'full_evidence_evaluator')
-if (fullEvidenceGate.betaTestingReadyTools !== 14) {
-  fail(`full_evidence_ready_count_not_14:${fullEvidenceGate.betaTestingReadyTools}`)
+if (fullEvidenceGate.betaTestingReadyTools !== 21) {
+  fail(`full_evidence_ready_count_not_21:${fullEvidenceGate.betaTestingReadyTools}`)
 }
-if (fullEvidenceGate.blockedTools !== 7) {
-  fail(`full_evidence_blocked_count_not_7:${fullEvidenceGate.blockedTools}`)
+if (fullEvidenceGate.blockedTools !== 0) {
+  fail(`full_evidence_blocked_count_not_0:${fullEvidenceGate.blockedTools}`)
 }
 const fullEvidenceReadyTools = (fullEvidenceGate.tools || [])
   .filter((tool) => tool.betaTestingReadyNow === true)
   .map((tool) => tool.toolId)
-for (const tool of ['kornia', 'd3', 'echarts', 'vega_lite', 'vega', 'satori', 'svgdotjs_svg_js', 'viz_js', 'lottie_web', 'animejs', 'three_js', 'pixi_js', 'konva', 'babylonjs']) {
+for (const tool of allTools) {
   if (!fullEvidenceReadyTools.includes(tool)) fail(`full_evidence_expected_ready_tool_missing:${tool}`)
 }
-for (const tool of ['torch_torchvision', 'transformers', 'sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background']) {
-  const row = (fullEvidenceGate.tools || []).find((entry) => entry.toolId === tool)
-  if (row?.betaTestingReadyNow !== false) fail(`full_evidence_unexpected_ready_tool:${tool}`)
-  if (!row?.blockers?.length) fail(`full_evidence_expected_blockers_missing:${tool}`)
+for (const row of fullEvidenceGate.tools || []) {
+  if (row?.blockers?.length) fail(`full_evidence_unexpected_blockers:${row.toolId}:${row.blockers.join('|')}`)
 }
 for (const key of [
   'toolExecutionPerformed',

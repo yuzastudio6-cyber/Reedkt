@@ -18,7 +18,8 @@
     "toolCallHandoffContract": "docs/tool-intelligence/ai-graphics/tool-call-handoff-contract.json",
     "toolCallPlanEvaluator": "docs/tool-intelligence/ai-graphics/tool-call-plan-evaluator.json",
     "properInstallAudit": "docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json",
-    "gpuModelRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json"
+    "gpuModelRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
+    "gpuModelPackageLicenseReview": "docs/tool-intelligence/ai-graphics/gpu-model-package-license-review.json"
   },
   "contractSurface": {
     "serverModule": "server/tool-registry/ai-graphics-beta-readiness-gate.ts",
@@ -41,8 +42,8 @@
   },
   "evidenceEvaluationMode": {
     "defaultEvidenceReadyTools": 0,
-    "allCurrentEvidenceFlagsReadyTools": 14,
-    "allCurrentEvidenceFlagsStillBlockedTools": 7,
+    "allCurrentEvidenceFlagsReadyTools": 21,
+    "allCurrentEvidenceFlagsStillBlockedTools": 0,
     "readyOnlyWhenProfilesAndPoliciesAllow": true,
     "executionPerformedByEvaluator": false
   },

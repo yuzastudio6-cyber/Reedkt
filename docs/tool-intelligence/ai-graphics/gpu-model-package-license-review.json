@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.gpu-model-package-license-review",
+  "decision": "ai_graphics_gpu_model_package_license_review_narrowed_with_model_weight_blocks",
+  "status": "prepared_with_model_weight_and_runtime_blocks",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true
+  },
+  "reviewedPackageCodeTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "transparent_background"
+  ],
+  "stillPackageProfileBlockedTools": [],
+  "sourceEvidence": {
+    "pytorchLicense": "https://github.com/pytorch/pytorch/blob/main/LICENSE",
+    "transformersLicense": "https://github.com/huggingface/transformers/blob/main/LICENSE",
+    "sam2Repository": "https://github.com/facebookresearch/sam2",
+    "sam2License": "https://github.com/facebookresearch/sam2/blob/main/LICENSE",
+    "birefnetRepository": "https://github.com/ZhengPeng7/BiRefNet",
+    "realEsrganLicense": "https://github.com/xinntao/Real-ESRGAN/blob/master/LICENSE",
+    "realEsrganPypi": "https://pypi.org/project/realesrgan/",
+    "transparentBackgroundLicense": "https://github.com/plemeri/transparent-background/blob/main/LICENSE",
+    "transparentBackgroundPypi": "https://pypi.org/project/transparent-background/"
+  },
+  "booleans": {
+    "packageCodeLicenseReviewNarrowed": true,
+    "reviewedPackageCodeToolsCount": 6,
+    "transparentBackgroundStillEvaluationOnly": false,
+    "modelWeightManifestsApprovedNow": false,
+    "nativeGpuRuntimeProofApprovedNow": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "mediaProcessingPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

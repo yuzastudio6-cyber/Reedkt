@@ -6,9 +6,11 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | --- | --- | --- |
 | Supabase target owner decision | `completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning` | Carry forward only |
 | Supabase read-only target validation | `completed_guarded_supabase_target_rls_storage_readonly_validation` | Carry forward only |
-| Staging migration path | `completed_isolated_target_migration_chain_apply_and_readback` | carry forward isolated target migration-chain evidence |
-| Worker RPC 4R | `completed_worker_runtime_transactional_rpc_isolated_target_readback` | carry forward isolated target RPC catalog/grant evidence |
-| Service-role route runtime | `completed_service_role_runtime_boundary_validation` | carry forward backend-only service-role boundary validation |
+| Main Reeditpro staging migration history | `completed_reeditpro_main_supabase_target_migration_history_sync` | carry forward main target migration-history sync evidence |
+| Main Reeditpro staging lint/advisor | `passed_no_schema_errors_found_and_confirmed_readonly_target_validation` | carry forward final dry-run/lint/target validation |
+| Historical isolated target | `historical_sandbox_evidence_only_not_active` | do not use as active target |
+| Worker RPC 4R | `main_target_schema_present_pending_runtime_validation` | guarded main-target service-role/runtime readback |
+| Service-role route runtime | `blocked_pending_main_target_service_role_runtime_validation` | guarded backend-only service-role boundary validation |
 | Approved snapshot persistence | `completed_service_role_persistence_envelope_validated_no_remote_write` | guarded remote Supabase persistence write evidence |
 | Credit reservation ledger | `blocked_pending_service_role_runtime_validation` | guarded internal ledger mutation evidence |
 | Job queue leases/events | `blocked_pending_service_role_runtime_validation` | guarded job record/lease/event validation |
@@ -23,7 +25,23 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARDED-REMOTE-WRITE-1`
+`RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1`
+
+## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
+
+`RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1` records decision `completed_reeditpro_main_supabase_target_migration_history_sync` and execution `completed_guarded_main_staging_migration_apply_and_readonly_validation`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Historical sandbox `reeditpro-clean-staging-isolated-v1` / `fajinbvwhcjnutkaumkm` is no longer an active target and no data was copied from it.
+
+Source mapping added `supabase/migrations/20260626163138_public_production_edit_session_brief_qwen_gates.sql` for remote-only main-target migration `20260626163138`. The guarded sync then applied the 18 pending repo migrations and lint-fix migration `20260626224600_worker_runtime_fail_retry_count_lint_fix.sql`.
+
+Final migration history: `source_aligned_and_up_to_date_through_20260626224600`. Final dry-run: `Remote database is up to date.` Supabase lint: `No schema errors found`. Confirmed RLS/storage validation run ID: `2026-06-26T22-47-09-777Z-898c9851`.
+
+Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

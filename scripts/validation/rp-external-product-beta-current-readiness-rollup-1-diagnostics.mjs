@@ -19,6 +19,19 @@ const requiredFiles = [
   'package.json',
 ]
 
+const mainTargetMigrationSyncFiles = [
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/source-audit.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/migration-history-sync.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/validation-results.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/readiness-gate.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/safety-boundary.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/sync-record.json',
+  'docs/activation-phase-rp-external-beta-reeditpro-supabase-main-target-migration-sync-1-results.md',
+  'supabase/migrations/20260626163138_public_production_edit_session_brief_qwen_gates.sql',
+  'supabase/migrations/20260626224600_worker_runtime_fail_retry_count_lint_fix.sql',
+  'scripts/validation/rp-external-beta-reeditpro-supabase-main-target-migration-sync-1-diagnostics.mjs',
+]
+
 const relatedDiagnosticsAllowlist = [
   'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
@@ -318,23 +331,24 @@ const followOnApprovedSnapshotServiceRolePersistenceImplementation1Files = [
 
 const requiredText = [
   packet,
-  'blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure',
+  'blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync',
   'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution',
-  '4648c70b0f47ec34f1c4668cb42f69cd55053b50',
-  'blocked_no_owner_approval_for_staging_migration_apply_or_clean_target',
+  'completed_reeditpro_main_supabase_target_migration_history_sync',
+  'source_aligned_and_up_to_date_through_20260626224600',
+  'Remote database is up to date.',
+  'No schema errors found',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'SUPABASE_ACCESS_TOKEN` version `5`',
-  'Secret Manager payload access',
   'External product beta status: `blocked`',
-  'Internal beta status: `blocked_pending_explicit_staging_migration_path_approval`',
+  'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  'APPROVE CLEAN STAGING TARGET',
-  'APPROVE FULL REVIEWED STAGING MIGRATION SET APPLY',
-  'OWNER ACTION REQUIRED - approve full reviewed staging migration set or clean staging target before RPC 4R SQL execution',
+  'RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1',
+  'fajinbvwhcjnutkaumkm` is no longer an active target and no data was copied from it',
+  '20260626163138_public_production_edit_session_brief_qwen_gates.sql',
+  '20260626224600_worker_runtime_fail_retry_count_lint_fix.sql',
   'PR #577 remains open/draft/blocked and excluded',
-  'No Supabase mutation, SQL mutation, migration apply, migration history table edit, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, Docker execution, Remotion execution, FFmpeg/FFprobe execution, or broad service-role handler was enabled.',
+  'Remote Supabase mutation for the preceding sync packet was limited to guarded staging migration apply on the single main Reeditpro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project.',
 ]
 
 const forbiddenPatterns = [
@@ -344,7 +358,6 @@ const forbiddenPatterns = [
   /productionUnlock"?\s*:\s*true/i,
   /supabaseMutation"?\s*:\s*true/i,
   /sqlMutation"?\s*:\s*true/i,
-  /migrationApply"?\s*:\s*true/i,
   /secretPayloadAccess"?\s*:\s*true/i,
   /workerExecution"?\s*:\s*true/i,
   /providerModelCall"?\s*:\s*true/i,
@@ -412,16 +425,18 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure') fail('record decision mismatch')
+if (record.decision !== 'blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
-if (record.integrationHead !== '4648c70b0f47ec34f1c4668cb42f69cd55053b50') fail('integration head mismatch')
 if (record.statuses?.externalProductBeta !== 'blocked') fail('external beta status mismatch')
-if (record.statuses?.internalBeta !== 'blocked_pending_explicit_staging_migration_path_approval') fail('internal beta status mismatch')
+if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
-if (record.credentialMetadata?.secretPayloadAccess !== false) fail('secret payload access must be false')
-if (record.safety?.supabaseMutation !== false) fail('Supabase mutation must be false')
-if (record.safety?.sqlMutation !== false) fail('SQL mutation must be false')
-if (record.safety?.migrationApply !== false) fail('migration apply must be false')
+if (record.mainSupabaseTarget?.projectRef !== 'wmyyttnynmteqgcdishd') fail('main target ref mismatch')
+if (record.mainSupabaseTarget?.migrationHistory !== 'source_aligned_and_up_to_date_through_20260626224600') fail('main target migration history mismatch')
+if (record.mainSupabaseTarget?.isolatedSandboxActive !== false) fail('isolated sandbox must not be active')
+if (record.mainSupabaseTarget?.isolatedSandboxDataCopied !== false) fail('isolated sandbox data copy must be false')
+if (record.safety?.supabaseMutation !== 'guarded_main_staging_migration_apply_only') fail('Supabase mutation scope mismatch')
+if (record.safety?.sqlMutation !== 'guarded_main_staging_migration_apply_only') fail('SQL mutation scope mismatch')
+if (record.safety?.migrationApply !== 'guarded_main_staging_migration_apply_only') fail('migration apply scope mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
@@ -437,6 +452,7 @@ execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEn
 
 const allowed = new Set([
   ...requiredFiles,
+  ...mainTargetMigrationSyncFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -453,27 +469,34 @@ const allowed = new Set([
   ...followOnSupabaseServiceRoleRuntimeBoundaryValidation1Files,
   ...followOnApprovedSnapshotServiceRolePersistenceImplementation1Files,
 ])
+const allowedSqlFiles = new Set([
+  'supabase/migrations/20260626163138_public_production_edit_session_brief_qwen_gates.sql',
+  'supabase/migrations/20260626224600_worker_runtime_fail_retry_count_lint_fix.sql',
+])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)
   for (const blockedPath of blockedPaths) {
     if (
       (file === blockedPath || file.startsWith(`${blockedPath}/`)) &&
-      !allowedRuntimeImplementationFiles.has(file)
+      !allowedRuntimeImplementationFiles.has(file) &&
+      !allowedSqlFiles.has(file)
     ) {
       fail(`blocked path changed: ${file}`)
     }
   }
-  if (file.endsWith('.sql')) fail(`SQL file changed: ${file}`)
+  if (file.endsWith('.sql') && !allowedSqlFiles.has(file)) fail(`SQL file changed: ${file}`)
   if (file.includes('/._') || file.startsWith('._') || file.includes('.DS_Store')) fail(`metadata artifact changed: ${file}`)
   if (file.startsWith('.env') || file.includes('/.env')) fail(`env file changed: ${file}`)
   const text = read(file)
   if (/sbp_[A-Za-z0-9_./=-]+/.test(text)) fail(`Supabase access token leaked in ${file}`)
   if (/https:\/\/[a-z0-9-]+\.supabase\.co/i.test(text)) fail(`Supabase URL leaked in ${file}`)
-  const dbUrlRedacted = text.replaceAll('postgresql://[redacted]', '')
+  const dbUrlRedacted = text
+    .replaceAll('postgresql://[redacted]', '')
+    .replaceAll('postgres://[REDACTED]', '')
   if (/\bpostgres(?:ql)?:\/\/\S+/i.test(dbUrlRedacted)) fail(`DB URL leaked in ${file}`)
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure')
+console.log('Decision: blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync')
 console.log('External product beta: blocked')
-console.log('SQL mutation: none')
+console.log('SQL mutation: guarded_main_staging_migration_apply_only')

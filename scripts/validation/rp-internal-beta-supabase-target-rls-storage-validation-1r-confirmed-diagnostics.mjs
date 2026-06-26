@@ -91,11 +91,31 @@ const externalStagingSqlGateFiles = [
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-diagnostics.mjs',
 ]
 
+const mainTargetMigrationSyncFiles = [
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/external-beta/current-readiness-rollup-1/readiness-gate.md',
+  'docs/external-beta/current-readiness-rollup-1/source-of-truth-audit.md',
+  'docs/external-beta/current-readiness-rollup-1/rollup-record.json',
+  'docs/production-beta-blocker-inventory.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/source-audit.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/migration-history-sync.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/validation-results.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/readiness-gate.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/safety-boundary.md',
+  'docs/external-beta/reeditpro-supabase-main-target-migration-sync-1/sync-record.json',
+  'docs/activation-phase-rp-external-beta-reeditpro-supabase-main-target-migration-sync-1-results.md',
+  'supabase/migrations/20260626163138_public_production_edit_session_brief_qwen_gates.sql',
+  'supabase/migrations/20260626224600_worker_runtime_fail_retry_count_lint_fix.sql',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-reeditpro-supabase-main-target-migration-sync-1-diagnostics.mjs',
+]
+
 const allowedChanged = new Set([
   ...requiredFiles,
   ...rpc4rConfirmedFiles,
   ...currentEnvironmentClosureFiles,
   ...externalStagingSqlGateFiles,
+  ...mainTargetMigrationSyncFiles,
 ])
 
 const requiredText = [
@@ -296,7 +316,7 @@ for (const required of [
 }
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
-for (const blocked of ['supabase/migrations', 'supabase/functions', 'server/routes', 'server/workers', 'docker', 'src', 'database', '.dockerignore']) {
+for (const blocked of ['supabase/functions', 'server/routes', 'server/workers', 'docker', 'src', 'database', '.dockerignore']) {
   execFileSync('git', ['diff', '--quiet', '--', blocked], { env: gitEnv, stdio: 'pipe' })
 }
 
@@ -308,7 +328,14 @@ const changed = [...new Set([
 
 for (const file of changed) {
   if (!allowedChanged.has(file)) fail(`unexpected changed file ${file}`)
-  if (file === 'package-lock.json' || file.endsWith('.sql') || file.endsWith('.mp4') || file.endsWith('.mov') || file.endsWith('.mkv') || file.endsWith('.zip')) {
+  if (
+    file === 'package-lock.json' ||
+    (file.endsWith('.sql') && !mainTargetMigrationSyncFiles.includes(file)) ||
+    file.endsWith('.mp4') ||
+    file.endsWith('.mov') ||
+    file.endsWith('.mkv') ||
+    file.endsWith('.zip')
+  ) {
     fail(`forbidden changed file ${file}`)
   }
 }

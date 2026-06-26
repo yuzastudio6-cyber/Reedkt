@@ -4,8 +4,10 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 
 ## Current Source Chain
 
-- Current integration head: `4648c70b0f47ec34f1c4668cb42f69cd55053b50`.
-- PR #1019 / `SUPABASE-STAGING-MIGRATION-HISTORY-OWNER-DECISION-1`: source-of-truth for the current staging migration path blocker.
+- Current integration head: `7fc216c101d74b68ae175830ab5fa34b3e956d33`.
+- `RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1`: source-of-truth for the completed main Reeditpro staging migration-history sync.
+- PR #1102: source-of-truth for the single active Supabase target decision: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+- PR #1019 / `SUPABASE-STAGING-MIGRATION-HISTORY-OWNER-DECISION-1`: historical source for the previous staging migration path blocker, now superseded by the guarded main-target migration sync.
 - PR #1016 / `SUPABASE-MIGRATION-HISTORY-RECONCILIATION-1`: source-of-truth for migration-history reconciliation posture.
 - PR #1013 / `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-EXTERNAL-STAGING-SQL-HISTORY-BLOCKER-1`: source-of-truth for the read-only migration history audit and dry-run evidence.
 - PR #1008 / `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`: source-of-truth for the fail-closed RPC 4R confirmed runner status.
@@ -21,8 +23,8 @@ The approved read-only DB URL secret already has a version, and source records `
 
 PR #577 remains open/draft/blocked and excluded as source-of-truth for this beta readiness decision.
 
-Older internal-beta candidate/readiness documents remain historical context only when they predate PR #1019. They do not override the current blocker `blocked_no_owner_approval_for_staging_migration_apply_or_clean_target`.
+Older internal-beta candidate/readiness documents remain historical context only when they predate the main-target migration sync. They do not override the current blocker `blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync`.
 
 ## Current Interpretation
 
-The safe target and credential context are sufficient for guarded planning and read-only validation, but they are not approval to mutate staging. The migration-history owner decision is the controlling source for next runtime work.
+The safe target, credential context, and main Reeditpro staging migration history are now aligned enough for the next guarded runtime validation lane. The controlling blocker is no longer migration-history alignment; it is runtime gate closure on the main target, including service-role route/runtime validation, approved snapshot persistence, credit reservation/ledger validation, job lease/event validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, and security/privacy/support/cost/deployment review.

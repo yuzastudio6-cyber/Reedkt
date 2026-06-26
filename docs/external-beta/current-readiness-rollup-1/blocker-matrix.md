@@ -66,3 +66,7 @@ Next recommended milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECIS
 `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1` records `approved_isolated_clean_staging_target_path_for_source_aligned_validation_planning`. Current and replacement clean branches remain unadopted; the next approved future path is a separately gated `new_isolated_non_production_supabase_target` creation/readback packet. Internal beta remains blocked until that target exists, proves source-aligned migration history, and later migration-chain/runtime gates pass.
 
 Next recommended milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.
+
+`SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1` created `reeditpro-clean-staging-isolated-v1` / `fajinbvwhcjnutkaumkm`, proved no remote-only migrations by read-only migration-history inspection, and rotated `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` to version `2`. Internal beta remains blocked until the isolated target migration-chain apply/readback and later runtime gates pass.
+
+Next recommended milestone: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1`.

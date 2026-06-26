@@ -1,0 +1,20 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1",
+  "runId": "2026-06-26T19-56-42-471Z-36bd38cd",
+  "outputDir": "/tmp/reeditpro-supabase-clean-staging-isolated-target-creation-1/2026-06-26T19-56-42-471Z-36bd38cd",
+  "generatedAt": "2026-06-26T19:59:01.700Z",
+  "artifacts": [
+    {
+      "fileName": "clean_staging_isolated_target_creation_report.json",
+      "path": "docs/activation-supabase-clean-staging-isolated-target-creation-1-reports/clean_staging_isolated_target_creation_report.json",
+      "bytes": 7613,
+      "sha256": "c183322d6aba29a52e3cd7f7f7e01681a895e4323dc71f426b2b2946b3d79899"
+    },
+    {
+      "fileName": "clean_staging_isolated_target_creation_manifest.json",
+      "path": "docs/activation-supabase-clean-staging-isolated-target-creation-1-reports/clean_staging_isolated_target_creation_manifest.json",
+      "bytes": 630,
+      "sha256": "11bd54e8c04c1744f7eafad4c2c2b086b10d81dd93e3d9fa1aa322ca4a8f16e1"
+    }
+  ]
+}

@@ -108,3 +108,13 @@ The source chain proves the current clean branch `fnjiylwirntrqdcwpbho` and repl
 Current status after this owner decision is internal beta `blocked_pending_isolated_clean_staging_target_creation_and_source_aligned_migration_readback`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.
+
+## Supabase Clean Staging Isolated Target Creation 1
+
+`SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1` records decision `completed_isolated_clean_staging_target_creation_source_aligned_secret_rotation` and execution `completed_guarded_isolated_target_creation_migration_history_readback_and_db_url_secret_rotation_no_sql_mutation`.
+
+The guarded runner created `reeditpro-clean-staging-isolated-v1` / `fajinbvwhcjnutkaumkm`, performed read-only migration-history inspection, proved no remote-only migration history, and rotated `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` to version `2`. It did not apply migrations, run migration dry-run, edit migration history, run `supabase db pull`, run service-role routes, dispatch workers, create storage objects, or unlock internal beta.
+
+Current status after guarded execution is internal beta `blocked_pending_isolated_target_migration_chain_apply`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestone: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1`.

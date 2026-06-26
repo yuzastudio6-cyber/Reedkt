@@ -218,6 +218,16 @@ This is not a real job enqueue, event write, worker lease claim, worker heartbea
 Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended step: `RP-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-LOCAL-RUNTIME-1`.
+
+## SUPABASE Clean Staging Branch Current Target Guarded Validation 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-CURRENT-TARGET-GUARDED-VALIDATION-1` records decision `blocked_clean_branch_migration_history_not_current` and execution `blocked_guarded_clean_branch_readonly_validation_no_mutation`.
+
+The clean target and DB URL secret are now usable for guarded validation, but the read-only migration history readback shows the clean branch remote migration history is current only through `202605130006`. Required migrations `202606050001`, `202606180001`, and `20260625031135` are missing, so schema/RLS/storage readback and worker RPC readback remain blocked.
+
+Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended step: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-CHAIN-APPLY-1`.
 ## RP-INTERNAL-BETA Private Artifact Manifest Local Runtime
 
 `RP-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-LOCAL-RUNTIME-1` records decision `completed_local_private_artifact_manifest_runtime_no_storage_access` and execution `completed_backend_local_artifact_manifest_validation_no_storage_or_signed_url`.

@@ -79,6 +79,28 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-CURRENT-TARGET-GUARDED-VALIDATION-1`.
 
+## SUPABASE Clean Staging Branch Current Target Guarded Validation 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-CURRENT-TARGET-GUARDED-VALIDATION-1` records decision `blocked_clean_branch_migration_history_not_current` and execution `blocked_guarded_clean_branch_readonly_validation_no_mutation`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd`; clean branch `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho`.
+
+Confirmation gate: `REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_CURRENT_TARGET_VALIDATION=true`. Confirmation observed: `present_true`.
+
+Clean branch DB URL secret: `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` / version `1` / `enabled`. Supabase access-token secret metadata: `SUPABASE_ACCESS_TOKEN` version `5` / `enabled`.
+
+Secret Manager payload access: `true_guarded_clean_branch_db_url_only`. Credential payload printed: `false`. Credential payload persisted in repo: `false`.
+
+Remote Supabase command class: `readonly_migration_history_readback`. SQL execution: `none`. SQL mutation: `none`. Migration deployed: `no`. Migration history table edited: `no`. Storage readback: `none_not_run_due_stale_migration_history`. Service-role route execution: `false`. Production touched: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+Remote migration history is current only through `202605130006`. Required current migrations missing from the clean branch: `202606050001`, `202606180001`, and `20260625031135`.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_clean_staging_migration_chain_currentness`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_clean_staging_migration_chain_currentness`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-CHAIN-APPLY-1`.
+
 ## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Confirmed Runner
 
 `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_supabase_target_rls_storage_readonly_validation` and execution `completed_readonly_target_identity_and_advisor_validation_no_mutation`.

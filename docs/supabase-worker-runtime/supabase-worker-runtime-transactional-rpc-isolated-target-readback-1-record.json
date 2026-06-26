@@ -1,0 +1,78 @@
+{
+  "packet": "SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1",
+  "decision": "completed_worker_runtime_transactional_rpc_isolated_target_readback",
+  "execution": "completed_guarded_readonly_worker_rpc_catalog_readback_no_runtime_execution",
+  "integrationHead": "6ad9c0cfe7790d372d2120c12f9771e3f295178a",
+  "confirmationVar": "REEDITPRO_CONFIRM_SUPABASE_WORKER_RUNTIME_TRANSACTIONAL_RPC_ISOLATED_TARGET_READBACK",
+  "sourceDependencies": {
+    "pr1092": "supabase_clean_staging_isolated_target_migration_chain_apply_1",
+    "pr1087": "supabase_clean_staging_isolated_target_creation_1",
+    "pr1078": "supabase_clean_staging_isolated_target_owner_decision_1",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "target": {
+    "projectName": "reeditpro-clean-staging-isolated-v1",
+    "projectRef": "fajinbvwhcjnutkaumkm",
+    "dbUrlSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+    "dbUrlSecretVersion": "2",
+    "environment": "clean_staging_isolated"
+  },
+  "readback": {
+    "schemaPresent": true,
+    "schemaServiceRoleUsage": true,
+    "schemaAnonUsageBlocked": true,
+    "schemaAuthenticatedUsageBlocked": true,
+    "schemaPublicUsageBlocked": true,
+    "missingFunctions": [],
+    "nonSecurityDefinerFunctions": [],
+    "functionsMissingServiceRoleExecute": [],
+    "functionsExecutableByAnon": [],
+    "functionsExecutableByAuthenticated": [],
+    "functionsExecutableByPublic": [],
+    "missingTables": [],
+    "tablesMissingRls": [],
+    "tablesMissingServiceRoleDml": [],
+    "tablesSelectableByAnon": [],
+    "tablesSelectableByAuthenticated": [],
+    "tablesSelectableByPublic": [],
+    "policyCount": 0
+  },
+  "evidence": {
+    "runId": "2026-06-26T20-27-24-319Z-d8696635",
+    "report": "docs/activation-supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-reports/worker_runtime_transactional_rpc_isolated_target_readback_report.json",
+    "reportSha256": "a6548f0ef96d84686c75d89b30586a04c2dc3125b5e85552cad65a2ddb07cad5",
+    "manifest": "docs/activation-supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-reports/worker_runtime_transactional_rpc_isolated_target_readback_manifest.json",
+    "manifestSha256": "bb92f1f91c07599365e5519e223012d364e50209f0658bdb44458e429d930c21"
+  },
+  "readiness": {
+    "workerRuntimeTransactionalContract2": "ready_for_service_role_runtime_boundary_validation",
+    "workerRuntimeTrackaPrivateE2eExecutionGate2r": "blocked_pending_service_role_runtime_validation_and_job_fixture_gate",
+    "internalBetaReadinessRollup": "blocked_pending_service_role_runtime_private_storage_artifact_job_and_e2e_gates",
+    "externalProductBeta": "blocked_pending_internal_beta_evidence_security_privacy_support_cost_and_deployment_gates"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": true,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "remoteSupabaseReadCommand": true,
+    "remoteSupabaseMutation": false,
+    "sqlExecution": true,
+    "sqlMutation": false,
+    "rpcExecution": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "workerLeaseClaim": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "nextMilestone": "SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

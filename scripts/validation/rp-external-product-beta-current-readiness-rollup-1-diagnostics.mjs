@@ -32,6 +32,7 @@ const relatedDiagnosticsAllowlist = [
   'scripts/validation/supabase-clean-staging-isolated-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/supabase-clean-staging-isolated-target-creation-1-diagnostics.mjs',
   'scripts/validation/supabase-clean-staging-isolated-target-migration-chain-apply-1-diagnostics.mjs',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-diagnostics.mjs',
 ]
 
 const followOnSupabaseCleanStagingTargetOwnerApproval1Files = [
@@ -236,6 +237,25 @@ const followOnSupabaseCleanStagingIsolatedTargetMigrationChainApply1Files = [
   'package.json',
 ]
 
+const followOnSupabaseWorkerRuntimeTransactionalRpcIsolatedTargetReadback1Files = [
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-isolated-target-readback-1.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-record.json',
+  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-results.md',
+  'docs/activation-supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-reports/worker_runtime_transactional_rpc_isolated_target_readback_report.json',
+  'docs/activation-supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-reports/worker_runtime_transactional_rpc_isolated_target_readback_manifest.json',
+  'docs/implementation-prompts/prompt-supabase-service-role-runtime-boundary-validation-1.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'docs/production-beta-blocker-inventory.md',
+  'implementation-status-and-next-phase.md',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-isolated-target-readback-1.mjs',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-isolated-target-readback-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-isolated-target-migration-chain-apply-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-isolated-target-creation-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
+]
+
 const requiredText = [
   packet,
   'blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure',
@@ -362,6 +382,7 @@ const allowed = new Set([
   ...followOnSupabaseCleanStagingIsolatedTargetOwnerDecision1Files,
   ...followOnSupabaseCleanStagingIsolatedTargetCreation1Files,
   ...followOnSupabaseCleanStagingIsolatedTargetMigrationChainApply1Files,
+  ...followOnSupabaseWorkerRuntimeTransactionalRpcIsolatedTargetReadback1Files,
 ])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)

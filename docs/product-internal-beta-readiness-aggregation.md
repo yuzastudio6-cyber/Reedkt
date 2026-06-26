@@ -130,3 +130,13 @@ No migration history manual edit, Supabase db pull, storage object creation/read
 Current status after guarded execution is internal beta `blocked_pending_worker_rpc_readback_service_role_runtime_private_storage_and_runtime_gates`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestone: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1`.
+
+## Supabase Worker Runtime Transactional RPC Isolated Target Readback 1
+
+`SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1` records decision `completed_worker_runtime_transactional_rpc_isolated_target_readback` and execution `completed_guarded_readonly_worker_rpc_catalog_readback_no_runtime_execution`.
+
+The guarded runner used `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `2` and ran only `psql readonly worker_runtime catalog query [db-url redacted]`. It verified the `worker_runtime` schema, seven service-role-only security-definer RPC functions, and the `worker_jobs`, `worker_job_events`, and `worker_job_artifacts` tables with RLS and service-role DML grants. The runner did not execute any RPC, service-role route, worker dispatch, worker lease claim, storage object read/write, signed URL creation, or beta unlock.
+
+Current status after guarded execution is internal beta `blocked_pending_service_role_runtime_private_storage_artifact_job_and_e2e_gates`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestone: `SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1`.

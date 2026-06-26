@@ -7,8 +7,8 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Supabase target owner decision | `completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning` | Carry forward only |
 | Supabase read-only target validation | `completed_guarded_supabase_target_rls_storage_readonly_validation` | Carry forward only |
 | Staging migration path | `completed_isolated_target_migration_chain_apply_and_readback` | carry forward isolated target migration-chain evidence |
-| Worker RPC 4R | `blocked_pending_worker_rpc_readback_and_service_role_runtime_validation` | isolated target worker RPC readback and service-role runtime validation |
-| Service-role route runtime | `blocked_pending_worker_transactional_contract` | post-RPC runtime validation |
+| Worker RPC 4R | `completed_worker_runtime_transactional_rpc_isolated_target_readback` | carry forward isolated target RPC catalog/grant evidence |
+| Service-role route runtime | `blocked_pending_service_role_runtime_boundary_validation` | backend-only service-role runtime validation |
 | Approved snapshot persistence | `blocked_pending_service_role_runtime_validation` | guarded Supabase persistence evidence |
 | Credit reservation ledger | `blocked_pending_service_role_runtime_validation` | guarded internal ledger mutation evidence |
 | Job queue leases/events | `blocked_pending_service_role_runtime_validation` | guarded job record/lease/event validation |
@@ -74,3 +74,7 @@ Next recommended milestone: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CH
 `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1` records `completed_isolated_target_migration_chain_apply_and_readback`. The isolated target migration chain is applied, required migrations `202606050001`, `202606180001`, and `20260625031135` are present, and read-only catalog/storage metadata shows no missing expected tables, RLS, private buckets, or public private buckets. Internal beta remains blocked pending worker RPC readback, service-role runtime validation, private artifact runtime gates, and end-to-end negative safety evidence.
 
 Next recommended milestone: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1`.
+
+`SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1` records `completed_worker_runtime_transactional_rpc_isolated_target_readback`. The isolated target has the expected private `worker_runtime` schema, service-role-only security-definer RPC functions, and worker job/event/artifact tables with RLS and service-role DML grants. Internal beta remains blocked pending service-role runtime boundary validation, private storage/artifact runtime gates, job fixture validation, and end-to-end negative safety evidence.
+
+Next recommended milestone: `SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1`.

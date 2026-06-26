@@ -148,6 +148,7 @@
     "sound-runtime-media-gate-2am:diagnostics": "node scripts/validation/sound-runtime-media-gate-2am-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-runtime-execution-owner-approval-packet-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-runtime-execution-owner-approval-packet-review-diagnostics.mjs",
     "sound-runtime-media-gate-2an:diagnostics": "node scripts/validation/sound-runtime-media-gate-2an-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-runtime-execution-gap-closure-plan-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-runtime-execution-gap-closure-plan-review-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

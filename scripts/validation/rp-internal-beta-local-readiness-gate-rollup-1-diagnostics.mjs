@@ -39,6 +39,23 @@ for (const file of approvedSnapshotLocalRuntimeFiles) {
   allowedChangedFiles.add(file)
 }
 
+const approvedSnapshotServiceRolePersistenceGuardFiles = [
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-guard-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-guard-1/guard-contract.md',
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-guard-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-guard-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-guard-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-guard-1/service-role-persistence-guard-record.json',
+  'docs/activation-phase-rp-internal-beta-approved-snapshot-service-role-persistence-guard-1-results.md',
+  'server/services/internal-beta-approved-snapshot-service-role-persistence-guard.ts',
+  'server/smoke/internal-beta-approved-snapshot-service-role-persistence-guard-smoke.ts',
+  'scripts/validation/rp-internal-beta-approved-snapshot-service-role-persistence-guard-1-diagnostics.mjs',
+]
+
+for (const file of approvedSnapshotServiceRolePersistenceGuardFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates',

@@ -145,6 +145,14 @@ Service-role persistence remains blocked pending approved Supabase credential co
 
 No Supabase mutation, SQL execution, service-role route execution, credit mutation, credit reservation creation, job enqueue, worker dispatch, provider/model call, raw prompt execution, render/export, signed URL creation, public artifact creation, or internal beta unlock is enabled by this packet.
 
+## Internal Beta Approved Snapshot Service-Role Persistence Guard
+
+`RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARD-1` records decision `completed_approved_snapshot_service_role_persistence_guard_no_supabase_write` and execution `completed_backend_guard_no_route_or_remote_execution`.
+
+The service-role persistence guard is now source-of-truth for approved snapshot persistence prerequisites. It requires approved Supabase credential context, confirmed Supabase target RLS/storage validation, service-role persistence runtime approval, and explicit remote persistence confirmation before a separate implementation can proceed. It does not write Supabase rows.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generated artifacts committed: none. Internal beta remains blocked pending remote validation and runtime gates.
+
 ## SUPABASE-WORKER-RUNTIME RPC 4R Credential Context Hardening
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CREDENTIAL-CONTEXT-HARDENING-1` records decision `completed_rpc_4r_credential_context_hardening_fail_closed` and execution `completed_local_runner_hardening_no_sql_execution`.

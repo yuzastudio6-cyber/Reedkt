@@ -14,6 +14,7 @@ export type GpuModelWeightTemplateId =
   | 'mochi_video_model'
   | 'hunyuan_video_model'
   | 'paddleocr_model'
+  | 'qwen2_5_vl_7b_model'
 
 export type ModelWeightCommercialUseStatus =
   | 'allowed'

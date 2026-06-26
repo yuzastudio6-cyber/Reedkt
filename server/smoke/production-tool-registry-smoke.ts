@@ -126,10 +126,24 @@ check(requireProfile('deepfilternet').qaResponsibilities.includes('audio_loudnes
 check(requireProfile('real_esrgan').qaResponsibilities.includes('enhancement_artifacts'), 'Real-ESRGAN must include enhancement artifact QA.')
 check(requireProfile('film').qaResponsibilities.includes('slow_motion_artifacts'), 'FILM must include slow-motion artifact QA.')
 
+const qwenVl = requireProfile('qwen_vl')
+check(qwenVl.displayName === 'Qwen2.5-VL 7B Instruct', 'Qwen VLM profile must use the selected Qwen2.5-VL 7B label.')
+check(qwenVl.category === 'visual_analysis', 'Qwen VLM must be visual analysis, not AI video generation.')
+check(qwenVl.workerType === 'gpu_ai_worker', 'Qwen VLM must remain GPU worker scoped.')
+check(qwenVl.gpuRequired, 'Qwen VLM must require GPU readiness.')
+check(!qwenVl.cpuAllowed, 'Qwen VLM must not be treated as CPU execution-ready.')
+check(qwenVl.modelWeightPolicy.required, 'Qwen VLM must require exact model-weight review.')
+check(qwenVl.qaResponsibilities.includes('ocr_text_overlap'), 'Qwen VLM must carry OCR/text overlap QA.')
+check(qwenVl.qaResponsibilities.includes('caption_safe_zone'), 'Qwen VLM must carry safe-zone QA.')
+check(qwenVl.fallbackToolIds.includes('paddleocr'), 'Qwen VLM must fall back to deterministic OCR.')
+expectThrows(() => assertToolModelWeightsAllowed('qwen_vl'), 'Unreviewed Qwen2.5-VL weights must be blocked.')
+expectThrows(() => assertToolAllowedForWorker('qwen_vl', 'cpu_analysis_worker'), 'Qwen VLM must be blocked on CPU workers.')
+
 const expectedModelWeightTools: ProductionToolId[] = [
   'faster_whisper',
   'whisper_cpp',
   'paddleocr',
+  'qwen_vl',
   'mediapipe',
   'birefnet',
   'sam2',

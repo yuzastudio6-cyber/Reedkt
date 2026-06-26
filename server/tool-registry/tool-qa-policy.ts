@@ -36,6 +36,13 @@ export const PRODUCTION_TOOL_QA_POLICIES: Record<ProductionToolId, ProductionQAP
   faster_whisper: { ...empty, gateTypes: ['transcript_alignment', 'caption_timing'], requiredBeforePreview: ['transcript_alignment'] },
   whisper_cpp: { ...empty, gateTypes: ['transcript_alignment'], requiredBeforePreview: [] },
   paddleocr: { ...empty, gateTypes: ['ocr_text_overlap', 'caption_safe_zone'], requiredBeforePreview: ['ocr_text_overlap'] },
+  qwen_vl: {
+    ...empty,
+    gateTypes: ['ocr_text_overlap', 'caption_safe_zone', 'render_asset_integrity'],
+    requiredBeforePreview: ['render_asset_integrity'],
+    requiredBeforeFinalExport: ['ocr_text_overlap', 'caption_safe_zone', 'render_asset_integrity'],
+    notes: ['Qwen2.5-VL visual-understanding output must remain advisory until checked against deterministic OCR/safe-zone/render-asset gates.'],
+  },
   pyscenedetect: { ...empty, gateTypes: ['cut_smoothness'], requiredBeforePreview: ['cut_smoothness'] },
   opencv: { ...empty, gateTypes: ['caption_safe_zone', 'mask_edge_quality', 'render_asset_integrity', 'color_exposure'], requiredBeforePreview: ['render_asset_integrity'] },
   mediapipe: { ...empty, gateTypes: ['caption_safe_zone', 'mask_subject_coverage'], requiredBeforePreview: ['caption_safe_zone'] },

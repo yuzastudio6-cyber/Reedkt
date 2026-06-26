@@ -51,6 +51,17 @@ download or load model weights, process media, create signed URLs or public
 artifacts, unlock internal beta runtime, unlock external beta, or unlock
 production.
 
+AI graphics internal beta queue-admission readiness decision
+`ai_graphics_internal_beta_queue_admission_readiness_contract_prepared_with_runtime_blocks`
+binds the all-21 runtime-enqueue scope to approved snapshot, credit reservation,
+private artifact manifest, Tool Route approval, Worker approval, queue
+transport, idempotency namespace, and internal beta runtime owner approval
+metadata. It can report all 21 queue-admission packets and all 12 capability
+groups ready with provided evidence, while keeping live queue enqueue, worker
+dispatch, route execution, tool execution, browser/canvas/WebGL runtime,
+GPU/model runtime, model-weight loading, media processing, signed URLs, public
+artifacts, internal beta runtime, external beta, and production blocked.
+
 AI graphics beta execution handoff readiness decision
 `ai_graphics_beta_execution_handoff_readiness_contract_prepared_with_fail_closed_runtime`
 bridges the owner-approved all-21 evidence packet into a future Tool Route and

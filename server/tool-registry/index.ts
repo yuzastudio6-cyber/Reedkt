@@ -44,6 +44,7 @@ export * from './ai-graphics-beta-production-readiness-rollup'
 export * from './ai-graphics-internal-beta-go-no-go'
 export * from './ai-graphics-internal-beta-go-no-go-owner-approval'
 export * from './ai-graphics-internal-beta-runtime-enqueue-approval'
+export * from './ai-graphics-internal-beta-queue-admission-readiness'
 export * from './ai-graphics-cross-owner-coordination'
 
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {

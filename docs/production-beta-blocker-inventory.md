@@ -27,6 +27,20 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next safe action remains `OWNER ACTION REQUIRED - approve full reviewed staging migration set or clean staging target before RPC 4R SQL execution`.
 
+## SUPABASE Clean Staging Target Owner Approval 1
+
+`SUPABASE-CLEAN-STAGING-TARGET-OWNER-APPROVAL-1` records decision `approved_clean_staging_target_path_for_guarded_migration_chain_validation` and execution `completed_docs_only_clean_staging_target_owner_approval_no_remote_execution`.
+
+Current clean staging path approval: `approved_clean_non_production_staging_branch_or_project_for_future_guarded_execution`. Preferred clean target: `clean_supabase_staging_branch`. Fallback clean target: `clean_supabase_staging_project`.
+
+Existing divergent staging full pending-set apply approval: `not_approved`. Existing divergent staging mutation approval: `not_approved`.
+
+Remote Supabase command class: `none_in_this_phase`. SQL mutation: `none`. Migration deployed: `no`. Migration history table edited: `no`. Production touched: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-EXECUTION-CURRENT-TARGET-REVALIDATION-1`.
+
 ## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Confirmed Runner
 
 `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_supabase_target_rls_storage_readonly_validation` and execution `completed_readonly_target_identity_and_advisor_validation_no_mutation`.

@@ -86,6 +86,16 @@ Internal beta status: `blocked_pending_explicit_staging_migration_path_approval`
 
 Next safe action remains `OWNER ACTION REQUIRED - approve full reviewed staging migration set or clean staging target before RPC 4R SQL execution`.
 
+## SUPABASE Clean Staging Target Owner Approval 1
+
+`SUPABASE-CLEAN-STAGING-TARGET-OWNER-APPROVAL-1` records decision `approved_clean_staging_target_path_for_guarded_migration_chain_validation` and execution `completed_docs_only_clean_staging_target_owner_approval_no_remote_execution`.
+
+This packet resolves the clean-target owner-decision gap identified by `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` by selecting a clean non-production staging branch/project as the future guarded execution path. It does not mutate Supabase, run SQL, deploy migrations, execute service-role routes, dispatch workers, create signed/public artifacts, or unlock internal/external beta.
+
+Existing divergent staging full pending-set apply approval: `not_approved`. Existing divergent staging mutation approval: `not_approved`. Internal beta remains blocked pending clean target migration-chain execution, worker RPC readback, service-role runtime validation, private artifact/storage validation, QA/cleanup/observability, and negative safety gates. External beta remains blocked pending internal beta evidence plus security/privacy/support/cost/deployment reviews.
+
+Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-EXECUTION-CURRENT-TARGET-REVALIDATION-1`.
+
 ## ReEditPro Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

@@ -1,0 +1,147 @@
+export const QWEN2_5_VL_STORAGE_TRANSFER_URL_LIST_RESULT = {
+  workstream: "AI_VIDEO_BROLL_GENERATION",
+  toolId: "qwen2_5_vl_7b_instruct",
+  mode: "storage_transfer_url_list_result",
+  decision:
+    "qwen2_5_vl_7b_storage_transfer_url_list_completed_private_cache_no_deploy_no_inference",
+  uploadTarget: {
+    project: "reeditpro",
+    bucket: "reeditpro-staging-reeditpro-generated-assets",
+    bucketLocation: "US-CENTRAL1",
+    objectPrefix:
+      "model-weights/vlm/qwen2.5-vl-7b-instruct/cc594898137f460bfe9f0759e9844b3ce807cfb5/",
+    revision: "cc594898137f460bfe9f0759e9844b3ce807cfb5",
+    publicModelSourceAllowed: false,
+    signedUrlSourceAllowed: false,
+    requestTimeModelDownloadAllowed: false,
+    modelBakedIntoImage: false
+  },
+  expectedManifest: {
+    model: "Qwen/Qwen2.5-VL-7B-Instruct",
+    revision: "cc594898137f460bfe9f0759e9844b3ce807cfb5",
+    fileCount: 16,
+    weightShardCount: 5,
+    totalBytes: 16595981281,
+    checksumAlgorithm: "sha256",
+    aggregateSha256:
+      "46f05ffcc6127a4caa9a3e8c11ddf298b9a5263c8680afe6b5d017ea91702c8b"
+  },
+  storageTransferSetup: {
+    apiEnabled: true,
+    serviceAgent: "project-390722338345@storage-transfer-service.iam.gserviceaccount.com",
+    serviceAgentRoleAdded: true,
+    legacyBucketReaderAdded: true,
+    conditionalObjectAdminBindingTitle: "qwen25vl_storage_transfer_objects",
+    temporaryObjectCreatorCreated: true,
+    temporaryObjectCreatorRemoved: true,
+    serviceAccountKeyCreated: false,
+    secretManagerReadPerformed: false,
+    publicPrincipalGranted: false
+  },
+  namingTest: {
+    urlListObject: "naming-test-20260626T225007Z.tsv",
+    jobName: "transferJobs/qwen25vl-naming-test-never-20260626t225007z",
+    operationName:
+      "transferOperations/transferJobs-qwen25vl-naming-test-never-20260626t225007z-6954846680659839547",
+    status: "SUCCESS",
+    jobStatusAfterCleanup: "DISABLED",
+    objectsFound: 1,
+    objectsCopied: 1,
+    bytesCopied: 1374,
+    urlDerivedDestinationNamingObserved: true,
+    urlListObjectCleanedUp: true,
+    stagingObjectsCleanedUp: true
+  },
+  fullTransfer: {
+    urlListObject: "full-20260626T225355Z.tsv",
+    jobName: "transferJobs/qwen25vl-full-transfer-20260626t225355z",
+    operationName:
+      "transferOperations/transferJobs-qwen25vl-full-transfer-20260626t225355z-16735982338150561186",
+    status: "SUCCESS",
+    jobStatusAfterCleanup: "DELETED",
+    objectsFound: 16,
+    objectsCopiedToStaging: 16,
+    bytesCopiedToStaging: 16595981281,
+    failedSourceObjects: 0,
+    cloudToCloudFinalPrefixCopyRun: true,
+    urlListObjectCleanedUp: true,
+    stagingObjectsCleanedUp: true
+  },
+  finalPrivateCache: {
+    objectCount: 16,
+    totalBytes: 16595981281,
+    expectedObjectCount: 16,
+    expectedTotalBytes: 16595981281,
+    byteSizeManifestMatched: true,
+    remoteAggregateSha256Recomputed: false,
+    readyForMountReview: true,
+    readyForModelImport: false,
+    readyForInference: false,
+    objects: [
+      { name: ".gitattributes", bytes: 1519 },
+      { name: "README.md", bytes: 18574 },
+      { name: "chat_template.json", bytes: 1050 },
+      { name: "config.json", bytes: 1374 },
+      { name: "generation_config.json", bytes: 216 },
+      { name: "merges.txt", bytes: 1671839 },
+      { name: "model-00001-of-00005.safetensors", bytes: 3900233256 },
+      { name: "model-00002-of-00005.safetensors", bytes: 3864726320 },
+      { name: "model-00003-of-00005.safetensors", bytes: 3864726424 },
+      { name: "model-00004-of-00005.safetensors", bytes: 3864733680 },
+      { name: "model-00005-of-00005.safetensors", bytes: 1089994880 },
+      { name: "model.safetensors.index.json", bytes: 57619 },
+      { name: "preprocessor_config.json", bytes: 350 },
+      { name: "tokenizer.json", bytes: 7031645 },
+      { name: "tokenizer_config.json", bytes: 5702 },
+      { name: "vocab.json", bytes: 2776833 }
+    ]
+  },
+  runtimeFlags: {
+    storageTransferUrlListResultCreated: true,
+    storageTransferApiEnabled: true,
+    storageTransferServiceAgentConfigured: true,
+    temporaryStorageTransferObjectCreatorCreated: true,
+    temporaryStorageTransferObjectCreatorRemoved: true,
+    urlListObjectCreated: true,
+    urlListObjectCleanedUp: true,
+    storageTransferNamingTestRun: true,
+    storageTransferNamingTestPassed: true,
+    storageTransferFullJobCreated: true,
+    storageTransferFullJobRun: true,
+    storageTransferFullJobPassed: true,
+    storageTransferFullJobDeleted: true,
+    cloudToCloudFinalPrefixCopyRun: true,
+    temporaryTransferStagingObjectsCleanedUp: true,
+    gcsObjectUploadComplete: true,
+    remoteByteSizeManifestMatched: true,
+    remoteAggregateSha256Recomputed: false,
+    cloudRunVolumeMountCreated: false,
+    cloudRunDeployCommandExecuted: false,
+    cloudRunServiceCreated: false,
+    cloudRunJobCreated: false,
+    artifactRegistryImageCreated: false,
+    reservationCreated: false,
+    vmCreated: false,
+    dependencyInstallRun: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    modelInferenceRun: false,
+    apiServerStarted: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    creditMutationCreated: false,
+    betaUnlocked: false,
+    productionUnlocked: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false
+  },
+  nextPrompt:
+    "QWEN2_5_VL_STACK_TOOL_21-CLOUD-RUN-GPU-PRIVATE-CACHE-MOUNT-VERIFY: verify completed private GCS model cache mount/read path, no deploy/no inference"
+} as const;
+
+export type Qwen25VlStorageTransferUrlListResult =
+  typeof QWEN2_5_VL_STORAGE_TRANSFER_URL_LIST_RESULT;

@@ -1,0 +1,15 @@
+{
+  "schema": "reeditpro.workerGenerationExportE2EReadinessPlan.v1",
+  "ownerId": "REEDITPRO_WORKER_E2E_STEWARD",
+  "decision": "reeditpro_worker_generation_export_e2e_readiness_plan_passed_ready_for_delivery_share_policy_readiness_plan",
+  "previousDecision": "reeditpro_backend_database_billing_credit_ledger_readiness_plan_passed_ready_for_worker_generation_export_e2e_readiness_plan",
+  "nextPrompt": "REEDITPRO_DELIVERY_SHARE_POLICY_READINESS_PLAN",
+  "sourceSha": "b1c2c038798e2eb88c0ee51a17da3d7fef1518bc",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-worker-generation-export-e2e-readiness-plan",
+  "report": "decision",
+  "readyForDeliverySharePolicyReadinessPlan": true,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

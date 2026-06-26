@@ -189,6 +189,20 @@ Local private artifact manifest runtime status: `local_private_artifact_manifest
 Internal beta end-to-end ready: `false`. Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended step: `RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-LOCAL-RUNTIME-1`.
+
+## RP-INTERNAL-BETA Remotion Private Preview Export Local Runtime
+
+`RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-LOCAL-RUNTIME-1` records decision `completed_local_remotion_private_preview_export_runtime_no_render_execution` and execution `completed_backend_local_remotion_preview_export_validation_no_render_or_media`.
+
+The beta lane now has backend-local deterministic Remotion private preview/export request metadata. It validates approved snapshot references, credit reservation references, job references, artifact manifest references, renderer plan references, output frame metadata, private preview/export output expectations, SHA-256 checksums, QA-gate metadata, cleanup-policy metadata, and unsafe input rejection.
+
+This is not a worker dispatch, worker execution, Remotion execution, FFmpeg/FFprobe execution, media processing, preview artifact creation, final export creation, storage write, storage read, signed URL creation, public artifact creation, Supabase write, service-role route, provider/model call, render/export execution, or internal beta unlock.
+
+Local Remotion private preview/export runtime status: `local_remotion_private_preview_export_metadata_validated_no_render_execution`. Local render request record created: `true`. Local preview expectation records created: `1`. Local export expectation records created: `1`. Local output checksum records validated: `2`. Local QA gate recorded: `true`. Local cleanup policy recorded: `true`.
+
+Internal beta end-to-end ready: `false`. Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended step: `RP-INTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-CONFIRMED-RUN-1`.
 ## RP-JOBS-01 Internal Beta Job Queue Runtime Scaffold
 
 `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_job_queue_runtime_scaffold_no_worker_execution` and execution `completed_fail_closed_job_queue_scaffold_no_route_or_worker_execution`.

@@ -6,7 +6,7 @@ Branch: `codex/rp-ai-graphics-tool-call-readiness-contract`
 
 Draft PR: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862)
 
-Latest observed PR state after beta evidence bundle completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `6e339a131a90177f454e653880fedf496defd400`, with an empty check rollup.
+Latest observed PR state after beta evidence bundle proof hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `b005621cd930fd2209aa8398c7e132748e7c3d16`, with an empty check rollup.
 
 ## Result
 

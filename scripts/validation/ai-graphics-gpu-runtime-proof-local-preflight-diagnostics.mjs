@@ -274,6 +274,8 @@ for (const token of [
   'reviewed_private_model_weight_manifests',
   'native_gpu_runtime_proof_results',
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
+  'hostEligibleForNativeGpuProof',
+  'native_linux_amd64_nvidia_host',
   '.local-artifacts/ai-graphics/gpu-runtime-proof-results',
   'ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results',
 ]) {
@@ -286,6 +288,9 @@ for (const token of [
   '--require-ready-for-owner-review',
   '--require-manifests-ready',
   '--require-results-ready',
+  '--detect-host',
+  '--require-host-eligible',
+  'hostDetectionRequested',
   'dockerExecuted: false',
   'gpuRuntimeExecuted: false',
   'modelWeightsLoaded: false',
@@ -294,14 +299,20 @@ for (const token of [
 }
 
 if (!markdown.includes('--require-ready-for-owner-review')) fail('markdown_missing_require_ready_command')
+if (!markdown.includes('--require-host-eligible')) fail('markdown_missing_require_host_eligible_command')
 if (!markdown.includes('REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT')) fail('markdown_missing_private_model_weight_root_env')
 if (packet.localEvidenceRoots?.privateModelWeightRootEnv !== 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT') {
   fail('packet_missing_private_model_weight_root_env')
 }
+if (packet.hostEnvironment?.checkMode !== 'not_requested') fail('packet_default_host_check_not_not_requested')
+if (packet.hostEnvironment?.hostEligibleForNativeGpuProof !== false) fail('packet_default_host_eligible_not_false')
 if (!JSON.stringify(packet).includes('reviewed_private_model_weight_manifests')) fail('packet_missing_manifest_gap')
 if (!JSON.stringify(packet).includes('native_gpu_runtime_proof_results')) fail('packet_missing_gpu_result_gap')
 if (!JSON.stringify(packet.requiredNextCommands || []).includes('export REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT=<local-only-private-model-weight-root>')) {
   fail('packet_missing_private_model_weight_root_export_command')
+}
+if (!JSON.stringify(packet.requiredNextCommands || []).includes('--detect-host --require-host-eligible')) {
+  fail('packet_missing_host_eligible_preflight_command')
 }
 
 for (const key of [
@@ -312,6 +323,7 @@ for (const key of [
   'all5ModelWeightManifestToolsCovered',
   'all4RuntimeProfilesCovered',
   'privateArtifactRefsNotLogged',
+  'nativeGpuProofHostCheckAvailable',
   'agentCanSelectForPlanning',
 ]) {
   if (packet.booleans?.[key] !== true) fail(`required_true_boolean_not_true:${key}`)
@@ -321,6 +333,7 @@ for (const key of [
   'modelManifestsReadyForGpuProof',
   'nativeGpuProofResultsAcceptedForOwnerReview',
   'allGpuRuntimeEvidenceReadyForOwnerReview',
+  'hostEligibleForNativeGpuProof',
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
@@ -359,6 +372,31 @@ const noInput = parseOutput(noInputOutput, 'no_input')
 if (noInput.manifestInputStatus !== 'missing_private_manifests') fail('no_input_manifest_status_not_missing')
 if (noInput.proofResultInputStatus !== 'missing_native_gpu_runtime_proof_results') fail('no_input_result_status_not_missing')
 if (noInput.allGpuRuntimeEvidenceReadyForOwnerReview !== false) fail('no_input_unexpected_ready')
+
+const detectedHostOutput = runNpm([preflightScriptName, '--', '--detect-host'])
+const detectedHost = parseOutput(detectedHostOutput, 'detected_host')
+if (detectedHost.hostEnvironment?.checkMode !== 'detected') fail('detected_host_check_not_detected')
+if (typeof detectedHost.hostEnvironment?.hostEligibleForNativeGpuProof !== 'boolean') {
+  fail('detected_host_eligible_not_boolean')
+}
+if (!Array.isArray(detectedHost.hostEnvironment?.blockers)) fail('detected_host_blockers_not_array')
+if (detectedHost.input?.hostDetectionRequested !== true) fail('detected_host_input_flag_not_true')
+
+let requireHostOutput = ''
+let requireHostExited = false
+try {
+  requireHostOutput = runNpm([preflightScriptName, '--', '--detect-host', '--require-host-eligible'])
+} catch (error) {
+  requireHostExited = true
+  requireHostOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+const requireHost = parseOutput(requireHostOutput, 'require_host')
+if (requireHost.hostEnvironment?.hostEligibleForNativeGpuProof === true && requireHostExited) {
+  fail('require_host_exited_on_eligible_host')
+}
+if (requireHost.hostEnvironment?.hostEligibleForNativeGpuProof === false && !requireHostExited) {
+  fail('require_host_did_not_exit_on_ineligible_host')
+}
 
 const manifestDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-local-preflight-manifests-'))
 writeManifestFixtures(manifestDir)

@@ -40,6 +40,22 @@
     "gpuRuntimeProofResults": ".local-artifacts/ai-graphics/gpu-runtime-proof-results",
     "privateModelWeightRootEnv": "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
   },
+  "hostEnvironment": {
+    "checkMode": "not_requested",
+    "platform": "not_requested",
+    "arch": "not_requested",
+    "dockerAvailable": null,
+    "dockerOsType": null,
+    "dockerArchitecture": null,
+    "dockerNvidiaRuntimeAvailable": null,
+    "nvidiaSmiAvailable": null,
+    "nvidiaGpuName": null,
+    "nativeLinuxAmd64Host": false,
+    "hostEligibleForNativeGpuProof": false,
+    "blockers": [
+      "Host detection was not requested; run with --detect-host before attempting native GPU proof locally."
+    ]
+  },
   "manifestInputStatus": "missing_private_manifests",
   "proofResultInputStatus": "missing_native_gpu_runtime_proof_results",
   "missingLocalEvidence": [
@@ -52,6 +68,7 @@
     "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests",
     "export REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT=<local-only-private-model-weight-root>",
     "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests",
+    "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible",
     "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
     "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --require-ready-for-owner-review"
   ],
@@ -66,6 +83,8 @@
     "modelManifestsReadyForGpuProof": false,
     "nativeGpuProofResultsAcceptedForOwnerReview": false,
     "allGpuRuntimeEvidenceReadyForOwnerReview": false,
+    "nativeGpuProofHostCheckAvailable": true,
+    "hostEligibleForNativeGpuProof": false,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,
     "routeExecutionApprovedNow": false,

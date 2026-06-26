@@ -1,7 +1,10 @@
+import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { arch, platform } from 'node:os'
 import { join, resolve } from 'node:path'
 import {
   buildAiGraphicsGpuRuntimeProofLocalPreflight,
+  type AiGraphicsGpuRuntimeProofHostEnvironment,
 } from '../tool-registry/ai-graphics-gpu-runtime-proof-local-preflight'
 import type {
   AiGraphicsModelWeightManifestEvidenceRecord,
@@ -60,6 +63,77 @@ function readJsonFile(filePath: string): unknown {
   return JSON.parse(readFileSync(resolvedPath, 'utf8')) as unknown
 }
 
+function commandOutput(command: string, args: string[] = []): { ok: boolean; stdout: string } {
+  try {
+    return {
+      ok: true,
+      stdout: execFileSync(command, args, {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+        timeout: 10_000,
+      }).trim(),
+    }
+  } catch {
+    return { ok: false, stdout: '' }
+  }
+}
+
+function dockerRuntimeNames(): string[] {
+  const result = commandOutput('docker', ['info', '--format', '{{json .Runtimes}}'])
+  if (!result.ok || !result.stdout) return []
+
+  try {
+    const parsed = JSON.parse(result.stdout) as Record<string, unknown>
+    return Object.keys(parsed)
+  } catch {
+    return []
+  }
+}
+
+function detectHostEnvironment(): AiGraphicsGpuRuntimeProofHostEnvironment {
+  const hostPlatform = platform()
+  const hostArch = arch()
+  const dockerOsType = commandOutput('docker', ['info', '--format', '{{.OSType}}'])
+  const dockerArchitecture = commandOutput('docker', ['info', '--format', '{{.Architecture}}'])
+  const runtimeNames = dockerRuntimeNames()
+  const nvidiaSmi = commandOutput('nvidia-smi', [
+    '--query-gpu=name',
+    '--format=csv,noheader',
+  ])
+  const nativeLinuxAmd64Host = hostPlatform === 'linux' && ['x64', 'amd64'].includes(hostArch)
+  const dockerAvailable = dockerOsType.ok && dockerArchitecture.ok
+  const dockerLinuxAmd64 = dockerOsType.stdout === 'linux' &&
+    ['x86_64', 'amd64'].includes(dockerArchitecture.stdout)
+  const dockerNvidiaRuntimeAvailable = runtimeNames.includes('nvidia')
+  const nvidiaSmiAvailable = nvidiaSmi.ok && nvidiaSmi.stdout.length > 0
+  const blockers = [
+    !nativeLinuxAmd64Host
+      ? `Host must be native linux/amd64 for proof; detected ${hostPlatform}/${hostArch}.`
+      : undefined,
+    !dockerAvailable ? 'Docker is not available for native GPU proof.' : undefined,
+    dockerAvailable && !dockerLinuxAmd64
+      ? `Docker proof runtime must be linux/amd64; detected ${dockerOsType.stdout || 'unknown'}/${dockerArchitecture.stdout || 'unknown'}.`
+      : undefined,
+    !dockerNvidiaRuntimeAvailable ? 'Docker NVIDIA runtime is not available.' : undefined,
+    !nvidiaSmiAvailable ? 'nvidia-smi did not report an NVIDIA GPU.' : undefined,
+  ].filter((entry): entry is string => Boolean(entry))
+
+  return {
+    checkMode: 'detected',
+    platform: hostPlatform,
+    arch: hostArch,
+    dockerAvailable,
+    dockerOsType: dockerOsType.ok ? dockerOsType.stdout : null,
+    dockerArchitecture: dockerArchitecture.ok ? dockerArchitecture.stdout : null,
+    dockerNvidiaRuntimeAvailable,
+    nvidiaSmiAvailable,
+    nvidiaGpuName: nvidiaSmiAvailable ? nvidiaSmi.stdout.split('\n')[0] ?? null : null,
+    nativeLinuxAmd64Host,
+    hostEligibleForNativeGpuProof: blockers.length === 0,
+    blockers,
+  }
+}
+
 function manifestRecordsFromJsonFile(filePath: string): Partial<AiGraphicsModelWeightManifestEvidenceRecord>[] {
   const parsed = readJsonFile(filePath) as
     | Partial<AiGraphicsModelWeightManifestEvidenceRecord>
@@ -96,11 +170,13 @@ const resultFiles = [
 
 const manifestRecords = manifestFiles.flatMap(manifestRecordsFromJsonFile)
 const proofResults = resultFiles.flatMap(proofResultsFromJsonFile)
+const hostEnvironment = hasFlag('--detect-host') ? detectHostEnvironment() : undefined
 const preflight = buildAiGraphicsGpuRuntimeProofLocalPreflight({
   manifestRecords,
   proofResults,
   localManifestFilesRead: manifestFiles.length,
   localProofResultFilesRead: resultFiles.length,
+  hostEnvironment,
 })
 
 const output = {
@@ -111,6 +187,7 @@ const output = {
     localOnly: true,
     privateArtifactRefsLogged: 0,
     commandPlanOnly: true,
+    hostDetectionRequested: hasFlag('--detect-host'),
     dockerExecuted: false,
     gpuRuntimeExecuted: false,
     modelWeightsDownloaded: false,
@@ -129,5 +206,7 @@ if (hasFlag('--require-ready-for-owner-review') && !preflight.allGpuRuntimeEvide
 } else if (hasFlag('--require-manifests-ready') && !preflight.modelManifestsReadyForGpuProof) {
   process.exitCode = 2
 } else if (hasFlag('--require-results-ready') && !preflight.nativeGpuProofResultsAcceptedForOwnerReview) {
+  process.exitCode = 2
+} else if (hasFlag('--require-host-eligible') && !preflight.hostEnvironment.hostEligibleForNativeGpuProof) {
   process.exitCode = 2
 }

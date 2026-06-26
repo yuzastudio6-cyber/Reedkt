@@ -30,6 +30,14 @@ Default fail-closed check:
 npm run --silent ai-graphics:gpu-runtime-proof-local-preflight
 ```
 
+Detect whether the current host can produce the native GPU proof:
+
+```bash
+npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- \
+  --detect-host \
+  --require-host-eligible
+```
+
 With local private manifests and native GPU proof results:
 
 ```bash
@@ -49,6 +57,13 @@ Both roots are local-only and must not be staged or committed.
 The private model-weight root env value must stay local-only; generated command
 plans reference the variable name, not the private path.
 
+## Host Eligibility
+
+Native GPU proof must run on a native `linux/amd64` host with Docker targeting
+`linux/amd64`, an available Docker NVIDIA runtime, and `nvidia-smi` reporting an
+NVIDIA GPU. Apple Silicon, CPU-only Docker, emulated Linux, and hosts without
+the NVIDIA container runtime must fail the `--require-host-eligible` preflight.
+
 ## Current Public State
 
 - PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/862
@@ -61,6 +76,8 @@ plans reference the variable name, not the private path.
 - Model manifests ready for GPU proof: `false`
 - Native GPU proof results accepted for owner review: `false`
 - All GPU runtime evidence ready for owner review: `false`
+- Host check mode: `not_requested`
+- Host eligible for native GPU proof: `false`
 - Agent can execute tools now: `false`
 - Runtime ready now: `false`
 - Internal beta ready now: `false`

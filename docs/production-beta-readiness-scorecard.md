@@ -742,6 +742,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: all four runtime profiles and all five private model-weight manifest mount paths are represented. The CLI can validate local-only private manifests and emit redacted `docker run --rm --gpus all` command plans with `$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT` host bind mounts. Current public state remains `missing_private_manifests`.
 - Runtime/beta/production: no unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsDownloaded=false`, `modelWeightsLoaded=false`, `modelInferencePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics GPU Runtime Proof Local Preflight
+
+- Decision: `ai_graphics_gpu_runtime_proof_local_preflight_prepared_with_manifest_and_result_blocks`.
+- Scope: local-only preflight that joins reviewed private model-weight manifests, native GPU proof result JSON files, and native GPU host eligibility before owner-review evidence can be assembled.
+- Host gate: `--detect-host --require-host-eligible` now requires a native `linux/amd64` host, Docker targeting `linux/amd64`, Docker NVIDIA runtime availability, and `nvidia-smi` reporting an NVIDIA GPU. Apple Silicon, CPU-only Docker, emulated Linux, and hosts without the NVIDIA container runtime fail closed before any SAM2/BiRefNet/Real-ESRGAN/rembg/transparent-background proof can be treated as native GPU evidence.
+- Runtime/beta/production: no unlock; `nativeGpuProofHostCheckAvailable=true`, while `hostEligibleForNativeGpuProof=false` until a suitable host is detected, and `agentCanExecuteToolsNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsDownloaded=false`, `modelWeightsLoaded=false`, `modelInferencePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics Model-Weight Manifest Scaffold
 
 - Decision: `ai_graphics_model_weight_manifest_scaffold_prepared_for_local_private_records`.

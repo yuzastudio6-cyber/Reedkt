@@ -13,6 +13,23 @@ import type {
 export const AI_GRAPHICS_GPU_RUNTIME_PROOF_LOCAL_PREFLIGHT_DECISION =
   'ai_graphics_gpu_runtime_proof_local_preflight_prepared_with_manifest_and_result_blocks'
 
+export type AiGraphicsGpuRuntimeProofHostCheckMode = 'not_requested' | 'detected'
+
+export interface AiGraphicsGpuRuntimeProofHostEnvironment {
+  checkMode: AiGraphicsGpuRuntimeProofHostCheckMode
+  platform: string
+  arch: string
+  dockerAvailable: boolean | null
+  dockerOsType: string | null
+  dockerArchitecture: string | null
+  dockerNvidiaRuntimeAvailable: boolean | null
+  nvidiaSmiAvailable: boolean | null
+  nvidiaGpuName: string | null
+  nativeLinuxAmd64Host: boolean
+  hostEligibleForNativeGpuProof: boolean
+  blockers: string[]
+}
+
 export interface AiGraphicsGpuRuntimeProofLocalPreflight {
   decision: typeof AI_GRAPHICS_GPU_RUNTIME_PROOF_LOCAL_PREFLIGHT_DECISION
   totalAiGraphicsTools: 21
@@ -26,6 +43,7 @@ export interface AiGraphicsGpuRuntimeProofLocalPreflight {
   modelManifestsReadyForGpuProof: boolean
   nativeGpuProofResultsAcceptedForOwnerReview: boolean
   allGpuRuntimeEvidenceReadyForOwnerReview: boolean
+  hostEnvironment: AiGraphicsGpuRuntimeProofHostEnvironment
   localProofResultDirectory: '.local-artifacts/ai-graphics/gpu-runtime-proof-results'
   proofResultValidatorCommand: 'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results'
   requiredNextCommands: string[]
@@ -41,6 +59,8 @@ export interface AiGraphicsGpuRuntimeProofLocalPreflight {
     modelManifestsReadyForGpuProof: boolean
     nativeGpuProofResultsAcceptedForOwnerReview: boolean
     allGpuRuntimeEvidenceReadyForOwnerReview: boolean
+    nativeGpuProofHostCheckAvailable: true
+    hostEligibleForNativeGpuProof: boolean
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
     routeExecutionApprovedNow: false
@@ -66,14 +86,35 @@ export interface AiGraphicsGpuRuntimeProofLocalPreflight {
   }
 }
 
+function defaultHostEnvironment(): AiGraphicsGpuRuntimeProofHostEnvironment {
+  return {
+    checkMode: 'not_requested',
+    platform: 'not_requested',
+    arch: 'not_requested',
+    dockerAvailable: null,
+    dockerOsType: null,
+    dockerArchitecture: null,
+    dockerNvidiaRuntimeAvailable: null,
+    nvidiaSmiAvailable: null,
+    nvidiaGpuName: null,
+    nativeLinuxAmd64Host: false,
+    hostEligibleForNativeGpuProof: false,
+    blockers: [
+      'Host detection was not requested; run with --detect-host before attempting native GPU proof locally.',
+    ],
+  }
+}
+
 export function buildAiGraphicsGpuRuntimeProofLocalPreflight(input: {
   manifestRecords?: readonly Partial<AiGraphicsModelWeightManifestEvidenceRecord>[]
   proofResults?: readonly unknown[]
   localManifestFilesRead?: number
   localProofResultFilesRead?: number
+  hostEnvironment?: AiGraphicsGpuRuntimeProofHostEnvironment
 } = {}): AiGraphicsGpuRuntimeProofLocalPreflight {
   const commandPlan = buildAiGraphicsGpuRuntimeProofCommandPlan(input.manifestRecords ?? [])
   const proofResultPacket = buildAiGraphicsGpuRuntimeProofResultPacket(input.proofResults ?? [])
+  const hostEnvironment = input.hostEnvironment ?? defaultHostEnvironment()
   const modelManifestsReadyForGpuProof =
     commandPlan.nativeGpuProofInputStatus === 'ready_for_native_gpu_runtime_probe_input'
   const nativeGpuProofResultsAcceptedForOwnerReview =
@@ -84,6 +125,9 @@ export function buildAiGraphicsGpuRuntimeProofLocalPreflight(input: {
   const missingLocalEvidence = [
     !modelManifestsReadyForGpuProof ? 'reviewed_private_model_weight_manifests' : undefined,
     !nativeGpuProofResultsAcceptedForOwnerReview ? 'native_gpu_runtime_proof_results' : undefined,
+    hostEnvironment.checkMode === 'detected' && !hostEnvironment.hostEligibleForNativeGpuProof
+      ? 'native_linux_amd64_nvidia_host'
+      : undefined,
   ].filter((entry): entry is string => Boolean(entry))
 
   const requiredNextCommands = [
@@ -91,6 +135,7 @@ export function buildAiGraphicsGpuRuntimeProofLocalPreflight(input: {
     'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests',
     'export REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT=<local-only-private-model-weight-root>',
     'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests',
+    'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible',
     commandPlan.proofResultValidatorCommand,
     'npm run --silent ai-graphics:beta-evidence-bundle:validate -- --use-committed-js-runtime-proofs --all-shared-gates-passed --browser-canvas-webgl-sandbox-passed --model-weight-manifest-review-packet <private-reviewed-manifest-packet.json> --gpu-runtime-proof-result-packet <native-gpu-proof-result-packet.json> --require-all-21-beta-ready',
   ]
@@ -108,6 +153,7 @@ export function buildAiGraphicsGpuRuntimeProofLocalPreflight(input: {
     modelManifestsReadyForGpuProof,
     nativeGpuProofResultsAcceptedForOwnerReview,
     allGpuRuntimeEvidenceReadyForOwnerReview,
+    hostEnvironment,
     localProofResultDirectory: commandPlan.localProofResultDirectory,
     proofResultValidatorCommand: commandPlan.proofResultValidatorCommand,
     requiredNextCommands,
@@ -123,6 +169,8 @@ export function buildAiGraphicsGpuRuntimeProofLocalPreflight(input: {
       modelManifestsReadyForGpuProof,
       nativeGpuProofResultsAcceptedForOwnerReview,
       allGpuRuntimeEvidenceReadyForOwnerReview,
+      nativeGpuProofHostCheckAvailable: true,
+      hostEligibleForNativeGpuProof: hostEnvironment.hostEligibleForNativeGpuProof,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
       routeExecutionApprovedNow: false,

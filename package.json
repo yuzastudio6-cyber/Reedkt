@@ -653,6 +653,8 @@
     "rp-provider-01:internal-beta-disabled-provider-adapter-scaffold:diagnostics": "node scripts/validation/rp-provider-01-internal-beta-disabled-provider-adapter-scaffold-diagnostics.mjs",
     "smoke:internal-beta-e2e-negative-gate-tests": "tsx server/smoke/internal-beta-e2e-negative-gate-tests-smoke.ts",
     "rp-internal-beta-e2e-negative-gate-tests-1:diagnostics": "node scripts/validation/rp-internal-beta-e2e-negative-gate-tests-1-diagnostics.mjs",
+    "smoke:internal-beta-approved-snapshot-persistence-local-runtime": "tsx server/smoke/internal-beta-approved-snapshot-persistence-local-runtime-smoke.ts",
+    "rp-internal-beta-approved-snapshot-persistence-local-runtime-1:diagnostics": "node scripts/validation/rp-internal-beta-approved-snapshot-persistence-local-runtime-1-diagnostics.mjs",
     "rp-internal-beta-runtime-enablement-plan-1:diagnostics": "node scripts/validation/rp-internal-beta-runtime-enablement-plan-1-diagnostics.mjs",
     "rp-internal-beta-runtime-enablement-owner-approval-1:diagnostics": "node scripts/validation/rp-internal-beta-runtime-enablement-owner-approval-1-diagnostics.mjs",
     "rp-internal-beta-named-runtime-target-approval-1:diagnostics": "node scripts/validation/rp-internal-beta-named-runtime-target-approval-1-diagnostics.mjs",

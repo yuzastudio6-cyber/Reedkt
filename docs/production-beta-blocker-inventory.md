@@ -137,6 +137,20 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: unchanged. Generate
 
 Next safe action remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN` only after approved credential aliases are present.
 
+## Internal Beta API Route Runtime Facade
+
+`RP-INTERNAL-BETA-API-ROUTE-RUNTIME-FACADE-1` records decision `completed_fail_closed_internal_beta_api_route_runtime_facade_no_route_execution` and execution `completed_backend_api_facade_mapping_no_route_handler_registration`.
+
+Route facade status: `blocked_pending_supabase_target_validation_and_runtime_enablement`. Route facade count: `8`. Route handler registration: `false`. Mock handler registration: `false`. Route execution: `false`. Service-role route execution: `false`.
+
+The facade maps the published internal beta API route contracts to disabled backend scaffold responses only. It does not register routes, execute service-role handlers, persist approved snapshots, mutate credits, enqueue jobs, write artifact manifests, create private artifact access, read QA reports from storage, or unlock internal beta.
+
+Remote Supabase mutation, SQL execution, migration apply, storage object creation/read/delete, signed URL creation, public artifact creation, service-role route execution, worker dispatch/execution, provider/model call, Remotion execution, FFmpeg/FFprobe execution, media processing, credit mutation, and internal beta unlock remain `false`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe milestone remains `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 ## Internal Beta Approved Snapshot Persistence Local Runtime
 
 `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-LOCAL-RUNTIME-1` records decision `completed_local_approved_snapshot_persistence_runtime_no_supabase_write` and execution `completed_backend_local_snapshot_validation_no_route_or_remote_execution`.

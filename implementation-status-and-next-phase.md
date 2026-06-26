@@ -142,6 +142,16 @@ Internal beta end-to-end remains `not_ready` until transactional credit ledger r
 
 Next recommended step: `RP-CREDITS-01-INTERNAL-BETA-CREDIT-LEDGER-RUNTIME-SCAFFOLD`.
 
+## RP-INTERNAL-BETA API Route Runtime Facade
+
+`RP-INTERNAL-BETA-API-ROUTE-RUNTIME-FACADE-1` records decision `completed_fail_closed_internal_beta_api_route_runtime_facade_no_route_execution` and execution `completed_backend_api_facade_mapping_no_route_handler_registration`.
+
+The internal beta route facade now maps all eight internal beta API route contracts to disabled service-role scaffold responses with status `blocked_pending_supabase_target_validation_and_runtime_enablement`. It makes contract readback testable without registering live route handlers, registering mock handlers, executing service-role routes, mutating Supabase, running SQL, dispatching workers, calling providers/models, rendering/exporting, creating signed/public artifacts, mutating credits, or unlocking beta/production.
+
+Internal beta end-to-end ready: `false`. Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended step: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+
 ## RP-CREDITS-01 Internal Beta Credit Ledger Runtime Scaffold
 
 `RP-CREDITS-01-INTERNAL-BETA-CREDIT-LEDGER-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_credit_ledger_runtime_scaffold_no_spend` and execution `completed_fail_closed_credit_ledger_scaffold_no_credit_mutation`.

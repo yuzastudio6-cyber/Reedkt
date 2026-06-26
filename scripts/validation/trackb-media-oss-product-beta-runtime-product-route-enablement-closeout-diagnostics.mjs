@@ -59,6 +59,7 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-closeout/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout/',
   `${reportDir}/`,
   `${qaDir}/`,
@@ -71,6 +72,7 @@ const allowedChangedPrefixes = [
 ]
 
 const allowedChangedFiles = new Set([
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-tools-call-lane-ready-handoff.md',
   'package.json',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-route-enablement-closeout.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-plan.md',

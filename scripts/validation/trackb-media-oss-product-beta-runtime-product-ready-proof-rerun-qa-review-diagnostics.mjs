@@ -76,12 +76,15 @@ const statusDocs = [
 
 const allowedChangedPrefixes = [
   `${reportDir}/`,
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-closeout/',
   'scripts/validation/trackb-media-oss-',
 ]
 
 const allowedChangedFiles = new Set([
   'package.json',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-closeout.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-tools-call-lane-ready-handoff.md',
+  'scripts/validation/open-source-tool-owner-registry-trackb-media-oss-steward-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-1-tesseract-fixture-proof-followup-diagnostics.mjs',
   'scripts/validation/trackb-media-oss-milestone-1-build-context-blocker-followup-diagnostics.mjs',

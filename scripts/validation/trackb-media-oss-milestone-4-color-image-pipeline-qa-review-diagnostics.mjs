@@ -74,6 +74,7 @@ const forbiddenOutputs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-closeout/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-qa-review/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-plan/',
@@ -114,6 +115,7 @@ const allowedChangedPrefixes = [
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review/',
 ]
 const allowedChangedFiles = new Set([
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-tools-call-lane-ready-handoff.md',
   'scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-plan.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-execution.md',
@@ -436,6 +438,15 @@ const steward = readJson('docs/open-source-tool-stack/owner-registry/trackb-medi
 const registry = readJson('docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.json')
 const owner = registry.owners?.find((entry) => entry.ownerId === ownerId)
 if (!owner) fail('missing_trackb_owner')
+const productReadyCloseoutDecision =
+  'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane'
+const productReadyCloseoutAccepted =
+  status.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  status.productReadyCloseout?.productReadyCount === 16 &&
+  steward.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  steward.productReadyCloseout?.productReadyCount === 16 &&
+  owner.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  owner.productReadyCloseout?.productReadyCount === 16
 for (const [label, counts] of Object.entries({
   status: status.counts,
   steward: steward.statusCounts,
@@ -449,7 +460,9 @@ for (const [label, counts] of Object.entries({
   if (counts?.ownedTools !== 16) fail(`${label}_owned_count_drift`)
   if (counts?.acceptedProvenBounded !== 16) fail(`${label}_accepted_count_not_16`)
   if (counts?.blockedNotInstalledProven !== 0) fail(`${label}_blocked_count_not_0`)
-  if (counts?.endToEndProductReady !== 0) fail(`${label}_product_ready_not_0`)
+  if (counts?.endToEndProductReady !== 0 && !(productReadyCloseoutAccepted && counts?.endToEndProductReady === 16)) {
+    fail(`${label}_product_ready_not_0`)
+  }
 }
 sameSet(status.blockedNotInstalledProven, [], 'status_blocked')
 for (const id of ['opencolorio', 'openimageio']) {
@@ -459,7 +472,11 @@ for (const id of ['opencolorio', 'openimageio']) {
   if (stewardTool?.status !== 'accepted_proven_bounded_milestone4_color_image_cpu') {
     fail(`steward_tool_status_drift:${id}:${stewardTool?.status}`)
   }
-  if (stewardTool?.endToEndProductReady !== false || statusTool?.endToEndProductReady !== false) {
+  const toolProductReadyAccepted =
+    productReadyCloseoutAccepted &&
+    stewardTool?.endToEndProductReady === true &&
+    stewardTool?.productReadyForRankedToolCallLane === true
+  if (!toolProductReadyAccepted && (stewardTool?.endToEndProductReady !== false || statusTool?.endToEndProductReady !== false)) {
     fail(`tool_product_ready_drift:${id}`)
   }
   if (stewardTool?.imageProcessingAccepted !== false || stewardTool?.mediaProcessingAccepted !== false) {

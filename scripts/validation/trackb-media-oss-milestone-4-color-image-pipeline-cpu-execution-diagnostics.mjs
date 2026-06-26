@@ -67,6 +67,7 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-closeout/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-qa-review/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-plan/',
@@ -104,6 +105,7 @@ const allowedChangedPrefixes = [
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review/',
 ]
 const allowedChangedFiles = new Set([
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-tools-call-lane-ready-handoff.md',
   'scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-plan.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-execution.md',
@@ -412,7 +414,13 @@ const currentBlockedCount = milestone4ColorImagePipelineQaAccepted ? 0 : 2
 if (statusJson.counts?.ownedTools !== 16) fail('status_owned_count_drift')
 if (statusJson.counts?.acceptedProvenBounded !== currentAcceptedCount) fail('status_accepted_count_drift')
 if (statusJson.counts?.blockedNotInstalledProven !== currentBlockedCount) fail('status_blocked_count_drift')
-if (statusJson.counts?.endToEndProductReady !== 0) fail('status_product_ready_drift')
+const productReadyCloseoutAccepted =
+  statusJson.productReadyCloseout?.decision ===
+    'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane' &&
+  statusJson.productReadyCloseout?.productReadyCount === 16
+if (statusJson.counts?.endToEndProductReady !== 0 && !(productReadyCloseoutAccepted && statusJson.counts?.endToEndProductReady === 16)) {
+  fail('status_product_ready_drift')
+}
 if (statusJson.milestone4ColorImagePipelineCpuExecution?.decision !== decision) {
   fail('status_json_execution_decision_missing')
 }

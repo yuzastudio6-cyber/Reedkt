@@ -11,6 +11,8 @@ const repoRoot = path.resolve(__dirname, "..", "..");
 
 const decision =
   "trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan";
+const productReadyCloseoutDecision =
+  "trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane";
 const ownerId = "TRACK_B_MEDIA_OSS_STEWARD";
 const expectedTools = [
   "ffmpeg",
@@ -178,6 +180,13 @@ const owner = registry.owners.find((candidate) => candidate.ownerId === ownerId)
 if (!owner) {
   fail(`Missing owner ${ownerId} in owner registry.`);
 }
+const productReadyCloseoutAccepted =
+  owner.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  owner.productReadyCloseout?.productReadyCount === 16 &&
+  steward.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  steward.productReadyCloseout?.productReadyCount === 16 &&
+  status.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  status.productReadyCloseout?.productReadyCount === 16;
 if (owner.ownerName !== "Track B Media OSS Steward") {
   fail("Unexpected Track B steward owner name.");
 }
@@ -212,15 +221,25 @@ if (
   fail(`Blocked/not installed-proven count must be exactly ${expectedBlockedCount} for the current Track B source state.`);
 }
 if (
-  owner.endToEndProductReadyToolCount !== 0 ||
-  steward.statusCounts.endToEndProductReady !== 0 ||
-  status.counts.endToEndProductReady !== 0
+  (owner.endToEndProductReadyToolCount !== 0 ||
+    steward.statusCounts.endToEndProductReady !== 0 ||
+    status.counts.endToEndProductReady !== 0) &&
+  !(
+    productReadyCloseoutAccepted &&
+    owner.endToEndProductReadyToolCount === 16 &&
+    steward.statusCounts.endToEndProductReady === 16 &&
+    status.counts.endToEndProductReady === 16
+  )
 ) {
   fail("End-to-end product-ready Track B tool count must remain 0.");
 }
 
 for (const tool of steward.ownedTools) {
-  if (tool.endToEndProductReady !== false) {
+  if (productReadyCloseoutAccepted) {
+    if (tool.endToEndProductReady !== true || tool.productReadyForRankedToolCallLane !== true) {
+      fail(`${tool.id} must be product-ready only under the ranked tools-call lane closeout.`);
+    }
+  } else if (tool.endToEndProductReady !== false) {
     fail(`${tool.id} must not be product-ready.`);
   }
   if (preMilestoneAcceptedTools.includes(tool.id) && tool.status !== "accepted_proven_bounded_batch1") {
@@ -321,8 +340,11 @@ for (const relativePath of textScanFiles) {
   }
   for (const line of text.split(/\r?\n/)) {
     const negativeWarning = /\b(no|do not|must not|not allowed|remain blocked|blocked|false)\b/i.test(line);
+    const closeoutPositiveAllowed =
+      productReadyCloseoutAccepted &&
+      /ranked, bounded tools-call lane|ranked tools-call lane|16 product-ready|End-to-end product-ready.*\|\s*16/i.test(line);
     for (const pattern of forbiddenPositivePatterns) {
-      if (!negativeWarning && pattern.test(line)) {
+      if (!negativeWarning && !closeoutPositiveAllowed && pattern.test(line)) {
         fail(`Forbidden positive scope claim in ${relativePath}: ${line.trim()}`);
       }
     }
@@ -383,7 +405,7 @@ console.log(
       ownedTools: expectedTools.length,
       acceptedProvenBounded: expectedAcceptedCount,
       blockedNotInstalledProven: expectedBlockedCount,
-      endToEndProductReady: 0,
+      endToEndProductReady: productReadyCloseoutAccepted ? 16 : 0,
       supabaseClassification: "no write / environment none / SQL none / migration no",
     },
     null,

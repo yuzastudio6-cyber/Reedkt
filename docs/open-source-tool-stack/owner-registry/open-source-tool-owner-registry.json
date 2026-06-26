@@ -44,7 +44,10 @@
     "trackbProductBetaRuntimeProductReadyProofRerunExecutionDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_execution_passed_ready_for_product_ready_proof_rerun_qa_review",
     "trackbProductBetaRuntimeProductReadyProofRerunExecutionSha": "07909a2bb297b0012bc80ab61cb08cccf1806f37",
     "trackbProductBetaRuntimeProductReadyProofRerunQaDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_qa_passed_ready_for_product_ready_closeout",
-    "trackbProductBetaRuntimeProductReadyProofRerunQaSha": "faace5952c0b8e0d73b8e624c6ebe0f80ac2d0d3"
+    "trackbProductBetaRuntimeProductReadyProofRerunQaSha": "faace5952c0b8e0d73b8e624c6ebe0f80ac2d0d3",
+    "trackbProductBetaRuntimeProductReadyCloseoutDecision": "trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane",
+    "trackbProductBetaRuntimeProductReadyCloseoutSourceSha": "09c5fdbc3e0873e42f78f92d018e540deb11cc7e",
+    "trackbProductBetaRuntimeProductReadyCloseoutPr": null
   },
   "owners": [
     {
@@ -56,7 +59,7 @@
       "ownedToolCount": 16,
       "acceptedProvenBoundedCount": 16,
       "blockedNotInstalledProvenCount": 0,
-      "endToEndProductReadyToolCount": 0,
+      "endToEndProductReadyToolCount": 16,
       "ownedTools": [
         "ffmpeg",
         "ffprobe",
@@ -83,7 +86,7 @@
         "supabase_gcs_public_delivery",
         "beta_or_production_unlock"
       ],
-      "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_CLOSEOUT",
+      "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_TOOLS_CALL_LANE_READY_HANDOFF",
       "milestone3OcrMlCpuGpuReview": {
         "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution",
         "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION",
@@ -610,6 +613,17 @@
         "externalBetaReady": false,
         "productionReady": false,
         "productReady": false
+      },
+      "productReadyCloseout": {
+        "decision": "trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane",
+        "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_TOOLS_CALL_LANE_READY_HANDOFF",
+        "sourcePr": 977,
+        "sourceSha": "09c5fdbc3e0873e42f78f92d018e540deb11cc7e",
+        "coveredToolCount": 16,
+        "productReadyCount": 16,
+        "readyForRankedToolCallLane": true,
+        "readyForExternalBeta": false,
+        "readyForProduction": false
       }
     }
   ],
@@ -1017,6 +1031,35 @@
     },
     "readyForProductReadyCloseout": true,
     "productReadyApproved": false,
+    "supabaseClassification": "no write / environment none / SQL none / migration no"
+  },
+  "productReadyCloseout": {
+    "decision": "trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane",
+    "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_TOOLS_CALL_LANE_READY_HANDOFF",
+    "sourcePr": 977,
+    "sourceSha": "09c5fdbc3e0873e42f78f92d018e540deb11cc7e",
+    "productReadyCount": 16,
+    "productReadyTools": [
+      "ffprobe",
+      "mediainfo",
+      "exiftool",
+      "duckdb",
+      "polars_nodejs_polars",
+      "pyav",
+      "opencv",
+      "pyscenedetect",
+      "sharp_libvips",
+      "opencolorio",
+      "openimageio",
+      "imagemagick",
+      "tesseract",
+      "paddlepaddle",
+      "paddleocr",
+      "ffmpeg"
+    ],
+    "readyForRankedToolCallLane": true,
+    "readyForExternalBeta": false,
+    "readyForProduction": false,
     "supabaseClassification": "no write / environment none / SQL none / migration no"
   }
 }

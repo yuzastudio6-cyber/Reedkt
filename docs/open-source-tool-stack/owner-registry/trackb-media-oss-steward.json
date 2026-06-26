@@ -25,7 +25,7 @@
     "ownedTools": 16,
     "acceptedProvenBounded": 16,
     "blockedNotInstalledProven": 0,
-    "endToEndProductReady": 0
+    "endToEndProductReady": 16
   },
   "installProofMilestonePlan": {
     "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
@@ -46,7 +46,9 @@
       "version": "5.1.9-0+deb12u1",
       "proofBoundary": "tracka_container_version_only_no_media_processing",
       "mediaProcessingAccepted": false,
-      "endToEndProductReady": false
+      "endToEndProductReady": true,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "ffprobe",
@@ -55,7 +57,9 @@
       "version": "5.1.9-0+deb12u1",
       "proofBoundary": "tracka_container_version_only_no_media_file_probe",
       "mediaFileProbingAccepted": false,
-      "endToEndProductReady": false
+      "endToEndProductReady": true,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "sharp_libvips",
@@ -64,7 +68,9 @@
       "version": "0.34.5",
       "proofBoundary": "import_version_only_no_image_processing",
       "mediaProcessingAccepted": false,
-      "endToEndProductReady": false
+      "endToEndProductReady": true,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "duckdb",
@@ -73,7 +79,9 @@
       "version": "1.4.4",
       "proofBoundary": "native_rebuild_import_api_shape_in_memory_query",
       "mediaProcessingAccepted": false,
-      "endToEndProductReady": false
+      "endToEndProductReady": true,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "polars_nodejs_polars",
@@ -82,56 +90,64 @@
       "version": "0.25.1",
       "proofBoundary": "import_version_in_memory_dataframe_metadata",
       "mediaProcessingAccepted": false,
-      "endToEndProductReady": false
+      "endToEndProductReady": true,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "opencv",
       "name": "OpenCV",
       "status": "accepted_proven_bounded_milestone2",
       "reason": "Future Track B install-proof milestone required; media processing remains blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "trackb_cpu_worker_container_import_version_and_synthetic_fixture_only_no_real_media_processing",
       "packageName": "opencv-python-headless",
       "sourcePr": 571,
       "importVersionProven": true,
       "syntheticFixtureProven": true,
       "gpuUsed": false,
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "pyav",
       "name": "PyAV",
       "status": "accepted_proven_bounded_milestone2",
       "reason": "Future Track B install-proof milestone required; media processing remains blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "trackb_cpu_worker_container_import_version_and_synthetic_fixture_only_no_real_media_processing",
       "packageName": "av",
       "sourcePr": 571,
       "importVersionProven": true,
       "syntheticFixtureProven": true,
       "gpuUsed": false,
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "pyscenedetect",
       "name": "PySceneDetect",
       "status": "accepted_proven_bounded_milestone2",
       "reason": "Future Track B install-proof milestone required; media processing remains blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "trackb_cpu_worker_container_import_version_and_synthetic_fixture_only_no_real_media_processing",
       "packageName": "scenedetect",
       "sourcePr": 571,
       "importVersionProven": true,
       "syntheticFixtureProven": true,
       "gpuUsed": false,
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "paddleocr",
       "name": "PaddleOCR",
       "status": "accepted_proven_bounded_milestone3_ocr_ml_cpu",
       "reason": "Future Track B install-proof milestone required; OCR/media execution remains blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "ocr_runtime_container_cpu_import_version_api_shape_local_noto_font_config_no_instantiation_no_inference_no_model_assets",
       "packageName": "paddleocr",
       "version": "3.0.0",
@@ -142,14 +158,16 @@
       "ocrInferenceAccepted": false,
       "modelAssetOperationsAccepted": false,
       "fontAssetOperationsAccepted": false,
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "paddlepaddle",
       "name": "PaddlePaddle",
       "status": "accepted_proven_bounded_milestone3_ocr_ml_cpu",
       "reason": "Future Track B install-proof milestone required; OCR/media execution remains blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "ocr_runtime_container_cpu_import_version_model_free_tensor_device_no_model_assets",
       "packageName": "paddlepaddle",
       "version": "3.0.0",
@@ -160,52 +178,64 @@
       "ocrInferenceAccepted": false,
       "modelAssetOperationsAccepted": false,
       "fontAssetOperationsAccepted": false,
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "mediainfo",
       "name": "MediaInfo",
       "status": "accepted_proven_bounded_milestone1",
       "reason": "Future Track B install-proof milestone required; media file probing remains blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "trackb_cpu_worker_container_version_and_synthetic_fixture_only_no_media_processing",
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "exiftool",
       "name": "ExifTool",
       "status": "accepted_proven_bounded_milestone1",
       "reason": "Future Track B install-proof milestone required; source media metadata probing remains blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "trackb_cpu_worker_container_version_and_synthetic_fixture_only_no_media_processing",
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "imagemagick_graphicsmagick",
       "name": "ImageMagick / GraphicsMagick",
       "status": "accepted_proven_bounded_milestone1_imagemagick_only",
       "reason": "Future Track B install-proof milestone required; image processing remains blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "ImageMagick accepted/proven only; GraphicsMagick optional fallback not installed or proven",
       "imageMagickAcceptedProven": true,
       "graphicsMagickAcceptedProven": false,
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only",
+      "imageMagickProductReadyForRankedToolCallLane": true,
+      "graphicsMagickProductReadyForRankedToolCallLane": false
     },
     {
       "id": "tesseract",
       "name": "Tesseract",
       "status": "accepted_proven_bounded_milestone1",
       "reason": "Future Track B install-proof milestone required; OCR execution remains blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "trackb_cpu_worker_container_version_and_synthetic_fixture_only_no_media_processing",
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "opencolorio",
       "name": "OpenColorIO",
       "status": "accepted_proven_bounded_milestone4_color_image_cpu",
       "reason": "PR #648 CPU-worker install/API-shape evidence accepted by Milestone 4 QA; image processing remains blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "cpu_worker_container_import_version_raw_config_api_shape_no_media_processing",
       "packageName": "OpenColorIO",
       "importName": "PyOpenColorIO",
@@ -216,14 +246,16 @@
       "rawConfigCreated": true,
       "gpuUsed": false,
       "imageProcessingAccepted": false,
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     },
     {
       "id": "openimageio",
       "name": "OpenImageIO",
       "status": "accepted_proven_bounded_milestone4_color_image_cpu",
       "reason": "PR #648 CPU-worker install/API-shape evidence accepted by Milestone 4 QA; image processing and file I/O remain blocked.",
-      "endToEndProductReady": false,
+      "endToEndProductReady": true,
       "proofBoundary": "cpu_worker_container_import_version_imagespec_imagebuf_api_shape_no_file_io_no_media_processing",
       "packageName": "OpenImageIO",
       "importName": "OpenImageIO",
@@ -235,7 +267,9 @@
       "fileIoUsed": false,
       "gpuUsed": false,
       "imageProcessingAccepted": false,
-      "mediaProcessingAccepted": false
+      "mediaProcessingAccepted": false,
+      "productReadyForRankedToolCallLane": true,
+      "productReadyScope": "bounded_ranked_tool_call_lane_only"
     }
   ],
   "sourceEvidence": {
@@ -255,7 +289,10 @@
     "trackbProductBetaRuntimeProductReadyProofRerunExecutionDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_execution_passed_ready_for_product_ready_proof_rerun_qa_review",
     "trackbProductBetaRuntimeProductReadyProofRerunExecutionSha": "07909a2bb297b0012bc80ab61cb08cccf1806f37",
     "trackbProductBetaRuntimeProductReadyProofRerunQaDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_qa_passed_ready_for_product_ready_closeout",
-    "trackbProductBetaRuntimeProductReadyProofRerunQaSha": "faace5952c0b8e0d73b8e624c6ebe0f80ac2d0d3"
+    "trackbProductBetaRuntimeProductReadyProofRerunQaSha": "faace5952c0b8e0d73b8e624c6ebe0f80ac2d0d3",
+    "trackbProductBetaRuntimeProductReadyCloseoutDecision": "trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane",
+    "trackbProductBetaRuntimeProductReadyCloseoutSourceSha": "09c5fdbc3e0873e42f78f92d018e540deb11cc7e",
+    "trackbProductBetaRuntimeProductReadyCloseoutPr": null
   },
   "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_CLOSEOUT",
   "supabaseClassification": {
@@ -1228,6 +1265,35 @@
     },
     "readyForProductReadyCloseout": true,
     "productReadyApproved": false,
+    "supabaseClassification": "no write / environment none / SQL none / migration no"
+  },
+  "productReadyCloseout": {
+    "decision": "trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane",
+    "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_TOOLS_CALL_LANE_READY_HANDOFF",
+    "sourcePr": 977,
+    "sourceSha": "09c5fdbc3e0873e42f78f92d018e540deb11cc7e",
+    "productReadyCount": 16,
+    "productReadyTools": [
+      "ffprobe",
+      "mediainfo",
+      "exiftool",
+      "duckdb",
+      "polars_nodejs_polars",
+      "pyav",
+      "opencv",
+      "pyscenedetect",
+      "sharp_libvips",
+      "opencolorio",
+      "openimageio",
+      "imagemagick",
+      "tesseract",
+      "paddlepaddle",
+      "paddleocr",
+      "ffmpeg"
+    ],
+    "readyForRankedToolCallLane": true,
+    "readyForExternalBeta": false,
+    "readyForProduction": false,
     "supabaseClassification": "no write / environment none / SQL none / migration no"
   }
 }

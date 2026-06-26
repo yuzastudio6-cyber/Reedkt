@@ -1,0 +1,20 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-CURRENT-TARGET-GUARDED-VALIDATION-1",
+  "runId": "2026-06-26T18-13-11-253Z-5c0790dd",
+  "outputDir": "/tmp/reeditpro-supabase-clean-staging-branch-current-target-guarded-validation-1/2026-06-26T18-13-11-253Z-5c0790dd",
+  "generatedAt": "2026-06-26T18:13:15.474Z",
+  "artifacts": [
+    {
+      "fileName": "clean_staging_branch_current_target_guarded_validation_report.json",
+      "path": "docs/activation-supabase-clean-staging-branch-current-target-guarded-validation-1-reports/clean_staging_branch_current_target_guarded_validation_report.json",
+      "bytes": 6411,
+      "sha256": "9d2bd39f40e6fd0bf39220174ac82c0757daf3db54bde3c23e8b06b59f2525ea"
+    },
+    {
+      "fileName": "clean_staging_branch_current_target_guarded_validation_manifest.json",
+      "path": "docs/activation-supabase-clean-staging-branch-current-target-guarded-validation-1-reports/clean_staging_branch_current_target_guarded_validation_manifest.json",
+      "bytes": 710,
+      "sha256": "3b65d5d4b25ec484c8000791654383352503f31f956bc46b421b594013bbf453"
+    }
+  ]
+}

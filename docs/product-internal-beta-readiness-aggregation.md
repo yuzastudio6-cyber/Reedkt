@@ -36,3 +36,11 @@ Current status after this follow-up remains internal beta `blocked_pending_clean
 The clean branch DB URL alias `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` now exists as version `1`, enabled. The guarded handoff used `SUPABASE_ACCESS_TOKEN` version `5` and the Supabase Management API branch config read for `fnjiylwirntrqdcwpbho`; no credential payload was printed or committed.
 
 Current status after this handoff is internal beta `blocked_pending_guarded_clean_target_validation_and_runtime_gate_closure`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+## Clean Branch Current Target Guarded Validation
+
+`SUPABASE-CLEAN-STAGING-BRANCH-CURRENT-TARGET-GUARDED-VALIDATION-1` records decision `blocked_clean_branch_migration_history_not_current` and execution `blocked_guarded_clean_branch_readonly_validation_no_mutation`.
+
+The clean branch DB URL secret exists and the guarded runner reached `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho` using `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `1`. The read-only migration history readback shows the clean branch remote history is current only through `202605130006`; required current migrations `202606050001`, `202606180001`, and `20260625031135` are missing.
+
+Current status after this guarded validation is internal beta `blocked_pending_clean_staging_migration_chain_currentness`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.

@@ -23,6 +23,8 @@ const relatedDiagnosticsAllowlist = [
   'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
   'scripts/validation/supabase-clean-staging-target-owner-approval-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-db-url-secret-handoff-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-current-target-revalidation-1-diagnostics.mjs',
 ]
 
 const followOnSupabaseCleanStagingTargetOwnerApproval1Files = [
@@ -54,6 +56,27 @@ const followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files = [
   'scripts/validation/supabase-clean-staging-branch-current-target-revalidation-1-diagnostics.mjs',
   'scripts/validation/supabase-clean-staging-target-owner-approval-1-diagnostics.mjs',
   'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
+]
+
+const followOnSupabaseCleanStagingBranchCurrentTargetGuardedValidation1Files = [
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-current-target-guarded-validation-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-current-target-guarded-validation-1-record.json',
+  'docs/activation-phase-supabase-clean-staging-branch-current-target-guarded-validation-1-results.md',
+  'docs/activation-supabase-clean-staging-branch-current-target-guarded-validation-1-reports/clean_staging_branch_current_target_guarded_validation_report.json',
+  'docs/activation-supabase-clean-staging-branch-current-target-guarded-validation-1-reports/clean_staging_branch_current_target_guarded_validation_manifest.json',
+  'docs/implementation-prompts/prompt-supabase-clean-staging-branch-migration-chain-apply-1.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'docs/production-beta-blocker-inventory.md',
+  'implementation-status-and-next-phase.md',
+  'scripts/validation/supabase-clean-staging-branch-current-target-guarded-validation-1.mjs',
+  'scripts/validation/supabase-clean-staging-branch-current-target-guarded-validation-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-db-url-secret-handoff-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-current-target-revalidation-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-target-owner-approval-1-diagnostics.mjs',
+  'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
 ]
 
 const requiredText = [
@@ -173,6 +196,7 @@ const allowed = new Set([
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
+  ...followOnSupabaseCleanStagingBranchCurrentTargetGuardedValidation1Files,
 ])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)

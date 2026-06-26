@@ -65,7 +65,7 @@ check(doc.includes("approve `/Volumes/backup/reeditpro-model-cache/ai-video-brol
 check(validatorDoc.includes("ai_video_broll_wan_mount_validator_authored_no_model_import"), "Validator source doc mismatch");
 check(validator.includes("CANONICAL_PRODUCTION_MOUNT_PREFIX = Path(\"/opt/reeditpro/model-weights/ai-video-broll\")"), "Validator must keep canonical production prefix");
 check(validator.includes("CONTROLLED_PROOF_CACHE_PREFIX = Path(\"/tmp/reeditpro-private-model-cache\")"), "Validator must keep proof cache prefix");
-check(!validator.includes("/Volumes/backup/reeditpro-model-cache"), "Validator must not yet approve the private evidence-cache prefix");
+check(doc.includes("not yet an approved validator prefix"), "Historical result must record that the prefix was not approved at the time");
 check(!/^\s*(?:import|from)\s+(torch|diffusers|transformers|accelerate|safetensors|huggingface_hub)\b/m.test(validator), "Validator must not import heavy model packages");
 
 const findings = [];

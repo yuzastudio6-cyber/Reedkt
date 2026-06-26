@@ -22,6 +22,7 @@ APPROVED_MODEL_REVISION = "37ec512624d61f7aa208f7ea8140a131f93afc9a"
 
 CANONICAL_PRODUCTION_MOUNT_PREFIX = Path("/opt/reeditpro/model-weights/ai-video-broll")
 CONTROLLED_PROOF_CACHE_PREFIX = Path("/tmp/reeditpro-private-model-cache")
+CONTROLLED_EVIDENCE_CACHE_PREFIX = Path("/Volumes/backup/reeditpro-model-cache/ai-video-broll")
 
 ORIGINAL_WAN_RUNTIME_ESSENTIAL_FILES = (
     "config.json",
@@ -107,6 +108,8 @@ def _classify_allowed_prefix(path: Path) -> str:
         return "canonical_production_mount_prefix"
     if _is_relative_to(path, CONTROLLED_PROOF_CACHE_PREFIX):
         return "controlled_proof_cache_prefix"
+    if _is_relative_to(path, CONTROLLED_EVIDENCE_CACHE_PREFIX):
+        return "controlled_evidence_cache_prefix"
     return "disallowed_prefix"
 
 

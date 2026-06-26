@@ -12,6 +12,7 @@ This packet adds a no-inference Wan/Wan2.1 mount/layout validator at `server/wor
 - Approved source revision: `37ec512624d61f7aa208f7ea8140a131f93afc9a`
 - Canonical production-style prefix: `/opt/reeditpro/model-weights/ai-video-broll`
 - Controlled proof cache prefix: `/tmp/reeditpro-private-model-cache`
+- Controlled evidence cache prefix: `/Volumes/backup/reeditpro-model-cache/ai-video-broll`
 
 ## Layout Outcomes
 
@@ -20,6 +21,8 @@ This packet adds a no-inference Wan/Wan2.1 mount/layout validator at `server/wor
 - `diffusers_cache_layout`: Diffusers marker layout is present; runnable only when all required markers are present.
 - `unknown_cache_layout`: allowed prefix exists but does not match the required layouts.
 - `disallowed_path` or `invalid_input`: path is outside approved prefixes or contains forbidden value shapes.
+
+The controlled evidence cache prefix is for no-inference local validation only. It is not a production mount path, does not authorize copying weights, and does not authorize model imports or inference.
 
 ## No-Import Guarantee
 

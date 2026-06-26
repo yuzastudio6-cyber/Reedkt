@@ -65,14 +65,18 @@ const statusDocs = [
 
 const allowedChangedPrefixes = [
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-plan/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-execution/',
   `${reportDir}/`,
   'scripts/validation/trackb-media-oss-',
 ]
 
 const allowedChangedFiles = new Set([
   'package.json',
+  'src/backend/api/trackb-media-oss-product-route-enablement-harness.ts',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-route-enablement-execution.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-route-enablement-qa-review.md',
   'scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-plan-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-execution-diagnostics.mjs',
   ...statusDocs,
 ])
 

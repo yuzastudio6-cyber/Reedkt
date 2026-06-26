@@ -32,3 +32,12 @@ Production and external beta remain blocked until human approvals cover deployme
 - Required future proof: named model/security/cost owners, provider terms and license review, model routing compliance, backend-only secret policy, security review, cost budgets, concurrency limits, kill switches, and credit-ledger enforcement plan.
 - Still blocked: private storage/deletion, observability/alerting, incident response, backend/database/billing/credit ledger, real generation/export worker E2E, delivery/share policy, external beta go/no-go, and production go/no-go.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Private Storage / Deletion / Supabase / GCS Readiness Plan Status
+
+- Decision: `reeditpro_private_storage_deletion_supabase_gcs_readiness_plan_passed_ready_for_observability_incident_support_readiness_plan`
+- Next prompt: `REEDITPRO_OBSERVABILITY_INCIDENT_SUPPORT_READINESS_PLAN`
+- Hardening status: storage/deletion/Supabase/GCS planning metadata is defined; execution remains blocked.
+- Required future proof: private bucket policy, deletion workflow, retention enforcement, signed URL issuance policy, RLS/service-role policy, environment/bucket separation, audit events, and rollback-compatible storage behavior.
+- Still blocked: observability/alerting, incident response, backend/database/billing/credit ledger, real generation/export worker E2E, delivery/share policy, external beta go/no-go, and production go/no-go.
+- Supabase classification: no write / environment none / SQL none / migration no.

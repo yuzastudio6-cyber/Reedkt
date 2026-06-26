@@ -1,4 +1,8 @@
 import {
+  getAiGraphicsMappedProductionProfile,
+  getAiGraphicsToolCallReadiness,
+} from './ai-graphics-tool-call-readiness'
+import {
   AI_GRAPHICS_INTERNAL_BETA_WORKER_PAYLOAD_READINESS_DECISION,
   buildAiGraphicsInternalBetaWorkerPayloadReadiness,
   type AiGraphicsInternalBetaWorkerPayload,
@@ -30,6 +34,8 @@ export interface AiGraphicsInternalBetaProductionWorkerJobCandidate {
   sourcePayloadReadyWithProvidedEvidence: boolean
   productionWorkerJobPayload: ProductionWorkerJobPayload
   productionWorkerJobShapeValid: boolean
+  canonicalRegistryValidationPassed: boolean
+  canonicalRegistryValidationFailures: string[]
   productionWorkerJobReadyWithProvidedEvidence: boolean
   canEnqueueProductionWorkerJobNow: false
   canRunProductionWorkerRouteNow: false
@@ -115,6 +121,7 @@ const allowedPreparationActions = [
   'populate toolExecutionPlanId from the approved tool strategy id',
   'populate storageReferenceIds with private manifest references only',
   'attach canonical tool id, capability ids, runtime target, and blocker metadata',
+  'validate worker job payloads against canonical AI graphics production registry mapping',
   'validate production worker payload shape without queueing or executing it',
 ]
 
@@ -194,6 +201,10 @@ function recipeIdForPayload(payload: AiGraphicsInternalBetaWorkerPayload): strin
 function buildProductionWorkerJobPayload(
   payload: AiGraphicsInternalBetaWorkerPayload,
 ): ProductionWorkerJobPayload {
+  const productFacingCapabilityIds = payload.capabilityIds.filter((capabilityId) => (
+    capabilityId !== 'planning_metadata_only' &&
+    capabilityId !== 'blocked_or_deferred'
+  ))
   const productionWorkerJobPayload: ProductionWorkerJobPayload = {
     jobId: payload.jobId.replace('-metadata-payload', '-production-worker-job-payload'),
     workspaceId: payload.workspaceId,
@@ -214,7 +225,7 @@ function buildProductionWorkerJobPayload(
     createdAt: '2026-06-26T00:00:00.000Z',
     metadata: {
       aiGraphicsCanonicalToolId: payload.toolId,
-      aiGraphicsCapabilityIds: payload.capabilityIds,
+      aiGraphicsCapabilityIds: productFacingCapabilityIds,
       aiGraphicsRuntimeTarget: payload.runtimeTarget,
       expectedOutputRefs: payload.expectedOutputRefs,
       sourcePayloadReadyWithProvidedEvidence: payload.payloadReadyWithProvidedEvidence,
@@ -243,6 +254,64 @@ function hasRequiredProductionWorkerJobShape(payload: ProductionWorkerJobPayload
     Boolean(payload.creditReservationId)
 }
 
+function validateProductionWorkerJobAgainstCanonicalRegistry(
+  payload: ProductionWorkerJobPayload,
+  sourcePayload: AiGraphicsInternalBetaWorkerPayload,
+): string[] {
+  const failures: string[] = []
+  const readiness = getAiGraphicsToolCallReadiness(sourcePayload.toolId)
+  if (!readiness || !readiness.productionToolId) {
+    failures.push(`unknown_canonical_ai_graphics_tool:${sourcePayload.toolId}`)
+    return failures
+  }
+
+  const productionProfile = getAiGraphicsMappedProductionProfile(readiness.toolId)
+  if (!productionProfile) {
+    failures.push(`missing_ai_graphics_production_profile:${readiness.toolId}`)
+    return failures
+  }
+
+  if (payload.requestedToolIds.length !== 1 || payload.requestedToolIds[0] !== readiness.productionToolId) {
+    failures.push(`requested_tool_mismatch:${readiness.toolId}:${readiness.productionToolId}`)
+  }
+  if (sourcePayload.productionToolId !== readiness.productionToolId) {
+    failures.push(`source_production_tool_mismatch:${readiness.toolId}:${readiness.productionToolId}`)
+  }
+  if (productionProfile.toolId !== readiness.productionToolId) {
+    failures.push(`production_profile_tool_mismatch:${readiness.toolId}:${readiness.productionToolId}`)
+  }
+  if (payload.workerType !== readiness.productionWorkerType || payload.workerType !== productionProfile.workerType) {
+    failures.push(`worker_type_mismatch:${readiness.toolId}:${productionProfile.workerType}`)
+  }
+  if (sourcePayload.runtimeTarget !== readiness.runtimeTarget) {
+    failures.push(`source_runtime_target_mismatch:${readiness.toolId}:${readiness.runtimeTarget}`)
+  }
+  if (payload.metadata?.aiGraphicsCanonicalToolId !== readiness.toolId) {
+    failures.push(`metadata_canonical_tool_mismatch:${readiness.toolId}`)
+  }
+  if (payload.metadata?.aiGraphicsRuntimeTarget !== readiness.runtimeTarget) {
+    failures.push(`metadata_runtime_target_mismatch:${readiness.toolId}:${readiness.runtimeTarget}`)
+  }
+
+  const metadataCapabilityIds = Array.isArray(payload.metadata?.aiGraphicsCapabilityIds)
+    ? payload.metadata.aiGraphicsCapabilityIds.filter((capabilityId): capabilityId is string => typeof capabilityId === 'string')
+    : []
+  const allowedCapabilities = new Set<string>(readiness.capabilities.filter((capability) => (
+    capability !== 'planning_metadata_only' &&
+    capability !== 'blocked_or_deferred'
+  )))
+  if (metadataCapabilityIds.length === 0) {
+    failures.push(`missing_capability_metadata:${readiness.toolId}`)
+  }
+  for (const capabilityId of metadataCapabilityIds) {
+    if (!allowedCapabilities.has(capabilityId)) {
+      failures.push(`invalid_capability_metadata:${readiness.toolId}:${capabilityId}`)
+    }
+  }
+
+  return failures
+}
+
 export function buildAiGraphicsInternalBetaProductionWorkerJobReadiness(
   input: AiGraphicsInternalBetaProductionWorkerJobReadinessInput = {},
 ): AiGraphicsInternalBetaProductionWorkerJobReadiness {
@@ -255,10 +324,14 @@ export function buildAiGraphicsInternalBetaProductionWorkerJobReadiness(
     sourceWorkerPayloadReadiness.workerPayloads.map((sourcePayload): AiGraphicsInternalBetaProductionWorkerJobCandidate => {
       const productionWorkerJobPayload = buildProductionWorkerJobPayload(sourcePayload)
       const productionWorkerJobShapeValid = hasRequiredProductionWorkerJobShape(productionWorkerJobPayload)
+      const canonicalRegistryValidationFailures =
+        validateProductionWorkerJobAgainstCanonicalRegistry(productionWorkerJobPayload, sourcePayload)
+      const canonicalRegistryValidationPassed = canonicalRegistryValidationFailures.length === 0
       const productionWorkerJobReadyWithProvidedEvidence =
         ownerApprovedProductionWorkerJobEvidenceAccepted &&
         sourcePayload.payloadReadyWithProvidedEvidence &&
-        productionWorkerJobShapeValid
+        productionWorkerJobShapeValid &&
+        canonicalRegistryValidationPassed
 
       return {
         sourceToolId: sourcePayload.toolId,
@@ -267,6 +340,8 @@ export function buildAiGraphicsInternalBetaProductionWorkerJobReadiness(
         sourcePayloadReadyWithProvidedEvidence: sourcePayload.payloadReadyWithProvidedEvidence,
         productionWorkerJobPayload,
         productionWorkerJobShapeValid,
+        canonicalRegistryValidationPassed,
+        canonicalRegistryValidationFailures,
         productionWorkerJobReadyWithProvidedEvidence,
         canEnqueueProductionWorkerJobNow: false,
         canRunProductionWorkerRouteNow: false,

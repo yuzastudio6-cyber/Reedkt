@@ -240,6 +240,8 @@ for (const token of [
   'requestedRecipeIds',
   'storageReferenceIds',
   'toolExecutionPlanId',
+  'canonicalRegistryValidationPassed',
+  'validateProductionWorkerJobAgainstCanonicalRegistry',
   'render_asset_integrity',
   '--require-owner-approved-production-worker-jobs-ready',
 ]) {
@@ -256,6 +258,9 @@ if (docs.counts?.ownerApprovedCapabilityProductionWorkerJobScenariosReadyWithPro
   fail('docs_owner_capability_worker_jobs_not_12')
 }
 if (docs.counts?.productionWorkerJobPayloadsReadyNow !== 0) fail('docs_worker_jobs_ready_now_not_0')
+if (docs.runtimeTargets?.workerPayloadsValidateCanonicalAiGraphicsRegistry !== true) {
+  fail('docs_missing_canonical_registry_validation')
+}
 if (docs.runtimeTargets?.canEnqueueProductionWorkerJobNow !== false) fail('docs_enqueue_not_false')
 if (docs.runtimeTargets?.canRunProductionWorkerRouteNow !== false) fail('docs_route_not_false')
 
@@ -323,6 +328,12 @@ for (const candidate of approvedOutput.productionWorkerJobPayloads ?? []) {
     if (!Object.hasOwn(job, field)) fail(`job_missing_field:${candidate.sourceToolId}:${field}`)
   }
   if (candidate.productionWorkerJobShapeValid !== true) fail(`job_shape_invalid:${candidate.sourceToolId}`)
+  if (candidate.canonicalRegistryValidationPassed !== true) {
+    fail(`job_canonical_registry_invalid:${candidate.sourceToolId}`)
+  }
+  if (candidate.canonicalRegistryValidationFailures?.length !== 0) {
+    fail(`job_canonical_registry_failures:${candidate.sourceToolId}:${candidate.canonicalRegistryValidationFailures}`)
+  }
   if (candidate.productionWorkerJobReadyWithProvidedEvidence !== true) {
     fail(`job_not_ready_with_evidence:${candidate.sourceToolId}`)
   }

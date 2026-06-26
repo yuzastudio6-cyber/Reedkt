@@ -55,6 +55,7 @@ const requiredGateNames = [
   'signed_url_block',
   'secret_block',
   'registry_runtime',
+  'ai_graphics_canonical_registry',
   'license_model_weight',
   'credit_reservation',
   'artifact_policy',
@@ -224,6 +225,7 @@ for (const gateName of requiredGateNames) {
 for (const token of [
   'runProductionWorkerGates',
   'getHardFailedGates',
+  'aiGraphicsCanonicalRegistryGate',
   'production worker dispatch',
   'production worker route execution',
   '--require-owner-approved-production-worker-gates-ready',

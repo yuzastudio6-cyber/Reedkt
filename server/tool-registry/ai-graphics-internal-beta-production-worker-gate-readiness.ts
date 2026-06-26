@@ -125,6 +125,7 @@ const requiredGateNames = [
   'signed_url_block',
   'secret_block',
   'registry_runtime',
+  'ai_graphics_canonical_registry',
   'license_model_weight',
   'credit_reservation',
   'artifact_policy',
@@ -135,6 +136,8 @@ const requiredGateNames = [
 const allowedGateActions = [
   'run shared production worker gate checks against prepared payload candidates',
   'validate approved snapshot, idempotency, artifact, runtime registry, license/model-weight, credit, QA, and worker mode gates',
+  'run aiGraphicsCanonicalRegistryGate against AI graphics payload metadata',
+  'validate AI graphics worker payloads against canonical tool, production alias, worker type, runtime target, and capability mappings',
   'collect gate warnings for future owner review',
   'report fail-closed queue, dispatch, route, and execution blockers',
 ]

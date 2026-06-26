@@ -210,11 +210,12 @@ maps the all-21 AI graphics worker payload metadata into canonical
 `ProductionWorkerJobPayload` candidates for all 21 tools and all 12
 product-facing capability scenarios. It validates requested production tool IDs,
 tool execution plan IDs, private storage references, quality gate requirements,
-worker runtime type, and dry-run payload shape, but does not enqueue production
-worker jobs, route production workers, execute tools, run browser/canvas/WebGL,
-run GPU/model runtime, download/load model weights, process media, create
-signed URLs/public artifacts, unlock internal beta runtime, unlock external
-beta, or unlock production.
+worker runtime type, canonical AI graphics tool/alias/capability/runtime
+mapping, and dry-run payload shape, but does not enqueue production worker jobs,
+route production workers, execute tools, run browser/canvas/WebGL, run GPU/model
+runtime, download/load model weights, process media, create signed URLs/public
+artifacts, unlock internal beta runtime, unlock external beta, or unlock
+production.
 
 AI graphics internal beta production worker gate readiness decision
 `ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime`
@@ -222,12 +223,13 @@ validates the all-21 canonical AI graphics production worker job payload
 candidates with the shared production worker gates. With owner-approved evidence,
 all 21 payload candidates and all 12 capability scenarios can pass gate checks
 for approved snapshot, idempotency, raw prompt block, signed URL block, secret
-block, registry runtime, license/model-weight warnings, credit reservation,
-artifact policy, QA policy, and worker mode. It does not enqueue production
-worker jobs, dispatch workers, run production worker routes, execute tools, run
-browser/canvas/WebGL, run GPU/model runtime, download/load model weights,
-process media, create signed URLs/public artifacts, unlock internal beta
-runtime, unlock external beta, or unlock production.
+block, registry runtime, AI graphics canonical registry mapping,
+license/model-weight warnings, credit reservation, artifact policy, QA policy,
+and worker mode. It does not enqueue production worker jobs, dispatch workers,
+run production worker routes, execute tools, run browser/canvas/WebGL, run
+GPU/model runtime, download/load model weights, process media, create signed
+URLs/public artifacts, unlock internal beta runtime, unlock external beta, or
+unlock production.
 
 Phase 35F SAM2 feature E2E evidence, when present, counts only toward internal
 SAM2 feature testing. It is not external beta, paid production, broad real

@@ -74,6 +74,7 @@
   "runtimeTargets": {
     "gpuToolsUseNativeL4": true,
     "workerPayloadsUseProductionWorkerJobPayloadShape": true,
+    "workerPayloadsValidateCanonicalAiGraphicsRegistry": true,
     "executionMode": "dry_run",
     "canEnqueueProductionWorkerJobNow": false,
     "canRunProductionWorkerRouteNow": false
@@ -84,6 +85,7 @@
     "populate toolExecutionPlanId from the approved tool strategy id",
     "populate storageReferenceIds with private manifest references only",
     "attach canonical tool id, capability ids, runtime target, and blocker metadata",
+    "validate worker job payloads against canonical AI graphics production registry mapping",
     "validate production worker payload shape without queueing or executing it"
   ],
   "blockedRuntimeActions": [

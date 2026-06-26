@@ -5,6 +5,10 @@ import {
   evaluateToolModelWeightPolicy,
   getProductionToolProfile,
 } from '../../tool-registry'
+import {
+  getAiGraphicsMappedProductionProfile,
+  getAiGraphicsToolCallReadiness,
+} from '../../tool-registry/ai-graphics-tool-call-readiness'
 import { findForbiddenWorkerPayloadEntries, isUrlLikeOrSignedValue } from './production-worker-artifact-policy'
 import { assertIdempotencyKeyMatchesPayload } from './production-worker-idempotency'
 import type { ProductionWorkerGateCheck, ProductionWorkerJobPayload } from './production-worker-types'
@@ -26,6 +30,16 @@ function gate(input: GateCheckFactoryInput): ProductionWorkerGateCheck {
     message: input.message,
     warnings: input.warnings ?? [],
     details: input.details,
+  }
+}
+
+function notApplicableGate(gateName: string, message: string): ProductionWorkerGateCheck {
+  return {
+    gateName,
+    status: 'not_applicable',
+    hardBlock: false,
+    message,
+    warnings: [],
   }
 }
 
@@ -163,6 +177,84 @@ export function registryRuntimeGate(payload: ProductionWorkerJobPayload): Produc
       ? 'Production tool registry runtime policy passed.'
       : blockingReasons.join(' '),
     warnings,
+  })
+}
+
+export function aiGraphicsCanonicalRegistryGate(payload: ProductionWorkerJobPayload): ProductionWorkerGateCheck {
+  const metadata = payload.metadata ?? {}
+  const canonicalToolId = typeof metadata.aiGraphicsCanonicalToolId === 'string'
+    ? metadata.aiGraphicsCanonicalToolId
+    : ''
+  const aiGraphicsRuntimeTarget = typeof metadata.aiGraphicsRuntimeTarget === 'string'
+    ? metadata.aiGraphicsRuntimeTarget
+    : ''
+  const aiGraphicsCapabilityIds = Array.isArray(metadata.aiGraphicsCapabilityIds)
+    ? metadata.aiGraphicsCapabilityIds.filter((capabilityId): capabilityId is string => typeof capabilityId === 'string')
+    : []
+  const looksLikeAiGraphicsPayload = Boolean(canonicalToolId) ||
+    aiGraphicsCapabilityIds.length > 0 ||
+    payload.requestedRecipeIds.some((recipeId) => recipeId.startsWith('ai_graphics_'))
+
+  if (!looksLikeAiGraphicsPayload) {
+    return notApplicableGate(
+      'ai_graphics_canonical_registry',
+      'Payload does not declare AI graphics metadata; canonical AI graphics registry gate is not applicable.',
+    )
+  }
+
+  const blockingReasons: string[] = []
+  if (!canonicalToolId) {
+    blockingReasons.push('AI graphics payload requires metadata.aiGraphicsCanonicalToolId.')
+  }
+
+  const readiness = canonicalToolId ? getAiGraphicsToolCallReadiness(canonicalToolId) : undefined
+  if (!readiness || !readiness.productionToolId) {
+    blockingReasons.push(`Unknown canonical AI graphics tool: ${canonicalToolId || '<missing>'}.`)
+  }
+
+  const productionProfile = readiness ? getAiGraphicsMappedProductionProfile(readiness.toolId) : undefined
+  if (readiness && !productionProfile) {
+    blockingReasons.push(`AI graphics production profile is missing for canonical tool: ${readiness.toolId}.`)
+  }
+
+  if (readiness?.productionToolId) {
+    if (payload.requestedToolIds.length !== 1 || payload.requestedToolIds[0] !== readiness.productionToolId) {
+      blockingReasons.push(`AI graphics requestedToolIds must contain only ${readiness.productionToolId} for ${readiness.toolId}.`)
+    }
+  }
+
+  if (readiness && productionProfile) {
+    if (productionProfile.toolId !== readiness.productionToolId) {
+      blockingReasons.push(`AI graphics production profile mismatch for ${readiness.toolId}.`)
+    }
+    if (payload.workerType !== readiness.productionWorkerType || payload.workerType !== productionProfile.workerType) {
+      blockingReasons.push(`AI graphics workerType must be ${productionProfile.workerType} for ${readiness.toolId}.`)
+    }
+    if (aiGraphicsRuntimeTarget !== readiness.runtimeTarget) {
+      blockingReasons.push(`AI graphics runtime target metadata must be ${readiness.runtimeTarget} for ${readiness.toolId}.`)
+    }
+
+    const allowedCapabilities = new Set<string>(readiness.capabilities.filter((capability) => (
+      capability !== 'planning_metadata_only' &&
+      capability !== 'blocked_or_deferred'
+    )))
+    if (aiGraphicsCapabilityIds.length === 0) {
+      blockingReasons.push(`AI graphics capability metadata is required for ${readiness.toolId}.`)
+    }
+    for (const capabilityId of aiGraphicsCapabilityIds) {
+      if (!allowedCapabilities.has(capabilityId)) {
+        blockingReasons.push(`AI graphics capability ${capabilityId} is not valid for ${readiness.toolId}.`)
+      }
+    }
+  }
+
+  return gate({
+    gateName: 'ai_graphics_canonical_registry',
+    passed: blockingReasons.length === 0,
+    hardBlock: true,
+    message: blockingReasons.length === 0
+      ? 'AI graphics payload matches the canonical 21-tool registry, production alias, worker type, runtime target, and capability map.'
+      : blockingReasons.join(' '),
   })
 }
 
@@ -325,6 +417,7 @@ export function runProductionWorkerGates(
     signedUrlBlockGate(payload),
     secretBlockGate(payload),
     registryRuntimeGate(payload),
+    aiGraphicsCanonicalRegistryGate(payload),
     licenseModelWeightGate(payload),
     creditReservationGate(payload, plan),
     artifactPolicyGate(payload),

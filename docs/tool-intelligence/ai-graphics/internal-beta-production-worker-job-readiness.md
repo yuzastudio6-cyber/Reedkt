@@ -57,6 +57,8 @@ The payloads use `executionMode: "dry_run"` only as a payload contract mode. The
 
 Each payload also uses the shared production worker idempotency format from `buildWorkerIdempotencyKey`, so the next gate-readiness lane can validate the payloads with `runProductionWorkerGates` instead of accepting an AI-graphics-only idempotency string.
 
+Each payload is also checked against the canonical AI graphics registry before it can count as ready with provided evidence. The check requires the canonical tool id, production tool alias, worker type, runtime target, and capability ids to match the all-21 AI graphics tool-call readiness contract.
+
 ## Capability Scenarios
 
 - `chart_overlay`
@@ -94,6 +96,7 @@ Node/static and browser/render tools may have package or proof evidence, but thi
 - Populate `toolExecutionPlanId` from the approved tool strategy id.
 - Populate `storageReferenceIds` with private manifest references only.
 - Attach canonical tool id, capability ids, runtime target, and blocker metadata.
+- Validate worker job payloads against canonical AI graphics production registry mapping.
 - Validate production worker payload shape without queueing or executing it.
 
 ## Blocked Runtime Actions

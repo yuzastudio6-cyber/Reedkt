@@ -29,6 +29,14 @@ const ownerDecisionEvidenceFiles = [
 
 const allowedChangedFiles = new Set([
   ...requiredFiles,
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-replacement-execution-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-replacement-execution-1-record.json',
+  'docs/activation-phase-supabase-clean-staging-branch-replacement-execution-1-results.md',
+  'docs/activation-supabase-clean-staging-branch-replacement-execution-1-reports/clean_staging_branch_replacement_execution_report.json',
+  'docs/activation-supabase-clean-staging-branch-replacement-execution-1-reports/clean_staging_branch_replacement_execution_manifest.json',
+  'docs/implementation-prompts/prompt-supabase-clean-staging-branch-replacement-history-source-mapping-1.md',
+  'scripts/validation/supabase-clean-staging-branch-replacement-execution-1.mjs',
+  'scripts/validation/supabase-clean-staging-branch-replacement-execution-1-diagnostics.mjs',
   'scripts/validation/supabase-clean-staging-branch-migration-history-reconciliation-1-diagnostics.mjs',
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
 ])

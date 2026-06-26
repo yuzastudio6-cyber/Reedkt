@@ -333,6 +333,16 @@ The current clean branch remains blocked by unmapped remote-only migration `2026
 
 Internal beta remains `blocked_pending_clean_staging_branch_replacement_and_migration_chain_apply`.
 
+## Supabase Clean Staging Branch Replacement Execution 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1` records `blocked_replacement_branch_migration_history_not_source_aligned`.
+
+Replacement branch candidate `reeditpro-clean-staging-v2` / `rjenorvzqsxwljvvvtxd` was created under non-production parent `Reeditpro` / `wmyyttnynmteqgcdishd`, but read-only migration history showed remote-only migration `20260626163138`. Because the replacement branch is not source-aligned, `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` was not rotated and the branch is not adopted as the clean staging validation target.
+
+Internal beta remains `blocked_pending_replacement_branch_remote_only_migration_source_mapping`.
+
+Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-SOURCE-MAPPING-1`.
+
 ## Internal Beta Local Readiness Gate Rollup
 
 `RP-INTERNAL-BETA-LOCAL-READINESS-GATE-ROLLUP-1` records decision `blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates` and execution `completed_local_readiness_gate_rollup_no_remote_execution`.

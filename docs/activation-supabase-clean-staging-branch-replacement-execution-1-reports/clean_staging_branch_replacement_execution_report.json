@@ -1,0 +1,188 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1",
+  "runId": "2026-06-26T19-16-38-288Z-ccea7599",
+  "outputDir": "/tmp/reeditpro-supabase-clean-staging-branch-replacement-execution-1/2026-06-26T19-16-38-288Z-ccea7599",
+  "generatedAt": "2026-06-26T19:17:04.789Z",
+  "parentProjectName": "Reeditpro",
+  "parentProjectRef": "wmyyttnynmteqgcdishd",
+  "previousCleanBranchName": "reeditpro-internal-staging-clean",
+  "previousCleanBranchRef": "fnjiylwirntrqdcwpbho",
+  "replacementBranchName": "reeditpro-clean-staging-v2",
+  "targetSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+  "decision": "blocked_replacement_branch_migration_history_not_source_aligned",
+  "execution": "blocked_before_clean_branch_db_url_secret_rotation",
+  "blocker": "blocked_replacement_branch_migration_history_not_source_aligned",
+  "confirmation": "present_true",
+  "branchReplacement": "created",
+  "selectedBranch": {
+    "name": "reeditpro-clean-staging-v2",
+    "ref": "rjenorvzqsxwljvvvtxd",
+    "status": "FUNCTIONS_DEPLOYED",
+    "persistent": true,
+    "withData": false
+  },
+  "health": {
+    "status": "passed",
+    "branch": {
+      "name": "reeditpro-clean-staging-v2",
+      "ref": "rjenorvzqsxwljvvvtxd",
+      "status": "FUNCTIONS_DEPLOYED",
+      "persistent": true,
+      "withData": false
+    },
+    "attempts": [
+      {
+        "attempt": 1,
+        "listStatus": "passed",
+        "parsed": true,
+        "branch": {
+          "name": "reeditpro-clean-staging-v2",
+          "ref": "rjenorvzqsxwljvvvtxd",
+          "status": "CREATING_PROJECT",
+          "persistent": true,
+          "withData": false
+        }
+      },
+      {
+        "attempt": 2,
+        "listStatus": "passed",
+        "parsed": true,
+        "branch": {
+          "name": "reeditpro-clean-staging-v2",
+          "ref": "rjenorvzqsxwljvvvtxd",
+          "status": "FUNCTIONS_DEPLOYED",
+          "persistent": true,
+          "withData": false
+        }
+      }
+    ]
+  },
+  "branchConfigSummary": {
+    "refMatchesReplacementBranch": true,
+    "dbHostPresent": true,
+    "dbPortPresent": true,
+    "dbUserPresent": true,
+    "dbPassPresent": true,
+    "jwtSecretPresent": true,
+    "status": "ACTIVE_HEALTHY",
+    "payloadValuesIncluded": false
+  },
+  "migrationHistoryRead": {
+    "status": "passed",
+    "command": {
+      "status": "passed",
+      "exitCode": 0,
+      "commandClass": "supabase migration list --db-url [REDACTED_REPLACEMENT_BRANCH_DB_URL]",
+      "stdout": {
+        "byteLength": 1571,
+        "lineCount": 27,
+        "snippet": "Local          | Remote         | Time (UTC)          \n  ----------------|----------------|---------------------\n   202605130001   | 202605130001   | 202605130001        \n   202605130002   | 202605130002   | 202605130002        \n   202605130003   | 202605130003   | 202605130003        \n   202605130004   | 202605130004   | 202605130004        \n   202605130005   | 202605130005   | 202605130005        \n   202605130006   | 202605130006   | 202605130006        \n   202605130007   |                | 202605130007        \n   202605130008   |                | 202605130008        \n   202605180001   |                | 202605180001        \n   202605180002   |                | 202605180002        \n   202605180003   |                | 202605180003        \n   202605180004   |                | 202605180004        \n   202605180005   |                | 202605180005        \n   202605180006   |                | 202605180006        \n   202605180007   |                | 202605180007        \n   202605180008   |                | 202605180008        \n   202605190001   |                | 202605190001        \n   202605190002   |                | 202605190002        \n   202605200001   |                | 202605200001        \n   202605200002   |                | 202605200002        \n   202605210001   |                | 202605210001        \n   202606050001   |                | 202606050001        \n   202606180001   |                | 202606180001        \n   20260625031135 |                | 2026-06-25 03:11:35 \n                  | 20260626163138 | 2026-06-26 16:31:38",
+        "secretPatternDetected": false
+      },
+      "stderr": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "snippet": "",
+        "secretPatternDetected": false
+      }
+    },
+    "parsed": {
+      "textParsed": true,
+      "localMigrationIds": [
+        "202605130001",
+        "202605130002",
+        "202605130003",
+        "202605130004",
+        "202605130005",
+        "202605130006",
+        "202605130007",
+        "202605130008",
+        "202605180001",
+        "202605180002",
+        "202605180003",
+        "202605180004",
+        "202605180005",
+        "202605180006",
+        "202605180007",
+        "202605180008",
+        "202605190001",
+        "202605190002",
+        "202605200001",
+        "202605200002",
+        "202605210001",
+        "202606050001",
+        "202606180001",
+        "20260625031135"
+      ],
+      "remoteMigrationIds": [
+        "202605130001",
+        "202605130002",
+        "202605130003",
+        "202605130004",
+        "202605130005",
+        "202605130006",
+        "20260626163138"
+      ],
+      "pendingLocalMigrationIds": [
+        "202605130007",
+        "202605130008",
+        "202605180001",
+        "202605180002",
+        "202605180003",
+        "202605180004",
+        "202605180005",
+        "202605180006",
+        "202605180007",
+        "202605180008",
+        "202605190001",
+        "202605190002",
+        "202605200001",
+        "202605200002",
+        "202605210001",
+        "202606050001",
+        "202606180001",
+        "20260625031135"
+      ],
+      "remoteOnlyMigrationIds": [
+        "20260626163138"
+      ],
+      "sourceAlignedForMigrationChainApply": false
+    }
+  },
+  "remoteOnlyMigrationIds": [
+    "20260626163138"
+  ],
+  "secretRotation": "not_run",
+  "safety": {
+    "secretManagerPayloadAccess": true,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "supabaseManagementApiRead": true,
+    "supabaseCliBranchList": true,
+    "supabaseCliBranchCreate": true,
+    "remoteSupabaseMutation": true,
+    "remoteSupabaseReadCommand": true,
+    "sqlExecution": "read_only_migration_history_inspection",
+    "sqlMutation": false,
+    "migrationListRead": true,
+    "migrationApply": false,
+    "migrationDryRun": false,
+    "migrationHistoryManualEdit": false,
+    "supabaseDbPull": false,
+    "branchDelete": false,
+    "branchReset": false,
+    "branchReplacementSelection": false,
+    "cleanBranchDbUrlSecretVersionAdd": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "providerCall": false,
+    "modelCall": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  }
+}

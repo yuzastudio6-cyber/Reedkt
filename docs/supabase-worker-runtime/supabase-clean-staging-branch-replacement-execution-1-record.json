@@ -1,0 +1,97 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1",
+  "decision": "blocked_replacement_branch_migration_history_not_source_aligned",
+  "execution": "blocked_before_clean_branch_db_url_secret_rotation",
+  "blocker": "blocked_replacement_branch_migration_history_not_source_aligned",
+  "integrationHead": "aa8b9f3c658af5619986250b64e1b3beaa065175",
+  "sourceDependencies": {
+    "pr1064": "supabase_clean_staging_branch_migration_history_source_derived_owner_decision_1",
+    "pr1061": "supabase_clean_staging_branch_migration_history_reconciliation_1",
+    "pr1055": "supabase_clean_staging_branch_migration_chain_apply_1",
+    "pr1048": "supabase_clean_staging_branch_current_target_guarded_validation_1",
+    "pr1041": "supabase_clean_staging_branch_db_url_secret_handoff_1",
+    "pr1032": "supabase_clean_staging_target_owner_approval_1",
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "confirmation": "present_true",
+  "parentProjectName": "Reeditpro",
+  "parentProjectRef": "wmyyttnynmteqgcdishd",
+  "previousCleanBranch": {
+    "name": "reeditpro-internal-staging-clean",
+    "ref": "fnjiylwirntrqdcwpbho",
+    "status": "blocked_unmapped_remote_only_migration_20260626162800"
+  },
+  "replacementBranch": {
+    "name": "reeditpro-clean-staging-v2",
+    "ref": "rjenorvzqsxwljvvvtxd",
+    "action": "created",
+    "status": "FUNCTIONS_DEPLOYED",
+    "withData": false,
+    "adoptedAsCleanStagingTarget": false
+  },
+  "migrationHistoryEvidence": {
+    "remoteOnlyMigrationIds": [
+      "20260626163138"
+    ],
+    "pendingLocalMigrationIds": [
+      "202606050001",
+      "202606180001",
+      "20260625031135"
+    ],
+    "sourceAlignedForMigrationChainApply": false
+  },
+  "secretRotation": {
+    "targetSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+    "secretVersionAdded": false,
+    "reason": "blocked_before_clean_branch_db_url_secret_rotation"
+  },
+  "runEvidence": {
+    "runId": "2026-06-26T19-16-38-288Z-ccea7599",
+    "report": "docs/activation-supabase-clean-staging-branch-replacement-execution-1-reports/clean_staging_branch_replacement_execution_report.json",
+    "reportSha256": "d9020cb2fc9173d941f5c441045a993d41f73ab70e2aafb5333493cffabe9a3a",
+    "manifest": "docs/activation-supabase-clean-staging-branch-replacement-execution-1-reports/clean_staging_branch_replacement_execution_manifest.json",
+    "manifestSha256": "1f3822caa3947c27e5ae1b526a6dd81cae81001420f9e053636954acdf598c29"
+  },
+  "readiness": {
+    "workerRuntimeTransactionalContract2": "blocked_pending_replacement_branch_remote_only_migration_source_mapping",
+    "workerRuntimeTrackaPrivateE2eExecutionGate2r": "blocked_pending_replaced_clean_staging_branch_validation_and_migration_chain_apply",
+    "trackaPrivateE2eRevalidation2": "blocked_pending_worker_transactional_contract",
+    "internalBetaReadinessRollup": "blocked_pending_replacement_branch_remote_only_migration_source_mapping",
+    "externalProductBeta": "blocked_pending_internal_beta_evidence_security_privacy_support_cost_and_deployment_gates"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": true,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "supabaseManagementApiRead": true,
+    "supabaseCliBranchList": true,
+    "supabaseCliBranchCreate": true,
+    "remoteSupabaseMutation": "branch_create_only",
+    "remoteSupabaseReadCommand": true,
+    "sqlExecution": "read_only_migration_history_inspection",
+    "sqlMutation": false,
+    "migrationListRead": true,
+    "migrationApply": false,
+    "migrationDryRun": false,
+    "migrationHistoryManualEdit": false,
+    "supabaseDbPull": false,
+    "branchDelete": false,
+    "branchReset": false,
+    "cleanBranchDbUrlSecretVersionAdd": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "providerCall": false,
+    "modelCall": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "nextMilestone": "SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-SOURCE-MAPPING-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

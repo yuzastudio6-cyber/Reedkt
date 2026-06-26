@@ -69,6 +69,8 @@
     "ai-graphics:internal-beta-dry-run-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-dry-run-readiness-diagnostics.mjs",
     "ai-graphics:internal-beta-worker-payload-readiness": "tsx server/cli/ai-graphics-internal-beta-worker-payload-readiness.ts",
     "ai-graphics:internal-beta-worker-payload-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-worker-payload-readiness-diagnostics.mjs",
+    "ai-graphics:internal-beta-production-worker-job-readiness": "tsx server/cli/ai-graphics-internal-beta-production-worker-job-readiness.ts",
+    "ai-graphics:internal-beta-production-worker-job-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-production-worker-job-readiness-diagnostics.mjs",
     "ai-graphics:cross-owner-coordination": "tsx server/cli/ai-graphics-cross-owner-coordination.ts",
     "ai-graphics:cross-owner-coordination:diagnostics": "node scripts/validation/ai-graphics-cross-owner-coordination-diagnostics.mjs",
     "ai-graphics:tool-route-readiness:diagnostics": "node scripts/validation/ai-graphics-tool-route-readiness-diagnostics.mjs",

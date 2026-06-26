@@ -46,6 +46,18 @@ download/load model weights, process media, create signed URLs/public
 artifacts, unlock internal beta runtime, unlock external beta, or unlock
 production.
 
+AI graphics internal beta production worker job readiness decision
+`ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime`
+maps the all-21 AI graphics worker payload metadata into canonical
+`ProductionWorkerJobPayload` candidates for all 21 tools and all 12
+product-facing capability scenarios. It validates requested production tool IDs,
+tool execution plan IDs, private storage references, quality gate requirements,
+worker runtime type, and dry-run payload shape, but does not enqueue production
+worker jobs, route production workers, execute tools, run browser/canvas/WebGL,
+run GPU/model runtime, download/load model weights, process media, create
+signed URLs/public artifacts, unlock internal beta runtime, unlock external
+beta, or unlock production.
+
 Phase 35F SAM2 feature E2E evidence, when present, counts only toward internal
 SAM2 feature testing. It is not external beta, paid production, broad real
 media, provider, Revideo, FILM, slow-motion, Real-ESRGAN, public delivery, or

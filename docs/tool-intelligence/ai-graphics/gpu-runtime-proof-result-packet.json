@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.gpu-runtime-proof-result-packet",
+  "decision": "ai_graphics_gpu_runtime_proof_result_packet_prepared_with_no_runtime_results",
+  "status": "missing_native_gpu_runtime_proof_results",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "latestObservedHeadSha": "d69d9c5f97ebaa4e3457438c35199c92f95449a7",
+    "latestObservedCheckRollup": []
+  },
+  "sourceEvidence": {
+    "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json",
+    "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "modelWeightManifestScaffold": "docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.json",
+    "properInstallAudit": "docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json",
+    "betaReadinessGate": "docs/tool-intelligence/ai-graphics/beta-readiness-gate.json"
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-gpu-runtime-proof-result.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "cli": "server/cli/ai-graphics-gpu-runtime-proof-result.ts",
+    "validateScript": "ai-graphics:gpu-runtime-proof-result:validate",
+    "diagnostic": "scripts/validation/ai-graphics-gpu-runtime-proof-result-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:gpu-runtime-proof-result:diagnostics"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "gpuRuntimeTargetedTools": 8,
+    "modelWeightManifestRequiredTools": 5,
+    "runtimeProfilesRequired": 4,
+    "runtimeProofResultsProvided": 0,
+    "runtimeProofResultsAcceptedForOwnerReview": 0,
+    "runtimeReadyNow": 0,
+    "internalBetaReadyNow": 0,
+    "productionReadyNow": 0
+  },
+  "gpuRuntimeTargetedTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background"
+  ],
+  "modelWeightManifestRequiredTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "runtimeProfilesRequired": [
+    "gpu_worker_ai_graphics",
+    "sam2",
+    "birefnet",
+    "real_esrgan"
+  ],
+  "acceptedStatusAfterExternalProof": "ready_for_owner_review_not_beta_ready",
+  "requiredRuntimeBucket": "native_linux_amd64_nvidia_l4_gpu_worker",
+  "requiredProofChecks": [
+    "status_passed",
+    "exact_profile_id",
+    "nvidia_smi_available",
+    "cuda_available",
+    "cuda_device_count_at_least_1",
+    "cuda_capability_at_least_8_9",
+    "tiny_cuda_tensor_probe_passed",
+    "profile_imports_present",
+    "model_manifest_checks_validated_not_loaded",
+    "private_artifact_refs_not_logged",
+    "runtime_side_effect_fields_false"
+  ],
+  "booleans": {
+    "gpuRuntimeProofResultValidatorPrepared": true,
+    "all8GpuRuntimeToolsCovered": true,
+    "all5ModelWeightManifestToolsCovered": true,
+    "all4RuntimeProfilesCovered": true,
+    "privateArtifactRefsNotLogged": true,
+    "nativeGpuRuntimeProofResultsAcceptedForOwnerReview": false,
+    "ownerReviewStillRequired": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

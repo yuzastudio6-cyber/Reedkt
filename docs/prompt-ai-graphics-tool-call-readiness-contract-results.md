@@ -123,6 +123,14 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
   - `ai-graphics:model-weight-manifest-scaffold`
   - `ai-graphics:model-weight-manifest-scaffold:diagnostics`
 - Manifest scaffold result: the scaffold creates the exact runtime mount layout for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background` under a local-only output directory. Generated templates are intentionally invalid until owner-reviewed because private artifact refs use a rejected `public://replace-with-reviewed-private-artifact-ref/...` placeholder, checksum is `REPLACE_WITH_64_HEX_SHA256`, and review booleans are false.
+- Added server-only GPU runtime proof result validator:
+  - `server/tool-registry/ai-graphics-gpu-runtime-proof-result.ts`
+  - `server/cli/ai-graphics-gpu-runtime-proof-result.ts`
+  - `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.md`
+  - `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json`
+  - `ai-graphics:gpu-runtime-proof-result:validate`
+  - `ai-graphics:gpu-runtime-proof-result:diagnostics`
+- GPU runtime proof result validator: the validator accepts the future native NVIDIA proof output only when all four profiles (`gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`) pass import, `nvidia-smi`, CUDA capability >= 8.9, tiny tensor, model-manifest, redaction, and false-side-effect checks. Passing results become `ready_for_owner_review_not_beta_ready`; they do not approve agent execution, Tool Route execution, Worker execution, GPU runtime, beta, or production.
 
 ## Runtime State
 
@@ -143,6 +151,8 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
 - `modelWeightsLoaded=false`
 - `modelInferencePerformed=false`
 - `modelWeightManifestScaffoldPrepared=true`
+- `gpuRuntimeProofResultValidatorPrepared=true`
+- `nativeGpuRuntimeProofResultsAcceptedForOwnerReview=false`
 - `nativeGpuRuntimeProofStillRequired=true`
 - `approvedPlanSnapshotRequired=true`
 - `creditReservationRequired=true`

@@ -243,7 +243,7 @@
     "batch1AcceptedMatrix": "docs/open-source-tool-stack/batch-1-final-rollup-after-ffmpeg-ffprobe-proof/batch-1-accepted-tools-matrix.json",
     "ownerLaneCounts": "docs/open-source-tool-stack/owner-lane-reconciliation-after-batch-1-rollup/reconciled-tool-count-summary.json"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_GO_NO_GO_REVIEW",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_CLOSEOUT",
   "supabaseClassification": {
     "updateRequired": "no write",
     "environmentTouched": "none",
@@ -843,6 +843,24 @@
     "productBetaReadinessReconciled": true,
     "deterministicDryRunRankingPreserved": true,
     "readyForProductBetaGoNoGoReview": true,
+    "readyForDirectProductToolCalls": false,
+    "readyForLiveBetaRuntime": false,
+    "externalBetaReady": false,
+    "productionReady": false,
+    "productReady": false
+  },
+  "productBetaGoNoGoReview": {
+    "decision": "trackb_media_oss_product_beta_go_no_go_passed_ready_for_product_beta_readiness_closeout",
+    "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_CLOSEOUT",
+    "sourcePr": 896,
+    "sourceSha": "0e367aad50ecab99e4ebbd5873883f3c858876fd",
+    "coveredToolCount": 16,
+    "boundedAcceptedProvenCount": 16,
+    "blockedNotInstalledProvenCount": 0,
+    "productReadyCount": 0,
+    "productBetaGoNoGoReviewed": true,
+    "deterministicDryRunRankingAccepted": true,
+    "readyForProductBetaReadinessCloseout": true,
     "readyForDirectProductToolCalls": false,
     "readyForLiveBetaRuntime": false,
     "externalBetaReady": false,

@@ -1,10 +1,10 @@
 # SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED
 
-Status: `blocked_pending_rpc_4r_confirmed_staging_sql_gates`
+Status: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`
 
 Patch type: guarded runner and source packet for the Worker Runtime transactional RPC 4R staging SQL gate.
 
-Base source: integration head `5e87a6c194db1d3bb2d45dc257874a7eb6fd3700`, after the merged `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` runner.
+Base source: integration head `3a6b7ce1950cbd450aaad5dcdb68466e58ebc51c`, after the merged confirmed `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` closure.
 
 Static migration source-of-truth: `supabase/migrations/202606180001_worker_runtime_transactional_rpc.sql`
 
@@ -14,11 +14,23 @@ SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED decision: completed_rpc_4
 
 execution: completed_guard_scaffold_no_remote_execution
 
-Current runner result: `blocked_pending_rpc_4r_confirmed_staging_sql_gates`
+Current runner result: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`
 
-Current runner execution: `blocked_confirmation_absent_no_sql_execution`
+Current runner execution: `blocked_confirmed_target_validation_present_but_no_sql_execution_in_codex_session`
 
-Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`
+Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`
+
+Credential context decision: `completed_approved_supabase_credential_alias_presence_preflight_no_payload_access`
+
+Confirmed target report run ID: `2026-06-26T14-39-42-178Z-ec258ac5`
+
+Confirmed target report SHA-256: `9723d72a02ab2a9d2aa930c5ecbc85a2841857d5be11c570754bb8f1516c0b57`
+
+RPC 4R confirmed closure run ID: `2026-06-26T15-20-14-905Z-577a0b5f`
+
+RPC 4R confirmed report SHA-256: `0397747bef9c0adb48b445de69e28685ff5a25b71aa0e22c3bd8cb0b1ec72c86`
+
+RPC 4R confirmed manifest SHA-256: `9d0fda2f43cb26cea7343224dafd4a9a72d9cbf765773ce293d82a23ea47aa23`
 
 Supabase update required: future_guarded_staging_migration_required
 
@@ -57,9 +69,9 @@ The runner requires all six RPC-4R gates before it checks target validation evid
 - `REEDITPRO_CONFIRM_NO_PRODUCTION_SUPABASE=true`
 - `REEDITPRO_CONFIRM_SECRET_MANAGER_BACKEND_CREDENTIAL_RESOLUTION=true`
 
-Observed confirmation state in this implementation packet: `absent_or_not_true`
+Observed confirmation state in this implementation packet: `present_true`
 
-Gate status: `runner_fail_closed_before_target_validation_or_sql`
+Gate status: `runner_fail_closed_after_target_validation_before_sql`
 
 ## Target Validation Dependency
 
@@ -71,13 +83,21 @@ Required target report decision: `completed_guarded_supabase_target_rls_storage_
 
 Required target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
-Current target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`
+Current target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`
+
+Current target validation report: `/tmp/reeditpro-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/2026-06-26T14-39-42-178Z-ec258ac5/validation-report.json`
+
+Current target validation report bytes: `5837`
+
+Current target validation report SHA-256: `9723d72a02ab2a9d2aa930c5ecbc85a2841857d5be11c570754bb8f1516c0b57`
 
 ## Runtime Boundary
 
 The checked-in runner writes only sanitized local evidence under `/tmp/reeditpro-supabase-worker-runtime-transactional-rpc-4r-confirmed/<runId>/`.
 
-The runner does not execute SQL, apply migrations, create tables, alter RLS, touch a Supabase environment, read Secret Manager payloads, run service-role routes, dispatch workers, enqueue jobs, mutate credits, create signed URLs, or unlock internal beta.
+The runner does not execute SQL, apply migrations, create tables, alter RLS, touch a Supabase environment, print or persist credential payloads, access service-role secret payloads, run service-role routes, dispatch workers, enqueue jobs, mutate credits, create signed URLs, or unlock internal beta.
+
+Approved credential aliases were resolved into ephemeral process environment variables for this confirmed guard run. Credential payloads were not printed, written to source, written to the local report, or committed.
 
 Future staging SQL execution remains a separate guarded environment action after target validation and credential handling are proven.
 
@@ -95,4 +115,4 @@ Next milestone: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled. Approved Secret Manager credential aliases were resolved only into ephemeral process environment variables for the guard run.

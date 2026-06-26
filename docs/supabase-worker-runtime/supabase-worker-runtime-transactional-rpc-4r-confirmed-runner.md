@@ -38,15 +38,23 @@ Generated `/tmp` files are local evidence only and must not be committed.
 
 ## Current Run
 
-Current runner result: `blocked_pending_rpc_4r_confirmed_staging_sql_gates`
+Current runner result: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`
 
-Current runner execution: `blocked_confirmation_absent_no_sql_execution`
+Current runner execution: `blocked_confirmed_target_validation_present_but_no_sql_execution_in_codex_session`
 
-Fail-closed run ID: `2026-06-25T19-57-29-617Z-5235a297`
+Credential context decision: `completed_approved_supabase_credential_alias_presence_preflight_no_payload_access`
 
-Fail-closed report: `rpc-4r-confirmed-report.json`, bytes `2690`, SHA-256 `1d62590b3ec56d06275d868ca414ce30ccacd14949bfbd29f7b68e444d4512ea`
+Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`
 
-Fail-closed manifest: `rpc-4r-confirmed-manifest.json`, bytes `626`, SHA-256 `d9e8bf140bc804f452da8f4401f559fd64ca8257b9fcb3a6265033360beac7e1`
+Confirmed run ID: `2026-06-26T15-20-14-905Z-577a0b5f`
+
+Confirmed output directory: `/tmp/reeditpro-supabase-worker-runtime-transactional-rpc-4r-confirmed/2026-06-26T15-20-14-905Z-577a0b5f`
+
+Confirmed report: `rpc-4r-confirmed-report.json`, bytes `3988`, SHA-256 `0397747bef9c0adb48b445de69e28685ff5a25b71aa0e22c3bd8cb0b1ec72c86`
+
+Confirmed manifest: `rpc-4r-confirmed-manifest.json`, bytes `723`, SHA-256 `9d0fda2f43cb26cea7343224dafd4a9a72d9cbf765773ce293d82a23ea47aa23`
+
+Manifest checksum policy: `manifest_file_checksum_recorded_outside_self_referential_manifest`
 
 Package-lock: unchanged
 

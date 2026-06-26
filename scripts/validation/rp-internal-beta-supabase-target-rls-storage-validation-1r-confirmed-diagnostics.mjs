@@ -80,10 +80,22 @@ const currentEnvironmentClosureFiles = [
   'docs/internal-beta/rp-internal-beta-local-readiness-gate-rollup-1/readiness-matrix.md',
 ]
 
+const externalStagingSqlGateFiles = [
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-source-audit.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-readiness-gate.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-safety-boundary.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-record.json',
+  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-results.md',
+  'docs/implementation-prompts/prompt-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution.md',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-diagnostics.mjs',
+]
+
 const allowedChanged = new Set([
   ...requiredFiles,
   ...rpc4rConfirmedFiles,
   ...currentEnvironmentClosureFiles,
+  ...externalStagingSqlGateFiles,
 ])
 
 const requiredText = [

@@ -6,7 +6,7 @@ Decision: `completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution`
 
 Execution: `completed_guard_scaffold_no_remote_execution`
 
-Current readiness: `blocked_pending_confirmed_target_validation_and_external_guarded_staging_sql_execution`
+Current readiness: `blocked_pending_external_guarded_staging_sql_execution`
 
 ## Required Before Future SQL
 
@@ -18,7 +18,13 @@ Current readiness: `blocked_pending_confirmed_target_validation_and_external_gua
 
 ## Current State
 
-Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`
+Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`
+
+Credential context decision: `completed_approved_supabase_credential_alias_presence_preflight_no_payload_access`
+
+Current runner result: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`
+
+Current runner execution: `blocked_confirmed_target_validation_present_but_no_sql_execution_in_codex_session`
 
 Supabase environment touched: none
 

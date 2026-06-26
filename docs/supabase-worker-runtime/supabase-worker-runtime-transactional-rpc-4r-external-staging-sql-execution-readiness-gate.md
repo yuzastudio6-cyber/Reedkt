@@ -2,11 +2,11 @@
 
 Packet: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION`
 
-Decision: `blocked_pending_confirmed_target_validation_before_external_staging_sql_execution`
+Decision: `blocked_pending_external_guarded_staging_sql_execution`
 
 Execution: `completed_docs_only_external_staging_sql_gate_no_sql_execution`
 
-Current readiness: `blocked_pending_confirmed_supabase_target_rls_storage_validation`
+Current readiness: `blocked_pending_external_guarded_staging_sql_execution`
 
 ## Required Before SQL
 
@@ -18,7 +18,9 @@ Current readiness: `blocked_pending_confirmed_supabase_target_rls_storage_valida
 
 ## Current State
 
-Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`
+Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`
+
+RPC 4R confirmed closure result: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`
 
 Approved SQL execution in this phase: false
 

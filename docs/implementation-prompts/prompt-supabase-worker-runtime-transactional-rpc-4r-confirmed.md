@@ -16,9 +16,15 @@ Use this prompt only after `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDAT
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED` records decision `completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution` and execution `completed_guard_scaffold_no_remote_execution`.
 
-Current runner result: `blocked_pending_rpc_4r_confirmed_staging_sql_gates`
+Current runner result: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`
 
-Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`
+Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`
+
+Credential context decision: `completed_approved_supabase_credential_alias_presence_preflight_no_payload_access`
+
+Confirmed target report run ID: `2026-06-26T14-39-42-178Z-ec258ac5`
+
+RPC 4R confirmed closure run ID: `2026-06-26T15-20-14-905Z-577a0b5f`
 
 ## Future Execution Boundary
 
@@ -38,4 +44,4 @@ If all target validation and confirmation gates pass, the next packet must use a
 
 ## Safety
 
-No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled. Approved Secret Manager credential aliases were resolved only into ephemeral process environment variables for the guard run.

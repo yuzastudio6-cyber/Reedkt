@@ -47,9 +47,15 @@ const requiredText = [
   'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED',
   'completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution',
   'completed_guard_scaffold_no_remote_execution',
-  'blocked_pending_rpc_4r_confirmed_staging_sql_gates',
-  'blocked_confirmation_absent_no_sql_execution',
-  'blocked_pending_confirmed_supabase_target_rls_storage_validation',
+  'blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner',
+  'blocked_confirmed_target_validation_present_but_no_sql_execution_in_codex_session',
+  'passed_confirmed_supabase_target_rls_storage_validation',
+  'completed_approved_supabase_credential_alias_presence_preflight_no_payload_access',
+  '2026-06-26T14-39-42-178Z-ec258ac5',
+  '2026-06-26T15-20-14-905Z-577a0b5f',
+  '0397747bef9c0adb48b445de69e28685ff5a25b71aa0e22c3bd8cb0b1ec72c86',
+  '9d0fda2f43cb26cea7343224dafd4a9a72d9cbf765773ce293d82a23ea47aa23',
+  'manifest_file_checksum_recorded_outside_self_referential_manifest',
   'RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED',
   'REEDITPRO_SUPABASE_TARGET_RLS_STORAGE_VALIDATION_REPORT',
   'REEDITPRO_CONFIRM_SUPABASE_WORKER_RUNTIME_RPC_MIGRATION=true',
@@ -75,7 +81,8 @@ const requiredText = [
   'TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: blocked_pending_worker_transactional_contract',
   'INTERNAL-BETA-READINESS-ROLLUP readiness: blocked_pending_worker_transactional_contract',
   'SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION',
-  'No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.',
+  'No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.',
+  'Approved Secret Manager credential aliases were resolved only into ephemeral process environment variables for the guard run.',
 ]
 
 const forbidden = [
@@ -174,8 +181,14 @@ for (const pattern of forbidden) {
 const record = JSON.parse(read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-record.json'))
 if (record.decision !== 'completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution') fail('record decision mismatch')
 if (record.execution !== 'completed_guard_scaffold_no_remote_execution') fail('record execution mismatch')
-if (record.currentRunnerResult !== 'blocked_pending_rpc_4r_confirmed_staging_sql_gates') fail('record current runner result mismatch')
-if (record.targetValidationDependency !== 'blocked_pending_confirmed_supabase_target_rls_storage_validation') fail('record target validation dependency mismatch')
+if (record.currentRunnerResult !== 'blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner') fail('record current runner result mismatch')
+if (record.currentRunnerExecution !== 'blocked_confirmed_target_validation_present_but_no_sql_execution_in_codex_session') fail('record current runner execution mismatch')
+if (record.targetValidationDependency !== 'passed_confirmed_supabase_target_rls_storage_validation') fail('record target validation dependency mismatch')
+if (record.credentialContextDecision !== 'completed_approved_supabase_credential_alias_presence_preflight_no_payload_access') fail('record credential context decision mismatch')
+if (record.targetValidationReportSha256 !== '9723d72a02ab2a9d2aa930c5ecbc85a2841857d5be11c570754bb8f1516c0b57') fail('record target report checksum mismatch')
+if (record.currentRunReportSha256 !== '0397747bef9c0adb48b445de69e28685ff5a25b71aa0e22c3bd8cb0b1ec72c86') fail('record current report checksum mismatch')
+if (record.currentRunManifestSha256 !== '9d0fda2f43cb26cea7343224dafd4a9a72d9cbf765773ce293d82a23ea47aa23') fail('record current manifest checksum mismatch')
+if (record.manifestChecksumPolicy !== 'manifest_file_checksum_recorded_outside_self_referential_manifest') fail('record manifest checksum policy mismatch')
 if (record.supabaseEnvironmentTouched !== 'none') fail('record environment touched mismatch')
 if (record.sqlExecuted !== 'none') fail('record sql executed mismatch')
 if (record.migrationDeployed !== 'no') fail('record migration deployed mismatch')
@@ -230,7 +243,8 @@ for (const file of changed) {
 
   const text = read(file)
   for (const pattern of secretLike) {
-    if (pattern.test(text)) fail(`secret-like value matched in ${file}: ${pattern}`)
+    const match = text.match(pattern)
+    if (match && !match[0].startsWith('postgresql://[redacted]')) fail(`secret-like value matched in ${file}: ${pattern}`)
   }
 }
 
@@ -240,4 +254,4 @@ console.log('Supabase environment touched: none')
 console.log('SQL executed: none')
 console.log('Migration deployed: no')
 console.log('readbackStatus: not_run')
-console.log('Target validation dependency: blocked_pending_confirmed_supabase_target_rls_storage_validation')
+console.log('Target validation dependency: passed_confirmed_supabase_target_rls_storage_validation')

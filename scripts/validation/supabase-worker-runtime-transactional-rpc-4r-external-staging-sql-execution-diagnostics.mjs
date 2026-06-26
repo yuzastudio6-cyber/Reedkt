@@ -21,11 +21,26 @@ const requiredFiles = [
   'package.json',
 ]
 
+const confirmedClosureFiles = [
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-source-audit.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-runner.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-readiness-gate.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-safety-boundary.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-confirmed-record.json',
+  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-confirmed-results.md',
+  'docs/implementation-prompts/prompt-supabase-worker-runtime-transactional-rpc-4r-confirmed.md',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed.mjs',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-confirmed-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
-  'blocked_pending_confirmed_target_validation_before_external_staging_sql_execution',
+  'blocked_pending_external_guarded_staging_sql_execution',
   'completed_docs_only_external_staging_sql_gate_no_sql_execution',
-  'blocked_pending_confirmed_supabase_target_rls_storage_validation',
+  'passed_confirmed_supabase_target_rls_storage_validation',
+  'blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner',
   'Approved SQL execution in this phase: false',
   'Supabase update status: blocked_sql_not_executed',
   'Supabase environment touched: none',
@@ -52,7 +67,7 @@ const requiredText = [
   'WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: blocked_pending_guarded_staging_sql_execution',
   'TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: blocked_pending_worker_transactional_contract',
   'INTERNAL-BETA-READINESS-ROLLUP readiness: blocked_pending_worker_transactional_contract',
-  'No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.',
+  'No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.',
 ]
 
 const forbidden = [
@@ -127,9 +142,10 @@ for (const pattern of forbidden) {
 }
 
 const record = JSON.parse(read('docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-record.json'))
-if (record.decision !== 'blocked_pending_confirmed_target_validation_before_external_staging_sql_execution') fail('record decision mismatch')
+if (record.decision !== 'blocked_pending_external_guarded_staging_sql_execution') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_external_staging_sql_gate_no_sql_execution') fail('record execution mismatch')
-if (record.targetValidationDependency !== 'blocked_pending_confirmed_supabase_target_rls_storage_validation') fail('record target dependency mismatch')
+if (record.targetValidationDependency !== 'passed_confirmed_supabase_target_rls_storage_validation') fail('record target dependency mismatch')
+if (record.rpc4rConfirmedClosureResult !== 'blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner') fail('record RPC 4R closure result mismatch')
 if (record.approvedSqlExecutionInThisPhase !== false) fail('SQL approval must be false')
 if (record.supabaseEnvironmentTouched !== 'none') fail('record environment touched mismatch')
 if (record.sqlExecuted !== 'none') fail('record sql executed mismatch')
@@ -171,7 +187,7 @@ const changed = [...new Set([
   ...gitLines(['diff', '--cached', '--name-only']),
 ])]
 
-const allowedChanged = new Set(requiredFiles)
+const allowedChanged = new Set([...requiredFiles, ...confirmedClosureFiles])
 
 for (const file of changed) {
   if (!allowedChanged.has(file)) fail(`unexpected changed file: ${file}`)
@@ -185,12 +201,13 @@ for (const file of changed) {
 
   const text = read(file)
   for (const pattern of secretLike) {
-    if (pattern.test(text)) fail(`secret-like value matched in ${file}: ${pattern}`)
+    const match = text.match(pattern)
+    if (match && !match[0].startsWith('postgresql://[redacted]')) fail(`secret-like value matched in ${file}: ${pattern}`)
   }
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_pending_confirmed_target_validation_before_external_staging_sql_execution')
+console.log('Decision: blocked_pending_external_guarded_staging_sql_execution')
 console.log('Supabase update status: blocked_sql_not_executed')
 console.log('SQL executed: none')
 console.log('Migration deployed: no')

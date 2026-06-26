@@ -1,10 +1,12 @@
 # Activation Phase Results: SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION
 
-Decision: `blocked_pending_confirmed_target_validation_before_external_staging_sql_execution`
+Decision: `blocked_pending_external_guarded_staging_sql_execution`
 
 Execution: `completed_docs_only_external_staging_sql_gate_no_sql_execution`
 
-Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`
+Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`
+
+RPC 4R confirmed closure result: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`
 
 Approved SQL execution in this phase: `false`
 
@@ -48,10 +50,10 @@ Generated artifacts committed: `none`
 
 ## Next Milestone
 
-`RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`
+`SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION`
 
 This packet intentionally routes back to the confirmed target validation run because external staging SQL is not safe until that evidence exists.
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled. Approved Secret Manager credential aliases were resolved only into ephemeral process environment variables for the guard run.

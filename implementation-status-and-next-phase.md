@@ -684,9 +684,9 @@ Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDA
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED` records decision `completed_rpc_4r_confirmed_runner_fail_closed_without_sql_execution` and execution `completed_guard_scaffold_no_remote_execution`.
 
-Current runner result: `blocked_pending_rpc_4r_confirmed_staging_sql_gates`. Current runner execution: `blocked_confirmation_absent_no_sql_execution`. Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`.
+Current runner result: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`. Current runner execution: `blocked_confirmed_target_validation_present_but_no_sql_execution_in_codex_session`. Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`. Credential context decision: `completed_approved_supabase_credential_alias_presence_preflight_no_payload_access`.
 
-The runner writes sanitized local `/tmp` report and manifest evidence only. It requires the six RPC-4R confirmation gates and a successful `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` report before any future staging SQL path can be considered. In this source packet, Supabase update status is `blocked_sql_not_executed`, Supabase environment touched is `none`, SQL executed is `none`, migration deployed is `no`, readbackStatus is `not_run`, Secret Manager payload printed is `false`, production touched is `false`, internal beta unlocked is `false`, and `trackAInternalBetaUnlocked` is `false`.
+The runner writes sanitized local `/tmp` report and manifest evidence only. It received the six RPC-4R confirmation gates and a successful `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` report before stopping at the SQL boundary. In this source packet, Supabase update status is `blocked_sql_not_executed`, Supabase environment touched is `none`, SQL executed is `none`, migration deployed is `no`, readbackStatus is `not_run`, Secret Manager payload printed is `false`, credential payload persistence is `false`, production touched is `false`, internal beta unlocked is `false`, and `trackAInternalBetaUnlocked` is `false`.
 
 WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: blocked_pending_guarded_staging_sql_execution
 
@@ -698,15 +698,15 @@ INTERNAL-BETA-READINESS-ROLLUP readiness: blocked_pending_worker_transactional_c
 
 Product-ready end-to-end local OSS tools: 0. Package-lock: unchanged. Generated artifacts committed: none.
 
-No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled. Approved Secret Manager credential aliases were resolved only into ephemeral process environment variables for the guard run.
 
-Next recommended milestone after a passing target validation and approved staging runner context: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION`.
+Next recommended milestone: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION` in a separately approved guarded staging SQL context.
 
 ## SUPABASE-WORKER-RUNTIME Transactional RPC 4R External Staging SQL Gate
 
-`SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION` records decision `blocked_pending_confirmed_target_validation_before_external_staging_sql_execution` and execution `completed_docs_only_external_staging_sql_gate_no_sql_execution`.
+`SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION` records decision `blocked_pending_external_guarded_staging_sql_execution` and execution `completed_docs_only_external_staging_sql_gate_no_sql_execution`.
 
-Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`. Approved SQL execution in this phase: false.
+Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`. Approved SQL execution in this phase: false.
 
 Supabase update status: `blocked_sql_not_executed`. Supabase environment touched: `none`. SQL executed: `none`. Migration deployed: `no`. readbackStatus: `not_run`. Secret Manager payload printed: `false`. production touched: `false`. Internal beta unlocked: `false`. trackAInternalBetaUnlocked: `false`.
 
@@ -720,9 +720,9 @@ INTERNAL-BETA-READINESS-ROLLUP readiness: blocked_pending_worker_transactional_c
 
 Product-ready end-to-end local OSS tools: 0. Package-lock: unchanged. Generated artifacts committed: none.
 
-No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, Secret Manager payload access, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage bucket creation, storage object creation, storage object read, service-role secret payload access, credential payload printing, credential payload persistence, service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, or broad service-role handler was enabled. Approved Secret Manager credential aliases were resolved only into ephemeral process environment variables for the guard run.
 
-Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED-RUN`.
+Next recommended milestone: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION` in a separately approved guarded staging SQL context.
 
 ## RP-INTERNAL-BETA Runtime Readiness Orchestrator
 

@@ -59,6 +59,7 @@
     "ai-video-broll-gen-9j-wheelhouse-prep:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-wheelhouse-prep-diagnostics.mjs",
     "ai-video-broll-gen-9j-wheelhouse-fix:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-wheelhouse-fix-diagnostics.mjs",
     "ai-video-broll-gen-9j-vm-preflight-4:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-preflight-4-diagnostics.mjs",
+    "ai-video-broll-gen-9j-vm-create-plan:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-create-plan-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

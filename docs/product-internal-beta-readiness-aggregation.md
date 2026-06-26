@@ -78,3 +78,13 @@ This source-derived decision rejects migration repair, db pull, direct SQL mutat
 Current status after this owner decision is internal beta `blocked_pending_clean_staging_branch_replacement_and_migration_chain_apply`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1`.
+
+## Supabase Clean Staging Branch Replacement Execution 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1` ran under explicit confirmation and recorded decision `blocked_replacement_branch_migration_history_not_source_aligned`.
+
+The runner created replacement branch candidate `reeditpro-clean-staging-v2` / `rjenorvzqsxwljvvvtxd`, read branch config metadata, and ran read-only migration history inspection. It stopped before `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` rotation because replacement branch history contains remote-only migration `20260626163138`.
+
+Current status after this execution is internal beta `blocked_pending_replacement_branch_remote_only_migration_source_mapping`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-SOURCE-MAPPING-1`.

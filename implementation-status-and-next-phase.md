@@ -86,6 +86,8 @@ Internal beta remains blocked until clean staging migration history is source-al
 
 `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1` approves the future clean branch replacement/recreation path and rejects migration repair/apply on the current clean branch while `20260626162800` remains unmapped. Next safe gate: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1`.
 
+`SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1` executed the guarded replacement attempt and recorded `blocked_replacement_branch_migration_history_not_source_aligned`. Replacement branch candidate `reeditpro-clean-staging-v2` / `rjenorvzqsxwljvvvtxd` was created, but read-only migration history showed remote-only migration `20260626163138`; the clean staging DB URL secret was not rotated. Next safe gate: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-SOURCE-MAPPING-1`.
+
 `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.
 
 The current integration head is `4648c70b0f47ec34f1c4668cb42f69cd55053b50`, including PR #1019. The Supabase target validation evidence is now source-closed as `completed_guarded_supabase_target_rls_storage_readonly_validation`, but PR #1019 keeps worker RPC, private E2E, internal beta, external beta, paid production, and final delivery blocked because there is no owner approval for full reviewed pending-set staging apply or a clean staging target/branch/project.

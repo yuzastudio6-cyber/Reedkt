@@ -54,3 +54,7 @@ Remote Supabase command class: `none_in_this_phase`. SQL execution: `none`. SQL 
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1`.
+
+`SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1` ran under explicit confirmation and stopped with `blocked_replacement_branch_migration_history_not_source_aligned`. Replacement branch candidate `reeditpro-clean-staging-v2` / `rjenorvzqsxwljvvvtxd` contains remote-only migration `20260626163138`; the DB URL secret was not rotated and internal beta remains blocked.
+
+Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-HISTORY-SOURCE-MAPPING-1`.

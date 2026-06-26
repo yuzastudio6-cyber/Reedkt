@@ -1,0 +1,20 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1",
+  "runId": "2026-06-26T19-16-38-288Z-ccea7599",
+  "outputDir": "/tmp/reeditpro-supabase-clean-staging-branch-replacement-execution-1/2026-06-26T19-16-38-288Z-ccea7599",
+  "generatedAt": "2026-06-26T19:17:04.790Z",
+  "artifacts": [
+    {
+      "fileName": "clean_staging_branch_replacement_execution_report.json",
+      "path": "docs/activation-supabase-clean-staging-branch-replacement-execution-1-reports/clean_staging_branch_replacement_execution_report.json",
+      "bytes": 6967,
+      "sha256": "d9020cb2fc9173d941f5c441045a993d41f73ab70e2aafb5333493cffabe9a3a"
+    },
+    {
+      "fileName": "clean_staging_branch_replacement_execution_manifest.json",
+      "path": "docs/activation-supabase-clean-staging-branch-replacement-execution-1-reports/clean_staging_branch_replacement_execution_manifest.json",
+      "bytes": 650,
+      "sha256": "1f3822caa3947c27e5ae1b526a6dd81cae81001420f9e053636954acdf598c29"
+    }
+  ]
+}

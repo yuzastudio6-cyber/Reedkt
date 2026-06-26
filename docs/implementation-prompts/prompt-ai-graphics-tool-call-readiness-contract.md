@@ -46,6 +46,8 @@ Follow-up runtime-readiness movement: the proven JavaScript graphics tools were 
 
 Latest observed PR state after beta evidence/profile blocker narrowing: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `310460b09bdb1c816a6e8a6c2c157d2d08d0ea86`, with an empty check rollup.
 
+Latest observed PR state after per-tool model-weight manifest evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `84fe8b030d2fc262336647621b8536c16a15abe6`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements
@@ -87,6 +89,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up evidence-driven beta gate evaluation updates `server/tool-registry/ai-graphics-beta-readiness-gate.ts`, adds `server/cli/ai-graphics-beta-readiness-gate-evaluate.ts`, and adds `ai-graphics:beta-readiness-gate:evaluate` so supplied owner/runtime evidence can clear conditional blockers while profile, license, and model-weight policy blockers remain enforced.
 - Follow-up internal beta production worker job readiness adds `server/tool-registry/ai-graphics-internal-beta-production-worker-job-readiness.ts`, `server/cli/ai-graphics-internal-beta-production-worker-job-readiness.ts`, `docs/tool-intelligence/ai-graphics/internal-beta-production-worker-job-readiness.md`, `docs/tool-intelligence/ai-graphics/internal-beta-production-worker-job-readiness.json`, `ai-graphics:internal-beta-production-worker-job-readiness`, and `ai-graphics:internal-beta-production-worker-job-readiness:diagnostics` so owner-approved AI graphics payload metadata can be mapped into canonical `ProductionWorkerJobPayload` candidates for all 21 tools and all 12 capability scenarios without enqueueing jobs or executing production worker routes.
 - Follow-up internal beta production worker gate readiness adds `server/tool-registry/ai-graphics-internal-beta-production-worker-gate-readiness.ts`, `server/cli/ai-graphics-internal-beta-production-worker-gate-readiness.ts`, `docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.md`, `docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.json`, `ai-graphics:internal-beta-production-worker-gate-readiness`, and `ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics` so owner-approved AI graphics production worker payload candidates can be checked against the shared production worker gates for all 21 tools and all 12 capability scenarios without enqueueing jobs, dispatching workers, calling production worker routes, or executing tools.
+- Follow-up per-tool model-weight manifest evidence hardening updates the beta evidence bundle so reviewed private model-weight evidence is accepted only when all five exact `validationResults` rows are present for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. Count-only manifest packets are rejected, and downstream diagnostics use a shared accepted private-manifest fixture that keeps execution/runtime/beta/production false.
 
 ## Expected Validation
 

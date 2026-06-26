@@ -38,6 +38,8 @@ Latest observed PR state after GPU runtime proof command-plan bridge completion:
 
 Latest observed PR state after model-weight manifest scaffold completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `4a225b2c1a191e638abf4e065fe10b3bd0cb875c`, with an empty check rollup.
 
+Latest observed PR state after per-tool model-weight manifest evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `84fe8b030d2fc262336647621b8536c16a15abe6`, with an empty check rollup.
+
 ## Result
 
 - Added server-only contract: `server/tool-registry/ai-graphics-tool-call-readiness.ts`.
@@ -163,6 +165,7 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
   - `ai-graphics:internal-beta-production-worker-gate-readiness`
   - `ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics`
 - Production worker gate readiness result: owner-approved evidence can validate 21 of 21 production worker job payload candidates and 12 of 12 capability scenarios through the shared production worker gates with 0 hard failed gate checks. This does not enqueue jobs, dispatch workers, call `routeProductionWorkerJob`, execute tools, run browser/canvas/WebGL, run GPU/model runtime, load model weights, process media, or unlock beta/production.
+- Per-tool model-weight manifest evidence hardening: the beta evidence bundle now rejects count-only manifest packets and requires exact accepted `validationResults` rows for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. The shared diagnostics fixture now models the five accepted private-manifest rows without logging private refs, and execution remains blocked.
 
 ## Runtime State
 
@@ -183,6 +186,7 @@ Latest observed PR state after model-weight manifest scaffold completion: [#862]
 - `modelWeightsLoaded=false`
 - `modelInferencePerformed=false`
 - `modelWeightManifestScaffoldPrepared=true`
+- `modelWeightManifestPerToolRowsRequired=true`
 - `gpuRuntimeProofResultValidatorPrepared=true`
 - `betaActivationGapReportPrepared=true`
 - `betaReadinessEvidenceEvaluationPrepared=true`

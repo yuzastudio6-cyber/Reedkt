@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const scriptName = 'ai-graphics:model-weight-manifest-review-packet:diagnostics'
@@ -20,6 +22,14 @@ const modelTemplateIds = [
   'rembg_model',
   'transparent_background_model',
 ]
+
+const modelTemplateIdByTool = {
+  sam2: 'sam2_checkpoint',
+  birefnet: 'birefnet_model',
+  real_esrgan: 'real_esrgan_model',
+  rembg: 'rembg_model',
+  transparent_background: 'transparent_background_model',
+}
 
 const requiredManifestFields = [
   'manifestId',
@@ -69,6 +79,7 @@ function git(args) {
 
 const requiredFiles = [
   'server/tool-registry/ai-graphics-model-weight-manifest-readiness.ts',
+  'server/cli/ai-graphics-model-weight-manifest-review.ts',
   'server/tool-registry/index.ts',
   'docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.md',
   'docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json',
@@ -87,9 +98,13 @@ const gpuGate = json('docs/tool-intelligence/ai-graphics/gpu-model-runtime-readi
 const worker = json('docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.json')
 const betaGate = json('docs/tool-intelligence/ai-graphics/beta-readiness-gate.json')
 const source = read('server/tool-registry/ai-graphics-model-weight-manifest-readiness.ts')
+const cliSource = read('server/cli/ai-graphics-model-weight-manifest-review.ts')
 const index = read('server/tool-registry/index.ts')
 const markdown = read('docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.md')
 
+if (pkg.scripts?.['ai-graphics:model-weight-manifest-review:validate'] !== 'tsx server/cli/ai-graphics-model-weight-manifest-review.ts') {
+  fail('missing_package_script:ai-graphics:model-weight-manifest-review:validate')
+}
 if (pkg.scripts?.[scriptName] !== scriptCommand) fail(`missing_package_script:${scriptName}`)
 if (!index.includes("export * from './ai-graphics-model-weight-manifest-readiness'")) {
   fail('server_registry_index_does_not_export_model_weight_manifest_readiness')
@@ -97,6 +112,12 @@ if (!index.includes("export * from './ai-graphics-model-weight-manifest-readines
 
 if (packet.decision !== 'ai_graphics_model_weight_manifest_review_packet_prepared_with_no_private_records') {
   fail(`unexpected_packet_decision:${packet.decision}`)
+}
+if (packet.contractSurface?.localPrivateManifestValidator !== 'server/cli/ai-graphics-model-weight-manifest-review.ts') {
+  fail('packet_missing_local_private_manifest_validator')
+}
+if (packet.contractSurface?.localPrivateManifestValidatorScript !== 'ai-graphics:model-weight-manifest-review:validate') {
+  fail('packet_missing_local_private_manifest_validator_script')
 }
 if (readiness.decision !== 'ai_graphics_model_weight_manifest_readiness_contract_prepared_with_review_blocks') {
   fail(`unexpected_readiness_decision:${readiness.decision}`)
@@ -120,6 +141,7 @@ for (const [key, expected] of Object.entries({
   reviewAcceptedManifestRecords: 0,
   nativeGpuProofInputEligibleRecords: 0,
   privateArtifactRefsLogged: 0,
+  localPrivateManifestValidatorPrepared: 1,
   betaReadyModelWeightTools: 0,
 })) {
   if (packet.counts?.[key] !== expected) fail(`unexpected_count:${key}:${packet.counts?.[key]}`)
@@ -178,6 +200,7 @@ for (const key of [
   'all5ModelWeightToolsCovered',
   'all5TemplateTypesCovered',
   'manifestSchemaValidationReady',
+  'localPrivateManifestValidatorPrepared',
   'privateArtifactRefsNotLogged',
   'publicOrSignedArtifactRefsRejected',
   'checksumSha256Required',
@@ -189,6 +212,98 @@ for (const key of [
   'agentCanSelectForPlanning',
 ]) {
   if (packet.booleans?.[key] !== true) fail(`required_true_boolean_not_true:${key}`)
+}
+
+for (const token of [
+  'buildAiGraphicsModelWeightManifestReviewPacket',
+  'localPrivateManifestFilesRead',
+  'privateArtifactRefsLogged: 0',
+  '--manifest-dir',
+  '--manifest-file',
+  '--manifest',
+]) {
+  if (!cliSource.includes(token)) fail(`cli_source_missing:${token}`)
+}
+
+function writeManifestFixtures(directory, override = {}) {
+  for (const [toolId, templateId] of Object.entries(modelTemplateIdByTool)) {
+    const manifest = {
+      manifestId: `${toolId}_private_manifest_review_v1`,
+      toolId,
+      templateId,
+      privateArtifactRef: `private://reeditpro/ai-graphics/model-weights/${toolId}/model_tree_manifest.json`,
+      checksumSha256: 'a'.repeat(64),
+      sourceLicenseRef: `private://reeditpro/license-evidence/${toolId}.json`,
+      modelCardRef: `private://reeditpro/model-card/${toolId}.json`,
+      commercialUseReviewed: true,
+      redistributionReviewed: true,
+      qualityReviewed: true,
+      securityReviewed: true,
+      provenanceReviewed: true,
+      approvedForInternalBeta: true,
+      ...(override[toolId] || {}),
+    }
+    fs.writeFileSync(path.join(directory, `${toolId}.json`), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+  }
+}
+
+function runValidator(directory) {
+  return execFileSync('npm', [
+    'run',
+    '--silent',
+    'ai-graphics:model-weight-manifest-review:validate',
+    '--',
+    '--manifest-dir',
+    directory,
+  ], {
+    encoding: 'utf8',
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  })
+}
+
+const validFixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-model-manifest-valid-'))
+try {
+  writeManifestFixtures(validFixtureDir)
+  const output = runValidator(validFixtureDir)
+  const parsed = JSON.parse(output)
+  if (parsed.manifestRecordsProvided !== 5) fail('fixture_valid_manifest_records_provided_not_5')
+  if (parsed.schemaValidManifestRecords !== 5) fail('fixture_valid_schema_records_not_5')
+  if (parsed.reviewAcceptedManifestRecords !== 5) fail('fixture_valid_review_records_not_5')
+  if (parsed.nativeGpuProofInputEligibleRecords !== 5) fail('fixture_valid_gpu_input_records_not_5')
+  if (parsed.privateArtifactRefsLogged !== 0) fail('fixture_valid_private_refs_logged_not_zero')
+  if (output.includes('private://reeditpro/ai-graphics/model-weights/')) fail('fixture_valid_private_ref_leaked')
+} catch (error) {
+  fail(`fixture_valid_cli_failed:${error.message}`)
+} finally {
+  fs.rmSync(validFixtureDir, { recursive: true, force: true })
+}
+
+const invalidFixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-model-manifest-invalid-'))
+try {
+  writeManifestFixtures(invalidFixtureDir, {
+    sam2: {
+      privateArtifactRef: 'https://signed.example.invalid/sam2/model_tree_manifest.json?X-Goog-Signature=abc',
+    },
+  })
+  runValidator(invalidFixtureDir)
+  fail('fixture_invalid_cli_unexpected_success')
+} catch (error) {
+  const output = String(error.stdout || '')
+  if (!output) {
+    fail(`fixture_invalid_cli_missing_output:${error.message}`)
+  } else {
+    const parsed = JSON.parse(output)
+    const sam2 = parsed.validationResults?.find((entry) => entry.toolId === 'sam2')
+    if (sam2?.privateArtifactRefStatus !== 'invalid_public_or_signed_ref') {
+      fail(`fixture_invalid_ref_status_unexpected:${sam2?.privateArtifactRefStatus}`)
+    }
+    if (!sam2?.errors?.some((message) => /private storage reference/.test(message))) {
+      fail('fixture_invalid_ref_error_missing')
+    }
+    if (output.includes('https://signed.example.invalid')) fail('fixture_invalid_public_url_leaked')
+  }
+} finally {
+  fs.rmSync(invalidFixtureDir, { recursive: true, force: true })
 }
 
 for (const key of [

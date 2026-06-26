@@ -98,8 +98,9 @@ Latest observed PR state after model-weight manifest review packet completion: [
 - Added server-only model-weight manifest review packet:
   - `docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.md`
   - `docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json`
+  - `ai-graphics:model-weight-manifest-review:validate`
   - `ai-graphics:model-weight-manifest-review-packet:diagnostics`
-- Manifest review packet result: all five private-manifest-required tools are covered with exact template IDs and required review fields. Public docs still contain 0 private manifest records, 0 schema-valid records, 0 review-accepted records, 0 native GPU proof input eligible records, 0 logged private artifact refs, and 0 beta-ready model-weight tools.
+- Manifest review packet result: all five private-manifest-required tools are covered with exact template IDs and required review fields. A local/private validator can read manifest files from `.local-artifacts` paths and emits only redacted `privateArtifactRefStatus` values. Public docs still contain 0 private manifest records, 0 schema-valid records, 0 review-accepted records, 0 native GPU proof input eligible records, 0 logged private artifact refs, and 0 beta-ready model-weight tools.
 
 ## Runtime State
 

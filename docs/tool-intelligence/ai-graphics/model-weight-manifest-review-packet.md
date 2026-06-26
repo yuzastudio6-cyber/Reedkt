@@ -54,6 +54,20 @@ The review validator requires a 64-character SHA-256 digest, exact `toolId` and 
 - Private artifact refs logged: 0.
 - Beta-ready model-weight tools: 0.
 
+## Local Private Manifest Validation Command
+
+Use this command only with local/private manifest files. Do not commit the files
+or paste private refs into public docs:
+
+```sh
+npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests
+```
+
+The command reads local JSON manifests and emits a redacted review packet. It
+reports only `privateArtifactRefStatus`, never the raw `privateArtifactRef`.
+It exits non-zero when supplied manifests are incomplete, duplicated, mismatched,
+or not fully owner-reviewed.
+
 ## Runtime Boundary
 
 Reviewed private manifests are only inputs to later native GPU proof. They do not approve model downloads, model loads, inference, Tool Routes, Workers, public artifacts, signed URLs, internal beta, external beta, or production.

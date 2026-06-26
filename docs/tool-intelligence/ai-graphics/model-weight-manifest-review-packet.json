@@ -21,6 +21,8 @@
   "contractSurface": {
     "serverModule": "server/tool-registry/ai-graphics-model-weight-manifest-readiness.ts",
     "serverExport": "server/tool-registry/index.ts",
+    "localPrivateManifestValidator": "server/cli/ai-graphics-model-weight-manifest-review.ts",
+    "localPrivateManifestValidatorScript": "ai-graphics:model-weight-manifest-review:validate",
     "diagnostic": "scripts/validation/ai-graphics-model-weight-manifest-review-packet-diagnostics.mjs",
     "packageScript": "ai-graphics:model-weight-manifest-review-packet:diagnostics"
   },
@@ -33,6 +35,7 @@
     "reviewAcceptedManifestRecords": 0,
     "nativeGpuProofInputEligibleRecords": 0,
     "privateArtifactRefsLogged": 0,
+    "localPrivateManifestValidatorPrepared": 1,
     "betaReadyModelWeightTools": 0
   },
   "modelWeightManifestRequiredTools": [
@@ -158,6 +161,7 @@
     "all5ModelWeightToolsCovered": true,
     "all5TemplateTypesCovered": true,
     "manifestSchemaValidationReady": true,
+    "localPrivateManifestValidatorPrepared": true,
     "privateArtifactRefsNotLogged": true,
     "publicOrSignedArtifactRefsRejected": true,
     "checksumSha256Required": true,

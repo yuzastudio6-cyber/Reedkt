@@ -1,11 +1,15 @@
 import assert from 'node:assert/strict'
 import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
+import { PRODUCTION_TOOL_IDS } from '../tool-registry/production-tool-types'
 import { createToolCostMeteringService } from '../tool-cost-metering/tool-cost-metering-service'
 import {
+  assertToolCostOwnerCoverageComplete,
+  buildToolCostOwnerCoverageSummary,
   centsToCredits,
   emitToolCostEvent,
   estimateToolCost,
+  getToolCostOwnerCoverage,
   resetMockToolCostStore,
   roundBillableMs,
   toolCostRateCard,
@@ -257,6 +261,27 @@ assert.throws(() => backendRequiredService.emitToolCostEvent({
 
 assert.ok(toolCostRateCard.version.startsWith('tool-metering-v1-2026-06-26'), 'Rate card version should be stable')
 
+const ownerCoverage = assertToolCostOwnerCoverageComplete()
+const ownerCoverageSummary = buildToolCostOwnerCoverageSummary(ownerCoverage)
+assert.equal(ownerCoverage.length, PRODUCTION_TOOL_IDS.length, 'Every production registry tool should have metering owner coverage')
+assert.equal(ownerCoverageSummary.productionToolCount, PRODUCTION_TOOL_IDS.length, 'Coverage summary should track the production registry count')
+assert.equal(ownerCoverageSummary.coveredToolCount, PRODUCTION_TOOL_IDS.length, 'Coverage summary should cover every production tool')
+assert.equal(ownerCoverageSummary.missingToolIds.length, 0, 'Coverage summary should not miss registered tools')
+assert.equal(ownerCoverageSummary.duplicateToolIds.length, 0, 'Coverage summary should not duplicate tool records')
+assert.equal(ownerCoverageSummary.productReadyLocalOssCount, 0, 'Metering coverage must not claim product-ready local OSS tools')
+assert.equal(ownerCoverageSummary.serviceFeeIncluded, false, 'Owner coverage must preserve service-fee exclusion')
+assert.equal(ownerCoverageSummary.productionBillingPersistence, 'backend_required', 'Owner coverage must not imply real production billing persistence')
+assert.equal(ownerCoverage.every((record) => record.requiresApprovedPlanSnapshot), true, 'Every tool case should require an approved plan snapshot')
+assert.equal(ownerCoverage.every((record) => record.requiresCreditEstimate), true, 'Every tool case should require a credit estimate')
+assert.equal(ownerCoverage.every((record) => record.requiresCreditReservation), true, 'Every tool case should require a credit reservation')
+assert.equal(ownerCoverage.every((record) => record.requiresIdempotentEvent), true, 'Every tool case should require idempotent cost events')
+assert.equal(ownerCoverage.every((record) => record.productReadyLocalOss === false), true, 'No tool case should become product-ready from metering coverage')
+assert.equal(getToolCostOwnerCoverage('remotion').usageCategory, 'rendering', 'Remotion should map to rendering metering')
+assert.equal(getToolCostOwnerCoverage('ffmpeg').usageCategory, 'export', 'FFmpeg should map to export metering')
+assert.equal(getToolCostOwnerCoverage('faster_whisper').usageCategory, 'transcription', 'Whisper-class tools should map to transcription metering')
+assert.equal(getToolCostOwnerCoverage('real_esrgan').computeLevel, 'premium', 'GPU AI tools should default to premium metering')
+assert.equal(getToolCostOwnerCoverage('remotion').providerType, 'deterministic_renderer', 'Render worker tools should use deterministic renderer metering')
+
 console.log(JSON.stringify({
   ok: true,
   rateCardVersion: toolCostRateCard.version,
@@ -274,7 +299,15 @@ console.log(JSON.stringify({
     'secret_rejection',
     'summary_grouping',
     'backend_persistence_required_blocker',
+    'production_tool_owner_coverage',
+    'owner_case_requirements',
   ],
+  productionToolOwnerCoverage: {
+    productionToolCount: ownerCoverageSummary.productionToolCount,
+    coveredToolCount: ownerCoverageSummary.coveredToolCount,
+    productReadyLocalOssCount: ownerCoverageSummary.productReadyLocalOssCount,
+    blockedOrReviewToolCount: ownerCoverageSummary.blockedOrReviewToolIds.length,
+  },
   exampleEstimate: {
     toolId: providerEstimate.toolId,
     lowCredits: providerEstimate.lowCredits,

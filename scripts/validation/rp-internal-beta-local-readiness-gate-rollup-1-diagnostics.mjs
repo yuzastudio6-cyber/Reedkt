@@ -143,6 +143,23 @@ for (const file of remotionPrivatePreviewExportConfirmedRunFiles) {
   allowedChangedFiles.add(file)
 }
 
+const qaCleanupObservabilityLocalRuntimeFiles = [
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/runtime-contract.md',
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/qa-cleanup-observability-local-runtime-record.json',
+  'docs/activation-phase-rp-internal-beta-qa-cleanup-observability-local-runtime-1-results.md',
+  'server/services/internal-beta-qa-cleanup-observability-local-runtime.ts',
+  'server/smoke/internal-beta-qa-cleanup-observability-local-runtime-smoke.ts',
+  'scripts/validation/rp-internal-beta-qa-cleanup-observability-local-runtime-1-diagnostics.mjs',
+]
+
+for (const file of qaCleanupObservabilityLocalRuntimeFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates',

@@ -47,6 +47,24 @@ for (const file of remotionPrivatePreviewExportConfirmedRunFiles) {
   allowedChangedFiles.add(file)
 }
 
+const qaCleanupObservabilityLocalRuntimeFiles = [
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/runtime-contract.md',
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-qa-cleanup-observability-local-runtime-1/qa-cleanup-observability-local-runtime-record.json',
+  'docs/activation-phase-rp-internal-beta-qa-cleanup-observability-local-runtime-1-results.md',
+  'docs/internal-beta/rp-internal-beta-local-readiness-gate-rollup-1/readiness-matrix.md',
+  'server/services/internal-beta-qa-cleanup-observability-local-runtime.ts',
+  'server/smoke/internal-beta-qa-cleanup-observability-local-runtime-smoke.ts',
+  'scripts/validation/rp-internal-beta-qa-cleanup-observability-local-runtime-1-diagnostics.mjs',
+]
+
+for (const file of qaCleanupObservabilityLocalRuntimeFiles) {
+  allowedChangedFiles.add(file)
+}
+
 const requiredText = [
   packet,
   'completed_local_remotion_private_preview_export_runtime_no_render_execution',

@@ -1,0 +1,79 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1",
+  "decision": "approved_clean_staging_branch_replacement_path_for_source_aligned_migration_chain",
+  "execution": "completed_docs_only_source_derived_owner_decision_no_remote_execution",
+  "integrationHead": "938f3499e0b559c02a9e3d50792e5a000da9a6a3",
+  "sourceDependencies": {
+    "pr1061": "supabase_clean_staging_branch_migration_history_reconciliation_1",
+    "pr1055": "supabase_clean_staging_branch_migration_chain_apply_1",
+    "pr1048": "supabase_clean_staging_branch_current_target_guarded_validation_1",
+    "pr1041": "supabase_clean_staging_branch_db_url_secret_handoff_1",
+    "pr1032": "supabase_clean_staging_target_owner_approval_1",
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "currentCleanBranch": {
+    "parentProjectName": "Reeditpro",
+    "parentProjectRef": "wmyyttnynmteqgcdishd",
+    "branchName": "reeditpro-internal-staging-clean",
+    "branchRef": "fnjiylwirntrqdcwpbho",
+    "status": "blocked_unmapped_remote_only_migration_20260626162800"
+  },
+  "ownerDecision": {
+    "sourceDerivedOwnerRule": "repo_and_live_readonly_lane_evidence_can_record_conservative_decision_without_waiting_for_separate_chat_owner_response",
+    "currentBranchMigrationRepair": "not_approved",
+    "currentBranchMigrationApply": "not_approved",
+    "currentBranchDbPull": "not_approved",
+    "futureCleanBranchReplacementPath": "approved_for_later_explicitly_gated_execution_packet",
+    "requiredFutureSteps": [
+      "create_or_select_clean_non_production_supabase_branch",
+      "rotate_or_replace_REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+      "rerun_current_target_validation",
+      "retry_migration_chain_apply_only_after_source_aligned_history"
+    ]
+  },
+  "migrationHistoryEvidence": {
+    "mappedRemoteOnlyMigrationIds": [
+      {
+        "remoteOnlyMigrationId": "20260610235210",
+        "mappingStatus": "source_mapped_to_plugin_generated_activation_registry_equivalent",
+        "committedMigrationId": "202606050001"
+      }
+    ],
+    "unmappedRemoteOnlyMigrationIds": [
+      "20260626162800"
+    ]
+  },
+  "readiness": {
+    "workerRuntimeTransactionalContract2": "ready_for_clean_staging_branch_replacement_execution_plan",
+    "workerRuntimeTrackaPrivateE2eExecutionGate2r": "blocked_pending_replaced_clean_staging_branch_validation_and_migration_chain_apply",
+    "trackaPrivateE2eRevalidation2": "blocked_pending_worker_transactional_contract",
+    "internalBetaReadinessRollup": "blocked_pending_clean_staging_branch_replacement_and_migration_chain_apply",
+    "externalProductBeta": "blocked_pending_internal_beta_evidence_security_privacy_support_cost_and_deployment_gates"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": false,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "remoteSupabaseCommand": false,
+    "remoteSupabaseMutation": false,
+    "sqlExecution": false,
+    "sqlMutation": false,
+    "migrationApply": false,
+    "migrationHistoryManualEdit": false,
+    "supabaseDbPull": false,
+    "branchResetOrRecreate": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "nextMilestone": "SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

@@ -6,8 +6,8 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | --- | --- | --- |
 | Supabase target owner decision | `completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning` | Carry forward only |
 | Supabase read-only target validation | `completed_guarded_supabase_target_rls_storage_readonly_validation` | Carry forward only |
-| Staging migration path | `blocked_clean_branch_remote_only_migration_versions_require_source_mapping` | source-derived owner decision for unmapped `20260626162800` before any apply retry |
-| Worker RPC 4R | `blocked_pending_clean_staging_migration_history_source_mapping_or_repair_decision` | source-aligned clean branch migration history, then apply/currentness and RPC readback |
+| Staging migration path | `approved_clean_staging_branch_replacement_path_for_source_aligned_migration_chain` | explicitly gated clean branch replacement/recreation before migration-chain apply retry |
+| Worker RPC 4R | `blocked_pending_clean_staging_branch_replacement_and_migration_chain_apply` | replaced clean branch, source-aligned migration history, apply/currentness, and RPC readback |
 | Service-role route runtime | `blocked_pending_worker_transactional_contract` | post-RPC runtime validation |
 | Approved snapshot persistence | `blocked_pending_service_role_runtime_validation` | guarded Supabase persistence evidence |
 | Credit reservation ledger | `blocked_pending_service_role_runtime_validation` | guarded internal ledger mutation evidence |
@@ -23,7 +23,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1`
+`SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1`
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 
@@ -42,3 +42,15 @@ WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_clean_stagin
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1`.
+
+## SUPABASE Clean Staging Branch Migration History Source-Derived Owner Decision 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1` records decision `approved_clean_staging_branch_replacement_path_for_source_aligned_migration_chain` and execution `completed_docs_only_source_derived_owner_decision_no_remote_execution`.
+
+Current branch `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho` remains blocked by unmapped remote-only migration `20260626162800`. The decision rejects current-branch migration repair/apply/db-pull/direct-SQL paths and approves only a future explicitly gated clean branch replacement/recreation execution packet.
+
+Remote Supabase command class: `none_in_this_phase`. SQL execution: `none`. SQL mutation: `none`. Migration deployed: `no`. Migration history manual edit: `no`. Branch reset or recreation: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1`.

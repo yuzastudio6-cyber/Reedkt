@@ -315,7 +315,7 @@ WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_clean_stagin
 
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1`.
+Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1`.
 
 ### Supabase Clean Staging Branch Migration History Reconciliation
 
@@ -324,6 +324,14 @@ Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOU
 The reconciliation ran guarded read-only migration history readback and read-only catalog SQL only. It did not run migration dry-run/apply, SQL mutation, migration history manual edit, Supabase db pull, branch reset/recreation, storage object creation/read, service-role route execution, worker execution, beta unlock, production unlock, package-lock mutation, or generated artifact commit.
 
 Internal beta remains `blocked_pending_clean_staging_migration_history_source_mapping_or_repair_decision`.
+
+### Supabase Clean Staging Branch Source-Derived Owner Decision
+
+`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1` records `approved_clean_staging_branch_replacement_path_for_source_aligned_migration_chain`.
+
+The current clean branch remains blocked by unmapped remote-only migration `20260626162800`; migration repair, db pull, migration apply, and direct SQL mutation on that branch are not approved. The approved future path is a separately gated clean branch replacement/recreation execution packet, then secret rotation/replacement, readback validation, and migration-chain apply retry only after source-aligned history is proven.
+
+Internal beta remains `blocked_pending_clean_staging_branch_replacement_and_migration_chain_apply`.
 
 ## Internal Beta Local Readiness Gate Rollup
 

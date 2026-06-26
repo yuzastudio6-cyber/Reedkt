@@ -52,12 +52,15 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-controlled-activation-qa-review/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-controlled-activation-execution/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-approval/',
   `${reportDir}/`,
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-closeout/',
 ]
 const allowedChangedFiles = new Set([
+  'scripts/validation/trackb-media-oss-product-beta-runtime-controlled-activation-qa-review-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-controlled-activation-closeout.md',
   'scripts/validation/trackb-media-oss-product-beta-runtime-controlled-activation-execution-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-controlled-activation-qa-review.md',
   'scripts/validation/trackb-media-oss-product-beta-runtime-approval-diagnostics.mjs',

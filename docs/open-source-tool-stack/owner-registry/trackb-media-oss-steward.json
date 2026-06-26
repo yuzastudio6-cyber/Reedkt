@@ -245,7 +245,7 @@
     "trackbProductBetaRuntimeControlledActivationExecutionDecision": "trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
     "trackbProductBetaRuntimeControlledActivationExecutionSourceSha": "1dee0a124f6797cb56bffe1a88bd8410c40ef0fc"
   },
-  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT",
   "supabaseClassification": {
     "updateRequired": "no write",
     "environmentTouched": "none",
@@ -929,6 +929,32 @@
     "externalBetaApproved": false,
     "productionApproved": false,
     "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW",
+    "supabaseClassification": "no write / environment none / SQL none / migration no"
+  },
+  "productBetaRuntimeControlledActivationQaReview": {
+    "decision": "trackb_media_oss_product_beta_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout",
+    "previousDecision": "trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
+    "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-controlled-activation-qa-review",
+    "sourcePr": 908,
+    "sourceSha": "bbb59e54fbf2c9a74e1c02a425bd421e47b3f531",
+    "sourceHead": "1ee7c77d88662193efdbada4c3fd2b0529b7b70b",
+    "coveredToolCount": 16,
+    "boundedAcceptedProvenCount": 16,
+    "blockedNotInstalledProvenCount": 0,
+    "productReadyCount": 0,
+    "controlledActivationQaAccepted": true,
+    "controlledActivationExecutionAccepted": true,
+    "deterministicRankingAccepted": true,
+    "useCaseMatrixAccepted": true,
+    "readyForControlledActivationCloseout": true,
+    "liveProductCallsApproved": false,
+    "directRouteDispatchApproved": false,
+    "workerDispatchToRealToolsApproved": false,
+    "realToolExecutionApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false,
+    "productReady": false,
+    "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT",
     "supabaseClassification": "no write / environment none / SQL none / migration no"
   }
 }

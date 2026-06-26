@@ -513,3 +513,14 @@ TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION:
 - Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW`.
 - Supabase classification: no write / environment none / SQL none / migration no.
 <!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW:
+
+- Decision: `trackb_media_oss_product_beta_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout`.
+- QA accepts PR #908 controlled activation execution only as source-of-truth metadata for fail-closed route/runtime controls, per-tool worker dispatch guards, approved snapshot/edit-plan/credit gates, service-role/no-write checks, sanitized monitoring, rollback controls, limited exposure controls, and deterministic tool-use ranking.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, direct route dispatch, worker dispatch to real tools, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW_STATUS:end -->

@@ -3,7 +3,7 @@ export {
   assertSoundCpuSyntheticRouteAccepted,
   contractForJobType,
   resolveSoundCpuSyntheticRoute,
-} from './synthetic-route-decision'
+} from './synthetic-route-decision.ts'
 
 export {
   SOUND_CPU_SYNTHETIC_IMAGES,
@@ -24,4 +24,4 @@ export {
   type SoundCpuSyntheticStaticRuntimeFlag,
   type SoundCpuSyntheticStaticRuntimeFlags,
   type SoundCpuSyntheticWorker,
-} from './synthetic-route-types'
+} from './synthetic-route-types.ts'

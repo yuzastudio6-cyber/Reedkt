@@ -6,7 +6,7 @@ import {
   type SoundCpuSyntheticRouteDecision,
   type SoundCpuSyntheticRoutePayload,
   type SoundCpuSyntheticRouteResult,
-} from './synthetic-route-types'
+} from './synthetic-route-types.ts'
 
 export const SOUND_CPU_SYNTHETIC_ROUTE_CONTRACTS: readonly SoundCpuSyntheticRouteContract[] = [
   {

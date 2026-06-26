@@ -237,6 +237,8 @@ for (const file of changedFiles()) {
     file === 'docs/implementation-prompts/prompt-reeditpro-delivery-share-policy-readiness-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-external-beta-production-go-no-go-review.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-runtime-owner-approval-plan.md' ||
+    file === 'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-runtime-owner-approval-execution.md' ||
+    file === 'scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-external-beta-production-go-no-go-review-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-delivery-share-policy-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs' ||
@@ -255,6 +257,7 @@ for (const file of changedFiles()) {
     file.startsWith(`${observabilityDir}/`) ||
     file.startsWith(`${modelSecurityCostDir}/`) ||
     file.startsWith(`${privateStorageDir}/`) ||
+    file.startsWith('docs/reeditpro-limited-external-beta-runtime-owner-approval-plan/') ||
     file.startsWith('docs/reeditpro-external-beta-production-go-no-go-review/') ||
     file.startsWith('docs/reeditpro-delivery-share-policy-readiness-plan/') ||
     file.startsWith(`${reportDir}/`) ||

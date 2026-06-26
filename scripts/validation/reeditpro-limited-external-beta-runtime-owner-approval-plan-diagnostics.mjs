@@ -7,32 +7,28 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
-const reportDir = 'docs/reeditpro-delivery-share-policy-readiness-plan'
-const previousDir = 'docs/reeditpro-worker-generation-export-e2e-readiness-plan'
+const reportDir = 'docs/reeditpro-limited-external-beta-runtime-owner-approval-plan'
+const previousDir = 'docs/reeditpro-external-beta-production-go-no-go-review'
 const decision =
-  'reeditpro_delivery_share_policy_readiness_plan_passed_ready_for_external_beta_production_go_no_go_review'
+  'reeditpro_limited_external_beta_runtime_owner_approval_plan_passed_ready_for_owner_approval_execution'
 const previousDecision =
-  'reeditpro_worker_generation_export_e2e_readiness_plan_passed_ready_for_delivery_share_policy_readiness_plan'
-const nextPrompt = 'REEDITPRO_EXTERNAL_BETA_PRODUCTION_GO_NO_GO_REVIEW'
+  'reeditpro_external_beta_production_go_no_go_review_blocked_pending_runtime_owner_approval'
+const nextPrompt = 'REEDITPRO_LIMITED_EXTERNAL_BETA_RUNTIME_OWNER_APPROVAL_EXECUTION'
 const requiredReports = [
   'source-of-truth-audit.json',
   'source-of-truth-audit.md',
-  'delivery-share-policy.json',
-  'delivery-share-policy.md',
-  'signed-url-access-policy.json',
-  'signed-url-access-policy.md',
-  'public-artifact-boundary.json',
-  'public-artifact-boundary.md',
-  'share-revocation-retention-policy.json',
-  'share-revocation-retention-policy.md',
-  'download-export-eligibility.json',
-  'download-export-eligibility.md',
-  'support-privacy-redaction.json',
-  'support-privacy-redaction.md',
-  'downstream-go-no-go-prerequisites.json',
-  'downstream-go-no-go-prerequisites.md',
-  'validation-command-plan.json',
-  'validation-command-plan.md',
+  'owner-approval-matrix.json',
+  'owner-approval-matrix.md',
+  'limited-beta-scope-policy.json',
+  'limited-beta-scope-policy.md',
+  'runtime-evidence-requirements.json',
+  'runtime-evidence-requirements.md',
+  'privacy-storage-billing-guardrails.json',
+  'privacy-storage-billing-guardrails.md',
+  'support-incident-rollback-guardrails.json',
+  'support-incident-rollback-guardrails.md',
+  'downstream-activation-prerequisites.json',
+  'downstream-activation-prerequisites.md',
   'runtime-boundary.json',
   'runtime-boundary.md',
   'decision.json',
@@ -105,11 +101,11 @@ function changedFiles() {
 }
 
 function requireCommon(label, report) {
-  if (report.ownerId !== 'REEDITPRO_DELIVERY_SHARE_POLICY_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
+  if (report.ownerId !== 'REEDITPRO_LIMITED_EXTERNAL_BETA_OWNER_APPROVAL_STEWARD') fail(`${label}_owner_drift:${report.ownerId}`)
   if (report.decision !== decision) fail(`${label}_decision_drift:${report.decision}`)
   if (report.previousDecision !== previousDecision) fail(`${label}_previous_decision_drift:${report.previousDecision}`)
   if (report.nextPrompt !== nextPrompt) fail(`${label}_next_prompt_drift:${report.nextPrompt}`)
-  if (report.readyForExternalBetaProductionGoNoGoReview !== true) fail(`${label}_not_ready_for_go_no_go`)
+  if (report.readyForOwnerApprovalExecution !== true) fail(`${label}_not_ready_for_owner_approval_execution`)
   if (report.readyForExternalBeta !== false) fail(`${label}_external_beta_unblocked`)
   if (report.readyForProduction !== false) fail(`${label}_production_unblocked`)
   if (report.supabaseClassification !== 'no write / environment none / SQL none / migration no') {
@@ -119,18 +115,16 @@ function requireCommon(label, report) {
 
 for (const file of requiredReports) readText(`${reportDir}/${file}`)
 for (const file of requiredProductionDocs) readText(file)
-readText('docs/implementation-prompts/prompt-reeditpro-external-beta-production-go-no-go-review.md')
+readText('docs/implementation-prompts/prompt-reeditpro-limited-external-beta-runtime-owner-approval-execution.md')
 
 const reports = {
   source: readJson(`${reportDir}/source-of-truth-audit.json`),
-  delivery: readJson(`${reportDir}/delivery-share-policy.json`),
-  signedUrl: readJson(`${reportDir}/signed-url-access-policy.json`),
-  publicArtifact: readJson(`${reportDir}/public-artifact-boundary.json`),
-  revocation: readJson(`${reportDir}/share-revocation-retention-policy.json`),
-  download: readJson(`${reportDir}/download-export-eligibility.json`),
-  support: readJson(`${reportDir}/support-privacy-redaction.json`),
-  downstream: readJson(`${reportDir}/downstream-go-no-go-prerequisites.json`),
-  validation: readJson(`${reportDir}/validation-command-plan.json`),
+  owners: readJson(`${reportDir}/owner-approval-matrix.json`),
+  scope: readJson(`${reportDir}/limited-beta-scope-policy.json`),
+  runtimeEvidence: readJson(`${reportDir}/runtime-evidence-requirements.json`),
+  privacyBilling: readJson(`${reportDir}/privacy-storage-billing-guardrails.json`),
+  support: readJson(`${reportDir}/support-incident-rollback-guardrails.json`),
+  downstream: readJson(`${reportDir}/downstream-activation-prerequisites.json`),
   runtime: readJson(`${reportDir}/runtime-boundary.json`),
   decisionReport: readJson(`${reportDir}/decision.json`),
   readiness: readJson(`${reportDir}/readiness-report.json`),
@@ -140,45 +134,72 @@ for (const [label, report] of Object.entries(reports)) requireCommon(label, repo
 
 const previousReadiness = readJson(`${previousDir}/readiness-report.json`)
 if (previousReadiness.decision !== previousDecision) fail(`previous_decision_drift:${previousReadiness.decision}`)
-if (previousReadiness.readyForDeliverySharePolicyReadinessPlan !== true) fail('previous_not_ready_for_delivery_gate')
+if (previousReadiness.readyForLimitedExternalBetaRuntimeOwnerApprovalPlan !== true) fail('previous_not_ready_for_owner_plan')
+if (previousReadiness.readyForExternalBeta !== false) fail('previous_external_beta_unblocked')
+if (previousReadiness.readyForProduction !== false) fail('previous_production_unblocked')
 
-if (reports.delivery.deliveryPolicyDefined !== true) fail('delivery_policy_not_defined')
-if (reports.delivery.publicDeliveryEnabled !== false) fail('public_delivery_enabled')
-if (reports.delivery.signedUrlsCreated !== false) fail('delivery_signed_urls_created')
-if (!reports.delivery.allowedFutureDeliveryClasses?.includes('private signed-url preview/download after approved plan and completed export')) {
-  fail('missing_private_signed_url_delivery_class')
-}
-if (!reports.delivery.blockedDeliveryClasses?.includes('public artifact by default')) fail('missing_public_artifact_block')
-if (reports.signedUrl.signedUrlPolicyDefined !== true) fail('signed_url_policy_not_defined')
-for (const flag of ['requiresExpiration', 'requiresRevocation', 'requiresAuthContext', 'requiresAuditEvent']) {
-  if (reports.signedUrl[flag] !== true) fail(`signed_url_missing_${flag}`)
-}
-if (reports.signedUrl.signedUrlsCreated !== false) fail('signed_url_created')
-if (reports.publicArtifact.publicArtifactDefault !== 'blocked') fail('public_artifact_default_drift')
-if (reports.publicArtifact.publicArtifactsCreated !== false) fail('public_artifacts_created')
-if (reports.publicArtifact.publicBucketRequired !== false) fail('public_bucket_required')
-if (reports.publicArtifact.publicDeliveryRequiresSeparateApproval !== true) fail('public_delivery_not_separate_approval')
-if (reports.revocation.revocationPolicyDefined !== true) fail('revocation_policy_not_defined')
-if (reports.revocation.retentionPolicyDefined !== true) fail('retention_policy_not_defined')
-if (reports.revocation.deletionDependency !== 'private_storage_deletion_plan') fail('deletion_dependency_drift')
-if (reports.revocation.deletionJobRan !== false) fail('deletion_job_ran')
-if (reports.revocation.storageMutationRan !== false) fail('storage_mutation_ran')
-for (const flag of [
-  'exportEligibilityDefined',
-  'requiresApprovedPlan',
-  'requiresCompletedExport',
-  'requiresManifestReady',
-  'requiresCreditLedgerSettled',
-  'requiresOwnerOrAuthorizedShareRecipient',
+for (const owner of [
+  'release owner',
+  'runtime worker owner',
+  'incident owner',
+  'support owner',
+  'privacy storage owner',
+  'billing credit owner',
+  'security owner',
 ]) {
-  if (reports.download[flag] !== true) fail(`download_missing_${flag}`)
+  if (!reports.owners.requiredOwnerSlots?.includes(owner)) fail(`missing_owner_slot:${owner}`)
 }
-if (reports.download.downloadRouteImplemented !== false) fail('download_route_implemented')
-if (reports.support.redactionPolicyDefined !== true) fail('support_redaction_policy_not_defined')
-if (reports.support.supportAccessRequiresIncidentOrTicket !== true) fail('support_ticket_requirement_missing')
-if (reports.support.supportQueueMutationRan !== false) fail('support_queue_mutation_ran')
-if (!reports.downstream.downstreamGates?.includes('externalBetaProductionGoNoGoReview')) fail('downstream_missing_go_no_go')
-if (reports.validation.noInstallBoundary !== true) fail('validation_no_install_boundary_missing')
+if (reports.owners.approvalExecutionRequired !== true) fail('approval_execution_not_required')
+if (reports.owners.ownerNamesProvided !== false) fail('owner_names_should_not_be_provided_in_plan')
+if (reports.scope.requiresSmallCohort !== true) fail('scope_missing_small_cohort')
+if (reports.scope.requiresInviteOnlyAccess !== true) fail('scope_missing_invite_only')
+if (reports.scope.requiresKillSwitch !== true) fail('scope_missing_kill_switch')
+for (const blocked of [
+  'open external beta',
+  'paid production',
+  'broad real user media',
+  'public artifact delivery',
+  'production traffic',
+  'unbounded provider execution',
+]) {
+  if (!reports.scope.blockedScopes?.includes(blocked)) fail(`missing_blocked_scope:${blocked}`)
+}
+for (const evidence of [
+  'staging smoke command plan',
+  'worker dispatch authorization boundary',
+  'provider call authorization boundary',
+  'storage and signed URL dry-run evidence',
+  'credit ledger dry-run evidence',
+  'support escalation acceptance',
+  'rollback kill-switch verification',
+]) {
+  if (!reports.runtimeEvidence.requiredFutureEvidence?.includes(evidence)) fail(`missing_future_evidence:${evidence}`)
+}
+if (reports.runtimeEvidence.runtimeEvidenceCollectedInThisPhase !== false) fail('runtime_evidence_collected')
+for (const flag of [
+  'requiresPrivateStorageOwner',
+  'requiresSignedUrlPolicyAcceptance',
+  'requiresDeletionPathAcceptance',
+  'requiresCreditLedgerOwner',
+  'requiresRefundFailurePathAcceptance',
+]) {
+  if (reports.privacyBilling[flag] !== true) fail(`privacy_billing_missing_${flag}`)
+}
+if (reports.privacyBilling.supabaseWritesRan !== false) fail('supabase_writes_ran')
+if (reports.privacyBilling.billingMutationRan !== false) fail('billing_mutation_ran')
+for (const flag of [
+  'requiresSupportOwner',
+  'requiresIncidentOwner',
+  'requiresRollbackOwner',
+  'requiresEscalationPath',
+  'requiresKillSwitchRunbook',
+]) {
+  if (reports.support[flag] !== true) fail(`support_missing_${flag}`)
+}
+if (reports.support.incidentToolMutationRan !== false) fail('incident_tool_mutation_ran')
+if (!reports.downstream.downstreamGates?.includes('limitedExternalBetaRuntimeOwnerApprovalExecution')) {
+  fail('downstream_missing_owner_approval_execution')
+}
 for (const [scope, value] of Object.entries(reports.runtime.blockedScopes ?? {})) {
   if (value !== false) fail(`runtime_scope_not_false:${scope}`)
 }
@@ -200,8 +221,8 @@ for (const flag of [
 
 const packageJson = readJson('package.json')
 if (
-  packageJson.scripts?.['reeditpro:delivery-share-policy-readiness-plan:diagnostics'] !==
-  'node scripts/validation/reeditpro-delivery-share-policy-readiness-plan-diagnostics.mjs'
+  packageJson.scripts?.['reeditpro:limited-external-beta-runtime-owner-approval-plan:diagnostics'] !==
+  'node scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-plan-diagnostics.mjs'
 ) {
   fail('package_script_missing_or_drifted')
 }
@@ -217,6 +238,8 @@ const allText = [
 if (/40\+ tools proven end-to-end/i.test(allText)) fail('forbidden_40_plus_end_to_end_claim')
 if (/readyForExternalBeta[\\s"':]+true/.test(allText)) fail('external_beta_true_claim')
 if (/readyForProduction[\\s"':]+true/.test(allText)) fail('production_true_claim')
+if (/external beta (?:is )?(?:ready|approved|enabled|unlocked)/i.test(allText)) fail('forbidden_external_beta_ready_claim')
+if (/production (?:is )?(?:ready|approved|enabled|unlocked)/i.test(allText)) fail('forbidden_production_ready_claim')
 for (const file of protectedNoDiffFiles) {
   if (git(['diff', '--name-only', '--', file], true)) fail(`protected_file_mutated:${file}`)
   if (git(['diff', '--cached', '--name-only', '--', file], true)) fail(`protected_file_staged:${file}`)
@@ -227,8 +250,6 @@ for (const output of forbiddenOutputs) {
 for (const file of changedFiles()) {
   const allowed =
     file === 'package.json' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-external-beta-production-go-no-go-review.md' ||
-    file === 'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-runtime-owner-approval-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-runtime-owner-approval-execution.md' ||
     file === 'scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-external-beta-production-go-no-go-review-diagnostics.mjs' ||
@@ -244,8 +265,6 @@ for (const file of changedFiles()) {
     file === 'scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs' ||
-    file.startsWith('docs/reeditpro-limited-external-beta-runtime-owner-approval-plan/') ||
-    file.startsWith('docs/reeditpro-external-beta-production-go-no-go-review/') ||
     file.startsWith(`${reportDir}/`) ||
     requiredProductionDocs.includes(file)
   if (!allowed) fail(`unexpected_changed_file:${file}`)
@@ -264,7 +283,7 @@ console.log(
       decision,
       previousDecision,
       nextPrompt,
-      readyForExternalBetaProductionGoNoGoReview: true,
+      readyForOwnerApprovalExecution: true,
       readyForExternalBeta: false,
       readyForProduction: false,
     },

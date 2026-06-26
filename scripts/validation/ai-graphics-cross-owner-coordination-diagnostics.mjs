@@ -267,6 +267,8 @@ const allowedPackageAdditions = new Set([
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   '+    "ai-graphics:beta-tool-call-readiness": "tsx server/cli/ai-graphics-beta-tool-call-readiness.ts",',
   '+    "ai-graphics:beta-tool-call-readiness:diagnostics": "node scripts/validation/ai-graphics-beta-tool-call-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-owner-approval": "tsx server/cli/ai-graphics-internal-beta-owner-approval.ts",',
+  '+    "ai-graphics:internal-beta-owner-approval:diagnostics": "node scripts/validation/ai-graphics-internal-beta-owner-approval-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

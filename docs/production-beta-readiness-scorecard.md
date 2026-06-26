@@ -565,3 +565,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: server-only join between the canonical ranking/selection system and the beta evidence bundle for all 21 AI graphics tools and all 12 product-facing capabilities.
 - Result: default committed evidence keeps 0 of 21 tools beta-callable. A complete proof packet path can mark all 21 tools beta-callable for a future owner gate, but partial evidence does not create a callable subset.
 - Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Internal Beta Owner Approval
+
+- Decision: `ai_graphics_internal_beta_owner_approval_contract_prepared_with_fail_closed_defaults`.
+- Scope: server-only owner approval packet for the all-21 AI graphics beta evidence chain.
+- Result: default evidence is missing technical proof, technical evidence can reach `awaiting_owner_approval`, and explicit `AI_TOOLS_CREATIVE_GRAPHICS_OWNER` approval can produce `owner_approved_all21_beta_evidence_ready` with 21 of 21 tools beta-callable by evidence.
+- Runtime/beta/production: no runtime unlock; `agentCanExecuteToolsNow=false`, `toolExecutionApprovedNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.

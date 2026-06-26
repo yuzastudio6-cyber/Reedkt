@@ -774,7 +774,8 @@
     "trackb-media-oss:product-beta-runtime-product-route-enablement-plan:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-plan-diagnostics.mjs",
     "trackb-media-oss:product-beta-runtime-product-route-enablement-execution:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-execution-diagnostics.mjs",
     "trackb-media-oss:product-beta-runtime-product-route-enablement-qa-review:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-qa-review-diagnostics.mjs",
-    "trackb-media-oss:product-beta-runtime-product-route-enablement-closeout:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout-diagnostics.mjs"
+    "trackb-media-oss:product-beta-runtime-product-route-enablement-closeout:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout-diagnostics.mjs",
+    "trackb-media-oss:product-beta-runtime-product-ready-proof-rerun-plan:diagnostics": "node scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-plan-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

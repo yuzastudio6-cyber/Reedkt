@@ -187,6 +187,13 @@ const migrationHistoryReconciliationFiles = [
   'scripts/validation/supabase-migration-history-reconciliation-1-diagnostics.mjs',
 ]
 
+const stagingMigrationHistoryOwnerDecisionFiles = [
+  'docs/supabase-worker-runtime/supabase-staging-migration-history-owner-decision-1.md',
+  'docs/supabase-worker-runtime/supabase-staging-migration-history-owner-decision-1-record.json',
+  'docs/activation-phase-supabase-staging-migration-history-owner-decision-1-results.md',
+  'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
+]
+
 function fail(message) {
   console.error(message)
   process.exit(1)
@@ -254,6 +261,7 @@ const allowedFiles = new Set([
   ...externalStagingSqlGateFiles,
   ...externalSqlHistoryBlockerFiles,
   ...migrationHistoryReconciliationFiles,
+  ...stagingMigrationHistoryOwnerDecisionFiles,
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-diagnostics.mjs',
   'package.json',
 ])

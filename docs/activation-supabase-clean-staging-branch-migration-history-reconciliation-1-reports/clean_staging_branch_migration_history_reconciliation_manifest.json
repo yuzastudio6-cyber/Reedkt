@@ -1,0 +1,20 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1",
+  "runId": "2026-06-26T18-49-04-996Z-f804a970",
+  "outputDir": "/tmp/reeditpro-supabase-clean-staging-branch-migration-history-reconciliation-1/2026-06-26T18-49-04-996Z-f804a970",
+  "generatedAt": "2026-06-26T18:49:10.925Z",
+  "artifacts": [
+    {
+      "fileName": "clean_staging_branch_migration_history_reconciliation_report.json",
+      "path": "docs/activation-supabase-clean-staging-branch-migration-history-reconciliation-1-reports/clean_staging_branch_migration_history_reconciliation_report.json",
+      "bytes": 12087,
+      "sha256": "093391414f3d64cb4448e7b317d7d029ee692e2770c2359910f69d727e67d358"
+    },
+    {
+      "fileName": "clean_staging_branch_migration_history_reconciliation_manifest.json",
+      "path": "docs/activation-supabase-clean-staging-branch-migration-history-reconciliation-1-reports/clean_staging_branch_migration_history_reconciliation_manifest.json",
+      "bytes": 706,
+      "sha256": "815fe5663be9eb5985dc8f624862be87c1062beb890d79939e60ef66c6581064"
+    }
+  ]
+}

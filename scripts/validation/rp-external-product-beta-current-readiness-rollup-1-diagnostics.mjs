@@ -100,6 +100,29 @@ const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'package.json',
 ]
 
+const followOnSupabaseCleanStagingBranchMigrationHistoryReconciliation1Files = [
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-history-reconciliation-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-history-reconciliation-1-record.json',
+  'docs/activation-phase-supabase-clean-staging-branch-migration-history-reconciliation-1-results.md',
+  'docs/activation-supabase-clean-staging-branch-migration-history-reconciliation-1-reports/clean_staging_branch_migration_history_reconciliation_report.json',
+  'docs/activation-supabase-clean-staging-branch-migration-history-reconciliation-1-reports/clean_staging_branch_migration_history_reconciliation_manifest.json',
+  'docs/implementation-prompts/prompt-supabase-clean-staging-branch-migration-history-source-derived-owner-decision-1.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'docs/production-beta-blocker-inventory.md',
+  'implementation-status-and-next-phase.md',
+  'scripts/validation/supabase-clean-staging-branch-migration-history-reconciliation-1.mjs',
+  'scripts/validation/supabase-clean-staging-branch-migration-history-reconciliation-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-migration-chain-apply-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-current-target-guarded-validation-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-db-url-secret-handoff-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-branch-current-target-revalidation-1-diagnostics.mjs',
+  'scripts/validation/supabase-clean-staging-target-owner-approval-1-diagnostics.mjs',
+  'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
+]
+
 const requiredText = [
   packet,
   'blocked_external_product_beta_pending_explicit_staging_migration_path_approval_and_runtime_gate_closure',
@@ -219,6 +242,7 @@ const allowed = new Set([
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetGuardedValidation1Files,
   ...followOnSupabaseCleanStagingBranchMigrationChainApply1Files,
+  ...followOnSupabaseCleanStagingBranchMigrationHistoryReconciliation1Files,
 ])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)

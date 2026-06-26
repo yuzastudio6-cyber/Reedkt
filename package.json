@@ -159,6 +159,7 @@
     "worker-runtime-jobs:sound-cpu-dispatch-contract-signoff-evidence-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-dispatch-contract-signoff-evidence-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-dispatch-signoff-collection-closure-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-dispatch-signoff-collection-closure-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-dispatch-signoff-collection-closure-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-dispatch-signoff-collection-closure-owner-review-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-required-owner-evidence-collection-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-required-owner-evidence-collection-plan-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

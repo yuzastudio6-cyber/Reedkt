@@ -186,6 +186,7 @@
     "worker-runtime-jobs:sound-cpu-compliance-security-gap-closure:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-compliance-security-gap-closure-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-product-beta-readiness-gap-closure:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-product-beta-readiness-gap-closure-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-runtime-beta-blocker-resolution:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-runtime-beta-blocker-resolution-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-controlled-runtime-beta-preflight:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-controlled-runtime-beta-preflight-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

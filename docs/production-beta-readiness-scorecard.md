@@ -4,6 +4,17 @@ M17 scorecards classify readiness, worker security, tool security, model-weight 
 
 The default scorecard is blocked. Internal dry-run testing can be allowed only when E2E dry-run passed and security/cost docs exist. External beta, real user media beta, and paid production remain blocked.
 
+AI graphics beta evidence bundle decision
+`ai_graphics_beta_evidence_bundle_validator_prepared_with_fail_closed_defaults`
+confirms all 21 AI graphics tools are installed or represented for their
+intended ReeditPro surface and are mapped for planning/study metadata. The
+default evidence state keeps 0 of 21 beta-ready and 21 of 21 blocked. A full
+approved evidence bundle can make all 21 beta-eligible in the validator, but it
+does not itself execute tools, run Tool Routes, run Workers, run
+browser/canvas/WebGL, run GPU/model runtime, download/load model weights,
+process media, create signed URLs or public artifacts, unlock internal/external
+beta, or unlock production.
+
 Phase 35F SAM2 feature E2E evidence, when present, counts only toward internal
 SAM2 feature testing. It is not external beta, paid production, broad real
 media, provider, Revideo, FILM, slow-motion, Real-ESRGAN, public delivery, or

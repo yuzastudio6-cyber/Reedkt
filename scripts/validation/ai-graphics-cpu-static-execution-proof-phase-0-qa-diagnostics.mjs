@@ -294,9 +294,22 @@ const allowedDescendantScripts = new Set([
   'ai-graphics:tool-call-handoff:diagnostics',
   'ai-graphics:tool-call-plan-evaluator:diagnostics',
   'ai-graphics:beta-readiness-gate:diagnostics',
+  'ai-graphics:beta-readiness-gate:evaluate',
+  'ai-graphics:beta-activation-gap-report',
+  'ai-graphics:beta-activation-gap-report:diagnostics',
+  'ai-graphics:beta-evidence-bundle:validate',
+  'ai-graphics:beta-evidence-bundle:diagnostics',
   'ai-graphics:tool-route-readiness:diagnostics',
   'ai-graphics:worker-handoff-readiness:diagnostics',
   'ai-graphics:model-weight-manifest-readiness:diagnostics',
+  'ai-graphics:model-weight-manifest-review:validate',
+  'ai-graphics:model-weight-manifest-review-packet:diagnostics',
+  'ai-graphics:gpu-runtime-proof-command-plan',
+  'ai-graphics:gpu-runtime-proof-command-plan:diagnostics',
+  'ai-graphics:gpu-runtime-proof-result:validate',
+  'ai-graphics:gpu-runtime-proof-result:diagnostics',
+  'ai-graphics:model-weight-manifest-scaffold',
+  'ai-graphics:model-weight-manifest-scaffold:diagnostics',
 ])
 for (const scriptName of Object.keys(packageJson?.scripts ?? {})) {
   if (!basePackageJson.scripts?.[scriptName] && !allowedDescendantScripts.has(scriptName)) {

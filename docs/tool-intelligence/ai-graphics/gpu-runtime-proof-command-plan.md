@@ -24,6 +24,12 @@ With local private manifest records, use:
 npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests
 ```
 
+If the local manifest directory has not been created yet, scaffold the runtime mount layout first:
+
+```bash
+npm run --silent ai-graphics:model-weight-manifest-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-manifests
+```
+
 The CLI accepts private manifest JSON locally and emits only redacted readiness status. It must not log `privateArtifactRef`.
 
 ## Required Native Runtime Conditions
@@ -69,4 +75,4 @@ This packet does not install dependencies, mutate `package-lock.json`, run Docke
 
 ## Next Proof Step
 
-Provide reviewed private manifests locally, run the command-plan CLI to verify redacted readiness, then run the generated Docker commands only in an approved native NVIDIA L4 runtime proof lane.
+Scaffold local manifest templates, replace placeholders with reviewed private evidence, run the manifest validator, run the command-plan CLI to verify redacted readiness, then run the generated Docker commands only in an approved native NVIDIA L4 runtime proof lane.

@@ -71,6 +71,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up runtime manifest schema hardening updates `docker/prod/ai-graphics-gpu-runtime-readiness.py`, `docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.*`, and `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.*` so `--require-model-weight-manifests` validates manifest content instead of only file presence, while still blocking weight downloads, model loads, inference, workers, routes, public artifacts, beta, and production.
 - Follow-up model-weight manifest review packet adds `docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.md`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json`, `ai-graphics:model-weight-manifest-review:validate`, and `ai-graphics:model-weight-manifest-review-packet:diagnostics` so the five model-weight tools have machine-checkable private manifest input validation before later native GPU proof. The packet logs no private artifact refs and does not approve execution.
 - Follow-up GPU runtime proof command-plan bridge adds `server/tool-registry/ai-graphics-gpu-runtime-proof-command-plan.ts`, `server/cli/ai-graphics-gpu-runtime-proof-command-plan.ts`, `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.md`, `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json`, `ai-graphics:gpu-runtime-proof-command-plan`, and `ai-graphics:gpu-runtime-proof-command-plan:diagnostics` so reviewed local private manifests can be turned into redacted native GPU proof command plans without running Docker, loading models, or approving execution.
+- Follow-up model-weight manifest scaffold adds `server/tool-registry/ai-graphics-model-weight-manifest-scaffold.ts`, `server/cli/ai-graphics-model-weight-manifest-scaffold.ts`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.md`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.json`, `ai-graphics:model-weight-manifest-scaffold`, and `ai-graphics:model-weight-manifest-scaffold:diagnostics` so operators can create local-only runtime mount layout templates for the five private model/checkpoint manifests without committing secrets or enabling runtime.
 
 ## Expected Validation
 
@@ -80,6 +81,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - `npm run --silent ai-graphics:worker-handoff-readiness:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-readiness:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-review-packet:diagnostics`
+- `npm run --silent ai-graphics:model-weight-manifest-scaffold:diagnostics`
 - `npm run --silent ai-graphics:gpu-runtime-proof-command-plan:diagnostics`
 - `npm run --silent ai-graphics:gpu-model-runtime-readiness-gate:diagnostics`
 - `npm run --silent ai-graphics:tool-call-handoff:diagnostics`

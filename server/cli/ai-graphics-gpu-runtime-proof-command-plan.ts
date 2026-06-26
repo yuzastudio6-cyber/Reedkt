@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import {
   buildAiGraphicsGpuRuntimeProofCommandPlan,
@@ -30,10 +30,18 @@ function jsonFilesInDirectory(directory: string): string[] {
     throw new Error(`Manifest directory does not exist: ${directory}`)
   }
 
-  return readdirSync(resolvedDirectory)
-    .filter((entry) => entry.endsWith('.json'))
-    .sort()
-    .map((entry) => join(resolvedDirectory, entry))
+  const files: string[] = []
+  for (const entry of readdirSync(resolvedDirectory).sort()) {
+    const entryPath = join(resolvedDirectory, entry)
+    const stats = statSync(entryPath)
+    if (stats.isDirectory()) {
+      files.push(...jsonFilesInDirectory(entryPath))
+    } else if (entry.endsWith('.json')) {
+      files.push(entryPath)
+    }
+  }
+
+  return files
 }
 
 function recordsFromJsonFile(filePath: string): ManifestInput[] {

@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.model-weight-manifest-scaffold",
+  "decision": "ai_graphics_model_weight_manifest_scaffold_prepared_for_local_private_records",
+  "status": "prepared_template_only_not_reviewed",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "latestObservedHeadSha": "a031eca1790739af1f4b22ff5433b257a18ecd6a",
+    "latestObservedCheckRollup": []
+  },
+  "sourceEvidence": {
+    "manifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json",
+    "gpuRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
+    "properInstallAudit": "docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json"
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-model-weight-manifest-scaffold.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "cli": "server/cli/ai-graphics-model-weight-manifest-scaffold.ts",
+    "packageScript": "ai-graphics:model-weight-manifest-scaffold",
+    "diagnostic": "scripts/validation/ai-graphics-model-weight-manifest-scaffold-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:model-weight-manifest-scaffold:diagnostics"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "modelWeightManifestRequiredTools": 5,
+    "scaffoldTemplatesPrepared": 5,
+    "privateArtifactRefsLogged": 0,
+    "manifestRecordsApprovedNow": 0,
+    "nativeGpuProofInputEligibleNow": 0,
+    "runtimeReadyNow": 0,
+    "internalBetaReadyNow": 0,
+    "productionReadyNow": 0
+  },
+  "modelWeightManifestRequiredTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "scaffoldFiles": [
+    {
+      "toolId": "sam2",
+      "templateId": "sam2_checkpoint",
+      "relativeFilePath": "sam2/model_tree_manifest.json",
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/sam2/model_tree_manifest.json"
+    },
+    {
+      "toolId": "birefnet",
+      "templateId": "birefnet_model",
+      "relativeFilePath": "birefnet/model_tree_manifest.json",
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/birefnet/model_tree_manifest.json"
+    },
+    {
+      "toolId": "real_esrgan",
+      "templateId": "real_esrgan_model",
+      "relativeFilePath": "real-esrgan/model_tree_manifest.json",
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/real-esrgan/model_tree_manifest.json"
+    },
+    {
+      "toolId": "rembg",
+      "templateId": "rembg_model",
+      "relativeFilePath": "rembg/model_tree_manifest.json",
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/rembg/model_tree_manifest.json"
+    },
+    {
+      "toolId": "transparent_background",
+      "templateId": "transparent_background_model",
+      "relativeFilePath": "transparent-background/model_tree_manifest.json",
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json"
+    }
+  ],
+  "booleans": {
+    "modelWeightManifestScaffoldPrepared": true,
+    "all5ModelWeightToolsCovered": true,
+    "runtimeMountLayoutPrepared": true,
+    "templatesInvalidUntilOwnerReviewed": true,
+    "privateArtifactRefsNotLogged": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "modelWeightManifestsApprovedNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "nextWork": [
+    "Run the scaffold command to create local-only manifest templates under .local-artifacts.",
+    "Replace placeholders with reviewed private artifact refs, source/license evidence, model-card refs, checksums, and owner-review booleans.",
+    "Run the manifest validator and GPU runtime proof command-plan before any native GPU proof lane."
+  ]
+}

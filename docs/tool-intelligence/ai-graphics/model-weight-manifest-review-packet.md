@@ -63,6 +63,13 @@ or paste private refs into public docs:
 npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests
 ```
 
+If the local runtime mount layout does not exist yet, create invalid-by-default
+templates first:
+
+```sh
+npm run --silent ai-graphics:model-weight-manifest-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-manifests
+```
+
 The command reads local JSON manifests and emits a redacted review packet. It
 reports only `privateArtifactRefStatus`, never the raw `privateArtifactRef`.
 It exits non-zero when supplied manifests are incomplete, duplicated, mismatched,

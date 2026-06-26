@@ -113,6 +113,14 @@ Latest observed PR state after GPU runtime proof command-plan bridge completion:
   - `ai-graphics:gpu-runtime-proof-command-plan`
   - `ai-graphics:gpu-runtime-proof-command-plan:diagnostics`
 - GPU runtime proof command-plan result: all eight GPU/model tools, all five private-manifest-required tools, and all four native GPU runtime profiles are covered. The command-plan CLI can read local-only private manifest JSON, produce redacted native GPU proof commands with `<local-private-model-weight-root>` mount placeholders, and classify readiness as `missing_private_manifests`, `invalid_private_manifests`, or `ready_for_native_gpu_runtime_probe_input`. It does not run Docker, use GPU, load models, run inference, process media, or approve execution.
+- Added local-only model-weight manifest scaffold:
+  - `server/tool-registry/ai-graphics-model-weight-manifest-scaffold.ts`
+  - `server/cli/ai-graphics-model-weight-manifest-scaffold.ts`
+  - `docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.md`
+  - `docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.json`
+  - `ai-graphics:model-weight-manifest-scaffold`
+  - `ai-graphics:model-weight-manifest-scaffold:diagnostics`
+- Manifest scaffold result: the scaffold creates the exact runtime mount layout for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background` under a local-only output directory. Generated templates are intentionally invalid until owner-reviewed because private artifact refs use a rejected `public://replace-with-reviewed-private-artifact-ref/...` placeholder, checksum is `REPLACE_WITH_64_HEX_SHA256`, and review booleans are false.
 
 ## Runtime State
 
@@ -132,6 +140,7 @@ Latest observed PR state after GPU runtime proof command-plan bridge completion:
 - `modelWeightsDownloaded=false`
 - `modelWeightsLoaded=false`
 - `modelInferencePerformed=false`
+- `modelWeightManifestScaffoldPrepared=true`
 - `nativeGpuRuntimeProofStillRequired=true`
 - `approvedPlanSnapshotRequired=true`
 - `creditReservationRequired=true`

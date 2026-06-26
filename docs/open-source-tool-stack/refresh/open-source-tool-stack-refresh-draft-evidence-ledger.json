@@ -1,0 +1,98 @@
+{
+  "schema": "reeditpro.openSourceToolStack.refreshDraftEvidenceLedger.v1",
+  "draftPendingEvidenceStatus": "open_draft_pending_merge",
+  "draftPendingProofLevel": "metadata_static_or_install_import_fixture_only",
+  "canonicalPromotionRule": "Draft evidence is not canonical proof until merged into the selected source-of-truth base.",
+  "entries": [
+    {
+      "pr": 425,
+      "lane": "AI graphics Batch 1 install/import/fixture execution",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "tools": ["d3", "echarts", "vega-lite", "vega"],
+      "proofLevel": "install_import_synthetic_fixture_only",
+      "canonical": false
+    },
+    {
+      "pr": 433,
+      "lane": "AI graphics Batch 2 install/import/fixture execution",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "tools": ["satori", "@svgdotjs/svg.js", "@viz-js/viz", "lottie-web"],
+      "proofLevel": "install_import_synthetic_fixture_only",
+      "canonical": false
+    },
+    {
+      "pr": 441,
+      "lane": "AI graphics Batch 3 install/import/manifest execution",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "tools": ["animejs", "three", "pixi.js", "konva", "babylonjs"],
+      "proofLevel": "install_import_manifest_fixture_only",
+      "canonical": false
+    },
+    {
+      "pr": 454,
+      "lane": "AI graphics route manifest integration QA",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "tools": ["d3", "echarts", "vega-lite", "vega", "satori", "@svgdotjs/svg.js", "@viz-js/viz", "lottie-web", "animejs", "three", "pixi.js", "konva", "babylonjs"],
+      "proofLevel": "route_manifest_metadata_only",
+      "canonical": false
+    },
+    {
+      "pr": 476,
+      "lane": "Tool Route AI graphics metadata local fixture gate status owner approval",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "proofLevel": "tool_route_metadata_static_only",
+      "canonical": false
+    },
+    {
+      "pr": 491,
+      "lane": "Worker AI graphics job payload schema validation execution",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "runId": "ai-graphics-job-payload-schema-validation-local-static",
+      "proofLevel": "worker_schema_static_validation_only",
+      "canonical": false
+    },
+    {
+      "pr": 500,
+      "lane": "Worker AI graphics job payload dry-run execution",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "runId": "ai-graphics-job-payload-dry-run-local-static",
+      "scopedClaim": "workerAiGraphicsMetadataJobPayloadDryRunPassed",
+      "proofLevel": "worker_payload_static_dry_run_only",
+      "canonical": false
+    },
+    {
+      "pr": 528,
+      "lane": "Worker AI graphics controlled no-op worker gate execution",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "runId": "ai-graphics-controlled-noop-worker-gate-local-static",
+      "proofLevel": "controlled_noop_worker_static_gate_only",
+      "canonical": false
+    },
+    {
+      "pr": 532,
+      "lane": "Worker AI graphics controlled no-op worker gate owner review",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "decision": "worker_ai_graphics_metadata_controlled_noop_worker_gate_owner_review_passed_with_warnings",
+      "proofLevel": "owner_review_after_controlled_noop_static_gate",
+      "canonical": false
+    }
+  ]
+}

@@ -724,6 +724,22 @@ No Supabase mutation, SQL execution, migration apply, RLS policy apply, storage 
 
 Next recommended milestone: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING-SQL-EXECUTION` in a separately approved guarded staging SQL context.
 
+## SUPABASE-WORKER-RUNTIME Transactional RPC 4R External Staging SQL History Blocker
+
+`SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-EXTERNAL-STAGING-SQL-HISTORY-BLOCKER-1` records decision `blocked_remote_migration_history_not_aligned_for_rpc_4r_sql_execution` and execution `completed_readonly_migration_history_audit_and_dry_run_no_sql_mutation`.
+
+Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`. RPC 4R confirmed closure result: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`.
+
+Remote Supabase command class: `readonly_migration_history_and_db_push_dry_run`. SQL mutation: `none`. Migration deployed: `no`. Production touched: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+Read-only migration history audit showed staging is aligned only through `202605130006`. `supabase db push --dry-run --db-url [redacted]` would push `18` pending migrations, including `202606180001_worker_runtime_transactional_rpc.sql`, so the worker RPC migration cannot be safely applied alone through migration-safe transport.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_migration_history_reconciliation`. WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_migration_history_reconciliation`. TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_transactional_contract`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_transactional_contract`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `SUPABASE-MIGRATION-HISTORY-RECONCILIATION-1`.
+
 ## RP-INTERNAL-BETA Runtime Readiness Orchestrator
 
 `RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-1` records decision `completed_internal_beta_runtime_readiness_orchestrator_fail_closed` and execution `completed_local_orchestrator_scaffold_no_runtime_execution`.

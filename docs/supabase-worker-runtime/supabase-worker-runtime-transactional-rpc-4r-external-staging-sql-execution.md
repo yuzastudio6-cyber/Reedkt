@@ -65,6 +65,8 @@ This packet does not execute SQL. The confirmed target RLS/storage validation re
 
 The correct current blocker is `blocked_pending_external_guarded_staging_sql_execution`.
 
+After read-only migration-history audit and `supabase db push --dry-run --db-url [redacted]`, the concrete transport blocker is now `blocked_remote_migration_history_not_aligned_for_rpc_4r_sql_execution`.
+
 ## Downstream Readiness
 
 WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: blocked_pending_guarded_staging_sql_execution
@@ -74,6 +76,8 @@ WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: blocked_pending_g
 TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: blocked_pending_worker_transactional_contract
 
 INTERNAL-BETA-READINESS-ROLLUP readiness: blocked_pending_worker_transactional_contract
+
+Next safe action: `SUPABASE-MIGRATION-HISTORY-RECONCILIATION-1`
 
 ## No-Scope Statement
 

@@ -171,6 +171,14 @@ const externalStagingSqlGateFiles = [
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-execution-diagnostics.mjs',
 ]
 
+const externalSqlHistoryBlockerFiles = [
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-record.json',
+  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-migration-history-reconciliation-1.md',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-diagnostics.mjs',
+]
+
 function fail(message) {
   console.error(message)
   process.exit(1)
@@ -236,6 +244,7 @@ const allowedFiles = new Set([
   ...requiredFiles.filter((file) => file !== migrationFile),
   ...rpc4rConfirmedFiles,
   ...externalStagingSqlGateFiles,
+  ...externalSqlHistoryBlockerFiles,
   'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-diagnostics.mjs',
   'package.json',
 ])

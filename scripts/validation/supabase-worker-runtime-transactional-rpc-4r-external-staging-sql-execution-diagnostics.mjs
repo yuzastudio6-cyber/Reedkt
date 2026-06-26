@@ -35,6 +35,14 @@ const confirmedClosureFiles = [
   'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
 ]
 
+const externalSqlHistoryBlockerFiles = [
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1.md',
+  'docs/supabase-worker-runtime/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-record.json',
+  'docs/activation-phase-supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-migration-history-reconciliation-1.md',
+  'scripts/validation/supabase-worker-runtime-transactional-rpc-4r-external-staging-sql-history-blocker-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'blocked_pending_external_guarded_staging_sql_execution',
@@ -187,7 +195,7 @@ const changed = [...new Set([
   ...gitLines(['diff', '--cached', '--name-only']),
 ])]
 
-const allowedChanged = new Set([...requiredFiles, ...confirmedClosureFiles])
+const allowedChanged = new Set([...requiredFiles, ...confirmedClosureFiles, ...externalSqlHistoryBlockerFiles])
 
 for (const file of changed) {
   if (!allowedChanged.has(file)) fail(`unexpected changed file: ${file}`)

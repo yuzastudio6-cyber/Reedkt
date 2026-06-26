@@ -172,6 +172,25 @@ const milestone3OcrMlCpuQaAccepted =
 const milestone4ColorImagePipelineQaAccepted =
   status.milestone4ColorImagePipelineQaReview?.decision ===
   'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
+const owner = ownerRegistry.owners?.find((entry) => entry.ownerId === ownerId)
+const productReadyCloseoutDecision =
+  'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane'
+const productReadyCloseoutAccepted =
+  status.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  steward.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  owner?.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  status.productReadyCloseout?.productReadyCount === 16 &&
+  steward.productReadyCloseout?.productReadyCount === 16 &&
+  owner?.productReadyCloseout?.productReadyCount === 16 &&
+  status.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  steward.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  owner?.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  status.productReadyCloseout?.readyForExternalBeta === false &&
+  steward.productReadyCloseout?.readyForExternalBeta === false &&
+  owner?.productReadyCloseout?.readyForExternalBeta === false &&
+  status.productReadyCloseout?.readyForProduction === false &&
+  steward.productReadyCloseout?.readyForProduction === false &&
+  owner?.productReadyCloseout?.readyForProduction === false
 const currentExpectedAccepted = [
   'ffmpeg',
   'ffprobe',
@@ -217,22 +236,34 @@ if (
 ) {
   fail(`owner_status_blocked_count_not_${currentExpectedBlockedCount}`)
 }
-if (status.counts?.endToEndProductReady !== 0 || steward.statusCounts?.endToEndProductReady !== 0) {
+const currentExpectedProductReadyCount = productReadyCloseoutAccepted ? 16 : 0
+if (
+  status.counts?.endToEndProductReady !== currentExpectedProductReadyCount ||
+  steward.statusCounts?.endToEndProductReady !== currentExpectedProductReadyCount
+) {
   fail('owner_product_ready_not_zero')
 }
-const owner = ownerRegistry.owners?.find((entry) => entry.ownerId === ownerId)
 if (!owner) fail('missing_trackb_owner')
 if (
   owner?.acceptedProvenBoundedCount !== currentExpectedAcceptedCount ||
   owner?.blockedNotInstalledProvenCount !== currentExpectedBlockedCount ||
-  owner?.endToEndProductReadyToolCount !== 0
+  owner?.endToEndProductReadyToolCount !== currentExpectedProductReadyCount
 ) {
   fail('registry_owner_counts_drift')
 }
 for (const id of ['opencv', 'pyav', 'pyscenedetect']) {
   const tool = steward.ownedTools?.find((entry) => entry.id === id) || {}
+  const productReadyAllowedByCloseout =
+    productReadyCloseoutAccepted &&
+    tool.endToEndProductReady === true &&
+    tool.productReadyForRankedToolCallLane === true &&
+    tool.productReadyScope === 'bounded_ranked_tool_call_lane_only'
   if (tool.status !== 'accepted_proven_bounded_milestone2') fail(`steward_tool_status_drift:${id}:${tool.status}`)
-  if (tool.gpuUsed !== false || tool.mediaProcessingAccepted !== false || tool.endToEndProductReady !== false) {
+  if (
+    tool.gpuUsed !== false ||
+    tool.mediaProcessingAccepted !== false ||
+    (tool.endToEndProductReady !== false && !productReadyAllowedByCloseout)
+  ) {
     fail(`steward_tool_scope_drift:${id}`)
   }
 }

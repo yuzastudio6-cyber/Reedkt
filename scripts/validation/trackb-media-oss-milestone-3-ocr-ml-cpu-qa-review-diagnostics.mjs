@@ -140,6 +140,24 @@ const pr635Decision = readJson(
 const milestone4ColorImagePipelineQaAccepted =
   status.milestone4ColorImagePipelineQaReview?.decision ===
   'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
+const productReadyCloseoutDecision =
+  'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane'
+const productReadyCloseoutAccepted =
+  status.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  steward.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  registry.owners?.find((entry) => entry.ownerId === ownerId)?.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  status.productReadyCloseout?.productReadyCount === 16 &&
+  steward.productReadyCloseout?.productReadyCount === 16 &&
+  registry.owners?.find((entry) => entry.ownerId === ownerId)?.productReadyCloseout?.productReadyCount === 16 &&
+  status.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  steward.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  registry.owners?.find((entry) => entry.ownerId === ownerId)?.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  status.productReadyCloseout?.readyForExternalBeta === false &&
+  steward.productReadyCloseout?.readyForExternalBeta === false &&
+  registry.owners?.find((entry) => entry.ownerId === ownerId)?.productReadyCloseout?.readyForExternalBeta === false &&
+  status.productReadyCloseout?.readyForProduction === false &&
+  steward.productReadyCloseout?.readyForProduction === false &&
+  registry.owners?.find((entry) => entry.ownerId === ownerId)?.productReadyCloseout?.readyForProduction === false
 
 for (const [label, report] of Object.entries({
   source,
@@ -266,13 +284,18 @@ sameSet(
 )
 for (const id of ['paddlepaddle', 'paddleocr']) {
   const tool = steward.ownedTools?.find((entry) => entry.id === id) || {}
+  const productReadyAllowedByCloseout =
+    productReadyCloseoutAccepted &&
+    tool.endToEndProductReady === true &&
+    tool.productReadyForRankedToolCallLane === true &&
+    tool.productReadyScope === 'bounded_ranked_tool_call_lane_only'
   if (tool.status !== 'accepted_proven_bounded_milestone3_ocr_ml_cpu') fail(`steward_tool_status_drift:${id}:${tool.status}`)
   if (
     tool.gpuUsed !== false ||
     tool.ocrInferenceAccepted !== false ||
     tool.modelAssetOperationsAccepted !== false ||
     tool.fontAssetOperationsAccepted !== false ||
-    tool.endToEndProductReady !== false
+    (tool.endToEndProductReady !== false && !productReadyAllowedByCloseout)
   ) {
     fail(`steward_tool_scope_drift:${id}`)
   }
@@ -285,7 +308,9 @@ if (
 ) {
   fail('registry_owner_counts_drift')
 }
-if (owner?.endToEndProductReadyToolCount !== 0) fail('registry_owner_product_ready_not_zero')
+if (owner?.endToEndProductReadyToolCount !== 0 && !(productReadyCloseoutAccepted && owner?.endToEndProductReadyToolCount === 16)) {
+  fail('registry_owner_product_ready_not_zero')
+}
 
 sameSet((milestone4.candidateTools || []).map((tool) => tool.id), ['opencolorio', 'openimageio'], 'milestone4_candidates')
 if (milestone4.nextPrompt !== nextPrompt || decisionReport.nextPrompt !== nextPrompt || readiness.nextPrompt !== nextPrompt) {

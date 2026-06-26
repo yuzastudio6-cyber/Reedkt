@@ -164,6 +164,25 @@ const milestone3OcrMlCpuQaAccepted =
 const milestone4ColorImagePipelineQaAccepted =
   status.milestone4ColorImagePipelineQaReview?.decision ===
   'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
+const owner = ownerRegistry.owners?.find((entry) => entry.ownerId === ownerId)
+const productReadyCloseoutDecision =
+  'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane'
+const productReadyCloseoutAccepted =
+  status.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  steward.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  owner?.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  status.productReadyCloseout?.productReadyCount === 16 &&
+  steward.productReadyCloseout?.productReadyCount === 16 &&
+  owner?.productReadyCloseout?.productReadyCount === 16 &&
+  status.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  steward.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  owner?.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  status.productReadyCloseout?.readyForExternalBeta === false &&
+  steward.productReadyCloseout?.readyForExternalBeta === false &&
+  owner?.productReadyCloseout?.readyForExternalBeta === false &&
+  status.productReadyCloseout?.readyForProduction === false &&
+  steward.productReadyCloseout?.readyForProduction === false &&
+  owner?.productReadyCloseout?.readyForProduction === false
 const expectedAcceptedStatus = milestone4ColorImagePipelineQaAccepted
   ? ['ffmpeg', 'ffprobe', 'sharp_libvips', 'duckdb', 'polars_nodejs_polars', 'exiftool', 'mediainfo', 'tesseract', 'imagemagick', 'opencv', 'pyav', 'pyscenedetect', 'paddlepaddle', 'paddleocr', 'opencolorio', 'openimageio']
   : milestone3OcrMlCpuQaAccepted
@@ -194,22 +213,43 @@ if (milestone4ColorImagePipelineQaAccepted) {
   if (status.counts?.acceptedProvenBounded !== 9 || steward.statusCounts?.acceptedProvenBounded !== 9) fail('owner_status_accepted_count_not_9')
   if (status.counts?.blockedNotInstalledProven !== 7 || steward.statusCounts?.blockedNotInstalledProven !== 7) fail('owner_status_blocked_count_not_7')
 }
-if (status.counts?.endToEndProductReady !== 0 || steward.statusCounts?.endToEndProductReady !== 0) fail('owner_product_ready_not_zero')
-const owner = ownerRegistry.owners?.find((entry) => entry.ownerId === ownerId)
+const expectedCurrentProductReadyCount = productReadyCloseoutAccepted ? 16 : 0
+if (
+  status.counts?.endToEndProductReady !== expectedCurrentProductReadyCount ||
+  steward.statusCounts?.endToEndProductReady !== expectedCurrentProductReadyCount
+) {
+  fail('owner_product_ready_not_zero')
+}
 if (!owner) fail('missing_trackb_owner')
 if (milestone4ColorImagePipelineQaAccepted) {
-  if (owner?.acceptedProvenBoundedCount !== 16 || owner?.blockedNotInstalledProvenCount !== 0 || owner?.endToEndProductReadyToolCount !== 0) {
+  if (
+    owner?.acceptedProvenBoundedCount !== 16 ||
+    owner?.blockedNotInstalledProvenCount !== 0 ||
+    owner?.endToEndProductReadyToolCount !== expectedCurrentProductReadyCount
+  ) {
     fail('registry_owner_counts_after_milestone4_qa_drift')
   }
 } else if (milestone3OcrMlCpuQaAccepted) {
-  if (owner?.acceptedProvenBoundedCount !== 14 || owner?.blockedNotInstalledProvenCount !== 2 || owner?.endToEndProductReadyToolCount !== 0) {
+  if (
+    owner?.acceptedProvenBoundedCount !== 14 ||
+    owner?.blockedNotInstalledProvenCount !== 2 ||
+    owner?.endToEndProductReadyToolCount !== expectedCurrentProductReadyCount
+  ) {
     fail('registry_owner_counts_after_milestone3_ocr_ml_cpu_qa_drift')
   }
 } else if (milestone2QaAccepted) {
-  if (owner?.acceptedProvenBoundedCount !== 12 || owner?.blockedNotInstalledProvenCount !== 4 || owner?.endToEndProductReadyToolCount !== 0) {
+  if (
+    owner?.acceptedProvenBoundedCount !== 12 ||
+    owner?.blockedNotInstalledProvenCount !== 4 ||
+    owner?.endToEndProductReadyToolCount !== expectedCurrentProductReadyCount
+  ) {
     fail('registry_owner_counts_after_milestone2_qa_drift')
   }
-} else if (owner?.acceptedProvenBoundedCount !== 9 || owner?.blockedNotInstalledProvenCount !== 7 || owner?.endToEndProductReadyToolCount !== 0) {
+} else if (
+  owner?.acceptedProvenBoundedCount !== 9 ||
+  owner?.blockedNotInstalledProvenCount !== 7 ||
+  owner?.endToEndProductReadyToolCount !== expectedCurrentProductReadyCount
+) {
   fail('registry_owner_counts_drift')
 }
 const combinedImageTool = steward.ownedTools?.find((tool) => tool.id === 'imagemagick_graphicsmagick') || {}

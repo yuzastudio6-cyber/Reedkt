@@ -299,12 +299,23 @@ const milestone3OcrMlCpuQaAccepted =
 const milestone4ColorImagePipelineQaAccepted =
   status.milestone4ColorImagePipelineQaReview?.decision ===
   'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
+const productReadyCloseoutAccepted =
+  status.productReadyCloseout?.decision ===
+    'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane' &&
+  status.productReadyCloseout?.productReadyCount === 16 &&
+  status.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  status.productReadyCloseout?.readyForExternalBeta === false &&
+  status.productReadyCloseout?.readyForProduction === false
 const expectedCurrentAcceptedCount = milestone4ColorImagePipelineQaAccepted
   ? 16
   : milestone3OcrMlCpuQaAccepted
   ? 14
   : 12
-if (status.counts?.acceptedProvenBounded !== expectedCurrentAcceptedCount || status.counts?.endToEndProductReady !== 0) {
+const expectedCurrentProductReadyCount = productReadyCloseoutAccepted ? 16 : 0
+if (
+  status.counts?.acceptedProvenBounded !== expectedCurrentAcceptedCount ||
+  status.counts?.endToEndProductReady !== expectedCurrentProductReadyCount
+) {
   fail('status_counts_drift')
 }
 

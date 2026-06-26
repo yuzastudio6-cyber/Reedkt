@@ -176,6 +176,13 @@ const milestone3OcrMlCpuQaAccepted =
 const milestone4ColorImagePipelineQaAccepted =
   status.milestone4ColorImagePipelineQaReview?.decision ===
   'trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup'
+const productReadyCloseoutAccepted =
+  status.productReadyCloseout?.decision ===
+    'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane' &&
+  status.productReadyCloseout?.productReadyCount === 16 &&
+  status.productReadyCloseout?.readyForRankedToolCallLane === true &&
+  status.productReadyCloseout?.readyForExternalBeta === false &&
+  status.productReadyCloseout?.readyForProduction === false
 if (status.counts?.ownedTools !== 16) fail('owned_count_drift')
 if (milestone4ColorImagePipelineQaAccepted) {
   if (status.counts?.acceptedProvenBounded !== 16) fail('accepted_count_after_milestone4_qa_drift')
@@ -190,7 +197,8 @@ if (milestone4ColorImagePipelineQaAccepted) {
   if (status.counts?.acceptedProvenBounded !== 9) fail('accepted_count_drift')
   if (status.counts?.blockedNotInstalledProven !== 7) fail('blocked_count_drift')
 }
-if (status.counts?.endToEndProductReady !== 0) fail('product_ready_count_drift')
+const expectedCurrentProductReadyCount = productReadyCloseoutAccepted ? 16 : 0
+if (status.counts?.endToEndProductReady !== expectedCurrentProductReadyCount) fail('product_ready_count_drift')
 sameSet(
   status.blockedNotInstalledProven,
   milestone4ColorImagePipelineQaAccepted

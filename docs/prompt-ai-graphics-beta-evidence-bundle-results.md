@@ -31,6 +31,9 @@ Latest observed PR state after beta evidence bundle proof hardening: [#862](http
 - Full evidence now requires the committed Node runtime proof, browser runtime
   proof, and Satori font runtime proof packets in addition to shared, GPU,
   model-weight, browser-sandbox, and owner gates.
+- Legacy GPU/model override flags are ignored by the final evidence bundle;
+  all-21 beta eligibility now requires actual GPU runtime proof and
+  model-weight manifest packets.
 
 ## No Runtime Unlock
 

@@ -29,8 +29,6 @@ export interface AiGraphicsBetaEvidenceBundleInput {
   nodeRuntimeProofPacket?: Record<string, unknown>
   browserRuntimeProofPacket?: Record<string, unknown>
   satoriFontRuntimeProofPacket?: Record<string, unknown>
-  modelWeightManifestsApprovedOverride?: boolean
-  nativeGpuRuntimeProofPassedOverride?: boolean
 }
 
 export interface AiGraphicsBetaEvidenceBundleToolRow {
@@ -290,12 +288,8 @@ export function buildAiGraphicsBetaEvidenceBundle(
     nodeRuntimeProofPacketAccepted &&
     browserRuntimeProofPacketAccepted &&
     satoriFontRuntimeProofPacketAccepted
-  const modelWeightManifestReviewPacketAccepted =
-    input.modelWeightManifestsApprovedOverride === true ||
-    modelWeightPacketAccepted(input.modelWeightManifestReviewPacket)
-  const nativeGpuRuntimeProofResultPacketAccepted =
-    input.nativeGpuRuntimeProofPassedOverride === true ||
-    gpuRuntimePacketAccepted(input.gpuRuntimeProofResultPacket)
+  const modelWeightManifestReviewPacketAccepted = modelWeightPacketAccepted(input.modelWeightManifestReviewPacket)
+  const nativeGpuRuntimeProofResultPacketAccepted = gpuRuntimePacketAccepted(input.gpuRuntimeProofResultPacket)
 
   const evidence: Required<AiGraphicsBetaReadinessEvidence> = {
     approvedPlanSnapshotGatePassed: input.approvedPlanSnapshotGatePassed === true,

@@ -336,13 +336,12 @@ for (const token of [
   'modelWeightManifestReviewPacketAccepted',
   'nativeGpuRuntimeProofResultPacketAccepted',
   'buildAiGraphicsBetaReadinessGate',
-  'modelWeightManifestsApprovedOverride',
-  'nativeGpuRuntimeProofPassedOverride',
   'nodeRuntimeProofPacketAccepted',
   'browserRuntimeProofPacketAccepted',
   'satoriFontRuntimeProofPacketAccepted',
   'jsRuntimeProofsAccepted',
   'all21BetaEvidenceReady',
+  'evidenceOverrideFlagsIgnoredForBetaReadiness',
   '--use-committed-js-runtime-proofs',
   '--node-runtime-proof-packet',
   '--browser-runtime-proof-packet',
@@ -407,22 +406,62 @@ try {
   fullFlagOutput = `${error.stdout || ''}${error.stderr || ''}`
 }
 const fullFlagBundle = parseJsonOutput(fullFlagOutput, 'full_flag_bundle')
-if (!fullFlagExited) fail('full_flag_bundle_without_js_proofs_did_not_exit_nonzero')
-if (fullFlagBundle.betaTestingReadyTools !== 21) fail('full_flag_bundle_ready_not_21')
-if (fullFlagBundle.blockedTools !== 0) fail('full_flag_bundle_blocked_not_0')
-if (fullFlagBundle.all21BetaEvidenceReady !== false) fail('full_flag_bundle_all21_not_false_without_js_proofs')
+if (!fullFlagExited) fail('full_flag_bundle_with_ignored_overrides_did_not_exit_nonzero')
+if (fullFlagBundle.betaTestingReadyTools !== 13) fail('full_flag_bundle_ready_not_13_with_ignored_overrides')
+if (fullFlagBundle.blockedTools !== 8) fail('full_flag_bundle_blocked_not_8_with_ignored_overrides')
+if (fullFlagBundle.all21BetaEvidenceReady !== false) fail('full_flag_bundle_all21_not_false_with_ignored_overrides')
 if (fullFlagBundle.evidenceSources?.jsRuntimeProofsAccepted !== false) fail('full_flag_bundle_js_proofs_unexpectedly_accepted')
+if (fullFlagBundle.evidenceSources?.modelWeightManifestReviewPacketAccepted !== false) fail('full_flag_bundle_model_packet_unexpectedly_accepted')
+if (fullFlagBundle.evidenceSources?.nativeGpuRuntimeProofResultPacketAccepted !== false) fail('full_flag_bundle_gpu_packet_unexpectedly_accepted')
+if (fullFlagBundle.input?.evidenceOverrideFlagsIgnoredForBetaReadiness !== true) {
+  fail('full_flag_bundle_override_flags_not_marked_ignored')
+}
 for (const token of [
   'js_node_runtime_proof_packet',
   'js_browser_runtime_proof_packet',
   'satori_font_runtime_proof_packet',
   'complete_js_runtime_proof_bundle',
+  'native_gpu_runtime_proof_packet',
+  'model_weight_manifest_review_packet',
 ]) {
-  if (!fullFlagBundle.missingEvidence?.includes(token)) fail(`full_flag_bundle_missing_js_gap:${token}`)
+  if (!fullFlagBundle.missingEvidence?.includes(token)) fail(`full_flag_bundle_missing_gap:${token}`)
 }
-for (const row of fullFlagBundle.tools || []) {
-  if (row.betaTestingReadyNow !== true) fail(`full_flag_bundle_tool_not_ready:${row.toolId}`)
-  if (row.blockers?.length) fail(`full_flag_bundle_tool_has_blockers:${row.toolId}`)
+
+let jsProofOverrideExited = false
+let jsProofOverrideOutput = ''
+try {
+  jsProofOverrideOutput = runNpm(validateScriptName, [
+    '--use-committed-js-runtime-proofs',
+    '--all-shared-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--native-gpu-runtime-proof-passed',
+    '--model-weight-manifests-approved',
+    '--require-all-21-beta-ready',
+  ])
+} catch (error) {
+  jsProofOverrideExited = true
+  jsProofOverrideOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+const jsProofOverrideBundle = parseJsonOutput(jsProofOverrideOutput, 'js_proof_override_bundle')
+if (!jsProofOverrideExited) fail('js_proof_override_bundle_did_not_exit_nonzero')
+if (jsProofOverrideBundle.betaTestingReadyTools !== 13) fail('js_proof_override_bundle_ready_not_13')
+if (jsProofOverrideBundle.blockedTools !== 8) fail('js_proof_override_bundle_blocked_not_8')
+if (jsProofOverrideBundle.all21BetaEvidenceReady !== false) fail('js_proof_override_bundle_all21_not_false')
+if (jsProofOverrideBundle.evidenceSources?.jsRuntimeProofsAccepted !== true) fail('js_proof_override_bundle_js_proofs_not_accepted')
+if (jsProofOverrideBundle.evidenceSources?.modelWeightManifestReviewPacketAccepted !== false) {
+  fail('js_proof_override_bundle_model_packet_unexpectedly_accepted')
+}
+if (jsProofOverrideBundle.evidenceSources?.nativeGpuRuntimeProofResultPacketAccepted !== false) {
+  fail('js_proof_override_bundle_gpu_packet_unexpectedly_accepted')
+}
+if (jsProofOverrideBundle.input?.evidenceOverrideFlagsIgnoredForBetaReadiness !== true) {
+  fail('js_proof_override_bundle_override_flags_not_marked_ignored')
+}
+for (const token of [
+  'native_gpu_runtime_proof_packet',
+  'model_weight_manifest_review_packet',
+]) {
+  if (!jsProofOverrideBundle.missingEvidence?.includes(token)) fail(`js_proof_override_bundle_missing_gap:${token}`)
 }
 
 const { manifestPacketPath, gpuPacketPath } = writePacketFixtures()
@@ -458,7 +497,7 @@ try {
 }
 if (!partialExited) fail('require_all21_did_not_exit_nonzero_when_evidence_missing')
 
-for (const output of [defaultBundle, fullFlagBundle, fullPacketBundle]) {
+for (const output of [defaultBundle, fullFlagBundle, jsProofOverrideBundle, fullPacketBundle]) {
   for (const key of [
     'agentCanExecuteToolsNow',
     'routeExecutionApprovedNow',

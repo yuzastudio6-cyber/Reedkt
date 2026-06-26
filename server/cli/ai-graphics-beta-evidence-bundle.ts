@@ -65,8 +65,6 @@ const input: AiGraphicsBetaEvidenceBundleInput = {
     '--satori-font-runtime-proof-packet',
     'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
   ) as AiGraphicsBetaEvidenceBundleInput['satoriFontRuntimeProofPacket'],
-  modelWeightManifestsApprovedOverride: hasFlag('--model-weight-manifests-approved'),
-  nativeGpuRuntimeProofPassedOverride: hasFlag('--native-gpu-runtime-proof-passed'),
 }
 
 const bundle = buildAiGraphicsBetaEvidenceBundle(input)
@@ -82,6 +80,13 @@ const output = {
       valueAfterFlag('--satori-font-runtime-proof-packet'),
     ].filter(Boolean).length,
     committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
+    ignoredEvidenceOverrideFlags: [
+      hasFlag('--model-weight-manifests-approved') ? '--model-weight-manifests-approved' : undefined,
+      hasFlag('--native-gpu-runtime-proof-passed') ? '--native-gpu-runtime-proof-passed' : undefined,
+    ].filter(Boolean),
+    evidenceOverrideFlagsIgnoredForBetaReadiness:
+      hasFlag('--model-weight-manifests-approved') ||
+      hasFlag('--native-gpu-runtime-proof-passed'),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

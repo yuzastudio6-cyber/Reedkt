@@ -33,6 +33,10 @@ The validator stays fail-closed until all of these are supplied:
 - Reviewed private model-weight manifest packet.
 - Internal beta owner approval.
 
+Legacy boolean override flags for GPU proof or model-weight manifests are ignored
+by this bundle. They may be useful in lower-level simulation diagnostics, but
+they do not satisfy all-21 beta evidence.
+
 ## Tool Groups
 
 The 13 JavaScript graphics tools are installed through the Node lockfile surface:

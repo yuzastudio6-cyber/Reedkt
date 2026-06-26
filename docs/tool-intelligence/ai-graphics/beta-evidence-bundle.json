@@ -86,6 +86,7 @@
     "all21ToolsMappedToProductionRegistry": true,
     "all21ToolsPlanningSelectable": true,
     "committedJsRuntimeProofsAccepted": true,
+    "evidenceOverrideFlagsIgnoredForBetaReadiness": true,
     "agentCanSelectForPlanning": true,
     "defaultAll21BetaEvidenceReady": false,
     "fullEvidenceAll21BetaEvidenceReady": true,

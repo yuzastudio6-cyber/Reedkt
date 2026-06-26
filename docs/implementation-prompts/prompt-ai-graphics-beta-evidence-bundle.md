@@ -11,6 +11,10 @@ Tool Route, Worker, browser/canvas/WebGL sandbox, native GPU runtime proof,
 reviewed model-weight manifests, and internal beta owner approval gates are
 supplied as evidence.
 
+Legacy GPU/model boolean override flags must not satisfy the final all-21 beta
+evidence bundle. Require actual native GPU runtime proof and model-weight
+manifest packets for all-21 eligibility.
+
 Do not install dependencies, mutate `package-lock.json`, run tools, run routes,
 run workers, call providers/models, run browser/WebGL/canvas runtime, run GPU
 runtime, download model weights, process media, mutate Supabase, upload to GCS,

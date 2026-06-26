@@ -170,9 +170,9 @@ def maybe_attempt_metadata_import(model_dir: Path, allow_metadata_import: bool, 
             "trustRemoteCode": True,
         }
     try:
-        with block_network():
-            from transformers import AutoConfig, AutoProcessor  # type: ignore
+        from transformers import AutoConfig, AutoProcessor  # type: ignore
 
+        with block_network():
             config = AutoConfig.from_pretrained(str(model_dir), trust_remote_code=True, local_files_only=True)
             processor = AutoProcessor.from_pretrained(str(model_dir), trust_remote_code=True, local_files_only=True)
         return {

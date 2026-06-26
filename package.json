@@ -82,6 +82,7 @@
     "qwen2-5-vl-7b-controlled-dependency-install-result:diagnostics": "node scripts/validation/qwen2-5-vl-7b-controlled-dependency-install-result-diagnostics.mjs",
     "qwen2-5-vl-7b-python-runtime-alignment:diagnostics": "node scripts/validation/qwen2-5-vl-7b-python-runtime-alignment-diagnostics.mjs",
     "qwen2-5-vl-7b-linux-l4-wheelhouse-prep:diagnostics": "node scripts/validation/qwen2-5-vl-7b-linux-l4-wheelhouse-prep-diagnostics.mjs",
+    "qwen2-5-vl-7b-wheelhouse-import-proof:diagnostics": "node scripts/validation/qwen2-5-vl-7b-wheelhouse-import-proof-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

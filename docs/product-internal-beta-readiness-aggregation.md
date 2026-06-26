@@ -56,3 +56,15 @@ No migration apply, SQL mutation, migration history manual edit, RLS policy appl
 Current status after this apply attempt is internal beta `blocked_pending_clean_staging_migration_history_reconciliation`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1`.
+
+## Clean Branch Migration History Reconciliation
+
+`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1` records decision `blocked_clean_branch_remote_only_migration_versions_require_source_mapping` and execution `completed_guarded_readonly_migration_history_reconciliation_no_mutation`.
+
+The guarded runner reached `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho` using `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `1`, ran migration history readback, and ran read-only catalog SQL against migration/public/storage metadata. It mapped remote-only migration `20260610235210` to the plugin-generated activation registry equivalent of committed migration `202606050001`, but remote-only migration `20260626162800` remains unmapped in repository source evidence.
+
+No migration dry-run, migration apply, SQL mutation, migration history manual edit, Supabase db pull, branch reset/recreation, storage object creation/read, service-role route execution, worker execution, internal beta unlock, external beta unlock, production unlock, package-lock mutation, or generated artifact commit occurred.
+
+Current status after this reconciliation is internal beta `blocked_pending_clean_staging_migration_history_source_mapping_or_repair_decision`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1`.

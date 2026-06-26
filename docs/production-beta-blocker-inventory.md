@@ -315,7 +315,15 @@ WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `blocked_pending_clean_stagin
 
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1`.
+Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1`.
+
+### Supabase Clean Staging Branch Migration History Reconciliation
+
+`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1` records `blocked_clean_branch_remote_only_migration_versions_require_source_mapping`. Remote-only migration `20260610235210` is source-mapped to the plugin-generated activation registry equivalent of committed migration `202606050001`; remote-only migration `20260626162800` remains unmapped.
+
+The reconciliation ran guarded read-only migration history readback and read-only catalog SQL only. It did not run migration dry-run/apply, SQL mutation, migration history manual edit, Supabase db pull, branch reset/recreation, storage object creation/read, service-role route execution, worker execution, beta unlock, production unlock, package-lock mutation, or generated artifact commit.
+
+Internal beta remains `blocked_pending_clean_staging_migration_history_source_mapping_or_repair_decision`.
 
 ## Internal Beta Local Readiness Gate Rollup
 

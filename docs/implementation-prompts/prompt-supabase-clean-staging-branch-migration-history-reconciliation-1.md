@@ -24,4 +24,6 @@ Decide the safe reconciliation path before any migration-chain retry:
 
 ## Blocked Scope
 
-Do not run `supabase migration repair`, `supabase db pull`, direct SQL, migration apply, branch reset, branch recreation, storage object access, service-role route execution, workers, providers, media processing, public artifacts, signed URLs, internal beta unlock, external beta unlock, production unlock, or final render/export inside the reconciliation decision unless a later execution packet explicitly approves that exact operation.
+Do not run `supabase migration repair`, `supabase db pull`, SQL mutation, migration apply, branch reset, branch recreation, storage object access, service-role route execution, workers, providers, media processing, public artifacts, signed URLs, internal beta unlock, external beta unlock, production unlock, or final render/export inside the reconciliation decision unless a later execution packet explicitly approves that exact operation.
+
+Read-only catalog SQL may be used only under an explicit confirmation gate, only against the named clean branch target, and only to inspect migration/public/storage metadata needed to source-map the remote-only migration versions. The database URL payload must not be printed, persisted, hashed, summarized, or committed.

@@ -1,0 +1,297 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-RECONCILIATION-1",
+  "runId": "2026-06-26T18-49-04-996Z-f804a970",
+  "outputDir": "/tmp/reeditpro-supabase-clean-staging-branch-migration-history-reconciliation-1/2026-06-26T18-49-04-996Z-f804a970",
+  "generatedAt": "2026-06-26T18:49:10.924Z",
+  "parentProjectName": "Reeditpro",
+  "parentProjectRef": "wmyyttnynmteqgcdishd",
+  "cleanBranchName": "reeditpro-internal-staging-clean",
+  "cleanBranchRef": "fnjiylwirntrqdcwpbho",
+  "cleanBranchDbUrlSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+  "accessTokenSecret": "SUPABASE_ACCESS_TOKEN",
+  "decision": "blocked_clean_branch_remote_only_migration_versions_require_source_mapping",
+  "execution": "completed_guarded_readonly_migration_history_reconciliation_no_mutation",
+  "blocker": "blocked_clean_branch_remote_only_migration_versions_require_source_mapping",
+  "confirmation": "present_true",
+  "credentialMetadata": {
+    "supabaseAccessTokenSecret": "SUPABASE_ACCESS_TOKEN",
+    "supabaseAccessTokenLatestVersion": {
+      "present": true,
+      "name": "5",
+      "state": "enabled",
+      "createTime": "2026-06-26T14:36:16"
+    },
+    "cleanBranchDbUrlSecret": "REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL",
+    "cleanBranchDbUrlLatestVersion": {
+      "present": true,
+      "name": "1",
+      "state": "enabled",
+      "createTime": "2026-06-26T17:57:40"
+    },
+    "dbUrlPayloadPrinted": false,
+    "dbUrlPayloadPersistedInRepo": false
+  },
+  "migrationHistory": {
+    "status": "passed",
+    "commandClass": "supabase migration list --db-url [redacted]",
+    "dbUrlPrinted": false,
+    "commandResult": {
+      "commandClass": "supabase migration list --db-url [redacted]",
+      "status": "passed",
+      "exitCode": 0,
+      "stdout": {
+        "byteLength": 1629,
+        "lineCount": 28,
+        "snippet": "Local          | Remote         | Time (UTC)          \n  ----------------|----------------|---------------------\n   202605130001   | 202605130001   | 202605130001        \n   202605130002   | 202605130002   | 202605130002        \n   202605130003   | 202605130003   | 202605130003        \n   202605130004   | 202605130004   | 202605130004        \n   202605130005   | 202605130005   | 202605130005        \n   202605130006   | 202605130006   | 202605130006        \n   202605130007   |                | 202605130007        \n   202605130008   |                | 202605130008        \n   202605180001   |                | 202605180001        \n   202605180002   |                | 202605180002        \n   202605180003   |                | 202605180003        \n   202605180004   |                | 202605180004        \n   202605180005   |                | 202605180005        \n   202605180006   |                | 202605180006        \n   202605180007   |                | 202605180007        \n   202605180008   |                | 202605180008        \n   202605190001   |                | 202605190001        \n   202605190002   |                | 202605190002        \n   202605200001   |                | 202605200001        \n   202605200002   |                | 202605200002        \n   202605210001   |                | 202605210001        \n   202606050001   |                | 202606050001        \n   202606180001   |                | 202606180001        \n                  | 20260610235210 | 2026-06-10 23:52:10 \n   20260625031135 |                | 2026-06-25 03:11:35 \n                  | 20260626162800 | 2026-06-26 16:28:00",
+        "secretPatternDetected": false
+      },
+      "stderr": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "snippet": "",
+        "secretPatternDetected": false
+      }
+    },
+    "migrationHistoryTextParsed": true,
+    "textParsed": true,
+    "localMigrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001",
+      "202606180001",
+      "20260625031135"
+    ],
+    "remoteMigrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "20260610235210",
+      "20260626162800"
+    ],
+    "pendingLocalMigrationIds": [
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001",
+      "202606180001",
+      "20260625031135"
+    ],
+    "remoteOnlyMigrationIds": [
+      "20260610235210",
+      "20260626162800"
+    ],
+    "untrackedRemoteMigrationIds": [
+      "20260610235210",
+      "20260626162800"
+    ]
+  },
+  "schemaRlsStorageReadback": {
+    "status": "passed",
+    "commandClass": "psql readonly catalog query against migration/public/storage metadata [db-url redacted]",
+    "dbUrlPrinted": false,
+    "directDdlDmlRun": false,
+    "storageObjectRead": false,
+    "storageBucketMetadataRead": true,
+    "commandResult": {
+      "commandClass": "psql readonly catalog query [db-url redacted]",
+      "status": "passed",
+      "exitCode": 0,
+      "stdout": {
+        "byteLength": 1289,
+        "lineCount": 1,
+        "snippet": "{\"missingTables\": [\"artifact_manifest_items\", \"artifact_manifests\", \"worker_job_artifacts\", \"worker_job_events\", \"worker_jobs\"], \"rlsMissingTables\": [], \"presentTableCount\": 11, \"expectedTableCount\": 16, \"publicPrivateBuckets\": [], \"rlsEnabledTableCount\": 11, \"missingPrivateBuckets\": [\"exports\", \"generated-assets\", \"previews\", \"processed-media\", \"qa-artifacts\", \"source-media\", \"thumbnails\", \"worker-temp\"], \"presentPrivateBuckets\": [], \"privateBucketsExpected\": [\"source-media\", \"generated-assets\", \"processed-media\", \"previews\", \"exports\", \"thumbnails\", \"qa-artifacts\", \"worker-temp\"], \"workerRuntimeFunctions\": [], \"remoteMigrationVersions\": [\"202605130001\", \"202605130002\", \"202605130003\", \"202605130004\", \"202605130005\", \"202605130006\", \"20260610235210\", \"20260626162800\"], \"activationTablesExpected\": [\"activation_milestones\", \"activation_phase_runs\", \"activation_tool_readiness\", \"activation_pr_evidence\", \"activation_artifact_manifests\", \"activation_blockers\", \"activation_allowed_scopes\", \"activation_blocked_scopes\", \"activation_next_phases\", \"activation_human_approvals\", \"activation_sync_audit_log\"], \"internalBetaTablesExpected\": [\"artifact_manifests\", \"artifact_manifest_items\"], \"workerRuntimeTablesExpected\": [\"worker_jobs\", \"worker_job_events\", \"worker_job_artifacts\"]}",
+        "secretPatternDetected": false
+      },
+      "stderr": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "snippet": "",
+        "secretPatternDetected": false
+      }
+    },
+    "catalogJsonParsed": true,
+    "catalogReadback": {
+      "missingTables": [
+        "artifact_manifest_items",
+        "artifact_manifests",
+        "worker_job_artifacts",
+        "worker_job_events",
+        "worker_jobs"
+      ],
+      "rlsMissingTables": [],
+      "presentTableCount": 11,
+      "expectedTableCount": 16,
+      "publicPrivateBuckets": [],
+      "rlsEnabledTableCount": 11,
+      "missingPrivateBuckets": [
+        "exports",
+        "generated-assets",
+        "previews",
+        "processed-media",
+        "qa-artifacts",
+        "source-media",
+        "thumbnails",
+        "worker-temp"
+      ],
+      "presentPrivateBuckets": [],
+      "privateBucketsExpected": [
+        "source-media",
+        "generated-assets",
+        "processed-media",
+        "previews",
+        "exports",
+        "thumbnails",
+        "qa-artifacts",
+        "worker-temp"
+      ],
+      "workerRuntimeFunctions": [],
+      "remoteMigrationVersions": [
+        "202605130001",
+        "202605130002",
+        "202605130003",
+        "202605130004",
+        "202605130005",
+        "202605130006",
+        "20260610235210",
+        "20260626162800"
+      ],
+      "activationTablesExpected": [
+        "activation_milestones",
+        "activation_phase_runs",
+        "activation_tool_readiness",
+        "activation_pr_evidence",
+        "activation_artifact_manifests",
+        "activation_blockers",
+        "activation_allowed_scopes",
+        "activation_blocked_scopes",
+        "activation_next_phases",
+        "activation_human_approvals",
+        "activation_sync_audit_log"
+      ],
+      "internalBetaTablesExpected": [
+        "artifact_manifests",
+        "artifact_manifest_items"
+      ],
+      "workerRuntimeTablesExpected": [
+        "worker_jobs",
+        "worker_job_events",
+        "worker_job_artifacts"
+      ]
+    }
+  },
+  "sourceMappings": [
+    {
+      "remoteOnlyMigrationId": "20260610235210",
+      "mappingStatus": "source_mapped_to_plugin_generated_activation_registry_equivalent",
+      "committedMigrationId": "202606050001",
+      "committedMigrationFile": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+      "evidence": "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_migration_history_verify_report.json"
+    }
+  ],
+  "unmappedRemoteOnlyMigrationIds": [
+    "20260626162800"
+  ],
+  "reconciliationSummary": {
+    "remoteOnlyMigrationIds": [
+      "20260610235210",
+      "20260626162800"
+    ],
+    "knownPluginGeneratedRegistryVersion": "20260610235210",
+    "unknownRemoteOnlyVersion": "20260626162800",
+    "activationTablesPresent": true,
+    "activationRlsPresent": true,
+    "workerTablesPresent": false,
+    "internalBetaTablesPresent": false,
+    "privateBucketsPresent": false,
+    "privateBucketsPrivate": true,
+    "missingTables": [
+      "artifact_manifest_items",
+      "artifact_manifests",
+      "worker_job_artifacts",
+      "worker_job_events",
+      "worker_jobs"
+    ],
+    "rlsMissingTables": [],
+    "missingPrivateBuckets": [
+      "exports",
+      "generated-assets",
+      "previews",
+      "processed-media",
+      "qa-artifacts",
+      "source-media",
+      "thumbnails",
+      "worker-temp"
+    ],
+    "publicPrivateBuckets": [],
+    "workerRuntimeFunctions": []
+  },
+  "readiness": {
+    "workerRuntimeTransactionalContract2": "blocked_pending_clean_staging_migration_history_owner_decision",
+    "workerRuntimeTrackaPrivateE2eExecutionGate2r": "blocked_pending_clean_staging_migration_history_owner_decision",
+    "trackaPrivateE2eRevalidation2": "blocked_pending_worker_transactional_contract",
+    "internalBetaReadinessRollup": "blocked_pending_clean_staging_migration_history_owner_decision",
+    "externalProductBeta": "blocked_pending_internal_beta_evidence_security_privacy_support_cost_and_deployment_gates"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": true,
+    "credentialPayloadPrinted": false,
+    "credentialPayloadPersistedInRepo": false,
+    "remoteSupabaseReadCommand": true,
+    "remoteSupabaseMutation": false,
+    "sqlExecution": "read_only_catalog_sql_only",
+    "sqlMutation": false,
+    "migrationDryRun": false,
+    "migrationApply": false,
+    "migrationHistoryManualEdit": false,
+    "supabaseDbPull": false,
+    "branchResetOrRecreate": false,
+    "readOnlyCatalogSql": true,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "storageBucketMetadataRead": true,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

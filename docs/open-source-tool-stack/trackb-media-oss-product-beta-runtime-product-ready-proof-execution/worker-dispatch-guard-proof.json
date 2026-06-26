@@ -1,0 +1,138 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_product_ready_proof_execution_blocked_by_product_route_disabled_backend_required",
+  "previousDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_plan_passed_ready_for_bounded_live_product_runtime_proof_execution",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-execution",
+  "sourceSha": "a86351111aebe5625631a0911da49009cb3bfdfa",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourcePr": 922,
+  "sourceHead": "6e25817533edb1cdd6e19e4138ce15f9330587e9",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_PLAN",
+  "workerContractsCovered": [
+    {
+      "toolId": "ffmpeg",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "ffprobe",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "sharp_libvips",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "duckdb",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "polars_nodejs_polars",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "exiftool",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "mediainfo",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "tesseract",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "imagemagick",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "opencv",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "pyav",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "pyscenedetect",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "paddlepaddle",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "paddleocr",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "opencolorio",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    },
+    {
+      "toolId": "openimageio",
+      "executionEnabled": false,
+      "status": "disabled_until_beta_gate",
+      "workerType": "cpu_analysis_worker",
+      "sanitizedLoggingOnly": true
+    }
+  ],
+  "allWorkerContractsExecutionDisabled": true,
+  "allowlistPresent": true,
+  "workerDispatchAttempted": false,
+  "workerDispatchToRealToolsProven": false,
+  "blockedReason": "worker contracts intentionally remain disabled until route enablement gate creates a bounded product dispatch path"
+}

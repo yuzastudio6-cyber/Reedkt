@@ -52,6 +52,9 @@ const statusDocs = [
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json',
 ]
 const allowedChangedPrefixes = [
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-execution/',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-route-enablement-plan.md',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-execution-diagnostics.mjs',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-plan/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-review/',
   'scripts/validation/trackb-media-oss-',

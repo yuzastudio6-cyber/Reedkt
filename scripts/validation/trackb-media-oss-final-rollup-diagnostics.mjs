@@ -45,6 +45,7 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-tools-call-lane-ready-handoff/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-closeout/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout/',
@@ -110,6 +111,7 @@ const allowedChangedPrefixes = [
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review/',
 ]
 const allowedChangedFiles = new Set([
+  'docs/implementation-prompts/prompt-reeditpro-external-beta-production-readiness-remediation-plan.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-tools-call-lane-ready-handoff.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-external-beta-production-readiness-gap-review.md',
   'scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout-diagnostics.mjs',

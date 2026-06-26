@@ -268,8 +268,10 @@ for (const file of changedFiles()) {
   const allowed =
     file === 'package.json' ||
 	    file === 'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-tools-call-lane-ready-handoff.md' ||
+	    file === 'docs/implementation-prompts/prompt-reeditpro-external-beta-production-readiness-remediation-plan.md' ||
 	    file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
 	    file === 'scripts/validation/open-source-tool-owner-registry-trackb-media-oss-steward-diagnostics.mjs' ||
+	    file.startsWith('docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review/') ||
 	    file.startsWith(`${reportDir}/`) ||
     statusDocs.includes(file)
   if (!allowed && !file.startsWith('scripts/validation/trackb-media-oss-')) {

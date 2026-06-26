@@ -20,3 +20,11 @@ Current status: internal beta `blocked_pending_explicit_staging_migration_path_a
 ## Clean Target Approval Follow-Up
 
 `SUPABASE-CLEAN-STAGING-TARGET-OWNER-APPROVAL-1` selects the clean non-production staging branch/project path for future guarded execution. It does not unlock internal beta or external beta. Current status after that owner approval remains internal beta `blocked_pending_clean_staging_target_migration_chain_and_runtime_gate_closure`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+## Clean Branch Current Target Revalidation Follow-Up
+
+`SUPABASE-CLEAN-STAGING-BRANCH-EXECUTION-CURRENT-TARGET-REVALIDATION-1` records decision `blocked_clean_staging_branch_current_target_revalidation_missing_clean_branch_db_url_secret` and execution `completed_docs_only_current_target_revalidation_no_remote_execution`.
+
+Existing clean branch plugin/catalog evidence remains present for `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho`, and `SUPABASE_ACCESS_TOKEN` version `5` is enabled in Secret Manager metadata. Current remote clean-branch revalidation did not run because the clean branch DB URL alias `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` is missing.
+
+Current status after this follow-up remains internal beta `blocked_pending_clean_branch_db_url_secret_and_runtime_gate_closure`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.

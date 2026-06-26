@@ -1,0 +1,31 @@
+{
+  "schema": "reeditpro.limitedExternalBetaNamedOwnerApprovalsRequest.v1",
+  "ownerId": "REEDITPRO_LIMITED_EXTERNAL_BETA_OWNER_APPROVAL_STEWARD",
+  "decision": "reeditpro_limited_external_beta_named_owner_approvals_request_passed_ready_for_owner_response_intake",
+  "previousDecision": "reeditpro_limited_external_beta_runtime_owner_approval_execution_blocked_pending_named_owner_approvals",
+  "nextPrompt": "REEDITPRO_LIMITED_EXTERNAL_BETA_NAMED_OWNER_APPROVALS_RESPONSE_INTAKE",
+  "sourceSha": "af13a57c028a5b8922a74387f605a6bb5f661d64",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-limited-external-beta-named-owner-approvals-request",
+  "report": "evidence-acceptance-policy",
+  "mustProve": [
+    "same bounded limited external beta scope accepted by every required owner",
+    "support and incident escalation coverage accepted",
+    "privacy storage and signed URL boundaries accepted",
+    "billing credit ledger and refund/failure boundary accepted",
+    "runtime worker dispatch and provider-call boundary accepted",
+    "release and rollback duty accepted"
+  ],
+  "mustNotProveBy": [
+    "generic source-of-truth readiness",
+    "previous metadata plan status",
+    "tool diagnostics",
+    "unnamed comments",
+    "implicit consent"
+  ],
+  "readyForOwnerResponseIntake": true,
+  "readyForLimitedExternalBetaActivationPlan": false,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

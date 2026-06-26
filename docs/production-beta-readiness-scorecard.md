@@ -130,3 +130,13 @@ approval.
 - The next safe action is to collect named owner approvals or explicit rejections. This is not an activation plan and not user exposure.
 - This is not external beta activation, live user exposure, paid beta, production, public delivery, signed URL execution, storage execution, route runtime, worker dispatch, provider execution, or media processing.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Limited External Beta Named Owner Approvals Request Status
+
+- Decision: `reeditpro_limited_external_beta_named_owner_approvals_request_passed_ready_for_owner_response_intake`
+- Next prompt: `REEDITPRO_LIMITED_EXTERNAL_BETA_NAMED_OWNER_APPROVALS_RESPONSE_INTAKE`
+- Scorecard status: external beta and production remain blocked.
+- The request packet defines the required owner response fields and evidence acceptance rules. It records no owner responses and no activation approval.
+- The next response-intake gate must accept only explicit named approvals or explicit rejections. Silence, placeholder names, unnamed comments, generic readiness text, and diagnostics are not valid approvals.
+- This is not external beta activation, live user exposure, paid beta, production, public delivery, signed URL execution, storage execution, route runtime, worker dispatch, provider execution, or media processing.
+- Supabase classification: no write / environment none / SQL none / migration no.

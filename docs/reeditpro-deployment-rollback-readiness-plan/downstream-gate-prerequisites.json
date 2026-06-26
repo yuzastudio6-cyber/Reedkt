@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.deploymentRollbackReadinessPlan.v1",
+  "ownerId": "REEDITPRO_RELEASE_READINESS_STEWARD",
+  "decision": "reeditpro_deployment_rollback_readiness_plan_passed_ready_for_model_license_security_cost_readiness_plan",
+  "previousDecision": "reeditpro_external_beta_production_readiness_remediation_plan_passed_ready_for_deployment_rollback_readiness_plan",
+  "nextPrompt": "REEDITPRO_MODEL_LICENSE_SECURITY_COST_READINESS_PLAN",
+  "sourceSha": "2d83cbbd9a5c49f1fcf229ec82fd4a5441052bdf",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-deployment-rollback-readiness-plan",
+  "report": "downstream-gate-prerequisites",
+  "downstreamGates": [
+    "modelLicenseSecurityCost",
+    "privateStorageDeletionSupabaseGcs",
+    "observabilityIncidentSupport",
+    "backendDatabaseBillingCreditLedger",
+    "realGenerationExportWorkerE2E",
+    "publicArtifactSignedUrlDeliveryPolicy",
+    "externalBetaGoNoGo",
+    "productionGoNoGo"
+  ],
+  "requiredBeforeDownstreamExecution": [
+    "deployment and rollback owner evidence accepted",
+    "environment separation accepted",
+    "rollback evidence requirements accepted",
+    "validation command plan accepted",
+    "external beta and production remain blocked until final go/no-go"
+  ],
+  "readyForModelLicenseSecurityCostReadinessPlan": true,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

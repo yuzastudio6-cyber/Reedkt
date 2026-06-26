@@ -14,3 +14,12 @@ Production and external beta remain blocked until human approvals cover deployme
 - First remediation lane: deployment and rollback readiness planning.
 - Still blocked: provider/model/license approvals, security, cost budgets/concurrency/kill switches, private storage/deletion, observability/alerting, incident response, backend/database/billing/credit ledger, real generation/export worker E2E, public artifact/signed URL delivery policy, external beta go/no-go, and production go/no-go.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Deployment / Rollback Readiness Plan Status
+
+- Decision: `reeditpro_deployment_rollback_readiness_plan_passed_ready_for_model_license_security_cost_readiness_plan`
+- Next prompt: `REEDITPRO_MODEL_LICENSE_SECURITY_COST_READINESS_PLAN`
+- Hardening status: deployment and rollback planning metadata is defined; execution remains blocked.
+- Required future proof: named release/rollback/incident owners, environment separation evidence, release freeze policy, rollback command plan, previous version target, data migration compatibility statement, and post-rollback smoke validation plan.
+- Still blocked: model/license/security/cost, private storage/deletion, observability/alerting, incident response, backend/database/billing/credit ledger, real generation/export worker E2E, delivery/share policy, external beta go/no-go, and production go/no-go.
+- Supabase classification: no write / environment none / SQL none / migration no.

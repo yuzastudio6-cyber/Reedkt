@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.deploymentRollbackReadinessPlan.v1",
+  "ownerId": "REEDITPRO_RELEASE_READINESS_STEWARD",
+  "decision": "reeditpro_deployment_rollback_readiness_plan_passed_ready_for_model_license_security_cost_readiness_plan",
+  "previousDecision": "reeditpro_external_beta_production_readiness_remediation_plan_passed_ready_for_deployment_rollback_readiness_plan",
+  "nextPrompt": "REEDITPRO_MODEL_LICENSE_SECURITY_COST_READINESS_PLAN",
+  "sourceSha": "2d83cbbd9a5c49f1fcf229ec82fd4a5441052bdf",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-deployment-rollback-readiness-plan",
+  "report": "runtime-boundary",
+  "blockedScopes": {
+    "deployments": false,
+    "rollbackCommands": false,
+    "gcloud": false,
+    "docker": false,
+    "installs": false,
+    "runtimeExecution": false,
+    "workerDispatch": false,
+    "supabaseGcsWrites": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "externalBeta": false,
+    "production": false
+  },
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

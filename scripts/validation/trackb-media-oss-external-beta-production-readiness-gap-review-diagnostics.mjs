@@ -10,6 +10,7 @@ const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
 const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review'
 const handoffDir = 'docs/open-source-tool-stack/trackb-media-oss-product-beta-tools-call-lane-ready-handoff'
 const remediationPlanDir = 'docs/reeditpro-external-beta-production-readiness-remediation-plan'
+const deploymentRollbackDir = 'docs/reeditpro-deployment-rollback-readiness-plan'
 const decision =
   'trackb_media_oss_external_beta_production_readiness_gap_review_blocked_pending_reeditpro_global_readiness_remediation_plan'
 const previousDecision =
@@ -261,12 +262,15 @@ for (const file of changedFiles()) {
     file === 'package.json' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-external-beta-production-readiness-remediation-plan.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md' ||
+    file === 'docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md' ||
+    file === 'scripts/validation/reeditpro-deployment-rollback-readiness-plan-diagnostics.mjs' ||
     file === 'scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-external-beta-production-readiness-gap-review-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs' ||
     file.startsWith(`${remediationPlanDir}/`) ||
+    file.startsWith(`${deploymentRollbackDir}/`) ||
     file.startsWith(`${reportDir}/`) ||
     remediationProductionDocs.includes(file) ||
     statusDocs.includes(file)

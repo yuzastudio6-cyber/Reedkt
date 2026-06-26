@@ -28,3 +28,11 @@ Current status: internal beta `blocked_pending_explicit_staging_migration_path_a
 Existing clean branch plugin/catalog evidence remains present for `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho`, and `SUPABASE_ACCESS_TOKEN` version `5` is enabled in Secret Manager metadata. Current remote clean-branch revalidation did not run because the clean branch DB URL alias `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` is missing.
 
 Current status after this follow-up remains internal beta `blocked_pending_clean_branch_db_url_secret_and_runtime_gate_closure`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+## Clean Branch DB URL Secret Handoff
+
+`SUPABASE-CLEAN-STAGING-BRANCH-DB-URL-SECRET-HANDOFF-1` records decision `completed_clean_staging_branch_db_url_secret_handoff` and execution `completed_guarded_secret_payload_handoff_to_secret_manager_no_supabase_sql`.
+
+The clean branch DB URL alias `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` now exists as version `1`, enabled. The guarded handoff used `SUPABASE_ACCESS_TOKEN` version `5` and the Supabase Management API branch config read for `fnjiylwirntrqdcwpbho`; no credential payload was printed or committed.
+
+Current status after this handoff is internal beta `blocked_pending_guarded_clean_target_validation_and_runtime_gate_closure`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.

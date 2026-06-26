@@ -814,6 +814,26 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-DB-URL-SECRET-HANDOFF-1`.
 
+## SUPABASE Clean Staging Branch DB URL Secret Handoff 1
+
+`SUPABASE-CLEAN-STAGING-BRANCH-DB-URL-SECRET-HANDOFF-1` records decision `completed_clean_staging_branch_db_url_secret_handoff` and execution `completed_guarded_secret_payload_handoff_to_secret_manager_no_supabase_sql`.
+
+Prior blocker `blocked_clean_staging_branch_current_target_revalidation_missing_clean_branch_db_url_secret` is closed.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd`; clean branch `reeditpro-internal-staging-clean` / `fnjiylwirntrqdcwpbho`.
+
+Clean branch DB URL secret: `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` / version `1` / `enabled`. Supabase access-token secret metadata: `SUPABASE_ACCESS_TOKEN` version `5` / `enabled`.
+
+Secret Manager payload access: `true_guarded_access_token_and_branch_db_fields_only`. Credential payload printed: `false`. Credential payload persisted in repo: `false`. Supabase Management API read: `completed_branch_config_read_only`.
+
+Remote Supabase SQL command: `none`. SQL execution: `none`. SQL mutation: `none`. Migration deployed: `no`. Migration history table edited: `no`. Storage readback: `none`. Production touched: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `ready_for_clean_staging_branch_current_target_guarded_validation`. WORKER-RUNTIME-TRACKA-PRIVATE-E2E-EXECUTION-GATE-2R readiness: `blocked_pending_clean_staging_target_migration_chain_and_rpc_readback`. TRACKA-PRIVATE-E2E-REVALIDATION-2 readiness: `blocked_pending_worker_transactional_contract`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_guarded_clean_target_validation_and_runtime_gate_closure`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `SUPABASE-CLEAN-STAGING-BRANCH-CURRENT-TARGET-GUARDED-VALIDATION-1`.
+
 ## RP-INTERNAL-BETA Runtime Readiness Orchestrator
 
 `RP-INTERNAL-BETA-RUNTIME-READINESS-ORCHESTRATOR-1` records decision `completed_internal_beta_runtime_readiness_orchestrator_fail_closed` and execution `completed_local_orchestrator_scaffold_no_runtime_execution`.

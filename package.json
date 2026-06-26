@@ -727,6 +727,8 @@
     "supabase-staging-migration-history-owner-decision-1:diagnostics": "node scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs",
     "supabase-clean-staging-target-owner-approval-1:diagnostics": "node scripts/validation/supabase-clean-staging-target-owner-approval-1-diagnostics.mjs",
     "supabase-clean-staging-branch-current-target-revalidation-1:diagnostics": "node scripts/validation/supabase-clean-staging-branch-current-target-revalidation-1-diagnostics.mjs",
+    "supabase-clean-staging-branch-db-url-secret-handoff-1": "node scripts/validation/supabase-clean-staging-branch-db-url-secret-handoff-1.mjs",
+    "supabase-clean-staging-branch-db-url-secret-handoff-1:diagnostics": "node scripts/validation/supabase-clean-staging-branch-db-url-secret-handoff-1-diagnostics.mjs",
     "tool-route:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/tool-route-tracka-private-e2e-gate-1-diagnostics.mjs",
     "tool-route:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/tool-route-tracka-private-e2e-gate-2-diagnostics.mjs",
     "track-a:caption-runtime-path-1": "node scripts/validation/track-a-caption-runtime-path-1.mjs",

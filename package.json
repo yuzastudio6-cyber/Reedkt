@@ -62,6 +62,7 @@
     "ai-video-broll-gen-9j-vm-create-plan:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-create-plan-diagnostics.mjs",
     "ai-video-broll-gen-9j-python-runtime-alignment:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-python-runtime-alignment-diagnostics.mjs",
     "ai-video-broll-gen-9j-vm-create-plan-2:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-create-plan-2-diagnostics.mjs",
+    "ai-video-broll-gen-9j-vm-create-plan-3:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-create-plan-3-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

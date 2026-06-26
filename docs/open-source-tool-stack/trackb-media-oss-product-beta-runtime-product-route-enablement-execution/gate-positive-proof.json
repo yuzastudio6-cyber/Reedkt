@@ -1,0 +1,153 @@
+{
+  "schema": "reeditpro.trackbMediaOss.productRouteEnablementExecution.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_product_route_enablement_execution_passed_ready_for_product_route_enablement_qa_review",
+  "previousDecision": "trackb_media_oss_product_beta_runtime_product_route_enablement_plan_passed_ready_for_product_route_enablement_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_QA_REVIEW",
+  "sourceSha": "bfd406a3f847ff5c5b7e2e7f26d38d9186fdedaf",
+  "sourceHead": "338cb8c0b7288974360d7f6664eef9dfe25c0db3",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "report": "gate-positive-proof",
+  "requiredGates": [
+    "approvedSnapshotState=approved",
+    "editPlanState=approved",
+    "creditReservationState=reserved",
+    "privateArtifactMetadataState=private_source_of_truth",
+    "qaGateState=passed",
+    "fallbackPolicyState=approved",
+    "rollbackState=armed_disabled_noop",
+    "monitoringState=sanitized_receipt_ready",
+    "workerDispatchEnabled=false",
+    "realToolExecutionEnabled=false",
+    "productReadyApproved=false"
+  ],
+  "validationReceipt": {
+    "ok": true,
+    "statusCode": 200,
+    "code": "trackb_media_oss_product_route_enablement_validated",
+    "receipt": {
+      "schemaVersion": "trackb-media-oss-product-route-enablements.v1",
+      "receiptId": "trackb-route-dry-run-trackbmediaoss-toolcall-validate-ffprobe-trackb-route-enablement-dry-run-001",
+      "routeId": "trackbMediaOss.toolCall.validate",
+      "toolId": "ffprobe",
+      "selectedToolRank": 10,
+      "useCase": "metadata_probe",
+      "approvedSnapshotId": "approved_snapshot_trackb_route_enablement",
+      "editPlanId": "edit_plan_trackb_route_enablement",
+      "creditReservationId": "credit_reservation_trackb_route_enablement",
+      "idempotencyKey": "trackb-route-enablement-dry-run-001",
+      "inputArtifactIds": [
+        "artifact_trackb_private_source_metadata"
+      ],
+      "qaGateIds": [
+        "qa_gate_render_asset_integrity",
+        "qa_gate_render_timeline_integrity",
+        "qa_gate_final_delivery"
+      ],
+      "fallbackPolicyId": "fallback_policy_block_preview_final_export_user_review",
+      "rollbackState": "armed_disabled_noop",
+      "monitoringReceipt": {
+        "sanitized": true,
+        "rawPayloadLogged": false,
+        "signedUrlsCreated": false,
+        "publicArtifactsCreated": false,
+        "supabaseWriteAttempted": false,
+        "gcsWriteAttempted": false
+      },
+      "workerDispatchEnabled": false,
+      "realToolExecutionEnabled": false,
+      "productReadyApproved": false,
+      "createdAt": "2026-06-26T02:20:00Z",
+      "status": "validated"
+    }
+  },
+  "queueReceipt": {
+    "ok": true,
+    "statusCode": 202,
+    "code": "trackb_media_oss_product_route_enablement_queued_dry_run",
+    "receipt": {
+      "schemaVersion": "trackb-media-oss-product-route-enablements.v1",
+      "receiptId": "trackb-route-dry-run-trackbmediaoss-toolcall-validate-ffprobe-trackb-route-enablement-dry-run-001",
+      "routeId": "trackbMediaOss.toolCall.validate",
+      "toolId": "ffprobe",
+      "selectedToolRank": 10,
+      "useCase": "metadata_probe",
+      "approvedSnapshotId": "approved_snapshot_trackb_route_enablement",
+      "editPlanId": "edit_plan_trackb_route_enablement",
+      "creditReservationId": "credit_reservation_trackb_route_enablement",
+      "idempotencyKey": "trackb-route-enablement-dry-run-001",
+      "inputArtifactIds": [
+        "artifact_trackb_private_source_metadata"
+      ],
+      "qaGateIds": [
+        "qa_gate_render_asset_integrity",
+        "qa_gate_render_timeline_integrity",
+        "qa_gate_final_delivery"
+      ],
+      "fallbackPolicyId": "fallback_policy_block_preview_final_export_user_review",
+      "rollbackState": "armed_disabled_noop",
+      "monitoringReceipt": {
+        "sanitized": true,
+        "rawPayloadLogged": false,
+        "signedUrlsCreated": false,
+        "publicArtifactsCreated": false,
+        "supabaseWriteAttempted": false,
+        "gcsWriteAttempted": false
+      },
+      "workerDispatchEnabled": false,
+      "realToolExecutionEnabled": false,
+      "productReadyApproved": false,
+      "createdAt": "2026-06-26T02:20:00Z",
+      "status": "queued_dry_run"
+    }
+  },
+  "statusReceipt": {
+    "ok": true,
+    "statusCode": 200,
+    "code": "trackb_media_oss_product_route_enablement_status_dry_run",
+    "receipt": {
+      "schemaVersion": "trackb-media-oss-product-route-enablements.v1",
+      "receiptId": "trackb-route-dry-run-trackbmediaoss-toolcall-validate-ffprobe-trackb-route-enablement-dry-run-001",
+      "routeId": "trackbMediaOss.toolCall.validate",
+      "toolId": "ffprobe",
+      "selectedToolRank": 10,
+      "useCase": "metadata_probe",
+      "approvedSnapshotId": "approved_snapshot_trackb_route_enablement",
+      "editPlanId": "edit_plan_trackb_route_enablement",
+      "creditReservationId": "credit_reservation_trackb_route_enablement",
+      "idempotencyKey": "trackb-route-enablement-dry-run-001",
+      "inputArtifactIds": [
+        "artifact_trackb_private_source_metadata"
+      ],
+      "qaGateIds": [
+        "qa_gate_render_asset_integrity",
+        "qa_gate_render_timeline_integrity",
+        "qa_gate_final_delivery"
+      ],
+      "fallbackPolicyId": "fallback_policy_block_preview_final_export_user_review",
+      "rollbackState": "armed_disabled_noop",
+      "monitoringReceipt": {
+        "sanitized": true,
+        "rawPayloadLogged": false,
+        "signedUrlsCreated": false,
+        "publicArtifactsCreated": false,
+        "supabaseWriteAttempted": false,
+        "gcsWriteAttempted": false
+      },
+      "workerDispatchEnabled": false,
+      "realToolExecutionEnabled": false,
+      "productReadyApproved": false,
+      "createdAt": "2026-06-26T02:20:00Z",
+      "status": "status_dry_run"
+    }
+  },
+  "allPositiveGatesPassed": true,
+  "sanitizedReceiptOnly": true
+}

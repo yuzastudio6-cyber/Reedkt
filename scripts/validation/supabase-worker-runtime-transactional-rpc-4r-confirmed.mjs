@@ -215,6 +215,7 @@ function finish(decision, execution, extra = {}, exitCode = 1) {
     runId,
     outputDir,
     generatedAt: new Date().toISOString(),
+    manifestChecksumPolicy: 'manifest_file_checksum_recorded_outside_self_referential_manifest',
     artifacts: [
       {
         fileName: path.basename(reportPath),
@@ -223,12 +224,6 @@ function finish(decision, execution, extra = {}, exitCode = 1) {
       },
     ],
   }
-  writeJson(manifestPath, manifest)
-  manifest.artifacts.push({
-    fileName: path.basename(manifestPath),
-    path: manifestPath,
-    ...safeStat(manifestPath),
-  })
   writeJson(manifestPath, manifest)
 
   console.log(`${packet} result: ${decision}`)
@@ -275,6 +270,7 @@ finish(
   'blocked_confirmed_target_validation_present_but_no_sql_execution_in_codex_session',
   {
     blocker: 'blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner',
+    credentialContextDecision: credentialDecision,
     targetValidationDependency: targetValidation,
     note: 'This Codex runner intentionally stops before SQL execution. A future external guarded staging SQL runner must use approved credential handling and record readback evidence without printing secrets.',
   },

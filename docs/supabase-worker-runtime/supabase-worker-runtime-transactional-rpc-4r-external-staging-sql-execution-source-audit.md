@@ -11,14 +11,19 @@ Packet: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED-EXTERNAL-STAGING
 - #537: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4`
 - #864: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED`
 - #868: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`
+- #1000: confirmed `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` source closure, merge SHA `3a6b7ce1950cbd450aaad5dcdb68466e58ebc51c`
 
 Static migration source-of-truth: `supabase/migrations/202606180001_worker_runtime_transactional_rpc.sql`
 
-## Current Evidence Gap
+## Current Evidence
 
-The confirmed target validation runner exists, but this source packet has no successful `completed_guarded_supabase_target_rls_storage_readonly_validation` report.
+The confirmed target validation report exists and passed for `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
 
-Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`
+Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`
+
+RPC 4R confirmed closure result: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`
+
+Current evidence gap: `blocked_pending_external_guarded_staging_sql_execution`
 
 SQL executed: none
 

@@ -10,12 +10,13 @@ Packet: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED`
 - #535: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-3`
 - #537: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4`
 - #864: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED`
+- #1000: confirmed `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` source closure, merge SHA `3a6b7ce1950cbd450aaad5dcdb68466e58ebc51c`
 
 Static migration source-of-truth: `supabase/migrations/202606180001_worker_runtime_transactional_rpc.sql`
 
 Target validation source packet: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED`
 
-Target validation source status for this packet: `runner_exists_but_confirmed_remote_readonly_validation_not_run_in_this_session`
+Target validation source status for this packet: `confirmed_remote_readonly_validation_passed`
 
 ## Current Decision
 
@@ -23,9 +24,19 @@ SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CONFIRMED decision: completed_rpc_4
 
 execution: completed_guard_scaffold_no_remote_execution
 
-Current runner result: `blocked_pending_rpc_4r_confirmed_staging_sql_gates`
+Current runner result: `blocked_rpc_4r_confirmed_sql_execution_requires_external_guarded_staging_runner`
 
-Target validation dependency: `blocked_pending_confirmed_supabase_target_rls_storage_validation`
+Current runner execution: `blocked_confirmed_target_validation_present_but_no_sql_execution_in_codex_session`
+
+Target validation dependency: `passed_confirmed_supabase_target_rls_storage_validation`
+
+Credential context decision: `completed_approved_supabase_credential_alias_presence_preflight_no_payload_access`
+
+Target report SHA-256: `9723d72a02ab2a9d2aa930c5ecbc85a2841857d5be11c570754bb8f1516c0b57`
+
+RPC 4R confirmed report SHA-256: `0397747bef9c0adb48b445de69e28685ff5a25b71aa0e22c3bd8cb0b1ec72c86`
+
+Static migration SHA-256: `f847cd1ad0d6838075c17313c89562c8f7d14666fed988a706e0d5f1a9650826`
 
 ## Exclusions
 

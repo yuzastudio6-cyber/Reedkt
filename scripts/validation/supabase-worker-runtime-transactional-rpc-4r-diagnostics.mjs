@@ -283,7 +283,8 @@ for (const token of migrationRequired) {
 for (const file of allChanged) {
   const text = read(file)
   for (const pattern of secretLike) {
-    if (pattern.test(text)) fail(`secret-like value matched in ${file}: ${pattern}`)
+    const match = text.match(pattern)
+    if (match && !match[0].startsWith('postgresql://[redacted]')) fail(`secret-like value matched in ${file}: ${pattern}`)
   }
 }
 

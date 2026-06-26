@@ -11,6 +11,8 @@ It records that ReEditPro is not ready for internal beta because the approved Su
 - Current Supabase credential context: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
 - Current Supabase validation: `blocked_missing_approved_supabase_access_token_alias_and_readonly_db_url_alias`
 - Runtime readiness status: `blocked_pending_supabase_target_validation_and_runtime_enablement`
+- Runtime readiness orchestrator local E2E chain integration: `completed_internal_beta_runtime_readiness_orchestrator_local_e2e_chain_integration_fail_closed`
+- Local E2E evidence status: `local_internal_beta_e2e_chain_metadata_validated_no_remote_runtime`
 - Internal beta end-to-end ready: `false`
 - Product-ready end-to-end local OSS tools: `0`
 

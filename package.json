@@ -696,6 +696,8 @@
     "rp-internal-beta-supabase-credential-context-contract-1:diagnostics": "node scripts/validation/rp-internal-beta-supabase-credential-context-contract-1-diagnostics.mjs",
     "smoke:internal-beta-runtime-readiness-orchestrator": "tsx server/smoke/internal-beta-runtime-readiness-orchestrator-smoke.ts",
     "rp-internal-beta-runtime-readiness-orchestrator-1:diagnostics": "node scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-1-diagnostics.mjs",
+    "smoke:internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration": "tsx server/smoke/internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration-smoke.ts",
+    "rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration:diagnostics": "node scripts/validation/rp-internal-beta-runtime-readiness-orchestrator-2-local-e2e-chain-integration-diagnostics.mjs",
     "rp-internal-beta-runtime-readiness-credential-context-integration-1:diagnostics": "node scripts/validation/rp-internal-beta-runtime-readiness-credential-context-integration-1-diagnostics.mjs",
     "rp-internal-beta-local-readiness-gate-rollup-1": "node scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1.mjs",
     "rp-internal-beta-local-readiness-gate-rollup-1:diagnostics": "node scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs",

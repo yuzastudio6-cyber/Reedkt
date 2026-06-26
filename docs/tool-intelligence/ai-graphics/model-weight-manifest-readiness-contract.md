@@ -12,6 +12,8 @@ This contract defines the private model/checkpoint manifest gate for the AI grap
 
 It does not download model weights, load model weights, run inference, execute workers, execute Tool Routes, process media, mutate storage, create signed URLs, create public artifacts, or unlock beta/production.
 
+The native GPU runtime readiness probe must validate manifest content, not only manifest file presence, before any later model load or inference proof can be considered.
+
 ## Covered Tools
 
 The manifest-required AI graphics tools are:
@@ -45,6 +47,11 @@ Each approved private manifest must include:
 - `securityReviewed`
 - `provenanceReviewed`
 - `approvedForInternalBeta`
+
+The runtime probe rejects public or signed URL artifact refs, invalid SHA-256
+checksums, mismatched `toolId`/`templateId`, false review booleans, and any
+manifest claim that model weights, inference, media processing, Tool Routes,
+Workers, public artifacts, or signed URLs already executed.
 
 ## Current Result
 

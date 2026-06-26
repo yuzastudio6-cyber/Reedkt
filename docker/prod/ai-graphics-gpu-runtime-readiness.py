@@ -15,10 +15,11 @@ import importlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
-from typing import Iterable
+from typing import Iterable, Any
 
 
 PROFILES: dict[str, list[tuple[str, str]]] = {
@@ -74,6 +75,54 @@ MODEL_MANIFEST_DIRS: dict[str, str] = {
     "rembg": "rembg",
     "transparent_background": "transparent-background",
 }
+
+MODEL_MANIFEST_TEMPLATE_IDS: dict[str, str] = {
+    "sam2": "sam2_checkpoint",
+    "birefnet": "birefnet_model",
+    "real_esrgan": "real_esrgan_model",
+    "rembg": "rembg_model",
+    "transparent_background": "transparent_background_model",
+}
+
+REQUIRED_MODEL_MANIFEST_FIELDS = [
+    "manifestId",
+    "toolId",
+    "templateId",
+    "privateArtifactRef",
+    "checksumSha256",
+    "sourceLicenseRef",
+    "modelCardRef",
+    "commercialUseReviewed",
+    "redistributionReviewed",
+    "qualityReviewed",
+    "securityReviewed",
+    "provenanceReviewed",
+    "approvedForInternalBeta",
+]
+
+REVIEW_BOOLEAN_FIELDS = [
+    "commercialUseReviewed",
+    "redistributionReviewed",
+    "qualityReviewed",
+    "securityReviewed",
+    "provenanceReviewed",
+    "approvedForInternalBeta",
+]
+
+FORBIDDEN_MANIFEST_TRUE_FIELDS = [
+    "modelWeightsDownloaded",
+    "modelWeightsLoaded",
+    "modelInferencePerformed",
+    "mediaProcessingPerformed",
+    "providerRuntimePerformed",
+    "toolExecutionPerformed",
+    "workerExecutionPerformed",
+    "routeExecutionPerformed",
+    "publicArtifactCreated",
+    "signedUrlCreated",
+]
+
+SHA256_PATTERN = re.compile(r"^[a-fA-F0-9]{64}$")
 
 FORBIDDEN_TRUE_ENV = [
     "MODEL_DOWNLOADS_ENABLED",
@@ -160,6 +209,74 @@ def run_nvidia_smi() -> dict[str, object]:
     }
 
 
+def require_non_empty_string(manifest: dict[str, Any], field: str, tool_id: str) -> str:
+    value = manifest.get(field)
+    if not isinstance(value, str) or not value.strip():
+        raise RuntimeError(f"{tool_id} model manifest field {field} must be a non-empty string.")
+    return value.strip()
+
+
+def validate_private_artifact_ref(value: str, tool_id: str) -> None:
+    lower = value.lower()
+    if lower.startswith("http://") or lower.startswith("https://"):
+        raise RuntimeError(f"{tool_id} privateArtifactRef must not be an HTTP(S) URL.")
+    if "x-goog-signature=" in lower or "x-amz-signature=" in lower or "signature=" in lower:
+        raise RuntimeError(f"{tool_id} privateArtifactRef must not be a signed URL.")
+    if lower.startswith("public/") or "/public/" in lower or lower.startswith("gs://public"):
+        raise RuntimeError(f"{tool_id} privateArtifactRef must not point at a public artifact path.")
+
+
+def validate_model_manifest(manifest_path: Path, tool_id: str) -> dict[str, str]:
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"Invalid JSON model manifest for {tool_id}: {manifest_path}: {error}") from error
+    if not isinstance(manifest, dict):
+        raise RuntimeError(f"{tool_id} model manifest must be a JSON object: {manifest_path}")
+
+    missing = [field for field in REQUIRED_MODEL_MANIFEST_FIELDS if field not in manifest]
+    if missing:
+        raise RuntimeError(f"{tool_id} model manifest missing required fields: {', '.join(missing)}")
+
+    manifest_tool_id = require_non_empty_string(manifest, "toolId", tool_id)
+    if manifest_tool_id != tool_id:
+        raise RuntimeError(f"{tool_id} model manifest toolId mismatch: {manifest_tool_id}")
+
+    template_id = require_non_empty_string(manifest, "templateId", tool_id)
+    expected_template_id = MODEL_MANIFEST_TEMPLATE_IDS[tool_id]
+    if template_id != expected_template_id:
+        raise RuntimeError(f"{tool_id} model manifest templateId must be {expected_template_id}, got {template_id}")
+
+    manifest_id = require_non_empty_string(manifest, "manifestId", tool_id)
+    private_artifact_ref = require_non_empty_string(manifest, "privateArtifactRef", tool_id)
+    validate_private_artifact_ref(private_artifact_ref, tool_id)
+
+    checksum = require_non_empty_string(manifest, "checksumSha256", tool_id)
+    if not SHA256_PATTERN.fullmatch(checksum):
+        raise RuntimeError(f"{tool_id} model manifest checksumSha256 must be a 64-character hex SHA-256 digest.")
+
+    require_non_empty_string(manifest, "sourceLicenseRef", tool_id)
+    require_non_empty_string(manifest, "modelCardRef", tool_id)
+
+    for field in REVIEW_BOOLEAN_FIELDS:
+        if manifest.get(field) is not True:
+            raise RuntimeError(f"{tool_id} model manifest field {field} must be true.")
+
+    for field in FORBIDDEN_MANIFEST_TRUE_FIELDS:
+        if manifest.get(field) is True:
+            raise RuntimeError(f"{tool_id} model manifest must not claim {field}=true.")
+
+    return {
+        "toolId": tool_id,
+        "manifestPath": str(manifest_path),
+        "manifestId": manifest_id,
+        "templateId": template_id,
+        "privateArtifactRefStatus": "present_private_ref_not_logged",
+        "checksumSha256": checksum,
+        "status": "validated_not_loaded",
+    }
+
+
 def check_model_manifests(weight_dir: Path, profile: str) -> list[dict[str, str]]:
     required = MODEL_MANIFEST_DIRS.keys() if profile == "gpu_worker_ai_graphics" else [profile]
     results: list[dict[str, str]] = []
@@ -170,11 +287,7 @@ def check_model_manifests(weight_dir: Path, profile: str) -> list[dict[str, str]
         manifest_path = weight_dir / directory / "model_tree_manifest.json"
         if not manifest_path.exists():
             raise RuntimeError(f"Missing reviewed model manifest for {tool_id}: {manifest_path}")
-        results.append({
-            "toolId": tool_id,
-            "manifestPath": str(manifest_path),
-            "status": "present_not_loaded",
-        })
+        results.append(validate_model_manifest(manifest_path, tool_id))
     return results
 
 
@@ -221,7 +334,10 @@ def main() -> int:
     manifest_results: list[dict[str, str]] = []
     if args.require_model_weight_manifests:
         weight_dir = Path(os.environ.get("REEDITPRO_MODEL_WEIGHT_DIR", "/opt/reeditpro/model-weights"))
-        manifest_results = check_model_manifests(weight_dir, args.profile)
+        try:
+            manifest_results = check_model_manifests(weight_dir, args.profile)
+        except RuntimeError as error:
+            return blocked("blocked_model_manifest_validation_failed", str(error))
 
     print(json.dumps({
         "status": "passed",

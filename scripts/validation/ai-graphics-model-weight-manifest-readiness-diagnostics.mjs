@@ -125,6 +125,7 @@ const source = read('server/tool-registry/ai-graphics-model-weight-manifest-read
 const index = read('server/tool-registry/index.ts')
 const markdown = read('docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.md')
 const templatesSource = read('server/model-weights/model-weight-manifest-templates.ts')
+const runtimeProbe = read('docker/prod/ai-graphics-gpu-runtime-readiness.py')
 
 if (pkg.scripts?.[scriptName] !== scriptCommand) fail(`missing_package_script:${scriptName}`)
 if (!index.includes("export * from './ai-graphics-model-weight-manifest-readiness'")) {
@@ -142,6 +143,19 @@ if (contract.counts?.modelWeightTemplateIdsCovered !== 5) fail('model_weight_tem
 if (contract.counts?.manifestRecordsProvided !== 0) fail('manifest_records_provided_not_zero')
 if (contract.counts?.manifestRecordsApproved !== 0) fail('manifest_records_approved_not_zero')
 if (contract.counts?.betaReadyModelWeightTools !== 0) fail('beta_ready_model_weight_tools_not_zero')
+for (const key of [
+  'validatesManifestContent',
+  'rejectsMissingRequiredFields',
+  'requiresExactToolIdAndTemplateId',
+  'requiresSha256Digest',
+  'rejectsHttpSignedOrPublicArtifactRefs',
+  'rejectsExecutionCompletionClaims',
+]) {
+  if (contract.runtimeProbeManifestValidation?.[key] !== true) fail(`runtime_probe_validation_not_true:${key}`)
+}
+for (const key of ['modelWeightsLoaded', 'modelInferencePerformed']) {
+  if (contract.runtimeProbeManifestValidation?.[key] !== false) fail(`runtime_probe_validation_not_false:${key}`)
+}
 
 if (worker.decision !== 'ai_graphics_worker_handoff_readiness_contract_prepared_with_execution_blocks') {
   fail('source_worker_handoff_decision_not_accepted')
@@ -189,6 +203,7 @@ for (const templateId of modelTemplateIds) {
 for (const field of requiredManifestFields) {
   if (!contract.requiredManifestFields?.includes(field)) fail(`required_manifest_field_missing:${field}`)
   if (!source.includes(field)) fail(`source_missing_manifest_field:${field}`)
+  if (!runtimeProbe.includes(field)) fail(`runtime_probe_missing_manifest_field:${field}`)
 }
 for (const field of [
   'No reviewed private model/checkpoint manifest records are approved in this lane.',
@@ -249,6 +264,21 @@ for (const key of [
 }
 
 const combinedText = [markdown, JSON.stringify(contract), source].join('\n')
+for (const token of [
+  'REQUIRED_MODEL_MANIFEST_FIELDS',
+  'MODEL_MANIFEST_TEMPLATE_IDS',
+  'FORBIDDEN_MANIFEST_TRUE_FIELDS',
+  'SHA256_PATTERN',
+  'validate_model_manifest',
+  'validate_private_artifact_ref',
+  'blocked_model_manifest_validation_failed',
+  'validated_not_loaded',
+  'present_private_ref_not_logged',
+  'privateArtifactRef must not be an HTTP(S) URL',
+  'checksumSha256 must be a 64-character hex SHA-256 digest',
+]) {
+  if (!runtimeProbe.includes(token)) fail(`runtime_probe_missing:${token}`)
+}
 for (const pattern of [
   /modelWeightManifestsApprovedNow["`:= ]+true/i,
   /modelWeightsDownloaded["`:= ]+true/i,

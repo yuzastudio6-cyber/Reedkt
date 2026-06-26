@@ -88,6 +88,7 @@ Latest observed PR state after model-weight manifest readiness completion: [#862
   - `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.json`
   - `ai-graphics:model-weight-manifest-readiness:diagnostics`
 - Model-weight manifest result: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background` now have explicit required private manifest fields and template mappings. Manifest records provided remain 0, manifest records approved remain 0, beta-ready model-weight tools remain 0, and no model weights were downloaded or loaded.
+- Runtime manifest schema hardening: `docker/prod/ai-graphics-gpu-runtime-readiness.py` now validates `model_tree_manifest.json` content for exact `toolId`/`templateId`, non-empty private artifact and provenance refs, a 64-character SHA-256 checksum, all review booleans, no public or signed URL artifact refs, and no execution-completed claims. This strengthens the native GPU runtime proof without downloading weights, loading checkpoints, or enabling execution.
 
 ## Runtime State
 

@@ -67,11 +67,37 @@ for (const key of [
   "requiresTorchCudaAvailable",
   "tinyCudaTensorProbe",
   "modelWeightManifestCheckAvailable",
+  "modelWeightManifestContentValidation",
 ]) {
   if (gate?.runtimeReadinessScript?.[key] !== true) fail(`Expected runtimeReadinessScript.${key}=true`);
 }
 if (gate?.runtimeReadinessScript?.minComputeCapability !== "8.9") {
   fail("Runtime readiness gate must require compute capability 8.9 for the L4 target.");
+}
+for (const field of [
+  "manifestId",
+  "toolId",
+  "templateId",
+  "privateArtifactRef",
+  "checksumSha256",
+  "sourceLicenseRef",
+  "modelCardRef",
+  "commercialUseReviewed",
+  "redistributionReviewed",
+  "qualityReviewed",
+  "securityReviewed",
+  "provenanceReviewed",
+  "approvedForInternalBeta",
+]) {
+  if (!gate?.runtimeReadinessScript?.modelWeightManifestRequiredFields?.includes(field)) {
+    fail(`Runtime readiness gate missing required manifest field ${field}`);
+  }
+}
+if (gate?.runtimeReadinessScript?.modelWeightManifestPublicUrlRejected !== true) {
+  fail("Runtime readiness gate must reject public or signed URL manifest artifact refs.");
+}
+if (gate?.runtimeReadinessScript?.modelWeightManifestForbiddenExecutionClaimsRejected !== true) {
+  fail("Runtime readiness gate must reject execution-completed manifest claims.");
 }
 for (const key of [
   "modelWeightsLoaded",
@@ -171,6 +197,17 @@ for (const token of [
   "GCS_UPLOAD_ENABLED",
   "--require-model-weight-manifests",
   "model_tree_manifest.json",
+  "REQUIRED_MODEL_MANIFEST_FIELDS",
+  "MODEL_MANIFEST_TEMPLATE_IDS",
+  "FORBIDDEN_MANIFEST_TRUE_FIELDS",
+  "SHA256_PATTERN",
+  "validate_model_manifest",
+  "validate_private_artifact_ref",
+  "blocked_model_manifest_validation_failed",
+  "validated_not_loaded",
+  "present_private_ref_not_logged",
+  "privateArtifactRef must not be an HTTP(S) URL",
+  "checksumSha256 must be a 64-character hex SHA-256 digest",
   "\"modelWeightsLoaded\": False",
   "\"mediaProcessed\": False",
   "\"providerRuntimeUsed\": False",

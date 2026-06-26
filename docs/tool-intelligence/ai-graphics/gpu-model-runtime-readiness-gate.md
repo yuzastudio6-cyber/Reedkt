@@ -43,11 +43,18 @@ runtime. It requires:
 - at least one visible CUDA device
 - CUDA compute capability at or above `8.9` for the approved NVIDIA L4 target
 - a tiny CUDA tensor probe
-- optional reviewed model manifest checks via `--require-model-weight-manifests`
+- reviewed model manifest checks via `--require-model-weight-manifests`
 
 The script refuses side-effect flags for model downloads, provider execution,
 real media input, public artifacts, signed URLs, Tool Route execution, Worker
 execution, Supabase mutation, and GCS upload.
+
+When model manifests are required, the script now validates the
+`model_tree_manifest.json` content for exact `toolId`/`templateId`, non-empty
+private artifact and provenance refs, a 64-character `checksumSha256`, all
+review booleans set to true, no public or signed URL artifact refs, and no
+claims that model weights, inference, media, routes, workers, public artifacts,
+or signed URLs already executed.
 
 It does not download model weights, load checkpoints, process media, call
 providers, execute Product Tool Routes, execute Workers, create signed URLs,
@@ -139,8 +146,8 @@ outside an approved native NVIDIA proof lane.
 
 - Native `linux/amd64` NVIDIA runtime proof has not run here.
 - `docker run --gpus all` has not passed here.
-- Reviewed `model_tree_manifest.json` files have not been mounted for the model
-  tools.
+- Reviewed and schema-valid `model_tree_manifest.json` files have not been
+  mounted for the model tools.
 - Model weights have not been downloaded, loaded, or executed.
 - SAM2 optional CUDA post-processing extension runtime behavior remains pending
   because install-proof uses `SAM2_BUILD_CUDA=0`.
@@ -178,6 +185,6 @@ outside an approved native NVIDIA proof lane.
 ## Next Proof
 
 Run the four runtime readiness commands on an approved native NVIDIA builder
-with reviewed private model manifests mounted. After that, a separate approved
-lane must prove model loading and minimal private fixtures before agent/tool
-execution or beta readiness can be reconsidered.
+with reviewed, schema-valid private model manifests mounted. After that, a
+separate approved lane must prove model loading and minimal private fixtures
+before agent/tool execution or beta readiness can be reconsidered.

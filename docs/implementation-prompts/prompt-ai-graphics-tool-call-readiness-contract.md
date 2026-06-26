@@ -58,6 +58,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up Tool Route readiness contract adds `server/tool-registry/ai-graphics-tool-route-readiness.ts`, `docs/tool-intelligence/ai-graphics/tool-route-readiness-contract.md`, `docs/tool-intelligence/ai-graphics/tool-route-readiness-contract.json`, and `ai-graphics:tool-route-readiness:diagnostics` so future AI graphics Tool Routes can return ranked planning metadata for all 12 capabilities and fail closed for execution requests until all runtime and owner gates pass.
 - Follow-up Worker handoff readiness contract adds `server/tool-registry/ai-graphics-worker-handoff-readiness.ts`, `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.md`, `docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.json`, and `ai-graphics:worker-handoff-readiness:diagnostics` so future AI graphics workers receive approved-snapshot, credit, private-manifest, idempotency, runtime, and owner gate requirements for all 21 tool packets without approving queue or execution.
 - Follow-up model-weight manifest readiness contract adds `server/tool-registry/ai-graphics-model-weight-manifest-readiness.ts`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.md`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.json`, and `ai-graphics:model-weight-manifest-readiness:diagnostics` so SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background have explicit private manifest fields, template IDs, and fail-closed blockers before native GPU runtime or beta can be reconsidered.
+- Follow-up runtime manifest schema hardening updates `docker/prod/ai-graphics-gpu-runtime-readiness.py`, `docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.*`, and `docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.*` so `--require-model-weight-manifests` validates manifest content instead of only file presence, while still blocking weight downloads, model loads, inference, workers, routes, public artifacts, beta, and production.
 
 ## Expected Validation
 
@@ -66,6 +67,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - `npm run --silent ai-graphics:tool-route-readiness:diagnostics`
 - `npm run --silent ai-graphics:worker-handoff-readiness:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-readiness:diagnostics`
+- `npm run --silent ai-graphics:gpu-model-runtime-readiness-gate:diagnostics`
 - `npm run --silent ai-graphics:tool-call-handoff:diagnostics`
 - `npm run --silent ai-graphics:tool-call-plan-evaluator:diagnostics`
 - `npm run --silent ai-graphics:tool-call-readiness:diagnostics`

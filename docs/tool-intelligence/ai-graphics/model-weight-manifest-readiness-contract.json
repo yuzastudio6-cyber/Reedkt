@@ -23,7 +23,18 @@
     "serverModule": "server/tool-registry/ai-graphics-model-weight-manifest-readiness.ts",
     "serverExport": "server/tool-registry/index.ts",
     "diagnostic": "scripts/validation/ai-graphics-model-weight-manifest-readiness-diagnostics.mjs",
-    "packageScript": "ai-graphics:model-weight-manifest-readiness:diagnostics"
+    "packageScript": "ai-graphics:model-weight-manifest-readiness:diagnostics",
+    "runtimeProbe": "docker/prod/ai-graphics-gpu-runtime-readiness.py"
+  },
+  "runtimeProbeManifestValidation": {
+    "validatesManifestContent": true,
+    "rejectsMissingRequiredFields": true,
+    "requiresExactToolIdAndTemplateId": true,
+    "requiresSha256Digest": true,
+    "rejectsHttpSignedOrPublicArtifactRefs": true,
+    "rejectsExecutionCompletionClaims": true,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false
   },
   "counts": {
     "totalAiGraphicsTools": 21,

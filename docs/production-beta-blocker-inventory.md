@@ -101,6 +101,22 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-CHAIN-APPLY-1`.
 
+## SUPABASE Clean Staging Isolated Target Migration Chain Apply 1
+
+`SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1` records decision `completed_isolated_target_migration_chain_apply_and_readback` and execution `completed_guarded_isolated_target_migration_chain_apply_readback_no_beta_unlock`.
+
+Target: `reeditpro-clean-staging-isolated-v1` / `fajinbvwhcjnutkaumkm`. Target DB URL secret: `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` / version `2` / `enabled`.
+
+The guarded runner completed migration dry-run, migration apply, post-apply migration-history readback, and read-only catalog/storage metadata readback. Required migrations `202606050001`, `202606180001`, and `20260625031135` are present. Missing expected tables, missing RLS, missing private buckets, and public private buckets are all `none`.
+
+Remote Supabase mutation: `migration_apply_only`. SQL execution: `migration_apply_and_readonly_catalog_sql`. SQL mutation: `migration_apply_only`. Migration history manual edit: `no`. Storage object creation: `false`. Storage object read: `false`. Service-role route execution: `false`. Worker execution: `false`. Internal beta unlocked: `false`. External beta unlocked: `false`.
+
+WORKER-RUNTIME-TRANSACTIONAL-CONTRACT-2 readiness: `ready_for_isolated_target_worker_rpc_readback`. INTERNAL-BETA-READINESS-ROLLUP readiness: `blocked_pending_worker_rpc_readback_service_role_runtime_private_storage_and_runtime_gates`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next milestone: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1`.
+
 ## RP-INTERNAL-BETA Supabase Target RLS Storage Validation 1R Confirmed Runner
 
 `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED` records decision `completed_guarded_supabase_target_rls_storage_readonly_validation` and execution `completed_readonly_target_identity_and_advisor_validation_no_mutation`.

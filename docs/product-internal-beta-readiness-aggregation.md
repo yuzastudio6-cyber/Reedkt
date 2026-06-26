@@ -118,3 +118,15 @@ The guarded runner created `reeditpro-clean-staging-isolated-v1` / `fajinbvwhcjn
 Current status after guarded execution is internal beta `blocked_pending_isolated_target_migration_chain_apply`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestone: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1`.
+
+## Supabase Clean Staging Isolated Target Migration Chain Apply 1
+
+`SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1` records decision `completed_isolated_target_migration_chain_apply_and_readback` and execution `completed_guarded_isolated_target_migration_chain_apply_readback_no_beta_unlock`.
+
+The guarded runner used `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` version `2`, confirmed source-aligned history with no remote-only migration IDs, completed `supabase db push --dry-run --db-url [redacted]`, completed `supabase db push --db-url [redacted]`, and then ran `psql readonly catalog query against public/storage metadata [db-url redacted]`. Required migrations `202606050001`, `202606180001`, and `20260625031135` are present after apply; expected table/RLS/private-bucket readback has no missing table, RLS, or private-bucket blockers.
+
+No migration history manual edit, Supabase db pull, storage object creation/read, service-role route execution, worker execution, internal beta unlock, external beta unlock, production unlock, package-lock mutation, or generated artifact commit occurred.
+
+Current status after guarded execution is internal beta `blocked_pending_worker_rpc_readback_service_role_runtime_private_storage_and_runtime_gates`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestone: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1`.

@@ -1,0 +1,20 @@
+{
+  "packet": "SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-MIGRATION-CHAIN-APPLY-1",
+  "runId": "2026-06-26T20-17-17-711Z-6032e557",
+  "outputDir": "/tmp/reeditpro-supabase-clean-staging-isolated-target-migration-chain-apply-1/2026-06-26T20-17-17-711Z-6032e557",
+  "generatedAt": "2026-06-26T20:17:41.210Z",
+  "artifacts": [
+    {
+      "fileName": "clean_staging_isolated_target_migration_chain_apply_report.json",
+      "path": "docs/activation-supabase-clean-staging-isolated-target-migration-chain-apply-1-reports/clean_staging_isolated_target_migration_chain_apply_report.json",
+      "bytes": 14888,
+      "sha256": "19c849a2223cedf8caaaf447299d15d7b77979e5dc400e9a27a62b3df0db3f2f"
+    },
+    {
+      "fileName": "clean_staging_isolated_target_migration_chain_apply_manifest.json",
+      "path": "docs/activation-supabase-clean-staging-isolated-target-migration-chain-apply-1-reports/clean_staging_isolated_target_migration_chain_apply_manifest.json",
+      "bytes": 696,
+      "sha256": "596c1fa2775c63374fdb9ee3e06d852302d99cc413bae6369d08d80b0e8384c5"
+    }
+  ]
+}

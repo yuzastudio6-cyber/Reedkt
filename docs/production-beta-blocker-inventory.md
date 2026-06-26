@@ -155,7 +155,7 @@ Next milestone: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMP
 
 Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`. Required confirmation: `REEDITPRO_CONFIRM_INTERNAL_BETA_SUPABASE_TARGET_RLS_STORAGE_VALIDATION=true`. Observed confirmation: `present_true`. Current run status: `completed_guarded_supabase_target_rls_storage_readonly_validation`.
 
-Credential alias support: `approved_env_aliases_supported_payloads_redacted`. The confirmed runner accepts `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, or `REEDITPRO_SUPABASE_ACCESS_TOKEN` for target identity, plus `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, or `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL` for read-only advisor lint. The confirmed run used `SUPABASE_ACCESS_TOKEN` and `REEDITPRO_STAGING_SUPABASE_DB_URL`; payload values were read only as ephemeral process environment handoff and were not printed, committed, or persisted in repo docs.
+Credential alias support: `approved_env_aliases_supported_payloads_redacted`. The confirmed runner accepts `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, or `REEDITPRO_SUPABASE_ACCESS_TOKEN` for target identity, plus `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, or `STAGING_SUPABASE_DB_URL` for read-only advisor lint. The confirmed run used `SUPABASE_ACCESS_TOKEN` and `REEDITPRO_STAGING_SUPABASE_DB_URL`; payload values were read only as ephemeral process environment handoff and were not printed, committed, or persisted in repo docs.
 
 Run ID: `2026-06-26T14-39-42-178Z-ec258ac5`. Target identity: `passed_readonly_management_api_project_list`. Advisor lint: `passed_readonly_public_storage_schema_lint`. RLS validation: `passed_readonly_advisor_lint`. Storage validation: `passed_readonly_storage_schema_advisor_lint`.
 
@@ -205,7 +205,7 @@ Named Supabase target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
 
 Approved access-token aliases: `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, `REEDITPRO_SUPABASE_ACCESS_TOKEN`.
 
-Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`.
+Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`.
 
 Commands executed by preflight: `none`. Credential payloads printed: `false`. Credential payloads persisted: `false`.
 
@@ -227,7 +227,7 @@ Contract module: `server/config/internal-beta-supabase-credential-context-contra
 
 Approved access-token aliases: `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, `REEDITPRO_SUPABASE_ACCESS_TOKEN`.
 
-Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`.
+Approved read-only DB URL aliases: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`.
 
 Payload access: `forbidden`. Credential payloads printed: `false`. Credential payloads persisted: `false`.
 
@@ -346,6 +346,16 @@ GPAC/MP4Box remains `blocked_gpac_mp4box_package_source_unavailable`. VapourSynt
 Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
+## RP-INTERNAL-BETA Approved Snapshot Service-Role Persistence Implementation 1
+
+`RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-IMPLEMENTATION-1` records decision `completed_service_role_persistence_envelope_validated_no_remote_write` and execution `completed_backend_service_role_persistence_envelope_no_remote_execution`.
+
+The backend-only service implementation validates deterministic local row envelopes for `approved_plan_snapshots`, `approval_records`, `api_idempotency_keys`, and `audit_events`, including approved snapshot UUID, request hash, plan/credit/source/timing hashes, approval-record patch metadata, idempotency metadata, and append-only audit metadata.
+
+Supabase persistence remains `false`. Remote Supabase mutation: `false`. SQL execution: `false`. RPC execution: `false`. Service-role route execution: `false`. Worker execution: `false`. Credit mutation: `false`. Job enqueue: `false`. Storage object creation/read: `false`. Signed/public artifacts: `false`. Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`.
+
+Next safe milestone: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARDED-REMOTE-WRITE-1`.
 
 ## SUPABASE Clean Staging Branch Migration Chain Apply 1
 

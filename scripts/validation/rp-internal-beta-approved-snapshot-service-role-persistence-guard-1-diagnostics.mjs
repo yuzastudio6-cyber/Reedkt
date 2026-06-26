@@ -27,7 +27,51 @@ const allowedExtra = [
   'scripts/validation/rp-internal-beta-local-readiness-gate-rollup-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...allowedExtra])
+const followOnApprovedSnapshotServiceRolePersistenceImplementation1Files = [
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-implementation-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-implementation-1/implementation-contract.md',
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-implementation-1/readiness-gate.md',
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-implementation-1/safety-boundary.md',
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-implementation-1/validation-results.md',
+  'docs/internal-beta/rp-internal-beta-approved-snapshot-service-role-persistence-implementation-1/service-role-persistence-implementation-record.json',
+  'docs/activation-phase-rp-internal-beta-approved-snapshot-service-role-persistence-implementation-1-results.md',
+  'docs/activation-phase-rp-internal-beta-supabase-credential-context-contract-1-results.md',
+  'docs/activation-phase-rp-internal-beta-supabase-target-credential-context-preflight-1-results.md',
+  'docs/activation-phase-rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-results.md',
+  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/alias-matrix.md',
+  'docs/internal-beta/rp-internal-beta-supabase-credential-context-contract-1/credential-context-contract-record.json',
+  'docs/internal-beta/rp-internal-beta-supabase-target-credential-context-preflight-1/alias-matrix.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-credential-context-preflight-1/credential-context-preflight-record.json',
+  'docs/internal-beta/rp-internal-beta-supabase-target-credential-context-preflight-1/source-audit.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner.md',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/confirmed-runner-record.json',
+  'docs/internal-beta/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed/source-audit.md',
+  'docs/product-internal-beta-readiness-aggregation.md',
+  'docs/production-beta-blocker-inventory.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'implementation-status-and-next-phase.md',
+  'server/config/internal-beta-supabase-credential-context-contract.ts',
+  'server/services/internal-beta-approved-snapshot-service-role-persistence-implementation.ts',
+  'server/smoke/internal-beta-supabase-credential-context-contract-smoke.ts',
+  'server/smoke/internal-beta-approved-snapshot-service-role-persistence-implementation-smoke.ts',
+  'scripts/validation/rp-internal-beta-supabase-credential-context-contract-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-credential-context-preflight-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed.mjs',
+  'scripts/validation/rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-approved-snapshot-service-role-persistence-implementation-1-diagnostics.mjs',
+  'scripts/validation/supabase-service-role-runtime-boundary-validation-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-approved-snapshot-service-role-persistence-guard-1-diagnostics.mjs',
+  'scripts/validation/rp-internal-beta-approved-snapshot-persistence-local-runtime-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
+]
+
+const allowedChangedFiles = new Set([
+  ...requiredFiles,
+  ...allowedExtra,
+  ...followOnApprovedSnapshotServiceRolePersistenceImplementation1Files,
+])
 
 const requiredText = [
   packet,

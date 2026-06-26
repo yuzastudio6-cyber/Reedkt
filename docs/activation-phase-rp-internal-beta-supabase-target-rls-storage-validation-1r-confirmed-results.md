@@ -18,7 +18,7 @@ Credential alias support: `approved_env_aliases_supported_payloads_redacted`
 
 Accepted access-token env names: `SUPABASE_ACCESS_TOKEN`, `REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN`, `REEDITPRO_SUPABASE_ACCESS_TOKEN`
 
-Accepted read-only DB URL env names: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`, `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`
+Accepted read-only DB URL env names: `REEDITPRO_SUPABASE_READONLY_DB_URL`, `REEDITPRO_STAGING_SUPABASE_DB_URL`, `SUPABASE_STAGING_DB_URL`, `STAGING_SUPABASE_DB_URL`
 
 Validation runner: `npm run rp-internal-beta-supabase-target-rls-storage-validation-1r-confirmed`
 

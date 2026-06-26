@@ -40,7 +40,6 @@ Read-only DB URL aliases accepted by presence only:
 - `REEDITPRO_STAGING_SUPABASE_DB_URL`
 - `SUPABASE_STAGING_DB_URL`
 - `STAGING_SUPABASE_DB_URL`
-- `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`
 
 The runner records only the selected environment variable name and boolean presence. It never writes, prints, or summarizes the access token or database URL payload.
 

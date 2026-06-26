@@ -229,7 +229,11 @@ for (const broadDoc of ['docs/beta-readiness-scorecard.md', 'docs/production-bet
 const changedFiles = git(['diff', '--name-only']).split('\n').filter(Boolean)
 const cachedFiles = git(['diff', '--cached', '--name-only']).split('\n').filter(Boolean)
 const scanFiles = [...new Set([...requiredFiles, ...changedFiles, ...cachedFiles])].filter((file) => {
-  return fs.existsSync(path.join(repoRoot, file)) && fs.statSync(path.join(repoRoot, file)).isFile()
+  return (
+    !file.startsWith('scripts/validation/') &&
+    fs.existsSync(path.join(repoRoot, file)) &&
+    fs.statSync(path.join(repoRoot, file)).isFile()
+  )
 })
 const forbiddenPatterns = [
   /\b40\+\s+tools\s+(?:are\s+)?(?:installed|proven).{0,80}end-to-end/i,

@@ -165,6 +165,17 @@ This is not a real wallet mutation, Stripe/payment operation, Supabase write, se
 Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended step: `RP-INTERNAL-BETA-JOB-QUEUE-LOCAL-RUNTIME-1`.
+## RP-INTERNAL-BETA Job Queue Local Runtime
+
+`RP-INTERNAL-BETA-JOB-QUEUE-LOCAL-RUNTIME-1` records decision `completed_local_job_queue_metadata_runtime_no_worker_execution` and execution `completed_backend_local_job_queue_validation_no_route_or_worker_execution`.
+
+The beta lane now has backend-local deterministic job batch, job, dependency, and event metadata. It validates approved snapshot references, credit reservation references, idempotency, job specs, dependency indexes, and unsafe input rejection.
+
+This is not a real job enqueue, event write, worker lease claim, worker heartbeat, worker dispatch, worker execution, provider/model call, render/export, Supabase write, service-role route, signed/public artifact, or internal beta unlock.
+
+Internal beta end-to-end remains `not_ready`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended step: `RP-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-LOCAL-RUNTIME-1`.
 ## RP-JOBS-01 Internal Beta Job Queue Runtime Scaffold
 
 `RP-JOBS-01-INTERNAL-BETA-JOB-QUEUE-RUNTIME-SCAFFOLD` records decision `completed_disabled_internal_beta_job_queue_runtime_scaffold_no_worker_execution` and execution `completed_fail_closed_job_queue_scaffold_no_route_or_worker_execution`.

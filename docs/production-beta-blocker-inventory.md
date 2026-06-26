@@ -165,6 +165,18 @@ Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tool
 
 Next safe milestone: `RP-INTERNAL-BETA-JOB-QUEUE-LOCAL-RUNTIME-1`.
 
+## Internal Beta Job Queue Local Runtime
+
+`RP-INTERNAL-BETA-JOB-QUEUE-LOCAL-RUNTIME-1` records decision `completed_local_job_queue_metadata_runtime_no_worker_execution` and execution `completed_backend_local_job_queue_validation_no_route_or_worker_execution`.
+
+The local runtime now creates deterministic job batch, job, dependency, and event metadata after approved snapshot and credit reservation reference checks. It rejects missing idempotency, invalid dependencies, raw prompt fields, signed/public URL fields, service-role fields, provider secret fields, and secret-like metadata. It keeps real queue push, Supabase persistence, service-role route execution, worker lease claim, worker heartbeat, worker dispatch, worker execution, provider/model calls, render/export, public artifacts, and beta unlock paths blocked.
+
+Local job batch record created: `true`. Local job records created: `2`. Local job dependency records created: `1`. Local job event records created: `2`. Job enqueue executed: `false`. Job event write executed: `false`. Worker lease claim executed: `false`. Worker heartbeat executed: `false`. Worker dispatch executed: `false`. Worker execution: `false`. Supabase persistence: `false`.
+
+Internal beta end-to-end ready: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe milestone: `RP-INTERNAL-BETA-PRIVATE-ARTIFACT-MANIFEST-LOCAL-RUNTIME-1`.
+
 ## SUPABASE-WORKER-RUNTIME RPC 4R Credential Context Hardening
 
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-4R-CREDENTIAL-CONTEXT-HARDENING-1` records decision `completed_rpc_4r_credential_context_hardening_fail_closed` and execution `completed_local_runner_hardening_no_sql_execution`.

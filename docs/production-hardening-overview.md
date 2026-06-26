@@ -50,3 +50,12 @@ Production and external beta remain blocked until human approvals cover deployme
 - Required future proof: privacy-safe telemetry taxonomy, log and metric coverage, alert route owners, incident severity runbooks, support escalation owners, support artifact redaction, and audit-retention policy.
 - Still blocked: backend/database/billing/credit ledger, real generation/export worker E2E, delivery/share policy, external beta go/no-go, and production go/no-go.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Backend / Database / Billing / Credit Ledger Readiness Plan Status
+
+- Decision: `reeditpro_backend_database_billing_credit_ledger_readiness_plan_passed_ready_for_worker_generation_export_e2e_readiness_plan`
+- Next prompt: `REEDITPRO_WORKER_GENERATION_EXPORT_E2E_READINESS_PLAN`
+- Hardening status: backend/database/billing/credit-ledger planning metadata is defined; execution remains blocked.
+- Required future proof: named backend/database/billing/ledger owners, migration review, RLS/storage policy proof, billing test-mode proof, idempotent credit ledger transitions, append-only audit logging, refund/reconciliation paths, and support escalation audit.
+- Still blocked: real generation/export worker E2E, delivery/share policy, external beta go/no-go, and production go/no-go.
+- Supabase classification: no write / environment none / SQL none / migration no.

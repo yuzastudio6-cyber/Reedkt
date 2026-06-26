@@ -75,3 +75,12 @@ approval.
 - Log, metric, error, telemetry privacy, alert routing, incident severity, support ownership, and escalation requirements are defined as metadata only.
 - This is not live telemetry, alert-route creation, support queue creation, incident tooling, backend runtime, worker dispatch, provider execution, Supabase/GCS write, public delivery, paid beta, or production approval.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Backend / Database / Billing / Credit Ledger Readiness Plan Status
+
+- Decision: `reeditpro_backend_database_billing_credit_ledger_readiness_plan_passed_ready_for_worker_generation_export_e2e_readiness_plan`
+- Next prompt: `REEDITPRO_WORKER_GENERATION_EXPORT_E2E_READINESS_PLAN`
+- Scorecard status: external beta and production remain blocked.
+- Backend owner, schema/migration, billing integration, credit ledger, and audit logging requirements are defined as metadata only.
+- This is not SQL, migration, Supabase mutation, billing provider integration, webhook creation, credit mutation, worker dispatch, provider execution, public delivery, paid beta, or production approval.
+- Supabase classification: no write / environment none / SQL none / migration no.

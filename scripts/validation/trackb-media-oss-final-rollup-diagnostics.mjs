@@ -45,6 +45,7 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/reeditpro-backend-database-billing-credit-ledger-readiness-plan/',
   'docs/reeditpro-observability-incident-support-readiness-plan/',
   'docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan/',
   'docs/reeditpro-model-license-security-cost-readiness-plan/',
@@ -122,11 +123,13 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md',
   'docs/implementation-prompts/prompt-reeditpro-observability-incident-support-readiness-plan.md',
   'docs/implementation-prompts/prompt-reeditpro-backend-database-billing-credit-ledger-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-worker-generation-export-e2e-readiness-plan.md',
   'docs/production-go-no-go-checklist.md',
   'docs/production-beta-readiness-scorecard.md',
   'docs/production-hardening-overview.md',
   'scripts/validation/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan-diagnostics.mjs',
   'scripts/validation/reeditpro-observability-incident-support-readiness-plan-diagnostics.mjs',
+  'scripts/validation/reeditpro-backend-database-billing-credit-ledger-readiness-plan-diagnostics.mjs',
   'scripts/validation/reeditpro-model-license-security-cost-readiness-plan-diagnostics.mjs',
   'scripts/validation/reeditpro-deployment-rollback-readiness-plan-diagnostics.mjs',
   'scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs',

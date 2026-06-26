@@ -1,0 +1,37 @@
+{
+  "schema": "reeditpro.backendDatabaseBillingCreditLedgerReadinessPlan.v1",
+  "ownerId": "REEDITPRO_BACKEND_BILLING_STEWARD",
+  "decision": "reeditpro_backend_database_billing_credit_ledger_readiness_plan_passed_ready_for_worker_generation_export_e2e_readiness_plan",
+  "previousDecision": "reeditpro_observability_incident_support_readiness_plan_passed_ready_for_backend_database_billing_credit_ledger_readiness_plan",
+  "nextPrompt": "REEDITPRO_WORKER_GENERATION_EXPORT_E2E_READINESS_PLAN",
+  "sourceSha": "fdf364c3bbc5e5e91b464876063038dede5c61e1",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-backend-database-billing-credit-ledger-readiness-plan",
+  "report": "database-schema-migration-readiness",
+  "requiredSchemaAreas": [
+    "users/workspaces/projects",
+    "approved plan snapshots and immutable versions",
+    "credit estimates, reservations, spends, releases, and refunds",
+    "worker jobs and idempotency keys",
+    "asset manifests and storage object references",
+    "audit events and support events",
+    "deletion requests and retention exceptions",
+    "billing subscription/customer references"
+  ],
+  "requiredMigrationEvidence": [
+    "migration draft review",
+    "RLS policy review",
+    "storage bucket policy review",
+    "local migration apply/reset proof",
+    "advisor/security review",
+    "rollback/forward compatibility review",
+    "seed/fixture validation"
+  ],
+  "sqlExecuted": false,
+  "migrationCreated": false,
+  "rlsPoliciesCreated": false,
+  "storagePoliciesCreated": false,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

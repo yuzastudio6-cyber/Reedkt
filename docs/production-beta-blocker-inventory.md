@@ -353,6 +353,18 @@ Internal beta remains `blocked_pending_isolated_clean_staging_target_or_explicit
 
 Next recommended milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.
 
+## Supabase Clean Staging Isolated Target Owner Decision 1
+
+`SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1` records `approved_isolated_clean_staging_target_path_for_source_aligned_validation_planning`.
+
+The current clean branch remains blocked by unmapped remote-only migration `20260626162800`. The replacement branch candidate `reeditpro-clean-staging-v2` / `rjenorvzqsxwljvvvtxd` remains blocked by unmapped remote-only migration `20260626163138`. Migration-history repair remains blocked pending schema equivalence evidence or explicit repair policy.
+
+Approved future path: create or provision a `new_isolated_non_production_supabase_target` under a later explicit confirmation gate, then prove source-aligned migration history before any DB URL secret rotation or migration-chain apply. This packet did not create a target, run remote commands, access secret payloads, rotate secrets, run SQL, apply migrations, clean up branches, or unlock beta.
+
+Internal beta remains `blocked_pending_isolated_clean_staging_target_creation_and_source_aligned_migration_readback`.
+
+Next recommended milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.
+
 ## Internal Beta Local Readiness Gate Rollup
 
 `RP-INTERNAL-BETA-LOCAL-READINESS-GATE-ROLLUP-1` records decision `blocked_internal_beta_not_ready_missing_supabase_credential_context_and_runtime_gates` and execution `completed_local_readiness_gate_rollup_no_remote_execution`.

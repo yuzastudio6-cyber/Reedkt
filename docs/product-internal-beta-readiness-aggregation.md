@@ -98,3 +98,13 @@ Remote-only migration `20260626163138` on replacement branch candidate `reeditpr
 Current status after this source mapping is internal beta `blocked_pending_isolated_clean_staging_target_or_explicit_migration_history_policy`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.
+
+## Supabase Clean Staging Isolated Target Owner Decision 1
+
+`SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-OWNER-DECISION-1` records decision `approved_isolated_clean_staging_target_path_for_source_aligned_validation_planning` and execution `completed_docs_only_isolated_target_owner_decision_no_remote_execution`.
+
+The source chain proves the current clean branch `fnjiylwirntrqdcwpbho` and replacement branch candidate `rjenorvzqsxwljvvvtxd` both carry unmapped generated remote migration history. This owner decision therefore approves only a future explicitly gated `new_isolated_non_production_supabase_target` path for source-aligned validation planning. It does not create a target, rotate `REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL`, run SQL, apply migrations, access secret payloads, clean up branches, or unlock internal beta.
+
+Current status after this owner decision is internal beta `blocked_pending_isolated_clean_staging_target_creation_and_source_aligned_migration_readback`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestones: `SUPABASE-CLEAN-STAGING-ISOLATED-TARGET-CREATION-1` and `SUPABASE-CLEAN-STAGING-UNADOPTED-BRANCH-CLEANUP-1`.

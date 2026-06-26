@@ -1,0 +1,22 @@
+{
+  "schema": "reeditpro.externalBetaProductionReadinessRemediationPlan.v1",
+  "ownerId": "REEDITPRO_PRODUCT_READINESS_STEWARD",
+  "decision": "reeditpro_external_beta_production_readiness_remediation_plan_passed_ready_for_deployment_rollback_readiness_plan",
+  "previousDecision": "trackb_media_oss_external_beta_production_readiness_gap_review_blocked_pending_reeditpro_global_readiness_remediation_plan",
+  "nextPrompt": "REEDITPRO_DEPLOYMENT_ROLLBACK_READINESS_PLAN",
+  "sourceSha": "d470ed12a184a2838029c76d22c788758ecb7863",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-external-beta-production-readiness-remediation-plan",
+  "report": "decision",
+  "decisionSummary": "Whole-product remediation sequencing is ready; external beta and production remain blocked.",
+  "readyForDeploymentRollbackReadinessPlan": true,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 16
+  },
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

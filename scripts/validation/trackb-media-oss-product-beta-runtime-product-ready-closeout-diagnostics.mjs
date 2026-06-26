@@ -11,6 +11,7 @@ const reportDir =
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-closeout'
 const qaDir =
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review'
+const remediationPlanDir = 'docs/reeditpro-external-beta-production-readiness-remediation-plan'
 const decision =
   'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane'
 const previousDecision =
@@ -82,6 +83,11 @@ const statusDocs = [
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.json',
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.md',
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json',
+]
+const remediationProductionDocs = [
+  'docs/production-go-no-go-checklist.md',
+  'docs/production-beta-readiness-scorecard.md',
+  'docs/production-hardening-overview.md',
 ]
 const protectedNoDiffFiles = [
   'package-lock.json',
@@ -269,10 +275,14 @@ for (const file of changedFiles()) {
     file === 'package.json' ||
 	    file === 'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-tools-call-lane-ready-handoff.md' ||
 	    file === 'docs/implementation-prompts/prompt-reeditpro-external-beta-production-readiness-remediation-plan.md' ||
+	    file === 'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md' ||
+	    file === 'scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs' ||
 	    file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
 	    file === 'scripts/validation/open-source-tool-owner-registry-trackb-media-oss-steward-diagnostics.mjs' ||
 	    file.startsWith('docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review/') ||
+	    file.startsWith(`${remediationPlanDir}/`) ||
 	    file.startsWith(`${reportDir}/`) ||
+    remediationProductionDocs.includes(file) ||
     statusDocs.includes(file)
   if (!allowed && !file.startsWith('scripts/validation/trackb-media-oss-')) {
     fail(`unexpected_changed_file:${file}`)

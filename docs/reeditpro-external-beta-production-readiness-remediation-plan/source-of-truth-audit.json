@@ -1,0 +1,35 @@
+{
+  "schema": "reeditpro.externalBetaProductionReadinessRemediationPlan.v1",
+  "ownerId": "REEDITPRO_PRODUCT_READINESS_STEWARD",
+  "decision": "reeditpro_external_beta_production_readiness_remediation_plan_passed_ready_for_deployment_rollback_readiness_plan",
+  "previousDecision": "trackb_media_oss_external_beta_production_readiness_gap_review_blocked_pending_reeditpro_global_readiness_remediation_plan",
+  "nextPrompt": "REEDITPRO_DEPLOYMENT_ROLLBACK_READINESS_PLAN",
+  "sourceSha": "d470ed12a184a2838029c76d22c788758ecb7863",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-external-beta-production-readiness-remediation-plan",
+  "report": "source-of-truth-audit",
+  "sourceEvidence": {
+    "gapReviewDirectory": "docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review",
+    "trackBToolsCallLaneHandoffDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-tools-call-lane-ready-handoff",
+    "productionGoNoGoChecklist": "docs/production-go-no-go-checklist.md",
+    "productionBetaReadinessScorecard": "docs/production-beta-readiness-scorecard.md",
+    "productionHardeningOverview": "docs/production-hardening-overview.md",
+    "productionReadinessValidationPlan": "docs/production-readiness-validation-plan.md",
+    "productionReadinessBlockerPolicy": "docs/production-readiness-blocker-policy.md",
+    "productionE2EReadinessBlockerPolicy": "docs/production-e2e-readiness-blocker-policy.md",
+    "productPlan": "product-plan.md"
+  },
+  "acceptedInputs": {
+    "trackBToolsCallLaneReady": true,
+    "trackBTotals": {
+      "owned": 16,
+      "boundedAcceptedProven": 16,
+      "blockedNotInstalledProven": 0,
+      "productReady": 16
+    }
+  },
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "readyForDeploymentRollbackReadinessPlan": true,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

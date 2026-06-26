@@ -11,6 +11,7 @@ const reportDir =
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-tools-call-lane-ready-handoff'
 const previousReportDir =
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-closeout'
+const remediationPlanDir = 'docs/reeditpro-external-beta-production-readiness-remediation-plan'
 const decision =
   'trackb_media_oss_product_beta_tools_call_lane_handoff_passed_ready_for_external_beta_production_readiness_gap_review'
 const previousDecision =
@@ -51,6 +52,11 @@ const statusDocs = [
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.json',
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.md',
   'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json',
+]
+const remediationProductionDocs = [
+  'docs/production-go-no-go-checklist.md',
+  'docs/production-beta-readiness-scorecard.md',
+  'docs/production-hardening-overview.md',
 ]
 const protectedNoDiffFiles = [
   'package-lock.json',
@@ -253,11 +259,16 @@ for (const file of changedFiles()) {
     file === 'package.json' ||
     file === 'docs/implementation-prompts/prompt-trackb-media-oss-external-beta-production-readiness-gap-review.md' ||
     file === 'docs/implementation-prompts/prompt-reeditpro-external-beta-production-readiness-remediation-plan.md' ||
+    file === 'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md' ||
+    file === 'scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-external-beta-production-readiness-gap-review-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-tools-call-lane-ready-handoff-diagnostics.mjs' ||
     file === 'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-closeout-diagnostics.mjs' ||
+    file === 'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs' ||
     file.startsWith('docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review/') ||
+    file.startsWith(`${remediationPlanDir}/`) ||
     file.startsWith(`${reportDir}/`) ||
+    remediationProductionDocs.includes(file) ||
     statusDocs.includes(file)
   if (!allowed) fail(`unexpected_changed_file:${file}`)
   if (/\.(ttf|otf|onnx|mp4|mov|mkv|srt|png|jpe?g|webp|gpg|asc|deb)$/i.test(file)) {

@@ -45,6 +45,7 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/reeditpro-external-beta-production-readiness-remediation-plan/',
   'docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-tools-call-lane-ready-handoff/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-closeout/',
@@ -112,6 +113,11 @@ const allowedChangedPrefixes = [
 ]
 const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-reeditpro-external-beta-production-readiness-remediation-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md',
+  'docs/production-go-no-go-checklist.md',
+  'docs/production-beta-readiness-scorecard.md',
+  'docs/production-hardening-overview.md',
+  'scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-tools-call-lane-ready-handoff.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-external-beta-production-readiness-gap-review.md',
   'scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout-diagnostics.mjs',

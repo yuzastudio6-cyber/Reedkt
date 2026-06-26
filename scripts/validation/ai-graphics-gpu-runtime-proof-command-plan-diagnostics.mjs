@@ -201,6 +201,12 @@ if (packet.localProofResultDirectory !== '.local-artifacts/ai-graphics/gpu-runti
   fail('packet_missing_local_proof_result_directory')
 }
 if (
+  packet.requiredHostEnv?.REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT !==
+  'local-only private model-weight root; value must not be committed or logged'
+) {
+  fail('packet_missing_private_model_weight_root_env')
+}
+if (
   packet.proofResultValidatorCommand !==
   'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results'
 ) {
@@ -220,6 +226,10 @@ for (const tool of modelWeightTools) {
   if (!JSON.stringify(packet.modelManifestMounts || []).includes(expectedManifestPaths[tool])) {
     fail(`packet_missing_manifest_path:${tool}`)
   }
+  const mount = (packet.modelManifestMounts || []).find((entry) => entry.toolId === tool)
+  if (mount?.localMountEnv !== 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT') {
+    fail(`packet_mount_missing_local_env:${tool}`)
+  }
 }
 
 const profiles = new Map((packet.runtimeProfiles || []).map((profile) => [profile.profileId, profile]))
@@ -229,6 +239,9 @@ for (const [profileId, expected] of Object.entries(expectedProfiles)) {
   if (profile?.dockerfile !== expected.dockerfile) fail(`profile_dockerfile_mismatch:${profileId}`)
   if (profile?.status !== 'planned_not_executed') fail(`profile_status_mismatch:${profileId}`)
   if (profile?.requiresDockerGpuFlag !== true) fail(`profile_missing_docker_gpu_flag:${profileId}`)
+  if (!profile?.requiredHostEnv?.includes('REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT')) {
+    fail(`profile_missing_private_model_weight_root_env:${profileId}`)
+  }
   if (profile?.requiredModelWeightDirEnv !== 'REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights') {
     fail(`profile_missing_model_weight_dir_env:${profileId}`)
   }
@@ -253,11 +266,12 @@ for (const token of [
   'docker run',
   '--gpus all',
   'REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true',
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
   'REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights',
   'MODEL_DOWNLOADS_ENABLED=false',
   'PROVIDER_EXECUTION_ENABLED=false',
   '--require-model-weight-manifests',
-  '<local-private-model-weight-root>',
+  '$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
   '.local-artifacts/ai-graphics/gpu-runtime-proof-results',
   'ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results',
   'model_tree_manifest.json',
@@ -344,6 +358,12 @@ for (const profile of noManifestPlan.runtimeProfiles || []) {
   if (!String(profile.resultCaptureCommand || '').includes('> .local-artifacts/ai-graphics/gpu-runtime-proof-results/')) {
     fail(`no_manifest_profile_missing_result_capture_redirect:${profile.profileId}`)
   }
+  if (!String(profile.resultCaptureCommand || '').includes('test -n "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"')) {
+    fail(`no_manifest_profile_missing_private_root_guard:${profile.profileId}`)
+  }
+  if (!String(profile.resultCaptureCommand || '').includes('test -d "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"')) {
+    fail(`no_manifest_profile_missing_private_root_directory_guard:${profile.profileId}`)
+  }
   if (!String(profile.command || '').includes('REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights')) {
     fail(`no_manifest_profile_missing_model_weight_dir_env:${profile.profileId}`)
   }
@@ -365,7 +385,16 @@ if (validOutput.includes('private://')) fail('valid_manifest_output_leaked_priva
 if (!validOutput.includes('--gpus all')) fail('valid_manifest_output_missing_gpus_all')
 if (!validOutput.includes('REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true')) fail('valid_manifest_output_missing_opt_in_env')
 if (!validOutput.includes('REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights')) fail('valid_manifest_output_missing_model_weight_dir_env')
-if (!validOutput.includes('<local-private-model-weight-root>/sam2')) fail('valid_manifest_output_missing_mount_placeholder')
+if (!validOutput.includes('$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT/sam2')) fail('valid_manifest_output_missing_mount_env')
+if (validOutput.includes('<local-private-model-weight-root>')) fail('valid_manifest_output_uses_old_mount_placeholder')
+for (const profile of validPlan.runtimeProfiles || []) {
+  if (!String(profile.resultCaptureCommand || '').includes('test -n "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"')) {
+    fail(`valid_manifest_profile_missing_private_root_guard:${profile.profileId}`)
+  }
+  if (!String(profile.resultCaptureCommand || '').includes('test -d "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"')) {
+    fail(`valid_manifest_profile_missing_private_root_directory_guard:${profile.profileId}`)
+  }
+}
 if (!validOutput.includes('--require-model-weight-manifests')) fail('valid_manifest_output_missing_manifest_flag')
 if (!validOutput.includes('.local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu_worker_ai_graphics.json')) {
   fail('valid_manifest_output_missing_profile_result_path')

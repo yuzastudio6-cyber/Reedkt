@@ -273,6 +273,7 @@ for (const token of [
   'buildAiGraphicsGpuRuntimeProofResultPacket',
   'reviewed_private_model_weight_manifests',
   'native_gpu_runtime_proof_results',
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
   '.local-artifacts/ai-graphics/gpu-runtime-proof-results',
   'ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results',
 ]) {
@@ -293,8 +294,15 @@ for (const token of [
 }
 
 if (!markdown.includes('--require-ready-for-owner-review')) fail('markdown_missing_require_ready_command')
+if (!markdown.includes('REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT')) fail('markdown_missing_private_model_weight_root_env')
+if (packet.localEvidenceRoots?.privateModelWeightRootEnv !== 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT') {
+  fail('packet_missing_private_model_weight_root_env')
+}
 if (!JSON.stringify(packet).includes('reviewed_private_model_weight_manifests')) fail('packet_missing_manifest_gap')
 if (!JSON.stringify(packet).includes('native_gpu_runtime_proof_results')) fail('packet_missing_gpu_result_gap')
+if (!JSON.stringify(packet.requiredNextCommands || []).includes('export REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT=<local-only-private-model-weight-root>')) {
+  fail('packet_missing_private_model_weight_root_export_command')
+}
 
 for (const key of [
   'gpuRuntimeProofLocalPreflightPrepared',

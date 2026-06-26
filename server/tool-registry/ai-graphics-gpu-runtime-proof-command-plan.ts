@@ -21,6 +21,7 @@ export interface AiGraphicsGpuRuntimeProofManifestMount {
   templateId: string
   expectedRuntimePath: string
   containerManifestPath: string
+  localMountEnv: 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
   localMountPlaceholder: string
   dockerMountPlaceholder: string
 }
@@ -37,6 +38,9 @@ export interface AiGraphicsGpuRuntimeProofProfilePlan {
     MODEL_DOWNLOADS_ENABLED: 'false'
     PROVIDER_EXECUTION_ENABLED: 'false'
     REEDITPRO_MODEL_WEIGHT_DIR: '/opt/reeditpro/model-weights'
+  }
+  requiredHostEnv: {
+    REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT: 'local-only private model-weight root; value must not be committed or logged'
   }
   requiredDockerFlags: ['--rm', '--gpus all']
   modelWeightManifestFlag: '--require-model-weight-manifests'
@@ -133,6 +137,8 @@ const localDirectoryByTool = {
 const localProofResultDirectory = '.local-artifacts/ai-graphics/gpu-runtime-proof-results'
 const proofResultValidatorCommand =
   'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results'
+const privateModelWeightRootEnv = 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+const privateModelWeightRootMountPrefix = '$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
 
 const runtimeProfileSpecs = [
   {
@@ -206,13 +212,14 @@ function manifestMountForTool(toolId: AiGraphicsModelWeightManifestToolId): AiGr
   }
 
   const expectedRuntimePath = trimTrailingSlash(template.expectedPath)
-  const localMountPlaceholder = `<local-private-model-weight-root>/${localDirectoryByTool[toolId]}`
+  const localMountPlaceholder = `${privateModelWeightRootMountPrefix}/${localDirectoryByTool[toolId]}`
 
   return {
     toolId,
     templateId,
     expectedRuntimePath,
     containerManifestPath: `${expectedRuntimePath}/model_tree_manifest.json`,
+    localMountEnv: privateModelWeightRootEnv,
     localMountPlaceholder,
     dockerMountPlaceholder: `--mount type=bind,src=${localMountPlaceholder},dst=${expectedRuntimePath},readonly`,
   }
@@ -252,7 +259,8 @@ function buildProfilePlan(
     '--require-model-weight-manifests',
   ].join(' ')
   const localProofResultPath = `${localProofResultDirectory}/${spec.profileId}.json`
-  const resultCaptureCommand = `mkdir -p ${localProofResultDirectory} && ${command} > ${localProofResultPath}`
+  const hostEnvGuard = `test -n "$${privateModelWeightRootEnv}" && test -d "$${privateModelWeightRootEnv}"`
+  const resultCaptureCommand = `${hostEnvGuard} && mkdir -p ${localProofResultDirectory} && ${command} > ${localProofResultPath}`
 
   return {
     profileId: spec.profileId,
@@ -266,6 +274,10 @@ function buildProfilePlan(
       MODEL_DOWNLOADS_ENABLED: 'false',
       PROVIDER_EXECUTION_ENABLED: 'false',
       REEDITPRO_MODEL_WEIGHT_DIR: '/opt/reeditpro/model-weights',
+    },
+    requiredHostEnv: {
+      REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT:
+        'local-only private model-weight root; value must not be committed or logged',
     },
     requiredDockerFlags: ['--rm', '--gpus all'],
     modelWeightManifestFlag: '--require-model-weight-manifests',

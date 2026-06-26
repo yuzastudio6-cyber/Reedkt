@@ -89,6 +89,7 @@ export function buildAiGraphicsGpuRuntimeProofLocalPreflight(input: {
   const requiredNextCommands = [
     'npm run --silent ai-graphics:model-weight-manifest-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-manifests',
     'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests',
+    'export REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT=<local-only-private-model-weight-root>',
     'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests',
     commandPlan.proofResultValidatorCommand,
     'npm run --silent ai-graphics:beta-evidence-bundle:validate -- --use-committed-js-runtime-proofs --all-shared-gates-passed --browser-canvas-webgl-sandbox-passed --model-weight-manifest-review-packet <private-reviewed-manifest-packet.json> --gpu-runtime-proof-result-packet <native-gpu-proof-result-packet.json> --require-all-21-beta-ready',

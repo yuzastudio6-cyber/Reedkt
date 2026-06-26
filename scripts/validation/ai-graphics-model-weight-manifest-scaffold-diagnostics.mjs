@@ -306,7 +306,17 @@ if (commandPlan.nativeGpuProofInputStatus !== 'ready_for_native_gpu_runtime_prob
 }
 if (commandPlan.input?.privateArtifactRefsLogged !== 0) fail('command_plan_private_artifact_refs_logged_not_zero')
 if (commandPlanOutput.includes('private://reeditpro')) fail('command_plan_leaked_private_ref')
-if (!commandPlanOutput.includes('<local-private-model-weight-root>/sam2')) fail('command_plan_missing_mount_placeholder')
+if (!commandPlanOutput.includes('$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT/sam2')) {
+  fail('command_plan_missing_mount_placeholder')
+}
+for (const profile of commandPlan.runtimeProfiles || []) {
+  if (!String(profile.resultCaptureCommand || '').includes('test -n "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"')) {
+    fail(`command_plan_missing_private_root_guard:${profile.profileId}`)
+  }
+  if (!String(profile.resultCaptureCommand || '').includes('test -d "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"')) {
+    fail(`command_plan_missing_private_root_directory_guard:${profile.profileId}`)
+  }
+}
 
 let noOutDirFailed = false
 try {

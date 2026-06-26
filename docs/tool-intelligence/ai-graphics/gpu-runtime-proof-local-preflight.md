@@ -43,8 +43,11 @@ npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- \
 
 - Model manifests: `.local-artifacts/ai-graphics/model-weight-manifests`
 - GPU proof results: `.local-artifacts/ai-graphics/gpu-runtime-proof-results`
+- Private model-weight root env: `REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT`
 
 Both roots are local-only and must not be staged or committed.
+The private model-weight root env value must stay local-only; generated command
+plans reference the variable name, not the private path.
 
 ## Current Public State
 

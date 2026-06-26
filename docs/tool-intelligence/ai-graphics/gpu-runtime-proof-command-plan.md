@@ -32,6 +32,17 @@ npm run --silent ai-graphics:model-weight-manifest-scaffold -- --out-dir .local-
 
 The CLI accepts private manifest JSON locally and emits only redacted readiness status. It must not log `privateArtifactRef`.
 
+Before running a generated Docker command, the operator must set the private
+model-weight root as a local shell variable:
+
+```bash
+export REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT=/path/to/local/private/model-weight-root
+```
+
+The value of `REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT` must never be
+committed, printed in public logs, or copied into PR docs. Generated commands
+refer to the variable name only.
+
 ## Required Native Runtime Conditions
 
 - `docker run --rm --gpus all`
@@ -55,7 +66,10 @@ The native GPU proof expects reviewed private manifest files at:
 - `/opt/reeditpro/model-weights/rembg/model_tree_manifest.json`
 - `/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json`
 
-The generated commands use `<local-private-model-weight-root>` placeholders. Real private paths must stay outside committed docs and source.
+The generated commands use `$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT`
+host bind mounts. Real private paths must stay outside committed docs and source.
+Each result capture command guards that the env var is non-empty and points to a
+local directory before invoking `docker run`.
 
 ## Result Capture
 

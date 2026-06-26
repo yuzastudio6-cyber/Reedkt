@@ -1,0 +1,34 @@
+{
+  "schema": "reeditpro.modelLicenseSecurityCostReadinessPlan.v1",
+  "ownerId": "REEDITPRO_MODEL_SECURITY_COST_STEWARD",
+  "decision": "reeditpro_model_license_security_cost_readiness_plan_passed_ready_for_private_storage_deletion_supabase_gcs_readiness_plan",
+  "previousDecision": "reeditpro_deployment_rollback_readiness_plan_passed_ready_for_model_license_security_cost_readiness_plan",
+  "nextPrompt": "REEDITPRO_PRIVATE_STORAGE_DELETION_SUPABASE_GCS_READINESS_PLAN",
+  "sourceSha": "deca217226df415c5d4a40a544f1a8c7872e2bec",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-model-license-security-cost-readiness-plan",
+  "report": "provider-model-policy",
+  "launchRouter": {
+    "stillKeyframeGraphicFrame": "GPT-Image-2",
+    "animationPrimary": "Wan",
+    "animationFallback": "Hailuo",
+    "premiumFinalFallbackOnly": "Veo 3.1 Lite"
+  },
+  "tierRestrictions": {
+    "basicVeoAllowed": false,
+    "proVeoAllowed": false,
+    "premiumVeoDefaultAllowed": false,
+    "premiumVeoFinalFallbackOnly": true
+  },
+  "requiredBeforeProviderExecution": [
+    "approved model routing owner",
+    "approved provider data-use and retention policy",
+    "approved model license and commercial-use evidence",
+    "approved credit estimate and reservation policy",
+    "approved kill switch per provider and route"
+  ],
+  "providerCallsAuthorized": false,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

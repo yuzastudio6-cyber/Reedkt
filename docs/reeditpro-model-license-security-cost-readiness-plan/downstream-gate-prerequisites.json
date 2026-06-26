@@ -1,0 +1,31 @@
+{
+  "schema": "reeditpro.modelLicenseSecurityCostReadinessPlan.v1",
+  "ownerId": "REEDITPRO_MODEL_SECURITY_COST_STEWARD",
+  "decision": "reeditpro_model_license_security_cost_readiness_plan_passed_ready_for_private_storage_deletion_supabase_gcs_readiness_plan",
+  "previousDecision": "reeditpro_deployment_rollback_readiness_plan_passed_ready_for_model_license_security_cost_readiness_plan",
+  "nextPrompt": "REEDITPRO_PRIVATE_STORAGE_DELETION_SUPABASE_GCS_READINESS_PLAN",
+  "sourceSha": "deca217226df415c5d4a40a544f1a8c7872e2bec",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-model-license-security-cost-readiness-plan",
+  "report": "downstream-gate-prerequisites",
+  "downstreamGates": [
+    "privateStorageDeletionSupabaseGcs",
+    "observabilityIncidentSupport",
+    "backendDatabaseBillingCreditLedger",
+    "realGenerationExportWorkerE2E",
+    "publicArtifactSignedUrlDeliveryPolicy",
+    "externalBetaGoNoGo",
+    "productionGoNoGo"
+  ],
+  "requiredBeforeDownstreamExecution": [
+    "model/license owner requirements accepted",
+    "security prerequisites accepted",
+    "cost budgets/concurrency/kill switch prerequisites accepted",
+    "private storage/deletion gate accepted before any Supabase/GCS write",
+    "external beta and production remain blocked until final go/no-go"
+  ],
+  "readyForPrivateStorageDeletionSupabaseGcsReadinessPlan": true,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

@@ -45,6 +45,8 @@ const statusDocs = [
 ]
 
 const allowedChangedPrefixes = [
+  'docs/reeditpro-model-license-security-cost-readiness-plan/',
+  'docs/reeditpro-deployment-rollback-readiness-plan/',
   'docs/reeditpro-external-beta-production-readiness-remediation-plan/',
   'docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review/',
   'docs/open-source-tool-stack/trackb-media-oss-product-beta-tools-call-lane-ready-handoff/',
@@ -114,9 +116,13 @@ const allowedChangedPrefixes = [
 const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-reeditpro-external-beta-production-readiness-remediation-plan.md',
   'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md',
   'docs/production-go-no-go-checklist.md',
   'docs/production-beta-readiness-scorecard.md',
   'docs/production-hardening-overview.md',
+  'scripts/validation/reeditpro-model-license-security-cost-readiness-plan-diagnostics.mjs',
+  'scripts/validation/reeditpro-deployment-rollback-readiness-plan-diagnostics.mjs',
   'scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs',
   'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-tools-call-lane-ready-handoff.md',
   'docs/implementation-prompts/prompt-trackb-media-oss-external-beta-production-readiness-gap-review.md',

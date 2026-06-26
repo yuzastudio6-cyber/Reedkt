@@ -47,3 +47,13 @@ approval.
 - Deployment/rollback metadata now defines required environment separation, owner slots, freeze policy, rollback evidence, and downstream validation prerequisites.
 - This is not deployment execution, rollback execution, live product traffic, user exposure, public delivery, signed URL, Supabase/GCS write, paid beta, or production approval.
 - Supabase classification: no write / environment none / SQL none / migration no.
+
+## ReEditPro Model / License / Security / Cost Readiness Plan Status
+
+- Decision: `reeditpro_model_license_security_cost_readiness_plan_passed_ready_for_private_storage_deletion_supabase_gcs_readiness_plan`
+- Next prompt: `REEDITPRO_PRIVATE_STORAGE_DELETION_SUPABASE_GCS_READINESS_PLAN`
+- Scorecard status: external beta and production remain blocked.
+- Model/license/security/cost metadata now preserves GPT-Image-2, Wan, Hailuo, and Premium-only final-fallback Veo routing constraints; Basic and Pro still cannot use Veo.
+- Required future evidence remains: provider terms/data-use policy, commercial-use/license review, backend-only secrets, security review, budgets, concurrency limits, kill switches, and credit estimate/reservation enforcement.
+- This is not provider execution, model download, secret mutation, live security scan, billing mutation, user exposure, public delivery, signed URL, Supabase/GCS write, paid beta, or production approval.
+- Supabase classification: no write / environment none / SQL none / migration no.

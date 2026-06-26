@@ -50,6 +50,11 @@ const allowedChangedFiles = new Set([
   'scripts/validation/supabase-clean-staging-target-owner-approval-1-diagnostics.mjs',
   'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-history-source-derived-owner-decision-1.md',
+  'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-history-source-derived-owner-decision-1-record.json',
+  'docs/activation-phase-supabase-clean-staging-branch-migration-history-source-derived-owner-decision-1-results.md',
+  'docs/implementation-prompts/prompt-supabase-clean-staging-branch-replacement-execution-1.md',
+  'scripts/validation/supabase-clean-staging-branch-migration-history-source-derived-owner-decision-1-diagnostics.mjs',
 ])
 
 const requiredText = [

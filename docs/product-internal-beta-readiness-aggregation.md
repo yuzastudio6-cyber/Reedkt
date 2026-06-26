@@ -68,3 +68,13 @@ No migration dry-run, migration apply, SQL mutation, migration history manual ed
 Current status after this reconciliation is internal beta `blocked_pending_clean_staging_migration_history_source_mapping_or_repair_decision`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1`.
+
+## Clean Branch Migration History Source-Derived Owner Decision
+
+`SUPABASE-CLEAN-STAGING-BRANCH-MIGRATION-HISTORY-SOURCE-DERIVED-OWNER-DECISION-1` records decision `approved_clean_staging_branch_replacement_path_for_source_aligned_migration_chain` and execution `completed_docs_only_source_derived_owner_decision_no_remote_execution`.
+
+This source-derived decision rejects migration repair, db pull, direct SQL mutation, and migration apply on the current clean branch while `20260626162800` remains unmapped. It approves only a future explicitly gated clean staging branch replacement/recreation path, followed by DB URL secret rotation/replacement, current-target validation, and migration-chain apply retry after source-aligned history is proven.
+
+Current status after this owner decision is internal beta `blocked_pending_clean_staging_branch_replacement_and_migration_chain_apply`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
+
+Next milestone: `SUPABASE-CLEAN-STAGING-BRANCH-REPLACEMENT-EXECUTION-1`.

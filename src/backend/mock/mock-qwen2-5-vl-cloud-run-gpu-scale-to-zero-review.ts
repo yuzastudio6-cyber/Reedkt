@@ -1,0 +1,101 @@
+export const QWEN2_5_VL_CLOUD_RUN_GPU_SCALE_TO_ZERO_REVIEW = {
+  workstream: "AI_VIDEO_BROLL_GENERATION",
+  toolId: "qwen2_5_vl_7b_instruct",
+  mode: "cloud_run_gpu_scale_to_zero_review_only",
+  decision: "qwen2_5_vl_7b_cloud_run_gpu_scale_to_zero_review_ready_for_no_deploy_service_spec",
+  selectedGpu: "nvidia_l4_google_cloud_g2",
+  preferredRuntime: "cloud_run_gpu_scale_to_zero",
+  fallbackRuntime: "ephemeral_compute_engine_l4_worker_idle_teardown",
+  claimsRuntimeReady: false,
+  claimsBetaReady: false,
+  claimsProductionReady: false,
+  claimsDryRunPassed: false,
+  claimsGeneratedLocalFixturePassed: false,
+  readOnlyGcpFindings: {
+    projectId: "reeditpro",
+    cloudRunApiEnabled: true,
+    artifactRegistryApiEnabled: true,
+    computeEngineApiEnabled: true,
+    gcloudRunGpuFlagsVisible: true,
+    existingQwenCloudRunServices: 0,
+    activeComputeReservations: 0,
+    existingDockerRepositories: [
+      "us-central1/reeditpro-workers",
+      "us-central1/reeditpro-staging-workers",
+      "us-east1/reeditpro-runtime",
+      "europe-west1/reeditpro-runtime"
+    ]
+  },
+  officialCloudRunGpuEvidence: {
+    gpuServicesCanScaleToZero: true,
+    onDemandNoReservationPath: true,
+    oneGpuPerInstance: true,
+    l4Supported: true,
+    l4MinimumCpu: 4,
+    l4MinimumMemoryGiB: 16,
+    instanceBasedBillingRequired: true,
+    minInstancesMustRemainZeroForNoIdleGpuBilling: true
+  },
+  serviceSpecSeed: {
+    serviceName: "reeditpro-qwen2-5-vl-l4-worker",
+    preferredRegion: "us-central1",
+    secondaryRegion: "us-east4",
+    tertiaryRegion: "europe-west1",
+    gpuType: "nvidia-l4",
+    gpuCount: 1,
+    minInstances: 0,
+    maxInstances: 1,
+    concurrency: 1,
+    proofFloorCpu: 4,
+    proofFloorMemoryGiB: 16,
+    betaCandidateCpu: 8,
+    betaCandidateMemoryGiB: 32,
+    publicUnauthenticatedAccessAllowed: false,
+    backendOnlyInvocationRequired: true,
+    rawChatExecutionRejected: true,
+    approvedSnapshotRequired: true,
+    creditGateRequiredBeforeProductionUse: true,
+    fallbackToEphemeralGceL4Allowed: true
+  },
+  blockersBeforeDeploy: [
+    "no_qwen_cloud_run_container_image",
+    "no_qwen_cloud_run_service_spec",
+    "model_cache_strategy_not_approved_for_cloud_run",
+    "cloud_run_gpu_quota_not_proven",
+    "cold_start_import_proof_not_run",
+    "private_invocation_iam_spec_not_approved",
+    "queue_dispatch_integration_not_implemented",
+    "credit_gated_production_billing_path_not_implemented"
+  ],
+  runtimeFlags: {
+    gcpReadOnlyCommandsExecuted: true,
+    gcpMutatingCommandsExecuted: false,
+    cloudRunDeployCommandExecuted: false,
+    cloudRunServiceCreated: false,
+    cloudRunJobCreated: false,
+    dockerBuildRun: false,
+    dockerPushRun: false,
+    artifactRegistryImageCreated: false,
+    reservationCreated: false,
+    vmCreated: false,
+    modelImportRun: false,
+    modelInferenceRun: false,
+    apiServerStarted: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    creditMutationCreated: false,
+    betaUnlocked: false,
+    productionUnlocked: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false
+  },
+  nextPrompt:
+    "QWEN2_5_VL_STACK_TOOL_12-CLOUD-RUN-GPU-NO-DEPLOY-SERVICE-SPEC: author Qwen scale-to-zero Cloud Run service spec, no deploy/no inference"
+} as const;
+
+export type Qwen25VlCloudRunGpuScaleToZeroReview =
+  typeof QWEN2_5_VL_CLOUD_RUN_GPU_SCALE_TO_ZERO_REVIEW;

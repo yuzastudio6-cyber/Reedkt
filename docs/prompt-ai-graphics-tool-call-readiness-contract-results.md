@@ -233,6 +233,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after source-catalog checksum enforcement: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `1c50701f4f1b68300e8abb9487466462bc6fa8b0`, with an empty check rollup.
 - Native proof checksum boundary hardening: the native GPU readiness probe and GPU runtime proof-result validator now enforce reviewed source-catalog checksum guidance for `sam2`, `birefnet`, and `real_esrgan` all the way through native proof intake. Bad proof-result packets with mismatched manifest checksums fail closed, `sourceCatalogChecksumGuidanceEnforced=true`, `suggestedChecksumMismatchRejected=true`, and GPU runtime remains on-demand only with no model load, inference, route/worker execution, beta, or production unlock.
 - Install-readiness output clarification: `ai-graphics:21-tool-runtime-install-readiness:diagnostics` now reports `gpuToolsCovered=8` separately from `gpuRequirementLinesChecked=7`, because `sam2` is pinned from source in the Dockerfile rather than listed as a requirements-file line. The diagnostic also asserts all 8 GPU/model tools target `gpu_ai_worker`.
+- Latest observed PR state after native proof checksum boundary hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `dbbb6a3304c7c8299ac9566e19e35de6d0decf91`, with an empty check rollup.
 
 ## Runtime State
 

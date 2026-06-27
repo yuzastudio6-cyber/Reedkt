@@ -13,7 +13,7 @@ const ROOT = process.cwd()
 const DECISION =
   'qwen2_5_vl_7b_cloud_run_gpu_private_invoke_frontend_client_registered_mock_only'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_50-GCLOUD-REAUTH-USER: refresh local gcloud auth outside Codex, no token/no invocation'
+  'QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -187,7 +187,7 @@ assert.equal(data.status, 'blocked_transport_not_attempted')
 assert.equal(data.transportAttemptedNow, false)
 assert.equal(data.invocationAllowedNow, false)
 assert.equal(data.runtimeCanAdvanceNow, false)
-assert.equal((data.responseClassification as JsonRecord).status, 'blocked_transport_auth')
+assert.equal((data.responseClassification as JsonRecord).status, 'blocked_transport_unavailable')
 assertFalseFlags(data.runtimeFlags as JsonRecord)
 
 const rawPromptResponse = await callQwen25VlPrivateInvokeDryRun({

@@ -21,7 +21,7 @@ The UI presents 13 planner-routing tasks and one private-invoke dry-run route re
 - 5 blocked routes for AI video generation, final render/export, raw chat execution, frontend invocation, and unbounded long-video analysis.
 - Private invoke client route: `jobs.qwen2_5_vl.privateInvoke.dryRun`
 - Private invoke client helper: `callQwen25VlPrivateInvokeDryRun`
-- Private invoke status: `blocked_auth_reverify_required`
+- Private invoke status: `blocked_private_invoke_smoke_required`
 
 The card keeps `dryRunPassedClaimed=false` and all execution gates false.
 
@@ -59,8 +59,8 @@ The card provides no execution buttons, no approval buttons, no credit buttons, 
 
 ## Current Blocker
 
-Private Cloud Run invocation remains blocked until local gcloud auth is refreshed and the guarded read-only auth preflight can confirm Cloud Run/IAM readiness without fetching identity tokens or invoking the service. The latest guarded check still reports `gcloud_auth_session_requires_interactive_reauthentication`.
+Read-only Cloud Run auth/IAM reverify has passed without fetching identity tokens or invoking the service. Private Cloud Run invocation remains blocked until a controlled private invoke smoke plan explicitly approves token-fetch policy, service-audience policy, a single bounded private request shape, and cost guard review for the observed service-level max scale annotation.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_50-GCLOUD-REAUTH-USER: refresh local gcloud auth outside Codex, no token/no invocation`
+`QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference`

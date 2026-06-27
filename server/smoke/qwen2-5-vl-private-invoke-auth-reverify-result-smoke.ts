@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs'
 import { QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-reverify-result'
 
 const MODE =
-  'qwen2_5_vl_private_invoke_auth_reverify_result_blocked_gcloud_reauth_no_invocation'
+  'qwen2_5_vl_private_invoke_auth_reverify_result_passed_no_invocation'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_50-GCLOUD-REAUTH-USER: refresh local gcloud auth outside Codex, no token/no invocation'
+  'QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -25,7 +25,7 @@ assert.equal(
 
 for (const phrase of [
   MODE,
-  '`qwen25-private-invoke-auth-20260627T074548`',
+  '`qwen25-private-invoke-auth-20260627T095446`',
   '`reeditpro`',
   '`us-central1`',
   '`reeditpro-qwen2-5-vl-l4-worker`',
@@ -36,6 +36,9 @@ for (const phrase of [
   '`cloud_run_service_iam_policy`',
   '`runtime_service_account_describe`',
   '`project_invoker_policy_read`',
+  '`nvidia_l4`',
+  '`1`',
+  '`3`',
   '`identityTokenFetched=false`',
   '`cloudRunInvocationAttempted=false`',
   '`serviceRuntimeRequestSent=false`',
@@ -53,8 +56,8 @@ assert.ok(
 
 const result = QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT
 assert.equal(result.mode, MODE)
-assert.equal(result.runId, 'qwen25-private-invoke-auth-20260627T074548')
-assert.equal(result.status, 'blocked')
+assert.equal(result.runId, 'qwen25-private-invoke-auth-20260627T095446')
+assert.equal(result.status, 'passed')
 assert.equal(result.target.project, 'reeditpro')
 assert.equal(result.target.region, 'us-central1')
 assert.equal(result.target.service, 'reeditpro-qwen2-5-vl-l4-worker')
@@ -65,21 +68,41 @@ assert.equal(result.verifiedToolState.activeProject, 'reeditpro')
 assert.equal(result.verifiedToolState.activeAccountPresent, true)
 assert.equal(result.verifiedToolState.activeAccountValueStored, false)
 assert.equal(result.verifiedToolState.activeAccountDomain, 'reeditpro.com')
-assert.equal(result.blockedReason, 'gcloud_auth_session_requires_interactive_reauthentication')
+assert.equal(result.verifiedToolState.cloudRunServiceDescribeVerified, true)
+assert.equal(result.verifiedToolState.cloudRunServiceUrlStored, false)
+assert.equal(result.verifiedToolState.cloudRunIngress, 'internal-and-cloud-load-balancing')
+assert.equal(result.verifiedToolState.cloudRunServiceIamPolicyReadVerified, true)
+assert.equal(result.verifiedToolState.cloudRunServiceIamBindingCount, 0)
+assert.equal(result.verifiedToolState.runtimeServiceAccountVerified, true)
+assert.equal(result.verifiedToolState.projectInvokerPolicyReadVerified, true)
+assert.equal(result.verifiedToolState.projectInvokerPolicyBindingCount, 0)
+assert.equal(result.remainingBlocker, 'private_invoke_smoke_plan_required_no_token_no_invocation')
 assert.equal(result.nextPrompt, NEXT_PROMPT)
 
-for (const id of ['gcloud_version', 'active_project', 'active_account']) {
-  assert.ok((result.passedProbeIds as readonly string[]).includes(id), `missing passed probe ${id}`)
-}
+assert.equal(result.observedCloudRunCostPosture.gpuLimit, '1')
+assert.equal(result.observedCloudRunCostPosture.gpuType, 'nvidia_l4')
+assert.equal(result.observedCloudRunCostPosture.cpuLimit, '8')
+assert.equal(result.observedCloudRunCostPosture.memoryLimit, '32Gi')
+assert.equal(result.observedCloudRunCostPosture.containerConcurrency, 1)
+assert.equal(result.observedCloudRunCostPosture.timeoutSeconds, 900)
+assert.equal(result.observedCloudRunCostPosture.minScaleAnnotationPresent, false)
+assert.equal(result.observedCloudRunCostPosture.templateMaxScale, '1')
+assert.equal(result.observedCloudRunCostPosture.serviceMaxScale, '3')
+assert.equal(result.observedCloudRunCostPosture.costGuardReviewRequiredBeforeInvoke, true)
 
 for (const id of [
+  'gcloud_version',
+  'active_project',
+  'active_account',
   'cloud_run_service_describe',
   'cloud_run_service_iam_policy',
   'runtime_service_account_describe',
   'project_invoker_policy_read',
 ]) {
-  assert.ok((result.blockedProbeIds as readonly string[]).includes(id), `missing blocked probe ${id}`)
+  assert.ok((result.passedProbeIds as readonly string[]).includes(id), `missing passed probe ${id}`)
 }
+
+assert.deepEqual(result.blockedProbeIds, [])
 
 for (const [key, value] of Object.entries(result.runtimeFlags as JsonRecord)) {
   if ([
@@ -94,9 +117,13 @@ for (const [key, value] of Object.entries(result.runtimeFlags as JsonRecord)) {
   }
 }
 
-for (const [key, value] of Object.entries(result.qwenRuntimeReadiness as JsonRecord)) {
-  assert.equal(value, false, `${key} must be false`)
-}
+assert.equal(result.qwenRuntimeReadiness.privateInvocationAuthVerified, true)
+assert.equal(result.qwenRuntimeReadiness.cloudRunServiceDescribeVerified, true)
+assert.equal(result.qwenRuntimeReadiness.cloudRunIamPolicyVerified, true)
+assert.equal(result.qwenRuntimeReadiness.runtimeServiceAccountVerified, true)
+assert.equal(result.qwenRuntimeReadiness.projectInvokerPolicyVerified, true)
+assert.equal(result.qwenRuntimeReadiness.readyForPrivateInvocationSmoke, false)
+assert.equal(result.qwenRuntimeReadiness.betaProductionReadyClaimed, false)
 
 const forbiddenPatterns: Array<[string, RegExp]> = [
   ['URL', /\bhttps?:\/\//i],
@@ -118,7 +145,8 @@ console.log(JSON.stringify({
   runId: result.runId,
   passedProbeCount: result.passedProbeIds.length,
   blockedProbeCount: result.blockedProbeIds.length,
-  blockedReason: result.blockedReason,
+  remainingBlocker: result.remainingBlocker,
+  serviceMaxScale: result.observedCloudRunCostPosture.serviceMaxScale,
   identityTokenFetched: result.runtimeFlags.identityTokenFetched,
   cloudRunInvocationAttempted: result.runtimeFlags.cloudRunInvocationAttempted,
   inferenceRun: result.runtimeFlags.inferenceRun,

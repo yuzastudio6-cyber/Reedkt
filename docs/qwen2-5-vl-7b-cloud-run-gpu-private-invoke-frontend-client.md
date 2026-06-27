@@ -56,4 +56,4 @@ It is not a B-roll generator, renderer, exporter, OCR source of truth, chart ren
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_50-GCLOUD-REAUTH-USER: refresh local gcloud auth outside Codex, no token/no invocation`
+`QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference`

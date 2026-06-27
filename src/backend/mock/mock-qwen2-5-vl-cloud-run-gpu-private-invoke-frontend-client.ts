@@ -53,7 +53,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT = {
     generatedLocalFixturePassedClaimed: false,
   },
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_50-GCLOUD-REAUTH-USER: refresh local gcloud auth outside Codex, no token/no invocation',
+    'QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeFrontendClient =

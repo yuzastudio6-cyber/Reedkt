@@ -8,6 +8,8 @@ const validateScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const validateScriptCommand = 'tsx server/cli/ai-graphics-external-beta-evidence-packet.ts'
 const diagnosticScriptName = 'ai-graphics:external-beta-evidence-packet:diagnostics'
 const diagnosticScriptCommand = 'node scripts/validation/ai-graphics-external-beta-evidence-packet-diagnostics.mjs'
+const scaffoldScriptName = 'ai-graphics:external-beta-evidence-scaffold'
+const scaffoldScriptCommand = 'tsx server/cli/ai-graphics-external-beta-evidence-scaffold.ts'
 const readinessScriptName = 'ai-graphics:external-beta-readiness-gate'
 
 const allTools = [
@@ -148,6 +150,10 @@ const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (pkg.scripts?.[validateScriptName] !== validateScriptCommand) fail(`missing_package_script:${validateScriptName}`)
 if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) fail(`missing_package_script:${diagnosticScriptName}`)
+if (pkg.scripts?.[scaffoldScriptName] !== scaffoldScriptCommand) fail(`missing_package_script:${scaffoldScriptName}`)
+if (!index.includes("export * from './ai-graphics-external-beta-evidence-scaffold'")) {
+  fail('server_registry_index_missing_external_beta_evidence_scaffold_export')
+}
 if (!index.includes("export * from './ai-graphics-external-beta-evidence-packet'")) {
   fail('server_registry_index_missing_external_beta_evidence_packet_export')
 }
@@ -370,6 +376,8 @@ const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${validateScriptName}": "${validateScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  `+    "${scaffoldScriptName}": "${scaffoldScriptCommand}",`,
+  '+    "ai-graphics:external-beta-evidence-scaffold:diagnostics": "node scripts/validation/ai-graphics-external-beta-evidence-scaffold-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

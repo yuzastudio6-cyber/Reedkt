@@ -38,4 +38,4 @@ The packet can prepare an external-beta candidate set when every tool has all re
 
 ## Next Evidence Step
 
-Collect real private/backend evidence for internal runtime soak, external QA, cost/concurrency/privacy/rollback, incident response, and external-beta owner approval, then feed it through `ai-graphics:external-beta-evidence-packet:validate` and `ai-graphics:external-beta-readiness-gate` without committing private refs.
+Use `ai-graphics:external-beta-evidence-scaffold` to generate local-only templates, replace every rejected placeholder with real private/backend evidence for internal runtime soak, external QA, cost/concurrency/privacy/rollback, incident response, and external-beta owner approval, then feed it through `ai-graphics:external-beta-evidence-packet:validate` and `ai-graphics:external-beta-readiness-gate` without committing private refs.

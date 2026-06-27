@@ -1000,6 +1000,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: default committed evidence provides 0 accepted records. A complete future packet can produce 21 accepted evidence records and feed the external-beta readiness gate, while rejecting public URLs, signed URL refs, public artifact refs, raw HTTP refs, and `gs://public` refs.
 - Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics External-Beta Evidence Scaffold
+
+- Decision: `ai_graphics_external_beta_evidence_scaffold_prepared_for_local_private_records`.
+- Scope: local-only template generator for collecting all 21 tools' external-beta evidence refs. It writes per-tool evidence-record templates, a packet-input template, and a collection checklist under a caller-provided local path.
+- Result: generated templates are intentionally invalid until every `public://replace-with-private-evidence/...` placeholder is replaced with private/backend evidence refs. The committed scaffold accepts 0 records and does not create public artifacts.
+- Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics Internal Beta Owner Approval
 
 - Decision: `ai_graphics_internal_beta_owner_approval_contract_prepared_with_fail_closed_defaults`.

@@ -54,6 +54,8 @@
     "ai-graphics:on-demand-runtime-admission:diagnostics": "node scripts/validation/ai-graphics-on-demand-runtime-admission-diagnostics.mjs",
     "ai-graphics:beta-readiness-gate:diagnostics": "node scripts/validation/ai-graphics-beta-readiness-gate-diagnostics.mjs",
     "ai-graphics:beta-readiness-gate:evaluate": "tsx server/cli/ai-graphics-beta-readiness-gate-evaluate.ts",
+    "ai-graphics:external-beta-evidence-scaffold": "tsx server/cli/ai-graphics-external-beta-evidence-scaffold.ts",
+    "ai-graphics:external-beta-evidence-scaffold:diagnostics": "node scripts/validation/ai-graphics-external-beta-evidence-scaffold-diagnostics.mjs",
     "ai-graphics:external-beta-evidence-packet:validate": "tsx server/cli/ai-graphics-external-beta-evidence-packet.ts",
     "ai-graphics:external-beta-evidence-packet:diagnostics": "node scripts/validation/ai-graphics-external-beta-evidence-packet-diagnostics.mjs",
     "ai-graphics:external-beta-readiness-gate": "tsx server/cli/ai-graphics-external-beta-readiness-gate.ts",

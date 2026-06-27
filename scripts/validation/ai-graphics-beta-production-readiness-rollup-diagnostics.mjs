@@ -708,6 +708,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:internal-beta-service-role-rpc-smoke-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-smoke-readiness-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-readiness-gate": "tsx server/cli/ai-graphics-external-beta-readiness-gate.ts",',
   '+    "ai-graphics:external-beta-readiness-gate:diagnostics": "node scripts/validation/ai-graphics-external-beta-readiness-gate-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-evidence-scaffold": "tsx server/cli/ai-graphics-external-beta-evidence-scaffold.ts",',
+  '+    "ai-graphics:external-beta-evidence-scaffold:diagnostics": "node scripts/validation/ai-graphics-external-beta-evidence-scaffold-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-evidence-packet:validate": "tsx server/cli/ai-graphics-external-beta-evidence-packet.ts",',
   '+    "ai-graphics:external-beta-evidence-packet:diagnostics": "node scripts/validation/ai-graphics-external-beta-evidence-packet-diagnostics.mjs",',
 ])

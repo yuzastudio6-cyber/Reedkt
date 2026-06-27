@@ -2,6 +2,7 @@ import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE } from './moc
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_DEPLOY_RESULT } from './mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-deploy-result'
 import { QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT } from './mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-contract-smoke-result'
 import { QWEN2_5_VL_PRIVATE_INVOKE_RUNTIME_READINESS_REVIEW } from './mock-qwen2-5-vl-private-invoke-runtime-readiness-review'
+import { QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SMOKE_PLAN } from './mock-qwen2-5-vl-approved-fixture-inference-smoke-plan'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -15,7 +16,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_cpu_only_internal_caller_source_required'
   | 'blocked_cpu_only_internal_caller_deploy_required'
   | 'blocked_cpu_only_internal_caller_contract_smoke_required'
-  | 'blocked_approved_fixture_inference_smoke_plan_required'
+  | 'blocked_approved_fixture_inference_smoke_execution_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
   id: string
@@ -31,7 +32,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_runtime_review_recorded_fixture_plan_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_fixture_plan_recorded_execution_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -40,6 +41,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT.decision,
   upstreamRuntimeReadinessReviewDecision:
     QWEN2_5_VL_PRIVATE_INVOKE_RUNTIME_READINESS_REVIEW.decision,
+  upstreamApprovedFixtureInferenceSmokePlanDecision:
+    QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SMOKE_PLAN.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -162,15 +165,26 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'first_approved_fixture_inference_smoke_plan',
       label: 'First approved-fixture inference smoke plan',
-      status: 'blocked_approved_fixture_inference_smoke_plan_required',
+      status: 'ready',
       evidence: [
         'Runtime readiness review requires approved snapshot, private artifact, worker, QA, cost, no-public-output, no-beta, and no-production evidence before any inference smoke.',
         'Qwen remains visual understanding and QA metadata only.',
+        'First approved-fixture inference smoke plan is recorded with the existing local queue contract, model revision, checksum, and use-case ranking.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'first_approved_fixture_inference_smoke_execution',
+      label: 'First approved-fixture inference smoke execution',
+      status: 'blocked_approved_fixture_inference_smoke_execution_required',
+      evidence: [
+        'Plan defines a single bounded private metadata-only fixture using Cloud Run GPU NVIDIA L4 and the pinned Qwen revision.',
+        'Future execution must repeat preflight and may enable model import/load/inference only inside one controlled smoke.',
       ],
       missingEvidence: [
-        'First private approved-fixture inference smoke plan.',
-        'Bounded private sampled-frame fixture contract.',
-        'Metadata-only output schema and no-spend cost gate.',
+        'One controlled private approved-fixture inference smoke execution.',
+        'Sanitized metadata-only result review.',
+        'No generated asset, no public artifact, no signed URL, no beta, and no production evidence.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -221,7 +235,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     contractSatisfiedForFutureRuntime: true,
     runtimeContractExecutesNow: false,
     runtimeReadinessReviewRecorded: true,
-    firstApprovedFixtureInferenceSmokeReady: false,
+    firstApprovedFixtureInferenceSmokePlanDefined: true,
+    firstApprovedFixtureInferenceSmokeExecuted: false,
     privateInvokeReady: false,
     betaReady: false,
     productionReady: false,
@@ -253,12 +268,12 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'approved_fixture_inference_smoke_plan_required',
     'approved_fixture_inference_smoke_execution_required',
+    'approved_fixture_inference_result_review_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_57-APPROVED-FIXTURE-INFERENCE-SMOKE-PLAN: define first private approved-fixture Qwen inference smoke, no execution',
+    'QWEN2_5_VL_STACK_TOOL_58-APPROVED-FIXTURE-INFERENCE-SMOKE-EXECUTE: run first private approved-fixture Qwen inference smoke, no generated assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

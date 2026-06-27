@@ -213,6 +213,7 @@
     "worker-runtime-jobs:sound-cpu-dockerfile-runtime-dependency-source-fix:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-dockerfile-runtime-dependency-source-fix-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-dockerfile-runtime-dependency-source-fix-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-dockerfile-runtime-dependency-source-fix-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-runtime-beta-readiness-reconciliation-after-image-import-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-runtime-beta-readiness-reconciliation-after-image-import-proof-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-controlled-runtime-beta-preflight-after-image-import-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-controlled-runtime-beta-preflight-after-image-import-proof-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

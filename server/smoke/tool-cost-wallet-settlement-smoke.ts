@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { loadRuntimeEnv } from '../config/env'
 import { resetMockToolCostStore } from '../tool-cost-metering/mock-tool-cost-store'
 import {
@@ -101,6 +102,13 @@ assert.equal(replayed.settlement.id, settled.settlement.id, 'Replay should retur
 assert.equal(nonBillable.settlement.status, 'not_billable', 'Provider failure should not bill the user.')
 assert.equal(nonBillable.settlement.creditsDelta, 0, 'Non-billable settlement should have no credit delta.')
 
+const migrationSource = readFileSync('supabase/migrations/202606270003_tool_cost_wallet_settlement_rpc.sql', 'utf8')
+assert.ok(migrationSource.includes('create table if not exists public.tool_cost_wallet_settlements'), 'Settlement migration should create the settlement table.')
+assert.ok(migrationSource.includes('create or replace function public.settle_tool_cost_event'), 'Settlement migration should define the settlement RPC.')
+assert.ok(migrationSource.includes('credit_ledger_entries'), 'Settlement RPC should write to the credit ledger.')
+assert.ok(migrationSource.includes('stripe_call_attempted'), 'Settlement RPC should preserve Stripe isolation metadata.')
+assert.ok(migrationSource.includes('service_fee_included'), 'Settlement RPC should preserve service-fee exclusion metadata.')
+
 await assert.rejects(settleToolCostWallet(context, {
     workspaceId: eventResult.event.workspaceId,
     projectId: eventResult.event.projectId,
@@ -119,4 +127,5 @@ console.log(JSON.stringify({
   creditsDelta: settled.settlement.creditsDelta,
   replayed: replayed.replayed,
   nonBillableStatus: nonBillable.settlement.status,
+  migrationSourcePresent: true,
 }, null, 2))

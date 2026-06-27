@@ -57,6 +57,13 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'Run the SQL smoke against a disposable local Postgres database, then repeat equivalent checks against staging Supabase.',
     ),
     sourceFileCheck(
+      'tool_cost_wallet_settlement_service_role_smoke_present',
+      'tool cost wallet settlement service-role path smoke is present',
+      'server/smoke/tool-cost-wallet-settlement-service-role-smoke.ts',
+      ['settle_tool_cost_event', 'TOOL_COST_BACKEND_REQUIRED', 'supabase_credit_ledger', 'remoteSupabaseTouched: false'],
+      'Run the service-role path smoke locally, then verify the same path against staging Supabase service-role runtime.',
+    ),
+    sourceFileCheck(
       'beta_platform_rls_readback_sql_smoke_present',
       'beta platform RLS readback local SQL smoke is present',
       'server/smoke/beta-platform-rls-readback-sql-smoke.ts',
@@ -97,7 +104,7 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       Boolean(context.clients.admin && !context.env.mockOnly),
       context.clients.admin && !context.env.mockOnly
         ? 'Supabase admin client is available and runtime is not mock-only.'
-        : 'Supabase admin client is unavailable or runtime is mock-only.',
+        : 'Local service-role path smoke can verify call shape, but this runtime lacks a deployed Supabase admin client or is mock-only.',
       'Configure staging/production Supabase service-role runtime and verify writes without exposing secrets.',
     ),
     blockedCheck(

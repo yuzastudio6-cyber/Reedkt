@@ -30,6 +30,30 @@ assert.ok(defaultLedger.rows.every((row) => row.nextSafeAction.trim()), 'every l
 assert.ok(defaultLedger.rows.every((row) => row.safeForwardProgressScope.trim()), 'every ledger row needs a safe forward-progress scope')
 assert.ok(defaultLedger.rows.every((row) => row.blockedActionScope.length > 0), 'every ledger row needs a blocked action scope')
 assert.ok(
+  defaultLedger.rows.every((row) => row.blockerMode === 'scoped_unsafe_action_only'),
+  'every blocker row must be scoped to named unsafe actions only',
+)
+assert.ok(
+  defaultLedger.rows.every((row) => row.blocksSafeForwardProgress === false),
+  'no blocker row may freeze safe blocker-reduction progress',
+)
+assert.ok(
+  defaultLedger.rows.every((row) => row.clearanceType.trim()),
+  'every blocker row needs a clearance type',
+)
+assert.ok(
+  defaultLedger.rows.some((row) => row.clearanceType === 'bounded_local_proof'),
+  'ledger should classify bounded local proof blockers',
+)
+assert.ok(
+  defaultLedger.rows.some((row) => row.clearanceType === 'owner_approval'),
+  'ledger should classify owner approval blockers',
+)
+assert.ok(
+  defaultLedger.rows.some((row) => row.clearanceType === 'deployed_platform_evidence'),
+  'ledger should classify deployed platform evidence blockers',
+)
+assert.ok(
   defaultLedger.rows.some((row) => row.safeForwardProgressScope === 'bounded_command_import_container_proof'),
   'ledger should point tool execution blockers at bounded proof lanes',
 )
@@ -162,4 +186,6 @@ console.log(JSON.stringify({
   duplicateRows: defaultLedger.duplicateRowKeys.length,
   productReadyLocalOssCount: defaultLedger.productReadyLocalOssCount,
   allowedForwardProgressScopes: defaultLedger.allowedForwardProgressScopes,
+  scopedUnsafeActionOnlyRows: defaultLedger.rows.filter((row) => row.blockerMode === 'scoped_unsafe_action_only').length,
+  safeForwardProgressBlockedRows: defaultLedger.rows.filter((row) => row.blocksSafeForwardProgress).length,
 }, null, 2))

@@ -23,10 +23,12 @@ RP-FIX-10 uses the credit gate as one required input before mock worker queue it
 
 Tool-cost wallet settlement has a backend-owned settlement path for platform billing QA. `POST /v1/tool-costs/events/:toolCostEventId/settle` requires auth and idempotency, creates only a mock ledger effect in local/mock mode, keeps Stripe and ReEditPro service/edit fees out of tool owner cost events, and in non-mock runtime calls the `settle_tool_cost_event` RPC from `202606270003_tool_cost_wallet_settlement_rpc.sql`. Missing migration/RPC support fails closed with `TOOL_COST_BACKEND_REQUIRED`.
 
+`npm run smoke:tool-cost-wallet-settlement:sql` verifies that RPC source against a disposable local Postgres database. The smoke creates only temporary prerequisite tables, applies the migration, proves billable spend, idempotent replay, non-billable provider-failure settlement, service-fee exclusion, Stripe isolation, and RLS policy presence, then drops the database. It is not a remote Supabase migration, live wallet mutation, Stripe operation, provider call, media operation, beta unlock, or production approval.
+
 ## Mock Status
 
 The mock gate returns allowed/blocked decisions and warnings. It does not call Stripe, provider APIs, workers, rendering, or remote Supabase.
 
 ## Remaining Work
 
-Production still needs deployed migration evidence, service-role runtime verification, RLS readback, and billing-owner QA before this settlement path can clear the platform blocker.
+Production still needs deployed migration evidence, service-role runtime verification, authenticated RLS readback, billing-owner QA, monitoring, and owner approvals before this settlement path can clear the platform blocker.

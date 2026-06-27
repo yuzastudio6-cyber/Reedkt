@@ -26,7 +26,7 @@ All of these must be true before the adapter can call injected transport depende
 - `runtimeServiceAccountVerified`
 - `projectInvokerPolicyVerified`
 
-Default adapter status: every gate remains false unless a future backend runtime injects explicit approval. Repository evidence now shows the guarded read-only auth/IAM reverify passed, the smoke runner can use the non-key impersonation token path, narrow TokenCreator/Run Invoker bindings are present, the internal caller harness plan is defined, deploy preflight identified the private route blocker, and Direct VPC plus Private Google Access is configured through a dedicated future-caller subnet. The adapter still refuses by default until a CPU-only internal caller harness can reach the expected fail-closed contract response.
+Default adapter status: every gate remains false unless a future backend runtime injects explicit approval. Repository evidence now shows the guarded read-only auth/IAM reverify passed, the smoke runner can use the non-key impersonation token path, narrow TokenCreator/Run Invoker bindings are present, the internal caller harness plan is defined, deploy preflight identified the private route blocker, Direct VPC plus Private Google Access is configured through a dedicated future-caller subnet, and CPU-only caller source is defined. The adapter still refuses by default until a deployed CPU-only internal caller harness can reach the expected fail-closed contract response.
 
 ## Required Transport Dependencies
 
@@ -61,8 +61,8 @@ The default adapter result is `blocked_transport_disabled`. In that path:
 
 ## Current Blocker
 
-The latest guarded auth/IAM reverify passed and the controlled private invoke smoke plan is defined. After the narrow authz fix, the smoke minted an identity token and sent exactly one authenticated contract request, but the response was HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records ingress `internal-and-cloud-load-balancing`, and the harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The Direct VPC route config created a dedicated future-caller subnet with Private Google Access enabled and left the default subnet unchanged. The remaining blocker is defining the CPU-only caller source/image, deploying the caller, and preserving the same token-fetch policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before runtime may advance.
+The latest guarded auth/IAM reverify passed and the controlled private invoke smoke plan is defined. After the narrow authz fix, the smoke minted an identity token and sent exactly one authenticated contract request, but the response was HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records ingress `internal-and-cloud-load-balancing`, and the harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The Direct VPC route config created a dedicated future-caller subnet with Private Google Access enabled and left the default subnet unchanged. The CPU-only caller source is now defined with no model loader, no vLLM runtime, no CUDA dependency, and no inference path. The remaining blocker is building, pushing, and deploying the caller while preserving the same token-fetch policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before runtime may advance.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_55C-PRIVATE-INVOKE-CPU-CALLER-SOURCE: add CPU-only internal caller harness source, no deploy/no inference`
+`QWEN2_5_VL_STACK_TOOL_55D-PRIVATE-INVOKE-CPU-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference`

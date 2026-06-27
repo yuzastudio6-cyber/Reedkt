@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'blocked_private_invoke_cpu_caller_source_required',
-  'Private invoke client status must stay blocked on CPU-only caller source readiness.',
+  data.privateInvokeClient.currentStatus === 'blocked_private_invoke_cpu_caller_deploy_required',
+  'Private invoke client status must stay blocked on CPU-only caller deploy readiness.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -162,14 +162,14 @@ check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advi
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
 check(
-  docText.includes('blocked_private_invoke_cpu_caller_source_required') ||
-    data.privateInvokeClient.currentStatus === 'blocked_private_invoke_cpu_caller_source_required',
+  docText.includes('blocked_private_invoke_cpu_caller_deploy_required') ||
+    data.privateInvokeClient.currentStatus === 'blocked_private_invoke_cpu_caller_deploy_required',
   'Doc/data must record private invoke routing blocked status.',
 )
 check(
-  docText.includes('CPU-only Cloud Run Job') ||
-    docText.includes('approved fallback private path'),
-  'Doc must record the private invoke CPU-only caller source blocker.',
+  docText.includes('CPU-only caller source is now defined') ||
+    docText.includes('CPU-only Cloud Run Job'),
+  'Doc must record the private invoke CPU-only caller deploy blocker.',
 )
 check(docText.includes('The card provides no execution buttons'), 'Doc must forbid execution buttons.')
 check(docText.includes(data.nextPrompt), 'Doc must record the next prompt.')

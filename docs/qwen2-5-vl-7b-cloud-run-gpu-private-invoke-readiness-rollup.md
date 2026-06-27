@@ -1,8 +1,8 @@
 # Qwen2.5-VL 7B Cloud Run GPU Private Invoke Readiness Rollup
 
-Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_cpu_only_internal_caller_source_required`.
+Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_cpu_only_internal_caller_deploy_required`.
 
-This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded read-only Cloud Run auth/IAM reverify, controlled private invoke smoke plan, non-key impersonation token-path runner, narrow authz bindings, routing fix, internal caller harness plan, internal caller deploy preflight, internal route approval, and Direct VPC route config are in place. The latest controlled smoke minted an identity token and sent one authenticated contract request, but the response was HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records the more precise blocker: the service ingress is `internal-and-cloud-load-balancing`, so a direct local generated-host request is not valid. The internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The deploy preflight found that the preferred route was not ready because Private Google Access was disabled on the inspected default subnet. The route config created a dedicated `qwen-private-caller-us-central1` subnet with Private Google Access enabled and left the default subnet unchanged. The remaining blocker is defining the no-model, no-vLLM, no-inference CPU-only caller source/image.
+This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded read-only Cloud Run auth/IAM reverify, controlled private invoke smoke plan, non-key impersonation token-path runner, narrow authz bindings, routing fix, internal caller harness plan, internal caller deploy preflight, internal route approval, Direct VPC route config, and CPU-only caller source are in place. The latest controlled smoke minted an identity token and sent one authenticated contract request, but the response was HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records the more precise blocker: the service ingress is `internal-and-cloud-load-balancing`, so a direct local generated-host request is not valid. The internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The deploy preflight found that the preferred route was not ready because Private Google Access was disabled on the inspected default subnet. The route config created a dedicated `qwen-private-caller-us-central1` subnet with Private Google Access enabled and left the default subnet unchanged. The CPU-only caller source now defines a no-model, no-vLLM, no-CUDA, no-inference caller image source. The remaining blocker is building, pushing, and deploying the controlled caller job without sending a request or enabling inference.
 
 This is evidence only. It records that the guarded backend smoke resolved the target in memory, created an auth header, fetched an identity token without printing or storing token values, and sent one bounded Cloud Run contract request. The packet itself does not enable inference, dispatch a worker, mutate Supabase, execute SQL, create generated assets, create public artifacts, create signed URLs, mutate credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
@@ -15,7 +15,7 @@ This is evidence only. It records that the guarded backend smoke resolved the ta
 - chat-native readiness UI: ready
 - Cloud Run auth/IAM reverify: ready
 - controlled private invoke smoke plan: ready
-- controlled private invoke smoke execution: blocked until CPU-only internal caller source/image
+- controlled private invoke smoke execution: blocked until CPU-only internal caller deploy
 - private invoke runtime readiness: false
 - beta readiness: false
 - production readiness: false
@@ -44,7 +44,7 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 | Chat-native UI | ready | `InlineQwenPlannerRoutingCard` surfaces mock route/client readiness and blocked runtime gates. | none |
 | Cloud Run auth/IAM reverify | ready | Local `gcloud` version, active project, active account-domain, Cloud Run service describe, Cloud Run service IAM policy read, runtime service account describe, and project invoker policy read probes passed. | none |
 | Controlled private invoke smoke plan | ready | The plan allows only backend-only health/readiness and contract POST candidates. The expected contract POST response is `403` with `qwen_inference_disabled_after_contract_check`, `contractSatisfiedForFutureRuntime=true`, and `modelInferenceEnabled=false`. | none |
-| Controlled private invoke smoke execution | blocked CPU-only caller source required | Read-only auth/IAM reverify passed, narrow TokenCreator and Run Invoker bindings were applied, the smoke runner reviewed cost posture, minted an identity token without printing or storing it, and sent one authenticated contract request. The response was HTTP `404` with no expected JSON contract, classified as `private_invoke_response_unexpected`. The routing fix records ingress `internal-and-cloud-load-balancing`. The internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The Direct VPC route config created the dedicated `qwen-private-caller-us-central1` subnet with Private Google Access enabled and left the default subnet unchanged. | CPU-only caller source/image, deployed controlled caller harness, plus a successful controlled contract response with inference disabled. |
+| Controlled private invoke smoke execution | blocked CPU-only caller deploy required | Read-only auth/IAM reverify passed, narrow TokenCreator and Run Invoker bindings were applied, the smoke runner reviewed cost posture, minted an identity token without printing or storing it, and sent one authenticated contract request. The response was HTTP `404` with no expected JSON contract, classified as `private_invoke_response_unexpected`. The routing fix records ingress `internal-and-cloud-load-balancing`. The internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The Direct VPC route config created the dedicated `qwen-private-caller-us-central1` subnet with Private Google Access enabled and left the default subnet unchanged. The CPU-only caller source is now defined with no model loader, no vLLM runtime, no CUDA dependency, and no inference path. | Built/pushed CPU-only caller image, deployed controlled caller harness, plus a successful controlled contract response with inference disabled. |
 
 ## Runtime Gates
 
@@ -66,7 +66,12 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `defaultSubnetChanged=false`
 - `approvedPrivateRouteReady=true`
 - `directVpcPrivateRoutePrerequisiteReady=true`
-- `cpuOnlyCallerImageDefined=false`
+- `cpuOnlyCallerSourceDefined=true`
+- `cpuOnlyCallerImageSourceDefined=true`
+- `cpuOnlyCallerImageDefined=true`
+- `cpuOnlyCallerImageBuilt=false`
+- `cpuOnlyCallerImagePushed=false`
+- `cpuOnlyCallerImageDeployed=false`
 - `directVpcEgressConfigured=false`
 - `privateGoogleAccessChanged=false`
 - `internalCallerHarnessDeployed=false`
@@ -111,8 +116,8 @@ Qwen2.5-VL must not generate B-roll video, replace Wan or LTX generation routes,
 
 ## Required Next Step
 
-The next action is adding the CPU-only internal caller harness source/image. That future prompt must not deploy the caller, send a request, run inference, relax public ingress, or change the GPU worker. It must preserve the same single-request/no-retry/no-token-printing/no-service-URL-storage/no-inference/no-assets/no-credits/no-beta/no-production posture.
+The next action is deploying the controlled CPU-only internal caller harness. That future prompt may build/push/deploy the caller job only if it preserves one task, zero retries, no GPU, no minimum instances, Direct VPC egress, no public ingress relaxation, no request execution, no inference, no assets, no credits, no beta, and no production posture.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_55C-PRIVATE-INVOKE-CPU-CALLER-SOURCE: add CPU-only internal caller harness source, no deploy/no inference`
+`QWEN2_5_VL_STACK_TOOL_55D-PRIVATE-INVOKE-CPU-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference`

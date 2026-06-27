@@ -1,3 +1,5 @@
+import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE } from './mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-source'
+
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
   | 'blocked_auth_reverify_required'
@@ -8,6 +10,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_internal_ingress_private_caller_required'
   | 'blocked_direct_vpc_route_config_required'
   | 'blocked_cpu_only_internal_caller_source_required'
+  | 'blocked_cpu_only_internal_caller_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
   id: string
@@ -23,7 +26,9 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_cpu_only_internal_caller_source_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_cpu_only_internal_caller_deploy_required',
+  upstreamCpuCallerSourceDecision:
+    QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -113,7 +118,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'private_invoke_smoke_execution',
       label: 'Controlled private invoke smoke execution',
-      status: 'blocked_cpu_only_internal_caller_source_required',
+      status: 'blocked_cpu_only_internal_caller_deploy_required',
       evidence: [
         'Read-only auth/IAM reverify passed without Cloud Run invocation.',
         'Observed Cloud Run posture uses one NVIDIA L4, concurrency 1, no min scale annotation, and template max scale 1.',
@@ -124,9 +129,10 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
         'Deploy preflight found the preferred route is not ready because Private Google Access is disabled on the inspected default subnet and no equivalent private route is recorded.',
         'Internal route approval conditionally accepts Direct VPC egress with Private Google Access for a future configuration prompt only.',
         'Direct VPC route config created a dedicated qwen-private-caller-us-central1 subnet with Private Google Access enabled and left the default subnet unchanged.',
+        'CPU-only internal caller source is defined with no model loader, no vLLM runtime, no CUDA dependency, and no inference path.',
       ],
       missingEvidence: [
-        'Defined CPU-only internal caller source/image with no model loader, no vLLM runtime, and no inference path.',
+        'Built and pushed CPU-only internal caller image.',
         'Deployed controlled CPU-only internal caller harness.',
         'Successful controlled private invoke contract response with inference disabled.',
         'No beta or production runtime approval has been granted.',
@@ -157,7 +163,12 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     defaultSubnetChanged: false,
     approvedPrivateRouteReady: true,
     directVpcPrivateRoutePrerequisiteReady: true,
-    cpuOnlyCallerImageDefined: false,
+    cpuOnlyCallerSourceDefined: true,
+    cpuOnlyCallerImageSourceDefined: true,
+    cpuOnlyCallerImageDefined: true,
+    cpuOnlyCallerImageBuilt: false,
+    cpuOnlyCallerImagePushed: false,
+    cpuOnlyCallerImageDeployed: false,
     directVpcEgressConfigured: false,
     privateGoogleAccessChanged: false,
     internalCallerHarnessDeployed: false,
@@ -197,12 +208,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   blockedUntil: [
     'backend_safe_identity_token_path_approved',
     'audience_bound_identity_token_fetch_passed_without_printing_or_storing_token',
-    'cpu_only_internal_caller_image_defined',
     'controlled_cpu_only_internal_caller_harness_deployed',
     'controlled_private_invoke_contract_response_observed',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_55C-PRIVATE-INVOKE-CPU-CALLER-SOURCE: add CPU-only internal caller harness source, no deploy/no inference',
+    'QWEN2_5_VL_STACK_TOOL_55D-PRIVATE-INVOKE-CPU-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

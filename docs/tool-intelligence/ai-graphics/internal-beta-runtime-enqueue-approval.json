@@ -68,6 +68,10 @@
     "sourceGoNoGoOwnerApprovalPacketMustBeOwnerApproved": true,
     "sourceGoNoGoOwnerApprovalPacketMustCoverAll21Tools": true,
     "sourceGoNoGoOwnerApprovalPacketMustCoverAll12Capabilities": true,
+    "sourceGoNoGoOwnerApprovalPacketMustPreserveEightGpuRuntimeTargets": true,
+    "sourceGoNoGoOwnerApprovalPacketMustPreserveOnDemandGpuRuntimePolicy": true,
+    "sourceGoNoGoOwnerApprovalPacketMustKeepNoIdleGpuRuntime": true,
+    "sourceGoNoGoOwnerApprovalPacketMustBlockCpuFallbackForHeavyTools": true,
     "sourceGoNoGoOwnerApprovalPacketMustKeepRuntimeBetaAndProductionFalse": true,
     "runtimeEnqueueApprovalRequiredAfterSourcePacket": true,
     "runtimeUnlockPerformed": false

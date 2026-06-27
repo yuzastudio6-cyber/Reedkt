@@ -139,9 +139,11 @@ The evaluator can now consume a source
 `--internal-beta-go-no-go-owner-approval-packet` that already reports
 `internal_beta_go_no_go_owner_approved_runtime_still_blocked`; the
 source packet must also prove all 21 tools, all 12 capabilities, accepted owner
-approval, zero ready-now tools, and false runtime/beta/production gates. The
-runtime-enqueue approval record and ref remain separate and required after that
-source packet.
+approval, zero ready-now tools, exactly eight GPU/model gate checks and nested
+source job payloads on exact native NVIDIA L4 targets, on-demand-only GPU
+runtime policy, no idle GPU runtime approval, CPU fallback blocked for
+heavy/model tools, and false runtime/beta/production gates. The runtime-enqueue
+approval record and ref remain separate and required after that source packet.
 It does not live-enqueue workers, dispatch workers, execute tools, run Tool
 Routes, call providers/models, run browser/canvas/WebGL, run GPU/model runtime,
 download or load model weights, process media, create signed URLs or public

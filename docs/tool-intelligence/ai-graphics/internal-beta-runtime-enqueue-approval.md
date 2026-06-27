@@ -9,11 +9,16 @@ go/no-go owner-approval packet via
 `--internal-beta-go-no-go-owner-approval-packet`. A source packet must already
 report `internal_beta_go_no_go_owner_approved_runtime_still_blocked`; this
 source packet must cover all 21 tools, all 12 capabilities, an accepted owner
-approval record, zero ready-now tools, and false runtime/beta/production gates.
+approval record, zero ready-now tools, exactly eight GPU/model gate checks,
+exactly eight nested GPU/model source job payloads, exact native NVIDIA L4
+targets, on-demand-only GPU runtime, no idle GPU runtime approval, CPU fallback
+blocked for heavy/model tools, and false runtime/beta/production gates.
 This runtime-enqueue gate still requires a separate
 `--internal-beta-runtime-enqueue-approval-granted` record and
 `--internal-beta-runtime-enqueue-approval-ref` before the enqueue scope is
 approved with runtime still blocked.
+
+Source owner-approval GPU policy: exactly eight GPU/model gate checks, exactly eight nested GPU/model source job payloads, on-demand-only GPU runtime, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and runtime/beta/production gates false.
 
 ## Current Status
 

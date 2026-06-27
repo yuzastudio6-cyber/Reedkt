@@ -48,6 +48,17 @@ const gpuToolIds = new Set([
   'transparent_background',
 ])
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const capabilities = [
   'chart_overlay',
   'data_visualization',
@@ -163,6 +174,59 @@ function writeAcceptedEvidencePackets() {
   return { manifestPacketPath, gpuPacketPath }
 }
 
+function writeJsonPacket(root, fileName, packet) {
+  const packetPath = path.join(root, fileName)
+  fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
+function deepMerge(base, patch) {
+  const output = Array.isArray(base) ? [...base] : { ...base }
+  for (const [key, value] of Object.entries(patch ?? {})) {
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      base?.[key] &&
+      typeof base[key] === 'object' &&
+      !Array.isArray(base[key])
+    ) {
+      output[key] = deepMerge(base[key], value)
+    } else {
+      output[key] = value
+    }
+  }
+  return output
+}
+
+function deepClone(value) {
+  return JSON.parse(JSON.stringify(value))
+}
+
+function expectSourceOwnerPacketRejected(label, packetRoot, sourceOwnerApprovalPacket, mutatePacket) {
+  const packet = typeof mutatePacket === 'function'
+    ? mutatePacket(deepClone(sourceOwnerApprovalPacket))
+    : deepClone(sourceOwnerApprovalPacket)
+  const packetPath = writeJsonPacket(
+    packetRoot,
+    `bad-source-go-no-go-owner-approval-packet-${label}.json`,
+    packet,
+  )
+  let rejected = false
+  try {
+    runNpm(runScriptName, [
+      '--internal-beta-go-no-go-owner-approval-packet',
+      packetPath,
+      '--internal-beta-runtime-enqueue-approval-granted',
+      '--internal-beta-runtime-enqueue-approval-ref',
+      'AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_LOCAL_FIXTURE',
+    ])
+  } catch {
+    rejected = true
+  }
+  if (!rejected) fail(`bad_source_owner_packet_not_rejected:${label}`)
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-internal-beta-runtime-enqueue-approval.ts',
   'server/cli/ai-graphics-internal-beta-runtime-enqueue-approval.ts',
@@ -255,6 +319,10 @@ for (const [key, expected] of Object.entries({
   sourceGoNoGoOwnerApprovalPacketMustBeOwnerApproved: true,
   sourceGoNoGoOwnerApprovalPacketMustCoverAll21Tools: true,
   sourceGoNoGoOwnerApprovalPacketMustCoverAll12Capabilities: true,
+  sourceGoNoGoOwnerApprovalPacketMustPreserveEightGpuRuntimeTargets: true,
+  sourceGoNoGoOwnerApprovalPacketMustPreserveOnDemandGpuRuntimePolicy: true,
+  sourceGoNoGoOwnerApprovalPacketMustKeepNoIdleGpuRuntime: true,
+  sourceGoNoGoOwnerApprovalPacketMustBlockCpuFallbackForHeavyTools: true,
   sourceGoNoGoOwnerApprovalPacketMustKeepRuntimeBetaAndProductionFalse: true,
   runtimeEnqueueApprovalRequiredAfterSourcePacket: true,
   runtimeUnlockPerformed: false,
@@ -271,6 +339,19 @@ if (!markdown.includes('--internal-beta-go-no-go-owner-approval-packet')) {
 }
 if (!moduleSource.includes('sourceGoNoGoOwnerApprovalPacket')) {
   fail('module_missing_source_owner_packet_input')
+}
+for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  if (!cliSource.includes(tool)) fail(`cli_missing_expected_gpu_tool:${tool}`)
+  if (!cliSource.includes(runtimeTarget)) fail(`cli_missing_expected_gpu_runtime_target:${tool}`)
+}
+for (const phrase of [
+  'exactly eight GPU/model gate checks',
+  'exactly eight nested GPU/model source job payloads',
+  'on-demand-only GPU runtime',
+  'no idle GPU runtime approval',
+  'CPU fallback blocked for heavy/model tools',
+]) {
+  if (!markdown.includes(phrase)) fail(`markdown_missing_source_owner_gpu_policy:${phrase}`)
 }
 
 for (const action of [
@@ -444,43 +525,112 @@ const sourceOwnerApprovalPacket = parseJsonOutput(runNpm('ai-graphics:internal-b
   'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_OWNER_APPROVAL_LOCAL_FIXTURE',
   '--require-internal-beta-go-no-go-owner-approved',
 ]), 'source_owner_approval_packet')
-const sourceOwnerApprovalPacketPath = path.join(
-  path.dirname(manifestPacketPath),
+const packetRoot = path.dirname(manifestPacketPath)
+const sourceOwnerApprovalPacketPath = writeJsonPacket(
+  packetRoot,
   'source-go-no-go-owner-approval-packet.json',
+  sourceOwnerApprovalPacket,
 )
-fs.writeFileSync(sourceOwnerApprovalPacketPath, `${JSON.stringify(sourceOwnerApprovalPacket, null, 2)}\n`, 'utf8')
-for (const [label, mutate] of [
-  ['missing_tool_count', (packet) => {
-    packet.totalAiGraphicsTools = 20
-  }],
-  ['runtime_true', (packet) => {
-    packet.booleans.gpuRuntimeApprovedNow = true
-  }],
-  ['owner_record_false', (packet) => {
-    packet.booleans.internalBetaGoNoGoOwnerApprovalRecordAccepted = false
-  }],
-]) {
-  const badPacket = JSON.parse(JSON.stringify(sourceOwnerApprovalPacket))
-  mutate(badPacket)
-  const badPacketPath = path.join(
-    path.dirname(manifestPacketPath),
-    `bad-source-go-no-go-owner-approval-packet-${label}.json`,
-  )
-  fs.writeFileSync(badPacketPath, `${JSON.stringify(badPacket, null, 2)}\n`, 'utf8')
-  let badPacketRejected = false
-  try {
-    runNpm(runScriptName, [
-      '--internal-beta-go-no-go-owner-approval-packet',
-      badPacketPath,
-      '--internal-beta-runtime-enqueue-approval-granted',
-      '--internal-beta-runtime-enqueue-approval-ref',
-      'AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_LOCAL_FIXTURE',
-    ])
-  } catch {
-    badPacketRejected = true
-  }
-  if (!badPacketRejected) fail(`bad_source_owner_packet_not_rejected:${label}`)
-}
+expectSourceOwnerPacketRejected('missing_tool_count', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { totalAiGraphicsTools: 20 }),
+)
+expectSourceOwnerPacketRejected('missing_capability_count', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { totalProductFacingCapabilities: 11 }),
+)
+expectSourceOwnerPacketRejected('runtime_true', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { booleans: { gpuRuntimeApprovedNow: true } }),
+)
+expectSourceOwnerPacketRejected('owner_record_false', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { booleans: { internalBetaGoNoGoOwnerApprovalRecordAccepted: false } }),
+)
+expectSourceOwnerPacketRejected('source_go_no_go_missing_tool_count', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { sourceGoNoGo: { totalAiGraphicsTools: 20 } }),
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_wrong_gpu_runtime_target_count',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => deepMerge(packet, { sourceGoNoGo: { sourceRollup: { gpuRuntimeTargetedTools: 7 } } }),
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_wrong_gpu_runtime_target_value',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    packet.sourceGoNoGo.sourceRollup.expectedGpuRuntimeTargets.sam2 = 'native_linux_amd64_cpu_worker'
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_wrong_gpu_gate_check_count',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    const gateCheck = packet.sourceGoNoGo.sourceRollup.productionWorkerGateReadiness.productionWorkerGateChecks.find(
+      (candidate) => candidate.toolId === 'sam2',
+    )
+    gateCheck.toolId = 'sam2_misclassified'
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_wrong_nested_gpu_payload_count',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    const payload =
+      packet.sourceGoNoGo.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.sourceToolId = 'sam2_misclassified'
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_gpu_runtime_on_demand_policy_removed',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    const payload =
+      packet.sourceGoNoGo.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.productionWorkerJobPayload.metadata.aiGraphicsRuntimeActivationPolicy.onDemandOnly = false
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_idle_gpu_runtime_approved',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    const payload =
+      packet.sourceGoNoGo.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.productionWorkerJobPayload.metadata.noIdleGpuRuntimeApproved = false
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_heavy_tool_cpu_fallback_allowed',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    const payload =
+      packet.sourceGoNoGo.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.productionWorkerJobPayload.metadata.cpuFallbackAllowedForHeavyTools = true
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected('production_worker_dispatch_approved_now', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { sourceGoNoGo: { sourceRollup: { booleans: { productionWorkerDispatchApprovedNow: true } } } }),
+)
+expectSourceOwnerPacketRejected('tool_execution_performed', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { sourceGoNoGo: { sourceRollup: { booleans: { toolExecutionPerformed: true } } } }),
+)
 let packetAwaitingExited = false
 let packetAwaitingText = ''
 try {

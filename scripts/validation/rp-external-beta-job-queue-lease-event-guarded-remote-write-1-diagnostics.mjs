@@ -29,6 +29,18 @@ const requiredFiles = [
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
+for (const file of [
+  'docs/external-beta/private-artifact-storage-access-guarded-remote-write-1/source-audit.md',
+  'docs/external-beta/private-artifact-storage-access-guarded-remote-write-1/validation-results.md',
+  'docs/external-beta/private-artifact-storage-access-guarded-remote-write-1/readiness-gate.md',
+  'docs/external-beta/private-artifact-storage-access-guarded-remote-write-1/safety-boundary.md',
+  'docs/external-beta/private-artifact-storage-access-guarded-remote-write-1/runtime-validation-record.json',
+  'docs/activation-phase-rp-external-beta-private-artifact-storage-access-guarded-remote-write-1-results.md',
+  'scripts/validation/rp-external-beta-private-artifact-storage-access-guarded-remote-write-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-private-artifact-storage-access-guarded-remote-write-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
 
 const requiredText = [
   packet,
@@ -48,7 +60,7 @@ const requiredText = [
   'b283940e84c41ca159bae48c4021d6d2b250cc72aacafeeadfa0cd58bea3507b',
   '462662a3a23f947d245a791671727b81f422197670e7980aa9d763b7de33f0a7',
   '10cefbad91d0b5e80a05f77b3888e0865f45e171bde89c82a90daf9ab283d02c',
-  'blocked_external_product_beta_pending_remaining_runtime_gates_after_job_queue_lease_event_remote_write_readback',
+  'blocked_external_product_beta_pending_remaining_runtime_gates_after_private_artifact_storage_access_remote_write_readback',
   'RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1',
   'Product-ready end-to-end local OSS tools: `0`',
   'Internal beta unlocked: `false`',
@@ -207,14 +219,14 @@ if (safety.jobEventWrite !== 'transaction_rolled_back_generated_job_event_fixtur
 if (safety.workerLeaseClaim !== 'transaction_rolled_back_generated_worker_lease_fixture_only') fail('worker lease scope mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_job_queue_lease_event_remote_write_readback') fail('rollup decision mismatch')
+if (rollup.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_private_artifact_storage_access_remote_write_readback') fail('rollup decision mismatch')
 if (rollup.mainSupabaseTarget?.jobQueueLeaseEvents !== 'completed_job_queue_lease_event_guarded_remote_write_readback') fail('rollup job gate status mismatch')
 if (rollup.mainSupabaseTarget?.jobQueueLeaseEventPersistentRowsCreated !== false) fail('rollup persistent job rows flag mismatch')
 if (rollup.mainSupabaseTarget?.jobQueueLeaseEventRollbackResidueCount !== 0) fail('rollup job residue count mismatch')
 if (rollup.mainSupabaseTarget?.jobQueueJobStatus !== 'queued') fail('rollup job status mismatch')
 if (rollup.mainSupabaseTarget?.jobQueueJobEventType !== 'queued') fail('rollup job event type mismatch')
 if (rollup.mainSupabaseTarget?.jobQueueWorkerLeaseStatus !== 'claimed') fail('rollup worker lease status mismatch')
-if (!rollup.requiredNextOwnerDecision?.includes('RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1')) fail('rollup next milestone mismatch')
+if (!rollup.requiredNextOwnerDecision?.includes('RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1')) fail('rollup next milestone mismatch')
 if (rollup.safety?.jobEnqueue !== 'transaction_rolled_back_generated_job_fixture_only') fail('rollup job enqueue scope mismatch')
 if (rollup.safety?.persistentJobEnqueue !== false) fail('rollup persistent job enqueue flag mismatch')
 if (rollup.safety?.jobEventWrite !== 'transaction_rolled_back_generated_job_event_fixture_only') fail('rollup job event scope mismatch')

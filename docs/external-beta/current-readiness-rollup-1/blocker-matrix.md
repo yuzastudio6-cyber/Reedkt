@@ -15,7 +15,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Approved snapshot persistence | `completed_approved_snapshot_persistence_guarded_remote_write_readback` | carry forward transaction-rolled-back remote write/readback evidence |
 | Credit reservation ledger | `completed_credit_reservation_ledger_guarded_remote_write_readback` | carry forward transaction-rolled-back credit reservation/ledger readback evidence |
 | Job queue leases/events | `completed_job_queue_lease_event_guarded_remote_write_readback` | carry forward transaction-rolled-back job/lease/event remote write/readback evidence |
-| Private artifact storage/access | `ready_for_guarded_remote_write_readback_validation` | private bucket/readback/access evidence |
+| Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `blocked_pending_render_worker_runtime_validation` | private preview/export evidence, no public artifacts |
 | Provider/model calls | `blocked_pending_provider_owner_runtime_approval` | backend-only disabled-by-default policy and explicit approval |
 | External beta | `blocked` | internal beta evidence plus security/privacy/support/cost/deployment review |
@@ -26,7 +26,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1`
+`RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -124,6 +124,31 @@ Service-role route execution remains `not_run_pending_route_specific_guarded_wri
 Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended milestone: `RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1`.
+
+## RP External Beta Private Artifact Storage Access Guarded Remote Write 1
+
+`RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1` records decision `completed_private_artifact_storage_access_guarded_remote_write_readback` and execution `completed_guarded_generated_private_storage_object_write_read_delete_and_transaction_rolled_back_artifact_metadata_readback`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+The confirmed runner validated eight expected private buckets, private bucket public count `0`, and anonymous storage object policy count `0`. It created/read/deleted a generated private storage JSON fixture in the private `previews` bucket, verified checksum equality and post-delete absence, then inserted/read back `storage_object_records`, `artifact_manifests`, `artifact_manifest_items`, and an audit event inside a `set local role service_role` transaction that was rolled back.
+
+Run ID: `2026-06-27T01-26-45-265Z-df201682`. Report checksum: `809bea0a749e09cd63da4893e607420c719ab79d72da9d712d56bb3c91263686`. Manifest checksum: `16ee022cb847d5367f05678880c69cf50b4f83f407f10f174e3351b039960b2d`.
+
+Remote write/readback:
+- private bucket readback: `passed`
+- generated private storage JSON fixture created, read, deleted, and verified absent: `passed`
+- storage object residue count: `0`
+- transaction-rolled-back `storage_object_records`, `artifact_manifests`, and `artifact_manifest_items` metadata fixture: `passed`
+- artifact metadata rollback residue count: `0`
+- signed URL creation: `false`
+- public artifact creation: `false`
+
+Service-role route execution remains `not_run_pending_route_specific_guarded_write_validation`. Remotion private preview/export remains `blocked_pending_render_worker_runtime_validation`.
+
+Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

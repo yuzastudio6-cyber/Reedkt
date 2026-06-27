@@ -756,6 +756,7 @@
     "rp-external-beta-controlled-owner-go-no-go-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-owner-go-no-go-1-diagnostics.mjs",
     "rp-external-beta-named-invited-tester-walkthrough-1": "node scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1.mjs",
     "rp-external-beta-named-invited-tester-walkthrough-1:diagnostics": "node scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1-diagnostics.mjs",
+    "rp-external-beta-bounded-tester-expansion-decision-1:diagnostics": "node scripts/validation/rp-external-beta-bounded-tester-expansion-decision-1-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

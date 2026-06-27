@@ -28,8 +28,21 @@ const requiredFiles = [
   'package.json',
 ]
 
+const followOnBoundedTesterExpansionDecisionFiles = [
+  'docs/external-beta/bounded-tester-expansion-decision-1/source-audit.md',
+  'docs/external-beta/bounded-tester-expansion-decision-1/owner-decision.md',
+  'docs/external-beta/bounded-tester-expansion-decision-1/readiness-gate.md',
+  'docs/external-beta/bounded-tester-expansion-decision-1/safety-boundary.md',
+  'docs/external-beta/bounded-tester-expansion-decision-1/validation-results.md',
+  'docs/external-beta/bounded-tester-expansion-decision-1/bounded-tester-expansion-decision-record.json',
+  'docs/activation-phase-rp-external-beta-bounded-tester-expansion-decision-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-additional-named-tester-list-owner-input-1.md',
+  'scripts/validation/rp-external-beta-bounded-tester-expansion-decision-1-diagnostics.mjs',
+]
+
 const allowedFiles = new Set([
   ...requiredFiles,
+  ...followOnBoundedTesterExpansionDecisionFiles,
 ])
 
 const requiredText = [
@@ -221,7 +234,12 @@ const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/ro
 if (rollup.sourceClosure?.namedInvitedTesterWalkthrough !== 'rp_external_beta_named_invited_tester_walkthrough_1') {
   fail('rollup missing named invited tester walkthrough source')
 }
-if (rollup.statuses?.externalProductBeta !== 'ready_for_bounded_external_beta_tester_expansion_decision') {
+if (
+  ![
+    'ready_for_bounded_external_beta_tester_expansion_decision',
+    'controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list',
+  ].includes(rollup.statuses?.externalProductBeta)
+) {
   fail('rollup external beta status mismatch')
 }
 if (rollup.mainSupabaseTarget?.namedInvitedTesterWalkthrough !== 'completed_named_invited_tester_walkthrough') {
@@ -230,7 +248,12 @@ if (rollup.mainSupabaseTarget?.namedInvitedTesterWalkthrough !== 'completed_name
 if (rollup.mainSupabaseTarget?.namedInvitedTesterWalkthroughRunId !== record.runEvidence?.runId) {
   fail('rollup named tester run id mismatch')
 }
-if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1') {
+if (
+  ![
+    'RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1',
+    'OWNER_ACTION_REQUIRED_ADDITIONAL_NAMED_TESTER_LIST_FOR_BOUNDED_EXPANSION',
+  ].includes(rollup.mainSupabaseTarget?.nextMilestone)
+) {
   fail('rollup next milestone mismatch')
 }
 if (rollup.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('rollup product-ready count changed')

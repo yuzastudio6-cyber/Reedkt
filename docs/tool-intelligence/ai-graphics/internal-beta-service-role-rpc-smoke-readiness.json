@@ -6,6 +6,16 @@
     "serviceRoleQueueTransaction": "ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope",
     "serviceRoleRpcImplementation": "ai_graphics_internal_beta_service_role_rpc_implementation_readiness_contract_prepared_with_static_migration"
   },
+  "sourceEvidencePolicy": {
+    "acceptsCommittedReadinessDocs": true,
+    "acceptsServiceRoleQueueTransactionReadinessPacket": true,
+    "sourceServiceRoleQueueTransactionPacketMustReportNoWriteEnvelopeReady": true,
+    "sourceServiceRoleQueueTransactionPacketMustCoverAll21Tools": true,
+    "staticMigrationStillRequiredBeforeLiveSmoke": true,
+    "nonProductionCredentialsStillRequiredBeforeLiveSmoke": true,
+    "liveSmokeExecutedNow": false,
+    "runtimeUnlockPerformed": false
+  },
   "toolsCovered": [
     "torch_torchvision",
     "transformers",

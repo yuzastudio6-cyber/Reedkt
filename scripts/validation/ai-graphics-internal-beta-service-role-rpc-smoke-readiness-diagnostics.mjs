@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:internal-beta-service-role-rpc-smoke-readiness'
@@ -184,6 +186,25 @@ function runNpm(scriptName, args = []) {
   }).trim()
 }
 
+function writeServiceRoleQueueTransactionReadinessPacket() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-rpc-smoke-source-'))
+  const packetPath = path.join(root, 'service-role-queue-transaction-readiness-packet.json')
+  fs.writeFileSync(packetPath, JSON.stringify({
+    decision:
+      'ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope',
+    status: 'service_role_queue_transaction_envelope_prepared_live_writes_blocked',
+    serviceRoleTransactionRecords: allTools.map((toolId) => ({ toolId })),
+    booleans: {
+      all21ServiceRoleTransactionRecordsReadyWithProvidedEvidence: true,
+      serviceRoleQueueTransactionApprovedNow: false,
+      serviceRoleSupabaseWritesApprovedNow: false,
+      runtimeReadyNow: false,
+      productionReadyNow: false,
+    },
+  }, null, 2))
+  return packetPath
+}
+
 for (const file of [
   docsJsonFile,
   docsMdFile,
@@ -225,6 +246,24 @@ if (docs.decision !== 'ai_graphics_internal_beta_service_role_rpc_smoke_readines
 if (docs.status !== 'service_role_rpc_smoke_harness_prepared_live_smoke_blocked') {
   fail(`unexpected_status:${docs.status}`)
 }
+if (docs.sourceEvidencePolicy?.acceptsCommittedReadinessDocs !== true) {
+  fail('docs_source_policy_missing_committed_docs_mode')
+}
+if (docs.sourceEvidencePolicy?.acceptsServiceRoleQueueTransactionReadinessPacket !== true) {
+  fail('docs_source_policy_missing_transaction_packet_mode')
+}
+if (docs.sourceEvidencePolicy?.sourceServiceRoleQueueTransactionPacketMustReportNoWriteEnvelopeReady !== true) {
+  fail('docs_source_policy_missing_no_write_envelope_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceServiceRoleQueueTransactionPacketMustCoverAll21Tools !== true) {
+  fail('docs_source_policy_missing_all21_requirement')
+}
+if (docs.sourceEvidencePolicy?.liveSmokeExecutedNow !== false) {
+  fail('docs_source_policy_live_smoke_not_false')
+}
+if (docs.sourceEvidencePolicy?.runtimeUnlockPerformed !== false) {
+  fail('docs_source_policy_runtime_unlock_not_false')
+}
 
 for (const tool of allTools) {
   if (!docs.toolsCovered?.includes(tool)) fail(`docs_missing_tool:${tool}`)
@@ -245,6 +284,10 @@ for (const rpc of requiredRpcs) {
 }
 
 for (const token of [
+  '--internal-beta-service-role-queue-transaction-readiness-packet',
+  'sourceEvidenceMode',
+  'internal_beta_service_role_queue_transaction_readiness_packet',
+  'internalBetaServiceRoleQueueTransactionReadinessPacketRead',
   'REEDITPRO_CONFIRM_AI_GRAPHICS_SERVICE_ROLE_RPC_SMOKE',
   'REEDITPRO_AI_GRAPHICS_SERVICE_ROLE_RPC_SMOKE_ENV',
   '--execute-live-smoke',
@@ -356,6 +399,33 @@ if (dryOutput.booleans?.mockAdapterRejectedProductionToolMismatch !== true) {
 if (dryOutput.booleans?.mockAdapterRejectedCapabilityMismatch !== true) {
   fail('dry_output_capability_mismatch_rejection_not_true')
 }
+
+let packetFedOutput = {}
+try {
+  packetFedOutput = JSON.parse(runNpm(runScriptName, [
+    '--internal-beta-service-role-queue-transaction-readiness-packet',
+    writeServiceRoleQueueTransactionReadinessPacket(),
+  ]))
+} catch (error) {
+  fail(`packet_fed_readiness_command_failed:${error.message}`)
+}
+if (packetFedOutput.input?.sourceEvidenceMode !== 'internal_beta_service_role_queue_transaction_readiness_packet') {
+  fail(`packet_fed_source_mode:${packetFedOutput.input?.sourceEvidenceMode}`)
+}
+if (packetFedOutput.input?.internalBetaServiceRoleQueueTransactionReadinessPacketRead !== true) {
+  fail('packet_fed_source_packet_not_read')
+}
+if (packetFedOutput.rpcSmokeCasesReadyWithProvidedEvidence !== 21) {
+  fail(`packet_fed_ready_cases:${packetFedOutput.rpcSmokeCasesReadyWithProvidedEvidence}`)
+}
+if (packetFedOutput.booleans?.serviceRoleRpcSmokeApprovedNow !== false) {
+  fail('packet_fed_service_role_rpc_smoke_not_false')
+}
+if (packetFedOutput.booleans?.serviceRoleSupabaseWritesApprovedNow !== false) {
+  fail('packet_fed_supabase_writes_not_false')
+}
+if (packetFedOutput.booleans?.runtimeReadyNow !== false) fail('packet_fed_runtime_not_false')
+if (packetFedOutput.input?.gpuRuntimePerformed !== false) fail('packet_fed_gpu_runtime_performed_not_false')
 
 if (!scorecard.includes('ai_graphics_internal_beta_service_role_rpc_smoke_readiness_contract_prepared_live_smoke_blocked')) {
   fail('scorecard_missing_service_role_rpc_smoke_readiness')

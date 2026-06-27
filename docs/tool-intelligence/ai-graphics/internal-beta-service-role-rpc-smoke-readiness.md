@@ -18,6 +18,13 @@ Supabase rows, dispatch workers, or execute tools.
   `supabase/migrations/202606260002_ai_graphics_tool_runtime_service_role_rpcs.sql`
 - Backend adapter:
   `server/services/ai-graphics-tool-runtime-queue-service.ts`
+- Source packet mode:
+  `--internal-beta-service-role-queue-transaction-readiness-packet`
+- The source packet must already report
+  `service_role_queue_transaction_envelope_prepared_live_writes_blocked` with
+  all 21 transaction records ready. Static migration apply, non-production
+  service-role credentials, fixture IDs, and live smoke execution remain
+  separate future-only gates.
 
 ## Tools Covered
 

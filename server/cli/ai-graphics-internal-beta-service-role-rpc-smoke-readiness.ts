@@ -1,7 +1,12 @@
+import { existsSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { loadRuntimeEnv } from '../config/env'
 import { createAiGraphicsToolRuntimeQueueService } from '../services/ai-graphics-tool-runtime-queue-service'
 import { createSupabaseAdminClient } from '../supabase/admin-client'
 import type { ServiceContext } from '../types'
+import type {
+  AiGraphicsInternalBetaServiceRoleQueueTransactionReadiness,
+} from '../tool-registry/ai-graphics-internal-beta-service-role-queue-transaction-readiness'
 import {
   buildAiGraphicsInternalBetaServiceRoleRpcSmokeReadiness,
   buildAiGraphicsServiceRoleRpcSmokeJobs,
@@ -20,6 +25,69 @@ function requiredFlag(flag: string): string {
   const value = valueAfterFlag(flag)
   if (!value?.trim()) throw new Error(`Missing required flag ${flag}`)
   return value.trim()
+}
+
+function readJsonPath(filePath: string): unknown {
+  const resolvedPath = resolve(filePath)
+  if (!existsSync(resolvedPath)) {
+    throw new Error(`Evidence packet file does not exist: ${filePath}`)
+  }
+
+  return JSON.parse(readFileSync(resolvedPath, 'utf8'))
+}
+
+function readJsonObjectFile(filePath: string): Record<string, unknown> {
+  const packet = readJsonPath(filePath)
+  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) {
+    throw new Error(`Evidence packet must be a JSON object: ${filePath}`)
+  }
+
+  return packet as Record<string, unknown>
+}
+
+function isServiceRoleQueueTransactionReadinessPacket(
+  packet: unknown,
+): packet is AiGraphicsInternalBetaServiceRoleQueueTransactionReadiness {
+  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) return false
+  const record = packet as Record<string, unknown>
+  const booleans = record.booleans
+  return (
+    record.decision ===
+      'ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope' &&
+    record.status === 'service_role_queue_transaction_envelope_prepared_live_writes_blocked' &&
+    Array.isArray(record.serviceRoleTransactionRecords) &&
+    record.serviceRoleTransactionRecords.length === 21 &&
+    Boolean(
+      booleans &&
+      typeof booleans === 'object' &&
+      !Array.isArray(booleans) &&
+      (booleans as Record<string, unknown>).all21ServiceRoleTransactionRecordsReadyWithProvidedEvidence === true,
+    )
+  )
+}
+
+function readSourceServiceRoleQueueTransactionReadinessPacket(): {
+  sourceServiceRoleQueueTransactionReadinessPacket?: AiGraphicsInternalBetaServiceRoleQueueTransactionReadiness
+  sourceEvidenceMode:
+    | 'constructed_from_committed_readiness_docs'
+    | 'internal_beta_service_role_queue_transaction_readiness_packet'
+} {
+  const filePath = valueAfterFlag('--internal-beta-service-role-queue-transaction-readiness-packet')
+  if (!filePath) {
+    return { sourceEvidenceMode: 'constructed_from_committed_readiness_docs' }
+  }
+
+  const packet = readJsonObjectFile(filePath)
+  if (!isServiceRoleQueueTransactionReadinessPacket(packet)) {
+    throw new Error(
+      'Service-role queue transaction readiness packet must report service_role_queue_transaction_envelope_prepared_live_writes_blocked with all 21 transaction records ready.',
+    )
+  }
+
+  return {
+    sourceServiceRoleQueueTransactionReadinessPacket: packet,
+    sourceEvidenceMode: 'internal_beta_service_role_queue_transaction_readiness_packet',
+  }
 }
 
 function assertLiveSmokeAllowed(): void {
@@ -150,12 +218,19 @@ async function main() {
     return
   }
 
+  const {
+    sourceServiceRoleQueueTransactionReadinessPacket,
+    sourceEvidenceMode,
+  } = readSourceServiceRoleQueueTransactionReadinessPacket()
   const readiness = await buildAiGraphicsInternalBetaServiceRoleRpcSmokeReadiness()
   console.log(JSON.stringify({
     ...readiness,
     input: {
       validatorOnly: true,
       executeLiveSmoke: false,
+      sourceEvidenceMode,
+      internalBetaServiceRoleQueueTransactionReadinessPacketRead:
+        Boolean(sourceServiceRoleQueueTransactionReadinessPacket),
       dependencyInstallPerformed: false,
       packageLockMutationPerformed: false,
       toolExecutionPerformed: false,

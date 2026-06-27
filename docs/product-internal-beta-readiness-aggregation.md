@@ -168,3 +168,15 @@ The backend-only implementation validates the future approved snapshot service-r
 Current status after implementation is internal beta `blocked_pending_guarded_remote_persistence_write_private_storage_artifact_job_and_e2e_gates`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
 Next milestone: `RP-INTERNAL-BETA-APPROVED-SNAPSHOT-SERVICE-ROLE-PERSISTENCE-GUARDED-REMOTE-WRITE-1`.
+
+## RP External Beta Provider Model Call Policy Closure 1
+
+`RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1` records decision `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` and execution `completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution`.
+
+The provider/model-call policy gate is source-closed for the external beta chain without enabling runtime calls. Provider/model runtime remains `disabled_by_default`; provider/model calls executed: `none`; frontend provider calls: `forbidden`; backend-only provider adapters: `required`; approved snapshot, credit reservation, idempotency, cost cap, model-routing, QA fallback, private artifact manifest, and server-side secret isolation remain required before any future real call.
+
+The single active Supabase target remains `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`; the isolated project `fajinbvwhcjnutkaumkm` remains historical sandbox evidence only and no data is copied from it.
+
+Current external product beta blocker: `blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure`. Product-ready end-to-end local OSS tools: `0`.
+
+Next milestone: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.

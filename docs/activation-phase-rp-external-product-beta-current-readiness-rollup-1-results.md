@@ -1,10 +1,10 @@
 # Activation Phase: RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Results
 
-Decision: `blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation`
+Decision: `blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `313725a11b1a3e1aaa7394bf10c9e965053b627f`
+Current integration head: `acd4730c8216adb136c7b7d23de3004ac4335577`
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
@@ -42,9 +42,11 @@ The Supabase target credential/target-validation lane has moved past the missing
 
 `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1` records decision `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation`, rendered only a generated local Remotion fixture under `/tmp`, and recorded sanitized evidence: run ID `2026-06-27T02-41-01-252Z-7ce79dc6`, output file `reeditpro-external-beta-generated-local-preview.mp4`, output bytes `64855`, and SHA-256 `ea12d55c9ef1675da711769c97c9e76bb2da8547bd4c471176a0ff64b03c1c5b`.
 
-The active blocker is now `blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation`. Therefore external product beta remains blocked until provider/model-call policy, QA/cleanup/observability/rollback review, and security/privacy/support/cost/deployment review pass.
+`RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1` records decision `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` and execution `completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution`. It closes the provider/model policy ambiguity without enabling real calls: provider/model runtime is `disabled_by_default`, provider/model calls executed are `none`, frontend provider calls are `forbidden`, backend-only provider adapters are `required`, and approved snapshot, credit reservation, idempotency, cost cap, model-routing, QA fallback, private artifact, and server-side secret isolation gates remain required.
 
-Next safe action: `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`.
+The active blocker is now `blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure`. Therefore external product beta remains blocked until QA/cleanup/observability/rollback review and security/privacy/support/cost/deployment review pass.
+
+Next safe action: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
 
 ## Safety
 

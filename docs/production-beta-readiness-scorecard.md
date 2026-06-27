@@ -248,6 +248,17 @@ This still does not run a service-role transaction or write Supabase rows:
 `gpuRuntimeShouldStartNow=false`, `externalBetaReadyNowTools=0`, and
 `productionReadyNowTools=0` remain enforced.
 
+AI graphics external beta local queue storage decision
+`ai_graphics_external_beta_local_queue_storage_mock_write_prepared_with_runtime_blocks`
+bridges the external-beta service-role queue transaction envelope into the
+existing `createJobService` boundary in forced mock mode. Diagnostics prepare
+all 21 AI graphics tools as mock-only `ai_graphics_tool_runtime` job-service
+records, including the eight GPU/model tools on GPU-targeted runtime lanes.
+This is not a live Supabase write: `liveQueueWriteApprovedNow=false`,
+`supabaseMutationPerformed=false`, `workerLeaseCreated=false`,
+`workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,
+`externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
+
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
 shapes the all-21 queue-admission packets into backend queue adapter submission

@@ -309,6 +309,10 @@ try {
     storedOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('scope-approval-sequence')),
     'complete stored evidence should guide operators to the all-up scope approval sequence for later approvals',
   )
+  assert.ok(
+    storedOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('paid-production-evidence-collector')),
+    'complete stored evidence should guide operators to the final paid-production evidence collector when all approvals are ready',
+  )
 
   const coreEvidenceResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evidence/core-real-check`, {
     method: 'POST',

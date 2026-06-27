@@ -114,6 +114,7 @@ assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readine
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:external-beta-evidence-collector')), 'ready report should name the all-up external beta evidence collector')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:scope-approval-evidence-preflight')), 'ready report should name later scope approval evidence preflight command')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:scope-approval-sequence')), 'ready report should name the all-up scope approval sequence')
+assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:paid-production-evidence-collector')), 'ready report should name the final paid-production evidence collector')
 assert.equal(JSON.stringify(readyReport).includes('tool-bearer-token-secret-for-smoke'), false, 'operator report must not print tool bearer token')
 assert.equal(JSON.stringify(readyReport).includes('platform-bearer-token-secret-for-smoke'), false, 'operator report must not print platform bearer token')
 assert.equal(JSON.stringify(readyReport).includes('launch-bearer-token-secret-for-smoke'), false, 'operator report must not print launch bearer token')
@@ -143,6 +144,7 @@ assert.ok(emptyReport.nextActions.some((action) => action.includes('launch-appro
 assert.ok(emptyReport.nextActions.some((action) => action.includes('external-beta-evidence-collector')), 'empty report should direct operator to the external beta evidence collector after preflights')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('REEDITPRO_BETA_SCOPE_APPROVAL_MODE=real_user_media_beta')), 'empty report should preserve later scope approval lane guidance')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('scope-approval-sequence')), 'empty report should preserve all-up scope approval sequence guidance')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('paid-production-evidence-collector')), 'empty report should preserve final paid-production collector guidance')
 
 console.log(JSON.stringify({
   ok: true,

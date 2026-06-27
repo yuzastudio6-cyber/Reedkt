@@ -56,4 +56,4 @@ It is not a B-roll generator, renderer, exporter, OCR source of truth, chart ren
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference`
+`QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference`

@@ -51,10 +51,10 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT = {
     productionUnlocked: false,
     dryRunPassedClaimed: false,
     generatedLocalFixturePassedClaimed: false,
-  },
-  nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference',
-} as const
+	  },
+	  nextPrompt:
+	    'QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference',
+	} as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeFrontendClient =
   typeof QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT

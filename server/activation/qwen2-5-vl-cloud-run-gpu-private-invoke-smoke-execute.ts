@@ -18,10 +18,12 @@ type ResultStatus = 'passed' | 'blocked'
 type JsonRecord = Record<string, unknown>
 
 const CONFIRMATION_ENV = 'REEDITPRO_CONFIRM_QWEN25_VL_PRIVATE_INVOKE_SMOKE'
+const IMPERSONATION_ENV = 'REEDITPRO_GCP_IMPERSONATE_SERVICE_ACCOUNT'
 const TARGET = QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_SMOKE_PLAN.targetService
 const EXPECTED_REASON =
   QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_SMOKE_PLAN.futureSmokeShape.expectedReason
 const REDACTED = 'redacted_not_stored'
+const SERVICE_ACCOUNT_EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.gserviceaccount\.com$/
 
 export interface Qwen25PrivateInvokeSmokeProbe {
   readonly id: string
@@ -84,11 +86,14 @@ const BASE_RUNTIME_FLAGS = {
   serviceUrlValueStored: false,
   audienceResolvedNow: false,
   audienceValueStored: false,
-  authHeaderCreated: false,
-  identityTokenFetched: false,
-  identityTokenPrinted: false,
-  identityTokenValueStored: false,
-  cloudRunInvocationAttempted: false,
+	  authHeaderCreated: false,
+	  identityTokenFetched: false,
+	  identityTokenPrinted: false,
+	  identityTokenValueStored: false,
+	  serviceAccountImpersonationConfigured: false,
+	  serviceAccountImpersonationAttempted: false,
+	  serviceAccountKeyCreated: false,
+	  cloudRunInvocationAttempted: false,
   serviceRuntimeRequestSent: false,
   responseClassifiedLocally: false,
   retryAttempted: false,
@@ -212,30 +217,62 @@ export async function runQwen25PrivateInvokeSmoke(input: {
     })
   }
 
-  const tokenProbe = await probeCommand(
-    'identity_token_fetch',
-    ['auth', 'print-identity-token', '--audiences', serviceUrl],
-    { redactAudienceArg: true },
-  )
+	  const impersonation = await resolveImpersonationServiceAccount(probes)
+	  if (impersonation.probe) probes.push(impersonation.probe)
+	  if (impersonation.blocker) blockers.push(impersonation.blocker)
+
+	  if (blockers.length || !impersonation.serviceAccount) {
+	    return buildResult({
+	      runId,
+	      preflightRunId: input.preflightRunId,
+	      probes,
+	      blockers,
+	      costPosture,
+	      envelopeByteLength: envelopeResult.envelope.bodyByteLength,
+	      maxBodyBytes: envelopeResult.envelope.maxBodyBytes,
+	      runtimeFlagOverrides: {
+	        serviceUrlResolvedNow: true,
+	        audienceResolvedNow: true,
+	        costGuardReviewedBeforeInvoke: true,
+	        serviceAccountImpersonationConfigured: Boolean(impersonation.serviceAccount),
+	      },
+	    })
+	  }
+
+	  const tokenProbe = await probeCommand(
+	    'identity_token_fetch',
+	    [
+	      '--quiet',
+	      '--impersonate-service-account',
+	      impersonation.serviceAccount,
+	      'auth',
+	      'print-identity-token',
+	      '--audiences',
+	      serviceUrl,
+	    ],
+	    { redactAudienceArg: true, redactImpersonationArg: true },
+	  )
   probes.push(tokenProbe)
 
-  const identityToken = tokenProbe.rawOutput?.trim()
-  if (tokenProbe.status !== 'passed' || !identityToken) {
-    blockers.push('identity_token_fetch_blocked')
-    return buildResult({
-      runId,
-      preflightRunId: input.preflightRunId,
-      probes,
+	  const identityToken = tokenProbe.rawOutput?.trim()
+	  if (tokenProbe.status !== 'passed' || !identityToken) {
+	    blockers.push(classifyIdentityTokenBlocker(tokenProbe.errorSummary))
+	    return buildResult({
+	      runId,
+	      preflightRunId: input.preflightRunId,
+	      probes,
       blockers,
       costPosture,
       envelopeByteLength: envelopeResult.envelope.bodyByteLength,
-      maxBodyBytes: envelopeResult.envelope.maxBodyBytes,
-      runtimeFlagOverrides: {
-        serviceUrlResolvedNow: true,
-        audienceResolvedNow: true,
-        costGuardReviewedBeforeInvoke: true,
-      },
-    })
+	      maxBodyBytes: envelopeResult.envelope.maxBodyBytes,
+	      runtimeFlagOverrides: {
+	        serviceUrlResolvedNow: true,
+	        audienceResolvedNow: true,
+	        costGuardReviewedBeforeInvoke: true,
+	        serviceAccountImpersonationConfigured: true,
+	        serviceAccountImpersonationAttempted: true,
+	      },
+	    })
   }
 
   const requestStarted = Date.now()
@@ -303,12 +340,14 @@ export async function runQwen25PrivateInvokeSmoke(input: {
     body,
     httpStatus,
     runtimeFlagOverrides: {
-      costGuardReviewedBeforeInvoke: true,
-      serviceUrlResolvedNow: true,
-      audienceResolvedNow: true,
-      authHeaderCreated: true,
-      identityTokenFetched: true,
-      cloudRunInvocationAttempted: true,
+	      costGuardReviewedBeforeInvoke: true,
+	      serviceUrlResolvedNow: true,
+	      audienceResolvedNow: true,
+	      authHeaderCreated: true,
+	      identityTokenFetched: true,
+	      serviceAccountImpersonationConfigured: true,
+	      serviceAccountImpersonationAttempted: true,
+	      cloudRunInvocationAttempted: true,
       serviceRuntimeRequestSent: true,
       responseClassifiedLocally: true,
     },
@@ -318,7 +357,7 @@ export async function runQwen25PrivateInvokeSmoke(input: {
 async function probeCommand(
   id: string,
   args: string[],
-  options: { redactAudienceArg?: boolean } = {},
+  options: { redactAudienceArg?: boolean; redactImpersonationArg?: boolean } = {},
 ): Promise<InternalProbe> {
   const started = Date.now()
   try {
@@ -350,6 +389,57 @@ async function probeCommand(
       rawOutput: commandError.stdout,
     }
   }
+}
+
+async function resolveImpersonationServiceAccount(
+  probes: readonly InternalProbe[],
+): Promise<{
+  readonly serviceAccount?: string
+  readonly source: 'environment' | 'gcloud_config' | 'none'
+  readonly probe?: InternalProbe
+  readonly blocker?: string
+}> {
+  const explicit = process.env[IMPERSONATION_ENV]?.trim()
+  if (explicit) {
+    return SERVICE_ACCOUNT_EMAIL_PATTERN.test(explicit)
+      ? { serviceAccount: explicit, source: 'environment' }
+      : { source: 'environment', blocker: 'invalid_impersonation_service_account_email' }
+  }
+
+  const configuredProbe = await probeCommand('configured_impersonation_service_account', [
+    'config',
+    'get-value',
+    'auth/impersonate_service_account',
+  ], { redactImpersonationArg: true })
+  const configured = configuredProbe.rawOutput?.trim()
+
+  if (configured && configured !== '(unset)') {
+    return SERVICE_ACCOUNT_EMAIL_PATTERN.test(configured)
+      ? { serviceAccount: configured, source: 'gcloud_config', probe: configuredProbe }
+      : {
+          source: 'gcloud_config',
+          probe: configuredProbe,
+          blocker: 'invalid_configured_impersonation_service_account_email',
+        }
+  }
+
+  const alreadyProbed = probes.some((probe) => probe.id === configuredProbe.id)
+  return {
+    source: 'none',
+    probe: alreadyProbed ? undefined : configuredProbe,
+    blocker: 'impersonation_service_account_not_configured',
+  }
+}
+
+function classifyIdentityTokenBlocker(errorSummary?: string) {
+  const text = errorSummary ?? ''
+  if (/iam\.serviceAccounts\.getAccessToken|service account token creator|TokenCreator/i.test(text)) {
+    return 'token_creator_permission_required'
+  }
+  if (/impersonat/i.test(text)) {
+    return 'impersonated_identity_token_fetch_blocked'
+  }
+  return 'identity_token_fetch_blocked'
 }
 
 function buildResult(input: {
@@ -409,11 +499,9 @@ function buildResult(input: {
       ...BASE_RUNTIME_FLAGS,
       ...input.runtimeFlagOverrides,
     } as Qwen25PrivateInvokeSmokeRuntimeFlags,
-    nextPrompt: status === 'passed'
-      ? 'QWEN2_5_VL_STACK_TOOL_53-PRIVATE-INVOKE-SMOKE-REVIEW: review controlled private invoke result and plan inference enablement gate, no inference'
-      : 'QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference',
-  }
-}
+	    nextPrompt: nextPromptForResult(status, input.blockers),
+	  }
+	}
 
 function stripProbeRawOutput(probe: InternalProbe): Qwen25PrivateInvokeSmokeProbe {
   return {
@@ -426,12 +514,21 @@ function stripProbeRawOutput(probe: InternalProbe): Qwen25PrivateInvokeSmokeProb
   }
 }
 
-function commandSummary(args: readonly string[], options: { redactAudienceArg?: boolean }) {
-  if (!options.redactAudienceArg) return ['gcloud', ...args].join(' ')
+function commandSummary(
+  args: readonly string[],
+  options: { redactAudienceArg?: boolean; redactImpersonationArg?: boolean },
+) {
+  if (!options.redactAudienceArg && !options.redactImpersonationArg) {
+    return ['gcloud', ...args].join(' ')
+  }
   const redactedArgs = [...args]
   const audienceIndex = redactedArgs.findIndex((arg) => arg === '--audiences')
   if (audienceIndex >= 0 && audienceIndex + 1 < redactedArgs.length) {
     redactedArgs[audienceIndex + 1] = REDACTED
+  }
+  const impersonationIndex = redactedArgs.findIndex((arg) => arg === '--impersonate-service-account')
+  if (impersonationIndex >= 0 && impersonationIndex + 1 < redactedArgs.length) {
+    redactedArgs[impersonationIndex + 1] = REDACTED
   }
   return ['gcloud', ...redactedArgs].join(' ')
 }
@@ -442,7 +539,43 @@ function summarizeProbeOutput(id: string, text: string) {
       ? 'identity_token_fetched=true\nidentity_token_value_stored=false\nidentity_token_output_printed=false\n'
       : 'identity_token_fetched=false\n'
   }
+  if (id === 'cloud_run_service_describe') {
+    const service = parseJson(text)
+    const metadata = asRecord(asRecord(service).metadata)
+    const serviceAnnotations = asRecord(metadata.annotations)
+    const spec = asRecord(asRecord(service).spec)
+    const template = asRecord(spec.template)
+    const templateMetadata = asRecord(template.metadata)
+    const templateAnnotations = asRecord(templateMetadata.annotations)
+    const status = asRecord(asRecord(service).status)
+    const ingress = serviceAnnotations['run.googleapis.com/ingress'] ?? 'unknown'
+    const templateMaxScale = templateAnnotations['autoscaling.knative.dev/maxScale'] ??
+      templateAnnotations['run.googleapis.com/maxScale'] ??
+      'unknown'
+    const serviceMaxScale = serviceAnnotations['run.googleapis.com/maxScale'] ?? 'unknown'
+    return [
+      'service_describe_passed=true',
+      `service_url_resolved_in_memory=${typeof status.url === 'string'}`,
+      'service_url_value_stored=false',
+      `ingress=${String(ingress)}`,
+      `template_max_scale=${String(templateMaxScale)}`,
+      `service_max_scale=${String(serviceMaxScale)}`,
+    ].join('\n')
+  }
   return sanitizeText(text).slice(0, 1200)
+}
+
+function nextPromptForResult(status: ResultStatus, blockers: readonly string[]) {
+  if (status === 'passed') {
+    return 'QWEN2_5_VL_STACK_TOOL_53-PRIVATE-INVOKE-SMOKE-REVIEW: review controlled private invoke result and plan inference enablement gate, no inference'
+  }
+  if (
+    blockers.includes('token_creator_permission_required') ||
+    blockers.includes('impersonated_identity_token_fetch_blocked')
+  ) {
+    return 'QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference'
+  }
+  return 'QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference'
 }
 
 function sanitizeText(text: string) {

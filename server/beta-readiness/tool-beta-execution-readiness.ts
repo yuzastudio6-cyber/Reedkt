@@ -59,6 +59,7 @@ export function buildToolBetaExecutionReadinessReport(
     tools.every((tool) => tool.executableForExternalBeta)
   const productionToolExecutionAllowed = externalBetaToolExecutionAllowed &&
     tools.every((tool) => tool.executableForProduction)
+  const blockedActionScope = buildBlockedActionScope(externalBetaToolExecutionAllowed, productionToolExecutionAllowed)
 
   return {
     reportId: `tool-beta-execution-readiness-${new Date().toISOString()}`,
@@ -78,6 +79,9 @@ export function buildToolBetaExecutionReadinessReport(
       ownerCoverageSummary.missingReadinessSpecToolIds.length === 0,
     externalBetaToolExecutionAllowed,
     productionToolExecutionAllowed,
+    blockerPolicy: 'evidence_driven_block_unsafe_actions_only',
+    safeBlockerReductionAllowed: true,
+    blockedActionScope,
     tools,
     platformBlockers,
     blockers: uniqueBlockers(blockers),
@@ -87,6 +91,7 @@ export function buildToolBetaExecutionReadinessReport(
       'Current mode is dry-run only; command/import/Docker/model checks are not executed by this report.',
       'External beta tool execution requires passed real readiness checks, owner approvals, deployed billing persistence, deployment/storage/security approval, and model/license review.',
       'Product-ready local OSS remains 0 until a later gate accepts real runtime evidence.',
+      'Blockers protect only the unsafe external-beta/production action; bounded source reviews, local proofs, diagnostics, QA packets, deployment preflights, and owner-approval packets remain allowed when they reduce named blockers without bypassing the gate.',
     ],
   }
 }
@@ -107,6 +112,10 @@ function buildToolRecord(input: {
     Boolean(input.ownerCoverage) &&
     (Boolean(input.readiness) || Boolean(input.acceptedEvidence)) &&
     executableStatuses.has(readinessStatus)
+  const blockedActionScope = buildBlockedActionScope(
+    executableForExternalBeta,
+    executableForExternalBeta && input.acceptedEvidence?.productionReadinessAccepted === true,
+  )
 
   return {
     toolId: input.toolId,
@@ -127,9 +136,25 @@ function buildToolRecord(input: {
     productReadyLocalOss,
     executableForExternalBeta,
     executableForProduction: executableForExternalBeta && input.acceptedEvidence?.productionReadinessAccepted === true,
+    safeBlockerReductionAllowed: true,
+    blockedActionScope,
     blockers,
     nextAction: nextActionForTool(blockers),
   }
+}
+
+function buildBlockedActionScope(
+  externalBetaAllowed: boolean,
+  productionAllowed: boolean,
+): string[] {
+  const blockedActions: string[] = []
+  if (!externalBetaAllowed) {
+    blockedActions.push('external_beta_tool_execution')
+  }
+  if (!productionAllowed) {
+    blockedActions.push('paid_production_tool_execution')
+  }
+  return blockedActions
 }
 
 function buildToolBlockers(input: {

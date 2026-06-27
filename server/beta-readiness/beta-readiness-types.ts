@@ -111,6 +111,8 @@ export interface ToolBetaExecutionReadinessRecord {
   productReadyLocalOss: boolean
   executableForExternalBeta: boolean
   executableForProduction: boolean
+  safeBlockerReductionAllowed: boolean
+  blockedActionScope: string[]
   blockers: ToolBetaExecutionReadinessBlocker[]
   nextAction: string
 }
@@ -131,6 +133,9 @@ export interface ToolBetaExecutionReadinessReport {
   internalDryRunMonitoringAllowed: boolean
   externalBetaToolExecutionAllowed: boolean
   productionToolExecutionAllowed: boolean
+  blockerPolicy: 'evidence_driven_block_unsafe_actions_only'
+  safeBlockerReductionAllowed: boolean
+  blockedActionScope: string[]
   tools: ToolBetaExecutionReadinessRecord[]
   platformBlockers: ToolBetaExecutionReadinessPlatformBlocker[]
   blockers: ToolBetaExecutionReadinessBlocker[]

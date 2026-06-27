@@ -3,7 +3,7 @@
 # Runtime is disabled by default; this source does not approve worker execution.
 # No media processing, worker readiness, runtime readiness, image readiness, beta readiness, or production readiness is claimed.
 
-FROM python:3.13-slim
+FROM --platform=linux/amd64 python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -14,6 +14,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /opt/reeditpro/sound-cpu
 
 COPY server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt ./requirements.sound-oss-tools.txt
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y libatomic1 \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir --requirement ./requirements.sound-oss-tools.txt
 

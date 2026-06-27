@@ -125,6 +125,7 @@
     "qwen2-5-vl-7b-cloud-run-gpu-vllm-engine-proof-result:diagnostics": "tsx scripts/validation/qwen2-5-vl-7b-cloud-run-gpu-vllm-engine-proof-result-diagnostics.mjs",
     "qwen2-5-vl-7b-cloud-run-gpu-approved-snapshot-runtime-contract:diagnostics": "tsx scripts/validation/qwen2-5-vl-7b-cloud-run-gpu-approved-snapshot-runtime-contract-diagnostics.mjs",
     "qwen2-5-vl-7b-cloud-run-gpu-private-invoke-config-smoke-result:diagnostics": "tsx scripts/validation/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-config-smoke-result-diagnostics.mjs",
+    "qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-result:diagnostics": "tsx scripts/validation/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-result-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
     "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "sound-oss-tools-2:diagnostics": "node scripts/validation/sound-oss-tools-2-approved-install-plan-diagnostics.mjs",

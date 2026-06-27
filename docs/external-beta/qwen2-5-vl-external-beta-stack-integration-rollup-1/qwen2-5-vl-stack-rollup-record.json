@@ -1,0 +1,66 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_STACK_INTEGRATION_ROLLUP_1",
+  "decision": "completed_qwen2_5_vl_stack_source_rollup_ready_for_fresh_fail_closed_source_import",
+  "execution": "completed_docs_only_qwen_stack_rollup_no_runtime_execution",
+  "integrationBase": "1ee47c1cec29ddf60f494a72416d03b9ba9027a0",
+  "currentTopPr": {
+    "number": 1287,
+    "title": "QWEN2_5_VL structured fixture output fix",
+    "head": "46e43a0dcbe7de602a9403caf96f1b7693a74eb5",
+    "state": "OPEN",
+    "draft": false,
+    "mergeability": "MERGEABLE/CLEAN"
+  },
+  "acceptedEvidence": {
+    "approvedFixtureResultReviewPr": 1282,
+    "structuredOutputFixPr": 1287,
+    "boundedPrivateInvocationAccepted": true,
+    "privateModelCacheLoadAccepted": true,
+    "vllmInitializationAccepted": true,
+    "structuredOutputSourceFixAcceptedForImportPlanning": true,
+    "runtimeReadinessAdvanced": false
+  },
+  "integrationRisk": {
+    "stackHasMergeBaseWithIntegration": false,
+    "directStackMergeApproved": false,
+    "blindCherryPickApproved": false,
+    "freshSourceImportRequired": true
+  },
+  "readiness": {
+    "controlledSingleTesterExternalBeta": "ready_for_aiediting_reeditpro_com_without_qwen_runtime_enablement",
+    "qwenRuntime": "blocked_pending_fresh_integration_source_import_and_structured_output_smoke_retry",
+    "broadExternalBeta": "blocked_no_additional_named_tester_list",
+    "externalProduction": "blocked_pending_broad_beta_tool_runtime_billing_support_legal_security_and_final_export_gates",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_STRUCTURED_OUTPUT_SOURCE_IMPORT_1",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "safety": {
+    "prMerge": false,
+    "stackMerge": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "cloudRunDeployment": false,
+    "cloudRunInvocation": false,
+    "identityTokenFetch": false,
+    "qwenExecution": false,
+    "modelImportLoad": false,
+    "vllmInitialization": false,
+    "dockerExecution": false,
+    "mediaProcessing": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "deployment": false,
+    "productionUnlock": false,
+    "packageInstallation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  }
+}

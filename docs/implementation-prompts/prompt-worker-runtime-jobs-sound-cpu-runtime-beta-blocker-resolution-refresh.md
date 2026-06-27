@@ -1,0 +1,7 @@
+# WORKER_RUNTIME_JOBS-SOUND-CPU-RUNTIME-BETA-BLOCKER-RESOLUTION-REFRESH: Refresh Runtime Beta Blockers After No-Media Package Proof Retry, No Execution
+
+Use `worker_runtime_jobs_sound_cpu_runtime_beta_readiness_reconciliation_completed_with_warnings_ready_for_runtime_beta_blocker_resolution_refresh` as source evidence. Re-read the current repo lane evidence and decide the next non-duplicate safe gate after PR #1120's passed no-media/no-artifact package proof retry.
+
+This prompt is no-execution and decision-only. Do not run package installation, Python proof runners, Docker build/run/push, GCP/Cloud Run/Secret Manager, worker dispatch, worker execution, route execution, tool runtime dispatch, media file open/process/write, FFmpeg/ffprobe, Supabase, SQL, artifact creation, signed/public URLs, provider/model calls, credit mutation, Stripe, beta unlock, production unlock, raw prompt execution, final render, or export.
+
+Required decision: either select a current no-execution preflight/owner-gate refresh, select a specific blocker-fix packet, or stop if repo evidence still lacks a safe path. Treat old adjacent tool-calling reconciliation PRs as non-blocking unless a fresh read shows they explicitly supersede the current source branch and file scope. Do not claim internal beta, external beta, production, tool-call readiness, route readiness, worker readiness, or runtime readiness unless a current merged source packet explicitly authorizes that exact claim.

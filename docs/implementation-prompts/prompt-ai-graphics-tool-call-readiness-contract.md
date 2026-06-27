@@ -121,6 +121,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 - Follow-up worker payload runtime activation hardening updates internal beta worker payload readiness, production worker job readiness, production worker gate readiness, and queue adapter diagnostics so provided approved snapshot, credit reservation, and private artifact manifest refs are preserved and GPU-capable jobs must carry `onDemandOnly=true`, `noIdleGpuRuntimeApproved=true`, `startsOnlyForApprovedWorkerOrToolCall=true`, and `cpuFallbackAllowedForHeavyTools=false` through the production worker gate.
 - Follow-up worker handoff private artifact boundary hardening updates worker handoff and beta execution handoff readiness so `privateArtifactManifestRef` must be a private-only scheme before worker/queue handoff can consume it. This aligns the early handoff contract with queue admission and blocks `http://`, `https://`, `signed://`, `public://`, and `gs://` manifest refs.
 - Follow-up snapshot and credit evidence hardening updates worker handoff, beta execution handoff, and queue admission readiness so approved snapshot and credit reservation refs must be backend UUIDs or explicit `approved_snapshot_*` / `credit_reservation_*` fixture refs before queue readiness can be reported.
+Latest observed PR state after snapshot and credit evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `bedb3a5ba119a8ab7a3eb4b5b81ba464d17e6513`, with an empty check rollup.
 
 ## Expected Validation
 

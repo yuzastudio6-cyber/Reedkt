@@ -14,12 +14,27 @@ export type BetaReadinessBlockerLedgerScope =
   | 'checklist'
   | 'go_no_go'
 
+export type BetaReadinessBlockerLedgerMode =
+  | 'scoped_unsafe_action_only'
+
+export type BetaReadinessBlockerLedgerClearanceType =
+  | 'source_review'
+  | 'bounded_local_proof'
+  | 'safe_preview'
+  | 'diagnostics_or_qa'
+  | 'deployed_platform_evidence'
+  | 'owner_approval'
+  | 'rollback_or_monitoring_plan'
+
 export interface BetaReadinessBlockerLedgerRow {
   key: string
   scope: BetaReadinessBlockerLedgerScope
   blockerId: string
   subjectId: string
   subjectLabel: string
+  blockerMode: BetaReadinessBlockerLedgerMode
+  blocksSafeForwardProgress: false
+  clearanceType: BetaReadinessBlockerLedgerClearanceType
   blockedActionScope: string[]
   missingEvidence: string
   safeForwardProgressScope: string
@@ -86,6 +101,7 @@ export function buildBetaReadinessBlockerLedger(
       'This ledger is source/readiness metadata only; it does not run tools, write evidence, process media, enable beta, or enable production.',
       'Rows are keyed so duplicate blockers are visible before teams create duplicate PRs or duplicate evidence packets.',
       'Each row names the unsafe action still blocked plus a safe forward lane that can reduce the blocker without bypassing approval gates.',
+      'Every row is scoped to unsafe beta/production actions only; safe blocker-reduction work must remain allowed.',
     ],
   }
 }
@@ -95,35 +111,40 @@ function buildToolRows(report: BetaReadinessReport): BetaReadinessBlockerLedgerR
 
   return report.toolExecutionReadiness.blockers.map((blocker) => {
     const tool = toolById.get(blocker.toolId)
+    const safeForwardProgressScope = toolSafeForwardScope(blocker)
     return {
       key: `tool:${blocker.toolId}:${blocker.blockerId}`,
       scope: 'tool',
       blockerId: blocker.blockerId,
       subjectId: blocker.toolId,
       subjectLabel: tool?.displayName ?? blocker.toolId,
+      ...scopedBlockerFields(safeForwardProgressScope),
       blockedActionScope: tool?.blockedActionScope.length ? tool.blockedActionScope : ['external_beta_tool_execution', 'paid_production_tool_execution'],
       missingEvidence: blocker.message,
-      safeForwardProgressScope: toolSafeForwardScope(blocker),
+      safeForwardProgressScope,
       nextSafeAction: tool?.nextAction ?? toolNextSafeAction(blocker),
     }
   })
 }
 
 function buildPlatformRows(report: BetaReadinessReport): BetaReadinessBlockerLedgerRow[] {
+  const safeForwardProgressScope = 'deployment_preflight_and_platform_evidence_collection'
   return report.toolExecutionReadiness.platformBlockers.map((blocker) => ({
     key: `platform:${blocker.blockerId}`,
     scope: 'platform',
     blockerId: blocker.blockerId,
     subjectId: 'tool_beta_platform',
     subjectLabel: 'Tool beta platform readiness',
+    ...scopedBlockerFields(safeForwardProgressScope),
     blockedActionScope: ['external_beta_tool_execution', 'paid_production_tool_execution'],
     missingEvidence: blocker.message,
-    safeForwardProgressScope: 'deployment_preflight_and_platform_evidence_collection',
+    safeForwardProgressScope,
     nextSafeAction: platformNextSafeAction(blocker),
   }))
 }
 
 function buildChecklistRows(report: BetaReadinessReport): BetaReadinessBlockerLedgerRow[] {
+  const safeForwardProgressScope = 'owner_approval_packet_collection'
   return report.checklist
     .filter((item) => item.requiredForExternalBeta && item.status === 'blocked')
     .map((item) => ({
@@ -132,9 +153,10 @@ function buildChecklistRows(report: BetaReadinessReport): BetaReadinessBlockerLe
       blockerId: 'external_beta_checklist_item_blocked',
       subjectId: item.id,
       subjectLabel: item.label,
+      ...scopedBlockerFields(safeForwardProgressScope),
       blockedActionScope: ['external_beta_launch', 'real_user_media_beta', 'paid_production_launch'],
       missingEvidence: item.notes.join(' ') || `${item.label} evidence is missing.`,
-      safeForwardProgressScope: 'owner_approval_packet_collection',
+      safeForwardProgressScope,
       nextSafeAction: 'Collect the named owner approval/evidence note, then run npm run beta:readiness:launch-approval-evidence-preflight before recording launch approval evidence.',
     }))
 }
@@ -142,15 +164,17 @@ function buildChecklistRows(report: BetaReadinessReport): BetaReadinessBlockerLe
 function buildGoNoGoRows(report: BetaReadinessReport): BetaReadinessBlockerLedgerRow[] {
   return report.goNoGo.blockers.map((blocker) => {
     const normalized = normalizeId(blocker)
+    const safeForwardProgressScope = goNoGoSafeForwardScope(blocker)
     return {
       key: `go_no_go:${normalized}`,
       scope: 'go_no_go',
       blockerId: 'beta_go_no_go_blocker',
       subjectId: normalized,
       subjectLabel: blocker,
+      ...scopedBlockerFields(safeForwardProgressScope),
       blockedActionScope: ['external_beta_launch', 'real_user_media_beta', 'paid_production_launch'],
       missingEvidence: blocker,
-      safeForwardProgressScope: goNoGoSafeForwardScope(blocker),
+      safeForwardProgressScope,
       nextSafeAction: goNoGoNextSafeAction(blocker),
     }
   })
@@ -168,6 +192,42 @@ function allowedForwardProgressScopes(report: BetaReadinessReport): string[] {
     'owner_approval_packet_collection',
     'rollback_monitoring_support_planning',
   ]
+}
+
+function scopedBlockerFields(safeForwardProgressScope: string): {
+  blockerMode: BetaReadinessBlockerLedgerMode
+  blocksSafeForwardProgress: false
+  clearanceType: BetaReadinessBlockerLedgerClearanceType
+} {
+  return {
+    blockerMode: 'scoped_unsafe_action_only',
+    blocksSafeForwardProgress: false,
+    clearanceType: clearanceTypeForSafeScope(safeForwardProgressScope),
+  }
+}
+
+function clearanceTypeForSafeScope(
+  safeForwardProgressScope: string,
+): BetaReadinessBlockerLedgerClearanceType {
+  switch (safeForwardProgressScope) {
+    case 'source_review':
+      return 'source_review'
+    case 'local_dependency_install_proof':
+    case 'bounded_command_import_container_proof':
+      return 'bounded_local_proof'
+    case 'safe_blocker_reduction_preview':
+      return 'safe_preview'
+    case 'diagnostics_and_qa_packets':
+      return 'diagnostics_or_qa'
+    case 'deployment_preflight_and_platform_evidence_collection':
+      return 'deployed_platform_evidence'
+    case 'owner_approval_packet_collection':
+      return 'owner_approval'
+    case 'rollback_monitoring_support_planning':
+      return 'rollback_or_monitoring_plan'
+    default:
+      return 'diagnostics_or_qa'
+  }
 }
 
 function toolSafeForwardScope(blocker: ToolBetaExecutionReadinessBlocker): string {

@@ -30,7 +30,9 @@ export type AiGraphicsInternalBetaQueueAdapterReadinessStatus =
   | 'internal_beta_queue_adapter_ready_runtime_still_blocked'
 
 export interface AiGraphicsInternalBetaQueueAdapterReadinessInput
-  extends AiGraphicsInternalBetaQueueAdmissionReadinessInput {}
+  extends AiGraphicsInternalBetaQueueAdmissionReadinessInput {
+  sourceQueueAdmissionReadinessPacket?: AiGraphicsInternalBetaQueueAdmissionReadiness
+}
 
 export interface AiGraphicsInternalBetaQueueAdapterSubmission {
   toolId: AiGraphicsCanonicalToolId
@@ -298,6 +300,7 @@ export function buildAiGraphicsInternalBetaQueueAdapterReadiness(
   input: AiGraphicsInternalBetaQueueAdapterReadinessInput = {},
 ): AiGraphicsInternalBetaQueueAdapterReadiness {
   const sourceQueueAdmissionReadiness =
+    input.sourceQueueAdmissionReadinessPacket ??
     buildAiGraphicsInternalBetaQueueAdmissionReadiness(input)
   const sourceProductionWorkerJobReadiness =
     buildAiGraphicsInternalBetaProductionWorkerJobReadiness(input)

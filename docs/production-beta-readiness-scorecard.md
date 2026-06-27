@@ -175,6 +175,10 @@ artifacts, internal beta runtime, external beta, and production blocked.
 It preserves the exact GPU runtime target map from queue admission through
 adapter submissions and keeps GPU startup limited to future approved worker
 jobs.
+The adapter can also consume a source
+`--internal-beta-queue-admission-readiness-packet` that already reports queue
+admission ready; production-worker job payload evidence remains separately
+required and live queue submission remains blocked.
 
 AI graphics internal beta queue-dispatcher readiness decision
 `ai_graphics_internal_beta_queue_dispatcher_readiness_contract_prepared_with_mock_safe_dispatcher`
@@ -194,6 +198,10 @@ The dispatcher probe is mock-safe and does not keep any idle GPU runtime
 running. The probe now requires `aiGraphicsToolCallHandoff` metadata and
 `ai_graphics_*` future handlers for all 21 payloads instead of generic worker
 placeholders; live dispatch and runtime execution remain blocked.
+The dispatcher can consume the same source queue-admission readiness packet,
+then still requires adapter and production-worker payload probe evidence before
+reporting ready with provided evidence. Live dispatch, live leases, tool
+execution, and GPU runtime remain blocked.
 
 AI graphics internal beta backend queue storage readiness decision
 `ai_graphics_internal_beta_backend_queue_storage_readiness_contract_prepared_with_mock_service_records`

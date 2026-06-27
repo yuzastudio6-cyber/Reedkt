@@ -388,6 +388,16 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked in both packet-fed paths: `workerQueueApprovedNow=false`, `productionWorkerJobEnqueueApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after internal beta queue-admission source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `1e476a9c183eb63b34b0132694c969306e1ca0ec`, with an empty check rollup.
 
+## Follow-Up: Queue Adapter And Dispatcher Source Packet Ingestion
+
+- Added evaluator-only queue-admission packet ingestion to:
+  - `ai-graphics:internal-beta-queue-adapter-readiness`
+  - `ai-graphics:internal-beta-queue-dispatcher-readiness`
+- Both commands now accept `--internal-beta-queue-admission-readiness-packet`.
+- The source packet must already report `internal_beta_queue_admission_ready_runtime_still_blocked`; production-worker job payload evidence remains separately required for adapter submissions and dispatcher probes.
+- Diagnostic coverage proves packet-fed adapter readiness still prepares 21 queue-adapter submissions with exact GPU runtime targets while keeping `backendQueueSubmissionApprovedNow=false`, `workerLeaseCreationApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, and `productionReadyNow=false`.
+- Diagnostic coverage proves packet-fed dispatcher readiness still completes the in-memory mock-safe dispatcher probe for all 21 tools while keeping `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

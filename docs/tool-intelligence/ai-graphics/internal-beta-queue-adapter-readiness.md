@@ -9,6 +9,8 @@ This contract shapes the all-21 AI graphics queue-admission packets into backend
 - Status: `internal_beta_queue_adapter_ready_runtime_still_blocked`
 - Source queue-admission gate: `ai_graphics_internal_beta_queue_admission_readiness_contract_prepared_with_runtime_blocks`
 - Source production worker job gate: `ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime`
+- Source evidence modes: low-level evidence flags or source queue-admission packet via `--internal-beta-queue-admission-readiness-packet`
+- Source queue-admission packet must report `internal_beta_queue_admission_ready_runtime_still_blocked`; production worker job payload evidence remains separately required.
 - AI graphics tools covered: 21
 - Product-facing capabilities covered: 12
 - Queue adapter submissions prepared: 21

@@ -7,6 +7,16 @@
     "queueAdmission": "ai_graphics_internal_beta_queue_admission_readiness_contract_prepared_with_runtime_blocks",
     "productionWorkerJob": "ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime"
   },
+  "sourceEvidencePolicy": {
+    "acceptsLowLevelEvidenceFlags": true,
+    "acceptsQueueAdmissionReadinessPacket": true,
+    "sourceQueueAdmissionReadinessPacketRequired": true,
+    "sourceQueueAdmissionPacketMustReportReady": true,
+    "productionWorkerJobEvidenceStillRequired": true,
+    "queueAdapterProbeStillRequired": true,
+    "liveWorkerDispatchPerformed": false,
+    "runtimeUnlockPerformed": false
+  },
   "tools": [
     "torch_torchvision",
     "transformers",

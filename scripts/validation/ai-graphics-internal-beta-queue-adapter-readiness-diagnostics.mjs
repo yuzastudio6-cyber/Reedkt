@@ -214,6 +214,22 @@ function acceptedArgs(manifestPacketPath, gpuPacketPath) {
   ]
 }
 
+function writeQueueAdmissionReadinessPacket(manifestPacketPath, gpuPacketPath) {
+  const sourceOutput = parseJsonOutput(
+    runNpm('ai-graphics:internal-beta-queue-admission-readiness', [
+      ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+      '--require-queue-admission-ready',
+    ]),
+    'source_queue_admission_packet',
+  )
+  const packetPath = path.join(
+    path.dirname(manifestPacketPath),
+    'queue-admission-readiness-packet.json',
+  )
+  fs.writeFileSync(packetPath, `${JSON.stringify(sourceOutput, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-internal-beta-queue-adapter-readiness.ts',
   'server/cli/ai-graphics-internal-beta-queue-adapter-readiness.ts',
@@ -255,6 +271,28 @@ if (docs.sourceDecisions?.queueAdmission !== 'ai_graphics_internal_beta_queue_ad
 }
 if (docs.sourceDecisions?.productionWorkerJob !== 'ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime') {
   fail(`unexpected_worker_job_source_decision:${docs.sourceDecisions?.productionWorkerJob}`)
+}
+for (const [key, expected] of Object.entries({
+  acceptsLowLevelEvidenceFlags: true,
+  acceptsQueueAdmissionReadinessPacket: true,
+  sourceQueueAdmissionReadinessPacketRequired: true,
+  sourceQueueAdmissionPacketMustReportReady: true,
+  productionWorkerJobEvidenceStillRequired: true,
+  backendQueueSubmissionPerformed: false,
+  runtimeUnlockPerformed: false,
+})) {
+  if (docs.sourceEvidencePolicy?.[key] !== expected) {
+    fail(`docs_source_evidence_policy_mismatch:${key}:${docs.sourceEvidencePolicy?.[key]}`)
+  }
+}
+for (const token of [
+  '--internal-beta-queue-admission-readiness-packet',
+  'sourceQueueAdmissionReadinessPacket',
+  'internal_beta_queue_admission_readiness_packet',
+]) {
+  if (!cliSource.includes(token) && !moduleSource.includes(token) && !markdown.includes(token)) {
+    fail(`source_missing_queue_admission_packet_token:${token}`)
+  }
 }
 
 for (const status of [
@@ -379,6 +417,7 @@ if (defaultOutput.queueAdapterSubmissionsReadyWithProvidedEvidence !== 0) {
 }
 
 const { manifestPacketPath, gpuPacketPath } = writeAcceptedEvidencePackets()
+const queueAdmissionPacketPath = writeQueueAdmissionReadinessPacket(manifestPacketPath, gpuPacketPath)
 const approvedOutput = parseJsonOutput(
   runNpm(runScriptName, [
     ...acceptedArgs(manifestPacketPath, gpuPacketPath),
@@ -426,6 +465,38 @@ for (const submission of approvedOutput.queueAdapterSubmissions ?? []) {
 for (const key of falseGateKeys) {
   if (approvedOutput.booleans?.[key] !== false) fail(`approved_false_gate_not_false:${key}`)
   if (approvedOutput.input?.[key] === true) fail(`approved_input_performed_gate_true:${key}`)
+}
+
+const packetFedOutput = parseJsonOutput(
+  runNpm(runScriptName, [
+    ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+    '--internal-beta-queue-admission-readiness-packet',
+    queueAdmissionPacketPath,
+    '--require-queue-adapter-ready',
+  ]),
+  'packet_fed_queue_adapter',
+)
+if (packetFedOutput.input?.sourceEvidenceMode !== 'internal_beta_queue_admission_readiness_packet') {
+  fail(`packet_fed_source_mode:${packetFedOutput.input?.sourceEvidenceMode}`)
+}
+if (packetFedOutput.input?.internalBetaQueueAdmissionReadinessPacketRead !== true) {
+  fail('packet_fed_queue_admission_packet_not_read')
+}
+if (packetFedOutput.status !== 'internal_beta_queue_adapter_ready_runtime_still_blocked') {
+  fail(`packet_fed_status:${packetFedOutput.status}`)
+}
+if (packetFedOutput.queueAdapterSubmissionsReadyWithProvidedEvidence !== 21) {
+  fail('packet_fed_adapter_submissions_not_21')
+}
+if (packetFedOutput.booleans?.allAdapterPayloadsMatchQueueAdmission !== true) {
+  fail('packet_fed_adapter_payloads_do_not_match_queue_admission')
+}
+if (packetFedOutput.booleans?.gpuRuntimeTargetsExact !== true) {
+  fail('packet_fed_gpu_runtime_targets_not_exact')
+}
+for (const key of falseGateKeys) {
+  if (packetFedOutput.booleans?.[key] !== false) fail(`packet_fed_false_gate_not_false:${key}`)
+  if (packetFedOutput.input?.[key] === true) fail(`packet_fed_input_performed_gate_true:${key}`)
 }
 
 let backendQueueExited = false

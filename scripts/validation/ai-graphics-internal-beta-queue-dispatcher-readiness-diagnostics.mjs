@@ -221,6 +221,22 @@ function acceptedArgs(manifestPacketPath, gpuPacketPath) {
   ]
 }
 
+function writeQueueAdmissionReadinessPacket(manifestPacketPath, gpuPacketPath) {
+  const sourceOutput = parseJsonOutput(
+    runNpm('ai-graphics:internal-beta-queue-admission-readiness', [
+      ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+      '--require-queue-admission-ready',
+    ]),
+    'source_queue_admission_packet',
+  )
+  const packetPath = path.join(
+    path.dirname(manifestPacketPath),
+    'queue-admission-readiness-packet.json',
+  )
+  fs.writeFileSync(packetPath, `${JSON.stringify(sourceOutput, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-internal-beta-queue-dispatcher-readiness.ts',
   'server/cli/ai-graphics-internal-beta-queue-dispatcher-readiness.ts',
@@ -261,6 +277,29 @@ if (docs.status !== 'mock_safe_dispatcher_probe_completed_runtime_still_blocked'
 }
 if (docs.sourceDecisions?.queueAdapter !== 'ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks') {
   fail(`unexpected_queue_adapter_source_decision:${docs.sourceDecisions?.queueAdapter}`)
+}
+for (const [key, expected] of Object.entries({
+  acceptsLowLevelEvidenceFlags: true,
+  acceptsQueueAdmissionReadinessPacket: true,
+  sourceQueueAdmissionReadinessPacketRequired: true,
+  sourceQueueAdmissionPacketMustReportReady: true,
+  productionWorkerJobEvidenceStillRequired: true,
+  queueAdapterProbeStillRequired: true,
+  liveWorkerDispatchPerformed: false,
+  runtimeUnlockPerformed: false,
+})) {
+  if (docs.sourceEvidencePolicy?.[key] !== expected) {
+    fail(`docs_source_evidence_policy_mismatch:${key}:${docs.sourceEvidencePolicy?.[key]}`)
+  }
+}
+for (const token of [
+  '--internal-beta-queue-admission-readiness-packet',
+  'sourceQueueAdmissionReadinessPacket',
+  'internal_beta_queue_admission_readiness_packet',
+]) {
+  if (!cliSource.includes(token) && !moduleSource.includes(token) && !markdown.includes(token)) {
+    fail(`source_missing_queue_admission_packet_token:${token}`)
+  }
 }
 
 for (const status of [
@@ -402,6 +441,7 @@ if (defaultOutput.inMemoryDispatcherLeaseRecordsCreated !== 0) {
 }
 
 const { manifestPacketPath, gpuPacketPath } = writeAcceptedEvidencePackets()
+const queueAdmissionPacketPath = writeQueueAdmissionReadinessPacket(manifestPacketPath, gpuPacketPath)
 const approvedOutput = parseJsonOutput(
   runNpm(runScriptName, [
     ...acceptedArgs(manifestPacketPath, gpuPacketPath),
@@ -464,6 +504,40 @@ for (const key of falseGateKeys) {
 }
 for (const key of inputFalseKeys) {
   if (approvedOutput.input?.[key] !== false) fail(`approved_input_false_gate_not_false:${key}`)
+}
+
+const packetFedOutput = parseJsonOutput(
+  runNpm(runScriptName, [
+    ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+    '--internal-beta-queue-admission-readiness-packet',
+    queueAdmissionPacketPath,
+    '--require-dispatcher-probe-ready',
+  ]),
+  'packet_fed_queue_dispatcher',
+)
+if (packetFedOutput.input?.sourceEvidenceMode !== 'internal_beta_queue_admission_readiness_packet') {
+  fail(`packet_fed_source_mode:${packetFedOutput.input?.sourceEvidenceMode}`)
+}
+if (packetFedOutput.input?.internalBetaQueueAdmissionReadinessPacketRead !== true) {
+  fail('packet_fed_queue_admission_packet_not_read')
+}
+if (packetFedOutput.status !== 'mock_safe_dispatcher_probe_completed_runtime_still_blocked') {
+  fail(`packet_fed_status:${packetFedOutput.status}`)
+}
+if (packetFedOutput.dispatcherProbeJobsCompletedWithProvidedEvidence !== 21) {
+  fail('packet_fed_dispatcher_probe_jobs_not_21')
+}
+if (packetFedOutput.aiGraphicsToolCallHandoffRoutes !== 21) {
+  fail('packet_fed_handoff_routes_not_21')
+}
+if (packetFedOutput.booleans?.gpuRuntimeTargetsExact !== true) {
+  fail('packet_fed_gpu_runtime_targets_not_exact')
+}
+for (const key of falseGateKeys) {
+  if (packetFedOutput.booleans?.[key] !== false) fail(`packet_fed_false_gate_not_false:${key}`)
+}
+for (const key of inputFalseKeys) {
+  if (packetFedOutput.input?.[key] !== false) fail(`packet_fed_input_false_gate_not_false:${key}`)
 }
 
 let liveDispatchExited = false

@@ -49,6 +49,7 @@
     "smoke:beta-readiness-api": "tsx server/smoke/beta-readiness-api-smoke.ts",
     "smoke:beta-readiness": "tsx server/smoke/beta-readiness-smoke.ts",
     "smoke:beta-platform-rls-readback:sql": "tsx server/smoke/beta-platform-rls-readback-sql-smoke.ts",
+    "smoke:beta-platform-monitoring-catalog": "tsx server/smoke/beta-platform-monitoring-catalog-smoke.ts",
     "smoke:beta-platform-billing-qa": "tsx server/smoke/beta-platform-billing-qa-smoke.ts",
     "prod:readiness:summary": "tsx server/cli/production-readiness-summary.ts",
     "prod:readiness:command-plan": "tsx server/cli/production-readiness-command-plan.ts",

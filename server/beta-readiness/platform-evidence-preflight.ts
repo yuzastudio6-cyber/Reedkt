@@ -71,6 +71,13 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'Exercise the routes against staging with authenticated users and service-role persistence.',
     ),
     sourceFileCheck(
+      'beta_platform_monitoring_catalog_present',
+      'Beta platform monitoring catalog entries are present',
+      'server/smoke/beta-platform-monitoring-catalog-smoke.ts',
+      ['tool_cost_event_write_count', 'tool_cost_wallet_settlement_failure', 'beta_platform_billing_qa_missing_evidence_count', 'stripe_call_attempted_from_tool_cost_surface'],
+      'Deploy and verify the corresponding monitoring dashboards and alerts in staging or production.',
+    ),
+    sourceFileCheck(
       'tool_cost_persistent_store_present',
       'Persistent tool cost event store source is present',
       'server/tool-cost-metering/tool-cost-persistent-store.ts',
@@ -107,8 +114,8 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
     blockedCheck(
       'monitoring_verified',
       'Monitoring is verified',
-      'Monitoring templates may exist, but no deployed alerts or dashboards are verified by local source preflight.',
-      'Deploy and verify monitoring/alerting for tool cost event writes and anomalies.',
+      'Tool-cost billing monitoring templates are source-verified locally, but no deployed alerts or dashboards are verified here.',
+      'Deploy and verify monitoring/alerting for tool cost event writes, wallet settlement, RLS readback, billing QA, and Stripe boundary anomalies.',
     ),
     blockedCheck(
       'billing_qa_verified',

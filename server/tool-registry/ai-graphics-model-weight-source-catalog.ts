@@ -1,5 +1,10 @@
 import { REAL_ESRGAN_X4PLUS_RUNTIME_PATH, getEnhancementModelApprovalCandidate } from '../activation/enhancement-model-approval/enhancement-model-candidate-registry'
 import { enhancementEvidenceForCandidate } from '../activation/enhancement-model-approval/enhancement-model-license-evidence'
+import { getMaskModelApprovalCandidate } from '../activation/mask-model-approval/mask-model-candidate-registry'
+import { maskEvidenceForCandidate } from '../activation/mask-model-approval/mask-model-license-evidence'
+import { approvedMaskModelDownloadEvidence } from '../activation/mask-model-download/approved-mask-model-download-evidence'
+import { approvedEnhancementModelDownloadEvidence } from '../activation/enhancement-model-download/approved-enhancement-model-download-evidence'
+import { approvedSam2ModelDownloadEvidence } from '../activation/sam2-model-download/approved-sam2-model-download-evidence'
 import { approvedSam2RuntimeEvidence } from '../activation/sam2-runtime/approved-sam2-runtime-evidence'
 import { sam2RuntimeConfig } from '../activation/sam2-runtime/sam2-runtime-policy'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
@@ -47,6 +52,7 @@ export interface AiGraphicsModelWeightSourceCandidate {
   licenseClaim:
     | 'apache_2_0_source_claim_requires_owner_manifest_record'
     | 'bsd_3_clause_repository_evidence_release_asset_requires_review'
+    | 'mit_source_claim_requires_owner_manifest_record'
     | 'unknown_requires_review'
   commercialUseReviewStatus: 'requires_manual_review' | 'limited_staging_review_only'
   redistributionReviewStatus: 'requires_manual_review' | 'limited_staging_review_only'
@@ -60,6 +66,29 @@ export interface AiGraphicsModelWeightSourceCandidate {
   nextAction: string
 }
 
+export type AiGraphicsModelWeightPrivateManifestPreparationStatus =
+  | 'ready_for_private_manifest_authoring_from_existing_evidence'
+  | 'blocked_pending_source_selection_or_review'
+
+export interface AiGraphicsModelWeightPrivateManifestPreparationRow {
+  toolId: AiGraphicsModelWeightManifestToolId
+  candidateId: string
+  preparationStatus: AiGraphicsModelWeightPrivateManifestPreparationStatus
+  localOnlyManifestPath: string
+  expectedRuntimeManifestPath: string
+  acceptedPrivateArtifactRefNamespaces: ['private://', 'reeditpro-private://', 'reeditpro-private-artifact-ref-']
+  sourceEvidenceRefs: string[]
+  privateManifestReviewCommand: 'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"'
+  gpuProofCommandPlanCommand: 'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"'
+  ownerReviewRequired: true
+  localOnly: true
+  committedManifestApproved: false
+  modelDownloadRequiredNow: false
+  modelWeightsLoaded: false
+  modelInferencePerformed: false
+  nextAction: string
+}
+
 export interface AiGraphicsModelWeightSourceCatalogPacket {
   decision: typeof AI_GRAPHICS_MODEL_WEIGHT_SOURCE_CATALOG_DECISION
   totalAiGraphicsTools: 21
@@ -67,6 +96,7 @@ export interface AiGraphicsModelWeightSourceCatalogPacket {
   foundationGpuToolsWithoutStandaloneManifest: AiGraphicsModelWeightFoundationGpuTool[]
   modelWeightSourceCatalogTools: AiGraphicsModelWeightManifestToolId[]
   sourceCandidates: AiGraphicsModelWeightSourceCandidate[]
+  privateManifestPreparationPlan: AiGraphicsModelWeightPrivateManifestPreparationRow[]
   sourceCatalogCounts: {
     gpuRuntimeTargetedTools: 8
     foundationGpuToolsWithoutStandaloneManifest: 3
@@ -75,6 +105,8 @@ export interface AiGraphicsModelWeightSourceCatalogPacket {
     internalEvidenceBackedCandidates: number
     sourceIdentifiedReviewRequiredCandidates: number
     sourceMenuSelectionRequiredCandidates: number
+    readyForPrivateManifestAuthoringFromExistingEvidence: number
+    blockedPendingSourceSelectionOrReview: number
     privateManifestsApprovedNow: 0
     betaReadyModelWeightTools: 0
   }
@@ -90,6 +122,9 @@ export interface AiGraphicsModelWeightSourceCatalogPacket {
     all5ModelWeightSourceToolsCovered: true
     sourceCandidatesIdentifiedForAll5ModelWeightTools: true
     internalEvidenceBackedSourcesRecorded: true
+    privateManifestPreparationPlanPrepared: true
+    existingEvidenceCanAuthor3PrivateManifestDrafts: true
+    sourceSelectionStillBlocks2PrivateManifestDrafts: true
     privateManifestReviewStillRequired: true
     privateArtifactRefNamespaceRequired: true
     checksumReviewStillRequired: true
@@ -161,6 +196,22 @@ const foundationGpuToolsWithoutStandaloneManifest = [
   },
 ] as const satisfies readonly AiGraphicsModelWeightFoundationGpuTool[]
 
+const directoryNameByTool = {
+  sam2: 'sam2',
+  birefnet: 'birefnet',
+  real_esrgan: 'real-esrgan',
+  rembg: 'rembg',
+  transparent_background: 'transparent-background',
+} as const satisfies Record<AiGraphicsModelWeightManifestToolId, string>
+
+const expectedRuntimeManifestPathByTool = {
+  sam2: '/opt/reeditpro/model-weights/sam2/model_tree_manifest.json',
+  birefnet: '/opt/reeditpro/model-weights/birefnet/model_tree_manifest.json',
+  real_esrgan: '/opt/reeditpro/model-weights/real-esrgan/model_tree_manifest.json',
+  rembg: '/opt/reeditpro/model-weights/rembg/model_tree_manifest.json',
+  transparent_background: '/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json',
+} as const satisfies Record<AiGraphicsModelWeightManifestToolId, string>
+
 const modelWeightSourceCatalogTools = [
   'sam2',
   'birefnet',
@@ -187,8 +238,9 @@ function realEsrganCandidate(): AiGraphicsModelWeightSourceCandidate {
     existingInternalEvidenceRefs: [
       'server/activation/enhancement-model-approval/enhancement-model-candidate-registry.ts',
       'server/activation/enhancement-model-approval/enhancement-model-license-evidence.ts',
+      'server/activation/enhancement-model-download/approved-enhancement-model-download-evidence.ts',
     ],
-    existingInternalEvidenceSummary: `Found ${licenseEvidence.length} existing Real-ESRGAN license/source evidence records; acceptance is limited to staging sample-first planning and does not approve beta runtime.`,
+    existingInternalEvidenceSummary: `Found ${licenseEvidence.length} existing Real-ESRGAN license/source evidence records plus ${approvedEnhancementModelDownloadEvidence.status} Phase 34B staging storage evidence; acceptance is limited to staging sample-first planning and does not approve beta runtime.`,
     checksumEvidenceStatus: 'release_asset_checksum_required_before_private_manifest',
     licenseClaim: 'bsd_3_clause_repository_evidence_release_asset_requires_review',
     commercialUseReviewStatus: 'limited_staging_review_only',
@@ -205,6 +257,9 @@ function realEsrganCandidate(): AiGraphicsModelWeightSourceCandidate {
 }
 
 export function listAiGraphicsModelWeightSourceCandidates(): AiGraphicsModelWeightSourceCandidate[] {
+  const birefnetCandidate = getMaskModelApprovalCandidate('zhengpeng7_birefnet')
+  const birefnetLicenseEvidence = maskEvidenceForCandidate('zhengpeng7_birefnet')
+
   return [
     {
       toolId: 'sam2',
@@ -218,10 +273,11 @@ export function listAiGraphicsModelWeightSourceCandidates(): AiGraphicsModelWeig
       modelIdOrName: sam2RuntimeConfig.modelId,
       expectedRuntimePath: sam2RuntimeConfig.modelRuntimePath,
       existingInternalEvidenceRefs: [
+        'server/activation/sam2-model-download/approved-sam2-model-download-evidence.ts',
         'server/activation/sam2-runtime/sam2-runtime-policy.ts',
         'server/activation/sam2-runtime/approved-sam2-runtime-evidence.ts',
       ],
-      existingInternalEvidenceSummary: `Existing SAM2 evidence is ${approvedSam2RuntimeEvidence.status} for ${approvedSam2RuntimeEvidence.modelId} on generated synthetic fixtures only; raw gs:// refs remain source evidence and are rejected as public manifest refs.`,
+      existingInternalEvidenceSummary: `Existing SAM2 download evidence is ${approvedSam2ModelDownloadEvidence.status} for ${approvedSam2ModelDownloadEvidence.modelId}, and runtime evidence is ${approvedSam2RuntimeEvidence.status} for ${approvedSam2RuntimeEvidence.modelId} on generated synthetic fixtures only; raw gs:// refs remain source evidence and are rejected as public manifest refs.`,
       checksumEvidenceStatus: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
       licenseClaim: 'apache_2_0_source_claim_requires_owner_manifest_record',
       commercialUseReviewStatus: 'limited_staging_review_only',
@@ -238,19 +294,23 @@ export function listAiGraphicsModelWeightSourceCandidates(): AiGraphicsModelWeig
     {
       toolId: 'birefnet',
       candidateId: 'zhengpeng7_birefnet_official_weights_review_candidate',
-      candidateStatus: 'source_identified_review_required',
-      reviewStatus: 'requires_manual_source_license_checksum_and_quality_review',
+      candidateStatus: 'internal_evidence_verified_private_manifest_required',
+      reviewStatus: 'limited_staging_evidence_exists_manifest_review_required',
       upstreamSourceName: 'ZhengPeng7/BiRefNet',
-      upstreamSourceUrl: 'https://huggingface.co/ZhengPeng7/BiRefNet',
-      sourceCodeUrl: 'https://github.com/ZhengPeng7/BiRefNet',
-      modelIdOrName: 'BiRefNet official weights candidate',
-      expectedRuntimePath: '/opt/reeditpro/model-weights/birefnet/',
-      existingInternalEvidenceRefs: [],
-      existingInternalEvidenceSummary: 'Official source candidate is identified, but no ReeditPro private manifest, checksum, commercial-use review, redistribution review, or quality/security review is approved.',
-      checksumEvidenceStatus: 'checksum_required_before_private_manifest',
-      licenseClaim: 'unknown_requires_review',
-      commercialUseReviewStatus: 'requires_manual_review',
-      redistributionReviewStatus: 'requires_manual_review',
+      upstreamSourceUrl: birefnetCandidate?.sourceUrl ?? 'https://huggingface.co/ZhengPeng7/BiRefNet',
+      sourceCodeUrl: birefnetCandidate?.officialGithubUrl ?? 'https://github.com/ZhengPeng7/BiRefNet',
+      modelIdOrName: birefnetCandidate?.modelName ?? approvedMaskModelDownloadEvidence.modelName,
+      expectedRuntimePath: approvedMaskModelDownloadEvidence.runtimePath,
+      existingInternalEvidenceRefs: [
+        'server/activation/mask-model-approval/mask-model-candidate-registry.ts',
+        'server/activation/mask-model-approval/mask-model-license-evidence.ts',
+        'server/activation/mask-model-download/approved-mask-model-download-evidence.ts',
+      ],
+      existingInternalEvidenceSummary: `Found ${birefnetLicenseEvidence.length} existing BiRefNet license/source evidence records plus ${approvedMaskModelDownloadEvidence.status} Phase 33B staging storage evidence at revision ${approvedMaskModelDownloadEvidence.resolvedRevision}; acceptance is limited to staging single-frame background-removal planning and does not approve beta runtime.`,
+      checksumEvidenceStatus: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+      licenseClaim: 'mit_source_claim_requires_owner_manifest_record',
+      commercialUseReviewStatus: 'limited_staging_review_only',
+      redistributionReviewStatus: 'limited_staging_review_only',
       privateManifestStatus: 'missing_reviewed_private_artifact_ref_namespace',
       approvedForInternalBetaNow: false,
       modelWeightsDownloaded: false,
@@ -258,7 +318,7 @@ export function listAiGraphicsModelWeightSourceCandidates(): AiGraphicsModelWeig
       modelInferencePerformed: false,
       gpuRuntimeApprovedNow: false,
       runtimeReadyNow: false,
-      nextAction: 'Select the exact BiRefNet checkpoint, record license/model-card/provenance evidence, checksum it, create a private manifest, and run native L4 proof.',
+      nextAction: 'Convert existing Phase 33 BiRefNet staging evidence into a reviewed private manifest using a private:// or reeditpro-private:// artifact ref, then run native L4 proof for AI graphics.',
     },
     realEsrganCandidate(),
     {
@@ -313,8 +373,44 @@ export function listAiGraphicsModelWeightSourceCandidates(): AiGraphicsModelWeig
   ]
 }
 
+export function buildAiGraphicsModelWeightPrivateManifestPreparationPlan(
+  sourceCandidates: readonly AiGraphicsModelWeightSourceCandidate[] = listAiGraphicsModelWeightSourceCandidates(),
+): AiGraphicsModelWeightPrivateManifestPreparationRow[] {
+  return sourceCandidates.map((candidate) => {
+    const hasExistingInternalEvidence =
+      candidate.candidateStatus === 'internal_evidence_verified_private_manifest_required'
+    const directoryName = directoryNameByTool[candidate.toolId]
+
+    return {
+      toolId: candidate.toolId,
+      candidateId: candidate.candidateId,
+      preparationStatus: hasExistingInternalEvidence
+        ? 'ready_for_private_manifest_authoring_from_existing_evidence'
+        : 'blocked_pending_source_selection_or_review',
+      localOnlyManifestPath: `.local-artifacts/ai-graphics/model-weight-manifests/${directoryName}/model_tree_manifest.json`,
+      expectedRuntimeManifestPath: expectedRuntimeManifestPathByTool[candidate.toolId],
+      acceptedPrivateArtifactRefNamespaces: ['private://', 'reeditpro-private://', 'reeditpro-private-artifact-ref-'],
+      sourceEvidenceRefs: [...candidate.existingInternalEvidenceRefs],
+      privateManifestReviewCommand:
+        'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+      gpuProofCommandPlanCommand:
+        'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+      ownerReviewRequired: true,
+      localOnly: true,
+      committedManifestApproved: false,
+      modelDownloadRequiredNow: false,
+      modelWeightsLoaded: false,
+      modelInferencePerformed: false,
+      nextAction: hasExistingInternalEvidence
+        ? `Author the local-only private manifest for ${candidate.toolId} from the recorded internal evidence, validate it, then submit redacted private-ref status for owner review.`
+        : candidate.nextAction,
+    }
+  })
+}
+
 export function buildAiGraphicsModelWeightSourceCatalogPacket(): AiGraphicsModelWeightSourceCatalogPacket {
   const sourceCandidates = listAiGraphicsModelWeightSourceCandidates()
+  const privateManifestPreparationPlan = buildAiGraphicsModelWeightPrivateManifestPreparationPlan(sourceCandidates)
 
   return {
     decision: AI_GRAPHICS_MODEL_WEIGHT_SOURCE_CATALOG_DECISION,
@@ -323,6 +419,7 @@ export function buildAiGraphicsModelWeightSourceCatalogPacket(): AiGraphicsModel
     foundationGpuToolsWithoutStandaloneManifest: [...foundationGpuToolsWithoutStandaloneManifest],
     modelWeightSourceCatalogTools: [...modelWeightSourceCatalogTools],
     sourceCandidates,
+    privateManifestPreparationPlan,
     sourceCatalogCounts: {
       gpuRuntimeTargetedTools: 8,
       foundationGpuToolsWithoutStandaloneManifest: 3,
@@ -334,6 +431,10 @@ export function buildAiGraphicsModelWeightSourceCatalogPacket(): AiGraphicsModel
         candidate.candidateStatus === 'source_identified_review_required').length,
       sourceMenuSelectionRequiredCandidates: sourceCandidates.filter((candidate) =>
         candidate.candidateStatus === 'source_menu_identified_selection_required').length,
+      readyForPrivateManifestAuthoringFromExistingEvidence: privateManifestPreparationPlan.filter((row) =>
+        row.preparationStatus === 'ready_for_private_manifest_authoring_from_existing_evidence').length,
+      blockedPendingSourceSelectionOrReview: privateManifestPreparationPlan.filter((row) =>
+        row.preparationStatus === 'blocked_pending_source_selection_or_review').length,
       privateManifestsApprovedNow: 0,
       betaReadyModelWeightTools: 0,
     },
@@ -349,6 +450,9 @@ export function buildAiGraphicsModelWeightSourceCatalogPacket(): AiGraphicsModel
       all5ModelWeightSourceToolsCovered: true,
       sourceCandidatesIdentifiedForAll5ModelWeightTools: true,
       internalEvidenceBackedSourcesRecorded: true,
+      privateManifestPreparationPlanPrepared: true,
+      existingEvidenceCanAuthor3PrivateManifestDrafts: true,
+      sourceSelectionStillBlocks2PrivateManifestDrafts: true,
       privateManifestReviewStillRequired: true,
       privateArtifactRefNamespaceRequired: true,
       checksumReviewStillRequired: true,

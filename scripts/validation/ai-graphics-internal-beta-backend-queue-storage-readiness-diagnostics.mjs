@@ -315,8 +315,17 @@ for (const token of [
   'privateArtifactManifestRef',
   'mockJobServiceRecordsOnly',
   'serviceRoleSupabaseWritesApprovedNow',
+  'approvedPlanSnapshotRefAccepted',
+  'creditReservationRefAccepted',
 ]) {
   if (!moduleSource.includes(token)) fail(`module_missing_token:${token}`)
+}
+for (const token of [
+  '`approved_snapshot_*`',
+  '`credit_reservation_*`',
+  'Generic placeholders are not backend queue storage evidence.',
+]) {
+  if (!markdown.includes(token)) fail(`markdown_missing_ref_format_policy:${token}`)
 }
 for (const token of [
   '--require-mock-service-queue-records-ready',
@@ -405,6 +414,8 @@ for (const key of [
   'aiGraphicsRuntimeJobTypeRequiresApprovedSnapshotAndCredit',
   'mockJobServiceRecordsOnly',
   'gpuHeavyToolsTargetGpuRuntime',
+  'all21ApprovedSnapshotRefsAccepted',
+  'all21CreditReservationRefsAccepted',
   'privateArtifactManifestOnly',
   'agentCanSelectForPlanning',
 ]) {
@@ -468,8 +479,14 @@ for (const record of approvedOutput.backendQueueStorageRecords ?? []) {
   if (record.approvedPlanSnapshotId !== 'approved_snapshot_ai_graphics_internal_beta_fixture') {
     fail(`record_approved_snapshot_id:${record.toolId}:${record.approvedPlanSnapshotId}`)
   }
+  if (!String(record.approvedPlanSnapshotId ?? '').startsWith('approved_snapshot_')) {
+    fail(`record_approved_snapshot_ref_not_explicit_fixture:${record.toolId}`)
+  }
   if (record.creditReservationId !== 'credit_reservation_ai_graphics_internal_beta_fixture') {
     fail(`record_credit_reservation_id:${record.toolId}:${record.creditReservationId}`)
+  }
+  if (!String(record.creditReservationId ?? '').startsWith('credit_reservation_')) {
+    fail(`record_credit_reservation_ref_not_explicit_fixture:${record.toolId}`)
   }
   if (!String(record.privateArtifactManifestRef ?? '').startsWith('private://')) {
     fail(`record_private_manifest_ref:${record.toolId}:${record.privateArtifactManifestRef}`)

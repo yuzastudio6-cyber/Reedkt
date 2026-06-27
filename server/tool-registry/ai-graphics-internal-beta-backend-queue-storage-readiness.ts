@@ -94,6 +94,8 @@ export interface AiGraphicsInternalBetaBackendQueueStorageReadiness {
     mockJobServiceRecordsOnly: boolean
     serviceRoleSupabaseWritesApprovedNow: false
     gpuHeavyToolsTargetGpuRuntime: boolean
+    all21ApprovedSnapshotRefsAccepted: boolean
+    all21CreditReservationRefsAccepted: boolean
     privateArtifactManifestOnly: boolean
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
@@ -232,6 +234,18 @@ function privateManifestFromProbe(
     sourceQueueDispatcherReadiness.sourceQueueAdapterReadiness.queueAdapterSubmissions
       .find((item) => item.toolId === toolId)
   return submission?.privateArtifactManifestRef ?? ''
+}
+
+function isUuidRef(ref: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ref)
+}
+
+function approvedPlanSnapshotRefAccepted(ref: string): boolean {
+  return isUuidRef(ref) || /^approved_snapshot_[a-z0-9_]+$/i.test(ref)
+}
+
+function creditReservationRefAccepted(ref: string): boolean {
+  return isUuidRef(ref) || /^credit_reservation_[a-z0-9_]+$/i.test(ref)
 }
 
 async function createMockQueueRecord(input: {
@@ -410,6 +424,16 @@ export async function buildAiGraphicsInternalBetaBackendQueueStorageReadiness(
     backendQueueStorageRecords.every((record) => record.jobServiceRecordMockOnly)
   const gpuRuntimeTargetedTools =
     backendQueueStorageRecords.filter((record) => record.workerType === 'gpu_ai_worker').length
+  const all21ApprovedSnapshotRefsAccepted =
+    backendQueueStorageRecords.length === 21 &&
+    backendQueueStorageRecords.every((record) => (
+      approvedPlanSnapshotRefAccepted(record.approvedPlanSnapshotId)
+    ))
+  const all21CreditReservationRefsAccepted =
+    backendQueueStorageRecords.length === 21 &&
+    backendQueueStorageRecords.every((record) => (
+      creditReservationRefAccepted(record.creditReservationId)
+    ))
 
   return {
     decision: AI_GRAPHICS_INTERNAL_BETA_BACKEND_QUEUE_STORAGE_READINESS_DECISION,
@@ -452,6 +476,8 @@ export async function buildAiGraphicsInternalBetaBackendQueueStorageReadiness(
       mockJobServiceRecordsOnly,
       serviceRoleSupabaseWritesApprovedNow: false,
       gpuHeavyToolsTargetGpuRuntime: gpuRuntimeTargetedTools === 8,
+      all21ApprovedSnapshotRefsAccepted,
+      all21CreditReservationRefsAccepted,
       privateArtifactManifestOnly:
         sourceQueueDispatcherReadiness.booleans.privateArtifactManifestOnly,
       agentCanSelectForPlanning: true,

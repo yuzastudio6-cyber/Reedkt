@@ -104,6 +104,7 @@ internal beta runtime, unlock external beta, or unlock production.
 
 - every `ai_graphics_tool_runtime` job row must reference an immutable `approved_plan_snapshot`
 - every `ai_graphics_tool_runtime` job row must reference an approved `credit_reservation`
+- approved snapshot refs and credit reservation refs must be backend UUIDs or explicit `approved_snapshot_*` / `credit_reservation_*` fixture refs before a service-role envelope can be ready
 - every tool payload must use a private artifact manifest reference and reject signed URLs or public artifacts
 - enqueue writes must be idempotent by workspace, approved snapshot, tool ID, and source job ID
 - worker claims must be created by a service-role claim transaction, not by frontend/user clients

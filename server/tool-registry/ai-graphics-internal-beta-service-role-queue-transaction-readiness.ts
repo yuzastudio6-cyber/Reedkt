@@ -109,6 +109,8 @@ export interface AiGraphicsInternalBetaServiceRoleQueueTransactionReadiness {
     serviceRoleRpcContractPrepared: true
     serviceRoleTransactionRollbackPlanPrepared: true
     all21IdempotencyKeysPrepared: boolean
+    all21ApprovedSnapshotRefsAccepted: boolean
+    all21CreditReservationRefsAccepted: boolean
     all21ApprovedSnapshotCreditBindingsReady: boolean
     privateArtifactManifestOnly: boolean
     gpuHeavyToolsTargetGpuRuntime: boolean
@@ -264,6 +266,18 @@ function idempotencyKeyFor(toolId: AiGraphicsCanonicalToolId, jobId: string): st
   return `ai_graphics_internal_beta_service_role_queue:${toolId}:${jobId}`
 }
 
+function isUuidRef(ref: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ref)
+}
+
+function approvedPlanSnapshotRefAccepted(ref: string): boolean {
+  return isUuidRef(ref) || /^approved_snapshot_[a-z0-9_]+$/i.test(ref)
+}
+
+function creditReservationRefAccepted(ref: string): boolean {
+  return isUuidRef(ref) || /^credit_reservation_[a-z0-9_]+$/i.test(ref)
+}
+
 function buildTransactionRecord(input: {
   sourceBackendQueueStorageAccepted: boolean
   record: AiGraphicsInternalBetaBackendQueueStorageReadiness['backendQueueStorageRecords'][number]
@@ -272,8 +286,8 @@ function buildTransactionRecord(input: {
     input.record.jobServiceRecordCreated &&
     input.record.jobServiceRecordMockOnly &&
     input.record.sourceDispatcherProbeCompletedWithProvidedEvidence &&
-    Boolean(input.record.approvedPlanSnapshotId) &&
-    Boolean(input.record.creditReservationId) &&
+    approvedPlanSnapshotRefAccepted(input.record.approvedPlanSnapshotId) &&
+    creditReservationRefAccepted(input.record.creditReservationId) &&
     input.record.privateArtifactManifestRef.startsWith('private://')
   const transactionId = transactionIdFor(input.record.toolId, input.record.jobId)
   const idempotencyKey = idempotencyKeyFor(input.record.toolId, input.record.jobId)
@@ -375,6 +389,16 @@ export async function buildAiGraphicsInternalBetaServiceRoleQueueTransactionRead
     (total, record) => total + record.auditEventRowsPrepared,
     0,
   )
+  const all21ApprovedSnapshotRefsAccepted =
+    serviceRoleTransactionRecords.length === 21 &&
+    serviceRoleTransactionRecords.every((record) => (
+      approvedPlanSnapshotRefAccepted(record.approvedPlanSnapshotId)
+    ))
+  const all21CreditReservationRefsAccepted =
+    serviceRoleTransactionRecords.length === 21 &&
+    serviceRoleTransactionRecords.every((record) => (
+      creditReservationRefAccepted(record.creditReservationId)
+    ))
 
   return {
     decision: AI_GRAPHICS_INTERNAL_BETA_SERVICE_ROLE_QUEUE_TRANSACTION_READINESS_DECISION,
@@ -427,8 +451,12 @@ export async function buildAiGraphicsInternalBetaServiceRoleQueueTransactionRead
       serviceRoleTransactionRollbackPlanPrepared: true,
       all21IdempotencyKeysPrepared:
         serviceRoleTransactionRecords.every((record) => record.idempotencyKey.length > 0),
+      all21ApprovedSnapshotRefsAccepted,
+      all21CreditReservationRefsAccepted,
       all21ApprovedSnapshotCreditBindingsReady:
-        serviceRoleTransactionRecordsReadyWithProvidedEvidence === 21,
+        serviceRoleTransactionRecordsReadyWithProvidedEvidence === 21 &&
+        all21ApprovedSnapshotRefsAccepted &&
+        all21CreditReservationRefsAccepted,
       privateArtifactManifestOnly:
         sourceBackendQueueStorageReadiness.booleans.privateArtifactManifestOnly,
       gpuHeavyToolsTargetGpuRuntime:

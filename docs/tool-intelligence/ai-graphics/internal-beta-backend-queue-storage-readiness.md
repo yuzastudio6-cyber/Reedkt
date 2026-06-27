@@ -4,6 +4,8 @@ Decision: `ai_graphics_internal_beta_backend_queue_storage_readiness_contract_pr
 
 This packet maps the all-21 AI graphics dispatcher-ready payloads into the existing backend `createJobService` boundary. It proves that AI graphics tool runtime work can be represented as `ai_graphics_tool_runtime` job-service queue records with approved snapshot, credit reservation, private artifact manifest, production tool ID, worker type, runtime target, and capability metadata.
 
+Approved snapshot refs and credit reservation refs must already be accepted at queue admission and remain accepted here as backend UUIDs or explicit `approved_snapshot_*` / `credit_reservation_*` fixture refs. Generic placeholders are not backend queue storage evidence.
+
 This is still mock-service queue readiness. It does not write Supabase rows, create live worker claims, dispatch live workers, execute tools, run Tool Routes, call providers, run browser/WebGL/canvas runtimes, run GPU/model runtimes, mutate GCS, create signed URLs, or create public artifacts.
 
 ## Current Status

@@ -143,6 +143,8 @@
     "serviceRoleRpcContractPrepared": true,
     "serviceRoleTransactionRollbackPlanPrepared": true,
     "all21IdempotencyKeysPrepared": true,
+    "all21ApprovedSnapshotRefsAccepted": true,
+    "all21CreditReservationRefsAccepted": true,
     "all21ApprovedSnapshotCreditBindingsReady": true,
     "privateArtifactManifestOnly": true,
     "gpuHeavyToolsTargetGpuRuntime": true,

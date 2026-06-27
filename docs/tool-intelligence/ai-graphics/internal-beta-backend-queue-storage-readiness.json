@@ -137,6 +137,8 @@
     "mockJobServiceRecordsOnly": true,
     "serviceRoleSupabaseWritesApprovedNow": false,
     "gpuHeavyToolsTargetGpuRuntime": true,
+    "all21ApprovedSnapshotRefsAccepted": true,
+    "all21CreditReservationRefsAccepted": true,
     "privateArtifactManifestOnly": true,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,

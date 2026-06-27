@@ -305,11 +305,21 @@ for (const token of [
   'approved_plan_snapshot',
   'credit_reservation',
   'private artifact manifest',
+  '`approved_snapshot_*`',
+  '`credit_reservation_*`',
   'idempotent',
   'append-only',
   'roll back',
 ]) {
   if (!markdown.toLowerCase().includes(token)) fail(`markdown_missing_transaction_guarantee:${token}`)
+}
+for (const token of [
+  'approvedPlanSnapshotRefAccepted',
+  'creditReservationRefAccepted',
+  'all21ApprovedSnapshotRefsAccepted',
+  'all21CreditReservationRefsAccepted',
+]) {
+  if (!moduleSource.includes(token)) fail(`module_missing_ref_format_guard:${token}`)
 }
 for (const token of [
   '--require-transaction-envelope-ready',
@@ -377,6 +387,8 @@ for (const key of [
   'serviceRoleRpcContractPrepared',
   'serviceRoleTransactionRollbackPlanPrepared',
   'all21IdempotencyKeysPrepared',
+  'all21ApprovedSnapshotRefsAccepted',
+  'all21CreditReservationRefsAccepted',
   'all21ApprovedSnapshotCreditBindingsReady',
   'privateArtifactManifestOnly',
   'gpuHeavyToolsTargetGpuRuntime',
@@ -444,6 +456,12 @@ for (const record of approvedOutput.serviceRoleTransactionRecords ?? []) {
   if (record.serviceRoleTransactionEnvelopeReadyWithProvidedEvidence !== true) fail(`record_not_ready:${record.toolId}`)
   if (!String(record.idempotencyKey ?? '').startsWith('ai_graphics_internal_beta_service_role_queue:')) {
     fail(`record_bad_idempotency_key:${record.toolId}:${record.idempotencyKey}`)
+  }
+  if (!String(record.approvedPlanSnapshotId ?? '').startsWith('approved_snapshot_')) {
+    fail(`record_approved_snapshot_ref_not_explicit_fixture:${record.toolId}`)
+  }
+  if (!String(record.creditReservationId ?? '').startsWith('credit_reservation_')) {
+    fail(`record_credit_reservation_ref_not_explicit_fixture:${record.toolId}`)
   }
   if (!String(record.privateArtifactManifestRef ?? '').startsWith('private://')) {
     fail(`record_private_manifest_ref:${record.toolId}:${record.privateArtifactManifestRef}`)

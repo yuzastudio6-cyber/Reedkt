@@ -234,6 +234,20 @@ service-role transaction: `backendQueueSubmissionPerformed=false`,
 `workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,
 `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
 
+AI graphics external beta service-role queue transaction decision
+`ai_graphics_external_beta_service_role_queue_transaction_envelope_prepared_with_runtime_blocks`
+prepares the service-role RPC/table transaction envelope after the external-beta
+backend queue submission envelope. With provided evidence, SAM2 and D3 can shape
+prepared-only job batch, job, worker claim, worker event, and audit event
+candidates for `ai_graphics_tool_runtime` without inserting rows. The envelope
+uses `enqueue_ai_graphics_tool_runtime_jobs`, `claim_ai_graphics_tool_runtime_job`,
+`record_ai_graphics_worker_event`, and `record_ai_graphics_audit_event`.
+This still does not run a service-role transaction or write Supabase rows:
+`serviceRoleTransactionPerformed=false`, `liveQueueWriteApprovedNow=false`,
+`workerLeaseCreated=false`, `workerDispatchPerformed=false`,
+`gpuRuntimeShouldStartNow=false`, `externalBetaReadyNowTools=0`, and
+`productionReadyNowTools=0` remain enforced.
+
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
 shapes the all-21 queue-admission packets into backend queue adapter submission

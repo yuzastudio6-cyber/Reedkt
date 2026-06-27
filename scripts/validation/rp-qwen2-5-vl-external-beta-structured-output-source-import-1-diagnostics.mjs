@@ -37,7 +37,21 @@ const followOnPrivateCallerImageSourceImportFiles = [
   'scripts/validation/rp-qwen2-5-vl-external-beta-private-caller-image-source-import-1-diagnostics.mjs',
 ]
 
-const allowedFiles = new Set([...requiredFiles, ...followOnPrivateCallerImageSourceImportFiles])
+const followOnStructuredOutputSmokeRetryFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-structured-output-smoke-retry-1/runtime-result.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-structured-output-smoke-retry-1/fail-closed-restore.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-structured-output-smoke-retry-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-structured-output-smoke-retry-1/qwen2-5-vl-structured-output-smoke-retry-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-structured-output-smoke-retry-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-vllm-l4-kv-cache-tuning-1.md',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-structured-output-smoke-retry-1-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([
+  ...requiredFiles,
+  ...followOnPrivateCallerImageSourceImportFiles,
+  ...followOnStructuredOutputSmokeRetryFiles,
+])
 
 const requiredText = [
   packet,

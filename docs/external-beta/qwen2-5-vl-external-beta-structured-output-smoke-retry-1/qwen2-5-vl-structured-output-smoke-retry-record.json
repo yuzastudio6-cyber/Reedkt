@@ -1,0 +1,81 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_STRUCTURED_OUTPUT_SMOKE_RETRY_1",
+  "decision": "blocked_qwen2_5_vl_vllm_kv_cache_memory_unavailable_after_timeout_repair",
+  "execution": "completed_guarded_private_structured_output_smoke_retry_with_fail_closed_restore_blocked",
+  "integrationBase": "97663a1e3681d5e5fb1a8092ee2c1bd36cb38688",
+  "sourceEvidence": {
+    "structuredOutputSourceImportPr": 1294,
+    "structuredOutputSourceImportMerge": "01791cb9b6c2465708fe6551d5efadcf262f005e",
+    "privateCallerImageSourceImportPr": 1297,
+    "privateCallerImageSourceImportMerge": "97663a1e3681d5e5fb1a8092ee2c1bd36cb38688",
+    "excludedPr": 577
+  },
+  "attempts": [
+    {
+      "runId": "qwen25-structured-output-smoke-retry-20260627T212113Z",
+      "execution": "reeditpro-qwen2-5-vl-private-caller-gx29k",
+      "result": "blocked_cloud_run_job_task_timeout_60s_before_structured_output_response",
+      "repairAppliedForNextAttempt": "set_cloud_run_job_task_timeout_to_900s_temporarily"
+    },
+    {
+      "runId": "qwen25-structured-output-smoke-retry-timeoutfix-20260627T212630Z",
+      "execution": "reeditpro-qwen2-5-vl-private-caller-wz4nx",
+      "result": "blocked_qwen2_5_vl_vllm_kv_cache_memory_unavailable",
+      "jobExitCode": 3,
+      "httpStatus": 500,
+      "serviceReason": "qwen_fixture_inference_smoke_failed",
+      "structuredMetadataOutputAccepted": false,
+      "metadataOutput": {},
+      "serviceLogBlocker": "ValueError: No available memory for the cache blocks. Try increasing gpu_memory_utilization when initializing the engine.",
+      "availableKvCacheMemoryGiB": -0.08
+    }
+  ],
+  "acceptance": {
+    "parsedJson": false,
+    "schemaValid": false,
+    "objectCount": 0,
+    "textLikeRegionCount": 0,
+    "rawOutputStoredInRepo": false,
+    "acceptedStructuredOutputProduced": false
+  },
+  "failClosedRestore": {
+    "passed": true,
+    "serviceLatestReadyRevision": "reeditpro-qwen2-5-vl-l4-worker-00017-p4b",
+    "jobGeneration": 10,
+    "jobTaskTimeoutSeconds": 60,
+    "serviceGatesDisabled": true,
+    "jobGatesDisabled": true,
+    "temporaryTargetAndAudienceRemoved": true
+  },
+  "readiness": {
+    "qwenRuntime": "blocked_pending_qwen2_5_vl_l4_vllm_kv_cache_tuning",
+    "structuredOutputSmokeRetry": "blocked",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_VLLM_L4_KV_CACHE_TUNING_1",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "safety": {
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "frontendProviderCall": false,
+    "workerDispatch": false,
+    "productRouteExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "stripeProcessing": false,
+    "broadExternalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "arbitraryPrivateMediaProcessing": false,
+    "arbitraryUserMediaProcessing": false,
+    "dockerPush": false,
+    "packageInstallationBeyondDependencyValidation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  }
+}

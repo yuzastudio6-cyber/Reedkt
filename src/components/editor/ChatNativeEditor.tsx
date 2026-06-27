@@ -63,6 +63,7 @@ import { InlinePlanValidationCard } from './InlinePlanValidationCard'
 import { InlinePlannerRegressionCard } from './InlinePlannerRegressionCard'
 import { InlinePromptPreviewCard } from './InlinePromptPreviewCard'
 import { InlineQAPlanCard } from './InlineQAPlanCard'
+import { InlineQwenPlannerRoutingCard } from './InlineQwenPlannerRoutingCard'
 import { InlineReferenceDNACard } from './InlineReferenceDNACard'
 import { InlineRendererPlanCard } from './InlineRendererPlanCard'
 import { InlineRenderStrategyCard } from './InlineRenderStrategyCard'
@@ -807,6 +808,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               )}
               {showCard('tool_strategy') && (
                 <InlineToolStrategyCard descriptor={cardById.tool_strategy} plan={plan} />
+              )}
+              {showCard('qwen_vl_planner_routing') && (
+                <InlineQwenPlannerRoutingCard descriptor={cardById.qwen_vl_planner_routing} />
               )}
               {showCard('map_animation_plan') && (
                 <InlineMapAnimationPlanCard descriptor={cardById.map_animation_plan} plan={plan} />

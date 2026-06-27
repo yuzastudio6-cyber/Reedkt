@@ -1,4 +1,5 @@
 import type { PlanValidationReport, PlannerRegressionReport } from './planner-validation'
+import { getQwenVlPlannerRoutingUiData } from './qwen-vl-planner-routing-ui'
 import type {
   ChatCardStatus,
   ChatPlanningCardDescriptor,
@@ -297,6 +298,12 @@ function toolStrategySummary(plan: EditPlan) {
   ).length
 
   return `${toolStrategyPlan.items.length} tool strateg${toolStrategyPlan.items.length === 1 ? 'y' : 'ies'}; ${toolStrategyPlan.chainIdsUsed.length} chain${toolStrategyPlan.chainIdsUsed.length === 1 ? '' : 's'}, ${exactChains} exact-work chain${exactChains === 1 ? '' : 's'} avoid AI video.`
+}
+
+function qwenPlannerRoutingSummary() {
+  const data = getQwenVlPlannerRoutingUiData()
+
+  return `${data.summary.totalPlannerTasks} Qwen planner task${data.summary.totalPlannerTasks === 1 ? '' : 's'}; ${data.summary.primaryMetadataRoutes} primary metadata, ${data.summary.advisoryMetadataRoutes} advisory, ${data.summary.blockedRoutes} blocked. No inference or Cloud Run invocation.`
 }
 
 function colorPipelineSummary(plan: EditPlan) {
@@ -722,6 +729,17 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       defaultExpanded: toolStrategyStatus === 'warning' || toolStrategyStatus === 'blocking',
       requiredBeforeApproval: false,
       summary: toolStrategySummary(plan),
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'qwen_vl_planner_routing',
+      label: 'Qwen VLM routing',
+      phase: 'plan',
+      priority: 'developer_detail',
+      status: 'ready',
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: qwenPlannerRoutingSummary(),
       hiddenInCompactMode: true,
     }),
     descriptor({

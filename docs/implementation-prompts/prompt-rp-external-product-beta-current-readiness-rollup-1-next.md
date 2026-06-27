@@ -1,14 +1,14 @@
 # RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Next Prompt
 
-Use this after `RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1` records blocker `blocked_deployed_browser_ui_surface_not_present`.
+Use this after `RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1` records blocker `blocked_deployed_browser_ui_surface_not_present` and after `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1` records source readiness `ready_for_controlled_staging_browser_ui_deploy_and_ui_flow_resmoke`.
 
 ## Recommended Next Gate
 
-`RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1`
+`RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY`
 
 ## Scope
 
-Deploy or expose a bounded browser-visible ReEditPro UI surface for the accepted controlled tester source chain without unlocking paid production, public artifacts, broad media, real provider calls, worker execution, or final delivery/export. The packet must name the single active target:
+Deploy the bounded browser-visible ReEditPro UI surface source from `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1`, then rerun the controlled tester UI flow smoke without unlocking paid production, public artifacts, broad media, real provider calls, worker execution, or final delivery/export. The packet must name the single active target:
 
 - `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
@@ -23,6 +23,8 @@ The future deployed browser UI surface packet must:
 - carry forward product-flow smoke `completed_external_beta_controlled_tester_product_flow_smoke`;
 - carry forward product-flow execution `completed_guarded_authenticated_tester_mock_product_flow_smoke_no_persistent_runtime_mutation`;
 - carry forward UI flow blocker `blocked_deployed_browser_ui_surface_not_present`;
+- carry forward deployed browser UI source readiness `ready_for_controlled_staging_browser_ui_deploy_and_ui_flow_resmoke`;
+- carry forward local browser UI source smoke `completed_external_beta_deployed_browser_ui_surface_source_smoke`;
 - use `aiediting@reeditpro.com` as the owner-approved controlled tester account unless a later owner packet adds more testers;
 - keep `external-beta-testers@reeditpro.com` as the only staging API invoker group;
 - use approved snapshot route-write and generated-local Remotion evidence as source-of-truth;
@@ -43,4 +45,4 @@ The future deployed browser UI surface packet must:
 
 ## Still Blocked
 
-External product beta readiness is `blocked_pending_deployed_browser_ui_surface_for_owner_walkthrough`. Product API readiness remains `ready_for_controlled_owner_tester_product_walkthrough`, but broad audience beta, paid production, public artifacts, signed URL source-of-truth, real providers/workers, broad media, and final delivery/export remain blocked until separately approved and validated.
+External product beta readiness is `blocked_pending_controlled_staging_browser_ui_deploy_and_resmoke`. Product API readiness remains `ready_for_controlled_owner_tester_product_walkthrough`, but broad audience beta, paid production, public artifacts, signed URL source-of-truth, real providers/workers, broad media, and final delivery/export remain blocked until separately approved and validated.

@@ -1,6 +1,6 @@
 # Activation Phase: RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Results
 
-Decision: `blocked_external_product_beta_pending_remaining_runtime_gates_after_main_supabase_grant_boundary_validation`
+Decision: `blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_remote_write_readback`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
@@ -28,10 +28,12 @@ The Supabase target credential/target-validation lane has moved past the missing
 
 `RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1` records decision `completed_main_supabase_service_role_runtime_grant_boundary_validation`, applied guarded grant hardening migration `20260626233000_external_beta_public_grant_hardening.sql`, and validated unsafe public mutation grants as `0` and unsafe public sequence grants as `0`.
 
-The active blocker is `blocked_external_product_beta_pending_remaining_runtime_gates_after_main_supabase_grant_boundary_validation`. Therefore external product beta remains blocked until approved snapshot persistence guarded remote write/readback, route-specific service-role execution validation, credit reservation/ledger validation, job lease/event validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, and security/privacy/support/cost/deployment review pass.
+`RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1` records decision `completed_approved_snapshot_persistence_guarded_remote_write_readback`, validated a generated approved snapshot dependency-chain insert/readback under `set local role service_role`, proved immutable snapshot update rejection, rolled the transaction back, and validated residue counts as `0`.
 
-Next safe action: `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1`.
+The active blocker is `blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_remote_write_readback`. Therefore external product beta remains blocked until credit reservation/ledger validation, route-specific service-role execution validation, job lease/event validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, and security/privacy/support/cost/deployment review pass.
+
+Next safe action: `RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1`.
 
 ## Safety
 
-No service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, Docker execution, Remotion execution, FFmpeg/FFprobe execution, or broad service-role handler was enabled by this rollup. Remote Supabase mutation for the preceding sync and service-role validation packets was limited to guarded staging migration apply and guarded public grant hardening on the single main Reeditpro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project.
+No service-role route execution, provider call, model call, worker execution, worker dispatch, worker lease claim, route execution, browser capture, signed URL creation, public artifact creation, credit mutation, credit reservation creation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview artifact creation, private media processing, user media processing, Docker execution, Remotion execution, FFmpeg/FFprobe execution, or broad service-role handler was enabled by this rollup. Remote Supabase mutation for the preceding sync, service-role validation, and approved snapshot validation packets was limited to guarded staging migration apply, guarded public grant hardening, and a transaction-rolled-back generated approved snapshot fixture on the single main Reeditpro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project and approved snapshot validation residue readback was `0`.

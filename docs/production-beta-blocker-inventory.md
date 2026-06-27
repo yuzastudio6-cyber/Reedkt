@@ -57,6 +57,32 @@ The active blocker is no longer broad public mutation grants on the main Reeditp
 
 Next recommended milestone: `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1`.
 
+## RP External Beta Approved Snapshot Persistence Guarded Remote Write 1
+
+`RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1` records decision `completed_approved_snapshot_persistence_guarded_remote_write_readback` and execution `completed_guarded_transaction_rolled_back_approved_snapshot_persistence_write_readback`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Run ID: `2026-06-27T00-00-12-289Z-7f5e51bd`.
+
+The confirmed runner used `set local role service_role` inside a generated validation transaction, inserted/read back the approved snapshot dependency chain, validated immutable snapshot update rejection, rolled the transaction back, and validated residue counts as `0`.
+
+Remote write/readback:
+- workspace/project/session/plan/plan-version/credit-estimate/snapshot/approval/idempotency/audit chain: `passed`
+- immutable approved snapshot update rejection: `passed`
+- persistent validation rows created: `false`
+- rollback residue readback: `0`
+
+Artifact checksums:
+- `validation-report.json`: `aa4d16b57305072242427398a5f2c3fadf6637490d08f4a76466087b269cb865`
+- `artifact-manifest.json`: `36edc2f5c48567da9ccd5860ce6b634858465933e974c9bec64bc2d59bfd73ed`
+
+Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+The active blocker is no longer approved snapshot remote write/readback. Remaining blockers are credit reservation/ledger validation, route-specific service-role execution validation, job lease/event validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1`.
+
 ## RP External Product Beta Current Readiness Rollup 1
 
 `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.

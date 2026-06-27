@@ -111,7 +111,9 @@ assert.ok(readyReport.nextActions.some((action) => action.includes('beta:tools:l
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:tools:local-accepted-evidence-collector')), 'ready report should name the local accepted evidence collector command')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:platform:staging-evidence-probe')), 'ready report should name platform evidence command')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:launch-approval-evidence')), 'ready report should name launch approval evidence command')
+assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:external-beta-evidence-collector')), 'ready report should name the all-up external beta evidence collector')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:scope-approval-evidence-preflight')), 'ready report should name later scope approval evidence preflight command')
+assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:scope-approval-sequence')), 'ready report should name the all-up scope approval sequence')
 assert.equal(JSON.stringify(readyReport).includes('tool-bearer-token-secret-for-smoke'), false, 'operator report must not print tool bearer token')
 assert.equal(JSON.stringify(readyReport).includes('platform-bearer-token-secret-for-smoke'), false, 'operator report must not print platform bearer token')
 assert.equal(JSON.stringify(readyReport).includes('launch-bearer-token-secret-for-smoke'), false, 'operator report must not print launch bearer token')
@@ -138,7 +140,9 @@ assert.ok(emptyReport.nextActions.some((action) => action.includes('libass-synth
 assert.ok(emptyReport.nextActions.some((action) => action.includes('core-real-check-evidence-preflight')), 'empty report should direct operator to tool preflight')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('staging-evidence-preflight')), 'empty report should direct operator to platform preflight')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('launch-approval-evidence-preflight')), 'empty report should direct operator to launch approval preflight')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('external-beta-evidence-collector')), 'empty report should direct operator to the external beta evidence collector after preflights')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('REEDITPRO_BETA_SCOPE_APPROVAL_MODE=real_user_media_beta')), 'empty report should preserve later scope approval lane guidance')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('scope-approval-sequence')), 'empty report should preserve all-up scope approval sequence guidance')
 
 console.log(JSON.stringify({
   ok: true,

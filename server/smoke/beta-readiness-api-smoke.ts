@@ -94,6 +94,10 @@ try {
     defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('libass-synthetic-burnin-qa-evidence-preflight')),
     'default operator status should name libass evidence recording preflight after synthetic QA',
   )
+  assert.ok(
+    defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('external-beta-evidence-collector')),
+    'default operator status should name the all-up external beta evidence collector',
+  )
 
   const deployedVerifierReportResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
     method: 'POST',
@@ -300,6 +304,10 @@ try {
   assert.ok(
     storedOperatorStatusResponse.data.status.currentGate.blockedActionScope.includes('paid_production_launch'),
     'complete stored evidence without paid-production approval should still block paid production launch',
+  )
+  assert.ok(
+    storedOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('scope-approval-sequence')),
+    'complete stored evidence should guide operators to the all-up scope approval sequence for later approvals',
   )
 
   const coreEvidenceResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evidence/core-real-check`, {

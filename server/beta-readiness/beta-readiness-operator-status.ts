@@ -128,12 +128,13 @@ function buildNextActions(report: BetaReadinessReport, workspaceId?: string): st
   }
   if (!report.goNoGo.externalBetaAllowed) {
     actions.push('Complete the named checklist and owner approval blockers before external beta launch.')
+    actions.push('After accepted tool evidence, deployed platform evidence, and launch approvals are ready, run npm run beta:readiness:external-beta-evidence-collector against staging to sequence evidence recording and require final external-beta operator-status readback.')
   }
   if (!report.goNoGo.realUserMediaBetaAllowed) {
     actions.push('After external beta is ready, run beta:readiness:scope-approval-evidence-preflight in real_user_media_beta mode, then record real-user-media beta approval evidence.')
   }
   if (!report.goNoGo.paidProductionAllowed) {
-    actions.push('After real-user-media beta is ready, run beta:readiness:scope-approval-evidence-preflight in paid_production mode, then record paid-production approval evidence.')
+    actions.push('After real-user-media beta is ready, run beta:readiness:scope-approval-evidence-preflight in paid_production mode, then record paid-production approval evidence; when both real-user-media beta and paid-production approvals are available, run npm run beta:readiness:scope-approval-sequence to record both in order and require final paid-production readback.')
   }
   actions.push('Rerun the operator status API and local smoke checks from the final source SHA after evidence changes.')
 

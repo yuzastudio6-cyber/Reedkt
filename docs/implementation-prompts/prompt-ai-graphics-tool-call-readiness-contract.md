@@ -158,10 +158,12 @@ Latest observed PR state after source-catalog checksum enforcement: [#862](https
 Latest observed PR state after native proof checksum boundary hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `dbbb6a3304c7c8299ac9566e19e35de6d0decf91`, with an empty check rollup.
 - Follow-up private checksum-evidence hardening updates the private model-weight manifest schema, native GPU readiness probe, GPU proof-result validator, scaffold templates, and beta evidence fixtures so private manifests must include `checksumEvidenceRef` and `checksumEvidenceReviewed=true` in addition to `checksumSha256`. The checksum-evidence ref must use the reviewed private namespace/redaction boundary, stale proof packets without `model_manifest_checksum_evidence_ref_validated` fail closed, and no model download/load/inference, route/worker execution, GPU runtime, beta, or production unlock occurs.
 Latest observed PR state after private checksum-evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `5b2d438175cb96f87411c313ff6719b7d4a197ed`, with an empty check rollup.
+- Follow-up model-weight checksum evidence validator adds `server/tool-registry/ai-graphics-model-weight-checksum-evidence.ts`, `server/cli/ai-graphics-model-weight-checksum-evidence.ts`, `docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.md`, `docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json`, `ai-graphics:model-weight-checksum-evidence:validate`, and `ai-graphics:model-weight-checksum-evidence:diagnostics`. It creates the local/private SHA evidence gate before private manifest authoring for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`, with private refs redacted and execution/runtime/beta/production still blocked.
 
 ## Expected Validation
 
 - `git diff --check`
+- `npm run --silent ai-graphics:model-weight-checksum-evidence:diagnostics`
 - `npm run --silent ai-graphics:model-weight-source-catalog:diagnostics`
 - `npm run --silent ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics`
 - `npm run --silent ai-graphics:internal-beta-production-worker-job-readiness:diagnostics`

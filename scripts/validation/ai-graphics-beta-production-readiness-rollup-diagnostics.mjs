@@ -471,6 +471,8 @@ const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   '+    "ai-graphics:model-weight-source-catalog:diagnostics": "node scripts/validation/ai-graphics-model-weight-source-catalog-diagnostics.mjs",',
+  '+    "ai-graphics:model-weight-checksum-evidence:validate": "tsx server/cli/ai-graphics-model-weight-checksum-evidence.ts",',
+  '+    "ai-graphics:model-weight-checksum-evidence:diagnostics": "node scripts/validation/ai-graphics-model-weight-checksum-evidence-diagnostics.mjs",',
   '+    "ai-graphics:internal-beta-go-no-go": "tsx server/cli/ai-graphics-internal-beta-go-no-go.ts",',
   '+    "ai-graphics:internal-beta-go-no-go:diagnostics": "node scripts/validation/ai-graphics-internal-beta-go-no-go-diagnostics.mjs",',
   '+    "ai-graphics:internal-beta-go-no-go-owner-approval": "tsx server/cli/ai-graphics-internal-beta-go-no-go-owner-approval.ts",',

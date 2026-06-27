@@ -38,6 +38,19 @@ existing internal evidence; these suggestions do not approve private manifests
 and must still match reviewed private artifacts. rembg and
 transparent-background still require reviewed private artifact SHA-256 evidence.
 
+AI graphics model-weight checksum evidence decision
+`ai_graphics_model_weight_checksum_evidence_prepared_with_no_private_records`
+adds the server-only/local-private checksum evidence validator for `sam2`,
+`birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. It requires
+reviewed private checksum evidence refs, reviewed private source artifact refs,
+64-character SHA-256 evidence, source-catalog candidate matching, and exact
+source-catalog checksum matching where existing internal evidence provides a
+reviewed checksum. It emits only redacted private-ref statuses, logs 0 private
+artifact refs in public docs, keeps rembg and transparent-background blocked
+until private SHA evidence is reviewed, and does not approve model download,
+model load, inference, Tool Routes, Workers, GPU runtime, beta, or production.
+GPU runtime remains on-demand only and no idle GPU runtime is approved.
+
 AI graphics internal beta go/no-go decision
 `ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`
 prepares the explicit owner go/no-go contract for the all-21 AI graphics

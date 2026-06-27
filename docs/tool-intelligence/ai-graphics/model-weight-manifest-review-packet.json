@@ -13,6 +13,7 @@
     "latestObservedCheckRollup": []
   },
   "sourceEvidence": {
+    "modelWeightChecksumEvidence": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json",
     "modelWeightManifestReadinessContract": "docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.json",
     "gpuRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
     "workerHandoffReadiness": "docs/tool-intelligence/ai-graphics/worker-handoff-readiness-contract.json",
@@ -23,6 +24,8 @@
     "serverExport": "server/tool-registry/index.ts",
     "localPrivateManifestValidator": "server/cli/ai-graphics-model-weight-manifest-review.ts",
     "localPrivateManifestValidatorScript": "ai-graphics:model-weight-manifest-review:validate",
+    "localPrivateChecksumEvidenceValidator": "server/cli/ai-graphics-model-weight-checksum-evidence.ts",
+    "localPrivateChecksumEvidenceValidatorScript": "ai-graphics:model-weight-checksum-evidence:validate",
     "diagnostic": "scripts/validation/ai-graphics-model-weight-manifest-review-packet-diagnostics.mjs",
     "packageScript": "ai-graphics:model-weight-manifest-review-packet:diagnostics"
   },

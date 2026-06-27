@@ -45,6 +45,17 @@ Every private manifest evidence record must include:
 
 The review validator requires a 64-character SHA-256 digest, a private checksum evidence ref, exact `toolId`, `templateId`, and `sourceCandidateId`, non-empty license/provenance refs, and all review booleans set to true. `sourceCandidateId` must match the selected ReeditPro source-catalog candidate for the tool before native GPU proof input can be eligible. When the source catalog includes reviewed checksum guidance, `checksumSha256` must match that value before native GPU proof input can be eligible. `privateArtifactRef` and `checksumEvidenceRef` must use reviewed private namespaces: `private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`. It rejects HTTP(S), public, signed URL, raw `gs://`, or arbitrary placeholder refs. Diagnostics report only `present_private_ref_not_logged` when a private ref exists.
 
+The checksum evidence ref should be produced by the local/private checksum
+evidence validator before manifest review:
+
+```sh
+npm run --silent ai-graphics:model-weight-checksum-evidence:validate -- --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence
+```
+
+That validator accepts owner-reviewed private SHA evidence for `sam2`,
+`birefnet`, `real_esrgan`, `rembg`, and `transparent_background`, emits only
+redacted private-ref statuses, and does not approve runtime or beta execution.
+
 ## Source-Catalog Checksum Guidance
 
 | Tool | Checksum guidance |

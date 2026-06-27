@@ -164,7 +164,10 @@ if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-const rollupIsCompleted = rollup.decision === 'completed_controlled_external_beta_staging_flag_application'
+const rollupIsStagingCompleted = rollup.decision === 'completed_controlled_external_beta_staging_flag_application'
+const rollupIsSmokeCompleted =
+  rollup.decision === 'completed_controlled_external_beta_authenticated_staging_smoke_validation'
+const rollupIsCompleted = rollupIsStagingCompleted || rollupIsSmokeCompleted
 if (
   rollup.decision !== 'blocked_gcloud_reauthentication_required_before_staging_flag_application' &&
   !rollupIsCompleted
@@ -174,7 +177,8 @@ if (
 if (rollup.sourceClosure?.stagingFlagApplication !== 'rp_external_beta_staging_flag_application_1') fail('rollup staging source missing')
 if (
   rollup.statuses?.externalProductBeta !== 'blocked_pending_gcloud_reauthentication_before_staging_flag_application' &&
-  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_enabled_on_staging_api'
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_enabled_on_staging_api' &&
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_smoke_validated_authenticated_staging_api'
 ) {
   fail('rollup external beta status mismatch')
 }
@@ -183,7 +187,13 @@ if (rollupIsCompleted) {
   if (rollup.sourceClosure?.stagingFlagApplication1r !== 'rp_external_beta_staging_flag_application_1r_after_gcloud_reauth') fail('rollup 1R source missing')
   if (rollup.mainSupabaseTarget?.stagingFlagApplication !== 'completed_controlled_external_beta_staging_flag_application') fail('rollup completed status mismatch')
   if (rollup.mainSupabaseTarget?.stagingFlagApplicationBlocker !== 'closed') fail('rollup blocker closure mismatch')
-  if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1') fail('rollup next milestone mismatch')
+  if (rollupIsSmokeCompleted) {
+    if (rollup.sourceClosure?.controlledSmokeValidation !== 'rp_external_beta_controlled_smoke_validation_1') fail('rollup smoke source missing')
+    if (rollup.mainSupabaseTarget?.controlledSmokeValidation !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation') fail('rollup smoke status mismatch')
+    if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1') fail('rollup next milestone mismatch')
+  } else if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1') {
+    fail('rollup next milestone mismatch')
+  }
 } else {
   if (rollup.mainSupabaseTarget?.stagingFlagApplicationBlocker !== 'gcloud_reauthentication_required_before_staging_flag_application') fail('rollup blocker mismatch')
 }

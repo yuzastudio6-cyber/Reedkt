@@ -42,6 +42,13 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       ['create table if not exists public.beta_readiness_evidence_packets', 'idempotency_key', 'idx_beta_readiness_evidence_packets_workspace_idempotency', 'backend/service-role only'],
       'Deploy and verify this migration in staging or production.',
     ),
+    migrationFileCheck(
+      'tool_cost_wallet_settlement_rpc_source_present',
+      'tool cost wallet settlement RPC source is present',
+      'supabase/migrations/202606270003_tool_cost_wallet_settlement_rpc.sql',
+      ['create table if not exists public.tool_cost_wallet_settlements', 'create or replace function public.settle_tool_cost_event', 'credit_ledger_entries', 'service_fee_included', 'stripe_call_attempted'],
+      'Deploy and verify transactional wallet spend/release/refund settlement in staging or production.',
+    ),
     sourceFileCheck(
       'backend_evidence_routes_present',
       'Backend beta readiness evidence routes are present',

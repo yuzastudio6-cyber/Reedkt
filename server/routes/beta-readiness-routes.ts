@@ -4,8 +4,13 @@ import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
 import { buildBetaReadinessReport } from '../beta-readiness'
 import { createBetaReadinessEvidenceService } from '../beta-readiness/beta-readiness-evidence-service'
+import { buildCoreRealCheckEvidencePacket } from '../beta-readiness/core-real-check-evidence'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
-import { betaReadinessEvidenceEvaluationSchema, betaReadinessEvidencePacketSchema } from '../validation/beta-readiness-schemas'
+import {
+  betaReadinessCoreRealCheckEvidenceSchema,
+  betaReadinessEvidenceEvaluationSchema,
+  betaReadinessEvidencePacketSchema,
+} from '../validation/beta-readiness-schemas'
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getServiceContext, sendOk } from './route-helpers'
 
@@ -68,6 +73,27 @@ export function createBetaReadinessRoutes(): Router {
       replayed: result.replayed,
       report: result.report,
     }, result.warnings, result.replayed ? 200 : 201)
+  }))
+
+  router.post('/v1/beta-readiness/evidence/core-real-check', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(betaReadinessCoreRealCheckEvidenceSchema, request.body)
+    assertNoSecretLikeBetaReadinessEvidence(body)
+    const evidence = buildCoreRealCheckEvidencePacket(body)
+    const result = await createBetaReadinessEvidenceService(getServiceContext(request)).recordEvidence(
+      evidence.evidencePacket,
+      getIdempotencyKey(request),
+    )
+    sendOk(response, {
+      packet: result.packet,
+      replayed: result.replayed,
+      acceptedToolEvidence: evidence.acceptedToolEvidence,
+      skippedToolResults: evidence.skippedToolResults,
+      readinessSummary: evidence.readinessResult.summary,
+      report: result.report,
+    }, [
+      ...result.warnings,
+      'Core real-check evidence ran bounded command/import/package metadata checks only; no media processing, provider calls, Docker, render/export, beta activation, or production enablement occurred.',
+    ], result.replayed ? 200 : 201)
   }))
 
   return router

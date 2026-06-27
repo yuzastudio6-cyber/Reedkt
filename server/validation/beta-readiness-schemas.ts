@@ -80,5 +80,18 @@ export const betaReadinessEvidencePacketSchema = betaReadinessEvidenceEvaluation
   projectId: idSchema.optional(),
 }).strict()
 
+export const betaReadinessCoreRealCheckEvidenceSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema.optional(),
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  notes: z.array(noteSchema).min(1).max(20),
+  acceptProductionReadiness: z.boolean().optional(),
+  acceptProductReadyLocalOss: z.boolean().optional(),
+  includeWarnings: z.boolean().optional(),
+  toolIds: z.array(z.enum(PRODUCTION_TOOL_IDS)).min(1).max(PRODUCTION_TOOL_IDS.length).optional(),
+}).strict()
+
 export type BetaReadinessEvidenceEvaluationBody = z.infer<typeof betaReadinessEvidenceEvaluationSchema>
 export type BetaReadinessEvidencePacketBody = z.infer<typeof betaReadinessEvidencePacketSchema>
+export type BetaReadinessCoreRealCheckEvidenceBody = z.infer<typeof betaReadinessCoreRealCheckEvidenceSchema>

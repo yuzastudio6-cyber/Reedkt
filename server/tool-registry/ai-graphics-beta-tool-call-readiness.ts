@@ -33,8 +33,11 @@ export interface AiGraphicsBetaToolCallReadinessTool {
   betaEvidenceReadyForTool: boolean
   betaToolCallableWithProvidedEvidence: boolean
   betaToolCallableNow: false
+  externalBetaToolCallableNow: false
+  productionToolCallableNow: false
   missingEvidenceBeforeBetaToolCall: string[]
   blockersBeforeBetaToolCall: string[]
+  missingEvidenceBeforeExternalBetaToolCall: string[]
 }
 
 export interface AiGraphicsBetaToolCallReadinessCapability {
@@ -42,7 +45,9 @@ export interface AiGraphicsBetaToolCallReadinessCapability {
   rankedPlanningTools: AiGraphicsCanonicalToolId[]
   betaCallablePlanningToolsWithProvidedEvidence: AiGraphicsCanonicalToolId[]
   betaCallablePlanningToolsNow: []
+  externalBetaCallablePlanningToolsNow: []
   missingEvidenceBeforeBetaToolCall: string[]
+  missingEvidenceBeforeExternalBetaToolCall: string[]
 }
 
 export interface AiGraphicsBetaToolCallReadiness {
@@ -52,8 +57,12 @@ export interface AiGraphicsBetaToolCallReadiness {
   totalProductFacingCapabilities: 12
   betaToolCallableWithProvidedEvidenceTools: number
   betaToolCallableNowTools: 0
+  externalBetaToolCallableNowTools: 0
+  externalBetaToolCallBlockedTools: 21
+  productionToolCallableNowTools: 0
   all21BetaCallableWhenEvidenceBundlePasses: boolean
   capabilitiesWithBetaCallablePlanningTools: number
+  capabilitiesWithExternalBetaCallablePlanningToolsNow: 0
   sourceBetaEvidenceBundleAccepted: boolean
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
   expectedGpuRuntimeTargets: Record<string, string>
@@ -71,6 +80,7 @@ export interface AiGraphicsBetaToolCallReadiness {
     gpuRuntimeOnDemandOnly: true
     all21BetaCallableWhenEvidenceBundlePasses: boolean
     all12CapabilitiesHaveBetaCallableSelectionWhenEvidenceBundlePasses: boolean
+    externalBetaToolCallReadinessSeparated: true
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
     routeExecutionApprovedNow: false
@@ -82,6 +92,10 @@ export interface AiGraphicsBetaToolCallReadiness {
     runtimeReadyNow: false
     internalBetaReadyNow: false
     externalBetaReadyNow: false
+    externalBetaRuntimeEvidenceAccepted: false
+    externalBetaQaAccepted: false
+    externalBetaCostConcurrencyPrivacyAccepted: false
+    externalBetaOwnerApprovalGranted: false
     productionReadyNow: false
     dependencyInstallPerformed: false
     packageLockMutationPerformed: false
@@ -109,6 +123,15 @@ function buildBundle(input: AiGraphicsBetaToolCallReadinessInput): AiGraphicsBet
   return input.evidenceBundle ?? buildAiGraphicsBetaEvidenceBundle(input.evidenceBundleInput ?? {})
 }
 
+function buildExternalBetaMissingEvidence(toolId: AiGraphicsCanonicalToolId): string[] {
+  return [
+    `${toolId}: real internal beta runtime execution evidence`,
+    `${toolId}: external-beta QA acceptance`,
+    `${toolId}: external-beta cost, concurrency, rollback, privacy, and incident-response acceptance`,
+    `${toolId}: external-beta owner approval after internal runtime soak`,
+  ]
+}
+
 export function buildAiGraphicsBetaToolCallReadiness(
   input: AiGraphicsBetaToolCallReadinessInput = {},
 ): AiGraphicsBetaToolCallReadiness {
@@ -134,6 +157,7 @@ export function buildAiGraphicsBetaToolCallReadiness(
       ...evidenceRow.evidenceMissing,
       ...(!evidenceBundle.all21BetaEvidenceReady ? ['all21_beta_evidence_bundle'] : []),
     ])
+    const missingEvidenceBeforeExternalBetaToolCall = buildExternalBetaMissingEvidence(record.toolId)
 
     return {
       toolId: record.toolId,
@@ -147,12 +171,15 @@ export function buildAiGraphicsBetaToolCallReadiness(
       betaEvidenceReadyForTool: evidenceRow.betaTestingReadyNow,
       betaToolCallableWithProvidedEvidence,
       betaToolCallableNow: false,
+      externalBetaToolCallableNow: false,
+      productionToolCallableNow: false,
       missingEvidenceBeforeBetaToolCall,
       blockersBeforeBetaToolCall: unique([
         ...record.blockersBeforeExecution,
         ...evidenceRow.blockers,
         ...missingEvidenceBeforeBetaToolCall,
       ]),
+      missingEvidenceBeforeExternalBetaToolCall,
     }
   })
 
@@ -167,13 +194,18 @@ export function buildAiGraphicsBetaToolCallReadiness(
       ...evaluation.missingExecutionGates,
       ...(!evidenceBundle.all21BetaEvidenceReady ? ['all21_beta_evidence_bundle'] : []),
     ])
+    const missingEvidenceBeforeExternalBetaToolCall = unique(
+      rankedPlanningTools.flatMap((toolId) => buildExternalBetaMissingEvidence(toolId)),
+    )
 
     return {
       capabilityId: evaluation.capabilityId as AiGraphicsCapabilityId,
       rankedPlanningTools,
       betaCallablePlanningToolsWithProvidedEvidence,
       betaCallablePlanningToolsNow: [],
+      externalBetaCallablePlanningToolsNow: [],
       missingEvidenceBeforeBetaToolCall,
+      missingEvidenceBeforeExternalBetaToolCall,
     }
   })
 
@@ -195,8 +227,12 @@ export function buildAiGraphicsBetaToolCallReadiness(
     totalProductFacingCapabilities: 12,
     betaToolCallableWithProvidedEvidenceTools,
     betaToolCallableNowTools: 0,
+    externalBetaToolCallableNowTools: 0,
+    externalBetaToolCallBlockedTools: 21,
+    productionToolCallableNowTools: 0,
     all21BetaCallableWhenEvidenceBundlePasses,
     capabilitiesWithBetaCallablePlanningTools,
+    capabilitiesWithExternalBetaCallablePlanningToolsNow: 0,
     sourceBetaEvidenceBundleAccepted: evidenceBundle.all21BetaEvidenceReady,
     gpuRuntimeTargetedTools: evidenceBundle.gpuRuntimeTargetedTools,
     expectedGpuRuntimeTargets: evidenceBundle.expectedGpuRuntimeTargets,
@@ -217,6 +253,7 @@ export function buildAiGraphicsBetaToolCallReadiness(
       gpuRuntimeOnDemandOnly: true,
       all21BetaCallableWhenEvidenceBundlePasses,
       all12CapabilitiesHaveBetaCallableSelectionWhenEvidenceBundlePasses,
+      externalBetaToolCallReadinessSeparated: true,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
       routeExecutionApprovedNow: false,
@@ -228,6 +265,10 @@ export function buildAiGraphicsBetaToolCallReadiness(
       runtimeReadyNow: false,
       internalBetaReadyNow: false,
       externalBetaReadyNow: false,
+      externalBetaRuntimeEvidenceAccepted: false,
+      externalBetaQaAccepted: false,
+      externalBetaCostConcurrencyPrivacyAccepted: false,
+      externalBetaOwnerApprovalGranted: false,
       productionReadyNow: false,
       dependencyInstallPerformed: false,
       packageLockMutationPerformed: false,

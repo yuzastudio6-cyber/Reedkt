@@ -65,7 +65,10 @@
     "defaultBetaToolCallableWithProvidedEvidenceTools": 0,
     "defaultBetaToolCallableNowTools": 0,
     "fullEvidenceBetaToolCallableWithProvidedEvidenceTools": 21,
-    "fullEvidenceBetaToolCallableNowTools": 0
+    "fullEvidenceBetaToolCallableNowTools": 0,
+    "externalBetaToolCallableNowTools": 0,
+    "externalBetaToolCallBlockedTools": 21,
+    "productionToolCallableNowTools": 0
   },
   "evidencePolicy": {
     "partialEvidenceCreatesCallableSubset": false,
@@ -75,7 +78,9 @@
     "committedDocsRemainSanitized": true,
     "rankingSystemConnected": true,
     "agentPlanningSelectionAllowed": true,
-    "agentToolExecutionAllowedNow": false
+    "agentToolExecutionAllowedNow": false,
+    "externalBetaToolCallReadinessSeparated": true,
+    "fullEvidenceDoesNotUnlockExternalBeta": true
   },
   "booleans": {
     "betaToolCallReadinessContractPrepared": true,
@@ -86,6 +91,7 @@
     "gpuRuntimeOnDemandOnly": true,
     "all21BetaCallableWhenEvidenceBundlePasses": true,
     "all12CapabilitiesHaveBetaCallableSelectionWhenEvidenceBundlePasses": true,
+    "externalBetaToolCallReadinessSeparated": true,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,
     "routeExecutionApprovedNow": false,
@@ -97,6 +103,10 @@
     "runtimeReadyNow": false,
     "internalBetaReadyNow": false,
     "externalBetaReadyNow": false,
+    "externalBetaRuntimeEvidenceAccepted": false,
+    "externalBetaQaAccepted": false,
+    "externalBetaCostConcurrencyPrivacyAccepted": false,
+    "externalBetaOwnerApprovalGranted": false,
     "productionReadyNow": false,
     "dependencyInstallPerformed": false,
     "packageLockMutationPerformed": false,

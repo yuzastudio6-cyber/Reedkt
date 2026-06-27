@@ -24,7 +24,7 @@ ENV PYTHONUNBUFFERED=1 \
     PORT=8080
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libnuma1 && \
+    apt-get install -y --no-install-recommends build-essential libnuma1 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY docker/prod/qwen2-5-vl-cloud-run-gpu/requirements.qwen2-5-vl.txt /tmp/requirements.qwen2-5-vl.txt

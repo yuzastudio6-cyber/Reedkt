@@ -126,6 +126,7 @@ assert.ok(emptyReport.platformEvidence.missingOwnerApprovals.includes('support o
 assert.ok(emptyReport.platformEvidence.missingAttestations.includes('staging_billing_qa_verified'), 'empty report should name attestation gaps')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('core-real-check-preview')), 'empty report should direct operator to the local blocker-reduction preview')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('core-real-check-preview:hydrated')), 'empty report should direct operator to the hydrated preview when Python tools are in scope')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('libass-container-proof-preflight')), 'empty report should direct operator to the libass filter proof preflight')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('core-real-check-evidence-preflight')), 'empty report should direct operator to tool preflight')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('staging-evidence-preflight')), 'empty report should direct operator to platform preflight')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('launch-approval-evidence-preflight')), 'empty report should direct operator to launch approval preflight')

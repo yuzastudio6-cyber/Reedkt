@@ -82,6 +82,10 @@ try {
     defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('core-real-check-preview:hydrated')),
     'default operator status should name the hydrated local preview for Python-backed tool evidence',
   )
+  assert.ok(
+    defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('libass-container-proof-preflight')),
+    'default operator status should name the libass proof preflight for subtitle-filter evidence',
+  )
 
   const deployedVerifierReportResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
     method: 'POST',

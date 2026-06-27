@@ -20,3 +20,9 @@ Real check mode must not run media processing, frontend/browser runtime, GPU/mod
 ## Statuses
 
 Missing local tools should report `missing`, `not_installed`, or `warning` without failing non-strict smoke. FFmpeg LGPL and libass production verification remain `pending_manual_review` until explicitly approved.
+
+## Libass Proof Lane
+
+`npm run beta:tools:libass-container-proof-preflight` is the next safe blocker-reduction lane for libass. It may inspect only `ffmpeg -hide_banner -filters` on the host or inside an explicitly supplied approved render/tool-readiness image with `docker run --rm --network none`.
+
+A passing filter inspection can produce a blocker-reducing evidence packet for `libass`, but it does not prove final caption burn-in, font packaging, safe-zone QA, LGPL/commercial review, beta launch, production launch, or product-ready local OSS status.

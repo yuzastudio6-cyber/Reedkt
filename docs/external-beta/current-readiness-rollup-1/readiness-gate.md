@@ -1,6 +1,6 @@
 # RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1
 
-Decision: `approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough`
+Decision: `completed_named_invited_tester_walkthrough`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
@@ -10,7 +10,7 @@ Source closure: `RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
-External product beta readiness: `ready_for_named_invited_tester_identity_and_walkthrough`
+External product beta readiness: `ready_for_bounded_external_beta_tester_expansion_decision`
 
 Product API readiness: `ready_for_controlled_owner_tester_product_walkthrough`
 
@@ -56,10 +56,10 @@ The next beta gate must keep controlled private invite access bounded while pres
 
 1. Keep `external-beta-testers@reeditpro.com` as the only Cloud Run invoker group for the staging API lane.
 2. Use `aiediting@reeditpro.com` as the owner-approved real tester account for controlled beta smoke/readback unless a future owner packet adds more testers.
-3. Run a controlled owner browser walkthrough before broadening the beta audience.
+3. Treat the guarded named invited tester walkthrough for `aiediting@reeditpro.com` as complete before any bounded tester expansion decision.
 4. Future provider/model runtime confirmation packet only if a real call is explicitly approved later.
 
-Controlled external beta is enabled on the staging API only. The product API lane remains `ready_for_controlled_owner_tester_product_walkthrough` with `external beta enabled in this phase: true`, and the browser-visible UI lane is now `ready_for_named_invited_tester_identity_and_walkthrough` after `RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1`. Access is routed through the owner-managed Google security group `external-beta-testers@reeditpro.com`; do not broaden IAM beyond that staging service group binding. The approved owner/tester is `aiediting@reeditpro.com`, #1229 / `RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1` is the current tester-account source-of-truth, `RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1` is the current product-flow source-of-truth, `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY` records the deployed browser UI surface, `RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1` records the successful authenticated owner browser surface walkthrough, and `RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1` approves the next named invited tester walkthrough gate without broad public access.
+Controlled external beta is enabled on the staging API only. The product API lane remains `ready_for_controlled_owner_tester_product_walkthrough` with `external beta enabled in this phase: true`, and the browser-visible UI lane is now `ready_for_bounded_external_beta_tester_expansion_decision` after `RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1`. Access is routed through the owner-managed Google security group `external-beta-testers@reeditpro.com`; do not broaden IAM beyond that staging service group binding without a bounded tester expansion decision. The approved owner/tester is `aiediting@reeditpro.com`, #1229 / `RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1` is the current tester-account source-of-truth, `RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1` is the current product-flow source-of-truth, `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY` records the deployed browser UI surface, `RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1` records the successful authenticated owner browser surface walkthrough, `RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1` approved the named invited tester walkthrough gate, and `RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1` records the completed guarded named tester walkthrough without broad public access.
 
 ## External Product Beta Readiness
 
@@ -85,9 +85,10 @@ External product beta is enabled for the controlled staging API lane. The first 
 - controlled private invite IAM grant completed as `completed_controlled_private_invite_iam_grant_for_owner_managed_group`, with `external-beta-testers@reeditpro.com` as the approved owner-managed Google Group and no broad public grant;
 - owner-member smoke readback carried forward as `completed_owner_member_group_access_smoke_readback_carried_forward`;
 - owner-approved tester-account smoke completed as `completed_owner_approved_tester_account_membership_smoke`, with `aiediting@reeditpro.com` classified as `owner_approved_primary_real_tester_account`;
-- controlled private invite IAM inheritance audited as `completed_readonly_project_iam_inheritance_audit_no_broad_invoker`, with no project-level user/group/domain/`allUsers`/`allAuthenticatedUsers` Cloud Run invoker members.
+- controlled private invite IAM inheritance audited as `completed_readonly_project_iam_inheritance_audit_no_broad_invoker`, with no project-level user/group/domain/`allUsers`/`allAuthenticatedUsers` Cloud Run invoker members;
+- named invited tester walkthrough completed as `completed_named_invited_tester_walkthrough`, with `aiediting@reeditpro.com` authenticated against the deployed browser UI surface, unauthenticated `/` blocked as `403`, authenticated `/`, `/dashboard`, `/projects`, and `/editor` returning `200` HTML, authenticated SPA JS/CSS asset fetches passing, `/api/routes` returning `200`, and `/api/runtime/status` returning `200`.
 
-The actual external beta flag application, authenticated smoke validation, private invite/access policy, owner-managed private invite IAM grant, owner-member group-path smoke, owner-approved tester-account smoke, controlled tester product-flow smoke, deployed browser UI surface, and controlled tester UI smoke are complete for the controlled staging API lane. `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY` records Cloud Build `54fd2cfd-4f19-472d-8b5f-5fbfe55f59b1`, Cloud Run revision `reeditpro-staging-api-00006-6gw`, and controlled tester UI smoke run `2026-06-27T17-15-34-003Z-a728f2ff` for `aiediting@reeditpro.com`. Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, broad external beta audience, and production unlock remain blocked. The next safe step is `RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1`, without broadening IAM, public access, providers, workers, media processing, paid billing, or production.
+The actual external beta flag application, authenticated smoke validation, private invite/access policy, owner-managed private invite IAM grant, owner-member group-path smoke, owner-approved tester-account smoke, controlled tester product-flow smoke, deployed browser UI surface, controlled tester UI smoke, controlled owner browser walkthrough, controlled owner go/no-go, and named invited tester walkthrough are complete for the controlled staging API lane. `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY` records Cloud Build `54fd2cfd-4f19-472d-8b5f-5fbfe55f59b1`, Cloud Run revision `reeditpro-staging-api-00006-6gw`, and controlled tester UI smoke run `2026-06-27T17-15-34-003Z-a728f2ff` for `aiediting@reeditpro.com`. `RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1` records named tester walkthrough run `2026-06-27T18-18-53-455Z-ea8106e0`, report SHA-256 `66d46b5c1e0e6200f431f8ea2a2397d49874bac490928716853a86ee1598c2f6`, and manifest SHA-256 `3a10d4df623785e961ec0c69e4b86bab9e361a16d32ac345b662af09dd859875`. Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, broad external beta audience, and production unlock remain blocked. The next safe step is `RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1`, without broadening IAM, public access, providers, workers, media processing, paid billing, or production outside a bounded owner-approved expansion packet.
 
 ## No-Scope Statement
 

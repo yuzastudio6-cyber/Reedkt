@@ -367,6 +367,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - A source go/no-go packet must already report `internal_beta_go_no_go_approved_runtime_still_blocked`; the downstream owner-approval record remains separate and required.
 - Diagnostic coverage proves a packet-fed owner gate reaches `awaiting_internal_beta_go_no_go_owner_approval` without the owner approval ref, and reaches `internal_beta_go_no_go_owner_approved_runtime_still_blocked` only with `--internal-beta-go-no-go-owner-approval-granted` and `--internal-beta-go-no-go-owner-approval-ref`.
 - Runtime remains blocked in both packet-fed paths: `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+- Latest observed PR state after internal beta go/no-go owner approval source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `b8c66cc1b43c6290e9ef3a9b74bb573d8e87407c`, with an empty check rollup.
 
 ## No-Scope
 

@@ -5,8 +5,10 @@ import { createMockId, mockWarning, nowIso, sanitizeJson, throwOnSupabaseError }
 interface CreateApprovedSnapshotInput {
   workspaceId: string
   projectId: string
+  editSessionId?: string
   chatSessionId?: string
   editPlanId: string
+  editPlanVersionId?: string
   creditEstimateId: string
   creditApprovalId: string
   creditReservationId: string
@@ -31,8 +33,10 @@ export function createApprovedSnapshotService(context: ServiceContext) {
             id: createMockId('approved_snapshot'),
             workspaceId: input.workspaceId,
             projectId: input.projectId,
+            editSessionId: input.editSessionId,
             chatSessionId: input.chatSessionId,
             editPlanId: input.editPlanId,
+            editPlanVersionId: input.editPlanVersionId,
             creditEstimateId: input.creditEstimateId,
             creditApprovalId: input.creditApprovalId,
             creditReservationId: input.creditReservationId,
@@ -62,21 +66,31 @@ export function createApprovedSnapshotService(context: ServiceContext) {
         throw new ApiError('CREDITS_NOT_RESERVED', 'Approved plan, approved estimate, and reserved credits are required before snapshot creation.', 409)
       }
 
+      const validationEphemeralSnapshot =
+        context.env.nodeEnv === 'test' &&
+        process.env.REEDITPRO_ROUTE_VALIDATION_EPHEMERAL_APPROVED_SNAPSHOT === 'true' &&
+        input.snapshotJson.validationEphemeralApprovedSnapshotRouteWrite === true
+
       // TODO: replace with transaction/RPC that verifies source sequence and immutable snapshot version.
       const { data, error } = await context.clients.admin
         .from('approved_plan_snapshots')
         .insert({
           workspace_id: input.workspaceId,
           project_id: input.projectId,
+          edit_session_id: input.editSessionId ?? input.chatSessionId ?? null,
           chat_session_id: input.chatSessionId ?? null,
           edit_plan_id: input.editPlanId,
+          edit_plan_version_id: input.editPlanVersionId ?? null,
           credit_estimate_id: input.creditEstimateId,
           credit_approval_id: input.creditApprovalId,
           credit_reservation_id: input.creditReservationId,
+          approved_by: approvedByUserId,
           approved_by_user_id: approvedByUserId,
           snapshot_version: input.snapshotVersion,
           snapshot_status: 'approved',
           snapshot_json: sanitizeJson(input.snapshotJson),
+          immutable: validationEphemeralSnapshot ? false : true,
+          status: validationEphemeralSnapshot ? 'validation_ephemeral' : 'approved',
           plan_hash: input.planHash,
           credit_hash: input.creditHash,
           source_sequence_hash: input.sourceSequenceHash,

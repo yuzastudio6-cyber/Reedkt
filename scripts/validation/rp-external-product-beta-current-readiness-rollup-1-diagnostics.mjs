@@ -168,6 +168,20 @@ const serviceRoleRouteRuntimeValidationFiles = [
   'scripts/validation/rp-external-beta-service-role-route-runtime-validation-1-diagnostics.mjs',
 ]
 
+const approvedSnapshotRouteWriteRuntimeValidationFiles = [
+  'docs/external-beta/approved-snapshot-route-write-runtime-validation-1/source-audit.md',
+  'docs/external-beta/approved-snapshot-route-write-runtime-validation-1/validation-results.md',
+  'docs/external-beta/approved-snapshot-route-write-runtime-validation-1/readiness-gate.md',
+  'docs/external-beta/approved-snapshot-route-write-runtime-validation-1/safety-boundary.md',
+  'docs/external-beta/approved-snapshot-route-write-runtime-validation-1/runtime-validation-record.json',
+  'docs/activation-phase-rp-external-beta-approved-snapshot-route-write-runtime-validation-1-results.md',
+  'server/middleware/auth.ts',
+  'server/services/approved-snapshot-service.ts',
+  'server/validation/approval-schemas.ts',
+  'scripts/validation/rp-external-beta-approved-snapshot-route-write-runtime-validation-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-approved-snapshot-route-write-runtime-validation-1-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -399,7 +413,7 @@ const followOnApprovedSnapshotServiceRolePersistenceImplementation1Files = [
 
 const requiredText = [
   packet,
-  'blocked_external_product_beta_pending_remaining_runtime_gates_after_service_role_route_read_validation',
+  'blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation',
   'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution',
   'completed_reeditpro_main_supabase_target_migration_history_sync',
   'completed_main_supabase_service_role_runtime_grant_boundary_validation',
@@ -410,6 +424,8 @@ const requiredText = [
   'completed_guarded_generated_private_storage_object_write_read_delete_and_transaction_rolled_back_artifact_metadata_readback',
   'completed_service_role_storage_object_metadata_read_route_runtime_validation',
   'completed_guarded_in_process_service_role_storage_object_metadata_read_route_validation',
+  'completed_approved_snapshot_route_write_runtime_validation',
+  'completed_guarded_in_process_approved_snapshot_route_write_readback_and_cleanup',
   'source_aligned_and_up_to_date_through_20260626224600',
   'Remote database is up to date.',
   'No schema errors found',
@@ -422,10 +438,12 @@ const requiredText = [
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
   'RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1',
+  'RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1',
   'residue counts as `0`',
   'storage object residue count: `0`',
   'artifact metadata rollback residue count: `0`',
   'route fixture cleanup residue count: `0`',
+  'route write fixture cleanup residue count: `0`',
   'private bucket public count: `0`',
   'canonicalOnly: `true`',
   'signed URL creation: `false`',
@@ -470,6 +488,9 @@ const allowedRuntimeImplementationFiles = new Set([
   'server/services/internal-beta-approved-snapshot-service-role-persistence-implementation.ts',
   'server/smoke/internal-beta-supabase-credential-context-contract-smoke.ts',
   'server/smoke/internal-beta-approved-snapshot-service-role-persistence-implementation-smoke.ts',
+  'server/middleware/auth.ts',
+  'server/services/approved-snapshot-service.ts',
+  'server/validation/approval-schemas.ts',
 ])
 
 function fail(message) {
@@ -512,7 +533,7 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_service_role_route_read_validation') fail('record decision mismatch')
+if (record.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
 if (record.statuses?.externalProductBeta !== 'blocked') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
@@ -549,15 +570,22 @@ if (record.mainSupabaseTarget?.serviceRoleRouteExecution !== 'guarded_in_process
 if (record.mainSupabaseTarget?.serviceRoleRouteMethod !== 'GET') fail('service-role route method mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRoutePath !== '/v1/storage-objects/:storageObjectRecordId') fail('service-role route path mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteCanonicalOnly !== true) fail('service-role route canonical flag mismatch')
-if (record.mainSupabaseTarget?.serviceRoleRouteWriteValidation !== 'blocked_pending_approved_snapshot_route_write_runtime_validation') fail('service-role route write status mismatch')
+if (record.mainSupabaseTarget?.serviceRoleRouteWriteValidation !== 'completed_approved_snapshot_route_write_runtime_validation') fail('service-role route write status mismatch')
+if (record.mainSupabaseTarget?.serviceRoleRouteWriteExecution !== 'guarded_in_process_approved_snapshot_create_route_only') fail('service-role route write execution scope mismatch')
+if (record.mainSupabaseTarget?.serviceRoleRouteWriteMethod !== 'POST') fail('service-role route write method mismatch')
+if (record.mainSupabaseTarget?.serviceRoleRouteWritePath !== '/v1/edit-plans/:editPlanId/approved-snapshots') fail('service-role route write path mismatch')
+if (record.mainSupabaseTarget?.serviceRoleRouteWriteFixtureResidueCount !== 0) fail('service-role route write residue mismatch')
+if (record.mainSupabaseTarget?.serviceRoleRouteWriteRunId !== '2026-06-27T02-22-16-532Z-97b253a9') fail('service-role route write run id mismatch')
+if (record.mainSupabaseTarget?.serviceRoleRouteWriteReportSha256 !== 'b2ca9e8ec9493060d631bd9387438b123eab6002db7c061c058edda736759441') fail('service-role route write report checksum mismatch')
+if (record.mainSupabaseTarget?.serviceRoleRouteWriteManifestSha256 !== 'f2ff4e97b33d013f0864362a5272b24390153f5de9563ed52457ab55ead9b0c0') fail('service-role route write manifest checksum mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteReportSha256 !== '25772fc0efe3d6d1aa699a1408ec621cc7df0dbe13bb52fe526b3939030fbb65') fail('service-role route report checksum mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteManifestSha256 !== '682eb65b765996e9a3aa669c7f76575ca204de92b9734a66b967918b8ea27acb') fail('service-role route manifest checksum mismatch')
 if (record.mainSupabaseTarget?.isolatedSandboxActive !== false) fail('isolated sandbox must not be active')
 if (record.mainSupabaseTarget?.isolatedSandboxDataCopied !== false) fail('isolated sandbox data copy must be false')
-if (record.safety?.supabaseMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_private_storage_json_fixture_and_generated_route_metadata_fixture_setup_cleanup_only') fail('Supabase mutation scope mismatch')
-if (record.safety?.sqlMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_setup_cleanup_only') fail('SQL mutation scope mismatch')
+if (record.safety?.supabaseMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_private_storage_json_fixture_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only') fail('Supabase mutation scope mismatch')
+if (record.safety?.sqlMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only') fail('SQL mutation scope mismatch')
 if (record.safety?.migrationApply !== 'guarded_main_staging_migration_apply_and_grant_hardening_only') fail('migration apply scope mismatch')
 if (record.safety?.persistentRowsCreated !== false) fail('persistent rows flag mismatch')
 if (record.safety?.persistentCreditMutation !== false) fail('persistent credit mutation flag mismatch')
@@ -575,7 +603,9 @@ if (record.safety?.storageObjectDelete !== 'guarded_generated_private_storage_js
 if (record.safety?.storageObjectResidueCount !== 0) fail('storage object residue safety mismatch')
 if (record.safety?.serviceRoleRouteExecution !== 'guarded_in_process_storage_object_metadata_read_route_only') fail('service-role route safety scope mismatch')
 if (record.safety?.routeExecution !== 'guarded_in_process_get_storage_object_metadata_route_only') fail('route execution safety scope mismatch')
-if (record.safety?.routeWriteExecution !== false) fail('route write execution safety mismatch')
+if (record.safety?.routeWriteExecution !== 'guarded_in_process_approved_snapshot_create_route_only') fail('route write execution safety mismatch')
+if (record.safety?.routeWriteFixtureResidueCount !== 0) fail('route write fixture residue safety mismatch')
+if (record.safety?.validationOnlyEphemeralSnapshotCleanup !== true) fail('validation cleanup safety mismatch')
 if (record.safety?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route fixture residue safety mismatch')
 if (record.safety?.secretPayloadAccess !== 'guarded_ephemeral_storage_and_route_runtime_service_role_key_payload_only') fail('secret payload access scope mismatch')
 if (record.safety?.secretPayloadPrinted !== false) fail('secret payload printed flag mismatch')
@@ -605,6 +635,7 @@ const allowed = new Set([
   ...jobQueueLeaseEventGuardedRemoteWriteFiles,
   ...privateArtifactStorageAccessGuardedRemoteWriteFiles,
   ...serviceRoleRouteRuntimeValidationFiles,
+  ...approvedSnapshotRouteWriteRuntimeValidationFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -650,6 +681,6 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_external_product_beta_pending_remaining_runtime_gates_after_service_role_route_read_validation')
+console.log('Decision: blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation')
 console.log('External product beta: blocked')
-console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_setup_cleanup_only')
+console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

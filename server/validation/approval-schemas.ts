@@ -4,7 +4,9 @@ import { idSchema } from './common-schemas'
 export const createApprovedSnapshotSchema = z.object({
   workspaceId: idSchema,
   projectId: idSchema,
+  editSessionId: idSchema.optional(),
   chatSessionId: idSchema.optional(),
+  editPlanVersionId: idSchema.optional(),
   creditEstimateId: idSchema,
   creditApprovalId: idSchema,
   creditReservationId: idSchema,

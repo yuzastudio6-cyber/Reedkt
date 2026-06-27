@@ -1,8 +1,8 @@
 # Qwen2.5-VL 7B Cloud Run GPU Private Invoke Readiness Rollup
 
-Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_routing_contract_response_required`.
+Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_internal_ingress_private_caller_required`.
 
-This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded read-only Cloud Run auth/IAM reverify, controlled private invoke smoke plan, non-key impersonation token-path runner, and narrow authz bindings are in place. The latest controlled smoke minted an identity token and sent one authenticated contract request, but the response was HTTP `404` instead of the expected fail-closed contract JSON.
+This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded read-only Cloud Run auth/IAM reverify, controlled private invoke smoke plan, non-key impersonation token-path runner, and narrow authz bindings are in place. The latest controlled smoke minted an identity token and sent one authenticated contract request, but the response was HTTP `404` instead of the expected fail-closed contract JSON. The routing fix now records the more precise blocker: the service ingress is `internal-and-cloud-load-balancing`, so a direct local generated-host request is not valid until an approved internal caller, internal load balancer, Private Service Connect, or VPC-routed harness is available.
 
 This is evidence only. It records that the guarded backend smoke resolved the target in memory, created an auth header, fetched an identity token without printing or storing token values, and sent one bounded Cloud Run contract request. The packet itself does not enable inference, dispatch a worker, mutate Supabase, execute SQL, create generated assets, create public artifacts, create signed URLs, mutate credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
@@ -15,7 +15,7 @@ This is evidence only. It records that the guarded backend smoke resolved the ta
 - chat-native readiness UI: ready
 - Cloud Run auth/IAM reverify: ready
 - controlled private invoke smoke plan: ready
-- controlled private invoke smoke execution: blocked before request
+- controlled private invoke smoke execution: blocked before request until internal caller path exists
 - private invoke runtime readiness: false
 - beta readiness: false
 - production readiness: false
@@ -44,7 +44,7 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 | Chat-native UI | ready | `InlineQwenPlannerRoutingCard` surfaces mock route/client readiness and blocked runtime gates. | none |
 | Cloud Run auth/IAM reverify | ready | Local `gcloud` version, active project, active account-domain, Cloud Run service describe, Cloud Run service IAM policy read, runtime service account describe, and project invoker policy read probes passed. | none |
 | Controlled private invoke smoke plan | ready | The plan allows only backend-only health/readiness and contract POST candidates. The expected contract POST response is `403` with `qwen_inference_disabled_after_contract_check`, `contractSatisfiedForFutureRuntime=true`, and `modelInferenceEnabled=false`. | none |
-| Controlled private invoke smoke execution | blocked unexpected response | Read-only auth/IAM reverify passed, narrow TokenCreator and Run Invoker bindings were applied, the smoke runner reviewed cost posture, minted an identity token without printing or storing it, and sent one authenticated contract request. The response was HTTP `404` with no expected JSON contract, classified as `private_invoke_response_unexpected`. | Cloud Run ingress/private route/load balancer/proxy/service URL/audience path that reaches the fail-closed contract handler, and a successful controlled contract response with inference disabled. |
+| Controlled private invoke smoke execution | blocked internal caller required | Read-only auth/IAM reverify passed, narrow TokenCreator and Run Invoker bindings were applied, the smoke runner reviewed cost posture, minted an identity token without printing or storing it, and sent one authenticated contract request. The response was HTTP `404` with no expected JSON contract, classified as `private_invoke_response_unexpected`. The routing fix records ingress `internal-and-cloud-load-balancing` and blocks future direct local generated-host requests before token fetch unless an approved internal route is confirmed. | Approved internal caller, internal load balancer, Private Service Connect, or VPC-routed path that reaches the fail-closed contract handler, plus a successful controlled contract response with inference disabled. |
 
 ## Runtime Gates
 
@@ -55,7 +55,7 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `projectInvokerPolicyVerified=true`
 - `privateInvokeSmokePlanDefined=true`
 - `privateInvokeSmokeAttempted=true`
-- `privateInvokeSmokeBlockedBeforeRequest=false`
+- `privateInvokeSmokeBlockedBeforeRequest=true`
 - `privateInvokeSmokeExecuted=false`
 - `privateInvokeReady=false`
 - `betaReady=false`
@@ -70,6 +70,7 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `serviceAccountImpersonationAttempted=true`
 - `serviceAccountKeyCreated=false`
 - `cloudRunInvocationAttempted=true`
+- `restrictedIngressDirectLocalRequestBlocked=true`
 - `serviceRuntimeRequestSent=true`
 - `responseClassifiedLocally=true`
 - `modelImportRun=false`
@@ -94,8 +95,8 @@ Qwen2.5-VL must not generate B-roll video, replace Wan or LTX generation routes,
 
 ## Required Next Step
 
-The next action is fixing the route/ingress boundary for the controlled private invoke smoke. That future prompt must determine why the authenticated request returns HTTP `404` instead of reaching the fail-closed contract handler. It must preserve the same single-request/no-retry/no-token-printing/no-service-URL-storage/no-inference/no-assets/no-credits/no-beta/no-production posture.
+The next action is creating or approving an internal caller harness or equivalent private path for the controlled private invoke smoke. That future prompt must not relax public ingress. It must preserve the same single-request/no-retry/no-token-printing/no-service-URL-storage/no-inference/no-assets/no-credits/no-beta/no-production posture.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_53-PRIVATE-INVOKE-ROUTING-FIX: fix controlled private invoke route/ingress contract response, no inference`
+`QWEN2_5_VL_STACK_TOOL_54-PRIVATE-INVOKE-INTERNAL-CALLER-HARNESS: create controlled internal caller or internal LB/PSC path for contract smoke, no inference`

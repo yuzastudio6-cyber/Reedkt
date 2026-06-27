@@ -16,6 +16,7 @@ import { QWEN2_5_VL_APPROVED_WORKER_INTEGRATION_READINESS_REVIEW } from './mock-
 import { QWEN2_5_VL_BACKEND_RUNTIME_DISPATCH_IMPLEMENTATION_PLAN } from './mock-qwen2-5-vl-backend-runtime-dispatch-implementation-plan'
 import { QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR } from './mock-qwen2-5-vl-fail-closed-backend-runtime-dispatch-coordinator'
 import { QWEN2_5_VL_CONTROLLED_BACKEND_DISPATCH_DRY_RUN_RESULT } from './mock-qwen2-5-vl-controlled-backend-dispatch-dry-run-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_PLAN } from './mock-qwen2-5-vl-backend-runtime-persistence-plan'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -40,6 +41,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_fail_closed_backend_runtime_dispatch_coordinator_required'
   | 'blocked_controlled_backend_dispatch_dry_run_required'
   | 'blocked_backend_runtime_persistence_plan_required'
+  | 'blocked_backend_runtime_persistence_schema_draft_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -56,7 +58,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_dispatch_dry_run_reviewed_persistence_plan_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_plan_recorded_schema_draft_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -93,6 +95,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR.decision,
   upstreamControlledBackendDispatchDryRunDecision:
     QWEN2_5_VL_CONTROLLED_BACKEND_DISPATCH_DRY_RUN_RESULT.decision,
+  upstreamBackendRuntimePersistencePlanDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_PLAN.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -375,12 +379,22 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_plan',
       label: 'Backend runtime persistence plan',
-      status: 'blocked_backend_runtime_persistence_plan_required',
+      status: 'ready',
       evidence: [
-        'The next code step can plan real backend persistence for queue, lease, idempotency, job event, credit, source-of-truth, and cleanup records.',
+        'Backend runtime persistence plan is recorded.',
+        'The plan maps Qwen dispatch to existing approved snapshot, credit reservation, jobs, job events, worker runtime configs, worker leases, backend runtime messages, job claim attempts, idempotency, worker claim, storage object, signed URL audit, tool runtime check, QA, and audit surfaces.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_schema_draft',
+      label: 'Backend runtime persistence schema draft',
+      status: 'blocked_backend_runtime_persistence_schema_draft_required',
+      evidence: [
+        'The next code step can draft or review Qwen-specific persistence schema constraints without deploying migrations.',
       ],
       missingEvidence: [
-        'Persistence plan must define backend-only queue rows, lease rows, idempotency rows, job events, source-of-truth refs, credit failure handling, observability, and cleanup while keeping Cloud Run, inference, generated assets, beta, and production disabled.',
+        'Schema draft must confirm Qwen worker type, job type, idempotency scope, lease/claim constraints, sanitized event payloads, private source-of-truth refs, credit failure handling, observability, and cleanup while keeping Cloud Run, inference, generated assets, beta, and production disabled.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -516,7 +530,9 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimeDispatchCoordinatorImplemented: true,
     controlledBackendDispatchDryRunRequired: false,
     controlledBackendDispatchDryRunReviewed: true,
-    backendRuntimePersistencePlanRequired: true,
+    backendRuntimePersistencePlanRequired: false,
+    backendRuntimePersistencePlanRecorded: true,
+    backendRuntimePersistenceSchemaDraftRequired: true,
     readyForRealWorkerDispatch: false,
     structuredFixtureOutputSchemaValid: true,
     structuredFixtureOutputParsedJson: true,
@@ -534,11 +550,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_plan_required',
+    'backend_runtime_persistence_schema_draft_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58M-BACKEND-RUNTIME-PERSISTENCE-PLAN: plan Qwen queue lease idempotency persistence, no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58N-BACKEND-RUNTIME-PERSISTENCE-SCHEMA-DRAFT: draft Qwen queue lease idempotency persistence schema review, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

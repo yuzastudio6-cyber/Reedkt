@@ -114,6 +114,14 @@ function trimTrailingSlash(value: string): string {
   return value.endsWith('/') ? value.slice(0, -1) : value
 }
 
+function sourceCandidateIdForTool(toolId: AiGraphicsModelWeightManifestToolId): string {
+  const sourceCandidate = listAiGraphicsModelWeightSourceCandidates().find((candidate) => candidate.toolId === toolId)
+  if (!sourceCandidate) {
+    throw new Error(`Missing AI graphics model-weight source candidate for scaffold: ${toolId}`)
+  }
+  return sourceCandidate.candidateId
+}
+
 function placeholderRecordForTool(
   toolId: AiGraphicsModelWeightManifestToolId,
   templateId: string,
@@ -124,6 +132,7 @@ function placeholderRecordForTool(
     manifestId: `${toolId}_private_manifest_review_v1`,
     toolId,
     templateId: templateId as AiGraphicsModelWeightManifestEvidenceRecord['templateId'],
+    sourceCandidateId: sourceCandidateIdForTool(toolId),
     privateArtifactRef: `public://replace-with-reviewed-private-artifact-ref/${directoryName}/model_tree_manifest.json`,
     checksumSha256: 'REPLACE_WITH_64_HEX_SHA256',
     sourceLicenseRef: `private://replace-with-reviewed-source-license-evidence/${directoryName}.json`,

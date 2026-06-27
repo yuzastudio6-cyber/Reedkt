@@ -111,6 +111,7 @@ function makeValidManifest(toolId) {
     manifestId: `${toolId}_private_manifest_review_v1`,
     toolId,
     templateId: templateIdByTool[toolId],
+    sourceCandidateId: expectedCandidateIds[toolId],
     privateArtifactRef: `private://reeditpro/ai-graphics/model-weights/${directoryNameByTool[toolId]}/model_tree_manifest.json`,
     checksumSha256: 'b'.repeat(64),
     sourceLicenseRef: `private://reeditpro/license-evidence/${toolId}.json`,
@@ -221,6 +222,7 @@ for (const token of [
   'buildAiGraphicsModelWeightManifestScaffoldPacket',
   'listAiGraphicsModelWeightSourceCandidates',
   'sourceCandidateGuidanceForTool',
+  'sourceCandidateIdForTool',
   'upstreamArtifactChecksumMd5ByTool',
   'blocked_until_source_review_accepts_selected_candidate',
   'public://replace-with-reviewed-private-artifact-ref',
@@ -308,6 +310,9 @@ for (const tool of modelWeightTools) {
   const manifest = JSON.parse(fs.readFileSync(filePath, 'utf8'))
   if (manifest.toolId !== tool) fail(`scaffold_tool_id_mismatch:${tool}`)
   if (manifest.templateId !== templateIdByTool[tool]) fail(`scaffold_template_id_mismatch:${tool}`)
+  if (manifest.sourceCandidateId !== expectedCandidateIds[tool]) {
+    fail(`scaffold_source_candidate_id_mismatch:${tool}:${manifest.sourceCandidateId}`)
+  }
   if (!manifest.privateArtifactRef.startsWith('public://replace-with-reviewed-private-artifact-ref/')) {
     fail(`scaffold_private_ref_placeholder_not_invalid:${tool}`)
   }

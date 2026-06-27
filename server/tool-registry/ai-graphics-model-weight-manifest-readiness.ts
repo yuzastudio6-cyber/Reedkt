@@ -14,6 +14,9 @@ import {
 import {
   AI_GRAPHICS_WORKER_HANDOFF_READINESS_DECISION,
 } from './ai-graphics-worker-handoff-readiness'
+import {
+  listAiGraphicsModelWeightSourceCandidates,
+} from './ai-graphics-model-weight-source-catalog'
 import type { ProductionToolId } from './production-tool-types'
 
 export const AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_READINESS_DECISION =
@@ -33,6 +36,7 @@ export interface AiGraphicsModelWeightManifestEvidenceRecord {
   manifestId: string
   toolId: AiGraphicsModelWeightManifestToolId
   templateId: GpuModelWeightTemplateId
+  sourceCandidateId: string
   privateArtifactRef: string
   checksumSha256: string
   sourceLicenseRef: string
@@ -135,6 +139,7 @@ export interface AiGraphicsModelWeightManifestValidationResult {
   toolId: AiGraphicsModelWeightManifestToolId | string
   templateId: GpuModelWeightTemplateId | string
   expectedTemplateId: GpuModelWeightTemplateId | null
+  expectedSourceCandidateId: string | null
   manifestRecordProvided: boolean
   schemaValid: boolean
   reviewAccepted: boolean
@@ -203,6 +208,7 @@ const requiredManifestFields = [
   'manifestId',
   'toolId',
   'templateId',
+  'sourceCandidateId',
   'privateArtifactRef',
   'checksumSha256',
   'sourceLicenseRef',
@@ -217,6 +223,7 @@ const requiredManifestFields = [
 
 const requiredManifestStringFields = [
   'manifestId',
+  'sourceCandidateId',
   'privateArtifactRef',
   'checksumSha256',
   'sourceLicenseRef',
@@ -311,6 +318,10 @@ function templateById(templateId: GpuModelWeightTemplateId): ProductionModelWeig
   return template
 }
 
+function expectedSourceCandidateIdForTool(toolId: AiGraphicsModelWeightManifestToolId | string | undefined): string | null {
+  return listAiGraphicsModelWeightSourceCandidates().find((candidate) => candidate.toolId === toolId)?.candidateId ?? null
+}
+
 function hasText(value: string): boolean {
   return value.trim().length > 0
 }
@@ -338,6 +349,7 @@ function manifestRecordIsApproved(
   return Boolean(
     record &&
       hasText(record.manifestId) &&
+      hasText(record.sourceCandidateId) &&
       hasText(record.privateArtifactRef) &&
       hasText(record.checksumSha256) &&
       hasText(record.sourceLicenseRef) &&
@@ -389,6 +401,7 @@ export function validateAiGraphicsModelWeightManifestRecord(
       toolId,
       templateId,
       expectedTemplateId: expectedTool?.templateId ?? null,
+      expectedSourceCandidateId: expectedSourceCandidateIdForTool(toolId),
       manifestRecordProvided: false,
       schemaValid: false,
       reviewAccepted: false,
@@ -408,6 +421,14 @@ export function validateAiGraphicsModelWeightManifestRecord(
   }
   if (expectedTool && record.templateId !== expectedTool.templateId) {
     errors.push(`templateId must be ${expectedTool.templateId}.`)
+  }
+
+  const expectedSourceCandidateId = expectedSourceCandidateIdForTool(expectedTool?.toolId ?? record.toolId)
+  if (!expectedSourceCandidateId) {
+    errors.push(`${record.toolId ?? 'unknown'} is missing a selected source candidate in the AI graphics source catalog.`)
+  }
+  if (expectedSourceCandidateId && record.sourceCandidateId !== expectedSourceCandidateId) {
+    errors.push(`sourceCandidateId must be ${expectedSourceCandidateId}.`)
   }
 
   for (const field of requiredManifestStringFields) {
@@ -441,6 +462,7 @@ export function validateAiGraphicsModelWeightManifestRecord(
     toolId,
     templateId,
     expectedTemplateId: expectedTool?.templateId ?? null,
+    expectedSourceCandidateId,
     manifestRecordProvided: true,
     schemaValid,
     reviewAccepted,

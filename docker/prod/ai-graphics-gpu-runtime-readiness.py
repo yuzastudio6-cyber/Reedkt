@@ -99,10 +99,19 @@ MODEL_MANIFEST_TEMPLATE_IDS: dict[str, str] = {
     "transparent_background": "transparent_background_model",
 }
 
+MODEL_MANIFEST_SOURCE_CANDIDATE_IDS: dict[str, str] = {
+    "sam2": "facebook_sam2_1_hiera_tiny_existing_staging_evidence",
+    "birefnet": "zhengpeng7_birefnet_official_weights_review_candidate",
+    "real_esrgan": "xinntao_real_esrgan_x4plus",
+    "rembg": "danielgatis_rembg_isnet_general_use_review_candidate",
+    "transparent_background": "plemeri_transparent_background_base_ckpt_review_candidate",
+}
+
 REQUIRED_MODEL_MANIFEST_FIELDS = [
     "manifestId",
     "toolId",
     "templateId",
+    "sourceCandidateId",
     "privateArtifactRef",
     "checksumSha256",
     "sourceLicenseRef",
@@ -272,6 +281,13 @@ def validate_model_manifest(manifest_path: Path, tool_id: str) -> dict[str, str]
     if template_id != expected_template_id:
         raise RuntimeError(f"{tool_id} model manifest templateId must be {expected_template_id}, got {template_id}")
 
+    source_candidate_id = require_non_empty_string(manifest, "sourceCandidateId", tool_id)
+    expected_source_candidate_id = MODEL_MANIFEST_SOURCE_CANDIDATE_IDS[tool_id]
+    if source_candidate_id != expected_source_candidate_id:
+        raise RuntimeError(
+            f"{tool_id} model manifest sourceCandidateId must be {expected_source_candidate_id}, got {source_candidate_id}"
+        )
+
     manifest_id = require_non_empty_string(manifest, "manifestId", tool_id)
     private_artifact_ref = require_non_empty_string(manifest, "privateArtifactRef", tool_id)
     validate_private_artifact_ref(private_artifact_ref, tool_id)
@@ -296,6 +312,7 @@ def validate_model_manifest(manifest_path: Path, tool_id: str) -> dict[str, str]
         "manifestPath": str(manifest_path),
         "manifestId": manifest_id,
         "templateId": template_id,
+        "sourceCandidateId": source_candidate_id,
         "privateArtifactRefStatus": "present_private_ref_not_logged",
         "checksumSha256": checksum,
         "status": "validated_not_loaded",

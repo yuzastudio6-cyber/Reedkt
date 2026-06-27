@@ -29,6 +29,7 @@ Every private manifest evidence record must include:
 - `manifestId`
 - `toolId`
 - `templateId`
+- `sourceCandidateId`
 - `privateArtifactRef`
 - `checksumSha256`
 - `sourceLicenseRef`
@@ -40,7 +41,7 @@ Every private manifest evidence record must include:
 - `provenanceReviewed`
 - `approvedForInternalBeta`
 
-The review validator requires a 64-character SHA-256 digest, exact `toolId` and `templateId`, non-empty license/provenance refs, and all review booleans set to true. `privateArtifactRef` must use a reviewed private namespace: `private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`. It rejects HTTP(S), public, signed URL, raw `gs://`, or arbitrary placeholder artifact refs. Diagnostics report only `present_private_ref_not_logged` when a private ref exists.
+The review validator requires a 64-character SHA-256 digest, exact `toolId`, `templateId`, and `sourceCandidateId`, non-empty license/provenance refs, and all review booleans set to true. `sourceCandidateId` must match the selected ReeditPro source-catalog candidate for the tool before native GPU proof input can be eligible. `privateArtifactRef` must use a reviewed private namespace: `private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`. It rejects HTTP(S), public, signed URL, raw `gs://`, or arbitrary placeholder artifact refs. Diagnostics report only `present_private_ref_not_logged` when a private ref exists.
 
 ## Current Result
 

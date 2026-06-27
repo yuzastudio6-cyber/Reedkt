@@ -85,6 +85,14 @@ const templateIdByTool = {
   transparent_background: 'transparent_background_model',
 }
 
+const sourceCandidateIdByTool = {
+  sam2: 'facebook_sam2_1_hiera_tiny_existing_staging_evidence',
+  birefnet: 'zhengpeng7_birefnet_official_weights_review_candidate',
+  real_esrgan: 'xinntao_real_esrgan_x4plus',
+  rembg: 'danielgatis_rembg_isnet_general_use_review_candidate',
+  transparent_background: 'plemeri_transparent_background_base_ckpt_review_candidate',
+}
+
 const failures = []
 
 function fail(message) {
@@ -152,6 +160,7 @@ function manifestRecord(toolId) {
     manifestId: `${toolId}_private_manifest_review_v1`,
     toolId,
     templateId: templateIdByTool[toolId],
+    sourceCandidateId: sourceCandidateIdByTool[toolId],
     privateArtifactRef: `reeditpro-private-artifact-ref-redacted-${toolId}`,
     checksumSha256: 'a'.repeat(64),
     sourceLicenseRef: `reviewed-private-license-record-${toolId}`,
@@ -170,6 +179,7 @@ function manifestCheck(toolId) {
     toolId,
     manifestId: `${toolId}_private_manifest_review_v1`,
     templateId: templateIdByTool[toolId],
+    sourceCandidateId: sourceCandidateIdByTool[toolId],
     privateArtifactRefStatus: 'present_private_ref_not_logged',
     checksumSha256: 'b'.repeat(64),
     status: 'validated_not_loaded',

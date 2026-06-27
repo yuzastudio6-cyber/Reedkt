@@ -31,10 +31,19 @@ const modelTemplateIdByTool = {
   transparent_background: 'transparent_background_model',
 }
 
+const sourceCandidateIdByTool = {
+  sam2: 'facebook_sam2_1_hiera_tiny_existing_staging_evidence',
+  birefnet: 'zhengpeng7_birefnet_official_weights_review_candidate',
+  real_esrgan: 'xinntao_real_esrgan_x4plus',
+  rembg: 'danielgatis_rembg_isnet_general_use_review_candidate',
+  transparent_background: 'plemeri_transparent_background_base_ckpt_review_candidate',
+}
+
 const requiredManifestFields = [
   'manifestId',
   'toolId',
   'templateId',
+  'sourceCandidateId',
   'privateArtifactRef',
   'checksumSha256',
   'sourceLicenseRef',
@@ -158,6 +167,9 @@ for (const tool of modelWeightTools) {
   }
   const result = (packet.validationResults || []).find((entry) => entry.toolId === tool)
   if (result?.manifestRecordProvided !== false) fail(`manifest_record_provided_not_false:${tool}`)
+  if (result?.expectedSourceCandidateId !== sourceCandidateIdByTool[tool]) {
+    fail(`expected_source_candidate_id_mismatch:${tool}:${result?.expectedSourceCandidateId}`)
+  }
   if (result?.schemaValid !== false) fail(`schema_valid_not_false_without_private_record:${tool}`)
   if (result?.reviewAccepted !== false) fail(`review_accepted_not_false_without_private_record:${tool}`)
   if (result?.eligibleForNativeGpuProofInput !== false) fail(`gpu_proof_input_not_false_without_private_record:${tool}`)
@@ -185,6 +197,8 @@ for (const token of [
   'validateAiGraphicsModelWeightManifestRecords',
   'buildAiGraphicsModelWeightManifestReviewPacket',
   'privateArtifactRefStatus',
+  'expectedSourceCandidateId',
+  'sourceCandidateId must be',
   'sha256Pattern',
   'privateArtifactRefNamespaceRequired',
   'present_private_ref_not_logged',
@@ -235,6 +249,7 @@ function writeManifestFixtures(directory, override = {}) {
       manifestId: `${toolId}_private_manifest_review_v1`,
       toolId,
       templateId,
+      sourceCandidateId: sourceCandidateIdByTool[toolId],
       privateArtifactRef: `private://reeditpro/ai-graphics/model-weights/${toolId}/model_tree_manifest.json`,
       checksumSha256: 'a'.repeat(64),
       sourceLicenseRef: `private://reeditpro/license-evidence/${toolId}.json`,
@@ -338,6 +353,39 @@ try {
   }
 } finally {
   fs.rmSync(invalidNamespaceFixtureDir, { recursive: true, force: true })
+}
+
+const invalidSourceCandidateFixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-model-manifest-invalid-source-candidate-'))
+try {
+  writeManifestFixtures(invalidSourceCandidateFixtureDir, {
+    transparent_background: {
+      sourceCandidateId: 'wrong_source_candidate_for_transparent_background',
+    },
+  })
+  runValidator(invalidSourceCandidateFixtureDir)
+  fail('fixture_invalid_source_candidate_cli_unexpected_success')
+} catch (error) {
+  const output = String(error.stdout || '')
+  if (!output) {
+    fail(`fixture_invalid_source_candidate_cli_missing_output:${error.message}`)
+  } else {
+    const parsed = JSON.parse(output)
+    const transparentBackground = parsed.validationResults?.find((entry) => entry.toolId === 'transparent_background')
+    if (transparentBackground?.expectedSourceCandidateId !== sourceCandidateIdByTool.transparent_background) {
+      fail(`fixture_invalid_source_candidate_expected_id_unexpected:${transparentBackground?.expectedSourceCandidateId}`)
+    }
+    if (!transparentBackground?.errors?.some((message) => message === `sourceCandidateId must be ${sourceCandidateIdByTool.transparent_background}.`)) {
+      fail('fixture_invalid_source_candidate_error_missing')
+    }
+    if (transparentBackground?.eligibleForNativeGpuProofInput !== false) {
+      fail('fixture_invalid_source_candidate_still_gpu_input_eligible')
+    }
+    if (output.includes('private://reeditpro/ai-graphics/model-weights/')) {
+      fail('fixture_invalid_source_candidate_private_ref_leaked')
+    }
+  }
+} finally {
+  fs.rmSync(invalidSourceCandidateFixtureDir, { recursive: true, force: true })
 }
 
 for (const key of [

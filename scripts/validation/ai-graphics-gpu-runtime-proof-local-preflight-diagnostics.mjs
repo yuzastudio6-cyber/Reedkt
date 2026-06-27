@@ -74,6 +74,14 @@ const templateIdByTool = {
   transparent_background: 'transparent_background_model',
 }
 
+const sourceCandidateIdByTool = {
+  sam2: 'facebook_sam2_1_hiera_tiny_existing_staging_evidence',
+  birefnet: 'zhengpeng7_birefnet_official_weights_review_candidate',
+  real_esrgan: 'xinntao_real_esrgan_x4plus',
+  rembg: 'danielgatis_rembg_isnet_general_use_review_candidate',
+  transparent_background: 'plemeri_transparent_background_base_ckpt_review_candidate',
+}
+
 const directoryNameByTool = {
   sam2: 'sam2',
   birefnet: 'birefnet',
@@ -164,6 +172,7 @@ function validManifest(toolId) {
     manifestId: `${toolId}_private_manifest_review_v1`,
     toolId,
     templateId: templateIdByTool[toolId],
+    sourceCandidateId: sourceCandidateIdByTool[toolId],
     privateArtifactRef: `private://reeditpro/ai-graphics/model-weights/${directoryNameByTool[toolId]}/model_tree_manifest.json`,
     checksumSha256: 'c'.repeat(64),
     sourceLicenseRef: `private://reeditpro/license-evidence/${toolId}.json`,
@@ -194,6 +203,7 @@ function manifestCheck(toolId) {
     toolId,
     manifestId: `${toolId}_private_manifest_review_v1`,
     templateId: templateIdByTool[toolId],
+    sourceCandidateId: sourceCandidateIdByTool[toolId],
     privateArtifactRefStatus: 'present_private_ref_not_logged',
     checksumSha256: 'd'.repeat(64),
     status: 'validated_not_loaded',

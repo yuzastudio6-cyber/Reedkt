@@ -30,6 +30,8 @@ Each scaffold record is linked to the current model-weight source catalog so loc
 - `rembg`: `danielgatis_rembg_isnet_general_use_review_candidate`, artifact candidate `isnet-general-use.onnx`; blocked until source/license/checksum/provenance/quality/security review accepts the selected candidate.
 - `transparent_background`: `plemeri_transparent_background_base_ckpt_review_candidate`, artifact candidate `ckpt_base.pth`, upstream MD5 `d692e3dd5fa1b9658949d452bebf1cda`; blocked until source/license/checksum/provenance/quality/security review accepts the selected candidate.
 
+Generated placeholder records include `sourceCandidateId` set to the selected candidate above. The review validator and native GPU readiness probe reject records whose `sourceCandidateId` does not match the source catalog.
+
 ## Command
 
 Use a local-only path, preferably under `.local-artifacts`, and do not commit the generated files:
@@ -50,6 +52,7 @@ The generated templates are intentionally invalid until owner-reviewed:
 
 - `privateArtifactRef` starts with `public://replace-with-reviewed-private-artifact-ref/...`, which validation rejects.
 - `checksumSha256` is `REPLACE_WITH_64_HEX_SHA256`, which validation rejects.
+- `sourceCandidateId` is prefilled from the source catalog and must not be changed unless a later reviewed source-catalog lane selects a different candidate.
 - All review booleans are `false`.
 
 This prevents a placeholder scaffold from accidentally becoming native GPU proof input.

@@ -36,6 +36,14 @@ const templateIdByTool = {
   transparent_background: 'transparent_background_model',
 }
 
+const sourceCandidateIdByTool = {
+  sam2: 'facebook_sam2_1_hiera_tiny_existing_staging_evidence',
+  birefnet: 'zhengpeng7_birefnet_official_weights_review_candidate',
+  real_esrgan: 'xinntao_real_esrgan_x4plus',
+  rembg: 'danielgatis_rembg_isnet_general_use_review_candidate',
+  transparent_background: 'plemeri_transparent_background_base_ckpt_review_candidate',
+}
+
 const expectedManifestPaths = {
   sam2: '/opt/reeditpro/model-weights/sam2/model_tree_manifest.json',
   birefnet: '/opt/reeditpro/model-weights/birefnet/model_tree_manifest.json',
@@ -172,6 +180,7 @@ function writeManifestFixtures(directory, override = {}) {
       manifestId: `${toolId}_private_manifest_review_v1`,
       toolId,
       templateId,
+      sourceCandidateId: sourceCandidateIdByTool[toolId],
       privateArtifactRef: `private://reeditpro/ai-graphics/model-weights/${toolId}/model_tree_manifest.json`,
       checksumSha256: 'a'.repeat(64),
       sourceLicenseRef: `private://reeditpro/license-evidence/${toolId}.json`,

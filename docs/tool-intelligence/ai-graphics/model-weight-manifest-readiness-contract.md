@@ -37,6 +37,7 @@ Each approved private manifest must include:
 - `manifestId`
 - `toolId`
 - `templateId`
+- `sourceCandidateId`
 - `privateArtifactRef`
 - `checksumSha256`
 - `sourceLicenseRef`
@@ -49,7 +50,7 @@ Each approved private manifest must include:
 - `approvedForInternalBeta`
 
 The runtime probe rejects public or signed URL artifact refs, invalid SHA-256
-checksums, mismatched `toolId`/`templateId`, false review booleans, and any
+checksums, mismatched `toolId`/`templateId`/`sourceCandidateId`, false review booleans, and any
 manifest claim that model weights, inference, media processing, Tool Routes,
 Workers, public artifacts, or signed URLs already executed.
 

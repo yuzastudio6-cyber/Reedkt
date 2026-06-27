@@ -1,0 +1,87 @@
+import assert from 'node:assert/strict'
+import {
+  buildBetaReadinessOperatorStatus,
+  type BetaReadinessOperatorStatusEnv,
+} from '../cli/beta-readiness-operator-status'
+
+const completeEnv: BetaReadinessOperatorStatusEnv = {
+  REEDITPRO_BETA_TOOLS_API_BASE_URL: 'https://api.staging.reeditpro.example',
+  REEDITPRO_BETA_TOOLS_BEARER_TOKEN: 'tool-bearer-token-secret-for-smoke',
+  REEDITPRO_BETA_TOOLS_WORKSPACE_ID: 'workspace-operator-status-smoke',
+  REEDITPRO_BETA_TOOLS_PROJECT_ID: 'project-operator-status-smoke',
+  REEDITPRO_BETA_TOOLS_SOURCE_ID: 'beta-tools-operator-status-smoke',
+  REEDITPRO_BETA_TOOLS_SOURCE_SHA: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+  REEDITPRO_BETA_TOOLS_IDEMPOTENCY_KEY: 'beta-tools-operator-status-smoke',
+  REEDITPRO_BETA_TOOLS_CORE_REAL_CHECK_NOTES: 'Staging operator prepared bounded tool evidence.',
+  REEDITPRO_BETA_TOOLS_CORE_REAL_CHECK_TOOL_IDS: 'ffmpeg,ffprobe,sharp,remotion',
+  REEDITPRO_BETA_TOOLS_ACCEPT_PRODUCTION_READINESS: 'true',
+  REEDITPRO_BETA_TOOLS_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE: 'true',
+  REEDITPRO_BETA_TOOLS_ACCEPT_PRODUCT_READY_LOCAL_OSS: 'true',
+  REEDITPRO_BETA_TOOLS_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE: 'true',
+  REEDITPRO_BETA_TOOLS_REQUIRE_ACCEPTED_EVIDENCE: 'true',
+  REEDITPRO_BETA_PLATFORM_API_BASE_URL: 'https://api.staging.reeditpro.example',
+  REEDITPRO_BETA_PLATFORM_BEARER_TOKEN: 'platform-bearer-token-secret-for-smoke',
+  REEDITPRO_BETA_PLATFORM_WORKSPACE_ID: 'workspace-operator-status-smoke',
+  REEDITPRO_BETA_PLATFORM_PROJECT_ID: 'project-operator-status-smoke',
+  REEDITPRO_BETA_PLATFORM_SOURCE_ID: 'beta-platform-operator-status-smoke',
+  REEDITPRO_BETA_PLATFORM_SOURCE_SHA: 'ffffffffffffffffffffffffffffffffffffffff',
+  REEDITPRO_BETA_PLATFORM_ENVIRONMENT: 'staging',
+  REEDITPRO_BETA_PLATFORM_IDEMPOTENCY_KEY: 'beta-platform-operator-status-smoke',
+  REEDITPRO_BETA_PLATFORM_ALLOW_PERSISTENT_PROBE_WRITES: 'true',
+  REEDITPRO_BETA_PLATFORM_WALLET_SETTLEMENT_EVENT_ID: 'tool-cost-event-operator-status-smoke',
+  REEDITPRO_BETA_PLATFORM_RECORD_EVIDENCE: 'true',
+  REEDITPRO_BETA_PLATFORM_CONFIRM_RECORD_EVIDENCE: 'true',
+  REEDITPRO_BETA_PLATFORM_REQUIRE_READY: 'true',
+  REEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUNDARY: 'true',
+  REEDITPRO_BETA_PLATFORM_APPROVE_DEPLOYMENT: 'true',
+  REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY: 'true',
+  REEDITPRO_BETA_PLATFORM_APPROVE_STORAGE: 'true',
+  REEDITPRO_BETA_PLATFORM_APPROVE_LEGAL: 'true',
+  REEDITPRO_BETA_PLATFORM_APPROVE_MONITORING: 'true',
+  REEDITPRO_BETA_PLATFORM_APPROVE_SUPPORT: 'true',
+  REEDITPRO_BETA_PLATFORM_RLS_READBACK_VERIFIED: 'true',
+  REEDITPRO_BETA_PLATFORM_RLS_READBACK_EVIDENCE: 'Staging member and non-member RLS readback passed with scoped rows only.',
+  REEDITPRO_BETA_PLATFORM_STRIPE_BOUNDARY_VERIFIED: 'true',
+  REEDITPRO_BETA_PLATFORM_STRIPE_BOUNDARY_EVIDENCE: 'Billing owner approved Stripe boundary and service-fee exclusion.',
+  REEDITPRO_BETA_PLATFORM_MONITORING_VERIFIED: 'true',
+  REEDITPRO_BETA_PLATFORM_MONITORING_EVIDENCE: 'Monitoring dashboard, alert routing, and thresholds verified in staging.',
+  REEDITPRO_BETA_PLATFORM_BILLING_QA_VERIFIED: 'true',
+  REEDITPRO_BETA_PLATFORM_BILLING_QA_EVIDENCE: 'Staging billing QA passed for write, replay, summary, settlement, and non-billable failure cases.',
+}
+
+const readyReport = buildBetaReadinessOperatorStatus(completeEnv)
+assert.equal(readyReport.ok, true, 'complete operator inputs should pass combined readiness')
+assert.equal(readyReport.operatorInputsReady, true, 'complete operator inputs should be ready')
+assert.equal(readyReport.toolEvidenceReady, true, 'complete tool evidence inputs should be ready')
+assert.equal(readyReport.platformEvidenceReady, true, 'complete platform evidence inputs should be ready')
+assert.equal(readyReport.currentGate.totalTools, 49, 'operator report should include current total tool count')
+assert.equal(readyReport.currentGate.externalBetaToolExecutionAllowed, false, 'operator status must not claim external beta is enabled')
+assert.equal(readyReport.currentGate.productionToolExecutionAllowed, false, 'operator status must not claim production is enabled')
+assert.equal(readyReport.manifest.blockersAreEvidenceGaps, true, 'operator status should preserve evidence-driven blocker policy')
+assert.ok(readyReport.nextActions.some((action) => action.includes('beta:tools:core-real-check-evidence')), 'ready report should name tool evidence command')
+assert.ok(readyReport.nextActions.some((action) => action.includes('beta:platform:staging-evidence-probe')), 'ready report should name platform evidence command')
+assert.equal(JSON.stringify(readyReport).includes('tool-bearer-token-secret-for-smoke'), false, 'operator report must not print tool bearer token')
+assert.equal(JSON.stringify(readyReport).includes('platform-bearer-token-secret-for-smoke'), false, 'operator report must not print platform bearer token')
+
+const emptyReport = buildBetaReadinessOperatorStatus({})
+assert.equal(emptyReport.ok, false, 'missing operator env should fail combined readiness')
+assert.equal(emptyReport.operatorInputsReady, false, 'missing operator env should not be ready')
+assert.equal(emptyReport.toolEvidenceReady, false, 'missing operator env should block tool evidence readiness')
+assert.equal(emptyReport.platformEvidenceReady, false, 'missing operator env should block platform evidence readiness')
+assert.ok(emptyReport.toolEvidence.missingConfiguration.some((item) => item.includes('REEDITPRO_BETA_TOOLS_API_BASE_URL')), 'empty report should name missing tool API base URL')
+assert.ok(emptyReport.platformEvidence.missingConfiguration.some((item) => item.includes('REEDITPRO_BETA_PLATFORM_API_BASE_URL')), 'empty report should name missing platform API base URL')
+assert.ok(emptyReport.platformEvidence.missingOwnerApprovals.includes('support owner approval'), 'empty report should name owner approval gaps')
+assert.ok(emptyReport.platformEvidence.missingAttestations.includes('staging_billing_qa_verified'), 'empty report should name attestation gaps')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('core-real-check-evidence-preflight')), 'empty report should direct operator to tool preflight')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('staging-evidence-preflight')), 'empty report should direct operator to platform preflight')
+
+console.log(JSON.stringify({
+  ok: true,
+  readyOperatorInputs: readyReport.operatorInputsReady,
+  emptyOperatorInputsReady: emptyReport.operatorInputsReady,
+  currentBlockers: readyReport.currentGate.blockers,
+  currentPlatformBlockers: readyReport.currentGate.platformBlockers,
+  externalBetaAllowed: readyReport.currentGate.externalBetaToolExecutionAllowed,
+  productionAllowed: readyReport.currentGate.productionToolExecutionAllowed,
+  tokenInSummary: JSON.stringify(readyReport).includes('bearer-token-secret-for-smoke'),
+}, null, 2))

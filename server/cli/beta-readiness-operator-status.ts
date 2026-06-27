@@ -43,6 +43,8 @@ export interface BetaReadinessOperatorStatusReport {
   }
   toolEvidence: {
     previewCommand: 'npm run beta:tools:core-real-check-preview'
+    hydratedPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated'
+    hydrationSetupCommand: 'npm run tools:readiness:install-core-python'
     command: 'npm run beta:tools:core-real-check-evidence'
     preflightCommand: 'npm run beta:tools:core-real-check-evidence-preflight'
     readyToRunCli: boolean
@@ -155,6 +157,8 @@ function toolEvidenceSummary(
 ): BetaReadinessOperatorStatusReport['toolEvidence'] {
   return {
     previewCommand: 'npm run beta:tools:core-real-check-preview',
+    hydratedPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated',
+    hydrationSetupCommand: 'npm run tools:readiness:install-core-python',
     command: 'npm run beta:tools:core-real-check-evidence',
     preflightCommand: 'npm run beta:tools:core-real-check-evidence-preflight',
     readyToRunCli: report.readyToRunCli,
@@ -205,9 +209,9 @@ function buildNextActions(
   const actions: string[] = []
 
   if (!toolEvidence.readyToRecordAcceptedEvidence) {
-    actions.push('Run npm run beta:tools:core-real-check-preview with REEDITPRO_BETA_TOOLS_PREVIEW_* values to collect a local no-write blocker-reduction preview, then set the missing REEDITPRO_BETA_TOOLS_* values and rerun npm run beta:tools:core-real-check-evidence-preflight.')
+    actions.push('Run npm run beta:tools:core-real-check-preview with REEDITPRO_BETA_TOOLS_PREVIEW_* values to collect a local no-write blocker-reduction preview; for Python-backed core tools, first run npm run tools:readiness:install-core-python, then npm run beta:tools:core-real-check-preview:hydrated. After preview passes, set the missing REEDITPRO_BETA_TOOLS_* values and rerun npm run beta:tools:core-real-check-evidence-preflight.')
   } else {
-    actions.push('Run npm run beta:tools:core-real-check-preview locally first, then run npm run beta:tools:core-real-check-evidence against deployed staging to record bounded per-tool accepted evidence.')
+    actions.push('Run npm run beta:tools:core-real-check-preview locally first; use npm run beta:tools:core-real-check-preview:hydrated after npm run tools:readiness:install-core-python for Python-backed core tools. Then run npm run beta:tools:core-real-check-evidence against deployed staging to record bounded per-tool accepted evidence.')
   }
 
   if (!platformEvidence.readyToRecordEvidencePacket) {

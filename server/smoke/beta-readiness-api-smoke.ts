@@ -68,6 +68,10 @@ try {
     defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('core-real-check-preview')),
     'default operator status should name the local preview before deployed evidence recording',
   )
+  assert.ok(
+    defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('core-real-check-preview:hydrated')),
+    'default operator status should name the hydrated local preview for Python-backed tool evidence',
+  )
 
   const deployedVerifierReportResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
     method: 'POST',

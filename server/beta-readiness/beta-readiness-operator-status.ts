@@ -111,7 +111,7 @@ function buildNextActions(report: BetaReadinessReport, workspaceId?: string): st
     actions.push('Supply workspaceId to read stored beta-readiness evidence for a deployed workspace.')
   }
   if (!report.toolExecutionReadiness.externalBetaToolExecutionAllowed) {
-    actions.push('Run npm run beta:tools:core-real-check-preview locally to preview bounded per-tool evidence without writing backend records, then record accepted evidence through /v1/beta-readiness/evidence/core-real-check after real staging checks pass.')
+    actions.push('Run npm run beta:tools:core-real-check-preview locally to preview bounded per-tool evidence without writing backend records; for Python-backed core tools, run npm run tools:readiness:install-core-python and npm run beta:tools:core-real-check-preview:hydrated. Then record accepted evidence through /v1/beta-readiness/evidence/core-real-check after real staging checks pass.')
   }
   if (report.toolExecutionReadiness.platformBlockers.length > 0) {
     actions.push('Record deployed platform evidence through /v1/beta-readiness/platform-deployed-evidence/probe after migration, RLS, wallet, monitoring, billing QA, and owner approvals pass.')

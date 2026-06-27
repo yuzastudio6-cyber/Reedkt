@@ -164,12 +164,14 @@ Latest observed PR state after model-weight checksum evidence validator completi
 Latest observed PR state after model-weight checksum evidence scaffold completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `475747dbaaf5e013a08c58c4f3787fcf513c8078`, with an empty check rollup.
 - Follow-up model-weight manifest authoring bridge adds `server/tool-registry/ai-graphics-model-weight-manifest-authoring.ts`, `server/cli/ai-graphics-model-weight-manifest-authoring.ts`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-authoring.md`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-authoring.json`, `ai-graphics:model-weight-manifest-authoring`, and `ai-graphics:model-weight-manifest-authoring:diagnostics`. It turns reviewed local/private checksum evidence plus reviewed source-license/model-card supplements into local-only private manifest drafts, then validates those drafts through `ai-graphics:model-weight-manifest-review:validate` without logging private refs or enabling runtime. Model download/load/inference, GPU runtime, Tool Route, Worker, beta, and production remain blocked; GPU remains on-demand only for a future approved worker/tool-call job.
 Latest observed PR state after model-weight manifest authoring bridge completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `46a77404fa8d9063b08af67d498f330d39d39c28`, with an empty check rollup.
+- Follow-up model-weight manifest supplement scaffold adds `server/tool-registry/ai-graphics-model-weight-manifest-supplement-scaffold.ts`, `server/cli/ai-graphics-model-weight-manifest-supplement-scaffold.ts`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-supplement-scaffold.md`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-supplement-scaffold.json`, `ai-graphics:model-weight-manifest-supplement-scaffold`, and `ai-graphics:model-weight-manifest-supplement-scaffold:diagnostics`. It creates invalid-by-default local templates for source-license/model-card supplement evidence, proves those placeholders fail authoring, and proves filled local private supplements can feed the manifest-authoring bridge and existing manifest-review validator without logging private refs or enabling runtime.
 
 ## Expected Validation
 
 - `git diff --check`
 - `npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-authoring:diagnostics`
+- `npm run --silent ai-graphics:model-weight-manifest-supplement-scaffold:diagnostics`
 - `npm run --silent ai-graphics:model-weight-checksum-evidence:diagnostics`
 - `npm run --silent ai-graphics:model-weight-source-catalog:diagnostics`
 - `npm run --silent ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics`

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "2026-06-27.ai-graphics.model-weight-manifest-supplement-scaffold",
+  "decision": "ai_graphics_model_weight_manifest_supplement_scaffold_prepared_for_local_private_records",
+  "status": "prepared_for_local_private_records",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "latestObservedHeadSha": "fc3f20fa640d64744bb99a46a7cb3348c550490c",
+    "latestObservedCheckRollup": []
+  },
+  "sourceEvidence": {
+    "modelWeightManifestAuthoring": "docs/tool-intelligence/ai-graphics/model-weight-manifest-authoring.json",
+    "modelWeightChecksumEvidence": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json",
+    "modelWeightChecksumEvidenceScaffold": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence-scaffold.json",
+    "modelWeightSourceCatalog": "docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json",
+    "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json"
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-model-weight-manifest-supplement-scaffold.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "localPrivateManifestSupplementScaffold": "server/cli/ai-graphics-model-weight-manifest-supplement-scaffold.ts",
+    "localPrivateManifestSupplementScaffoldScript": "ai-graphics:model-weight-manifest-supplement-scaffold",
+    "localPrivateManifestAuthoringBridgeScript": "ai-graphics:model-weight-manifest-authoring",
+    "localPrivateManifestValidatorScript": "ai-graphics:model-weight-manifest-review:validate",
+    "diagnostic": "scripts/validation/ai-graphics-model-weight-manifest-supplement-scaffold-diagnostics.mjs",
+    "packageScript": "ai-graphics:model-weight-manifest-supplement-scaffold:diagnostics"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "gpuRuntimeTargetedTools": 8,
+    "modelWeightManifestSupplementTools": 5,
+    "supplementTemplatesPrepared": 5,
+    "committedManifestSupplementsApproved": 0,
+    "localPrivateManifestDraftsReadyFromCommittedDocs": 0,
+    "privateEvidenceRefsLogged": 0,
+    "runtimeReadyTools": 0
+  },
+  "modelWeightManifestSupplementTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "localPrivateSupplementPaths": {
+    "sam2": "sam2/manifest-review-supplement.json",
+    "birefnet": "birefnet/manifest-review-supplement.json",
+    "real_esrgan": "real-esrgan/manifest-review-supplement.json",
+    "rembg": "rembg/manifest-review-supplement.json",
+    "transparent_background": "transparent-background/manifest-review-supplement.json"
+  },
+  "requiredSupplementFields": [
+    "supplementId",
+    "toolId",
+    "sourceCandidateId",
+    "sourceLicenseRef",
+    "modelCardRef",
+    "commercialUseReviewed",
+    "redistributionReviewed",
+    "provenanceReviewed",
+    "qualityReviewed",
+    "securityReviewed",
+    "approvedForInternalBeta"
+  ],
+  "scaffoldDefaults": {
+    "sourceLicenseRefStatus": "invalid_public_or_signed_ref",
+    "modelCardRefStatus": "invalid_public_or_signed_ref",
+    "reviewBooleans": false,
+    "templatesInvalidUntilOwnerReviewed": true
+  },
+  "booleans": {
+    "modelWeightManifestSupplementScaffoldPrepared": true,
+    "all5ModelWeightToolsCovered": true,
+    "manifestReviewSupplementChecklistPrepared": true,
+    "templatesInvalidUntilOwnerReviewed": true,
+    "privateEvidenceRefsNotLogged": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "modelWeightManifestsApprovedNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

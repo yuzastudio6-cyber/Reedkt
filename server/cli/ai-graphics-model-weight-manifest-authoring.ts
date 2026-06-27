@@ -121,6 +121,7 @@ function collectManifestSupplementRecords(): ManifestSupplementInput[] {
       jsonFilesInDirectory(directory, [
         'checksum-evidence-authoring-checklist.json',
         'manifest-authoring-checklist.json',
+        'manifest-supplement-authoring-checklist.json',
       ])),
   ]
 

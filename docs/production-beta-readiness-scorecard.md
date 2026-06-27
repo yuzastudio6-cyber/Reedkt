@@ -64,6 +64,14 @@ model download, model load, inference, Tool Routes, Workers, GPU runtime, beta,
 or production. GPU runtime remains on-demand only for a future approved
 worker/tool-call job, and idle GPU runtime remains unapproved.
 
+AI graphics model-weight manifest supplement scaffold decision
+`ai_graphics_model_weight_manifest_supplement_scaffold_prepared_for_local_private_records`
+adds invalid-by-default local templates for the source-license/model-card review
+supplements consumed by the manifest authoring bridge. The scaffold writes only
+local support files under ignored evidence paths, uses rejected placeholder refs,
+keeps review booleans false, and does not approve private manifests, model
+download/load/inference, Tool Routes, Workers, GPU runtime, beta, or production.
+
 AI graphics internal beta go/no-go decision
 `ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`
 prepares the explicit owner go/no-go contract for the all-21 AI graphics

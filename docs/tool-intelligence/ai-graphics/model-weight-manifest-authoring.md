@@ -58,6 +58,14 @@ URLs, and arbitrary placeholders are rejected.
 
 ## Local Command
 
+If the supplement layout does not exist yet, create invalid-by-default
+templates first:
+
+```sh
+npm run --silent ai-graphics:model-weight-manifest-supplement-scaffold -- \
+  --out-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements
+```
+
 The command reads only local/private files and emits redacted status JSON:
 
 ```sh

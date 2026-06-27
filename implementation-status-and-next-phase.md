@@ -961,6 +961,16 @@ Next safe gate: `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`.
 
 Provider/model calls remain disabled by default and were not executed. Frontend provider calls remain forbidden. Any future real provider call must be backend-only and require approved snapshot, credit reservation, idempotency, cost cap, model-routing policy, QA fallback policy, private artifact manifest handling, and server-side secret isolation.
 
-Current external product beta blocker: `blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure`.
+Current external product beta blocker after provider policy closure: `blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure`.
 
 Next safe gate: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
+
+## RP External Beta QA Cleanup Observability Rollback Review 1
+
+`RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1` records decision `completed_external_beta_qa_cleanup_observability_rollback_review_no_runtime_execution` and execution `completed_docs_only_qa_cleanup_observability_rollback_review_no_runtime_execution`.
+
+QA review: `source_evidence_review_passed_ready_for_release_go_no_go`. Cleanup review: `ephemeral_fixture_cleanup_evidence_passed_ready_for_release_go_no_go`. Observability review: `audit_manifest_checksum_status_evidence_passed_ready_for_release_go_no_go`. Rollback review: `transaction_rollback_and_fixture_residue_evidence_passed_ready_for_release_go_no_go`. Security/privacy/support/cost/deployment review: `reviewed_pending_release_go_no_go_operator_acceptance`.
+
+External beta remains blocked by `blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review`.
+
+Next safe gate: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.

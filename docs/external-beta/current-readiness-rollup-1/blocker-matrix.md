@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `blocked` | QA/cleanup/observability/rollback plus security/privacy/support/cost/deployment review |
+| External beta | `blocked` | release go/no-go and operator approval after QA/cleanup/observability/rollback review |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -194,9 +194,9 @@ Route write readback:
 
 Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-The active blocker is no longer approved snapshot route write runtime validation. Remotion/private preview-export runtime validation is now source-closed by `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`; provider/model-call policy is now source-closed by `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`; remaining blockers are QA/cleanup/observability/rollback review, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+The active blocker is no longer approved snapshot route write runtime validation. Remotion/private preview-export runtime validation is now source-closed by `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`; provider/model-call policy is now source-closed by `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`; QA/cleanup/observability/rollback review is now source-closed by `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`. Remaining blockers are release go/no-go/operator approval and #577 Remotion runtime proof exclusion.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.
 
 ## RP External Beta Remotion Private Preview Export Runtime Validation 1
 
@@ -208,9 +208,9 @@ Run ID: `2026-06-27T02-41-01-252Z-7ce79dc6`. Output file: `reeditpro-external-be
 
 Remotion execution: `true`. Remotion renderer media encoding: `true`. Direct FFmpeg command execution by runner: `false`. FFprobe execution: `false`. Signed URL creation: `false`. Public artifact creation: `false`. Generated artifacts committed: `none`.
 
-External product beta remains `blocked_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure` after provider/model policy closure.
+External product beta remains `blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review` after QA/cleanup/observability/rollback review.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.
 
 ## RP External Beta Provider Model Call Policy Closure 1
 
@@ -222,7 +222,19 @@ No provider call, model call, Secret Manager payload access, provider secret pay
 
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-Next safe gate: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
+Next safe gate: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.
+
+## RP External Beta QA Cleanup Observability Rollback Review 1
+
+`RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1` records decision `completed_external_beta_qa_cleanup_observability_rollback_review_no_runtime_execution` and execution `completed_docs_only_qa_cleanup_observability_rollback_review_no_runtime_execution`.
+
+QA review: `source_evidence_review_passed_ready_for_release_go_no_go`. Cleanup review: `ephemeral_fixture_cleanup_evidence_passed_ready_for_release_go_no_go`. Observability review: `audit_manifest_checksum_status_evidence_passed_ready_for_release_go_no_go`. Rollback review: `transaction_rollback_and_fixture_residue_evidence_passed_ready_for_release_go_no_go`. Security/privacy/support/cost/deployment review: `reviewed_pending_release_go_no_go_operator_acceptance`.
+
+No provider call, model call, worker dispatch, route execution, Supabase mutation, SQL execution, signed URL creation, public artifact creation, media processing, Remotion execution, Docker execution, FFmpeg/FFprobe execution, external beta unlock, production unlock, package-lock mutation, or generated artifact commit occurred in this phase.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe gate: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

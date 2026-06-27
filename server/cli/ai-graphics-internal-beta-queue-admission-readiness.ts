@@ -117,6 +117,16 @@ const queueAdmission = buildAiGraphicsInternalBetaQueueAdmissionReadiness({
     queueValue('--worker-idempotency-namespace', 'ai_graphics_internal_beta_queue_admission'),
   internalBetaRuntimeOwnerApprovalRef:
     queueValue('--internal-beta-runtime-owner-approval-ref', 'internal_beta_runtime_owner_approval_ai_graphics_ref'),
+  nodeRuntimeProofRef:
+    queueValue('--node-runtime-proof-ref', 'private://ai-graphics/runtime-proofs/node-cpu-static.json'),
+  browserRuntimeProofRef:
+    queueValue('--browser-runtime-proof-ref', 'private://ai-graphics/runtime-proofs/browser-runtime.json'),
+  satoriFontRuntimeProofRef:
+    queueValue('--satori-font-runtime-proof-ref', 'private://ai-graphics/runtime-proofs/satori-font-runtime.json'),
+  nativeGpuRuntimeProofRef:
+    queueValue('--native-gpu-runtime-proof-ref', 'private://ai-graphics/runtime-proofs/native-nvidia-l4.json'),
+  modelWeightManifestRef:
+    queueValue('--model-weight-manifest-ref', 'private://ai-graphics/model-weight-manifests/review-packet.json'),
 })
 
 const output = {

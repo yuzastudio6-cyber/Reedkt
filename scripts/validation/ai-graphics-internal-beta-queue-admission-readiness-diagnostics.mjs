@@ -73,6 +73,11 @@ const requiredQueueAdmissionEvidence = [
   'workerQueueTransportRef',
   'workerIdempotencyNamespace',
   'internalBetaRuntimeOwnerApprovalRef',
+  'nodeRuntimeProofRef',
+  'browserRuntimeProofRef',
+  'satoriFontRuntimeProofRef',
+  'nativeGpuRuntimeProofRef',
+  'modelWeightManifestRef',
 ]
 
 const falseGateKeys = [
@@ -101,6 +106,7 @@ const falseGateKeys = [
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
   'gpuRuntimePerformed',
+  'gpuRuntimeShouldStartNow',
   'modelWeightsDownloaded',
   'modelWeightsLoaded',
   'mediaProcessingPerformed',
@@ -260,6 +266,8 @@ for (const [key, expected] of Object.entries({
   queueAdmissionPacketsPrepared: 21,
   queueAdmissionPacketsReadyWithProvidedEvidence: 21,
   queueAdmissionCapabilitiesReadyWithProvidedEvidence: 12,
+  runtimeAdmissionPacketsReadyWithProvidedEvidence: 21,
+  gpuRuntimeStartAllowedForAcceptedJobTools: 8,
   gpuRuntimeTargetedTools: 8,
   heavyToolsIncorrectlyTargetingCpu: 0,
   liveWorkerQueueApprovedNowTools: 0,
@@ -330,6 +338,7 @@ for (const action of [
   'bind each candidate to a private artifact manifest reference',
   'bind Tool Route and Worker approval references without executing either surface',
   'bind worker queue transport and idempotency namespace metadata without enqueueing work',
+  'run on-demand runtime admission for each future queue candidate without starting runtime',
 ]) {
   if (!docs.allowedQueueAdmissionPreparationActions?.includes(action)) fail(`docs_missing_allowed_action:${action}`)
   if (!moduleSource.includes(action)) fail(`module_missing_allowed_action:${action}`)
@@ -358,6 +367,7 @@ for (const [key, expected] of Object.entries({
   all12CapabilitiesCovered: true,
   all21QueueAdmissionPacketsPrepared: true,
   all21QueueAdmissionPacketsReadyWithProvidedEvidence: true,
+  all21RuntimeAdmissionPacketsReadyWithProvidedEvidence: true,
   all12CapabilitiesReadyWithProvidedEvidence: true,
   approvedPlanSnapshotRefAccepted: true,
   creditReservationRefAccepted: true,
@@ -365,6 +375,8 @@ for (const [key, expected] of Object.entries({
   gpuHeavyToolsTargetGpuRuntime: true,
   gpuRuntimeTargetsExact: true,
   gpuRuntimeOnDemandOnly: true,
+  onDemandRuntimeAdmissionApplied: true,
+  gpuRuntimeStartAllowedOnlyForAcceptedJobs: true,
   agentCanSelectForPlanning: true,
 })) {
   if (docs.booleans?.[key] !== expected) fail(`docs_boolean_mismatch:${key}:${docs.booleans?.[key]}`)
@@ -476,6 +488,12 @@ if (approvedOutput.queueAdmissionPackets?.length !== 21) fail('approved_queue_pa
 if (approvedOutput.queueAdmissionPackets?.filter((packet) => packet.gpuRequiredForRuntime).length !== 8) {
   fail('approved_gpu_queue_packets_not_8')
 }
+if (approvedOutput.runtimeAdmissionPacketsReadyWithProvidedEvidence !== 21) {
+  fail('approved_runtime_admission_packets_not_21')
+}
+if (approvedOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail('approved_gpu_start_allowed_tools_not_8')
+}
 for (const key of falseGateKeys) {
   if (approvedOutput.booleans?.[key] !== false) fail(`approved_false_gate_not_false:${key}`)
   if (approvedOutput.input?.[key] === true) fail(`approved_input_performed_gate_true:${key}`)
@@ -496,6 +514,39 @@ for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
   if (packet?.runtimeTarget !== runtimeTarget) {
     fail(`approved_gpu_runtime_target_mismatch:${tool}:${packet?.runtimeTarget}`)
   }
+  if (packet?.runtimeAdmissionDecision !== 'runtime_job_admission_ready_for_worker_enqueue') {
+    fail(`approved_gpu_runtime_admission_not_ready:${tool}:${packet?.runtimeAdmissionDecision}`)
+  }
+  if (packet?.gpuRuntimeStartupAuthorization !== 'on_demand_start_allowed_after_live_worker_enqueue') {
+    fail(`approved_gpu_startup_not_on_demand:${tool}:${packet?.gpuRuntimeStartupAuthorization}`)
+  }
+  if (packet?.gpuRuntimeStartAllowedForAcceptedJob !== true) {
+    fail(`approved_gpu_start_not_allowed_for_accepted_job:${tool}`)
+  }
+  if (packet?.gpuRuntimeShouldStartNow !== false) {
+    fail(`approved_gpu_should_start_now:${tool}`)
+  }
+  if (packet?.missingRuntimeJobGates?.length !== 0) {
+    fail(`approved_gpu_missing_job_gates:${tool}`)
+  }
+  if (packet?.missingRuntimeProofGates?.length !== 0) {
+    fail(`approved_gpu_missing_proof_gates:${tool}`)
+  }
+}
+for (const packet of approvedOutput.queueAdmissionPackets || []) {
+  if (packet.runtimeAdmissionDecision !== 'runtime_job_admission_ready_for_worker_enqueue') {
+    fail(`approved_runtime_admission_not_ready:${packet.toolId}:${packet.runtimeAdmissionDecision}`)
+  }
+  if (packet.runtimeAdmissionReadyWithProvidedEvidence !== true) {
+    fail(`approved_runtime_admission_ready_false:${packet.toolId}`)
+  }
+  if (packet.gpuRequiredForRuntime === false && packet.gpuRuntimeStartAllowedForAcceptedJob !== false) {
+    fail(`approved_non_gpu_start_allowed:${packet.toolId}`)
+  }
+  if (packet.gpuRequiredForRuntime === false && packet.gpuRuntimeStartupAuthorization !== 'not_applicable_non_gpu_runtime') {
+    fail(`approved_non_gpu_startup_authorization:${packet.toolId}:${packet.gpuRuntimeStartupAuthorization}`)
+  }
+  if (packet.gpuRuntimeShouldStartNow !== false) fail(`approved_packet_gpu_start_now:${packet.toolId}`)
 }
 
 let liveQueueExited = false
@@ -518,6 +569,8 @@ const forbiddenPatterns = [
   /toolExecutionApprovedNow["`:= ]+true/i,
   /browserWebglCanvasRuntimeApprovedNow["`:= ]+true/i,
   /gpuRuntimeApprovedNow["`:= ]+true/i,
+  /gpuRuntimeShouldStartNow["`:= ]+true/i,
+  /gpuRuntimePerformed["`:= ]+true/i,
   /runtimeReadyNow["`:= ]+true/i,
   /internalBetaReadyNow["`:= ]+true/i,
   /externalBetaReadyNow["`:= ]+true/i,

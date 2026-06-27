@@ -46,6 +46,8 @@
     "queueAdmissionPacketsPrepared": 21,
     "queueAdmissionPacketsReadyWithProvidedEvidence": 21,
     "queueAdmissionCapabilitiesReadyWithProvidedEvidence": 12,
+    "runtimeAdmissionPacketsReadyWithProvidedEvidence": 21,
+    "gpuRuntimeStartAllowedForAcceptedJobTools": 8,
     "gpuRuntimeTargetedTools": 8,
     "heavyToolsIncorrectlyTargetingCpu": 0,
     "liveWorkerQueueApprovedNowTools": 0,
@@ -80,7 +82,12 @@
     "workerApprovalRef",
     "workerQueueTransportRef",
     "workerIdempotencyNamespace",
-    "internalBetaRuntimeOwnerApprovalRef"
+    "internalBetaRuntimeOwnerApprovalRef",
+    "nodeRuntimeProofRef",
+    "browserRuntimeProofRef",
+    "satoriFontRuntimeProofRef",
+    "nativeGpuRuntimeProofRef",
+    "modelWeightManifestRef"
   ],
   "queueAdmissionEvidenceShape": {
     "approvedPlanSnapshotId": "approved_snapshot_ai_graphics_internal_beta_fixture",
@@ -91,7 +98,12 @@
     "workerApprovalRef": "worker_ai_graphics_internal_beta_owner_ref",
     "workerQueueTransportRef": "worker_queue_transport_ai_graphics_internal_beta_ref",
     "workerIdempotencyNamespace": "ai_graphics_internal_beta_queue_admission",
-    "internalBetaRuntimeOwnerApprovalRef": "internal_beta_runtime_owner_approval_ai_graphics_ref"
+    "internalBetaRuntimeOwnerApprovalRef": "internal_beta_runtime_owner_approval_ai_graphics_ref",
+    "nodeRuntimeProofRef": "private://ai-graphics/runtime-proofs/node-cpu-static.json",
+    "browserRuntimeProofRef": "private://ai-graphics/runtime-proofs/browser-runtime.json",
+    "satoriFontRuntimeProofRef": "private://ai-graphics/runtime-proofs/satori-font-runtime.json",
+    "nativeGpuRuntimeProofRef": "private://ai-graphics/runtime-proofs/native-nvidia-l4.json",
+    "modelWeightManifestRef": "private://ai-graphics/model-weight-manifests/review-packet.json"
   },
   "queueAdmissionEvidenceFormat": {
     "approvedPlanSnapshotId": "backend UUID or explicit approved_snapshot_* fixture ref",
@@ -103,6 +115,7 @@
     "bind each candidate to a private artifact manifest reference",
     "bind Tool Route and Worker approval references without executing either surface",
     "bind worker queue transport and idempotency namespace metadata without enqueueing work",
+    "run on-demand runtime admission for each future queue candidate without starting runtime",
     "return queue-admission readiness and live runtime blockers per tool"
   ],
   "blockedRuntimeActions": [
@@ -132,6 +145,7 @@
     "all12CapabilitiesCovered": true,
     "all21QueueAdmissionPacketsPrepared": true,
     "all21QueueAdmissionPacketsReadyWithProvidedEvidence": true,
+    "all21RuntimeAdmissionPacketsReadyWithProvidedEvidence": true,
     "all12CapabilitiesReadyWithProvidedEvidence": true,
     "approvedPlanSnapshotRefAccepted": true,
     "creditReservationRefAccepted": true,
@@ -139,6 +153,9 @@
     "gpuHeavyToolsTargetGpuRuntime": true,
     "gpuRuntimeTargetsExact": true,
     "gpuRuntimeOnDemandOnly": true,
+    "onDemandRuntimeAdmissionApplied": true,
+    "gpuRuntimeStartAllowedOnlyForAcceptedJobs": true,
+    "gpuRuntimeShouldStartNow": false,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,
     "routeExecutionApprovedNow": false,

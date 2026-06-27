@@ -5,6 +5,11 @@ import {
   type AiGraphicsInternalBetaRuntimeEnqueueApprovalInput,
   type AiGraphicsInternalBetaRuntimeEnqueueToolScope,
 } from './ai-graphics-internal-beta-runtime-enqueue-approval'
+import {
+  evaluateAiGraphicsOnDemandRuntimeAdmission,
+  type AiGraphicsGpuRuntimeStartupAuthorization,
+  type AiGraphicsRuntimeJobAdmissionDecision,
+} from './ai-graphics-on-demand-runtime-admission'
 import type {
   AiGraphicsCapabilityId,
   AiGraphicsCanonicalToolId,
@@ -30,6 +35,11 @@ export interface AiGraphicsInternalBetaQueueAdmissionReadinessInput
   workerQueueTransportRef?: string
   workerIdempotencyNamespace?: string
   internalBetaRuntimeOwnerApprovalRef?: string
+  nodeRuntimeProofRef?: string
+  browserRuntimeProofRef?: string
+  satoriFontRuntimeProofRef?: string
+  nativeGpuRuntimeProofRef?: string
+  modelWeightManifestRef?: string
 }
 
 export interface AiGraphicsInternalBetaQueueAdmissionEvidence {
@@ -42,6 +52,11 @@ export interface AiGraphicsInternalBetaQueueAdmissionEvidence {
   workerQueueTransportRef: string
   workerIdempotencyNamespace: string
   internalBetaRuntimeOwnerApprovalRef: string
+  nodeRuntimeProofRef: string
+  browserRuntimeProofRef: string
+  satoriFontRuntimeProofRef: string
+  nativeGpuRuntimeProofRef: string
+  modelWeightManifestRef: string
 }
 
 export interface AiGraphicsInternalBetaQueueAdmissionPacket {
@@ -52,6 +67,13 @@ export interface AiGraphicsInternalBetaQueueAdmissionPacket {
   capabilityIds: AiGraphicsCapabilityId[]
   gpuRequiredForRuntime: boolean
   sourceRuntimeEnqueueScopeApprovedWithProvidedEvidence: boolean
+  runtimeAdmissionDecision: AiGraphicsRuntimeJobAdmissionDecision
+  runtimeAdmissionReadyWithProvidedEvidence: boolean
+  gpuRuntimeStartupAuthorization: AiGraphicsGpuRuntimeStartupAuthorization
+  gpuRuntimeStartAllowedForAcceptedJob: boolean
+  gpuRuntimeShouldStartNow: false
+  missingRuntimeJobGates: string[]
+  missingRuntimeProofGates: string[]
   queueAdmissionReadyWithProvidedEvidence: boolean
   liveWorkerQueueApprovedNow: false
   liveWorkerExecutionApprovedNow: false
@@ -69,6 +91,8 @@ export interface AiGraphicsInternalBetaQueueAdmissionReadiness {
   queueAdmissionPacketsPrepared: 21
   queueAdmissionPacketsReadyWithProvidedEvidence: number
   queueAdmissionCapabilitiesReadyWithProvidedEvidence: number
+  runtimeAdmissionPacketsReadyWithProvidedEvidence: number
+  gpuRuntimeStartAllowedForAcceptedJobTools: number
   liveWorkerQueueApprovedNowTools: 0
   liveWorkerExecutionApprovedNowTools: 0
   sourceRuntimeEnqueueApproval: AiGraphicsInternalBetaRuntimeEnqueueApproval
@@ -89,6 +113,7 @@ export interface AiGraphicsInternalBetaQueueAdmissionReadiness {
     all12CapabilitiesCovered: true
     all21QueueAdmissionPacketsPrepared: true
     all21QueueAdmissionPacketsReadyWithProvidedEvidence: boolean
+    all21RuntimeAdmissionPacketsReadyWithProvidedEvidence: boolean
     all12CapabilitiesReadyWithProvidedEvidence: boolean
     approvedPlanSnapshotRefAccepted: boolean
     creditReservationRefAccepted: boolean
@@ -96,6 +121,9 @@ export interface AiGraphicsInternalBetaQueueAdmissionReadiness {
     gpuHeavyToolsTargetGpuRuntime: boolean
     gpuRuntimeTargetsExact: boolean
     gpuRuntimeOnDemandOnly: true
+    onDemandRuntimeAdmissionApplied: boolean
+    gpuRuntimeStartAllowedOnlyForAcceptedJobs: boolean
+    gpuRuntimeShouldStartNow: false
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
     routeExecutionApprovedNow: false
@@ -142,6 +170,11 @@ const requiredQueueAdmissionEvidence = [
   'workerQueueTransportRef',
   'workerIdempotencyNamespace',
   'internalBetaRuntimeOwnerApprovalRef',
+  'nodeRuntimeProofRef',
+  'browserRuntimeProofRef',
+  'satoriFontRuntimeProofRef',
+  'nativeGpuRuntimeProofRef',
+  'modelWeightManifestRef',
 ]
 
 const allowedQueueAdmissionPreparationActions = [
@@ -149,6 +182,7 @@ const allowedQueueAdmissionPreparationActions = [
   'bind each candidate to a private artifact manifest reference',
   'bind Tool Route and Worker approval references without executing either surface',
   'bind worker queue transport and idempotency namespace metadata without enqueueing work',
+  'run on-demand runtime admission for each future queue candidate without starting runtime',
   'return queue-admission readiness and live runtime blockers per tool',
 ]
 
@@ -222,6 +256,11 @@ function normalizeEvidence(
     workerQueueTransportRef: asString(input.workerQueueTransportRef),
     workerIdempotencyNamespace: asString(input.workerIdempotencyNamespace),
     internalBetaRuntimeOwnerApprovalRef: asString(input.internalBetaRuntimeOwnerApprovalRef),
+    nodeRuntimeProofRef: asString(input.nodeRuntimeProofRef),
+    browserRuntimeProofRef: asString(input.browserRuntimeProofRef),
+    satoriFontRuntimeProofRef: asString(input.satoriFontRuntimeProofRef),
+    nativeGpuRuntimeProofRef: asString(input.nativeGpuRuntimeProofRef),
+    modelWeightManifestRef: asString(input.modelWeightManifestRef),
   }
 }
 
@@ -280,7 +319,32 @@ function statusFromEvidence(input: {
 function toPacket(
   scope: AiGraphicsInternalBetaRuntimeEnqueueToolScope,
   readyWithProvidedEvidence: boolean,
+  evidence: AiGraphicsInternalBetaQueueAdmissionEvidence,
+  runtimeEnqueueApprovalRef: string | null,
 ): AiGraphicsInternalBetaQueueAdmissionPacket {
+  const capabilityId = scope.capabilityIds.find((capability) => (
+    capability !== 'planning_metadata_only' && capability !== 'blocked_or_deferred'
+  )) ?? scope.capabilityIds[0]
+  const runtimeAdmission = evaluateAiGraphicsOnDemandRuntimeAdmission({
+    capabilityId,
+    requestedToolId: scope.toolId,
+    executionRequested: true,
+    approvedPlanSnapshotId: evidence.approvedPlanSnapshotId,
+    creditReservationId: evidence.creditReservationId,
+    artifactBoundaryApprovalRef: evidence.artifactBoundaryApprovalRef,
+    toolRouteApprovalRef: evidence.toolRouteApprovalRef,
+    workerApprovalRef: evidence.workerApprovalRef,
+    runtimeEnqueueApprovalRef: runtimeEnqueueApprovalRef ?? undefined,
+    ownerRuntimeApprovalRef: evidence.internalBetaRuntimeOwnerApprovalRef,
+    privateArtifactManifestRef: evidence.privateArtifactManifestRef,
+    nodeRuntimeProofRef: evidence.nodeRuntimeProofRef,
+    browserRuntimeProofRef: evidence.browserRuntimeProofRef,
+    satoriFontRuntimeProofRef: evidence.satoriFontRuntimeProofRef,
+    nativeGpuRuntimeProofRef: evidence.nativeGpuRuntimeProofRef,
+    modelWeightManifestRef: evidence.modelWeightManifestRef,
+  })
+  const runtimeAdmissionReadyWithProvidedEvidence =
+    runtimeAdmission.runtimeJobAdmissionReadyWithProvidedEvidence
   return {
     toolId: scope.toolId,
     productionToolId: scope.productionToolId,
@@ -290,8 +354,18 @@ function toPacket(
     gpuRequiredForRuntime: scope.gpuRequiredForRuntime,
     sourceRuntimeEnqueueScopeApprovedWithProvidedEvidence:
       scope.enqueueScopeApprovedWithProvidedEvidence,
+    runtimeAdmissionDecision: runtimeAdmission.decision,
+    runtimeAdmissionReadyWithProvidedEvidence,
+    gpuRuntimeStartupAuthorization: runtimeAdmission.gpuRuntimeStartupAuthorization,
+    gpuRuntimeStartAllowedForAcceptedJob:
+      runtimeAdmission.gpuRuntimeStartAllowedForAcceptedJob,
+    gpuRuntimeShouldStartNow: false,
+    missingRuntimeJobGates: [...runtimeAdmission.missingRuntimeJobGates],
+    missingRuntimeProofGates: [...runtimeAdmission.missingRuntimeProofGates],
     queueAdmissionReadyWithProvidedEvidence:
-      readyWithProvidedEvidence && scope.enqueueScopeApprovedWithProvidedEvidence,
+      readyWithProvidedEvidence &&
+      scope.enqueueScopeApprovedWithProvidedEvidence &&
+      runtimeAdmissionReadyWithProvidedEvidence,
     liveWorkerQueueApprovedNow: false,
     liveWorkerExecutionApprovedNow: false,
     toolExecutionApprovedNow: false,
@@ -335,6 +409,8 @@ export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
     sourceRuntimeEnqueueApproval.toolScopes.map((scope) => toPacket(
       scope,
       readyWithProvidedEvidence,
+      queueAdmissionEvidence,
+      sourceRuntimeEnqueueApproval.runtimeEnqueueApprovalRecord.approvalRef,
     ))
   const queueAdmissionPacketsReadyWithProvidedEvidence =
     queueAdmissionPackets.filter((packet) => packet.queueAdmissionReadyWithProvidedEvidence).length
@@ -345,6 +421,10 @@ export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
         packet.capabilityIds.includes(capabilityId)
       ))
     )).length
+  const runtimeAdmissionPacketsReadyWithProvidedEvidence =
+    queueAdmissionPackets.filter((packet) => packet.runtimeAdmissionReadyWithProvidedEvidence).length
+  const gpuRuntimeStartAllowedForAcceptedJobTools =
+    queueAdmissionPackets.filter((packet) => packet.gpuRuntimeStartAllowedForAcceptedJob).length
   const gpuRuntimeTargetedTools =
     queueAdmissionPackets.filter((packet) => packet.gpuRequiredForRuntime).length
   const gpuRuntimeTargetsExactForPackets = gpuRuntimeTargetsExact(queueAdmissionPackets)
@@ -359,6 +439,8 @@ export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
     queueAdmissionPacketsPrepared: queueAdmissionPackets.length as 21,
     queueAdmissionPacketsReadyWithProvidedEvidence,
     queueAdmissionCapabilitiesReadyWithProvidedEvidence,
+    runtimeAdmissionPacketsReadyWithProvidedEvidence,
+    gpuRuntimeStartAllowedForAcceptedJobTools,
     liveWorkerQueueApprovedNowTools: 0,
     liveWorkerExecutionApprovedNowTools: 0,
     sourceRuntimeEnqueueApproval,
@@ -380,6 +462,8 @@ export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
       all21QueueAdmissionPacketsPrepared: true,
       all21QueueAdmissionPacketsReadyWithProvidedEvidence:
         queueAdmissionPacketsReadyWithProvidedEvidence === 21,
+      all21RuntimeAdmissionPacketsReadyWithProvidedEvidence:
+        runtimeAdmissionPacketsReadyWithProvidedEvidence === 21,
       all12CapabilitiesReadyWithProvidedEvidence:
         queueAdmissionCapabilitiesReadyWithProvidedEvidence === 12,
       approvedPlanSnapshotRefAccepted:
@@ -393,6 +477,17 @@ export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
         sourceRuntimeEnqueueApproval.heavyToolsIncorrectlyTargetingCpu === 0,
       gpuRuntimeTargetsExact: gpuRuntimeTargetsExactForPackets,
       gpuRuntimeOnDemandOnly: true,
+      onDemandRuntimeAdmissionApplied:
+        queueAdmissionPackets.every((packet) => (
+          packet.runtimeAdmissionDecision === 'runtime_job_admission_ready_for_worker_enqueue' ||
+          packet.runtimeAdmissionDecision === 'runtime_job_blocked'
+        )),
+      gpuRuntimeStartAllowedOnlyForAcceptedJobs:
+        gpuRuntimeStartAllowedForAcceptedJobTools === gpuRuntimeTargetedTools &&
+        queueAdmissionPackets.every((packet) => (
+          packet.gpuRuntimeStartAllowedForAcceptedJob === packet.gpuRequiredForRuntime
+        )),
+      gpuRuntimeShouldStartNow: false,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
       routeExecutionApprovedNow: false,

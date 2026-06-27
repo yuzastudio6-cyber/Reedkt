@@ -204,3 +204,5 @@ Latest observed PR state after beta evidence local authoring-input bridge comple
 - Confirm no `.local-artifacts` or generated media/render/browser/canvas/WebGL/public outputs are staged.
 
 Latest observed PR state after on-demand runtime admission completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `0d958d1f311f0808020ff2d8e4323ad8fe95c981`, with an empty check rollup.
+
+Follow-up on-demand runtime admission queue propagation updates internal beta queue admission so every future queue candidate must pass `evaluateAiGraphicsOnDemandRuntimeAdmission` with approved snapshot, credit, private artifact, Tool Route, Worker, runtime owner, runtime proof, and model manifest refs before queue admission can report ready with provided evidence. Queue adapter and dispatcher CLIs now forward the same runtime proof refs into the inherited queue-admission input. This preserves on-demand GPU startup authorization for the eight GPU/model tools only after a future accepted worker/tool-call job, while `gpuRuntimeShouldStartNow=false`, no idle GPU runtime, and all runtime/beta/production gates remain false.

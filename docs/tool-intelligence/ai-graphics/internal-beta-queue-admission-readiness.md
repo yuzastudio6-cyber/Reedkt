@@ -13,6 +13,8 @@ This contract turns the all-21 runtime-enqueue scope into explicit queue-admissi
 - Queue-admission packets prepared: 21
 - Queue-admission packets ready with provided evidence: 21
 - Queue-admission capabilities ready with provided evidence: 12
+- On-demand runtime admission packets ready with provided evidence: 21
+- GPU runtime start allowed for accepted future jobs: 8
 - GPU runtime targeted tools: 8
 - GPU runtime targets exact: true
 - GPU runtime on-demand only: true
@@ -74,6 +76,11 @@ This contract turns the all-21 runtime-enqueue scope into explicit queue-admissi
 - `workerQueueTransportRef`
 - `workerIdempotencyNamespace`
 - `internalBetaRuntimeOwnerApprovalRef`
+- `nodeRuntimeProofRef`
+- `browserRuntimeProofRef`
+- `satoriFontRuntimeProofRef`
+- `nativeGpuRuntimeProofRef`
+- `modelWeightManifestRef`
 
 The private artifact manifest reference must stay private-only, for example `private://ai-graphics/internal-beta/artifact-manifest.json`. Public URLs, signed URLs, and direct GCS references remain blocked for this lane.
 
@@ -85,12 +92,22 @@ Queue admission preserves exact native NVIDIA L4 runtime targets for all eight G
 
 GPU runtime remains on-demand only. Queue admission does not keep an idle GPU running; GPU startup is allowed only after a future approved worker job with accepted snapshot, credit reservation, private artifact manifest, and worker approval evidence calls the GPU tool.
 
+## On-Demand Runtime Admission
+
+Every queue-admission packet now runs the on-demand runtime admission evaluator before it can count as ready with provided evidence. That evaluator requires approved job metadata and runtime proof refs, then records whether GPU startup would be allowed for the future accepted worker job.
+
+- GPU/model tools can report `gpuRuntimeStartAllowedForAcceptedJob=true` only after runtime admission accepts the future job evidence.
+- Non-GPU tools can be runtime-admission ready without authorizing GPU startup.
+- `gpuRuntimeShouldStartNow=false` remains true for every packet in this lane.
+- `gpuRuntimePerformed=false` remains true for this lane.
+
 ## Allowed Preparation Actions
 
 - bind all 21 AI graphics production tool IDs to approved snapshot and credit reservation evidence
 - bind each candidate to a private artifact manifest reference
 - bind Tool Route and Worker approval references without executing either surface
 - bind worker queue transport and idempotency namespace metadata without enqueueing work
+- run on-demand runtime admission for each future queue candidate without starting runtime
 - return queue-admission readiness and live runtime blockers per tool
 
 ## Still Blocked
@@ -126,6 +143,9 @@ GPU runtime remains on-demand only. Queue admission does not keep an idle GPU ru
 - `toolExecutionApprovedNow=false`
 - `gpuRuntimeTargetsExact=true`
 - `gpuRuntimeOnDemandOnly=true`
+- `onDemandRuntimeAdmissionApplied=true`
+- `gpuRuntimeStartAllowedOnlyForAcceptedJobs=true`
+- `gpuRuntimeShouldStartNow=false`
 - `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
 - `externalBetaReadyNow=false`

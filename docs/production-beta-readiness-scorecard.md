@@ -134,9 +134,13 @@ groups ready with provided evidence, while keeping live queue enqueue, worker
 dispatch, route execution, tool execution, browser/canvas/WebGL runtime,
 GPU/model runtime, model-weight loading, media processing, signed URLs, public
 artifacts, internal beta runtime, external beta, and production blocked.
-It also preserves exact native NVIDIA L4 runtime targets for all eight
-GPU/model tools and records GPU runtime as on-demand only; no idle GPU runtime
-is approved.
+It also runs the server-only on-demand runtime admission gate for each future
+queue candidate. With provided private proof refs, all 21 runtime-admission
+packets are ready for future worker enqueue, and the eight GPU/model tools are
+authorized only for on-demand startup after an accepted worker/tool-call job.
+`gpuRuntimeShouldStartNow` remains false, exact native NVIDIA L4 runtime targets
+are preserved for all eight GPU/model tools, and no idle GPU runtime is
+approved.
 
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`

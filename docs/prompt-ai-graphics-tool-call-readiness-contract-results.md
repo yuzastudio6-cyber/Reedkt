@@ -250,6 +250,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after beta evidence local authoring-input bridge completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `2aaf8f68eea739eb3a53d79dd5e4cf82ea4e5ce8`, with an empty check rollup.
 - On-demand runtime admission gate: added `server/tool-registry/ai-graphics-on-demand-runtime-admission.ts`, `docs/tool-intelligence/ai-graphics/on-demand-runtime-admission.md`, `docs/tool-intelligence/ai-graphics/on-demand-runtime-admission.json`, and `ai-graphics:on-demand-runtime-admission:diagnostics`. The gate keeps planning requests from starting GPU runtime, blocks execution requests that lack approved job evidence, and authorizes GPU startup only for a future accepted Worker/Tool Route job with private artifact, runtime proof, owner approval, approved snapshot, and credit evidence. It keeps `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `noIdleGpuRuntimeApproved=true`, and `cpuFallbackAllowedForHeavyTools=false`.
 - Latest observed PR state after on-demand runtime admission completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `0d958d1f311f0808020ff2d8e4323ad8fe95c981`, with an empty check rollup.
+- On-demand runtime admission queue propagation: internal beta queue admission now evaluates `evaluateAiGraphicsOnDemandRuntimeAdmission` for every future queue candidate before readiness can pass. With provided private proof refs, all 21 runtime-admission packets are ready for future worker enqueue, the eight GPU/model tools are marked `on_demand_start_allowed_after_live_worker_enqueue`, and `gpuRuntimeShouldStartNow=false` remains enforced. Queue adapter and dispatcher readiness CLIs pass the same runtime proof refs into the inherited queue-admission input, so downstream mock-safe queue shaping and dispatcher probes cannot bypass the on-demand GPU gate.
 
 ## Runtime State
 
@@ -284,6 +285,9 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - `betaRollupGpuRuntimeTargetsExact=true`
 - `gpuRuntimeOnDemandOnly=true`
 - `onDemandRuntimeAdmissionPrepared=true`
+- `onDemandRuntimeAdmissionAppliedToQueueAdmission=true`
+- `runtimeAdmissionPacketsReadyWithProvidedEvidence=21`
+- `gpuRuntimeStartAllowedForAcceptedJobTools=8`
 - `gpuRuntimeStartAllowedForAcceptedJob=true only for a complete future GPU/model worker job evidence path`
 - `gpuRuntimeShouldStartNow=false`
 - `gpuRuntimeProofContainersEphemeral=true`

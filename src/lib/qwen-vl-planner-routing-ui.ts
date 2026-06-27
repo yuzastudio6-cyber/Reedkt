@@ -32,7 +32,7 @@ export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
   clientHelper: 'callQwen25VlPrivateInvokeDryRun'
   statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
   routeRuntime: 'mock'
-  currentStatus: 'service_source_ready_deploy_required'
+  currentStatus: 'service_deployed_fixture_inference_smoke_required'
   currentBlocker: string
   boundaryNotes: string[]
   runtimeFlags: {
@@ -65,7 +65,7 @@ export type QwenVlPlannerRoutingUiData = {
   privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58A-APPROVED-FIXTURE-INFERENCE-SERVICE-DEPLOY: build and deploy gated Qwen fixture inference service source, no fixture inference yet'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58B-APPROVED-FIXTURE-INFERENCE-SMOKE-EXECUTE: run first private approved-fixture Qwen inference smoke against gated service, no generated assets/no beta'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -219,14 +219,14 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       clientHelper: 'callQwen25VlPrivateInvokeDryRun',
       statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
       routeRuntime: 'mock',
-      currentStatus: 'service_source_ready_deploy_required',
+      currentStatus: 'service_deployed_fixture_inference_smoke_required',
       currentBlocker:
-        'Controlled private invoke auth works, the dedicated Direct VPC private route subnet is configured, the no-model CPU-only caller source is defined, the controlled caller job is deployed, one caller contract smoke observed the expected fail-closed response with inference disabled, runtime readiness review is recorded, the first approved-fixture inference smoke plan is defined, and gated fixture inference service source is ready. Runtime remains blocked until a future deploy prompt builds and deploys the gated GPU service and CPU caller source before any fixture inference request.',
+        'Controlled private invoke auth works, the dedicated Direct VPC private route subnet is configured, the no-model CPU-only caller source is defined, the controlled caller job is deployed, one caller contract smoke observed the expected fail-closed response with inference disabled, runtime readiness review is recorded, the first approved-fixture inference smoke plan is defined, and gated fixture inference service source is deployed. Runtime remains blocked until a future smoke prompt executes one private approved-fixture request and reviews sanitized metadata-only output.',
       boundaryNotes: [
         'The frontend helper calls only the central ReeditPro API client boundary.',
         'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
         'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
-        'The next runtime gate may deploy gated source for a later private approved-fixture inference smoke, but must not run inference, enable beta, enable production, create public artifacts, create signed URLs, or create generated assets.',
+        'The next runtime gate may execute one private approved-fixture inference smoke, but must not enable beta, enable production, create public artifacts, create signed URLs, or create generated assets.',
       ],
       runtimeFlags: {
         usesCentralApiClient: true,
@@ -261,6 +261,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'D3, ECharts, and Vega-Lite own exact chart/dataviz output.',
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
-    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58A-APPROVED-FIXTURE-INFERENCE-SERVICE-DEPLOY: build and deploy gated Qwen fixture inference service source, no fixture inference yet',
+    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58B-APPROVED-FIXTURE-INFERENCE-SMOKE-EXECUTE: run first private approved-fixture Qwen inference smoke against gated service, no generated assets/no beta',
   }
 }

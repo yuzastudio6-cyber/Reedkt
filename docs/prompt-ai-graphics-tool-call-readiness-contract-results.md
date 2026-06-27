@@ -226,6 +226,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after model-weight checksum guidance hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `0127d477cd8bbaeda2f753fcb734a620327b9697`, with an empty check rollup.
 - Beta activation gap six-profile alignment: the beta activation gap report now exposes and validates `nativeGpuProofProfilesRequiredCount=6` with required profiles `gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. This prevents future beta evidence from accepting a stale four-profile native GPU proof path that skips the two shared-worker background tools.
 - Runtime readiness gate clarification: the earlier GPU runtime readiness gate still has four image-level probe placements (`gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan` images), but now explicitly references the downstream six native GPU proof profiles. `rembg` and `transparent_background` remain separate on-demand shared-worker proof profiles, not idle GPU services.
+- Latest observed PR state after native GPU proof profile alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ef2e593fd7c169433564cd6fc04d0cc985483a58`, with an empty check rollup.
 
 ## Runtime State
 

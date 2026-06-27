@@ -149,6 +149,7 @@ Latest observed PR state after model-weight manifest authoring checklist hardeni
 Latest observed PR state after model-weight checksum guidance hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `0127d477cd8bbaeda2f753fcb734a620327b9697`, with an empty check rollup.
 - Follow-up beta activation gap six-profile alignment updates the activation gap report and diagnostics so native GPU proof requires all six current profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. Stale four-profile proof evidence remains insufficient for beta activation.
 - Follow-up GPU runtime readiness gate clarification preserves the four image-level probe placements from the earlier gate while explicitly linking them to the six downstream native GPU proof profiles. `rembg` and `transparent_background` remain separate on-demand shared-worker proof profiles, not idle GPU services.
+Latest observed PR state after native GPU proof profile alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ef2e593fd7c169433564cd6fc04d0cc985483a58`, with an empty check rollup.
 
 ## Expected Validation
 

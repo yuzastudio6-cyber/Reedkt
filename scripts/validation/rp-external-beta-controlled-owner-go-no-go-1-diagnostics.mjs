@@ -26,8 +26,23 @@ const requiredFiles = [
   'package.json',
 ]
 
+const followOnNamedInvitedTesterWalkthroughFiles = [
+  'docs/external-beta/named-invited-tester-walkthrough-1/source-audit.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/runner-contract.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/walkthrough-evidence.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/readiness-gate.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/safety-boundary.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/validation-results.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/named-invited-tester-walkthrough-record.json',
+  'docs/activation-phase-rp-external-beta-named-invited-tester-walkthrough-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-bounded-tester-expansion-decision-1.md',
+  'scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1.mjs',
+  'scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1-diagnostics.mjs',
+]
+
 const allowedFiles = new Set([
   ...requiredFiles,
+  ...followOnNamedInvitedTesterWalkthroughFiles,
 ])
 
 const requiredText = [
@@ -180,13 +195,23 @@ const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/ro
 if (rollup.sourceClosure?.controlledOwnerGoNoGo !== 'rp_external_beta_controlled_owner_go_no_go_1') {
   fail('rollup missing controlled owner go/no-go source')
 }
-if (rollup.statuses?.externalProductBeta !== 'ready_for_named_invited_tester_identity_and_walkthrough') {
+if (
+  ![
+    'ready_for_named_invited_tester_identity_and_walkthrough',
+    'ready_for_bounded_external_beta_tester_expansion_decision',
+  ].includes(rollup.statuses?.externalProductBeta)
+) {
   fail('rollup external beta readiness mismatch')
 }
 if (rollup.mainSupabaseTarget?.controlledOwnerGoNoGo !== 'approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough') {
   fail('rollup controlled owner go/no-go status mismatch')
 }
-if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1') {
+if (
+  ![
+    'RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1',
+    'RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1',
+  ].includes(rollup.mainSupabaseTarget?.nextMilestone)
+) {
   fail('rollup next milestone mismatch')
 }
 if (rollup.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('rollup product-ready count changed')
@@ -222,4 +247,4 @@ for (const file of changedFiles()) {
 
 console.log(`${packet} diagnostics passed`)
 console.log('Decision: approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough')
-console.log('External product beta readiness: ready_for_named_invited_tester_identity_and_walkthrough')
+console.log(`External product beta readiness: ${rollup.statuses?.externalProductBeta}`)

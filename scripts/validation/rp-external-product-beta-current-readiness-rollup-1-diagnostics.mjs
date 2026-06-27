@@ -457,6 +457,21 @@ const followOnControlledOwnerGoNoGo1Files = [
   'package.json',
 ]
 
+const followOnNamedInvitedTesterWalkthrough1Files = [
+  'docs/external-beta/named-invited-tester-walkthrough-1/source-audit.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/runner-contract.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/walkthrough-evidence.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/readiness-gate.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/safety-boundary.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/validation-results.md',
+  'docs/external-beta/named-invited-tester-walkthrough-1/named-invited-tester-walkthrough-record.json',
+  'docs/activation-phase-rp-external-beta-named-invited-tester-walkthrough-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-bounded-tester-expansion-decision-1.md',
+  'scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1.mjs',
+  'scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1-diagnostics.mjs',
+  'package.json',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -720,7 +735,7 @@ const requiredText = [
   'Unsafe public mutation grants: `0`',
   'Unsafe public sequence grants: `0`',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'External product beta readiness: `ready_for_named_invited_tester_identity_and_walkthrough`',
+  'External product beta readiness: `ready_for_bounded_external_beta_tester_expansion_decision`',
   'Product API readiness: `ready_for_controlled_owner_tester_product_walkthrough`',
   'External beta enabled in this phase: `true`',
   'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
@@ -789,6 +804,13 @@ const requiredText = [
   'RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1',
   'ready_for_named_invited_tester_identity_and_walkthrough',
   'RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1',
+  'completed_named_invited_tester_walkthrough',
+  'completed_guarded_authenticated_named_tester_walkthrough_no_runtime_mutation',
+  'ready_for_bounded_external_beta_tester_expansion_decision',
+  'RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1',
+  '2026-06-27T18-18-53-455Z-ea8106e0',
+  '66d46b5c1e0e6200f431f8ea2a2397d49874bac490928716853a86ee1598c2f6',
+  '3a10d4df623785e961ec0c69e4b86bab9e361a16d32ac345b662af09dd859875',
   'RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1',
   'RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1',
   'planning.demo.chatNative.create',
@@ -921,10 +943,10 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough') fail('record decision mismatch')
+if (record.decision !== 'completed_named_invited_tester_walkthrough') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
 if (record.integrationHead !== '3c56071c0274abeb513f302414d702c113cc6ab7') fail('integration head mismatch')
-if (record.statuses?.externalProductBeta !== 'ready_for_named_invited_tester_identity_and_walkthrough') fail('external beta status mismatch')
+if (record.statuses?.externalProductBeta !== 'ready_for_bounded_external_beta_tester_expansion_decision') fail('external beta status mismatch')
 if (record.statuses?.productApiReadiness !== 'ready_for_controlled_owner_tester_product_walkthrough') fail('product API readiness mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
@@ -994,6 +1016,7 @@ if (record.sourceClosure?.controlledTesterUiFlowSmoke !== 'rp_external_beta_cont
 if (record.sourceClosure?.deployedBrowserUiSurfaceStagingDeploy !== 'rp_external_beta_deployed_browser_ui_surface_1r_staging_deploy') fail('deployed browser UI surface 1R source mismatch')
 if (record.sourceClosure?.controlledOwnerBrowserWalkthrough !== 'rp_external_beta_controlled_owner_browser_walkthrough_1') fail('controlled owner browser walkthrough source mismatch')
 if (record.sourceClosure?.controlledOwnerGoNoGo !== 'rp_external_beta_controlled_owner_go_no_go_1') fail('controlled owner go/no-go source mismatch')
+if (record.sourceClosure?.namedInvitedTesterWalkthrough !== 'rp_external_beta_named_invited_tester_walkthrough_1') fail('named invited tester walkthrough source mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
 if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
@@ -1150,8 +1173,23 @@ if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughBrowserVisibleSh
 if (record.mainSupabaseTarget?.controlledOwnerGoNoGo !== 'approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough') fail('controlled owner go/no-go mismatch')
 if (record.mainSupabaseTarget?.controlledOwnerGoNoGoExecution !== 'completed_docs_only_controlled_owner_go_no_go_no_runtime_mutation') fail('controlled owner go/no-go execution mismatch')
 if (record.mainSupabaseTarget?.controlledOwnerGoNoGoNextGate !== 'RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1') fail('controlled owner go/no-go next gate mismatch')
-if (record.mainSupabaseTarget?.namedInvitedTesterIdentity !== 'required_before_next_walkthrough') fail('named invited tester requirement mismatch')
-if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1') fail('next milestone mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterIdentity !== 'completed_source_approved_primary_real_reeditpro_tester_account_walkthrough') fail('named invited tester requirement mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterWalkthrough !== 'completed_named_invited_tester_walkthrough') fail('named invited tester walkthrough mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterWalkthroughExecution !== 'completed_guarded_authenticated_named_tester_walkthrough_no_runtime_mutation') fail('named invited tester walkthrough execution mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterWalkthroughRunId !== '2026-06-27T18-18-53-455Z-ea8106e0') fail('named invited tester walkthrough run id mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterEmail !== 'aiediting@reeditpro.com') fail('named invited tester email mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterCloudRunRevision !== 'reeditpro-staging-api-00006-6gw') fail('named invited tester Cloud Run revision mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterUnauthenticatedRoot !== 'blocked_403') fail('named invited tester unauthenticated root mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterAuthenticatedRoot !== 'passed_200_html') fail('named invited tester root mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterAuthenticatedDashboard !== 'passed_200_html') fail('named invited tester dashboard mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterAuthenticatedProjects !== 'passed_200_html') fail('named invited tester projects mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterAuthenticatedEditor !== 'passed_200_html') fail('named invited tester editor mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterAssetFetches !== 'passed') fail('named invited tester asset fetch mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterRoutesEndpointStatus !== 200) fail('named invited tester routes endpoint mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterRuntimeStatusEndpointStatus !== 200) fail('named invited tester runtime status mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterReportSha256 !== '66d46b5c1e0e6200f431f8ea2a2397d49874bac490928716853a86ee1598c2f6') fail('named invited tester report checksum mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterManifestSha256 !== '3a10d4df623785e961ec0c69e4b86bab9e361a16d32ac345b662af09dd859875') fail('named invited tester manifest checksum mismatch')
+if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1') fail('next milestone mismatch')
 if (record.requiredNextOwnerDecision?.[0] !== 'keep_controlled_external_beta_tester_group_bounded') fail('controlled private invite next decision mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
@@ -1365,6 +1403,18 @@ if (
 ) {
   fail('missing controlled owner go/no-go diagnostics script')
 }
+if (
+  packageJson.scripts?.['rp-external-beta-named-invited-tester-walkthrough-1'] !==
+  'node scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1.mjs'
+) {
+  fail('missing named invited tester walkthrough runner script')
+}
+if (
+  packageJson.scripts?.['rp-external-beta-named-invited-tester-walkthrough-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1-diagnostics.mjs'
+) {
+  fail('missing named invited tester walkthrough diagnostics script')
+}
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
@@ -1398,6 +1448,7 @@ const allowed = new Set([
   ...followOnDeployedBrowserUiSurface1rStagingDeployFiles,
   ...followOnControlledOwnerBrowserWalkthrough1Files,
   ...followOnControlledOwnerGoNoGo1Files,
+  ...followOnNamedInvitedTesterWalkthrough1Files,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -1443,8 +1494,8 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough')
-console.log('External product beta readiness: ready_for_named_invited_tester_identity_and_walkthrough')
+console.log('Decision: completed_named_invited_tester_walkthrough')
+console.log('External product beta readiness: ready_for_bounded_external_beta_tester_expansion_decision')
 console.log('Product API readiness: ready_for_controlled_owner_tester_product_walkthrough')
 console.log('External beta enabled in this phase: true')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

@@ -513,10 +513,11 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 ## Follow-Up: Go/No-Go Owner Approval Source Packet Hardening
 
 - Tightened `ai-graphics:internal-beta-go-no-go-owner-approval` source packet validation for `--internal-beta-go-no-go-packet`.
-- A source go/no-go packet must now report `internal_beta_go_no_go_approved_runtime_still_blocked`, all 21 tools, all 12 capabilities, all 21 go/no-go approved tools with provided evidence, and runtime/beta/production gates false.
-- Diagnostic coverage proves a beta/production-rollup-fed go/no-go packet can feed owner approval and still reaches only `internal_beta_go_no_go_owner_approved_runtime_still_blocked`.
-- Runtime remains blocked: `agentCanExecuteToolsNow=false`, `workerQueueApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
-- Latest observed PR state after go/no-go owner approval source packet hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `9d56cd16d73bbcb98b23a693dac8bef957bb78f1`, with an empty check rollup.
+- A source go/no-go packet must now report `internal_beta_go_no_go_approved_runtime_still_blocked`, all 21 tools, all 12 capabilities, all 21 go/no-go approved tools with provided evidence, exactly eight GPU/model gate checks, exactly eight nested GPU/model source job payloads, exact native NVIDIA L4 targets, on-demand-only GPU runtime policy, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and runtime/beta/production gates false.
+- Diagnostic coverage proves invalid source packets are rejected when tool coverage drops to 20, capability coverage drops to 11, GPU target counts or values drift, nested GPU gate/source payload classification drifts, on-demand GPU policy is removed, idle GPU runtime is approved, heavy-tool CPU fallback is allowed, `gpuRuntimeApprovedNow=true`, production-worker dispatch is approved, or tool execution is claimed.
+- Runtime remains blocked: `agentCanExecuteToolsNow=false`, `workerQueueApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+- Validation run: `ai-graphics:internal-beta-go-no-go-owner-approval:diagnostics`, `ai-graphics:internal-beta-go-no-go:diagnostics`, `ai-graphics:beta-production-readiness-rollup:diagnostics`, `ai-graphics:on-demand-runtime-admission:diagnostics`, `ai-graphics:beta-readiness-gate:diagnostics`, `open-source-tool-stack:audit:diagnostics`, `npm run typecheck:server`, `git diff --check`, and `git diff --cached --check` passed.
+- Latest observed PR state after go/no-go owner approval source packet hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `71cdde7278ec79cc822dc777991e4302db3a95e9`, with an empty check rollup.
 
 ## Follow-Up: Runtime-Enqueue Source Packet And On-Demand GPU Hardening
 

@@ -415,8 +415,9 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 
 - Added evaluator-only service-role transaction packet ingestion to `ai-graphics:internal-beta-service-role-rpc-smoke-readiness`.
 - The command now accepts `--internal-beta-service-role-queue-transaction-readiness-packet`.
-- The source packet must already report `service_role_queue_transaction_envelope_prepared_live_writes_blocked` with all 21 service-role transaction records ready.
+- The source packet must already report `service_role_queue_transaction_envelope_prepared_live_writes_blocked` with all 21 service-role transaction records ready, exactly eight GPU worker transaction records for the heavy/model tools, `gpuRuntimeShouldStartNow=false`, and false runtime/beta/production gates.
 - Diagnostic coverage proves packet-fed RPC smoke readiness still prepares 21 smoke cases across the four service-role RPCs while keeping `serviceRoleRpcSmokeApprovedNow=false`, `serviceRoleSupabaseWritesApprovedNow=false`, `liveServiceRoleRpcSmokeExecutedNow=0`, `runtimeReadyNow=false`, and `productionReadyNow=false`.
+- Diagnostic coverage also proves malformed source packets are rejected when they report 20 tools, seven GPU worker records, `gpuRuntimeShouldStartNow=true`, `gpuRuntimeApprovedNow=true`, tool execution now, or service-role transaction approval now.
 - Static migration apply, non-production service-role credentials, explicit fixture IDs, and live smoke execution remain separate future-only gates.
 - Latest observed PR state after service-role RPC smoke source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `ccbb4f866c85d7b1ccf09dac5011edf77951729e`, with an empty check rollup.
 

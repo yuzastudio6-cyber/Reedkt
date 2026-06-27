@@ -66,6 +66,154 @@ function isServiceRoleQueueTransactionReadinessPacket(
   )
 }
 
+const falseGateKeys = [
+  'serviceRoleQueueTransactionApprovedNow',
+  'serviceRoleSupabaseWritesApprovedNow',
+  'liveJobBatchInsertApprovedNow',
+  'liveJobInsertApprovedNow',
+  'liveWorkerClaimInsertApprovedNow',
+  'liveWorkerEventInsertApprovedNow',
+  'liveAuditEventInsertApprovedNow',
+  'agentCanExecuteToolsNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'backendQueueSubmissionApprovedNow',
+  'productionWorkerJobEnqueueApprovedNow',
+  'productionWorkerDispatchApprovedNow',
+  'productionWorkerRouteExecutionApprovedNow',
+  'workerLeaseCreationApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'routeExecutionPerformed',
+  'backendQueueSubmissionPerformed',
+  'supabaseMutationPerformed',
+  'serviceRoleTransactionPerformed',
+  'workerLeaseCreated',
+  'productionWorkerDispatchPerformed',
+  'productionWorkerRouteExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+] as const
+
+function assertBooleanField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: boolean,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(
+      `${flag} must have ${key}=${String(expected)}; received ${String(object[key])}`,
+    )
+  }
+}
+
+function assertNumberField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: number,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(`${flag} must have ${key}=${expected}; received ${String(object[key])}`)
+  }
+}
+
+function validateServiceRoleQueueTransactionReadinessPacket(
+  packet: AiGraphicsInternalBetaServiceRoleQueueTransactionReadiness,
+  flag: string,
+): void {
+  const packetRecord = packet as unknown as Record<string, unknown>
+  const booleans = packetRecord.booleans
+  if (typeof booleans !== 'object' || booleans === null || Array.isArray(booleans)) {
+    throw new Error(`${flag} must contain a booleans object`)
+  }
+  const booleanRecord = booleans as Record<string, unknown>
+
+  assertNumberField(packetRecord, 'totalAiGraphicsTools', 21, flag)
+  assertNumberField(packetRecord, 'totalProductFacingCapabilities', 12, flag)
+  assertNumberField(packetRecord, 'serviceRoleTransactionRecordsPrepared', 21, flag)
+  assertNumberField(packetRecord, 'serviceRoleTransactionRecordsReadyWithProvidedEvidence', 21, flag)
+  assertNumberField(packetRecord, 'serviceRoleCapabilityScenariosReadyWithProvidedEvidence', 12, flag)
+  assertNumberField(packetRecord, 'serviceRoleJobRowsPrepared', 21, flag)
+  assertNumberField(packetRecord, 'serviceRoleWorkerClaimTransactionInputsPrepared', 21, flag)
+  assertNumberField(packetRecord, 'serviceRoleWorkerEventRowsPrepared', 42, flag)
+  assertNumberField(packetRecord, 'serviceRoleAuditEventRowsPrepared', 21, flag)
+  assertNumberField(packetRecord, 'liveServiceRoleTransactionsNow', 0, flag)
+  assertNumberField(packetRecord, 'liveWorkerDispatchesNow', 0, flag)
+  assertNumberField(packetRecord, 'liveToolExecutionsNow', 0, flag)
+
+  for (const [key, expected] of Object.entries({
+    internalBetaServiceRoleQueueTransactionReadinessPrepared: true,
+    sourceBackendQueueStorageAccepted: true,
+    all21ToolsCovered: true,
+    all12CapabilitiesCovered: true,
+    all21ServiceRoleTransactionRecordsPrepared: true,
+    all21ServiceRoleTransactionRecordsReadyWithProvidedEvidence: true,
+    all12CapabilityTransactionScenariosReadyWithProvidedEvidence: true,
+    serviceRoleRpcContractPrepared: true,
+    serviceRoleTransactionRollbackPlanPrepared: true,
+    all21IdempotencyKeysPrepared: true,
+    all21ApprovedSnapshotRefsAccepted: true,
+    all21CreditReservationRefsAccepted: true,
+    all21ApprovedSnapshotCreditBindingsReady: true,
+    privateArtifactManifestOnly: true,
+    gpuHeavyToolsTargetGpuRuntime: true,
+    agentCanSelectForPlanning: true,
+  })) {
+    assertBooleanField(booleanRecord, key, expected, flag)
+  }
+  for (const key of falseGateKeys) {
+    assertBooleanField(booleanRecord, key, false, flag)
+  }
+
+  if (
+    !Array.isArray(packet.serviceRoleTransactionRecords) ||
+    packet.serviceRoleTransactionRecords.length !== 21
+  ) {
+    throw new Error(`${flag} must contain exactly 21 serviceRoleTransactionRecords`)
+  }
+  const gpuRecords = packet.serviceRoleTransactionRecords.filter((record) => (
+    record.workerType === 'gpu_ai_worker'
+  ))
+  if (gpuRecords.length !== 8) {
+    throw new Error(`${flag} must contain exactly 8 GPU worker transaction records`)
+  }
+  for (const record of packet.serviceRoleTransactionRecords) {
+    if (record.serviceRoleTransactionEnvelopeReadyWithProvidedEvidence !== true) {
+      throw new Error(`${flag} tool ${record.toolId} must have transaction envelope evidence`)
+    }
+    if (record.canRunServiceRoleTransactionNow !== false) {
+      throw new Error(`${flag} tool ${record.toolId} must have canRunServiceRoleTransactionNow=false`)
+    }
+    if (record.canDispatchWorkerNow !== false) {
+      throw new Error(`${flag} tool ${record.toolId} must have canDispatchWorkerNow=false`)
+    }
+    if (record.canExecuteToolNow !== false) {
+      throw new Error(`${flag} tool ${record.toolId} must have canExecuteToolNow=false`)
+    }
+  }
+}
+
 function readSourceServiceRoleQueueTransactionReadinessPacket(): {
   sourceServiceRoleQueueTransactionReadinessPacket?: AiGraphicsInternalBetaServiceRoleQueueTransactionReadiness
   sourceEvidenceMode:
@@ -83,6 +231,10 @@ function readSourceServiceRoleQueueTransactionReadinessPacket(): {
       'Service-role queue transaction readiness packet must report service_role_queue_transaction_envelope_prepared_live_writes_blocked with all 21 transaction records ready.',
     )
   }
+  validateServiceRoleQueueTransactionReadinessPacket(
+    packet,
+    '--internal-beta-service-role-queue-transaction-readiness-packet',
+  )
 
   return {
     sourceServiceRoleQueueTransactionReadinessPacket: packet,

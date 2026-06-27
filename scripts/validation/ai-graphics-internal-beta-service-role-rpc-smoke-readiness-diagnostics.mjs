@@ -84,6 +84,17 @@ const requiredRpcs = [
   'record_ai_graphics_audit_event',
 ]
 
+const gpuTools = new Set([
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+])
+
 const trueBooleans = [
   'internalBetaServiceRoleRpcSmokeReadinessPrepared',
   'sourceServiceRoleQueueTransactionReadinessAccepted',
@@ -121,6 +132,7 @@ const falseBooleans = [
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
   'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
   'runtimeReadyNow',
   'internalBetaReadyNow',
   'externalBetaReadyNow',
@@ -183,6 +195,7 @@ function runNpm(scriptName, args = []) {
     encoding: 'utf8',
     env: { ...process.env, REEDITPRO_CONFIRM_AI_GRAPHICS_SERVICE_ROLE_RPC_SMOKE: '' },
     maxBuffer: 64 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
   }).trim()
 }
 
@@ -193,16 +206,113 @@ function writeServiceRoleQueueTransactionReadinessPacket() {
     decision:
       'ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope',
     status: 'service_role_queue_transaction_envelope_prepared_live_writes_blocked',
-    serviceRoleTransactionRecords: allTools.map((toolId) => ({ toolId })),
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    serviceRoleTransactionRecordsPrepared: 21,
+    serviceRoleTransactionRecordsReadyWithProvidedEvidence: 21,
+    serviceRoleCapabilityScenariosReadyWithProvidedEvidence: 12,
+    serviceRoleJobRowsPrepared: 21,
+    serviceRoleWorkerClaimTransactionInputsPrepared: 21,
+    serviceRoleWorkerEventRowsPrepared: 42,
+    serviceRoleAuditEventRowsPrepared: 21,
+    liveServiceRoleTransactionsNow: 0,
+    liveWorkerDispatchesNow: 0,
+    liveToolExecutionsNow: 0,
+    serviceRoleTransactionRecords: allTools.map((toolId) => ({
+      toolId,
+      workerType: gpuTools.has(toolId) ? 'gpu_ai_worker' : 'cpu_analysis_worker',
+      serviceRoleTransactionEnvelopeReadyWithProvidedEvidence: true,
+      canRunServiceRoleTransactionNow: false,
+      canDispatchWorkerNow: false,
+      canExecuteToolNow: false,
+    })),
     booleans: {
+      internalBetaServiceRoleQueueTransactionReadinessPrepared: true,
+      sourceBackendQueueStorageAccepted: true,
+      all21ToolsCovered: true,
+      all12CapabilitiesCovered: true,
+      all21ServiceRoleTransactionRecordsPrepared: true,
       all21ServiceRoleTransactionRecordsReadyWithProvidedEvidence: true,
+      all12CapabilityTransactionScenariosReadyWithProvidedEvidence: true,
+      serviceRoleRpcContractPrepared: true,
+      serviceRoleTransactionRollbackPlanPrepared: true,
+      all21IdempotencyKeysPrepared: true,
+      all21ApprovedSnapshotRefsAccepted: true,
+      all21CreditReservationRefsAccepted: true,
+      all21ApprovedSnapshotCreditBindingsReady: true,
+      privateArtifactManifestOnly: true,
+      gpuHeavyToolsTargetGpuRuntime: true,
+      agentCanSelectForPlanning: true,
       serviceRoleQueueTransactionApprovedNow: false,
       serviceRoleSupabaseWritesApprovedNow: false,
+      liveJobBatchInsertApprovedNow: false,
+      liveJobInsertApprovedNow: false,
+      liveWorkerClaimInsertApprovedNow: false,
+      liveWorkerEventInsertApprovedNow: false,
+      liveAuditEventInsertApprovedNow: false,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      workerQueueApprovedNow: false,
+      backendQueueSubmissionApprovedNow: false,
+      productionWorkerJobEnqueueApprovedNow: false,
+      productionWorkerDispatchApprovedNow: false,
+      productionWorkerRouteExecutionApprovedNow: false,
+      workerLeaseCreationApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
       runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
       productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      toolExecutionPerformed: false,
+      workerExecutionPerformed: false,
+      routeExecutionPerformed: false,
+      backendQueueSubmissionPerformed: false,
+      supabaseMutationPerformed: false,
+      serviceRoleTransactionPerformed: false,
+      workerLeaseCreated: false,
+      productionWorkerDispatchPerformed: false,
+      productionWorkerRouteExecutionPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimePerformed: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      mediaProcessingPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
     },
   }, null, 2))
   return packetPath
+}
+
+function writeMutatedServiceRoleQueueTransactionPacket(sourcePacketPath, label, mutate) {
+  const packet = JSON.parse(fs.readFileSync(sourcePacketPath, 'utf8'))
+  mutate(packet)
+  const packetPath = path.join(path.dirname(sourcePacketPath), `${label}.json`)
+  fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
+function expectServiceRoleQueueTransactionPacketRejected(sourcePacketPath, label, mutate) {
+  const badPacketPath = writeMutatedServiceRoleQueueTransactionPacket(sourcePacketPath, label, mutate)
+  let rejected = false
+  try {
+    runNpm(runScriptName, [
+      '--internal-beta-service-role-queue-transaction-readiness-packet',
+      badPacketPath,
+    ])
+  } catch {
+    rejected = true
+  }
+  if (!rejected) fail(`bad_service_role_queue_transaction_packet_not_rejected:${label}`)
 }
 
 for (const file of [
@@ -257,6 +367,15 @@ if (docs.sourceEvidencePolicy?.sourceServiceRoleQueueTransactionPacketMustReport
 }
 if (docs.sourceEvidencePolicy?.sourceServiceRoleQueueTransactionPacketMustCoverAll21Tools !== true) {
   fail('docs_source_policy_missing_all21_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceServiceRoleQueueTransactionPacketMustKeepEightGpuFutureStartTools !== true) {
+  fail('docs_source_policy_missing_eight_gpu_future_start_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceServiceRoleQueueTransactionPacketMustKeepGpuStartNowFalse !== true) {
+  fail('docs_source_policy_missing_gpu_start_now_false_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceServiceRoleQueueTransactionPacketMustKeepRuntimeBetaAndProductionFalse !== true) {
+  fail('docs_source_policy_missing_runtime_beta_production_false_requirement')
 }
 if (docs.sourceEvidencePolicy?.liveSmokeExecutedNow !== false) {
   fail('docs_source_policy_live_smoke_not_false')
@@ -339,6 +458,9 @@ if (docs.counts?.rpcSmokeCasesReadyWithProvidedEvidence !== 21) {
 }
 if (docs.counts?.serviceRoleRpcsCovered !== 4) fail(`docs_rpc_count:${docs.counts?.serviceRoleRpcsCovered}`)
 if (docs.counts?.gpuRuntimeTargetedTools !== 8) fail(`docs_gpu_count:${docs.counts?.gpuRuntimeTargetedTools}`)
+if (docs.counts?.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail(`docs_gpu_start_allowed_count:${docs.counts?.gpuRuntimeStartAllowedForAcceptedJobTools}`)
+}
 if (docs.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) {
   fail(`docs_heavy_cpu_count:${docs.counts?.heavyToolsIncorrectlyTargetingCpu}`)
 }
@@ -384,6 +506,9 @@ if (dryOutput.liveServiceRoleRpcSmokeExecutedNow !== 0) {
   fail(`dry_output_live_smoke:${dryOutput.liveServiceRoleRpcSmokeExecutedNow}`)
 }
 if (dryOutput.booleans?.agentCanExecuteToolsNow !== false) fail('dry_output_agent_execution_not_false')
+if (dryOutput.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('dry_output_gpu_runtime_should_start_now_not_false')
+}
 if (dryOutput.booleans?.serviceRoleSupabaseWritesApprovedNow !== false) {
   fail('dry_output_supabase_writes_not_false')
 }
@@ -401,10 +526,11 @@ if (dryOutput.booleans?.mockAdapterRejectedCapabilityMismatch !== true) {
 }
 
 let packetFedOutput = {}
+const validServiceRoleQueueTransactionPacket = writeServiceRoleQueueTransactionReadinessPacket()
 try {
   packetFedOutput = JSON.parse(runNpm(runScriptName, [
     '--internal-beta-service-role-queue-transaction-readiness-packet',
-    writeServiceRoleQueueTransactionReadinessPacket(),
+    validServiceRoleQueueTransactionPacket,
   ]))
 } catch (error) {
   fail(`packet_fed_readiness_command_failed:${error.message}`)
@@ -424,8 +550,57 @@ if (packetFedOutput.booleans?.serviceRoleRpcSmokeApprovedNow !== false) {
 if (packetFedOutput.booleans?.serviceRoleSupabaseWritesApprovedNow !== false) {
   fail('packet_fed_supabase_writes_not_false')
 }
+if (packetFedOutput.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('packet_fed_gpu_runtime_should_start_now_not_false')
+}
 if (packetFedOutput.booleans?.runtimeReadyNow !== false) fail('packet_fed_runtime_not_false')
 if (packetFedOutput.input?.gpuRuntimePerformed !== false) fail('packet_fed_gpu_runtime_performed_not_false')
+
+expectServiceRoleQueueTransactionPacketRejected(
+  validServiceRoleQueueTransactionPacket,
+  'missing-one-tool',
+  (packet) => {
+    packet.totalAiGraphicsTools = 20
+  },
+)
+expectServiceRoleQueueTransactionPacketRejected(
+  validServiceRoleQueueTransactionPacket,
+  'gpu-start-now',
+  (packet) => {
+    packet.booleans.gpuRuntimeShouldStartNow = true
+  },
+)
+expectServiceRoleQueueTransactionPacketRejected(
+  validServiceRoleQueueTransactionPacket,
+  'gpu-worker-count-seven',
+  (packet) => {
+    const gpuRecord = packet.serviceRoleTransactionRecords.find((record) => (
+      record.workerType === 'gpu_ai_worker'
+    ))
+    gpuRecord.workerType = 'cpu_analysis_worker'
+  },
+)
+expectServiceRoleQueueTransactionPacketRejected(
+  validServiceRoleQueueTransactionPacket,
+  'gpu-approved-now',
+  (packet) => {
+    packet.booleans.gpuRuntimeApprovedNow = true
+  },
+)
+expectServiceRoleQueueTransactionPacketRejected(
+  validServiceRoleQueueTransactionPacket,
+  'tool-execution-now',
+  (packet) => {
+    packet.serviceRoleTransactionRecords[0].canExecuteToolNow = true
+  },
+)
+expectServiceRoleQueueTransactionPacketRejected(
+  validServiceRoleQueueTransactionPacket,
+  'service-role-transaction-approved-now',
+  (packet) => {
+    packet.booleans.serviceRoleQueueTransactionApprovedNow = true
+  },
+)
 
 if (!scorecard.includes('ai_graphics_internal_beta_service_role_rpc_smoke_readiness_contract_prepared_live_smoke_blocked')) {
   fail('scorecard_missing_service_role_rpc_smoke_readiness')
@@ -439,6 +614,7 @@ const forbiddenPatterns = [
   /serviceRoleRpcSmokeApprovedNow["'`:\s=]+true/i,
   /serviceRoleRpcMigrationAppliedNow["'`:\s=]+true/i,
   /serviceRoleSupabaseWritesApprovedNow["'`:\s=]+true/i,
+  /gpuRuntimeShouldStartNow["'`:\s=]+true/i,
   /runtimeReadyNow["'`:\s=]+true/i,
   /internalBetaReadyNow["'`:\s=]+true/i,
   /externalBetaReadyNow["'`:\s=]+true/i,
@@ -526,6 +702,8 @@ console.log(JSON.stringify({
   rpcSmokeCasesReadyWithProvidedEvidence: docs.counts.rpcSmokeCasesReadyWithProvidedEvidence,
   serviceRoleRpcsCovered: docs.counts.serviceRoleRpcsCovered,
   gpuRuntimeTargetedTools: docs.counts.gpuRuntimeTargetedTools,
+  gpuRuntimeStartAllowedForAcceptedJobTools: docs.counts.gpuRuntimeStartAllowedForAcceptedJobTools,
+  gpuRuntimeShouldStartNow: docs.booleans.gpuRuntimeShouldStartNow,
   liveServiceRoleRpcSmokeExecutedNow: docs.counts.liveServiceRoleRpcSmokeExecutedNow,
   liveMigrationAppliesNow: docs.counts.liveMigrationAppliesNow,
   liveToolExecutionsNow: docs.counts.liveToolExecutionsNow,

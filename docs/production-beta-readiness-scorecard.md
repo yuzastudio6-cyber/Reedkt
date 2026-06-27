@@ -281,8 +281,11 @@ internal beta runtime, external beta, and production remain blocked.
 The smoke readiness CLI can also consume
 `--internal-beta-service-role-queue-transaction-readiness-packet` from the
 no-write transaction layer. That packet must already report all 21 service-role
-transaction records ready; static migration apply, non-production service-role
-credentials, fixture IDs, and live smoke execution remain separate future gates.
+transaction records ready, exactly eight GPU worker transaction records,
+`gpuRuntimeShouldStartNow=false`, and false runtime/beta/production gates;
+static migration apply, non-production service-role credentials, fixture IDs,
+and live smoke execution remain separate future gates. GPU runtime remains
+on-demand only for future accepted GPU tool-call jobs.
 
 AI graphics internal beta service-role RPC local smoke proof decision
 `ai_graphics_internal_beta_service_role_rpc_local_smoke_passed_with_rollback_fixtures`

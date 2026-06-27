@@ -22,9 +22,11 @@ Supabase rows, dispatch workers, or execute tools.
   `--internal-beta-service-role-queue-transaction-readiness-packet`
 - The source packet must already report
   `service_role_queue_transaction_envelope_prepared_live_writes_blocked` with
-  all 21 transaction records ready. Static migration apply, non-production
-  service-role credentials, fixture IDs, and live smoke execution remain
-  separate future-only gates.
+  all 21 transaction records ready, exactly eight GPU worker transaction
+  records for the heavy/model tools, `gpuRuntimeShouldStartNow=false`, and
+  false runtime, beta, and production gates. Static migration apply,
+  non-production service-role credentials, fixture IDs, and live smoke
+  execution remain separate future-only gates.
 
 ## Tools Covered
 
@@ -53,7 +55,8 @@ The smoke harness covers all 21 AI graphics tools:
 - `babylonjs`
 
 All eight heavy/model tools remain targeted to GPU runtime profiles; none are
-retargeted to CPU runtime.
+retargeted to CPU runtime. GPU startup remains on demand only for future
+accepted GPU tool-call jobs and is not started by this readiness packet.
 
 ## Capabilities Covered
 
@@ -164,6 +167,8 @@ Blocked now:
 - RPC smoke cases prepared: 21
 - RPC smoke cases ready with provided evidence: 21
 - Service-role RPCs covered: 4
+- GPU runtime targeted tools: 8
+- GPU runtime start allowed for future accepted job tools: 8
 - Live service-role RPC smokes now: 0
 - Live migration applies now: 0
 - Live tool executions now: 0
@@ -206,6 +211,7 @@ Blocked now:
 - `providerRuntimeApprovedNow`: false
 - `browserWebglCanvasRuntimeApprovedNow`: false
 - `gpuRuntimeApprovedNow`: false
+- `gpuRuntimeShouldStartNow`: false
 - `runtimeReadyNow`: false
 - `internalBetaReadyNow`: false
 - `externalBetaReadyNow`: false

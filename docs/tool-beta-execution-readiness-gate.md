@@ -64,6 +64,7 @@ The backend now exposes an authenticated, mock-safe evaluation surface for this 
 - `POST /v1/beta-readiness/evidence` records a sanitized evidence packet idempotently and returns the computed report.
 - `GET /v1/beta-readiness/evidence` lists stored evidence packets, the merged evidence view, and the computed report.
 - `POST /v1/beta-readiness/evidence/core-real-check` runs only the bounded core command/import/package-metadata checks and records accepted evidence only for tools that actually pass those checks.
+- `GET /v1/beta-readiness/platform-preflight` returns a read-only local platform evidence preflight. It verifies source artifacts such as migration files and backend route/store wiring, names the staging/production-only evidence still missing, and does not write evidence or open beta/production gates.
 
 In mock mode, stored evidence is in-memory only. In non-mock mode, evidence writes require the `beta_readiness_evidence_packets` migration and backend service-role path; missing persistence fails closed instead of silently enabling beta. These routes do not reserve or spend credits, call providers, run tools, enable beta, or mark production ready by themselves. They make the gate executable from backend callers, so blocker state is computed from explicit evidence instead of a hidden hardcoded wall. Unknown tools, unknown checklist items, duplicate downstream evidence, and secret-like payloads fail closed.
 

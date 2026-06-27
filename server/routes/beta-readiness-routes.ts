@@ -5,6 +5,7 @@ import { requireIdempotency } from '../middleware/idempotency'
 import { buildBetaReadinessReport } from '../beta-readiness'
 import { createBetaReadinessEvidenceService } from '../beta-readiness/beta-readiness-evidence-service'
 import { buildCoreRealCheckEvidencePacket } from '../beta-readiness/core-real-check-evidence'
+import { buildBetaPlatformEvidencePreflight } from '../beta-readiness/platform-evidence-preflight'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 import {
   betaReadinessCoreRealCheckEvidenceSchema,
@@ -62,6 +63,14 @@ export function createBetaReadinessRoutes(): Router {
       mergedEvidence: result.mergedEvidence,
       report: result.report,
     }, result.warnings)
+  }))
+
+  router.get('/v1/beta-readiness/platform-preflight', requireAuth, asyncRoute(async (request, response) => {
+    const report = buildBetaPlatformEvidencePreflight(getServiceContext(request))
+    sendOk(response, { report }, [
+      'Read-only local platform evidence preflight; no evidence was recorded and no beta/production gate was opened.',
+      ...report.missingEvidence.map((item) => `Missing platform evidence: ${item}`),
+    ])
   }))
 
   router.post('/v1/beta-readiness/evidence', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {

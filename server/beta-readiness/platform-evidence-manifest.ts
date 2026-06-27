@@ -92,6 +92,7 @@ function buildRequirements(): BetaPlatformEvidenceManifestRequirement[] {
         'smoke:beta-platform-deployed-evidence-verifier',
         'smoke:beta-platform-deployed-evidence-probes',
         'smoke:beta-platform-supabase-deployed-evidence-transport',
+        'smoke:beta-platform-staging-evidence-collector-cli',
       ],
       sourceFiles: [
         'server/routes/beta-readiness-routes.ts',
@@ -99,16 +100,19 @@ function buildRequirements(): BetaPlatformEvidenceManifestRequirement[] {
         'server/beta-readiness/platform-deployed-evidence-verifier.ts',
         'server/beta-readiness/platform-deployed-evidence-probes.ts',
         'server/beta-readiness/platform-supabase-deployed-evidence-transport.ts',
+        'server/cli/beta-platform-staging-evidence-probe.ts',
         'server/smoke/beta-readiness-api-smoke.ts',
         'server/smoke/beta-platform-deployed-evidence-verifier-smoke.ts',
         'server/smoke/beta-platform-deployed-evidence-probes-smoke.ts',
         'server/smoke/beta-platform-supabase-deployed-evidence-transport-smoke.ts',
+        'server/smoke/beta-platform-staging-evidence-collector-cli-smoke.ts',
       ],
       localEvidence: [
         'Verifier source can build a platform evidence packet only when all deployed probes and owner approvals pass.',
         'Smoke coverage proves complete evidence clears the shared platform blocker while partial evidence, missing owner approvals, and secret-like notes fail closed.',
         'Probe transport smoke proves deployed observations map into verifier probes and that failed service-role verification keeps the platform blocker closed.',
         'Supabase deployed transport smoke proves backend-owned table, controlled evidence write/replay, and wallet-settlement RPC probes with explicit persistent-write confirmation.',
+        'Staging evidence collector CLI smoke proves deployed route request shape, secret-safe output, production confirmation guard, and require-ready failure behavior.',
         'API smoke proves the authenticated/idempotent route can verify, reject unconfirmed recording, record a ready packet, and replay it without duplicate evidence.',
       ],
       remainingEvidence: [

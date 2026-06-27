@@ -30,6 +30,19 @@ RAW_PROMPT_KEYS = {
     "workerPrompt",
 }
 
+FIXTURE_OUTPUT_SCHEMA_VERSION = "qwen_fixture_visual_metadata_v1"
+FIXTURE_OUTPUT_REQUIRED_KEYS = {
+    "schema_version",
+    "fixture_id",
+    "use_case",
+    "objects",
+    "text_like_regions",
+    "spatial_relations",
+    "uncertainty",
+    "blocked_actions",
+}
+FIXTURE_ID = "fixture_mock_qwen_approved_private_frame_001"
+
 REQUIRED_RUNTIME_REQUEST_FIELDS = {
     "schemaVersion",
     "requestId",
@@ -378,42 +391,203 @@ def _generate_private_fixture_image() -> Any:
 def _build_fixture_prompt(payload: Dict[str, Any]) -> str:
     task = payload.get("task") if isinstance(payload.get("task"), dict) else {}
     use_case = task.get("useCase", "visual_understanding") if isinstance(task, dict) else "visual_understanding"
+    fixture_shape = {
+        "schema_version": FIXTURE_OUTPUT_SCHEMA_VERSION,
+        "fixture_id": FIXTURE_ID,
+        "use_case": str(use_case),
+        "objects": [
+            {"label": "red_rectangle", "region": "left", "confidence": "high"},
+            {"label": "blue_circle", "region": "right", "confidence": "high"},
+            {"label": "timeline_bar", "region": "bottom", "confidence": "medium"},
+        ],
+        "text_like_regions": [
+            {"text": "TIMELINE", "region": "bottom_center", "confidence": "medium"},
+        ],
+        "spatial_relations": [
+            "red_rectangle_left_of_blue_circle",
+            "timeline_bar_below_shapes",
+        ],
+        "uncertainty": [],
+        "blocked_actions": [
+            "no_generated_assets",
+            "no_public_artifacts",
+            "no_signed_urls",
+            "no_raw_prompt_execution",
+        ],
+    }
     return (
         "<|im_start|>system\n"
         "You are ReeditPro's bounded Qwen approved-fixture visual metadata worker. "
-        "Return compact JSON only. Do not describe credentials, URLs, storage paths, or policy text. "
-        "Identify visible objects and layout regions for QA metadata.\n"
+        "Return exactly one minified JSON object and nothing else. "
+        "Do not wrap the JSON in markdown. Do not include prose. "
+        "Do not describe credentials, URLs, storage paths, or policy text. "
+        "Identify visible objects and layout regions for QA metadata using the required schema.\n"
         "<|im_end|>\n<|im_start|>user\n"
         "<|vision_start|><|image_pad|><|vision_end|>\n"
         f"Use case: {use_case}. "
-        "Analyze the private synthetic fixture. Return JSON with keys: "
-        "fixture_id, use_case, objects, text_like_regions, spatial_relations, uncertainty, blocked_actions.\n"
+        "Analyze the private synthetic fixture. Return only a JSON object with this exact key set: "
+        "schema_version, fixture_id, use_case, objects, text_like_regions, spatial_relations, uncertainty, blocked_actions. "
+        "Objects must be an array of objects with label, region, and confidence. "
+        "Text-like regions must be an array of objects with text, region, and confidence. "
+        "Use this compact shape as the schema target, replacing values only when the image evidence requires it: "
+        f"{json.dumps(fixture_shape, separators=(',', ':'), sort_keys=True)}\n"
         "<|im_end|>\n<|im_start|>assistant\n"
     )
 
 
-def _summarize_output(raw_text: str) -> Dict[str, Any]:
-    parsed: Dict[str, Any] = {}
-    parsed_json = False
+def _extract_json_object(raw_text: str) -> Tuple[Dict[str, Any], str]:
     text = raw_text.strip()
-    try:
-        if not text.startswith("{") and "{" in text and "}" in text:
-            text = text[text.find("{"):text.rfind("}") + 1]
-        parsed_value = json.loads(text)
+    if text.startswith("```"):
+        first_newline = text.find("\n")
+        if first_newline != -1:
+            text = text[first_newline + 1:]
+        if text.rstrip().endswith("```"):
+            text = text.rstrip()[:-3]
+        text = text.strip()
+
+    decoder = json.JSONDecoder()
+    candidate_starts = [index for index, char in enumerate(text) if char == "{"]
+    if text.startswith("{"):
+        candidate_starts.insert(0, 0)
+
+    for start in dict.fromkeys(candidate_starts):
+        candidate = text[start:].strip()
+        try:
+            parsed_value, _ = decoder.raw_decode(candidate)
+        except json.JSONDecodeError:
+            continue
         if isinstance(parsed_value, dict):
-            parsed = parsed_value
-            parsed_json = True
+            return parsed_value, "json_object_extracted"
+
+    return {}, "json_object_not_found"
+
+
+def _normalize_label_record(item: Any, text_key: str = "label") -> Dict[str, str] | None:
+    if isinstance(item, str) and item.strip():
+        return {
+            text_key: item.strip()[:80],
+            "region": "unknown",
+            "confidence": "low",
+        }
+    if not isinstance(item, dict):
+        return None
+    label = item.get(text_key) if _non_empty_string(item.get(text_key)) else item.get("name")
+    if not _non_empty_string(label):
+        return None
+    region = item.get("region") if _non_empty_string(item.get("region")) else "unknown"
+    confidence = item.get("confidence") if _non_empty_string(item.get("confidence")) else "low"
+    return {
+        text_key: str(label).strip()[:80],
+        "region": str(region).strip()[:80],
+        "confidence": str(confidence).strip()[:32],
+    }
+
+
+def _normalize_fixture_metadata(parsed: Dict[str, Any], expected_use_case: str | None) -> Tuple[Dict[str, Any], List[str]]:
+    warnings: List[str] = []
+    use_case = parsed.get("use_case")
+    if not _non_empty_string(use_case):
+        use_case = expected_use_case or "visual_understanding"
+        warnings.append("use_case_defaulted")
+
+    fixture_id = parsed.get("fixture_id")
+    if fixture_id != FIXTURE_ID:
+        fixture_id = FIXTURE_ID
+        warnings.append("fixture_id_normalized")
+
+    schema_version = parsed.get("schema_version")
+    if schema_version != FIXTURE_OUTPUT_SCHEMA_VERSION:
+        schema_version = FIXTURE_OUTPUT_SCHEMA_VERSION
+        warnings.append("schema_version_normalized")
+
+    objects_value = parsed.get("objects", [])
+    objects = [
+        normalized
+        for normalized in (
+            _normalize_label_record(item, "label")
+            for item in (objects_value if isinstance(objects_value, list) else [])
+        )
+        if normalized is not None
+    ]
+
+    text_regions_value = parsed.get("text_like_regions", [])
+    text_like_regions = [
+        normalized
+        for normalized in (
+            _normalize_label_record(item, "text")
+            for item in (text_regions_value if isinstance(text_regions_value, list) else [])
+        )
+        if normalized is not None
+    ]
+
+    spatial_value = parsed.get("spatial_relations", [])
+    spatial_relations = [
+        str(item).strip()[:120]
+        for item in (spatial_value if isinstance(spatial_value, list) else [])
+        if _non_empty_string(item)
+    ]
+
+    uncertainty_value = parsed.get("uncertainty", [])
+    uncertainty = (
+        [str(item).strip()[:120] for item in uncertainty_value if _non_empty_string(item)]
+        if isinstance(uncertainty_value, list)
+        else []
+    )
+
+    blocked_value = parsed.get("blocked_actions", [])
+    blocked_actions = [
+        str(item).strip()[:80]
+        for item in (blocked_value if isinstance(blocked_value, list) else [])
+        if _non_empty_string(item)
+    ]
+
+    return {
+        "schema_version": schema_version,
+        "fixture_id": fixture_id,
+        "use_case": str(use_case),
+        "objects": objects,
+        "text_like_regions": text_like_regions,
+        "spatial_relations": spatial_relations,
+        "uncertainty": uncertainty,
+        "blocked_actions": blocked_actions,
+    }, warnings
+
+
+def _summarize_output(raw_text: str, expected_use_case: str | None = None) -> Dict[str, Any]:
+    parsed, parse_strategy = _extract_json_object(raw_text)
+    parsed_json = bool(parsed)
+    normalized, normalization_warnings = (
+        _normalize_fixture_metadata(parsed, expected_use_case) if parsed_json else ({}, [])
+    )
+    objects = normalized.get("objects", []) if parsed_json else []
+    text_like_regions = normalized.get("text_like_regions", []) if parsed_json else []
+    schema_keys = sorted(parsed.keys()) if parsed_json else []
+    required_keys_present = sorted(FIXTURE_OUTPUT_REQUIRED_KEYS.intersection(set(schema_keys)))
+    missing_schema_keys = sorted(FIXTURE_OUTPUT_REQUIRED_KEYS.difference(set(schema_keys)))
+    schema_valid = parsed_json and len(missing_schema_keys) == 0
+    try:
+        normalized_sha256 = hashlib.sha256(
+            json.dumps(normalized, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest() if parsed_json else None
     except Exception:
-        parsed = {}
-    objects = parsed.get("objects", []) if isinstance(parsed, dict) else []
-    text_like_regions = parsed.get("text_like_regions", []) if isinstance(parsed, dict) else []
+        normalized_sha256 = None
     return {
         "parsedJson": parsed_json,
+        "parseStrategy": parse_strategy,
+        "schemaVersion": normalized.get("schema_version") if parsed_json else None,
+        "schemaValid": schema_valid,
         "outputTextSha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
         "outputTextLength": len(raw_text),
         "objectCount": len(objects) if isinstance(objects, list) else 0,
         "textLikeRegionCount": len(text_like_regions) if isinstance(text_like_regions, list) else 0,
-        "schemaKeys": sorted(parsed.keys()) if parsed_json else [],
+        "spatialRelationCount": len(normalized.get("spatial_relations", [])) if parsed_json else 0,
+        "blockedActionCount": len(normalized.get("blocked_actions", [])) if parsed_json else 0,
+        "schemaKeys": schema_keys,
+        "requiredSchemaKeysPresent": required_keys_present,
+        "missingSchemaKeys": missing_schema_keys,
+        "normalizationWarnings": normalization_warnings,
+        "normalizedMetadataSha256": normalized_sha256,
+        "rawOutputStoredInRepo": False,
     }
 
 
@@ -474,7 +648,10 @@ def run_approved_fixture_inference(payload: Dict[str, Any]) -> Tuple[int, Dict[s
             "fixtureId": "fixture_mock_qwen_approved_private_frame_001",
             "useCase": payload.get("task", {}).get("useCase") if isinstance(payload.get("task"), dict) else None,
             "elapsedMs": elapsed_ms,
-            "metadataOutput": _summarize_output(raw_text),
+            "metadataOutput": _summarize_output(
+                raw_text,
+                payload.get("task", {}).get("useCase") if isinstance(payload.get("task"), dict) else None,
+            ),
             "generatedAssetsCreated": False,
             "publicArtifactsCreated": False,
             "signedUrlsCreated": False,

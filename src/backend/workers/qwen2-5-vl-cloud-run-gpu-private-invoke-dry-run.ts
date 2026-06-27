@@ -9,6 +9,10 @@ import {
   type Qwen25VlPrivateInvokeResponseInput,
   type Qwen25VlPrivateInvokeTransportBlocker,
 } from './qwen2-5-vl-cloud-run-gpu-private-invoke-response'
+import {
+  previewQwen25VlPrivateInvokeTransportAdapter,
+  type Qwen25VlPrivateInvokeTransportResult,
+} from './qwen2-5-vl-cloud-run-gpu-private-invoke-transport-adapter'
 
 export type Qwen25VlPrivateInvokeDryRunStatus =
   | 'blocked_envelope_not_accepted'
@@ -26,6 +30,7 @@ export interface Qwen25VlPrivateInvokeDryRunResult {
   status: Qwen25VlPrivateInvokeDryRunStatus
   decision: 'qwen2_5_vl_7b_cloud_run_gpu_private_invoke_dry_run_coordinator_defined_no_transport'
   envelopeResult: Qwen25VlPrivateInvokeEnvelopeResult
+  transportAdapterPreview: Qwen25VlPrivateInvokeTransportResult
   responseClassification: Qwen25VlPrivateInvokeResponseClassification
   runtimeCanAdvanceNow: false
   transportAttemptedNow: false
@@ -46,6 +51,7 @@ const BASE_RUNTIME_FLAGS = {
   dryRunCoordinatorDefined: true,
   envelopeAttemptedLocally: true,
   envelopeAcceptedForFutureTransport: false,
+  transportAdapterPreviewed: false,
   responseClassifiedLocally: false,
   simulatedResponseUsed: false,
   transportBlockerRecognized: false,
@@ -82,6 +88,9 @@ export function runQwen25VlPrivateInvokeDryRun(
   input: Qwen25VlPrivateInvokeDryRunInput = {},
 ): Qwen25VlPrivateInvokeDryRunResult {
   const envelopeResult = buildQwen25VlPrivateInvokeEnvelope(input)
+  const transportAdapterPreview = previewQwen25VlPrivateInvokeTransportAdapter({
+    queueFixture: input.queueFixture,
+  })
 
   if (!envelopeResult.envelopeAcceptedForFutureTransport) {
     const responseClassification = classifyQwen25VlPrivateInvokeResponse({
@@ -92,6 +101,7 @@ export function runQwen25VlPrivateInvokeDryRun(
       status: 'blocked_envelope_not_accepted',
       decision: DECISION,
       envelopeResult,
+      transportAdapterPreview,
       responseClassification,
       runtimeCanAdvanceNow: false,
       transportAttemptedNow: false,
@@ -100,6 +110,7 @@ export function runQwen25VlPrivateInvokeDryRun(
         'Qwen private invoke dry run stopped before transport because the envelope was not accepted.',
       runtimeFlags: {
         ...BASE_RUNTIME_FLAGS,
+        transportAdapterPreviewed: true,
         responseClassifiedLocally: true,
       },
       warnings: [
@@ -122,6 +133,7 @@ export function runQwen25VlPrivateInvokeDryRun(
       : 'blocked_transport_not_attempted',
     decision: DECISION,
     envelopeResult,
+    transportAdapterPreview,
     responseClassification,
     runtimeCanAdvanceNow: false,
     transportAttemptedNow: false,
@@ -131,6 +143,7 @@ export function runQwen25VlPrivateInvokeDryRun(
     runtimeFlags: {
       ...BASE_RUNTIME_FLAGS,
       envelopeAcceptedForFutureTransport: true,
+      transportAdapterPreviewed: true,
       responseClassifiedLocally: true,
       simulatedResponseUsed: input.simulatedResponse !== undefined,
       transportBlockerRecognized: responseInput.transportBlocker !== undefined,

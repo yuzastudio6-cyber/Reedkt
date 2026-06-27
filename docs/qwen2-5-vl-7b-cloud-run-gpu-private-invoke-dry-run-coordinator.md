@@ -4,7 +4,7 @@
 
 Decision: `qwen2_5_vl_7b_cloud_run_gpu_private_invoke_dry_run_coordinator_defined_no_transport`.
 
-This document records the backend-only dry-run coordinator for Qwen2.5-VL 7B private invocation readiness. It composes the approved-snapshot queue contract, private invoke envelope contract, and response classifier without resolving service URL, resolving audience, creating an auth header, fetching an identity token, sending a Cloud Run request, running inference, dispatching workers, mutating Supabase, executing SQL, creating generated assets, creating public artifacts, creating signed URLs, mutating credits, unlocking beta, unlocking production, claiming `dry_run_passed`, or claiming `generated_local_fixture_passed`.
+This document records the backend-only dry-run coordinator for Qwen2.5-VL 7B private invocation readiness. It composes the approved-snapshot queue contract, private invoke envelope contract, fail-closed transport adapter preview, and response classifier without resolving service URL, resolving audience, creating an auth header, fetching an identity token, sending a Cloud Run request, running inference, dispatching workers, mutating Supabase, executing SQL, creating generated assets, creating public artifacts, creating signed URLs, mutating credits, unlocking beta, unlocking production, claiming `dry_run_passed`, or claiming `generated_local_fixture_passed`.
 
 ## Purpose
 
@@ -12,8 +12,9 @@ The coordinator proves the backend can connect these already-approved local cont
 
 1. Validate or reject the approved-snapshot queue fixture.
 2. Build a future private invoke envelope from that queue payload.
-3. Classify the current auth/transport blocker or a simulated service response.
-4. Refuse runtime state advancement in all current paths.
+3. Preview the fail-closed private invoke transport adapter.
+4. Classify the current auth/transport blocker or a simulated service response.
+5. Refuse runtime state advancement in all current paths.
 
 This gives ReeditPro a single deterministic contract for future private invocation orchestration without creating a transport path.
 
@@ -42,6 +43,8 @@ The default dry-run outcome is:
 - status: `blocked_transport_not_attempted`
 - default transport blocker: `auth_session_requires_reauth`
 - envelope accepted for future transport: true
+- transport adapter preview status: `blocked_transport_disabled`
+- transport adapter previewed: true
 - response classified locally: true
 - transport attempted now: false
 - invocation allowed now: false
@@ -53,6 +56,8 @@ When the queue payload is invalid, the coordinator returns:
 
 - status: `blocked_envelope_not_accepted`
 - envelope accepted for future transport: false
+- transport adapter preview status: `blocked_invalid_envelope`
+- transport adapter previewed: true
 - response classified locally: true
 - transport attempted now: false
 - invocation allowed now: false
@@ -62,6 +67,7 @@ When the queue payload is invalid, the coordinator returns:
 When given a metadata-only future response shape, the coordinator can recognize it through the response classifier, but still returns:
 
 - status: `blocked_response_not_runtime_advanceable`
+- transport adapter preview status: `blocked_transport_disabled`
 - runtime can advance now: false
 - persist output allowed now: false
 - credit spend allowed now: false
@@ -74,6 +80,7 @@ This is intentional. A future runtime prompt must add approved persistence, cred
 All runtime side effects remain closed:
 
 - `transportAttemptedNow=false`
+- `transportAdapterPreviewed=true`
 - `serviceUrlResolvedNow=false`
 - `audienceResolvedNow=false`
 - `authHeaderCreated=false`

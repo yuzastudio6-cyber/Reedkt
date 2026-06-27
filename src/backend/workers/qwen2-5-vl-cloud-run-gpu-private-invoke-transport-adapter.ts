@@ -15,6 +15,7 @@ export type Qwen25VlPrivateInvokeTransportStatus =
   | 'blocked_transport_disabled'
   | 'blocked_runtime_approval_missing'
   | 'blocked_transport_dependencies_missing'
+  | 'blocked_transport_preview_only'
   | 'completed_transport_response_classified'
 
 export interface Qwen25VlPrivateInvokeRuntimeApproval {
@@ -274,6 +275,114 @@ export async function runQwen25VlPrivateInvokeTransportAdapter(
     warnings: [
       'This path is for future approved backend runtime only.',
       'No Supabase, credit, generated-asset, public-artifact, or signed-URL state is mutated by this adapter.',
+    ],
+  })
+}
+
+export function previewQwen25VlPrivateInvokeTransportAdapter(
+  input: Qwen25VlPrivateInvokeTransportInput = {},
+): Qwen25VlPrivateInvokeTransportResult {
+  const envelopeResult = buildQwen25VlPrivateInvokeEnvelope({
+    queueFixture: input.queueFixture,
+  })
+
+  if (!envelopeResult.envelopeAcceptedForFutureTransport || !envelopeResult.envelope) {
+    return buildBlockedResult({
+      status: 'blocked_invalid_envelope',
+      envelopeAcceptedForFutureTransport: false,
+      message:
+        'Qwen private invoke transport preview refused the request before transport because the envelope is invalid.',
+      runtimeFlags: BASE_RUNTIME_FLAGS,
+      warnings: [
+        'No service URL was resolved.',
+        'No identity token was fetched.',
+        'No Cloud Run request was sent.',
+      ],
+    })
+  }
+
+  const runtimeApproval = createQwen25VlPrivateInvokeRuntimeApproval(input.runtimeApproval)
+  const missingApprovalGates = REQUIRED_APPROVAL_GATES
+    .filter((gate) => runtimeApproval[gate] !== true)
+
+  if (!runtimeApproval.invocationEnabledNow) {
+    return buildBlockedResult({
+      status: 'blocked_transport_disabled',
+      envelopeAcceptedForFutureTransport: true,
+      missingApprovalGates,
+      message:
+        'Qwen private invoke transport preview is fail-closed because runtime invocation is disabled by default.',
+      runtimeFlags: {
+        ...BASE_RUNTIME_FLAGS,
+        localEnvelopeValidated: true,
+        runtimeApprovalChecked: true,
+      },
+      warnings: [
+        'No transport dependency was called.',
+        'No service URL was resolved.',
+        'No identity token was fetched.',
+        'No Cloud Run request was sent.',
+      ],
+    })
+  }
+
+  if (missingApprovalGates.length > 0) {
+    return buildBlockedResult({
+      status: 'blocked_runtime_approval_missing',
+      envelopeAcceptedForFutureTransport: true,
+      missingApprovalGates,
+      message:
+        'Qwen private invoke transport preview refused before dependency checks because runtime approval gates are incomplete.',
+      runtimeFlags: {
+        ...BASE_RUNTIME_FLAGS,
+        localEnvelopeValidated: true,
+        runtimeApprovalChecked: true,
+      },
+      warnings: [
+        'Auth reverify and Cloud Run/IAM evidence must pass before private invocation.',
+        'No transport dependency was called.',
+      ],
+    })
+  }
+
+  const dependencies = input.dependencies ?? {}
+  const missingDependencies = REQUIRED_DEPENDENCIES
+    .filter((dependency) => typeof dependencies[dependency] !== 'function')
+
+  if (missingDependencies.length > 0) {
+    return buildBlockedResult({
+      status: 'blocked_transport_dependencies_missing',
+      envelopeAcceptedForFutureTransport: true,
+      missingDependencies,
+      message:
+        'Qwen private invoke transport preview refused before runtime calls because transport dependencies were not provided.',
+      runtimeFlags: {
+        ...BASE_RUNTIME_FLAGS,
+        localEnvelopeValidated: true,
+        runtimeApprovalChecked: true,
+        transportDependenciesChecked: true,
+      },
+      warnings: [
+        'Backend runtime must provide service URL, audience, identity-token, and request dependencies.',
+        'No Cloud Run request was sent.',
+      ],
+    })
+  }
+
+  return buildBlockedResult({
+    status: 'blocked_transport_preview_only',
+    envelopeAcceptedForFutureTransport: true,
+    message:
+      'Qwen private invoke transport preview reached the future transport boundary but does not call injected dependencies.',
+    runtimeFlags: {
+      ...BASE_RUNTIME_FLAGS,
+      localEnvelopeValidated: true,
+      runtimeApprovalChecked: true,
+      transportDependenciesChecked: true,
+    },
+    warnings: [
+      'This preview path never resolves service URLs, fetches identity tokens, or sends Cloud Run requests.',
+      'Use runQwen25VlPrivateInvokeTransportAdapter only in a future approved backend runtime prompt.',
     ],
   })
 }

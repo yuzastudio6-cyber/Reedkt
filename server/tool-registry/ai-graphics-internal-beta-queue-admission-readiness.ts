@@ -90,6 +90,8 @@ export interface AiGraphicsInternalBetaQueueAdmissionReadiness {
     all21QueueAdmissionPacketsPrepared: true
     all21QueueAdmissionPacketsReadyWithProvidedEvidence: boolean
     all12CapabilitiesReadyWithProvidedEvidence: boolean
+    approvedPlanSnapshotRefAccepted: boolean
+    creditReservationRefAccepted: boolean
     privateArtifactManifestOnly: boolean
     gpuHeavyToolsTargetGpuRuntime: boolean
     gpuRuntimeTargetsExact: boolean
@@ -232,12 +234,32 @@ function privateArtifactManifestOnly(ref: string): boolean {
   return /^private:\/\//i.test(ref) || /^reeditpro-private:\/\//i.test(ref)
 }
 
+function isUuidRef(ref: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ref)
+}
+
+function approvedPlanSnapshotRefAccepted(ref: string): boolean {
+  return isUuidRef(ref) || /^approved_snapshot_[a-z0-9_]+$/i.test(ref)
+}
+
+function creditReservationRefAccepted(ref: string): boolean {
+  return isUuidRef(ref) || /^credit_reservation_[a-z0-9_]+$/i.test(ref)
+}
+
 function missingPrerequisites(
   evidence: AiGraphicsInternalBetaQueueAdmissionEvidence,
 ): string[] {
   const missing = requiredQueueAdmissionEvidence.filter((key) => (
     !evidence[key as keyof AiGraphicsInternalBetaQueueAdmissionEvidence]
   ))
+
+  if (evidence.approvedPlanSnapshotId && !approvedPlanSnapshotRefAccepted(evidence.approvedPlanSnapshotId)) {
+    missing.push('approvedPlanSnapshotId must be a UUID or explicit approved_snapshot_* fixture ref')
+  }
+
+  if (evidence.creditReservationId && !creditReservationRefAccepted(evidence.creditReservationId)) {
+    missing.push('creditReservationId must be a UUID or explicit credit_reservation_* fixture ref')
+  }
 
   if (evidence.privateArtifactManifestRef && !privateArtifactManifestOnly(evidence.privateArtifactManifestRef)) {
     missing.push('privateArtifactManifestRef must use a private-only scheme')
@@ -360,6 +382,10 @@ export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
         queueAdmissionPacketsReadyWithProvidedEvidence === 21,
       all12CapabilitiesReadyWithProvidedEvidence:
         queueAdmissionCapabilitiesReadyWithProvidedEvidence === 12,
+      approvedPlanSnapshotRefAccepted:
+        approvedPlanSnapshotRefAccepted(queueAdmissionEvidence.approvedPlanSnapshotId),
+      creditReservationRefAccepted:
+        creditReservationRefAccepted(queueAdmissionEvidence.creditReservationId),
       privateArtifactManifestOnly:
         privateArtifactManifestOnly(queueAdmissionEvidence.privateArtifactManifestRef),
       gpuHeavyToolsTargetGpuRuntime:

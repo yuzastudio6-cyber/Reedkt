@@ -93,6 +93,11 @@
     "workerIdempotencyNamespace": "ai_graphics_internal_beta_queue_admission",
     "internalBetaRuntimeOwnerApprovalRef": "internal_beta_runtime_owner_approval_ai_graphics_ref"
   },
+  "queueAdmissionEvidenceFormat": {
+    "approvedPlanSnapshotId": "backend UUID or explicit approved_snapshot_* fixture ref",
+    "creditReservationId": "backend UUID or explicit credit_reservation_* fixture ref",
+    "privateArtifactManifestRef": "private:// or reeditpro-private:// only"
+  },
   "allowedQueueAdmissionPreparationActions": [
     "bind all 21 AI graphics production tool IDs to approved snapshot and credit reservation evidence",
     "bind each candidate to a private artifact manifest reference",
@@ -128,6 +133,8 @@
     "all21QueueAdmissionPacketsPrepared": true,
     "all21QueueAdmissionPacketsReadyWithProvidedEvidence": true,
     "all12CapabilitiesReadyWithProvidedEvidence": true,
+    "approvedPlanSnapshotRefAccepted": true,
+    "creditReservationRefAccepted": true,
     "privateArtifactManifestOnly": true,
     "gpuHeavyToolsTargetGpuRuntime": true,
     "gpuRuntimeTargetsExact": true,

@@ -77,11 +77,13 @@ This contract turns the all-21 runtime-enqueue scope into explicit queue-admissi
 
 The private artifact manifest reference must stay private-only, for example `private://ai-graphics/internal-beta/artifact-manifest.json`. Public URLs, signed URLs, and direct GCS references remain blocked for this lane.
 
+`approvedPlanSnapshotId` must be a backend UUID or an explicit `approved_snapshot_*` fixture ref, and `creditReservationId` must be a backend UUID or an explicit `credit_reservation_*` fixture ref. Generic placeholders are not queue-admission evidence.
+
 ## GPU Runtime Target Policy
 
 Queue admission preserves exact native NVIDIA L4 runtime targets for all eight GPU/model tools. `sam2` uses `native_linux_amd64_nvidia_l4_sam2_runtime`, `birefnet` uses `native_linux_amd64_nvidia_l4_birefnet_runtime`, and `real_esrgan` uses `native_linux_amd64_nvidia_l4_real_esrgan_runtime`; `torch_torchvision`, `transformers`, `kornia`, `rembg`, and `transparent_background` use `native_linux_amd64_nvidia_l4_gpu_worker`.
 
-GPU runtime remains on-demand only. Queue admission does not keep an idle GPU running; GPU startup is allowed only after a future approved worker job calls the GPU tool.
+GPU runtime remains on-demand only. Queue admission does not keep an idle GPU running; GPU startup is allowed only after a future approved worker job with accepted snapshot, credit reservation, private artifact manifest, and worker approval evidence calls the GPU tool.
 
 ## Allowed Preparation Actions
 

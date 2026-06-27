@@ -179,10 +179,10 @@ function buildWorkerEvidenceInput(
 
   return {
     approvedPlanSnapshotId: ownerApprovedEvidenceReady
-      ? 'owner-approved-ai-graphics-beta-evidence-approved-plan-snapshot-ref'
+      ? 'approved_snapshot_ai_graphics_owner_approved_beta_evidence_fixture'
       : '',
     creditReservationId: ownerApprovedEvidenceReady
-      ? 'owner-approved-ai-graphics-beta-evidence-credit-reservation-ref'
+      ? 'credit_reservation_ai_graphics_owner_approved_beta_evidence_fixture'
       : '',
     artifactBoundaryApproved: ownerApprovedEvidenceReady,
     privateArtifactManifestRef: ownerApprovedEvidenceReady

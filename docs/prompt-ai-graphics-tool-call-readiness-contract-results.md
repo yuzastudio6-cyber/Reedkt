@@ -192,6 +192,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after worker payload runtime activation hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `3cf4ee346a36c501b2b9ccccbdd624523def574f`, with an empty check rollup.
 - Worker handoff private artifact boundary hardening: the worker handoff contract now rejects non-private artifact manifest refs before queue admission. `privateArtifactManifestRef` must use a `private://` or `reeditpro-private://` scheme; `http://`, `https://`, `signed://`, `public://`, and `gs://` refs remain invalid. Beta execution handoff evidence now passes a private-scheme manifest ref into worker handoff readiness.
 - Latest observed PR state after worker handoff private artifact boundary hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `fcf182c82b6ef2a3c27f9569df1ab0c376c1e037`, with an empty check rollup.
+- Snapshot and credit evidence hardening: worker handoff and queue admission now require approved snapshot and credit reservation refs to be backend UUIDs or explicit `approved_snapshot_*` / `credit_reservation_*` fixture refs. Generic placeholders fail the queue-admission command before queue readiness, while GPU runtime remains on-demand only for future approved worker/tool calls.
 
 ## Runtime State
 

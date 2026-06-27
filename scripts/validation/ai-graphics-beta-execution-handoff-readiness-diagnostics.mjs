@@ -435,6 +435,12 @@ if (approvedOutput.workerHandoffEvidenceInput?.modelWeightManifestsApproved !== 
 if (!String(approvedOutput.workerHandoffEvidenceInput?.privateArtifactManifestRef ?? '').startsWith('private://')) {
   fail('approved_worker_evidence_private_manifest_ref_not_private_scheme')
 }
+if (!String(approvedOutput.workerHandoffEvidenceInput?.approvedPlanSnapshotId ?? '').startsWith('approved_snapshot_')) {
+  fail('approved_worker_evidence_snapshot_ref_not_explicit_fixture')
+}
+if (!String(approvedOutput.workerHandoffEvidenceInput?.creditReservationId ?? '').startsWith('credit_reservation_')) {
+  fail('approved_worker_evidence_credit_ref_not_explicit_fixture')
+}
 
 for (const output of [defaultOutput, awaitingOutput, approvedOutput]) {
   for (const key of [

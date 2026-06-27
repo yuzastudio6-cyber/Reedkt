@@ -144,6 +144,10 @@ for (const needle of [
   'requiresPrivateArtifactManifest: true',
   'privateArtifactManifestOnly',
   'private artifact manifest reference must use a private-only scheme',
+  'approvedPlanSnapshotRefAccepted',
+  'approved plan snapshot id must be a UUID or explicit approved_snapshot_* fixture ref',
+  'creditReservationRefAccepted',
+  'credit reservation id must be a UUID or explicit credit_reservation_* fixture ref',
   'requiresIdempotencyKey: true',
   'cpuFallbackAllowedForHeavyTool: false',
   'ai_graphics_gpu_model_worker_job',
@@ -216,7 +220,9 @@ for (const key of [
   'all12ProductFacingCapabilitiesCovered',
   'workerHandoffPacketsPreparedForAll21Tools',
   'approvedSnapshotRequired',
+  'approvedPlanSnapshotRefFormatRequired',
   'creditReservationRequired',
+  'creditReservationRefFormatRequired',
   'privateArtifactManifestRequired',
   'privateArtifactManifestPrivateSchemeRequired',
   'workerIdempotencyRequired',
@@ -230,6 +236,9 @@ for (const key of [
 ]) {
   if (worker.booleans?.[key] !== true) fail(`required_true_boolean_not_true:${key}`)
 }
+
+if (!markdown.includes('`approved_snapshot_*`')) fail('markdown_missing_approved_snapshot_fixture_format')
+if (!markdown.includes('`credit_reservation_*`')) fail('markdown_missing_credit_reservation_fixture_format')
 
 for (const key of [
   'gpuHeavyToolsTargetCpuRuntime',

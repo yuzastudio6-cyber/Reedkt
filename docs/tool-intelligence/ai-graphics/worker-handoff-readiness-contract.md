@@ -24,8 +24,8 @@ It does not queue workers, execute tools, process media, load model weights, cal
 
 ## Required Worker Inputs Before Queue
 
-- Approved plan snapshot ID.
-- Credit reservation ID.
+- Approved plan snapshot ID using a backend UUID or explicit `approved_snapshot_*` fixture ref.
+- Credit reservation ID using a backend UUID or explicit `credit_reservation_*` fixture ref.
 - Artifact boundary approval.
 - Private artifact manifest reference with a `private://` or `reeditpro-private://` scheme.
 - Tool Route approval reference.

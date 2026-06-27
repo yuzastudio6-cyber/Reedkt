@@ -142,6 +142,18 @@ function privateArtifactManifestOnly(ref: string): boolean {
   return /^private:\/\//i.test(ref) || /^reeditpro-private:\/\//i.test(ref)
 }
 
+function isUuidRef(ref: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ref)
+}
+
+function approvedPlanSnapshotRefAccepted(ref: string): boolean {
+  return isUuidRef(ref) || /^approved_snapshot_[a-z0-9_]+$/i.test(ref)
+}
+
+function creditReservationRefAccepted(ref: string): boolean {
+  return isUuidRef(ref) || /^credit_reservation_[a-z0-9_]+$/i.test(ref)
+}
+
 function workItemKindForTool(tool: AiGraphicsToolCallHandoffTool): string {
   if (tool.gpuRequiredForRuntime) return 'ai_graphics_gpu_model_worker_job'
   if (tool.runtimeTarget === 'node_cpu_static') return 'ai_graphics_cpu_static_worker_job'
@@ -154,7 +166,13 @@ function workItemKindForTool(tool: AiGraphicsToolCallHandoffTool): string {
 function buildGlobalBlockers(evidence: Required<AiGraphicsWorkerHandoffEvidence>): string[] {
   return [
     !evidence.approvedPlanSnapshotId ? 'approved plan snapshot id is missing' : undefined,
+    evidence.approvedPlanSnapshotId && !approvedPlanSnapshotRefAccepted(evidence.approvedPlanSnapshotId)
+      ? 'approved plan snapshot id must be a UUID or explicit approved_snapshot_* fixture ref'
+      : undefined,
     !evidence.creditReservationId ? 'credit reservation id is missing' : undefined,
+    evidence.creditReservationId && !creditReservationRefAccepted(evidence.creditReservationId)
+      ? 'credit reservation id must be a UUID or explicit credit_reservation_* fixture ref'
+      : undefined,
     !evidence.artifactBoundaryApproved ? 'artifact boundary approval is missing' : undefined,
     !evidence.privateArtifactManifestRef ? 'private artifact manifest reference is missing' : undefined,
     evidence.privateArtifactManifestRef && !privateArtifactManifestOnly(evidence.privateArtifactManifestRef)
@@ -172,8 +190,8 @@ function asBetaReadinessEvidence(
   evidence: Required<AiGraphicsWorkerHandoffEvidence>,
 ): Required<AiGraphicsBetaReadinessEvidence> {
   return {
-    approvedPlanSnapshotGatePassed: Boolean(evidence.approvedPlanSnapshotId),
-    creditReservationGatePassed: Boolean(evidence.creditReservationId),
+    approvedPlanSnapshotGatePassed: approvedPlanSnapshotRefAccepted(evidence.approvedPlanSnapshotId),
+    creditReservationGatePassed: creditReservationRefAccepted(evidence.creditReservationId),
     artifactBoundaryGatePassed: evidence.artifactBoundaryApproved,
     toolRouteGatePassed: Boolean(evidence.routeApprovalRef),
     workerGatePassed: Boolean(evidence.workerApprovalRef),

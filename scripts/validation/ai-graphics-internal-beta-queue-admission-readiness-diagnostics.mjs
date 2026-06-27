@@ -299,6 +299,31 @@ if (!docs.queueAdmissionEvidenceShape?.privateArtifactManifestRef?.startsWith('p
 if (JSON.stringify(docs.queueAdmissionEvidenceShape).match(/https?:\/\/|signed:\/\/|public:\/\/|gs:\/\//i)) {
   fail('docs_queue_evidence_contains_public_or_signed_artifact_ref')
 }
+if (!docs.queueAdmissionEvidenceShape?.approvedPlanSnapshotId?.startsWith('approved_snapshot_')) {
+  fail('docs_approved_snapshot_ref_not_explicit_fixture')
+}
+if (!docs.queueAdmissionEvidenceShape?.creditReservationId?.startsWith('credit_reservation_')) {
+  fail('docs_credit_reservation_ref_not_explicit_fixture')
+}
+if (docs.queueAdmissionEvidenceFormat?.approvedPlanSnapshotId !==
+  'backend UUID or explicit approved_snapshot_* fixture ref') {
+  fail('docs_missing_approved_snapshot_format_policy')
+}
+if (docs.queueAdmissionEvidenceFormat?.creditReservationId !==
+  'backend UUID or explicit credit_reservation_* fixture ref') {
+  fail('docs_missing_credit_reservation_format_policy')
+}
+
+for (const token of [
+  'approvedPlanSnapshotRefAccepted',
+  'approvedPlanSnapshotId must be a UUID or explicit approved_snapshot_* fixture ref',
+  'creditReservationRefAccepted',
+  'creditReservationId must be a UUID or explicit credit_reservation_* fixture ref',
+]) {
+  if (!moduleSource.includes(token) && !JSON.stringify(docs).includes(token)) {
+    fail(`missing_queue_admission_ref_guard:${token}`)
+  }
+}
 
 for (const action of [
   'bind all 21 AI graphics production tool IDs to approved snapshot and credit reservation evidence',
@@ -334,6 +359,8 @@ for (const [key, expected] of Object.entries({
   all21QueueAdmissionPacketsPrepared: true,
   all21QueueAdmissionPacketsReadyWithProvidedEvidence: true,
   all12CapabilitiesReadyWithProvidedEvidence: true,
+  approvedPlanSnapshotRefAccepted: true,
+  creditReservationRefAccepted: true,
   privateArtifactManifestOnly: true,
   gpuHeavyToolsTargetGpuRuntime: true,
   gpuRuntimeTargetsExact: true,
@@ -392,6 +419,46 @@ try {
 }
 if (!badArtifactExited) fail('bad_artifact_ref_did_not_fail_required_queue_admission')
 
+let badSnapshotExited = false
+try {
+  runNpm(runScriptName, [
+    ...acceptedSourceArgs(manifestPacketPath, gpuPacketPath),
+    '--all-queue-admission-prerequisites-provided',
+    '--approved-plan-snapshot-id',
+    'placeholder-approved-plan',
+    '--require-queue-admission-ready',
+  ])
+} catch (error) {
+  badSnapshotExited = true
+  const badOutput = parseJsonOutput(error.stdout.toString(), 'bad_snapshot_queue_admission')
+  if (!badOutput.missingQueueAdmissionPrerequisites?.includes(
+    'approvedPlanSnapshotId must be a UUID or explicit approved_snapshot_* fixture ref',
+  )) {
+    fail('bad_snapshot_did_not_report_snapshot_format_blocker')
+  }
+}
+if (!badSnapshotExited) fail('bad_snapshot_ref_did_not_fail_required_queue_admission')
+
+let badCreditExited = false
+try {
+  runNpm(runScriptName, [
+    ...acceptedSourceArgs(manifestPacketPath, gpuPacketPath),
+    '--all-queue-admission-prerequisites-provided',
+    '--credit-reservation-id',
+    'placeholder-credit',
+    '--require-queue-admission-ready',
+  ])
+} catch (error) {
+  badCreditExited = true
+  const badOutput = parseJsonOutput(error.stdout.toString(), 'bad_credit_queue_admission')
+  if (!badOutput.missingQueueAdmissionPrerequisites?.includes(
+    'creditReservationId must be a UUID or explicit credit_reservation_* fixture ref',
+  )) {
+    fail('bad_credit_did_not_report_credit_format_blocker')
+  }
+}
+if (!badCreditExited) fail('bad_credit_ref_did_not_fail_required_queue_admission')
+
 const approvedOutput = parseJsonOutput(
   runNpm(runScriptName, [
     ...acceptedSourceArgs(manifestPacketPath, gpuPacketPath),
@@ -414,6 +481,12 @@ for (const key of falseGateKeys) {
   if (approvedOutput.input?.[key] === true) fail(`approved_input_performed_gate_true:${key}`)
 }
 if (approvedOutput.booleans?.privateArtifactManifestOnly !== true) fail('approved_private_manifest_not_true')
+if (approvedOutput.booleans?.approvedPlanSnapshotRefAccepted !== true) {
+  fail('approved_snapshot_ref_not_accepted')
+}
+if (approvedOutput.booleans?.creditReservationRefAccepted !== true) {
+  fail('approved_credit_ref_not_accepted')
+}
 if (approvedOutput.booleans?.gpuRuntimeTargetsExact !== true) fail('approved_gpu_runtime_targets_not_exact')
 if (approvedOutput.booleans?.gpuRuntimeOnDemandOnly !== true) fail('approved_gpu_runtime_not_on_demand')
 for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {

@@ -55,10 +55,26 @@ const followOnProductWorkflowBindingFiles = [
   'scripts/validation/rp-qwen2-5-vl-external-beta-product-workflow-binding-1-diagnostics.mjs',
 ]
 
+const followOnProductWorkflowRouteIntegrationFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-route-integration-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-route-integration-1/product-route-integration-contract.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-route-integration-1/readiness-gate.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-route-integration-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-route-integration-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-route-integration-1/qwen2-5-vl-product-workflow-route-integration-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-workflow-route-integration-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-route-readback-validation-1.md',
+  'server/services/qwen2-5-vl-external-beta-product-workflow-route-integration.ts',
+  'server/smoke/qwen2-5-vl-external-beta-product-workflow-route-integration-1-smoke.ts',
+  'src/backend/api/routes/provider-api-routes.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-workflow-route-integration-1-diagnostics.mjs',
+]
+
 const allowedFiles = new Set([
   ...requiredFiles,
   ...followOnConfirmedAdapterRuntimeFixtureFiles,
   ...followOnProductWorkflowBindingFiles,
+  ...followOnProductWorkflowRouteIntegrationFiles,
 ])
 
 const requiredText = [
@@ -139,7 +155,6 @@ const forbiddenFilePatterns = [
   /^package-lock\.json$/,
   /^supabase\//,
   /^database\//,
-  /^src\//,
   /^docker\//,
   /^cloudbuild\//,
   /^\.github\//,

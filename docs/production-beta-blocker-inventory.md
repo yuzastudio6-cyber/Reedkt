@@ -113,6 +113,39 @@ The active blocker is no longer credit reservation/ledger remote write/readback.
 
 Next recommended milestone: `RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1`.
 
+## RP External Beta Job Queue Lease Event Guarded Remote Write 1
+
+`RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1` records decision `completed_job_queue_lease_event_guarded_remote_write_readback` and execution `completed_guarded_transaction_rolled_back_job_queue_lease_event_write_readback`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Run ID: `2026-06-27T00-29-52-739Z-c91f8249`.
+
+The confirmed runner used `set local role service_role` inside a generated validation transaction, inserted/read back the approved snapshot and credit reservation dependency chain plus job batch, job, job event, worker lease, job claim attempt, and audit event, rolled the transaction back, and validated residue counts as `0`.
+
+Remote write/readback:
+- job batch status: `queued`
+- job status: `queued`
+- job type: `render_preview`
+- worker target: `render_worker`
+- runtime type: `cloud_run_job`
+- job event type: `queued`
+- worker lease status: `claimed`
+- worker lease kind: `render_worker`
+- job claim attempt result: `claimed`
+- persistent validation rows created: `false`
+- rollback residue readback: `0`
+
+Artifact checksums:
+- `validation-report.json`: `462662a3a23f947d245a791671727b81f422197670e7980aa9d763b7de33f0a7`
+- `artifact-manifest.json`: `10cefbad91d0b5e80a05f77b3888e0865f45e171bde89c82a90daf9ab283d02c`
+
+Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+The active blocker is no longer job queue lease/event remote write/readback. Remaining blockers are route-specific service-role execution validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1`.
+
 ## RP External Product Beta Current Readiness Rollup 1
 
 `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.

@@ -14,8 +14,8 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Service-role route runtime | `not_run_pending_route_specific_guarded_write_validation` | guarded backend-only service-role route write/readback validation |
 | Approved snapshot persistence | `completed_approved_snapshot_persistence_guarded_remote_write_readback` | carry forward transaction-rolled-back remote write/readback evidence |
 | Credit reservation ledger | `completed_credit_reservation_ledger_guarded_remote_write_readback` | carry forward transaction-rolled-back credit reservation/ledger readback evidence |
-| Job queue leases/events | `ready_for_guarded_remote_write_readback_validation` | guarded job record/lease/event validation |
-| Private artifact storage/access | `blocked_pending_private_storage_runtime_validation` | private bucket/readback/access evidence |
+| Job queue leases/events | `completed_job_queue_lease_event_guarded_remote_write_readback` | carry forward transaction-rolled-back job/lease/event remote write/readback evidence |
+| Private artifact storage/access | `ready_for_guarded_remote_write_readback_validation` | private bucket/readback/access evidence |
 | Remotion private preview/export | `blocked_pending_render_worker_runtime_validation` | private preview/export evidence, no public artifacts |
 | Provider/model calls | `blocked_pending_provider_owner_runtime_approval` | backend-only disabled-by-default policy and explicit approval |
 | External beta | `blocked` | internal beta evidence plus security/privacy/support/cost/deployment review |
@@ -88,11 +88,42 @@ The confirmed runner used `set local role service_role` inside a generated valid
 
 Run ID: `2026-06-27T00-12-50-200Z-34a19fc2`. Report checksum: `ccbcd02a4264d0ecb1cba7394d7c9344e8c24ab3b3fe7f7ff5f21f385536044c`. Manifest checksum: `a2f6f7cb204903bb3bcca354fc9d5a649353330a8ef93a152bab560c331d7782`.
 
-Service-role route execution remains `not_run_pending_route_specific_guarded_write_validation`. Job queue leases/events are now `ready_for_guarded_remote_write_readback_validation`.
+Service-role route execution remains `not_run_pending_route_specific_guarded_write_validation`. Job queue leases/events are now `completed_job_queue_lease_event_guarded_remote_write_readback`.
 
 Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended milestone: `RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1`.
+
+## RP External Beta Job Queue Lease Event Guarded Remote Write 1
+
+`RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1` records decision `completed_job_queue_lease_event_guarded_remote_write_readback` and execution `completed_guarded_transaction_rolled_back_job_queue_lease_event_write_readback`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+The confirmed runner used `set local role service_role` inside a generated validation transaction, inserted/read back the approved snapshot, credit reservation, job batch, job, job event, worker lease, job claim attempt, and audit-event dependency chain, rolled the transaction back, and validated residue counts as `0`.
+
+Run ID: `2026-06-27T00-29-52-739Z-c91f8249`. Report checksum: `462662a3a23f947d245a791671727b81f422197670e7980aa9d763b7de33f0a7`. Manifest checksum: `10cefbad91d0b5e80a05f77b3888e0865f45e171bde89c82a90daf9ab283d02c`.
+
+Remote write/readback:
+- approved snapshot dependency-chain insert/readback: `passed`
+- credit reservation and ledger dependency-chain insert/readback: `passed`
+- job batch status: `queued`
+- job status: `queued`
+- job type: `render_preview`
+- worker target: `render_worker`
+- runtime type: `cloud_run_job`
+- job event type: `queued`
+- worker lease status: `claimed`
+- worker lease kind: `render_worker`
+- job claim attempt result: `claimed`
+- persistent validation rows created: `false`
+- rollback residue readback: `0`
+
+Service-role route execution remains `not_run_pending_route_specific_guarded_write_validation`. Private artifact storage/access is now `ready_for_guarded_remote_write_readback_validation`.
+
+Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

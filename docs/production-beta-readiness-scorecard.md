@@ -53,6 +53,17 @@ and this work does not approve model download, model load, inference, Tool
 Routes, Workers, GPU runtime, beta, or production. GPU runtime remains
 on-demand only and no idle GPU runtime is approved.
 
+AI graphics model-weight manifest authoring decision
+`ai_graphics_model_weight_manifest_authoring_from_checksum_evidence_prepared_with_local_only_private_drafts`
+adds the local-only bridge from reviewed private checksum evidence and reviewed
+manifest supplements into private `model_tree_manifest.json` drafts for the
+five model-weight tools. The bridge writes drafts only to ignored local paths,
+prints only redacted status/counts, and immediately keeps the existing
+manifest-review validator as the next acceptance boundary. It does not approve
+model download, model load, inference, Tool Routes, Workers, GPU runtime, beta,
+or production. GPU runtime remains on-demand only for a future approved
+worker/tool-call job, and idle GPU runtime remains unapproved.
+
 AI graphics internal beta go/no-go decision
 `ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`
 prepares the explicit owner go/no-go contract for the all-21 AI graphics

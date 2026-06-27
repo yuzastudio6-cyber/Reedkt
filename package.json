@@ -112,6 +112,8 @@
     "ai-graphics:model-weight-checksum-evidence:diagnostics": "node scripts/validation/ai-graphics-model-weight-checksum-evidence-diagnostics.mjs",
     "ai-graphics:model-weight-checksum-evidence-scaffold": "tsx server/cli/ai-graphics-model-weight-checksum-evidence-scaffold.ts",
     "ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics": "node scripts/validation/ai-graphics-model-weight-checksum-evidence-scaffold-diagnostics.mjs",
+    "ai-graphics:model-weight-manifest-authoring": "tsx server/cli/ai-graphics-model-weight-manifest-authoring.ts",
+    "ai-graphics:model-weight-manifest-authoring:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-authoring-diagnostics.mjs",
     "ai-graphics:gpu-runtime-proof-command-plan": "tsx server/cli/ai-graphics-gpu-runtime-proof-command-plan.ts",
     "ai-graphics:gpu-runtime-proof-command-plan:diagnostics": "node scripts/validation/ai-graphics-gpu-runtime-proof-command-plan-diagnostics.mjs",
     "ai-graphics:gpu-runtime-proof-result:validate": "tsx server/cli/ai-graphics-gpu-runtime-proof-result.ts",

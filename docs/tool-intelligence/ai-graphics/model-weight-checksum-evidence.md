@@ -86,6 +86,20 @@ It reads local JSON records or envelopes with `records` or `checksumEvidence`
 arrays. If any local evidence is supplied, all five required tools must pass
 before the command exits successfully.
 
+After checksum evidence passes, use the manifest-authoring bridge with
+reviewed local/private source-license and model-card supplements:
+
+```sh
+npm run --silent ai-graphics:model-weight-manifest-authoring -- \
+  --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence \
+  --supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements \
+  --out-dir .local-artifacts/ai-graphics/model-weight-manifests
+```
+
+The authoring bridge writes private manifest drafts only to the local output
+directory and then those files must still pass
+`ai-graphics:model-weight-manifest-review:validate`.
+
 ## Current Result
 
 - AI graphics tools covered: 21.

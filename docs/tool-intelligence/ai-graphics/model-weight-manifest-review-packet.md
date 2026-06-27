@@ -56,6 +56,24 @@ That validator accepts owner-reviewed private SHA evidence for `sam2`,
 `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`, emits only
 redacted private-ref statuses, and does not approve runtime or beta execution.
 
+## Manifest Authoring Bridge
+
+Reviewed private checksum evidence plus reviewed source-license/model-card
+supplements can be converted into local-only private manifest drafts with:
+
+```sh
+npm run --silent ai-graphics:model-weight-manifest-authoring -- \
+  --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence \
+  --supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements \
+  --out-dir .local-artifacts/ai-graphics/model-weight-manifests
+```
+
+The bridge emits redacted status JSON, writes only local private manifest files,
+and keeps this manifest-review validator as the acceptance boundary. Those
+local drafts remain native-GPU-proof input only; they do not approve model
+download, model load, inference, GPU runtime, Tool Routes, Workers, beta, or
+production.
+
 ## Source-Catalog Checksum Guidance
 
 | Tool | Checksum guidance |

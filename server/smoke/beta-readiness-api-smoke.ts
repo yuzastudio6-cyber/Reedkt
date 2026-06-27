@@ -47,6 +47,20 @@ try {
     'platform preflight should name wallet settlement as remaining evidence',
   )
 
+  const defaultOperatorStatusResponse = await requestJson(`${baseUrl}/v1/beta-readiness/operator-status`, { method: 'GET' })
+  assert.equal(defaultOperatorStatusResponse.ok, true, 'operator status route should return ok')
+  assert.equal(defaultOperatorStatusResponse.data.status.evidenceSource, 'default_source_truth', 'operator status without workspace should use default source truth')
+  assert.equal(defaultOperatorStatusResponse.data.status.readyForExternalBeta, false, 'default operator status must keep external beta blocked')
+  assert.equal(defaultOperatorStatusResponse.data.status.currentGate.safeBlockerReductionAllowed, true, 'operator status should preserve scoped blocker-reduction policy')
+  assert.ok(
+    defaultOperatorStatusResponse.data.status.currentGate.blockedActionScope.includes('external_beta_launch'),
+    'default operator status should name external beta launch as blocked',
+  )
+  assert.ok(
+    defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('workspaceId')),
+    'default operator status should tell callers to supply workspaceId for stored evidence',
+  )
+
   const deployedVerifierReportResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
     method: 'POST',
     headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-deployed-verify' },
@@ -237,6 +251,22 @@ try {
   const evidenceListResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evidence?workspaceId=${encodeURIComponent(smokeWorkspaceId)}`, { method: 'GET' })
   assert.equal(evidenceListResponse.data.packets.length, 1, 'stored evidence should be listed once')
   assert.equal(evidenceListResponse.data.report.goNoGo.externalBetaAllowed, true, 'stored evidence should drive evidence listing report')
+
+  const storedOperatorStatusResponse = await requestJson(`${baseUrl}/v1/beta-readiness/operator-status?workspaceId=${encodeURIComponent(smokeWorkspaceId)}`, { method: 'GET' })
+  assert.equal(storedOperatorStatusResponse.data.status.evidenceSource, 'stored_workspace_evidence', 'workspace operator status should use stored evidence')
+  assert.equal(storedOperatorStatusResponse.data.status.evidencePacketCount, 1, 'workspace operator status should report stored evidence count')
+  assert.equal(storedOperatorStatusResponse.data.status.readyForExternalBeta, true, 'complete stored evidence should open the external beta status gate')
+  assert.equal(storedOperatorStatusResponse.data.status.readyForRealUserMediaBeta, false, 'operator status must keep real user media beta separately blocked')
+  assert.equal(storedOperatorStatusResponse.data.status.readyForPaidProduction, false, 'operator status must keep paid production separately blocked')
+  assert.equal(
+    storedOperatorStatusResponse.data.status.currentGate.blockedActionScope.includes('external_beta_tool_execution'),
+    false,
+    'complete stored evidence should clear the tool-execution blocked action scope',
+  )
+  assert.ok(
+    storedOperatorStatusResponse.data.status.currentGate.blockedActionScope.includes('paid_production_launch'),
+    'complete stored evidence without paid-production approval should still block paid production launch',
+  )
 
   const coreEvidenceResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evidence/core-real-check`, {
     method: 'POST',

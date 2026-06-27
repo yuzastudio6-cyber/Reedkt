@@ -20,7 +20,9 @@ const SAFE_RUNTIME_MODES: BackendRuntimeMode[] = [
 ]
 
 function getViteEnvValue(key: string): string | undefined {
-  const env = import.meta.env as Record<string, string | undefined>
+  const env = (import.meta as ImportMeta & {
+    env?: Record<string, string | undefined>
+  }).env ?? {}
   const value = env[key]?.trim()
   return value && value.length > 0 ? value : undefined
 }

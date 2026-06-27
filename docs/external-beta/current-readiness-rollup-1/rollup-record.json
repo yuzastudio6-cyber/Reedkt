@@ -1,8 +1,8 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "completed_controlled_external_beta_enablement_source_contract_default_off",
+  "decision": "blocked_gcloud_reauthentication_required_before_staging_flag_application",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
-  "integrationHead": "05a815f0f9b210393a1b02c8b4257046f11ca5a7",
+  "integrationHead": "a923aee6825523ced8cdefedbe3ebc2087a59de8",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
     "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
@@ -19,11 +19,12 @@
     "providerModelCallPolicyClosure": "rp_external_beta_provider_model_call_policy_closure_1",
     "qaCleanupObservabilityRollbackReview": "rp_external_beta_qa_cleanup_observability_rollback_review_1",
     "releaseGoNoGo": "rp_external_beta_release_go_no_go_1",
-    "controlledEnablement": "rp_external_beta_controlled_enablement_1"
+    "controlledEnablement": "rp_external_beta_controlled_enablement_1",
+    "stagingFlagApplication": "rp_external_beta_staging_flag_application_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
-    "externalProductBeta": "ready_for_explicit_staging_flag_application",
+    "externalProductBeta": "blocked_pending_gcloud_reauthentication_before_staging_flag_application",
     "paidProduction": "blocked",
     "finalDeliveryExport": "blocked",
     "productReadyEndToEndLocalOssTools": 0
@@ -119,10 +120,15 @@
     "externalBetaUnlock": false,
     "controlledEnablementRequired": false,
     "stagingFlagApplicationRequired": true,
-    "nextMilestone": "RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1"
+    "stagingFlagApplication": "blocked_gcloud_reauthentication_required_before_staging_flag_application",
+    "stagingFlagApplicationBlocker": "gcloud_reauthentication_required_before_staging_flag_application",
+    "cloudRunServiceDiscovery": "not_completed_reauthentication_required",
+    "environmentMutation": "not_run_gcloud_reauthentication_required",
+    "deployment": "not_run_gcloud_reauthentication_required",
+    "nextMilestone": "RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH"
   },
   "requiredNextOwnerDecision": [
-    "RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1",
+    "RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH",
     "apply_controlled_external_beta_staging_flag",
     "exact_env_values_required",
     "rollback_path_required"
@@ -175,6 +181,9 @@
     "qaCleanupObservabilityRollbackReviewRuntimeExecution": false,
     "releaseGoNoGoApproved": true,
     "controlledExternalBetaEnablementSourceContract": true,
+    "stagingFlagApplication": "blocked_gcloud_reauthentication_required_before_staging_flag_application",
+    "cloudRunServiceUpdated": false,
+    "deploymentPerformed": false,
     "externalBetaEnvironmentUnlock": false
   },
   "packageLock": "unchanged",

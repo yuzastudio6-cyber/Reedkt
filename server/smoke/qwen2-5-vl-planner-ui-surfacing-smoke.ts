@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'fixture_inference_smoke_memory_fix_required',
-  'Private invoke client status must record the fixture memory-fix blocker.',
+  data.privateInvokeClient.currentStatus === 'approved_fixture_inference_result_review_required',
+  'Private invoke client status must record the fixture result-review blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -162,9 +162,9 @@ check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advi
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
 check(
-  docText.includes('fixture_inference_smoke_memory_fix_required') ||
-    data.privateInvokeClient.currentStatus === 'fixture_inference_smoke_memory_fix_required',
-  'Doc/data must record first fixture smoke memory-fix status.',
+  docText.includes('approved_fixture_inference_result_review_required') ||
+    data.privateInvokeClient.currentStatus === 'approved_fixture_inference_result_review_required',
+  'Doc/data must record approved fixture result-review status.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

@@ -129,6 +129,19 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _env_int(name: str, default: int, minimum: int, maximum: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    try:
+        value = int(raw.strip())
+    except ValueError as exc:
+        raise RuntimeError(f"{name}_must_be_integer") from exc
+    if value < minimum or value > maximum:
+        raise RuntimeError(f"{name}_outside_allowed_range")
+    return value
+
+
 def _non_empty_string(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
@@ -346,12 +359,19 @@ def _get_vllm_engine() -> Any:
 def _generate_private_fixture_image() -> Any:
     from PIL import Image, ImageDraw
 
-    image = Image.new("RGB", (384, 384), "#f8fafc")
+    image_size = _env_int("QWEN_FIXTURE_IMAGE_SIZE_PX", 384, 128, 384)
+    scale = image_size / 384
+
+    def xy(values: List[int]) -> List[int]:
+        return [max(0, min(image_size - 1, round(value * scale))) for value in values]
+
+    image = Image.new("RGB", (image_size, image_size), "#f8fafc")
     draw = ImageDraw.Draw(image)
-    draw.rectangle([40, 92, 178, 224], fill="#ef4444", outline="#991b1b", width=3)
-    draw.ellipse([220, 92, 344, 216], fill="#2563eb", outline="#1e3a8a", width=3)
-    draw.rectangle([64, 280, 320, 334], fill="#111827", outline="#475569", width=3)
-    draw.text((96, 300), "TIMELINE", fill="#f8fafc")
+    line_width = max(1, round(3 * scale))
+    draw.rectangle(xy([40, 92, 178, 224]), fill="#ef4444", outline="#991b1b", width=line_width)
+    draw.ellipse(xy([220, 92, 344, 216]), fill="#2563eb", outline="#1e3a8a", width=line_width)
+    draw.rectangle(xy([64, 280, 320, 334]), fill="#111827", outline="#475569", width=line_width)
+    draw.text((round(96 * scale), round(300 * scale)), "TIMELINE", fill="#f8fafc")
     return image
 
 

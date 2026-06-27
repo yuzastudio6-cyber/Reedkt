@@ -132,6 +132,8 @@ for (const phrase of [
   '`QWEN_CPU_CALLER_EXPECT_FIXTURE_INFERENCE=true`',
   'lazy-loads vLLM',
   'in-memory private synthetic fixture',
+  '`QWEN_FIXTURE_IMAGE_SIZE_PX`',
+  '`128` to `384` pixels',
   'sanitized metadata summary',
   'NVIDIA L4',
   '`serviceSourceSupportsApprovedFixtureInference=true`',
@@ -151,6 +153,8 @@ for (const phrase of [
   'run_approved_fixture_inference',
   'qwen_fixture_inference_smoke_completed',
   'NetworkGuard',
+  'QWEN_FIXTURE_IMAGE_SIZE_PX',
+  '_env_int("QWEN_FIXTURE_IMAGE_SIZE_PX", 384, 128, 384)',
   'LLM(**llm_kwargs)',
   'SamplingParams',
   'metadataOutput',
@@ -177,6 +181,10 @@ assert.equal(source.decision, DECISION)
 assert.equal(source.serviceSource.defaultFailClosedPreserved, true)
 assert.equal(source.serviceSource.lazyVllmLoad, true)
 assert.equal(source.serviceSource.inMemoryPrivateFixtureOnly, true)
+assert.equal(source.serviceSource.boundedFixtureImageSizeEnv, 'QWEN_FIXTURE_IMAGE_SIZE_PX')
+assert.equal(source.serviceSource.defaultFixtureImageSizePx, 384)
+assert.equal(source.serviceSource.minimumFixtureImageSizePx, 128)
+assert.equal(source.serviceSource.maximumFixtureImageSizePx, 384)
 assert.equal(source.serviceSource.sanitizedMetadataOnlyResponse, true)
 assert.equal(source.cpuCallerSource.defaultContractSmokeExpectationPreserved, true)
 assert.equal(source.cpuCallerSource.acceptsExpectedFixtureHttpStatus, 200)

@@ -429,6 +429,14 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked: `toolExecutionPerformed=false`, `runtimeReadyNow=false`, `productionReadyNow=false`, no GPU runtime starts, and no live production worker dispatch is approved.
 - Latest observed PR state after service-role RPC adapter source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `7d75fd4c8ff9a9f8dd87323dd543e8e061b0fc01`, with an empty check rollup.
 
+## Follow-Up: Service-Role RPC Worker-Handoff Source Packet Ingestion
+
+- Added evaluator-only adapter local-smoke proof packet ingestion to `ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke`.
+- The command now accepts `--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet`.
+- The source packet must already report `adapter_local_smoke_passed_with_cleanup_no_tool_execution`, all 21 tools represented by adapter enqueue evidence, 21 inserted job records cleaned up, and 0 persistent fixture rows after cleanup.
+- Diagnostic coverage proves packet-fed worker-handoff readiness stays `worker_handoff_local_smoke_prepared_not_executed` unless explicit local worker-handoff smoke confirmation and local service-role credentials are supplied.
+- Runtime remains blocked: `workerHandoffLocalSmokeExecutedNow=false`, `liveProductionWorkerDispatchPerformed=false`, `toolExecutionPerformed=false`, `runtimeReadyNow=false`, `productionReadyNow=false`, no GPU runtime starts, and no live worker dispatch is approved.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke'
@@ -139,6 +141,27 @@ function runNpm(scriptName, args = []) {
   }).trim()
 }
 
+function writeAdapterLocalSmokeProofPacket() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-worker-handoff-source-'))
+  const packetPath = path.join(root, 'service-role-rpc-adapter-local-smoke-proof-packet.json')
+  fs.writeFileSync(packetPath, JSON.stringify({
+    decision: 'ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup',
+    status: 'adapter_local_smoke_passed_with_cleanup_no_tool_execution',
+    counts: {
+      totalAiGraphicsTools: 21,
+      adapterInsertedJobCount: 21,
+      fixtureRowsPersistedAfterCleanup: 0,
+    },
+    booleans: {
+      internalBetaServiceRoleRpcAdapterLocalSmokeProofCompleted: true,
+      localAdapterCleanupPassed: true,
+      agentCanExecuteToolsNow: false,
+      toolExecutionPerformed: false,
+    },
+  }, null, 2))
+  return packetPath
+}
+
 for (const file of [
   docsJsonFile,
   docsMdFile,
@@ -196,6 +219,22 @@ if (
   fail(`unexpected_source_implementation_decision:${sourceImplementationDocs.decision}`)
 }
 
+if (docs.sourceEvidencePolicy?.acceptsAdapterLocalSmokeProofPacket !== true) {
+  fail('docs_source_policy_missing_adapter_smoke_packet_mode')
+}
+if (docs.sourceEvidencePolicy?.sourceAdapterLocalSmokeProofPacketMustReportCleanupPass !== true) {
+  fail('docs_source_policy_missing_cleanup_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceAdapterLocalSmokeProofPacketMustCoverAll21Tools !== true) {
+  fail('docs_source_policy_missing_21_tool_requirement')
+}
+if (docs.sourceEvidencePolicy?.workerHandoffSmokeExecutionStillRequiresExplicitLocalConfirmation !== true) {
+  fail('docs_source_policy_missing_local_confirmation_requirement')
+}
+if (docs.sourceEvidencePolicy?.runtimeUnlockPerformed !== false) {
+  fail('docs_source_policy_runtime_unlock_not_false')
+}
+
 for (const rpc of requiredRpcs) {
   if (!docs.workerHandoffSmokeCoverage?.serviceRoleRpcsExercised?.includes(rpc)) fail(`docs_missing_rpc:${rpc}`)
   if (!runScript.includes(rpc)) fail(`run_script_missing_rpc:${rpc}`)
@@ -210,6 +249,10 @@ for (const token of [
   'buildAiGraphicsServiceRoleRpcSmokeJobs',
   'REEDITPRO_CONFIRM_AI_GRAPHICS_RPC_WORKER_HANDOFF_LOCAL_SMOKE',
   '--execute-local-worker-handoff-smoke',
+  '--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet',
+  'sourceEvidenceMode',
+  'internal_beta_service_role_rpc_adapter_local_smoke_proof_packet',
+  'sourceAdapterLocalSmokeProofPacketRead',
   'AI graphics RPC worker-handoff local smoke is blocked in production.',
   "smokeEnv !== 'local'",
   "notify pgrst, 'reload schema'",
@@ -360,6 +403,8 @@ for (const phrase of [
   'Fixture rows persisted after cleanup: 0',
   'Tool execution performed by smoke: false',
   'Live production worker dispatch performed: false',
+  '`--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet`',
+  'Worker-handoff smoke execution still requires explicit',
 ]) {
   if (!markdown.includes(phrase)) fail(`markdown_missing:${phrase}`)
 }
@@ -379,6 +424,34 @@ if (preparedOutput.liveProductionWorkerDispatchPerformed !== false) {
   fail('prepared_output_live_dispatch_not_false')
 }
 if (preparedOutput.toolExecutionPerformed !== false) fail('prepared_output_tool_execution_not_false')
+
+let packetFedOutput = {}
+try {
+  packetFedOutput = JSON.parse(runNpm(runScriptName, [
+    '--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet',
+    writeAdapterLocalSmokeProofPacket(),
+  ]))
+} catch (error) {
+  fail(`packet_fed_worker_handoff_contract_failed:${error.message}`)
+}
+if (packetFedOutput.sourceEvidenceMode !== 'internal_beta_service_role_rpc_adapter_local_smoke_proof_packet') {
+  fail(`packet_fed_source_mode:${packetFedOutput.sourceEvidenceMode}`)
+}
+if (packetFedOutput.sourceAdapterLocalSmokeProofPacketRead !== true) {
+  fail('packet_fed_source_packet_not_read')
+}
+if (packetFedOutput.status !== 'worker_handoff_local_smoke_prepared_not_executed') {
+  fail(`packet_fed_status:${packetFedOutput.status}`)
+}
+if (packetFedOutput.workerHandoffLocalSmokeExecutedNow !== false) {
+  fail('packet_fed_worker_handoff_executed_not_false')
+}
+if (packetFedOutput.liveProductionWorkerDispatchPerformed !== false) {
+  fail('packet_fed_live_dispatch_not_false')
+}
+if (packetFedOutput.toolExecutionPerformed !== false) fail('packet_fed_tool_execution_not_false')
+if (packetFedOutput.runtimeReadyNow !== false) fail('packet_fed_runtime_not_false')
+if (packetFedOutput.productionReadyNow !== false) fail('packet_fed_production_not_false')
 
 const packageJsonDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json']).split('\n')
 const allowedPackageJsonDiff = new Set([

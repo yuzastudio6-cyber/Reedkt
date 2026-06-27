@@ -959,6 +959,12 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - AI graphics worker handoff routing: production worker payloads now carry `aiGraphicsToolCallHandoff` metadata in `metadata_dry_run` mode, and dispatcher probes require all 21 tools to resolve to AI-graphics-specific mock-safe handoff handlers. This prepares the future approved worker/tool-call path without enabling live queue dispatch, tool execution, GPU/browser runtime, beta, or production.
 - Runtime/beta/production: no unlock; `internalBetaGoNoGoReadyWithProvidedEvidence=true` can be used for the next explicit owner go/no-go packet, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics Internal Beta Service-Role RPC Worker-Handoff Source Packet
+
+- Decision remains `ai_graphics_internal_beta_service_role_rpc_worker_handoff_local_smoke_passed_with_cleanup`.
+- Source packet ingestion: `ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke` can now consume `--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet` when the source packet already reports adapter local-smoke cleanup pass, all 21 tools represented, and 0 persistent fixture rows. The packet-fed path reports `worker_handoff_local_smoke_prepared_not_executed` unless explicit local worker-handoff confirmation and local service-role credentials are supplied.
+- Runtime/beta/production: no unlock; `workerHandoffLocalSmokeExecutedNow=false`, `liveProductionWorkerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics Private Checksum-Evidence Hardening
 
 - Decision remains `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`.

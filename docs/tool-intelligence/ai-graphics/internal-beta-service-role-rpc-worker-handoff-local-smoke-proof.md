@@ -19,6 +19,11 @@ URLs, public artifacts, internal beta, external beta, or production.
   `ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup`
 - Source adapter proof:
   `docs/tool-intelligence/ai-graphics/internal-beta-service-role-rpc-adapter-local-smoke-proof.json`
+- Source evidence policy:
+  committed adapter proof or `--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet`.
+  The source packet must report adapter cleanup pass, all 21 tools represented,
+  and no tool execution. Worker-handoff smoke execution still requires explicit
+  local confirmation and local service-role credentials.
 - Source migration:
   `supabase/migrations/202606260002_ai_graphics_tool_runtime_service_role_rpcs.sql`
 - Worker-handoff smoke package script:

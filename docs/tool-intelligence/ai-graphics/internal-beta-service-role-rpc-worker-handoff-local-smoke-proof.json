@@ -4,6 +4,15 @@
   "status": "worker_handoff_local_smoke_passed_with_cleanup_no_tool_execution",
   "sourceDecision": "ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup",
   "sourcePr": 862,
+  "sourceEvidencePolicy": {
+    "acceptsCommittedAdapterLocalSmokeProof": true,
+    "acceptsAdapterLocalSmokeProofPacket": true,
+    "sourceAdapterLocalSmokeProofPacketMustReportCleanupPass": true,
+    "sourceAdapterLocalSmokeProofPacketMustCoverAll21Tools": true,
+    "workerHandoffSmokeExecutionStillRequiresExplicitLocalConfirmation": true,
+    "serviceRoleKeyCommitted": false,
+    "runtimeUnlockPerformed": false
+  },
   "workerHandoffSmokeScript": "server/cli/ai-graphics-internal-beta-service-role-rpc-worker-handoff-local-smoke.ts",
   "diagnosticScript": "scripts/validation/ai-graphics-internal-beta-service-role-rpc-worker-handoff-local-smoke-diagnostics.mjs",
   "smokeCommand": "SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<local-service-role-jwt> REEDITPRO_CONFIRM_AI_GRAPHICS_RPC_WORKER_HANDOFF_LOCAL_SMOKE=true REEDITPRO_AI_GRAPHICS_RPC_WORKER_HANDOFF_LOCAL_SMOKE_ENV=local npm run --silent ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke -- --execute-local-worker-handoff-smoke",

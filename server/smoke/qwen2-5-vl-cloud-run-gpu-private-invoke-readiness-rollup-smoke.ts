@@ -8,7 +8,7 @@ import {
   getProductionToolProfile,
 } from '../tool-registry'
 import { QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-reverify-result'
-import { QWEN25_PRIVATE_INVOKE_SMOKE_EXECUTE_RESULT } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-smoke-execute-result'
+import { QWEN25_PRIVATE_INVOKE_TOKEN_PATH_FIX_RESULT } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-token-path-fix-result'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -17,9 +17,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_identity_token_path_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_token_creator_permission_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference'
+  'QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -185,15 +185,15 @@ for (const phrase of [
   'NVIDIA L4',
   'scale to zero required',
   'run-on-use and stop-when-idle',
-  'Controlled private invoke smoke execution',
-  '`privateInvokeSmokePlanDefined=true`',
-  '`privateInvokeSmokeAttempted=true`',
-  '`privateInvokeSmokeBlockedBeforeRequest=true`',
-  '`privateInvokeSmokeExecuted=false`',
-  '`identity_token_fetch_blocked`',
-  'backend-safe service-account token path',
-  NEXT_PROMPT,
-]) {
+	  'Controlled private invoke smoke execution',
+	  '`privateInvokeSmokePlanDefined=true`',
+	  '`privateInvokeSmokeAttempted=true`',
+	  '`privateInvokeSmokeBlockedBeforeRequest=true`',
+	  '`privateInvokeSmokeExecuted=false`',
+	  '`token_creator_permission_required`',
+	  'TokenCreator/getAccessToken approval',
+	  NEXT_PROMPT,
+	]) {
   assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)
 }
 
@@ -205,9 +205,9 @@ assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
 assert.equal(rollup.selectedRuntime.minInstancesRequired, 0)
 assert.equal(rollup.selectedRuntime.maxInstancesForInitialPrivateInvoke, 1)
 assert.equal(rollup.selectedRuntime.cpuFallbackAllowed, false)
-assert.equal(rollup.nextPrompt, NEXT_PROMPT)
-assert.equal(QWEN25_PRIVATE_INVOKE_SMOKE_EXECUTE_RESULT.status, 'blocked')
-assert.deepEqual(QWEN25_PRIVATE_INVOKE_SMOKE_EXECUTE_RESULT.blockers, ['identity_token_fetch_blocked'])
+	assert.equal(rollup.nextPrompt, NEXT_PROMPT)
+	assert.equal(QWEN25_PRIVATE_INVOKE_TOKEN_PATH_FIX_RESULT.status, 'blocked')
+	assert.deepEqual(QWEN25_PRIVATE_INVOKE_TOKEN_PATH_FIX_RESULT.blockers, ['token_creator_permission_required'])
 
 const qwenProfile = getProductionToolProfile('qwen_vl')
 check(qwenProfile, 'Qwen production tool profile must exist.')
@@ -243,7 +243,7 @@ assert.equal(status.mayRunInference, false)
 assert.equal(status.mayDispatchWorker, false)
 
 const ui = getQwenVlPlannerRoutingUiData()
-assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_identity_token_path_required')
+	assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_token_creator_required')
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
 assert.equal(ui.summary.dryRunPassedClaimed, false)
@@ -278,9 +278,9 @@ assert.equal(
   0,
 )
 assert.equal(
-  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_identity_token_path_required').length,
-  1,
-)
+	  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_token_creator_permission_required').length,
+	  1,
+	)
 assertRollupFalseFlags(rollup.runtimeFlags)
 assert.equal(rollup.runtimeFlags.registryProfileReady, true)
 assert.equal(rollup.runtimeFlags.productionReadinessSpecRegistered, true)
@@ -318,9 +318,9 @@ console.log(JSON.stringify({
   blockedGateCount: rollup.readinessGates.filter((gate) => gate.status !== 'ready').length,
   selectedGpu: rollup.selectedRuntime.gpu,
   costPosture: rollup.selectedRuntime.costPosture,
-  privateInvokeReady: rollup.runtimeFlags.privateInvokeReady,
-  betaReady: rollup.runtimeFlags.betaReady,
-  productionReady: rollup.runtimeFlags.productionReady,
-  remainingBlocker: QWEN25_PRIVATE_INVOKE_SMOKE_EXECUTE_RESULT.blockers[0],
-  nextPrompt: rollup.nextPrompt,
-}, null, 2))
+	  privateInvokeReady: rollup.runtimeFlags.privateInvokeReady,
+	  betaReady: rollup.runtimeFlags.betaReady,
+	  productionReady: rollup.runtimeFlags.productionReady,
+	  remainingBlocker: QWEN25_PRIVATE_INVOKE_TOKEN_PATH_FIX_RESULT.blockers[0],
+	  nextPrompt: rollup.nextPrompt,
+	}, null, 2))

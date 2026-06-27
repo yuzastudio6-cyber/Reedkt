@@ -26,7 +26,7 @@ All of these must be true before the adapter can call injected transport depende
 - `runtimeServiceAccountVerified`
 - `projectInvokerPolicyVerified`
 
-Default adapter status: every gate remains false unless a future backend runtime injects explicit approval. Repository evidence now shows the guarded read-only auth/IAM reverify passed, but the adapter still refuses by default until a controlled private invoke smoke plan approves runtime invocation.
+Default adapter status: every gate remains false unless a future backend runtime injects explicit approval. Repository evidence now shows the guarded read-only auth/IAM reverify passed and the smoke runner can use the non-key impersonation token path, but the adapter still refuses by default until TokenCreator/getAccessToken or an attached-service-account token path is approved and a controlled private invoke response is observed.
 
 ## Required Transport Dependencies
 
@@ -61,8 +61,8 @@ The default adapter result is `blocked_transport_disabled`. In that path:
 
 ## Current Blocker
 
-The latest guarded auth/IAM reverify passed without fetching an identity token or invoking Cloud Run, and the controlled private invoke smoke plan is defined. The remaining blocker is controlled smoke execution approval that explicitly reviews token-fetch policy, service-audience policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before any dependency may be called.
+The latest guarded auth/IAM reverify passed and the controlled private invoke smoke plan is defined. The fixed smoke runner attempted non-key service-account impersonation, then stopped before request because `iam.serviceAccounts.getAccessToken` is denied. The remaining blocker is a narrow TokenCreator/getAccessToken approval or an attached-service-account token path, plus the same token-fetch policy, service-audience policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before any dependency may be called.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference`
+`QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference`

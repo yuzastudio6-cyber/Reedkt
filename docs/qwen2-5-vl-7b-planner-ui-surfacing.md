@@ -21,7 +21,7 @@ The UI presents 13 planner-routing tasks and one private-invoke dry-run route re
 - 5 blocked routes for AI video generation, final render/export, raw chat execution, frontend invocation, and unbounded long-video analysis.
 - Private invoke client route: `jobs.qwen2_5_vl.privateInvoke.dryRun`
 - Private invoke client helper: `callQwen25VlPrivateInvokeDryRun`
-- Private invoke status: `blocked_private_invoke_identity_token_path_required`
+- Private invoke status: `blocked_private_invoke_token_creator_required`
 
 The card keeps `dryRunPassedClaimed=false` and all execution gates false.
 
@@ -59,8 +59,8 @@ The card provides no execution buttons, no approval buttons, no credit buttons, 
 
 ## Current Blocker
 
-Read-only Cloud Run auth/IAM reverify has passed and the controlled smoke plan is defined. The controlled private invoke smoke stopped before a service request because audience-bound identity-token fetch is blocked for the active user account. Private Cloud Run invocation remains blocked until a backend-safe service-account token path or impersonation path is approved without key files and without exposing token values.
+Read-only Cloud Run auth/IAM reverify has passed and the controlled smoke plan is defined. The controlled private invoke smoke now uses the non-key service-account impersonation path, but it stopped before a service request because `iam.serviceAccounts.getAccessToken` is denied. Private Cloud Run invocation remains blocked until TokenCreator/getAccessToken is approved for the caller or an attached-service-account token path is accepted, without key files and without exposing token values.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference`
+`QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference`

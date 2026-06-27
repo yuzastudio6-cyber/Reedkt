@@ -74,7 +74,7 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'backend_evidence_routes_present',
       'Backend beta readiness evidence routes are present',
       'server/routes/beta-readiness-routes.ts',
-      ['/v1/beta-readiness/evidence', '/v1/beta-readiness/evidence/core-real-check', '/v1/beta-readiness/platform-billing-qa'],
+      ['/v1/beta-readiness/evidence', '/v1/beta-readiness/evidence/core-real-check', '/v1/beta-readiness/platform-billing-qa', '/v1/beta-readiness/platform-deployed-evidence/verify'],
       'Exercise the routes against staging with authenticated users and service-role persistence.',
     ),
     sourceFileCheck(

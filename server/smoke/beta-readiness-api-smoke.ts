@@ -23,6 +23,7 @@ const app = createReeditProApiApp(env)
 const server = app.listen(0)
 const smokeWorkspaceId = 'beta-readiness-api-smoke-workspace'
 const coreWorkspaceId = 'beta-readiness-api-smoke-core-workspace'
+const deployedEvidenceWorkspaceId = 'beta-readiness-api-smoke-deployed-platform-workspace'
 
 try {
   const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
@@ -45,6 +46,77 @@ try {
     platformPreflightResponse.data.report.missingEvidence.some((item: string) => item.includes('Wallet settlement')),
     'platform preflight should name wallet settlement as remaining evidence',
   )
+
+  const deployedVerifierReportResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-deployed-verify' },
+    body: JSON.stringify(buildPassingPlatformDeployedEvidenceBody(deployedEvidenceWorkspaceId)),
+  })
+  assert.equal(deployedVerifierReportResponse.ok, true, 'deployed platform verifier route should return ok')
+  assert.equal(deployedVerifierReportResponse.data.report.evidencePacketReady, true, 'passing deployed platform verifier route should build evidence packet')
+  assert.equal(deployedVerifierReportResponse.data.report.evaluatedReadiness.toolExecutionReadiness.platformBlockers.length, 0, 'deployed platform verifier route should clear shared platform blocker in evaluated report')
+  assert.equal(deployedVerifierReportResponse.data.report.evaluatedReadiness.toolExecutionReadiness.externalBetaToolExecutionAllowed, false, 'platform evidence alone must not allow tool execution beta')
+  assert.equal(deployedVerifierReportResponse.data.report.externalBetaAllowed, false, 'verifier route must not claim external beta allowed')
+
+  const failedDeployedVerifierResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-deployed-failed' },
+    body: JSON.stringify({
+      ...buildPassingPlatformDeployedEvidenceBody('beta-readiness-api-smoke-failed-deployed-platform-workspace'),
+      probes: buildPassingDeployedProbeObservations().map((probe) =>
+        probe.id === 'service_role_write_path_verified'
+          ? {
+            ...probe,
+            status: 'failed',
+            evidence: ['Service-role deployed write path was not verified.'],
+            nextAction: 'Verify service-role deployed writes before recording platform evidence.',
+          }
+          : probe,
+      ),
+    }),
+  })
+  assert.equal(failedDeployedVerifierResponse.data.report.evidencePacketReady, false, 'failed deployed platform verifier route should not build evidence packet')
+  assert.ok(
+    failedDeployedVerifierResponse.data.report.missingEvidence.some((item: string) => item.includes('service role write path verified')),
+    'failed deployed verifier route should name the failed service-role probe',
+  )
+
+  const blockedRecordResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-deployed-record-blocked' },
+    body: JSON.stringify({
+      ...buildPassingPlatformDeployedEvidenceBody('beta-readiness-api-smoke-record-blocked-platform-workspace'),
+      recordEvidence: true,
+      confirmRecordEvidence: false,
+    }),
+  }, 400)
+  assert.equal(blockedRecordResponse.error.code, 'VALIDATION_FAILED', 'recording deployed platform evidence should require explicit confirmation')
+
+  const storedDeployedEvidenceResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-deployed-record' },
+    body: JSON.stringify({
+      ...buildPassingPlatformDeployedEvidenceBody(deployedEvidenceWorkspaceId),
+      recordEvidence: true,
+      confirmRecordEvidence: true,
+    }),
+  }, 201)
+  assert.equal(storedDeployedEvidenceResponse.data.replayed, false, 'first deployed platform evidence record should not replay')
+  assert.equal(storedDeployedEvidenceResponse.data.packet.evidence.platformEvidence.environment, 'staging', 'stored deployed platform evidence should keep staging environment')
+  assert.equal(storedDeployedEvidenceResponse.data.storedReadinessReport.toolExecutionReadiness.platformBlockers.length, 0, 'stored platform evidence should clear platform blocker in stored report')
+  assert.equal(storedDeployedEvidenceResponse.data.storedReadinessReport.toolExecutionReadiness.externalBetaToolExecutionAllowed, false, 'stored platform evidence alone must not allow tool beta execution')
+
+  const replayedDeployedEvidenceResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-deployed-record' },
+    body: JSON.stringify({
+      ...buildPassingPlatformDeployedEvidenceBody(deployedEvidenceWorkspaceId),
+      recordEvidence: true,
+      confirmRecordEvidence: true,
+    }),
+  })
+  assert.equal(replayedDeployedEvidenceResponse.data.replayed, true, 'deployed platform evidence record should replay by idempotency key')
+  assert.equal(replayedDeployedEvidenceResponse.data.packet.id, storedDeployedEvidenceResponse.data.packet.id, 'deployed platform evidence replay should return same packet')
 
   const platformBillingQaResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-billing-qa`, {
     method: 'POST',
@@ -247,6 +319,46 @@ function buildCompleteEvidencePacketBody(): {
       supportApproved: true,
     },
   }
+}
+
+function buildPassingPlatformDeployedEvidenceBody(workspaceId: string) {
+  return {
+    workspaceId,
+    projectId: 'beta-readiness-api-smoke-deployed-platform-project',
+    sourceId: 'beta-readiness-api-smoke:platform-deployed-evidence',
+    sourceSha: '7777777777777777777777777777777777777777',
+    environment: 'staging',
+    ownerApprovals: {
+      billingOwnerStripeBoundaryApproved: true,
+      deploymentApproved: true,
+      securityApproved: true,
+      storageApproved: true,
+      legalApproved: true,
+      monitoringApproved: true,
+      supportApproved: true,
+    },
+    notes: ['Smoke evidence verifies deployed platform evidence route without live beta activation.'],
+    probes: buildPassingDeployedProbeObservations(),
+  }
+}
+
+function buildPassingDeployedProbeObservations() {
+  return [
+    'tool_cost_events_migration_deployed',
+    'beta_readiness_evidence_migration_deployed',
+    'service_role_write_path_verified',
+    'authenticated_rls_member_readback_verified',
+    'idempotent_replay_verified',
+    'wallet_settlement_verified',
+    'stripe_boundary_owner_verified',
+    'monitoring_deployment_verified',
+    'staging_billing_qa_verified',
+  ].map((id) => ({
+    id,
+    status: 'passed',
+    evidence: [`${id} passed in API smoke fixture.`],
+    nextAction: 'No action for API smoke fixture.',
+  }))
 }
 
 async function requestJson(

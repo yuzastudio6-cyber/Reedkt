@@ -248,6 +248,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after model-weight manifest supplement validator completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `4bd1860933c047a36ab37887a9680aeee871f4a4`, with an empty check rollup.
 - Beta evidence local authoring-input bridge: the local beta evidence assembler can now consume reviewed private checksum evidence plus reviewed private manifest supplements and author the five model-weight manifest records in memory before building the manifest review packet. Diagnostics prove this reaches the technical owner gate with local fixtures while preserving `agentCanExecuteToolsNow=false`, `runtimeReadyNow=false`, `gpuRuntimeApprovedNow=false`, and no idle GPU runtime. Direct pre-authored manifest directories remain supported.
 - Latest observed PR state after beta evidence local authoring-input bridge completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `2aaf8f68eea739eb3a53d79dd5e4cf82ea4e5ce8`, with an empty check rollup.
+- On-demand runtime admission gate: added `server/tool-registry/ai-graphics-on-demand-runtime-admission.ts`, `docs/tool-intelligence/ai-graphics/on-demand-runtime-admission.md`, `docs/tool-intelligence/ai-graphics/on-demand-runtime-admission.json`, and `ai-graphics:on-demand-runtime-admission:diagnostics`. The gate keeps planning requests from starting GPU runtime, blocks execution requests that lack approved job evidence, and authorizes GPU startup only for a future accepted Worker/Tool Route job with private artifact, runtime proof, owner approval, approved snapshot, and credit evidence. It keeps `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `noIdleGpuRuntimeApproved=true`, and `cpuFallbackAllowedForHeavyTools=false`.
 
 ## Runtime State
 
@@ -281,6 +282,9 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - `betaToolCallGpuRuntimeTargetsExact=true`
 - `betaRollupGpuRuntimeTargetsExact=true`
 - `gpuRuntimeOnDemandOnly=true`
+- `onDemandRuntimeAdmissionPrepared=true`
+- `gpuRuntimeStartAllowedForAcceptedJob=true only for a complete future GPU/model worker job evidence path`
+- `gpuRuntimeShouldStartNow=false`
 - `gpuRuntimeProofContainersEphemeral=true`
 - `noIdleGpuRuntimeApproved=true`
 - `startsOnlyForApprovedWorkerOrToolCall=true`

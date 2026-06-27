@@ -196,6 +196,7 @@ Latest observed PR state after beta evidence local authoring-input bridge comple
 - `npm run --silent ai-graphics:gpu-model-runtime-readiness-gate:diagnostics`
 - `npm run --silent ai-graphics:tool-call-handoff:diagnostics`
 - `npm run --silent ai-graphics:tool-call-plan-evaluator:diagnostics`
+- `npm run --silent ai-graphics:on-demand-runtime-admission:diagnostics`
 - `npm run --silent ai-graphics:tool-call-readiness:diagnostics`
 - Existing install/readiness diagnostics for the 21-tool, GPU model install, and GPU runtime-readiness lanes.
 - Typecheck where feasible without installing dependencies.

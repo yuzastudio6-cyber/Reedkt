@@ -220,6 +220,7 @@ function buildNextActions(
   }
 
   actions.push('After tool, platform, and launch approval evidence packets exist, rerun npm run beta:readiness:operator-status-api, smoke:tool-beta-execution-readiness, and the beta readiness API smoke from the final source SHA.')
+  actions.push('After deployed operator status reports external beta ready, use npm run beta:readiness:scope-approval-evidence-preflight with REEDITPRO_BETA_SCOPE_APPROVAL_MODE=real_user_media_beta; after real-user-media beta is ready, repeat with REEDITPRO_BETA_SCOPE_APPROVAL_MODE=paid_production.')
   return actions
 }
 

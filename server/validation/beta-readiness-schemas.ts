@@ -61,6 +61,14 @@ const approvalsSchema = z.object({
   paidProductionApproved: z.boolean().optional(),
 }).strict()
 
+const scopeApprovalEvidenceSchema = z.object({
+  scope: z.enum(['real_user_media_beta', 'paid_production']),
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  status: z.literal('passed'),
+  notes: z.array(noteSchema).min(1).max(20),
+}).strict()
+
 const baselineSchema = z.object({
   e2eDryRunPassed: z.boolean().optional(),
   safetyDocsExist: z.boolean().optional(),
@@ -72,6 +80,7 @@ export const betaReadinessEvidenceEvaluationSchema = z.object({
   checklistEvidence: z.array(checklistEvidenceSchema).max(betaReadinessChecklist.length).optional(),
   acceptedToolEvidence: z.array(acceptedToolEvidenceSchema).max(PRODUCTION_TOOL_IDS.length).optional(),
   platformEvidence: platformEvidenceSchema.optional(),
+  scopeApprovalEvidence: z.array(scopeApprovalEvidenceSchema).max(2).optional(),
   approvals: approvalsSchema.optional(),
 }).strict()
 

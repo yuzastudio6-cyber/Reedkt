@@ -119,10 +119,10 @@ function buildNextActions(report: BetaReadinessReport, workspaceId?: string): st
     actions.push('Complete the named checklist and owner approval blockers before external beta launch.')
   }
   if (!report.goNoGo.realUserMediaBetaAllowed) {
-    actions.push('Keep real user media beta blocked until external beta is approved and real-user-media approval is explicitly recorded.')
+    actions.push('After external beta is ready, run beta:readiness:scope-approval-evidence-preflight in real_user_media_beta mode, then record real-user-media beta approval evidence.')
   }
   if (!report.goNoGo.paidProductionAllowed) {
-    actions.push('Keep paid production blocked until real-user-media beta and paid-production approvals are explicitly recorded.')
+    actions.push('After real-user-media beta is ready, run beta:readiness:scope-approval-evidence-preflight in paid_production mode, then record paid-production approval evidence.')
   }
   actions.push('Rerun the operator status API and local smoke checks from the final source SHA after evidence changes.')
 

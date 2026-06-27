@@ -245,6 +245,7 @@ function buildNextActions(
   actions.push('After the local accepted evidence bundle, platform staging evidence preflight, and launch approval preflight all pass, run npm run beta:readiness:external-beta-evidence-collector to record tool/platform/launch evidence and require final external-beta operator-status readback in one fail-closed sequence.')
   actions.push('After tool, platform, and launch approval evidence packets exist, rerun npm run beta:readiness:operator-status-api, smoke:tool-beta-execution-readiness, and the beta readiness API smoke from the final source SHA.')
   actions.push('After deployed operator status reports external beta ready, use npm run beta:readiness:scope-approval-evidence-preflight with REEDITPRO_BETA_SCOPE_APPROVAL_MODE=real_user_media_beta; after real-user-media beta is ready, repeat with REEDITPRO_BETA_SCOPE_APPROVAL_MODE=paid_production, or run npm run beta:readiness:scope-approval-sequence when both later approvals and evidence notes are ready.')
+  actions.push('When all external-beta, real-user-media beta, and paid-production approval evidence inputs are available, run npm run beta:readiness:paid-production-evidence-collector to sequence the full evidence/readback path and require final paid-production operator-status readiness.')
   return actions
 }
 

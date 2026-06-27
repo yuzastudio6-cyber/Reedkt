@@ -135,6 +135,7 @@ function buildNextActions(report: BetaReadinessReport, workspaceId?: string): st
   }
   if (!report.goNoGo.paidProductionAllowed) {
     actions.push('After real-user-media beta is ready, run beta:readiness:scope-approval-evidence-preflight in paid_production mode, then record paid-production approval evidence; when both real-user-media beta and paid-production approvals are available, run npm run beta:readiness:scope-approval-sequence to record both in order and require final paid-production readback.')
+    actions.push('When all external-beta, real-user-media beta, and paid-production approval evidence inputs are available, run npm run beta:readiness:paid-production-evidence-collector to sequence the full evidence/readback path and require final paid-production operator-status readiness.')
   }
   actions.push('Rerun the operator status API and local smoke checks from the final source SHA after evidence changes.')
 

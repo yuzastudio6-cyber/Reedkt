@@ -498,6 +498,7 @@
     "smoke:qwen2-5-vl-approved-fixture-inference-service-deploy-result": "tsx server/smoke/qwen2-5-vl-approved-fixture-inference-service-deploy-result-smoke.ts",
     "smoke:qwen2-5-vl-approved-fixture-inference-smoke-execute-result": "tsx server/smoke/qwen2-5-vl-approved-fixture-inference-smoke-execute-result-smoke.ts",
     "smoke:qwen2-5-vl-approved-fixture-inference-smoke-fix-result": "tsx server/smoke/qwen2-5-vl-approved-fixture-inference-smoke-fix-result-smoke.ts",
+    "smoke:qwen2-5-vl-approved-fixture-inference-result-review": "tsx server/smoke/qwen2-5-vl-approved-fixture-inference-result-review-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-verify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-verify-result-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-reverify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-reverify-result-smoke.ts",

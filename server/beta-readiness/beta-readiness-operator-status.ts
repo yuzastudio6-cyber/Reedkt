@@ -88,6 +88,7 @@ function buildAllowedForwardProgressScopes(safeBlockerReductionAllowed: boolean)
     'source_review',
     'local_dependency_install_proof',
     'bounded_command_import_container_proof',
+    'safe_blocker_reduction_preview',
     'diagnostics_and_qa_packets',
     'deployment_preflight_and_platform_evidence_collection',
     'owner_approval_packet_collection',
@@ -110,7 +111,7 @@ function buildNextActions(report: BetaReadinessReport, workspaceId?: string): st
     actions.push('Supply workspaceId to read stored beta-readiness evidence for a deployed workspace.')
   }
   if (!report.toolExecutionReadiness.externalBetaToolExecutionAllowed) {
-    actions.push('Record accepted bounded per-tool evidence through /v1/beta-readiness/evidence/core-real-check after real staging checks pass.')
+    actions.push('Run npm run beta:tools:core-real-check-preview locally to preview bounded per-tool evidence without writing backend records, then record accepted evidence through /v1/beta-readiness/evidence/core-real-check after real staging checks pass.')
   }
   if (report.toolExecutionReadiness.platformBlockers.length > 0) {
     actions.push('Record deployed platform evidence through /v1/beta-readiness/platform-deployed-evidence/probe after migration, RLS, wallet, monitoring, billing QA, and owner approvals pass.')

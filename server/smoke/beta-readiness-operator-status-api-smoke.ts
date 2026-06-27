@@ -54,6 +54,15 @@ const blockedFetch: BetaReadinessOperatorStatusApiFetch = async (url, init) => {
               blockerPolicy: 'evidence_driven_block_unsafe_actions_only',
               safeBlockerReductionAllowed: true,
               blockedActionScope: ['external_beta_tool_execution', 'external_beta_launch'],
+              allowedForwardProgressScopes: [
+                'source_review',
+                'local_dependency_install_proof',
+                'bounded_command_import_container_proof',
+                'diagnostics_and_qa_packets',
+                'deployment_preflight_and_platform_evidence_collection',
+                'owner_approval_packet_collection',
+                'rollback_monitoring_support_planning',
+              ],
             },
             evidenceGaps: {
               goNoGoBlockers: ['Production readiness summary remains blocked.'],
@@ -77,6 +86,8 @@ assert.equal(capturedInit?.method, 'GET', 'CLI should use GET')
 assert.equal(capturedInit?.headers.authorization, 'Bearer status-api-secret-token', 'CLI should send bearer token only in the authorization header')
 assert.equal(blockedResult.readyForExternalBeta, false, 'blocked status should remain blocked')
 assert.equal(blockedResult.currentGate.safeBlockerReductionAllowed, true, 'CLI should preserve scoped blocker-reduction policy')
+assert.ok(blockedResult.currentGate.allowedForwardProgressScopes.includes('owner_approval_packet_collection'), 'CLI should preserve owner approval collection as allowed forward progress')
+assert.ok(blockedResult.currentGate.allowedForwardProgressScopes.includes('deployment_preflight_and_platform_evidence_collection'), 'CLI should preserve deployment evidence collection as allowed forward progress')
 assert.equal(blockedResult.evidenceGaps.goNoGoBlockers, 1, 'CLI should summarize go/no-go blockers')
 assert.equal(JSON.stringify(blockedResult).includes('status-api-secret-token'), false, 'CLI summary must not include bearer token')
 
@@ -111,6 +122,7 @@ const readySummary = summarizeOperatorStatusApiResponse('https://api.example/sta
       currentGate: {
         blockedActionScope: ['real_user_media_beta', 'paid_production_launch'],
         safeBlockerReductionAllowed: true,
+        allowedForwardProgressScopes: ['diagnostics_and_qa_packets'],
       },
       evidenceGaps: {
         goNoGoBlockers: [],
@@ -124,6 +136,7 @@ const readySummary = summarizeOperatorStatusApiResponse('https://api.example/sta
 assert.equal(readySummary.readyForExternalBeta, true, 'summary should preserve ready external beta status')
 assert.equal(readySummary.readyForPaidProduction, false, 'summary should preserve paid production blocker')
 assert.deepEqual(readySummary.currentGate.blockedActionScope, ['real_user_media_beta', 'paid_production_launch'], 'summary should preserve blocked action scopes')
+assert.deepEqual(readySummary.currentGate.allowedForwardProgressScopes, ['diagnostics_and_qa_packets'], 'summary should preserve allowed forward-progress scopes')
 
 console.log(JSON.stringify({
   ok: true,

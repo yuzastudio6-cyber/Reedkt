@@ -14,7 +14,7 @@ const ROOT = process.cwd()
 const DECISION =
   'qwen2_5_vl_cloud_run_gpu_private_invoke_transport_adapter_defined_fail_closed'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_54-PRIVATE-INVOKE-INTERNAL-CALLER-HARNESS: create controlled internal caller or internal LB/PSC path for contract smoke, no inference'
+  'QWEN2_5_VL_STACK_TOOL_55-PRIVATE-INVOKE-INTERNAL-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -136,6 +136,7 @@ for (const phrase of [
   'auth/IAM reverify passed',
   'HTTP `404`',
   '`internal-and-cloud-load-balancing`',
+  'CPU-only Cloud Run Job',
   NEXT_PROMPT,
 ]) {
   assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)

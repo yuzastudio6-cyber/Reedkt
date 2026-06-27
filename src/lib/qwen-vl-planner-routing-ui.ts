@@ -32,7 +32,7 @@ export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
   clientHelper: 'callQwen25VlPrivateInvokeDryRun'
   statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
   routeRuntime: 'mock'
-  currentStatus: 'blocked_private_invoke_internal_caller_required'
+  currentStatus: 'blocked_private_invoke_internal_caller_deploy_required'
   currentBlocker: string
   boundaryNotes: string[]
   runtimeFlags: {
@@ -65,7 +65,7 @@ export type QwenVlPlannerRoutingUiData = {
   privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_54-PRIVATE-INVOKE-INTERNAL-CALLER-HARNESS: create controlled internal caller or internal LB/PSC path for contract smoke, no inference'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_55-PRIVATE-INVOKE-INTERNAL-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -219,14 +219,14 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       clientHelper: 'callQwen25VlPrivateInvokeDryRun',
       statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
       routeRuntime: 'mock',
-      currentStatus: 'blocked_private_invoke_internal_caller_required',
+      currentStatus: 'blocked_private_invoke_internal_caller_deploy_required',
       currentBlocker:
-        'Controlled private invoke auth works, but the service uses internal-and-cloud-load-balancing ingress. Direct local service-host requests are blocked until an approved internal caller, internal load balancer, Private Service Connect, or VPC-routed harness exists.',
+        'Controlled private invoke auth works and the internal caller harness plan is defined. Runtime remains blocked until a controlled CPU-only internal caller harness or approved fallback private path is deployed.',
       boundaryNotes: [
         'The frontend helper calls only the central ReeditPro API client boundary.',
         'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
         'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
-        'The next runtime gate must create an approved internal caller path without relaxing public ingress or enabling inference.',
+        'The next runtime gate must deploy the approved CPU-only internal caller path without relaxing public ingress or enabling inference.',
       ],
       runtimeFlags: {
         usesCentralApiClient: true,
@@ -261,6 +261,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'D3, ECharts, and Vega-Lite own exact chart/dataviz output.',
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
-    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_54-PRIVATE-INVOKE-INTERNAL-CALLER-HARNESS: create controlled internal caller or internal LB/PSC path for contract smoke, no inference',
+    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_55-PRIVATE-INVOKE-INTERNAL-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference',
   }
 }

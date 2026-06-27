@@ -26,7 +26,7 @@ All of these must be true before the adapter can call injected transport depende
 - `runtimeServiceAccountVerified`
 - `projectInvokerPolicyVerified`
 
-Default adapter status: every gate remains false unless a future backend runtime injects explicit approval. Repository evidence now shows the guarded read-only auth/IAM reverify passed, the smoke runner can use the non-key impersonation token path, and narrow TokenCreator/Run Invoker bindings are present. The adapter still refuses by default until an approved internal caller path can reach the expected fail-closed contract response.
+Default adapter status: every gate remains false unless a future backend runtime injects explicit approval. Repository evidence now shows the guarded read-only auth/IAM reverify passed, the smoke runner can use the non-key impersonation token path, narrow TokenCreator/Run Invoker bindings are present, and the internal caller harness plan is defined. The adapter still refuses by default until an approved CPU-only internal caller harness or fallback private path can reach the expected fail-closed contract response.
 
 ## Required Transport Dependencies
 
@@ -61,8 +61,8 @@ The default adapter result is `blocked_transport_disabled`. In that path:
 
 ## Current Blocker
 
-The latest guarded auth/IAM reverify passed and the controlled private invoke smoke plan is defined. After the narrow authz fix, the smoke minted an identity token and sent exactly one authenticated contract request, but the response was HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records ingress `internal-and-cloud-load-balancing`, so the remaining blocker is an approved internal caller, internal load balancer, Private Service Connect, or VPC-routed harness, plus the same token-fetch policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before runtime may advance.
+The latest guarded auth/IAM reverify passed and the controlled private invoke smoke plan is defined. After the narrow authz fix, the smoke minted an identity token and sent exactly one authenticated contract request, but the response was HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records ingress `internal-and-cloud-load-balancing`, and the harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The remaining blocker is deploying that harness or an approved fallback private path, plus the same token-fetch policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before runtime may advance.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_54-PRIVATE-INVOKE-INTERNAL-CALLER-HARNESS: create controlled internal caller or internal LB/PSC path for contract smoke, no inference`
+`QWEN2_5_VL_STACK_TOOL_55-PRIVATE-INVOKE-INTERNAL-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference`

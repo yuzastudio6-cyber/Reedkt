@@ -14,7 +14,7 @@ const ROOT = process.cwd()
 const DECISION =
   'qwen2_5_vl_cloud_run_gpu_private_invoke_transport_adapter_defined_fail_closed'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_56-PRIVATE-INVOKE-RUNTIME-READINESS-REVIEW: review contract smoke and plan first approved-fixture inference smoke, no generated assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_57-APPROVED-FIXTURE-INFERENCE-SMOKE-PLAN: define first private approved-fixture Qwen inference smoke, no execution'
 
 type JsonRecord = Record<string, unknown>
 
@@ -139,6 +139,8 @@ for (const phrase of [
   'CPU-only Cloud Run Job',
   'contractSatisfiedForFutureRuntime=true',
   '`qwen_inference_disabled_after_contract_check`',
+  'runtime readiness review is recorded',
+  'first approved-fixture inference smoke plan',
   NEXT_PROMPT,
 ]) {
   assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)

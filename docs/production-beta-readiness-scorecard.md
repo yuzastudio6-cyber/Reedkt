@@ -268,9 +268,12 @@ external beta, and production blocked.
 It can also consume the source queue-admission readiness packet only when that
 packet preserves all-21/all-12 coverage, exactly eight accepted-future-job GPU
 start candidates, `gpuRuntimeShouldStartNow=false`, and false
-runtime/beta/production gates. It then prepares only the no-write transaction
-envelope. Live service-role transactions, inserts, worker claims, dispatch, and
-runtime execution remain blocked.
+runtime/beta/production gates. The source packet must also preserve nested
+runtime-enqueue, owner go/no-go, production worker gate, and production worker
+job evidence, including exact NVIDIA L4 targets, on-demand-only GPU policy,
+no-idle GPU approval, and CPU-fallback blocking for heavy/model tools. It then
+prepares only the no-write transaction envelope. Live service-role transactions,
+inserts, worker claims, dispatch, and runtime execution remain blocked.
 
 AI graphics internal beta service-role RPC implementation readiness decision
 `ai_graphics_internal_beta_service_role_rpc_implementation_readiness_contract_prepared_with_static_migration`

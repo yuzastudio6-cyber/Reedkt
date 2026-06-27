@@ -330,6 +330,12 @@ for (const [key, expected] of Object.entries({
   sourceQueueAdmissionPacketMustKeepEightGpuFutureStartTools: true,
   sourceQueueAdmissionPacketMustKeepGpuStartNowFalse: true,
   sourceQueueAdmissionPacketMustKeepRuntimeBetaAndProductionFalse: true,
+  sourceQueueAdmissionPacketMustPreserveNestedRuntimeEnqueueApproval: true,
+  sourceQueueAdmissionPacketMustPreserveNestedOwnerApproval: true,
+  sourceQueueAdmissionPacketMustPreserveNestedProductionWorkerGateEvidence: true,
+  sourceQueueAdmissionPacketMustPreserveNestedProductionWorkerJobEvidence: true,
+  sourceQueueAdmissionPacketMustPreserveNestedOnDemandGpuPolicy: true,
+  sourceQueueAdmissionPacketMustRejectCpuFallbackForNestedHeavyTools: true,
   backendQueueStorageEvidenceStillRequired: true,
   serviceRoleEnvelopeStillRequired: true,
   noWriteRpcEnvelopeOnly: true,
@@ -344,6 +350,10 @@ for (const token of [
   '--internal-beta-queue-admission-readiness-packet',
   'sourceQueueAdmissionReadinessPacket',
   'internal_beta_queue_admission_readiness_packet',
+  'validateNestedRuntimeEnqueueApproval',
+  'sourceRollup must preserve exactly 8 GPU/model gate checks',
+  'sourceRollup must preserve exactly 8 GPU/model source payloads',
+  'cpuFallbackAllowedForHeavyTools',
 ]) {
   if (!cliSource.includes(token) && !moduleSource.includes(token) && !markdown.includes(token)) {
     fail(`source_missing_queue_admission_packet_token:${token}`)
@@ -580,6 +590,73 @@ expectQueueAdmissionPacketRejected(
   'bad-tool-scope-gpu-start-now',
   (packet) => {
     packet.queueAdmissionPackets[0].gpuRuntimeShouldStartNow = true
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-nested-runtime-enqueue-status',
+  (packet) => {
+    packet.sourceRuntimeEnqueueApproval.status = 'awaiting_internal_beta_runtime_enqueue_approval'
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-nested-owner-status',
+  (packet) => {
+    packet.sourceRuntimeEnqueueApproval.sourceGoNoGoOwnerApproval.status =
+      'awaiting_internal_beta_go_no_go_owner_approval'
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-nested-rollup-gpu-count',
+  (packet) => {
+    packet.sourceRuntimeEnqueueApproval.sourceGoNoGoOwnerApproval.sourceGoNoGo.sourceRollup.gpuRuntimeTargetedTools = 7
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-nested-gpu-gate-target',
+  (packet) => {
+    const gateCheck =
+      packet.sourceRuntimeEnqueueApproval.sourceGoNoGoOwnerApproval.sourceGoNoGo.sourceRollup
+        .productionWorkerGateReadiness.productionWorkerGateChecks
+        .find((candidate) => candidate.toolId === 'sam2')
+    gateCheck.runtimeTarget = 'native_linux_amd64_cpu_worker'
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-nested-gpu-job-on-demand',
+  (packet) => {
+    const sourcePayload =
+      packet.sourceRuntimeEnqueueApproval.sourceGoNoGoOwnerApproval.sourceGoNoGo.sourceRollup
+        .productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads
+        .find((candidate) => candidate.sourceToolId === 'sam2')
+    sourcePayload.productionWorkerJobPayload.metadata.aiGraphicsRuntimeActivationPolicy.onDemandOnly = false
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-nested-gpu-job-cpu-fallback',
+  (packet) => {
+    const sourcePayload =
+      packet.sourceRuntimeEnqueueApproval.sourceGoNoGoOwnerApproval.sourceGoNoGo.sourceRollup
+        .productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads
+        .find((candidate) => candidate.sourceToolId === 'sam2')
+    sourcePayload.productionWorkerJobPayload.metadata.aiGraphicsRuntimeActivationPolicy.cpuFallbackAllowedForHeavyTools = true
   },
   manifestPacketPath,
   gpuPacketPath,

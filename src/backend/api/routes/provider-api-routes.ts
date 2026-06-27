@@ -81,4 +81,25 @@ export const PROVIDER_API_ROUTES: ApiRouteDefinition[] = [
     futureHandlerName: 'generateAiVideoAsset',
     notes: ['Disabled until approved-plan, credit, and tier policy enforcement exist in backend.'],
   },
+  {
+    id: 'providers.qwen25Vl.structuredVisualMetadataPlan',
+    domain: 'providers',
+    method: 'POST',
+    path: '/api/providers/qwen2-5-vl/structured-visual-metadata',
+    description:
+      'Future backend route for QWEN2.5-VL structured visual metadata planning from approved snapshot references.',
+    securityLevel: 'workspace_editor',
+    runtimeMode: 'backend_required',
+    status: 'backend_required',
+    requiresSupabase: true,
+    requiresServiceRole: true,
+    requiresProviderSecret: true,
+    requiresStripeSecret: false,
+    futureHandlerName: 'createQwen25VlStructuredVisualMetadataPlan',
+    notes: [
+      'Source-only route registry integration; no handler is registered or executed in this phase.',
+      'Future runtime must require approved snapshot, credit reservation, queue lease, idempotency key, private manifests, model routing policy, QA policy, and a separate confirmation gate.',
+      'No frontend provider/model call, raw prompt execution, arbitrary media, public artifact, signed URL source-of-truth, render/export, external beta unlock, paid production, or production unlock is authorized.',
+    ],
+  },
 ]

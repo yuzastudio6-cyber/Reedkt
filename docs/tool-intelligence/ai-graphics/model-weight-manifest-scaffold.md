@@ -20,6 +20,11 @@ The scaffold writes the runtime mount layout expected by the GPU proof command p
 - `rembg/model_tree_manifest.json`
 - `transparent-background/model_tree_manifest.json`
 
+It also writes local-only authoring support files:
+
+- `manifest-authoring-checklist.json`
+- `MANIFEST_AUTHORING_CHECKLIST.md`
+
 ## Source Candidate Guidance
 
 Each scaffold record is linked to the current model-weight source catalog so local private manifest authoring uses the selected candidate instead of a generic placeholder:
@@ -31,6 +36,24 @@ Each scaffold record is linked to the current model-weight source catalog so loc
 - `transparent_background`: `plemeri_transparent_background_base_ckpt_review_candidate`, artifact candidate `ckpt_base.pth`, upstream MD5 `d692e3dd5fa1b9658949d452bebf1cda`; blocked until source/license/checksum/provenance/quality/security review accepts the selected candidate.
 
 Generated placeholder records include `sourceCandidateId` set to the selected candidate above. The review validator and native GPU readiness probe reject records whose `sourceCandidateId` does not match the source catalog.
+
+## Authoring Checklist
+
+The checklist records, per tool:
+
+- selected `sourceCandidateId`
+- authoring readiness (`ready_from_existing_internal_evidence_after_private_ref_authoring` or `blocked_until_source_review_accepts_selected_candidate`)
+- local-only manifest path
+- expected runtime manifest path
+- accepted private artifact ref namespaces
+- required manifest fields
+- required review booleans
+- source evidence refs, where available
+- validation commands for the manifest review and GPU proof command-plan steps
+
+This closes the handoff gap between source selection and private manifest
+creation without committing private refs, checksums, model files, or proof
+results.
 
 ## Command
 
@@ -54,6 +77,7 @@ The generated templates are intentionally invalid until owner-reviewed:
 - `checksumSha256` is `REPLACE_WITH_64_HEX_SHA256`, which validation rejects.
 - `sourceCandidateId` is prefilled from the source catalog and must not be changed unless a later reviewed source-catalog lane selects a different candidate.
 - All review booleans are `false`.
+- The local checklist reports `committedManifestApproved=false` for every tool.
 
 This prevents a placeholder scaffold from accidentally becoming native GPU proof input.
 

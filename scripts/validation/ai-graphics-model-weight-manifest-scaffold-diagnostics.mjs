@@ -179,6 +179,7 @@ for (const [key, expected] of Object.entries({
   modelWeightManifestRequiredTools: 5,
   scaffoldTemplatesPrepared: 5,
   sourceCandidateGuidanceRecords: 5,
+  manifestAuthoringChecklistItems: 5,
   privateArtifactRefsLogged: 0,
   manifestRecordsApprovedNow: 0,
   nativeGpuProofInputEligibleNow: 0,
@@ -216,13 +217,37 @@ if (!JSON.stringify(packet.scaffoldFiles || []).includes('d692e3dd5fa1b9658949d4
 if (!JSON.stringify(packet.scaffoldFiles || []).includes('blocked_until_source_review_accepts_selected_candidate')) {
   fail('packet_missing_source_review_block_status')
 }
+if (!Array.isArray(packet.authoringChecklist) || packet.authoringChecklist.length !== 5) {
+  fail(`packet_authoring_checklist_count:${packet.authoringChecklist?.length}`)
+}
+for (const tool of modelWeightTools) {
+  const checklistItem = (packet.authoringChecklist || []).find((entry) => entry.toolId === tool)
+  if (!checklistItem) fail(`packet_missing_checklist_item:${tool}`)
+  if (checklistItem?.candidateId !== expectedCandidateIds[tool]) {
+    fail(`packet_checklist_candidate_id_mismatch:${tool}:${checklistItem?.candidateId}`)
+  }
+  if (!checklistItem?.requiredManifestFields?.includes('sourceCandidateId')) {
+    fail(`packet_checklist_missing_source_candidate_field:${tool}`)
+  }
+  if (!checklistItem?.requiredReviewBooleans?.includes('approvedForInternalBeta')) {
+    fail(`packet_checklist_missing_internal_beta_review:${tool}`)
+  }
+  if (!checklistItem?.acceptedPrivateArtifactRefNamespaces?.includes('private://')) {
+    fail(`packet_checklist_missing_private_namespace:${tool}`)
+  }
+  if (checklistItem?.localOnly !== true || checklistItem?.committedManifestApproved !== false) {
+    fail(`packet_checklist_scope_mismatch:${tool}`)
+  }
+}
 
 for (const token of [
   'AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_SCAFFOLD_DECISION',
   'buildAiGraphicsModelWeightManifestScaffoldPacket',
   'listAiGraphicsModelWeightSourceCandidates',
+  'authoringChecklistItemForTool',
   'sourceCandidateGuidanceForTool',
   'sourceCandidateIdForTool',
+  'manifestAuthoringChecklistPrepared',
   'upstreamArtifactChecksumMd5ByTool',
   'blocked_until_source_review_accepts_selected_candidate',
   'public://replace-with-reviewed-private-artifact-ref',
@@ -236,6 +261,9 @@ for (const token of [
 for (const token of [
   '--out-dir',
   '--force',
+  'manifest-authoring-checklist.json',
+  'MANIFEST_AUTHORING_CHECKLIST.md',
+  'authoringChecklistWritten: true',
   'privateArtifactRefsLogged: 0',
   'scaffoldTemplatesAreReviewInvalid: true',
 ]) {
@@ -248,6 +276,9 @@ for (const source of [
 ]) {
   if (!source[1].includes('statSync')) fail(`${source[0]}_does_not_support_recursive_manifest_dir`)
   if (!source[1].includes('jsonFilesInDirectory(entryPath)')) fail(`${source[0]}_missing_recursive_json_discovery`)
+  if (!source[1].includes("entry !== 'manifest-authoring-checklist.json'")) {
+    fail(`${source[0]}_does_not_ignore_support_json_files`)
+  }
 }
 
 for (const key of [
@@ -291,9 +322,10 @@ for (const key of [
 const scaffoldDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-model-manifest-scaffold-'))
 const scaffoldOutput = runNpm([scaffoldScriptName, '--', '--out-dir', scaffoldDir])
 const scaffoldRun = parseOutput(scaffoldOutput, 'scaffold')
-if (scaffoldRun.output?.writtenFiles?.length !== 5) fail(`scaffold_written_file_count:${scaffoldRun.output?.writtenFiles?.length}`)
+if (scaffoldRun.output?.writtenFiles?.length !== 7) fail(`scaffold_written_file_count:${scaffoldRun.output?.writtenFiles?.length}`)
 if (scaffoldRun.output?.privateArtifactRefsLogged !== 0) fail('scaffold_private_artifact_refs_logged_not_zero')
 if (scaffoldRun.output?.scaffoldTemplatesAreReviewInvalid !== true) fail('scaffold_templates_not_marked_invalid')
+if (scaffoldRun.output?.authoringChecklistWritten !== true) fail('scaffold_authoring_checklist_not_written')
 if (!JSON.stringify(scaffoldRun.scaffoldRecords || []).includes('isnet-general-use.onnx')) {
   fail('scaffold_run_missing_rembg_source_guidance')
 }
@@ -326,6 +358,37 @@ for (const tool of modelWeightTools) {
     'approvedForInternalBeta',
   ]) {
     if (manifest[field] !== false) fail(`scaffold_boolean_not_false:${tool}:${field}`)
+  }
+}
+
+const checklistJsonPath = path.join(scaffoldDir, 'manifest-authoring-checklist.json')
+const checklistMarkdownPath = path.join(scaffoldDir, 'MANIFEST_AUTHORING_CHECKLIST.md')
+if (!fs.existsSync(checklistJsonPath)) fail('scaffold_missing_checklist_json')
+if (!fs.existsSync(checklistMarkdownPath)) fail('scaffold_missing_checklist_markdown')
+const checklistJson = JSON.parse(fs.readFileSync(checklistJsonPath, 'utf8'))
+const checklistMarkdown = fs.readFileSync(checklistMarkdownPath, 'utf8')
+if (!Array.isArray(checklistJson) || checklistJson.length !== 5) fail(`scaffold_checklist_json_count:${checklistJson.length}`)
+if (!checklistMarkdown.includes('AI Graphics Model-Weight Manifest Authoring Checklist')) {
+  fail('scaffold_checklist_markdown_missing_title')
+}
+if (!checklistMarkdown.includes('No model downloads, model loads, inference, GPU runtime')) {
+  fail('scaffold_checklist_markdown_missing_no_scope')
+}
+if (checklistMarkdown.includes('private://reeditpro/')) fail('scaffold_checklist_markdown_leaked_private_ref')
+for (const tool of modelWeightTools) {
+  const checklistItem = checklistJson.find((entry) => entry.toolId === tool)
+  if (!checklistItem) fail(`scaffold_checklist_missing_tool:${tool}`)
+  if (checklistItem?.candidateId !== expectedCandidateIds[tool]) {
+    fail(`scaffold_checklist_candidate_mismatch:${tool}:${checklistItem?.candidateId}`)
+  }
+  if (!checklistItem?.requiredManifestFields?.includes('sourceCandidateId')) {
+    fail(`scaffold_checklist_missing_source_candidate_field:${tool}`)
+  }
+  if (!checklistItem?.validationCommands?.some((command) => command.includes('model-weight-manifest-review:validate'))) {
+    fail(`scaffold_checklist_missing_manifest_validation_command:${tool}`)
+  }
+  if (!checklistItem?.validationCommands?.some((command) => command.includes('gpu-runtime-proof-command-plan'))) {
+    fail(`scaffold_checklist_missing_gpu_command_plan:${tool}`)
   }
 }
 

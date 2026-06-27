@@ -32,6 +32,7 @@
     "modelWeightManifestRequiredTools": 5,
     "scaffoldTemplatesPrepared": 5,
     "sourceCandidateGuidanceRecords": 5,
+    "manifestAuthoringChecklistItems": 5,
     "privateArtifactRefsLogged": 0,
     "manifestRecordsApprovedNow": 0,
     "nativeGpuProofInputEligibleNow": 0,
@@ -134,10 +135,115 @@
       }
     }
   ],
+  "authoringChecklist": [
+    {
+      "toolId": "sam2",
+      "candidateId": "facebook_sam2_1_hiera_tiny_existing_staging_evidence",
+      "authoringReadiness": "ready_from_existing_internal_evidence_after_private_ref_authoring",
+      "localOnlyManifestPath": ".local-artifacts/ai-graphics/model-weight-manifests/sam2/model_tree_manifest.json",
+      "expectedRuntimeManifestPath": "/opt/reeditpro/model-weights/sam2/model_tree_manifest.json",
+      "acceptedPrivateArtifactRefNamespaces": ["private://", "reeditpro-private://", "reeditpro-private-artifact-ref-"],
+      "requiredManifestFields": ["manifestId", "toolId", "templateId", "sourceCandidateId", "privateArtifactRef", "checksumSha256", "sourceLicenseRef", "modelCardRef", "commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
+      "requiredReviewBooleans": ["commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
+      "sourceEvidenceRefs": [
+        "server/activation/sam2-model-download/approved-sam2-model-download-evidence.ts",
+        "server/activation/sam2-runtime/sam2-runtime-policy.ts",
+        "server/activation/sam2-runtime/approved-sam2-runtime-evidence.ts"
+      ],
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedManifestApproved": false,
+      "nextAction": "Convert existing SAM2.1 tiny staging evidence into a reviewed private manifest using a private:// or reeditpro-private:// artifact ref, then rerun native L4 proof for AI graphics."
+    },
+    {
+      "toolId": "birefnet",
+      "candidateId": "zhengpeng7_birefnet_official_weights_review_candidate",
+      "authoringReadiness": "ready_from_existing_internal_evidence_after_private_ref_authoring",
+      "localOnlyManifestPath": ".local-artifacts/ai-graphics/model-weight-manifests/birefnet/model_tree_manifest.json",
+      "expectedRuntimeManifestPath": "/opt/reeditpro/model-weights/birefnet/model_tree_manifest.json",
+      "acceptedPrivateArtifactRefNamespaces": ["private://", "reeditpro-private://", "reeditpro-private-artifact-ref-"],
+      "requiredManifestFields": ["manifestId", "toolId", "templateId", "sourceCandidateId", "privateArtifactRef", "checksumSha256", "sourceLicenseRef", "modelCardRef", "commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
+      "requiredReviewBooleans": ["commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
+      "sourceEvidenceRefs": [
+        "server/activation/mask-model-approval/mask-model-candidate-registry.ts",
+        "server/activation/mask-model-approval/mask-model-license-evidence.ts",
+        "server/activation/mask-model-download/approved-mask-model-download-evidence.ts"
+      ],
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedManifestApproved": false,
+      "nextAction": "Convert existing Phase 33 BiRefNet staging evidence into a reviewed private manifest using a private:// or reeditpro-private:// artifact ref, then run native L4 proof for AI graphics."
+    },
+    {
+      "toolId": "real_esrgan",
+      "candidateId": "xinntao_real_esrgan_x4plus",
+      "authoringReadiness": "ready_from_existing_internal_evidence_after_private_ref_authoring",
+      "localOnlyManifestPath": ".local-artifacts/ai-graphics/model-weight-manifests/real-esrgan/model_tree_manifest.json",
+      "expectedRuntimeManifestPath": "/opt/reeditpro/model-weights/real-esrgan/model_tree_manifest.json",
+      "acceptedPrivateArtifactRefNamespaces": ["private://", "reeditpro-private://", "reeditpro-private-artifact-ref-"],
+      "requiredManifestFields": ["manifestId", "toolId", "templateId", "sourceCandidateId", "privateArtifactRef", "checksumSha256", "sourceLicenseRef", "modelCardRef", "commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
+      "requiredReviewBooleans": ["commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
+      "sourceEvidenceRefs": [
+        "server/activation/enhancement-model-approval/enhancement-model-candidate-registry.ts",
+        "server/activation/enhancement-model-approval/enhancement-model-license-evidence.ts",
+        "server/activation/enhancement-model-download/approved-enhancement-model-download-evidence.ts"
+      ],
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedManifestApproved": false,
+      "nextAction": "Create reviewed private RealESRGAN_x4plus manifest with checksum, source/license evidence, model-card/provenance evidence, quality/security review, and then run native L4 proof."
+    },
+    {
+      "toolId": "rembg",
+      "candidateId": "danielgatis_rembg_isnet_general_use_review_candidate",
+      "authoringReadiness": "blocked_until_source_review_accepts_selected_candidate",
+      "localOnlyManifestPath": ".local-artifacts/ai-graphics/model-weight-manifests/rembg/model_tree_manifest.json",
+      "expectedRuntimeManifestPath": "/opt/reeditpro/model-weights/rembg/model_tree_manifest.json",
+      "acceptedPrivateArtifactRefNamespaces": ["private://", "reeditpro-private://", "reeditpro-private-artifact-ref-"],
+      "requiredManifestFields": ["manifestId", "toolId", "templateId", "sourceCandidateId", "privateArtifactRef", "checksumSha256", "sourceLicenseRef", "modelCardRef", "commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
+      "requiredReviewBooleans": ["commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
+      "sourceEvidenceRefs": [],
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedManifestApproved": false,
+      "nextAction": "Review DIS/rembg isnet-general-use license and provenance, checksum the private isnet-general-use.onnx artifact tree, record the U2NET_HOME cache layout, create a private manifest, and then run native L4 proof."
+    },
+    {
+      "toolId": "transparent_background",
+      "candidateId": "plemeri_transparent_background_base_ckpt_review_candidate",
+      "authoringReadiness": "blocked_until_source_review_accepts_selected_candidate",
+      "localOnlyManifestPath": ".local-artifacts/ai-graphics/model-weight-manifests/transparent-background/model_tree_manifest.json",
+      "expectedRuntimeManifestPath": "/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json",
+      "acceptedPrivateArtifactRefNamespaces": ["private://", "reeditpro-private://", "reeditpro-private-artifact-ref-"],
+      "requiredManifestFields": ["manifestId", "toolId", "templateId", "sourceCandidateId", "privateArtifactRef", "checksumSha256", "sourceLicenseRef", "modelCardRef", "commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
+      "requiredReviewBooleans": ["commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
+      "sourceEvidenceRefs": [],
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedManifestApproved": false,
+      "nextAction": "Review transparent-background/InSPyReNet license and provenance, verify ckpt_base.pth against the upstream MD5 before private manifest approval, record quality/security evidence, and then run native L4 proof."
+    }
+  ],
   "booleans": {
     "modelWeightManifestScaffoldPrepared": true,
     "all5ModelWeightToolsCovered": true,
     "runtimeMountLayoutPrepared": true,
+    "manifestAuthoringChecklistPrepared": true,
     "templatesInvalidUntilOwnerReviewed": true,
     "privateArtifactRefsNotLogged": true,
     "agentCanSelectForPlanning": true,
@@ -165,7 +271,7 @@
     "signedUrlCreated": false
   },
   "nextWork": [
-    "Run the scaffold command to create local-only manifest templates under .local-artifacts.",
+    "Run the scaffold command to create local-only manifest templates and authoring checklists under .local-artifacts.",
     "Replace placeholders with reviewed private artifact refs, source/license evidence, model-card refs, checksums, and owner-review booleans.",
     "Run the manifest validator and GPU runtime proof command-plan before any native GPU proof lane."
   ]

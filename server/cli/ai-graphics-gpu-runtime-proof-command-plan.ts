@@ -46,7 +46,7 @@ function jsonFilesInDirectory(directory: string): string[] {
     const stats = statSync(entryPath)
     if (stats.isDirectory()) {
       files.push(...jsonFilesInDirectory(entryPath))
-    } else if (entry.endsWith('.json')) {
+    } else if (entry.endsWith('.json') && entry !== 'manifest-authoring-checklist.json') {
       files.push(entryPath)
     }
   }

@@ -113,6 +113,8 @@ assert.equal(plan.target.service, 'reeditpro-qwen2-5-vl-l4-worker')
 assert.equal(staticReport.status, 'blocked')
 assert.deepEqual(staticReport.blockers, ['auth_preflight_not_run'])
 
+const planProbeIds = new Set<string>(plan.readOnlyProbeIds)
+const changeLogProbeIds = new Set<string>(changeLog.readOnlyProbeIds as string[])
 for (const probe of [
   'gcloud_version',
   'active_project',
@@ -122,12 +124,13 @@ for (const probe of [
   'runtime_service_account_describe',
   'project_invoker_policy_read'
 ]) {
-  assert.ok(plan.readOnlyProbeIds.includes(probe), `plan missing probe ${probe}`)
-  assert.ok((changeLog.readOnlyProbeIds as string[]).includes(probe), `change log missing probe ${probe}`)
+  assert.ok(planProbeIds.has(probe), `plan missing probe ${probe}`)
+  assert.ok(changeLogProbeIds.has(probe), `change log missing probe ${probe}`)
 }
 
+const changeLogRuntimeFlags = changeLog.runtimeFlags as Record<string, unknown>
 for (const [key, value] of Object.entries(QWEN25_PRIVATE_INVOKE_AUTH_RUNTIME_FLAGS)) {
-  assert.equal(changeLog.runtimeFlags?.[key], value, `change log runtime flag ${key} mismatch`)
+  assert.equal(changeLogRuntimeFlags[key], value, `change log runtime flag ${key} mismatch`)
 }
 
 for (const key of [
@@ -149,6 +152,7 @@ for (const key of [
 const activationSource = read('server/activation/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight.ts')
 assert.equal(activationSource.includes('REEDITPRO_CONFIRM_QWEN25_VL_PRIVATE_INVOKE_AUTH_PREFLIGHT'), true)
 assert.equal(activationSource.includes('CLOUDSDK_CORE_DISABLE_PROMPTS'), true)
+const forbiddenCommands = new Set<string>(plan.forbiddenCommands)
 for (const forbiddenCommand of [
   'gcloud auth login',
   'gcloud auth print-identity-token',
@@ -156,7 +160,7 @@ for (const forbiddenCommand of [
   'gcloud run services update',
   'gcloud run services add-iam-policy-binding'
 ]) {
-  assert.ok(plan.forbiddenCommands.includes(forbiddenCommand), `Plan must forbid ${forbiddenCommand}`)
+  assert.ok(forbiddenCommands.has(forbiddenCommand), `Plan must forbid ${forbiddenCommand}`)
 }
 for (const unexpectedProbe of [
   'print_identity_token',
@@ -166,7 +170,7 @@ for (const unexpectedProbe of [
   'service_proxy',
   'cloud_run_invoke'
 ]) {
-  assert.equal(plan.readOnlyProbeIds.includes(unexpectedProbe), false, `Probe list must not include ${unexpectedProbe}`)
+  assert.equal(planProbeIds.has(unexpectedProbe), false, `Probe list must not include ${unexpectedProbe}`)
 }
 
 for (const file of [

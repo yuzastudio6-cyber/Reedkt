@@ -109,7 +109,7 @@ for (const handoff of handoffs) {
 function requireHandoff(taskId: string) {
   const found = handoffs.find((item) => item.plannerTaskId === taskId)
   check(Boolean(found), `Missing handoff ${taskId}`)
-  return found
+  return found!
 }
 
 check(requireHandoff('planner_broll_relevance_scoring').mustNotReplace.includes('wan_video'), 'B-roll review must not replace Wan.')

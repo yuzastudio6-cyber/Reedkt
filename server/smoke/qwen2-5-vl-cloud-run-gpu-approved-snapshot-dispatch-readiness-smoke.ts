@@ -189,6 +189,7 @@ for (const blocker of [
   assert.ok((changeLog.currentBlockers as string[]).includes(blocker), `change log missing blocker ${blocker}`)
 }
 
+const blockedBypassIds = new Set<string>(readiness.blockedBypasses)
 for (const bypass of [
   'dispatch_without_approved_snapshot',
   'dispatch_without_credit_reservation',
@@ -199,11 +200,11 @@ for (const bypass of [
   'model_policy_mismatch_dispatch',
   'generic_worker_completion_substitution'
 ]) {
-  assert.ok(readiness.blockedBypasses.includes(bypass), `missing blocked bypass ${bypass}`)
+  assert.ok(blockedBypassIds.has(bypass), `missing blocked bypass ${bypass}`)
   assert.ok((changeLog.blockedBypasses as string[]).includes(bypass), `change log missing bypass ${bypass}`)
 }
 
-const surfaceIds = readiness.workerRuntimeSurfaces.map((surface) => surface.id)
+const surfaceIds = new Set<string>(readiness.workerRuntimeSurfaces.map((surface) => surface.id))
 for (const surface of [
   'runWorkerJobSchema',
   'JobRuntimeQueueItem',
@@ -212,7 +213,7 @@ for (const surface of [
   'idempotencyService',
   'dispatchMockWorkerJob'
 ]) {
-  assert.ok(surfaceIds.includes(surface), `missing worker runtime surface ${surface}`)
+  assert.ok(surfaceIds.has(surface), `missing worker runtime surface ${surface}`)
 }
 
 assert.equal(readiness.runtimeFlags.dispatchReadinessAudited, true)

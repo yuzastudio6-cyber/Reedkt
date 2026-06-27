@@ -78,12 +78,13 @@ check(
 
 const qwenProfile = getProductionToolProfile('qwen_vl')
 check(Boolean(qwenProfile), 'Qwen production tool profile must exist.')
-check(qwenProfile?.category === 'visual_analysis', 'Qwen must remain visual analysis.')
-check(qwenProfile?.workerType === 'gpu_ai_worker', 'Qwen must remain GPU worker scoped.')
-check(qwenProfile?.gpuRequired === true, 'Qwen must require GPU.')
-check(qwenProfile?.cpuAllowed === false, 'Qwen must not be CPU execution-ready.')
-check(qwenProfile?.notBestFor.includes('AI video generation'), 'Qwen profile must reject AI video generation.')
-check(qwenProfile?.notBestFor.includes('Final render/export'), 'Qwen profile must reject final render/export.')
+const qwen = qwenProfile!
+check(qwen.category === 'visual_analysis', 'Qwen must remain visual analysis.')
+check(qwen.workerType === 'gpu_ai_worker', 'Qwen must remain GPU worker scoped.')
+check(qwen.gpuRequired === true, 'Qwen must require GPU.')
+check(qwen.cpuAllowed === false, 'Qwen must not be CPU execution-ready.')
+check(qwen.notBestFor.includes('AI video generation'), 'Qwen profile must reject AI video generation.')
+check(qwen.notBestFor.includes('Final render/export'), 'Qwen profile must reject final render/export.')
 
 check(QWEN_VL_USE_CASE_ROUTING_DECISIONS.length >= 13, 'Qwen routing decisions must cover allowed and blocked use cases.')
 

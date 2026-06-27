@@ -27,6 +27,8 @@ Tool-cost wallet settlement has a backend-owned settlement path for platform bil
 
 `npm run smoke:beta-platform-rls-readback:sql` verifies local RLS/readback behavior for the billing platform tables against a disposable local Postgres database. It proves scoped authenticated reads for `tool_cost_events` and `tool_cost_wallet_settlements`, non-member denial, backend-only beta evidence read denial, and authenticated insert denial. It is not deployed Supabase evidence and does not clear the platform blocker by itself.
 
+`npm run smoke:beta-platform-monitoring-catalog` verifies source-only metric and alert templates for tool-cost event writes, idempotent replay, persistent write failures, wallet settlement, RLS readback, billing QA missing evidence, and Stripe-boundary violations. It does not deploy dashboards or alerts.
+
 ## Mock Status
 
 The mock gate returns allowed/blocked decisions and warnings. It does not call Stripe, provider APIs, workers, rendering, or remote Supabase.

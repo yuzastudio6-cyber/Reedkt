@@ -70,6 +70,111 @@ function isGoNoGoOwnerApprovalPacket(
   )
 }
 
+const falseGateKeys = [
+  'agentCanExecuteToolsNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'productionWorkerJobEnqueueApprovedNow',
+  'productionWorkerDispatchApprovedNow',
+  'productionWorkerRouteExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'routeExecutionPerformed',
+  'productionWorkerDispatchPerformed',
+  'productionWorkerRouteExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+] as const
+
+function assertBooleanField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: boolean,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(
+      `${flag} must have ${key}=${String(expected)}; received ${String(object[key])}`,
+    )
+  }
+}
+
+function assertNumberField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: number,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(`${flag} must have ${key}=${expected}; received ${String(object[key])}`)
+  }
+}
+
+function validateGoNoGoOwnerApprovalPacket(
+  packet: AiGraphicsInternalBetaGoNoGoOwnerApproval,
+  flag: string,
+): void {
+  const packetRecord = packet as unknown as Record<string, unknown>
+  const booleans = packetRecord.booleans
+  if (typeof booleans !== 'object' || booleans === null || Array.isArray(booleans)) {
+    throw new Error(`${flag} must contain a booleans object`)
+  }
+  const booleanRecord = booleans as Record<string, unknown>
+
+  if (packet.status !== 'internal_beta_go_no_go_owner_approved_runtime_still_blocked') {
+    throw new Error(`${flag} must be owner-approved and runtime-blocked; received ${packet.status}`)
+  }
+  assertNumberField(packetRecord, 'totalAiGraphicsTools', 21, flag)
+  assertNumberField(packetRecord, 'totalProductFacingCapabilities', 12, flag)
+  assertNumberField(packetRecord, 'ownerApprovedToolsWithProvidedEvidence', 21, flag)
+  assertNumberField(packetRecord, 'ownerApprovedCapabilitiesWithProvidedEvidence', 12, flag)
+  assertNumberField(packetRecord, 'internalBetaReadyNowTools', 0, flag)
+  assertNumberField(packetRecord, 'externalBetaReadyNowTools', 0, flag)
+  assertNumberField(packetRecord, 'productionReadyNowTools', 0, flag)
+
+  for (const [key, expected] of Object.entries({
+    sourceInternalBetaGoNoGoAccepted: true,
+    internalBetaGoNoGoOwnerApprovalRecordAccepted: true,
+    all21ToolsCovered: true,
+    all12CapabilitiesCovered: true,
+    all21ToolsInternalBetaGoNoGoOwnerApprovedWithProvidedEvidence: true,
+    agentCanSelectForPlanning: true,
+  })) {
+    assertBooleanField(booleanRecord, key, expected, flag)
+  }
+  for (const key of falseGateKeys) {
+    assertBooleanField(booleanRecord, key, false, flag)
+  }
+
+  const sourceGoNoGo = packetRecord.sourceGoNoGo
+  if (typeof sourceGoNoGo !== 'object' || sourceGoNoGo === null || Array.isArray(sourceGoNoGo)) {
+    throw new Error(`${flag} must include the sourceGoNoGo packet`)
+  }
+  const sourceRecord = sourceGoNoGo as Record<string, unknown>
+  if (sourceRecord.status !== 'internal_beta_go_no_go_approved_runtime_still_blocked') {
+    throw new Error(`${flag} sourceGoNoGo must be approved and runtime-blocked`)
+  }
+}
+
 function readSourceGoNoGoOwnerApprovalPacket(): {
   sourceGoNoGoOwnerApproval?: AiGraphicsInternalBetaGoNoGoOwnerApproval
   sourceEvidenceMode: 'constructed_from_cli_flags' | 'internal_beta_go_no_go_owner_approval_packet'
@@ -81,6 +186,10 @@ function readSourceGoNoGoOwnerApprovalPacket(): {
       '--internal-beta-go-no-go-owner-approval-packet does not contain an AI graphics internal beta go/no-go owner approval packet',
     )
   }
+  validateGoNoGoOwnerApprovalPacket(
+    sourcePacket,
+    '--internal-beta-go-no-go-owner-approval-packet',
+  )
   return {
     sourceGoNoGoOwnerApproval: sourcePacket,
     sourceEvidenceMode: 'internal_beta_go_no_go_owner_approval_packet',

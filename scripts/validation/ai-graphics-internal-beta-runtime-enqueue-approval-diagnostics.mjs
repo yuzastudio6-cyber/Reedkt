@@ -75,6 +75,7 @@ const falseGateKeys = [
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
   'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
   'runtimeReadyNow',
   'internalBetaReadyNow',
   'externalBetaReadyNow',
@@ -131,6 +132,7 @@ function git(args) {
 function runNpm(scriptName, args = []) {
   return execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
     encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
   })
 }
@@ -223,6 +225,7 @@ for (const [key, expected] of Object.entries({
   enqueueScopeCandidateToolsWithProvidedEvidence: 21,
   enqueueScopeApprovedToolsWithProvidedEvidence: 21,
   gpuRuntimeTargetedTools: 8,
+  gpuRuntimeStartAllowedForAcceptedJobTools: 8,
   heavyToolsIncorrectlyTargetingCpu: 0,
   liveWorkerQueueApprovedNowTools: 0,
   liveWorkerExecutionApprovedNowTools: 0,
@@ -249,6 +252,10 @@ for (const [key, expected] of Object.entries({
   acceptsLowLevelEvidenceFlags: true,
   acceptsGoNoGoOwnerApprovalPacket: true,
   sourceGoNoGoOwnerApprovalPacketRequired: true,
+  sourceGoNoGoOwnerApprovalPacketMustBeOwnerApproved: true,
+  sourceGoNoGoOwnerApprovalPacketMustCoverAll21Tools: true,
+  sourceGoNoGoOwnerApprovalPacketMustCoverAll12Capabilities: true,
+  sourceGoNoGoOwnerApprovalPacketMustKeepRuntimeBetaAndProductionFalse: true,
   runtimeEnqueueApprovalRequiredAfterSourcePacket: true,
   runtimeUnlockPerformed: false,
 })) {
@@ -273,6 +280,7 @@ for (const action of [
   'record a future runtime-enqueue approval reference without enqueueing work',
   'return live queue, execution, artifact, external beta, and production blockers',
   'bind GPU runtime activation to on-demand approved worker or tool calls only',
+  'keep GPU startup false until a future accepted worker or tool-call job exists',
 ]) {
   if (!docs.allowedRuntimeEnqueueScopeActions?.includes(action)) fail(`docs_missing_allowed_action:${action}`)
   if (!moduleSource.includes(action)) fail(`module_missing_allowed_action:${action}`)
@@ -314,6 +322,8 @@ for (const [key, expected] of Object.entries({
   gpuRuntimeOnDemandOnly: true,
   noIdleGpuRuntimeApproved: true,
   gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+  gpuRuntimeStartAllowedOnlyForAcceptedJobs: true,
+  gpuRuntimeShouldStartNow: false,
   cpuFallbackAllowedForHeavyTools: false,
 })) {
   if (docs.booleans?.[key] !== expected) fail(`docs_gpu_policy_boolean_mismatch:${key}:${docs.booleans?.[key]}`)
@@ -382,6 +392,9 @@ if (approvedOutput.status !== 'internal_beta_runtime_enqueue_scope_approved_runt
 }
 if (approvedOutput.enqueueScopeApprovedToolsWithProvidedEvidence !== 21) fail('approved_scopes_not_21')
 if (approvedOutput.gpuRuntimeTargetedTools !== 8) fail('approved_gpu_targets_not_8')
+if (approvedOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail('approved_gpu_start_allowed_for_accepted_job_not_8')
+}
 if (approvedOutput.heavyToolsIncorrectlyTargetingCpu !== 0) fail('approved_heavy_cpu_mismatch')
 if (!Array.isArray(approvedOutput.toolScopes) || approvedOutput.toolScopes.length !== 21) {
   fail('approved_tool_scopes_not_21')
@@ -404,9 +417,15 @@ for (const tool of allTools) {
     if (scope?.runtimeActivationPolicy?.cpuFallbackAllowedForHeavyTools !== false) {
       fail(`approved_tool_cpu_fallback_allowed:${tool}`)
     }
+    if (scope?.gpuRuntimeStartAllowedForAcceptedJob !== true) {
+      fail(`approved_tool_gpu_start_not_allowed_for_future_job:${tool}`)
+    }
   } else if (scope?.runtimeActivationPolicy !== null) {
     fail(`approved_non_gpu_tool_has_gpu_policy:${tool}`)
+  } else if (scope?.gpuRuntimeStartAllowedForAcceptedJob !== false) {
+    fail(`approved_non_gpu_tool_start_allowed:${tool}`)
   }
+  if (scope?.gpuRuntimeShouldStartNow !== false) fail(`approved_tool_gpu_start_now:${tool}`)
 }
 
 const sourceOwnerApprovalPacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-go-no-go-owner-approval', [
@@ -430,6 +449,38 @@ const sourceOwnerApprovalPacketPath = path.join(
   'source-go-no-go-owner-approval-packet.json',
 )
 fs.writeFileSync(sourceOwnerApprovalPacketPath, `${JSON.stringify(sourceOwnerApprovalPacket, null, 2)}\n`, 'utf8')
+for (const [label, mutate] of [
+  ['missing_tool_count', (packet) => {
+    packet.totalAiGraphicsTools = 20
+  }],
+  ['runtime_true', (packet) => {
+    packet.booleans.gpuRuntimeApprovedNow = true
+  }],
+  ['owner_record_false', (packet) => {
+    packet.booleans.internalBetaGoNoGoOwnerApprovalRecordAccepted = false
+  }],
+]) {
+  const badPacket = JSON.parse(JSON.stringify(sourceOwnerApprovalPacket))
+  mutate(badPacket)
+  const badPacketPath = path.join(
+    path.dirname(manifestPacketPath),
+    `bad-source-go-no-go-owner-approval-packet-${label}.json`,
+  )
+  fs.writeFileSync(badPacketPath, `${JSON.stringify(badPacket, null, 2)}\n`, 'utf8')
+  let badPacketRejected = false
+  try {
+    runNpm(runScriptName, [
+      '--internal-beta-go-no-go-owner-approval-packet',
+      badPacketPath,
+      '--internal-beta-runtime-enqueue-approval-granted',
+      '--internal-beta-runtime-enqueue-approval-ref',
+      'AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_LOCAL_FIXTURE',
+    ])
+  } catch {
+    badPacketRejected = true
+  }
+  if (!badPacketRejected) fail(`bad_source_owner_packet_not_rejected:${label}`)
+}
 let packetAwaitingExited = false
 let packetAwaitingText = ''
 try {
@@ -481,6 +532,15 @@ if (packetApprovedOutput.enqueueScopeApprovedToolsWithProvidedEvidence !== 21) {
   fail('packet_approved_scopes_not_21')
 }
 if (packetApprovedOutput.gpuRuntimeTargetedTools !== 8) fail('packet_approved_gpu_targets_not_8')
+if (packetApprovedOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail('packet_approved_gpu_start_allowed_for_accepted_job_not_8')
+}
+if (packetApprovedOutput.booleans?.gpuRuntimeStartAllowedOnlyForAcceptedJobs !== true) {
+  fail('packet_approved_gpu_start_policy_not_limited_to_accepted_jobs')
+}
+if (packetApprovedOutput.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('packet_approved_gpu_start_now_not_false')
+}
 
 let liveQueueRequireExited = false
 try {
@@ -613,6 +673,9 @@ console.log(JSON.stringify({
   enqueueScopeApprovedToolsWithProvidedEvidence:
     approvedOutput.enqueueScopeApprovedToolsWithProvidedEvidence,
   gpuRuntimeTargetedTools: approvedOutput.gpuRuntimeTargetedTools,
+  gpuRuntimeStartAllowedForAcceptedJobTools:
+    approvedOutput.gpuRuntimeStartAllowedForAcceptedJobTools,
+  gpuRuntimeShouldStartNow: approvedOutput.booleans?.gpuRuntimeShouldStartNow,
   agentCanExecuteToolsNow: approvedOutput.booleans?.agentCanExecuteToolsNow,
   workerQueueApprovedNow: approvedOutput.booleans?.workerQueueApprovedNow,
   runtimeReadyNow: approvedOutput.booleans?.runtimeReadyNow,

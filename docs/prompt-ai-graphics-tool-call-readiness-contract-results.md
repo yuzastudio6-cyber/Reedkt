@@ -473,6 +473,16 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked: `agentCanExecuteToolsNow=false`, `workerQueueApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after go/no-go owner approval source packet hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `9d56cd16d73bbcb98b23a693dac8bef957bb78f1`, with an empty check rollup.
 
+## Follow-Up: Runtime-Enqueue Source Packet And On-Demand GPU Hardening
+
+- Tightened `ai-graphics:internal-beta-runtime-enqueue-approval` source packet validation for `--internal-beta-go-no-go-owner-approval-packet`.
+- A source go/no-go owner-approval packet must now report `internal_beta_go_no_go_owner_approved_runtime_still_blocked`, all 21 tools, all 12 capabilities, 21 owner-approved tools, 12 owner-approved capabilities, zero ready-now tools, an accepted owner approval record, and runtime/beta/production gates false.
+- Runtime-enqueue output now records `gpuRuntimeStartAllowedForAcceptedJobTools=8`, `gpuRuntimeStartAllowedOnlyForAcceptedJobs=true`, and `gpuRuntimeShouldStartNow=false`.
+- Diagnostic coverage proves invalid source packets are rejected when tool coverage drops to 20, when `gpuRuntimeApprovedNow=true`, or when the upstream owner approval record is false.
+- Runtime remains blocked: `agentCanExecuteToolsNow=false`, `workerQueueApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+- Cost posture: the eight GPU/model tools remain GPU-targeted for accepted future jobs only; no idle GPU runtime or standing GPU service is approved.
+- Validation run: `ai-graphics:internal-beta-runtime-enqueue-approval:diagnostics`, `ai-graphics:internal-beta-go-no-go-owner-approval:diagnostics`, `ai-graphics:internal-beta-go-no-go:diagnostics`, `ai-graphics:internal-beta-queue-admission-readiness:diagnostics`, `ai-graphics:on-demand-runtime-admission:diagnostics`, `npm run typecheck:server`, and `git diff --check` passed.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

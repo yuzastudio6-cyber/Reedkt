@@ -46,6 +46,7 @@
     "enqueueScopeCandidateToolsWithProvidedEvidence": 21,
     "enqueueScopeApprovedToolsWithProvidedEvidence": 21,
     "gpuRuntimeTargetedTools": 8,
+    "gpuRuntimeStartAllowedForAcceptedJobTools": 8,
     "heavyToolsIncorrectlyTargetingCpu": 0,
     "liveWorkerQueueApprovedNowTools": 0,
     "liveWorkerExecutionApprovedNowTools": 0,
@@ -64,20 +65,25 @@
     "acceptsLowLevelEvidenceFlags": true,
     "acceptsGoNoGoOwnerApprovalPacket": true,
     "sourceGoNoGoOwnerApprovalPacketRequired": true,
+    "sourceGoNoGoOwnerApprovalPacketMustBeOwnerApproved": true,
+    "sourceGoNoGoOwnerApprovalPacketMustCoverAll21Tools": true,
+    "sourceGoNoGoOwnerApprovalPacketMustCoverAll12Capabilities": true,
+    "sourceGoNoGoOwnerApprovalPacketMustKeepRuntimeBetaAndProductionFalse": true,
     "runtimeEnqueueApprovalRequiredAfterSourcePacket": true,
     "runtimeUnlockPerformed": false
   },
   "gpuRuntimeActivationPolicy": {
     "onDemandOnly": true,
-    "noIdleGpuRuntimeApproved": true,
-    "startsOnlyForApprovedWorkerOrToolCall": true,
-    "cpuFallbackAllowedForHeavyTools": false
+      "noIdleGpuRuntimeApproved": true,
+      "startsOnlyForApprovedWorkerOrToolCall": true,
+      "cpuFallbackAllowedForHeavyTools": false
   },
   "allowedRuntimeEnqueueScopeActions": [
     "name productionToolId, workerType, runtimeTarget, and capability ids for each AI graphics tool",
     "confirm internal beta enqueue scope candidates for all 21 tools with provided evidence",
     "confirm eight heavy/model tools target GPU worker runtime lanes",
     "bind GPU runtime activation to on-demand approved worker or tool calls only",
+    "keep GPU startup false until a future accepted worker or tool-call job exists",
     "record a future runtime-enqueue approval reference without enqueueing work",
     "return live queue, execution, artifact, external beta, and production blockers"
   ],
@@ -111,6 +117,8 @@
         "startsOnlyForApprovedWorkerOrToolCall": true,
         "cpuFallbackAllowedForHeavyTools": false
       },
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -124,6 +132,8 @@
         "startsOnlyForApprovedWorkerOrToolCall": true,
         "cpuFallbackAllowedForHeavyTools": false
       },
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -137,6 +147,8 @@
         "startsOnlyForApprovedWorkerOrToolCall": true,
         "cpuFallbackAllowedForHeavyTools": false
       },
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -150,6 +162,8 @@
         "startsOnlyForApprovedWorkerOrToolCall": true,
         "cpuFallbackAllowedForHeavyTools": false
       },
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -163,6 +177,8 @@
         "startsOnlyForApprovedWorkerOrToolCall": true,
         "cpuFallbackAllowedForHeavyTools": false
       },
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -176,6 +192,8 @@
         "startsOnlyForApprovedWorkerOrToolCall": true,
         "cpuFallbackAllowedForHeavyTools": false
       },
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -189,6 +207,8 @@
         "startsOnlyForApprovedWorkerOrToolCall": true,
         "cpuFallbackAllowedForHeavyTools": false
       },
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -202,6 +222,8 @@
         "startsOnlyForApprovedWorkerOrToolCall": true,
         "cpuFallbackAllowedForHeavyTools": false
       },
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -209,6 +231,8 @@
     {
       "toolId": "d3",
       "runtimeLane": "node_worker_cpu_static_or_browser_chart_worker",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -216,6 +240,8 @@
     {
       "toolId": "echarts",
       "runtimeLane": "browser_chart_worker",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -223,6 +249,8 @@
     {
       "toolId": "vega_lite",
       "runtimeLane": "node_worker_cpu_static_chart_spec",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -230,6 +258,8 @@
     {
       "toolId": "vega",
       "runtimeLane": "node_worker_cpu_static_chart_spec",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -237,6 +267,8 @@
     {
       "toolId": "satori",
       "runtimeLane": "node_worker_svg_font_runtime",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -244,6 +276,8 @@
     {
       "toolId": "svgdotjs_svg_js",
       "runtimeLane": "node_worker_svg_dom_adapter",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -251,6 +285,8 @@
     {
       "toolId": "viz_js",
       "runtimeLane": "node_worker_dot_graph_runtime",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -258,6 +294,8 @@
     {
       "toolId": "lottie_web",
       "runtimeLane": "browser_animation_worker",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -265,6 +303,8 @@
     {
       "toolId": "animejs",
       "runtimeLane": "browser_animation_worker",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -272,6 +312,8 @@
     {
       "toolId": "three_js",
       "runtimeLane": "browser_webgl_worker",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -279,6 +321,8 @@
     {
       "toolId": "pixi_js",
       "runtimeLane": "browser_canvas_webgl_worker",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -286,6 +330,8 @@
     {
       "toolId": "konva",
       "runtimeLane": "browser_canvas_worker",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -293,6 +339,8 @@
     {
       "toolId": "babylonjs",
       "runtimeLane": "browser_webgl_worker",
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -317,6 +365,8 @@
     "gpuRuntimeOnDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
     "gpuStartsOnlyForApprovedWorkerOrToolCall": true,
+    "gpuRuntimeStartAllowedOnlyForAcceptedJobs": true,
+    "gpuRuntimeShouldStartNow": false,
     "cpuFallbackAllowedForHeavyTools": false,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,

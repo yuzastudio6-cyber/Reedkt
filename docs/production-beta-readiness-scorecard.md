@@ -130,10 +130,13 @@ capability IDs for each tool, confirms the eight heavy/model tools remain
 GPU-targeted, and records runtime-enqueue scope approval with provided evidence.
 The eight GPU/model tool scopes also carry the runtime activation policy:
 on-demand only, no idle GPU runtime, GPU starts only for an approved
-worker/tool call, and CPU fallback is blocked for heavy/model paths.
+worker/tool call, GPU start allowed only for accepted future jobs, GPU start
+now false, and CPU fallback blocked for heavy/model paths.
 The evaluator can now consume a source
 `--internal-beta-go-no-go-owner-approval-packet` that already reports
 `internal_beta_go_no_go_owner_approved_runtime_still_blocked`; the
+source packet must also prove all 21 tools, all 12 capabilities, accepted owner
+approval, zero ready-now tools, and false runtime/beta/production gates. The
 runtime-enqueue approval record and ref remain separate and required after that
 source packet.
 It does not live-enqueue workers, dispatch workers, execute tools, run Tool

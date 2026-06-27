@@ -8,7 +8,9 @@ The evaluator can consume either low-level source evidence flags or a source
 go/no-go owner-approval packet via
 `--internal-beta-go-no-go-owner-approval-packet`. A source packet must already
 report `internal_beta_go_no_go_owner_approved_runtime_still_blocked`; this
-runtime-enqueue gate still requires a separate
+source packet must cover all 21 tools, all 12 capabilities, an accepted owner
+approval record, zero ready-now tools, and false runtime/beta/production gates.
+This runtime-enqueue gate still requires a separate
 `--internal-beta-runtime-enqueue-approval-granted` record and
 `--internal-beta-runtime-enqueue-approval-ref` before the enqueue scope is
 approved with runtime still blocked.
@@ -22,10 +24,12 @@ approved with runtime still blocked.
 - Runtime enqueue scope candidates with provided evidence: 21
 - Runtime enqueue scopes approved with provided evidence: 21
 - GPU runtime targeted tools: 8
+- GPU runtime start allowed for accepted future job tools: 8
 - Heavy tools incorrectly targeting CPU: 0
 - GPU runtime activation: on-demand only
 - Idle or always-on GPU runtime approved: false
 - GPU starts only for approved worker/tool call: true
+- GPU runtime should start now: false
 - CPU fallback for heavy/model tools: false
 - Live worker queue approved now: 0
 - Live worker execution approved now: 0
@@ -85,6 +89,8 @@ approved with runtime still blocked.
 - `onDemandOnly=true`
 - `noIdleGpuRuntimeApproved=true`
 - `startsOnlyForApprovedWorkerOrToolCall=true`
+- `gpuRuntimeStartAllowedOnlyForAcceptedJobs=true`
+- `gpuRuntimeShouldStartNow=false`
 - `cpuFallbackAllowedForHeavyTools=false`
 
 The eight GPU/model tools carry this policy in the runtime-enqueue scope. GPU
@@ -93,14 +99,14 @@ that specific job. This packet does not approve a standing GPU service.
 
 ## Tool Scope
 
-- `torch_torchvision`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `transformers`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `sam2`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `birefnet`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `real_esrgan`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `kornia`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `rembg`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `transparent_background`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `torch_torchvision`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, future accepted-job GPU start allowed, GPU start now false, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `transformers`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, future accepted-job GPU start allowed, GPU start now false, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `sam2`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, future accepted-job GPU start allowed, GPU start now false, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `birefnet`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, future accepted-job GPU start allowed, GPU start now false, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `real_esrgan`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, future accepted-job GPU start allowed, GPU start now false, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `kornia`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, future accepted-job GPU start allowed, GPU start now false, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `rembg`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, future accepted-job GPU start allowed, GPU start now false, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `transparent_background`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, future accepted-job GPU start allowed, GPU start now false, enqueue scope approved with provided evidence, live queue false, live execution false.
 - `d3`: runtime lane `node_worker_cpu_static_or_browser_chart_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
 - `echarts`: runtime lane `browser_chart_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
 - `vega_lite`: runtime lane `node_worker_cpu_static_chart_spec`, enqueue scope approved with provided evidence, live queue false, live execution false.
@@ -121,6 +127,7 @@ that specific job. This packet does not approve a standing GPU service.
 - confirm internal beta enqueue scope candidates for all 21 tools with provided evidence
 - confirm eight heavy/model tools target GPU worker runtime lanes
 - bind GPU runtime activation to on-demand approved worker or tool calls only
+- keep GPU startup false until a future accepted worker or tool-call job exists
 - record a future runtime-enqueue approval reference without enqueueing work
 - return live queue, execution, artifact, external beta, and production blockers
 
@@ -164,6 +171,7 @@ that specific job. This packet does not approve a standing GPU service.
 - `productionWorkerDispatchApprovedNow=false`
 - `productionWorkerRouteExecutionApprovedNow=false`
 - `toolExecutionApprovedNow=false`
+- `gpuRuntimeShouldStartNow=false`
 - `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
 - `externalBetaReadyNow=false`

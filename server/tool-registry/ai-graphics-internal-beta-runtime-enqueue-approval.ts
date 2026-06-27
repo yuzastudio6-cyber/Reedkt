@@ -44,6 +44,8 @@ export interface AiGraphicsInternalBetaRuntimeEnqueueToolScope {
   capabilityIds: AiGraphicsCapabilityId[]
   gpuRequiredForRuntime: boolean
   runtimeActivationPolicy: AiGraphicsInternalBetaRuntimeEnqueueActivationPolicy | null
+  gpuRuntimeStartAllowedForAcceptedJob: boolean
+  gpuRuntimeShouldStartNow: false
   enqueueScopeApprovedWithProvidedEvidence: boolean
   liveWorkerQueueApprovedNow: false
   liveWorkerExecutionApprovedNow: false
@@ -59,6 +61,7 @@ export interface AiGraphicsInternalBetaRuntimeEnqueueApproval {
   enqueueScopeCandidateToolsWithProvidedEvidence: number
   enqueueScopeApprovedToolsWithProvidedEvidence: number
   gpuRuntimeTargetedTools: number
+  gpuRuntimeStartAllowedForAcceptedJobTools: number
   heavyToolsIncorrectlyTargetingCpu: 0
   liveWorkerQueueApprovedNowTools: 0
   liveWorkerExecutionApprovedNowTools: 0
@@ -90,6 +93,8 @@ export interface AiGraphicsInternalBetaRuntimeEnqueueApproval {
     gpuRuntimeOnDemandOnly: true
     noIdleGpuRuntimeApproved: true
     gpuStartsOnlyForApprovedWorkerOrToolCall: true
+    gpuRuntimeStartAllowedOnlyForAcceptedJobs: true
+    gpuRuntimeShouldStartNow: false
     cpuFallbackAllowedForHeavyTools: false
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
@@ -132,6 +137,7 @@ const allowedRuntimeEnqueueScopeActions = [
   'confirm internal beta enqueue scope candidates for all 21 tools with provided evidence',
   'confirm eight heavy/model tools target GPU worker runtime lanes',
   'bind GPU runtime activation to on-demand approved worker or tool calls only',
+  'keep GPU startup false until a future accepted worker or tool-call job exists',
   'record a future runtime-enqueue approval reference without enqueueing work',
   'return live queue, execution, artifact, external beta, and production blockers',
 ]
@@ -218,12 +224,16 @@ export function buildAiGraphicsInternalBetaRuntimeEnqueueApproval(
       capabilityIds: [...tool.capabilities],
       gpuRequiredForRuntime: tool.gpuRequiredForRuntime,
       runtimeActivationPolicy: tool.gpuRequiredForRuntime ? gpuRuntimeActivationPolicy : null,
+      gpuRuntimeStartAllowedForAcceptedJob: approved && tool.gpuRequiredForRuntime,
+      gpuRuntimeShouldStartNow: false,
       enqueueScopeApprovedWithProvidedEvidence: approved,
       liveWorkerQueueApprovedNow: false,
       liveWorkerExecutionApprovedNow: false,
       nextRuntimeProofMilestone: tool.nextProofMilestone,
     }))
   const gpuRuntimeTargetedTools = toolScopes.filter((scope) => scope.gpuRequiredForRuntime).length
+  const gpuRuntimeStartAllowedForAcceptedJobTools =
+    toolScopes.filter((scope) => scope.gpuRuntimeStartAllowedForAcceptedJob).length
   const enqueueScopeApprovedToolsWithProvidedEvidence =
     toolScopes.filter((scope) => scope.enqueueScopeApprovedWithProvidedEvidence).length
 
@@ -237,6 +247,7 @@ export function buildAiGraphicsInternalBetaRuntimeEnqueueApproval(
     enqueueScopeCandidateToolsWithProvidedEvidence: sourceAccepted ? 21 : 0,
     enqueueScopeApprovedToolsWithProvidedEvidence,
     gpuRuntimeTargetedTools,
+    gpuRuntimeStartAllowedForAcceptedJobTools,
     heavyToolsIncorrectlyTargetingCpu: 0,
     liveWorkerQueueApprovedNowTools: 0,
     liveWorkerExecutionApprovedNowTools: 0,
@@ -269,6 +280,8 @@ export function buildAiGraphicsInternalBetaRuntimeEnqueueApproval(
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+      gpuRuntimeStartAllowedOnlyForAcceptedJobs: true,
+      gpuRuntimeShouldStartNow: false,
       cpuFallbackAllowedForHeavyTools: false,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,

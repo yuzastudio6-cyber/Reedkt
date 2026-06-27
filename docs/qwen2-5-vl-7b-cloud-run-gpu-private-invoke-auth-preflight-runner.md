@@ -8,6 +8,8 @@ This packet adds a guarded backend CLI runner for future read-only Cloud Run and
 
 This packet does not refresh gcloud auth, fetch an identity token, resolve a service URL, invoke Cloud Run, update IAM, create IAM bindings, create service account keys, submit dispatch, claim a real lease, heartbeat a real worker, import Qwen, load Qwen, initialize vLLM, run a forward pass, run inference, process media, call providers, touch Supabase, execute SQL, create generated assets, create public artifacts, create signed URLs, mutate credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
+The active account probe records only whether an account exists and the account domain. It must not store or print the full active account value in reusable evidence packets.
+
 ## Source Inputs
 
 - `docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-result.md`

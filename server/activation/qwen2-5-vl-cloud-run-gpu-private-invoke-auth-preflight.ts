@@ -196,8 +196,8 @@ async function probeCommand(id: string, args: string[]): Promise<Qwen25AuthProbe
       status: 'passed',
       command: commandSummary(args),
       durationMs: Date.now() - started,
-      outputSummary: sanitizeOutput(stdout),
-      errorSummary: sanitizeOutput(stderr)
+      outputSummary: sanitizeQwen25AuthProbeOutput(id, stdout),
+      errorSummary: sanitizeQwen25AuthProbeOutput('gcloud_stderr', stderr)
     }
   } catch (error) {
     const commandError = error as { stdout?: string; stderr?: string; message?: string }
@@ -206,8 +206,11 @@ async function probeCommand(id: string, args: string[]): Promise<Qwen25AuthProbe
       status: 'blocked',
       command: commandSummary(args),
       durationMs: Date.now() - started,
-      outputSummary: sanitizeOutput(commandError.stdout ?? ''),
-      errorSummary: sanitizeOutput(commandError.stderr ?? commandError.message ?? 'unknown_error')
+      outputSummary: sanitizeQwen25AuthProbeOutput(id, commandError.stdout ?? ''),
+      errorSummary: sanitizeQwen25AuthProbeOutput(
+        'gcloud_stderr',
+        commandError.stderr ?? commandError.message ?? 'unknown_error',
+      )
     }
   }
 }
@@ -216,13 +219,34 @@ function commandSummary(args: readonly string[]) {
   return ['gcloud', ...args].join(' ')
 }
 
-function sanitizeOutput(text: string) {
+export function sanitizeQwen25AuthProbeOutput(probeId: string, text: string) {
+  if (probeId === 'active_account') {
+    return summarizeActiveAccountOutput(text)
+  }
+
   const urlPattern = new RegExp('\\b' + 'https?' + ':\\/\\/\\S+', 'gi')
   return text
     .replace(urlPattern, REDACTED)
     .replace(/\b[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\b/g, REDACTED)
     .replace(/ya29\.[A-Za-z0-9_-]+/g, REDACTED)
     .slice(0, 1200)
+}
+
+function summarizeActiveAccountOutput(text: string) {
+  const account = text.trim().split('\n').find(Boolean)
+
+  if (!account) {
+    return 'active_account_present=false\nactive_account_value_stored=false\n'
+  }
+
+  const domain = account.includes('@') ? account.split('@').at(-1) : 'unknown'
+
+  return [
+    'active_account_present=true',
+    'active_account_value_stored=false',
+    `active_account_domain=${domain}`,
+    ''
+  ].join('\n')
 }
 
 function collectBlockers(probes: readonly Qwen25AuthProbe[]) {

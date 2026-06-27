@@ -5,6 +5,7 @@ import {
   buildQwen25PrivateInvokeAuthPreflightStaticReport,
   getQwen25PrivateInvokeAuthPreflightPlan,
   QWEN25_PRIVATE_INVOKE_AUTH_RUNTIME_FLAGS,
+  sanitizeQwen25AuthProbeOutput,
 } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight'
 
 const ROOT = process.cwd()
@@ -83,6 +84,8 @@ const changeLog = parseBlock(
 )
 const plan = getQwen25PrivateInvokeAuthPreflightPlan()
 const staticReport = buildQwen25PrivateInvokeAuthPreflightStaticReport()
+const sanitizedActiveAccount = sanitizeQwen25AuthProbeOutput('active_account', 'operator@reeditpro.com\n')
+const sanitizedEmptyActiveAccount = sanitizeQwen25AuthProbeOutput('active_account', '')
 
 for (const phrase of [
   DECISION,
@@ -96,6 +99,7 @@ for (const phrase of [
   '`cloud_run_service_iam_policy`',
   '`runtime_service_account_describe`',
   '`project_invoker_policy_read`',
+  'The active account probe records only whether an account exists and the account domain.',
   '`identityTokenFetched=false`',
   '`cloudRunInvocationAttempted=false`',
   '`generatedLocalFixturePassedClaimed=false`',
@@ -112,6 +116,11 @@ assert.equal(plan.requiredConfirmationEnv, 'REEDITPRO_CONFIRM_QWEN25_VL_PRIVATE_
 assert.equal(plan.target.service, 'reeditpro-qwen2-5-vl-l4-worker')
 assert.equal(staticReport.status, 'blocked')
 assert.deepEqual(staticReport.blockers, ['auth_preflight_not_run'])
+assert.equal(sanitizedActiveAccount.includes('operator@reeditpro.com'), false)
+assert.equal(sanitizedActiveAccount.includes('active_account_present=true'), true)
+assert.equal(sanitizedActiveAccount.includes('active_account_value_stored=false'), true)
+assert.equal(sanitizedActiveAccount.includes('active_account_domain=reeditpro.com'), true)
+assert.equal(sanitizedEmptyActiveAccount.includes('active_account_present=false'), true)
 
 const planProbeIds = new Set<string>(plan.readOnlyProbeIds)
 const changeLogProbeIds = new Set<string>(changeLog.readOnlyProbeIds as string[])
@@ -152,6 +161,7 @@ for (const key of [
 const activationSource = read('server/activation/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight.ts')
 assert.equal(activationSource.includes('REEDITPRO_CONFIRM_QWEN25_VL_PRIVATE_INVOKE_AUTH_PREFLIGHT'), true)
 assert.equal(activationSource.includes('CLOUDSDK_CORE_DISABLE_PROMPTS'), true)
+assert.equal(activationSource.includes('summarizeActiveAccountOutput'), true)
 const forbiddenCommands = new Set<string>(plan.forbiddenCommands)
 for (const forbiddenCommand of [
   'gcloud auth login',

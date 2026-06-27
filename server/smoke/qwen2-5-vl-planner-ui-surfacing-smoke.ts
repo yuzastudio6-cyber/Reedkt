@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'controlled_backend_dispatch_dry_run_required',
-  'Private invoke client status must record the controlled backend dispatch dry-run blocker.',
+  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_plan_required',
+  'Private invoke client status must record the backend runtime persistence planning blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -166,8 +166,9 @@ check(
     docText.includes('backend_runtime_dispatch_implementation_required') ||
     docText.includes('fail_closed_backend_runtime_dispatch_coordinator_required') ||
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
-    data.privateInvokeClient.currentStatus === 'controlled_backend_dispatch_dry_run_required',
-  'Doc/data must record controlled backend dispatch dry-run blocker status.',
+    docText.includes('backend_runtime_persistence_plan_required') ||
+    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_plan_required',
+  'Doc/data must record backend runtime persistence planning blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
 check(docText.includes('`schemaKeys=[]`'), 'Doc must record the empty schema-key metadata.')
@@ -194,6 +195,14 @@ check(
 check(
   docText.includes('Fail-closed backend runtime dispatch coordinator is implemented'),
   'Doc must record fail-closed backend runtime dispatch coordinator implementation.',
+)
+check(
+  docText.includes('Controlled backend dispatch dry-run review covers all eight coordinator outcomes'),
+  'Doc must record controlled backend dispatch dry-run review coverage.',
+)
+check(
+  docText.includes('User-facing readiness remains blocked until backend runtime persistence planning defines queue'),
+  'Doc must record backend runtime persistence planning as the remaining blocker.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

@@ -1,0 +1,73 @@
+import { QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR } from './mock-qwen2-5-vl-fail-closed-backend-runtime-dispatch-coordinator'
+
+export const QWEN2_5_VL_CONTROLLED_BACKEND_DISPATCH_DRY_RUN_RESULT = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_controlled_backend_dispatch_dry_run_result',
+  decision:
+    'qwen2_5_vl_controlled_backend_dispatch_dry_run_reviewed_persistence_plan_required',
+  upstreamFailClosedBackendRuntimeDispatchCoordinatorDecision:
+    QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR.decision,
+  reviewedCoordinatorOutcomes: [
+    'blocked_invalid_worker_job_schema',
+    'blocked_missing_approved_snapshot',
+    'blocked_missing_credit_reservation',
+    'blocked_missing_source_of_truth_refs',
+    'blocked_idempotency_conflict',
+    'blocked_real_lease_backend_required',
+    'blocked_qwen_dispatch_adapter_fail_closed',
+    'blocked_private_invoke_transport_preview_only',
+  ],
+  dryRunReview: {
+    controlledBackendDispatchDryRunReviewed: true,
+    allCoordinatorOutcomesCovered: true,
+    noRuntimeSideEffectsObserved: true,
+    backendRuntimePersistencePlanRequired: true,
+    readyForRealWorkerDispatch: false,
+    privateInvokeReady: false,
+    betaReady: false,
+    productionReady: false,
+  },
+  runtimeFlags: {
+    controlledBackendDispatchDryRunReviewed: true,
+    allCoordinatorOutcomesCovered: true,
+    backendRuntimePersistencePlanRequired: true,
+    readyForRealWorkerDispatch: false,
+    privateInvokeReady: false,
+    betaReady: false,
+    productionReady: false,
+    realJobCreated: false,
+    realLeaseClaimed: false,
+    idempotencyRowCreated: false,
+    cloudRunInvocationAttempted: false,
+    serviceRuntimeRequestSent: false,
+    serviceUrlResolvedNow: false,
+    audienceResolvedNow: false,
+    identityTokenFetched: false,
+    authHeaderCreated: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    vllmEngineInitialized: false,
+    promptProcessed: false,
+    forwardPassRun: false,
+    inferenceRun: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    generatedAssetsCreated: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    mediaProcessingRun: false,
+    renderExportRun: false,
+    creditMutationCreated: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt:
+    'QWEN2_5_VL_STACK_TOOL_58M-BACKEND-RUNTIME-PERSISTENCE-PLAN: plan Qwen queue lease idempotency persistence, no cloud/no assets/no beta',
+} as const
+
+export type Qwen25VlControlledBackendDispatchDryRunResult =
+  typeof QWEN2_5_VL_CONTROLLED_BACKEND_DISPATCH_DRY_RUN_RESULT

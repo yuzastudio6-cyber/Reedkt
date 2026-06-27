@@ -121,6 +121,17 @@ const deployedPlatformProbeObservationSchema = z.object({
   nextAction: noteSchema,
 }).strict()
 
+const deployedPlatformAttestedProbeIdSchema = z.enum([
+  'authenticated_rls_member_readback_verified',
+  'stripe_boundary_owner_verified',
+  'monitoring_deployment_verified',
+  'staging_billing_qa_verified',
+])
+
+const deployedPlatformAttestedProbeObservationSchema = deployedPlatformProbeObservationSchema.extend({
+  id: deployedPlatformAttestedProbeIdSchema,
+}).strict()
+
 const deployedPlatformOwnerApprovalsSchema = z.object({
   billingOwnerStripeBoundaryApproved: z.boolean(),
   deploymentApproved: z.boolean(),
@@ -144,8 +155,24 @@ export const betaReadinessPlatformDeployedEvidenceSchema = z.object({
   confirmRecordEvidence: z.boolean().optional(),
 }).strict()
 
+export const betaReadinessPlatformSupabaseDeployedProbeSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema.optional(),
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  environment: z.enum(['staging', 'production']),
+  ownerApprovals: deployedPlatformOwnerApprovalsSchema,
+  notes: z.array(noteSchema).min(1).max(20),
+  allowPersistentProbeWrites: z.boolean().optional(),
+  walletSettlementProbeToolCostEventId: sourceIdSchema.optional(),
+  attestedProbes: z.array(deployedPlatformAttestedProbeObservationSchema).max(4).optional(),
+  recordEvidence: z.boolean().optional(),
+  confirmRecordEvidence: z.boolean().optional(),
+}).strict()
+
 export type BetaReadinessEvidenceEvaluationBody = z.infer<typeof betaReadinessEvidenceEvaluationSchema>
 export type BetaReadinessEvidencePacketBody = z.infer<typeof betaReadinessEvidencePacketSchema>
 export type BetaReadinessCoreRealCheckEvidenceBody = z.infer<typeof betaReadinessCoreRealCheckEvidenceSchema>
 export type BetaReadinessPlatformBillingQaBody = z.infer<typeof betaReadinessPlatformBillingQaSchema>
 export type BetaReadinessPlatformDeployedEvidenceBody = z.infer<typeof betaReadinessPlatformDeployedEvidenceSchema>
+export type BetaReadinessPlatformSupabaseDeployedProbeBody = z.infer<typeof betaReadinessPlatformSupabaseDeployedProbeSchema>

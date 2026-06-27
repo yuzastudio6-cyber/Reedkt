@@ -219,6 +219,7 @@ function buildNextActions(
     actions.push('Run npm run beta:tools:core-real-check-preview with REEDITPRO_BETA_TOOLS_PREVIEW_* values to collect a local no-write blocker-reduction preview; for Python-backed core tools, first run npm run tools:readiness:install-core-python, then npm run beta:tools:core-real-check-preview:hydrated. After preview passes, set the missing REEDITPRO_BETA_TOOLS_* values and rerun npm run beta:tools:core-real-check-evidence-preflight.')
     actions.push('For the remaining libass subtitle-filter warning, run npm run beta:tools:libass-container-proof-preflight against an approved render/tool-readiness image; this can reduce libass execution evidence without claiming product-ready caption burn-in.')
     actions.push('After libass filter proof passes, run npm run beta:tools:libass-synthetic-burnin-qa-preflight to collect synthetic-only caption burn-in/font QA evidence before product-ready local OSS acceptance is recorded.')
+    actions.push('After synthetic libass QA passes, run npm run beta:tools:libass-synthetic-burnin-qa-evidence-preflight, then npm run beta:tools:libass-synthetic-burnin-qa-evidence against deployed staging to record accepted libass evidence.')
   } else {
     actions.push('Run npm run beta:tools:core-real-check-preview locally first; use npm run beta:tools:core-real-check-preview:hydrated after npm run tools:readiness:install-core-python for Python-backed core tools. Then run npm run beta:tools:core-real-check-evidence against deployed staging to record bounded per-tool accepted evidence.')
   }

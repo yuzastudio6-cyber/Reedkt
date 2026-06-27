@@ -41,7 +41,25 @@ const followOnConfirmedAdapterRuntimeFixtureFiles = [
   'scripts/validation/rp-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1-diagnostics.mjs',
 ]
 
-const allowedFiles = new Set([...requiredFiles, ...followOnConfirmedAdapterRuntimeFixtureFiles])
+const followOnProductWorkflowBindingFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-binding-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-binding-1/product-workflow-binding-contract.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-binding-1/readiness-gate.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-binding-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-binding-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-workflow-binding-1/qwen2-5-vl-product-workflow-binding-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-workflow-binding-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-workflow-route-integration-1.md',
+  'server/services/qwen2-5-vl-external-beta-product-workflow-binding.ts',
+  'server/smoke/qwen2-5-vl-external-beta-product-workflow-binding-1-smoke.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-workflow-binding-1-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([
+  ...requiredFiles,
+  ...followOnConfirmedAdapterRuntimeFixtureFiles,
+  ...followOnProductWorkflowBindingFiles,
+])
 
 const requiredText = [
   packet,

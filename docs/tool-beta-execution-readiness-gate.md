@@ -55,6 +55,15 @@ Partial platform evidence stays blocked and names the missing requirement.
 
 Top-level beta checklist blockers can also be cleared only with explicit checklist evidence. The evidence must name a known checklist item, include a source ID, carry `passed` or `warning` status, and include notes. Duplicate checklist evidence fails closed.
 
+## Backend Evaluation API
+
+The backend now exposes an authenticated, mock-safe evaluation surface for this gate:
+
+- `GET /v1/beta-readiness` returns the default source-of-truth readiness report.
+- `POST /v1/beta-readiness/evaluate` accepts structured evidence for checklist items, per-tool accepted execution, platform billing/deployment readiness, and human approvals, then returns the computed report.
+
+These routes do not write Supabase rows, reserve or spend credits, call providers, run tools, enable beta, or mark production ready. They only make the gate executable from backend callers, so blocker state is computed from explicit evidence instead of a hidden hardcoded wall. Unknown tools, unknown checklist items, duplicate downstream evidence, and secret-like payloads fail closed.
+
 ## Evidence-Driven Policy
 
 The beta go/no-go policy is not a permanent hardcoded block. External beta, real-user-media beta, and paid production are computed from supplied evidence and approvals:

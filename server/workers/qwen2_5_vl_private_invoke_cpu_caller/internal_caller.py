@@ -278,6 +278,18 @@ def main() -> int:
     contract_satisfied = response_body.get("contractSatisfiedForFutureRuntime") is True
     model_inference_enabled = response_body.get("modelInferenceEnabled") is True
     runtime_contract_executes_now = response_body.get("runtimeContractExecutesNow") is True
+    metadata_output = response_body.get("metadataOutput") if isinstance(response_body.get("metadataOutput"), dict) else {}
+    structured_metadata_output_ok = (
+        metadata_output.get("parsedJson") is True
+        and metadata_output.get("schemaValid") is True
+        and isinstance(metadata_output.get("schemaKeys"), list)
+        and not metadata_output.get("missingSchemaKeys")
+        and isinstance(metadata_output.get("objectCount"), int)
+        and metadata_output.get("objectCount", 0) > 0
+        and isinstance(metadata_output.get("textLikeRegionCount"), int)
+        and metadata_output.get("textLikeRegionCount", 0) > 0
+        and metadata_output.get("rawOutputStoredInRepo") is False
+    )
     if fixture_inference_expected:
         response_ok = (
             response.get("httpStatus") == 200
@@ -285,6 +297,7 @@ def main() -> int:
             and contract_satisfied
             and model_inference_enabled
             and runtime_contract_executes_now
+            and structured_metadata_output_ok
             and response_body.get("generatedAssetsCreated") is False
             and response_body.get("publicArtifactsCreated") is False
             and response_body.get("signedUrlsCreated") is False
@@ -309,6 +322,7 @@ def main() -> int:
                 "runtimeContractExecutesNow": runtime_contract_executes_now,
                 "fixtureInferenceExpected": fixture_inference_expected,
                 "fixtureInferenceSmokePassed": response_ok if fixture_inference_expected else False,
+                "structuredMetadataOutputAccepted": structured_metadata_output_ok,
                 "identityTokenFetched": True,
                 "identityTokenPrinted": False,
                 "serviceRuntimeRequestSent": True,
@@ -328,9 +342,7 @@ def main() -> int:
                     "publicArtifactsCreated": response_body.get("publicArtifactsCreated") is True,
                     "signedUrlsCreated": response_body.get("signedUrlsCreated") is True,
                 },
-                "metadataOutput": response_body.get("metadataOutput")
-                if isinstance(response_body.get("metadataOutput"), dict)
-                else {},
+                "metadataOutput": metadata_output,
             },
             sort_keys=True,
         )

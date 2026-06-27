@@ -134,7 +134,13 @@ for (const phrase of [
   'in-memory private synthetic fixture',
   '`QWEN_FIXTURE_IMAGE_SIZE_PX`',
   '`128` to `384` pixels',
+  '`qwen_fixture_visual_metadata_v1`',
+  '`schema_version`',
+  '`text_like_regions`',
   'sanitized metadata summary',
+  '`structuredFixtureOutputSchemaDefined=true`',
+  '`structuredFixtureOutputParserDefined=true`',
+  '`cpuCallerRequiresStructuredMetadataForFixturePass=true`',
   'NVIDIA L4',
   '`serviceSourceSupportsApprovedFixtureInference=true`',
   '`cpuCallerSupportsFixtureInferenceExpectation=true`',
@@ -155,6 +161,12 @@ for (const phrase of [
   'NetworkGuard',
   'QWEN_FIXTURE_IMAGE_SIZE_PX',
   '_env_int("QWEN_FIXTURE_IMAGE_SIZE_PX", 384, 128, 384)',
+  'FIXTURE_OUTPUT_SCHEMA_VERSION',
+  'qwen_fixture_visual_metadata_v1',
+  '_extract_json_object',
+  '_normalize_fixture_metadata',
+  'schemaValid',
+  'rawOutputStoredInRepo',
   'LLM(**llm_kwargs)',
   'SamplingParams',
   'metadataOutput',
@@ -171,6 +183,8 @@ for (const phrase of [
   'qwen_fixture_inference_smoke_completed',
   'expectedHttpStatus": 200',
   'fixtureInferenceSmokePassed',
+  'structuredMetadataOutputAccepted',
+  'metadata_output.get("schemaValid") is True',
   'metadataOutput',
 ]) {
   assert.ok(callerText.includes(phrase), `CPU caller source missing phrase: ${phrase}`)
@@ -186,9 +200,16 @@ assert.equal(source.serviceSource.defaultFixtureImageSizePx, 384)
 assert.equal(source.serviceSource.minimumFixtureImageSizePx, 128)
 assert.equal(source.serviceSource.maximumFixtureImageSizePx, 384)
 assert.equal(source.serviceSource.sanitizedMetadataOnlyResponse, true)
+assert.equal(source.serviceSource.structuredFixtureOutputSchemaVersion, 'qwen_fixture_visual_metadata_v1')
+assert.ok(source.serviceSource.requiredStructuredOutputKeys.includes('schema_version'))
+assert.ok(source.serviceSource.requiredStructuredOutputKeys.includes('text_like_regions'))
+assert.equal(source.serviceSource.parserSupportsFencedJson, true)
+assert.equal(source.serviceSource.parserSupportsProseWrappedJson, true)
+assert.equal(source.serviceSource.rawOutputStoredInRepo, false)
 assert.equal(source.cpuCallerSource.defaultContractSmokeExpectationPreserved, true)
 assert.equal(source.cpuCallerSource.acceptsExpectedFixtureHttpStatus, 200)
 assert.equal(source.cpuCallerSource.acceptsExpectedContractHttpStatus, 403)
+assert.equal(source.cpuCallerSource.requiresStructuredMetadataForFixturePass, true)
 assert.equal(source.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(source.selectedRuntime.minInstancesRequired, 0)
 assert.equal(source.selectedRuntime.maxInstancesForFirstFixtureSmoke, 1)
@@ -199,6 +220,9 @@ assert.equal(source.futureExecutionGate.publicArtifactsAllowed, false)
 assert.equal(source.futureExecutionGate.signedUrlsAllowed, false)
 assert.equal(source.runtimeFlags.serviceSourceSupportsApprovedFixtureInference, true)
 assert.equal(source.runtimeFlags.cpuCallerSupportsFixtureInferenceExpectation, true)
+assert.equal(source.runtimeFlags.structuredFixtureOutputSchemaDefined, true)
+assert.equal(source.runtimeFlags.structuredFixtureOutputParserDefined, true)
+assert.equal(source.runtimeFlags.cpuCallerRequiresStructuredMetadataForFixturePass, true)
 assert.equal(source.runtimeFlags.defaultFailClosedPreserved, true)
 assertFalseFlags(source.runtimeFlags)
 assert.equal(source.nextPrompt, NEXT_PROMPT)

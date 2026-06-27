@@ -20,6 +20,20 @@ export const QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SERVICE_SOURCE = {
     minimumFixtureImageSizePx: 128,
     maximumFixtureImageSizePx: 384,
     sanitizedMetadataOnlyResponse: true,
+    structuredFixtureOutputSchemaVersion: 'qwen_fixture_visual_metadata_v1',
+    requiredStructuredOutputKeys: [
+      'schema_version',
+      'fixture_id',
+      'use_case',
+      'objects',
+      'text_like_regions',
+      'spatial_relations',
+      'uncertainty',
+      'blocked_actions',
+    ],
+    parserSupportsFencedJson: true,
+    parserSupportsProseWrappedJson: true,
+    rawOutputStoredInRepo: false,
   },
   cpuCallerSource: {
     path: 'server/workers/qwen2_5_vl_private_invoke_cpu_caller/internal_caller.py',
@@ -27,6 +41,7 @@ export const QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SERVICE_SOURCE = {
     fixtureInferenceExpectationGate: 'QWEN_CPU_CALLER_EXPECT_FIXTURE_INFERENCE',
     acceptsExpectedFixtureHttpStatus: 200,
     acceptsExpectedContractHttpStatus: 403,
+    requiresStructuredMetadataForFixturePass: true,
   },
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
@@ -55,6 +70,9 @@ export const QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SERVICE_SOURCE = {
   runtimeFlags: {
     serviceSourceSupportsApprovedFixtureInference: true,
     cpuCallerSupportsFixtureInferenceExpectation: true,
+    structuredFixtureOutputSchemaDefined: true,
+    structuredFixtureOutputParserDefined: true,
+    cpuCallerRequiresStructuredMetadataForFixturePass: true,
     defaultFailClosedPreserved: true,
     imageBuilt: false,
     imagePushed: false,

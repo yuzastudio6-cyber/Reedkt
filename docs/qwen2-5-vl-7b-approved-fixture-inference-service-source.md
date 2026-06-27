@@ -15,10 +15,13 @@ This packet does not build an image, deploy Cloud Run, run the service, fetch an
   - lazy-loads vLLM from the private model mount only after contract validation and fixture gate approval;
   - generates one in-memory private synthetic fixture for visual metadata only;
   - bounds the in-memory fixture image with `QWEN_FIXTURE_IMAGE_SIZE_PX` from `128` to `384` pixels so later smoke retries can reduce multimodal memory pressure without changing source media policy;
+  - defines structured fixture output schema version `qwen_fixture_visual_metadata_v1` with required keys `schema_version`, `fixture_id`, `use_case`, `objects`, `text_like_regions`, `spatial_relations`, `uncertainty`, and `blocked_actions`;
+  - extracts direct, fenced, or prose-wrapped JSON objects and summarizes schema validity without storing raw model output;
   - returns sanitized metadata summary without raw token, URL, media bytes, generated asset, public artifact, or signed URL output.
 - `server/workers/qwen2_5_vl_private_invoke_cpu_caller/internal_caller.py`
   - preserves the existing default 403 fail-closed contract-smoke expectation;
   - adds `QWEN_CPU_CALLER_EXPECT_FIXTURE_INFERENCE=true` for the future 200 fixture-smoke response;
+  - requires `parsedJson=true`, `schemaValid=true`, non-empty object rows, non-empty text-like region rows, and `rawOutputStoredInRepo=false` before a future fixture response can pass;
   - reports sanitized metadata-output shape and runtime side-effect booleans.
 
 ## Runtime Selection
@@ -65,6 +68,9 @@ With default environment values:
 
 - `serviceSourceSupportsApprovedFixtureInference=true`
 - `cpuCallerSupportsFixtureInferenceExpectation=true`
+- `structuredFixtureOutputSchemaDefined=true`
+- `structuredFixtureOutputParserDefined=true`
+- `cpuCallerRequiresStructuredMetadataForFixturePass=true`
 - `defaultFailClosedPreserved=true`
 - `imageBuilt=false`
 - `imagePushed=false`

@@ -91,7 +91,7 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'service_source_ready_deploy_required',
+  data.privateInvokeClient.currentStatus === 'service_deployed_fixture_inference_smoke_required',
   'Private invoke client status must record the fixture plan and execution blocker.',
 )
 check(
@@ -162,8 +162,8 @@ check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advi
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
 check(
-  docText.includes('service_source_ready_deploy_required') ||
-    data.privateInvokeClient.currentStatus === 'service_source_ready_deploy_required',
+  docText.includes('service_deployed_fixture_inference_smoke_required') ||
+    data.privateInvokeClient.currentStatus === 'service_deployed_fixture_inference_smoke_required',
   'Doc/data must record first fixture-plan and execution status.',
 )
 check(

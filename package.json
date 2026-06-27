@@ -463,6 +463,7 @@
     "build:staging-vlm-runtime-worker": "tsx server/cli/build-staging-vlm-runtime-worker.ts",
     "smoke:activation-vlm-runtime": "tsx server/smoke/activation-vlm-runtime-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-approved-snapshot-contract": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-approved-snapshot-contract-smoke.ts",
+    "smoke:qwen2-5-vl-7b-cloud-run-gpu-approved-snapshot-local-queue-contract": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-approved-snapshot-local-queue-contract-smoke.ts",
     "activation:vlm-l4-compatible-candidate:plan": "tsx server/cli/activation-vlm-l4-compatible-candidate-plan.ts",
     "activation:vlm-l4-compatible-candidate": "tsx server/cli/activation-vlm-l4-compatible-candidate.ts",
     "activation:vlm-l4-compatible-candidate:report": "tsx server/cli/activation-vlm-l4-compatible-candidate-report.ts",

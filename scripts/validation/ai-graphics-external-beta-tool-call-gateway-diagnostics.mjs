@@ -4,13 +4,14 @@ import os from 'node:os'
 import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
-const runScriptName = 'ai-graphics:external-beta-runtime-admission'
-const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-runtime-admission.ts'
-const diagnosticScriptName = 'ai-graphics:external-beta-runtime-admission:diagnostics'
+const runScriptName = 'ai-graphics:external-beta-tool-call-gateway'
+const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-tool-call-gateway.ts'
+const diagnosticScriptName = 'ai-graphics:external-beta-tool-call-gateway:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-runtime-admission-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-beta-tool-call-gateway-diagnostics.mjs'
 const packetScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const launchGoNoGoScriptName = 'ai-graphics:external-beta-launch-go-no-go'
+const runtimeAdmissionScriptName = 'ai-graphics:external-beta-runtime-admission'
 
 const allTools = [
   'torch_torchvision',
@@ -47,21 +48,6 @@ const gpuTools = [
   'transparent_background',
 ]
 
-const capabilities = [
-  'chart_overlay',
-  'data_visualization',
-  'svg_graphics',
-  'diagram_graphics',
-  'animation_overlay',
-  'canvas_scene',
-  'webgl_3d_scene',
-  'background_removal',
-  'subject_segmentation',
-  'upscaling',
-  'tensor_image_ops',
-  'model_runtime_foundation',
-]
-
 const falseGateKeys = [
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
@@ -80,6 +66,7 @@ const falseGateKeys = [
   'packageLockMutationPerformed',
   'toolExecutionPerformed',
   'workerExecutionPerformed',
+  'workerEnqueuePerformed',
   'routeExecutionPerformed',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
@@ -157,25 +144,23 @@ function acceptedRecord(toolId) {
 }
 
 const requiredFiles = [
+  'server/tool-registry/ai-graphics-external-beta-tool-call-gateway.ts',
+  'server/cli/ai-graphics-external-beta-tool-call-gateway.ts',
   'server/tool-registry/ai-graphics-external-beta-runtime-admission.ts',
-  'server/cli/ai-graphics-external-beta-runtime-admission.ts',
-  'server/tool-registry/ai-graphics-external-beta-launch-go-no-go.ts',
-  'server/tool-registry/ai-graphics-on-demand-runtime-admission.ts',
   'server/tool-registry/index.ts',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-gateway.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-gateway.md',
   'docs/tool-intelligence/ai-graphics/external-beta-runtime-admission.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-runtime-admission.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json',
-  'docs/tool-intelligence/ai-graphics/on-demand-runtime-admission.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
 
 for (const file of requiredFiles) read(file)
 
 const pkg = json('package.json')
-const docs = json('docs/tool-intelligence/ai-graphics/external-beta-runtime-admission.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-runtime-admission.md')
-const source = read('server/tool-registry/ai-graphics-external-beta-runtime-admission.ts')
-const cli = read('server/cli/ai-graphics-external-beta-runtime-admission.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/external-beta-tool-call-gateway.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-tool-call-gateway.md')
+const source = read('server/tool-registry/ai-graphics-external-beta-tool-call-gateway.ts')
+const cli = read('server/cli/ai-graphics-external-beta-tool-call-gateway.ts')
 const index = read('server/tool-registry/index.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
@@ -183,10 +168,10 @@ if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_scr
 if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
   fail(`missing_package_script:${diagnosticScriptName}`)
 }
-if (!index.includes("export * from './ai-graphics-external-beta-runtime-admission'")) {
-  fail('server_registry_index_missing_external_beta_runtime_admission_export')
+if (!index.includes("export * from './ai-graphics-external-beta-tool-call-gateway'")) {
+  fail('server_registry_index_missing_external_beta_tool_call_gateway_export')
 }
-if (docs.decision !== 'ai_graphics_external_beta_runtime_admission_contract_prepared_with_runtime_blocks') {
+if (docs.decision !== 'ai_graphics_external_beta_tool_call_gateway_contract_prepared_with_runtime_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
 
@@ -194,10 +179,11 @@ for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
   totalProductFacingCapabilities: 12,
   gpuRuntimeTargetedTools: 8,
-  defaultExternalBetaRuntimeAdmissionReadyExamples: 0,
-  fullExternalBetaRuntimeAdmissionReadyExamples: 2,
+  defaultGatewayReadyExamples: 0,
+  fullGatewayWorkerEnqueueCandidateReadyExamples: 2,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobExamples: 1,
   gpuRuntimeShouldStartNow: 0,
+  workerEnqueuePerformedNow: 0,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
 })) {
@@ -209,35 +195,37 @@ for (const tool of allTools) {
 for (const tool of gpuTools) {
   if (!docs.gpuRuntimeTargetedTools?.includes(tool)) fail(`docs_missing_gpu_tool:${tool}`)
 }
-for (const capability of capabilities) {
-  if (!source.includes(capability) && !docsMd.includes('12')) fail(`capability_context_missing:${capability}`)
-}
-
 for (const gate of [
-  'external beta launch go/no-go approval',
-  'external beta feature flag approval',
-  'external beta runtime admission reference',
-  'external beta tool allowlist reference',
-  'external beta rollout traffic scope reference',
-  'external beta telemetry reference',
-  'external beta support ownership reference',
-  'external beta cost guardrail reference',
-  'external beta worker pool reference',
-  'external beta GPU concurrency reference for GPU tools',
-  'on-demand runtime job admission with provided evidence',
+  'external beta user id',
+  'external beta workspace id',
+  'external beta request id',
+  'external beta tool-call gateway reference',
+  'external beta feature flag evaluation reference',
+  'external beta rollout assignment reference',
+  'external beta rate-limit decision reference',
+  'external beta cost-ceiling decision reference',
+  'external beta audit event reference',
+  'external beta trace id',
+  'external beta idempotency key',
+  'external beta worker enqueue candidate reference',
+  'accepted external-beta runtime admission packet',
 ]) {
-  if (!docs.requiredExternalRuntimeGates?.includes(gate)) fail(`docs_missing_external_runtime_gate:${gate}`)
+  if (!docs.requiredGatewayControls?.includes(gate)) fail(`docs_missing_gateway_control:${gate}`)
 }
-
 for (const key of [
-  'externalBetaRuntimeAdmissionContractPrepared',
-  'sourceExternalBetaLaunchGoNoGoAccepted',
-  'sourceOnDemandRuntimeAdmissionAccepted',
-  'externalBetaRuntimeAdmissionReadyWithProvidedEvidence',
-  'externalBetaWorkerEnqueueAllowedWithProvidedEvidence',
+  'externalBetaToolCallGatewayPrepared',
+  'sourceExternalBetaRuntimeAdmissionAccepted',
+  'externalBetaGatewayControlsSatisfied',
+  'externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
+  'externalBetaFeatureFlagEvaluated',
+  'externalBetaRolloutAssignmentAccepted',
+  'externalBetaRateLimitAccepted',
+  'externalBetaCostCeilingAccepted',
+  'externalBetaAuditTracePrepared',
+  'externalBetaIdempotencyKeyAccepted',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
@@ -250,12 +238,13 @@ for (const key of falseGateKeys) {
   if (docs.booleans?.[key] !== false) fail(`docs_required_false_not_false:${key}`)
 }
 for (const [id, expected] of Object.entries({
-  planning_sam2_external_beta: 'planning_metadata_selected',
-  blocked_sam2_external_beta_missing_launch: 'missing_external_beta_launch_go_no_go',
-  accepted_future_sam2_external_beta_worker_enqueue:
-    'external_beta_runtime_admission_ready_for_worker_enqueue',
-  accepted_future_d3_external_beta_worker_enqueue:
-    'external_beta_runtime_admission_ready_for_worker_enqueue',
+  planning_sam2_gateway: 'planning_metadata_selected',
+  blocked_sam2_gateway_missing_runtime_admission: 'missing_external_beta_runtime_admission',
+  blocked_sam2_gateway_missing_rate_limit: 'missing_external_beta_gateway_controls',
+  accepted_future_sam2_gateway_worker_enqueue_candidate:
+    'external_beta_worker_enqueue_candidate_ready',
+  accepted_future_d3_gateway_worker_enqueue_candidate:
+    'external_beta_worker_enqueue_candidate_ready',
 })) {
   const entry = docs.exampleEvaluations?.find((example) => example.id === id)
   if (!entry) fail(`docs_missing_example:${id}`)
@@ -263,57 +252,63 @@ for (const [id, expected] of Object.entries({
 }
 
 for (const needle of [
-  'AI_GRAPHICS_EXTERNAL_BETA_RUNTIME_ADMISSION_DECISION',
-  'evaluateAiGraphicsExternalBetaRuntimeAdmission',
-  'buildAiGraphicsExternalBetaRuntimeAdmissionExamples',
-  'evaluateAiGraphicsOnDemandRuntimeAdmission',
-  'buildAiGraphicsExternalBetaLaunchGoNoGo',
-  'externalBetaRuntimeAdmissionReadyWithProvidedEvidence',
-  'externalBetaWorkerEnqueueAllowedWithProvidedEvidence',
+  'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_GATEWAY_DECISION',
+  'evaluateAiGraphicsExternalBetaToolCallGateway',
+  'sourceExternalBetaRuntimeAdmissionPacket',
+  'externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence',
+  'externalBetaWorkerEnqueueCandidate',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJob',
   'gpuRuntimeShouldStartNow: false',
+  'workerEnqueuePerformed: false',
   'externalBetaReadyNowTools: 0',
   'productionReadyNowTools: 0',
-  'gpuRuntimeOnDemandOnly: true',
   'noIdleGpuRuntimeApproved: true',
   'agentCanExecuteToolsNow: false',
 ]) {
   if (!source.includes(needle)) fail(`source_missing:${needle}`)
 }
 for (const needle of [
-  '--external-beta-launch-go-no-go-packet',
-  '--execution-requested',
-  '--external-beta-feature-flag-enabled',
-  '--external-beta-runtime-admission-ref',
-  '--external-beta-worker-pool-ref',
-  '--external-beta-gpu-concurrency-ref',
+  '--external-beta-runtime-admission-packet',
+  '--external-beta-user-id',
+  '--external-beta-workspace-id',
+  '--external-beta-rate-limit-decision-ref',
+  '--external-beta-worker-enqueue-candidate-ref',
   'evaluatorOnly: true',
+  'workerEnqueuePerformed: false',
   'gpuRuntimePerformed: false',
 ]) {
   if (!cli.includes(needle)) fail(`cli_missing:${needle}`)
 }
 for (const needle of [
-  'External-Beta Runtime Admission',
+  'External-Beta Tool-Call Gateway',
+  'Worker enqueue performed now: `0`',
   'GPU remains on-demand only',
   'If no one is using the tool, no GPU runtime should be running',
-  'External-beta-ready now: `0`',
-  'Production-ready now: `0`',
 ]) {
   if (!docsMd.includes(needle)) fail(`markdown_missing:${needle}`)
 }
 for (const needle of [
-  'AI graphics external beta runtime admission decision',
-  'GPU runtime is only start-allowed for an accepted future external-beta worker job',
-  '`gpuRuntimeShouldStartNow=false`',
+  'AI graphics external beta tool-call gateway decision',
+  'worker enqueue candidate',
+  '`workerEnqueuePerformed=false`',
 ]) {
   if (!scorecard.includes(needle)) fail(`scorecard_missing:${needle}`)
 }
 
-const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-runtime-admission-'))
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-tool-call-gateway-'))
 const fullRecordsPath = writeJson(
   path.join(tmpRoot, 'external-beta-evidence-records.json'),
   allTools.map(acceptedRecord),
 )
+const validatedPacket = parseJsonOutput(runNpm(packetScriptName, [
+  '--evidence-records',
+  fullRecordsPath,
+]), 'validated_external_beta_evidence_packet')
+if (validatedPacket.evidenceRecordsAcceptedWithProvidedEvidence !== 21) {
+  fail('validated_packet_evidence_records_not_21')
+}
+const fullPacketPath = writeJson(path.join(tmpRoot, 'external-beta-evidence-packet.json'), validatedPacket)
+
 const fullEvidenceArgs = [
   '--all-shared-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
@@ -336,19 +331,6 @@ const launchApprovalArgs = [
   '--external-beta-launch-approver-role',
   'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER',
 ]
-
-const validatedPacket = parseJsonOutput(runNpm(packetScriptName, [
-  '--evidence-records',
-  fullRecordsPath,
-]), 'validated_external_beta_evidence_packet')
-if (validatedPacket.evidenceRecordsAcceptedWithProvidedEvidence !== 21) {
-  fail('validated_packet_evidence_records_not_21')
-}
-const fullPacketPath = writeJson(
-  path.join(tmpRoot, 'external-beta-evidence-packet.json'),
-  validatedPacket,
-)
-
 const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   ...fullEvidenceArgs,
   '--external-beta-evidence-packet',
@@ -357,9 +339,6 @@ const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
 ]), 'external_beta_launch_go_no_go')
 if (launchGoNoGo.status !== 'external_beta_launch_go_no_go_approved_runtime_still_blocked') {
   fail(`launch_go_no_go_status_unexpected:${launchGoNoGo.status}`)
-}
-if (launchGoNoGo.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 21) {
-  fail('launch_go_no_go_approved_tools_not_21')
 }
 const launchGoNoGoPath = writeJson(path.join(tmpRoot, 'launch-go-no-go.json'), launchGoNoGo)
 
@@ -401,21 +380,7 @@ const commonRuntimeArgs = [
   '--external-beta-worker-pool-ref',
   'external-beta-runtime://worker-pool',
 ]
-
-const planningSam2 = parseJsonOutput(runNpm(runScriptName, [
-  '--capability-id',
-  'background_removal',
-  '--requested-tool-id',
-  'sam2',
-]), 'planning_sam2')
-const blockedSam2 = parseJsonOutput(runNpm(runScriptName, [
-  '--capability-id',
-  'background_removal',
-  '--requested-tool-id',
-  'sam2',
-  '--execution-requested',
-]), 'blocked_sam2')
-const readySam2 = parseJsonOutput(runNpm(runScriptName, [
+const sam2RuntimeAdmission = parseJsonOutput(runNpm(runtimeAdmissionScriptName, [
   ...commonRuntimeArgs,
   '--external-beta-gpu-concurrency-ref',
   'external-beta-runtime://gpu-concurrency',
@@ -427,8 +392,8 @@ const readySam2 = parseJsonOutput(runNpm(runScriptName, [
   'private://ai-graphics/gpu-proof/sam2-proof.json',
   '--model-weight-manifest-ref',
   'private://ai-graphics/model-manifests/sam2.json',
-]), 'ready_sam2')
-const readyD3 = parseJsonOutput(runNpm(runScriptName, [
+]), 'sam2_runtime_admission')
+const d3RuntimeAdmission = parseJsonOutput(runNpm(runtimeAdmissionScriptName, [
   ...commonRuntimeArgs,
   '--capability-id',
   'chart_overlay',
@@ -436,41 +401,94 @@ const readyD3 = parseJsonOutput(runNpm(runScriptName, [
   'd3',
   '--node-runtime-proof-ref',
   'private://ai-graphics/node-static-proof/d3.json',
-]), 'ready_d3')
-const blockedGpuConcurrency = parseJsonOutput(runNpm(runScriptName, [
-  ...commonRuntimeArgs,
+]), 'd3_runtime_admission')
+const sam2RuntimeAdmissionPath = writeJson(path.join(tmpRoot, 'sam2-runtime-admission.json'), sam2RuntimeAdmission)
+const d3RuntimeAdmissionPath = writeJson(path.join(tmpRoot, 'd3-runtime-admission.json'), d3RuntimeAdmission)
+
+const gatewayControls = [
+  '--external-beta-user-id',
+  'external-beta-user-fixture',
+  '--external-beta-workspace-id',
+  'workspace-fixture',
+  '--external-beta-request-id',
+  'request-fixture',
+  '--external-beta-tool-call-gateway-ref',
+  'external-beta-gateway://tool-call',
+  '--external-beta-feature-flag-evaluation-ref',
+  'external-beta-gateway://feature-flag-evaluation',
+  '--external-beta-rollout-assignment-ref',
+  'external-beta-gateway://rollout-assignment',
+  '--external-beta-rate-limit-decision-ref',
+  'external-beta-gateway://rate-limit',
+  '--external-beta-cost-ceiling-decision-ref',
+  'external-beta-gateway://cost-ceiling',
+  '--external-beta-audit-event-ref',
+  'external-beta-gateway://audit-event',
+  '--external-beta-trace-id',
+  'trace-fixture',
+  '--external-beta-idempotency-key',
+  'ai-graphics:external-beta:workspace-fixture:request-fixture:sam2',
+  '--external-beta-worker-enqueue-candidate-ref',
+  'external-beta-gateway://worker-enqueue-candidate',
+]
+const gatewayControlsWithoutRateLimit = gatewayControls.filter((value, index, list) => (
+  value !== '--external-beta-rate-limit-decision-ref' &&
+  list[index - 1] !== '--external-beta-rate-limit-decision-ref'
+))
+
+const planningGateway = parseJsonOutput(runNpm(runScriptName, [
   '--capability-id',
   'background_removal',
   '--requested-tool-id',
   'sam2',
-  '--native-gpu-runtime-proof-ref',
-  'private://ai-graphics/gpu-proof/sam2-proof.json',
-  '--model-weight-manifest-ref',
-  'private://ai-graphics/model-manifests/sam2.json',
-]), 'blocked_sam2_missing_gpu_concurrency')
+]), 'planning_gateway')
+const blockedMissingRuntime = parseJsonOutput(runNpm(runScriptName, [
+  '--capability-id',
+  'background_removal',
+  '--requested-tool-id',
+  'sam2',
+  '--execution-requested',
+]), 'blocked_missing_runtime_gateway')
+const blockedMissingRateLimit = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-runtime-admission-packet',
+  sam2RuntimeAdmissionPath,
+  ...gatewayControlsWithoutRateLimit,
+]), 'blocked_missing_rate_limit_gateway')
+const readySam2Gateway = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-runtime-admission-packet',
+  sam2RuntimeAdmissionPath,
+  ...gatewayControls,
+]), 'ready_sam2_gateway')
+const readyD3Gateway = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-runtime-admission-packet',
+  d3RuntimeAdmissionPath,
+  ...gatewayControls,
+  '--external-beta-idempotency-key',
+  'ai-graphics:external-beta:workspace-fixture:request-fixture:d3',
+]), 'ready_d3_gateway')
 
-if (planningSam2.decision !== 'planning_metadata_selected') {
-  fail(`planning_sam2_decision_unexpected:${planningSam2.decision}`)
+if (planningGateway.decision !== 'planning_metadata_selected') {
+  fail(`planning_gateway_decision_unexpected:${planningGateway.decision}`)
 }
-if (planningSam2.executionRequested !== false) fail('planning_sam2_execution_requested_not_false')
-if (planningSam2.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
-  fail('planning_sam2_gpu_start_allowed_not_false')
+if (blockedMissingRuntime.decision !== 'missing_external_beta_runtime_admission') {
+  fail(`blocked_missing_runtime_decision_unexpected:${blockedMissingRuntime.decision}`)
 }
-if (blockedSam2.decision !== 'missing_external_beta_launch_go_no_go') {
-  fail(`blocked_sam2_decision_unexpected:${blockedSam2.decision}`)
+if (blockedMissingRateLimit.decision !== 'missing_external_beta_gateway_controls') {
+  fail(`blocked_missing_rate_limit_decision_unexpected:${blockedMissingRateLimit.decision}`)
 }
-if (!blockedSam2.missingExternalBetaRuntimeGates?.includes('external beta launch go/no-go approval is missing')) {
-  fail('blocked_sam2_missing_launch_gate_not_reported')
+if (!blockedMissingRateLimit.missingGatewayControls?.includes('external beta rate-limit decision reference is missing')) {
+  fail('blocked_missing_rate_limit_not_reported')
 }
-for (const [label, output] of Object.entries({ readySam2, readyD3 })) {
-  if (output.decision !== 'external_beta_runtime_admission_ready_for_worker_enqueue') {
+for (const [label, output] of Object.entries({ readySam2Gateway, readyD3Gateway })) {
+  if (output.decision !== 'external_beta_worker_enqueue_candidate_ready') {
     fail(`${label}_decision_unexpected:${output.decision}`)
   }
-  if (output.externalBetaRuntimeAdmissionReadyWithProvidedEvidence !== true) {
-    fail(`${label}_ready_with_provided_evidence_not_true`)
+  if (output.externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence !== true) {
+    fail(`${label}_candidate_ready_not_true`)
   }
-  if (output.externalBetaWorkerEnqueueAllowedWithProvidedEvidence !== true) {
-    fail(`${label}_worker_enqueue_allowed_not_true`)
+  if (!output.externalBetaWorkerEnqueueCandidate) fail(`${label}_missing_worker_candidate`)
+  if (output.externalBetaWorkerEnqueueCandidate?.workerEnqueuePerformed !== false) {
+    fail(`${label}_worker_enqueue_performed_not_false`)
   }
   if (output.gpuRuntimeShouldStartNow !== false) fail(`${label}_gpu_runtime_should_start_now_not_false`)
   if (output.externalBetaReadyNowTools !== 0) fail(`${label}_external_beta_ready_now_not_0`)
@@ -481,24 +499,24 @@ for (const [label, output] of Object.entries({ readySam2, readyD3 })) {
     }
   }
 }
-if (readySam2.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
-  fail('ready_sam2_gpu_start_allowed_not_true')
+if (readySam2Gateway.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
+  fail('ready_sam2_gateway_gpu_start_allowed_not_true')
 }
-if (readyD3.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
-  fail('ready_d3_gpu_start_allowed_not_false')
+if (readyD3Gateway.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
+  fail('ready_d3_gateway_gpu_start_allowed_not_false')
 }
-if (blockedGpuConcurrency.decision !== 'external_beta_runtime_admission_blocked') {
-  fail(`blocked_gpu_concurrency_decision_unexpected:${blockedGpuConcurrency.decision}`)
+if (readySam2Gateway.externalBetaWorkerEnqueueCandidate?.runtimeTarget !== 'native_linux_amd64_nvidia_l4_sam2_runtime') {
+  fail('ready_sam2_gateway_runtime_target_unexpected')
 }
-if (!blockedGpuConcurrency.missingExternalBetaRuntimeGates?.includes('external beta GPU concurrency reference is missing')) {
-  fail('blocked_gpu_concurrency_gate_not_reported')
+if (readyD3Gateway.externalBetaWorkerEnqueueCandidate?.runtimeTarget !== 'node_cpu_static') {
+  fail('ready_d3_gateway_runtime_target_unexpected')
 }
 
 const combinedText = [
-  'docs/tool-intelligence/ai-graphics/external-beta-runtime-admission.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-runtime-admission.json',
-  'server/tool-registry/ai-graphics-external-beta-runtime-admission.ts',
-  'server/cli/ai-graphics-external-beta-runtime-admission.ts',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-gateway.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-gateway.json',
+  'server/tool-registry/ai-graphics-external-beta-tool-call-gateway.ts',
+  'server/cli/ai-graphics-external-beta-tool-call-gateway.ts',
   'docs/production-beta-readiness-scorecard.md',
 ].map(read).join('\n')
 
@@ -518,6 +536,7 @@ for (const pattern of [
   /productionReadyNow["`:\s]+true/i,
   /toolExecutionPerformed["`:\s]+true/i,
   /workerExecutionPerformed["`:\s]+true/i,
+  /workerEnqueuePerformed["`:\s]+true/i,
   /routeExecutionPerformed["`:\s]+true/i,
   /providerRuntimePerformed["`:\s]+true/i,
   /gpuRuntimePerformed["`:\s]+true/i,
@@ -548,8 +567,6 @@ const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-beta-tool-call-gateway": "tsx server/cli/ai-graphics-external-beta-tool-call-gateway.ts",',
-  '+    "ai-graphics:external-beta-tool-call-gateway:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-gateway-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue
@@ -575,19 +592,21 @@ console.log(JSON.stringify({
   status: 'passed',
   decision: docs.decision,
   toolsCovered: allTools.length,
-  capabilitiesCovered: capabilities.length,
   gpuToolsCovered: gpuTools.length,
-  planningSam2Decision: planningSam2.decision,
-  blockedSam2Decision: blockedSam2.decision,
-  readySam2Decision: readySam2.decision,
-  readyD3Decision: readyD3.decision,
-  blockedGpuConcurrencyDecision: blockedGpuConcurrency.decision,
+  planningGatewayDecision: planningGateway.decision,
+  blockedMissingRuntimeDecision: blockedMissingRuntime.decision,
+  blockedMissingRateLimitDecision: blockedMissingRateLimit.decision,
+  readySam2GatewayDecision: readySam2Gateway.decision,
+  readyD3GatewayDecision: readyD3Gateway.decision,
   readySam2GpuRuntimeStartAllowedForAcceptedExternalBetaJob:
-    readySam2.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+    readySam2Gateway.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
   readyD3GpuRuntimeStartAllowedForAcceptedExternalBetaJob:
-    readyD3.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
-  gpuRuntimeShouldStartNow: readySam2.gpuRuntimeShouldStartNow,
-  externalBetaReadyNowTools: readySam2.externalBetaReadyNowTools,
-  productionReadyNowTools: readySam2.productionReadyNowTools,
-  agentCanExecuteToolsNow: readySam2.booleans?.agentCanExecuteToolsNow,
+    readyD3Gateway.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+  sam2RuntimeTarget: readySam2Gateway.externalBetaWorkerEnqueueCandidate?.runtimeTarget,
+  d3RuntimeTarget: readyD3Gateway.externalBetaWorkerEnqueueCandidate?.runtimeTarget,
+  workerEnqueuePerformed: readySam2Gateway.booleans?.workerEnqueuePerformed,
+  gpuRuntimeShouldStartNow: readySam2Gateway.gpuRuntimeShouldStartNow,
+  externalBetaReadyNowTools: readySam2Gateway.externalBetaReadyNowTools,
+  productionReadyNowTools: readySam2Gateway.productionReadyNowTools,
+  agentCanExecuteToolsNow: readySam2Gateway.booleans?.agentCanExecuteToolsNow,
 }, null, 2))

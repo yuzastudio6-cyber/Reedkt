@@ -195,6 +195,19 @@ external-beta worker job; `gpuRuntimeShouldStartNow=false`,
 `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
 GPU runtime is only start-allowed for an accepted future external-beta worker job.
 
+AI graphics external beta tool-call gateway decision
+`ai_graphics_external_beta_tool_call_gateway_contract_prepared_with_runtime_blocks`
+adds the request-level external beta gateway after runtime admission. It checks
+external beta user/workspace/request metadata, feature flag evaluation, rollout
+assignment, rate limit, cost ceiling, audit event, trace id, idempotency key,
+and worker enqueue candidate refs. With provided evidence, the SAM2 and D3
+examples can form a worker enqueue candidate, but `workerEnqueuePerformed=false`,
+`workerQueueApprovedNow=false`, `gpuRuntimeShouldStartNow=false`,
+`externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
+This is a side-effect-free gateway check and does not execute tools, enqueue
+workers, start GPU runtime, create artifacts, unlock external beta, or unlock
+production.
+
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
 shapes the all-21 queue-admission packets into backend queue adapter submission

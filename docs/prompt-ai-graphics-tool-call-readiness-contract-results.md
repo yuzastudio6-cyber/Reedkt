@@ -421,6 +421,14 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Static migration apply, non-production service-role credentials, explicit fixture IDs, and live smoke execution remain separate future-only gates.
 - Latest observed PR state after service-role RPC smoke source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `ccbb4f866c85d7b1ccf09dac5011edf77951729e`, with an empty check rollup.
 
+## Follow-Up: Service-Role RPC Smoke Source Packet GPU Hardening
+
+- Hardened `ai-graphics:internal-beta-service-role-rpc-smoke-readiness` source packet validation for the service-role transaction packet.
+- The packet-fed path now requires all 21 tools, all 12 capabilities, 21 ready service-role transaction records, exactly eight GPU worker transaction records for the heavy/model tools, `gpuRuntimeShouldStartNow=false`, false runtime/beta/production gates, and false per-record execution/dispatch gates.
+- Diagnostic coverage rejects source packets that report 20 tools, seven GPU worker records, `gpuRuntimeShouldStartNow=true`, `gpuRuntimeApprovedNow=true`, `canExecuteToolNow=true`, or `serviceRoleQueueTransactionApprovedNow=true`.
+- Validation passed for the hardened smoke diagnostic, inherited backend queue and service-role transaction diagnostics, runtime enqueue, queue admission, on-demand runtime admission, beta readiness gate, open-source audit diagnostic, server typecheck, diff checks, package-lock unchanged check, `.local-artifacts` check, and changed-file scans.
+- Latest observed PR state after service-role RPC smoke source packet GPU hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `01478d80320ddec739e27b6c9657371c30e8a5fd`, with an empty check rollup.
+
 ## Follow-Up: Service-Role RPC Adapter Source Packet Ingestion
 
 - Added evaluator-only local-smoke proof packet ingestion to `ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke`.

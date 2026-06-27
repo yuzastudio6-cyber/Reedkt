@@ -26,7 +26,7 @@ All of these must be true before the adapter can call injected transport depende
 - `runtimeServiceAccountVerified`
 - `projectInvokerPolicyVerified`
 
-Default adapter status: every gate remains false unless a future backend runtime injects explicit approval. Repository evidence now shows the guarded read-only auth/IAM reverify passed and the smoke runner can use the non-key impersonation token path, but the adapter still refuses by default until TokenCreator/getAccessToken or an attached-service-account token path is approved and a controlled private invoke response is observed.
+Default adapter status: every gate remains false unless a future backend runtime injects explicit approval. Repository evidence now shows the guarded read-only auth/IAM reverify passed, the smoke runner can use the non-key impersonation token path, and narrow TokenCreator/Run Invoker bindings are present. The adapter still refuses by default until the controlled private invoke route reaches the expected fail-closed contract response.
 
 ## Required Transport Dependencies
 
@@ -61,8 +61,8 @@ The default adapter result is `blocked_transport_disabled`. In that path:
 
 ## Current Blocker
 
-The latest guarded auth/IAM reverify passed and the controlled private invoke smoke plan is defined. The fixed smoke runner attempted non-key service-account impersonation, then stopped before request because `iam.serviceAccounts.getAccessToken` is denied. The remaining blocker is a narrow TokenCreator/getAccessToken approval or an attached-service-account token path, plus the same token-fetch policy, service-audience policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before any dependency may be called.
+The latest guarded auth/IAM reverify passed and the controlled private invoke smoke plan is defined. After the narrow authz fix, the smoke minted an identity token and sent exactly one authenticated contract request, but the response was HTTP `404` instead of the expected fail-closed contract JSON. The remaining blocker is the Cloud Run ingress/private route/load balancer/proxy/service URL/audience path, plus the same token-fetch policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before runtime may advance.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference`
+`QWEN2_5_VL_STACK_TOOL_53-PRIVATE-INVOKE-ROUTING-FIX: fix controlled private invoke route/ingress contract response, no inference`

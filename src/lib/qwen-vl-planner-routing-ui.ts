@@ -32,7 +32,7 @@ export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
   clientHelper: 'callQwen25VlPrivateInvokeDryRun'
   statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
   routeRuntime: 'mock'
-  currentStatus: 'blocked_private_invoke_cpu_caller_deploy_required'
+  currentStatus: 'blocked_private_invoke_cpu_caller_contract_smoke_required'
   currentBlocker: string
   boundaryNotes: string[]
   runtimeFlags: {
@@ -65,7 +65,7 @@ export type QwenVlPlannerRoutingUiData = {
   privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_55D-PRIVATE-INVOKE-CPU-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -219,14 +219,14 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       clientHelper: 'callQwen25VlPrivateInvokeDryRun',
       statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
       routeRuntime: 'mock',
-      currentStatus: 'blocked_private_invoke_cpu_caller_deploy_required',
+      currentStatus: 'blocked_private_invoke_cpu_caller_contract_smoke_required',
       currentBlocker:
-        'Controlled private invoke auth works, the dedicated Direct VPC private route subnet is configured, and the no-model CPU-only caller source is defined. Runtime remains blocked until the controlled CPU-only caller job is built, pushed, and deployed without sending a request or enabling inference.',
+        'Controlled private invoke auth works, the dedicated Direct VPC private route subnet is configured, the no-model CPU-only caller source is defined, and the controlled caller job is deployed. Runtime remains blocked until one controlled caller contract smoke observes the fail-closed response with inference disabled.',
       boundaryNotes: [
         'The frontend helper calls only the central ReeditPro API client boundary.',
         'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
         'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
-        'The next runtime gate may deploy the CPU-only caller harness, but must not send requests or enable inference.',
+        'The next runtime gate may execute one controlled caller contract smoke, but must not enable model import, inference, assets, credits, beta, or production.',
       ],
       runtimeFlags: {
         usesCentralApiClient: true,
@@ -261,6 +261,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'D3, ECharts, and Vega-Lite own exact chart/dataviz output.',
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
-    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_55D-PRIVATE-INVOKE-CPU-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference',
+    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference',
   }
 }

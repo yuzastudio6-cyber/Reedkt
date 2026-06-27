@@ -14,7 +14,7 @@ const ROOT = process.cwd()
 const DECISION =
   'qwen2_5_vl_cloud_run_gpu_private_invoke_transport_adapter_defined_fail_closed'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_55D-PRIVATE-INVOKE-CPU-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference'
+  'QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference'
 
 type JsonRecord = Record<string, unknown>
 

@@ -21,7 +21,7 @@ The UI presents 13 planner-routing tasks and one private-invoke dry-run route re
 - 5 blocked routes for AI video generation, final render/export, raw chat execution, frontend invocation, and unbounded long-video analysis.
 - Private invoke client route: `jobs.qwen2_5_vl.privateInvoke.dryRun`
 - Private invoke client helper: `callQwen25VlPrivateInvokeDryRun`
-- Private invoke status: `blocked_private_invoke_cpu_caller_deploy_required`
+- Private invoke status: `blocked_private_invoke_cpu_caller_contract_smoke_required`
 
 The card keeps `dryRunPassedClaimed=false` and all execution gates false.
 
@@ -59,8 +59,8 @@ The card provides no execution buttons, no approval buttons, no credit buttons, 
 
 ## Current Blocker
 
-Read-only Cloud Run auth/IAM reverify has passed, narrow TokenCreator and Run Invoker bindings are in place, and the controlled smoke can mint an audience-bound identity token without printing or storing the token value. The latest bounded request returned HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records the more precise blocker: the service ingress is `internal-and-cloud-load-balancing`. The internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The Direct VPC route config created a dedicated future-caller subnet with Private Google Access enabled and left the default subnet unchanged. The CPU-only caller source is now defined with no model loader, no vLLM runtime, no CUDA dependency, and no inference path. Private Cloud Run invocation remains blocked until the caller image is built, pushed, and deployed without sending a request or enabling inference.
+Read-only Cloud Run auth/IAM reverify has passed, narrow TokenCreator and Run Invoker bindings are in place, and the controlled smoke can mint an audience-bound identity token without printing or storing the token value. The latest bounded local request returned HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records the more precise blocker: the service ingress is `internal-and-cloud-load-balancing`. The internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The Direct VPC route config created a dedicated future-caller subnet with Private Google Access enabled and left the default subnet unchanged. The CPU-only caller source is defined with no model loader, no vLLM runtime, no CUDA dependency, and no inference path. The controlled caller job is deployed Ready with zero executions after deploy. Private Cloud Run invocation remains blocked until one controlled caller contract smoke observes the fail-closed response with inference disabled.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_55D-PRIVATE-INVOKE-CPU-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference`
+`QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference`

@@ -56,4 +56,4 @@ It is not a B-roll generator, renderer, exporter, OCR source of truth, chart ren
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_55D-PRIVATE-INVOKE-CPU-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference`
+`QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference`

@@ -53,7 +53,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT = {
     generatedLocalFixturePassedClaimed: false,
   },
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_55D-PRIVATE-INVOKE-CPU-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference',
+    'QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeFrontendClient =

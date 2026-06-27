@@ -87,14 +87,20 @@ function buildRequirements(): BetaPlatformEvidenceManifestRequirement[] {
       id: 'platform_deployed_evidence_verifier_ready',
       label: 'deployed platform evidence verifier is ready',
       status: 'local_runtime_proven',
-      localProofCommands: ['smoke:beta-platform-deployed-evidence-verifier'],
+      localProofCommands: [
+        'smoke:beta-platform-deployed-evidence-verifier',
+        'smoke:beta-platform-deployed-evidence-probes',
+      ],
       sourceFiles: [
         'server/beta-readiness/platform-deployed-evidence-verifier.ts',
+        'server/beta-readiness/platform-deployed-evidence-probes.ts',
         'server/smoke/beta-platform-deployed-evidence-verifier-smoke.ts',
+        'server/smoke/beta-platform-deployed-evidence-probes-smoke.ts',
       ],
       localEvidence: [
         'Verifier source can build a platform evidence packet only when all deployed probes and owner approvals pass.',
         'Smoke coverage proves complete evidence clears the shared platform blocker while partial evidence, missing owner approvals, and secret-like notes fail closed.',
+        'Probe transport smoke proves deployed observations map into verifier probes and that failed service-role verification keeps the platform blocker closed.',
       ],
       remainingEvidence: [
         'Connect the verifier to real staging or production Supabase/readback/monitoring probes.',

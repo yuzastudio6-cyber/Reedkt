@@ -120,6 +120,20 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'Run the verifier smoke before any deployed platform evidence collection.',
     ),
     sourceFileCheck(
+      'beta_platform_deployed_evidence_probe_transport_present',
+      'Beta platform deployed evidence probe transport is present',
+      'server/beta-readiness/platform-deployed-evidence-probes.ts',
+      ['createBetaPlatformDeployedEvidenceProbeRunners', 'verifyToolCostEventsMigration', 'verifyStagingBillingQa'],
+      'Connect this transport adapter to real staging Supabase/readback/monitoring probes.',
+    ),
+    sourceFileCheck(
+      'beta_platform_deployed_evidence_probe_transport_smoke_present',
+      'Beta platform deployed evidence probe transport smoke is present',
+      'server/smoke/beta-platform-deployed-evidence-probes-smoke.ts',
+      ['transport should call every deployed evidence probe', 'failed deployed probe transport must fail closed', 'platform probes alone must not allow beta tool execution'],
+      'Run the probe transport smoke before wiring live staging probes.',
+    ),
+    sourceFileCheck(
       'tool_cost_persistent_store_present',
       'Persistent tool cost event store source is present',
       'server/tool-cost-metering/tool-cost-persistent-store.ts',

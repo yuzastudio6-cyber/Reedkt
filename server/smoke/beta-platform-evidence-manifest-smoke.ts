@@ -57,6 +57,7 @@ assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-rls-readback
 assert.ok(manifest.localProofCommands.includes('smoke:tool-cost-wallet-settlement:sql'), 'manifest should include wallet settlement SQL proof')
 assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-stripe-boundary'), 'manifest should include Stripe boundary source proof')
 assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-deployed-evidence-verifier'), 'manifest should include deployed evidence verifier proof')
+assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-deployed-evidence-probes'), 'manifest should include deployed evidence probe transport proof')
 
 for (const command of manifest.localProofCommands) {
   assert.ok(packageJson.scripts?.[command], `local proof command must exist in package scripts: ${command}`)

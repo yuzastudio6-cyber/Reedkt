@@ -1,10 +1,10 @@
 # Qwen2.5-VL 7B Cloud Run GPU Private Invoke Readiness Rollup
 
-Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_structured_fixture_output_smoke_passed_review_required`.
+Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_structured_fixture_output_review_accepted_private_runtime_review_required`.
 
-This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded Cloud Run auth/IAM reverify, controlled private invoke smoke plan, private caller route, Direct VPC route config, CPU-only caller source, CPU-only caller deploy, CPU-only caller contract smoke, runtime readiness review, approved-fixture inference smoke plan, gated service source, service deploy, first fixture attempt, tuned fixture retry, structured output source fix, and controlled structured-output retry are recorded.
+This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded Cloud Run auth/IAM reverify, controlled private invoke smoke plan, private caller route, Direct VPC route config, CPU-only caller source, CPU-only caller deploy, CPU-only caller contract smoke, runtime readiness review, approved-fixture inference smoke plan, gated service source, service deploy, first fixture attempt, tuned fixture retry, structured output source fix, controlled structured-output retry, and structured fixture output result review are recorded.
 
-The latest controlled retry `qwen25-structured-fixture-output-retry-20260627t204453z` built and deployed the fixed GPU image fail-closed, temporarily enabled only approved fixture gates, ran CPU caller execution `reeditpro-qwen2-5-vl-private-caller-hn9sw`, observed HTTP `200` with `qwen_fixture_inference_smoke_completed`, accepted structured metadata with `parsedJson=true` and `schemaValid=true`, and restored fail-closed GPU revision `reeditpro-qwen2-5-vl-l4-worker-00013-kms`. Raw model output text is intentionally not stored in the repo.
+The latest controlled retry `qwen25-structured-fixture-output-retry-20260627t204453z` built and deployed the fixed GPU image fail-closed, temporarily enabled only approved fixture gates, ran CPU caller execution `reeditpro-qwen2-5-vl-private-caller-hn9sw`, observed HTTP `200` with `qwen_fixture_inference_smoke_completed`, accepted structured metadata with `parsedJson=true` and `schemaValid=true`, and restored fail-closed GPU revision `reeditpro-qwen2-5-vl-l4-worker-00013-kms`. The structured output result review accepts the schema version, required keys, row counts, normalized metadata hash, and raw-output exclusion as metadata evidence for private runtime readiness review. Raw model output text is intentionally not stored in the repo.
 
 This is evidence only. It does not enable persistent inference, dispatch a user-facing worker, mutate Supabase, execute SQL, create generated assets, create public artifacts, create signed URLs, mutate credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
@@ -27,7 +27,8 @@ This is evidence only. It does not enable persistent inference, dispatch a user-
 - approved-fixture inference result review: ready, structured-output blocker recorded
 - structured fixture output source fix: ready, parser and caller pass condition updated
 - structured fixture output smoke retry: ready, schema-valid structured metadata accepted for review
-- structured fixture output result review: blocked, review required
+- structured fixture output result review: ready, metadata-only review accepted
+- private runtime readiness result review: blocked, review required
 - private invoke runtime readiness: false
 - beta readiness: false
 - production readiness: false
@@ -64,7 +65,8 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 | Approved-fixture inference result review | ready | Result review accepted invocation, model-cache load, vLLM initialization, and bounded L4 fixture profile evidence, but blocked runtime readiness because `parsedJson=false`, `schemaKeys=[]`, `objectCount=0`, and `textLikeRegionCount=0`. | none |
 | Structured fixture output source fix | ready | Fixture prompt targets `qwen_fixture_visual_metadata_v1`, parser recovers JSON objects, metadata normalization reports schema state, and the CPU caller pass condition requires structured metadata. | none |
 | Structured fixture output smoke retry | ready | Fixed GPU image tag `structured-fixture-output-retry-46e43a0d-20260627t204453z` ran one controlled private retry, observed `parsedJson=true`, `schemaValid=true`, `objectCount=3`, `textLikeRegionCount=1`, `spatialRelationCount=2`, and `blockedActionCount=4`, then restored fail-closed revision `reeditpro-qwen2-5-vl-l4-worker-00013-kms`. | none |
-| Structured fixture output result review | blocked approved-fixture structured output result review required | Structured output smoke retry passed and produced schema-valid metadata-only evidence. | Review accepted structured metadata counts, schema keys, and normalized metadata hash before advancing private runtime readiness. |
+| Structured fixture output result review | ready | Result review accepted schema version, required schema keys, object rows, text-like region rows, spatial relations, blocked actions, normalized metadata hash, and raw output exclusion. | none |
+| Private runtime readiness result review | blocked private runtime readiness review required | Structured fixture metadata is accepted for private runtime readiness review while Qwen remains visual understanding and visual QA metadata only. | Review worker dispatch, approved snapshot, Supabase/storage, billing, QA, product, beta, and production boundaries before advancing runtime status. |
 
 ## Runtime Gates
 
@@ -87,9 +89,9 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `approvedFixtureInferenceServiceDeployVerified=true`
 - `approvedFixtureInferenceSmokeFixAttempted=true`
 - `approvedFixtureInferenceSmokeFixPassed=true`
-- `approvedFixtureInferenceSmokeResultReviewRequired=true`
-- `approvedFixtureInferenceStructuredOutputAccepted=false`
-- `approvedFixtureInferenceStructuredOutputFixRequired=true`
+- `approvedFixtureInferenceSmokeResultReviewRequired=false`
+- `approvedFixtureInferenceStructuredOutputAccepted=true`
+- `approvedFixtureInferenceStructuredOutputFixRequired=false`
 - `structuredFixtureOutputSourceFixDefined=true`
 - `structuredFixturePromptSchemaTargetDefined=true`
 - `structuredFixtureJsonExtractionDefined=true`
@@ -100,7 +102,10 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `structuredFixtureOutputSmokeRetryAttempted=true`
 - `structuredFixtureOutputSmokeRetryPassed=true`
 - `structuredFixtureOutputAcceptedForReview=true`
-- `structuredFixtureOutputResultReviewRequired=true`
+- `structuredFixtureOutputResultReviewRequired=false`
+- `structuredFixtureOutputResultReviewRecorded=true`
+- `structuredFixtureMetadataAccepted=true`
+- `privateRuntimeReadinessReviewRequired=true`
 - `structuredFixtureOutputSchemaValid=true`
 - `structuredFixtureOutputParsedJson=true`
 - `structuredFixtureOutputObjectCount=3`
@@ -134,7 +139,7 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `dryRunPassedClaimed=false`
 - `generatedLocalFixturePassedClaimed=false`
 
-The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags and still requires review before private runtime readiness advances.
+The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the structured metadata review is accepted only for the next private runtime readiness review.
 
 ## Scope Boundaries
 
@@ -144,8 +149,8 @@ Qwen2.5-VL must not generate B-roll video, replace Wan or LTX generation routes,
 
 ## Required Next Step
 
-The next action is result review for the accepted structured metadata. That future review must inspect the schema-valid counts and hashes without committing raw model output text, enabling beta, enabling production, creating generated assets, creating public artifacts, creating signed URLs, or claiming `generated_local_fixture_passed`.
+The next action is private runtime readiness review after structured metadata acceptance. That future review must inspect worker dispatch, approved snapshot, Supabase/storage, billing, QA, product, beta, and production boundaries without rerunning inference, committing raw model output text, enabling beta, enabling production, creating generated assets, creating public artifacts, creating signed URLs, or claiming `generated_local_fixture_passed`.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58G-STRUCTURED-FIXTURE-OUTPUT-RESULT-REVIEW: review accepted structured Qwen fixture metadata, no beta/no generated assets`
+`QWEN2_5_VL_STACK_TOOL_58H-PRIVATE-RUNTIME-READINESS-REVIEW: review Qwen private runtime readiness after structured fixture output acceptance, no beta/no generated assets`

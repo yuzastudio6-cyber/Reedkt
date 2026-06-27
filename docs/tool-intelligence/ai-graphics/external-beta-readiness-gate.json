@@ -9,6 +9,7 @@
     "betaToolCallReadiness": "docs/tool-intelligence/ai-graphics/beta-tool-call-readiness.json",
     "gpuModelRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
     "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json",
+    "externalBetaEvidencePacket": "docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json",
     "betaProductionReadinessRollup": "docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json"
   },
   "contractSurface": {

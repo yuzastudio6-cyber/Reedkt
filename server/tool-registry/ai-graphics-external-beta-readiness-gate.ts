@@ -6,18 +6,25 @@ import {
   buildAiGraphicsBetaToolCallReadiness,
   type AiGraphicsBetaToolCallReadiness,
 } from './ai-graphics-beta-tool-call-readiness'
+import type { AiGraphicsExternalBetaEvidencePacket } from './ai-graphics-external-beta-evidence-packet'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_READINESS_GATE_DECISION =
   'ai_graphics_external_beta_readiness_gate_prepared_with_runtime_blocks'
 
 export interface AiGraphicsExternalBetaReadinessEvidence extends AiGraphicsBetaReadinessEvidence {
+  externalBetaEvidencePacket?: AiGraphicsExternalBetaEvidencePacket
   internalBetaRuntimeSoakAccepted?: boolean
   externalBetaQaAccepted?: boolean
   externalBetaCostConcurrencyPrivacyRollbackAccepted?: boolean
   externalBetaIncidentResponseAccepted?: boolean
   externalBetaOwnerApprovalGranted?: boolean
 }
+
+type NormalizedAiGraphicsExternalBetaReadinessEvidence =
+  Required<Omit<AiGraphicsExternalBetaReadinessEvidence, 'externalBetaEvidencePacket'>> & {
+    externalBetaEvidencePacket?: AiGraphicsExternalBetaEvidencePacket
+  }
 
 export interface AiGraphicsExternalBetaReadinessToolGate {
   toolId: AiGraphicsCanonicalToolId
@@ -52,7 +59,7 @@ export interface AiGraphicsExternalBetaReadinessGate {
   productionReadyNowTools: 0
   sourceBetaReadinessGateAccepted: boolean
   sourceToolCallReadinessSeparated: boolean
-  evidence: Required<AiGraphicsExternalBetaReadinessEvidence>
+  evidence: NormalizedAiGraphicsExternalBetaReadinessEvidence
   requiredExternalBetaGates: string[]
   externalBetaGlobalBlockers: string[]
   tools: AiGraphicsExternalBetaReadinessToolGate[]
@@ -98,7 +105,7 @@ export interface AiGraphicsExternalBetaReadinessGate {
   }
 }
 
-const defaultExternalEvidence: Required<AiGraphicsExternalBetaReadinessEvidence> = {
+const defaultExternalEvidence: Required<Omit<AiGraphicsExternalBetaReadinessEvidence, 'externalBetaEvidencePacket'>> = {
   approvedPlanSnapshotGatePassed: false,
   creditReservationGatePassed: false,
   artifactBoundaryGatePassed: false,
@@ -128,15 +135,36 @@ const requiredExternalBetaGates = [
 
 function normalizeEvidence(
   evidence: AiGraphicsExternalBetaReadinessEvidence = {},
-): Required<AiGraphicsExternalBetaReadinessEvidence> {
+): NormalizedAiGraphicsExternalBetaReadinessEvidence {
+  const packet = evidence.externalBetaEvidencePacket
   return {
     ...defaultExternalEvidence,
     ...evidence,
+    internalBetaRuntimeSoakAccepted:
+      evidence.internalBetaRuntimeSoakAccepted ??
+      packet?.booleans.internalBetaRuntimeSoakAcceptedWithProvidedEvidence ??
+      false,
+    externalBetaQaAccepted:
+      evidence.externalBetaQaAccepted ??
+      packet?.booleans.externalBetaQaAcceptedWithProvidedEvidence ??
+      false,
+    externalBetaCostConcurrencyPrivacyRollbackAccepted:
+      evidence.externalBetaCostConcurrencyPrivacyRollbackAccepted ??
+      packet?.booleans.externalBetaCostConcurrencyPrivacyRollbackAcceptedWithProvidedEvidence ??
+      false,
+    externalBetaIncidentResponseAccepted:
+      evidence.externalBetaIncidentResponseAccepted ??
+      packet?.booleans.externalBetaIncidentResponseAcceptedWithProvidedEvidence ??
+      false,
+    externalBetaOwnerApprovalGranted:
+      evidence.externalBetaOwnerApprovalGranted ??
+      packet?.booleans.externalBetaOwnerApprovalGrantedWithProvidedEvidence ??
+      false,
   }
 }
 
 function buildExternalGlobalBlockers(
-  evidence: Required<AiGraphicsExternalBetaReadinessEvidence>,
+  evidence: NormalizedAiGraphicsExternalBetaReadinessEvidence,
   betaTestingReadyWithProvidedEvidenceTools: number,
 ): string[] {
   return [
@@ -164,7 +192,7 @@ function buildExternalGlobalBlockers(
 function buildToolMissingEvidence(
   toolId: AiGraphicsCanonicalToolId,
   betaTestingReadyWithProvidedEvidence: boolean,
-  evidence: Required<AiGraphicsExternalBetaReadinessEvidence>,
+  evidence: NormalizedAiGraphicsExternalBetaReadinessEvidence,
 ): string[] {
   return [
     !betaTestingReadyWithProvidedEvidence

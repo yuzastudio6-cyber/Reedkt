@@ -993,6 +993,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: all 21 tools remain installed or represented for the planned surface, all 21 remain mapped to production tool IDs, all eight heavy/model tools remain GPU-targeted, and heavy/model CPU fallback remains 0. Full future evidence can produce 21 external-beta candidates with provided evidence, but current external-beta-ready-now remains 0 of 21.
 - Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics External-Beta Evidence Packet
+
+- Decision: `ai_graphics_external_beta_evidence_packet_prepared_with_runtime_blocks`.
+- Scope: external-beta evidence packet validator for all 21 AI graphics tools. It requires private/backend refs for internal runtime soak, external QA, cost/concurrency/privacy/rollback, incident response, and external-beta owner approval before the external-beta readiness gate can count a tool as a candidate with provided evidence.
+- Result: default committed evidence provides 0 accepted records. A complete future packet can produce 21 accepted evidence records and feed the external-beta readiness gate, while rejecting public URLs, signed URL refs, public artifact refs, raw HTTP refs, and `gs://public` refs.
+- Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics Internal Beta Owner Approval
 
 - Decision: `ai_graphics_internal_beta_owner_approval_contract_prepared_with_fail_closed_defaults`.

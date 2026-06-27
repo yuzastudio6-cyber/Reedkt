@@ -22,6 +22,10 @@ This gate is the product-facing external-beta checkpoint for the 21 AI graphics 
 - A complete future evidence packet can make `21` of `21` tools external-beta ready with provided evidence, but that still does not mark tools ready now.
 - Current runtime, worker, route, provider/model, browser/WebGL/canvas, GPU/model, public artifact, signed URL, internal beta, external beta, and production gates remain false.
 
+## External-Beta Evidence Packet
+
+The readiness gate can consume `--external-beta-evidence-packet` from `ai-graphics:external-beta-evidence-packet:validate`. That packet accepts only private/backend/owner evidence refs for internal runtime soak, external QA, cost/concurrency/privacy/rollback, incident response, and external-beta owner approval. Public URLs, signed URL refs, public artifact refs, and raw HTTP refs are rejected before the readiness gate can count a tool as an external-beta candidate with provided evidence.
+
 ## Required External-Beta Gates
 
 - All 21 tools are properly installed for the planned ReeditPro surface.

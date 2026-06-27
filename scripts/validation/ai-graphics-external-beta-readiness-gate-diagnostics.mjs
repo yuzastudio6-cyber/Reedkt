@@ -1,11 +1,15 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const scriptName = 'ai-graphics:external-beta-readiness-gate:diagnostics'
 const scriptCommand = 'node scripts/validation/ai-graphics-external-beta-readiness-gate-diagnostics.mjs'
 const evaluatorScriptName = 'ai-graphics:external-beta-readiness-gate'
 const evaluatorScriptCommand = 'tsx server/cli/ai-graphics-external-beta-readiness-gate.ts'
+const evidencePacketScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
+const evidencePacketScriptCommand = 'tsx server/cli/ai-graphics-external-beta-evidence-packet.ts'
 
 const allTools = [
   'torch_torchvision',
@@ -79,6 +83,13 @@ function runEvaluator(args = []) {
   })
 }
 
+function runNpm(scriptName, args = []) {
+  return execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
+    encoding: 'utf8',
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  })
+}
+
 function parseJsonOutput(output, label) {
   try {
     return JSON.parse(output)
@@ -88,9 +99,22 @@ function parseJsonOutput(output, label) {
   }
 }
 
+function acceptedExternalBetaEvidenceRecord(toolId) {
+  const prefix = `external-beta-evidence://${toolId}`
+  return {
+    toolId,
+    internalRuntimeSoakEvidenceRef: `${prefix}:internal-runtime-soak`,
+    externalBetaQaEvidenceRef: `${prefix}:external-qa`,
+    costConcurrencyPrivacyRollbackEvidenceRef: `${prefix}:cost-concurrency-privacy-rollback`,
+    incidentResponseEvidenceRef: `${prefix}:incident-response`,
+    ownerApprovalRef: `${prefix}:owner-approval`,
+  }
+}
+
 const pkg = json('package.json')
 const docs = json('docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json')
 const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.md')
+const evidencePacketDocs = json('docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json')
 const betaGate = json('docs/tool-intelligence/ai-graphics/beta-readiness-gate.json')
 const betaToolCall = json('docs/tool-intelligence/ai-graphics/beta-tool-call-readiness.json')
 const installAudit = json('docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json')
@@ -105,12 +129,24 @@ if (pkg.scripts?.[scriptName] !== scriptCommand) fail(`missing_package_script:${
 if (pkg.scripts?.[evaluatorScriptName] !== evaluatorScriptCommand) {
   fail(`missing_package_script:${evaluatorScriptName}`)
 }
+if (pkg.scripts?.[evidencePacketScriptName] !== evidencePacketScriptCommand) {
+  fail(`missing_package_script:${evidencePacketScriptName}`)
+}
 if (!index.includes("export * from './ai-graphics-external-beta-readiness-gate'")) {
   fail('server_registry_index_missing_external_beta_gate_export')
+}
+if (!index.includes("export * from './ai-graphics-external-beta-evidence-packet'")) {
+  fail('server_registry_index_missing_external_beta_evidence_packet_export')
 }
 
 if (docs.decision !== 'ai_graphics_external_beta_readiness_gate_prepared_with_runtime_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
+}
+if (docs.sourceEvidence?.externalBetaEvidencePacket !== 'docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json') {
+  fail('docs_missing_external_beta_evidence_packet_source')
+}
+if (evidencePacketDocs.decision !== 'ai_graphics_external_beta_evidence_packet_prepared_with_runtime_blocks') {
+  fail(`unexpected_evidence_packet_decision:${evidencePacketDocs.decision}`)
 }
 if (betaGate.decision !== 'ai_graphics_beta_readiness_gate_prepared_with_current_runtime_blocks') {
   fail(`unexpected_beta_gate_decision:${betaGate.decision}`)
@@ -145,6 +181,10 @@ for (const needle of [
   'internalBetaRuntimeSoakAccepted',
   'externalBetaCostConcurrencyPrivacyRollbackAccepted',
   'externalBetaIncidentResponseAccepted',
+  'externalBetaEvidencePacket',
+  'internalBetaRuntimeSoakAcceptedWithProvidedEvidence',
+  'externalBetaQaAcceptedWithProvidedEvidence',
+  'externalBetaOwnerApprovalGrantedWithProvidedEvidence',
   'gpuRuntimeOnDemandOnly: true',
   'agentCanExecuteToolsNow: false',
 ]) {
@@ -157,6 +197,7 @@ for (const needle of [
   '--external-beta-cost-concurrency-privacy-rollback-accepted',
   '--external-beta-incident-response-accepted',
   '--external-beta-owner-approval-granted',
+  '--external-beta-evidence-packet',
   'evaluatorOnly: true',
 ]) {
   if (!cli.includes(needle)) fail(`cli_missing:${needle}`)
@@ -177,6 +218,9 @@ if (docs.counts?.fullEvidenceExternalBetaReadyWithProvidedEvidenceTools !== 21) 
 if (docs.counts?.externalBetaReadyNowTools !== 0) fail('docs_external_beta_ready_now_not_0')
 if (docs.counts?.externalBetaBlockedNowTools !== 21) fail('docs_external_beta_blocked_now_not_21')
 if (docs.counts?.productionReadyNowTools !== 0) fail('docs_production_ready_now_not_0')
+if (evidencePacketDocs.counts?.fullEvidenceRecordsAcceptedWithProvidedEvidence !== 21) {
+  fail('evidence_packet_full_records_not_21')
+}
 
 for (const key of [
   'externalBetaReadinessGatePrepared',
@@ -250,7 +294,39 @@ if (fullOutput.externalBetaReadyNowTools !== 0) fail('full_external_beta_ready_n
 if (fullOutput.externalBetaBlockedNowTools !== 21) fail('full_external_beta_blocked_now_not_21')
 if (fullOutput.productionReadyNowTools !== 0) fail('full_production_ready_now_not_0')
 
-for (const output of [defaultOutput, fullOutput]) {
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-gate-'))
+const fullEvidenceRecordsPath = path.join(tempRoot, 'full-external-beta-evidence-records.json')
+const fullEvidencePacketPath = path.join(tempRoot, 'full-external-beta-evidence-packet.json')
+fs.writeFileSync(
+  fullEvidenceRecordsPath,
+  `${JSON.stringify(allTools.map(acceptedExternalBetaEvidenceRecord), null, 2)}\n`,
+  'utf8',
+)
+fs.writeFileSync(
+  fullEvidencePacketPath,
+  runNpm(evidencePacketScriptName, ['--evidence-records', fullEvidenceRecordsPath]),
+  'utf8',
+)
+const packetFedOutput = parseJsonOutput(runEvaluator([
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
+  '--external-beta-evidence-packet',
+  fullEvidencePacketPath,
+]), 'external_beta_packet_fed_evidence')
+if (packetFedOutput.betaTestingReadyWithProvidedEvidenceTools !== 21) {
+  fail('packet_fed_beta_testing_ready_with_evidence_not_21')
+}
+if (packetFedOutput.externalBetaReadyWithProvidedEvidenceTools !== 21) {
+  fail('packet_fed_external_beta_ready_with_evidence_not_21')
+}
+if (packetFedOutput.externalBetaReadyNowTools !== 0) fail('packet_fed_external_beta_ready_now_not_0')
+if (packetFedOutput.externalBetaBlockedNowTools !== 21) fail('packet_fed_external_beta_blocked_now_not_21')
+if (packetFedOutput.productionReadyNowTools !== 0) fail('packet_fed_production_ready_now_not_0')
+
+for (const output of [defaultOutput, fullOutput, packetFedOutput]) {
   for (const tool of allTools) {
     const row = output.tools?.find((entry) => entry.toolId === tool)
     if (!row) fail(`output_missing_tool:${tool}`)
@@ -296,6 +372,8 @@ if (!scorecard.includes('ai_graphics_external_beta_readiness_gate_prepared_with_
 const combinedText = [
   'docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.md',
   'docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json',
   'server/tool-registry/ai-graphics-external-beta-readiness-gate.ts',
   'server/cli/ai-graphics-external-beta-readiness-gate.ts',
   'docs/production-beta-readiness-scorecard.md',
@@ -364,6 +442,8 @@ console.log(JSON.stringify({
     defaultOutput.externalBetaReadyWithProvidedEvidenceTools,
   fullEvidenceExternalBetaReadyWithProvidedEvidenceTools:
     fullOutput.externalBetaReadyWithProvidedEvidenceTools,
+  packetFedExternalBetaReadyWithProvidedEvidenceTools:
+    packetFedOutput.externalBetaReadyWithProvidedEvidenceTools,
   externalBetaReadyNowTools: fullOutput.externalBetaReadyNowTools,
   externalBetaBlockedNowTools: fullOutput.externalBetaBlockedNowTools,
   agentCanExecuteToolsNow: fullOutput.booleans?.agentCanExecuteToolsNow,

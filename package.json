@@ -467,6 +467,7 @@
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-approved-snapshot-dispatch-readiness": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-approved-snapshot-dispatch-readiness-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-fail-closed-dispatch-adapter": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-fail-closed-dispatch-adapter-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-plan": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-plan-smoke.ts",
+    "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-config": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-config-smoke.ts",
     "activation:vlm-l4-compatible-candidate:plan": "tsx server/cli/activation-vlm-l4-compatible-candidate-plan.ts",
     "activation:vlm-l4-compatible-candidate": "tsx server/cli/activation-vlm-l4-compatible-candidate.ts",
     "activation:vlm-l4-compatible-candidate:report": "tsx server/cli/activation-vlm-l4-compatible-candidate-report.ts",

@@ -1,0 +1,91 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_WORKFLOW_BINDING_1",
+  "decision": "completed_qwen2_5_vl_external_beta_product_workflow_binding_source_contract",
+  "execution": "completed_product_workflow_binding_source_no_runtime_execution",
+  "integrationBase": "012f436a38b6a525246c673923105b14ae36c727",
+  "sourceEvidence": {
+    "backendRuntimeAdapterPr": 1321,
+    "confirmedAdapterRuntimeFixturePr": 1328,
+    "confirmedAdapterRuntimeFixtureMergeSha": "012f436a38b6a525246c673923105b14ae36c727",
+    "confirmedRunId": "qwen25-adapter-runtime-fixture-2026-06-27T22-48-47-273Z-d12cb07d",
+    "serviceReason": "qwen_fixture_inference_smoke_completed",
+    "parsedJson": true,
+    "schemaValid": true,
+    "structuredMetadataOutputAccepted": true,
+    "rawOutputStoredInRepo": false,
+    "failClosedRestorePassed": true,
+    "excludedPr": 577
+  },
+  "productWorkflowBinding": {
+    "readyStatus": "ready_for_guarded_qwen2_5_vl_external_beta_product_workflow_route_integration",
+    "workflowStatus": "external_beta_guarded_binding",
+    "allowedUse": [
+      "structured_visual_metadata_for_planning",
+      "source_sequence_map_support",
+      "approved_snapshot_only_binding",
+      "private_artifact_references_only"
+    ],
+    "requiredReferences": [
+      "workflow_binding_id",
+      "workspace_id",
+      "project_id",
+      "edit_session_id",
+      "source_sequence_map_reference",
+      "compiled_intent_snapshot_reference",
+      "edit_plan_version_reference",
+      "approved_snapshot_reference",
+      "credit_reservation_reference",
+      "queue_lease_reference",
+      "idempotency_key",
+      "private_input_manifest_reference",
+      "private_artifact_manifest_reference",
+      "private_artifact_checksum_reference",
+      "model_routing_policy_reference",
+      "qa_policy_reference"
+    ]
+  },
+  "blockedNow": {
+    "productRouteExecution": "blocked",
+    "workerDispatch": "blocked",
+    "providerModelCall": "blocked",
+    "rawPromptExecution": "blocked",
+    "arbitraryUserMedia": "blocked",
+    "publicArtifacts": "blocked",
+    "signedUrls": "blocked",
+    "finalRenderExport": "blocked",
+    "broadExternalBetaUnlock": "blocked",
+    "paidProductionUnlock": "blocked",
+    "productionUnlock": "blocked"
+  },
+  "safety": {
+    "sourceOnlyContract": true,
+    "qwenRuntimeExecutedInThisPhase": false,
+    "cloudRunServiceUpdated": false,
+    "cloudRunJobExecuted": false,
+    "identityTokenFetch": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "routeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "finalRenderExport": false,
+    "externalBetaUnlockAppliedToEnvironment": false,
+    "productionUnlock": false,
+    "creditMutation": false,
+    "packageLockMutation": false
+  },
+  "readiness": {
+    "qwenProductWorkflowBinding": "ready_for_guarded_qwen2_5_vl_external_beta_product_workflow_route_integration",
+    "externalBetaUnlockedInThisPhase": false,
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_WORKFLOW_ROUTE_INTEGRATION_1"
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

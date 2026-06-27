@@ -1007,6 +1007,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: generated templates are intentionally invalid until every `public://replace-with-private-evidence/...` placeholder is replaced with private/backend evidence refs. The committed scaffold accepts 0 records and does not create public artifacts.
 - Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics External-Beta Launch Gap Report
+
+- Decision: `ai_graphics_external_beta_launch_gap_report_prepared_with_remaining_blocks`.
+- Scope: external launch gap report across all 21 AI graphics tools, all 12 capabilities, the external-beta evidence scaffold, the evidence packet, and the external-beta readiness gate.
+- Result: default evidence produces 0 external-beta candidates. A complete sanitized private/backend evidence packet can produce 21 external-beta candidates with provided evidence, but external-beta-ready-now remains 0 of 21 until a separate launch go/no-go approves rollout cohort, cost/concurrency ceilings, rollback, incident response, private artifact retention, support ownership, and the external launch switch.
+- Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics Internal Beta Owner Approval
 
 - Decision: `ai_graphics_internal_beta_owner_approval_contract_prepared_with_fail_closed_defaults`.

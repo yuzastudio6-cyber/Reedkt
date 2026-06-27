@@ -11,7 +11,8 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Main Reeditpro public grant boundary | `completed_main_supabase_service_role_runtime_grant_boundary_validation` | carry forward public mutation grant hardening evidence |
 | Historical isolated target | `historical_sandbox_evidence_only_not_active` | do not use as active target |
 | Worker RPC 4R | `main_target_schema_present_pending_runtime_validation` | guarded main-target service-role/runtime readback |
-| Service-role route runtime | `completed_service_role_storage_object_metadata_read_route_runtime_validation` | approved snapshot route write runtime validation remains blocked |
+| Service-role route runtime | `completed_service_role_storage_object_metadata_read_route_runtime_validation` | carry forward route read evidence |
+| Approved snapshot route write runtime | `completed_approved_snapshot_route_write_runtime_validation` | carry forward route write evidence |
 | Approved snapshot persistence | `completed_approved_snapshot_persistence_guarded_remote_write_readback` | carry forward transaction-rolled-back remote write/readback evidence |
 | Credit reservation ledger | `completed_credit_reservation_ledger_guarded_remote_write_readback` | carry forward transaction-rolled-back credit reservation/ledger readback evidence |
 | Job queue leases/events | `completed_job_queue_lease_event_guarded_remote_write_readback` | carry forward transaction-rolled-back job/lease/event remote write/readback evidence |
@@ -26,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1`
+`RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -148,7 +149,7 @@ Service-role route readback is now completed by `RP-EXTERNAL-BETA-SERVICE-ROLE-R
 
 Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`.
 
 ## RP External Beta Service-Role Route Runtime Validation 1
 
@@ -167,13 +168,35 @@ Route readback:
 - database object purpose: `preview_render`
 - signed URL creation: `false`
 - public artifact creation: `false`
-- route write execution: `false`
+- route write execution: `guarded_in_process_approved_snapshot_create_route_only`
 
 Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-The active blocker is no longer service-role storage metadata route readback. Remaining blockers are approved snapshot route write runtime validation, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+## RP External Beta Approved Snapshot Route Write Runtime Validation 1
 
-Next recommended milestone: `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1`.
+`RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1` records decision `completed_approved_snapshot_route_write_runtime_validation` and execution `completed_guarded_in_process_approved_snapshot_route_write_readback_and_cleanup`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+The confirmed runner generated a bounded approved-plan dependency fixture, called the real backend route `POST /v1/edit-plans/:editPlanId/approved-snapshots`, verified approved snapshot and idempotency rows, then deleted the fixture and verified route write fixture cleanup residue count: `0`.
+
+Run ID: `2026-06-27T02-22-16-532Z-97b253a9`. Report checksum: `b2ca9e8ec9493060d631bd9387438b123eab6002db7c061c058edda736759441`. Manifest checksum: `f2ff4e97b33d013f0864362a5272b24390153f5de9563ed52457ab55ead9b0c0`.
+
+Route write readback:
+- route: `POST /v1/edit-plans/:editPlanId/approved-snapshots`
+- HTTP status: `201`
+- idempotency method: `POST`
+- snapshot status: `approved`
+- validation cleanup status: `validation_ephemeral`
+- route write fixture cleanup residue count: `0`
+- signed URL creation: `false`
+- public artifact creation: `false`
+
+Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+The active blocker is no longer approved snapshot route write runtime validation. Remaining blockers are Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

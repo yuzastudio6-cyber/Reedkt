@@ -15,11 +15,16 @@ export async function requireAuth(request: Request, _response: Response, next: N
     const token = parseBearerToken(request.header('authorization'))
 
     if (!token && env.allowMockWithoutSupabase) {
+      const validationUserId = process.env.REEDITPRO_ROUTE_VALIDATION_AUTH_USER_ID?.trim()
+      const validationEmail = process.env.REEDITPRO_ROUTE_VALIDATION_AUTH_EMAIL?.trim()
+      const isValidationUser = Boolean(validationUserId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(validationUserId))
+      const mockUserId = isValidationUser && validationUserId ? validationUserId : 'mock-user-runtime'
+
       runtimeRequest.context = {
         ...(runtimeRequest.context ?? { requestId: 'request-unknown' }),
         auth: {
-          userId: 'mock-user-runtime',
-          email: 'mock-user@reeditpro.local',
+          userId: mockUserId,
+          email: isValidationUser ? validationEmail || 'route-validation@reeditpro.local' : 'mock-user@reeditpro.local',
           isMockUser: true,
         },
       }

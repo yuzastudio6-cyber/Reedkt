@@ -199,25 +199,56 @@ Artifact checksums:
 
 Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-The active blocker is no longer service-role storage metadata route readback. Remaining blockers are approved snapshot route write runtime validation, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+The active blocker is no longer service-role storage metadata route readback. The approved snapshot route write runtime validation gate is now completed. Remaining blockers are Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`.
+
+## RP External Beta Approved Snapshot Route Write Runtime Validation 1
+
+`RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1` records decision `completed_approved_snapshot_route_write_runtime_validation` and execution `completed_guarded_in_process_approved_snapshot_route_write_readback_and_cleanup`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Run ID: `2026-06-27T02-22-16-532Z-97b253a9`.
+
+The confirmed runner executed exactly one in-process backend route write: `POST /v1/edit-plans/:editPlanId/approved-snapshots`. It generated a bounded approved-plan dependency fixture, wrote the approved snapshot through `createReeditProApiApp`, `requireAuth`, `requireIdempotency`, and `createApprovedSnapshotService`, verified approved snapshot and idempotency readback, then deleted the fixture and verified route write fixture cleanup residue count: `0`.
+
+Route write readback:
+- HTTP status: `201`
+- idempotency method: `POST`
+- snapshot status: `approved`
+- validation cleanup status: `validation_ephemeral`
+- signed URL creation: `false`
+- public artifact creation: `false`
+- route write fixture cleanup residue count: `0`
+
+Artifact checksums:
+- `validation-report.json`: `b2ca9e8ec9493060d631bd9387438b123eab6002db7c061c058edda736759441`
+- `artifact-manifest.json`: `f2ff4e97b33d013f0864362a5272b24390153f5de9563ed52457ab55ead9b0c0`
+- `route-fixture-setup-readback.json`: `cf70391acccbdf8429798c0517655366abf7ae791f0afb777e30135173d9b1fe`
+- `approved-snapshot-route-write-readback.json`: `f3a2ecab353a5979ad2360b6cdf5e24c45f96e19aadc6438e734958e096eaba6`
+- `approved-snapshot-route-db-readback.json`: `44b18e03eca9911b505696595d8b87648685a927531b0cd960dbea6a84b27b90`
+- `route-fixture-cleanup-residue-readback.json`: `537ae9059dc4f93f86700664510222ce883b60b536d4f40c9c80441e19fa6444`
+
+Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`.
 
 ## RP External Product Beta Current Readiness Rollup 1
 
-`RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_remaining_runtime_gates_after_service_role_route_read_validation` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.
+`RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.
 
-Current integration head: `d50d07adee39545172eb42d9ba9c62f9db988e57`. Source closure includes `RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1`.
+Current integration head: `0dc5c8b0bd5b0304f8c0d474a85ff2adb5f40aa6`. Source closure includes `RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1` and `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1`.
 
 The Supabase target, credential-validation, and main staging migration-history lanes are no longer the active blocker: source records `completed_guarded_supabase_target_rls_storage_readonly_validation`, the single active target is `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`, final dry-run records `Remote database is up to date.`, and Supabase lint records `No schema errors found`.
 
-The active blocker is `blocked_external_product_beta_pending_remaining_runtime_gates_after_service_role_route_read_validation`. Remaining blockers are approved snapshot route write runtime validation, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+The active blocker is `blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation`. Remaining blockers are Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`. External product beta status: `blocked`. Paid production status: `blocked`. Final delivery/export status: `blocked`.
 
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-Next safe action: `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1`.
+Next safe action: `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`.
 
 ## SUPABASE Clean Staging Target Owner Approval 1
 

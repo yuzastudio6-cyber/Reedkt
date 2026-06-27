@@ -1,8 +1,8 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "blocked_external_product_beta_pending_remaining_runtime_gates_after_service_role_route_read_validation",
+  "decision": "blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
-  "integrationHead": "d50d07adee39545172eb42d9ba9c62f9db988e57",
+  "integrationHead": "0dc5c8b0bd5b0304f8c0d474a85ff2adb5f40aa6",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
     "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
@@ -11,6 +11,7 @@
     "jobQueueLeaseEventGuardedRemoteWrite": "rp_external_beta_job_queue_lease_event_guarded_remote_write_1",
     "privateArtifactStorageAccessGuardedRemoteWrite": "rp_external_beta_private_artifact_storage_access_guarded_remote_write_1",
     "serviceRoleRouteRuntimeValidation": "rp_external_beta_service_role_route_runtime_validation_1",
+    "approvedSnapshotRouteWriteRuntimeValidation": "rp_external_beta_approved_snapshot_route_write_runtime_validation_1",
     "decision": "completed_reeditpro_main_supabase_target_migration_history_sync",
     "confirmedSupabaseTargetValidation": "completed_guarded_supabase_target_rls_storage_readonly_validation",
     "pr577": "open_draft_blocked_excluded"
@@ -66,7 +67,14 @@
     "serviceRoleRouteMethod": "GET",
     "serviceRoleRoutePath": "/v1/storage-objects/:storageObjectRecordId",
     "serviceRoleRouteCanonicalOnly": true,
-    "serviceRoleRouteWriteValidation": "blocked_pending_approved_snapshot_route_write_runtime_validation",
+    "serviceRoleRouteWriteValidation": "completed_approved_snapshot_route_write_runtime_validation",
+    "serviceRoleRouteWriteExecution": "guarded_in_process_approved_snapshot_create_route_only",
+    "serviceRoleRouteWriteMethod": "POST",
+    "serviceRoleRouteWritePath": "/v1/edit-plans/:editPlanId/approved-snapshots",
+    "serviceRoleRouteWriteFixtureResidueCount": 0,
+    "serviceRoleRouteWriteRunId": "2026-06-27T02-22-16-532Z-97b253a9",
+    "serviceRoleRouteWriteReportSha256": "b2ca9e8ec9493060d631bd9387438b123eab6002db7c061c058edda736759441",
+    "serviceRoleRouteWriteManifestSha256": "f2ff4e97b33d013f0864362a5272b24390153f5de9563ed52457ab55ead9b0c0",
     "serviceRoleRouteFixtureResidueCount": 0,
     "serviceRoleRouteRunId": "2026-06-27T01-48-16-104Z-82f6c630",
     "serviceRoleRouteReportSha256": "25772fc0efe3d6d1aa699a1408ec621cc7df0dbe13bb52fe526b3939030fbb65",
@@ -75,14 +83,14 @@
     "isolatedSandboxDataCopied": false
   },
   "requiredNextOwnerDecision": [
-    "RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1",
+    "RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1",
     "remotion_private_preview_export_runtime_validation",
     "provider_model_call_policy_closure",
     "continue_blocked"
   ],
   "safety": {
-    "supabaseMutation": "guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_private_storage_json_fixture_and_generated_route_metadata_fixture_setup_cleanup_only",
-    "sqlMutation": "guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_setup_cleanup_only",
+    "supabaseMutation": "guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_private_storage_json_fixture_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only",
+    "sqlMutation": "guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only",
     "migrationApply": "guarded_main_staging_migration_apply_and_grant_hardening_only",
     "persistentRowsCreated": false,
     "persistentCreditMutation": false,
@@ -100,7 +108,9 @@
     "storageObjectResidueCount": 0,
     "serviceRoleRouteExecution": "guarded_in_process_storage_object_metadata_read_route_only",
     "routeExecution": "guarded_in_process_get_storage_object_metadata_route_only",
-    "routeWriteExecution": false,
+    "routeWriteExecution": "guarded_in_process_approved_snapshot_create_route_only",
+    "routeWriteFixtureResidueCount": 0,
+    "validationOnlyEphemeralSnapshotCleanup": true,
     "serviceRoleRouteFixtureResidueCount": 0,
     "secretPayloadAccess": "guarded_ephemeral_storage_and_route_runtime_service_role_key_payload_only",
     "secretPayloadPrinted": false,

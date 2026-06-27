@@ -211,6 +211,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after model-weight source catalog completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `66b6bf03bbc08fad4a6d4e662137c12d8c73d58b`, with an empty check rollup.
 - Latest observed PR state after model-weight source evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `358dbbd070af639101d6f4d9be96f0145ed62d3e`, with an empty check rollup.
 - Per-tool GPU proof profile hardening: native GPU proof now requires six profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. `rembg` and `transparent_background` each require a dedicated shared-worker profile probe and their own model manifest validation. The generated local runner deduplicates the shared GPU image build while still running separate on-demand `docker run --rm --gpus all` profile checks. Execution/runtime/beta/production remain false, CPU fallback for heavy paths remains blocked, and no idle GPU runtime is approved.
+- Latest observed PR state after per-tool GPU proof profile hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `956605f2b30d433ad0ecc156b8d9047ca1056863`, with an empty check rollup.
 
 ## Runtime State
 

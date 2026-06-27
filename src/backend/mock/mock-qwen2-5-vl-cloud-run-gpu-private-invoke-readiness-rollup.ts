@@ -14,6 +14,7 @@ import { QWEN2_5_VL_STRUCTURED_FIXTURE_OUTPUT_RESULT_REVIEW } from './mock-qwen2
 import { QWEN2_5_VL_PRIVATE_RUNTIME_READINESS_REVIEW_RESULT } from './mock-qwen2-5-vl-private-runtime-readiness-review-result'
 import { QWEN2_5_VL_APPROVED_WORKER_INTEGRATION_READINESS_REVIEW } from './mock-qwen2-5-vl-approved-worker-integration-readiness-review'
 import { QWEN2_5_VL_BACKEND_RUNTIME_DISPATCH_IMPLEMENTATION_PLAN } from './mock-qwen2-5-vl-backend-runtime-dispatch-implementation-plan'
+import { QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR } from './mock-qwen2-5-vl-fail-closed-backend-runtime-dispatch-coordinator'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -36,6 +37,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_approved_worker_integration_review_required'
   | 'blocked_backend_runtime_dispatch_implementation_required'
   | 'blocked_fail_closed_backend_runtime_dispatch_coordinator_required'
+  | 'blocked_controlled_backend_dispatch_dry_run_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -52,7 +54,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_backend_dispatch_plan_recorded_fail_closed_coordinator_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_fail_closed_coordinator_implemented_controlled_dry_run_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -85,6 +87,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_APPROVED_WORKER_INTEGRATION_READINESS_REVIEW.decision,
   upstreamBackendRuntimeDispatchImplementationPlanDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_DISPATCH_IMPLEMENTATION_PLAN.decision,
+  upstreamFailClosedBackendRuntimeDispatchCoordinatorDecision:
+    QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -346,14 +350,23 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'fail_closed_backend_runtime_dispatch_coordinator',
       label: 'Fail-closed backend runtime dispatch coordinator',
-      status: 'blocked_fail_closed_backend_runtime_dispatch_coordinator_required',
+      status: 'ready',
       evidence: [
-        'The next code step can compose the approved worker job schema, approved snapshot checks, idempotency checks, lease precondition, Qwen fail-closed adapter, private invoke envelope, and transport preview.',
-        'The coordinator must return deterministic blocked outcomes without creating jobs, claiming real leases, invoking Cloud Run, or creating generated assets.',
+        'Fail-closed backend runtime dispatch coordinator is implemented.',
+        'Coordinator composes worker job schema, approved snapshot checks, credit checks, source-of-truth checks, idempotency conflict detection, backend lease precondition, Qwen fail-closed adapter, private invoke envelope, and transport preview.',
+        'Coordinator returns deterministic blocked outcomes without creating jobs, claiming real leases, invoking Cloud Run, or creating generated assets.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'controlled_backend_dispatch_dry_run',
+      label: 'Controlled backend dispatch dry-run review',
+      status: 'blocked_controlled_backend_dispatch_dry_run_required',
+      evidence: [
+        'The next code step can review the fail-closed coordinator smoke results and define the controlled backend dispatch dry-run packet.',
       ],
       missingEvidence: [
-        'Implement fail-closed coordinator outcomes for invalid schema, missing approved snapshot, missing credit reservation, missing source-of-truth refs, idempotency conflict, backend lease requirement, adapter refusal, and transport preview only.',
-        'Validate coordinator with local smoke tests while keeping Cloud Run, Supabase, workers, credits, generated assets, signed URLs, beta, and production false.',
+        'Controlled dry-run review must confirm coordinator outcomes, no side effects, no Cloud Run invocation, no Supabase mutation, no worker dispatch, no generated assets, no signed URLs, and no beta/production unlock.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -485,8 +498,9 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     privateRuntimeEvidenceAcceptedForWorkerIntegration: true,
     backendRuntimeDispatchImplementationRequired: false,
     backendRuntimeDispatchImplementationPlanRecorded: true,
-    failClosedBackendRuntimeDispatchCoordinatorRequired: true,
-    backendRuntimeDispatchCoordinatorImplemented: false,
+    failClosedBackendRuntimeDispatchCoordinatorRequired: false,
+    backendRuntimeDispatchCoordinatorImplemented: true,
+    controlledBackendDispatchDryRunRequired: true,
     readyForRealWorkerDispatch: false,
     structuredFixtureOutputSchemaValid: true,
     structuredFixtureOutputParsedJson: true,
@@ -504,11 +518,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'fail_closed_backend_runtime_dispatch_coordinator_required',
+    'controlled_backend_dispatch_dry_run_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58K-FAIL-CLOSED-BACKEND-RUNTIME-DISPATCH-COORDINATOR: implement Qwen backend dispatch coordinator fail-closed, no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58L-CONTROLLED-BACKEND-DISPATCH-DRY-RUN: run Qwen fail-closed backend dispatch coordinator smoke review, no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

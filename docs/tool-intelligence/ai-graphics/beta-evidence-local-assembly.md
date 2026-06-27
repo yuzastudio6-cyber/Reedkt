@@ -3,9 +3,11 @@
 Decision: `ai_graphics_beta_evidence_local_assembly_prepared_with_directory_inputs`
 
 This packet adds a local-only assembler for the final AI graphics beta evidence
-gate. It reads reviewed private model-weight manifests and native GPU runtime
-proof result JSON files from local directories, builds the two required evidence
-packets in memory, and evaluates the existing all-21 beta evidence bundle.
+gate. It reads reviewed private model-weight manifests or authors them in
+memory from reviewed checksum evidence plus reviewed manifest supplements, reads
+native GPU runtime proof result JSON files from local directories, builds the
+required evidence packets in memory, and evaluates the existing all-21 beta
+evidence bundle.
 
 The assembler does not install dependencies, run Docker, execute GPU runtime,
 download model weights, load checkpoints, run inference, process media, call
@@ -42,6 +44,20 @@ npm run --silent ai-graphics:beta-evidence-local-assembly -- \
   --require-ready-for-owner-gate
 ```
 
+Local assembly from the earlier private evidence inputs instead of a prebuilt
+manifest directory:
+
+```bash
+npm run --silent ai-graphics:beta-evidence-local-assembly -- \
+  --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence \
+  --manifest-supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements \
+  --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results \
+  --use-committed-js-runtime-proofs \
+  --all-technical-gates-passed \
+  --browser-canvas-webgl-sandbox-passed \
+  --require-ready-for-owner-gate
+```
+
 Local assembly after owner approval is explicitly granted:
 
 ```bash
@@ -56,7 +72,9 @@ npm run --silent ai-graphics:beta-evidence-local-assembly -- \
 
 ## Evidence Inputs
 
-- Manifest directory: `.local-artifacts/ai-graphics/model-weight-manifests`
+- Checksum evidence directory: `.local-artifacts/ai-graphics/model-weight-checksum-evidence`
+- Manifest supplement directory: `.local-artifacts/ai-graphics/model-weight-manifest-supplements`
+- Manifest directory, if manifests were already authored: `.local-artifacts/ai-graphics/model-weight-manifests`
 - GPU proof result directory: `.local-artifacts/ai-graphics/gpu-runtime-proof-results`
 - Committed JS proofs:
   - `docs/tool-intelligence/ai-graphics/node-runtime-proof.json`
@@ -87,6 +105,10 @@ heavy model paths stays blocked.
 - Head at packet creation: `1826fe93811115d380bdc273bdc5070bf5cadbf2`
 - Check rollup: empty
 - Local manifest records provided: `0`
+- Local checksum evidence records provided: `0`
+- Local manifest supplement records provided: `0`
+- Local manifest records authored from private evidence: `0`
+- Manifest records source: `missing`
 - Local GPU proof results provided: `0`
 - Default CLI output mode: `sanitized_summary`
 - Full nested packet output requires: `--full-output`
@@ -99,10 +121,13 @@ heavy model paths stays blocked.
 
 ## Why This Exists
 
-The final beta evidence bundle already requires actual packet evidence instead of
-override booleans. This assembler removes the manual packet-capture step from the
-operator flow by deriving the model-weight manifest review packet and native GPU
-runtime proof packet directly from local evidence directories.
+The final beta evidence bundle already requires actual packet evidence instead
+of override booleans. This assembler removes the manual packet-capture step from
+the operator flow by deriving the model-weight manifest review packet and native
+GPU runtime proof packet directly from local evidence directories. It also
+prevents bypassing the checksum/supplement review chain by allowing local
+manifest records to be authored in memory from those reviewed inputs before beta
+evidence assembly.
 
 The owner-review gate remains fail-closed until the private manifest records,
 native GPU proof results, committed JS proof packets, browser sandbox proof, and

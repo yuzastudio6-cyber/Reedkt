@@ -6,6 +6,16 @@ import {
   buildAiGraphicsGpuRuntimeProofResultPacket,
   type AiGraphicsGpuRuntimeProofResultPacket,
 } from './ai-graphics-gpu-runtime-proof-result'
+import type {
+  AiGraphicsModelWeightChecksumEvidenceRecord,
+} from './ai-graphics-model-weight-checksum-evidence'
+import type {
+  AiGraphicsModelWeightManifestReviewSupplementRecord,
+} from './ai-graphics-model-weight-manifest-authoring'
+import {
+  buildAiGraphicsModelWeightManifestAuthoringDrafts,
+  type AiGraphicsModelWeightManifestAuthoringPacket,
+} from './ai-graphics-model-weight-manifest-authoring'
 import {
   buildAiGraphicsModelWeightManifestReviewPacket,
   type AiGraphicsModelWeightManifestEvidenceRecord,
@@ -17,6 +27,8 @@ export const AI_GRAPHICS_BETA_EVIDENCE_LOCAL_ASSEMBLY_DECISION =
 
 export interface AiGraphicsBetaEvidenceLocalAssemblyInput {
   manifestRecords?: Partial<AiGraphicsModelWeightManifestEvidenceRecord>[]
+  checksumEvidenceRecords?: Partial<AiGraphicsModelWeightChecksumEvidenceRecord>[]
+  manifestSupplementRecords?: Partial<AiGraphicsModelWeightManifestReviewSupplementRecord>[]
   gpuRuntimeProofResults?: unknown[]
   approvedPlanSnapshotGatePassed?: boolean
   creditReservationGatePassed?: boolean
@@ -42,7 +54,14 @@ export interface AiGraphicsBetaEvidenceLocalAssembly {
   modelWeightManifestRequiredTools: 5
   nativeGpuRuntimeProfilesRequired: 6
   localManifestRecordsProvided: number
+  localChecksumEvidenceRecordsProvided: number
+  localManifestSupplementRecordsProvided: number
+  localManifestRecordsAuthoredFromPrivateEvidence: number
   localGpuRuntimeProofResultsProvided: number
+  manifestRecordsSource:
+    | 'missing'
+    | 'provided_manifest_records'
+    | 'authored_from_checksum_and_supplement_evidence'
   expectedGpuRuntimeTargets: Record<string, string>
   gpuRuntimePolicy: {
     onDemandOnly: true
@@ -52,12 +71,14 @@ export interface AiGraphicsBetaEvidenceLocalAssembly {
     cpuFallbackAllowedForHeavyTools: false
   }
   modelWeightManifestReviewPacket: AiGraphicsModelWeightManifestReviewPacket
+  modelWeightManifestAuthoringPacket: AiGraphicsModelWeightManifestAuthoringPacket | null
   gpuRuntimeProofResultPacket: AiGraphicsGpuRuntimeProofResultPacket
   betaEvidenceBundle: AiGraphicsBetaEvidenceBundle
   missingLocalEvidence: string[]
   missingBetaEvidence: string[]
   booleans: {
     betaEvidenceLocalAssemblyPrepared: true
+    checksumAndSupplementCanAuthorManifestsForAssembly: boolean
     modelWeightManifestReviewPacketBuiltFromLocalInput: boolean
     gpuRuntimeProofResultPacketBuiltFromLocalInput: boolean
     committedJsRuntimeProofsAccepted: boolean
@@ -97,11 +118,65 @@ export interface AiGraphicsBetaEvidenceLocalAssembly {
   }
 }
 
-function localEvidenceMissing(input: AiGraphicsBetaEvidenceLocalAssemblyInput): string[] {
+function localEvidenceMissing(
+  input: AiGraphicsBetaEvidenceLocalAssemblyInput,
+  manifestRecords: readonly Partial<AiGraphicsModelWeightManifestEvidenceRecord>[],
+): string[] {
+  const hasDirectManifests = Boolean(input.manifestRecords?.length)
+  const hasChecksumEvidence = Boolean(input.checksumEvidenceRecords?.length)
+  const hasManifestSupplements = Boolean(input.manifestSupplementRecords?.length)
+  const hasManifestAuthoringInputs = hasChecksumEvidence && hasManifestSupplements
+
   return [
-    !input.manifestRecords?.length ? 'reviewed_private_model_weight_manifest_records' : undefined,
+    !manifestRecords.length && !hasManifestAuthoringInputs
+      ? 'reviewed_private_model_weight_manifest_records'
+      : undefined,
+    !hasDirectManifests && hasChecksumEvidence && !hasManifestSupplements
+      ? 'reviewed_private_manifest_supplement_records'
+      : undefined,
+    !hasDirectManifests && !hasChecksumEvidence && hasManifestSupplements
+      ? 'reviewed_private_checksum_evidence_records'
+      : undefined,
     !input.gpuRuntimeProofResults?.length ? 'native_gpu_runtime_proof_result_records' : undefined,
   ].filter((entry): entry is string => Boolean(entry))
+}
+
+function manifestRecordsFromInput(input: AiGraphicsBetaEvidenceLocalAssemblyInput): {
+  manifestRecords: Partial<AiGraphicsModelWeightManifestEvidenceRecord>[]
+  manifestRecordsSource: AiGraphicsBetaEvidenceLocalAssembly['manifestRecordsSource']
+  modelWeightManifestAuthoringPacket: AiGraphicsModelWeightManifestAuthoringPacket | null
+  localManifestRecordsAuthoredFromPrivateEvidence: number
+} {
+  if (input.manifestRecords?.length) {
+    return {
+      manifestRecords: input.manifestRecords,
+      manifestRecordsSource: 'provided_manifest_records',
+      modelWeightManifestAuthoringPacket: null,
+      localManifestRecordsAuthoredFromPrivateEvidence: 0,
+    }
+  }
+
+  const hasAuthoringInput = Boolean(input.checksumEvidenceRecords?.length || input.manifestSupplementRecords?.length)
+  if (!hasAuthoringInput) {
+    return {
+      manifestRecords: [],
+      manifestRecordsSource: 'missing',
+      modelWeightManifestAuthoringPacket: null,
+      localManifestRecordsAuthoredFromPrivateEvidence: 0,
+    }
+  }
+
+  const authoring = buildAiGraphicsModelWeightManifestAuthoringDrafts(
+    input.checksumEvidenceRecords ?? [],
+    input.manifestSupplementRecords ?? [],
+  )
+
+  return {
+    manifestRecords: authoring.drafts,
+    manifestRecordsSource: 'authored_from_checksum_and_supplement_evidence',
+    modelWeightManifestAuthoringPacket: authoring.packet,
+    localManifestRecordsAuthoredFromPrivateEvidence: authoring.drafts.length,
+  }
 }
 
 function assemblyStatus(input: {
@@ -130,7 +205,8 @@ function assemblyStatus(input: {
 export function buildAiGraphicsBetaEvidenceLocalAssembly(
   input: AiGraphicsBetaEvidenceLocalAssemblyInput = {},
 ): AiGraphicsBetaEvidenceLocalAssembly {
-  const manifestRecords = input.manifestRecords ?? []
+  const manifestInput = manifestRecordsFromInput(input)
+  const manifestRecords = manifestInput.manifestRecords
   const gpuRuntimeProofResults = input.gpuRuntimeProofResults ?? []
   const modelWeightManifestReviewPacket = buildAiGraphicsModelWeightManifestReviewPacket(manifestRecords)
   const gpuRuntimeProofResultPacket = buildAiGraphicsGpuRuntimeProofResultPacket(gpuRuntimeProofResults)
@@ -148,7 +224,7 @@ export function buildAiGraphicsBetaEvidenceLocalAssembly(
     browserRuntimeProofPacket: input.browserRuntimeProofPacket,
     satoriFontRuntimeProofPacket: input.satoriFontRuntimeProofPacket,
   })
-  const missingLocalEvidence = localEvidenceMissing(input)
+  const missingLocalEvidence = localEvidenceMissing(input, manifestRecords)
 
   return {
     decision: AI_GRAPHICS_BETA_EVIDENCE_LOCAL_ASSEMBLY_DECISION,
@@ -162,16 +238,24 @@ export function buildAiGraphicsBetaEvidenceLocalAssembly(
     modelWeightManifestRequiredTools: 5,
     nativeGpuRuntimeProfilesRequired: 6,
     localManifestRecordsProvided: manifestRecords.length,
+    localChecksumEvidenceRecordsProvided: input.checksumEvidenceRecords?.length ?? 0,
+    localManifestSupplementRecordsProvided: input.manifestSupplementRecords?.length ?? 0,
+    localManifestRecordsAuthoredFromPrivateEvidence:
+      manifestInput.localManifestRecordsAuthoredFromPrivateEvidence,
     localGpuRuntimeProofResultsProvided: gpuRuntimeProofResults.length,
+    manifestRecordsSource: manifestInput.manifestRecordsSource,
     expectedGpuRuntimeTargets: betaEvidenceBundle.expectedGpuRuntimeTargets,
     gpuRuntimePolicy: betaEvidenceBundle.gpuRuntimePolicy,
     modelWeightManifestReviewPacket,
+    modelWeightManifestAuthoringPacket: manifestInput.modelWeightManifestAuthoringPacket,
     gpuRuntimeProofResultPacket,
     betaEvidenceBundle,
     missingLocalEvidence,
     missingBetaEvidence: betaEvidenceBundle.missingEvidence,
     booleans: {
       betaEvidenceLocalAssemblyPrepared: true,
+      checksumAndSupplementCanAuthorManifestsForAssembly:
+        manifestInput.localManifestRecordsAuthoredFromPrivateEvidence === 5,
       modelWeightManifestReviewPacketBuiltFromLocalInput:
         modelWeightManifestReviewPacket.nativeGpuProofInputEligibleRecords === 5,
       gpuRuntimeProofResultPacketBuiltFromLocalInput:

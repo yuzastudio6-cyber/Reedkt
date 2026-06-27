@@ -24,6 +24,9 @@
   },
   "sourceEvidence": {
     "betaEvidenceBundle": "docs/tool-intelligence/ai-graphics/beta-evidence-bundle.json",
+    "modelWeightChecksumEvidence": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json",
+    "modelWeightManifestSupplement": "docs/tool-intelligence/ai-graphics/model-weight-manifest-supplement.json",
+    "modelWeightManifestAuthoring": "docs/tool-intelligence/ai-graphics/model-weight-manifest-authoring.json",
     "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
     "gpuRuntimeProofResultPacket": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json",
     "gpuRuntimeProofLocalPreflight": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-local-preflight.json",
@@ -32,6 +35,8 @@
     "satoriFontRuntimeProof": "docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json"
   },
   "localEvidenceRoots": {
+    "modelWeightChecksumEvidence": ".local-artifacts/ai-graphics/model-weight-checksum-evidence",
+    "modelWeightManifestSupplements": ".local-artifacts/ai-graphics/model-weight-manifest-supplements",
     "modelWeightManifests": ".local-artifacts/ai-graphics/model-weight-manifests",
     "gpuRuntimeProofResults": ".local-artifacts/ai-graphics/gpu-runtime-proof-results"
   },
@@ -57,6 +62,9 @@
     "modelWeightManifestRequiredTools": 5,
     "nativeGpuRuntimeProfilesRequired": 6,
     "localManifestRecordsProvided": 0,
+    "localChecksumEvidenceRecordsProvided": 0,
+    "localManifestSupplementRecordsProvided": 0,
+    "localManifestRecordsAuthoredFromPrivateEvidence": 0,
     "localGpuRuntimeProofResultsProvided": 0,
     "defaultBetaTestingReadyTools": 0,
     "fullTechnicalEvidenceReadyForOwnerGateTools": 21,
@@ -74,12 +82,15 @@
     "reviewed_private_model_weight_manifest_records",
     "native_gpu_runtime_proof_result_records"
   ],
+  "manifestRecordsSource": "missing",
   "requiredOwnerGateCommand": "npm run --silent ai-graphics:beta-evidence-local-assembly -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --use-committed-js-runtime-proofs --all-technical-gates-passed --browser-canvas-webgl-sandbox-passed --require-ready-for-owner-gate",
+  "requiredOwnerGateFromAuthoringInputsCommand": "npm run --silent ai-graphics:beta-evidence-local-assembly -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --manifest-supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --use-committed-js-runtime-proofs --all-technical-gates-passed --browser-canvas-webgl-sandbox-passed --require-ready-for-owner-gate",
   "requiredOwnerApprovedCommand": "npm run --silent ai-graphics:beta-evidence-local-assembly -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --use-committed-js-runtime-proofs --all-shared-gates-passed --browser-canvas-webgl-sandbox-passed --require-all-21-beta-ready",
   "booleans": {
     "betaEvidenceLocalAssemblyPrepared": true,
     "defaultCliOutputSanitized": true,
     "fullEvidencePacketsIncludedByDefault": false,
+    "checksumAndSupplementCanAuthorManifestsForAssembly": false,
     "modelWeightManifestReviewPacketBuiltFromLocalInput": false,
     "gpuRuntimeProofResultPacketBuiltFromLocalInput": false,
     "committedJsRuntimeProofsAccepted": false,

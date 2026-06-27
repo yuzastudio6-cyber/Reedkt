@@ -109,6 +109,30 @@ const sourceCatalogChecksumEvidenceStatusByTool = {
   transparent_background: 'checksum_required_before_private_manifest',
 }
 
+const artifactFileNameByTool = {
+  sam2: 'sam2.1_hiera_tiny.pt',
+  birefnet: 'ZhengPeng7/BiRefNet',
+  real_esrgan: 'RealESRGAN_x4plus.pth',
+  rembg: 'isnet-general-use.onnx',
+  transparent_background: 'ckpt_base.pth',
+}
+
+const checksumShaByTool = {
+  sam2: sourceCatalogChecksumSha256ByTool.sam2,
+  birefnet: sourceCatalogChecksumSha256ByTool.birefnet,
+  real_esrgan: sourceCatalogChecksumSha256ByTool.real_esrgan,
+  rembg: 'c'.repeat(64),
+  transparent_background: 'd'.repeat(64),
+}
+
+const directoryNameByTool = {
+  sam2: 'sam2',
+  birefnet: 'birefnet',
+  real_esrgan: 'real-esrgan',
+  rembg: 'rembg',
+  transparent_background: 'transparent-background',
+}
+
 const failures = []
 
 function fail(message) {
@@ -188,6 +212,41 @@ function manifestRecord(toolId) {
     qualityReviewed: true,
     securityReviewed: true,
     provenanceReviewed: true,
+    approvedForInternalBeta: true,
+  }
+}
+
+function checksumEvidenceRecord(toolId) {
+  return {
+    evidenceId: `${toolId}_private_checksum_evidence_v1`,
+    toolId,
+    sourceCandidateId: sourceCandidateIdByTool[toolId],
+    artifactFileName: artifactFileNameByTool[toolId],
+    artifactSha256: checksumShaByTool[toolId],
+    checksumEvidenceRef: `reeditpro-private-artifact-ref-checksum-evidence-${toolId}`,
+    sourceArtifactRef: `reeditpro-private-artifact-ref-source-artifact-${toolId}`,
+    hashCommand: `sha256sum ${artifactFileNameByTool[toolId]}`,
+    checksumEvidenceReviewed: true,
+    sourceArtifactReviewed: true,
+    provenanceReviewed: true,
+    qualityReviewed: true,
+    securityReviewed: true,
+    approvedForManifestAuthoring: true,
+  }
+}
+
+function manifestSupplementRecord(toolId) {
+  return {
+    supplementId: `${toolId}_private_manifest_review_supplement_v1`,
+    toolId,
+    sourceCandidateId: sourceCandidateIdByTool[toolId],
+    sourceLicenseRef: `reeditpro-private-artifact-ref-license-${toolId}`,
+    modelCardRef: `reeditpro-private-artifact-ref-model-card-${toolId}`,
+    commercialUseReviewed: true,
+    redistributionReviewed: true,
+    provenanceReviewed: true,
+    qualityReviewed: true,
+    securityReviewed: true,
     approvedForInternalBeta: true,
   }
 }
@@ -287,16 +346,47 @@ function writeFixtures(root, badResult = false) {
   return { manifestDir, resultDir }
 }
 
+function writeAuthoringFixtures(root) {
+  const checksumEvidenceDir = path.join(root, 'checksum-evidence')
+  const manifestSupplementDir = path.join(root, 'manifest-supplements')
+  fs.mkdirSync(checksumEvidenceDir, { recursive: true })
+  fs.mkdirSync(manifestSupplementDir, { recursive: true })
+
+  for (const toolId of modelManifestTools) {
+    const toolChecksumEvidenceDir = path.join(checksumEvidenceDir, directoryNameByTool[toolId])
+    const toolSupplementDir = path.join(manifestSupplementDir, directoryNameByTool[toolId])
+    fs.mkdirSync(toolChecksumEvidenceDir, { recursive: true })
+    fs.mkdirSync(toolSupplementDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(toolChecksumEvidenceDir, 'checksum-evidence.json'),
+      `${JSON.stringify(checksumEvidenceRecord(toolId), null, 2)}\n`,
+      'utf8',
+    )
+    fs.writeFileSync(
+      path.join(toolSupplementDir, 'manifest-review-supplement.json'),
+      `${JSON.stringify(manifestSupplementRecord(toolId), null, 2)}\n`,
+      'utf8',
+    )
+  }
+
+  return { checksumEvidenceDir, manifestSupplementDir }
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-beta-evidence-local-assembly.ts',
   'server/cli/ai-graphics-beta-evidence-local-assembly.ts',
   'server/tool-registry/ai-graphics-beta-evidence-bundle.ts',
   'server/tool-registry/ai-graphics-model-weight-manifest-readiness.ts',
+  'server/tool-registry/ai-graphics-model-weight-checksum-evidence.ts',
+  'server/tool-registry/ai-graphics-model-weight-manifest-authoring.ts',
   'server/tool-registry/ai-graphics-gpu-runtime-proof-result.ts',
   'server/tool-registry/index.ts',
   'scripts/validation/ai-graphics-beta-evidence-local-assembly-diagnostics.mjs',
   'docs/tool-intelligence/ai-graphics/beta-evidence-local-assembly.md',
   'docs/tool-intelligence/ai-graphics/beta-evidence-local-assembly.json',
+  'docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json',
+  'docs/tool-intelligence/ai-graphics/model-weight-manifest-supplement.json',
+  'docs/tool-intelligence/ai-graphics/model-weight-manifest-authoring.json',
   'docs/tool-intelligence/ai-graphics/beta-evidence-bundle.json',
   'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-local-preflight.json',
   'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
@@ -350,10 +440,14 @@ for (const token of [
   'buildAiGraphicsBetaEvidenceLocalAssembly',
   'buildAiGraphicsBetaEvidenceBundle',
   'buildAiGraphicsModelWeightManifestReviewPacket',
+  'buildAiGraphicsModelWeightManifestAuthoringDrafts',
   'buildAiGraphicsGpuRuntimeProofResultPacket',
   'assembled_technical_evidence_ready_for_owner_gate',
   'assembled_all21_beta_evidence_ready_for_owner_gate',
   'reviewed_private_model_weight_manifest_records',
+  'reviewed_private_manifest_supplement_records',
+  'reviewed_private_checksum_evidence_records',
+  'authored_from_checksum_and_supplement_evidence',
   'native_gpu_runtime_proof_result_records',
 ]) {
   if (!moduleSource.includes(token)) fail(`module_missing:${token}`)
@@ -361,6 +455,8 @@ for (const token of [
 
 for (const token of [
   '--manifest-dir',
+  '--checksum-evidence-dir',
+  '--manifest-supplement-dir',
   '--result-dir',
   '--use-committed-js-runtime-proofs',
   '--all-technical-gates-passed',
@@ -372,6 +468,10 @@ for (const token of [
   'sanitized_summary',
   'fullEvidencePacketsIncluded: false',
   'validatorOnly: true',
+  'checksumEvidenceRecordsFromJsonFile',
+  'manifestSupplementRecordsFromJsonFile',
+  'manifestRecordsSource',
+  'localManifestRecordsAuthoredFromPrivateEvidence',
   'gpuRuntimePerformed: false',
   'expectedGpuRuntimeTargets',
   'gpuRuntimePolicy',
@@ -381,6 +481,8 @@ for (const token of [
 
 for (const token of [
   '.local-artifacts/ai-graphics/model-weight-manifests',
+  '.local-artifacts/ai-graphics/model-weight-checksum-evidence',
+  '.local-artifacts/ai-graphics/model-weight-manifest-supplements',
   '.local-artifacts/ai-graphics/gpu-runtime-proof-results',
   'node-runtime-proof.json',
   'browser-runtime-proof.json',
@@ -388,6 +490,9 @@ for (const token of [
   '--require-all-21-beta-ready',
   '--full-output',
   'sanitized_summary',
+  'requiredOwnerGateFromAuthoringInputsCommand',
+  'manifestRecordsSource',
+  'checksumAndSupplementCanAuthorManifestsForAssembly',
   'native_linux_amd64_nvidia_l4_sam2_runtime',
   'native_linux_amd64_nvidia_l4_birefnet_runtime',
   'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
@@ -408,12 +513,21 @@ if (packet.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) {
 if (packet.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) {
   fail('packet_gpu_runtime_policy_cpu_fallback_not_blocked')
 }
+if (packet.manifestRecordsSource !== 'missing') {
+  fail(`unexpected_packet_manifest_records_source:${packet.manifestRecordsSource}`)
+}
+if (!String(packet.requiredOwnerGateFromAuthoringInputsCommand || '').includes('--checksum-evidence-dir')) {
+  fail('packet_missing_authoring_inputs_owner_gate_command')
+}
 
 for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
   modelWeightManifestRequiredTools: 5,
   nativeGpuRuntimeProfilesRequired: 6,
   localManifestRecordsProvided: 0,
+  localChecksumEvidenceRecordsProvided: 0,
+  localManifestSupplementRecordsProvided: 0,
+  localManifestRecordsAuthoredFromPrivateEvidence: 0,
   localGpuRuntimeProofResultsProvided: 0,
   defaultBetaTestingReadyTools: 0,
   fullTechnicalEvidenceReadyForOwnerGateTools: 21,
@@ -434,6 +548,7 @@ for (const key of [
 
 for (const key of [
   'fullEvidencePacketsIncludedByDefault',
+  'checksumAndSupplementCanAuthorManifestsForAssembly',
   'modelWeightManifestReviewPacketBuiltFromLocalInput',
   'gpuRuntimeProofResultPacketBuiltFromLocalInput',
   'committedJsRuntimeProofsAccepted',
@@ -494,6 +609,9 @@ if (!defaultAssembly.localEvidence?.missingLocalEvidence?.includes('reviewed_pri
 if (!defaultAssembly.localEvidence?.missingLocalEvidence?.includes('native_gpu_runtime_proof_result_records')) {
   fail('default_missing_gpu_gap')
 }
+if (defaultAssembly.localEvidence?.manifestRecordsSource !== 'missing') {
+  fail(`default_manifest_records_source:${defaultAssembly.localEvidence?.manifestRecordsSource}`)
+}
 
 const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-beta-evidence-local-assembly-'))
 const { manifestDir, resultDir } = writeFixtures(fixtureRoot)
@@ -530,6 +648,9 @@ if (ownerGateAssembly.booleans?.gpuRuntimeOnDemandOnly !== true) fail('owner_gat
 if (ownerGateAssembly.gpuRuntimeProof?.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) {
   fail('owner_gate_gpu_policy_not_ephemeral')
 }
+if (ownerGateAssembly.localEvidence?.manifestRecordsSource !== 'provided_manifest_records') {
+  fail(`owner_gate_manifest_records_source:${ownerGateAssembly.localEvidence?.manifestRecordsSource}`)
+}
 
 const fullOutput = runNpm(assemblyScriptName, [
   '--manifest-dir',
@@ -558,9 +679,92 @@ if (fullAssembly.booleans?.readyForInternalBetaOwnerGate !== true) fail('full_no
 if (fullAssembly.booleans?.gpuRuntimeTargetsExact !== true) fail('full_gpu_targets_exact_not_true')
 if (fullAssembly.booleans?.gpuRuntimeOnDemandOnly !== true) fail('full_gpu_on_demand_not_true')
 if (fullAssembly.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) fail('full_gpu_policy_not_ephemeral')
+if (fullAssembly.manifestRecordsSource !== 'provided_manifest_records') {
+  fail(`full_manifest_records_source:${fullAssembly.manifestRecordsSource}`)
+}
 assertExpectedGpuRuntimeTargets(fullAssembly, 'full_assembly')
 assertExpectedGpuRuntimeTargets(fullAssembly.betaEvidenceBundle, 'full_assembly_beta_bundle')
 if (fullOutput.includes('private://reeditpro')) fail('full_output_leaked_private_ref')
+
+const authoringFixtureRoot = fs.mkdtempSync(path.join(
+  os.tmpdir(),
+  'ai-graphics-beta-evidence-local-assembly-authoring-',
+))
+const authoringFixture = writeAuthoringFixtures(authoringFixtureRoot)
+const authoringOwnerGateOutput = runNpm(assemblyScriptName, [
+  '--checksum-evidence-dir',
+  authoringFixture.checksumEvidenceDir,
+  '--manifest-supplement-dir',
+  authoringFixture.manifestSupplementDir,
+  '--result-dir',
+  resultDir,
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--require-ready-for-owner-gate',
+])
+const authoringOwnerGateAssembly = parseOutput(authoringOwnerGateOutput, 'authoring_owner_gate_assembly')
+if (authoringOwnerGateAssembly.status !== 'assembled_technical_evidence_ready_for_owner_gate') {
+  fail(`authoring_owner_gate_status:${authoringOwnerGateAssembly.status}`)
+}
+if (authoringOwnerGateAssembly.localEvidence?.manifestRecordsSource !==
+  'authored_from_checksum_and_supplement_evidence') {
+  fail(`authoring_owner_gate_manifest_records_source:${authoringOwnerGateAssembly.localEvidence?.manifestRecordsSource}`)
+}
+if (authoringOwnerGateAssembly.localEvidence?.localChecksumEvidenceRecordsProvided !== 5) {
+  fail(`authoring_checksum_records:${authoringOwnerGateAssembly.localEvidence?.localChecksumEvidenceRecordsProvided}`)
+}
+if (authoringOwnerGateAssembly.localEvidence?.localManifestSupplementRecordsProvided !== 5) {
+  fail(`authoring_supplement_records:${authoringOwnerGateAssembly.localEvidence?.localManifestSupplementRecordsProvided}`)
+}
+if (authoringOwnerGateAssembly.localEvidence?.localManifestRecordsAuthoredFromPrivateEvidence !== 5) {
+  fail(`authoring_manifest_records:${authoringOwnerGateAssembly.localEvidence?.localManifestRecordsAuthoredFromPrivateEvidence}`)
+}
+if (authoringOwnerGateAssembly.booleans?.checksumAndSupplementCanAuthorManifestsForAssembly !== true) {
+  fail('authoring_bridge_not_ready')
+}
+if (authoringOwnerGateAssembly.booleans?.modelWeightManifestReviewPacketBuiltFromLocalInput !== true) {
+  fail('authoring_manifest_review_packet_not_ready')
+}
+if (authoringOwnerGateAssembly.booleans?.agentCanExecuteToolsNow !== false) {
+  fail('authoring_agent_execution_not_false')
+}
+if (authoringOwnerGateAssembly.booleans?.runtimeReadyNow !== false) {
+  fail('authoring_runtime_ready_not_false')
+}
+assertExpectedGpuRuntimeTargets(authoringOwnerGateAssembly.gpuRuntimeProof, 'authoring_owner_gate_gpu_runtime_proof')
+
+let partialAuthoringExited = false
+let partialAuthoringOutput = ''
+try {
+  partialAuthoringOutput = runNpm(assemblyScriptName, [
+    '--checksum-evidence-dir',
+    authoringFixture.checksumEvidenceDir,
+    '--result-dir',
+    resultDir,
+    '--use-committed-js-runtime-proofs',
+    '--all-technical-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--require-ready-for-owner-gate',
+  ])
+} catch (error) {
+  partialAuthoringExited = true
+  partialAuthoringOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+if (!partialAuthoringExited) fail('partial_authoring_require_owner_gate_did_not_exit_nonzero')
+const partialAuthoringAssembly = parseOutput(partialAuthoringOutput, 'partial_authoring_assembly')
+if (partialAuthoringAssembly.status !== 'missing_local_evidence') {
+  fail(`partial_authoring_status:${partialAuthoringAssembly.status}`)
+}
+if (!partialAuthoringAssembly.localEvidence?.missingLocalEvidence?.includes(
+  'reviewed_private_manifest_supplement_records',
+)) {
+  fail('partial_authoring_missing_manifest_supplement_gap')
+}
+if (partialAuthoringAssembly.localEvidence?.manifestRecordsSource !==
+  'authored_from_checksum_and_supplement_evidence') {
+  fail(`partial_authoring_manifest_records_source:${partialAuthoringAssembly.localEvidence?.manifestRecordsSource}`)
+}
 
 const badRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-beta-evidence-local-assembly-bad-'))
 const badFixture = writeFixtures(badRoot, true)
@@ -668,6 +872,10 @@ console.log(JSON.stringify({
   fullEvidenceBetaTestingReadyTools: fullAssembly.betaEvidenceBundle?.betaTestingReadyTools,
   all21BetaEvidenceReady: fullAssembly.betaEvidenceBundle?.all21BetaEvidenceReady,
   readyForInternalBetaOwnerGate: ownerGateAssembly.booleans?.readyForInternalBetaOwnerGate,
+  authoringOwnerGateStatus: authoringOwnerGateAssembly.status,
+  authoringManifestRecordsSource: authoringOwnerGateAssembly.localEvidence?.manifestRecordsSource,
+  authoringManifestRecordsAuthoredFromPrivateEvidence:
+    authoringOwnerGateAssembly.localEvidence?.localManifestRecordsAuthoredFromPrivateEvidence,
   badStatus: badAssembly.status,
   agentCanExecuteToolsNow: fullAssembly.booleans?.agentCanExecuteToolsNow,
   runtimeReadyNow: fullAssembly.booleans?.runtimeReadyNow,

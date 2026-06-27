@@ -72,6 +72,19 @@ local support files under ignored evidence paths, uses rejected placeholder refs
 keeps review booleans false, and does not approve private manifests, model
 download/load/inference, Tool Routes, Workers, GPU runtime, beta, or production.
 
+AI graphics beta evidence local assembly decision
+`ai_graphics_beta_evidence_local_assembly_prepared_with_directory_inputs`
+can now assemble the beta evidence owner-gate packet from either reviewed
+private model-weight manifests or reviewed checksum evidence plus reviewed
+manifest supplements. The checksum/supplement path authors the five model-weight
+manifest records in memory before running the existing manifest-review packet
+validator, so it does not bypass checksum, source-license, model-card, or review
+evidence. Public docs still commit 0 private records and no private refs. The
+assembler remains local-only and does not approve model download/load/inference,
+Tool Routes, Workers, GPU runtime, beta, or production. GPU runtime remains
+on-demand only for a future approved worker/tool-call job, with no idle GPU
+runtime approved.
+
 AI graphics internal beta go/no-go decision
 `ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`
 prepares the explicit owner go/no-go contract for the all-21 AI graphics

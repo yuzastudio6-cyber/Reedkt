@@ -168,10 +168,12 @@ Latest observed PR state after model-weight manifest authoring bridge completion
 Latest observed PR state after model-weight manifest supplement scaffold completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `e9bf71bf14e538fff3716d8d2da0f293bb2eaf6b`, with an empty check rollup.
 - Follow-up model-weight manifest supplement validator adds `server/tool-registry/ai-graphics-model-weight-manifest-supplement.ts`, `server/cli/ai-graphics-model-weight-manifest-supplement.ts`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-supplement.md`, `docs/tool-intelligence/ai-graphics/model-weight-manifest-supplement.json`, `ai-graphics:model-weight-manifest-supplement:validate`, and `ai-graphics:model-weight-manifest-supplement:diagnostics`. It validates local/private source-license and model-card supplement records independently before manifest authoring, rejects public/signed/raw GCS/placeholder refs, keeps private refs redacted, and preserves all runtime/beta/production gates as false.
 Latest observed PR state after model-weight manifest supplement validator completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `4bd1860933c047a36ab37887a9680aeee871f4a4`, with an empty check rollup.
+- Follow-up beta evidence local authoring-input bridge updates `server/tool-registry/ai-graphics-beta-evidence-local-assembly.ts`, `server/cli/ai-graphics-beta-evidence-local-assembly.ts`, `docs/tool-intelligence/ai-graphics/beta-evidence-local-assembly.md`, `docs/tool-intelligence/ai-graphics/beta-evidence-local-assembly.json`, and `ai-graphics:beta-evidence-local-assembly:diagnostics` so local beta assembly can consume reviewed checksum evidence plus reviewed manifest supplements and author the five model-weight manifest records in memory before building the manifest review packet. The bridge preserves support for direct manifest directories, keeps default public counts at 0, and does not approve model download/load/inference, GPU runtime, Tool Route, Worker, beta, or production.
 
 ## Expected Validation
 
 - `git diff --check`
+- `npm run --silent ai-graphics:beta-evidence-local-assembly:diagnostics`
 - `npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-authoring:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-supplement:diagnostics`

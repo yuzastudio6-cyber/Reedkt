@@ -7,12 +7,31 @@ import {
 import type {
   AiGraphicsModelWeightManifestEvidenceRecord,
 } from '../tool-registry/ai-graphics-model-weight-manifest-readiness'
+import type {
+  AiGraphicsModelWeightChecksumEvidenceRecord,
+} from '../tool-registry/ai-graphics-model-weight-checksum-evidence'
+import type {
+  AiGraphicsModelWeightManifestReviewSupplementRecord,
+} from '../tool-registry/ai-graphics-model-weight-manifest-authoring'
 
 type ManifestInput = Partial<AiGraphicsModelWeightManifestEvidenceRecord>
+type ChecksumEvidenceInput = Partial<AiGraphicsModelWeightChecksumEvidenceRecord>
+type ManifestSupplementInput = Partial<AiGraphicsModelWeightManifestReviewSupplementRecord>
 
 interface ManifestEnvelope {
   records?: ManifestInput[]
   manifests?: ManifestInput[]
+}
+
+interface ChecksumEvidenceEnvelope {
+  records?: ChecksumEvidenceInput[]
+  checksumEvidence?: ChecksumEvidenceInput[]
+}
+
+interface ManifestSupplementEnvelope {
+  records?: ManifestSupplementInput[]
+  manifestSupplements?: ManifestSupplementInput[]
+  supplements?: ManifestSupplementInput[]
 }
 
 interface ProofResultEnvelope {
@@ -39,7 +58,7 @@ function valueAfterFlag(flag: string): string | undefined {
   return index >= 0 ? process.argv[index + 1] : undefined
 }
 
-function jsonFilesInDirectory(directory: string, label: string): string[] {
+function jsonFilesInDirectory(directory: string, label: string, ignoredFileNames: readonly string[] = []): string[] {
   const resolvedDirectory = resolve(directory)
   if (!existsSync(resolvedDirectory)) {
     throw new Error(`${label} directory does not exist: ${directory}`)
@@ -50,8 +69,8 @@ function jsonFilesInDirectory(directory: string, label: string): string[] {
     const entryPath = join(resolvedDirectory, entry)
     const stats = statSync(entryPath)
     if (stats.isDirectory()) {
-      files.push(...jsonFilesInDirectory(entryPath, label))
-    } else if (entry.endsWith('.json')) {
+      files.push(...jsonFilesInDirectory(entryPath, label, ignoredFileNames))
+    } else if (entry.endsWith('.json') && !ignoredFileNames.includes(entry)) {
       files.push(entryPath)
     }
   }
@@ -76,6 +95,36 @@ function manifestRecordsFromJsonFile(filePath: string): ManifestInput[] {
   return [parsed as ManifestInput]
 }
 
+function checksumEvidenceRecordsFromJsonFile(filePath: string): ChecksumEvidenceInput[] {
+  const parsed = readJsonPath(filePath) as ChecksumEvidenceInput | ChecksumEvidenceInput[] | ChecksumEvidenceEnvelope
+  if (Array.isArray(parsed)) return parsed
+  if (Array.isArray((parsed as ChecksumEvidenceEnvelope).records)) {
+    return (parsed as ChecksumEvidenceEnvelope).records ?? []
+  }
+  if (Array.isArray((parsed as ChecksumEvidenceEnvelope).checksumEvidence)) {
+    return (parsed as ChecksumEvidenceEnvelope).checksumEvidence ?? []
+  }
+  return [parsed as ChecksumEvidenceInput]
+}
+
+function manifestSupplementRecordsFromJsonFile(filePath: string): ManifestSupplementInput[] {
+  const parsed = readJsonPath(filePath) as
+    | ManifestSupplementInput
+    | ManifestSupplementInput[]
+    | ManifestSupplementEnvelope
+  if (Array.isArray(parsed)) return parsed
+  if (Array.isArray((parsed as ManifestSupplementEnvelope).records)) {
+    return (parsed as ManifestSupplementEnvelope).records ?? []
+  }
+  if (Array.isArray((parsed as ManifestSupplementEnvelope).manifestSupplements)) {
+    return (parsed as ManifestSupplementEnvelope).manifestSupplements ?? []
+  }
+  if (Array.isArray((parsed as ManifestSupplementEnvelope).supplements)) {
+    return (parsed as ManifestSupplementEnvelope).supplements ?? []
+  }
+  return [parsed as ManifestSupplementInput]
+}
+
 function proofResultsFromJsonFile(filePath: string): unknown[] {
   const parsed = readJsonPath(filePath)
   if (Array.isArray(parsed)) return parsed
@@ -92,7 +141,37 @@ function manifestFilesFromArgs(): string[] {
     ...valuesAfterFlag('--manifest'),
     ...valuesAfterFlag('--manifest-file'),
     ...valuesAfterFlag('--manifest-dir').flatMap((directory) =>
-      jsonFilesInDirectory(directory, 'Manifest')),
+      jsonFilesInDirectory(directory, 'Manifest', [
+        'checksum-evidence-authoring-checklist.json',
+        'manifest-authoring-checklist.json',
+        'manifest-supplement-authoring-checklist.json',
+      ])),
+  ]
+}
+
+function checksumEvidenceFilesFromArgs(): string[] {
+  return [
+    ...valuesAfterFlag('--checksum-evidence'),
+    ...valuesAfterFlag('--checksum-evidence-file'),
+    ...valuesAfterFlag('--checksum-evidence-dir').flatMap((directory) =>
+      jsonFilesInDirectory(directory, 'Checksum evidence', [
+        'checksum-evidence-authoring-checklist.json',
+        'manifest-authoring-checklist.json',
+        'manifest-supplement-authoring-checklist.json',
+      ])),
+  ]
+}
+
+function manifestSupplementFilesFromArgs(): string[] {
+  return [
+    ...valuesAfterFlag('--manifest-supplement'),
+    ...valuesAfterFlag('--manifest-supplement-file'),
+    ...valuesAfterFlag('--manifest-supplement-dir').flatMap((directory) =>
+      jsonFilesInDirectory(directory, 'Manifest supplement', [
+        'checksum-evidence-authoring-checklist.json',
+        'manifest-authoring-checklist.json',
+        'manifest-supplement-authoring-checklist.json',
+      ])),
   ]
 }
 
@@ -125,6 +204,8 @@ function readProofPacket(flag: string, committedPath: string): Record<string, un
 }
 
 const manifestFiles = manifestFilesFromArgs()
+const checksumEvidenceFiles = checksumEvidenceFilesFromArgs()
+const manifestSupplementFiles = manifestSupplementFilesFromArgs()
 const resultFiles = resultFilesFromArgs()
 const allSharedGatesPassed = hasFlag('--all-shared-gates-passed')
 const allTechnicalGatesPassed = allSharedGatesPassed || hasFlag('--all-technical-gates-passed')
@@ -132,6 +213,8 @@ const fullOutputRequested = hasFlag('--full-output')
 
 const input: AiGraphicsBetaEvidenceLocalAssemblyInput = {
   manifestRecords: manifestFiles.flatMap(manifestRecordsFromJsonFile),
+  checksumEvidenceRecords: checksumEvidenceFiles.flatMap(checksumEvidenceRecordsFromJsonFile),
+  manifestSupplementRecords: manifestSupplementFiles.flatMap(manifestSupplementRecordsFromJsonFile),
   gpuRuntimeProofResults: resultFiles.flatMap(proofResultsFromJsonFile),
   approvedPlanSnapshotGatePassed: allTechnicalGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
   creditReservationGatePassed: allTechnicalGatesPassed || hasFlag('--credit-reservation-gate-passed'),
@@ -159,6 +242,8 @@ const assembly = buildAiGraphicsBetaEvidenceLocalAssembly(input)
 const inputSummary = {
   validatorOnly: true,
   localPrivateManifestFilesRead: manifestFiles.length,
+  localPrivateChecksumEvidenceFilesRead: checksumEvidenceFiles.length,
+  localPrivateManifestSupplementFilesRead: manifestSupplementFiles.length,
   localGpuRuntimeProofResultFilesRead: resultFiles.length,
   committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
   privateArtifactRefsLogged: 0,
@@ -189,6 +274,11 @@ const sanitizedSummary = {
     modelWeightManifestRequiredTools: assembly.modelWeightManifestRequiredTools,
     nativeGpuRuntimeProfilesRequired: assembly.nativeGpuRuntimeProfilesRequired,
     localManifestRecordsProvided: assembly.localManifestRecordsProvided,
+    localChecksumEvidenceRecordsProvided: assembly.localChecksumEvidenceRecordsProvided,
+    localManifestSupplementRecordsProvided: assembly.localManifestSupplementRecordsProvided,
+    localManifestRecordsAuthoredFromPrivateEvidence:
+      assembly.localManifestRecordsAuthoredFromPrivateEvidence,
+    manifestRecordsSource: assembly.manifestRecordsSource,
     localGpuRuntimeProofResultsProvided: assembly.localGpuRuntimeProofResultsProvided,
     missingLocalEvidence: assembly.missingLocalEvidence,
   },

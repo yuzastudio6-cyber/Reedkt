@@ -59,6 +59,15 @@ export interface ProductionHardeningReport {
   overallStatus: ProductionHardeningOverallStatus
   categories: ProductionHardeningCategory[]
   scorecard: ProductionReadinessScorecard
+  blockerForwardProgressPolicy: {
+    intentionalBlanketBlocksAllowed: false
+    blockerScope: 'named_unsafe_action_only'
+    safeForwardProgressRequired: true
+    nextSafeActionRequiredForBlockers: true
+  }
+  safeBlockerReductionAllowed: true
+  blockedActionScope: string[]
+  allowedForwardProgressScopes: string[]
   blockers: string[]
   warnings: string[]
   passedChecks: ProductionHardeningCheck[]

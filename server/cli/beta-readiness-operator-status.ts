@@ -52,6 +52,7 @@ export interface BetaReadinessOperatorStatusReport {
     hydratedPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated'
     hydrationSetupCommand: 'npm run tools:readiness:install-core-python'
     localAcceptedEvidenceBundleCommand: 'npm run beta:tools:local-accepted-evidence-bundle'
+    localAcceptedEvidenceCollectorCommand: 'npm run beta:tools:local-accepted-evidence-collector'
     command: 'npm run beta:tools:core-real-check-evidence'
     preflightCommand: 'npm run beta:tools:core-real-check-evidence-preflight'
     readyToRunCli: boolean
@@ -168,6 +169,7 @@ function toolEvidenceSummary(
     hydratedPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated',
     hydrationSetupCommand: 'npm run tools:readiness:install-core-python',
     localAcceptedEvidenceBundleCommand: 'npm run beta:tools:local-accepted-evidence-bundle',
+    localAcceptedEvidenceCollectorCommand: 'npm run beta:tools:local-accepted-evidence-collector',
     command: 'npm run beta:tools:core-real-check-evidence',
     preflightCommand: 'npm run beta:tools:core-real-check-evidence-preflight',
     readyToRunCli: report.readyToRunCli,
@@ -222,9 +224,10 @@ function buildNextActions(
     actions.push('For the remaining libass subtitle-filter warning, run npm run beta:tools:libass-container-proof-preflight against an approved render/tool-readiness image; this can reduce libass execution evidence without claiming product-ready caption burn-in.')
     actions.push('After libass filter proof passes, run npm run beta:tools:libass-synthetic-burnin-qa-preflight to collect synthetic-only caption burn-in/font QA evidence before product-ready local OSS acceptance is recorded.')
     actions.push('After core hydrated preview and libass synthetic QA pass, run npm run beta:tools:local-accepted-evidence-bundle to confirm the combined local accepted tool set and remaining staging gates before recording deployed evidence.')
+    actions.push('After the local accepted evidence bundle passes, run npm run beta:tools:local-accepted-evidence-collector against deployed staging to record core and libass evidence and verify operator-status readback.')
     actions.push('After synthetic libass QA passes, run npm run beta:tools:libass-synthetic-burnin-qa-evidence-preflight, then npm run beta:tools:libass-synthetic-burnin-qa-evidence against deployed staging to record accepted libass evidence.')
   } else {
-    actions.push('Run npm run beta:tools:core-real-check-preview locally first; use npm run beta:tools:core-real-check-preview:hydrated after npm run tools:readiness:install-core-python for Python-backed core tools. Then run npm run beta:tools:local-accepted-evidence-bundle before running npm run beta:tools:core-real-check-evidence against deployed staging.')
+    actions.push('Run npm run beta:tools:core-real-check-preview locally first; use npm run beta:tools:core-real-check-preview:hydrated after npm run tools:readiness:install-core-python for Python-backed core tools. Then run npm run beta:tools:local-accepted-evidence-bundle before running npm run beta:tools:local-accepted-evidence-collector against deployed staging. If recording individually instead of as a bundle, run npm run beta:tools:core-real-check-evidence for core tools and npm run beta:tools:libass-synthetic-burnin-qa-evidence for libass.')
   }
 
   if (!platformEvidence.readyToRecordEvidencePacket) {

@@ -144,6 +144,7 @@ Latest observed PR state after source-candidate manifest binding: [#862](https:/
 - Follow-up runtime-enqueue GPU activation policy hardening updates internal beta runtime-enqueue scope records so all eight GPU/model tools carry `onDemandOnly=true`, `noIdleGpuRuntimeApproved=true`, `startsOnlyForApprovedWorkerOrToolCall=true`, and `cpuFallbackAllowedForHeavyTools=false` before any future queue/job layer can consume the scope. GPU remains use-triggered by approved worker/tool-call jobs only; no idle GPU runtime, execution, beta, or production unlock occurs.
 Latest observed PR state after runtime-enqueue GPU activation policy hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `19f58f8da027065fdbffd8727a0ee212cc213cd6`, with an empty check rollup.
 - Follow-up model-weight manifest authoring checklist hardening updates the scaffold CLI to emit local-only checklist JSON and Markdown support files next to the placeholder manifests. The checklist carries selected source candidates, required manifest fields, review booleans, private namespace rules, source evidence refs, and validation commands; manifest discovery ignores the support JSON so it cannot be accepted as duplicate manifest evidence.
+Latest observed PR state after model-weight manifest authoring checklist hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `7aee0546a58b81977fe7735672f5d1e714912b9f`, with an empty check rollup.
 
 ## Expected Validation
 

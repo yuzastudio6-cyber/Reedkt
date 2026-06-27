@@ -1,0 +1,98 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_CONFIRMED_ADAPTER_RUNTIME_FIXTURE_1",
+  "decision": "completed_qwen2_5_vl_external_beta_confirmed_adapter_runtime_fixture",
+  "execution": "completed_confirmed_backend_adapter_runtime_fixture_with_fail_closed_restore",
+  "integrationBase": "02cfeab7d8f98c8bbe915b3da15a95c5542f224f",
+  "sourceEvidence": {
+    "vllmL4KvCacheTuningPr": 1312,
+    "runtimeGateIntegrationPr": 1315,
+    "backendRuntimeAdapterPr": 1321,
+    "backendRuntimeAdapterMergeSha": "02cfeab7d8f98c8bbe915b3da15a95c5542f224f",
+    "excludedPr": 577
+  },
+  "runtimeEvidence": {
+    "runId": "qwen25-adapter-runtime-fixture-2026-06-27T22-48-47-273Z-d12cb07d",
+    "outputDir": "/var/folders/y2/tffpcrt16qz6ndjsjrpqxrz40000gn/T/reeditpro-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1/qwen25-adapter-runtime-fixture-2026-06-27T22-48-47-273Z-d12cb07d",
+    "executionName": "reeditpro-qwen2-5-vl-private-caller-9mts6",
+    "httpStatus": 200,
+    "serviceReason": "qwen_fixture_inference_smoke_completed",
+    "fixtureInferenceSmokePassed": true,
+    "structuredMetadataOutputAccepted": true,
+    "runtimeContractExecutesNow": true,
+    "modelInferenceEnabled": true,
+    "elapsedMs": 360401
+  },
+  "metadataOutput": {
+    "parsedJson": true,
+    "schemaValid": true,
+    "schemaVersion": "qwen_fixture_visual_metadata_v1",
+    "objectCount": 3,
+    "textLikeRegionCount": 1,
+    "spatialRelationCount": 2,
+    "blockedActionCount": 4,
+    "rawOutputStoredInRepo": false,
+    "outputTextSha256": "f18b566fa1936ec68cf36dfd3c8fa5145ee22e0bc7a06ea9ca8930f50c2bd1d4",
+    "normalizedMetadataSha256": "f18b566fa1936ec68cf36dfd3c8fa5145ee22e0bc7a06ea9ca8930f50c2bd1d4"
+  },
+  "boundedRuntimeActions": {
+    "cloudRunInvocationAttempted": true,
+    "identityTokenFetched": true,
+    "identityTokenPrinted": false,
+    "serviceRuntimeRequestSent": true,
+    "modelImportRun": true,
+    "modelLoadRun": true,
+    "vllmEngineInitialized": true,
+    "inferenceRun": true
+  },
+  "runtimeSideEffects": {
+    "generatedAssetsCreated": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "supabaseTouched": false,
+    "sqlExecuted": false,
+    "workersDispatched": false,
+    "creditMutationCreated": false
+  },
+  "artifactManifest": {
+    "localEvidenceOnly": true,
+    "rawOutputStoredInRepo": false,
+    "artifacts": [
+      {
+        "fileName": "qwen2-5-vl-confirmed-adapter-runtime-fixture-report.json",
+        "bytes": 5267,
+        "sha256": "fef0ca0285d1a98d91b16f5411a307e82029869db53dc80378f1784ed36ef135"
+      },
+      {
+        "fileName": "qwen2-5-vl-confirmed-adapter-runtime-fixture-manifest.json",
+        "bytes": 577,
+        "sha256": "41bc765632961c7076aebeeff154697c07ace3b8921f0924d89061e8e8fef355"
+      }
+    ]
+  },
+  "failClosedRestore": {
+    "passed": true,
+    "serviceOk": true,
+    "jobOk": true,
+    "serviceLatestReadyRevisionAfterRestore": "reeditpro-qwen2-5-vl-l4-worker-00022-5h9",
+    "jobGenerationAfterRestore": 15,
+    "serviceEnvAfterRestore": {
+      "QWEN_MODEL_IMPORT_ON_STARTUP": "false",
+      "QWEN_APPROVED_FIXTURE_INFERENCE_ENABLED": "false",
+      "QWEN_INFERENCE_ENABLED": "false"
+    },
+    "jobEnvAfterRestore": {
+      "QWEN_CPU_CALLER_EXECUTION_ENABLED": "false",
+      "QWEN_CPU_CALLER_EXPECT_FIXTURE_INFERENCE": "false",
+      "QWEN_CPU_CALLER_TIMEOUT_SECONDS": "20"
+    },
+    "jobTaskTimeoutSecondsAfterRestore": "60"
+  },
+  "readiness": {
+    "qwenConfirmedAdapterRuntimeFixture": "passed",
+    "externalBetaUnlockedInThisPhase": false,
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_WORKFLOW_BINDING_1"
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

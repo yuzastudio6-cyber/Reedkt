@@ -27,7 +27,21 @@ const requiredFiles = [
   'package.json',
 ]
 
-const allowedFiles = new Set(requiredFiles)
+const followOnConfirmedAdapterRuntimeFixtureFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1/runtime-result.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1/artifact-manifest-summary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1/fail-closed-restore.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1/qwen2-5-vl-confirmed-adapter-runtime-fixture-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-workflow-binding-1.md',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1-confirmed.mjs',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([...requiredFiles, ...followOnConfirmedAdapterRuntimeFixtureFiles])
 
 const requiredText = [
   packet,

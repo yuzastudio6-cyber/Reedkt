@@ -181,6 +181,20 @@ authorized only for on-demand startup after an accepted worker/tool-call job.
 are preserved for all eight GPU/model tools, and no idle GPU runtime is
 approved.
 
+AI graphics external beta runtime admission decision
+`ai_graphics_external_beta_runtime_admission_contract_prepared_with_runtime_blocks`
+wraps the external-beta launch go/no-go record with the on-demand runtime
+admission gate and live-user controls: feature flag, rollout scope, tool
+allowlist, telemetry, support ownership, cost guardrail, worker pool, private
+artifact manifest, and GPU concurrency limits. With provided private/backend
+evidence, the SAM2 and D3 examples can reach future external-beta worker enqueue
+admission, but this still does not execute tools, enqueue workers, start GPU
+runtime, create signed URLs, create public artifacts, unlock external beta, or
+unlock production. GPU runtime is only start-allowed for an accepted future
+external-beta worker job; `gpuRuntimeShouldStartNow=false`,
+`externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
+GPU runtime is only start-allowed for an accepted future external-beta worker job.
+
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
 shapes the all-21 queue-admission packets into backend queue adapter submission

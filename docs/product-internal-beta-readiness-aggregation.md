@@ -177,6 +177,16 @@ The provider/model-call policy gate is source-closed for the external beta chain
 
 The single active Supabase target remains `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`; the isolated project `fajinbvwhcjnutkaumkm` remains historical sandbox evidence only and no data is copied from it.
 
-Current external product beta blocker: `blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure`. Product-ready end-to-end local OSS tools: `0`.
+Current external product beta blocker after provider policy closure: `blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure`. Product-ready end-to-end local OSS tools: `0`.
 
 Next milestone: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
+
+## RP External Beta QA Cleanup Observability Rollback Review 1
+
+`RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1` records decision `completed_external_beta_qa_cleanup_observability_rollback_review_no_runtime_execution` and execution `completed_docs_only_qa_cleanup_observability_rollback_review_no_runtime_execution`.
+
+The review is docs/status/diagnostics-only. It carries forward QA, cleanup, observability, rollback, incident support, privacy, cost, and deployment posture without running providers, models, workers, routes, Supabase, SQL, Remotion, Docker, FFmpeg/FFprobe, or media processing in this phase.
+
+Current external product beta blocker: `blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review`. Product-ready end-to-end local OSS tools: `0`.
+
+Next milestone: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.

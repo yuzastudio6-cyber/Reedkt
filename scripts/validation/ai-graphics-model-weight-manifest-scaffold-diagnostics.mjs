@@ -41,6 +41,21 @@ const expectedRuntimePaths = {
   transparent_background: '/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json',
 }
 
+const expectedCandidateIds = {
+  sam2: 'facebook_sam2_1_hiera_tiny_existing_staging_evidence',
+  birefnet: 'zhengpeng7_birefnet_official_weights_review_candidate',
+  real_esrgan: 'xinntao_real_esrgan_x4plus',
+  rembg: 'danielgatis_rembg_isnet_general_use_review_candidate',
+  transparent_background: 'plemeri_transparent_background_base_ckpt_review_candidate',
+}
+
+const expectedArtifactFileNames = {
+  sam2: 'sam2.1_hiera_tiny.pt',
+  real_esrgan: 'RealESRGAN_x4plus.pth',
+  rembg: 'isnet-general-use.onnx',
+  transparent_background: 'ckpt_base.pth',
+}
+
 const failures = []
 
 function fail(message) {
@@ -117,6 +132,7 @@ const requiredFiles = [
   'server/tool-registry/index.ts',
   'docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.md',
   'docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.json',
+  'docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json',
   'docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json',
   'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json',
 ]
@@ -125,6 +141,7 @@ for (const file of requiredFiles) read(file)
 
 const pkg = json('package.json')
 const packet = json('docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.json')
+const sourceCatalog = json('docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json')
 const manifestPacket = json('docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json')
 const commandPlanPacket = json('docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json')
 const moduleSource = read('server/tool-registry/ai-graphics-model-weight-manifest-scaffold.ts')
@@ -146,6 +163,12 @@ if (packet.decision !== 'ai_graphics_model_weight_manifest_scaffold_prepared_for
 if (manifestPacket.decision !== 'ai_graphics_model_weight_manifest_review_packet_prepared_with_no_private_records') {
   fail('manifest_review_packet_source_not_accepted')
 }
+if (sourceCatalog.decision !== 'ai_graphics_model_weight_source_catalog_prepared_with_review_blocks') {
+  fail('source_catalog_source_not_accepted')
+}
+if (packet.sourceEvidence?.modelWeightSourceCatalog !== 'docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json') {
+  fail('packet_missing_model_weight_source_catalog_evidence')
+}
 if (commandPlanPacket.decision !== 'ai_graphics_gpu_runtime_proof_command_plan_prepared_with_manifest_blocks') {
   fail('gpu_runtime_command_plan_source_not_accepted')
 }
@@ -154,6 +177,7 @@ for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
   modelWeightManifestRequiredTools: 5,
   scaffoldTemplatesPrepared: 5,
+  sourceCandidateGuidanceRecords: 5,
   privateArtifactRefsLogged: 0,
   manifestRecordsApprovedNow: 0,
   nativeGpuProofInputEligibleNow: 0,
@@ -171,11 +195,34 @@ for (const tool of modelWeightTools) {
   if (!JSON.stringify(packet.scaffoldFiles || []).includes(expectedRuntimePaths[tool])) {
     fail(`packet_missing_runtime_path:${tool}`)
   }
+  const scaffoldFile = (packet.scaffoldFiles || []).find((entry) => entry.toolId === tool)
+  const sourceCandidate = (sourceCatalog.sourceCandidates || []).find((entry) => entry.toolId === tool)
+  if (!scaffoldFile?.sourceCandidateGuidance) fail(`packet_missing_source_candidate_guidance:${tool}`)
+  if (!sourceCandidate) fail(`source_catalog_missing_candidate:${tool}`)
+  if (scaffoldFile?.sourceCandidateGuidance?.candidateId !== expectedCandidateIds[tool]) {
+    fail(`packet_candidate_guidance_id_mismatch:${tool}:${scaffoldFile?.sourceCandidateGuidance?.candidateId}`)
+  }
+  if (sourceCandidate && scaffoldFile?.sourceCandidateGuidance?.candidateId !== sourceCandidate.candidateId) {
+    fail(`packet_candidate_guidance_not_sourced_from_catalog:${tool}`)
+  }
+  if (expectedArtifactFileNames[tool] && scaffoldFile?.sourceCandidateGuidance?.artifactFileName !== expectedArtifactFileNames[tool]) {
+    fail(`packet_candidate_guidance_artifact_mismatch:${tool}:${scaffoldFile?.sourceCandidateGuidance?.artifactFileName}`)
+  }
+}
+if (!JSON.stringify(packet.scaffoldFiles || []).includes('d692e3dd5fa1b9658949d452bebf1cda')) {
+  fail('packet_missing_transparent_background_upstream_md5')
+}
+if (!JSON.stringify(packet.scaffoldFiles || []).includes('blocked_until_source_review_accepts_selected_candidate')) {
+  fail('packet_missing_source_review_block_status')
 }
 
 for (const token of [
   'AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_SCAFFOLD_DECISION',
   'buildAiGraphicsModelWeightManifestScaffoldPacket',
+  'listAiGraphicsModelWeightSourceCandidates',
+  'sourceCandidateGuidanceForTool',
+  'upstreamArtifactChecksumMd5ByTool',
+  'blocked_until_source_review_accepts_selected_candidate',
   'public://replace-with-reviewed-private-artifact-ref',
   'REPLACE_WITH_64_HEX_SHA256',
   'template_only_not_reviewed',
@@ -245,6 +292,15 @@ const scaffoldRun = parseOutput(scaffoldOutput, 'scaffold')
 if (scaffoldRun.output?.writtenFiles?.length !== 5) fail(`scaffold_written_file_count:${scaffoldRun.output?.writtenFiles?.length}`)
 if (scaffoldRun.output?.privateArtifactRefsLogged !== 0) fail('scaffold_private_artifact_refs_logged_not_zero')
 if (scaffoldRun.output?.scaffoldTemplatesAreReviewInvalid !== true) fail('scaffold_templates_not_marked_invalid')
+if (!JSON.stringify(scaffoldRun.scaffoldRecords || []).includes('isnet-general-use.onnx')) {
+  fail('scaffold_run_missing_rembg_source_guidance')
+}
+if (!JSON.stringify(scaffoldRun.scaffoldRecords || []).includes('ckpt_base.pth')) {
+  fail('scaffold_run_missing_transparent_background_source_guidance')
+}
+if (!JSON.stringify(scaffoldRun.scaffoldRecords || []).includes('d692e3dd5fa1b9658949d452bebf1cda')) {
+  fail('scaffold_run_missing_transparent_background_md5_guidance')
+}
 
 for (const tool of modelWeightTools) {
   const filePath = manifestPath(scaffoldDir, tool)

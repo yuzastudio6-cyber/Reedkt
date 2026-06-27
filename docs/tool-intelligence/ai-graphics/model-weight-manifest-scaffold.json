@@ -14,6 +14,7 @@
   },
   "sourceEvidence": {
     "manifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "modelWeightSourceCatalog": "docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json",
     "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json",
     "gpuRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
     "properInstallAudit": "docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json"
@@ -30,6 +31,7 @@
     "totalAiGraphicsTools": 21,
     "modelWeightManifestRequiredTools": 5,
     "scaffoldTemplatesPrepared": 5,
+    "sourceCandidateGuidanceRecords": 5,
     "privateArtifactRefsLogged": 0,
     "manifestRecordsApprovedNow": 0,
     "nativeGpuProofInputEligibleNow": 0,
@@ -49,31 +51,87 @@
       "toolId": "sam2",
       "templateId": "sam2_checkpoint",
       "relativeFilePath": "sam2/model_tree_manifest.json",
-      "expectedRuntimePath": "/opt/reeditpro/model-weights/sam2/model_tree_manifest.json"
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/sam2/model_tree_manifest.json",
+      "sourceCandidateGuidance": {
+        "candidateId": "facebook_sam2_1_hiera_tiny_existing_staging_evidence",
+        "candidateStatus": "internal_evidence_verified_private_manifest_required",
+        "reviewStatus": "limited_staging_evidence_exists_manifest_review_required",
+        "upstreamSourceName": "facebookresearch/sam2",
+        "upstreamSourceUrl": "https://github.com/facebookresearch/sam2",
+        "artifactFileName": "sam2.1_hiera_tiny.pt",
+        "modelIdOrName": "sam2.1_hiera_tiny",
+        "privateManifestAuthoringStatus": "ready_from_existing_internal_evidence_after_private_ref_authoring"
+      }
     },
     {
       "toolId": "birefnet",
       "templateId": "birefnet_model",
       "relativeFilePath": "birefnet/model_tree_manifest.json",
-      "expectedRuntimePath": "/opt/reeditpro/model-weights/birefnet/model_tree_manifest.json"
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/birefnet/model_tree_manifest.json",
+      "sourceCandidateGuidance": {
+        "candidateId": "zhengpeng7_birefnet_official_weights_review_candidate",
+        "candidateStatus": "internal_evidence_verified_private_manifest_required",
+        "reviewStatus": "limited_staging_evidence_exists_manifest_review_required",
+        "upstreamSourceName": "ZhengPeng7/BiRefNet",
+        "upstreamSourceUrl": "https://huggingface.co/ZhengPeng7/BiRefNet",
+        "sourceCodeUrl": "https://github.com/ZhengPeng7/BiRefNet",
+        "modelIdOrName": "ZhengPeng7/BiRefNet",
+        "privateManifestAuthoringStatus": "ready_from_existing_internal_evidence_after_private_ref_authoring"
+      }
     },
     {
       "toolId": "real_esrgan",
       "templateId": "real_esrgan_model",
       "relativeFilePath": "real-esrgan/model_tree_manifest.json",
-      "expectedRuntimePath": "/opt/reeditpro/model-weights/real-esrgan/model_tree_manifest.json"
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/real-esrgan/model_tree_manifest.json",
+      "sourceCandidateGuidance": {
+        "candidateId": "xinntao_real_esrgan_x4plus",
+        "candidateStatus": "internal_evidence_verified_private_manifest_required",
+        "reviewStatus": "limited_staging_evidence_exists_manifest_review_required",
+        "upstreamSourceName": "xinntao/Real-ESRGAN",
+        "upstreamSourceUrl": "https://github.com/xinntao/Real-ESRGAN",
+        "artifactSourceUrl": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth",
+        "artifactFileName": "RealESRGAN_x4plus.pth",
+        "modelIdOrName": "RealESRGAN_x4plus",
+        "privateManifestAuthoringStatus": "ready_from_existing_internal_evidence_after_private_ref_authoring"
+      }
     },
     {
       "toolId": "rembg",
       "templateId": "rembg_model",
       "relativeFilePath": "rembg/model_tree_manifest.json",
-      "expectedRuntimePath": "/opt/reeditpro/model-weights/rembg/model_tree_manifest.json"
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/rembg/model_tree_manifest.json",
+      "sourceCandidateGuidance": {
+        "candidateId": "danielgatis_rembg_isnet_general_use_review_candidate",
+        "candidateStatus": "source_identified_review_required",
+        "reviewStatus": "requires_manual_source_license_checksum_and_quality_review",
+        "upstreamSourceName": "danielgatis/rembg",
+        "upstreamSourceUrl": "https://github.com/danielgatis/rembg",
+        "sourceCodeUrl": "https://github.com/xuebinqin/DIS",
+        "artifactSourceUrl": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx",
+        "artifactFileName": "isnet-general-use.onnx",
+        "modelIdOrName": "isnet-general-use",
+        "privateManifestAuthoringStatus": "blocked_until_source_review_accepts_selected_candidate"
+      }
     },
     {
       "toolId": "transparent_background",
       "templateId": "transparent_background_model",
       "relativeFilePath": "transparent-background/model_tree_manifest.json",
-      "expectedRuntimePath": "/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json"
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json",
+      "sourceCandidateGuidance": {
+        "candidateId": "plemeri_transparent_background_base_ckpt_review_candidate",
+        "candidateStatus": "source_identified_review_required",
+        "reviewStatus": "requires_manual_source_license_checksum_and_quality_review",
+        "upstreamSourceName": "plemeri/transparent-background",
+        "upstreamSourceUrl": "https://github.com/plemeri/transparent-background",
+        "sourceCodeUrl": "https://github.com/plemeri/InSPyReNet",
+        "artifactSourceUrl": "https://github.com/plemeri/transparent-background/releases/download/1.2.12/ckpt_base.pth",
+        "artifactFileName": "ckpt_base.pth",
+        "modelIdOrName": "transparent-background base mode ckpt_base.pth",
+        "upstreamArtifactChecksumMd5": "d692e3dd5fa1b9658949d452bebf1cda",
+        "privateManifestAuthoringStatus": "blocked_until_source_review_accepts_selected_candidate"
+      }
     }
   ],
   "booleans": {

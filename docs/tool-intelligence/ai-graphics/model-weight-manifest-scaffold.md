@@ -20,6 +20,16 @@ The scaffold writes the runtime mount layout expected by the GPU proof command p
 - `rembg/model_tree_manifest.json`
 - `transparent-background/model_tree_manifest.json`
 
+## Source Candidate Guidance
+
+Each scaffold record is linked to the current model-weight source catalog so local private manifest authoring uses the selected candidate instead of a generic placeholder:
+
+- `sam2`: `facebook_sam2_1_hiera_tiny_existing_staging_evidence`; ready for private manifest drafting from existing internal evidence after private refs are authored.
+- `birefnet`: `zhengpeng7_birefnet_official_weights_review_candidate`; ready for private manifest drafting from existing internal evidence after private refs are authored.
+- `real_esrgan`: `xinntao_real_esrgan_x4plus`; ready for private manifest drafting from existing internal evidence after private refs are authored.
+- `rembg`: `danielgatis_rembg_isnet_general_use_review_candidate`, artifact candidate `isnet-general-use.onnx`; blocked until source/license/checksum/provenance/quality/security review accepts the selected candidate.
+- `transparent_background`: `plemeri_transparent_background_base_ckpt_review_candidate`, artifact candidate `ckpt_base.pth`, upstream MD5 `d692e3dd5fa1b9658949d452bebf1cda`; blocked until source/license/checksum/provenance/quality/security review accepts the selected candidate.
+
 ## Command
 
 Use a local-only path, preferably under `.local-artifacts`, and do not commit the generated files:

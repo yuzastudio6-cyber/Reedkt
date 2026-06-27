@@ -418,6 +418,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - The source packet must already report `service_role_queue_transaction_envelope_prepared_live_writes_blocked` with all 21 service-role transaction records ready.
 - Diagnostic coverage proves packet-fed RPC smoke readiness still prepares 21 smoke cases across the four service-role RPCs while keeping `serviceRoleRpcSmokeApprovedNow=false`, `serviceRoleSupabaseWritesApprovedNow=false`, `liveServiceRoleRpcSmokeExecutedNow=0`, `runtimeReadyNow=false`, and `productionReadyNow=false`.
 - Static migration apply, non-production service-role credentials, explicit fixture IDs, and live smoke execution remain separate future-only gates.
+- Latest observed PR state after service-role RPC smoke source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `ccbb4f866c85d7b1ccf09dac5011edf77951729e`, with an empty check rollup.
 
 ## No-Scope
 

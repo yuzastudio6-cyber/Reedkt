@@ -485,6 +485,20 @@ const followOnBoundedTesterExpansionDecision1Files = [
   'package.json',
 ]
 
+const followOnToolReadinessStatusReconciliation1Files = [
+  'docs/external-beta/tool-readiness-status-reconciliation-1/source-audit.md',
+  'docs/external-beta/tool-readiness-status-reconciliation-1/status-reconciliation.md',
+  'docs/external-beta/tool-readiness-status-reconciliation-1/tool-production-gap-matrix.md',
+  'docs/external-beta/tool-readiness-status-reconciliation-1/validation-results.md',
+  'docs/external-beta/tool-readiness-status-reconciliation-1/tool-readiness-status-reconciliation-record.json',
+  'docs/activation-phase-rp-external-product-tool-readiness-status-reconciliation-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-product-tool-runtime-stack-integration-triage-1.md',
+  'docs/production-go-no-go-checklist.md',
+  'docs/production-hardening-overview.md',
+  'scripts/validation/rp-external-product-tool-readiness-status-reconciliation-1-diagnostics.mjs',
+  'package.json',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -1480,6 +1494,7 @@ const allowed = new Set([
   ...followOnControlledOwnerGoNoGo1Files,
   ...followOnNamedInvitedTesterWalkthrough1Files,
   ...followOnBoundedTesterExpansionDecision1Files,
+  ...followOnToolReadinessStatusReconciliation1Files,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,

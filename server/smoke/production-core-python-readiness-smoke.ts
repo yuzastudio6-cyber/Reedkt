@@ -33,7 +33,7 @@ check(statusByTool.get('ffmpeg') === 'passed', 'ffmpeg command readiness should 
 check(statusByTool.get('ffprobe') === 'passed', 'ffprobe command readiness should still pass.')
 check(statusByTool.get('sharp') === 'passed', 'sharp metadata readiness should still pass.')
 check(statusByTool.get('remotion') === 'passed', 'remotion metadata readiness should still pass.')
-check(statusByTool.get('hyperframe') !== 'passed', 'Hyperframe should not be claimed by this Python readiness lane.')
+check(statusByTool.get('hyperframe') === 'passed', 'Hyperframe source-boundary readiness should pass without a package import.')
 
 console.log(JSON.stringify({
   ok: true,

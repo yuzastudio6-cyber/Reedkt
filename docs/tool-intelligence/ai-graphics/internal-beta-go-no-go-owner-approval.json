@@ -61,6 +61,10 @@
     "sourceGoNoGoApprovedPacketRequired": true,
     "sourceGoNoGoPacketMustCoverAll21Tools": true,
     "sourceGoNoGoPacketMustCoverAll12Capabilities": true,
+    "sourceGoNoGoPacketMustPreserveEightGpuRuntimeTargets": true,
+    "sourceGoNoGoPacketMustPreserveOnDemandGpuRuntimePolicy": true,
+    "sourceGoNoGoPacketMustKeepNoIdleGpuRuntime": true,
+    "sourceGoNoGoPacketMustBlockCpuFallbackForHeavyTools": true,
     "sourceGoNoGoPacketMustKeepRuntimeBetaAndProductionFalse": true,
     "ownerApprovalRequiredAfterSourcePacket": true,
     "runtimeUnlockPerformed": false

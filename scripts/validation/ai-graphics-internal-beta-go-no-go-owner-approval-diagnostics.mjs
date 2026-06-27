@@ -87,6 +87,17 @@ const falseGateKeys = [
   'signedUrlCreated',
 ]
 
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 const failures = []
 
 function fail(message) {
@@ -120,6 +131,7 @@ function git(args) {
 function runNpm(scriptName, args = []) {
   return execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
     encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
   })
 }
@@ -154,6 +166,44 @@ function writeJsonPacket(root, fileName, packet) {
   const packetPath = path.join(root, fileName)
   fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
   return packetPath
+}
+
+function deepMerge(base, patch) {
+  const output = Array.isArray(base) ? [...base] : { ...base }
+  for (const [key, value] of Object.entries(patch ?? {})) {
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      base?.[key] &&
+      typeof base[key] === 'object' &&
+      !Array.isArray(base[key])
+    ) {
+      output[key] = deepMerge(base[key], value)
+    } else {
+      output[key] = value
+    }
+  }
+  return output
+}
+
+function deepClone(value) {
+  return JSON.parse(JSON.stringify(value))
+}
+
+function expectSourceGoNoGoPacketRejected(label, packetRoot, sourceGoNoGoPacket, mutatePacket) {
+  const packet = typeof mutatePacket === 'function' ? mutatePacket(deepClone(sourceGoNoGoPacket)) : deepClone(sourceGoNoGoPacket)
+  const packetPath = writeJsonPacket(packetRoot, `bad-internal-beta-go-no-go-packet-${label}.json`, packet)
+  try {
+    runNpm(runScriptName, [
+      '--internal-beta-go-no-go-packet',
+      packetPath,
+      '--require-internal-beta-go-no-go-owner-approved',
+    ])
+    fail(`bad_source_go_no_go_packet_was_accepted:${label}`)
+  } catch {
+    // Expected: malformed source go/no-go evidence must fail before owner approval acceptance.
+  }
 }
 
 const requiredFiles = [
@@ -241,6 +291,10 @@ for (const [key, expected] of Object.entries({
   sourceGoNoGoApprovedPacketRequired: true,
   sourceGoNoGoPacketMustCoverAll21Tools: true,
   sourceGoNoGoPacketMustCoverAll12Capabilities: true,
+  sourceGoNoGoPacketMustPreserveEightGpuRuntimeTargets: true,
+  sourceGoNoGoPacketMustPreserveOnDemandGpuRuntimePolicy: true,
+  sourceGoNoGoPacketMustKeepNoIdleGpuRuntime: true,
+  sourceGoNoGoPacketMustBlockCpuFallbackForHeavyTools: true,
   sourceGoNoGoPacketMustKeepRuntimeBetaAndProductionFalse: true,
   ownerApprovalRequiredAfterSourcePacket: true,
   runtimeUnlockPerformed: false,
@@ -258,10 +312,23 @@ if (!markdown.includes('--internal-beta-go-no-go-packet')) {
 if (!moduleSource.includes('sourceInternalBetaGoNoGoPacket')) {
   fail('module_missing_source_go_no_go_packet_input')
 }
+for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  if (!cliSource.includes(tool)) fail(`cli_missing_expected_gpu_tool:${tool}`)
+  if (!cliSource.includes(runtimeTarget)) fail(`cli_missing_expected_gpu_runtime_target:${tool}`)
+}
+for (const phrase of [
+  'exactly eight GPU/model gate checks',
+  'exactly eight nested GPU/model source job payloads',
+  'on-demand-only GPU runtime',
+  'no idle GPU runtime approval',
+  'CPU fallback blocked for heavy/model tools',
+]) {
+  if (!markdown.includes(phrase)) fail(`markdown_missing_source_go_no_go_gpu_policy:${phrase}`)
+}
 for (const expectedCliSourceGuard of [
-  'goNoGoCandidateToolsWithProvidedEvidence === 21',
-  'goNoGoCandidateCapabilitiesWithProvidedEvidence === 12',
-  'internalBetaGoNoGoApprovedToolsWithProvidedEvidence === 21',
+  "assertField(record, 'goNoGoCandidateToolsWithProvidedEvidence', 21)",
+  "assertField(record, 'goNoGoCandidateCapabilitiesWithProvidedEvidence', 12)",
+  "assertField(record, 'internalBetaGoNoGoApprovedToolsWithProvidedEvidence', 21)",
   'runtimeReadyNow',
 ]) {
   if (!cliSource.includes(expectedCliSourceGuard)) {
@@ -453,6 +520,107 @@ if (packetApprovedOutput.ownerApprovedToolsWithProvidedEvidence !== 21) {
 if (packetApprovedOutput.ownerApprovedCapabilitiesWithProvidedEvidence !== 12) {
   fail('packet_approved_capabilities_not_12')
 }
+
+expectSourceGoNoGoPacketRejected('missing_tool_coverage', path.dirname(manifestPacketPath), sourceGoNoGoPacket, (packet) =>
+  deepMerge(packet, { totalAiGraphicsTools: 20 }),
+)
+expectSourceGoNoGoPacketRejected(
+  'missing_capability_coverage',
+  path.dirname(manifestPacketPath),
+  sourceGoNoGoPacket,
+  (packet) => deepMerge(packet, { totalProductFacingCapabilities: 11 }),
+)
+expectSourceGoNoGoPacketRejected(
+  'source_rollup_wrong_gpu_runtime_target_count',
+  path.dirname(manifestPacketPath),
+  sourceGoNoGoPacket,
+  (packet) => deepMerge(packet, { sourceRollup: { gpuRuntimeTargetedTools: 7 } }),
+)
+expectSourceGoNoGoPacketRejected(
+  'source_rollup_wrong_gpu_runtime_target_value',
+  path.dirname(manifestPacketPath),
+  sourceGoNoGoPacket,
+  (packet) => {
+    packet.sourceRollup.expectedGpuRuntimeTargets.sam2 = 'native_linux_amd64_cpu_worker'
+    return packet
+  },
+)
+expectSourceGoNoGoPacketRejected(
+  'source_rollup_wrong_gpu_gate_check_count',
+  path.dirname(manifestPacketPath),
+  sourceGoNoGoPacket,
+  (packet) => {
+    const gateCheck = packet.sourceRollup.productionWorkerGateReadiness.productionWorkerGateChecks.find(
+      (candidate) => candidate.toolId === 'sam2',
+    )
+    gateCheck.toolId = 'sam2_misclassified'
+    return packet
+  },
+)
+expectSourceGoNoGoPacketRejected(
+  'source_rollup_wrong_nested_gpu_payload_count',
+  path.dirname(manifestPacketPath),
+  sourceGoNoGoPacket,
+  (packet) => {
+    const payload =
+      packet.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.sourceToolId = 'sam2_misclassified'
+    return packet
+  },
+)
+expectSourceGoNoGoPacketRejected(
+  'source_rollup_gpu_runtime_on_demand_policy_removed',
+  path.dirname(manifestPacketPath),
+  sourceGoNoGoPacket,
+  (packet) => {
+    const payload =
+      packet.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.productionWorkerJobPayload.metadata.aiGraphicsRuntimeActivationPolicy.onDemandOnly = false
+    return packet
+  },
+)
+expectSourceGoNoGoPacketRejected(
+  'source_rollup_idle_gpu_runtime_approved',
+  path.dirname(manifestPacketPath),
+  sourceGoNoGoPacket,
+  (packet) => {
+    const payload =
+      packet.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.productionWorkerJobPayload.metadata.noIdleGpuRuntimeApproved = false
+    return packet
+  },
+)
+expectSourceGoNoGoPacketRejected(
+  'source_rollup_heavy_tool_cpu_fallback_allowed',
+  path.dirname(manifestPacketPath),
+  sourceGoNoGoPacket,
+  (packet) => {
+    const payload =
+      packet.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.productionWorkerJobPayload.metadata.cpuFallbackAllowedForHeavyTools = true
+    return packet
+  },
+)
+expectSourceGoNoGoPacketRejected('gpu_runtime_approved_now', path.dirname(manifestPacketPath), sourceGoNoGoPacket, (packet) =>
+  deepMerge(packet, { booleans: { gpuRuntimeApprovedNow: true } }),
+)
+expectSourceGoNoGoPacketRejected(
+  'production_worker_dispatch_approved_now',
+  path.dirname(manifestPacketPath),
+  sourceGoNoGoPacket,
+  (packet) => deepMerge(packet, { booleans: { productionWorkerDispatchApprovedNow: true } }),
+)
+expectSourceGoNoGoPacketRejected('tool_execution_performed', path.dirname(manifestPacketPath), sourceGoNoGoPacket, (packet) =>
+  deepMerge(packet, { booleans: { toolExecutionPerformed: true } }),
+)
 
 const sourceRollupPacket = parseJsonOutput(runNpm('ai-graphics:beta-production-readiness-rollup', [
   '--use-committed-js-runtime-proofs',

@@ -10,6 +10,52 @@ import type {
   AiGraphicsBetaEvidenceBundleInput,
 } from '../tool-registry/ai-graphics-beta-evidence-bundle'
 
+const expectedGpuRuntimeTargets: Record<string, string> = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
+const requiredSourceFalseBooleans = [
+  'agentCanExecuteToolsNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'productionWorkerJobEnqueueApprovedNow',
+  'productionWorkerDispatchApprovedNow',
+  'productionWorkerRouteExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'routeExecutionPerformed',
+  'productionWorkerDispatchPerformed',
+  'productionWorkerRouteExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]
+
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
 }
@@ -56,39 +102,213 @@ function readProofPacket(flag: string, committedPath: string): unknown | undefin
   return undefined
 }
 
-function isInternalBetaGoNoGoPacket(value: unknown): value is AiGraphicsInternalBetaGoNoGo {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  const record = value as Record<string, unknown>
-  const booleans = record.booleans
-  return (
-    record.decision === 'ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks' &&
-    record.status === 'internal_beta_go_no_go_approved_runtime_still_blocked' &&
-    record.totalAiGraphicsTools === 21 &&
-    record.totalProductFacingCapabilities === 12 &&
-    record.goNoGoCandidateToolsWithProvidedEvidence === 21 &&
-    record.goNoGoCandidateCapabilitiesWithProvidedEvidence === 12 &&
-    record.internalBetaGoNoGoApprovedToolsWithProvidedEvidence === 21 &&
-    record.internalBetaReadyNowTools === 0 &&
-    record.externalBetaReadyNowTools === 0 &&
-    record.productionReadyNowTools === 0 &&
-    Boolean(
-      booleans &&
-      typeof booleans === 'object' &&
-      !Array.isArray(booleans) &&
-      (booleans as Record<string, unknown>).sourceBetaProductionReadinessRollupAccepted === true &&
-      (booleans as Record<string, unknown>).internalBetaGoNoGoReadyWithProvidedEvidence === true &&
-      (booleans as Record<string, unknown>).internalBetaGoNoGoApprovalRecordAccepted === true &&
-      (booleans as Record<string, unknown>).all21ToolsInternalBetaGoNoGoApprovedWithProvidedEvidence === true &&
-      (booleans as Record<string, unknown>).agentCanExecuteToolsNow === false &&
-      (booleans as Record<string, unknown>).workerQueueApprovedNow === false &&
-      (booleans as Record<string, unknown>).productionWorkerDispatchApprovedNow === false &&
-      (booleans as Record<string, unknown>).gpuRuntimeApprovedNow === false &&
-      (booleans as Record<string, unknown>).runtimeReadyNow === false &&
-      (booleans as Record<string, unknown>).internalBetaReadyNow === false &&
-      (booleans as Record<string, unknown>).externalBetaReadyNow === false &&
-      (booleans as Record<string, unknown>).productionReadyNow === false
+function asRecord(value: unknown, field: string): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Internal beta go/no-go packet must include object field: ${field}.`)
+  }
+  return value as Record<string, unknown>
+}
+
+function assertField(record: Record<string, unknown>, key: string, expected: unknown): void {
+  if (record[key] !== expected) {
+    throw new Error(
+      `Internal beta go/no-go packet field ${key} must equal ${String(expected)}; received ${String(
+        record[key],
+      )}.`,
     )
+  }
+}
+
+function validateSourceRollup(record: Record<string, unknown>): void {
+  assertField(record, 'decision', 'ai_graphics_beta_production_readiness_rollup_prepared_with_runtime_blocks')
+  assertField(record, 'status', 'owner_approved_worker_gates_ready_runtime_still_blocked')
+  assertField(record, 'totalAiGraphicsTools', 21)
+  assertField(record, 'totalProductFacingCapabilities', 12)
+  assertField(record, 'properlyInstalledForPlannedSurface', 21)
+  assertField(record, 'productionMappedTools', 21)
+  assertField(record, 'duplicateProductionMappings', 0)
+  assertField(record, 'gpuRuntimeTargetedTools', 8)
+  assertField(record, 'gpuRuntimeTargetsExact', true)
+  assertField(record, 'gpuRuntimeOnDemandOnly', true)
+  assertField(record, 'heavyToolsIncorrectlyTargetingCpu', 0)
+  assertField(record, 'productionWorkerGateChecksAcceptedWithProvidedEvidence', 21)
+  assertField(record, 'capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence', 12)
+  assertField(record, 'hardFailedProductionWorkerGateChecksWithProvidedEvidence', 0)
+  assertField(record, 'internalBetaReadyNowTools', 0)
+  assertField(record, 'externalBetaReadyNowTools', 0)
+  assertField(record, 'productionReadyNowTools', 0)
+
+  const expectedTargets = asRecord(record.expectedGpuRuntimeTargets, 'sourceRollup.expectedGpuRuntimeTargets')
+  for (const [toolId, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+    assertField(expectedTargets, toolId, runtimeTarget)
+  }
+  if (Object.keys(expectedTargets).length !== 8) {
+    throw new Error('Internal beta go/no-go packet source rollup must preserve exactly 8 GPU runtime targets.')
+  }
+
+  const booleans = asRecord(record.booleans, 'sourceRollup.booleans')
+  for (const [key, expected] of Object.entries({
+    internalBetaGoNoGoReadyWithProvidedEvidence: true,
+    sourceProductionWorkerGateAcceptedWithProvidedEvidence: true,
+    all21ToolsCovered: true,
+    all12CapabilitiesCovered: true,
+    all21ToolsProperlyInstalledForPlannedSurface: true,
+    all21ToolsMappedToProductionRegistry: true,
+    noDuplicateProductionMappings: true,
+    gpuHeavyToolsTargetGpuRuntime: true,
+    gpuRuntimeTargetsExact: true,
+    gpuRuntimeOnDemandOnly: true,
+    productionWorkerGateHardFailuresWithProvidedEvidenceAbsent: true,
+  })) {
+    assertField(booleans, key, expected)
+  }
+  for (const key of requiredSourceFalseBooleans) {
+    assertField(booleans, key, false)
+  }
+
+  const productionWorkerGateReadiness = asRecord(
+    record.productionWorkerGateReadiness,
+    'sourceRollup.productionWorkerGateReadiness',
   )
+  assertField(productionWorkerGateReadiness, 'status', 'owner_approved_production_worker_gate_checks_ready')
+  assertField(productionWorkerGateReadiness, 'productionWorkerGateChecksAcceptedWithProvidedEvidence', 21)
+  assertField(
+    productionWorkerGateReadiness,
+    'capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence',
+    12,
+  )
+  assertField(productionWorkerGateReadiness, 'hardFailedGateChecksWithProvidedEvidence', 0)
+  assertField(productionWorkerGateReadiness, 'productionWorkerGateChecksReadyNow', 0)
+  if (
+    !Array.isArray(productionWorkerGateReadiness.productionWorkerGateChecks) ||
+    productionWorkerGateReadiness.productionWorkerGateChecks.length !== 21
+  ) {
+    throw new Error('Internal beta go/no-go packet source rollup must preserve exactly 21 production worker gate checks.')
+  }
+
+  const expectedGpuTools = new Set(Object.keys(expectedGpuRuntimeTargets))
+  const gpuGateChecks = productionWorkerGateReadiness.productionWorkerGateChecks.filter((gateCheck): boolean => {
+    const gateRecord = asRecord(gateCheck, 'sourceRollup.productionWorkerGateChecks[]')
+    return expectedGpuTools.has(String(gateRecord.toolId))
+  })
+  if (gpuGateChecks.length !== 8) {
+    throw new Error(`Internal beta go/no-go packet source rollup must preserve exactly 8 GPU/model gate checks; got ${gpuGateChecks.length}.`)
+  }
+
+  for (const gateCheck of productionWorkerGateReadiness.productionWorkerGateChecks) {
+    const gateRecord = asRecord(gateCheck, 'sourceRollup.productionWorkerGateChecks[]')
+    const toolId = String(gateRecord.toolId)
+    assertField(gateRecord, 'sourceProductionWorkerJobReadyWithProvidedEvidence', true)
+    assertField(gateRecord, 'gateChecksAcceptedWithProvidedEvidence', true)
+    assertField(gateRecord, 'canEnqueueProductionWorkerJobNow', false)
+    assertField(gateRecord, 'canDispatchProductionWorkerJobNow', false)
+    assertField(gateRecord, 'canRunProductionWorkerRouteNow', false)
+    assertField(gateRecord, 'canExecuteToolNow', false)
+    if (Array.isArray(gateRecord.hardFailedGateNames) && gateRecord.hardFailedGateNames.length !== 0) {
+      throw new Error(`Internal beta go/no-go packet source rollup has hard failed gates for ${toolId}.`)
+    }
+
+    const expectedGpuTarget = expectedGpuRuntimeTargets[toolId]
+    if (expectedGpuTarget) {
+      assertField(gateRecord, 'workerType', 'gpu_ai_worker')
+      assertField(gateRecord, 'runtimeTarget', expectedGpuTarget)
+    } else if (gateRecord.workerType === 'gpu_ai_worker' || String(gateRecord.runtimeTarget).includes('nvidia_l4')) {
+      throw new Error(`Unexpected GPU/model gate check for non-GPU tool: ${toolId}.`)
+    }
+  }
+
+  const sourceJobReadiness = asRecord(
+    productionWorkerGateReadiness.sourceProductionWorkerJobReadiness,
+    'sourceRollup.sourceProductionWorkerJobReadiness',
+  )
+  if (
+    sourceJobReadiness.status !== 'owner_approved_production_worker_jobs_ready' ||
+    sourceJobReadiness.productionWorkerJobPayloadsReadyWithProvidedEvidence !== 21 ||
+    sourceJobReadiness.capabilityProductionWorkerJobScenariosReadyWithProvidedEvidence !== 12
+  ) {
+    throw new Error('Internal beta go/no-go packet source rollup must preserve owner-approved source job readiness.')
+  }
+  if (
+    !Array.isArray(sourceJobReadiness.productionWorkerJobPayloads) ||
+    sourceJobReadiness.productionWorkerJobPayloads.length !== 21
+  ) {
+    throw new Error('Internal beta go/no-go packet source rollup must preserve exactly 21 source job payloads.')
+  }
+
+  const gpuSourcePayloads = sourceJobReadiness.productionWorkerJobPayloads.filter((candidate): boolean => {
+    const candidateRecord = asRecord(candidate, 'sourceRollup.productionWorkerJobPayloads[]')
+    return expectedGpuTools.has(String(candidateRecord.sourceToolId))
+  })
+  if (gpuSourcePayloads.length !== 8) {
+    throw new Error(`Internal beta go/no-go packet source rollup must preserve exactly 8 GPU/model source payloads; got ${gpuSourcePayloads.length}.`)
+  }
+
+  for (const candidate of sourceJobReadiness.productionWorkerJobPayloads) {
+    const candidateRecord = asRecord(candidate, 'sourceRollup.productionWorkerJobPayloads[]')
+    const toolId = String(candidateRecord.sourceToolId)
+    const payload = asRecord(candidateRecord.productionWorkerJobPayload, `productionWorkerJobPayload:${toolId}`)
+    const metadata = asRecord(payload.metadata, `productionWorkerJobPayload.metadata:${toolId}`)
+    const policy = asRecord(metadata.aiGraphicsRuntimeActivationPolicy, `runtimeActivationPolicy:${toolId}`)
+    assertField(candidateRecord, 'productionWorkerJobReadyWithProvidedEvidence', true)
+    assertField(candidateRecord, 'canEnqueueProductionWorkerJobNow', false)
+    assertField(candidateRecord, 'canRunProductionWorkerRouteNow', false)
+    assertField(candidateRecord, 'canExecuteToolNow', false)
+    assertField(policy, 'onDemandOnly', true)
+    assertField(policy, 'noIdleGpuRuntimeApproved', true)
+    assertField(policy, 'startsOnlyForApprovedWorkerOrToolCall', true)
+    assertField(policy, 'cpuFallbackAllowedForHeavyTools', false)
+    assertField(metadata, 'gpuRuntimeOnDemandOnly', true)
+    assertField(metadata, 'noIdleGpuRuntimeApproved', true)
+    assertField(metadata, 'startsOnlyForApprovedWorkerOrToolCall', true)
+    assertField(metadata, 'cpuFallbackAllowedForHeavyTools', false)
+
+    const expectedGpuTarget = expectedGpuRuntimeTargets[toolId]
+    if (expectedGpuTarget) {
+      assertField(candidateRecord, 'sourceRuntimeTarget', expectedGpuTarget)
+      assertField(payload, 'workerType', 'gpu_ai_worker')
+      assertField(metadata, 'aiGraphicsRuntimeTarget', expectedGpuTarget)
+    } else if (payload.workerType === 'gpu_ai_worker' || String(candidateRecord.sourceRuntimeTarget).includes('nvidia_l4')) {
+      throw new Error(`Unexpected GPU/model source job payload for non-GPU tool: ${toolId}.`)
+    }
+  }
+}
+
+function validateInternalBetaGoNoGoPacket(value: unknown): AiGraphicsInternalBetaGoNoGo {
+  const record = asRecord(value, 'packet')
+  assertField(record, 'decision', 'ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks')
+  assertField(record, 'status', 'internal_beta_go_no_go_approved_runtime_still_blocked')
+  assertField(record, 'totalAiGraphicsTools', 21)
+  assertField(record, 'totalProductFacingCapabilities', 12)
+  assertField(record, 'goNoGoCandidateToolsWithProvidedEvidence', 21)
+  assertField(record, 'goNoGoCandidateCapabilitiesWithProvidedEvidence', 12)
+  assertField(record, 'internalBetaGoNoGoReadyWithProvidedEvidence', true)
+  assertField(record, 'internalBetaGoNoGoApprovalRecordAccepted', true)
+  assertField(record, 'internalBetaGoNoGoApprovedToolsWithProvidedEvidence', 21)
+  assertField(record, 'internalBetaReadyNowTools', 0)
+  assertField(record, 'externalBetaReadyNowTools', 0)
+  assertField(record, 'productionReadyNowTools', 0)
+
+  const approvalRecord = asRecord(record.requiredApprovalRecord, 'requiredApprovalRecord')
+  assertField(approvalRecord, 'approverRole', 'AI_TOOLS_CREATIVE_GRAPHICS_OWNER')
+  assertField(approvalRecord, 'approvesRuntimeNow', false)
+
+  const booleans = asRecord(record.booleans, 'booleans')
+  for (const [key, expected] of Object.entries({
+    sourceBetaProductionReadinessRollupAccepted: true,
+    internalBetaGoNoGoReadyWithProvidedEvidence: true,
+    internalBetaGoNoGoApprovalRecordAccepted: true,
+    all21ToolsCovered: true,
+    all12CapabilitiesCovered: true,
+    all21ToolsInternalBetaGoNoGoApprovedWithProvidedEvidence: true,
+  })) {
+    assertField(booleans, key, expected)
+  }
+  for (const key of requiredSourceFalseBooleans) {
+    assertField(booleans, key, false)
+  }
+
+  validateSourceRollup(asRecord(record.sourceRollup, 'sourceRollup'))
+  return value as AiGraphicsInternalBetaGoNoGo
 }
 
 function readSourceGoNoGoPacket(): {
@@ -97,13 +317,9 @@ function readSourceGoNoGoPacket(): {
 } {
   const sourcePacket = readJsonObjectFile('--internal-beta-go-no-go-packet')
   if (!sourcePacket) return { sourceEvidenceMode: 'constructed_from_cli_flags' }
-  if (!isInternalBetaGoNoGoPacket(sourcePacket)) {
-    throw new Error(
-      '--internal-beta-go-no-go-packet must report internal_beta_go_no_go_approved_runtime_still_blocked for all 21 tools and all runtime/beta/production gates still false.',
-    )
-  }
+  const validatedPacket = validateInternalBetaGoNoGoPacket(sourcePacket)
   return {
-    sourceGoNoGo: sourcePacket,
+    sourceGoNoGo: validatedPacket,
     sourceEvidenceMode: 'internal_beta_go_no_go_packet',
   }
 }

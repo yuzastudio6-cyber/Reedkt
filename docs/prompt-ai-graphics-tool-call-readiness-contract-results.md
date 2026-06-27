@@ -198,6 +198,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Model-weight private namespace hardening: model-weight manifest review and native GPU proof input now require `privateArtifactRef` to use an explicit reviewed private namespace (`private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`). HTTP(S), signed, public, raw `gs://`, and arbitrary placeholder refs fail before GPU proof or beta evidence can accept them. Valid private refs remain redacted, GPU runtime remains on-demand only, and execution/runtime/beta/production stay false.
 - Latest observed PR state after model-weight private namespace hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `719d6265e7c5db038207fb05708c845924ba873f`, with an empty check rollup.
 - Beta evidence private namespace propagation: the beta evidence bundle now rejects stale pre-namespace model-weight and native GPU proof packets. Model-weight packets must prove `privateArtifactRefNamespaceRequired=true`; GPU proof packets must prove both `privateArtifactRefNamespaceRequired=true` and `model_manifest_private_namespace_enforced`. Shared downstream fixtures were updated to carry the same proof, keeping GPU runtime on-demand only and all execution/runtime/beta/production gates false.
+- Latest observed PR state after beta evidence private namespace propagation: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `f695ad42b4ff3f24ec732a864fd8ef051b7ee6b1`, with an empty check rollup.
 
 ## Runtime State
 

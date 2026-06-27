@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'structured_fixture_output_smoke_retry_required',
-  'Private invoke client status must record the structured fixture output smoke retry blocker.',
+  data.privateInvokeClient.currentStatus === 'structured_fixture_output_result_review_required',
+  'Private invoke client status must record the structured fixture output result-review blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -162,14 +162,16 @@ check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advi
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
 check(
-  docText.includes('structured_fixture_output_smoke_retry_required') ||
-    data.privateInvokeClient.currentStatus === 'structured_fixture_output_smoke_retry_required',
-  'Doc/data must record structured fixture output smoke retry blocker status.',
+  docText.includes('structured_fixture_output_result_review_required') ||
+    data.privateInvokeClient.currentStatus === 'structured_fixture_output_result_review_required',
+  'Doc/data must record structured fixture output result-review blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
 check(docText.includes('`schemaKeys=[]`'), 'Doc must record the empty schema-key metadata.')
 check(docText.includes('`qwen_fixture_visual_metadata_v1`'), 'Doc must record the structured fixture schema.')
-check(docText.includes('`schemaValid=true`'), 'Doc must record the future schema-valid requirement.')
+check(docText.includes('`schemaValid=true`'), 'Doc must record the schema-valid structured retry evidence.')
+check(docText.includes('`objectCount=3`'), 'Doc must record structured object-row evidence.')
+check(docText.includes('`textLikeRegionCount=1`'), 'Doc must record structured text-like-row evidence.')
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||
     docText.includes('qwen_inference_disabled_after_contract_check'),

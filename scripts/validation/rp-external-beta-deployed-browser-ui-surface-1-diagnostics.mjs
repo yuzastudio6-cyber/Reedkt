@@ -178,8 +178,15 @@ if (!dockerfile.includes('RUN npm run build && npm run build:server')) fail('Doc
 if (!dockerfile.includes('COPY --from=build /app/dist ./dist')) fail('Dockerfile does not copy frontend dist into runtime image')
 
 const dockerignore = read('.dockerignore')
-if (!dockerignore.includes('!src/backend/providers/gateway/provider-secret-boundary.ts')) {
-  fail('.dockerignore must allow the provider secret-boundary source module required by frontend typecheck')
+for (const text of [
+  '!src/backend/providers/gateway/provider-secret-boundary.ts',
+  '!server/activation/gcp-staging/gcp-staging-secret-plan.ts',
+  '!server/security-review/secret-safety-policy.ts',
+  '!server/config/internal-beta-supabase-credential-context-contract.ts',
+  '!server/model-weights/',
+  '!server/model-weights/*.ts',
+]) {
+  if (!dockerignore.includes(text)) fail(`.dockerignore must allow required TypeScript source module: ${text}`)
 }
 
 const router = read('src/server/server-router.ts')

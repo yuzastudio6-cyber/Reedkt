@@ -84,6 +84,8 @@
     "ai-graphics:external-beta-service-role-queue-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-service-role-queue-smoke-diagnostics.mjs",
     "ai-graphics:external-beta-service-role-queue-smoke-proof": "tsx server/cli/ai-graphics-external-beta-service-role-queue-smoke-proof.ts",
     "ai-graphics:external-beta-service-role-queue-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-service-role-queue-smoke-proof-diagnostics.mjs",
+    "ai-graphics:external-beta-worker-dispatch-readiness": "tsx server/cli/ai-graphics-external-beta-worker-dispatch-readiness.ts",
+    "ai-graphics:external-beta-worker-dispatch-readiness:diagnostics": "node scripts/validation/ai-graphics-external-beta-worker-dispatch-readiness-diagnostics.mjs",
     "ai-graphics:beta-activation-gap-report": "tsx server/cli/ai-graphics-beta-activation-gap-report.ts",
     "ai-graphics:beta-activation-gap-report:diagnostics": "node scripts/validation/ai-graphics-beta-activation-gap-report-diagnostics.mjs",
     "ai-graphics:beta-evidence-bundle:validate": "tsx server/cli/ai-graphics-beta-evidence-bundle.ts",

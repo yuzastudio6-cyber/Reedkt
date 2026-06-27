@@ -494,6 +494,16 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Validation run: `ai-graphics:internal-beta-queue-admission-readiness:diagnostics`, `ai-graphics:internal-beta-runtime-enqueue-approval:diagnostics`, `ai-graphics:internal-beta-queue-adapter-readiness:diagnostics`, `ai-graphics:on-demand-runtime-admission:diagnostics`, `ai-graphics:beta-readiness-gate:diagnostics`, `npm run typecheck:server`, and `git diff --check` passed.
 - Latest observed PR state after queue-admission source packet and on-demand GPU hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `a8e4487bc36255cf78ab927176e6df79916f4483`, with an empty check rollup.
 
+## Follow-Up: Queue-Adapter Source Packet And On-Demand GPU Hardening
+
+- Tightened `ai-graphics:internal-beta-queue-adapter-readiness` source packet validation for `--internal-beta-queue-admission-readiness-packet`.
+- A source queue-admission packet must now report `internal_beta_queue_admission_ready_runtime_still_blocked`, all 21 tools, all 12 capabilities, 21 ready queue-admission packets, 21 ready runtime-admission packets, eight GPU-targeted tools, eight accepted-future-job GPU start candidates, and runtime/beta/production gates false.
+- Diagnostic coverage proves invalid source packets are rejected when tool coverage drops to 20, when `gpuRuntimeShouldStartNow=true`, when the accepted-job GPU start count drops to 7, when `gpuRuntimeApprovedNow=true`, or when an individual queue-admission packet claims GPU start-now.
+- Queue adapter output now records `gpuRuntimeStartAllowedForAcceptedJobTools=8`, `gpuRuntimeStartAllowedOnlyForAcceptedJobs=true`, and `gpuRuntimeShouldStartNow=false`.
+- Runtime remains blocked: `backendQueueSubmissionApprovedNow=false`, `workerLeaseCreationApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+- Cost posture: the eight GPU/model tools remain GPU-targeted for accepted future worker/tool-call jobs only; no idle GPU runtime or standing GPU service is approved.
+- Validation run: `ai-graphics:internal-beta-queue-adapter-readiness:diagnostics`, `ai-graphics:internal-beta-queue-admission-readiness:diagnostics`, `ai-graphics:internal-beta-runtime-enqueue-approval:diagnostics`, `ai-graphics:internal-beta-queue-dispatcher-readiness:diagnostics`, `ai-graphics:on-demand-runtime-admission:diagnostics`, `ai-graphics:beta-readiness-gate:diagnostics`, `open-source-tool-stack:audit:diagnostics`, `npm run typecheck:server`, and `git diff --check` passed.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

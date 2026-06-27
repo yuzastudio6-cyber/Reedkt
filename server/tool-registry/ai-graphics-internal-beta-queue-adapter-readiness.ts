@@ -48,6 +48,8 @@ export interface AiGraphicsInternalBetaQueueAdapterSubmission {
   productionWorkerJobPayload: ProductionWorkerJobPayload
   sourceQueueAdmissionReadyWithProvidedEvidence: boolean
   sourceProductionWorkerJobReadyWithProvidedEvidence: boolean
+  gpuRuntimeStartAllowedForAcceptedJob: boolean
+  gpuRuntimeShouldStartNow: false
   adapterPayloadMatchesQueueAdmission: boolean
   adapterSubmissionReadyWithProvidedEvidence: boolean
   canSubmitToBackendQueueNow: false
@@ -78,6 +80,7 @@ export interface AiGraphicsInternalBetaQueueAdapterReadiness {
   queueAdapterSubmissionsReadyWithProvidedEvidence: number
   queueAdapterCapabilityScenariosPrepared: 12
   queueAdapterCapabilityScenariosReadyWithProvidedEvidence: number
+  gpuRuntimeStartAllowedForAcceptedJobTools: number
   liveBackendQueueSubmissionsNow: 0
   liveWorkerLeasesCreatedNow: 0
   liveProductionWorkerDispatchesNow: 0
@@ -103,6 +106,8 @@ export interface AiGraphicsInternalBetaQueueAdapterReadiness {
     gpuHeavyToolsTargetGpuRuntime: boolean
     gpuRuntimeTargetsExact: boolean
     gpuRuntimeOnDemandOnly: true
+    gpuRuntimeStartAllowedOnlyForAcceptedJobs: boolean
+    gpuRuntimeShouldStartNow: false
     privateArtifactManifestOnly: boolean
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
@@ -270,6 +275,9 @@ function toSubmission(input: {
       input.queueAdmission.queueAdmissionReadyWithProvidedEvidence,
     sourceProductionWorkerJobReadyWithProvidedEvidence:
       input.jobCandidate?.productionWorkerJobReadyWithProvidedEvidence === true,
+    gpuRuntimeStartAllowedForAcceptedJob:
+      input.queueAdmission.gpuRuntimeStartAllowedForAcceptedJob,
+    gpuRuntimeShouldStartNow: false,
     adapterPayloadMatchesQueueAdmission,
     adapterSubmissionReadyWithProvidedEvidence:
       input.adapterReady &&
@@ -365,6 +373,8 @@ export function buildAiGraphicsInternalBetaQueueAdapterReadiness(
     queueAdapterSubmissions.every((submission) => submission.adapterPayloadMatchesQueueAdmission)
   const gpuRuntimeTargetedTools =
     queueAdapterSubmissions.filter((submission) => submission.workerType === 'gpu_ai_worker').length
+  const gpuRuntimeStartAllowedForAcceptedJobTools =
+    queueAdapterSubmissions.filter((submission) => submission.gpuRuntimeStartAllowedForAcceptedJob).length
   const gpuRuntimeTargetsExactForSubmissions = gpuRuntimeTargetsExact(queueAdapterSubmissions)
 
   return {
@@ -379,6 +389,7 @@ export function buildAiGraphicsInternalBetaQueueAdapterReadiness(
     queueAdapterSubmissionsReadyWithProvidedEvidence,
     queueAdapterCapabilityScenariosPrepared: queueAdapterCapabilityScenarios.length as 12,
     queueAdapterCapabilityScenariosReadyWithProvidedEvidence,
+    gpuRuntimeStartAllowedForAcceptedJobTools,
     liveBackendQueueSubmissionsNow: 0,
     liveWorkerLeasesCreatedNow: 0,
     liveProductionWorkerDispatchesNow: 0,
@@ -406,6 +417,13 @@ export function buildAiGraphicsInternalBetaQueueAdapterReadiness(
       gpuHeavyToolsTargetGpuRuntime: gpuRuntimeTargetedTools === 8,
       gpuRuntimeTargetsExact: gpuRuntimeTargetsExactForSubmissions,
       gpuRuntimeOnDemandOnly: true,
+      gpuRuntimeStartAllowedOnlyForAcceptedJobs:
+        gpuRuntimeStartAllowedForAcceptedJobTools === gpuRuntimeTargetedTools &&
+        queueAdapterSubmissions.every((submission) => (
+          submission.gpuRuntimeStartAllowedForAcceptedJob ===
+          (submission.workerType === 'gpu_ai_worker')
+        )),
+      gpuRuntimeShouldStartNow: false,
       privateArtifactManifestOnly:
         sourceQueueAdmissionReadiness.booleans.privateArtifactManifestOnly,
       agentCanSelectForPlanning: true,

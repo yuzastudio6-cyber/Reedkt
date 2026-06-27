@@ -10,17 +10,19 @@ This contract shapes the all-21 AI graphics queue-admission packets into backend
 - Source queue-admission gate: `ai_graphics_internal_beta_queue_admission_readiness_contract_prepared_with_runtime_blocks`
 - Source production worker job gate: `ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime`
 - Source evidence modes: low-level evidence flags or source queue-admission packet via `--internal-beta-queue-admission-readiness-packet`
-- Source queue-admission packet must report `internal_beta_queue_admission_ready_runtime_still_blocked`; production worker job payload evidence remains separately required.
+- Source queue-admission packet must report `internal_beta_queue_admission_ready_runtime_still_blocked`, cover all 21 tools and all 12 capabilities, keep exactly eight GPU/model tools eligible for accepted future job startup, keep `gpuRuntimeShouldStartNow=false`, and keep runtime/beta/production gates false; production worker job payload evidence remains separately required.
 - AI graphics tools covered: 21
 - Product-facing capabilities covered: 12
 - Queue adapter submissions prepared: 21
 - Queue adapter submissions ready with provided evidence: 21
 - Queue adapter capability scenarios prepared: 12
 - Queue adapter capability scenarios ready with provided evidence: 12
+- GPU runtime start allowed for accepted future jobs: 8
 - GPU runtime targeted tools: 8
 - GPU runtime targets exact: true
 - GPU runtime on-demand only: true
 - Idle GPU runtime approved now: false
+- GPU runtime should start now: false
 - Heavy tools incorrectly targeting CPU: 0
 - Live backend queue submissions now: 0
 - Live worker leases created now: 0
@@ -81,6 +83,8 @@ This contract shapes the all-21 AI graphics queue-admission packets into backend
 - `creditReservationId`
 - `privateArtifactManifestRef`
 - `productionWorkerJobPayload`
+- `gpuRuntimeStartAllowedForAcceptedJob`
+- `gpuRuntimeShouldStartNow`
 - `adapterPayloadMatchesQueueAdmission`
 - `adapterSubmissionReadyWithProvidedEvidence`
 - `canSubmitToBackendQueueNow`
@@ -93,6 +97,7 @@ This contract shapes the all-21 AI graphics queue-admission packets into backend
 Queue adapter submissions preserve exact native NVIDIA L4 runtime targets for all eight GPU/model tools. `sam2` uses `native_linux_amd64_nvidia_l4_sam2_runtime`, `birefnet` uses `native_linux_amd64_nvidia_l4_birefnet_runtime`, and `real_esrgan` uses `native_linux_amd64_nvidia_l4_real_esrgan_runtime`; `torch_torchvision`, `transformers`, `kornia`, `rembg`, and `transparent_background` use `native_linux_amd64_nvidia_l4_gpu_worker`.
 
 GPU runtime remains on-demand only. Queue adapter readiness does not submit work or keep an idle GPU running; GPU startup is allowed only after a future approved worker job calls the GPU tool.
+Adapter submissions preserve `gpuRuntimeStartAllowedForAcceptedJob=true` only for the eight GPU/model tools and keep `gpuRuntimeShouldStartNow=false` for every tool.
 
 ## Allowed Preparation Actions
 
@@ -139,6 +144,8 @@ GPU runtime remains on-demand only. Queue adapter readiness does not submit work
 - `toolExecutionApprovedNow=false`
 - `gpuRuntimeTargetsExact=true`
 - `gpuRuntimeOnDemandOnly=true`
+- `gpuRuntimeStartAllowedOnlyForAcceptedJobs=true`
+- `gpuRuntimeShouldStartNow=false`
 - `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
 - `externalBetaReadyNow=false`

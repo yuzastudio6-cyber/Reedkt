@@ -68,6 +68,8 @@ const adapterFields = [
   'productionToolId',
   'workerType',
   'runtimeTarget',
+  'gpuRuntimeStartAllowedForAcceptedJob',
+  'gpuRuntimeShouldStartNow',
   'capabilityIds',
   'queueTransportRef',
   'idempotencyNamespace',
@@ -97,6 +99,7 @@ const falseGateKeys = [
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
   'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
   'runtimeReadyNow',
   'internalBetaReadyNow',
   'externalBetaReadyNow',
@@ -157,6 +160,7 @@ function runNpm(scriptName, args = []) {
     encoding: 'utf8',
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
     maxBuffer: 32 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
   })
 }
 
@@ -230,6 +234,30 @@ function writeQueueAdmissionReadinessPacket(manifestPacketPath, gpuPacketPath) {
   return packetPath
 }
 
+function writeMutatedQueueAdmissionPacket(sourcePacketPath, label, mutate) {
+  const packet = JSON.parse(fs.readFileSync(sourcePacketPath, 'utf8'))
+  mutate(packet)
+  const packetPath = path.join(path.dirname(sourcePacketPath), `${label}.json`)
+  fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
+function expectQueueAdmissionPacketRejected(sourcePacketPath, label, mutate, manifestPacketPath, gpuPacketPath) {
+  const badPacketPath = writeMutatedQueueAdmissionPacket(sourcePacketPath, label, mutate)
+  let rejected = false
+  try {
+    runNpm(runScriptName, [
+      ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+      '--internal-beta-queue-admission-readiness-packet',
+      badPacketPath,
+      '--require-queue-adapter-ready',
+    ])
+  } catch {
+    rejected = true
+  }
+  if (!rejected) fail(`bad_queue_admission_packet_not_rejected:${label}`)
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-internal-beta-queue-adapter-readiness.ts',
   'server/cli/ai-graphics-internal-beta-queue-adapter-readiness.ts',
@@ -277,6 +305,11 @@ for (const [key, expected] of Object.entries({
   acceptsQueueAdmissionReadinessPacket: true,
   sourceQueueAdmissionReadinessPacketRequired: true,
   sourceQueueAdmissionPacketMustReportReady: true,
+  sourceQueueAdmissionPacketMustCoverAll21Tools: true,
+  sourceQueueAdmissionPacketMustCoverAll12Capabilities: true,
+  sourceQueueAdmissionPacketMustKeepEightGpuFutureStartTools: true,
+  sourceQueueAdmissionPacketMustKeepGpuStartNowFalse: true,
+  sourceQueueAdmissionPacketMustKeepRuntimeBetaAndProductionFalse: true,
   productionWorkerJobEvidenceStillRequired: true,
   backendQueueSubmissionPerformed: false,
   runtimeUnlockPerformed: false,
@@ -324,6 +357,7 @@ for (const [key, expected] of Object.entries({
   queueAdapterCapabilityScenariosPrepared: 12,
   queueAdapterCapabilityScenariosReadyWithProvidedEvidence: 12,
   gpuRuntimeTargetedTools: 8,
+  gpuRuntimeStartAllowedForAcceptedJobTools: 8,
   heavyToolsIncorrectlyTargetingCpu: 0,
   liveBackendQueueSubmissionsNow: 0,
   liveWorkerLeasesCreatedNow: 0,
@@ -342,6 +376,7 @@ for (const [key, expected] of Object.entries({
   queueAdapterSubmissionsPreserveExactGpuRuntimeTargets: true,
   idleGpuRuntimeApprovedNow: false,
   gpuStartsOnlyAfterApprovedWorkerJob: true,
+  gpuRuntimeShouldStartNow: false,
 })) {
   if (docs.runtimeTargets?.[key] !== expected) {
     fail(`docs_runtime_target_policy_mismatch:${key}:${docs.runtimeTargets?.[key]}`)
@@ -397,6 +432,7 @@ for (const [key, expected] of Object.entries({
   gpuHeavyToolsTargetGpuRuntime: true,
   gpuRuntimeTargetsExact: true,
   gpuRuntimeOnDemandOnly: true,
+  gpuRuntimeStartAllowedOnlyForAcceptedJobs: true,
   privateArtifactManifestOnly: true,
   agentCanSelectForPlanning: true,
 })) {
@@ -438,11 +474,20 @@ if (approvedOutput.queueAdapterSubmissions?.length !== 21) fail('approved_adapte
 if (approvedOutput.queueAdapterSubmissions?.filter((submission) => submission.workerType === 'gpu_ai_worker').length !== 8) {
   fail('approved_gpu_adapter_submissions_not_8')
 }
+if (approvedOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail(`approved_gpu_future_start_tools_not_8:${approvedOutput.gpuRuntimeStartAllowedForAcceptedJobTools}`)
+}
 if (approvedOutput.booleans?.allAdapterPayloadsMatchQueueAdmission !== true) {
   fail('approved_adapter_payloads_do_not_match_queue_admission')
 }
 if (approvedOutput.booleans?.gpuRuntimeTargetsExact !== true) fail('approved_gpu_runtime_targets_not_exact')
 if (approvedOutput.booleans?.gpuRuntimeOnDemandOnly !== true) fail('approved_gpu_runtime_not_on_demand')
+if (approvedOutput.booleans?.gpuRuntimeStartAllowedOnlyForAcceptedJobs !== true) {
+  fail('approved_gpu_future_start_not_limited_to_accepted_jobs')
+}
+if (approvedOutput.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('approved_gpu_runtime_should_start_now_not_false')
+}
 for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
   const submission = approvedOutput.queueAdapterSubmissions?.find((item) => item.toolId === tool)
   if (!submission) fail(`approved_missing_gpu_tool_submission:${tool}`)
@@ -450,8 +495,21 @@ for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
   if (submission?.runtimeTarget !== runtimeTarget) {
     fail(`approved_gpu_runtime_target_mismatch:${tool}:${submission?.runtimeTarget}`)
   }
+  if (submission?.gpuRuntimeStartAllowedForAcceptedJob !== true) {
+    fail(`approved_gpu_tool_future_start_not_true:${tool}`)
+  }
+  if (submission?.gpuRuntimeShouldStartNow !== false) {
+    fail(`approved_gpu_tool_start_now_not_false:${tool}`)
+  }
 }
 for (const submission of approvedOutput.queueAdapterSubmissions ?? []) {
+  const expectedGpuFutureStart = submission.workerType === 'gpu_ai_worker'
+  if (submission.gpuRuntimeStartAllowedForAcceptedJob !== expectedGpuFutureStart) {
+    fail(`submission_gpu_future_start_mismatch:${submission.toolId}`)
+  }
+  if (submission.gpuRuntimeShouldStartNow !== false) {
+    fail(`submission_gpu_start_now_not_false:${submission.toolId}`)
+  }
   if (submission.canSubmitToBackendQueueNow !== false) fail(`submission_can_submit_not_false:${submission.toolId}`)
   if (submission.canCreateWorkerLeaseNow !== false) fail(`submission_can_lease_not_false:${submission.toolId}`)
   if (submission.canDispatchProductionWorkerNow !== false) fail(`submission_can_dispatch_not_false:${submission.toolId}`)
@@ -488,16 +546,80 @@ if (packetFedOutput.status !== 'internal_beta_queue_adapter_ready_runtime_still_
 if (packetFedOutput.queueAdapterSubmissionsReadyWithProvidedEvidence !== 21) {
   fail('packet_fed_adapter_submissions_not_21')
 }
+if (packetFedOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail(`packet_fed_gpu_future_start_tools_not_8:${packetFedOutput.gpuRuntimeStartAllowedForAcceptedJobTools}`)
+}
 if (packetFedOutput.booleans?.allAdapterPayloadsMatchQueueAdmission !== true) {
   fail('packet_fed_adapter_payloads_do_not_match_queue_admission')
 }
 if (packetFedOutput.booleans?.gpuRuntimeTargetsExact !== true) {
   fail('packet_fed_gpu_runtime_targets_not_exact')
 }
+if (packetFedOutput.booleans?.gpuRuntimeStartAllowedOnlyForAcceptedJobs !== true) {
+  fail('packet_fed_gpu_future_start_not_limited_to_accepted_jobs')
+}
+if (packetFedOutput.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('packet_fed_gpu_runtime_should_start_now_not_false')
+}
+for (const submission of packetFedOutput.queueAdapterSubmissions ?? []) {
+  const expectedGpuFutureStart = submission.workerType === 'gpu_ai_worker'
+  if (submission.gpuRuntimeStartAllowedForAcceptedJob !== expectedGpuFutureStart) {
+    fail(`packet_fed_submission_gpu_future_start_mismatch:${submission.toolId}`)
+  }
+  if (submission.gpuRuntimeShouldStartNow !== false) {
+    fail(`packet_fed_submission_gpu_start_now_not_false:${submission.toolId}`)
+  }
+}
 for (const key of falseGateKeys) {
   if (packetFedOutput.booleans?.[key] !== false) fail(`packet_fed_false_gate_not_false:${key}`)
   if (packetFedOutput.input?.[key] === true) fail(`packet_fed_input_performed_gate_true:${key}`)
 }
+
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-tool-count',
+  (packet) => {
+    packet.totalAiGraphicsTools = 20
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-gpu-start-now-boolean',
+  (packet) => {
+    packet.booleans.gpuRuntimeShouldStartNow = true
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-gpu-future-start-count',
+  (packet) => {
+    packet.gpuRuntimeStartAllowedForAcceptedJobTools = 7
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-gpu-approved-now',
+  (packet) => {
+    packet.booleans.gpuRuntimeApprovedNow = true
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-tool-scope-gpu-start-now',
+  (packet) => {
+    packet.queueAdmissionPackets[0].gpuRuntimeShouldStartNow = true
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
 
 let backendQueueExited = false
 try {
@@ -591,6 +713,8 @@ console.log(JSON.stringify({
   queueAdapterSubmissionsReadyWithProvidedEvidence:
     docs.counts.queueAdapterSubmissionsReadyWithProvidedEvidence,
   gpuRuntimeTargetedTools: docs.counts.gpuRuntimeTargetedTools,
+  gpuRuntimeStartAllowedForAcceptedJobTools: docs.counts.gpuRuntimeStartAllowedForAcceptedJobTools,
+  gpuRuntimeShouldStartNow: docs.booleans.gpuRuntimeShouldStartNow,
   backendQueueSubmissionApprovedNow: docs.booleans.backendQueueSubmissionApprovedNow,
   workerLeaseCreationApprovedNow: docs.booleans.workerLeaseCreationApprovedNow,
   runtimeReadyNow: docs.booleans.runtimeReadyNow,

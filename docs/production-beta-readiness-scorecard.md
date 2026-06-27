@@ -186,7 +186,12 @@ adapter submissions and keeps GPU startup limited to future approved worker
 jobs.
 The adapter can also consume a source
 `--internal-beta-queue-admission-readiness-packet` that already reports queue
-admission ready; production-worker job payload evidence remains separately
+admission ready. That source packet must prove all 21 tools, all 12
+capabilities, exactly eight accepted-future-job GPU start candidates,
+`gpuRuntimeShouldStartNow=false`, and false runtime/beta/production gates.
+Adapter submissions preserve `gpuRuntimeStartAllowedForAcceptedJob=true` only
+for the eight GPU/model worker candidates and keep `gpuRuntimeShouldStartNow`
+false for every tool. Production-worker job payload evidence remains separately
 required and live queue submission remains blocked.
 
 AI graphics internal beta queue-dispatcher readiness decision

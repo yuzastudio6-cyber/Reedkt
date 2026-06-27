@@ -41,6 +41,8 @@ dist-staging-fixture-worker
 model-weights
 models
 **/model-weights
+!server/model-weights/
+!server/model-weights/*.ts
 **/*.safetensors
 **/*.bin
 **/*.pt
@@ -50,8 +52,11 @@ models
 **/activation/phase39*
 secrets
 **/*secret*
+!server/activation/gcp-staging/gcp-staging-secret-plan.ts
+!server/security-review/secret-safety-policy.ts
 !src/backend/providers/gateway/provider-secret-boundary.ts
 **/*credential*
+!server/config/internal-beta-supabase-credential-context-contract.ts
 *.mp4
 *.mov
 *.mkv

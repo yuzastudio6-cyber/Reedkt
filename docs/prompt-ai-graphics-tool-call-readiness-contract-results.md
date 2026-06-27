@@ -447,6 +447,14 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked: `productionWorkerGateChecksReadyNow=0`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `productionReadyNow=false`, no queue enqueue occurs, and no worker dispatch is approved.
 - Latest observed PR state after production worker gate source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `c4759813f9b6f5864d0d8654b5a76de077d9e3e9`, with an empty check rollup.
 
+## Follow-Up: Beta/Production Rollup Gate Packet Ingestion
+
+- Added evaluator-only production-worker gate readiness packet ingestion to `ai-graphics:beta-production-readiness-rollup`.
+- The command now accepts `--internal-beta-production-worker-gate-readiness-packet`.
+- The source packet must already report `owner_approved_production_worker_gate_checks_ready`, all 21 production-worker gate checks accepted with provided evidence, all 12 capability scenarios accepted with provided evidence, 0 hard failures, and enqueue/dispatch/GPU/runtime/beta/production gates still false.
+- Diagnostic coverage proves packet-fed beta/production rollup reaches `owner_approved_worker_gates_ready_runtime_still_blocked` with 21 accepted gate checks, 12 accepted capability scenarios, and 0 hard gate failures.
+- Runtime remains blocked: `agentCanExecuteToolsNow=false`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

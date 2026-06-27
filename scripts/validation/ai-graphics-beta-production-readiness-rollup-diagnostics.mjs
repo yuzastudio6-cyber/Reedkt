@@ -177,6 +177,12 @@ function writeAcceptedEvidencePackets() {
   return { manifestPacketPath, gpuPacketPath }
 }
 
+function writeJsonPacket(root, fileName, packet) {
+  const packetPath = path.join(root, fileName)
+  fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-beta-production-readiness-rollup.ts',
   'server/cli/ai-graphics-beta-production-readiness-rollup.ts',
@@ -214,6 +220,19 @@ for (const decision of [
 ]) {
   if (!docs.sourceDecisions?.includes(decision)) fail(`docs_missing_source_decision:${decision}`)
 }
+for (const [key, expected] of Object.entries({
+  acceptsProductionWorkerGateReadinessPacket: true,
+  sourceProductionWorkerGatePacketMustReportOwnerApprovedGateChecksReady: true,
+  sourceProductionWorkerGatePacketMustCoverAll21Tools: true,
+  sourceProductionWorkerGatePacketMustCoverAll12Capabilities: true,
+  sourceProductionWorkerGatePacketMustHaveZeroHardFailures: true,
+  sourceProductionWorkerGatePacketMustKeepEnqueueDispatchRuntimeGpuAndProductionFalse: true,
+  rollupStillDoesNotApproveExecutionOrRuntime: true,
+})) {
+  if (docs.sourceEvidencePolicy?.[key] !== expected) {
+    fail(`docs_source_evidence_policy_mismatch:${key}:${docs.sourceEvidencePolicy?.[key]}`)
+  }
+}
 if (!moduleSource.includes('AI_GRAPHICS_BETA_ACTIVATION_GAP_REPORT_DECISION')) {
   fail('module_missing_activation_gap_decision_constant')
 }
@@ -222,6 +241,15 @@ if (!moduleSource.includes('AI_GRAPHICS_CROSS_OWNER_COORDINATION_DECISION')) {
 }
 if (!moduleSource.includes('AI_GRAPHICS_INTERNAL_BETA_PRODUCTION_WORKER_GATE_READINESS_DECISION')) {
   fail('module_missing_production_worker_gate_decision_constant')
+}
+if (!moduleSource.includes('sourceProductionWorkerGateReadinessPacket')) {
+  fail('module_missing_source_production_worker_gate_packet_input')
+}
+if (!cliSource.includes('--internal-beta-production-worker-gate-readiness-packet')) {
+  fail('cli_missing_production_worker_gate_readiness_packet_flag')
+}
+if (!cliSource.includes('sourceProductionWorkerGateReadinessPacketRead')) {
+  fail('cli_missing_production_worker_gate_packet_read_marker')
 }
 for (const status of [
   'missing_technical_evidence',
@@ -353,6 +381,31 @@ const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   '--require-internal-beta-go-no-go-ready',
 ]), 'approved_rollup')
 
+const packetRoot = path.dirname(manifestPacketPath)
+const sourceGatePacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-production-worker-gate-readiness', [
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--model-weight-manifest-review-packet',
+  manifestPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuPacketPath,
+  '--owner-approval-granted',
+  '--owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--require-owner-approved-production-worker-gates-ready',
+]), 'source_production_worker_gate_packet')
+const sourceGatePacketPath = writeJsonPacket(
+  packetRoot,
+  'internal-beta-production-worker-gate-readiness-packet.json',
+  sourceGatePacket,
+)
+const packetFedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--internal-beta-production-worker-gate-readiness-packet',
+  sourceGatePacketPath,
+  '--require-internal-beta-go-no-go-ready',
+]), 'packet_fed_rollup')
+
 if (approvedOutput.status !== 'owner_approved_worker_gates_ready_runtime_still_blocked') {
   fail(`approved_status:${approvedOutput.status}`)
 }
@@ -389,7 +442,54 @@ if (approvedOutput.booleans?.productionGoNoGoReadyWithProvidedEvidence !== false
   fail('approved_production_go_no_go_not_false')
 }
 
-for (const output of [defaultOutput, awaitingOutput, approvedOutput]) {
+if (sourceGatePacket.status !== 'owner_approved_production_worker_gate_checks_ready') {
+  fail(`source_gate_packet_status:${sourceGatePacket.status}`)
+}
+if (sourceGatePacket.productionWorkerGateChecksAcceptedWithProvidedEvidence !== 21) {
+  fail('source_gate_packet_gate_checks_not_21')
+}
+if (sourceGatePacket.capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence !== 12) {
+  fail('source_gate_packet_capability_checks_not_12')
+}
+if (sourceGatePacket.hardFailedGateChecksWithProvidedEvidence !== 0) {
+  fail('source_gate_packet_hard_failures_not_0')
+}
+if (sourceGatePacket.booleans?.gpuRuntimeApprovedNow !== false) {
+  fail('source_gate_packet_gpu_runtime_not_false')
+}
+
+if (packetFedOutput.input?.sourceEvidenceMode !== 'internal_beta_production_worker_gate_readiness_packet') {
+  fail(`packet_fed_source_evidence_mode:${packetFedOutput.input?.sourceEvidenceMode}`)
+}
+if (packetFedOutput.input?.sourceProductionWorkerGateReadinessPacketRead !== true) {
+  fail('packet_fed_source_production_worker_gate_packet_not_read')
+}
+if (packetFedOutput.status !== 'owner_approved_worker_gates_ready_runtime_still_blocked') {
+  fail(`packet_fed_status:${packetFedOutput.status}`)
+}
+if (packetFedOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence !== 21) {
+  fail('packet_fed_gate_checks_not_21')
+}
+if (packetFedOutput.capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence !== 12) {
+  fail('packet_fed_capability_gate_checks_not_12')
+}
+if (packetFedOutput.hardFailedProductionWorkerGateChecksWithProvidedEvidence !== 0) {
+  fail('packet_fed_hard_failed_gate_checks_not_0')
+}
+if (packetFedOutput.booleans?.sourceProductionWorkerGateAcceptedWithProvidedEvidence !== true) {
+  fail('packet_fed_source_gate_not_accepted')
+}
+if (packetFedOutput.booleans?.internalBetaGoNoGoReadyWithProvidedEvidence !== true) {
+  fail('packet_fed_internal_beta_go_no_go_not_true')
+}
+if (packetFedOutput.booleans?.externalBetaGoNoGoReadyWithProvidedEvidence !== false) {
+  fail('packet_fed_external_beta_go_no_go_not_false')
+}
+if (packetFedOutput.booleans?.productionGoNoGoReadyWithProvidedEvidence !== false) {
+  fail('packet_fed_production_go_no_go_not_false')
+}
+
+for (const output of [defaultOutput, awaitingOutput, approvedOutput, packetFedOutput]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`false_gate_not_false:${key}`)
@@ -519,6 +619,8 @@ console.log(JSON.stringify({
   defaultStatus: defaultOutput.status,
   awaitingStatus: awaitingOutput.status,
   approvedStatus: approvedOutput.status,
+  packetFedStatus: packetFedOutput.status,
+  packetFedSourceEvidenceMode: packetFedOutput.input?.sourceEvidenceMode,
   toolsCovered: allTools.length,
   capabilitiesCovered: capabilities.length,
   gpuRuntimeTargetedTools: approvedOutput.gpuRuntimeTargetedTools,
@@ -526,6 +628,8 @@ console.log(JSON.stringify({
   gpuRuntimeOnDemandOnly: approvedOutput.gpuRuntimeOnDemandOnly,
   productionWorkerGateChecksAcceptedWithProvidedEvidence:
     approvedOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence,
+  packetFedProductionWorkerGateChecksAcceptedWithProvidedEvidence:
+    packetFedOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence,
   hardFailedProductionWorkerGateChecksWithProvidedEvidence:
     approvedOutput.hardFailedProductionWorkerGateChecksWithProvidedEvidence,
   internalBetaReadyNowTools: approvedOutput.internalBetaReadyNowTools,

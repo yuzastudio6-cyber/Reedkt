@@ -6,6 +6,15 @@ This rollup is the single machine-readable bridge from the 21-tool install,
 ranking, runtime-proof, owner-evidence, Tool Route, Worker, and production-worker
 gate packets into a beta/external/production go/no-go answer.
 
+## Source Evidence Policy
+
+The rollup can ingest a source
+`--internal-beta-production-worker-gate-readiness-packet` only when that packet
+already reports `owner_approved_production_worker_gate_checks_ready`, all 21
+production-worker gate checks accepted with provided evidence, all 12 capability
+scenarios accepted with provided evidence, 0 hard failures, and enqueue,
+dispatch, GPU/runtime, beta, and production gates still false.
+
 ## Current Result
 
 - AI graphics tools covered: 21

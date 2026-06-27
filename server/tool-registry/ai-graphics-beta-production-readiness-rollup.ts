@@ -24,7 +24,9 @@ export type AiGraphicsBetaProductionReadinessRollupStatus =
   | 'owner_approved_worker_gates_ready_runtime_still_blocked'
 
 export interface AiGraphicsBetaProductionReadinessRollupInput
-  extends AiGraphicsInternalBetaProductionWorkerGateReadinessInput {}
+  extends AiGraphicsInternalBetaProductionWorkerGateReadinessInput {
+  sourceProductionWorkerGateReadinessPacket?: AiGraphicsInternalBetaProductionWorkerGateReadiness
+}
 
 export interface AiGraphicsBetaProductionReadinessRollup {
   decision: typeof AI_GRAPHICS_BETA_PRODUCTION_READINESS_ROLLUP_DECISION
@@ -175,6 +177,7 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
   })
   const crossOwnerCoordination = buildAiGraphicsCrossOwnerCoordinationPacket()
   const productionWorkerGateReadiness =
+    input.sourceProductionWorkerGateReadinessPacket ??
     buildAiGraphicsInternalBetaProductionWorkerGateReadiness(input)
   const status = statusFromGate(productionWorkerGateReadiness)
   const sourceProductionWorkerGateAcceptedWithProvidedEvidence =

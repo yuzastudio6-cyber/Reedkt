@@ -7,6 +7,15 @@
     "ai_graphics_cross_owner_coordination_verified_without_duplicate_owner_claims",
     "ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime"
   ],
+  "sourceEvidencePolicy": {
+    "acceptsProductionWorkerGateReadinessPacket": true,
+    "sourceProductionWorkerGatePacketMustReportOwnerApprovedGateChecksReady": true,
+    "sourceProductionWorkerGatePacketMustCoverAll21Tools": true,
+    "sourceProductionWorkerGatePacketMustCoverAll12Capabilities": true,
+    "sourceProductionWorkerGatePacketMustHaveZeroHardFailures": true,
+    "sourceProductionWorkerGatePacketMustKeepEnqueueDispatchRuntimeGpuAndProductionFalse": true,
+    "rollupStillDoesNotApproveExecutionOrRuntime": true
+  },
   "tools": [
     "torch_torchvision",
     "transformers",

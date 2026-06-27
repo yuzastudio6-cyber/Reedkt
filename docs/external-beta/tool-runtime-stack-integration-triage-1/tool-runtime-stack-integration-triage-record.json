@@ -1,0 +1,77 @@
+{
+  "packet": "RP-EXTERNAL-PRODUCT-TOOL-RUNTIME-STACK-INTEGRATION-TRIAGE-1",
+  "decision": "completed_tool_runtime_stack_integration_triage_ready_for_qwen_rollup_bridge",
+  "execution": "completed_docs_only_stack_triage_no_pr_merge_or_runtime_execution",
+  "integrationBase": "ed5c296dafcd843d298a2933bf0febfbf7029ffe",
+  "openPrReadbackDate": "2026-06-27",
+  "openPrsInspected": 300,
+  "directIntegrationPrs": {
+    "count": 1,
+    "onlyPr": "#577",
+    "status": "draft_conflicting_dirty_or_unknown_excluded"
+  },
+  "qwen25VlStack": {
+    "count": 96,
+    "nonDraft": 73,
+    "draft": 23,
+    "clean": 96,
+    "dirty": 0,
+    "lowestPr": "#982",
+    "highestPr": "#1282",
+    "status": "candidate_for_fresh_integration_rollup_bridge",
+    "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_STACK_INTEGRATION_ROLLUP_1"
+  },
+  "aiGraphicsToolStack": {
+    "count": 153,
+    "nonDraft": 0,
+    "draft": 153,
+    "clean": 151,
+    "dirtyOrUnknown": 2,
+    "lowestPr": "#428",
+    "highestPr": "#862",
+    "status": "blocked_pending_stack_split_repair_or_retirement_plan",
+    "nextMilestone": "AI_GRAPHICS_TOOL_STACK_SPLIT_REPAIR_RETIREMENT_TRIAGE_1"
+  },
+  "soundToolCallingStack": {
+    "minimumObservedCount": 12,
+    "status": "draft_stack_context_not_primary_external_beta_tool_runtime_candidate",
+    "nextMilestone": "SOUND_TOOL_CALLING_STACK_SPLIT_REPAIR_RETIREMENT_TRIAGE_1"
+  },
+  "readiness": {
+    "controlledSingleTesterExternalBeta": "ready_for_aiediting_reeditpro_com",
+    "broadExternalBeta": "blocked_no_additional_named_tester_list",
+    "externalProduction": "blocked_pending_broad_beta_tool_runtime_billing_support_legal_security_and_final_export_gates",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "safety": {
+    "prMerge": false,
+    "prRetarget": false,
+    "branchRewrite": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "browserCapture": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "deployment": false,
+    "iamMutation": false,
+    "googleGroupMembershipMutation": false,
+    "broadExternalBetaAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "mediaProcessing": false,
+    "toolExecution": false,
+    "packageInstallation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  }
+}

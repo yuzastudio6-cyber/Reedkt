@@ -48,6 +48,9 @@ validation rows for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and
 counters say five records passed. Each accepted row must match the expected
 template, carry `present_private_ref_not_logged`, have no validation errors, and
 keep `approvedForAgentExecutionNow` false.
+The packet must also prove `privateArtifactRefNamespaceRequired=true` so stale
+evidence from before reviewed private namespace enforcement cannot satisfy beta
+readiness.
 
 The native GPU runtime proof packet must also include exact per-profile
 validation rows for `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and
@@ -55,6 +58,8 @@ validation rows for `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and
 counters say four results passed. Each accepted row must prove approved probe
 metadata, required imports, `nvidia-smi`, CUDA, model-manifest checks, raw ref
 redaction, and false runtime side-effect fields.
+The GPU proof packet must carry the `model_manifest_private_namespace_enforced`
+proof check and `privateArtifactRefNamespaceRequired=true`.
 
 ## Tool Groups
 

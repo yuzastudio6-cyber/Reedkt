@@ -74,6 +74,7 @@ export function acceptedModelWeightManifestReviewPacket() {
       all5ModelWeightToolsCovered: true,
       all5TemplateTypesCovered: true,
       manifestSchemaValidationReady: true,
+      privateArtifactRefNamespaceRequired: true,
       privateArtifactRefsNotLogged: true,
       publicOrSignedArtifactRefsRejected: true,
       checksumSha256Required: true,

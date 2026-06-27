@@ -80,6 +80,7 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
   runtimeProofResultsProvided: number
   runtimeProofResultsAcceptedForOwnerReview: number
   nativeGpuRuntimeProofResultsAccepted: boolean
+  requiredProofChecks: string[]
   validationResults: AiGraphicsGpuRuntimeProofResultValidation[]
   blockers: string[]
   booleans: {
@@ -92,6 +93,7 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
     noIdleGpuRuntimeApproved: true
     startsOnlyForApprovedWorkerOrToolCall: true
     cpuFallbackAllowedForHeavyTools: false
+    privateArtifactRefNamespaceRequired: true
     privateArtifactRefsNotLogged: true
     nativeGpuRuntimeProofResultsAcceptedForOwnerReview: boolean
     ownerReviewStillRequired: true
@@ -214,6 +216,27 @@ const falseRuntimeFields = [
 const sha256Pattern = /^[a-fA-F0-9]{64}$/
 const requiredProbeName = 'reeditpro_ai_graphics_gpu_runtime_readiness'
 const requiredProbeVersion = '2026-06-26.native-gpu-proof-v1'
+
+const requiredProofChecks = [
+  'status_passed',
+  'approved_probe_metadata_present',
+  'approved_probe_name',
+  'approved_probe_version',
+  'native_linux_runtime_platform',
+  'native_x86_64_or_amd64_runtime_machine',
+  'no_duplicate_profile_result_records',
+  'exact_profile_id',
+  'nvidia_smi_available',
+  'cuda_available',
+  'cuda_device_count_at_least_1',
+  'cuda_capability_at_least_8_9',
+  'tiny_cuda_tensor_probe_passed',
+  'profile_imports_present',
+  'model_manifest_checks_validated_not_loaded',
+  'model_manifest_private_namespace_enforced',
+  'private_artifact_refs_not_logged',
+  'runtime_side_effect_fields_false',
+] as const
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -563,6 +586,7 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
     runtimeProofResultsProvided,
     runtimeProofResultsAcceptedForOwnerReview,
     nativeGpuRuntimeProofResultsAccepted,
+    requiredProofChecks: [...requiredProofChecks],
     validationResults,
     blockers,
     booleans: {
@@ -575,6 +599,7 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
       noIdleGpuRuntimeApproved: true,
       startsOnlyForApprovedWorkerOrToolCall: true,
       cpuFallbackAllowedForHeavyTools: false,
+      privateArtifactRefNamespaceRequired: true,
       privateArtifactRefsNotLogged: true,
       nativeGpuRuntimeProofResultsAcceptedForOwnerReview: nativeGpuRuntimeProofResultsAccepted,
       ownerReviewStillRequired: true,

@@ -134,6 +134,7 @@
       "errors"
     ],
     "acceptedPrivateArtifactRefStatus": "present_private_ref_not_logged",
+    "privateArtifactRefNamespaceRequired": true,
     "approvedForAgentExecutionNow": false
   },
   "nativeGpuRuntimeProofResultPacketPolicy": {
@@ -161,6 +162,10 @@
     "requiredStatus": "ready_for_owner_review_not_beta_ready",
     "expectedGpuRuntimeTargetsRequired": true,
     "gpuRuntimeOnDemandOnly": true,
+    "privateArtifactRefNamespaceRequired": true,
+    "requiredProofChecks": [
+      "model_manifest_private_namespace_enforced"
+    ],
     "gpuRuntimeApprovedNow": false
   },
   "ownerApprovalGate": "internal_beta_owner_approval",
@@ -174,6 +179,7 @@
     "evidenceOverrideFlagsIgnoredForBetaReadiness": true,
     "gpuRuntimeTargetsExact": true,
     "gpuRuntimeOnDemandOnly": true,
+    "privateArtifactRefNamespaceRequired": true,
     "agentCanSelectForPlanning": true,
     "defaultAll21BetaEvidenceReady": false,
     "defaultAll21TechnicalEvidenceReadyBeforeOwnerApproval": false,

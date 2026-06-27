@@ -74,6 +74,7 @@ export interface AiGraphicsBetaEvidenceBundle {
     modelWeightManifestReviewPacketAccepted: boolean
     nativeGpuRuntimeProofResultPacketAccepted: boolean
     nativeGpuRuntimeProofTargetsExact: boolean
+    privateArtifactRefNamespaceAccepted: boolean
     modelWeightManifestReviewPacketProvided: boolean
     nativeGpuRuntimeProofResultPacketProvided: boolean
   }
@@ -98,6 +99,7 @@ export interface AiGraphicsBetaEvidenceBundle {
     agentCanSelectForPlanning: true
     gpuRuntimeTargetsExact: true
     gpuRuntimeOnDemandOnly: true
+    privateArtifactRefNamespaceRequired: true
     all21BetaEvidenceReady: boolean
     all21TechnicalEvidenceReadyBeforeOwnerApproval: boolean
     readyForInternalBetaOwnerGate: boolean
@@ -159,6 +161,7 @@ function modelWeightPacketAccepted(
       packet.reviewAcceptedManifestRecords === requiredTools.length &&
       packet.nativeGpuProofInputEligibleRecords === requiredTools.length &&
       packet.privateArtifactRefsLogged === 0 &&
+      packet.booleans?.privateArtifactRefNamespaceRequired === true &&
       packet.booleans?.privateArtifactRefsNotLogged === true &&
       packet.booleans?.publicOrSignedArtifactRefsRejected === true &&
       perToolRowsAccepted,
@@ -210,8 +213,11 @@ function gpuRuntimePacketAccepted(
       packet.booleans?.nativeGpuRuntimeProofResultsAcceptedForOwnerReview === true &&
       packet.booleans?.gpuRuntimeTargetsExact === true &&
       packet.booleans?.gpuRuntimeOnDemandOnly === true &&
+      packet.booleans?.privateArtifactRefNamespaceRequired === true &&
       packet.booleans?.gpuRuntimeApprovedNow === false &&
       packet.booleans?.runtimeReadyNow === false &&
+      Array.isArray(packet.requiredProofChecks) &&
+      packet.requiredProofChecks.includes('model_manifest_private_namespace_enforced') &&
       perProfileRowsAccepted,
   )
 }
@@ -406,6 +412,9 @@ export function buildAiGraphicsBetaEvidenceBundle(
   const modelWeightManifestReviewPacketAccepted = modelWeightPacketAccepted(input.modelWeightManifestReviewPacket)
   const nativeGpuRuntimeProofResultPacketAccepted = gpuRuntimePacketAccepted(input.gpuRuntimeProofResultPacket)
   const nativeGpuRuntimeProofTargetsExact = gpuRuntimeTargetsExact(input.gpuRuntimeProofResultPacket)
+  const privateArtifactRefNamespaceAccepted =
+    input.modelWeightManifestReviewPacket?.booleans?.privateArtifactRefNamespaceRequired === true &&
+    input.gpuRuntimeProofResultPacket?.booleans?.privateArtifactRefNamespaceRequired === true
   const expectedGpuRuntimeTargets = listAiGraphicsExpectedGpuRuntimeTargets()
 
   const evidence: Required<AiGraphicsBetaReadinessEvidence> = {
@@ -486,6 +495,7 @@ export function buildAiGraphicsBetaEvidenceBundle(
       modelWeightManifestReviewPacketAccepted,
       nativeGpuRuntimeProofResultPacketAccepted,
       nativeGpuRuntimeProofTargetsExact,
+      privateArtifactRefNamespaceAccepted,
       modelWeightManifestReviewPacketProvided: packetProvided(input.modelWeightManifestReviewPacket),
       nativeGpuRuntimeProofResultPacketProvided: packetProvided(input.gpuRuntimeProofResultPacket),
     },
@@ -510,6 +520,7 @@ export function buildAiGraphicsBetaEvidenceBundle(
       agentCanSelectForPlanning: true,
       gpuRuntimeTargetsExact: true,
       gpuRuntimeOnDemandOnly: true,
+      privateArtifactRefNamespaceRequired: true,
       all21BetaEvidenceReady,
       all21TechnicalEvidenceReadyBeforeOwnerApproval,
       readyForInternalBetaOwnerGate: all21TechnicalEvidenceReadyBeforeOwnerApproval,

@@ -313,9 +313,18 @@ function writePacketFixtures() {
   )
   const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
   const countOnlyManifestPacketPath = path.join(root, 'count-only-model-weight-manifest-review-packet.json')
+  const staleNamespaceManifestPacketPath = path.join(root, 'stale-namespace-model-weight-manifest-review-packet.json')
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
   const countOnlyGpuPacketPath = path.join(root, 'count-only-gpu-runtime-proof-result-packet.json')
+  const staleNamespaceGpuPacketPath = path.join(root, 'stale-namespace-gpu-runtime-proof-result-packet.json')
   fs.writeFileSync(manifestPacketPath, `${JSON.stringify(manifestPacket, null, 2)}\n`, 'utf8')
+  fs.writeFileSync(staleNamespaceManifestPacketPath, `${JSON.stringify({
+    ...manifestPacket,
+    booleans: {
+      ...manifestPacket.booleans,
+      privateArtifactRefNamespaceRequired: false,
+    },
+  }, null, 2)}\n`, 'utf8')
   fs.writeFileSync(countOnlyManifestPacketPath, `${JSON.stringify({
     decision: 'ai_graphics_model_weight_manifest_review_packet_prepared_with_no_private_records',
     sourceManifestReadinessDecision:
@@ -331,6 +340,15 @@ function writePacketFixtures() {
     },
   }, null, 2)}\n`, 'utf8')
   fs.writeFileSync(gpuPacketPath, `${JSON.stringify(gpuPacket, null, 2)}\n`, 'utf8')
+  fs.writeFileSync(staleNamespaceGpuPacketPath, `${JSON.stringify({
+    ...gpuPacket,
+    requiredProofChecks: (gpuPacket.requiredProofChecks || [])
+      .filter((check) => check !== 'model_manifest_private_namespace_enforced'),
+    booleans: {
+      ...gpuPacket.booleans,
+      privateArtifactRefNamespaceRequired: false,
+    },
+  }, null, 2)}\n`, 'utf8')
   fs.writeFileSync(countOnlyGpuPacketPath, `${JSON.stringify({
     decision: 'ai_graphics_gpu_runtime_proof_result_packet_prepared_with_no_runtime_results',
     status: 'ready_for_owner_review_not_beta_ready',
@@ -344,7 +362,14 @@ function writePacketFixtures() {
     },
   }, null, 2)}\n`, 'utf8')
 
-  return { manifestPacketPath, countOnlyManifestPacketPath, gpuPacketPath, countOnlyGpuPacketPath }
+  return {
+    manifestPacketPath,
+    countOnlyManifestPacketPath,
+    staleNamespaceManifestPacketPath,
+    gpuPacketPath,
+    countOnlyGpuPacketPath,
+    staleNamespaceGpuPacketPath,
+  }
 }
 
 const requiredFiles = [
@@ -427,6 +452,9 @@ for (const token of [
   'validationResults',
   'present_private_ref_not_logged',
   'ready_for_owner_review_not_beta_ready',
+  'privateArtifactRefNamespaceAccepted',
+  'privateArtifactRefNamespaceRequired',
+  'model_manifest_private_namespace_enforced',
 ]) {
   if (!moduleSource.includes(token) && !cliSource.includes(token)) fail(`source_missing:${token}`)
 }
@@ -476,10 +504,16 @@ for (const tool of modelManifestTools) {
     fail(`docs_model_weight_policy_missing_tool:${tool}`)
   }
 }
+if (docs.modelWeightManifestReviewPacketPolicy?.privateArtifactRefNamespaceRequired !== true) {
+  fail('docs_model_weight_policy_private_namespace_not_required')
+}
 if (!markdown.includes('Count-only packets are rejected')) {
   fail('markdown_missing_count_only_packet_rejection')
 }
-if (!scorecard.includes('rejects count-only model-weight manifest packets')) {
+if (!markdown.includes('privateArtifactRefNamespaceRequired=true')) {
+  fail('markdown_missing_private_namespace_requirement')
+}
+if (!scorecard.includes('rejects count-only or stale-namespace model-weight manifest packets')) {
   fail('scorecard_missing_count_only_model_weight_packet_rejection')
 }
 if (docs.nativeGpuRuntimeProofResultPacketPolicy?.perProfileValidationResultsRequired !== true) {
@@ -493,6 +527,12 @@ if (docs.nativeGpuRuntimeProofResultPacketPolicy?.expectedGpuRuntimeTargetsRequi
 }
 if (docs.nativeGpuRuntimeProofResultPacketPolicy?.gpuRuntimeOnDemandOnly !== true) {
   fail('docs_gpu_on_demand_only_not_required')
+}
+if (docs.nativeGpuRuntimeProofResultPacketPolicy?.privateArtifactRefNamespaceRequired !== true) {
+  fail('docs_gpu_private_namespace_not_required')
+}
+if (!docs.nativeGpuRuntimeProofResultPacketPolicy?.requiredProofChecks?.includes('model_manifest_private_namespace_enforced')) {
+  fail('docs_gpu_private_namespace_proof_check_missing')
 }
 assertExpectedGpuRuntimeTargets(docs, 'docs')
 if (docs.gpuRuntimePolicy?.onDemandOnly !== true) fail('docs_gpu_runtime_policy_not_on_demand')
@@ -514,7 +554,10 @@ for (const profile of requiredProfiles) {
 if (!markdown.includes('Count-only GPU proof packets are rejected')) {
   fail('markdown_missing_count_only_gpu_packet_rejection')
 }
-if (!scorecard.includes('rejects count-only native GPU proof packets')) {
+if (!markdown.includes('model_manifest_private_namespace_enforced')) {
+  fail('markdown_missing_gpu_private_namespace_proof_check')
+}
+if (!scorecard.includes('rejects count-only or stale-namespace native GPU proof packets')) {
   fail('scorecard_missing_count_only_gpu_packet_rejection')
 }
 if (!markdown.includes('GPU runtime is not an idle or standing service')) {
@@ -631,8 +674,10 @@ for (const token of [
 const {
   manifestPacketPath,
   countOnlyManifestPacketPath,
+  staleNamespaceManifestPacketPath,
   gpuPacketPath,
   countOnlyGpuPacketPath,
+  staleNamespaceGpuPacketPath,
 } = writePacketFixtures()
 const technicalPacketBundle = parseJsonOutput(runNpm(validateScriptName, [
   '--use-committed-js-runtime-proofs',
@@ -686,9 +731,15 @@ if (fullPacketBundle.evidenceSources?.nativeGpuRuntimeProofResultPacketAccepted 
 if (fullPacketBundle.evidenceSources?.nativeGpuRuntimeProofTargetsExact !== true) {
   fail('full_packet_bundle_gpu_targets_not_exact')
 }
+if (fullPacketBundle.evidenceSources?.privateArtifactRefNamespaceAccepted !== true) {
+  fail('full_packet_bundle_private_namespace_not_accepted')
+}
 assertExpectedGpuRuntimeTargets(fullPacketBundle, 'full_packet_bundle')
 if (fullPacketBundle.booleans?.gpuRuntimeTargetsExact !== true) fail('full_packet_bundle_gpu_targets_exact_not_true')
 if (fullPacketBundle.booleans?.gpuRuntimeOnDemandOnly !== true) fail('full_packet_bundle_gpu_on_demand_not_true')
+if (fullPacketBundle.booleans?.privateArtifactRefNamespaceRequired !== true) {
+  fail('full_packet_bundle_private_namespace_boolean_not_true')
+}
 if (fullPacketBundle.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) fail('full_packet_bundle_gpu_policy_not_ephemeral')
 
 let countOnlyExited = false
@@ -717,6 +768,35 @@ if (!countOnlyBundle.missingEvidence?.includes('model_weight_manifest_review_pac
   fail('count_only_manifest_bundle_missing_manifest_gap')
 }
 
+let staleNamespaceManifestExited = false
+let staleNamespaceManifestOutput = ''
+try {
+  staleNamespaceManifestOutput = runNpm(validateScriptName, [
+    '--use-committed-js-runtime-proofs',
+    '--all-technical-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--model-weight-manifest-review-packet',
+    staleNamespaceManifestPacketPath,
+    '--gpu-runtime-proof-result-packet',
+    gpuPacketPath,
+    '--require-ready-for-owner-gate',
+  ])
+} catch (error) {
+  staleNamespaceManifestExited = true
+  staleNamespaceManifestOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+const staleNamespaceManifestBundle = parseJsonOutput(staleNamespaceManifestOutput, 'stale_namespace_manifest_bundle')
+if (!staleNamespaceManifestExited) fail('stale_namespace_manifest_bundle_did_not_exit_nonzero')
+if (staleNamespaceManifestBundle.evidenceSources?.modelWeightManifestReviewPacketAccepted !== false) {
+  fail('stale_namespace_manifest_packet_unexpectedly_accepted')
+}
+if (staleNamespaceManifestBundle.evidenceSources?.privateArtifactRefNamespaceAccepted !== false) {
+  fail('stale_namespace_manifest_private_namespace_unexpectedly_accepted')
+}
+if (!staleNamespaceManifestBundle.missingEvidence?.includes('model_weight_manifest_review_packet')) {
+  fail('stale_namespace_manifest_bundle_missing_manifest_gap')
+}
+
 let countOnlyGpuExited = false
 let countOnlyGpuOutput = ''
 try {
@@ -743,6 +823,35 @@ if (!countOnlyGpuBundle.missingEvidence?.includes('native_gpu_runtime_proof_pack
   fail('count_only_gpu_bundle_missing_gpu_gap')
 }
 
+let staleNamespaceGpuExited = false
+let staleNamespaceGpuOutput = ''
+try {
+  staleNamespaceGpuOutput = runNpm(validateScriptName, [
+    '--use-committed-js-runtime-proofs',
+    '--all-technical-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--model-weight-manifest-review-packet',
+    manifestPacketPath,
+    '--gpu-runtime-proof-result-packet',
+    staleNamespaceGpuPacketPath,
+    '--require-ready-for-owner-gate',
+  ])
+} catch (error) {
+  staleNamespaceGpuExited = true
+  staleNamespaceGpuOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+const staleNamespaceGpuBundle = parseJsonOutput(staleNamespaceGpuOutput, 'stale_namespace_gpu_bundle')
+if (!staleNamespaceGpuExited) fail('stale_namespace_gpu_bundle_did_not_exit_nonzero')
+if (staleNamespaceGpuBundle.evidenceSources?.nativeGpuRuntimeProofResultPacketAccepted !== false) {
+  fail('stale_namespace_gpu_packet_unexpectedly_accepted')
+}
+if (staleNamespaceGpuBundle.evidenceSources?.privateArtifactRefNamespaceAccepted !== false) {
+  fail('stale_namespace_gpu_private_namespace_unexpectedly_accepted')
+}
+if (!staleNamespaceGpuBundle.missingEvidence?.includes('native_gpu_runtime_proof_packet')) {
+  fail('stale_namespace_gpu_bundle_missing_gpu_gap')
+}
+
 let partialExited = false
 try {
   runNpm(validateScriptName, [
@@ -762,6 +871,8 @@ for (const output of [
   fullPacketBundle,
   countOnlyBundle,
   countOnlyGpuBundle,
+  staleNamespaceManifestBundle,
+  staleNamespaceGpuBundle,
 ]) {
   for (const key of [
     'agentCanExecuteToolsNow',

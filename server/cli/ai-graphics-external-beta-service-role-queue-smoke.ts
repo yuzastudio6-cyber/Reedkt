@@ -313,6 +313,7 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
     decision: 'ai_graphics_external_beta_service_role_queue_smoke_passed_with_cleanup',
     status: 'external_beta_service_role_queue_smoke_passed_with_cleanup_no_tool_execution',
     toolsSubmitted: jobs.length,
+    toolsSubmittedIds: jobs.map((job) => job.toolId),
     jobIdsReturned: jobIds.length,
     workerClaimsReturned: claims.length,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: gpuToolCount(),

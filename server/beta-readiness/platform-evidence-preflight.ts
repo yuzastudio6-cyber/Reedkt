@@ -78,6 +78,13 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'Deploy and verify the corresponding monitoring dashboards and alerts in staging or production.',
     ),
     sourceFileCheck(
+      'beta_platform_stripe_boundary_smoke_present',
+      'Beta platform Stripe boundary source smoke is present',
+      'server/smoke/beta-platform-stripe-boundary-smoke.ts',
+      ['stripeDependencyPresent: false', 'forbiddenRuntimePatternsPresent: false', 'ownerApprovalStillRequired: true'],
+      'Run the source smoke, then record billing-owner approval that Stripe remains backend-only and separated from tool cost events.',
+    ),
+    sourceFileCheck(
       'tool_cost_persistent_store_present',
       'Persistent tool cost event store source is present',
       'server/tool-cost-metering/tool-cost-persistent-store.ts',
@@ -108,8 +115,8 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
     blockedCheck(
       'stripe_boundary_verified',
       'Stripe boundary is verified',
-      'Stripe remains disabled in this backend skeleton.',
-      'Verify Stripe remains backend-only and cannot be called by tool event recording; later add billing owner approval.',
+      'Source smoke verifies tool-cost billing surfaces do not import or call Stripe, but billing-owner approval is not recorded here.',
+      'Record billing-owner approval that Stripe remains backend-only and cannot be called by tool event recording.',
     ),
     blockedCheck(
       'monitoring_verified',

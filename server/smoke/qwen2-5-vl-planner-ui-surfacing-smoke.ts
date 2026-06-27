@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'blocked_private_invoke_smoke_required',
-  'Private invoke client status must stay blocked on private invoke smoke approval.',
+  data.privateInvokeClient.currentStatus === 'blocked_private_invoke_smoke_execution_required',
+  'Private invoke client status must stay blocked on private invoke smoke execution approval.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -162,7 +162,7 @@ check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advi
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
 check(
-  docText.includes('blocked_private_invoke_smoke_required'),
+  docText.includes('blocked_private_invoke_smoke_execution_required'),
   'Doc must record private invoke smoke blocked status.',
 )
 check(

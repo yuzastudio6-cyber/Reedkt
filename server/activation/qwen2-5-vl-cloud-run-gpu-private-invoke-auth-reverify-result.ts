@@ -49,7 +49,7 @@ export const QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT = {
     'project_invoker_policy_read',
   ],
   blockedProbeIds: [],
-  remainingBlocker: 'private_invoke_smoke_plan_required_no_token_no_invocation',
+  remainingBlocker: 'private_invoke_smoke_execution_required_no_inference',
   blockerMessages: [],
   resultSummary: [
     'The guarded runner executed only read-only gcloud version, project, account, Cloud Run, and IAM describe probes.',
@@ -68,7 +68,7 @@ export const QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT = {
     betaProductionReadyClaimed: false,
   },
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference',
+    'QWEN2_5_VL_STACK_TOOL_52-PRIVATE-INVOKE-SMOKE-EXECUTE: run controlled private invoke contract smoke, no inference',
 } as const
 
 export type Qwen25PrivateInvokeAuthReverifyResult =

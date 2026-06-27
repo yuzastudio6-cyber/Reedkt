@@ -17,7 +17,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_private_invoke_smoke_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_private_invoke_smoke_execution_required',
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -94,16 +94,28 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
       missingEvidence: [],
     },
     {
-      id: 'private_invoke_smoke_approval',
-      label: 'Controlled private invoke smoke approval',
+      id: 'private_invoke_smoke_plan',
+      label: 'Controlled private invoke smoke plan',
+      status: 'ready',
+      evidence: [
+        'Private invoke smoke plan defines backend-only health/readiness and contract POST candidates.',
+        'Expected POST response is 403 qwen_inference_disabled_after_contract_check with contractSatisfiedForFutureRuntime=true and modelInferenceEnabled=false.',
+        'Plan keeps token fetch, service URL resolution, Cloud Run request, inference, worker dispatch, Supabase, assets, signed/public artifacts, credits, beta, and production false.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'private_invoke_smoke_execution',
+      label: 'Controlled private invoke smoke execution',
       status: 'blocked_runtime_acceptance_required',
       evidence: [
         'Read-only auth/IAM reverify passed without token fetch or Cloud Run invocation.',
         'Observed Cloud Run posture uses one NVIDIA L4, concurrency 1, no min scale annotation, and template max scale 1.',
+        'Private invoke smoke plan is defined.',
       ],
       missingEvidence: [
-        'Controlled private invoke smoke plan must approve whether an identity token may be fetched.',
-        'Controlled private invoke smoke plan must verify service audience and request body handling without raw prompts.',
+        'Controlled private invoke smoke execution must explicitly approve whether an identity token may be fetched.',
+        'Controlled private invoke smoke execution must verify service audience and request body handling without raw prompts.',
         'Cost guard must review observed service-level max scale annotation of 3 before invocation.',
         'No beta or production runtime approval has been granted.',
       ],
@@ -120,6 +132,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     cloudRunIamPolicyVerified: true,
     runtimeServiceAccountVerified: true,
     projectInvokerPolicyVerified: true,
+    privateInvokeSmokePlanDefined: true,
+    privateInvokeSmokeExecuted: false,
     privateInvokeReady: false,
     betaReady: false,
     productionReady: false,
@@ -143,14 +157,14 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'controlled_private_invoke_smoke_plan_approved',
+    'controlled_private_invoke_smoke_execution_approved',
     'identity_token_fetch_policy_explicitly_approved',
     'service_audience_resolution_policy_explicitly_approved',
     'cloud_run_service_max_scale_cost_guard_reviewed',
-    'private_invoke_smoke_explicitly_approved',
+    'private_invoke_smoke_result_reviewed',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference',
+    'QWEN2_5_VL_STACK_TOOL_52-PRIVATE-INVOKE-SMOKE-EXECUTE: run controlled private invoke contract smoke, no inference',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

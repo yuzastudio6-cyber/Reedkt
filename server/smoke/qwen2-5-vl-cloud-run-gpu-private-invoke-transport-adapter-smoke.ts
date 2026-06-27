@@ -14,7 +14,7 @@ const ROOT = process.cwd()
 const DECISION =
   'qwen2_5_vl_cloud_run_gpu_private_invoke_transport_adapter_defined_fail_closed'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference'
+  'QWEN2_5_VL_STACK_TOOL_52-PRIVATE-INVOKE-SMOKE-EXECUTE: run controlled private invoke contract smoke, no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -214,7 +214,7 @@ assert.equal(contract.unlocksProduction, false)
 assert.equal(QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT.status, 'passed')
 assert.equal(
   QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT.remainingBlocker,
-  'private_invoke_smoke_plan_required_no_token_no_invocation',
+  'private_invoke_smoke_execution_required_no_inference',
 )
 assert.equal(QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP.runtimeFlags.privateInvokeReady, false)
 

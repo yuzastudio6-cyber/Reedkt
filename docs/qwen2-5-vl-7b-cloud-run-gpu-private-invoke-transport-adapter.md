@@ -61,8 +61,8 @@ The default adapter result is `blocked_transport_disabled`. In that path:
 
 ## Current Blocker
 
-The latest guarded auth/IAM reverify passed without fetching an identity token or invoking Cloud Run. The remaining blocker is a controlled private invoke smoke plan that explicitly reviews token-fetch policy, service-audience policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before any dependency may be called.
+The latest guarded auth/IAM reverify passed without fetching an identity token or invoking Cloud Run, and the controlled private invoke smoke plan is defined. The remaining blocker is controlled smoke execution approval that explicitly reviews token-fetch policy, service-audience policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before any dependency may be called.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference`
+`QWEN2_5_VL_STACK_TOOL_52-PRIVATE-INVOKE-SMOKE-EXECUTE: run controlled private invoke contract smoke, no inference`

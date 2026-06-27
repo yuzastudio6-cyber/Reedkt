@@ -23,6 +23,7 @@ export type AiGraphicsInternalBetaRuntimeEnqueueApprovalStatus =
 
 export interface AiGraphicsInternalBetaRuntimeEnqueueApprovalInput
   extends AiGraphicsInternalBetaGoNoGoOwnerApprovalInput {
+  sourceGoNoGoOwnerApprovalPacket?: AiGraphicsInternalBetaGoNoGoOwnerApproval
   internalBetaRuntimeEnqueueApprovalGranted?: boolean
   internalBetaRuntimeEnqueueApprovalRef?: string
   internalBetaRuntimeEnqueueApproverRole?: string
@@ -193,7 +194,9 @@ function statusFromInput(input: {
 export function buildAiGraphicsInternalBetaRuntimeEnqueueApproval(
   input: AiGraphicsInternalBetaRuntimeEnqueueApprovalInput = {},
 ): AiGraphicsInternalBetaRuntimeEnqueueApproval {
-  const sourceGoNoGoOwnerApproval = buildAiGraphicsInternalBetaGoNoGoOwnerApproval(input)
+  const sourceGoNoGoOwnerApproval =
+    input.sourceGoNoGoOwnerApprovalPacket ??
+    buildAiGraphicsInternalBetaGoNoGoOwnerApproval(input)
   const sourceAccepted =
     sourceGoNoGoOwnerApproval.status ===
       'internal_beta_go_no_go_owner_approved_runtime_still_blocked' &&

@@ -60,6 +60,13 @@
     "approvesLiveQueueNow": false,
     "approvesRuntimeNow": false
   },
+  "sourceEvidencePolicy": {
+    "acceptsLowLevelEvidenceFlags": true,
+    "acceptsGoNoGoOwnerApprovalPacket": true,
+    "sourceGoNoGoOwnerApprovalPacketRequired": true,
+    "runtimeEnqueueApprovalRequiredAfterSourcePacket": true,
+    "runtimeUnlockPerformed": false
+  },
   "gpuRuntimeActivationPolicy": {
     "onDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,

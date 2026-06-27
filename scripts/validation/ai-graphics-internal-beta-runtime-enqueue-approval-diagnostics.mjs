@@ -176,6 +176,7 @@ for (const file of requiredFiles) read(file)
 const pkg = json('package.json')
 const docs = json('docs/tool-intelligence/ai-graphics/internal-beta-runtime-enqueue-approval.json')
 const moduleSource = read('server/tool-registry/ai-graphics-internal-beta-runtime-enqueue-approval.ts')
+const cliSource = read('server/cli/ai-graphics-internal-beta-runtime-enqueue-approval.ts')
 const indexSource = read('server/tool-registry/index.ts')
 const markdown = read('docs/tool-intelligence/ai-graphics/internal-beta-runtime-enqueue-approval.md')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
@@ -242,6 +243,27 @@ for (const [key, expected] of Object.entries({
   if (docs.runtimeEnqueueApprovalRecord?.[key] !== expected) {
     fail(`docs_enqueue_record_mismatch:${key}:${docs.runtimeEnqueueApprovalRecord?.[key]}`)
   }
+}
+
+for (const [key, expected] of Object.entries({
+  acceptsLowLevelEvidenceFlags: true,
+  acceptsGoNoGoOwnerApprovalPacket: true,
+  sourceGoNoGoOwnerApprovalPacketRequired: true,
+  runtimeEnqueueApprovalRequiredAfterSourcePacket: true,
+  runtimeUnlockPerformed: false,
+})) {
+  if (docs.sourceEvidencePolicy?.[key] !== expected) {
+    fail(`docs_source_evidence_policy_mismatch:${key}:${docs.sourceEvidencePolicy?.[key]}`)
+  }
+}
+if (!cliSource.includes('--internal-beta-go-no-go-owner-approval-packet')) {
+  fail('cli_missing_go_no_go_owner_approval_packet_flag')
+}
+if (!markdown.includes('--internal-beta-go-no-go-owner-approval-packet')) {
+  fail('markdown_missing_go_no_go_owner_approval_packet_flag')
+}
+if (!moduleSource.includes('sourceGoNoGoOwnerApprovalPacket')) {
+  fail('module_missing_source_owner_packet_input')
 }
 
 for (const action of [
@@ -387,6 +409,79 @@ for (const tool of allTools) {
   }
 }
 
+const sourceOwnerApprovalPacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-go-no-go-owner-approval', [
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--model-weight-manifest-review-packet',
+  manifestPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuPacketPath,
+  '--owner-approval-granted',
+  '--owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--internal-beta-go-no-go-owner-approval-granted',
+  '--internal-beta-go-no-go-owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-owner-approved',
+]), 'source_owner_approval_packet')
+const sourceOwnerApprovalPacketPath = path.join(
+  path.dirname(manifestPacketPath),
+  'source-go-no-go-owner-approval-packet.json',
+)
+fs.writeFileSync(sourceOwnerApprovalPacketPath, `${JSON.stringify(sourceOwnerApprovalPacket, null, 2)}\n`, 'utf8')
+let packetAwaitingExited = false
+let packetAwaitingText = ''
+try {
+  packetAwaitingText = runNpm(runScriptName, [
+    '--internal-beta-go-no-go-owner-approval-packet',
+    sourceOwnerApprovalPacketPath,
+    '--require-internal-beta-runtime-enqueue-approved',
+  ])
+} catch (error) {
+  packetAwaitingExited = true
+  packetAwaitingText = `${error.stdout || ''}${error.stderr || ''}`
+}
+const packetAwaitingOutput = parseJsonOutput(packetAwaitingText, 'packet_awaiting_runtime_enqueue')
+if (!packetAwaitingExited) fail('packet_awaiting_runtime_enqueue_require_did_not_fail')
+if (packetAwaitingOutput.input?.sourceEvidenceMode !== 'internal_beta_go_no_go_owner_approval_packet') {
+  fail('packet_awaiting_source_mode_not_reported')
+}
+if (packetAwaitingOutput.status !== 'awaiting_internal_beta_runtime_enqueue_approval') {
+  fail(`packet_awaiting_status:${packetAwaitingOutput.status}`)
+}
+if (
+  packetAwaitingOutput.sourceGoNoGoOwnerApproval?.status !==
+    'internal_beta_go_no_go_owner_approved_runtime_still_blocked'
+) {
+  fail(`packet_awaiting_source_status:${packetAwaitingOutput.sourceGoNoGoOwnerApproval?.status}`)
+}
+if (packetAwaitingOutput.booleans?.sourceGoNoGoOwnerApprovalAccepted !== true) {
+  fail('packet_awaiting_source_not_accepted')
+}
+if (packetAwaitingOutput.booleans?.internalBetaRuntimeEnqueueApprovalRecordAccepted !== false) {
+  fail('packet_awaiting_enqueue_approval_not_false')
+}
+
+const packetApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--internal-beta-go-no-go-owner-approval-packet',
+  sourceOwnerApprovalPacketPath,
+  '--internal-beta-runtime-enqueue-approval-granted',
+  '--internal-beta-runtime-enqueue-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_LOCAL_FIXTURE',
+  '--require-internal-beta-runtime-enqueue-approved',
+]), 'packet_approved_runtime_enqueue')
+if (packetApprovedOutput.input?.sourceEvidenceMode !== 'internal_beta_go_no_go_owner_approval_packet') {
+  fail('packet_approved_source_mode_not_reported')
+}
+if (packetApprovedOutput.status !== 'internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked') {
+  fail(`packet_approved_status:${packetApprovedOutput.status}`)
+}
+if (packetApprovedOutput.enqueueScopeApprovedToolsWithProvidedEvidence !== 21) {
+  fail('packet_approved_scopes_not_21')
+}
+if (packetApprovedOutput.gpuRuntimeTargetedTools !== 8) fail('packet_approved_gpu_targets_not_8')
+
 let liveQueueRequireExited = false
 try {
   runNpm(runScriptName, [...approvedArgs, '--require-live-worker-queue'])
@@ -395,7 +490,13 @@ try {
 }
 if (!liveQueueRequireExited) fail('require_live_worker_queue_did_not_fail')
 
-for (const output of [defaultOutput, awaitingOutput, approvedOutput]) {
+for (const output of [
+  defaultOutput,
+  awaitingOutput,
+  approvedOutput,
+  packetAwaitingOutput,
+  packetApprovedOutput,
+]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`false_gate_not_false:${key}`)

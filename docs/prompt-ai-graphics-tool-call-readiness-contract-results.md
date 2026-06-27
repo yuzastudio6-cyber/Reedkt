@@ -369,6 +369,14 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked in both packet-fed paths: `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after internal beta go/no-go owner approval source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `b8c66cc1b43c6290e9ef3a9b74bb573d8e87407c`, with an empty check rollup.
 
+## Follow-Up: Internal Beta Runtime-Enqueue Source Packet Ingestion
+
+- Added evaluator-only source packet ingestion to `ai-graphics:internal-beta-runtime-enqueue-approval`:
+  - `--internal-beta-go-no-go-owner-approval-packet`
+- A source owner-approval packet must already report `internal_beta_go_no_go_owner_approved_runtime_still_blocked`; the runtime-enqueue approval record remains separate and required.
+- Diagnostic coverage proves a packet-fed runtime-enqueue gate reaches `awaiting_internal_beta_runtime_enqueue_approval` without the enqueue approval ref, and reaches `internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked` only with `--internal-beta-runtime-enqueue-approval-granted` and `--internal-beta-runtime-enqueue-approval-ref`.
+- Runtime remains blocked in both packet-fed paths: `workerQueueApprovedNow=false`, `productionWorkerJobEnqueueApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

@@ -127,6 +127,11 @@ GPU-targeted, and records runtime-enqueue scope approval with provided evidence.
 The eight GPU/model tool scopes also carry the runtime activation policy:
 on-demand only, no idle GPU runtime, GPU starts only for an approved
 worker/tool call, and CPU fallback is blocked for heavy/model paths.
+The evaluator can now consume a source
+`--internal-beta-go-no-go-owner-approval-packet` that already reports
+`internal_beta_go_no_go_owner_approved_runtime_still_blocked`; the
+runtime-enqueue approval record and ref remain separate and required after that
+source packet.
 It does not live-enqueue workers, dispatch workers, execute tools, run Tool
 Routes, call providers/models, run browser/canvas/WebGL, run GPU/model runtime,
 download or load model weights, process media, create signed URLs or public

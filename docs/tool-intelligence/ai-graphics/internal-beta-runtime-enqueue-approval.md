@@ -4,6 +4,15 @@ Decision: `ai_graphics_internal_beta_runtime_enqueue_approval_contract_prepared_
 
 This contract consumes the internal beta go/no-go owner approval and defines the exact all-21 AI graphics worker enqueue scope for a future internal beta runtime lane. It names the tool-call surface that a future queue authorization must use, while still blocking live queue enqueue and runtime execution.
 
+The evaluator can consume either low-level source evidence flags or a source
+go/no-go owner-approval packet via
+`--internal-beta-go-no-go-owner-approval-packet`. A source packet must already
+report `internal_beta_go_no_go_owner_approved_runtime_still_blocked`; this
+runtime-enqueue gate still requires a separate
+`--internal-beta-runtime-enqueue-approval-granted` record and
+`--internal-beta-runtime-enqueue-approval-ref` before the enqueue scope is
+approved with runtime still blocked.
+
 ## Current Status
 
 - Status: `internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked`

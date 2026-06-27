@@ -21,7 +21,7 @@ The UI presents 13 planner-routing tasks and one private-invoke dry-run route re
 - 5 blocked routes for AI video generation, final render/export, raw chat execution, frontend invocation, and unbounded long-video analysis.
 - Private invoke client route: `jobs.qwen2_5_vl.privateInvoke.dryRun`
 - Private invoke client helper: `callQwen25VlPrivateInvokeDryRun`
-- Private invoke status: `blocked_private_invoke_routing_contract_response_required`
+- Private invoke status: `blocked_private_invoke_internal_caller_required`
 
 The card keeps `dryRunPassedClaimed=false` and all execution gates false.
 
@@ -59,8 +59,8 @@ The card provides no execution buttons, no approval buttons, no credit buttons, 
 
 ## Current Blocker
 
-Read-only Cloud Run auth/IAM reverify has passed, narrow TokenCreator and Run Invoker bindings are in place, and the controlled smoke can mint an audience-bound identity token without printing or storing the token value. The latest bounded request returned HTTP `404` instead of the expected fail-closed contract JSON, so private Cloud Run invocation remains blocked until the route/ingress/load balancer/proxy/service URL/audience path reaches the contract handler without enabling inference.
+Read-only Cloud Run auth/IAM reverify has passed, narrow TokenCreator and Run Invoker bindings are in place, and the controlled smoke can mint an audience-bound identity token without printing or storing the token value. The latest bounded request returned HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records the more precise blocker: the service ingress is `internal-and-cloud-load-balancing`, so private Cloud Run invocation remains blocked until an approved internal caller, internal load balancer, Private Service Connect, or VPC-routed harness reaches the contract handler without enabling inference.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_53-PRIVATE-INVOKE-ROUTING-FIX: fix controlled private invoke route/ingress contract response, no inference`
+`QWEN2_5_VL_STACK_TOOL_54-PRIVATE-INVOKE-INTERNAL-CALLER-HARNESS: create controlled internal caller or internal LB/PSC path for contract smoke, no inference`

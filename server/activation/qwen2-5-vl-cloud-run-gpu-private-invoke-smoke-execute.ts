@@ -19,6 +19,7 @@ type JsonRecord = Record<string, unknown>
 
 const CONFIRMATION_ENV = 'REEDITPRO_CONFIRM_QWEN25_VL_PRIVATE_INVOKE_SMOKE'
 const IMPERSONATION_ENV = 'REEDITPRO_GCP_IMPERSONATE_SERVICE_ACCOUNT'
+const INTERNAL_ROUTE_ENV = 'REEDITPRO_QWEN25_VL_PRIVATE_INVOKE_INTERNAL_ROUTE_CONFIRMED'
 const TARGET = QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_SMOKE_PLAN.targetService
 const EXPECTED_REASON =
   QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_SMOKE_PLAN.futureSmokeShape.expectedReason
@@ -92,8 +93,9 @@ const BASE_RUNTIME_FLAGS = {
 	  identityTokenValueStored: false,
 	  serviceAccountImpersonationConfigured: false,
 	  serviceAccountImpersonationAttempted: false,
-	  serviceAccountKeyCreated: false,
-	  cloudRunInvocationAttempted: false,
+  serviceAccountKeyCreated: false,
+  cloudRunInvocationAttempted: false,
+  restrictedIngressDirectLocalRequestBlocked: false,
   serviceRuntimeRequestSent: false,
   responseClassifiedLocally: false,
   retryAttempted: false,
@@ -196,6 +198,7 @@ export async function runQwen25PrivateInvokeSmoke(input: {
   if (!serviceUrl) blockers.push('service_url_missing_from_describe')
 
   const costPosture = readCostPosture(service)
+  const ingress = readIngress(service)
   if (costPosture.minScaleAnnotationPresent) blockers.push('min_scale_annotation_present')
   if (costPosture.templateMaxScale !== '1') blockers.push('template_max_scale_not_one')
   if (costPosture.serviceMaxScale !== '3') blockers.push('service_max_scale_unexpected')
@@ -214,6 +217,25 @@ export async function runQwen25PrivateInvokeSmoke(input: {
       costPosture,
       envelopeByteLength: envelopeResult.envelope?.bodyByteLength ?? 0,
       maxBodyBytes: envelopeResult.envelope?.maxBodyBytes ?? 65536,
+    })
+  }
+
+  if (isRestrictedIngress(ingress) && process.env[INTERNAL_ROUTE_ENV] !== 'true') {
+    blockers.push('private_ingress_internal_caller_required')
+    return buildResult({
+      runId,
+      preflightRunId: input.preflightRunId,
+      probes,
+      blockers,
+      costPosture,
+      envelopeByteLength: envelopeResult.envelope.bodyByteLength,
+      maxBodyBytes: envelopeResult.envelope.maxBodyBytes,
+      runtimeFlagOverrides: {
+        serviceUrlResolvedNow: true,
+        audienceResolvedNow: false,
+        costGuardReviewedBeforeInvoke: true,
+        restrictedIngressDirectLocalRequestBlocked: true,
+      },
     })
   }
 
@@ -576,6 +598,11 @@ function nextPromptForResult(status: ResultStatus, blockers: readonly string[]) 
     return 'QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference'
   }
   if (
+    blockers.includes('private_ingress_internal_caller_required')
+  ) {
+    return 'QWEN2_5_VL_STACK_TOOL_54-PRIVATE-INVOKE-INTERNAL-CALLER-HARNESS: create controlled internal caller or internal LB/PSC path for contract smoke, no inference'
+  }
+  if (
     blockers.includes('private_invoke_response_unexpected') ||
     blockers.includes('cloud_run_contract_post_blocked')
   ) {
@@ -624,6 +651,20 @@ function readServiceUrl(value: unknown) {
   return typeof status.url === 'string' && status.url.trim()
     ? status.url.trim()
     : undefined
+}
+
+function readIngress(value: unknown) {
+  const service = asRecord(value)
+  const metadata = asRecord(service.metadata)
+  const serviceAnnotations = asRecord(metadata.annotations)
+  const ingressStatus = serviceAnnotations['run.googleapis.com/ingress-status']
+  const ingress = serviceAnnotations['run.googleapis.com/ingress']
+  if (typeof ingressStatus === 'string' && ingressStatus.trim()) return ingressStatus.trim()
+  return typeof ingress === 'string' && ingress.trim() ? ingress.trim() : 'unknown'
+}
+
+function isRestrictedIngress(ingress: string) {
+  return ingress === 'internal' || ingress === 'internal-and-cloud-load-balancing'
 }
 
 function readCostPosture(value: unknown) {

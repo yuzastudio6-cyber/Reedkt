@@ -1,6 +1,6 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "completed_named_invited_tester_walkthrough",
+  "decision": "blocked_no_additional_named_tester_list",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
   "integrationHead": "3c56071c0274abeb513f302414d702c113cc6ab7",
   "sourceClosure": {
@@ -34,11 +34,12 @@
     "deployedBrowserUiSurfaceStagingDeploy": "rp_external_beta_deployed_browser_ui_surface_1r_staging_deploy",
     "controlledOwnerBrowserWalkthrough": "rp_external_beta_controlled_owner_browser_walkthrough_1",
     "controlledOwnerGoNoGo": "rp_external_beta_controlled_owner_go_no_go_1",
-    "namedInvitedTesterWalkthrough": "rp_external_beta_named_invited_tester_walkthrough_1"
+    "namedInvitedTesterWalkthrough": "rp_external_beta_named_invited_tester_walkthrough_1",
+    "boundedTesterExpansionDecision": "rp_external_beta_bounded_tester_expansion_decision_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
-    "externalProductBeta": "ready_for_bounded_external_beta_tester_expansion_decision",
+    "externalProductBeta": "controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list",
     "productApiReadiness": "ready_for_controlled_owner_tester_product_walkthrough",
     "paidProduction": "blocked",
     "finalDeliveryExport": "blocked",
@@ -270,7 +271,7 @@
     "controlledOwnerGoNoGoExecution": "completed_docs_only_controlled_owner_go_no_go_no_runtime_mutation",
     "controlledOwnerGoNoGoNextGate": "RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1",
     "namedInvitedTesterIdentity": "completed_source_approved_primary_real_reeditpro_tester_account_walkthrough",
-    "nextMilestone": "RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1",
+    "nextMilestone": "OWNER_ACTION_REQUIRED_ADDITIONAL_NAMED_TESTER_LIST_FOR_BOUNDED_EXPANSION",
     "namedInvitedTesterWalkthrough": "completed_named_invited_tester_walkthrough",
     "namedInvitedTesterWalkthroughExecution": "completed_guarded_authenticated_named_tester_walkthrough_no_runtime_mutation",
     "namedInvitedTesterWalkthroughRunId": "2026-06-27T18-18-53-455Z-ea8106e0",
@@ -285,7 +286,13 @@
     "namedInvitedTesterRoutesEndpointStatus": 200,
     "namedInvitedTesterRuntimeStatusEndpointStatus": 200,
     "namedInvitedTesterReportSha256": "66d46b5c1e0e6200f431f8ea2a2397d49874bac490928716853a86ee1598c2f6",
-    "namedInvitedTesterManifestSha256": "3a10d4df623785e961ec0c69e4b86bab9e361a16d32ac345b662af09dd859875"
+    "namedInvitedTesterManifestSha256": "3a10d4df623785e961ec0c69e4b86bab9e361a16d32ac345b662af09dd859875",
+    "boundedTesterExpansionDecision": "blocked_no_additional_named_tester_list",
+    "boundedTesterExpansionExecution": "completed_docs_only_bounded_tester_expansion_decision_no_access_mutation",
+    "additionalNamedTesterList": "not_present_in_source",
+    "boundedTesterExpansionApproved": false,
+    "boundedTesterExpansionBlocker": "blocked_no_additional_named_tester_list",
+    "currentApprovedTesterEmail": "aiediting@reeditpro.com"
   },
   "requiredNextOwnerDecision": [
     "keep_controlled_external_beta_tester_group_bounded",
@@ -403,7 +410,10 @@
     "namedInvitedTesterWalkthroughPersistentMutation": false,
     "namedInvitedTesterWalkthroughIamMutation": false,
     "namedInvitedTesterWalkthroughCloudRunDeployment": false,
-    "namedInvitedTesterWalkthroughGroupMembershipMutation": false
+    "namedInvitedTesterWalkthroughGroupMembershipMutation": false,
+    "boundedTesterExpansionDecision": "blocked_no_additional_named_tester_list_no_access_mutation",
+    "additionalTesterExpansionApproved": false,
+    "iamMutation": false
   },
   "packageLock": "unchanged",
   "generatedArtifactsCommitted": "none"

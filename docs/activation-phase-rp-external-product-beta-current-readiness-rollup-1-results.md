@@ -1,6 +1,6 @@
 # Activation Phase: RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Results
 
-Decision: `completed_named_invited_tester_walkthrough`
+Decision: `blocked_no_additional_named_tester_list`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
@@ -8,7 +8,7 @@ Current integration head: `3c56071c0274abeb513f302414d702c113cc6ab7`
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
-External product beta readiness: `ready_for_bounded_external_beta_tester_expansion_decision`
+External product beta readiness: `controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list`
 
 Product API readiness: `ready_for_controlled_owner_tester_product_walkthrough`
 
@@ -86,7 +86,9 @@ Paid production, public artifacts, broad media, signed URL source-of-truth, fina
 
 `RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1` records decision `completed_named_invited_tester_walkthrough` and execution `completed_guarded_authenticated_named_tester_walkthrough_no_runtime_mutation`. It used the real ReEditPro tester account `aiediting@reeditpro.com`, preserved `group:external-beta-testers@reeditpro.com` as the Cloud Run invoker boundary, kept unauthenticated `/` blocked as `403`, confirmed authenticated `/`, `/dashboard`, `/projects`, and `/editor` as `200` HTML, confirmed authenticated SPA JS/CSS assets, confirmed `/api/routes` returned `200`, and confirmed `/api/runtime/status` returned `200`. Run ID: `2026-06-27T18-18-53-455Z-ea8106e0`. Report SHA-256: `66d46b5c1e0e6200f431f8ea2a2397d49874bac490928716853a86ee1598c2f6`. Manifest SHA-256: `3a10d4df623785e961ec0c69e4b86bab9e361a16d32ac345b662af09dd859875`.
 
-Next safe action: run `RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1` before adding or validating additional testers, while preserving group-only staging access and without public access, providers, workers, paid billing, broad media, or production.
+`RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1` records decision `blocked_no_additional_named_tester_list` and execution `completed_docs_only_bounded_tester_expansion_decision_no_access_mutation`. It keeps the controlled single-tester lane for `aiediting@reeditpro.com` and blocks additional tester expansion because no explicit additional named tester list is present in source.
+
+Next safe action: owner action to provide an explicit additional named tester list or keep the single-tester lane, while preserving group-only staging access and without public access, providers, workers, paid billing, broad media, or production.
 
 ## Safety
 

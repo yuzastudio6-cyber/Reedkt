@@ -1,0 +1,81 @@
+{
+  "packet": "RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1",
+  "decision": "blocked_no_additional_named_tester_list",
+  "execution": "completed_docs_only_bounded_tester_expansion_decision_no_access_mutation",
+  "integrationBase": "6aba828d3fdbf6e8dd81cda29a14c42932fb0b20",
+  "repository": "yuzastudio6-cyber/Reedkt",
+  "sourceClosure": {
+    "namedInvitedTesterWalkthrough": "RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1",
+    "namedInvitedTesterWalkthroughMergeSha": "6aba828d3fdbf6e8dd81cda29a14c42932fb0b20",
+    "controlledOwnerGoNoGo": "RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1",
+    "mainSupabaseTarget": "Reeditpro/wmyyttnynmteqgcdishd/staging",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "currentTester": {
+    "email": "aiediting@reeditpro.com",
+    "status": "completed_named_invited_tester_walkthrough",
+    "walkthroughRunId": "2026-06-27T18-18-53-455Z-ea8106e0",
+    "reportSha256": "66d46b5c1e0e6200f431f8ea2a2397d49874bac490928716853a86ee1598c2f6",
+    "manifestSha256": "3a10d4df623785e961ec0c69e4b86bab9e361a16d32ac345b662af09dd859875"
+  },
+  "boundedExpansion": {
+    "additionalNamedTesterList": "not_present_in_source",
+    "approved": false,
+    "blocker": "blocked_no_additional_named_tester_list",
+    "requiredNextOwnerInput": "provide_explicit_additional_named_tester_list_or_keep_single_tester_lane"
+  },
+  "cloudRun": {
+    "project": "reeditpro",
+    "service": "reeditpro-staging-api",
+    "region": "us-central1",
+    "invokerMember": "group:external-beta-testers@reeditpro.com",
+    "allUsersGrantApproved": false,
+    "allAuthenticatedUsersGrantApproved": false,
+    "domainWideAccessApproved": false,
+    "productionServiceAccessApproved": false
+  },
+  "readiness": {
+    "externalProductBeta": "controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list",
+    "productApiReadiness": "ready_for_controlled_owner_tester_product_walkthrough",
+    "broadExternalBetaAudience": "blocked",
+    "paidProduction": "blocked",
+    "finalDeliveryExport": "blocked",
+    "nextMilestone": "OWNER_ACTION_REQUIRED_ADDITIONAL_NAMED_TESTER_LIST_FOR_BOUNDED_EXPANSION",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "groupMembershipMutation": false,
+    "cloudRunIamMutation": false,
+    "cloudRunServiceUpdate": false,
+    "deployment": false,
+    "broadPublicInvokerGrant": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "browserCapture": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "persistentCreditMutation": false,
+    "persistentCreditReservationCreation": false,
+    "stripePaymentProcessing": false,
+    "renderExecution": false,
+    "mediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "dockerExecution": false,
+    "internalBetaBroadUnlock": false,
+    "externalBetaBroadAudienceUnlock": false,
+    "productionUnlock": false,
+    "packageLockMutation": false,
+    "iamMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

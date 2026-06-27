@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `ready_for_bounded_external_beta_tester_expansion_decision` | named invited tester walkthrough is complete for `aiediting@reeditpro.com`; product API lane is `ready_for_controlled_owner_tester_product_walkthrough`; deployed browser UI surface, controlled tester UI smoke, controlled owner browser walkthrough, and controlled owner go/no-go are complete; any additional tester expansion still requires bounded owner approval |
+| External beta | `controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list` | named invited tester walkthrough is complete for `aiediting@reeditpro.com`; product API lane is `ready_for_controlled_owner_tester_product_walkthrough`; deployed browser UI surface, controlled tester UI smoke, controlled owner browser walkthrough, controlled owner go/no-go, and named invited tester walkthrough are complete; additional tester expansion is blocked because no additional named tester list is present |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-Run `RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1` before adding or validating any additional testers, while keeping `external-beta-testers@reeditpro.com` as the only staging API invoker group and keeping public/production access blocked.
+Keep the controlled single-tester lane for `aiediting@reeditpro.com`, or obtain an explicit additional named tester list before any expansion. Keep `external-beta-testers@reeditpro.com` as the only staging API invoker group and keep public/production access blocked.
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 

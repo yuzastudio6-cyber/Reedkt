@@ -278,6 +278,18 @@ const controlledSmokeValidationFiles = [
   'scripts/validation/rp-external-beta-controlled-smoke-validation-1-diagnostics.mjs',
 ]
 
+const controlledPrivateInviteAccessFiles = [
+  'docs/external-beta/controlled-private-invite-access-1/source-audit.md',
+  'docs/external-beta/controlled-private-invite-access-1/invite-access-policy.md',
+  'docs/external-beta/controlled-private-invite-access-1/iam-readback.md',
+  'docs/external-beta/controlled-private-invite-access-1/safety-boundary.md',
+  'docs/external-beta/controlled-private-invite-access-1/controlled-private-invite-access-record.json',
+  'docs/external-beta/controlled-private-invite-access-1/validation-results.md',
+  'docs/activation-phase-rp-external-beta-controlled-private-invite-access-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-private-invite-iam-grant-1.md',
+  'scripts/validation/rp-external-beta-controlled-private-invite-access-1-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -533,7 +545,7 @@ const requiredText = [
   'Unsafe public mutation grants: `0`',
   'Unsafe public sequence grants: `0`',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'External product beta readiness: `controlled_external_beta_smoke_validated_authenticated_staging_api`',
+  'External product beta readiness: `controlled_external_beta_private_invite_access_policy_ready`',
   'External beta enabled in this phase: `true`',
   'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
   'Product-ready end-to-end local OSS tools: `0`',
@@ -559,6 +571,14 @@ const requiredText = [
   'completed_controlled_external_beta_authenticated_staging_smoke_validation',
   'completed_authenticated_health_readiness_source_status_smoke_only',
   'controlled_external_beta_smoke_validated_authenticated_staging_api',
+  'completed_controlled_private_invite_access_policy_no_access_mutation',
+  'completed_docs_only_invite_access_policy_and_iam_readback_no_access_grants',
+  'controlled_external_beta_private_invite_access_policy_ready',
+  'ready_for_explicit_invite_iam_grant_planning',
+  'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1',
+  'service-level `allUsers` invoker binding `false`',
+  'service-level `allAuthenticatedUsers` invoker binding `false`',
+  'service-level binding count `0`',
   'authenticated `/health`: `200`',
   'authenticated `/ready`: `200`',
   'authenticated `/api/runtime/status`: `200`',
@@ -668,10 +688,10 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation') fail('record decision mismatch')
+if (record.decision !== 'completed_controlled_private_invite_access_policy_no_access_mutation') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
-if (record.integrationHead !== '1a934253ec5cfab26a0ad75e29b978984b0639a5') fail('integration head mismatch')
-if (record.statuses?.externalProductBeta !== 'controlled_external_beta_smoke_validated_authenticated_staging_api') fail('external beta status mismatch')
+if (record.integrationHead !== '4e0ca864be052008cea86e287a683b687a8139f1') fail('integration head mismatch')
+if (record.statuses?.externalProductBeta !== 'controlled_external_beta_private_invite_access_policy_ready') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.mainSupabaseTarget?.projectRef !== 'wmyyttnynmteqgcdishd') fail('main target ref mismatch')
@@ -729,6 +749,7 @@ if (record.sourceClosure?.controlledEnablement !== 'rp_external_beta_controlled_
 if (record.sourceClosure?.stagingFlagApplication !== 'rp_external_beta_staging_flag_application_1') fail('staging flag application source mismatch')
 if (record.sourceClosure?.stagingFlagApplication1r !== 'rp_external_beta_staging_flag_application_1r_after_gcloud_reauth') fail('staging flag application 1R source mismatch')
 if (record.sourceClosure?.controlledSmokeValidation !== 'rp_external_beta_controlled_smoke_validation_1') fail('controlled smoke validation source mismatch')
+if (record.sourceClosure?.controlledPrivateInviteAccess !== 'rp_external_beta_controlled_private_invite_access_1') fail('controlled private invite access source mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
 if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
@@ -775,8 +796,17 @@ if (record.mainSupabaseTarget?.authenticatedRuntimeStatus !== 'passed_200') fail
 if (record.mainSupabaseTarget?.runtimeMode !== 'mock') fail('runtime mode mismatch')
 if (record.mainSupabaseTarget?.mockOnly !== true) fail('mock-only flag mismatch')
 if (record.mainSupabaseTarget?.providerRealCallsEnabled !== false) fail('provider real call flag mismatch')
-if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1') fail('next milestone mismatch')
-if (record.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1') fail('controlled smoke next decision mismatch')
+if (record.mainSupabaseTarget?.controlledPrivateInviteAccess !== 'completed_controlled_private_invite_access_policy_no_access_mutation') fail('controlled private invite access status mismatch')
+if (record.mainSupabaseTarget?.privateInviteAccessExecution !== 'completed_docs_only_invite_access_policy_and_iam_readback_no_access_grants') fail('controlled private invite access execution mismatch')
+if (record.mainSupabaseTarget?.cloudRunIamPolicyReadback !== 'completed_readonly_no_service_level_public_invoker_binding') fail('Cloud Run IAM readback status mismatch')
+if (record.mainSupabaseTarget?.cloudRunIamServiceLevelBindingCount !== 0) fail('Cloud Run IAM binding count mismatch')
+if (record.mainSupabaseTarget?.cloudRunAllUsersInvoker !== false) fail('Cloud Run allUsers invoker mismatch')
+if (record.mainSupabaseTarget?.cloudRunAllAuthenticatedUsersInvoker !== false) fail('Cloud Run allAuthenticatedUsers invoker mismatch')
+if (record.mainSupabaseTarget?.inviteAccessGrantMutation !== false) fail('invite access grant mutation mismatch')
+if (record.mainSupabaseTarget?.approvedInviteSource !== 'explicit_identity_list_required_before_grant') fail('approved invite source mismatch')
+if (record.mainSupabaseTarget?.privateInviteAccessReadiness !== 'ready_for_explicit_invite_iam_grant_planning') fail('private invite readiness mismatch')
+if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1') fail('next milestone mismatch')
+if (record.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1') fail('controlled private invite next decision mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteReportSha256 !== '25772fc0efe3d6d1aa699a1408ec621cc7df0dbe13bb52fe526b3939030fbb65') fail('service-role route report checksum mismatch')
@@ -830,6 +860,11 @@ if (record.safety?.externalBetaEnvironmentUnlockScope !== 'controlled_staging_ap
 if (record.safety?.controlledSmokeValidation !== 'completed_authenticated_health_readiness_source_status_smoke_only') fail('controlled smoke safety mismatch')
 if (record.safety?.authenticatedHealthReadinessRouteExecution !== 'safe_get_health_ready_runtime_status_only') fail('authenticated health/readiness route scope mismatch')
 if (record.safety?.unauthenticatedAccessPublicOpen !== false) fail('unauthenticated public access flag mismatch')
+if (record.safety?.controlledPrivateInviteAccess !== 'completed_docs_only_invite_access_policy_and_readonly_iam_readback') fail('controlled private invite safety mismatch')
+if (record.safety?.cloudRunIamPolicyReadback !== true) fail('Cloud Run IAM policy readback safety mismatch')
+if (record.safety?.cloudRunIamPolicyMutation !== false) fail('Cloud Run IAM mutation safety mismatch')
+if (record.safety?.inviteGrantMutation !== false) fail('invite grant mutation safety mismatch')
+if (record.safety?.broadPublicInvokerGrant !== false) fail('broad public invoker grant safety mismatch')
 if (record.safety?.privateMediaProcessing !== false) fail('private media processing flag mismatch')
 if (record.safety?.userMediaProcessing !== false) fail('user media processing flag mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
@@ -872,6 +907,12 @@ if (
 ) {
   fail('missing controlled smoke diagnostics script')
 }
+if (
+  packageJson.scripts?.['rp-external-beta-controlled-private-invite-access-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-controlled-private-invite-access-1-diagnostics.mjs'
+) {
+  fail('missing controlled private invite access diagnostics script')
+}
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
@@ -893,6 +934,7 @@ const allowed = new Set([
   ...stagingFlagApplicationFiles,
   ...stagingFlagApplication1rFiles,
   ...controlledSmokeValidationFiles,
+  ...controlledPrivateInviteAccessFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -938,7 +980,7 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_controlled_external_beta_authenticated_staging_smoke_validation')
-console.log('External product beta readiness: controlled_external_beta_smoke_validated_authenticated_staging_api')
+console.log('Decision: completed_controlled_private_invite_access_policy_no_access_mutation')
+console.log('External product beta readiness: controlled_external_beta_private_invite_access_policy_ready')
 console.log('External beta enabled in this phase: true')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

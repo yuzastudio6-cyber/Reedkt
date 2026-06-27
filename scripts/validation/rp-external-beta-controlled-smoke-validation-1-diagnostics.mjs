@@ -21,6 +21,18 @@ const requiredFiles = [
   'package.json',
 ]
 
+const followOnControlledPrivateInviteAccess1Files = [
+  'docs/external-beta/controlled-private-invite-access-1/source-audit.md',
+  'docs/external-beta/controlled-private-invite-access-1/invite-access-policy.md',
+  'docs/external-beta/controlled-private-invite-access-1/iam-readback.md',
+  'docs/external-beta/controlled-private-invite-access-1/safety-boundary.md',
+  'docs/external-beta/controlled-private-invite-access-1/controlled-private-invite-access-record.json',
+  'docs/external-beta/controlled-private-invite-access-1/validation-results.md',
+  'docs/activation-phase-rp-external-beta-controlled-private-invite-access-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-private-invite-iam-grant-1.md',
+  'scripts/validation/rp-external-beta-controlled-private-invite-access-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'completed_controlled_external_beta_authenticated_staging_smoke_validation',
@@ -176,15 +188,33 @@ if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation') fail('rollup decision mismatch')
-if (rollup.statuses?.externalProductBeta !== 'controlled_external_beta_smoke_validated_authenticated_staging_api') fail('rollup external beta status mismatch')
+const rollupIsInviteAccessCompleted =
+  rollup.decision === 'completed_controlled_private_invite_access_policy_no_access_mutation'
+if (
+  rollup.decision !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation' &&
+  !rollupIsInviteAccessCompleted
+) {
+  fail('rollup decision mismatch')
+}
+if (
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_smoke_validated_authenticated_staging_api' &&
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_private_invite_access_policy_ready'
+) {
+  fail('rollup external beta status mismatch')
+}
 if (rollup.sourceClosure?.controlledSmokeValidation !== 'rp_external_beta_controlled_smoke_validation_1') fail('rollup smoke source missing')
 if (rollup.mainSupabaseTarget?.controlledSmokeValidation !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation') fail('rollup smoke status mismatch')
 if (rollup.mainSupabaseTarget?.unauthenticatedAccess !== 'blocked_403') fail('rollup unauthenticated access mismatch')
 if (rollup.mainSupabaseTarget?.authenticatedHealth !== 'passed_200') fail('rollup health mismatch')
 if (rollup.mainSupabaseTarget?.authenticatedReadiness !== 'passed_200_ready_endpoint') fail('rollup readiness mismatch')
 if (rollup.mainSupabaseTarget?.providerRealCallsEnabled !== false) fail('rollup provider real call flag mismatch')
-if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1') fail('rollup next milestone mismatch')
+if (rollupIsInviteAccessCompleted) {
+  if (rollup.sourceClosure?.controlledPrivateInviteAccess !== 'rp_external_beta_controlled_private_invite_access_1') fail('rollup invite source missing')
+  if (rollup.mainSupabaseTarget?.controlledPrivateInviteAccess !== 'completed_controlled_private_invite_access_policy_no_access_mutation') fail('rollup invite status mismatch')
+  if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1') fail('rollup next milestone mismatch')
+} else if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1') {
+  fail('rollup next milestone mismatch')
+}
 if (rollup.safety?.controlledSmokeValidation !== 'completed_authenticated_health_readiness_source_status_smoke_only') fail('rollup smoke safety mismatch')
 if (rollup.safety?.unauthenticatedAccessPublicOpen !== false) fail('rollup unauthenticated public flag mismatch')
 if (rollup.safety?.productionUnlock !== false) fail('rollup production unlock must remain false')
@@ -200,7 +230,13 @@ if (
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
 for (const file of changedFiles()) {
-  if (!allowedExact.has(file) && !allowedPrefixes.some((prefix) => file.startsWith(prefix))) fail(`unexpected changed file: ${file}`)
+  if (
+    !allowedExact.has(file) &&
+    !allowedPrefixes.some((prefix) => file.startsWith(prefix)) &&
+    !followOnControlledPrivateInviteAccess1Files.includes(file)
+  ) {
+    fail(`unexpected changed file: ${file}`)
+  }
   for (const blocked of blockedPrefixes) {
     if (file === blocked || file.startsWith(blocked)) fail(`blocked file scope changed: ${file}`)
   }

@@ -10,8 +10,11 @@ runtime-enqueue approval packet via
 report `internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked`,
 cover all 21 tools and all 12 capabilities, keep exactly eight GPU/model tools
 eligible for accepted future job startup, keep `gpuRuntimeShouldStartNow=false`,
-and keep runtime/beta/production gates false. Queue-admission prerequisites
-remain separate and required after that source packet.
+and keep runtime/beta/production gates false. It must also preserve nested
+owner-approved go/no-go, production worker gate, and production worker job
+evidence: all eight GPU/model tools must keep exact native NVIDIA L4 targets,
+on-demand-only startup, no idle GPU approval, and CPU fallback blocked.
+Queue-admission prerequisites remain separate and required after that source packet.
 
 ## Current Status
 

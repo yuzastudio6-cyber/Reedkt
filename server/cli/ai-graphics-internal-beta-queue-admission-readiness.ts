@@ -10,6 +10,17 @@ import type {
   AiGraphicsBetaEvidenceBundleInput,
 } from '../tool-registry/ai-graphics-beta-evidence-bundle'
 
+const expectedGpuRuntimeTargets: Record<string, string> = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
 }
@@ -107,6 +118,8 @@ const falseGateKeys = [
   'signedUrlCreated',
 ] as const
 
+const sourceFalseGateKeys = falseGateKeys.filter((key) => key !== 'gpuRuntimeShouldStartNow')
+
 function assertBooleanField(
   object: Record<string, unknown>,
   key: string,
@@ -131,6 +144,238 @@ function assertNumberField(
   }
 }
 
+function asRecord(value: unknown, field: string): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Expected object field ${field}`)
+  }
+  return value as Record<string, unknown>
+}
+
+function assertField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: unknown,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(`${flag} must have ${key}=${String(expected)}; received ${String(object[key])}`)
+  }
+}
+
+function validateSourceRollup(record: Record<string, unknown>, flag: string): void {
+  assertField(record, 'decision', 'ai_graphics_beta_production_readiness_rollup_prepared_with_runtime_blocks', flag)
+  assertField(record, 'status', 'owner_approved_worker_gates_ready_runtime_still_blocked', flag)
+  assertNumberField(record, 'totalAiGraphicsTools', 21, flag)
+  assertNumberField(record, 'totalProductFacingCapabilities', 12, flag)
+  assertNumberField(record, 'properlyInstalledForPlannedSurface', 21, flag)
+  assertNumberField(record, 'productionMappedTools', 21, flag)
+  assertNumberField(record, 'duplicateProductionMappings', 0, flag)
+  assertNumberField(record, 'gpuRuntimeTargetedTools', 8, flag)
+  assertField(record, 'gpuRuntimeTargetsExact', true, flag)
+  assertField(record, 'gpuRuntimeOnDemandOnly', true, flag)
+  assertNumberField(record, 'heavyToolsIncorrectlyTargetingCpu', 0, flag)
+  assertNumberField(record, 'productionWorkerGateChecksAcceptedWithProvidedEvidence', 21, flag)
+  assertNumberField(record, 'capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence', 12, flag)
+  assertNumberField(record, 'hardFailedProductionWorkerGateChecksWithProvidedEvidence', 0, flag)
+  assertNumberField(record, 'internalBetaReadyNowTools', 0, flag)
+  assertNumberField(record, 'externalBetaReadyNowTools', 0, flag)
+  assertNumberField(record, 'productionReadyNowTools', 0, flag)
+
+  const expectedTargets = asRecord(record.expectedGpuRuntimeTargets, 'sourceRollup.expectedGpuRuntimeTargets')
+  for (const [toolId, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+    assertField(expectedTargets, toolId, runtimeTarget, flag)
+  }
+  if (Object.keys(expectedTargets).length !== 8) {
+    throw new Error(`${flag} sourceRollup must preserve exactly 8 GPU runtime targets`)
+  }
+
+  const booleans = asRecord(record.booleans, 'sourceRollup.booleans')
+  for (const [key, expected] of Object.entries({
+    internalBetaGoNoGoReadyWithProvidedEvidence: true,
+    sourceProductionWorkerGateAcceptedWithProvidedEvidence: true,
+    all21ToolsCovered: true,
+    all12CapabilitiesCovered: true,
+    all21ToolsProperlyInstalledForPlannedSurface: true,
+    all21ToolsMappedToProductionRegistry: true,
+    noDuplicateProductionMappings: true,
+    gpuHeavyToolsTargetGpuRuntime: true,
+    gpuRuntimeTargetsExact: true,
+    gpuRuntimeOnDemandOnly: true,
+    productionWorkerGateHardFailuresWithProvidedEvidenceAbsent: true,
+  })) {
+    assertBooleanField(booleans, key, expected, flag)
+  }
+  for (const key of sourceFalseGateKeys) {
+    assertBooleanField(booleans, key, false, flag)
+  }
+
+  const productionWorkerGateReadiness = asRecord(
+    record.productionWorkerGateReadiness,
+    'sourceRollup.productionWorkerGateReadiness',
+  )
+  assertField(productionWorkerGateReadiness, 'status', 'owner_approved_production_worker_gate_checks_ready', flag)
+  assertNumberField(productionWorkerGateReadiness, 'productionWorkerGateChecksAcceptedWithProvidedEvidence', 21, flag)
+  assertNumberField(
+    productionWorkerGateReadiness,
+    'capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence',
+    12,
+    flag,
+  )
+  assertNumberField(productionWorkerGateReadiness, 'hardFailedGateChecksWithProvidedEvidence', 0, flag)
+  assertNumberField(productionWorkerGateReadiness, 'productionWorkerGateChecksReadyNow', 0, flag)
+  if (
+    !Array.isArray(productionWorkerGateReadiness.productionWorkerGateChecks) ||
+    productionWorkerGateReadiness.productionWorkerGateChecks.length !== 21
+  ) {
+    throw new Error(`${flag} sourceRollup must preserve exactly 21 production worker gate checks`)
+  }
+
+  const expectedGpuTools = new Set(Object.keys(expectedGpuRuntimeTargets))
+  const gpuGateChecks = productionWorkerGateReadiness.productionWorkerGateChecks.filter((gateCheck): boolean => {
+    const gateRecord = asRecord(gateCheck, 'sourceRollup.productionWorkerGateChecks[]')
+    return expectedGpuTools.has(String(gateRecord.toolId))
+  })
+  if (gpuGateChecks.length !== 8) {
+    throw new Error(`${flag} sourceRollup must preserve exactly 8 GPU/model gate checks; got ${gpuGateChecks.length}`)
+  }
+
+  for (const gateCheck of productionWorkerGateReadiness.productionWorkerGateChecks) {
+    const gateRecord = asRecord(gateCheck, 'sourceRollup.productionWorkerGateChecks[]')
+    const toolId = String(gateRecord.toolId)
+    assertBooleanField(gateRecord, 'sourceProductionWorkerJobReadyWithProvidedEvidence', true, flag)
+    assertBooleanField(gateRecord, 'gateChecksAcceptedWithProvidedEvidence', true, flag)
+    assertBooleanField(gateRecord, 'canEnqueueProductionWorkerJobNow', false, flag)
+    assertBooleanField(gateRecord, 'canDispatchProductionWorkerJobNow', false, flag)
+    assertBooleanField(gateRecord, 'canRunProductionWorkerRouteNow', false, flag)
+    assertBooleanField(gateRecord, 'canExecuteToolNow', false, flag)
+    if (Array.isArray(gateRecord.hardFailedGateNames) && gateRecord.hardFailedGateNames.length !== 0) {
+      throw new Error(`${flag} sourceRollup has hard failed gates for ${toolId}`)
+    }
+
+    const expectedGpuTarget = expectedGpuRuntimeTargets[toolId]
+    if (expectedGpuTarget) {
+      assertField(gateRecord, 'workerType', 'gpu_ai_worker', flag)
+      assertField(gateRecord, 'runtimeTarget', expectedGpuTarget, flag)
+    } else if (gateRecord.workerType === 'gpu_ai_worker' || String(gateRecord.runtimeTarget).includes('nvidia_l4')) {
+      throw new Error(`${flag} has unexpected GPU/model gate check for non-GPU tool: ${toolId}`)
+    }
+  }
+
+  const sourceJobReadiness = asRecord(
+    productionWorkerGateReadiness.sourceProductionWorkerJobReadiness,
+    'sourceRollup.sourceProductionWorkerJobReadiness',
+  )
+  if (
+    sourceJobReadiness.status !== 'owner_approved_production_worker_jobs_ready' ||
+    sourceJobReadiness.productionWorkerJobPayloadsReadyWithProvidedEvidence !== 21 ||
+    sourceJobReadiness.capabilityProductionWorkerJobScenariosReadyWithProvidedEvidence !== 12
+  ) {
+    throw new Error(`${flag} sourceRollup must preserve owner-approved source job readiness`)
+  }
+  if (
+    !Array.isArray(sourceJobReadiness.productionWorkerJobPayloads) ||
+    sourceJobReadiness.productionWorkerJobPayloads.length !== 21
+  ) {
+    throw new Error(`${flag} sourceRollup must preserve exactly 21 source job payloads`)
+  }
+
+  const gpuSourcePayloads = sourceJobReadiness.productionWorkerJobPayloads.filter((candidate): boolean => {
+    const candidateRecord = asRecord(candidate, 'sourceRollup.productionWorkerJobPayloads[]')
+    return expectedGpuTools.has(String(candidateRecord.sourceToolId))
+  })
+  if (gpuSourcePayloads.length !== 8) {
+    throw new Error(`${flag} sourceRollup must preserve exactly 8 GPU/model source payloads; got ${gpuSourcePayloads.length}`)
+  }
+
+  for (const candidate of sourceJobReadiness.productionWorkerJobPayloads) {
+    const candidateRecord = asRecord(candidate, 'sourceRollup.productionWorkerJobPayloads[]')
+    const toolId = String(candidateRecord.sourceToolId)
+    const payload = asRecord(candidateRecord.productionWorkerJobPayload, `productionWorkerJobPayload:${toolId}`)
+    const metadata = asRecord(payload.metadata, `productionWorkerJobPayload.metadata:${toolId}`)
+    const policy = asRecord(metadata.aiGraphicsRuntimeActivationPolicy, `runtimeActivationPolicy:${toolId}`)
+    assertBooleanField(candidateRecord, 'productionWorkerJobReadyWithProvidedEvidence', true, flag)
+    assertBooleanField(candidateRecord, 'canEnqueueProductionWorkerJobNow', false, flag)
+    assertBooleanField(candidateRecord, 'canRunProductionWorkerRouteNow', false, flag)
+    assertBooleanField(candidateRecord, 'canExecuteToolNow', false, flag)
+    assertBooleanField(policy, 'onDemandOnly', true, flag)
+    assertBooleanField(policy, 'noIdleGpuRuntimeApproved', true, flag)
+    assertBooleanField(policy, 'startsOnlyForApprovedWorkerOrToolCall', true, flag)
+    assertBooleanField(policy, 'cpuFallbackAllowedForHeavyTools', false, flag)
+    assertBooleanField(metadata, 'gpuRuntimeOnDemandOnly', true, flag)
+    assertBooleanField(metadata, 'noIdleGpuRuntimeApproved', true, flag)
+    assertBooleanField(metadata, 'startsOnlyForApprovedWorkerOrToolCall', true, flag)
+    assertBooleanField(metadata, 'cpuFallbackAllowedForHeavyTools', false, flag)
+
+    const expectedGpuTarget = expectedGpuRuntimeTargets[toolId]
+    if (expectedGpuTarget) {
+      assertField(candidateRecord, 'sourceRuntimeTarget', expectedGpuTarget, flag)
+      assertField(payload, 'workerType', 'gpu_ai_worker', flag)
+      assertField(metadata, 'aiGraphicsRuntimeTarget', expectedGpuTarget, flag)
+    } else if (payload.workerType === 'gpu_ai_worker' || String(candidateRecord.sourceRuntimeTarget).includes('nvidia_l4')) {
+      throw new Error(`${flag} has unexpected GPU/model source job payload for non-GPU tool: ${toolId}`)
+    }
+  }
+}
+
+function validateSourceGoNoGo(record: Record<string, unknown>, flag: string): void {
+  assertField(record, 'decision', 'ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks', flag)
+  assertField(record, 'status', 'internal_beta_go_no_go_approved_runtime_still_blocked', flag)
+  assertNumberField(record, 'totalAiGraphicsTools', 21, flag)
+  assertNumberField(record, 'totalProductFacingCapabilities', 12, flag)
+  assertNumberField(record, 'goNoGoCandidateToolsWithProvidedEvidence', 21, flag)
+  assertNumberField(record, 'goNoGoCandidateCapabilitiesWithProvidedEvidence', 12, flag)
+  assertBooleanField(record, 'internalBetaGoNoGoReadyWithProvidedEvidence', true, flag)
+  assertBooleanField(record, 'internalBetaGoNoGoApprovalRecordAccepted', true, flag)
+  assertNumberField(record, 'internalBetaGoNoGoApprovedToolsWithProvidedEvidence', 21, flag)
+  assertNumberField(record, 'internalBetaReadyNowTools', 0, flag)
+  assertNumberField(record, 'externalBetaReadyNowTools', 0, flag)
+  assertNumberField(record, 'productionReadyNowTools', 0, flag)
+  const booleans = asRecord(record.booleans, 'sourceGoNoGo.booleans')
+  for (const [key, expected] of Object.entries({
+    sourceBetaProductionReadinessRollupAccepted: true,
+    internalBetaGoNoGoReadyWithProvidedEvidence: true,
+    internalBetaGoNoGoApprovalRecordAccepted: true,
+    all21ToolsCovered: true,
+    all12CapabilitiesCovered: true,
+    all21ToolsInternalBetaGoNoGoApprovedWithProvidedEvidence: true,
+  })) {
+    assertBooleanField(booleans, key, expected, flag)
+  }
+  for (const key of sourceFalseGateKeys) {
+    assertBooleanField(booleans, key, false, flag)
+  }
+  validateSourceRollup(asRecord(record.sourceRollup, 'sourceGoNoGo.sourceRollup'), flag)
+}
+
+function validateGoNoGoOwnerApprovalSource(record: Record<string, unknown>, flag: string): void {
+  assertField(record, 'decision', 'ai_graphics_internal_beta_go_no_go_owner_approved_with_runtime_blocks', flag)
+  assertField(record, 'status', 'internal_beta_go_no_go_owner_approved_runtime_still_blocked', flag)
+  assertNumberField(record, 'totalAiGraphicsTools', 21, flag)
+  assertNumberField(record, 'totalProductFacingCapabilities', 12, flag)
+  assertNumberField(record, 'ownerApprovedToolsWithProvidedEvidence', 21, flag)
+  assertNumberField(record, 'ownerApprovedCapabilitiesWithProvidedEvidence', 12, flag)
+  assertNumberField(record, 'internalBetaReadyNowTools', 0, flag)
+  assertNumberField(record, 'externalBetaReadyNowTools', 0, flag)
+  assertNumberField(record, 'productionReadyNowTools', 0, flag)
+
+  const booleans = asRecord(record.booleans, 'sourceGoNoGoOwnerApproval.booleans')
+  for (const [key, expected] of Object.entries({
+    sourceInternalBetaGoNoGoAccepted: true,
+    internalBetaGoNoGoOwnerApprovalRecordAccepted: true,
+    all21ToolsCovered: true,
+    all12CapabilitiesCovered: true,
+    all21ToolsInternalBetaGoNoGoOwnerApprovedWithProvidedEvidence: true,
+    agentCanSelectForPlanning: true,
+  })) {
+    assertBooleanField(booleans, key, expected, flag)
+  }
+  for (const key of sourceFalseGateKeys) {
+    assertBooleanField(booleans, key, false, flag)
+  }
+
+  validateSourceGoNoGo(asRecord(record.sourceGoNoGo, 'sourceGoNoGoOwnerApproval.sourceGoNoGo'), flag)
+}
+
 function validateRuntimeEnqueueApprovalPacket(
   packet: AiGraphicsInternalBetaRuntimeEnqueueApproval,
   flag: string,
@@ -147,6 +392,12 @@ function validateRuntimeEnqueueApprovalPacket(
       `${flag} must be runtime-enqueue approved and runtime-blocked; received ${packet.status}`,
     )
   }
+  assertField(
+    packetRecord,
+    'sourceGoNoGoOwnerApprovalDecision',
+    'ai_graphics_internal_beta_go_no_go_owner_approved_with_runtime_blocks',
+    flag,
+  )
   assertNumberField(packetRecord, 'totalAiGraphicsTools', 21, flag)
   assertNumberField(packetRecord, 'totalProductFacingCapabilities', 12, flag)
   assertNumberField(packetRecord, 'enqueueScopeCandidateToolsWithProvidedEvidence', 21, flag)
@@ -180,6 +431,11 @@ function validateRuntimeEnqueueApprovalPacket(
   for (const key of falseGateKeys) {
     assertBooleanField(booleanRecord, key, false, flag)
   }
+
+  validateGoNoGoOwnerApprovalSource(
+    asRecord(packetRecord.sourceGoNoGoOwnerApproval, 'sourceGoNoGoOwnerApproval'),
+    flag,
+  )
 
   if (!Array.isArray(packet.toolScopes) || packet.toolScopes.length !== 21) {
     throw new Error(`${flag} must contain exactly 21 toolScopes`)

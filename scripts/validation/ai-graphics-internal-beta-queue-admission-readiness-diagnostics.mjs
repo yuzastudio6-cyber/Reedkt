@@ -332,6 +332,11 @@ for (const [key, expected] of Object.entries({
   sourceRuntimeEnqueueApprovalPacketMustKeepEightGpuFutureStartTools: true,
   sourceRuntimeEnqueueApprovalPacketMustKeepGpuStartNowFalse: true,
   sourceRuntimeEnqueueApprovalPacketMustKeepRuntimeBetaAndProductionFalse: true,
+  sourceRuntimeEnqueueApprovalPacketMustPreserveNestedOwnerApproval: true,
+  sourceRuntimeEnqueueApprovalPacketMustPreserveNestedProductionWorkerGateEvidence: true,
+  sourceRuntimeEnqueueApprovalPacketMustPreserveNestedProductionWorkerJobEvidence: true,
+  sourceRuntimeEnqueueApprovalPacketMustPreserveNestedOnDemandGpuPolicy: true,
+  sourceRuntimeEnqueueApprovalPacketMustRejectCpuFallbackForNestedHeavyTools: true,
   queueAdmissionPrerequisitesRequiredAfterSourcePacket: true,
   liveQueueUnlockPerformed: false,
   runtimeUnlockPerformed: false,
@@ -348,6 +353,14 @@ if (!markdown.includes('--internal-beta-runtime-enqueue-approval-packet')) {
 }
 if (!moduleSource.includes('sourceRuntimeEnqueueApprovalPacket')) {
   fail('module_missing_source_runtime_enqueue_packet_input')
+}
+for (const token of [
+  'validateGoNoGoOwnerApprovalSource',
+  'sourceRollup must preserve exactly 8 GPU/model gate checks',
+  'sourceRollup must preserve exactly 8 GPU/model source payloads',
+  'cpuFallbackAllowedForHeavyTools',
+]) {
+  if (!cliSource.includes(token)) fail(`cli_missing_nested_source_packet_guard:${token}`)
 }
 
 for (const token of [
@@ -601,6 +614,32 @@ for (const [label, mutate] of [
   }],
   ['tool_scope_gpu_start_now_true', (packet) => {
     packet.toolScopes[0].gpuRuntimeShouldStartNow = true
+  }],
+  ['nested_owner_status_wrong', (packet) => {
+    packet.sourceGoNoGoOwnerApproval.status = 'awaiting_internal_beta_go_no_go_owner_approval'
+  }],
+  ['nested_rollup_gpu_count_wrong', (packet) => {
+    packet.sourceGoNoGoOwnerApproval.sourceGoNoGo.sourceRollup.gpuRuntimeTargetedTools = 7
+  }],
+  ['nested_gpu_gate_target_wrong', (packet) => {
+    const gate = packet.sourceGoNoGoOwnerApproval.sourceGoNoGo.sourceRollup
+      .productionWorkerGateReadiness.productionWorkerGateChecks
+      .find((item) => item.toolId === 'sam2')
+    gate.runtimeTarget = 'native_linux_amd64_cpu_worker'
+  }],
+  ['nested_gpu_job_on_demand_false', (packet) => {
+    const job = packet.sourceGoNoGoOwnerApproval.sourceGoNoGo.sourceRollup
+      .productionWorkerGateReadiness.sourceProductionWorkerJobReadiness
+      .productionWorkerJobPayloads
+      .find((item) => item.sourceToolId === 'sam2')
+    job.productionWorkerJobPayload.metadata.aiGraphicsRuntimeActivationPolicy.onDemandOnly = false
+  }],
+  ['nested_gpu_job_cpu_fallback_true', (packet) => {
+    const job = packet.sourceGoNoGoOwnerApproval.sourceGoNoGo.sourceRollup
+      .productionWorkerGateReadiness.sourceProductionWorkerJobReadiness
+      .productionWorkerJobPayloads
+      .find((item) => item.sourceToolId === 'sam2')
+    job.productionWorkerJobPayload.metadata.aiGraphicsRuntimeActivationPolicy.cpuFallbackAllowedForHeavyTools = true
   }],
 ]) {
   const badPacket = JSON.parse(JSON.stringify(sourceRuntimeEnqueuePacket))

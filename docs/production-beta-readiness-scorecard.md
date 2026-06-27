@@ -168,6 +168,11 @@ future accepted-job GPU start candidates, `gpuRuntimeShouldStartNow=false`, and
 false runtime/beta/production gates. Approved snapshot, credit reservation,
 private artifact, Tool Route, Worker, queue transport, runtime owner, and
 runtime proof refs remain separate and required after that source packet.
+Queue admission now also rejects source packets that strip or weaken the nested
+owner-approved go/no-go, production worker gate, or production worker job
+evidence, including exact eight-tool NVIDIA L4 target coverage, on-demand-only
+GPU policy, no idle GPU approval, and CPU fallback blocked for heavy/model
+tools.
 It also runs the server-only on-demand runtime admission gate for each future
 queue candidate. With provided private proof refs, all 21 runtime-admission
 packets are ready for future worker enqueue, and the eight GPU/model tools are

@@ -120,6 +120,11 @@
     "sourceRuntimeEnqueueApprovalPacketMustKeepEightGpuFutureStartTools": true,
     "sourceRuntimeEnqueueApprovalPacketMustKeepGpuStartNowFalse": true,
     "sourceRuntimeEnqueueApprovalPacketMustKeepRuntimeBetaAndProductionFalse": true,
+    "sourceRuntimeEnqueueApprovalPacketMustPreserveNestedOwnerApproval": true,
+    "sourceRuntimeEnqueueApprovalPacketMustPreserveNestedProductionWorkerGateEvidence": true,
+    "sourceRuntimeEnqueueApprovalPacketMustPreserveNestedProductionWorkerJobEvidence": true,
+    "sourceRuntimeEnqueueApprovalPacketMustPreserveNestedOnDemandGpuPolicy": true,
+    "sourceRuntimeEnqueueApprovalPacketMustRejectCpuFallbackForNestedHeavyTools": true,
     "queueAdmissionPrerequisitesRequiredAfterSourcePacket": true,
     "liveQueueUnlockPerformed": false,
     "runtimeUnlockPerformed": false

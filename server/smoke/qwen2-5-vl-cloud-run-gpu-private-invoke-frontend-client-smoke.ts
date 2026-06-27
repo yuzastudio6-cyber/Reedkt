@@ -1,0 +1,233 @@
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import path from 'node:path'
+import {
+  callQwen25VlPrivateInvokeDryRun,
+  getQwen25VlPrivateInvokeFrontendClientStatus,
+  QWEN25_VL_PRIVATE_INVOKE_DRY_RUN_ROUTE_ID,
+} from '../../src/backend/api/qwen2-5-vl-private-invoke-frontend-client'
+import { getApiRouteById } from '../../src/backend/api/api-route-registry'
+import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
+
+const ROOT = process.cwd()
+const DECISION =
+  'qwen2_5_vl_7b_cloud_run_gpu_private_invoke_frontend_client_registered_mock_only'
+const NEXT_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_50-GCLOUD-REAUTH-USER: refresh local gcloud auth outside Codex, no token/no invocation'
+
+type JsonRecord = Record<string, unknown>
+
+function check(condition: unknown, message: string): asserts condition {
+  assert.ok(condition, message)
+}
+
+function read(relativePath: string) {
+  return fs.readFileSync(path.join(ROOT, relativePath), 'utf8')
+}
+
+const forbiddenTextPatterns: Array<[string, RegExp]> = [
+  ['concrete URL', /\bhttps?:\/\//i],
+  ['cloud run public hostname', /\brun\.app\b/i],
+  ['supabase hostname', /\bsupabase\.co\b/i],
+  ['signed URL token', /\b(X-Amz-Signature|X-Amz-Credential|X-Amz-Algorithm|X-Goog-|Key-Pair-Id=|Expires=|Policy=|Signature=)/i],
+  ['authorization bearer value', /\bAuthorization\s*:\s*Bearer\s+\S+/i],
+  ['identity token assignment', /\b(identityToken|idToken|accessToken)\s*[:=]\s*['"][^'"]+['"]/i],
+  ['credential assignment', /\b(api[_-]?key|secret|password|hf[_-]?token)\s*[:=]\s*['"][^'"]+['"]/i],
+  ['database URL', /\b(postgres(?:ql)?:\/\/|mysql:\/\/|mongodb(?:\+srv)?:\/\/)/i],
+  ['public storage endpoint', /\bstorage\.googleapis\.com\//i],
+  ['private key block', /BEGIN (?:RSA |EC |OPENSSH |)?PRIVATE KEY/i],
+  ['execution true claim', /\b(serviceUrlResolvedNow|authHeaderCreated|identityTokenFetched|cloudRunInvocationAttempted|serviceRuntimeRequestSent|inferenceRun|workersDispatched|supabaseTouched|sqlExecuted)\b\s*[:=]\s*(true|"true")/i],
+  ['unsafe pass claim', /\b(dryRunPassedClaimed|generatedLocalFixturePassedClaimed)\b\s*[:=]\s*(true|"true")/i],
+]
+
+const forbiddenValuePatterns: Array<[string, RegExp]> = [
+  ['concrete URL', /\bhttps?:\/\//i],
+  ['cloud run public hostname', /\brun\.app\b/i],
+  ['supabase hostname', /\bsupabase\.co\b/i],
+  ['signed URL token', /\b(X-Amz-Signature|X-Amz-Credential|X-Amz-Algorithm|X-Goog-|Key-Pair-Id=|Expires=|Policy=|Signature=)/i],
+  ['bearer token value', /\bBearer\s+[A-Za-z0-9._~+/-]+/i],
+  ['credential-looking value', /\b(sk-[A-Za-z0-9]{12,}|hf_[A-Za-z0-9]{12,}|ya29\.[A-Za-z0-9._-]+)/i],
+  ['database URL', /\b(postgres(?:ql)?:\/\/|mysql:\/\/|mongodb(?:\+srv)?:\/\/)/i],
+  ['public storage endpoint', /\bstorage\.googleapis\.com\//i],
+]
+
+function assertNoForbiddenText(relativePath: string) {
+  const text = read(relativePath)
+  const findings = forbiddenTextPatterns
+    .filter(([, pattern]) => pattern.test(text))
+    .map(([name]) => name)
+  assert.deepEqual(findings, [], `Forbidden value in ${relativePath}: ${findings.join('; ')}`)
+}
+
+function scanValues(value: unknown, pathParts: string[] = []): string[] {
+  if (typeof value === 'string') {
+    return forbiddenValuePatterns
+      .filter(([, pattern]) => pattern.test(value))
+      .map(([name]) => `${pathParts.join('.')}: ${name}`)
+  }
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) => scanValues(item, [...pathParts, String(index)]))
+  }
+  if (value && typeof value === 'object') {
+    return Object.entries(value as JsonRecord)
+      .flatMap(([key, nested]) => scanValues(nested, [...pathParts, key]))
+  }
+  return []
+}
+
+function assertFalseFlags(flags: JsonRecord) {
+  for (const key of [
+    'serviceUrlResolvedNow',
+    'authHeaderCreated',
+    'identityTokenFetched',
+    'cloudRunInvocationAttempted',
+    'serviceRuntimeRequestSent',
+    'modelImportRun',
+    'modelLoadRun',
+    'vllmEngineInitialized',
+    'inferenceRun',
+    'workersDispatched',
+    'supabaseTouched',
+    'sqlExecuted',
+    'generatedAssetsCreated',
+    'publicArtifactsCreated',
+    'signedUrlsCreated',
+    'creditMutationCreated',
+    'betaUnlocked',
+    'productionUnlocked',
+    'dryRunPassedClaimed',
+    'generatedLocalFixturePassedClaimed',
+  ]) {
+    assert.equal(flags[key], false, `${key} must be false`)
+  }
+}
+
+for (const file of [
+  'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-frontend-client.md',
+  'src/backend/api/qwen2-5-vl-private-invoke-frontend-client.ts',
+  'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client.ts',
+  'server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client-smoke.ts',
+  'src/backend/api/index.ts',
+  'package.json',
+]) {
+  check(fs.existsSync(path.join(ROOT, file)), `Missing required file: ${file}`)
+}
+
+const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
+assert.equal(
+  packageJson.scripts?.['smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-frontend-client'],
+  'tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client-smoke.ts',
+  'package script mismatch',
+)
+
+const indexText = read('src/backend/api/index.ts')
+assert.ok(
+  indexText.includes("export * from './qwen2-5-vl-private-invoke-frontend-client'"),
+  'API index must export the Qwen frontend client.',
+)
+
+const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-frontend-client.md')
+for (const phrase of [
+  DECISION,
+  QWEN25_VL_PRIVATE_INVOKE_DRY_RUN_ROUTE_ID,
+  '`/api/jobs/qwen2-5-vl/private-invoke/dry-run/mock`',
+  '`callQwen25VlPrivateInvokeDryRun`',
+  '`getQwen25VlPrivateInvokeFrontendClientStatus`',
+  '`serviceUrlResolvedNow=false`',
+  '`identityTokenFetched=false`',
+  '`cloudRunInvocationAttempted=false`',
+  '`inferenceRun=false`',
+  '`generatedAssetsCreated=false`',
+  '`dryRunPassedClaimed=false`',
+  NEXT_PROMPT,
+]) {
+  assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)
+}
+
+const route = getApiRouteById(QWEN25_VL_PRIVATE_INVOKE_DRY_RUN_ROUTE_ID)
+check(route, 'Qwen dry-run route must be registered')
+assert.equal(route.status, 'mock_ready')
+assert.equal(route.runtimeMode, 'mock')
+assert.equal(route.requiresServiceRole, false)
+assert.equal(route.requiresProviderSecret, false)
+
+const evidence = QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT
+assert.equal(evidence.decision, DECISION)
+assert.equal(evidence.routeId, QWEN25_VL_PRIVATE_INVOKE_DRY_RUN_ROUTE_ID)
+assert.equal(evidence.nextPrompt, NEXT_PROMPT)
+assert.equal(evidence.clientBoundaries.usesCentralReeditProApiClient, true)
+assert.equal(evidence.clientBoundaries.callsMockDryRunRouteOnly, true)
+assert.equal(evidence.clientBoundaries.rawPromptBodyRejectedByMockRoute, true)
+assert.equal(evidence.clientBoundaries.browserMayLoadModelWeights, false)
+assert.equal(evidence.clientBoundaries.browserMayCallCloudRun, false)
+assertFalseFlags(evidence.runtimeFlags)
+
+const status = getQwen25VlPrivateInvokeFrontendClientStatus()
+assert.equal(status.mode, 'qwen2_5_vl_private_invoke_frontend_client_mock_only')
+assert.equal(status.routeId, QWEN25_VL_PRIVATE_INVOKE_DRY_RUN_ROUTE_ID)
+assert.equal(status.mayInvokeCloudRun, false)
+assert.equal(status.mayRunInference, false)
+assert.equal(status.mayDispatchWorker, false)
+assert.equal(status.mayCreateGeneratedAsset, false)
+assert.equal(status.mayCreatePublicArtifact, false)
+assert.equal(status.mayCreateSignedUrl, false)
+
+const response = await callQwen25VlPrivateInvokeDryRun({}, {
+  context: {
+    requestId: 'mock-qwen-frontend-client-smoke-001',
+    workspaceId: 'workspace_mock_qwen_frontend_client_001',
+    projectId: 'project_mock_qwen_frontend_client_001',
+  },
+})
+assert.equal(response.ok, true)
+assert.equal(response.statusCode, 200)
+check(response.data, 'Qwen frontend client mock response must include data')
+const data = response.data as unknown as JsonRecord
+assert.equal(data.status, 'blocked_transport_not_attempted')
+assert.equal(data.transportAttemptedNow, false)
+assert.equal(data.invocationAllowedNow, false)
+assert.equal(data.runtimeCanAdvanceNow, false)
+assert.equal((data.responseClassification as JsonRecord).status, 'blocked_transport_auth')
+assertFalseFlags(data.runtimeFlags as JsonRecord)
+
+const rawPromptResponse = await callQwen25VlPrivateInvokeDryRun({
+  raw_prompt: 'blocked mock raw prompt',
+} as unknown as never, {
+  context: {
+    requestId: 'mock-qwen-frontend-client-smoke-raw-prompt',
+    workspaceId: 'workspace_mock_qwen_frontend_client_001',
+    projectId: 'project_mock_qwen_frontend_client_001',
+  },
+})
+assert.equal(rawPromptResponse.ok, false)
+assert.equal(rawPromptResponse.statusCode, 400)
+assert.equal(rawPromptResponse.error?.code, 'qwen_private_invoke_dry_run_raw_prompt_rejected')
+assert.equal(rawPromptResponse.mockOnly, true)
+
+for (const file of [
+  'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-frontend-client.md',
+  'src/backend/api/qwen2-5-vl-private-invoke-frontend-client.ts',
+  'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client.ts',
+]) {
+  assertNoForbiddenText(file)
+}
+
+const forbiddenDataFindings = scanValues({ evidence, status, response: response.data })
+assert.deepEqual(
+  forbiddenDataFindings,
+  [],
+  `Forbidden values in Qwen frontend client data: ${forbiddenDataFindings.join('; ')}`,
+)
+
+console.log(JSON.stringify({
+  ok: true,
+  decision: DECISION,
+  routeId: QWEN25_VL_PRIVATE_INVOKE_DRY_RUN_ROUTE_ID,
+  clientMode: status.mode,
+  mockResponseStatus: data.status,
+  rawPromptRejected: rawPromptResponse.error?.code,
+  cloudRunInvocationAttempted: (data.runtimeFlags as JsonRecord).cloudRunInvocationAttempted,
+  identityTokenFetched: (data.runtimeFlags as JsonRecord).identityTokenFetched,
+  inferenceRun: (data.runtimeFlags as JsonRecord).inferenceRun,
+  nextPrompt: NEXT_PROMPT,
+}, null, 2))

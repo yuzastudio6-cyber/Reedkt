@@ -59,7 +59,7 @@ export function buildBetaPlatformStagingEvidencePreflight(
   }
 
   const environment = normalizeEnvironment(env.REEDITPRO_BETA_PLATFORM_ENVIRONMENT)
-  const ownerApprovalGaps = request ? missingOwnerApprovals(request) : []
+  const ownerApprovalGaps = request ? missingOwnerApprovals(request) : missingOwnerApprovalsFromEnv(env)
   const missingAttestations = request ? missingRequiredAttestations(request) : [...expectedAttestationIds]
   const secretLikeInputPaths = request ? collectSecretLikePaths(request, 'betaPlatformStagingEvidenceProbeRequest') : []
   const sourceShaPresent = Boolean(request?.sourceSha)
@@ -134,6 +134,38 @@ function missingEnv(env: BetaPlatformStagingEvidenceProbeEnv, name: keyof BetaPl
 
 function missingOwnerApprovals(request: BetaPlatformStagingEvidenceProbeRequest): string[] {
   const approvals = request.ownerApprovals
+  return missingOwnerApprovalsFromBooleans({
+    billingOwnerStripeBoundaryApproved: approvals.billingOwnerStripeBoundaryApproved,
+    deploymentApproved: approvals.deploymentApproved,
+    securityApproved: approvals.securityApproved,
+    storageApproved: approvals.storageApproved,
+    legalApproved: approvals.legalApproved,
+    monitoringApproved: approvals.monitoringApproved,
+    supportApproved: approvals.supportApproved,
+  })
+}
+
+function missingOwnerApprovalsFromEnv(env: BetaPlatformStagingEvidenceProbeEnv): string[] {
+  return missingOwnerApprovalsFromBooleans({
+    billingOwnerStripeBoundaryApproved: isTrue(env.REEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUNDARY),
+    deploymentApproved: isTrue(env.REEDITPRO_BETA_PLATFORM_APPROVE_DEPLOYMENT),
+    securityApproved: isTrue(env.REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY),
+    storageApproved: isTrue(env.REEDITPRO_BETA_PLATFORM_APPROVE_STORAGE),
+    legalApproved: isTrue(env.REEDITPRO_BETA_PLATFORM_APPROVE_LEGAL),
+    monitoringApproved: isTrue(env.REEDITPRO_BETA_PLATFORM_APPROVE_MONITORING),
+    supportApproved: isTrue(env.REEDITPRO_BETA_PLATFORM_APPROVE_SUPPORT),
+  })
+}
+
+function missingOwnerApprovalsFromBooleans(approvals: {
+  billingOwnerStripeBoundaryApproved: boolean
+  deploymentApproved: boolean
+  securityApproved: boolean
+  storageApproved: boolean
+  legalApproved: boolean
+  monitoringApproved: boolean
+  supportApproved: boolean
+}): string[] {
   return [
     ...(approvals.billingOwnerStripeBoundaryApproved ? [] : ['billing owner Stripe-boundary approval']),
     ...(approvals.deploymentApproved ? [] : ['deployment owner approval']),

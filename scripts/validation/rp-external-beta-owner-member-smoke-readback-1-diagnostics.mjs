@@ -51,7 +51,9 @@ const allowedExact = new Set([
   'docs/activation-phase-rp-external-beta-owner-member-smoke-readback-1-results.md',
   'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-tester-account-membership-smoke-1.md',
+  'docs/implementation-prompts/prompt-rp-external-product-beta-current-readiness-rollup-1-next.md',
   'package.json',
+  'scripts/validation/rp-external-beta-tester-account-membership-smoke-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-owner-member-smoke-readback-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-controlled-private-invite-iam-grant-1r-diagnostics.mjs',
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
@@ -173,15 +175,18 @@ if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifact status mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'completed_owner_member_group_access_smoke_readback_external_tester_membership_still_pending') fail('rollup decision mismatch')
-if (rollup.integrationHead !== '998cfd1367dade30800eb46988fe8aa5cdcce511') fail('rollup integration head mismatch')
-if (rollup.statuses?.externalProductBeta !== 'ready_for_actual_external_tester_account_addition_and_smoke') fail('rollup external beta status mismatch')
+if (rollup.decision !== 'completed_owner_approved_tester_account_membership_smoke_external_beta_controlled_testing_ready') fail('rollup decision mismatch')
+if (rollup.integrationHead !== '8295b650cb4f207c372e8724d76d7554b95702a6') fail('rollup integration head mismatch')
+if (rollup.statuses?.externalProductBeta !== 'ready_for_owner_approved_controlled_external_beta_testing') fail('rollup external beta status mismatch')
 if (rollup.sourceClosure?.ownerMemberSmokeReadback !== 'rp_external_beta_owner_member_smoke_readback_1') fail('rollup source closure missing')
+if (rollup.sourceClosure?.testerAccountMembershipSmoke !== 'rp_external_beta_tester_account_membership_smoke_1') fail('rollup tester source closure missing')
 if (rollup.mainSupabaseTarget?.ownerMemberSmokeExternalTesterMemberCount !== 0) fail('rollup external tester count mismatch')
 if (rollup.mainSupabaseTarget?.ownerMemberSmokeAuthenticatedRuntimeStatus !== 'passed_200') fail('rollup owner-member runtime smoke mismatch')
-if (rollup.mainSupabaseTarget?.actualExternalTesterAccountMembership !== 'blocked_pending_actual_external_tester_account_membership') fail('rollup tester blocker mismatch')
-if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1') fail('rollup next milestone mismatch')
-if (rollup.safety?.ownerMemberSmokeReadback !== 'completed_readonly_group_membership_readback_and_owner_member_authenticated_smoke') fail('rollup owner-member safety mismatch')
+if (rollup.mainSupabaseTarget?.actualExternalTesterAccountMembership !== 'completed_owner_approved_primary_tester_account_membership') fail('rollup tester status mismatch')
+if (rollup.mainSupabaseTarget?.testerAccountMembershipSmoke !== 'completed_owner_approved_tester_account_membership_smoke') fail('rollup tester smoke mismatch')
+if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1') fail('rollup next milestone mismatch')
+if (rollup.safety?.ownerMemberSmokeReadback !== 'completed_readonly_group_membership_readback_and_owner_member_authenticated_smoke_carried_forward') fail('rollup owner-member safety mismatch')
+if (rollup.safety?.testerAccountMembershipSmoke !== 'completed_guarded_cloud_run_auth_readback_no_mutation') fail('rollup tester safety mismatch')
 if (rollup.safety?.groupMembershipMutation !== false) fail('rollup group membership mutation mismatch')
 if (rollup.packageLock !== 'unchanged') fail('rollup package-lock mismatch')
 if (rollup.generatedArtifactsCommitted !== 'none') fail('rollup generated artifact mismatch')

@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `ready_for_actual_external_tester_account_addition_and_smoke` | owner-member smoke passed; add an actual external tester to `external-beta-testers@reeditpro.com`, then run tester-account smoke; keep public/production access blocked |
+| External beta | `ready_for_owner_approved_controlled_external_beta_testing` | owner-approved tester smoke passed for `aiediting@reeditpro.com`; next evidence is controlled tester product-flow smoke without public/production access |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-Add an actual external beta tester by Google Group membership in `external-beta-testers@reeditpro.com`, then run tester-account smoke.
+Run a controlled tester product-flow smoke with `aiediting@reeditpro.com` while keeping `external-beta-testers@reeditpro.com` as the only staging API invoker group and keeping public/production access blocked.
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -346,9 +346,21 @@ Next recommended milestone before owner-member readback: add or remove external 
 
 Read-only group membership found owner-member `aiediting@reeditpro.com` only, with external tester member count `0`. Owner-member authenticated `/health`, `/ready`, and `/api/runtime/status` returned `200`; unauthenticated `/health` remained `403`.
 
-External beta readiness: `ready_for_actual_external_tester_account_addition_and_smoke`.
+External beta readiness after owner-member readback: `ready_for_actual_external_tester_account_addition_and_smoke`.
 
 Next recommended milestone: `RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1`.
+
+## RP External Beta Tester Account Membership Smoke 1
+
+`RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1` records decision `completed_owner_approved_tester_account_membership_smoke` and execution `completed_guarded_cloud_run_auth_readback_no_mutation`.
+
+The user clarified that `aiediting@reeditpro.com` is the real tester account. The guarded smoke classified it as `owner_approved_primary_real_tester_account`, preserved the `external-beta-testers@reeditpro.com` group boundary, kept unauthenticated `/health` blocked as `403`, and confirmed authenticated `/health`, `/ready`, and `/api/runtime/status` returned `200`. No IAM mutation, group membership mutation, Cloud Run update, deployment, token persistence, Supabase mutation, SQL, provider/model call, worker execution, media processing, signed/public artifact, public access, production unlock, or broad access change occurred.
+
+Run ID: `2026-06-27T15-05-37-588Z-5b451f5c`. Report SHA-256: `f6611d7c0ed9fb4693e44fa3ebade02d107ed539319cc7aebf63555bd12446ca`. Manifest SHA-256: `35cb90ef7935109a9b1d90d9bd7bf2308e8f87a8b314e7ac21cdcfbe21dd2b40`.
+
+External beta readiness: `ready_for_owner_approved_controlled_external_beta_testing`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

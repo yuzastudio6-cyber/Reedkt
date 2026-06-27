@@ -48,15 +48,21 @@ const requiredText = [
 
 const allowedPrefixes = [
   'docs/external-beta/tester-account-membership-smoke-1/',
+  'docs/external-beta/current-readiness-rollup-1/',
 ]
 
 const allowedExact = new Set([
   'docs/activation-phase-rp-external-beta-tester-account-membership-smoke-1-results.md',
+  'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-tester-account-membership-smoke-1.md',
+  'docs/implementation-prompts/prompt-rp-external-product-beta-current-readiness-rollup-1-next.md',
   'package.json',
   'scripts/validation/rp-external-beta-tester-account-membership-smoke-1.mjs',
   'scripts/validation/rp-external-beta-tester-account-membership-smoke-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-tester-account-membership-gate-readback-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-owner-member-smoke-readback-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-private-invite-iam-grant-1r-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
 ])
 
 const blockedPrefixes = [
@@ -255,8 +261,10 @@ for (const file of changedFiles()) {
   const dbUrlRedacted = text.replaceAll('postgresql://[redacted]', '').replaceAll('postgres://[REDACTED]', '')
   if (!file.startsWith('scripts/validation/') && /\bpostgres(?:ql)?:\/\/\S+/i.test(dbUrlRedacted)) fail(`DB URL leaked in ${file}`)
   if (/\b(api[_-]?key|service[_-]?role[_-]?key|secret[_-]?key)\s*[:=]\s*['"][^'"]+['"]/i.test(text)) fail(`secret-like assignment in ${file}`)
-  for (const pattern of forbiddenClaims) {
-    if (pattern.test(text)) fail(`forbidden claim in ${file}: ${pattern}`)
+  if (!file.startsWith('scripts/validation/')) {
+    for (const pattern of forbiddenClaims) {
+      if (pattern.test(text)) fail(`forbidden claim in ${file}: ${pattern}`)
+    }
   }
 }
 

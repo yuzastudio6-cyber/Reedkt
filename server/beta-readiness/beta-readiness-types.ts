@@ -52,6 +52,18 @@ export interface ToolBetaExecutionReadinessPlatformBlocker {
   requiredForExternalBeta: true
 }
 
+export interface ToolBetaAcceptedExecutionEvidence {
+  toolId: string
+  sourceId: string
+  sourceSha?: string
+  readinessStatus: 'passed' | 'warning'
+  realExecutionVerified: boolean
+  productionReadinessAccepted: boolean
+  productReadyLocalOss: boolean
+  modelWeightsApproved?: boolean
+  notes: string[]
+}
+
 export interface ToolBetaExecutionReadinessRecord {
   toolId: string
   displayName: string
@@ -68,9 +80,9 @@ export interface ToolBetaExecutionReadinessRecord {
   productionRequired: boolean
   blocksProductionIfMissing: boolean
   modelWeightsRequired: boolean
-  productReadyLocalOss: false
+  productReadyLocalOss: boolean
   executableForExternalBeta: boolean
-  executableForProduction: false
+  executableForProduction: boolean
   blockers: ToolBetaExecutionReadinessBlocker[]
   nextAction: string
 }
@@ -81,11 +93,11 @@ export interface ToolBetaExecutionReadinessReport {
   totalTools: number
   ownerCoverageToolCount: number
   readinessSpecToolCount: number
-  productReadyLocalOssCount: 0
+  productReadyLocalOssCount: number
   toolCostRateCardVersion: string
   productionBillingPersistence: string
   serviceFeeIncluded: false
-  readinessMode: 'dry_run'
+  readinessMode: 'dry_run' | 'evidence_review'
   allToolsHaveOwnerCoverage: boolean
   allToolsHaveReadinessSpecs: boolean
   internalDryRunMonitoringAllowed: boolean

@@ -15,26 +15,36 @@ import type {
   ProductionToolReadinessResult,
 } from '../workers/production-readiness'
 import type {
+  ToolBetaAcceptedExecutionEvidence,
   ToolBetaExecutionReadinessBlocker,
   ToolBetaExecutionReadinessPlatformBlocker,
   ToolBetaExecutionReadinessRecord,
   ToolBetaExecutionReadinessReport,
 } from './beta-readiness-types'
+import { buildAcceptedToolEvidenceMap } from './tool-beta-execution-evidence'
 
 const executableStatuses = new Set<ProductionReadinessStatus>(['passed', 'warning'])
 
-export function buildToolBetaExecutionReadinessReport(): ToolBetaExecutionReadinessReport {
+export interface BuildToolBetaExecutionReadinessReportOptions {
+  acceptedEvidence?: ToolBetaAcceptedExecutionEvidence[]
+}
+
+export function buildToolBetaExecutionReadinessReport(
+  options: BuildToolBetaExecutionReadinessReportOptions = {},
+): ToolBetaExecutionReadinessReport {
   const ownerCoverage = buildToolCostOwnerCoverageMatrix()
   const ownerCoverageByToolId = new Map(ownerCoverage.map((record) => [record.toolId, record]))
   const ownerCoverageSummary = buildToolCostOwnerCoverageSummary(ownerCoverage)
   const readiness = runProductionToolReadiness({ dryRun: true })
   const readinessByToolId = new Map(readiness.results.map((result) => [result.toolId, result]))
   const modelWeightToolIds = new Set(getToolsWithModelWeights().map((profile) => profile.toolId))
+  const evidenceByToolId = buildAcceptedToolEvidenceMap(options.acceptedEvidence)
   const tools = PRODUCTION_TOOL_IDS.map((toolId) => buildToolRecord({
     toolId,
     ownerCoverage: ownerCoverageByToolId.get(toolId),
     readiness: readinessByToolId.get(toolId),
     modelWeightsRequired: modelWeightToolIds.has(toolId),
+    acceptedEvidence: evidenceByToolId.get(toolId),
   }))
   const blockers = [
     ...coverageBlockers(ownerCoverageSummary.missingToolIds, 'missing_tool_cost_owner_coverage'),
@@ -54,11 +64,11 @@ export function buildToolBetaExecutionReadinessReport(): ToolBetaExecutionReadin
     totalTools: PRODUCTION_TOOL_IDS.length,
     ownerCoverageToolCount: ownerCoverageSummary.coveredToolCount,
     readinessSpecToolCount: ownerCoverageSummary.readinessSpecCoveredCount,
-    productReadyLocalOssCount: 0,
+    productReadyLocalOssCount: tools.filter((tool) => tool.productReadyLocalOss).length,
     toolCostRateCardVersion: ownerCoverageSummary.rateCardVersion,
     productionBillingPersistence: ownerCoverageSummary.productionBillingPersistence,
     serviceFeeIncluded: false,
-    readinessMode: 'dry_run',
+    readinessMode: evidenceByToolId.size > 0 ? 'evidence_review' : 'dry_run',
     allToolsHaveOwnerCoverage: ownerCoverageSummary.missingToolIds.length === 0 && ownerCoverageSummary.duplicateToolIds.length === 0,
     allToolsHaveReadinessSpecs: ownerCoverageSummary.missingReadinessSpecToolIds.length === 0 &&
       ownerCoverageSummary.duplicateReadinessSpecToolIds.length === 0,
@@ -84,13 +94,17 @@ function buildToolRecord(input: {
   ownerCoverage?: ToolCostOwnerCoverageRecord
   readiness?: ProductionToolReadinessResult
   modelWeightsRequired: boolean
+  acceptedEvidence?: ToolBetaAcceptedExecutionEvidence
 }): ToolBetaExecutionReadinessRecord {
   const profile = getProductionToolProfile(input.toolId)
   const blockers = buildToolBlockers(input)
+  const readinessStatus = input.acceptedEvidence?.readinessStatus ?? input.readiness?.status ?? 'not_checked'
+  const readinessDryRun = input.acceptedEvidence?.realExecutionVerified ? false : (input.readiness?.dryRun ?? true)
+  const productReadyLocalOss = input.acceptedEvidence?.productReadyLocalOss === true
   const executableForExternalBeta = blockers.length === 0 &&
     Boolean(input.ownerCoverage) &&
-    Boolean(input.readiness) &&
-    executableStatuses.has(input.readiness?.status ?? 'not_checked')
+    (Boolean(input.readiness) || Boolean(input.acceptedEvidence)) &&
+    executableStatuses.has(readinessStatus)
 
   return {
     toolId: input.toolId,
@@ -103,14 +117,14 @@ function buildToolRecord(input: {
     qualityLevel: input.ownerCoverage?.qualityLevel ?? 'preview',
     expectedWorkerTypes: input.ownerCoverage?.expectedWorkerTypes ?? [],
     imageRoles: input.ownerCoverage?.imageRoles ?? [],
-    readinessStatus: input.readiness?.status ?? 'not_checked',
-    readinessDryRun: input.readiness?.dryRun ?? true,
+    readinessStatus,
+    readinessDryRun,
     productionRequired: input.ownerCoverage?.productionRequired ?? false,
     blocksProductionIfMissing: input.ownerCoverage?.blocksProductionIfMissing ?? true,
     modelWeightsRequired: input.modelWeightsRequired,
-    productReadyLocalOss: false,
+    productReadyLocalOss,
     executableForExternalBeta,
-    executableForProduction: false,
+    executableForProduction: executableForExternalBeta && input.acceptedEvidence?.productionReadinessAccepted === true,
     blockers,
     nextAction: nextActionForTool(blockers),
   }
@@ -121,36 +135,41 @@ function buildToolBlockers(input: {
   ownerCoverage?: ToolCostOwnerCoverageRecord
   readiness?: ProductionToolReadinessResult
   modelWeightsRequired: boolean
+  acceptedEvidence?: ToolBetaAcceptedExecutionEvidence
 }): ToolBetaExecutionReadinessBlocker[] {
   const blockers: ToolBetaExecutionReadinessBlocker[] = []
+  const evidence = input.acceptedEvidence
+  const readinessStatus = evidence?.readinessStatus ?? input.readiness?.status
 
   if (!input.ownerCoverage) {
     blockers.push(blocker(input.toolId, 'missing_tool_cost_owner_coverage', 'Tool cost owner coverage is missing.'))
   }
 
   if (!input.readiness) {
-    blockers.push(blocker(input.toolId, 'missing_readiness_spec', 'Production readiness spec/result is missing.'))
-  } else if (!executableStatuses.has(input.readiness.status)) {
+    if (!evidence) {
+      blockers.push(blocker(input.toolId, 'missing_readiness_spec', 'Production readiness spec/result is missing.'))
+    }
+  } else if (!executableStatuses.has(readinessStatus ?? 'not_checked')) {
     blockers.push(blocker(
       input.toolId,
       'readiness_not_passed',
-      `Readiness status is ${input.readiness.status}, not passed/warning.`,
+      `Readiness status is ${readinessStatus}, not passed/warning.`,
     ))
   }
 
-  if (input.readiness?.dryRun) {
+  if (!evidence?.realExecutionVerified) {
     blockers.push(blocker(input.toolId, 'real_execution_not_verified', 'Only dry-run readiness has been evaluated.'))
   }
 
-  if (input.readiness?.blocksProduction) {
+  if (input.readiness?.blocksProduction && evidence?.productionReadinessAccepted !== true) {
     blockers.push(blocker(input.toolId, 'production_readiness_blocked', 'Readiness policy says this tool blocks production when missing or unapproved.'))
   }
 
-  if (input.modelWeightsRequired) {
+  if (input.modelWeightsRequired && evidence?.modelWeightsApproved !== true) {
     blockers.push(blocker(input.toolId, 'model_weight_approval_missing', 'Model/checkpoint approval is required before beta execution.'))
   }
 
-  if (input.ownerCoverage?.productReadyLocalOss === false) {
+  if (evidence?.productReadyLocalOss !== true) {
     blockers.push(blocker(input.toolId, 'product_ready_acceptance_missing', 'No product-ready local OSS acceptance exists for this tool.'))
   }
 

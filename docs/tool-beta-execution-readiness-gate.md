@@ -25,6 +25,20 @@ Current status in this branch:
 - Billing deployment remains a platform blocker until the migration, RLS/service-role path, wallet settlement, Stripe boundary, monitoring, and billing QA are verified.
 - Product-ready local OSS remains `0` until a later QA gate accepts real runtime evidence.
 
+## Evidence Acceptance
+
+The tool execution gate is no longer a permanent hardcoded `false` for product readiness. A future QA packet can provide accepted per-tool evidence with:
+
+- a known `toolId`;
+- a non-empty source ID;
+- passed or warning readiness status;
+- real execution verification;
+- production-readiness acceptance;
+- product-ready local OSS acceptance;
+- model/checkpoint approval when required.
+
+Evidence is accepted only per named tool. Duplicate evidence for the same tool fails closed, unknown tool IDs fail closed, and accepted evidence for one tool does not bypass platform blockers or remaining tools' blockers.
+
 ## Evidence-Driven Policy
 
 The beta go/no-go policy is not a permanent hardcoded block. External beta, real-user-media beta, and paid production are computed from supplied evidence and approvals:
@@ -41,4 +55,4 @@ The default repo state remains blocked because those approvals and real executio
 
 The current evidence is dry-run and source-of-truth only. External beta needs real bounded runtime checks, deployment/storage/security approvals, deployed and verified cost persistence, model/license approvals, monitoring, rollback, and support readiness.
 
-The gate is intentionally strict but no longer uses one permanent per-tool billing wall. If any tool lacks coverage, readiness evidence, model approval, or product-ready acceptance, external beta and paid production remain blocked for that tool. If shared billing deployment/QA is unverified, external beta and paid production remain blocked at the platform level.
+The gate is intentionally strict but no longer uses one permanent per-tool billing wall or a permanent product-ready `false`. If any tool lacks coverage, readiness evidence, model approval, or product-ready acceptance, external beta and paid production remain blocked for that tool. If shared billing deployment/QA is unverified, external beta and paid production remain blocked at the platform level.

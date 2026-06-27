@@ -41,6 +41,51 @@ assert.ok(
 )
 assert.ok(report.blockers.some((blocker) => blocker.blockerId === 'model_weight_approval_missing'), 'model-weight approval must be required')
 
+const evidenceReport = buildToolBetaExecutionReadinessReport({
+  acceptedEvidence: [{
+    toolId: 'ffmpeg',
+    sourceId: 'tool-beta-evidence:bounded-ffmpeg-runtime-proof',
+    sourceSha: '0000000000000000000000000000000000000000',
+    readinessStatus: 'passed',
+    realExecutionVerified: true,
+    productionReadinessAccepted: true,
+    productReadyLocalOss: true,
+    notes: ['Smoke fixture proves accepted evidence can clear only the named tool blockers.'],
+  }],
+})
+const acceptedFfmpeg = evidenceReport.tools.find((tool) => tool.toolId === 'ffmpeg')
+assert.ok(acceptedFfmpeg, 'evidence report should include ffmpeg')
+assert.equal(evidenceReport.readinessMode, 'evidence_review', 'accepted evidence should switch the report into evidence review mode')
+assert.equal(evidenceReport.productReadyLocalOssCount, 1, 'accepted evidence should count one product-ready local OSS tool')
+assert.equal(acceptedFfmpeg.productReadyLocalOss, true, 'accepted evidence should make only the named tool product-ready')
+assert.equal(acceptedFfmpeg.readinessDryRun, false, 'accepted real execution evidence should clear dry-run status for the named tool')
+assert.equal(acceptedFfmpeg.executableForExternalBeta, true, 'accepted evidence should make the named tool externally executable at record level')
+assert.equal(acceptedFfmpeg.blockers.length, 0, 'accepted evidence should clear named tool blockers')
+assert.equal(evidenceReport.externalBetaToolExecutionAllowed, false, 'platform and remaining tool blockers must still block full external beta')
+assert.ok(evidenceReport.platformBlockers.length > 0, 'accepted evidence must not bypass shared platform blockers')
+assert.throws(() => buildToolBetaExecutionReadinessReport({
+  acceptedEvidence: [
+    {
+      toolId: 'ffmpeg',
+      sourceId: 'duplicate-a',
+      readinessStatus: 'passed',
+      realExecutionVerified: true,
+      productionReadinessAccepted: true,
+      productReadyLocalOss: true,
+      notes: ['duplicate evidence guard'],
+    },
+    {
+      toolId: 'ffmpeg',
+      sourceId: 'duplicate-b',
+      readinessStatus: 'passed',
+      realExecutionVerified: true,
+      productionReadinessAccepted: true,
+      productReadyLocalOss: true,
+      notes: ['duplicate evidence guard'],
+    },
+  ],
+}), /Duplicate accepted tool beta evidence/, 'duplicate accepted evidence should fail closed')
+
 console.log(JSON.stringify({
   ok: true,
   totalTools: report.totalTools,
@@ -48,6 +93,7 @@ console.log(JSON.stringify({
   readinessSpecToolCount: report.readinessSpecToolCount,
   blockers: report.blockers.length,
   platformBlockers: report.platformBlockers.length,
+  evidenceReviewProductReadyLocalOssCount: evidenceReport.productReadyLocalOssCount,
   externalBetaToolExecutionAllowed: report.externalBetaToolExecutionAllowed,
   productionToolExecutionAllowed: report.productionToolExecutionAllowed,
 }, null, 2))

@@ -20,6 +20,7 @@ import type {
   ToolBetaExecutionReadinessPlatformBlocker,
   ToolBetaExecutionReadinessRecord,
   ToolBetaExecutionReadinessReport,
+  ToolBetaPlatformReadinessEvidence,
 } from './beta-readiness-types'
 import { buildAcceptedToolEvidenceMap } from './tool-beta-execution-evidence'
 
@@ -27,6 +28,7 @@ const executableStatuses = new Set<ProductionReadinessStatus>(['passed', 'warnin
 
 export interface BuildToolBetaExecutionReadinessReportOptions {
   acceptedEvidence?: ToolBetaAcceptedExecutionEvidence[]
+  platformEvidence?: ToolBetaPlatformReadinessEvidence
 }
 
 export function buildToolBetaExecutionReadinessReport(
@@ -51,7 +53,7 @@ export function buildToolBetaExecutionReadinessReport(
     ...coverageBlockers(ownerCoverageSummary.missingReadinessSpecToolIds, 'missing_readiness_spec'),
     ...tools.flatMap((tool) => tool.blockers),
   ]
-  const platformBlockers = buildPlatformBlockers(ownerCoverageSummary.productionBillingPersistence)
+  const platformBlockers = buildPlatformBlockers(ownerCoverageSummary.productionBillingPersistence, options.platformEvidence)
   const externalBetaToolExecutionAllowed = blockers.length === 0 &&
     platformBlockers.length === 0 &&
     tools.every((tool) => tool.executableForExternalBeta)
@@ -193,6 +195,7 @@ function coverageBlockers(
 
 function buildPlatformBlockers(
   productionBillingPersistence: string,
+  platformEvidence?: ToolBetaPlatformReadinessEvidence,
 ): ToolBetaExecutionReadinessPlatformBlocker[] {
   if (productionBillingPersistence === 'backend_required') {
     return [{
@@ -203,14 +206,53 @@ function buildPlatformBlockers(
   }
 
   if (productionBillingPersistence === 'supabase_tool_cost_events_implemented_pending_deployment') {
+    const missingEvidence = missingPlatformEvidence(platformEvidence)
+    if (missingEvidence.length === 0) return []
+
     return [{
       blockerId: 'production_billing_deployment_unverified',
       requiredForExternalBeta: true,
-      message: 'Supabase-backed tool_cost_events persistence is implemented in source, but migration deployment, RLS/service-role validation, wallet settlement, Stripe, monitoring, and billing QA are not yet verified.',
+      message: `Supabase-backed tool_cost_events persistence is implemented in source, but platform evidence is incomplete: ${missingEvidence.join(', ')}.`,
     }]
   }
 
   return []
+}
+
+function missingPlatformEvidence(platformEvidence?: ToolBetaPlatformReadinessEvidence): string[] {
+  if (!platformEvidence) {
+    return [
+      'platform evidence packet missing',
+      'migration deployment unverified',
+      'service-role write path unverified',
+      'RLS member read path unverified',
+      'idempotent replay unverified',
+      'wallet settlement unverified',
+      'Stripe boundary unverified',
+      'monitoring unverified',
+      'billing QA unverified',
+      'deployment/security/storage/legal/support approvals missing',
+    ]
+  }
+
+  const missing: string[] = []
+  if (!platformEvidence.sourceId.trim()) missing.push('sourceId missing')
+  if (platformEvidence.environment !== 'staging' && platformEvidence.environment !== 'production') missing.push('staging or production environment missing')
+  if (!platformEvidence.toolCostEventsMigrationDeployed) missing.push('tool_cost_events migration not deployed')
+  if (!platformEvidence.serviceRoleWritePathVerified) missing.push('service-role write path not verified')
+  if (!platformEvidence.rlsMemberReadPathVerified) missing.push('RLS member read path not verified')
+  if (!platformEvidence.idempotentReplayVerified) missing.push('idempotent replay not verified')
+  if (!platformEvidence.walletSettlementVerified) missing.push('wallet settlement not verified')
+  if (!platformEvidence.stripeBoundaryVerified) missing.push('Stripe boundary not verified')
+  if (!platformEvidence.monitoringVerified) missing.push('monitoring not verified')
+  if (!platformEvidence.billingQaVerified) missing.push('billing QA not verified')
+  if (!platformEvidence.deploymentApproved) missing.push('deployment approval missing')
+  if (!platformEvidence.securityApproved) missing.push('security approval missing')
+  if (!platformEvidence.storageApproved) missing.push('storage approval missing')
+  if (!platformEvidence.legalApproved) missing.push('legal approval missing')
+  if (!platformEvidence.supportApproved) missing.push('support approval missing')
+  if (platformEvidence.notes.length === 0) missing.push('notes missing')
+  return missing
 }
 
 function uniqueBlockers(

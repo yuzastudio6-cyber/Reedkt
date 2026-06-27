@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict'
-import { buildToolBetaExecutionReadinessReport } from '../beta-readiness'
+import {
+  buildToolBetaExecutionReadinessReport,
+  type ToolBetaAcceptedExecutionEvidence,
+  type ToolBetaPlatformReadinessEvidence,
+} from '../beta-readiness'
 import { PRODUCTION_TOOL_IDS } from '../tool-registry'
 
 const report = buildToolBetaExecutionReadinessReport()
@@ -63,6 +67,58 @@ assert.equal(acceptedFfmpeg.executableForExternalBeta, true, 'accepted evidence 
 assert.equal(acceptedFfmpeg.blockers.length, 0, 'accepted evidence should clear named tool blockers')
 assert.equal(evidenceReport.externalBetaToolExecutionAllowed, false, 'platform and remaining tool blockers must still block full external beta')
 assert.ok(evidenceReport.platformBlockers.length > 0, 'accepted evidence must not bypass shared platform blockers')
+assert.ok(evidenceReport.platformBlockers[0]?.message.includes('platform evidence packet missing'), 'missing platform evidence should be named')
+
+const platformEvidence: ToolBetaPlatformReadinessEvidence = {
+  sourceId: 'tool-beta-platform-evidence:staging-billing-deployment',
+  sourceSha: '1111111111111111111111111111111111111111',
+  environment: 'staging',
+  toolCostEventsMigrationDeployed: true,
+  serviceRoleWritePathVerified: true,
+  rlsMemberReadPathVerified: true,
+  idempotentReplayVerified: true,
+  walletSettlementVerified: true,
+  stripeBoundaryVerified: true,
+  monitoringVerified: true,
+  billingQaVerified: true,
+  deploymentApproved: true,
+  securityApproved: true,
+  storageApproved: true,
+  legalApproved: true,
+  supportApproved: true,
+  notes: ['Smoke fixture proves the shared platform blocker can clear only with a complete evidence packet.'],
+}
+const platformOnlyEvidenceReport = buildToolBetaExecutionReadinessReport({ platformEvidence })
+assert.equal(platformOnlyEvidenceReport.platformBlockers.length, 0, 'complete platform evidence should clear shared platform blocker')
+assert.equal(platformOnlyEvidenceReport.externalBetaToolExecutionAllowed, false, 'tool blockers must still block external beta without per-tool evidence')
+
+const acceptedEvidenceForAllTools: ToolBetaAcceptedExecutionEvidence[] = PRODUCTION_TOOL_IDS.map((toolId) => ({
+  toolId,
+  sourceId: `tool-beta-evidence:${toolId}:complete-runtime-qa`,
+  sourceSha: '2222222222222222222222222222222222222222',
+  readinessStatus: 'passed',
+  realExecutionVerified: true,
+  productionReadinessAccepted: true,
+  productReadyLocalOss: true,
+  modelWeightsApproved: true,
+  notes: [`Smoke fixture proves ${toolId} can clear beta-readiness blockers when accepted evidence exists.`],
+}))
+const fullyEvidencedReport = buildToolBetaExecutionReadinessReport({
+  acceptedEvidence: acceptedEvidenceForAllTools,
+  platformEvidence,
+})
+assert.equal(fullyEvidencedReport.blockers.length, 0, 'complete per-tool evidence should clear all tool-specific blockers')
+assert.equal(fullyEvidencedReport.platformBlockers.length, 0, 'complete platform evidence should clear platform blockers')
+assert.equal(fullyEvidencedReport.productReadyLocalOssCount, PRODUCTION_TOOL_IDS.length, 'complete evidence should count every tool as product-ready in the evidence report')
+assert.equal(fullyEvidencedReport.externalBetaToolExecutionAllowed, true, 'complete accepted evidence should allow external beta tool execution')
+assert.equal(fullyEvidencedReport.productionToolExecutionAllowed, true, 'complete accepted evidence should allow production tool execution at the tool gate')
+
+assert.ok(
+  buildToolBetaExecutionReadinessReport({
+    platformEvidence: { ...platformEvidence, stripeBoundaryVerified: false },
+  }).platformBlockers[0]?.message.includes('Stripe boundary not verified'),
+  'partial platform evidence should name missing Stripe boundary verification',
+)
 assert.throws(() => buildToolBetaExecutionReadinessReport({
   acceptedEvidence: [
     {
@@ -94,6 +150,7 @@ console.log(JSON.stringify({
   blockers: report.blockers.length,
   platformBlockers: report.platformBlockers.length,
   evidenceReviewProductReadyLocalOssCount: evidenceReport.productReadyLocalOssCount,
+  fullyEvidencedExternalBetaToolExecutionAllowed: fullyEvidencedReport.externalBetaToolExecutionAllowed,
   externalBetaToolExecutionAllowed: report.externalBetaToolExecutionAllowed,
   productionToolExecutionAllowed: report.productionToolExecutionAllowed,
 }, null, 2))

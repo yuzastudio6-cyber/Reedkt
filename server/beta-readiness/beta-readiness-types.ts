@@ -8,6 +8,14 @@ export interface BetaReadinessChecklistItem {
   notes: string[]
 }
 
+export interface BetaReadinessChecklistEvidence {
+  itemId: string
+  sourceId: string
+  sourceSha?: string
+  status: 'passed' | 'warning'
+  notes: string[]
+}
+
 export interface BetaScenarioReadiness {
   scenarioId: string
   dryRunReady: boolean
@@ -61,6 +69,26 @@ export interface ToolBetaAcceptedExecutionEvidence {
   productionReadinessAccepted: boolean
   productReadyLocalOss: boolean
   modelWeightsApproved?: boolean
+  notes: string[]
+}
+
+export interface ToolBetaPlatformReadinessEvidence {
+  sourceId: string
+  sourceSha?: string
+  environment: 'staging' | 'production'
+  toolCostEventsMigrationDeployed: boolean
+  serviceRoleWritePathVerified: boolean
+  rlsMemberReadPathVerified: boolean
+  idempotentReplayVerified: boolean
+  walletSettlementVerified: boolean
+  stripeBoundaryVerified: boolean
+  monitoringVerified: boolean
+  billingQaVerified: boolean
+  deploymentApproved: boolean
+  securityApproved: boolean
+  storageApproved: boolean
+  legalApproved: boolean
+  supportApproved: boolean
   notes: string[]
 }
 

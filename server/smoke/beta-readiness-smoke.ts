@@ -1,5 +1,12 @@
 import assert from 'node:assert/strict'
-import { buildBetaReadinessReport, buildBetaScenarioReadinessMatrix, evaluateBetaGoNoGo } from '../beta-readiness'
+import {
+  buildBetaReadinessReport,
+  buildBetaScenarioReadinessMatrix,
+  evaluateBetaGoNoGo,
+  type BetaReadinessChecklistEvidence,
+  type ToolBetaAcceptedExecutionEvidence,
+  type ToolBetaPlatformReadinessEvidence,
+} from '../beta-readiness'
 import { PRODUCTION_TOOL_IDS } from '../tool-registry'
 
 const report = buildBetaReadinessReport()
@@ -36,6 +43,76 @@ assert.ok(
   !report.toolExecutionReadiness.blockers.some((blocker) => blocker.blockerId === 'production_billing_persistence_missing'),
   'billing deployment validation must not be duplicated across every tool after persistence is implemented',
 )
+
+const completePlatformEvidence: ToolBetaPlatformReadinessEvidence = {
+  sourceId: 'beta-readiness-smoke:complete-platform-evidence',
+  sourceSha: '3333333333333333333333333333333333333333',
+  environment: 'staging',
+  toolCostEventsMigrationDeployed: true,
+  serviceRoleWritePathVerified: true,
+  rlsMemberReadPathVerified: true,
+  idempotentReplayVerified: true,
+  walletSettlementVerified: true,
+  stripeBoundaryVerified: true,
+  monitoringVerified: true,
+  billingQaVerified: true,
+  deploymentApproved: true,
+  securityApproved: true,
+  storageApproved: true,
+  legalApproved: true,
+  supportApproved: true,
+  notes: ['Smoke fixture for evidence-driven top-level beta gate.'],
+}
+const completeToolEvidence: ToolBetaAcceptedExecutionEvidence[] = PRODUCTION_TOOL_IDS.map((toolId) => ({
+  toolId,
+  sourceId: `beta-readiness-smoke:${toolId}:complete-tool-evidence`,
+  sourceSha: '4444444444444444444444444444444444444444',
+  readinessStatus: 'passed',
+  realExecutionVerified: true,
+  productionReadinessAccepted: true,
+  productReadyLocalOss: true,
+  modelWeightsApproved: true,
+  notes: [`Smoke fixture for ${toolId} accepted tool evidence.`],
+}))
+const checklistEvidence: BetaReadinessChecklistEvidence[] = [
+  {
+    itemId: 'model_weights_not_approved',
+    sourceId: 'beta-readiness-smoke:model-license-approval',
+    sourceSha: '5555555555555555555555555555555555555555',
+    status: 'passed',
+    notes: ['Smoke fixture proves checklist blockers can be cleared by explicit source evidence.'],
+  },
+  {
+    itemId: 'gcp_deployment_not_done',
+    sourceId: 'beta-readiness-smoke:deployment-approval',
+    sourceSha: '6666666666666666666666666666666666666666',
+    status: 'passed',
+    notes: ['Smoke fixture proves deployment blockers can be cleared by explicit source evidence.'],
+  },
+]
+const evidenceDrivenReport = buildBetaReadinessReport({
+  checklistEvidence,
+  acceptedToolEvidence: completeToolEvidence,
+  platformEvidence: completePlatformEvidence,
+  deploymentApproved: true,
+  securityApproved: true,
+  storageApproved: true,
+  modelLicensesApproved: true,
+  legalApproved: true,
+  monitoringApproved: true,
+  supportApproved: true,
+})
+assert.equal(evidenceDrivenReport.toolExecutionReadiness.externalBetaToolExecutionAllowed, true, 'complete evidence should open the tool execution external beta gate')
+assert.equal(evidenceDrivenReport.toolExecutionReadiness.productionToolExecutionAllowed, true, 'complete evidence should open the tool execution production gate')
+assert.equal(evidenceDrivenReport.goNoGo.externalBetaAllowed, true, 'top-level external beta gate should accept complete evidence and approvals')
+assert.equal(evidenceDrivenReport.goNoGo.realUserMediaBetaAllowed, false, 'real user media beta still needs explicit approval')
+assert.equal(evidenceDrivenReport.goNoGo.paidProductionAllowed, false, 'paid production still needs real user media and paid production approval')
+assert.throws(() => buildBetaReadinessReport({
+  checklistEvidence: [
+    { ...checklistEvidence[0] },
+    { ...checklistEvidence[0], sourceId: 'beta-readiness-smoke:duplicate-model-license-approval' },
+  ],
+}), /Duplicate beta checklist evidence/, 'duplicate checklist evidence should fail closed')
 
 const approvalOnlyGate = evaluateBetaGoNoGo({
   e2eDryRunPassed: true,

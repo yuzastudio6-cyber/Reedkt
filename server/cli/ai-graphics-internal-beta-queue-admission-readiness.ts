@@ -71,6 +71,149 @@ function isRuntimeEnqueueApprovalPacket(
   )
 }
 
+const falseGateKeys = [
+  'agentCanExecuteToolsNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'productionWorkerJobEnqueueApprovedNow',
+  'productionWorkerDispatchApprovedNow',
+  'productionWorkerRouteExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'routeExecutionPerformed',
+  'productionWorkerDispatchPerformed',
+  'productionWorkerRouteExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+] as const
+
+function assertBooleanField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: boolean,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(
+      `${flag} must have ${key}=${String(expected)}; received ${String(object[key])}`,
+    )
+  }
+}
+
+function assertNumberField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: number,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(`${flag} must have ${key}=${expected}; received ${String(object[key])}`)
+  }
+}
+
+function validateRuntimeEnqueueApprovalPacket(
+  packet: AiGraphicsInternalBetaRuntimeEnqueueApproval,
+  flag: string,
+): void {
+  const packetRecord = packet as unknown as Record<string, unknown>
+  const booleans = packetRecord.booleans
+  if (typeof booleans !== 'object' || booleans === null || Array.isArray(booleans)) {
+    throw new Error(`${flag} must contain a booleans object`)
+  }
+  const booleanRecord = booleans as Record<string, unknown>
+
+  if (packet.status !== 'internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked') {
+    throw new Error(
+      `${flag} must be runtime-enqueue approved and runtime-blocked; received ${packet.status}`,
+    )
+  }
+  assertNumberField(packetRecord, 'totalAiGraphicsTools', 21, flag)
+  assertNumberField(packetRecord, 'totalProductFacingCapabilities', 12, flag)
+  assertNumberField(packetRecord, 'enqueueScopeCandidateToolsWithProvidedEvidence', 21, flag)
+  assertNumberField(packetRecord, 'enqueueScopeApprovedToolsWithProvidedEvidence', 21, flag)
+  assertNumberField(packetRecord, 'gpuRuntimeTargetedTools', 8, flag)
+  assertNumberField(packetRecord, 'gpuRuntimeStartAllowedForAcceptedJobTools', 8, flag)
+  assertNumberField(packetRecord, 'heavyToolsIncorrectlyTargetingCpu', 0, flag)
+  assertNumberField(packetRecord, 'liveWorkerQueueApprovedNowTools', 0, flag)
+  assertNumberField(packetRecord, 'liveWorkerExecutionApprovedNowTools', 0, flag)
+  assertNumberField(packetRecord, 'internalBetaReadyNowTools', 0, flag)
+  assertNumberField(packetRecord, 'externalBetaReadyNowTools', 0, flag)
+  assertNumberField(packetRecord, 'productionReadyNowTools', 0, flag)
+
+  for (const [key, expected] of Object.entries({
+    sourceGoNoGoOwnerApprovalAccepted: true,
+    internalBetaRuntimeEnqueueApprovalRecordAccepted: true,
+    all21ToolsCovered: true,
+    all12CapabilitiesCovered: true,
+    all21RuntimeEnqueueScopesPrepared: true,
+    all21RuntimeEnqueueScopesApprovedWithProvidedEvidence: true,
+    gpuHeavyToolsTargetGpuRuntime: true,
+    gpuRuntimeOnDemandOnly: true,
+    noIdleGpuRuntimeApproved: true,
+    gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+    gpuRuntimeStartAllowedOnlyForAcceptedJobs: true,
+    agentCanSelectForPlanning: true,
+  })) {
+    assertBooleanField(booleanRecord, key, expected, flag)
+  }
+  assertBooleanField(booleanRecord, 'cpuFallbackAllowedForHeavyTools', false, flag)
+  for (const key of falseGateKeys) {
+    assertBooleanField(booleanRecord, key, false, flag)
+  }
+
+  if (!Array.isArray(packet.toolScopes) || packet.toolScopes.length !== 21) {
+    throw new Error(`${flag} must contain exactly 21 toolScopes`)
+  }
+  const gpuScopes = packet.toolScopes.filter((scope) => scope.gpuRequiredForRuntime)
+  if (gpuScopes.length !== 8) {
+    throw new Error(`${flag} must contain exactly 8 GPU runtime-targeted tool scopes`)
+  }
+  for (const scope of packet.toolScopes) {
+    if (scope.gpuRuntimeShouldStartNow !== false) {
+      throw new Error(`${flag} tool ${scope.toolId} must have gpuRuntimeShouldStartNow=false`)
+    }
+    if (scope.gpuRuntimeStartAllowedForAcceptedJob !== scope.gpuRequiredForRuntime) {
+      throw new Error(
+        `${flag} tool ${scope.toolId} must allow GPU start exactly when GPU runtime is required`,
+      )
+    }
+    if (scope.gpuRequiredForRuntime) {
+      if (scope.runtimeActivationPolicy?.onDemandOnly !== true) {
+        throw new Error(`${flag} tool ${scope.toolId} must be on-demand GPU only`)
+      }
+      if (scope.runtimeActivationPolicy?.noIdleGpuRuntimeApproved !== true) {
+        throw new Error(`${flag} tool ${scope.toolId} must block idle GPU runtime`)
+      }
+      if (scope.runtimeActivationPolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+        throw new Error(`${flag} tool ${scope.toolId} must start only for approved worker/tool call`)
+      }
+      if (scope.runtimeActivationPolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+        throw new Error(`${flag} tool ${scope.toolId} must block CPU fallback`)
+      }
+    }
+  }
+}
+
 function readSourceRuntimeEnqueueApprovalPacket(): {
   sourceRuntimeEnqueueApproval?: AiGraphicsInternalBetaRuntimeEnqueueApproval
   sourceEvidenceMode: 'constructed_from_cli_flags' | 'internal_beta_runtime_enqueue_approval_packet'
@@ -82,6 +225,10 @@ function readSourceRuntimeEnqueueApprovalPacket(): {
       '--internal-beta-runtime-enqueue-approval-packet does not contain an AI graphics internal beta runtime-enqueue approval packet',
     )
   }
+  validateRuntimeEnqueueApprovalPacket(
+    sourcePacket,
+    '--internal-beta-runtime-enqueue-approval-packet',
+  )
   return {
     sourceRuntimeEnqueueApproval: sourcePacket,
     sourceEvidenceMode: 'internal_beta_runtime_enqueue_approval_packet',

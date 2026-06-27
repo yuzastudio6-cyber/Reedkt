@@ -114,6 +114,12 @@
     "acceptsLowLevelEvidenceFlags": true,
     "acceptsRuntimeEnqueueApprovalPacket": true,
     "sourceRuntimeEnqueueApprovalPacketRequired": true,
+    "sourceRuntimeEnqueueApprovalPacketMustBeRuntimeEnqueueApproved": true,
+    "sourceRuntimeEnqueueApprovalPacketMustCoverAll21Tools": true,
+    "sourceRuntimeEnqueueApprovalPacketMustCoverAll12Capabilities": true,
+    "sourceRuntimeEnqueueApprovalPacketMustKeepEightGpuFutureStartTools": true,
+    "sourceRuntimeEnqueueApprovalPacketMustKeepGpuStartNowFalse": true,
+    "sourceRuntimeEnqueueApprovalPacketMustKeepRuntimeBetaAndProductionFalse": true,
     "queueAdmissionPrerequisitesRequiredAfterSourcePacket": true,
     "liveQueueUnlockPerformed": false,
     "runtimeUnlockPerformed": false

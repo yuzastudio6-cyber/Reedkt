@@ -7,9 +7,11 @@ This contract turns the all-21 runtime-enqueue scope into explicit queue-admissi
 The evaluator can consume either low-level source evidence flags or a source
 runtime-enqueue approval packet via
 `--internal-beta-runtime-enqueue-approval-packet`. A source packet must already
-report `internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked`;
-queue-admission prerequisites remain separate and required after that source
-packet.
+report `internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked`,
+cover all 21 tools and all 12 capabilities, keep exactly eight GPU/model tools
+eligible for accepted future job startup, keep `gpuRuntimeShouldStartNow=false`,
+and keep runtime/beta/production gates false. Queue-admission prerequisites
+remain separate and required after that source packet.
 
 ## Current Status
 
@@ -26,6 +28,7 @@ packet.
 - GPU runtime targets exact: true
 - GPU runtime on-demand only: true
 - Idle GPU runtime approved now: false
+- GPU runtime should start now: false
 - Heavy tools incorrectly targeting CPU: 0
 - Live worker queue approved now: 0
 - Live worker execution approved now: 0

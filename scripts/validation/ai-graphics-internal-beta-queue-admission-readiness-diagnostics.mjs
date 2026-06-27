@@ -149,6 +149,7 @@ function git(args) {
 function runNpm(scriptName, args = []) {
   return execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
     encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
   })
 }
@@ -325,6 +326,12 @@ for (const [key, expected] of Object.entries({
   acceptsLowLevelEvidenceFlags: true,
   acceptsRuntimeEnqueueApprovalPacket: true,
   sourceRuntimeEnqueueApprovalPacketRequired: true,
+  sourceRuntimeEnqueueApprovalPacketMustBeRuntimeEnqueueApproved: true,
+  sourceRuntimeEnqueueApprovalPacketMustCoverAll21Tools: true,
+  sourceRuntimeEnqueueApprovalPacketMustCoverAll12Capabilities: true,
+  sourceRuntimeEnqueueApprovalPacketMustKeepEightGpuFutureStartTools: true,
+  sourceRuntimeEnqueueApprovalPacketMustKeepGpuStartNowFalse: true,
+  sourceRuntimeEnqueueApprovalPacketMustKeepRuntimeBetaAndProductionFalse: true,
   queueAdmissionPrerequisitesRequiredAfterSourcePacket: true,
   liveQueueUnlockPerformed: false,
   runtimeUnlockPerformed: false,
@@ -579,6 +586,42 @@ const sourceRuntimeEnqueuePacketPath = path.join(
   'source-runtime-enqueue-approval-packet.json',
 )
 fs.writeFileSync(sourceRuntimeEnqueuePacketPath, `${JSON.stringify(sourceRuntimeEnqueuePacket, null, 2)}\n`, 'utf8')
+for (const [label, mutate] of [
+  ['missing_tool_count', (packet) => {
+    packet.totalAiGraphicsTools = 20
+  }],
+  ['gpu_start_now_true', (packet) => {
+    packet.booleans.gpuRuntimeShouldStartNow = true
+  }],
+  ['gpu_future_start_count_wrong', (packet) => {
+    packet.gpuRuntimeStartAllowedForAcceptedJobTools = 7
+  }],
+  ['runtime_true', (packet) => {
+    packet.booleans.gpuRuntimeApprovedNow = true
+  }],
+  ['tool_scope_gpu_start_now_true', (packet) => {
+    packet.toolScopes[0].gpuRuntimeShouldStartNow = true
+  }],
+]) {
+  const badPacket = JSON.parse(JSON.stringify(sourceRuntimeEnqueuePacket))
+  mutate(badPacket)
+  const badPacketPath = path.join(
+    path.dirname(manifestPacketPath),
+    `bad-source-runtime-enqueue-approval-packet-${label}.json`,
+  )
+  fs.writeFileSync(badPacketPath, `${JSON.stringify(badPacket, null, 2)}\n`, 'utf8')
+  let badPacketRejected = false
+  try {
+    runNpm(runScriptName, [
+      '--internal-beta-runtime-enqueue-approval-packet',
+      badPacketPath,
+      '--all-queue-admission-prerequisites-provided',
+    ])
+  } catch {
+    badPacketRejected = true
+  }
+  if (!badPacketRejected) fail(`bad_source_runtime_enqueue_packet_not_rejected:${label}`)
+}
 let packetMissingPrereqExited = false
 let packetMissingPrereqText = ''
 try {
@@ -626,6 +669,12 @@ if (packetApprovedOutput.runtimeAdmissionPacketsReadyWithProvidedEvidence !== 21
 }
 if (packetApprovedOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
   fail('packet_approved_gpu_start_allowed_tools_not_8')
+}
+if (packetApprovedOutput.booleans?.gpuRuntimeStartAllowedOnlyForAcceptedJobs !== true) {
+  fail('packet_approved_gpu_start_policy_not_limited_to_accepted_jobs')
+}
+if (packetApprovedOutput.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('packet_approved_gpu_start_now_not_false')
 }
 
 let liveQueueExited = false
@@ -729,6 +778,9 @@ console.log(JSON.stringify({
   queueAdmissionPacketsReadyWithProvidedEvidence:
     docs.counts.queueAdmissionPacketsReadyWithProvidedEvidence,
   gpuRuntimeTargetedTools: docs.counts.gpuRuntimeTargetedTools,
+  gpuRuntimeStartAllowedForAcceptedJobTools:
+    docs.counts.gpuRuntimeStartAllowedForAcceptedJobTools,
+  gpuRuntimeShouldStartNow: docs.booleans.gpuRuntimeShouldStartNow,
   workerQueueApprovedNow: docs.booleans.workerQueueApprovedNow,
   runtimeReadyNow: docs.booleans.runtimeReadyNow,
   productionReadyNow: docs.booleans.productionReadyNow,

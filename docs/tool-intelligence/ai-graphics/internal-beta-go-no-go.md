@@ -6,10 +6,14 @@ This contract is the next gate after the AI graphics beta/production readiness
 rollup. It converts the all-21 technical evidence bundle into an explicit
 internal beta go/no-go question without unlocking runtime.
 
-The evaluator can consume either low-level evidence flags, an assembled beta
-evidence bundle packet via `--beta-evidence-bundle-packet`, or a full local
-assembly packet containing `betaEvidenceBundle` via
-`--beta-evidence-local-assembly-packet`. Owner-approved technical evidence can
+The evaluator can consume low-level evidence flags, an assembled beta evidence
+bundle packet via `--beta-evidence-bundle-packet`, a full local assembly packet
+containing `betaEvidenceBundle` via `--beta-evidence-local-assembly-packet`, or
+the final beta/production readiness rollup via
+`--beta-production-readiness-rollup-packet`. A source rollup packet must already
+report `owner_approved_worker_gates_ready_runtime_still_blocked`, all 21 worker
+gate checks, all 12 capability scenarios, 0 hard failures, on-demand GPU policy,
+and runtime/beta/production gates false. Owner-approved technical evidence can
 make the go/no-go candidate ready, but the separate go/no-go record still
 requires `--internal-beta-go-no-go-approved` and
 `--internal-beta-go-no-go-ref` before it becomes approved with runtime still

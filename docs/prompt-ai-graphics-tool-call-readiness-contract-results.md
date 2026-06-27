@@ -456,6 +456,14 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked: `agentCanExecuteToolsNow=false`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after beta/production rollup gate packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `4c95f37ce0ed982e7a0b8447777fcadaf44cc8e4`, with an empty check rollup.
 
+## Follow-Up: Internal Beta Go/No-Go Rollup Packet Ingestion
+
+- Added evaluator-only beta/production readiness rollup packet ingestion to `ai-graphics:internal-beta-go-no-go`.
+- The command now accepts `--beta-production-readiness-rollup-packet`.
+- The source packet must already report `owner_approved_worker_gates_ready_runtime_still_blocked`, all 21 production-worker gate checks accepted with provided evidence, all 12 capability scenarios accepted with provided evidence, 0 hard failures, on-demand GPU policy, and runtime/beta/production gates still false.
+- Diagnostic coverage proves packet-fed go/no-go reaches `awaiting_internal_beta_go_no_go_approval` without a go/no-go ref and reaches `internal_beta_go_no_go_approved_runtime_still_blocked` only with `--internal-beta-go-no-go-approved` and `--internal-beta-go-no-go-ref`.
+- Runtime remains blocked: `agentCanExecuteToolsNow=false`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

@@ -60,6 +60,11 @@
     "acceptsLowLevelEvidenceFlags": true,
     "acceptsBetaEvidenceBundlePacket": true,
     "acceptsBetaEvidenceLocalAssemblyPacket": true,
+    "acceptsBetaProductionReadinessRollupPacket": true,
+    "sourceRollupPacketMustReportOwnerApprovedWorkerGatesReady": true,
+    "sourceRollupPacketMustCoverAll21Tools": true,
+    "sourceRollupPacketMustCoverAll12Capabilities": true,
+    "sourceRollupPacketMustKeepRuntimeBetaAndProductionFalse": true,
     "ownerApprovalRequiredBeforeGoNoGoCandidateReady": true,
     "goNoGoApprovalSeparatedFromOwnerEvidence": true,
     "runtimeUnlockPerformed": false

@@ -7,6 +7,9 @@ import type {
   AiGraphicsBetaEvidenceBundle,
   AiGraphicsBetaEvidenceBundleInput,
 } from '../tool-registry/ai-graphics-beta-evidence-bundle'
+import type {
+  AiGraphicsBetaProductionReadinessRollup,
+} from '../tool-registry/ai-graphics-beta-production-readiness-rollup'
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -108,10 +111,71 @@ function readPrebuiltEvidenceBundle(): {
   return { evidenceSourceMode: 'constructed_from_cli_flags' }
 }
 
+function isBetaProductionReadinessRollup(
+  packet: unknown,
+): packet is AiGraphicsBetaProductionReadinessRollup {
+  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) return false
+  const record = packet as Record<string, unknown>
+  const booleans = record.booleans
+  return (
+    record.decision === 'ai_graphics_beta_production_readiness_rollup_prepared_with_runtime_blocks' &&
+    record.status === 'owner_approved_worker_gates_ready_runtime_still_blocked' &&
+    record.totalAiGraphicsTools === 21 &&
+    record.totalProductFacingCapabilities === 12 &&
+    record.productionWorkerGateChecksAcceptedWithProvidedEvidence === 21 &&
+    record.capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence === 12 &&
+    record.hardFailedProductionWorkerGateChecksWithProvidedEvidence === 0 &&
+    record.internalBetaReadyNowTools === 0 &&
+    record.externalBetaReadyNowTools === 0 &&
+    record.productionReadyNowTools === 0 &&
+    Boolean(
+      booleans &&
+      typeof booleans === 'object' &&
+      !Array.isArray(booleans) &&
+      (booleans as Record<string, unknown>).internalBetaGoNoGoReadyWithProvidedEvidence === true &&
+      (booleans as Record<string, unknown>).sourceProductionWorkerGateAcceptedWithProvidedEvidence === true &&
+      (booleans as Record<string, unknown>).gpuRuntimeOnDemandOnly === true &&
+      (booleans as Record<string, unknown>).agentCanExecuteToolsNow === false &&
+      (booleans as Record<string, unknown>).workerQueueApprovedNow === false &&
+      (booleans as Record<string, unknown>).productionWorkerJobEnqueueApprovedNow === false &&
+      (booleans as Record<string, unknown>).productionWorkerDispatchApprovedNow === false &&
+      (booleans as Record<string, unknown>).gpuRuntimeApprovedNow === false &&
+      (booleans as Record<string, unknown>).runtimeReadyNow === false &&
+      (booleans as Record<string, unknown>).internalBetaReadyNow === false &&
+      (booleans as Record<string, unknown>).externalBetaReadyNow === false &&
+      (booleans as Record<string, unknown>).productionReadyNow === false
+    )
+  )
+}
+
+function readSourceBetaProductionReadinessRollupPacket(): {
+  sourceBetaProductionReadinessRollupPacket?: AiGraphicsBetaProductionReadinessRollup
+  rollupSourceMode: 'constructed_from_cli_flags' | 'beta_production_readiness_rollup_packet'
+} {
+  const packet = readJsonFile('--beta-production-readiness-rollup-packet')
+  if (!packet) return { rollupSourceMode: 'constructed_from_cli_flags' }
+  if (!isBetaProductionReadinessRollup(packet)) {
+    throw new Error(
+      '--beta-production-readiness-rollup-packet must report owner_approved_worker_gates_ready_runtime_still_blocked with all 21 worker gate checks, all 12 capability scenarios, zero hard failures, on-demand GPU policy, and runtime gates still false.',
+    )
+  }
+
+  return {
+    sourceBetaProductionReadinessRollupPacket: packet,
+    rollupSourceMode: 'beta_production_readiness_rollup_packet',
+  }
+}
+
 const allTechnicalGatesPassed = hasFlag('--all-technical-gates-passed')
 const prebuiltEvidence = readPrebuiltEvidenceBundle()
+const sourceRollupPacket = readSourceBetaProductionReadinessRollupPacket()
+if (sourceRollupPacket.sourceBetaProductionReadinessRollupPacket && prebuiltEvidence.evidenceBundle) {
+  throw new Error(
+    'Use either --beta-production-readiness-rollup-packet or a beta evidence packet, not both',
+  )
+}
 const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput | undefined =
-  prebuiltEvidence.evidenceBundle
+  prebuiltEvidence.evidenceBundle || sourceRollupPacket.sourceBetaProductionReadinessRollupPacket
     ? undefined
     : {
         approvedPlanSnapshotGatePassed:
@@ -144,6 +208,8 @@ const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput | undefined =
       }
 
 const goNoGo = buildAiGraphicsInternalBetaGoNoGo({
+  sourceBetaProductionReadinessRollupPacket:
+    sourceRollupPacket.sourceBetaProductionReadinessRollupPacket,
   evidenceBundle: prebuiltEvidence.evidenceBundle,
   evidenceBundleInput,
   ownerApprovalGranted: hasFlag('--owner-approval-granted'),
@@ -160,6 +226,9 @@ const output = {
   input: {
     validatorOnly: true,
     evidenceSourceMode: prebuiltEvidence.evidenceSourceMode,
+    rollupSourceMode: sourceRollupPacket.rollupSourceMode,
+    betaProductionReadinessRollupPacketRead:
+      Boolean(sourceRollupPacket.sourceBetaProductionReadinessRollupPacket),
     betaEvidenceBundlePacketRead: Boolean(valueAfterFlag('--beta-evidence-bundle-packet')),
     betaEvidenceLocalAssemblyPacketRead: Boolean(valueAfterFlag('--beta-evidence-local-assembly-packet')),
     ownerApprovalRefProvided: Boolean(valueAfterFlag('--owner-approval-ref')),
@@ -167,6 +236,7 @@ const output = {
     evidencePacketFilesRead: [
       valueAfterFlag('--beta-evidence-bundle-packet'),
       valueAfterFlag('--beta-evidence-local-assembly-packet'),
+      valueAfterFlag('--beta-production-readiness-rollup-packet'),
       valueAfterFlag('--model-weight-manifest-review-packet'),
       valueAfterFlag('--gpu-runtime-proof-result-packet'),
       valueAfterFlag('--node-runtime-proof-packet'),

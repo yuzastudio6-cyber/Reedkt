@@ -14,6 +14,7 @@ export type AiGraphicsInternalBetaGoNoGoStatus =
   | 'internal_beta_go_no_go_approved_runtime_still_blocked'
 
 export interface AiGraphicsInternalBetaGoNoGoInput extends AiGraphicsBetaProductionReadinessRollupInput {
+  sourceBetaProductionReadinessRollupPacket?: AiGraphicsBetaProductionReadinessRollup
   internalBetaGoNoGoApproved?: boolean
   internalBetaGoNoGoRef?: string
   internalBetaGoNoGoApproverRole?: string
@@ -140,7 +141,9 @@ function statusFromInput(input: {
 export function buildAiGraphicsInternalBetaGoNoGo(
   input: AiGraphicsInternalBetaGoNoGoInput = {},
 ): AiGraphicsInternalBetaGoNoGo {
-  const sourceRollup = buildAiGraphicsBetaProductionReadinessRollup(input)
+  const sourceRollup =
+    input.sourceBetaProductionReadinessRollupPacket ??
+    buildAiGraphicsBetaProductionReadinessRollup(input)
   const internalBetaGoNoGoReadyWithProvidedEvidence =
     sourceRollup.booleans.internalBetaGoNoGoReadyWithProvidedEvidence
   const approvalRecordAccepted = goNoGoApprovalRecordAccepted(input)

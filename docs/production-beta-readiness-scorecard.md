@@ -950,6 +950,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Decision: `ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`.
 - Scope: server-only explicit go/no-go gate for the owner-approved all-21 beta evidence chain.
 - Result: default evidence remains `awaiting_internal_beta_go_no_go_approval`. The evaluator can consume either the low-level proof flags, an assembled beta evidence bundle packet, or a local beta evidence assembly packet containing `betaEvidenceBundle`; with owner approval evidence, the candidate can become ready with provided evidence, but it still requires a separate go/no-go approval record and ref before reporting `internal_beta_go_no_go_approved_runtime_still_blocked`.
+- Source packet ingestion: the evaluator can now consume `--beta-production-readiness-rollup-packet` when the source rollup already reports 21 production worker gate checks, 12 capability scenarios, 0 hard failures, on-demand GPU policy, and runtime/beta/production gates still false.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Beta/Production Readiness Rollup

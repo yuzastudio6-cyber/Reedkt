@@ -20,7 +20,9 @@ export type AiGraphicsInternalBetaProductionWorkerGateReadinessStatus =
   | 'owner_approved_production_worker_gate_checks_ready'
 
 export interface AiGraphicsInternalBetaProductionWorkerGateReadinessInput
-  extends AiGraphicsInternalBetaProductionWorkerJobReadinessInput {}
+  extends AiGraphicsInternalBetaProductionWorkerJobReadinessInput {
+  sourceProductionWorkerJobReadinessPacket?: AiGraphicsInternalBetaProductionWorkerJobReadiness
+}
 
 export interface AiGraphicsInternalBetaProductionWorkerGateCheckResult {
   toolId: AiGraphicsInternalBetaProductionWorkerJobCandidate['sourceToolId']
@@ -189,6 +191,7 @@ export function buildAiGraphicsInternalBetaProductionWorkerGateReadiness(
   input: AiGraphicsInternalBetaProductionWorkerGateReadinessInput = {},
 ): AiGraphicsInternalBetaProductionWorkerGateReadiness {
   const sourceProductionWorkerJobReadiness =
+    input.sourceProductionWorkerJobReadinessPacket ??
     buildAiGraphicsInternalBetaProductionWorkerJobReadiness(input)
   const status = toStatus(sourceProductionWorkerJobReadiness)
   const ownerApprovedProductionWorkerGateEvidenceAccepted =

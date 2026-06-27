@@ -6,6 +6,14 @@ This packet validates the canonical AI graphics `ProductionWorkerJobPayload` can
 
 Source decision: `ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime`
 
+Source evidence policy: the gate can consume
+`--internal-beta-production-worker-job-readiness-packet` when that packet already
+reports `owner_approved_production_worker_jobs_ready`, all 21 production-worker
+job payloads ready with provided evidence, all 12 capability scenarios ready
+with provided evidence, and enqueue/runtime gates still false. Packet-fed gate
+readiness still only runs shared gate validation; it does not enqueue jobs,
+dispatch workers, run Tool Routes, execute tools, or start GPU runtime.
+
 ## Tools
 
 - `torch_torchvision`

@@ -1,6 +1,14 @@
 {
   "decision": "ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime",
   "sourceDecision": "ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime",
+  "sourceEvidencePolicy": {
+    "acceptsProductionWorkerJobReadinessPacket": true,
+    "sourceProductionWorkerJobPacketMustReportOwnerApprovedJobsReady": true,
+    "sourceProductionWorkerJobPacketMustCoverAll21Tools": true,
+    "sourceProductionWorkerJobPacketMustKeepEnqueueAndRuntimeFalse": true,
+    "gateReadinessStillDoesNotEnqueueOrDispatch": true,
+    "runtimeUnlockPerformed": false
+  },
   "states": [
     "missing_technical_evidence",
     "awaiting_owner_approval",

@@ -184,6 +184,30 @@ function writeAcceptedEvidencePackets() {
   return { manifestPacketPath, gpuPacketPath }
 }
 
+function writeAcceptedProductionWorkerJobReadinessPacket(manifestPacketPath, gpuPacketPath) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-production-worker-gate-source-'))
+  const packetPath = path.join(root, 'production-worker-job-readiness-packet.json')
+  const packetText = runNpm('ai-graphics:internal-beta-production-worker-job-readiness', [
+    '--use-committed-js-runtime-proofs',
+    '--all-technical-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--model-weight-manifest-review-packet',
+    manifestPacketPath,
+    '--gpu-runtime-proof-result-packet',
+    gpuPacketPath,
+    '--owner-approval-granted',
+    '--owner-approval-ref',
+    'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+    '--require-owner-approved-production-worker-jobs-ready',
+  ])
+  const packet = parseJsonOutput(packetText, 'source_production_worker_job_readiness_packet')
+  if (packet.status !== 'owner_approved_production_worker_jobs_ready') {
+    fail(`source_job_packet_status:${packet.status}`)
+  }
+  fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-internal-beta-production-worker-gate-readiness.ts',
   'server/cli/ai-graphics-internal-beta-production-worker-gate-readiness.ts',
@@ -216,6 +240,24 @@ if (docs.decision !== 'ai_graphics_internal_beta_production_worker_gate_readines
 if (docs.sourceDecision !== 'ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime') {
   fail(`unexpected_source_decision:${docs.sourceDecision}`)
 }
+if (docs.sourceEvidencePolicy?.acceptsProductionWorkerJobReadinessPacket !== true) {
+  fail('docs_source_policy_missing_job_readiness_packet_mode')
+}
+if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustReportOwnerApprovedJobsReady !== true) {
+  fail('docs_source_policy_missing_owner_approved_jobs_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustCoverAll21Tools !== true) {
+  fail('docs_source_policy_missing_21_tool_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustKeepEnqueueAndRuntimeFalse !== true) {
+  fail('docs_source_policy_missing_false_gate_requirement')
+}
+if (docs.sourceEvidencePolicy?.gateReadinessStillDoesNotEnqueueOrDispatch !== true) {
+  fail('docs_source_policy_missing_no_enqueue_dispatch_requirement')
+}
+if (docs.sourceEvidencePolicy?.runtimeUnlockPerformed !== false) {
+  fail('docs_source_policy_runtime_unlock_not_false')
+}
 for (const status of [
   'missing_technical_evidence',
   'awaiting_owner_approval',
@@ -242,11 +284,25 @@ for (const token of [
   'aiGraphicsCanonicalRegistryGate',
   'production worker dispatch',
   'production worker route execution',
+  '--internal-beta-production-worker-job-readiness-packet',
+  'sourceEvidenceMode',
+  'internal_beta_production_worker_job_readiness_packet',
+  'sourceProductionWorkerJobReadinessPacketRead',
   '--require-owner-approved-production-worker-gates-ready',
 ]) {
   if (!moduleSource.includes(token) && !cliSource.includes(token) && !JSON.stringify(docs).includes(token) && !markdown.includes(token)) {
     fail(`source_missing:${token}`)
   }
+}
+for (const phrase of [
+  'Source evidence policy',
+  '`--internal-beta-production-worker-job-readiness-packet`',
+  'Packet-fed gate',
+  'readiness still only runs shared gate validation',
+  'does not enqueue jobs',
+  'does not enqueue production worker jobs',
+]) {
+  if (!markdown.includes(phrase)) fail(`markdown_missing_source_policy:${phrase}`)
 }
 if (docs.counts?.productionWorkerGateChecksPrepared !== 21) fail('docs_gate_checks_not_21')
 if (docs.counts?.capabilityProductionWorkerGateScenariosPrepared !== 12) fail('docs_capability_gate_scenarios_not_12')
@@ -337,6 +393,50 @@ if (approvedOutput.capabilityProductionWorkerGateScenarios?.length !== 12) {
   fail('approved_capability_gate_payload_length_not_12')
 }
 
+const sourceJobReadinessPacketPath = writeAcceptedProductionWorkerJobReadinessPacket(manifestPacketPath, gpuPacketPath)
+const packetFedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--internal-beta-production-worker-job-readiness-packet',
+  sourceJobReadinessPacketPath,
+  '--require-owner-approved-production-worker-gates-ready',
+]), 'packet_fed_production_worker_gate')
+
+if (packetFedOutput.input?.sourceEvidenceMode !== 'internal_beta_production_worker_job_readiness_packet') {
+  fail(`packet_fed_source_mode:${packetFedOutput.input?.sourceEvidenceMode}`)
+}
+if (packetFedOutput.input?.sourceProductionWorkerJobReadinessPacketRead !== true) {
+  fail('packet_fed_source_packet_not_read')
+}
+if (packetFedOutput.status !== 'owner_approved_production_worker_gate_checks_ready') {
+  fail(`packet_fed_status:${packetFedOutput.status}`)
+}
+if (packetFedOutput.ownerApprovedProductionWorkerGateEvidenceAccepted !== true) {
+  fail('packet_fed_owner_gate_not_true')
+}
+if (packetFedOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence !== 21) {
+  fail('packet_fed_gate_checks_accepted_not_21')
+}
+if (packetFedOutput.capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence !== 12) {
+  fail('packet_fed_capability_gate_scenarios_accepted_not_12')
+}
+if (packetFedOutput.hardFailedGateChecksWithProvidedEvidence !== 0) {
+  fail('packet_fed_hard_failed_gate_checks_not_0')
+}
+if (packetFedOutput.productionWorkerGateChecksReadyNow !== 0) {
+  fail('packet_fed_gate_checks_ready_now_not_0')
+}
+if (packetFedOutput.booleans?.productionWorkerDispatchApprovedNow !== false) {
+  fail('packet_fed_dispatch_approved_not_false')
+}
+if (packetFedOutput.booleans?.gpuRuntimeApprovedNow !== false) {
+  fail('packet_fed_gpu_runtime_not_false')
+}
+if (packetFedOutput.booleans?.runtimeReadyNow !== false) {
+  fail('packet_fed_runtime_not_false')
+}
+if (packetFedOutput.booleans?.productionReadyNow !== false) {
+  fail('packet_fed_production_not_false')
+}
+
 for (const gateResult of approvedOutput.productionWorkerGateChecks ?? []) {
   if (gateResult.gateCheckShapeValid !== true) fail(`gate_shape_invalid:${gateResult.toolId}`)
   if (gateResult.gateChecksAcceptedWithProvidedEvidence !== true) fail(`gate_not_accepted:${gateResult.toolId}`)
@@ -370,7 +470,7 @@ for (const gateResult of approvedOutput.productionWorkerGateChecks ?? []) {
   }
 }
 
-for (const output of [defaultOutput, awaitingOutput, approvedOutput]) {
+for (const output of [defaultOutput, awaitingOutput, approvedOutput, packetFedOutput]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`false_gate_not_false:${key}`)
@@ -490,6 +590,7 @@ console.log(JSON.stringify({
   defaultStatus: defaultOutput.status,
   awaitingStatus: awaitingOutput.status,
   approvedStatus: approvedOutput.status,
+  packetFedStatus: packetFedOutput.status,
   toolsCovered: allTools.length,
   productionWorkerGateChecksAcceptedWithProvidedEvidence:
     approvedOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence,

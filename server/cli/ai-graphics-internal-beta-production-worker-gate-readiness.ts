@@ -4,6 +4,9 @@ import {
   buildAiGraphicsInternalBetaProductionWorkerGateReadiness,
 } from '../tool-registry/ai-graphics-internal-beta-production-worker-gate-readiness'
 import type {
+  AiGraphicsInternalBetaProductionWorkerJobReadiness,
+} from '../tool-registry/ai-graphics-internal-beta-production-worker-job-readiness'
+import type {
   AiGraphicsBetaEvidenceBundleInput,
 } from '../tool-registry/ai-graphics-beta-evidence-bundle'
 
@@ -44,6 +47,53 @@ function readProofPacket(flag: string, committedPath: string): unknown | undefin
   return undefined
 }
 
+function isProductionWorkerJobReadinessPacket(
+  packet: unknown,
+): packet is AiGraphicsInternalBetaProductionWorkerJobReadiness {
+  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) return false
+  const record = packet as Record<string, unknown>
+  const booleans = record.booleans
+  return (
+    record.decision === 'ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime' &&
+    record.status === 'owner_approved_production_worker_jobs_ready' &&
+    record.totalAiGraphicsTools === 21 &&
+    record.totalProductFacingCapabilities === 12 &&
+    record.productionWorkerJobPayloadsReadyWithProvidedEvidence === 21 &&
+    record.capabilityProductionWorkerJobScenariosReadyWithProvidedEvidence === 12 &&
+    record.productionWorkerJobPayloadsReadyNow === 0 &&
+    Array.isArray(record.productionWorkerJobPayloads) &&
+    record.productionWorkerJobPayloads.length === 21 &&
+    Boolean(
+      booleans &&
+      typeof booleans === 'object' &&
+      !Array.isArray(booleans) &&
+      (booleans as Record<string, unknown>).ownerApprovedProductionWorkerJobEvidenceAccepted === true &&
+      (booleans as Record<string, unknown>).all21ProductionWorkerJobPayloadsReadyWithProvidedEvidence === true &&
+      (booleans as Record<string, unknown>).agentCanExecuteToolsNow === false &&
+      (booleans as Record<string, unknown>).productionWorkerJobEnqueueApprovedNow === false &&
+      (booleans as Record<string, unknown>).runtimeReadyNow === false,
+    )
+  )
+}
+
+function readSourceProductionWorkerJobReadinessPacket(): {
+  sourceProductionWorkerJobReadinessPacket?: AiGraphicsInternalBetaProductionWorkerJobReadiness
+  sourceEvidenceMode: 'constructed_from_cli_flags' | 'internal_beta_production_worker_job_readiness_packet'
+} {
+  const packet = readJsonFile('--internal-beta-production-worker-job-readiness-packet')
+  if (!packet) return { sourceEvidenceMode: 'constructed_from_cli_flags' }
+  if (!isProductionWorkerJobReadinessPacket(packet)) {
+    throw new Error(
+      '--internal-beta-production-worker-job-readiness-packet must report owner_approved_production_worker_jobs_ready with all 21 production-worker job payloads ready by evidence and runtime gates still false.',
+    )
+  }
+
+  return {
+    sourceProductionWorkerJobReadinessPacket: packet,
+    sourceEvidenceMode: 'internal_beta_production_worker_job_readiness_packet',
+  }
+}
+
 const allTechnicalGatesPassed = hasFlag('--all-technical-gates-passed')
 const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput = {
   approvedPlanSnapshotGatePassed: allTechnicalGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
@@ -68,8 +118,11 @@ const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput = {
   ) as AiGraphicsBetaEvidenceBundleInput['satoriFontRuntimeProofPacket'],
 }
 
+const sourcePacket = readSourceProductionWorkerJobReadinessPacket()
 const readiness = buildAiGraphicsInternalBetaProductionWorkerGateReadiness({
   evidenceBundleInput,
+  sourceProductionWorkerJobReadinessPacket:
+    sourcePacket.sourceProductionWorkerJobReadinessPacket,
   ownerApprovalGranted: hasFlag('--owner-approval-granted'),
   ownerApprovalRef: valueAfterFlag('--owner-approval-ref'),
   ownerApproverRole: valueAfterFlag('--owner-approver-role') ?? 'AI_TOOLS_CREATIVE_GRAPHICS_OWNER',
@@ -85,6 +138,9 @@ const output = {
   ...readiness,
   input: {
     validatorOnly: true,
+    sourceEvidenceMode: sourcePacket.sourceEvidenceMode,
+    sourceProductionWorkerJobReadinessPacketRead:
+      Boolean(sourcePacket.sourceProductionWorkerJobReadinessPacket),
     ownerApprovalRefProvided: Boolean(valueAfterFlag('--owner-approval-ref')),
     committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
     dependencyInstallPerformed: false,

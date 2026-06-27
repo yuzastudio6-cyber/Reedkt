@@ -363,6 +363,11 @@ run production worker routes, execute tools, run browser/canvas/WebGL, run
 GPU/model runtime, download/load model weights, process media, create signed
 URLs/public artifacts, unlock internal beta runtime, unlock external beta, or
 unlock production.
+The gate can also consume a source
+`--internal-beta-production-worker-job-readiness-packet` when the packet already
+reports all 21 production-worker job payloads and all 12 capability scenarios
+ready with provided evidence, while preserving false enqueue, dispatch, runtime,
+beta, and production gates.
 
 Phase 35F SAM2 feature E2E evidence, when present, counts only toward internal
 SAM2 feature testing. It is not external beta, paid production, broad real
@@ -964,6 +969,12 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Decision remains `ai_graphics_internal_beta_service_role_rpc_worker_handoff_local_smoke_passed_with_cleanup`.
 - Source packet ingestion: `ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke` can now consume `--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet` when the source packet already reports adapter local-smoke cleanup pass, all 21 tools represented, and 0 persistent fixture rows. The packet-fed path reports `worker_handoff_local_smoke_prepared_not_executed` unless explicit local worker-handoff confirmation and local service-role credentials are supplied.
 - Runtime/beta/production: no unlock; `workerHandoffLocalSmokeExecutedNow=false`, `liveProductionWorkerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Internal Beta Production Worker Gate Source Packet
+
+- Decision remains `ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime`.
+- Source packet ingestion: `ai-graphics:internal-beta-production-worker-gate-readiness` can now consume `--internal-beta-production-worker-job-readiness-packet` when the source packet already reports `owner_approved_production_worker_jobs_ready`, 21 production-worker job payloads ready with provided evidence, 12 capability scenarios ready with provided evidence, and enqueue/runtime gates still false.
+- Runtime/beta/production: no unlock; `productionWorkerGateChecksReadyNow=0`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Private Checksum-Evidence Hardening
 

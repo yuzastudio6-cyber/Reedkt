@@ -106,6 +106,20 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'Keep each platform blocker paired with local proof, deployed/owner evidence, and a next safe action.',
     ),
     sourceFileCheck(
+      'beta_platform_deployed_evidence_verifier_present',
+      'Beta platform deployed evidence verifier is present',
+      'server/beta-readiness/platform-deployed-evidence-verifier.ts',
+      ['evidencePacketReady', 'ownerApprovalGaps', 'service_role_write_path_verified', 'externalBetaAllowed: false'],
+      'Connect the verifier to real staging probes before recording deployed platform evidence.',
+    ),
+    sourceFileCheck(
+      'beta_platform_deployed_evidence_verifier_smoke_present',
+      'Beta platform deployed evidence verifier smoke is present',
+      'server/smoke/beta-platform-deployed-evidence-verifier-smoke.ts',
+      ['partial deployed probes must fail closed', 'missing owner approvals must fail closed', 'secret-like verifier notes should be rejected'],
+      'Run the verifier smoke before any deployed platform evidence collection.',
+    ),
+    sourceFileCheck(
       'tool_cost_persistent_store_present',
       'Persistent tool cost event store source is present',
       'server/tool-cost-metering/tool-cost-persistent-store.ts',

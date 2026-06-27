@@ -10,6 +10,43 @@ import { buildAiGraphicsServiceRoleRpcSmokeJobs } from '../tool-registry/ai-grap
 const RUN_DECISION =
   'ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup'
 
+const requiredServiceRoleRpcs = [
+  'enqueue_ai_graphics_tool_runtime_jobs',
+  'claim_ai_graphics_tool_runtime_job',
+  'record_ai_graphics_worker_event',
+  'record_ai_graphics_audit_event',
+] as const
+
+const falseGateKeys = [
+  'persistentSmokeFixtureRowsCreated',
+  'agentCanExecuteToolsNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'routeExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+] as const
+
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
 }
@@ -63,6 +100,106 @@ function isLocalRpcSmokeProofPacket(packet: unknown): boolean {
   )
 }
 
+function assertObjectField(
+  object: Record<string, unknown>,
+  key: string,
+  flag: string,
+): Record<string, unknown> {
+  const value = object[key]
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${flag} must contain a ${key} object`)
+  }
+  return value as Record<string, unknown>
+}
+
+function assertBooleanField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: boolean,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(
+      `${flag} must have ${key}=${String(expected)}; received ${String(object[key])}`,
+    )
+  }
+}
+
+function assertNumberField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: number,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(`${flag} must have ${key}=${expected}; received ${String(object[key])}`)
+  }
+}
+
+function validateLocalRpcSmokeProofPacket(packet: Record<string, unknown>, flag: string): void {
+  const counts = assertObjectField(packet, 'counts', flag)
+  const booleans = assertObjectField(packet, 'booleans', flag)
+  const coverage = assertObjectField(packet, 'localSmokeCoverage', flag)
+
+  for (const [key, expected] of Object.entries({
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    serviceRoleRpcsExercised: 4,
+    persistentSmokeFixtureRowsAfterRollback: 0,
+    toolExecutionsNow: 0,
+    routeExecutionsNow: 0,
+    workerExecutionsNow: 0,
+    providerExecutionsNow: 0,
+    browserWebglCanvasRuntimeExecutionsNow: 0,
+    gpuRuntimeExecutionsNow: 0,
+    signedUrlsCreatedNow: 0,
+    publicArtifactsCreatedNow: 0,
+    internalBetaReadyNowTools: 0,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+  })) {
+    assertNumberField(counts, key, expected, flag)
+  }
+
+  for (const [key, expected] of Object.entries({
+    internalBetaServiceRoleRpcLocalSmokeProofCompleted: true,
+    sourceServiceRoleRpcSmokeReadinessAccepted: true,
+    sourceServiceRoleRpcImplementationReadinessAccepted: true,
+    all21ToolsCoveredByReadinessEvidence: true,
+    all12CapabilitiesCoveredByReadinessEvidence: true,
+    localRpcMigrationApplied: true,
+    localRpcFunctionsPresent: true,
+    localRollbackFixtureSmokePassed: true,
+    localEnqueueRpcSmokePassed: true,
+    localClaimRpcSmokePassed: true,
+    localWorkerEventRpcSmokePassed: true,
+    localAuditRpcSmokePassed: true,
+    localSmokeFixtureRowsRolledBack: true,
+    privateArtifactManifestGuardUsed: true,
+    reservedCreditReservationGuardUsed: true,
+    approvedSnapshotGuardUsed: true,
+    agentCanSelectForPlanning: true,
+  })) {
+    assertBooleanField(booleans, key, expected, flag)
+  }
+  for (const key of falseGateKeys) {
+    assertBooleanField(booleans, key, false, flag)
+  }
+
+  assertNumberField(coverage, 'toolsRepresentedByReadinessEvidence', 21, flag)
+  assertNumberField(coverage, 'capabilitiesRepresentedByReadinessEvidence', 12, flag)
+  assertBooleanField(coverage, 'toolExecutionPerformedBySmoke', false, flag)
+  const exercisedRpcs = coverage.serviceRoleRpcsExercised
+  if (!Array.isArray(exercisedRpcs) || exercisedRpcs.length !== requiredServiceRoleRpcs.length) {
+    throw new Error(`${flag} must list exactly ${requiredServiceRoleRpcs.length} service-role RPCs`)
+  }
+  for (const rpc of requiredServiceRoleRpcs) {
+    if (!exercisedRpcs.includes(rpc)) {
+      throw new Error(`${flag} must include service-role RPC ${rpc}`)
+    }
+  }
+}
+
 function readSourceLocalRpcSmokeProofPacket(): {
   sourceLocalRpcSmokeProofPacketRead: boolean
   sourceEvidenceMode:
@@ -83,6 +220,10 @@ function readSourceLocalRpcSmokeProofPacket(): {
       'Service-role RPC local smoke proof packet must report local_rpc_smoke_passed_with_rollback_fixtures_no_tool_execution with all 21 tools represented and rollback cleanup complete.',
     )
   }
+  validateLocalRpcSmokeProofPacket(
+    packet,
+    '--internal-beta-service-role-rpc-local-smoke-proof-packet',
+  )
 
   return {
     sourceLocalRpcSmokeProofPacketRead: true,
@@ -164,6 +305,8 @@ function buildPreparedContract() {
       'record_ai_graphics_audit_event',
     ],
     toolsCoveredByAdapterEnqueue: 21,
+    gpuRuntimeStartAllowedForAcceptedJobTools: 8,
+    gpuRuntimeShouldStartNow: false,
     localFixtureRowsPersistedAfterCleanup: 0,
     toolExecutionPerformed: false,
     runtimeReadyNow: false,
@@ -415,6 +558,9 @@ async function runAdapterSmoke() {
       ...job,
       idempotencyKey: `${prefix}:job:${job.toolId}`,
     }))
+    const gpuRuntimeStartAllowedForAcceptedJobTools = jobs.filter((job) => (
+      job.workerType === 'gpu_ai_worker'
+    )).length
 
     const enqueue = await service.enqueueToolRuntimeJobs({
       workspaceId: fixtures.workspaceId,
@@ -469,6 +615,8 @@ async function runAdapterSmoke() {
       schema,
       fixturesCreated: Boolean(fixtures),
       jobsSubmittedToAdapter: jobs.length,
+      gpuRuntimeStartAllowedForAcceptedJobTools,
+      gpuRuntimeShouldStartNow: false,
       jobBatchIdReturned: Boolean(queueResult.jobBatchId),
       jobIdsReturned: Array.isArray(queueResult.jobIds) ? queueResult.jobIds.length : 0,
       insertedJobCount: queueResult.insertedJobCount ?? null,
@@ -513,6 +661,8 @@ async function main() {
     localFixtureRootCount: smoke.schema.fixtureRootCount,
     fixturesCreated: smoke.fixturesCreated,
     jobsSubmittedToAdapter: smoke.jobsSubmittedToAdapter,
+    gpuRuntimeStartAllowedForAcceptedJobTools: smoke.gpuRuntimeStartAllowedForAcceptedJobTools,
+    gpuRuntimeShouldStartNow: smoke.gpuRuntimeShouldStartNow,
     insertedJobCount: smoke.insertedJobCount,
     jobIdsReturned: smoke.jobIdsReturned,
     workerClaimReturned: smoke.workerClaimReturned,

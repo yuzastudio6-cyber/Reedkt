@@ -311,8 +311,12 @@ runtime, media processing, signed URLs, public artifacts, internal beta runtime,
 external beta, and production blocked.
 The adapter prepared-contract path can now consume
 `--internal-beta-service-role-rpc-local-smoke-proof-packet` from the rollback
-local-smoke proof; actual adapter smoke execution still requires explicit local
-confirmation and local service-role credentials.
+local-smoke proof. That source packet must already prove all 21 tools, all 12
+capabilities, rollback cleanup, `gpuRuntimeShouldStartNow=false`, and false
+runtime/beta/production gates. The adapter prepared-contract path reports eight
+future accepted-job GPU runtime targets while keeping GPU start-now false;
+actual adapter smoke execution still requires explicit local confirmation and
+local service-role credentials.
 
 AI graphics internal beta service-role RPC worker-handoff local smoke proof
 decision

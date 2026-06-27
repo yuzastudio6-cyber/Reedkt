@@ -9,6 +9,9 @@
     "acceptsLocalSmokeProofPacket": true,
     "sourceLocalSmokeProofPacketMustReportRollbackFixturePass": true,
     "sourceLocalSmokeProofPacketMustCoverAll21Tools": true,
+    "sourceLocalSmokeProofPacketMustCoverAll12Capabilities": true,
+    "sourceLocalSmokeProofPacketMustKeepGpuStartNowFalse": true,
+    "sourceLocalSmokeProofPacketMustKeepRuntimeBetaAndProductionFalse": true,
     "adapterSmokeExecutionStillRequiresExplicitLocalConfirmation": true,
     "serviceRoleKeyCommitted": false,
     "runtimeUnlockPerformed": false
@@ -44,6 +47,8 @@
     "creditReservationFixtureCreated": true,
     "privateArtifactManifestRefsOnly": true,
     "gpuHeavyToolsTargetGpuRuntimeInPayloads": true,
+    "gpuRuntimeStartAllowedForAcceptedJobTools": 8,
+    "gpuRuntimeShouldStartNow": false,
     "toolExecutionPerformedBySmoke": false
   },
   "cleanupEvidence": {
@@ -63,6 +68,7 @@
     "adapterWorkerClaimsReturned": 1,
     "adapterWorkerEventsReturned": 1,
     "adapterAuditEventsReturned": 1,
+    "gpuRuntimeStartAllowedForAcceptedJobTools": 8,
     "fixtureRowsPersistedAfterCleanup": 0,
     "toolExecutionsNow": 0,
     "routeExecutionsNow": 0,
@@ -106,6 +112,7 @@
     "providerRuntimeApprovedNow": false,
     "browserWebglCanvasRuntimeApprovedNow": false,
     "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
     "runtimeReadyNow": false,
     "internalBetaReadyNow": false,
     "externalBetaReadyNow": false,

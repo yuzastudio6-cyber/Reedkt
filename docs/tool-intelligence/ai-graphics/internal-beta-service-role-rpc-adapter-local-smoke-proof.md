@@ -23,9 +23,10 @@ URLs, public artifacts, internal beta, external beta, or production.
   `--internal-beta-service-role-rpc-local-smoke-proof-packet`
 - The source packet must already report
   `local_rpc_smoke_passed_with_rollback_fixtures_no_tool_execution`, all 21
-  tools represented by readiness evidence, and 0 persistent fixture rows after
-  rollback. Adapter smoke execution still requires explicit local confirmation
-  and local service-role credentials.
+  tools represented by readiness evidence, all 12 capabilities represented,
+  0 persistent fixture rows after rollback, `gpuRuntimeShouldStartNow=false`,
+  and false runtime, beta, and production gates. Adapter smoke execution still
+  requires explicit local confirmation and local service-role credentials.
 - Source migration:
   `supabase/migrations/202606260002_ai_graphics_tool_runtime_service_role_rpcs.sql`
 - Adapter smoke package script:
@@ -63,6 +64,8 @@ URLs, public artifacts, internal beta, external beta, or production.
 - Credit reservation fixture created: true
 - Private artifact manifest refs only: true
 - GPU-heavy tools target GPU runtime in payloads: true
+- GPU runtime start allowed for future accepted job tools: 8
+- GPU runtime should start now: false
 - Tool execution performed by smoke: false
 
 ## Cleanup Evidence
@@ -108,6 +111,7 @@ local smoke fixtures only; it is not a runtime or production path.
 - `providerRuntimeApprovedNow`: false
 - `browserWebglCanvasRuntimeApprovedNow`: false
 - `gpuRuntimeApprovedNow`: false
+- `gpuRuntimeShouldStartNow`: false
 - `runtimeReadyNow`: false
 - `internalBetaReadyNow`: false
 - `externalBetaReadyNow`: false

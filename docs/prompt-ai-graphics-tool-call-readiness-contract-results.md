@@ -438,6 +438,14 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked: `toolExecutionPerformed=false`, `runtimeReadyNow=false`, `productionReadyNow=false`, no GPU runtime starts, and no live production worker dispatch is approved.
 - Latest observed PR state after service-role RPC adapter source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `7d75fd4c8ff9a9f8dd87323dd543e8e061b0fc01`, with an empty check rollup.
 
+## Follow-Up: Service-Role RPC Adapter Source Packet GPU Hardening
+
+- Hardened `ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke` source local-smoke proof packet validation.
+- The packet-fed adapter path now requires the source proof to report all 21 tools, all 12 capabilities, rollback cleanup, zero execution/runtime/storage/public outputs, `gpuRuntimeShouldStartNow=false`, and false runtime/beta/production gates.
+- The adapter prepared contract reports eight future accepted-job GPU runtime targets and still keeps `gpuRuntimeShouldStartNow=false`.
+- Diagnostic coverage rejects malformed source local-smoke proof packets that report 20 tools, 11 capabilities, GPU start now, GPU approval now, tool execution now, or persistent fixture rows.
+- Validation passed for the hardened adapter diagnostic and the inherited local-smoke diagnostic.
+
 ## Follow-Up: Service-Role RPC Worker-Handoff Source Packet Ingestion
 
 - Added evaluator-only adapter local-smoke proof packet ingestion to `ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke`.

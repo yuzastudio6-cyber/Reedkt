@@ -65,6 +65,7 @@ const falseBooleans = [
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
   'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
   'runtimeReadyNow',
   'internalBetaReadyNow',
   'externalBetaReadyNow',
@@ -124,6 +125,7 @@ function runNpm(scriptName, args = []) {
       REEDITPRO_CONFIRM_AI_GRAPHICS_RPC_ADAPTER_LOCAL_SMOKE: '',
     },
     maxBuffer: 64 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
   }).trim()
 }
 
@@ -136,18 +138,103 @@ function writeLocalSmokeProofPacket() {
     counts: {
       totalAiGraphicsTools: 21,
       totalProductFacingCapabilities: 12,
+      serviceRoleRpcsExercised: 4,
+      localSchemaMigrationsAppliedNow: 1,
+      localRollbackFixtureTransactionsPerformed: 1,
+      localJobRowsInsertedThenRolledBack: 1,
+      localWorkerClaimRowsInsertedThenRolledBack: 1,
+      localWorkerEventRowsInsertedThenRolledBack: 3,
+      localAuditEventRowsInsertedThenRolledBack: 2,
       persistentSmokeFixtureRowsAfterRollback: 0,
       toolExecutionsNow: 0,
+      routeExecutionsNow: 0,
+      workerExecutionsNow: 0,
+      providerExecutionsNow: 0,
+      browserWebglCanvasRuntimeExecutionsNow: 0,
+      gpuRuntimeExecutionsNow: 0,
+      signedUrlsCreatedNow: 0,
+      publicArtifactsCreatedNow: 0,
+      internalBetaReadyNowTools: 0,
+      externalBetaReadyNowTools: 0,
+      productionReadyNowTools: 0,
+    },
+    localSmokeCoverage: {
+      toolsRepresentedByReadinessEvidence: 21,
+      toolsExercisedByLocalSmoke: ['d3'],
+      capabilitiesRepresentedByReadinessEvidence: 12,
+      serviceRoleRpcsExercised: requiredRpcs,
+      toolExecutionPerformedBySmoke: false,
     },
     booleans: {
       internalBetaServiceRoleRpcLocalSmokeProofCompleted: true,
+      sourceServiceRoleRpcSmokeReadinessAccepted: true,
+      sourceServiceRoleRpcImplementationReadinessAccepted: true,
+      all21ToolsCoveredByReadinessEvidence: true,
+      all12CapabilitiesCoveredByReadinessEvidence: true,
+      localRpcMigrationApplied: true,
+      localRpcFunctionsPresent: true,
+      localRollbackFixtureSmokePassed: true,
+      localEnqueueRpcSmokePassed: true,
+      localClaimRpcSmokePassed: true,
+      localWorkerEventRpcSmokePassed: true,
+      localAuditRpcSmokePassed: true,
       localSmokeFixtureRowsRolledBack: true,
+      privateArtifactManifestGuardUsed: true,
+      reservedCreditReservationGuardUsed: true,
+      approvedSnapshotGuardUsed: true,
+      agentCanSelectForPlanning: true,
+      persistentSmokeFixtureRowsCreated: false,
       agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
       runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
       productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      toolExecutionPerformed: false,
+      workerExecutionPerformed: false,
+      routeExecutionPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimePerformed: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      mediaProcessingPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
     },
   }, null, 2))
   return packetPath
+}
+
+function writeMutatedLocalSmokeProofPacket(sourcePacketPath, label, mutate) {
+  const packet = JSON.parse(fs.readFileSync(sourcePacketPath, 'utf8'))
+  mutate(packet)
+  const packetPath = path.join(path.dirname(sourcePacketPath), `${label}.json`)
+  fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
+function expectLocalSmokeProofPacketRejected(sourcePacketPath, label, mutate) {
+  const badPacketPath = writeMutatedLocalSmokeProofPacket(sourcePacketPath, label, mutate)
+  let rejected = false
+  try {
+    runNpm(runScriptName, [
+      '--internal-beta-service-role-rpc-local-smoke-proof-packet',
+      badPacketPath,
+    ])
+  } catch {
+    rejected = true
+  }
+  if (!rejected) fail(`bad_local_smoke_proof_packet_not_rejected:${label}`)
 }
 
 for (const file of [
@@ -208,6 +295,15 @@ if (docs.sourceEvidencePolicy?.sourceLocalSmokeProofPacketMustReportRollbackFixt
 }
 if (docs.sourceEvidencePolicy?.sourceLocalSmokeProofPacketMustCoverAll21Tools !== true) {
   fail('docs_source_policy_missing_all21_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceLocalSmokeProofPacketMustCoverAll12Capabilities !== true) {
+  fail('docs_source_policy_missing_all12_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceLocalSmokeProofPacketMustKeepGpuStartNowFalse !== true) {
+  fail('docs_source_policy_missing_gpu_start_now_false_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceLocalSmokeProofPacketMustKeepRuntimeBetaAndProductionFalse !== true) {
+  fail('docs_source_policy_missing_runtime_beta_production_false_requirement')
 }
 if (docs.sourceEvidencePolicy?.adapterSmokeExecutionStillRequiresExplicitLocalConfirmation !== true) {
   fail('docs_source_policy_missing_explicit_confirmation_requirement')
@@ -271,6 +367,12 @@ if (docs.adapterSmokeCoverage?.workerClaimsInsertedThenCleanedUp !== 1) {
 if (docs.adapterSmokeCoverage?.backendServiceAdapterExercised !== serviceFile) {
   fail(`docs_service_adapter:${docs.adapterSmokeCoverage?.backendServiceAdapterExercised}`)
 }
+if (docs.adapterSmokeCoverage?.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail(`docs_gpu_future_start_tools:${docs.adapterSmokeCoverage?.gpuRuntimeStartAllowedForAcceptedJobTools}`)
+}
+if (docs.adapterSmokeCoverage?.gpuRuntimeShouldStartNow !== false) {
+  fail('docs_gpu_runtime_should_start_now_not_false')
+}
 if (docs.adapterSmokeCoverage?.toolExecutionPerformedBySmoke !== false) fail('docs_tool_execution_by_smoke_not_false')
 if (docs.cleanupEvidence?.cleanupRequiredBecauseApprovedSnapshotsAreImmutable !== true) {
   fail('docs_cleanup_immutability_missing')
@@ -291,6 +393,9 @@ if (docs.counts?.adapterEnqueueJobPayloadsSubmitted !== 21) {
   fail(`docs_adapter_payloads:${docs.counts?.adapterEnqueueJobPayloadsSubmitted}`)
 }
 if (docs.counts?.adapterInsertedJobCount !== 21) fail(`docs_inserted_count:${docs.counts?.adapterInsertedJobCount}`)
+if (docs.counts?.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail(`docs_count_gpu_future_start_tools:${docs.counts?.gpuRuntimeStartAllowedForAcceptedJobTools}`)
+}
 if (docs.counts?.fixtureRowsPersistedAfterCleanup !== 0) {
   fail(`docs_count_fixture_rows:${docs.counts?.fixtureRowsPersistedAfterCleanup}`)
 }
@@ -328,12 +433,19 @@ if (defaultOutput.status !== 'adapter_local_smoke_prepared_not_executed') {
 }
 if (defaultOutput.adapterLocalSmokeExecutedNow !== false) fail('default_output_executed_without_confirmation')
 if (defaultOutput.toolExecutionPerformed !== false) fail('default_output_tool_execution_not_false')
+if (defaultOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail(`default_output_gpu_future_start_tools:${defaultOutput.gpuRuntimeStartAllowedForAcceptedJobTools}`)
+}
+if (defaultOutput.gpuRuntimeShouldStartNow !== false) {
+  fail('default_output_gpu_runtime_should_start_now_not_false')
+}
 
 let packetFedOutput = {}
+const validLocalSmokeProofPacket = writeLocalSmokeProofPacket()
 try {
   packetFedOutput = JSON.parse(runNpm(runScriptName, [
     '--internal-beta-service-role-rpc-local-smoke-proof-packet',
-    writeLocalSmokeProofPacket(),
+    validLocalSmokeProofPacket,
   ]))
 } catch (error) {
   fail(`packet_fed_adapter_smoke_contract_failed:${error.message}`)
@@ -348,8 +460,33 @@ if (packetFedOutput.status !== 'adapter_local_smoke_prepared_not_executed') {
   fail(`packet_fed_status:${packetFedOutput.status}`)
 }
 if (packetFedOutput.toolExecutionPerformed !== false) fail('packet_fed_tool_execution_not_false')
+if (packetFedOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail(`packet_fed_gpu_future_start_tools:${packetFedOutput.gpuRuntimeStartAllowedForAcceptedJobTools}`)
+}
+if (packetFedOutput.gpuRuntimeShouldStartNow !== false) {
+  fail('packet_fed_gpu_runtime_should_start_now_not_false')
+}
 if (packetFedOutput.runtimeReadyNow !== false) fail('packet_fed_runtime_not_false')
 if (packetFedOutput.productionReadyNow !== false) fail('packet_fed_production_not_false')
+
+expectLocalSmokeProofPacketRejected(validLocalSmokeProofPacket, 'missing-one-tool', (packet) => {
+  packet.counts.totalAiGraphicsTools = 20
+})
+expectLocalSmokeProofPacketRejected(validLocalSmokeProofPacket, 'missing-one-capability', (packet) => {
+  packet.counts.totalProductFacingCapabilities = 11
+})
+expectLocalSmokeProofPacketRejected(validLocalSmokeProofPacket, 'gpu-start-now', (packet) => {
+  packet.booleans.gpuRuntimeShouldStartNow = true
+})
+expectLocalSmokeProofPacketRejected(validLocalSmokeProofPacket, 'gpu-approved-now', (packet) => {
+  packet.booleans.gpuRuntimeApprovedNow = true
+})
+expectLocalSmokeProofPacketRejected(validLocalSmokeProofPacket, 'tool-execution-now', (packet) => {
+  packet.booleans.toolExecutionPerformed = true
+})
+expectLocalSmokeProofPacketRejected(validLocalSmokeProofPacket, 'persistent-fixture-row', (packet) => {
+  packet.counts.persistentSmokeFixtureRowsAfterRollback = 1
+})
 
 for (const token of [
   'ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup',
@@ -372,6 +509,7 @@ const forbiddenPatterns = [
   /routeExecutionApprovedNow["'`:\s=]+true/i,
   /workerExecutionApprovedNow["'`:\s=]+true/i,
   /toolExecutionApprovedNow["'`:\s=]+true/i,
+  /gpuRuntimeShouldStartNow["'`:\s=]+true/i,
   /runtimeReadyNow["'`:\s=]+true/i,
   /internalBetaReadyNow["'`:\s=]+true/i,
   /externalBetaReadyNow["'`:\s=]+true/i,
@@ -457,6 +595,8 @@ console.log(JSON.stringify({
   toolsSubmittedToAdapterEnqueue: docs.adapterSmokeCoverage.toolsSubmittedToAdapterEnqueue,
   adapterInsertedJobCount: docs.counts.adapterInsertedJobCount,
   serviceRoleRpcsExercised: docs.counts.serviceRoleRpcsExercised,
+  gpuRuntimeStartAllowedForAcceptedJobTools: docs.counts.gpuRuntimeStartAllowedForAcceptedJobTools,
+  gpuRuntimeShouldStartNow: docs.booleans.gpuRuntimeShouldStartNow,
   fixtureRowsPersistedAfterCleanup: docs.counts.fixtureRowsPersistedAfterCleanup,
   toolExecutionsNow: docs.counts.toolExecutionsNow,
   agentCanExecuteToolsNow: docs.booleans.agentCanExecuteToolsNow,

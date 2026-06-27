@@ -140,6 +140,7 @@ Latest observed PR state after model-weight source selection hardening: [#862](h
 - Follow-up model-weight scaffold source-guidance hardening links local-only scaffold records back to the model-weight source catalog. The scaffold now carries selected candidate guidance for all five manifest-required tools, including `rembg` -> `isnet-general-use.onnx` and `transparent_background` -> `ckpt_base.pth` with upstream MD5 `d692e3dd5fa1b9658949d452bebf1cda`, while placeholder manifests remain validation-invalid until private refs/checksums/review booleans are supplied.
 Latest observed PR state after model-weight scaffold source-guidance hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `83a0cc4ae32a1021df31a16f3e207c56408dc98d`, with an empty check rollup.
 - Follow-up model-weight source-candidate manifest binding updates the private manifest validator, scaffold templates, native GPU readiness probe, and downstream readiness fixtures so `sourceCandidateId` must match the selected ReeditPro source-catalog candidate before native GPU proof input, beta evidence, or worker handoff can accept model-weight evidence. Wrong-candidate manifests fail closed, private refs remain redacted, GPU remains on-demand only, and runtime/beta/production stay false.
+Latest observed PR state after source-candidate manifest binding: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `170a25aa413acbc098774bdbbe900c32f46a336c`, with an empty check rollup.
 
 ## Expected Validation
 

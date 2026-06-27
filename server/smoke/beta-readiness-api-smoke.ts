@@ -21,6 +21,7 @@ const env = loadRuntimeEnv({
 
 const app = createReeditProApiApp(env)
 const server = app.listen(0)
+const smokeWorkspaceId = 'beta-readiness-api-smoke-workspace'
 
 try {
   const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
@@ -30,7 +31,8 @@ try {
   assert.equal(defaultResponse.data.report.goNoGo.externalBetaAllowed, false, 'default route must keep external beta blocked')
   assert.equal(defaultResponse.data.report.toolExecutionReadiness.productReadyLocalOssCount, 0, 'default route must not claim product-ready tools')
 
-  const evaluationBody = buildCompleteEvidenceBody()
+  const evidencePacketBody = buildCompleteEvidencePacketBody()
+  const { workspaceId: _workspaceId, ...evaluationBody } = evidencePacketBody
   const schemaResult = betaReadinessEvidenceEvaluationSchema.safeParse(evaluationBody)
   assert.equal(schemaResult.success, true, 'complete evidence body should pass schema validation')
 
@@ -43,6 +45,27 @@ try {
   assert.equal(evaluatedResponse.data.report.goNoGo.realUserMediaBetaAllowed, false, 'real user media beta must still need explicit approval')
   assert.equal(evaluatedResponse.data.report.toolExecutionReadiness.externalBetaToolExecutionAllowed, true, 'complete tool evidence should open tool beta execution')
   assert.equal(evaluatedResponse.data.report.toolExecutionReadiness.productReadyLocalOssCount, PRODUCTION_TOOL_IDS.length, 'complete evidence should count all product-ready local OSS tools')
+
+  const storedResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evidence`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-complete-evidence' },
+    body: JSON.stringify(evidencePacketBody),
+  }, 201)
+  assert.equal(storedResponse.ok, true, 'stored evidence route should return ok')
+  assert.equal(storedResponse.data.replayed, false, 'first evidence submission should not replay')
+  assert.equal(storedResponse.data.report.goNoGo.externalBetaAllowed, true, 'stored complete evidence should open external beta gate')
+
+  const replayedResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evidence`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-complete-evidence' },
+    body: JSON.stringify(evidencePacketBody),
+  })
+  assert.equal(replayedResponse.data.replayed, true, 'duplicate idempotency key should replay the original evidence packet')
+  assert.equal(replayedResponse.data.packet.id, storedResponse.data.packet.id, 'idempotent replay should return the same evidence packet')
+
+  const evidenceListResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evidence?workspaceId=${encodeURIComponent(smokeWorkspaceId)}`, { method: 'GET' })
+  assert.equal(evidenceListResponse.data.packets.length, 1, 'stored evidence should be listed once')
+  assert.equal(evidenceListResponse.data.report.goNoGo.externalBetaAllowed, true, 'stored evidence should drive evidence listing report')
 
   const invalidEvidenceResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evaluate`, {
     method: 'POST',
@@ -75,13 +98,15 @@ try {
   })
 }
 
-function buildCompleteEvidenceBody(): {
+function buildCompleteEvidencePacketBody(): {
+  workspaceId: string
   checklistEvidence: BetaReadinessChecklistEvidence[]
   acceptedToolEvidence: ToolBetaAcceptedExecutionEvidence[]
   platformEvidence: ToolBetaPlatformReadinessEvidence
   approvals: Record<string, boolean>
 } {
   return {
+    workspaceId: smokeWorkspaceId,
     checklistEvidence: [
       {
         itemId: 'model_weights_not_approved',

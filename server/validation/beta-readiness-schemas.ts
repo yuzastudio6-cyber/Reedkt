@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { betaReadinessChecklist } from '../beta-readiness'
 import { PRODUCTION_TOOL_IDS } from '../tool-registry'
+import { idSchema } from './common-schemas'
 
 const knownToolIds = new Set<string>(PRODUCTION_TOOL_IDS)
 const knownChecklistItemIds = new Set<string>(betaReadinessChecklist.map((item) => item.id))
@@ -74,4 +75,10 @@ export const betaReadinessEvidenceEvaluationSchema = z.object({
   approvals: approvalsSchema.optional(),
 }).strict()
 
+export const betaReadinessEvidencePacketSchema = betaReadinessEvidenceEvaluationSchema.extend({
+  workspaceId: idSchema,
+  projectId: idSchema.optional(),
+}).strict()
+
 export type BetaReadinessEvidenceEvaluationBody = z.infer<typeof betaReadinessEvidenceEvaluationSchema>
+export type BetaReadinessEvidencePacketBody = z.infer<typeof betaReadinessEvidencePacketSchema>

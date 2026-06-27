@@ -4,13 +4,14 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 
 ## Current Source Chain
 
-- Current integration head: `5d725481c2a36c6e4710d068094010ae571c5984`.
+- Current integration head: `d50d07adee39545172eb42d9ba9c62f9db988e57`.
 - `RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1`: source-of-truth for the completed main Reeditpro staging migration-history sync.
 - `RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1`: source-of-truth for main Reeditpro staging public mutation grant hardening and service-role grant-boundary validation.
 - `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1`: source-of-truth for transaction-rolled-back approved snapshot persistence remote write/readback validation.
 - `RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1`: source-of-truth for transaction-rolled-back credit reservation and ledger remote write/readback validation.
 - `RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1`: source-of-truth for transaction-rolled-back job queue, job event, worker lease, and job claim attempt remote write/readback validation.
 - `RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1`: source-of-truth for guarded generated private storage object write/read/delete and transaction-rolled-back artifact metadata write/readback validation.
+- `RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1`: source-of-truth for guarded in-process `GET /v1/storage-objects/:storageObjectRecordId` canonical metadata route readback validation.
 - PR #1102: source-of-truth for the single active Supabase target decision: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
 - PR #1019 / `SUPABASE-STAGING-MIGRATION-HISTORY-OWNER-DECISION-1`: historical source for the previous staging migration path blocker, now superseded by the guarded main-target migration sync.
 - PR #1016 / `SUPABASE-MIGRATION-HISTORY-RECONCILIATION-1`: source-of-truth for migration-history reconciliation posture.
@@ -28,8 +29,8 @@ The approved read-only DB URL secret already has a version, and source records `
 
 PR #577 remains open/draft/blocked and excluded as source-of-truth for this beta readiness decision.
 
-Older internal-beta candidate/readiness documents remain historical context only when they predate the main-target migration sync, service-role grant-boundary validation, approved snapshot guarded remote write/readback, credit ledger guarded remote write/readback, job queue lease/event guarded remote write/readback, and private artifact storage/access guarded remote write/readback. They do not override the current blocker `blocked_external_product_beta_pending_remaining_runtime_gates_after_private_artifact_storage_access_remote_write_readback`.
+Older internal-beta candidate/readiness documents remain historical context only when they predate the main-target migration sync, service-role grant-boundary validation, approved snapshot guarded remote write/readback, credit ledger guarded remote write/readback, job queue lease/event guarded remote write/readback, private artifact storage/access guarded remote write/readback, and service-role route runtime validation. They do not override the current blocker `blocked_external_product_beta_pending_remaining_runtime_gates_after_service_role_route_read_validation`.
 
 ## Current Interpretation
 
-The safe target, credential context, main Reeditpro staging migration history, public mutation grant boundary, approved snapshot persistence remote write/readback, credit reservation ledger remote write/readback, job queue lease/event remote write/readback, and private artifact storage/access remote write/readback are now aligned enough for the next guarded runtime lane. The controlling blocker is no longer migration-history alignment, broad public mutation grants, approved snapshot remote write/readback, credit ledger validation, job queue lease/event validation, or private artifact storage/access; it is workflow-specific runtime gate closure on the main target, including service-role route/runtime validation, Remotion/private preview-export runtime validation, provider/model-call policy, and security/privacy/support/cost/deployment review.
+The safe target, credential context, main Reeditpro staging migration history, public mutation grant boundary, approved snapshot persistence remote write/readback, credit reservation ledger remote write/readback, job queue lease/event remote write/readback, private artifact storage/access remote write/readback, and storage metadata route readback are now aligned enough for the next guarded runtime lane. The controlling blocker is no longer migration-history alignment, broad public mutation grants, approved snapshot remote write/readback, credit ledger validation, job queue lease/event validation, private artifact storage/access, or canonical metadata route readback; it is workflow-specific runtime gate closure on the main target, including approved snapshot route write runtime validation, Remotion/private preview-export runtime validation, provider/model-call policy, and security/privacy/support/cost/deployment review.

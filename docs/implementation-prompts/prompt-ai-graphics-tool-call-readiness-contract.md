@@ -160,10 +160,12 @@ Latest observed PR state after native proof checksum boundary hardening: [#862](
 Latest observed PR state after private checksum-evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `5b2d438175cb96f87411c313ff6719b7d4a197ed`, with an empty check rollup.
 - Follow-up model-weight checksum evidence validator adds `server/tool-registry/ai-graphics-model-weight-checksum-evidence.ts`, `server/cli/ai-graphics-model-weight-checksum-evidence.ts`, `docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.md`, `docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json`, `ai-graphics:model-weight-checksum-evidence:validate`, and `ai-graphics:model-weight-checksum-evidence:diagnostics`. It creates the local/private SHA evidence gate before private manifest authoring for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`, with private refs redacted and execution/runtime/beta/production still blocked.
 Latest observed PR state after model-weight checksum evidence validator completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ecf3286b7a2a28b49e4d96716aed3922dd3d0458`, with an empty check rollup.
+- Follow-up model-weight checksum evidence scaffold adds `server/tool-registry/ai-graphics-model-weight-checksum-evidence-scaffold.ts`, `server/cli/ai-graphics-model-weight-checksum-evidence-scaffold.ts`, `docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence-scaffold.md`, `docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence-scaffold.json`, `ai-graphics:model-weight-checksum-evidence-scaffold`, and `ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics`. It writes local-only invalid templates and a checklist for the five private checksum evidence records while keeping execution/runtime/beta/production blocked.
 
 ## Expected Validation
 
 - `git diff --check`
+- `npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics`
 - `npm run --silent ai-graphics:model-weight-checksum-evidence:diagnostics`
 - `npm run --silent ai-graphics:model-weight-source-catalog:diagnostics`
 - `npm run --silent ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics`

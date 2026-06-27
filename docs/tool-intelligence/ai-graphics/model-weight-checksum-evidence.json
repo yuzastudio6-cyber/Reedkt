@@ -13,6 +13,7 @@
     "latestObservedCheckRollup": []
   },
   "sourceEvidence": {
+    "modelWeightChecksumEvidenceScaffold": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence-scaffold.json",
     "modelWeightSourceCatalog": "docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json",
     "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
     "modelWeightManifestScaffold": "docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.json",
@@ -25,6 +26,8 @@
     "serverExport": "server/tool-registry/index.ts",
     "localPrivateChecksumEvidenceValidator": "server/cli/ai-graphics-model-weight-checksum-evidence.ts",
     "localPrivateChecksumEvidenceValidatorScript": "ai-graphics:model-weight-checksum-evidence:validate",
+    "localPrivateChecksumEvidenceScaffold": "server/cli/ai-graphics-model-weight-checksum-evidence-scaffold.ts",
+    "localPrivateChecksumEvidenceScaffoldScript": "ai-graphics:model-weight-checksum-evidence-scaffold",
     "diagnostic": "scripts/validation/ai-graphics-model-weight-checksum-evidence-diagnostics.mjs",
     "packageScript": "ai-graphics:model-weight-checksum-evidence:diagnostics"
   },

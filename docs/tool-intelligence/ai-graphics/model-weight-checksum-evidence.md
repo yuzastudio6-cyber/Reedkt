@@ -67,6 +67,13 @@ rejected.
 
 ## Local Validation Command
 
+If the local checksum evidence layout does not exist yet, create invalid-by-default
+templates first:
+
+```sh
+npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence
+```
+
 Use this command only with local/private checksum evidence files. Do not commit
 the files or paste private refs into public docs:
 

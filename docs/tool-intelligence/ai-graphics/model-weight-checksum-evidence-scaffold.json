@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "2026-06-27.ai-graphics.model-weight-checksum-evidence-scaffold",
+  "decision": "ai_graphics_model_weight_checksum_evidence_scaffold_prepared_for_local_private_records",
+  "status": "prepared_template_only_not_reviewed",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "latestObservedHeadSha": "01c6092afda9d43c9757a898586330bb432194cd",
+    "latestObservedCheckRollup": []
+  },
+  "sourceEvidence": {
+    "modelWeightChecksumEvidence": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json",
+    "modelWeightSourceCatalog": "docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json",
+    "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "modelWeightManifestScaffold": "docs/tool-intelligence/ai-graphics/model-weight-manifest-scaffold.json",
+    "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json"
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-model-weight-checksum-evidence-scaffold.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "cli": "server/cli/ai-graphics-model-weight-checksum-evidence-scaffold.ts",
+    "packageScript": "ai-graphics:model-weight-checksum-evidence-scaffold",
+    "diagnostic": "scripts/validation/ai-graphics-model-weight-checksum-evidence-scaffold-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "modelWeightChecksumEvidenceRequiredTools": 5,
+    "scaffoldTemplatesPrepared": 5,
+    "sourceCandidateGuidanceRecords": 5,
+    "checksumEvidenceAuthoringChecklistItems": 5,
+    "privateArtifactRefsLogged": 0,
+    "checksumEvidenceRefsLogged": 0,
+    "checksumEvidenceRecordsApprovedNow": 0,
+    "manifestAuthoringEligibleNow": 0,
+    "runtimeReadyNow": 0,
+    "internalBetaReadyNow": 0,
+    "productionReadyNow": 0
+  },
+  "modelWeightChecksumEvidenceRequiredTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "scaffoldFiles": [
+    {
+      "toolId": "sam2",
+      "relativeFilePath": "sam2/checksum-evidence.json",
+      "artifactFileName": "sam2.1_hiera_tiny.pt",
+      "candidateId": "facebook_sam2_1_hiera_tiny_existing_staging_evidence",
+      "authoringReadiness": "ready_from_existing_internal_evidence_after_private_ref_authoring",
+      "suggestedPrivateManifestChecksumSha256": "45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2",
+      "suggestedPrivateManifestChecksumSource": "existing_internal_aggregate_sha256",
+      "status": "template_only_not_reviewed"
+    },
+    {
+      "toolId": "birefnet",
+      "relativeFilePath": "birefnet/checksum-evidence.json",
+      "artifactFileName": "ZhengPeng7/BiRefNet",
+      "candidateId": "zhengpeng7_birefnet_official_weights_review_candidate",
+      "authoringReadiness": "ready_from_existing_internal_evidence_after_private_ref_authoring",
+      "suggestedPrivateManifestChecksumSha256": "1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7",
+      "suggestedPrivateManifestChecksumSource": "existing_internal_aggregate_sha256",
+      "status": "template_only_not_reviewed"
+    },
+    {
+      "toolId": "real_esrgan",
+      "relativeFilePath": "real-esrgan/checksum-evidence.json",
+      "artifactFileName": "RealESRGAN_x4plus.pth",
+      "candidateId": "xinntao_real_esrgan_x4plus",
+      "authoringReadiness": "ready_from_existing_internal_evidence_after_private_ref_authoring",
+      "suggestedPrivateManifestChecksumSha256": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
+      "suggestedPrivateManifestChecksumSource": "existing_internal_file_sha256",
+      "status": "template_only_not_reviewed"
+    },
+    {
+      "toolId": "rembg",
+      "relativeFilePath": "rembg/checksum-evidence.json",
+      "artifactFileName": "isnet-general-use.onnx",
+      "candidateId": "danielgatis_rembg_isnet_general_use_review_candidate",
+      "authoringReadiness": "blocked_until_source_review_accepts_selected_candidate",
+      "suggestedPrivateManifestChecksumSource": "requires_private_artifact_sha256",
+      "status": "template_only_not_reviewed"
+    },
+    {
+      "toolId": "transparent_background",
+      "relativeFilePath": "transparent-background/checksum-evidence.json",
+      "artifactFileName": "ckpt_base.pth",
+      "candidateId": "plemeri_transparent_background_base_ckpt_review_candidate",
+      "authoringReadiness": "blocked_until_source_review_accepts_selected_candidate",
+      "suggestedPrivateManifestChecksumSource": "requires_private_artifact_sha256",
+      "status": "template_only_not_reviewed"
+    }
+  ],
+  "supportFiles": [
+    "checksum-evidence-authoring-checklist.json",
+    "CHECKSUM_EVIDENCE_AUTHORING_CHECKLIST.md"
+  ],
+  "authoringChecklist": [
+    {
+      "requiredEvidenceFields": [
+        "evidenceId",
+        "toolId",
+        "sourceCandidateId",
+        "artifactFileName",
+        "artifactSha256",
+        "checksumEvidenceRef",
+        "sourceArtifactRef",
+        "hashCommand",
+        "checksumEvidenceReviewed",
+        "sourceArtifactReviewed",
+        "provenanceReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "approvedForManifestAuthoring"
+      ],
+      "requiredReviewBooleans": [
+        "checksumEvidenceReviewed",
+        "sourceArtifactReviewed",
+        "provenanceReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "approvedForManifestAuthoring"
+      ],
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-checksum-evidence:validate -- --evidence-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_CHECKSUM_EVIDENCE_ROOT\"",
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedChecksumEvidenceApproved": false
+    }
+  ],
+  "booleans": {
+    "modelWeightChecksumEvidenceScaffoldPrepared": true,
+    "all5ModelWeightToolsCovered": true,
+    "checksumEvidenceAuthoringChecklistPrepared": true,
+    "templatesInvalidUntilOwnerReviewed": true,
+    "privateArtifactRefsNotLogged": true,
+    "checksumEvidenceRefsNotLogged": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "modelWeightManifestsApprovedNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

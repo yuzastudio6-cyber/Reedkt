@@ -46,10 +46,12 @@ reviewed private checksum evidence refs, reviewed private source artifact refs,
 64-character SHA-256 evidence, source-catalog candidate matching, and exact
 source-catalog checksum matching where existing internal evidence provides a
 reviewed checksum. It emits only redacted private-ref statuses, logs 0 private
-artifact refs in public docs, keeps rembg and transparent-background blocked
-until private SHA evidence is reviewed, and does not approve model download,
-model load, inference, Tool Routes, Workers, GPU runtime, beta, or production.
-GPU runtime remains on-demand only and no idle GPU runtime is approved.
+artifact refs in public docs, and now includes a local-only scaffold command for
+invalid-by-default checksum evidence templates. rembg and
+transparent-background remain blocked until private SHA evidence is reviewed,
+and this work does not approve model download, model load, inference, Tool
+Routes, Workers, GPU runtime, beta, or production. GPU runtime remains
+on-demand only and no idle GPU runtime is approved.
 
 AI graphics internal beta go/no-go decision
 `ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`

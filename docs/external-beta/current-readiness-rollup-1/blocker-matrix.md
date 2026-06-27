@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `ready_for_controlled_owner_go_no_go` | product API lane is `ready_for_controlled_owner_tester_product_walkthrough`; deployed browser UI surface, controlled tester UI smoke, and controlled owner browser walkthrough are complete for `aiediting@reeditpro.com` |
+| External beta | `ready_for_named_invited_tester_identity_and_walkthrough` | owner go/no-go approved the next named invited tester walkthrough gate; product API lane is `ready_for_controlled_owner_tester_product_walkthrough`; deployed browser UI surface, controlled tester UI smoke, and controlled owner browser walkthrough are complete for `aiediting@reeditpro.com` |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-Run controlled owner go/no-go review for `aiediting@reeditpro.com` while keeping `external-beta-testers@reeditpro.com` as the only staging API invoker group and keeping public/production access blocked.
+Run the named invited tester identity and walkthrough gate while keeping `external-beta-testers@reeditpro.com` as the only staging API invoker group and keeping public/production access blocked.
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 

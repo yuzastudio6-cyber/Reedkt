@@ -1,18 +1,18 @@
 # RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1
 
-Decision: `blocked_gcloud_reauthentication_required_before_staging_flag_application`
+Decision: `completed_controlled_external_beta_staging_flag_application`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `a923aee6825523ced8cdefedbe3ebc2087a59de8`
+Current integration head: `1a934253ec5cfab26a0ad75e29b978984b0639a5`
 
 Source closure: `RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1`
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
-External product beta readiness: `blocked_pending_gcloud_reauthentication_before_staging_flag_application`
+External product beta readiness: `controlled_external_beta_enabled_on_staging_api`
 
-External beta enabled in this phase: `false`
+External beta enabled in this phase: `true`
 
 Paid production status: `blocked`
 
@@ -46,20 +46,20 @@ The Supabase target credential, target-validation, main staging migration-histor
 
 `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1` source-closes the provider/model-call policy blocker. It records provider/model runtime as `disabled_by_default`, provider/model calls executed as `none`, frontend provider calls as `forbidden`, backend-only provider adapters as `required`, and approved snapshot, credit reservation, idempotency, cost cap, QA fallback policy, model-routing policy, and server-side secret isolation as required before any future real provider call.
 
-The release go/no-go decision is now source-accepted by `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`, and `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1` adds the exact controlled external beta source contract. `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1` attempted the local Google Cloud auth/service-discovery preflight and recorded blocker `gcloud_reauthentication_required_before_staging_flag_application` before any Cloud Run inspection, environment mutation, deployment, or beta unlock. The generated-local Remotion/private preview-export runtime gate is source-closed by `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`, the provider/model policy gate is source-closed by `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`, and QA/cleanup/observability/rollback review is source-closed by `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
+The release go/no-go decision is now source-accepted by `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`, and `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1` adds the exact controlled external beta source contract. `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH` closed the Google auth blocker and applied the exact controlled external beta flags to `reeditpro-staging-api` in `us-central1`, revision `reeditpro-staging-api-00005-7gs`, with `100_percent_latest_revision` traffic. The generated-local Remotion/private preview-export runtime gate is source-closed by `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`, the provider/model policy gate is source-closed by `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`, and QA/cleanup/observability/rollback review is source-closed by `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
 
 ## Required Safe Gate
 
 The next beta-enabling gate must apply the exact controlled external beta staging flag boundary and preserve rollback:
 
-1. `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH`
+1. `RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1`
 2. future provider/model runtime confirmation packet only if a real call is explicitly approved later
 
-Until Google Cloud authentication is refreshed and staging flag application succeeds, the correct status is `blocked_pending_gcloud_reauthentication_before_staging_flag_application` with `external beta enabled in this phase: false`.
+Controlled external beta is enabled on the staging API only. The correct status is `controlled_external_beta_enabled_on_staging_api` with `external beta enabled in this phase: true`.
 
 ## External Product Beta Readiness
 
-External product beta is blocked pending Google Cloud reauthentication before explicit staging flag application. The first product-facing beta lane has accepted source evidence for:
+External product beta is enabled for the controlled staging API lane. The first product-facing beta lane has accepted source evidence for:
 
 - completed service-role grant-boundary validation carried forward on the main target;
 - approved snapshot persistence validation;
@@ -75,9 +75,9 @@ External product beta is blocked pending Google Cloud reauthentication before ex
 - security, privacy, retention, incident support, deployment, rollback, and cost-control review carried forward as `reviewed_pending_release_go_no_go_operator_acceptance`;
 - release go/no-go accepted as `approved_external_beta_release_go_no_go_source_chain_accepted`;
 - controlled enablement source contract recorded as `completed_controlled_external_beta_enablement_source_contract_default_off`;
-- staging flag application blocked as `blocked_gcloud_reauthentication_required_before_staging_flag_application` before any Cloud Run service update or environment mutation.
+- staging flag application completed as `completed_controlled_external_beta_staging_flag_application` on `reeditpro-staging-api`, revision `reeditpro-staging-api-00005-7gs`.
 
-The actual external beta flag application still requires `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH`. Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, and production unlock remain blocked.
+The actual external beta flag application is complete for the controlled staging API lane. Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, and production unlock remain blocked. The next safe step is `RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1`.
 
 ## No-Scope Statement
 

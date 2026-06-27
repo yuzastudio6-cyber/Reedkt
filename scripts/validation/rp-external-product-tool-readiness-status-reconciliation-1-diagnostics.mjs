@@ -21,7 +21,19 @@ const requiredFiles = [
   'package.json',
 ]
 
-const allowedFiles = new Set(requiredFiles)
+const followOnTriageFiles = [
+  'docs/external-beta/tool-runtime-stack-integration-triage-1/source-audit.md',
+  'docs/external-beta/tool-runtime-stack-integration-triage-1/qwen-stack-map.md',
+  'docs/external-beta/tool-runtime-stack-integration-triage-1/ai-graphics-tool-stack-map.md',
+  'docs/external-beta/tool-runtime-stack-integration-triage-1/integration-decision.md',
+  'docs/external-beta/tool-runtime-stack-integration-triage-1/validation-results.md',
+  'docs/external-beta/tool-runtime-stack-integration-triage-1/tool-runtime-stack-integration-triage-record.json',
+  'docs/activation-phase-rp-external-product-tool-runtime-stack-integration-triage-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-stack-integration-rollup-1.md',
+  'scripts/validation/rp-external-product-tool-runtime-stack-integration-triage-1-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([...requiredFiles, ...followOnTriageFiles])
 
 const requiredText = [
   packet,

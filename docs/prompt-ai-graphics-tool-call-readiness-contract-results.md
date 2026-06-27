@@ -445,6 +445,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - The adapter prepared contract reports eight future accepted-job GPU runtime targets and still keeps `gpuRuntimeShouldStartNow=false`.
 - Diagnostic coverage rejects malformed source local-smoke proof packets that report 20 tools, 11 capabilities, GPU start now, GPU approval now, tool execution now, or persistent fixture rows.
 - Validation passed for the hardened adapter diagnostic and the inherited local-smoke diagnostic.
+- Latest observed PR state after service-role RPC adapter source packet GPU hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `d8e106739ed8349db0320c9d16364f616122ffb3`, with an empty check rollup.
 
 ## Follow-Up: Service-Role RPC Worker-Handoff Source Packet Ingestion
 

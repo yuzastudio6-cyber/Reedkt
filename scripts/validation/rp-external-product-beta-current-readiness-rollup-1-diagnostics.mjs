@@ -182,6 +182,17 @@ const approvedSnapshotRouteWriteRuntimeValidationFiles = [
   'scripts/validation/rp-external-beta-approved-snapshot-route-write-runtime-validation-1-diagnostics.mjs',
 ]
 
+const remotionPrivatePreviewExportRuntimeValidationFiles = [
+  'docs/external-beta/remotion-private-preview-export-runtime-validation-1/source-audit.md',
+  'docs/external-beta/remotion-private-preview-export-runtime-validation-1/validation-results.md',
+  'docs/external-beta/remotion-private-preview-export-runtime-validation-1/readiness-gate.md',
+  'docs/external-beta/remotion-private-preview-export-runtime-validation-1/safety-boundary.md',
+  'docs/external-beta/remotion-private-preview-export-runtime-validation-1/runtime-validation-record.json',
+  'docs/activation-phase-rp-external-beta-remotion-private-preview-export-runtime-validation-1-results.md',
+  'scripts/validation/rp-external-beta-remotion-private-preview-export-runtime-validation-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-remotion-private-preview-export-runtime-validation-1-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -413,7 +424,7 @@ const followOnApprovedSnapshotServiceRolePersistenceImplementation1Files = [
 
 const requiredText = [
   packet,
-  'blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation',
+  'blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation',
   'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution',
   'completed_reeditpro_main_supabase_target_migration_history_sync',
   'completed_main_supabase_service_role_runtime_grant_boundary_validation',
@@ -426,6 +437,9 @@ const requiredText = [
   'completed_guarded_in_process_service_role_storage_object_metadata_read_route_validation',
   'completed_approved_snapshot_route_write_runtime_validation',
   'completed_guarded_in_process_approved_snapshot_route_write_readback_and_cleanup',
+  'completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation',
+  'completed_confirmation_gated_external_beta_generated_local_remotion_render',
+  'passed_external_beta_generated_local_private_preview_fixture',
   'source_aligned_and_up_to_date_through_20260626224600',
   'Remote database is up to date.',
   'No schema errors found',
@@ -439,6 +453,9 @@ const requiredText = [
   'Generated artifacts committed: `none`',
   'RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1',
   'RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1',
+  'RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1',
+  'reeditpro-external-beta-generated-local-preview.mp4',
+  'ea12d55c9ef1675da711769c97c9e76bb2da8547bd4c471176a0ff64b03c1c5b',
   'residue counts as `0`',
   'storage object residue count: `0`',
   'artifact metadata rollback residue count: `0`',
@@ -453,7 +470,7 @@ const requiredText = [
   '20260626224600_worker_runtime_fail_retry_count_lint_fix.sql',
   '20260626233000_external_beta_public_grant_hardening.sql',
   'PR #577 remains open/draft/blocked and excluded',
-  'Remote Supabase mutation for the preceding sync, service-role validation, approved snapshot validation, credit ledger validation, job queue lease/event validation, private artifact storage/access, and service-role route read packets was limited to guarded staging migration apply, guarded public grant hardening, a transaction-rolled-back generated approved snapshot fixture, a transaction-rolled-back generated credit reservation and ledger fixture, a transaction-rolled-back generated job queue, job event, and worker lease fixture, a guarded generated private storage JSON fixture created/read/deleted, a transaction-rolled-back generated private artifact metadata fixture, and a generated route metadata fixture created/read/deleted on the single main ReeditPro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project and approved snapshot, credit ledger, job queue lease/event, storage object, artifact metadata, and route fixture residue readback was `0`.',
+  'Remotion execution in the current source chain was limited to confirmation-gated rendering of a generated local preview fixture under `/tmp`; no generated media was committed.',
 ]
 
 const forbiddenPatterns = [
@@ -533,7 +550,7 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation') fail('record decision mismatch')
+if (record.decision !== 'blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
 if (record.statuses?.externalProductBeta !== 'blocked') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
@@ -578,6 +595,14 @@ if (record.mainSupabaseTarget?.serviceRoleRouteWriteFixtureResidueCount !== 0) f
 if (record.mainSupabaseTarget?.serviceRoleRouteWriteRunId !== '2026-06-27T02-22-16-532Z-97b253a9') fail('service-role route write run id mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteWriteReportSha256 !== 'b2ca9e8ec9493060d631bd9387438b123eab6002db7c061c058edda736759441') fail('service-role route write report checksum mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteWriteManifestSha256 !== 'f2ff4e97b33d013f0864362a5272b24390153f5de9563ed52457ab55ead9b0c0') fail('service-role route write manifest checksum mismatch')
+if (record.mainSupabaseTarget?.remotionPrivatePreviewExportRuntimeValidation !== 'completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation') fail('Remotion private preview/export status mismatch')
+if (record.mainSupabaseTarget?.remotionPrivatePreviewExportExecution !== 'completed_confirmation_gated_external_beta_generated_local_remotion_render') fail('Remotion private preview/export execution mismatch')
+if (record.mainSupabaseTarget?.remotionPrivatePreviewExportRunId !== '2026-06-27T02-41-01-252Z-7ce79dc6') fail('Remotion private preview/export run id mismatch')
+if (record.mainSupabaseTarget?.remotionPrivatePreviewExportOutputFile !== 'reeditpro-external-beta-generated-local-preview.mp4') fail('Remotion output file mismatch')
+if (record.mainSupabaseTarget?.remotionPrivatePreviewExportOutputBytes !== 64855) fail('Remotion output bytes mismatch')
+if (record.mainSupabaseTarget?.remotionPrivatePreviewExportOutputSha256 !== 'ea12d55c9ef1675da711769c97c9e76bb2da8547bd4c471176a0ff64b03c1c5b') fail('Remotion output checksum mismatch')
+if (record.mainSupabaseTarget?.remotionPrivatePreviewExportManifestSha256 !== '24675b34cb0bd3b1ff255dd29343ffce2e12d7d045070bf59fba3404db15356c') fail('Remotion manifest checksum mismatch')
+if (record.mainSupabaseTarget?.remotionPrivatePreviewExportQaReportSha256 !== '847efc9202c556f394d17df16a6a9250513f4106c6b3ebe884a453caaa8e5879') fail('Remotion QA checksum mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteReportSha256 !== '25772fc0efe3d6d1aa699a1408ec621cc7df0dbe13bb52fe526b3939030fbb65') fail('service-role route report checksum mismatch')
@@ -610,7 +635,10 @@ if (record.safety?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role
 if (record.safety?.secretPayloadAccess !== 'guarded_ephemeral_storage_and_route_runtime_service_role_key_payload_only') fail('secret payload access scope mismatch')
 if (record.safety?.secretPayloadPrinted !== false) fail('secret payload printed flag mismatch')
 if (record.safety?.secretPayloadPersisted !== false) fail('secret payload persisted flag mismatch')
-if (record.safety?.previewRenderExecution !== false) fail('preview render execution flag mismatch')
+if (record.safety?.previewRenderExecution !== 'confirmation_gated_generated_local_remotion_preview_fixture_only') fail('preview render execution scope mismatch')
+if (record.safety?.remotionExecution !== 'confirmation_gated_generated_local_remotion_preview_fixture_only') fail('Remotion execution scope mismatch')
+if (record.safety?.directFfmpegCommandExecutionByRunner !== false) fail('direct FFmpeg command flag mismatch')
+if (record.safety?.ffprobeExecution !== false) fail('FFprobe flag mismatch')
 if (record.safety?.privateMediaProcessing !== false) fail('private media processing flag mismatch')
 if (record.safety?.userMediaProcessing !== false) fail('user media processing flag mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
@@ -636,6 +664,7 @@ const allowed = new Set([
   ...privateArtifactStorageAccessGuardedRemoteWriteFiles,
   ...serviceRoleRouteRuntimeValidationFiles,
   ...approvedSnapshotRouteWriteRuntimeValidationFiles,
+  ...remotionPrivatePreviewExportRuntimeValidationFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -681,6 +710,6 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation')
+console.log('Decision: blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation')
 console.log('External product beta: blocked')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

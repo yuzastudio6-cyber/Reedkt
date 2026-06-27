@@ -1,10 +1,10 @@
 # RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1
 
-Decision: `blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation`
+Decision: `blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `0dc5c8b0bd5b0304f8c0d474a85ff2adb5f40aa6`
+Current integration head: `313725a11b1a3e1aaa7394bf10c9e965053b627f`
 
 Source closure: `RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1`
 
@@ -42,17 +42,17 @@ The Supabase target credential, target-validation, main staging migration-histor
 
 `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1` validated the real backend app and service path for `POST /v1/edit-plans/:editPlanId/approved-snapshots`. It generated a bounded approved-plan dependency fixture, called the route through `createReeditProApiApp`, `requireAuth`, `requireIdempotency`, and `createApprovedSnapshotService`, verified approved snapshot and idempotency row readback, then deleted the fixture and verified route write fixture cleanup residue count: `0`. It also closed backend contract gaps for `editPlanVersionId` and `editSessionId`.
 
-The active blocker is now the remaining workflow-specific runtime closure on the main target: Remotion/private preview-export runtime validation, provider/model-call policy, and security/privacy/support/cost/deployment review.
+The active blocker is now provider/model-call policy plus security/privacy/support/cost/deployment review. The generated-local Remotion/private preview-export runtime gate is source-closed by `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`.
 
 ## Required Safe Gate
 
 The next beta-enabling gate must validate runtime behavior against the single main Reeditpro staging target without unlocking beta:
 
-1. `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`
-2. provider/model-call policy closure
+1. `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`
+2. QA/cleanup/observability/rollback review for the external beta lane
 3. security/privacy/support/cost/deployment review
 
-Until those approvals and validations exist in source, the correct status is `blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation`.
+Until those approvals and validations exist in source, the correct status is `blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation`.
 
 ## External Product Beta Readiness
 
@@ -65,7 +65,7 @@ External product beta is not ready. The first product-facing beta lane still req
 - service-role storage metadata read route validation;
 - approved snapshot route write runtime validation carried forward from `completed_approved_snapshot_route_write_runtime_validation`;
 - private artifact manifest and access validation carried forward from `completed_private_artifact_storage_access_guarded_remote_write_readback`;
-- Remotion/private preview-export runtime validation;
+- Remotion/private preview-export runtime validation carried forward from `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation`;
 - QA/cleanup/observability/rollback validation;
 - no-public-artifact and no-signed-url-source-of-truth verification;
 - provider/model-call policy closure;
@@ -73,4 +73,4 @@ External product beta is not ready. The first product-facing beta lane still req
 
 ## No-Scope Statement
 
-No provider call, model call, worker execution, worker dispatch, persistent worker lease claim, browser capture, signed URL creation, public artifact creation, persistent credit mutation, persistent credit reservation creation, credit spend, persistent job enqueue, persistent job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, preview render execution, private media processing, user media processing, Docker execution, Remotion execution, FFmpeg/FFprobe execution, or broad service-role handler was enabled by this rollup. Remote Supabase mutation for the preceding sync, service-role validation, approved snapshot validation, credit ledger validation, job queue lease/event validation, private artifact storage/access, service-role route read, and approved snapshot route write packets was limited to guarded staging migration apply, guarded public grant hardening, a transaction-rolled-back generated approved snapshot fixture, a transaction-rolled-back generated credit reservation and ledger fixture, a transaction-rolled-back generated job queue, job event, and worker lease fixture, a guarded generated private storage JSON fixture created/read/deleted, a transaction-rolled-back generated private artifact metadata fixture, a generated route metadata fixture created/read/deleted, and a generated approved snapshot route fixture created/read/deleted on the single main ReeditPro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project and approved snapshot, credit ledger, job queue lease/event, storage object, artifact metadata, route fixture, and route write fixture residue readback was `0`.
+No provider call, model call, worker execution, worker dispatch, persistent worker lease claim, browser capture outside Remotion renderer execution, signed URL creation, public artifact creation, persistent credit mutation, persistent credit reservation creation, credit spend, persistent job enqueue, persistent job event write, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, package-lock mutation, raw prompt execution, final render/export, private media processing, user media processing, Docker execution, direct FFmpeg command execution by the runner, FFprobe execution, or broad service-role handler was enabled by this rollup. Remote Supabase mutation for the preceding sync, service-role validation, approved snapshot validation, credit ledger validation, job queue lease/event validation, private artifact storage/access, service-role route read, and approved snapshot route write packets was limited to guarded staging migration apply, guarded public grant hardening, a transaction-rolled-back generated approved snapshot fixture, a transaction-rolled-back generated credit reservation and ledger fixture, a transaction-rolled-back generated job queue, job event, and worker lease fixture, a guarded generated private storage JSON fixture created/read/deleted, a transaction-rolled-back generated private artifact metadata fixture, a generated route metadata fixture created/read/deleted, and a generated approved snapshot route fixture created/read/deleted on the single main ReeditPro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project and approved snapshot, credit ledger, job queue lease/event, storage object, artifact metadata, route fixture, and route write fixture residue readback was `0`. Remotion execution in the current source chain was limited to confirmation-gated rendering of a generated local preview fixture under `/tmp`, with output file `reeditpro-external-beta-generated-local-preview.mp4`, bytes `64855`, and SHA-256 `ea12d55c9ef1675da711769c97c9e76bb2da8547bd4c471176a0ff64b03c1c5b`; no generated media was committed.

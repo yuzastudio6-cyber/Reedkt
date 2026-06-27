@@ -1,8 +1,8 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation",
+  "decision": "blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
-  "integrationHead": "0dc5c8b0bd5b0304f8c0d474a85ff2adb5f40aa6",
+  "integrationHead": "313725a11b1a3e1aaa7394bf10c9e965053b627f",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
     "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
@@ -14,7 +14,8 @@
     "approvedSnapshotRouteWriteRuntimeValidation": "rp_external_beta_approved_snapshot_route_write_runtime_validation_1",
     "decision": "completed_reeditpro_main_supabase_target_migration_history_sync",
     "confirmedSupabaseTargetValidation": "completed_guarded_supabase_target_rls_storage_readonly_validation",
-    "pr577": "open_draft_blocked_excluded"
+    "pr577": "open_draft_blocked_excluded",
+    "remotionPrivatePreviewExportRuntimeValidation": "rp_external_beta_remotion_private_preview_export_runtime_validation_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
@@ -80,12 +81,20 @@
     "serviceRoleRouteReportSha256": "25772fc0efe3d6d1aa699a1408ec621cc7df0dbe13bb52fe526b3939030fbb65",
     "serviceRoleRouteManifestSha256": "682eb65b765996e9a3aa669c7f76575ca204de92b9734a66b967918b8ea27acb",
     "isolatedSandboxActive": false,
-    "isolatedSandboxDataCopied": false
+    "isolatedSandboxDataCopied": false,
+    "remotionPrivatePreviewExportRuntimeValidation": "completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation",
+    "remotionPrivatePreviewExportExecution": "completed_confirmation_gated_external_beta_generated_local_remotion_render",
+    "remotionPrivatePreviewExportRunId": "2026-06-27T02-41-01-252Z-7ce79dc6",
+    "remotionPrivatePreviewExportOutputFile": "reeditpro-external-beta-generated-local-preview.mp4",
+    "remotionPrivatePreviewExportOutputBytes": 64855,
+    "remotionPrivatePreviewExportOutputSha256": "ea12d55c9ef1675da711769c97c9e76bb2da8547bd4c471176a0ff64b03c1c5b",
+    "remotionPrivatePreviewExportManifestSha256": "24675b34cb0bd3b1ff255dd29343ffce2e12d7d045070bf59fba3404db15356c",
+    "remotionPrivatePreviewExportQaReportSha256": "847efc9202c556f394d17df16a6a9250513f4106c6b3ebe884a453caaa8e5879"
   },
   "requiredNextOwnerDecision": [
-    "RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1",
-    "remotion_private_preview_export_runtime_validation",
+    "RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1",
     "provider_model_call_policy_closure",
+    "security_privacy_support_cost_deployment_review",
     "continue_blocked"
   ],
   "safety": {
@@ -120,12 +129,16 @@
     "mediaProcessing": false,
     "privateMediaProcessing": false,
     "userMediaProcessing": false,
-    "previewRenderExecution": false,
+    "previewRenderExecution": "confirmation_gated_generated_local_remotion_preview_fixture_only",
     "signedUrlCreation": false,
     "publicArtifactCreation": false,
     "internalBetaUnlock": false,
     "externalBetaUnlock": false,
-    "productionUnlock": false
+    "productionUnlock": false,
+    "remotionExecution": "confirmation_gated_generated_local_remotion_preview_fixture_only",
+    "remotionPrivatePreviewExportRunId": "2026-06-27T02-41-01-252Z-7ce79dc6",
+    "directFfmpegCommandExecutionByRunner": false,
+    "ffprobeExecution": false
   },
   "packageLock": "unchanged",
   "generatedArtifactsCommitted": "none"

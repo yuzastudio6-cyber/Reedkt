@@ -17,7 +17,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Credit reservation ledger | `completed_credit_reservation_ledger_guarded_remote_write_readback` | carry forward transaction-rolled-back credit reservation/ledger readback evidence |
 | Job queue leases/events | `completed_job_queue_lease_event_guarded_remote_write_readback` | carry forward transaction-rolled-back job/lease/event remote write/readback evidence |
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
-| Remotion private preview/export | `blocked_pending_render_worker_runtime_validation` | private preview/export evidence, no public artifacts |
+| Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `blocked_pending_provider_owner_runtime_approval` | backend-only disabled-by-default policy and explicit approval |
 | External beta | `blocked` | internal beta evidence plus security/privacy/support/cost/deployment review |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`
+`RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -145,11 +145,11 @@ Remote write/readback:
 - signed URL creation: `false`
 - public artifact creation: `false`
 
-Service-role route readback is now completed by `RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1`. Remotion private preview/export remains `blocked_pending_render_worker_runtime_validation`.
+Service-role route readback is now completed by `RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1`. Remotion private preview/export is now completed by `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`.
 
 Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`.
 
 ## RP External Beta Service-Role Route Runtime Validation 1
 
@@ -194,9 +194,23 @@ Route write readback:
 
 Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-The active blocker is no longer approved snapshot route write runtime validation. Remaining blockers are Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+The active blocker is no longer approved snapshot route write runtime validation. Remotion/private preview-export runtime validation is now source-closed by `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`; remaining blockers are provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`.
+
+## RP External Beta Remotion Private Preview Export Runtime Validation 1
+
+`RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1` records decision `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` and execution `completed_confirmation_gated_external_beta_generated_local_remotion_render`.
+
+The confirmed runner required `REEDITPRO_CONFIRM_EXTERNAL_BETA_REMOTION_PRIVATE_PREVIEW_EXPORT_RUNTIME_VALIDATION=true`, rendered only a generated local Remotion fixture under `/tmp`, and recorded sanitized local evidence only. It did not use user media, private media, Supabase, SQL, storage objects, signed URLs, public artifacts, workers, routes, providers, model calls, Docker, deployment, or beta unlocks.
+
+Run ID: `2026-06-27T02-41-01-252Z-7ce79dc6`. Output file: `reeditpro-external-beta-generated-local-preview.mp4`. Output bytes: `64855`. Output SHA-256: `ea12d55c9ef1675da711769c97c9e76bb2da8547bd4c471176a0ff64b03c1c5b`. Manifest SHA-256: `24675b34cb0bd3b1ff255dd29343ffce2e12d7d045070bf59fba3404db15356c`. QA report SHA-256: `847efc9202c556f394d17df16a6a9250513f4106c6b3ebe884a453caaa8e5879`.
+
+Remotion execution: `true`. Remotion renderer media encoding: `true`. Direct FFmpeg command execution by runner: `false`. FFprobe execution: `false`. Signed URL creation: `false`. Public artifact creation: `false`. Generated artifacts committed: `none`.
+
+External product beta remains `blocked_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

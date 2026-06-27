@@ -250,6 +250,20 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next safe action: `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`.
 
+## RP External Beta Remotion Private Preview Export Runtime Validation 1
+
+`RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1` records decision `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` and execution `completed_confirmation_gated_external_beta_generated_local_remotion_render`.
+
+The confirmed runner required `REEDITPRO_CONFIRM_EXTERNAL_BETA_REMOTION_PRIVATE_PREVIEW_EXPORT_RUNTIME_VALIDATION=true` and rendered only a generated local Remotion fixture under `/tmp`. It produced sanitized local evidence only: run ID `2026-06-27T02-41-01-252Z-7ce79dc6`, output file `reeditpro-external-beta-generated-local-preview.mp4`, output bytes `64855`, and SHA-256 `ea12d55c9ef1675da711769c97c9e76bb2da8547bd4c471176a0ff64b03c1c5b`.
+
+Run status: `passed_external_beta_generated_local_private_preview_fixture`. Generated local fixture only: `true`. User media input: `none`. Private media input: `none`. Remotion execution: `true`. Remotion renderer media encoding: `true`. Direct FFmpeg command execution by runner: `false`. FFprobe execution: `false`.
+
+Storage object creation: `false`. Storage object read: `false`. Signed URL creation: `false`. Public artifact creation: `false`. Supabase mutation: `false`. SQL execution: `false`. Worker execution: `false`. Route execution: `false`. Provider/model call: `false`. Internal beta unlock: `false`. External beta unlock: `false`. Production unlock: `false`.
+
+External product beta remains `blocked_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe action: `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`.
+
 ## SUPABASE Clean Staging Target Owner Approval 1
 
 `SUPABASE-CLEAN-STAGING-TARGET-OWNER-APPROVAL-1` records decision `approved_clean_staging_target_path_for_guarded_migration_chain_validation` and execution `completed_docs_only_clean_staging_target_owner_approval_no_remote_execution`.

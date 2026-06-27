@@ -4,15 +4,16 @@ import os from 'node:os'
 import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
-const runScriptName = 'ai-graphics:external-beta-worker-enqueue-adapter'
-const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-worker-enqueue-adapter.ts'
-const diagnosticScriptName = 'ai-graphics:external-beta-worker-enqueue-adapter:diagnostics'
+const runScriptName = 'ai-graphics:external-beta-backend-queue-submission'
+const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-backend-queue-submission.ts'
+const diagnosticScriptName = 'ai-graphics:external-beta-backend-queue-submission:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-worker-enqueue-adapter-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-beta-backend-queue-submission-diagnostics.mjs'
 const packetScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const launchGoNoGoScriptName = 'ai-graphics:external-beta-launch-go-no-go'
 const runtimeAdmissionScriptName = 'ai-graphics:external-beta-runtime-admission'
 const gatewayScriptName = 'ai-graphics:external-beta-tool-call-gateway'
+const adapterScriptName = 'ai-graphics:external-beta-worker-enqueue-adapter'
 
 const allTools = [
   'torch_torchvision',
@@ -55,6 +56,8 @@ const falseGateKeys = [
   'workerExecutionApprovedNow',
   'workerQueueApprovedNow',
   'backendQueueSubmissionApprovedNow',
+  'serviceRoleQueueTransactionApprovedNow',
+  'liveQueueWriteApprovedNow',
   'toolExecutionApprovedNow',
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
@@ -71,6 +74,7 @@ const falseGateKeys = [
   'workerEnqueuePerformed',
   'routeExecutionPerformed',
   'backendQueueSubmissionPerformed',
+  'serviceRoleTransactionPerformed',
   'workerLeaseCreated',
   'workerDispatchPerformed',
   'providerRuntimePerformed',
@@ -149,26 +153,23 @@ function acceptedRecord(toolId) {
 }
 
 const requiredFiles = [
+  'server/tool-registry/ai-graphics-external-beta-backend-queue-submission.ts',
+  'server/cli/ai-graphics-external-beta-backend-queue-submission.ts',
   'server/tool-registry/ai-graphics-external-beta-worker-enqueue-adapter.ts',
-  'server/cli/ai-graphics-external-beta-worker-enqueue-adapter.ts',
-  'server/tool-registry/ai-graphics-external-beta-tool-call-gateway.ts',
-  'server/workers/production/production-worker-types.ts',
-  'server/workers/production/production-worker-idempotency.ts',
   'server/tool-registry/index.ts',
+  'docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.md',
   'docs/tool-intelligence/ai-graphics/external-beta-worker-enqueue-adapter.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-worker-enqueue-adapter.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-gateway.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
 
 for (const file of requiredFiles) read(file)
 
 const pkg = json('package.json')
-const docs = json('docs/tool-intelligence/ai-graphics/external-beta-worker-enqueue-adapter.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-worker-enqueue-adapter.md')
-const source = read('server/tool-registry/ai-graphics-external-beta-worker-enqueue-adapter.ts')
-const gatewaySource = read('server/tool-registry/ai-graphics-external-beta-tool-call-gateway.ts')
-const cli = read('server/cli/ai-graphics-external-beta-worker-enqueue-adapter.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.md')
+const source = read('server/tool-registry/ai-graphics-external-beta-backend-queue-submission.ts')
+const cli = read('server/cli/ai-graphics-external-beta-backend-queue-submission.ts')
 const index = read('server/tool-registry/index.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
@@ -176,10 +177,10 @@ if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_scr
 if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
   fail(`missing_package_script:${diagnosticScriptName}`)
 }
-if (!index.includes("export * from './ai-graphics-external-beta-worker-enqueue-adapter'")) {
-  fail('server_registry_index_missing_external_beta_worker_enqueue_adapter_export')
+if (!index.includes("export * from './ai-graphics-external-beta-backend-queue-submission'")) {
+  fail('server_registry_index_missing_external_beta_backend_queue_submission_export')
 }
-if (docs.decision !== 'ai_graphics_external_beta_worker_enqueue_adapter_contract_prepared_with_runtime_blocks') {
+if (docs.decision !== 'ai_graphics_external_beta_backend_queue_submission_envelope_prepared_with_runtime_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
 
@@ -187,10 +188,11 @@ for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
   totalProductFacingCapabilities: 12,
   gpuRuntimeTargetedTools: 8,
-  defaultAdapterReadyExamples: 0,
-  fullAdapterPayloadReadyExamples: 2,
+  defaultSubmissionReadyExamples: 0,
+  fullSubmissionEnvelopeReadyExamples: 2,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobExamples: 1,
   liveBackendQueueSubmissionsNow: 0,
+  liveServiceRoleTransactionsNow: 0,
   liveWorkerLeasesCreatedNow: 0,
   liveWorkerDispatchesNow: 0,
   workerEnqueuePerformedNow: 0,
@@ -207,34 +209,39 @@ for (const tool of gpuTools) {
   if (!docs.gpuRuntimeTargetedTools?.includes(tool)) fail(`docs_missing_gpu_tool:${tool}`)
 }
 for (const gate of [
-  'accepted external-beta tool-call gateway packet',
-  'external beta project id',
-  'external beta tool execution plan id',
-  'external beta backend queue adapter reference',
-  'external beta queue name',
-  'external beta service-role boundary reference',
-  'external beta worker payload schema reference',
-  'external beta private storage policy reference',
-  'external beta retry policy reference',
-  'external beta dead-letter policy reference',
+  'accepted external-beta worker enqueue adapter packet',
+  'external beta queue submission reference',
+  'external beta queue submission schema reference',
+  'external beta service-role transaction envelope reference',
+  'external beta queue write authorization reference',
+  'external beta approved snapshot persistence reference',
+  'external beta credit reservation persistence reference',
+  'external beta private artifact persistence reference',
+  'external beta audit envelope reference',
+  'external beta rollback plan reference',
 ]) {
-  if (!docs.requiredAdapterControls?.includes(gate)) fail(`docs_missing_adapter_control:${gate}`)
+  if (!docs.requiredQueueSubmissionControls?.includes(gate)) {
+    fail(`docs_missing_submission_control:${gate}`)
+  }
 }
 for (const key of [
-  'externalBetaWorkerEnqueueAdapterPrepared',
-  'sourceExternalBetaToolCallGatewayAccepted',
-  'externalBetaAdapterControlsSatisfied',
-  'externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence',
+  'externalBetaBackendQueueSubmissionEnvelopePrepared',
+  'sourceExternalBetaWorkerEnqueueAdapterAccepted',
+  'externalBetaQueueSubmissionControlsSatisfied',
+  'externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
-  'workerPayloadShapeValid',
-  'backendQueueAdapterRefAccepted',
-  'serviceRoleBoundaryAccepted',
-  'workerPayloadSchemaAccepted',
-  'privateStoragePolicyAccepted',
-  'retryPolicyAccepted',
-  'deadLetterPolicyAccepted',
+  'queueSubmissionEnvelopeShapeValid',
+  'queueSubmissionRefAccepted',
+  'queueSubmissionSchemaAccepted',
+  'serviceRoleTransactionEnvelopeAccepted',
+  'queueWriteAuthorizationAccepted',
+  'approvedSnapshotPersistenceAccepted',
+  'creditReservationPersistenceAccepted',
+  'privateArtifactPersistenceAccepted',
+  'auditEnvelopeAccepted',
+  'rollbackPlanAccepted',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
@@ -247,13 +254,15 @@ for (const key of falseGateKeys) {
   if (docs.booleans?.[key] !== false) fail(`docs_required_false_not_false:${key}`)
 }
 for (const [id, expected] of Object.entries({
-  planning_sam2_adapter: 'planning_metadata_selected',
-  blocked_sam2_adapter_missing_gateway: 'missing_external_beta_tool_call_gateway',
-  blocked_sam2_adapter_missing_service_role: 'missing_external_beta_enqueue_adapter_controls',
-  accepted_future_sam2_worker_payload_candidate:
-    'external_beta_worker_enqueue_adapter_payload_ready',
-  accepted_future_d3_worker_payload_candidate:
-    'external_beta_worker_enqueue_adapter_payload_ready',
+  planning_sam2_backend_queue_submission: 'planning_metadata_selected',
+  blocked_sam2_backend_queue_submission_missing_adapter:
+    'missing_external_beta_worker_enqueue_adapter',
+  blocked_sam2_backend_queue_submission_missing_write_authorization:
+    'missing_external_beta_backend_queue_submission_controls',
+  accepted_future_sam2_backend_queue_submission_envelope:
+    'external_beta_backend_queue_submission_envelope_ready',
+  accepted_future_d3_backend_queue_submission_envelope:
+    'external_beta_backend_queue_submission_envelope_ready',
 })) {
   const entry = docs.exampleEvaluations?.find((example) => example.id === id)
   if (!entry) fail(`docs_missing_example:${id}`)
@@ -261,68 +270,61 @@ for (const [id, expected] of Object.entries({
 }
 
 for (const needle of [
-  'AI_GRAPHICS_EXTERNAL_BETA_WORKER_ENQUEUE_ADAPTER_DECISION',
-  'evaluateAiGraphicsExternalBetaWorkerEnqueueAdapter',
-  'sourceExternalBetaToolCallGatewayPacket',
-  'ProductionWorkerJobPayload',
-  'buildWorkerIdempotencyKey',
-  "executionMode: 'production_blocked'",
+  'AI_GRAPHICS_EXTERNAL_BETA_BACKEND_QUEUE_SUBMISSION_DECISION',
+  'evaluateAiGraphicsExternalBetaBackendQueueSubmission',
+  'sourceExternalBetaWorkerEnqueueAdapterPacket',
+  'AiGraphicsExternalBetaQueueBatchCandidate',
+  'AiGraphicsExternalBetaQueueJobCandidate',
+  'AiGraphicsExternalBetaQueueAuditCandidate',
+  "jobType: 'ai_graphics_tool_runtime'",
+  "status: 'prepared_not_submitted'",
   'backendQueueSubmissionPerformed: false',
+  'serviceRoleTransactionPerformed: false',
   'workerEnqueuePerformed: false',
   'workerLeaseCreated: false',
   'workerDispatchPerformed: false',
   'gpuRuntimeShouldStartNow: false',
   'externalBetaReadyNowTools: 0',
   'productionReadyNowTools: 0',
-  'noIdleGpuRuntimeApproved: true',
   'agentCanExecuteToolsNow: false',
 ]) {
   if (!source.includes(needle)) fail(`source_missing:${needle}`)
 }
 for (const needle of [
-  'approvedPlanSnapshotId',
-  'creditReservationId',
-  'privateArtifactManifestRef',
-  'runtimeEnqueueApprovalRef',
-]) {
-  if (!gatewaySource.includes(needle)) fail(`gateway_source_missing_candidate_field:${needle}`)
-}
-for (const needle of [
-  '--external-beta-tool-call-gateway-packet',
-  '--external-beta-project-id',
-  '--external-beta-tool-execution-plan-id',
-  '--external-beta-service-role-boundary-ref',
-  '--external-beta-worker-payload-schema-ref',
-  '--external-beta-dead-letter-policy-ref',
+  '--external-beta-worker-enqueue-adapter-packet',
+  '--external-beta-queue-submission-ref',
+  '--external-beta-service-role-transaction-envelope-ref',
+  '--external-beta-queue-write-authorization-ref',
+  '--external-beta-rollback-plan-ref',
   'evaluatorOnly: true',
   'backendQueueSubmissionPerformed: false',
-  'workerEnqueuePerformed: false',
+  'serviceRoleTransactionPerformed: false',
   'gpuRuntimePerformed: false',
 ]) {
   if (!cli.includes(needle)) fail(`cli_missing:${needle}`)
 }
 for (const needle of [
-  'External-Beta Worker Enqueue Adapter',
-  'ProductionWorkerJobPayload',
+  'External-Beta Backend Queue Submission',
+  'batch, job, and audit candidates',
   'Live backend queue submissions now: `0`',
-  'Worker enqueue performed now: `0`',
+  'Live service-role transactions now: `0`',
   'GPU remains on-demand only',
-  'If no one is using the tool through an accepted future worker job, no GPU runtime should be running',
+  'If no accepted worker job is submitted and claimed, no GPU runtime should be running',
 ]) {
   if (!docsMd.includes(needle)) fail(`markdown_missing:${needle}`)
 }
 for (const needle of [
-  'AI graphics external beta worker enqueue adapter decision',
-  'ProductionWorkerJobPayload',
+  'AI graphics external beta backend queue submission decision',
+  'batch/job/audit queue submission envelope',
   '`backendQueueSubmissionPerformed=false`',
-  '`workerEnqueuePerformed=false`',
+  '`serviceRoleTransactionPerformed=false`',
   '`workerLeaseCreated=false`',
   '`workerDispatchPerformed=false`',
 ]) {
   if (!scorecard.includes(needle)) fail(`scorecard_missing:${needle}`)
 }
 
-const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-worker-enqueue-adapter-'))
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-backend-queue-submission-'))
 const fullRecordsPath = writeJson(
   path.join(tmpRoot, 'external-beta-evidence-records.json'),
   allTools.map(acceptedRecord),
@@ -336,14 +338,14 @@ if (validatedPacket.evidenceRecordsAcceptedWithProvidedEvidence !== 21) {
 }
 const fullPacketPath = writeJson(path.join(tmpRoot, 'external-beta-evidence-packet.json'), validatedPacket)
 
-const fullEvidenceArgs = [
+const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   '--all-shared-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
   '--native-gpu-runtime-proof-passed',
   '--model-weight-manifests-approved',
   '--model-weight-review-packet-accepted',
-]
-const launchApprovalArgs = [
+  '--external-beta-evidence-packet',
+  fullPacketPath,
   '--all-external-beta-launch-gates-approved',
   '--external-beta-launch-ref',
   'external-beta-launch://launch-switch-approved',
@@ -357,12 +359,6 @@ const launchApprovalArgs = [
   'external-beta-launch://private-artifact-retention-support-approved',
   '--external-beta-launch-approver-role',
   'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER',
-]
-const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
-  ...fullEvidenceArgs,
-  '--external-beta-evidence-packet',
-  fullPacketPath,
-  ...launchApprovalArgs,
 ]), 'external_beta_launch_go_no_go')
 if (launchGoNoGo.status !== 'external_beta_launch_go_no_go_approved_runtime_still_blocked') {
   fail(`launch_go_no_go_status_unexpected:${launchGoNoGo.status}`)
@@ -519,77 +515,124 @@ function adapterControlsFor(toolId) {
       : value
   ))
 }
-const adapterControlsWithoutServiceRole = adapterControls.filter((value, index, list) => (
-  value !== '--external-beta-service-role-boundary-ref' &&
-  list[index - 1] !== '--external-beta-service-role-boundary-ref'
+
+const readySam2Adapter = parseJsonOutput(runNpm(adapterScriptName, [
+  '--external-beta-tool-call-gateway-packet',
+  readySam2GatewayPath,
+  ...adapterControlsFor('sam2'),
+]), 'ready_sam2_adapter')
+const readyD3Adapter = parseJsonOutput(runNpm(adapterScriptName, [
+  '--external-beta-tool-call-gateway-packet',
+  readyD3GatewayPath,
+  ...adapterControlsFor('d3'),
+]), 'ready_d3_adapter')
+const readySam2AdapterPath = writeJson(path.join(tmpRoot, 'sam2-adapter.json'), readySam2Adapter)
+const readyD3AdapterPath = writeJson(path.join(tmpRoot, 'd3-adapter.json'), readyD3Adapter)
+
+const submissionControls = [
+  '--external-beta-queue-submission-ref',
+  'external-beta-queue://submission',
+  '--external-beta-queue-submission-schema-ref',
+  'external-beta-queue://submission-schema/v1',
+  '--external-beta-service-role-transaction-envelope-ref',
+  'external-beta-queue://service-role-transaction-envelope',
+  '--external-beta-queue-write-authorization-ref',
+  'external-beta-queue://queue-write-authorization',
+  '--external-beta-approved-snapshot-persistence-ref',
+  'external-beta-queue://approved-snapshot-persistence',
+  '--external-beta-credit-reservation-persistence-ref',
+  'external-beta-queue://credit-reservation-persistence',
+  '--external-beta-private-artifact-persistence-ref',
+  'external-beta-queue://private-artifact-persistence',
+  '--external-beta-audit-envelope-ref',
+  'external-beta-queue://audit-envelope',
+  '--external-beta-rollback-plan-ref',
+  'external-beta-queue://rollback-plan',
+]
+const submissionControlsWithoutWriteAuthorization = submissionControls.filter((value, index, list) => (
+  value !== '--external-beta-queue-write-authorization-ref' &&
+  list[index - 1] !== '--external-beta-queue-write-authorization-ref'
 ))
 
-const planningAdapter = parseJsonOutput(runNpm(runScriptName, [
+const planningSubmission = parseJsonOutput(runNpm(runScriptName, [
   '--capability-id',
   'background_removal',
   '--requested-tool-id',
   'sam2',
-]), 'planning_adapter')
-const blockedMissingGateway = parseJsonOutput(runNpm(runScriptName, [
+]), 'planning_submission')
+const blockedMissingAdapter = parseJsonOutput(runNpm(runScriptName, [
   '--capability-id',
   'background_removal',
   '--requested-tool-id',
   'sam2',
   '--execution-requested',
-]), 'blocked_missing_gateway_adapter')
-const blockedMissingServiceRole = parseJsonOutput(runNpm(runScriptName, [
-  '--external-beta-tool-call-gateway-packet',
-  readySam2GatewayPath,
-  ...adapterControlsWithoutServiceRole,
-]), 'blocked_missing_service_role_adapter')
-const readySam2Adapter = parseJsonOutput(runNpm(runScriptName, [
-  '--external-beta-tool-call-gateway-packet',
-  readySam2GatewayPath,
-  ...adapterControlsFor('sam2'),
-]), 'ready_sam2_adapter')
-const readyD3Adapter = parseJsonOutput(runNpm(runScriptName, [
-  '--external-beta-tool-call-gateway-packet',
-  readyD3GatewayPath,
-  ...adapterControlsFor('d3'),
-]), 'ready_d3_adapter')
+]), 'blocked_missing_adapter_submission')
+const blockedMissingWriteAuthorization = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-worker-enqueue-adapter-packet',
+  readySam2AdapterPath,
+  ...submissionControlsWithoutWriteAuthorization,
+]), 'blocked_missing_write_authorization_submission')
+const readySam2Submission = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-worker-enqueue-adapter-packet',
+  readySam2AdapterPath,
+  ...submissionControls,
+]), 'ready_sam2_submission')
+const readyD3Submission = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-worker-enqueue-adapter-packet',
+  readyD3AdapterPath,
+  ...submissionControls,
+]), 'ready_d3_submission')
 
-if (planningAdapter.decision !== 'planning_metadata_selected') {
-  fail(`planning_adapter_decision_unexpected:${planningAdapter.decision}`)
+if (planningSubmission.decision !== 'planning_metadata_selected') {
+  fail(`planning_submission_decision_unexpected:${planningSubmission.decision}`)
 }
-if (blockedMissingGateway.decision !== 'missing_external_beta_tool_call_gateway') {
-  fail(`blocked_missing_gateway_decision_unexpected:${blockedMissingGateway.decision}`)
+if (blockedMissingAdapter.decision !== 'missing_external_beta_worker_enqueue_adapter') {
+  fail(`blocked_missing_adapter_decision_unexpected:${blockedMissingAdapter.decision}`)
 }
-if (blockedMissingServiceRole.decision !== 'missing_external_beta_enqueue_adapter_controls') {
-  fail(`blocked_missing_service_role_decision_unexpected:${blockedMissingServiceRole.decision}`)
+if (blockedMissingWriteAuthorization.decision !== 'missing_external_beta_backend_queue_submission_controls') {
+  fail(`blocked_missing_write_authorization_decision_unexpected:${blockedMissingWriteAuthorization.decision}`)
 }
-if (!blockedMissingServiceRole.missingAdapterControls?.includes('external beta service-role boundary reference is missing')) {
-  fail('blocked_missing_service_role_not_reported')
+if (!blockedMissingWriteAuthorization.missingQueueSubmissionControls?.includes('external beta queue write authorization reference is missing')) {
+  fail('blocked_missing_write_authorization_not_reported')
 }
 
-for (const [label, output] of Object.entries({ readySam2Adapter, readyD3Adapter })) {
-  if (output.decision !== 'external_beta_worker_enqueue_adapter_payload_ready') {
+for (const [label, output] of Object.entries({ readySam2Submission, readyD3Submission })) {
+  if (output.decision !== 'external_beta_backend_queue_submission_envelope_ready') {
     fail(`${label}_decision_unexpected:${output.decision}`)
   }
-  if (output.externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence !== true) {
-    fail(`${label}_adapter_payload_ready_not_true`)
+  if (output.externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence !== true) {
+    fail(`${label}_submission_envelope_ready_not_true`)
   }
-  const adapterPayload = output.externalBetaWorkerEnqueueAdapterPayload
-  if (!adapterPayload) fail(`${label}_missing_adapter_payload`)
-  if (adapterPayload?.adapterPayloadShapeValid !== true) fail(`${label}_payload_shape_not_valid`)
-  if (adapterPayload?.productionWorkerJobPayload?.executionMode !== 'production_blocked') {
-    fail(`${label}_payload_execution_mode_not_production_blocked`)
+  const envelope = output.externalBetaBackendQueueSubmissionEnvelope
+  if (!envelope) fail(`${label}_missing_submission_envelope`)
+  if (envelope?.submissionEnvelopeShapeValid !== true) fail(`${label}_envelope_shape_not_valid`)
+  if (envelope?.queueJobCandidate?.jobType !== 'ai_graphics_tool_runtime') {
+    fail(`${label}_queue_job_type_unexpected`)
   }
-  if (!adapterPayload?.productionWorkerJobPayload?.idempotencyKey?.startsWith('prod-worker:')) {
-    fail(`${label}_payload_idempotency_key_unexpected`)
+  if (envelope?.queueJobCandidate?.status !== 'prepared_not_submitted') {
+    fail(`${label}_queue_job_status_unexpected`)
   }
-  if (adapterPayload?.backendQueueSubmissionPerformed !== false) {
+  if (envelope?.queueBatchCandidate?.jobCount !== 1) fail(`${label}_queue_batch_job_count_not_1`)
+  if (envelope?.queueBatchCandidate?.liveInsertPerformed !== false) {
+    fail(`${label}_batch_live_insert_not_false`)
+  }
+  if (envelope?.queueJobCandidate?.liveInsertPerformed !== false) {
+    fail(`${label}_job_live_insert_not_false`)
+  }
+  if (envelope?.queueAuditCandidate?.liveInsertPerformed !== false) {
+    fail(`${label}_audit_live_insert_not_false`)
+  }
+  if (envelope?.backendQueueSubmissionPerformed !== false) {
     fail(`${label}_backend_queue_submission_performed_not_false`)
   }
-  if (adapterPayload?.workerEnqueuePerformed !== false) fail(`${label}_worker_enqueue_performed_not_false`)
-  if (adapterPayload?.workerLeaseCreated !== false) fail(`${label}_worker_lease_created_not_false`)
-  if (adapterPayload?.workerDispatchPerformed !== false) fail(`${label}_worker_dispatch_performed_not_false`)
+  if (envelope?.serviceRoleTransactionPerformed !== false) {
+    fail(`${label}_service_role_transaction_performed_not_false`)
+  }
+  if (envelope?.workerLeaseCreated !== false) fail(`${label}_worker_lease_created_not_false`)
+  if (envelope?.workerDispatchPerformed !== false) fail(`${label}_worker_dispatch_performed_not_false`)
   if (output.gpuRuntimeShouldStartNow !== false) fail(`${label}_gpu_runtime_should_start_now_not_false`)
   if (output.liveBackendQueueSubmissionsNow !== 0) fail(`${label}_live_backend_queue_submissions_not_0`)
+  if (output.liveServiceRoleTransactionsNow !== 0) fail(`${label}_live_service_role_transactions_not_0`)
   if (output.liveWorkerLeasesCreatedNow !== 0) fail(`${label}_live_worker_leases_not_0`)
   if (output.liveWorkerDispatchesNow !== 0) fail(`${label}_live_worker_dispatches_not_0`)
   if (output.externalBetaReadyNowTools !== 0) fail(`${label}_external_beta_ready_now_not_0`)
@@ -600,30 +643,24 @@ for (const [label, output] of Object.entries({ readySam2Adapter, readyD3Adapter 
     }
   }
 }
-if (readySam2Adapter.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
-  fail('ready_sam2_adapter_gpu_start_allowed_not_true')
+if (readySam2Submission.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
+  fail('ready_sam2_submission_gpu_start_allowed_not_true')
 }
-if (readyD3Adapter.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
-  fail('ready_d3_adapter_gpu_start_allowed_not_false')
+if (readyD3Submission.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
+  fail('ready_d3_submission_gpu_start_allowed_not_false')
 }
-if (readySam2Adapter.externalBetaWorkerEnqueueAdapterPayload?.runtimeTarget !== 'native_linux_amd64_nvidia_l4_sam2_runtime') {
-  fail('ready_sam2_adapter_runtime_target_unexpected')
+if (readySam2Submission.externalBetaBackendQueueSubmissionEnvelope?.runtimeTarget !== 'native_linux_amd64_nvidia_l4_sam2_runtime') {
+  fail('ready_sam2_submission_runtime_target_unexpected')
 }
-if (readyD3Adapter.externalBetaWorkerEnqueueAdapterPayload?.runtimeTarget !== 'node_cpu_static') {
-  fail('ready_d3_adapter_runtime_target_unexpected')
-}
-if (readySam2Adapter.externalBetaWorkerEnqueueAdapterPayload?.workerType !== 'gpu_ai_worker') {
-  fail('ready_sam2_adapter_worker_type_unexpected')
-}
-if (readyD3Adapter.externalBetaWorkerEnqueueAdapterPayload?.workerType !== 'render_worker') {
-  fail('ready_d3_adapter_worker_type_unexpected')
+if (readyD3Submission.externalBetaBackendQueueSubmissionEnvelope?.runtimeTarget !== 'node_cpu_static') {
+  fail('ready_d3_submission_runtime_target_unexpected')
 }
 
 const combinedText = [
-  'docs/tool-intelligence/ai-graphics/external-beta-worker-enqueue-adapter.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-worker-enqueue-adapter.json',
-  'server/tool-registry/ai-graphics-external-beta-worker-enqueue-adapter.ts',
-  'server/cli/ai-graphics-external-beta-worker-enqueue-adapter.ts',
+  'docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.json',
+  'server/tool-registry/ai-graphics-external-beta-backend-queue-submission.ts',
+  'server/cli/ai-graphics-external-beta-backend-queue-submission.ts',
   'docs/production-beta-readiness-scorecard.md',
 ].map(read).join('\n')
 
@@ -633,6 +670,8 @@ for (const pattern of [
   /workerExecutionApprovedNow["`:\s]+true/i,
   /workerQueueApprovedNow["`:\s]+true/i,
   /backendQueueSubmissionApprovedNow["`:\s]+true/i,
+  /serviceRoleQueueTransactionApprovedNow["`:\s]+true/i,
+  /liveQueueWriteApprovedNow["`:\s]+true/i,
   /toolExecutionApprovedNow["`:\s]+true/i,
   /providerRuntimeApprovedNow["`:\s]+true/i,
   /browserWebglCanvasRuntimeApprovedNow["`:\s]+true/i,
@@ -647,6 +686,7 @@ for (const pattern of [
   /workerEnqueuePerformed["`:\s]+true/i,
   /routeExecutionPerformed["`:\s]+true/i,
   /backendQueueSubmissionPerformed["`:\s]+true/i,
+  /serviceRoleTransactionPerformed["`:\s]+true/i,
   /workerLeaseCreated["`:\s]+true/i,
   /workerDispatchPerformed["`:\s]+true/i,
   /providerRuntimePerformed["`:\s]+true/i,
@@ -676,10 +716,10 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
+  '+    "ai-graphics:external-beta-worker-enqueue-adapter": "tsx server/cli/ai-graphics-external-beta-worker-enqueue-adapter.ts",',
+  '+    "ai-graphics:external-beta-worker-enqueue-adapter:diagnostics": "node scripts/validation/ai-graphics-external-beta-worker-enqueue-adapter-diagnostics.mjs",',
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-beta-backend-queue-submission": "tsx server/cli/ai-graphics-external-beta-backend-queue-submission.ts",',
-  '+    "ai-graphics:external-beta-backend-queue-submission:diagnostics": "node scripts/validation/ai-graphics-external-beta-backend-queue-submission-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue
@@ -706,28 +746,28 @@ console.log(JSON.stringify({
   decision: docs.decision,
   toolsCovered: allTools.length,
   gpuToolsCovered: gpuTools.length,
-  planningAdapterDecision: planningAdapter.decision,
-  blockedMissingGatewayDecision: blockedMissingGateway.decision,
-  blockedMissingServiceRoleDecision: blockedMissingServiceRole.decision,
-  readySam2AdapterDecision: readySam2Adapter.decision,
-  readyD3AdapterDecision: readyD3Adapter.decision,
+  planningSubmissionDecision: planningSubmission.decision,
+  blockedMissingAdapterDecision: blockedMissingAdapter.decision,
+  blockedMissingWriteAuthorizationDecision: blockedMissingWriteAuthorization.decision,
+  readySam2SubmissionDecision: readySam2Submission.decision,
+  readyD3SubmissionDecision: readyD3Submission.decision,
   readySam2GpuRuntimeStartAllowedForAcceptedExternalBetaJob:
-    readySam2Adapter.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+    readySam2Submission.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
   readyD3GpuRuntimeStartAllowedForAcceptedExternalBetaJob:
-    readyD3Adapter.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
-  sam2RuntimeTarget: readySam2Adapter.externalBetaWorkerEnqueueAdapterPayload?.runtimeTarget,
-  d3RuntimeTarget: readyD3Adapter.externalBetaWorkerEnqueueAdapterPayload?.runtimeTarget,
-  sam2WorkerType: readySam2Adapter.externalBetaWorkerEnqueueAdapterPayload?.workerType,
-  d3WorkerType: readyD3Adapter.externalBetaWorkerEnqueueAdapterPayload?.workerType,
-  productionWorkerExecutionMode:
-    readySam2Adapter.externalBetaWorkerEnqueueAdapterPayload?.productionWorkerJobPayload?.executionMode,
+    readyD3Submission.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+  sam2RuntimeTarget: readySam2Submission.externalBetaBackendQueueSubmissionEnvelope?.runtimeTarget,
+  d3RuntimeTarget: readyD3Submission.externalBetaBackendQueueSubmissionEnvelope?.runtimeTarget,
+  sam2JobType: readySam2Submission.externalBetaBackendQueueSubmissionEnvelope?.queueJobCandidate?.jobType,
+  d3JobType: readyD3Submission.externalBetaBackendQueueSubmissionEnvelope?.queueJobCandidate?.jobType,
+  queueJobStatus: readySam2Submission.externalBetaBackendQueueSubmissionEnvelope?.queueJobCandidate?.status,
   backendQueueSubmissionPerformed:
-    readySam2Adapter.booleans?.backendQueueSubmissionPerformed,
-  workerEnqueuePerformed: readySam2Adapter.booleans?.workerEnqueuePerformed,
-  workerLeaseCreated: readySam2Adapter.booleans?.workerLeaseCreated,
-  workerDispatchPerformed: readySam2Adapter.booleans?.workerDispatchPerformed,
-  gpuRuntimeShouldStartNow: readySam2Adapter.gpuRuntimeShouldStartNow,
-  externalBetaReadyNowTools: readySam2Adapter.externalBetaReadyNowTools,
-  productionReadyNowTools: readySam2Adapter.productionReadyNowTools,
-  agentCanExecuteToolsNow: readySam2Adapter.booleans?.agentCanExecuteToolsNow,
+    readySam2Submission.booleans?.backendQueueSubmissionPerformed,
+  serviceRoleTransactionPerformed:
+    readySam2Submission.booleans?.serviceRoleTransactionPerformed,
+  workerLeaseCreated: readySam2Submission.booleans?.workerLeaseCreated,
+  workerDispatchPerformed: readySam2Submission.booleans?.workerDispatchPerformed,
+  gpuRuntimeShouldStartNow: readySam2Submission.gpuRuntimeShouldStartNow,
+  externalBetaReadyNowTools: readySam2Submission.externalBetaReadyNowTools,
+  productionReadyNowTools: readySam2Submission.productionReadyNowTools,
+  agentCanExecuteToolsNow: readySam2Submission.booleans?.agentCanExecuteToolsNow,
 }, null, 2))

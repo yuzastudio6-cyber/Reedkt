@@ -221,6 +221,19 @@ This is still an adapter contract only: `backendQueueSubmissionPerformed=false`,
 The GPU path remains on-demand only: a GPU runtime is start-allowed only for a
 future accepted worker/tool-call job, never as an idle service.
 
+AI graphics external beta backend queue submission decision
+`ai_graphics_external_beta_backend_queue_submission_envelope_prepared_with_runtime_blocks`
+prepares the external-beta batch/job/audit queue submission envelope after the
+worker enqueue adapter. With provided evidence, SAM2 and D3 can shape
+`ai_graphics_tool_runtime` queue job candidates whose status is
+`prepared_not_submitted`. SAM2 remains pointed at
+`native_linux_amd64_nvidia_l4_sam2_runtime`; D3 remains pointed at
+`node_cpu_static`. This still does not write a backend queue row or run a
+service-role transaction: `backendQueueSubmissionPerformed=false`,
+`serviceRoleTransactionPerformed=false`, `workerLeaseCreated=false`,
+`workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,
+`externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
+
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
 shapes the all-21 queue-admission packets into backend queue adapter submission

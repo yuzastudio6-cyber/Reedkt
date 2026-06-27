@@ -42,6 +42,7 @@ export interface BetaReadinessOperatorStatusReport {
     allowedForwardProgressScopes: string[]
   }
   toolEvidence: {
+    previewCommand: 'npm run beta:tools:core-real-check-preview'
     command: 'npm run beta:tools:core-real-check-evidence'
     preflightCommand: 'npm run beta:tools:core-real-check-evidence-preflight'
     readyToRunCli: boolean
@@ -141,6 +142,7 @@ function buildAllowedForwardProgressScopes(safeBlockerReductionAllowed: boolean)
     'source_review',
     'local_dependency_install_proof',
     'bounded_command_import_container_proof',
+    'safe_blocker_reduction_preview',
     'diagnostics_and_qa_packets',
     'deployment_preflight_and_platform_evidence_collection',
     'owner_approval_packet_collection',
@@ -152,6 +154,7 @@ function toolEvidenceSummary(
   report: BetaToolsCoreRealCheckEvidencePreflightReport,
 ): BetaReadinessOperatorStatusReport['toolEvidence'] {
   return {
+    previewCommand: 'npm run beta:tools:core-real-check-preview',
     command: 'npm run beta:tools:core-real-check-evidence',
     preflightCommand: 'npm run beta:tools:core-real-check-evidence-preflight',
     readyToRunCli: report.readyToRunCli,
@@ -202,9 +205,9 @@ function buildNextActions(
   const actions: string[] = []
 
   if (!toolEvidence.readyToRecordAcceptedEvidence) {
-    actions.push('Set the missing REEDITPRO_BETA_TOOLS_* values, then rerun npm run beta:tools:core-real-check-evidence-preflight.')
+    actions.push('Run npm run beta:tools:core-real-check-preview with REEDITPRO_BETA_TOOLS_PREVIEW_* values to collect a local no-write blocker-reduction preview, then set the missing REEDITPRO_BETA_TOOLS_* values and rerun npm run beta:tools:core-real-check-evidence-preflight.')
   } else {
-    actions.push('Run npm run beta:tools:core-real-check-evidence against deployed staging to record bounded per-tool accepted evidence.')
+    actions.push('Run npm run beta:tools:core-real-check-preview locally first, then run npm run beta:tools:core-real-check-evidence against deployed staging to record bounded per-tool accepted evidence.')
   }
 
   if (!platformEvidence.readyToRecordEvidencePacket) {

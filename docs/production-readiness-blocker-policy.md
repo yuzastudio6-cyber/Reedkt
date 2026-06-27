@@ -6,6 +6,8 @@ Warnings include optional tools missing, future-only tools not installed, OpenIm
 
 Hard blockers must be actionable and evidence-driven. A blocker record should identify the exact missing proof or approval, preserve the safety gate it protects, and point to the next bounded source review, install proof, local execution proof, diagnostics packet, deployment proof, or QA packet that can retire it. Blocker labels must not be used as intentional blanket freezes for unrelated safe progress.
 
-Blocked means "do not perform the unsafe action yet"; it does not mean "stop reducing the blocker." Safe metadata, source review, local-only proofs, diagnostics, mock-safe backend skeletons, deployment preflights, owner approvals, QA packets, and rollback plans should continue when they can shrink or retire a named blocker without claiming beta, production, billing, provider, Supabase, storage, or product readiness early.
+Blocked means "do not perform the unsafe action yet"; it does not mean "stop reducing the blocker." Safe metadata, source review, local-only proofs, safe blocker-reduction previews, diagnostics, mock-safe backend skeletons, deployment preflights, owner approvals, QA packets, and rollback plans should continue when they can shrink or retire a named blocker without claiming beta, production, billing, provider, Supabase, storage, or product readiness early.
+
+Readiness and operator reports should expose the split in machine-readable form. The blocked action scope should name the exact unsafe action that is closed, while allowed forward-progress scopes should name the safe source review, local dependency proof, bounded command/import proof, preview, diagnostics, deployment preflight, owner approval, monitoring, support, or rollback lane that can continue.
 
 Workers execute approved plan snapshots and private artifact references. Raw chat, signed URLs, and evaluation-only tools cannot become production execution inputs.

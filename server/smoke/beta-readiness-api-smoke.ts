@@ -53,12 +53,20 @@ try {
   assert.equal(defaultOperatorStatusResponse.data.status.readyForExternalBeta, false, 'default operator status must keep external beta blocked')
   assert.equal(defaultOperatorStatusResponse.data.status.currentGate.safeBlockerReductionAllowed, true, 'operator status should preserve scoped blocker-reduction policy')
   assert.ok(
+    defaultOperatorStatusResponse.data.status.currentGate.allowedForwardProgressScopes.includes('safe_blocker_reduction_preview'),
+    'operator status should expose safe local preview as allowed forward progress',
+  )
+  assert.ok(
     defaultOperatorStatusResponse.data.status.currentGate.blockedActionScope.includes('external_beta_launch'),
     'default operator status should name external beta launch as blocked',
   )
   assert.ok(
     defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('workspaceId')),
     'default operator status should tell callers to supply workspaceId for stored evidence',
+  )
+  assert.ok(
+    defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('core-real-check-preview')),
+    'default operator status should name the local preview before deployed evidence recording',
   )
 
   const deployedVerifierReportResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {

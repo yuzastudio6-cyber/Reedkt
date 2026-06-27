@@ -1,6 +1,6 @@
 # RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST
 
-Run only after `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1` and only when the source includes an exact invited identity list or exact approved Google Group.
+Run only after `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-INHERITANCE-AUDIT-1` and only when the source includes an exact invited identity list or exact approved Google Group.
 
 Required input:
 
@@ -12,6 +12,14 @@ Required input:
 - rollback command for each exact principal;
 - post-grant authenticated smoke plan;
 - public-access negative check.
+
+Required carry-forward evidence:
+
+- service-level `allUsers` invoker binding: `false`;
+- service-level `allAuthenticatedUsers` invoker binding: `false`;
+- project-level `roles/run.invoker` `allUsers` member count: `0`;
+- project-level `roles/run.invoker` `allAuthenticatedUsers` member count: `0`;
+- project-level broad inherited Cloud Run invoker access: `false`.
 
 Allowed execution:
 

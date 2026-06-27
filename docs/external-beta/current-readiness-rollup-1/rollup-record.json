@@ -1,8 +1,8 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant",
+  "decision": "completed_readonly_project_iam_inheritance_audit_no_access_mutation",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
-  "integrationHead": "ba739fa799e4f9fd57b64d94f2fbcf647acbeb85",
+  "integrationHead": "c0788dd622a89b0070371bc0e5daa0bb03f62419",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
     "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
@@ -24,7 +24,8 @@
     "stagingFlagApplication1r": "rp_external_beta_staging_flag_application_1r_after_gcloud_reauth",
     "controlledSmokeValidation": "rp_external_beta_controlled_smoke_validation_1",
     "controlledPrivateInviteAccess": "rp_external_beta_controlled_private_invite_access_1",
-    "controlledPrivateInviteIamGrant": "rp_external_beta_controlled_private_invite_iam_grant_1"
+    "controlledPrivateInviteIamGrant": "rp_external_beta_controlled_private_invite_iam_grant_1",
+    "controlledPrivateInviteIamInheritanceAudit": "rp_external_beta_controlled_private_invite_iam_inheritance_audit_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
@@ -161,7 +162,20 @@
     "cloudRunServiceUpdate": false,
     "cloudRunInviteGrantAllUsers": false,
     "cloudRunInviteGrantAllAuthenticatedUsers": false,
-    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST"
+    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST",
+    "controlledPrivateInviteIamInheritanceAudit": "completed_readonly_project_iam_inheritance_audit_no_broad_invoker",
+    "projectLevelRunInvokerBindingCount": 1,
+    "projectLevelRunInvokerMemberCount": 1,
+    "projectLevelRunInvokerMemberClasses": [
+      "serviceAccount"
+    ],
+    "projectLevelRunInvokerUserMemberCount": 0,
+    "projectLevelRunInvokerGroupMemberCount": 0,
+    "projectLevelRunInvokerDomainMemberCount": 0,
+    "projectLevelRunInvokerAllUsersMemberCount": 0,
+    "projectLevelRunInvokerAllAuthenticatedUsersMemberCount": 0,
+    "broadInheritedCloudRunInvokerAccess": false,
+    "sanitizedProjectIamPrincipalNamesRecorded": false
   },
   "requiredNextOwnerDecision": [
     "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST",
@@ -234,7 +248,14 @@
     "broadPublicInvokerGrant": false,
     "allUsersGrant": false,
     "allAuthenticatedUsersGrant": false,
-    "explicitInviteIdentityListPresent": false
+    "explicitInviteIdentityListPresent": false,
+    "controlledPrivateInviteIamInheritanceAudit": "completed_readonly_project_iam_policy_analysis_no_iam_mutation",
+    "projectIamPolicyReadback": true,
+    "projectIamPolicyMutation": false,
+    "projectLevelRunInvokerAllUsers": false,
+    "projectLevelRunInvokerAllAuthenticatedUsers": false,
+    "broadInheritedCloudRunInvokerGrant": false,
+    "sanitizedProjectIamPrincipalNamesRecorded": false
   },
   "packageLock": "unchanged",
   "generatedArtifactsCommitted": "none"

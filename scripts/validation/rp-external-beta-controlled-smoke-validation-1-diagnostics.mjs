@@ -190,7 +190,9 @@ if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts sta
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
 const rollupIsInviteAccessCompleted =
   rollup.decision === 'completed_controlled_private_invite_access_policy_no_access_mutation'
-const rollupInviteIamGrantBlocked = rollup.decision === 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant'
+const rollupInviteIamGrantBlocked =
+  rollup.decision === 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant' ||
+  rollup.decision === 'completed_readonly_project_iam_inheritance_audit_no_access_mutation'
 if (
   rollup.decision !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation' &&
   !rollupIsInviteAccessCompleted &&

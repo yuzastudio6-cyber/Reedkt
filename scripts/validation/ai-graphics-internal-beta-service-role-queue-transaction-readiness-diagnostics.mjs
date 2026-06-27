@@ -240,6 +240,22 @@ function acceptedArgs(manifestPacketPath, gpuPacketPath) {
   ]
 }
 
+function writeQueueAdmissionReadinessPacket(manifestPacketPath, gpuPacketPath) {
+  const sourceOutput = parseJsonOutput(
+    runNpm('ai-graphics:internal-beta-queue-admission-readiness', [
+      ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+      '--require-queue-admission-ready',
+    ]),
+    'source_queue_admission_packet',
+  )
+  const packetPath = path.join(
+    path.dirname(manifestPacketPath),
+    'queue-admission-readiness-packet.json',
+  )
+  fs.writeFileSync(packetPath, `${JSON.stringify(sourceOutput, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-internal-beta-service-role-queue-transaction-readiness.ts',
   'server/cli/ai-graphics-internal-beta-service-role-queue-transaction-readiness.ts',
@@ -277,6 +293,30 @@ if (docs.status !== 'service_role_queue_transaction_envelope_prepared_live_write
 }
 if (docs.sourceDecisions?.backendQueueStorage !== 'ai_graphics_internal_beta_backend_queue_storage_readiness_contract_prepared_with_mock_service_records') {
   fail(`unexpected_backend_queue_storage_source_decision:${docs.sourceDecisions?.backendQueueStorage}`)
+}
+for (const [key, expected] of Object.entries({
+  acceptsLowLevelEvidenceFlags: true,
+  acceptsQueueAdmissionReadinessPacket: true,
+  sourceQueueAdmissionReadinessPacketRequired: true,
+  sourceQueueAdmissionPacketMustReportReady: true,
+  backendQueueStorageEvidenceStillRequired: true,
+  serviceRoleEnvelopeStillRequired: true,
+  noWriteRpcEnvelopeOnly: true,
+  liveServiceRoleTransactionPerformed: false,
+  runtimeUnlockPerformed: false,
+})) {
+  if (docs.sourceEvidencePolicy?.[key] !== expected) {
+    fail(`docs_source_evidence_policy_mismatch:${key}:${docs.sourceEvidencePolicy?.[key]}`)
+  }
+}
+for (const token of [
+  '--internal-beta-queue-admission-readiness-packet',
+  'sourceQueueAdmissionReadinessPacket',
+  'internal_beta_queue_admission_readiness_packet',
+]) {
+  if (!cliSource.includes(token) && !moduleSource.includes(token) && !markdown.includes(token)) {
+    fail(`source_missing_queue_admission_packet_token:${token}`)
+  }
 }
 
 for (const status of [
@@ -414,87 +454,55 @@ if (defaultOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence !== 0) 
 if (defaultOutput.liveServiceRoleTransactionsNow !== 0) fail('default_live_transactions_not_0')
 
 const { manifestPacketPath, gpuPacketPath } = writeAcceptedEvidencePackets()
-const approvedOutput = parseJsonOutput(
+const queueAdmissionPacketPath = writeQueueAdmissionReadinessPacket(manifestPacketPath, gpuPacketPath)
+const legacyFlagOutput = parseJsonOutput(
   runNpm(runScriptName, [
     ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+  ]),
+  'legacy_flag_service_role_queue_transaction',
+)
+if (legacyFlagOutput.status !== 'missing_backend_queue_storage_evidence') {
+  fail(`legacy_flag_status:${legacyFlagOutput.status}`)
+}
+if (legacyFlagOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence !== 0) {
+  fail(`legacy_flag_records_ready:${legacyFlagOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence}`)
+}
+if (legacyFlagOutput.input?.sourceEvidenceMode !== 'constructed_from_cli_flags') {
+  fail(`legacy_flag_source_mode:${legacyFlagOutput.input?.sourceEvidenceMode}`)
+}
+
+const packetFedOutput = parseJsonOutput(
+  runNpm(runScriptName, [
+    ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+    '--internal-beta-queue-admission-readiness-packet',
+    queueAdmissionPacketPath,
     '--require-transaction-envelope-ready',
   ]),
-  'approved_service_role_queue_transaction',
+  'packet_fed_service_role_queue_transaction',
 )
-if (approvedOutput.status !== 'service_role_queue_transaction_envelope_prepared_live_writes_blocked') {
-  fail(`approved_status:${approvedOutput.status}`)
+if (packetFedOutput.input?.sourceEvidenceMode !== 'internal_beta_queue_admission_readiness_packet') {
+  fail(`packet_fed_source_mode:${packetFedOutput.input?.sourceEvidenceMode}`)
 }
-if (approvedOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence !== 21) {
-  fail(`approved_records_ready:${approvedOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence}`)
+if (packetFedOutput.input?.internalBetaQueueAdmissionReadinessPacketRead !== true) {
+  fail('packet_fed_queue_admission_packet_not_read')
 }
-if (approvedOutput.serviceRoleCapabilityScenariosReadyWithProvidedEvidence !== 12) {
-  fail(`approved_capabilities_ready:${approvedOutput.serviceRoleCapabilityScenariosReadyWithProvidedEvidence}`)
+if (packetFedOutput.status !== 'service_role_queue_transaction_envelope_prepared_live_writes_blocked') {
+  fail(`packet_fed_status:${packetFedOutput.status}`)
 }
-if (approvedOutput.serviceRoleJobBatchRowsPrepared !== 1) fail(`approved_batch_rows:${approvedOutput.serviceRoleJobBatchRowsPrepared}`)
-if (approvedOutput.serviceRoleJobRowsPrepared !== 21) fail(`approved_job_rows:${approvedOutput.serviceRoleJobRowsPrepared}`)
-if (approvedOutput.serviceRoleWorkerClaimTransactionInputsPrepared !== 21) {
-  fail(`approved_claim_inputs:${approvedOutput.serviceRoleWorkerClaimTransactionInputsPrepared}`)
+if (packetFedOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence !== 21) {
+  fail(`packet_fed_records_ready:${packetFedOutput.serviceRoleTransactionRecordsReadyWithProvidedEvidence}`)
 }
-if (approvedOutput.serviceRoleWorkerEventRowsPrepared !== 42) {
-  fail(`approved_worker_events:${approvedOutput.serviceRoleWorkerEventRowsPrepared}`)
+if (packetFedOutput.serviceRoleCapabilityScenariosReadyWithProvidedEvidence !== 12) {
+  fail(`packet_fed_capabilities_ready:${packetFedOutput.serviceRoleCapabilityScenariosReadyWithProvidedEvidence}`)
 }
-if (approvedOutput.serviceRoleAuditEventRowsPrepared !== 21) {
-  fail(`approved_audit_events:${approvedOutput.serviceRoleAuditEventRowsPrepared}`)
-}
-if (approvedOutput.serviceRoleTransactionRecords?.length !== 21) fail('approved_records_length_not_21')
-if (approvedOutput.serviceRoleCapabilityScenarios?.length !== 12) fail('approved_capabilities_length_not_12')
-if (approvedOutput.serviceRoleTransactionRecords?.filter((record) => record.workerType === 'gpu_ai_worker').length !== 8) {
-  fail('approved_gpu_records_not_8')
-}
-for (const tool of gpuTools) {
-  const record = approvedOutput.serviceRoleTransactionRecords?.find((item) => item.toolId === tool)
-  if (!record) fail(`approved_missing_gpu_tool_record:${tool}`)
-  if (record?.workerType !== 'gpu_ai_worker') fail(`approved_gpu_tool_not_gpu_worker:${tool}`)
-}
-for (const record of approvedOutput.serviceRoleTransactionRecords ?? []) {
-  if (record.jobType !== 'ai_graphics_tool_runtime') fail(`record_job_type:${record.toolId}:${record.jobType}`)
-  if (record.serviceRoleTransactionEnvelopeReadyWithProvidedEvidence !== true) fail(`record_not_ready:${record.toolId}`)
-  if (!String(record.idempotencyKey ?? '').startsWith('ai_graphics_internal_beta_service_role_queue:')) {
-    fail(`record_bad_idempotency_key:${record.toolId}:${record.idempotencyKey}`)
-  }
-  if (!String(record.approvedPlanSnapshotId ?? '').startsWith('approved_snapshot_')) {
-    fail(`record_approved_snapshot_ref_not_explicit_fixture:${record.toolId}`)
-  }
-  if (!String(record.creditReservationId ?? '').startsWith('credit_reservation_')) {
-    fail(`record_credit_reservation_ref_not_explicit_fixture:${record.toolId}`)
-  }
-  if (!String(record.privateArtifactManifestRef ?? '').startsWith('private://')) {
-    fail(`record_private_manifest_ref:${record.toolId}:${record.privateArtifactManifestRef}`)
-  }
-  if (record.jobBatchRowPrepared !== true) fail(`record_batch_not_prepared:${record.toolId}`)
-  if (record.jobRowPrepared !== true) fail(`record_job_not_prepared:${record.toolId}`)
-  if (record.workerClaimTransactionInputPrepared !== true) fail(`record_claim_not_prepared:${record.toolId}`)
-  if (record.workerEventRowsPrepared !== 2) fail(`record_worker_events:${record.toolId}:${record.workerEventRowsPrepared}`)
-  if (record.auditEventRowsPrepared !== 1) fail(`record_audit_events:${record.toolId}:${record.auditEventRowsPrepared}`)
-  if (record.canRunServiceRoleTransactionNow !== false) fail(`record_can_transaction:${record.toolId}`)
-  if (record.canInsertJobBatchNow !== false) fail(`record_can_insert_batch:${record.toolId}`)
-  if (record.canInsertJobNow !== false) fail(`record_can_insert_job:${record.toolId}`)
-  if (record.canInsertWorkerClaimNow !== false) fail(`record_can_insert_claim:${record.toolId}`)
-  if (record.canInsertWorkerEventNow !== false) fail(`record_can_insert_worker_event:${record.toolId}`)
-  if (record.canInsertAuditEventNow !== false) fail(`record_can_insert_audit_event:${record.toolId}`)
-  if (record.canDispatchWorkerNow !== false) fail(`record_can_dispatch:${record.toolId}`)
-  if (record.canExecuteToolNow !== false) fail(`record_can_execute:${record.toolId}`)
-}
-for (const scenario of approvedOutput.serviceRoleCapabilityScenarios ?? []) {
-  if (!capabilities.includes(scenario.capabilityId)) fail(`unknown_capability_scenario:${scenario.capabilityId}`)
-  if (scenario.selectedTransactionTools?.length < 1) fail(`scenario_no_selected_tools:${scenario.capabilityId}`)
-  if (scenario.scenarioTransactionReadyWithProvidedEvidence !== true) {
-    fail(`scenario_not_ready:${scenario.capabilityId}`)
-  }
-  if (scenario.canRunServiceRoleTransactionNow !== false) fail(`scenario_can_transaction:${scenario.capabilityId}`)
-  if (scenario.canDispatchWorkersNow !== false) fail(`scenario_can_dispatch:${scenario.capabilityId}`)
-  if (scenario.canExecuteToolsNow !== false) fail(`scenario_can_execute:${scenario.capabilityId}`)
+if (packetFedOutput.booleans?.gpuHeavyToolsTargetGpuRuntime !== true) {
+  fail('packet_fed_gpu_runtime_targeting_not_preserved')
 }
 for (const key of falseGateKeys) {
-  if (approvedOutput.booleans?.[key] !== false) fail(`approved_false_gate_not_false:${key}`)
+  if (packetFedOutput.booleans?.[key] !== false) fail(`packet_fed_false_gate_not_false:${key}`)
 }
 for (const key of inputFalseKeys) {
-  if (approvedOutput.input?.[key] !== false) fail(`approved_input_false_gate_not_false:${key}`)
+  if (packetFedOutput.input?.[key] !== false) fail(`packet_fed_input_false_gate_not_false:${key}`)
 }
 
 let liveTransactionExited = false

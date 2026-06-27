@@ -4,6 +4,9 @@ import {
   buildAiGraphicsInternalBetaBackendQueueStorageReadiness,
 } from '../tool-registry/ai-graphics-internal-beta-backend-queue-storage-readiness'
 import type {
+  AiGraphicsInternalBetaQueueAdmissionReadiness,
+} from '../tool-registry/ai-graphics-internal-beta-queue-admission-readiness'
+import type {
   AiGraphicsBetaEvidenceBundleInput,
 } from '../tool-registry/ai-graphics-beta-evidence-bundle'
 
@@ -37,6 +40,60 @@ function readJsonPath(filePath: string): unknown {
   return JSON.parse(readFileSync(resolvedPath, 'utf8'))
 }
 
+function readJsonObjectFile(filePath: string): Record<string, unknown> {
+  const packet = readJsonPath(filePath)
+  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) {
+    throw new Error(`Evidence packet must be a JSON object: ${filePath}`)
+  }
+
+  return packet as Record<string, unknown>
+}
+
+function isQueueAdmissionReadinessPacket(
+  packet: unknown,
+): packet is AiGraphicsInternalBetaQueueAdmissionReadiness {
+  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) return false
+  const record = packet as Record<string, unknown>
+  const booleans = record.booleans
+  return (
+    record.decision ===
+      'ai_graphics_internal_beta_queue_admission_readiness_contract_prepared_with_runtime_blocks' &&
+    record.status === 'internal_beta_queue_admission_ready_runtime_still_blocked' &&
+    Array.isArray(record.queueAdmissionPackets) &&
+    record.queueAdmissionPackets.length === 21 &&
+    Boolean(
+      booleans &&
+      typeof booleans === 'object' &&
+      !Array.isArray(booleans) &&
+      (booleans as Record<string, unknown>).all21QueueAdmissionPacketsReadyWithProvidedEvidence === true,
+    )
+  )
+}
+
+function readSourceQueueAdmissionReadinessPacket(): {
+  sourceQueueAdmissionReadinessPacket?: AiGraphicsInternalBetaQueueAdmissionReadiness
+  sourceEvidenceMode:
+    | 'constructed_from_cli_flags'
+    | 'internal_beta_queue_admission_readiness_packet'
+} {
+  const filePath = valueAfterFlag('--internal-beta-queue-admission-readiness-packet')
+  if (!filePath) {
+    return { sourceEvidenceMode: 'constructed_from_cli_flags' }
+  }
+
+  const packet = readJsonObjectFile(filePath)
+  if (!isQueueAdmissionReadinessPacket(packet)) {
+    throw new Error(
+      'Queue-admission readiness packet must report internal_beta_queue_admission_ready_runtime_still_blocked with all 21 queue-admission packets ready.',
+    )
+  }
+
+  return {
+    sourceQueueAdmissionReadinessPacket: packet,
+    sourceEvidenceMode: 'internal_beta_queue_admission_readiness_packet',
+  }
+}
+
 function readProofPacket(flag: string, committedPath: string): unknown | undefined {
   const fromFlag = readJsonFile(flag)
   if (fromFlag) return fromFlag
@@ -51,6 +108,10 @@ function queueValue(flag: string, defaultValue: string): string | undefined {
 
 async function main() {
   const allTechnicalGatesPassed = hasFlag('--all-technical-gates-passed')
+  const {
+    sourceQueueAdmissionReadinessPacket,
+    sourceEvidenceMode,
+  } = readSourceQueueAdmissionReadinessPacket()
   const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput = {
     approvedPlanSnapshotGatePassed:
       allTechnicalGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
@@ -83,6 +144,7 @@ async function main() {
 
   const queueStorageReadiness =
     await buildAiGraphicsInternalBetaBackendQueueStorageReadiness({
+      sourceQueueAdmissionReadinessPacket,
       evidenceBundleInput,
       ownerApprovalGranted: hasFlag('--owner-approval-granted'),
       ownerApprovalRef: valueAfterFlag('--owner-approval-ref'),
@@ -127,6 +189,9 @@ async function main() {
     input: {
       validatorOnly: true,
       committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
+      sourceEvidenceMode,
+      internalBetaQueueAdmissionReadinessPacketRead:
+        Boolean(sourceQueueAdmissionReadinessPacket),
       allQueueAdmissionPrerequisitesProvided:
         hasFlag('--all-queue-admission-prerequisites-provided'),
       dependencyInstallPerformed: false,

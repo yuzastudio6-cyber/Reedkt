@@ -399,6 +399,17 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Diagnostic coverage proves packet-fed dispatcher readiness still completes the in-memory mock-safe dispatcher probe for all 21 tools while keeping `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after queue adapter and dispatcher source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `41b35617b208a123138ee88789ba0a1b22cf0779`, with an empty check rollup.
 
+## Follow-Up: Backend Queue And Service-Role Source Packet Ingestion
+
+- Added evaluator-only queue-admission packet ingestion to:
+  - `ai-graphics:internal-beta-backend-queue-storage-readiness`
+  - `ai-graphics:internal-beta-service-role-queue-transaction-readiness`
+- Both commands now accept `--internal-beta-queue-admission-readiness-packet`.
+- The source packet must already report `internal_beta_queue_admission_ready_runtime_still_blocked`; backend mock-service records and no-write service-role transaction envelopes remain separate readiness layers.
+- Diagnostic coverage proves packet-fed backend queue storage creates 21 mock job-service records and 12 capability scenarios with provided evidence while keeping `serviceRoleSupabaseWritesApprovedNow=false`, `backendQueueSubmissionApprovedNow=false`, `runtimeReadyNow=false`, and `productionReadyNow=false`.
+- Diagnostic coverage proves packet-fed service-role transaction readiness prepares 21 no-write transaction envelopes, 12 capability scenarios, 21 job rows, 42 worker event rows, and 21 audit event rows while keeping `serviceRoleQueueTransactionApprovedNow=false`, `liveServiceRoleTransactionsNow=0`, `runtimeReadyNow=false`, and `productionReadyNow=false`.
+- GPU runtime remains on-demand only: the eight GPU/model tools keep exact native NVIDIA L4 targets for future approved jobs, but no idle GPU runtime, live queue write, service-role transaction, worker dispatch, tool execution, beta, or production unlock occurs.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

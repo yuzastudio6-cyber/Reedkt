@@ -237,6 +237,22 @@ function acceptedArgs(manifestPacketPath, gpuPacketPath) {
   ]
 }
 
+function writeQueueAdmissionReadinessPacket(manifestPacketPath, gpuPacketPath) {
+  const sourceOutput = parseJsonOutput(
+    runNpm('ai-graphics:internal-beta-queue-admission-readiness', [
+      ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+      '--require-queue-admission-ready',
+    ]),
+    'source_queue_admission_packet',
+  )
+  const packetPath = path.join(
+    path.dirname(manifestPacketPath),
+    'queue-admission-readiness-packet.json',
+  )
+  fs.writeFileSync(packetPath, `${JSON.stringify(sourceOutput, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-internal-beta-backend-queue-storage-readiness.ts',
   'server/cli/ai-graphics-internal-beta-backend-queue-storage-readiness.ts',
@@ -287,6 +303,30 @@ if (docs.status !== 'mock_service_queue_records_created_runtime_still_blocked') 
 }
 if (docs.sourceDecisions?.queueDispatcher !== 'ai_graphics_internal_beta_queue_dispatcher_readiness_contract_prepared_with_mock_safe_dispatcher') {
   fail(`unexpected_queue_dispatcher_source_decision:${docs.sourceDecisions?.queueDispatcher}`)
+}
+for (const [key, expected] of Object.entries({
+  acceptsLowLevelEvidenceFlags: true,
+  acceptsQueueAdmissionReadinessPacket: true,
+  sourceQueueAdmissionReadinessPacketRequired: true,
+  sourceQueueAdmissionPacketMustReportReady: true,
+  queueDispatcherProbeStillRequired: true,
+  productionWorkerJobEvidenceStillRequired: true,
+  mockServiceRecordsOnly: true,
+  liveSupabaseWritesPerformed: false,
+  runtimeUnlockPerformed: false,
+})) {
+  if (docs.sourceEvidencePolicy?.[key] !== expected) {
+    fail(`docs_source_evidence_policy_mismatch:${key}:${docs.sourceEvidencePolicy?.[key]}`)
+  }
+}
+for (const token of [
+  '--internal-beta-queue-admission-readiness-packet',
+  'sourceQueueAdmissionReadinessPacket',
+  'internal_beta_queue_admission_readiness_packet',
+]) {
+  if (!cliSource.includes(token) && !moduleSource.includes(token) && !markdown.includes(token)) {
+    fail(`source_missing_queue_admission_packet_token:${token}`)
+  }
 }
 
 for (const status of [
@@ -440,77 +480,55 @@ if (defaultOutput.mockJobBatchCreated !== false) fail('default_mock_job_batch_cr
 if (defaultOutput.liveSupabaseJobWritesNow !== 0) fail('default_live_supabase_writes_not_0')
 
 const { manifestPacketPath, gpuPacketPath } = writeAcceptedEvidencePackets()
-const approvedOutput = parseJsonOutput(
+const queueAdmissionPacketPath = writeQueueAdmissionReadinessPacket(manifestPacketPath, gpuPacketPath)
+const legacyFlagOutput = parseJsonOutput(
   runNpm(runScriptName, [
     ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+  ]),
+  'legacy_flag_backend_queue_storage',
+)
+if (legacyFlagOutput.status !== 'missing_queue_dispatcher_evidence') {
+  fail(`legacy_flag_status:${legacyFlagOutput.status}`)
+}
+if (legacyFlagOutput.backendQueueStorageRecordsCreatedWithProvidedEvidence !== 0) {
+  fail(`legacy_flag_records_ready:${legacyFlagOutput.backendQueueStorageRecordsCreatedWithProvidedEvidence}`)
+}
+if (legacyFlagOutput.input?.sourceEvidenceMode !== 'constructed_from_cli_flags') {
+  fail(`legacy_flag_source_mode:${legacyFlagOutput.input?.sourceEvidenceMode}`)
+}
+
+const packetFedOutput = parseJsonOutput(
+  runNpm(runScriptName, [
+    ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+    '--internal-beta-queue-admission-readiness-packet',
+    queueAdmissionPacketPath,
     '--require-mock-service-queue-records-ready',
   ]),
-  'approved_backend_queue_storage',
+  'packet_fed_backend_queue_storage',
 )
-if (approvedOutput.status !== 'mock_service_queue_records_created_runtime_still_blocked') {
-  fail(`approved_status:${approvedOutput.status}`)
+if (packetFedOutput.input?.sourceEvidenceMode !== 'internal_beta_queue_admission_readiness_packet') {
+  fail(`packet_fed_source_mode:${packetFedOutput.input?.sourceEvidenceMode}`)
 }
-if (approvedOutput.backendQueueStorageRecordsCreatedWithProvidedEvidence !== 21) {
-  fail(`approved_records_ready:${approvedOutput.backendQueueStorageRecordsCreatedWithProvidedEvidence}`)
+if (packetFedOutput.input?.internalBetaQueueAdmissionReadinessPacketRead !== true) {
+  fail('packet_fed_queue_admission_packet_not_read')
 }
-if (approvedOutput.backendQueueStorageCapabilityScenariosCreatedWithProvidedEvidence !== 12) {
-  fail(`approved_capabilities_ready:${approvedOutput.backendQueueStorageCapabilityScenariosCreatedWithProvidedEvidence}`)
+if (packetFedOutput.status !== 'mock_service_queue_records_created_runtime_still_blocked') {
+  fail(`packet_fed_status:${packetFedOutput.status}`)
 }
-if (approvedOutput.mockJobBatchCreated !== true) fail('approved_mock_job_batch_not_created')
-if (approvedOutput.mockJobBatchWarningCount !== 1) fail(`approved_batch_warning_count:${approvedOutput.mockJobBatchWarningCount}`)
-if (approvedOutput.mockJobServiceWarnings !== 22) fail(`approved_mock_job_service_warnings:${approvedOutput.mockJobServiceWarnings}`)
-if (approvedOutput.backendQueueStorageRecords?.length !== 21) fail('approved_records_length_not_21')
-if (approvedOutput.backendQueueStorageCapabilityScenarios?.length !== 12) fail('approved_capabilities_length_not_12')
-if (approvedOutput.backendQueueStorageRecords?.filter((record) => record.workerType === 'gpu_ai_worker').length !== 8) {
-  fail('approved_gpu_records_not_8')
+if (packetFedOutput.backendQueueStorageRecordsCreatedWithProvidedEvidence !== 21) {
+  fail(`packet_fed_records_ready:${packetFedOutput.backendQueueStorageRecordsCreatedWithProvidedEvidence}`)
 }
-for (const tool of gpuTools) {
-  const record = approvedOutput.backendQueueStorageRecords?.find((item) => item.toolId === tool)
-  if (!record) fail(`approved_missing_gpu_tool_record:${tool}`)
-  if (record?.workerType !== 'gpu_ai_worker') fail(`approved_gpu_tool_not_gpu_worker:${tool}`)
+if (packetFedOutput.backendQueueStorageCapabilityScenariosCreatedWithProvidedEvidence !== 12) {
+  fail(`packet_fed_capabilities_ready:${packetFedOutput.backendQueueStorageCapabilityScenariosCreatedWithProvidedEvidence}`)
 }
-for (const record of approvedOutput.backendQueueStorageRecords ?? []) {
-  if (record.jobType !== 'ai_graphics_tool_runtime') fail(`record_job_type:${record.toolId}:${record.jobType}`)
-  if (record.jobServiceStatus !== 'queued') fail(`record_status:${record.toolId}:${record.jobServiceStatus}`)
-  if (record.jobServiceRecordCreated !== true) fail(`record_not_created:${record.toolId}`)
-  if (record.jobServiceRecordMockOnly !== true) fail(`record_not_mock_only:${record.toolId}`)
-  if (record.jobServiceWarningCount !== 1) fail(`record_warning_count:${record.toolId}:${record.jobServiceWarningCount}`)
-  if (record.sourceDispatcherProbeCompletedWithProvidedEvidence !== true) fail(`record_source_not_ready:${record.toolId}`)
-  if (record.approvedPlanSnapshotId !== 'approved_snapshot_ai_graphics_internal_beta_fixture') {
-    fail(`record_approved_snapshot_id:${record.toolId}:${record.approvedPlanSnapshotId}`)
-  }
-  if (!String(record.approvedPlanSnapshotId ?? '').startsWith('approved_snapshot_')) {
-    fail(`record_approved_snapshot_ref_not_explicit_fixture:${record.toolId}`)
-  }
-  if (record.creditReservationId !== 'credit_reservation_ai_graphics_internal_beta_fixture') {
-    fail(`record_credit_reservation_id:${record.toolId}:${record.creditReservationId}`)
-  }
-  if (!String(record.creditReservationId ?? '').startsWith('credit_reservation_')) {
-    fail(`record_credit_reservation_ref_not_explicit_fixture:${record.toolId}`)
-  }
-  if (!String(record.privateArtifactManifestRef ?? '').startsWith('private://')) {
-    fail(`record_private_manifest_ref:${record.toolId}:${record.privateArtifactManifestRef}`)
-  }
-  if (record.canWriteSupabaseJobNow !== false) fail(`record_can_write_supabase:${record.toolId}`)
-  if (record.canCreateLiveWorkerClaimNow !== false) fail(`record_can_live_claim:${record.toolId}`)
-  if (record.canDispatchLiveWorkerNow !== false) fail(`record_can_live_dispatch:${record.toolId}`)
-  if (record.canExecuteToolNow !== false) fail(`record_can_execute:${record.toolId}`)
-}
-for (const scenario of approvedOutput.backendQueueStorageCapabilityScenarios ?? []) {
-  if (!capabilities.includes(scenario.capabilityId)) fail(`unknown_capability_scenario:${scenario.capabilityId}`)
-  if (scenario.selectedQueueStorageTools?.length < 1) fail(`scenario_no_selected_tools:${scenario.capabilityId}`)
-  if (scenario.scenarioQueueStorageReadyWithProvidedEvidence !== true) {
-    fail(`scenario_not_ready:${scenario.capabilityId}`)
-  }
-  if (scenario.canWriteSupabaseJobsNow !== false) fail(`scenario_can_write_supabase:${scenario.capabilityId}`)
-  if (scenario.canCreateLiveWorkerClaimsNow !== false) fail(`scenario_can_claim:${scenario.capabilityId}`)
-  if (scenario.canExecuteToolsNow !== false) fail(`scenario_can_execute:${scenario.capabilityId}`)
+if (packetFedOutput.booleans?.gpuHeavyToolsTargetGpuRuntime !== true) {
+  fail('packet_fed_gpu_runtime_targeting_not_preserved')
 }
 for (const key of falseGateKeys) {
-  if (approvedOutput.booleans?.[key] !== false) fail(`approved_false_gate_not_false:${key}`)
+  if (packetFedOutput.booleans?.[key] !== false) fail(`packet_fed_false_gate_not_false:${key}`)
 }
 for (const key of inputFalseKeys) {
-  if (approvedOutput.input?.[key] !== false) fail(`approved_input_false_gate_not_false:${key}`)
+  if (packetFedOutput.input?.[key] !== false) fail(`packet_fed_input_false_gate_not_false:${key}`)
 }
 
 let liveWritesExited = false

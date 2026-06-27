@@ -19,6 +19,8 @@ internal beta runtime, unlock external beta, or unlock production.
 - Status: `service_role_queue_transaction_envelope_prepared_live_writes_blocked`
 - Source backend queue storage gate: `ai_graphics_internal_beta_backend_queue_storage_readiness_contract_prepared_with_mock_service_records`
 - Source queue dispatcher gate: `ai_graphics_internal_beta_queue_dispatcher_readiness_contract_prepared_with_mock_safe_dispatcher`
+- Source queue-admission packet mode: `--internal-beta-queue-admission-readiness-packet`
+- Source queue-admission packet must report `internal_beta_queue_admission_ready_runtime_still_blocked`; backend queue storage and service-role envelope evidence remain separately required.
 - AI graphics tools covered: 21
 - Product-facing capabilities covered: 12
 - Service-role transaction envelopes prepared: 21

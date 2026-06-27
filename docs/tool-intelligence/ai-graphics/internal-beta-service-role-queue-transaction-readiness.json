@@ -8,6 +8,17 @@
     "queueAdapter": "ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks",
     "queueAdmission": "ai_graphics_internal_beta_queue_admission_readiness_contract_prepared_with_runtime_blocks"
   },
+  "sourceEvidencePolicy": {
+    "acceptsLowLevelEvidenceFlags": true,
+    "acceptsQueueAdmissionReadinessPacket": true,
+    "sourceQueueAdmissionReadinessPacketRequired": true,
+    "sourceQueueAdmissionPacketMustReportReady": true,
+    "backendQueueStorageEvidenceStillRequired": true,
+    "serviceRoleEnvelopeStillRequired": true,
+    "noWriteRpcEnvelopeOnly": true,
+    "liveServiceRoleTransactionPerformed": false,
+    "runtimeUnlockPerformed": false
+  },
   "tools": [
     "torch_torchvision",
     "transformers",

@@ -14,7 +14,7 @@ create artifacts, or unlock beta/production.
 - Total AI graphics tools: 21
 - GPU runtime targeted tools: 8
 - Private model-weight manifest tools: 5
-- Required native proof profiles: 4
+- Required native proof profiles: 6
 - Runtime proof results currently committed: 0
 - Runtime proof results accepted for owner review: 0
 
@@ -40,6 +40,8 @@ fallback is blocked for heavy model paths.
 - `sam2`
 - `birefnet`
 - `real_esrgan`
+- `rembg`
+- `transparent_background`
 
 ## Acceptance Rules
 
@@ -63,6 +65,7 @@ include:
 - all profile-required imports
 - required model manifest checks with `validated_not_loaded`
 - native probe input manifests require reviewed private artifact namespaces only: `private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`
+- native probe input manifests require `checksumSha256` to match reviewed source-catalog checksum guidance when guidance exists
 - `privateArtifactRefStatus=present_private_ref_not_logged`
 - no raw `privateArtifactRef`, `private://`, `gs://`, HTTP(S), signed URL, or public artifact refs
 - all runtime side-effect fields false

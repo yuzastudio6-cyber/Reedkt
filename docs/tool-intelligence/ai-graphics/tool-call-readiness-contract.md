@@ -68,7 +68,7 @@ The selections follow the canonical ranking matrix and retain elimination/fallba
 ## Next Proofs
 
 - Native NVIDIA GPU runtime readiness for the eight GPU/model tools.
-- Reviewed private model or model-cache manifests for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background.
+- Reviewed private model or model-cache manifests for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background, including source-catalog checksum matches wherever checksum guidance exists.
 - Tool Route, Worker, approved snapshot, credit gate, artifact boundary, and beta-readiness approvals before any JS proof-passed tool becomes agent-executable.
 
 ## No-Scope

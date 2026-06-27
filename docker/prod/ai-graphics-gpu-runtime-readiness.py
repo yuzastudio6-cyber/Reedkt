@@ -107,6 +107,22 @@ MODEL_MANIFEST_SOURCE_CANDIDATE_IDS: dict[str, str] = {
     "transparent_background": "plemeri_transparent_background_base_ckpt_review_candidate",
 }
 
+MODEL_MANIFEST_SUGGESTED_CHECKSUM_SHA256: dict[str, str | None] = {
+    "sam2": "45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2",
+    "birefnet": "1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7",
+    "real_esrgan": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
+    "rembg": None,
+    "transparent_background": None,
+}
+
+MODEL_MANIFEST_CHECKSUM_EVIDENCE_STATUS: dict[str, str] = {
+    "sam2": "accepted_from_existing_internal_evidence_private_manifest_still_required",
+    "birefnet": "accepted_from_existing_internal_evidence_private_manifest_still_required",
+    "real_esrgan": "release_asset_checksum_required_before_private_manifest",
+    "rembg": "checksum_required_before_private_manifest",
+    "transparent_background": "checksum_required_before_private_manifest",
+}
+
 REQUIRED_MODEL_MANIFEST_FIELDS = [
     "manifestId",
     "toolId",
@@ -295,6 +311,11 @@ def validate_model_manifest(manifest_path: Path, tool_id: str) -> dict[str, str]
     checksum = require_non_empty_string(manifest, "checksumSha256", tool_id)
     if not SHA256_PATTERN.fullmatch(checksum):
         raise RuntimeError(f"{tool_id} model manifest checksumSha256 must be a 64-character hex SHA-256 digest.")
+    expected_checksum = MODEL_MANIFEST_SUGGESTED_CHECKSUM_SHA256[tool_id]
+    if expected_checksum and checksum.lower() != expected_checksum.lower():
+        raise RuntimeError(
+            f"{tool_id} model manifest checksumSha256 must match reviewed source-catalog checksum."
+        )
 
     require_non_empty_string(manifest, "sourceLicenseRef", tool_id)
     require_non_empty_string(manifest, "modelCardRef", tool_id)
@@ -313,6 +334,8 @@ def validate_model_manifest(manifest_path: Path, tool_id: str) -> dict[str, str]
         "manifestId": manifest_id,
         "templateId": template_id,
         "sourceCandidateId": source_candidate_id,
+        "sourceCatalogSuggestedChecksumSha256": expected_checksum,
+        "sourceCatalogChecksumEvidenceStatus": MODEL_MANIFEST_CHECKSUM_EVIDENCE_STATUS[tool_id],
         "privateArtifactRefStatus": "present_private_ref_not_logged",
         "checksumSha256": checksum,
         "status": "validated_not_loaded",

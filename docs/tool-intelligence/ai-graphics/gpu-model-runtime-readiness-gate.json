@@ -33,6 +33,8 @@
     "tinyCudaTensorProbe": true,
     "modelWeightManifestCheckAvailable": true,
     "modelWeightManifestContentValidation": true,
+    "modelWeightManifestSourceCatalogChecksumGuidanceEnforced": true,
+    "suggestedChecksumMismatchRejected": true,
     "modelWeightManifestFlag": "--require-model-weight-manifests",
     "modelWeightManifestRequiredFields": [
       "manifestId",

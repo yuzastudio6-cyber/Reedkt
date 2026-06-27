@@ -56,6 +56,12 @@ review booleans set to true, no public or signed URL artifact refs, and no
 claims that model weights, inference, media, routes, workers, public artifacts,
 or signed URLs already executed.
 
+When reviewed source-catalog checksum guidance exists, the manifest
+`checksumSha256` must match that guidance exactly before the manifest can feed
+native GPU proof. This currently applies to `sam2`, `birefnet`, and
+`real_esrgan`; `rembg` and `transparent_background` remain blocked until their
+private artifact checksum evidence is owner-reviewed.
+
 It does not download model weights, load checkpoints, process media, call
 providers, execute Product Tool Routes, execute Workers, create signed URLs,
 create public artifacts, unlock beta, or unlock production.

@@ -141,6 +141,14 @@ const sourceCatalogChecksumSha256ByTool = {
   transparent_background: null,
 }
 
+const sourceCatalogChecksumEvidenceStatusByTool = {
+  sam2: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+  birefnet: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+  real_esrgan: 'release_asset_checksum_required_before_private_manifest',
+  rembg: 'checksum_required_before_private_manifest',
+  transparent_background: 'checksum_required_before_private_manifest',
+}
+
 const failures = []
 
 function fail(message) {
@@ -210,6 +218,8 @@ function manifestCheck(toolId) {
     manifestId: `${toolId}_private_manifest_review_v1`,
     templateId: templateIdByTool[toolId],
     sourceCandidateId: sourceCandidateIdByTool[toolId],
+    sourceCatalogSuggestedChecksumSha256: sourceCatalogChecksumSha256ByTool[toolId],
+    sourceCatalogChecksumEvidenceStatus: sourceCatalogChecksumEvidenceStatusByTool[toolId],
     privateArtifactRefStatus: 'present_private_ref_not_logged',
     checksumSha256: sourceCatalogChecksumSha256ByTool[toolId] ?? 'b'.repeat(64),
     status: 'validated_not_loaded',
@@ -392,6 +402,7 @@ for (const token of [
   'profile_imports_present',
   'model_manifest_checks_validated_not_loaded',
   'model_manifest_private_namespace_enforced',
+  'model_manifest_source_catalog_checksum_enforced',
   'private_artifact_refs_not_logged',
   'runtime_side_effect_fields_false',
 ]) {
@@ -408,6 +419,9 @@ for (const token of [
   'invalid_native_gpu_runtime_proof_results',
   'capability>=8.9',
   'privateArtifactRefStatus',
+  'sourceCatalogSuggestedChecksumSha256',
+  'sourceCatalogChecksumEvidenceStatus',
+  'source-catalog checksum',
   'validated_not_loaded',
   'duplicate native GPU proof result records',
 ]) {
@@ -441,6 +455,8 @@ for (const key of [
   'startsOnlyForApprovedWorkerOrToolCall',
   'privateArtifactRefNamespaceRequired',
   'privateArtifactRefsNotLogged',
+  'sourceCatalogChecksumGuidanceEnforced',
+  'suggestedChecksumMismatchRejected',
   'ownerReviewStillRequired',
   'agentCanSelectForPlanning',
 ]) {
@@ -518,6 +534,34 @@ if (validPacket.booleans?.runtimeReadyNow !== false) fail('valid_results_runtime
 if (validPacket.booleans?.internalBetaReadyNow !== false) fail('valid_results_internal_beta_not_false')
 if (/private:\/\//i.test(validOutput)) fail('valid_results_output_leaked_private_ref')
 if (/https?:\/\//i.test(validOutput)) fail('valid_results_output_leaked_http_ref')
+
+const badChecksumDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-bad-checksum-'))
+writeProofFixtures(badChecksumDir, {
+  sam2: {
+    modelManifestChecks: [
+      {
+        ...manifestCheck('sam2'),
+        checksumSha256: 'b'.repeat(64),
+      },
+    ],
+  },
+})
+let badChecksumExited = false
+let badChecksumOutput = ''
+try {
+  badChecksumOutput = runValidate(['--result-dir', badChecksumDir])
+} catch (error) {
+  badChecksumExited = true
+  badChecksumOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+if (!badChecksumExited) fail('bad_checksum_results_did_not_exit_nonzero')
+const badChecksumPacket = parseOutput(badChecksumOutput, 'bad_checksum_results')
+if (badChecksumPacket.status !== 'invalid_native_gpu_runtime_proof_results') {
+  fail(`bad_checksum_status_mismatch:${badChecksumPacket.status}`)
+}
+if (!JSON.stringify(badChecksumPacket).includes('checksumSha256 must match reviewed source-catalog checksum')) {
+  fail('bad_checksum_missing_source_catalog_error')
+}
 
 const invalidDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-invalid-'))
 writeProofFixtures(invalidDir, {

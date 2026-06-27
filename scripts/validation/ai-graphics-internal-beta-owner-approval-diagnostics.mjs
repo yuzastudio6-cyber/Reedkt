@@ -129,6 +129,14 @@ const sourceCatalogChecksumSha256ByTool = {
   transparent_background: null,
 }
 
+const sourceCatalogChecksumEvidenceStatusByTool = {
+  sam2: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+  birefnet: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+  real_esrgan: 'release_asset_checksum_required_before_private_manifest',
+  rembg: 'checksum_required_before_private_manifest',
+  transparent_background: 'checksum_required_before_private_manifest',
+}
+
 const failures = []
 
 function fail(message) {
@@ -200,6 +208,8 @@ function manifestCheck(toolId) {
     manifestId: `${toolId}_private_manifest_review_v1`,
     templateId: templateIdByTool[toolId],
     sourceCandidateId: sourceCandidateIdByTool[toolId],
+    sourceCatalogSuggestedChecksumSha256: sourceCatalogChecksumSha256ByTool[toolId],
+    sourceCatalogChecksumEvidenceStatus: sourceCatalogChecksumEvidenceStatusByTool[toolId],
     privateArtifactRefStatus: 'present_private_ref_not_logged',
     checksumSha256: sourceCatalogChecksumSha256ByTool[toolId] ?? 'b'.repeat(64),
     status: 'validated_not_loaded',

@@ -97,6 +97,8 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
     cpuFallbackAllowedForHeavyTools: false
     privateArtifactRefNamespaceRequired: true
     privateArtifactRefsNotLogged: true
+    sourceCatalogChecksumGuidanceEnforced: true
+    suggestedChecksumMismatchRejected: true
     nativeGpuRuntimeProofResultsAcceptedForOwnerReview: boolean
     ownerReviewStillRequired: true
     agentCanSelectForPlanning: true
@@ -222,6 +224,22 @@ const templateIdByManifestTool = {
   transparent_background: 'transparent_background_model',
 } as const satisfies Record<AiGraphicsModelWeightManifestToolId, string>
 
+const sourceCatalogChecksumSha256ByManifestTool = {
+  sam2: '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',
+  birefnet: '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
+  real_esrgan: '4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1',
+  rembg: null,
+  transparent_background: null,
+} as const satisfies Record<AiGraphicsModelWeightManifestToolId, string | null>
+
+const sourceCatalogChecksumEvidenceStatusByManifestTool = {
+  sam2: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+  birefnet: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+  real_esrgan: 'release_asset_checksum_required_before_private_manifest',
+  rembg: 'checksum_required_before_private_manifest',
+  transparent_background: 'checksum_required_before_private_manifest',
+} as const satisfies Record<AiGraphicsModelWeightManifestToolId, string>
+
 const falseRuntimeFields = [
   'modelWeightsLoaded',
   'mediaProcessed',
@@ -254,6 +272,7 @@ const requiredProofChecks = [
   'profile_imports_present',
   'model_manifest_checks_validated_not_loaded',
   'model_manifest_private_namespace_enforced',
+  'model_manifest_source_catalog_checksum_enforced',
   'private_artifact_refs_not_logged',
   'runtime_side_effect_fields_false',
 ] as const
@@ -421,6 +440,19 @@ function validateModelManifestChecks(
     }
     if (!sha256Pattern.test(String(check.checksumSha256 ?? ''))) {
       errors.push(`${toolId} model manifest check checksumSha256 must be a 64-character hex digest.`)
+      accepted = false
+    }
+    const expectedChecksum = sourceCatalogChecksumSha256ByManifestTool[toolId]
+    if (expectedChecksum && String(check.checksumSha256 ?? '').toLowerCase() !== expectedChecksum.toLowerCase()) {
+      errors.push(`${toolId} model manifest check checksumSha256 must match reviewed source-catalog checksum.`)
+      accepted = false
+    }
+    if (check.sourceCatalogSuggestedChecksumSha256 !== expectedChecksum) {
+      errors.push(`${toolId} model manifest check sourceCatalogSuggestedChecksumSha256 mismatch.`)
+      accepted = false
+    }
+    if (check.sourceCatalogChecksumEvidenceStatus !== sourceCatalogChecksumEvidenceStatusByManifestTool[toolId]) {
+      errors.push(`${toolId} model manifest check sourceCatalogChecksumEvidenceStatus mismatch.`)
       accepted = false
     }
   }
@@ -623,6 +655,8 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
       cpuFallbackAllowedForHeavyTools: false,
       privateArtifactRefNamespaceRequired: true,
       privateArtifactRefsNotLogged: true,
+      sourceCatalogChecksumGuidanceEnforced: true,
+      suggestedChecksumMismatchRejected: true,
       nativeGpuRuntimeProofResultsAcceptedForOwnerReview: nativeGpuRuntimeProofResultsAccepted,
       ownerReviewStillRequired: true,
       agentCanSelectForPlanning: true,

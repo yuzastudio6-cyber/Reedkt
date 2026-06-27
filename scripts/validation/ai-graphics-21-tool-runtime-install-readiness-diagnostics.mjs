@@ -75,6 +75,17 @@ const expectedTools = [
   "babylonjs"
 ];
 
+const expectedGpuTools = [
+  "torch_torchvision",
+  "transformers",
+  "sam2",
+  "birefnet",
+  "real_esrgan",
+  "kornia",
+  "rembg",
+  "transparent_background"
+];
+
 const nodePackages = {
   d3: { packageName: "d3", version: "7.9.0" },
   echarts: { packageName: "echarts", version: "6.1.0" },
@@ -189,6 +200,11 @@ if (readiness) {
   for (const toolId of expectedTools) {
     if (!toolIds.has(toolId)) {
       fail(`Readiness manifest missing tool ${toolId}`);
+    }
+  }
+  for (const toolId of expectedGpuTools) {
+    if (readinessTools.get(toolId)?.installTarget !== "gpu_ai_worker") {
+      fail(`Readiness manifest ${toolId} must target gpu_ai_worker`);
     }
   }
   if (toolIds.size !== expectedTools.length) {
@@ -407,6 +423,8 @@ console.log(JSON.stringify({
   decision: readiness.decision,
   toolsCovered: expectedTools.length,
   nodePackagesChecked: Object.keys(nodePackages).length,
+  gpuToolsCovered: expectedGpuTools.length,
+  gpuRequirementLinesChecked: requiredRequirementLines.length,
   gpuRequirementsChecked: requiredRequirementLines.length,
   runtimeBetaReadyNow: false
 }, null, 2));

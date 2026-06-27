@@ -53,7 +53,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT = {
     generatedLocalFixturePassedClaimed: false,
   },
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_52-PRIVATE-INVOKE-SMOKE-EXECUTE: run controlled private invoke contract smoke, no inference',
+    'QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeFrontendClient =

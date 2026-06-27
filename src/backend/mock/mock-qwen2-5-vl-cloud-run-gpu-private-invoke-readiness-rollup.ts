@@ -6,7 +6,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_token_creator_permission_required'
   | 'blocked_routing_contract_response_required'
   | 'blocked_internal_ingress_private_caller_required'
-  | 'blocked_internal_caller_harness_deploy_required'
+  | 'blocked_direct_vpc_route_config_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
   id: string
@@ -22,7 +22,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_internal_caller_harness_deploy_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_direct_vpc_route_config_required',
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -112,7 +112,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'private_invoke_smoke_execution',
       label: 'Controlled private invoke smoke execution',
-      status: 'blocked_internal_caller_harness_deploy_required',
+      status: 'blocked_direct_vpc_route_config_required',
       evidence: [
         'Read-only auth/IAM reverify passed without Cloud Run invocation.',
         'Observed Cloud Run posture uses one NVIDIA L4, concurrency 1, no min scale annotation, and template max scale 1.',
@@ -120,9 +120,13 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
         'Controlled smoke runner supports non-key service-account impersonation, TokenCreator and Run Invoker bindings are present, and one bounded request returned HTTP 404 instead of the expected fail-closed contract JSON.',
         'Routing fix records ingress internal-and-cloud-load-balancing and blocks future direct local service-host requests before token fetch unless an approved internal route is confirmed.',
         'Internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path.',
+        'Deploy preflight found the preferred route is not ready because Private Google Access is disabled on the inspected default subnet and no equivalent private route is recorded.',
+        'Internal route approval conditionally accepts Direct VPC egress with Private Google Access for a future configuration prompt only.',
       ],
       missingEvidence: [
-        'Deployed controlled CPU-only internal caller harness or approved fallback private path.',
+        'Configured Direct VPC private route with Private Google Access or an approved equivalent private path.',
+        'Defined CPU-only internal caller source/image with no model loader, no vLLM runtime, and no inference path.',
+        'Deployed controlled CPU-only internal caller harness.',
         'Successful controlled private invoke contract response with inference disabled.',
         'No beta or production runtime approval has been granted.',
       ],
@@ -141,6 +145,14 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     projectInvokerPolicyVerified: true,
     privateInvokeSmokePlanDefined: true,
     internalCallerHarnessPlanDefined: true,
+    internalCallerDeployPreflightRecorded: true,
+    internalRouteApprovalRecorded: true,
+    futureDirectVpcRouteConfigApproved: true,
+    defaultSubnetPrivateGoogleAccess: false,
+    approvedPrivateRouteReady: false,
+    cpuOnlyCallerImageDefined: false,
+    directVpcEgressConfigured: false,
+    privateGoogleAccessChanged: false,
     internalCallerHarnessDeployed: false,
     privateInvokeSmokeAttempted: true,
     privateInvokeSmokeBlockedBeforeRequest: true,
@@ -178,11 +190,13 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   blockedUntil: [
     'backend_safe_identity_token_path_approved',
     'audience_bound_identity_token_fetch_passed_without_printing_or_storing_token',
+    'direct_vpc_private_route_configured_or_equivalent_private_path_ready',
+    'cpu_only_internal_caller_image_defined',
     'controlled_cpu_only_internal_caller_harness_deployed',
     'controlled_private_invoke_contract_response_observed',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_55-PRIVATE-INVOKE-INTERNAL-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference',
+    'QWEN2_5_VL_STACK_TOOL_55B-PRIVATE-INVOKE-DIRECT-VPC-ROUTE-CONFIG: configure Direct VPC private route for CPU-only caller harness, no inference',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

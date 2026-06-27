@@ -21,7 +21,7 @@ The UI presents 13 planner-routing tasks and one private-invoke dry-run route re
 - 5 blocked routes for AI video generation, final render/export, raw chat execution, frontend invocation, and unbounded long-video analysis.
 - Private invoke client route: `jobs.qwen2_5_vl.privateInvoke.dryRun`
 - Private invoke client helper: `callQwen25VlPrivateInvokeDryRun`
-- Private invoke status: `blocked_private_invoke_internal_caller_deploy_required`
+- Private invoke status: `blocked_private_invoke_direct_vpc_route_config_required`
 
 The card keeps `dryRunPassedClaimed=false` and all execution gates false.
 
@@ -59,8 +59,8 @@ The card provides no execution buttons, no approval buttons, no credit buttons, 
 
 ## Current Blocker
 
-Read-only Cloud Run auth/IAM reverify has passed, narrow TokenCreator and Run Invoker bindings are in place, and the controlled smoke can mint an audience-bound identity token without printing or storing the token value. The latest bounded request returned HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records the more precise blocker: the service ingress is `internal-and-cloud-load-balancing`. The internal caller harness plan now selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path, so private Cloud Run invocation remains blocked until that harness or an approved fallback private path is deployed.
+Read-only Cloud Run auth/IAM reverify has passed, narrow TokenCreator and Run Invoker bindings are in place, and the controlled smoke can mint an audience-bound identity token without printing or storing the token value. The latest bounded request returned HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records the more precise blocker: the service ingress is `internal-and-cloud-load-balancing`. The internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. Deploy preflight found the preferred route is not ready because Private Google Access is disabled on the inspected default subnet, and route approval conditionally accepts Direct VPC plus Private Google Access for a future config prompt. Private Cloud Run invocation remains blocked until that route is configured, the CPU-only caller image/source is defined, and the caller is deployed.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_55-PRIVATE-INVOKE-INTERNAL-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference`
+`QWEN2_5_VL_STACK_TOOL_55B-PRIVATE-INVOKE-DIRECT-VPC-ROUTE-CONFIG: configure Direct VPC private route for CPU-only caller harness, no inference`

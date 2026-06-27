@@ -122,7 +122,7 @@ export function runQwen25VlPrivateInvokeDryRun(
   }
 
   const responseInput = input.simulatedResponse ?? {
-    transportBlocker: input.transportBlocker ?? 'auth_session_requires_reauth',
+    transportBlocker: input.transportBlocker ?? 'service_unavailable',
   }
   const responseClassification = classifyQwen25VlPrivateInvokeResponse(responseInput)
 
@@ -160,7 +160,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_CONTRACT = {
   decision: DECISION,
   coordinatesEnvelopeAndResponseClassification: true,
   requiresApprovedSnapshotQueueEnvelope: true,
-  defaultTransportBlocker: 'auth_session_requires_reauth',
+  defaultTransportBlocker: 'service_unavailable',
   transportAttemptedNow: false,
   invocationAllowedNow: false,
   runtimeCanAdvanceNow: false,

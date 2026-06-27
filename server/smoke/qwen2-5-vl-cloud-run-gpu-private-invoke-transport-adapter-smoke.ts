@@ -14,7 +14,7 @@ const ROOT = process.cwd()
 const DECISION =
   'qwen2_5_vl_cloud_run_gpu_private_invoke_transport_adapter_defined_fail_closed'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_50-GCLOUD-REAUTH-USER: refresh local gcloud auth outside Codex, no token/no invocation'
+  'QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -133,7 +133,7 @@ for (const phrase of [
   '`sendRequest`',
   '`invocationEnabledNow`',
   '`authReverifyPassed`',
-  '`gcloud_auth_session_requires_interactive_reauthentication`',
+  'auth/IAM reverify passed',
   NEXT_PROMPT,
 ]) {
   assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)
@@ -211,10 +211,10 @@ assert.equal(contract.spendsCredits, false)
 assert.equal(contract.unlocksBeta, false)
 assert.equal(contract.unlocksProduction, false)
 
-assert.equal(QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT.status, 'blocked')
+assert.equal(QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT.status, 'passed')
 assert.equal(
-  QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT.blockedReason,
-  'gcloud_auth_session_requires_interactive_reauthentication',
+  QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT.remainingBlocker,
+  'private_invoke_smoke_plan_required_no_token_no_invocation',
 )
 assert.equal(QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP.runtimeFlags.privateInvokeReady, false)
 

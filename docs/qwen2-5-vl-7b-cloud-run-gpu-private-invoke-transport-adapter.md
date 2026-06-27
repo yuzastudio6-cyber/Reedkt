@@ -26,7 +26,7 @@ All of these must be true before the adapter can call injected transport depende
 - `runtimeServiceAccountVerified`
 - `projectInvokerPolicyVerified`
 
-Current status: every gate remains false in local validation.
+Default adapter status: every gate remains false unless a future backend runtime injects explicit approval. Repository evidence now shows the guarded read-only auth/IAM reverify passed, but the adapter still refuses by default until a controlled private invoke smoke plan approves runtime invocation.
 
 ## Required Transport Dependencies
 
@@ -61,8 +61,8 @@ The default adapter result is `blocked_transport_disabled`. In that path:
 
 ## Current Blocker
 
-The latest guarded auth reverify remains blocked by `gcloud_auth_session_requires_interactive_reauthentication`. Cloud Run service describe, Cloud Run IAM policy read, runtime service account describe, and project invoker policy read must pass before a private invoke smoke can be approved.
+The latest guarded auth/IAM reverify passed without fetching an identity token or invoking Cloud Run. The remaining blocker is a controlled private invoke smoke plan that explicitly reviews token-fetch policy, service-audience policy, request shape, cost guard posture, and no-inference/no-beta/no-production boundaries before any dependency may be called.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_50-GCLOUD-REAUTH-USER: refresh local gcloud auth outside Codex, no token/no invocation`
+`QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference`

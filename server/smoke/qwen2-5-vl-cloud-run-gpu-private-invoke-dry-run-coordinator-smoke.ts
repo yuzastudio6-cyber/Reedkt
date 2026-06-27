@@ -142,7 +142,7 @@ const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-dry-run-coordi
 for (const phrase of [
   DECISION,
   '`blocked_transport_not_attempted`',
-  '`auth_session_requires_reauth`',
+  '`service_unavailable`',
   '`blocked_transport_disabled`',
   '`blocked_envelope_not_accepted`',
   '`blocked_invalid_envelope`',
@@ -165,7 +165,7 @@ const evidence = QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN
 assert.equal(contract.decision, DECISION)
 assert.equal(contract.coordinatesEnvelopeAndResponseClassification, true)
 assert.equal(contract.requiresApprovedSnapshotQueueEnvelope, true)
-assert.equal(contract.defaultTransportBlocker, 'auth_session_requires_reauth')
+assert.equal(contract.defaultTransportBlocker, 'service_unavailable')
 assert.equal(contract.transportAttemptedNow, false)
 assert.equal(contract.invocationAllowedNow, false)
 assert.equal(contract.runtimeCanAdvanceNow, false)
@@ -192,7 +192,7 @@ assert.equal(defaultDryRun.transportAdapterPreview.envelopeAcceptedForFutureTran
 assert.equal(defaultDryRun.transportAdapterPreview.runtimeFlags.cloudRunInvocationAttempted, false)
 assert.equal(defaultDryRun.transportAdapterPreview.runtimeFlags.identityTokenFetched, false)
 assert.equal(defaultDryRun.runtimeFlags.transportAdapterPreviewed, true)
-assert.equal(defaultDryRun.responseClassification.status, 'blocked_transport_auth')
+assert.equal(defaultDryRun.responseClassification.status, 'blocked_transport_unavailable')
 assert.equal(defaultDryRun.runtimeFlags.envelopeAcceptedForFutureTransport, true)
 assert.equal(defaultDryRun.runtimeFlags.responseClassifiedLocally, true)
 assert.equal(defaultDryRun.runtimeFlags.transportBlockerRecognized, true)

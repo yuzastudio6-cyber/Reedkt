@@ -41,7 +41,7 @@ This dry-run coordinator stops before private Cloud Run invocation.
 The default dry-run outcome is:
 
 - status: `blocked_transport_not_attempted`
-- default transport blocker: `auth_session_requires_reauth`
+- default transport blocker: `service_unavailable`
 - envelope accepted for future transport: true
 - transport adapter preview status: `blocked_transport_disabled`
 - transport adapter previewed: true
@@ -111,7 +111,7 @@ The coordinator blocks:
 
 ## Current Blocker
 
-Private invocation verification still requires local `gcloud` reauthentication outside Codex. This coordinator does not require that step because it never performs private transport.
+Read-only Cloud Run auth/IAM reverify has passed, but private invocation still requires a separate controlled smoke plan. This coordinator does not require that step because it never performs private transport.
 
 ## Next Prompt
 

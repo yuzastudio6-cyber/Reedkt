@@ -102,7 +102,50 @@ export const betaReadinessPlatformBillingQaSchema = z.object({
   notes: z.array(noteSchema).min(1).max(20).optional(),
 }).strict()
 
+const deployedPlatformProbeIdSchema = z.enum([
+  'tool_cost_events_migration_deployed',
+  'beta_readiness_evidence_migration_deployed',
+  'service_role_write_path_verified',
+  'authenticated_rls_member_readback_verified',
+  'idempotent_replay_verified',
+  'wallet_settlement_verified',
+  'stripe_boundary_owner_verified',
+  'monitoring_deployment_verified',
+  'staging_billing_qa_verified',
+])
+
+const deployedPlatformProbeObservationSchema = z.object({
+  id: deployedPlatformProbeIdSchema,
+  status: z.enum(['passed', 'failed', 'not_run']),
+  evidence: z.array(noteSchema).max(20),
+  nextAction: noteSchema,
+}).strict()
+
+const deployedPlatformOwnerApprovalsSchema = z.object({
+  billingOwnerStripeBoundaryApproved: z.boolean(),
+  deploymentApproved: z.boolean(),
+  securityApproved: z.boolean(),
+  storageApproved: z.boolean(),
+  legalApproved: z.boolean(),
+  monitoringApproved: z.boolean(),
+  supportApproved: z.boolean(),
+}).strict()
+
+export const betaReadinessPlatformDeployedEvidenceSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema.optional(),
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  environment: z.enum(['staging', 'production']),
+  ownerApprovals: deployedPlatformOwnerApprovalsSchema,
+  notes: z.array(noteSchema).min(1).max(20),
+  probes: z.array(deployedPlatformProbeObservationSchema).min(1).max(9),
+  recordEvidence: z.boolean().optional(),
+  confirmRecordEvidence: z.boolean().optional(),
+}).strict()
+
 export type BetaReadinessEvidenceEvaluationBody = z.infer<typeof betaReadinessEvidenceEvaluationSchema>
 export type BetaReadinessEvidencePacketBody = z.infer<typeof betaReadinessEvidencePacketSchema>
 export type BetaReadinessCoreRealCheckEvidenceBody = z.infer<typeof betaReadinessCoreRealCheckEvidenceSchema>
 export type BetaReadinessPlatformBillingQaBody = z.infer<typeof betaReadinessPlatformBillingQaSchema>
+export type BetaReadinessPlatformDeployedEvidenceBody = z.infer<typeof betaReadinessPlatformDeployedEvidenceSchema>

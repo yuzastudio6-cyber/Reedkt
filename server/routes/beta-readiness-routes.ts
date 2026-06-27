@@ -6,6 +6,11 @@ import { buildBetaReadinessReport } from '../beta-readiness'
 import { createBetaReadinessEvidenceService } from '../beta-readiness/beta-readiness-evidence-service'
 import { buildCoreRealCheckEvidencePacket } from '../beta-readiness/core-real-check-evidence'
 import { buildBetaPlatformEvidencePreflight } from '../beta-readiness/platform-evidence-preflight'
+import {
+  runBetaPlatformDeployedEvidenceVerifier,
+  type BetaPlatformDeployedEvidenceProbeRunners,
+  type BetaPlatformDeployedProbeResult,
+} from '../beta-readiness/platform-deployed-evidence-verifier'
 import { runBetaPlatformBillingQa } from '../beta-readiness/platform-billing-qa'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 import {
@@ -13,6 +18,8 @@ import {
   betaReadinessEvidenceEvaluationSchema,
   betaReadinessEvidencePacketSchema,
   betaReadinessPlatformBillingQaSchema,
+  betaReadinessPlatformDeployedEvidenceSchema,
+  type BetaReadinessPlatformDeployedEvidenceBody,
 } from '../validation/beta-readiness-schemas'
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getServiceContext, sendOk } from './route-helpers'
@@ -85,6 +92,55 @@ export function createBetaReadinessRoutes(): Router {
     ])
   }))
 
+  router.post('/v1/beta-readiness/platform-deployed-evidence/verify', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(betaReadinessPlatformDeployedEvidenceSchema, request.body)
+    assertNoSecretLikeBetaReadinessEvidence(body)
+    const context = getServiceContext(request)
+    const report = await runBetaPlatformDeployedEvidenceVerifier(body, bodyToProbeRunners(body))
+
+    if (body.recordEvidence === true) {
+      if (body.confirmRecordEvidence !== true) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'confirmRecordEvidence=true is required before recording deployed platform evidence.',
+          400,
+        )
+      }
+      if (!report.evidencePacket) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Deployed platform evidence cannot be recorded until every probe and owner approval passes.',
+          400,
+          {
+            missingEvidence: report.missingEvidence,
+            ownerApprovalGaps: report.ownerApprovalGaps,
+          },
+        )
+      }
+
+      const result = await createBetaReadinessEvidenceService(context).recordEvidence(
+        report.evidencePacket,
+        getIdempotencyKey(request),
+      )
+      sendOk(response, {
+        report,
+        packet: result.packet,
+        replayed: result.replayed,
+        storedReadinessReport: result.report,
+      }, [
+        ...report.warnings,
+        ...result.warnings,
+        'Deployed platform evidence was recorded only after every probe and owner approval passed.',
+      ], result.replayed ? 200 : 201)
+      return
+    }
+
+    sendOk(response, { report }, [
+      ...report.warnings,
+      'Verifier ran in report-only mode; no beta readiness evidence was recorded.',
+    ])
+  }))
+
   router.post('/v1/beta-readiness/evidence', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
     const body = validateBody(betaReadinessEvidencePacketSchema, request.body)
     assertNoSecretLikeBetaReadinessEvidence(body)
@@ -127,7 +183,21 @@ function stringQueryValue(value: unknown): string | undefined {
 function assertNoSecretLikeBetaReadinessEvidence(value: unknown): void {
   const secretPaths = collectSecretLikePaths(value, 'betaReadinessEvidence')
     .filter((path) => path !== 'betaReadinessEvidence.platformEvidence.serviceRoleWritePathVerified')
+    .filter((path) => path !== 'betaReadinessEvidence.ownerApprovals.billingOwnerStripeBoundaryApproved')
   if (secretPaths.length > 0) {
     throw new ApiError('VALIDATION_FAILED', `Beta readiness evidence contains secret-like fields: ${secretPaths.join(', ')}`, 400)
   }
+}
+
+function bodyToProbeRunners(
+  body: BetaReadinessPlatformDeployedEvidenceBody,
+): BetaPlatformDeployedEvidenceProbeRunners {
+  const probes = new Map<string, BetaPlatformDeployedProbeResult>()
+  for (const probe of body.probes) {
+    if (probes.has(probe.id)) {
+      throw new ApiError('VALIDATION_FAILED', `Duplicate deployed platform evidence probe: ${probe.id}.`, 400)
+    }
+    probes.set(probe.id, probe)
+  }
+  return Object.fromEntries([...probes].map(([id, result]) => [id, () => result]))
 }

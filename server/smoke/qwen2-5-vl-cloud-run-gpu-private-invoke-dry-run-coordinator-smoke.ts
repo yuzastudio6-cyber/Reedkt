@@ -143,8 +143,11 @@ for (const phrase of [
   DECISION,
   '`blocked_transport_not_attempted`',
   '`auth_session_requires_reauth`',
+  '`blocked_transport_disabled`',
   '`blocked_envelope_not_accepted`',
+  '`blocked_invalid_envelope`',
   '`blocked_response_not_runtime_advanceable`',
+  '`transportAdapterPreviewed=true`',
   '`transportAttemptedNow=false`',
   '`serviceUrlResolvedNow=false`',
   '`authHeaderCreated=false`',
@@ -184,6 +187,11 @@ assert.equal(evidence.nextPrompt, NEXT_PROMPT)
 const defaultDryRun = runQwen25VlPrivateInvokeDryRun()
 assert.equal(defaultDryRun.status, 'blocked_transport_not_attempted')
 assert.equal(defaultDryRun.envelopeResult.envelopeAcceptedForFutureTransport, true)
+assert.equal(defaultDryRun.transportAdapterPreview.status, 'blocked_transport_disabled')
+assert.equal(defaultDryRun.transportAdapterPreview.envelopeAcceptedForFutureTransport, true)
+assert.equal(defaultDryRun.transportAdapterPreview.runtimeFlags.cloudRunInvocationAttempted, false)
+assert.equal(defaultDryRun.transportAdapterPreview.runtimeFlags.identityTokenFetched, false)
+assert.equal(defaultDryRun.runtimeFlags.transportAdapterPreviewed, true)
 assert.equal(defaultDryRun.responseClassification.status, 'blocked_transport_auth')
 assert.equal(defaultDryRun.runtimeFlags.envelopeAcceptedForFutureTransport, true)
 assert.equal(defaultDryRun.runtimeFlags.responseClassifiedLocally, true)
@@ -199,6 +207,8 @@ const invalidDryRun = runQwen25VlPrivateInvokeDryRun({
 })
 assert.equal(invalidDryRun.status, 'blocked_envelope_not_accepted')
 assert.equal(invalidDryRun.envelopeResult.envelopeAcceptedForFutureTransport, false)
+assert.equal(invalidDryRun.transportAdapterPreview.status, 'blocked_invalid_envelope')
+assert.equal(invalidDryRun.runtimeFlags.transportAdapterPreviewed, true)
 assert.equal(invalidDryRun.responseClassification.status, 'blocked_transport_unavailable')
 assertNoSideEffects(invalidDryRun)
 
@@ -218,6 +228,7 @@ const futureResponseDryRun = runQwen25VlPrivateInvokeDryRun({
   },
 })
 assert.equal(futureResponseDryRun.status, 'blocked_response_not_runtime_advanceable')
+assert.equal(futureResponseDryRun.transportAdapterPreview.status, 'blocked_transport_disabled')
 assert.equal(futureResponseDryRun.responseClassification.status, 'accepted_future_metadata_output')
 assert.equal(futureResponseDryRun.responseClassification.acceptedForFutureMetadataOnly, true)
 assert.equal(futureResponseDryRun.responseClassification.runtimeCanAdvanceNow, false)

@@ -70,6 +70,9 @@
   "evidencePolicy": {
     "partialEvidenceCreatesCallableSubset": false,
     "requiresAll21BetaEvidenceBundle": true,
+    "acceptsBetaEvidenceBundlePacket": true,
+    "acceptsBetaEvidenceLocalAssemblyPacket": true,
+    "committedDocsRemainSanitized": true,
     "rankingSystemConnected": true,
     "agentPlanningSelectionAllowed": true,
     "agentToolExecutionAllowedNow": false

@@ -8,6 +8,8 @@ This contract joins the canonical AI graphics ranking system to the beta evidenc
 
 - Default committed evidence keeps beta tool-call eligibility at `0` of `21`.
 - A complete evidence packet can make `21` of `21` tools beta-callable for the future owner gate.
+- The evaluator can consume either an already assembled beta evidence bundle via `--beta-evidence-bundle-packet` or a full local assembly packet containing `betaEvidenceBundle` via `--beta-evidence-local-assembly-packet`.
+- The local assembly packet path is for private/local owner-gate evidence handoff only. Committed docs stay sanitized and must not include raw private refs, model files, GPU proof logs, generated media, public artifact URLs, or signed URLs.
 - Partial evidence does not create a callable subset. The contract requires the complete 21-tool evidence bundle before any beta tool-call handoff is considered eligible.
 - The eight heavy/model tools preserve exact native NVIDIA L4 runtime targets through the beta-call contract. GPU use is on-demand only for a future approved worker or tool-call handoff; proof/runtime containers must be ephemeral `docker run --rm --gpus all` jobs, no idle GPU runtime is approved, and CPU fallback is blocked for heavy model paths.
 - The CLI and diagnostic are evaluator-only. They do not execute tools, workers, routes, providers, browser/WebGL/canvas runtimes, GPU/model runtimes, model downloads, media processing, public artifact creation, or signed URL creation.
@@ -79,4 +81,4 @@ This contract joins the canonical AI graphics ranking system to the beta evidenc
 
 ## Result
 
-The ranking system is connected to beta evidence without weakening the runtime boundary. Tool-call selection remains planning-only in committed state, and the complete evidence path is available for a later owner gate to verify all 21 tools together.
+The ranking system is connected to beta evidence without weakening the runtime boundary. Tool-call selection remains planning-only in committed state, and the complete evidence path is available for a later owner gate to verify all 21 tools together. A future private evidence assembly can be handed directly to this evaluator while preserving on-demand-only GPU startup and false runtime/beta/production gates.

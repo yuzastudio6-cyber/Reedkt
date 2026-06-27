@@ -174,6 +174,7 @@ Latest observed PR state after beta evidence local authoring-input bridge comple
 ## Expected Validation
 
 - `git diff --check`
+- `npm run --silent ai-graphics:beta-tool-call-readiness:diagnostics`
 - `npm run --silent ai-graphics:beta-evidence-local-assembly:diagnostics`
 - `npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-authoring:diagnostics`
@@ -208,3 +209,5 @@ Latest observed PR state after on-demand runtime admission completion: [#862](ht
 Follow-up on-demand runtime admission queue propagation updates internal beta queue admission so every future queue candidate must pass `evaluateAiGraphicsOnDemandRuntimeAdmission` with approved snapshot, credit, private artifact, Tool Route, Worker, runtime owner, runtime proof, and model manifest refs before queue admission can report ready with provided evidence. Queue adapter and dispatcher CLIs now forward the same runtime proof refs into the inherited queue-admission input. This preserves on-demand GPU startup authorization for the eight GPU/model tools only after a future accepted worker/tool-call job, while `gpuRuntimeShouldStartNow=false`, no idle GPU runtime, and all runtime/beta/production gates remain false.
 
 Latest observed PR state after on-demand runtime admission queue propagation: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `58d6bedb12182691f81342b3e92ce5a7fce3b006`, with an empty check rollup.
+
+Follow-up beta tool-call evidence packet ingestion updates `server/cli/ai-graphics-beta-tool-call-readiness.ts`, `docs/tool-intelligence/ai-graphics/beta-tool-call-readiness.md`, `docs/tool-intelligence/ai-graphics/beta-tool-call-readiness.json`, and `ai-graphics:beta-tool-call-readiness:diagnostics` so the readiness evaluator can ingest either an assembled beta evidence bundle packet or a full local assembly packet containing `betaEvidenceBundle`. The diagnostic proves both packet paths can reach all 21 tools beta-callable with provided complete evidence while preserving `betaToolCallableNowTools=0`, `agentCanExecuteToolsNow=false`, on-demand-only GPU startup, no idle GPU runtime, and false runtime/beta/production gates.

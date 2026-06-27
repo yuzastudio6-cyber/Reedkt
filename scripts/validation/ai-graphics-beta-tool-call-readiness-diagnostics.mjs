@@ -359,7 +359,7 @@ function writePacketFixtures() {
   fs.writeFileSync(manifestPacketPath, `${JSON.stringify(manifestPacket, null, 2)}\n`, 'utf8')
   fs.writeFileSync(gpuPacketPath, `${JSON.stringify(gpuPacket, null, 2)}\n`, 'utf8')
 
-  return { manifestPacketPath, gpuPacketPath }
+  return { manifestDir, proofDir, manifestPacketPath, gpuPacketPath }
 }
 
 const requiredFiles = [
@@ -430,6 +430,8 @@ for (const needle of [
   '--use-committed-js-runtime-proofs',
   '--model-weight-manifest-review-packet',
   '--gpu-runtime-proof-result-packet',
+  '--beta-evidence-bundle-packet',
+  '--beta-evidence-local-assembly-packet',
 ]) {
   if (!moduleSource.includes(needle) && !cliSource.includes(needle) && !markdown.includes(needle)) {
     fail(`source_missing:${needle}`)
@@ -444,6 +446,11 @@ if (docs.counts?.fullEvidenceBetaToolCallableWithProvidedEvidenceTools !== 21) f
 if (docs.counts?.fullEvidenceBetaToolCallableNowTools !== 0) fail('docs_full_now_callable_not_0')
 if (docs.evidencePolicy?.partialEvidenceCreatesCallableSubset !== false) fail('docs_partial_subset_policy_not_false')
 if (docs.evidencePolicy?.requiresAll21BetaEvidenceBundle !== true) fail('docs_all21_policy_not_true')
+if (docs.evidencePolicy?.acceptsBetaEvidenceBundlePacket !== true) fail('docs_bundle_packet_policy_not_true')
+if (docs.evidencePolicy?.acceptsBetaEvidenceLocalAssemblyPacket !== true) {
+  fail('docs_local_assembly_packet_policy_not_true')
+}
+if (docs.evidencePolicy?.committedDocsRemainSanitized !== true) fail('docs_committed_sanitized_policy_not_true')
 assertExpectedGpuRuntimeTargets(docs, 'docs')
 if (docs.gpuRuntimePolicy?.onDemandOnly !== true) fail('docs_gpu_runtime_policy_not_on_demand')
 if (docs.gpuRuntimePolicy?.noIdleGpuRuntimeApproved !== true) fail('docs_gpu_runtime_policy_idle_gpu_allowed')
@@ -508,7 +515,7 @@ if (!partialExited) fail('partial_evidence_did_not_fail_require_all21')
 if (partialOutput.betaToolCallableWithProvidedEvidenceTools !== 0) fail('partial_callable_not_0')
 if (partialOutput.all21BetaCallableWhenEvidenceBundlePasses !== false) fail('partial_all21_callable_not_false')
 
-const { manifestPacketPath, gpuPacketPath } = writePacketFixtures()
+const { manifestDir, proofDir, manifestPacketPath, gpuPacketPath } = writePacketFixtures()
 const fullOutput = parseJsonOutput(runNpm(validateScriptName, [
   '--use-committed-js-runtime-proofs',
   '--all-shared-gates-passed',
@@ -544,7 +551,68 @@ for (const capability of capabilities) {
   }
 }
 
-for (const output of [defaultOutput, partialOutput, fullOutput]) {
+const evidenceBundlePacket = parseJsonOutput(runNpm('ai-graphics:beta-evidence-bundle:validate', [
+  '--use-committed-js-runtime-proofs',
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--model-weight-manifest-review-packet',
+  manifestPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuPacketPath,
+]), 'beta_evidence_bundle_packet')
+const evidenceBundlePacketPath = path.join(path.dirname(manifestPacketPath), 'beta-evidence-bundle-packet.json')
+fs.writeFileSync(evidenceBundlePacketPath, `${JSON.stringify(evidenceBundlePacket, null, 2)}\n`, 'utf8')
+const bundlePacketOutput = parseJsonOutput(runNpm(validateScriptName, [
+  '--beta-evidence-bundle-packet',
+  evidenceBundlePacketPath,
+  '--require-all-21-beta-tool-call-ready',
+]), 'bundle_packet_beta_tool_call_readiness')
+if (bundlePacketOutput.input?.evidenceSourceMode !== 'beta_evidence_bundle_packet') {
+  fail('bundle_packet_source_mode_not_reported')
+}
+if (bundlePacketOutput.betaToolCallableWithProvidedEvidenceTools !== 21) {
+  fail('bundle_packet_callable_with_evidence_not_21')
+}
+if (bundlePacketOutput.betaToolCallableNowTools !== 0) fail('bundle_packet_callable_now_not_0')
+if (bundlePacketOutput.all21BetaCallableWhenEvidenceBundlePasses !== true) {
+  fail('bundle_packet_all21_callable_not_true')
+}
+
+const localAssemblyPacket = parseJsonOutput(runNpm('ai-graphics:beta-evidence-local-assembly', [
+  '--manifest-dir',
+  manifestDir,
+  '--result-dir',
+  proofDir,
+  '--use-committed-js-runtime-proofs',
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--full-output',
+]), 'beta_evidence_local_assembly_packet')
+const localAssemblyPacketPath = path.join(path.dirname(manifestPacketPath), 'beta-evidence-local-assembly-packet.json')
+fs.writeFileSync(localAssemblyPacketPath, `${JSON.stringify(localAssemblyPacket, null, 2)}\n`, 'utf8')
+const localAssemblyPacketOutput = parseJsonOutput(runNpm(validateScriptName, [
+  '--beta-evidence-local-assembly-packet',
+  localAssemblyPacketPath,
+  '--require-all-21-beta-tool-call-ready',
+]), 'local_assembly_packet_beta_tool_call_readiness')
+if (localAssemblyPacketOutput.input?.evidenceSourceMode !== 'beta_evidence_local_assembly_packet') {
+  fail('local_assembly_packet_source_mode_not_reported')
+}
+if (localAssemblyPacketOutput.betaToolCallableWithProvidedEvidenceTools !== 21) {
+  fail('local_assembly_packet_callable_with_evidence_not_21')
+}
+if (localAssemblyPacketOutput.betaToolCallableNowTools !== 0) fail('local_assembly_packet_callable_now_not_0')
+if (localAssemblyPacketOutput.all21BetaCallableWhenEvidenceBundlePasses !== true) {
+  fail('local_assembly_packet_all21_callable_not_true')
+}
+
+for (const output of [
+  defaultOutput,
+  partialOutput,
+  fullOutput,
+  bundlePacketOutput,
+  localAssemblyPacketOutput,
+]) {
   for (const key of [
     'agentCanExecuteToolsNow',
     'routeExecutionApprovedNow',

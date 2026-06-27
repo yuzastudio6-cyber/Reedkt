@@ -328,6 +328,16 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - `externalBetaReadyNow=false`
 - `productionReadyNow=false`
 
+## Follow-Up: Beta Tool-Call Evidence Packet Ingestion
+
+- Added evaluator-only packet ingestion to `ai-graphics:beta-tool-call-readiness`:
+  - `--beta-evidence-bundle-packet`
+  - `--beta-evidence-local-assembly-packet`
+- The direct bundle path accepts an assembled `ai_graphics_beta_evidence_bundle_validator_prepared_with_fail_closed_defaults` packet.
+- The local assembly path accepts a full local assembly packet containing `betaEvidenceBundle`; committed docs remain sanitized and do not include private refs, GPU proof logs, model files, generated media, public URLs, or signed URLs.
+- Diagnostic coverage now proves both packet paths reach `betaToolCallableWithProvidedEvidenceTools=21` only when the complete all-21 evidence bundle is present, while `betaToolCallableNowTools=0`, `agentCanExecuteToolsNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
+- GPU policy remains on-demand only: the eight GPU/model tools may start GPU capacity only for a future accepted worker/tool-call job with complete evidence; no idle GPU runtime is approved.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

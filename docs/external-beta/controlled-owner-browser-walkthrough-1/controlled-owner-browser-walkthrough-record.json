@@ -1,0 +1,109 @@
+{
+  "packet": "RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1",
+  "decision": "completed_external_beta_controlled_owner_browser_walkthrough",
+  "execution": "completed_guarded_authenticated_browser_surface_walkthrough_no_runtime_mutation",
+  "integrationBase": "7cc7d798c6a2b272a260f5220f2f0c911c4bea2f",
+  "repository": "yuzastudio6-cyber/Reedkt",
+  "ownerAccount": "aiediting@reeditpro.com",
+  "ownerClassification": "real_reeditpro_owner_tester_account",
+  "sourceClosure": {
+    "deployedBrowserUiSurfaceStagingDeploy": "RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY",
+    "controlledTesterUiFlowSmoke": "RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1",
+    "controlledTesterProductFlowSmoke": "RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1",
+    "testerAccountMembershipSmoke": "RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1",
+    "mainSupabaseTarget": "Reeditpro/wmyyttnynmteqgcdishd/staging",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "cloudRun": {
+    "project": "reeditpro",
+    "region": "us-central1",
+    "service": "reeditpro-staging-api",
+    "serviceUrl": "https://reeditpro-staging-api-4wkjiqvdqa-uc.a.run.app",
+    "latestReadyRevision": "reeditpro-staging-api-00006-6gw",
+    "traffic": "100_percent_reeditpro-staging-api-00006-6gw",
+    "invokerMember": "group:external-beta-testers@reeditpro.com",
+    "allUsersGrant": false,
+    "allAuthenticatedUsersGrant": false
+  },
+  "auth": {
+    "activeAccount": "aiediting@reeditpro.com",
+    "identityTokenMode": "user_account_default_audience",
+    "identityTokenPrinted": false,
+    "identityTokenPersisted": false
+  },
+  "walkthrough": {
+    "runId": "2026-06-27T17-44-11-103Z-d5f1043a",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-controlled-owner-browser-walkthrough-1/2026-06-27T17-44-11-103Z-d5f1043a",
+    "unauthenticatedRoot": "blocked_403",
+    "authenticatedRoot": "passed_200_html",
+    "authenticatedDashboard": "passed_200_html",
+    "authenticatedProjects": "passed_200_html",
+    "authenticatedEditor": "passed_200_html",
+    "browserVisibleShell": true,
+    "rootElementPresent": true,
+    "moduleScriptPresent": true,
+    "stylesheetPresent": true,
+    "assetFetches": "passed",
+    "assetScript": "/assets/index-BNzAkO71.js",
+    "assetScriptBytes": 2195193,
+    "assetStylesheet": "/assets/index-B2pxQajw.css",
+    "assetStylesheetBytes": 151867
+  },
+  "runEvidence": {
+    "runId": "2026-06-27T17-44-11-103Z-d5f1043a",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-controlled-owner-browser-walkthrough-1/2026-06-27T17-44-11-103Z-d5f1043a",
+    "report": {
+      "fileName": "controlled-owner-browser-walkthrough-report.json",
+      "bytes": 6928,
+      "sha256": "3b59add023f0e66fa29e028239563b8fe6b27c62efd2bbe7acc82bbbb6b52423"
+    },
+    "manifest": {
+      "fileName": "artifact-manifest.json",
+      "bytes": 442,
+      "sha256": "53cca53c7a2198768836c0d4510993d2aaf98e9bba3304715f4a8ef94acc4896"
+    }
+  },
+  "readiness": {
+    "externalProductBeta": "ready_for_controlled_owner_go_no_go",
+    "productApiReadiness": "ready_for_controlled_owner_tester_product_walkthrough",
+    "broadExternalBetaAudience": "blocked",
+    "paidProduction": "blocked",
+    "finalDeliveryExport": "blocked",
+    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "groupMembershipMutation": false,
+    "cloudRunIamMutation": false,
+    "cloudRunServiceUpdate": false,
+    "deployment": false,
+    "broadPublicInvokerGrant": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "browserCapture": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "persistentCreditMutation": false,
+    "persistentCreditReservationCreation": false,
+    "stripePaymentProcessing": false,
+    "renderExecution": false,
+    "mediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "dockerExecution": false,
+    "internalBetaBroadUnlock": false,
+    "externalBetaBroadAudienceUnlock": false,
+    "productionUnlock": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

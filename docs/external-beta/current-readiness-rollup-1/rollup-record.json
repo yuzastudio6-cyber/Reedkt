@@ -1,8 +1,8 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "completed_deployed_browser_ui_surface_staging_deploy_and_controlled_tester_ui_smoke",
+  "decision": "completed_controlled_owner_browser_walkthrough",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
-  "integrationHead": "9db791f8d33b3f5f1dd794225fe2e9b9b52f779c",
+  "integrationHead": "7cc7d798c6a2b272a260f5220f2f0c911c4bea2f",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
     "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
@@ -31,11 +31,12 @@
     "testerAccountMembershipSmoke": "rp_external_beta_tester_account_membership_smoke_1",
     "controlledTesterProductFlowSmoke": "rp_external_beta_controlled_tester_product_flow_smoke_1",
     "controlledTesterUiFlowSmoke": "rp_external_beta_controlled_tester_ui_flow_smoke_1",
-    "deployedBrowserUiSurfaceStagingDeploy": "rp_external_beta_deployed_browser_ui_surface_1r_staging_deploy"
+    "deployedBrowserUiSurfaceStagingDeploy": "rp_external_beta_deployed_browser_ui_surface_1r_staging_deploy",
+    "controlledOwnerBrowserWalkthrough": "rp_external_beta_controlled_owner_browser_walkthrough_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
-    "externalProductBeta": "ready_for_controlled_owner_browser_walkthrough",
+    "externalProductBeta": "ready_for_controlled_owner_go_no_go",
     "productApiReadiness": "ready_for_controlled_owner_tester_product_walkthrough",
     "paidProduction": "blocked",
     "finalDeliveryExport": "blocked",
@@ -251,11 +252,23 @@
     "controlledTesterUiFlowAuthenticatedDashboard": "passed_200_html",
     "controlledTesterUiFlowAuthenticatedProjects": "passed_200_html",
     "controlledTesterUiFlowAuthenticatedEditor": "passed_200_html",
-    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1"
+    "controlledOwnerBrowserWalkthrough": "completed_external_beta_controlled_owner_browser_walkthrough",
+    "controlledOwnerBrowserWalkthroughExecution": "completed_guarded_authenticated_browser_surface_walkthrough_no_runtime_mutation",
+    "controlledOwnerBrowserWalkthroughRunId": "2026-06-27T17-44-11-103Z-d5f1043a",
+    "controlledOwnerBrowserWalkthroughReportSha256": "3b59add023f0e66fa29e028239563b8fe6b27c62efd2bbe7acc82bbbb6b52423",
+    "controlledOwnerBrowserWalkthroughManifestSha256": "53cca53c7a2198768836c0d4510993d2aaf98e9bba3304715f4a8ef94acc4896",
+    "controlledOwnerBrowserWalkthroughUnauthenticatedRoot": "blocked_403",
+    "controlledOwnerBrowserWalkthroughAuthenticatedRoot": "passed_200_html",
+    "controlledOwnerBrowserWalkthroughAuthenticatedDashboard": "passed_200_html",
+    "controlledOwnerBrowserWalkthroughAuthenticatedProjects": "passed_200_html",
+    "controlledOwnerBrowserWalkthroughAuthenticatedEditor": "passed_200_html",
+    "controlledOwnerBrowserWalkthroughAssetFetches": "passed",
+    "controlledOwnerBrowserWalkthroughBrowserVisibleShell": true,
+    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1"
   },
   "requiredNextOwnerDecision": [
     "keep_controlled_external_beta_tester_group_bounded",
-    "run_controlled_owner_browser_walkthrough",
+    "review_controlled_owner_go_no_go",
     "no_public_access_provider_worker_media_or_production_unlock"
   ],
   "safety": {
@@ -354,6 +367,10 @@
     "controlledTesterUiFlowRouteExecution": "safe_get_browser_ui_surface_probes_only",
     "controlledTesterUiFlowPersistentMutation": false,
     "controlledTesterUiFlowBrowserCapture": false,
+    "controlledOwnerBrowserWalkthrough": "completed_guarded_authenticated_browser_surface_walkthrough_no_runtime_mutation",
+    "controlledOwnerBrowserWalkthroughRouteExecution": "safe_get_browser_ui_surface_and_static_asset_probes_only",
+    "controlledOwnerBrowserWalkthroughPersistentMutation": false,
+    "controlledOwnerBrowserWalkthroughBrowserCapture": false,
     "testerAccountUnauthenticatedAccessPublicOpen": false,
     "identityTokenPrinted": false,
     "identityTokenPersisted": false

@@ -1,14 +1,14 @@
 # Activation Phase: RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Results
 
-Decision: `completed_deployed_browser_ui_surface_staging_deploy_and_controlled_tester_ui_smoke`
+Decision: `completed_controlled_owner_browser_walkthrough`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `9db791f8d33b3f5f1dd794225fe2e9b9b52f779c`
+Current integration head: `7cc7d798c6a2b272a260f5220f2f0c911c4bea2f`
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
-External product beta readiness: `ready_for_controlled_owner_browser_walkthrough`
+External product beta readiness: `ready_for_controlled_owner_go_no_go`
 
 Product API readiness: `ready_for_controlled_owner_tester_product_walkthrough`
 
@@ -80,7 +80,9 @@ Paid production, public artifacts, broad media, signed URL source-of-truth, fina
 
 `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY` now records the successful closure: Cloud Build `54fd2cfd-4f19-472d-8b5f-5fbfe55f59b1` built image digest `sha256:f283e7222db4abefdd01c6eb0ca928e779e6159725d49e96e9d43203e238a76c`, Cloud Run revision `reeditpro-staging-api-00006-6gw` serves the browser UI surface, and controlled tester UI smoke run `2026-06-27T17-15-34-003Z-a728f2ff` completed for `aiediting@reeditpro.com` with authenticated `/`, `/dashboard`, `/projects`, and `/editor` returning `200` HTML while unauthenticated `/` stayed `403`.
 
-Next safe action: run `RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1` with `aiediting@reeditpro.com` while preserving group-only staging access and without public access, providers, workers, paid billing, broad media, or production.
+`RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1` records decision `completed_external_beta_controlled_owner_browser_walkthrough` and execution `completed_guarded_authenticated_browser_surface_walkthrough_no_runtime_mutation`. The guarded runner used the real ReEditPro owner/tester account `aiediting@reeditpro.com`, preserved `group:external-beta-testers@reeditpro.com` as the Cloud Run invoker boundary, kept unauthenticated `/` as `403`, confirmed authenticated `/`, `/dashboard`, `/projects`, and `/editor` as `200` HTML, and confirmed authenticated SPA JS/CSS asset fetches. Run ID: `2026-06-27T17-44-11-103Z-d5f1043a`. Report SHA-256: `3b59add023f0e66fa29e028239563b8fe6b27c62efd2bbe7acc82bbbb6b52423`. Manifest SHA-256: `53cca53c7a2198768836c0d4510993d2aaf98e9bba3304715f4a8ef94acc4896`.
+
+Next safe action: run `RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1` with `aiediting@reeditpro.com` while preserving group-only staging access and without public access, providers, workers, paid billing, broad media, or production.
 
 ## Safety
 

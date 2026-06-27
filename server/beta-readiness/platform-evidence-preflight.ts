@@ -50,6 +50,13 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'Deploy and verify transactional wallet spend/release/refund settlement in staging or production.',
     ),
     sourceFileCheck(
+      'tool_cost_wallet_settlement_rpc_sql_smoke_present',
+      'tool cost wallet settlement RPC local SQL smoke is present',
+      'server/smoke/tool-cost-wallet-settlement-rpc-sql-smoke.ts',
+      ['settle_tool_cost_event', 'credit_ledger_entries', 'service_fee_included', 'stripe_call_attempted', 'relrowsecurity'],
+      'Run the SQL smoke against a disposable local Postgres database, then repeat equivalent checks against staging Supabase.',
+    ),
+    sourceFileCheck(
       'backend_evidence_routes_present',
       'Backend beta readiness evidence routes are present',
       'server/routes/beta-readiness-routes.ts',

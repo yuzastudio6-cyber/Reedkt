@@ -66,6 +66,8 @@ Latest observed PR state after ephemeral GPU runtime policy hardening: [#862](ht
 
 Latest observed PR state after worker payload runtime activation hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `3cf4ee346a36c501b2b9ccccbdd624523def574f`, with an empty check rollup.
 
+Latest observed PR state after worker handoff private artifact boundary hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `fcf182c82b6ef2a3c27f9569df1ab0c376c1e037`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements

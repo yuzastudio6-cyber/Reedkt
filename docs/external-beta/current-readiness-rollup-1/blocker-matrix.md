@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `ready_for_owner_approved_controlled_external_beta_testing` | owner-approved tester smoke passed for `aiediting@reeditpro.com`; next evidence is controlled tester product-flow smoke without public/production access |
+| External beta | `ready_for_controlled_owner_tester_product_walkthrough` | controlled tester product-flow smoke passed for `aiediting@reeditpro.com`; next evidence is controlled tester UI flow smoke without public/production access |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-Run a controlled tester product-flow smoke with `aiediting@reeditpro.com` while keeping `external-beta-testers@reeditpro.com` as the only staging API invoker group and keeping public/production access blocked.
+Run a controlled tester UI flow smoke with `aiediting@reeditpro.com` while keeping `external-beta-testers@reeditpro.com` as the only staging API invoker group and keeping public/production access blocked.
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -358,9 +358,21 @@ The user clarified that `aiediting@reeditpro.com` is the real tester account. Th
 
 Run ID: `2026-06-27T15-05-37-588Z-5b451f5c`. Report SHA-256: `f6611d7c0ed9fb4693e44fa3ebade02d107ed539319cc7aebf63555bd12446ca`. Manifest SHA-256: `35cb90ef7935109a9b1d90d9bd7bf2308e8f87a8b314e7ac21cdcfbe21dd2b40`.
 
-External beta readiness: `ready_for_owner_approved_controlled_external_beta_testing`.
+External beta readiness: `ready_for_controlled_owner_tester_product_walkthrough`.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1`.
+
+## RP External Beta Controlled Tester Product Flow Smoke 1
+
+`RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1` records decision `completed_external_beta_controlled_tester_product_flow_smoke` and execution `completed_guarded_authenticated_tester_mock_product_flow_smoke_no_persistent_runtime_mutation`.
+
+The guarded smoke used `aiediting@reeditpro.com`, preserved unauthenticated `/health` as `blocked_403`, read `/api/routes` as `200`, verified `109` total routes and `67` mock-ready routes, ran mock chat-native planning to `approve_plan_and_credits`, read a mock credit estimate of `18` credits, verified the mock job gate stayed blocked, and confirmed real plan approval and preview render routes stayed blocked as `424 backend_runtime_required`.
+
+Run ID: `2026-06-27T15-34-26-957Z-dbe78e9d`. Report SHA-256: `ed4be5c34449725443592cf1bcf459b5847601b229abacb48018c36a56f86522`. Manifest SHA-256: `a0b67ee1a562d5f3c2d91678eb7dd4bc6dd1bab814b615abd0055c43a3cd187e`.
+
+External beta readiness: `ready_for_controlled_owner_tester_product_walkthrough`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

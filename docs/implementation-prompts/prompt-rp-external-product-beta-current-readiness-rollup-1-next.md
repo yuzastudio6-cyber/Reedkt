@@ -1,18 +1,18 @@
 # RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Next Prompt
 
-Use this after `RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1` records `completed_owner_approved_tester_account_membership_smoke`.
+Use this after `RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1` records `completed_external_beta_controlled_tester_product_flow_smoke`.
 
 ## Recommended Next Gate
 
-`RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1`
+`RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1`
 
 ## Scope
 
-Run or record a bounded controlled tester product-flow smoke from the accepted source chain without unlocking paid production, public artifacts, broad media, real provider calls, worker execution, or final delivery/export. The packet must name the single active target:
+Run or record a bounded controlled tester UI flow smoke from the accepted source chain without unlocking paid production, public artifacts, broad media, real provider calls, worker execution, or final delivery/export. The packet must name the single active target:
 
 - `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
-The future controlled tester product-flow smoke packet must:
+The future controlled tester UI flow smoke packet must:
 
 - carry forward release go/no-go decision `approved_external_beta_release_go_no_go_source_chain_accepted`;
 - carry forward controlled enablement source contract `completed_controlled_external_beta_enablement_source_contract_default_off`;
@@ -20,6 +20,8 @@ The future controlled tester product-flow smoke packet must:
 - carry forward controlled smoke validation `completed_controlled_external_beta_authenticated_staging_smoke_validation`;
 - carry forward private invite IAM grant `completed_controlled_private_invite_iam_grant_for_owner_managed_group`;
 - carry forward tester-account smoke `completed_owner_approved_tester_account_membership_smoke`;
+- carry forward product-flow smoke `completed_external_beta_controlled_tester_product_flow_smoke`;
+- carry forward product-flow execution `completed_guarded_authenticated_tester_mock_product_flow_smoke_no_persistent_runtime_mutation`;
 - use `aiediting@reeditpro.com` as the owner-approved controlled tester account unless a later owner packet adds more testers;
 - keep `external-beta-testers@reeditpro.com` as the only staging API invoker group;
 - use approved snapshot route-write and generated-local Remotion evidence as source-of-truth;
@@ -40,4 +42,4 @@ The future controlled tester product-flow smoke packet must:
 
 ## Still Blocked
 
-External product beta readiness is `ready_for_owner_approved_controlled_external_beta_testing`, but broad audience beta, paid production, public artifacts, signed URL source-of-truth, real providers/workers, broad media, and final delivery/export remain blocked until separately approved and validated.
+External product beta readiness is `ready_for_controlled_owner_tester_product_walkthrough`, but broad audience beta, paid production, public artifacts, signed URL source-of-truth, real providers/workers, broad media, and final delivery/export remain blocked until separately approved and validated.

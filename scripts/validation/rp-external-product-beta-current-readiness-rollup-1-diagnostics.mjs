@@ -349,6 +349,20 @@ const testerAccountMembershipSmokeFiles = [
   'scripts/validation/rp-external-beta-tester-account-membership-smoke-1-diagnostics.mjs',
 ]
 
+const controlledTesterProductFlowSmokeFiles = [
+  'docs/external-beta/controlled-tester-product-flow-smoke-1/source-audit.md',
+  'docs/external-beta/controlled-tester-product-flow-smoke-1/runner-contract.md',
+  'docs/external-beta/controlled-tester-product-flow-smoke-1/product-flow-evidence.md',
+  'docs/external-beta/controlled-tester-product-flow-smoke-1/readiness-gate.md',
+  'docs/external-beta/controlled-tester-product-flow-smoke-1/safety-boundary.md',
+  'docs/external-beta/controlled-tester-product-flow-smoke-1/validation-results.md',
+  'docs/external-beta/controlled-tester-product-flow-smoke-1/controlled-tester-product-flow-smoke-record.json',
+  'docs/activation-phase-rp-external-beta-controlled-tester-product-flow-smoke-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-tester-ui-flow-smoke-1.md',
+  'scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -584,7 +598,7 @@ const requiredText = [
   'blocked_gcloud_reauthentication_required_before_staging_flag_application',
   'completed_controlled_external_beta_staging_flag_application',
   'completed_controlled_private_invite_iam_grant_for_owner_managed_group',
-  'completed_owner_approved_tester_account_membership_smoke_external_beta_controlled_testing_ready',
+  'completed_controlled_tester_product_flow_smoke_external_beta_owner_walkthrough_ready',
   'completed_owner_member_group_access_smoke_readback_carried_forward',
   'completed_readonly_group_membership_readback_and_owner_member_authenticated_smoke',
   'completed_owner_approved_tester_account_membership_smoke',
@@ -612,7 +626,7 @@ const requiredText = [
   'Unsafe public mutation grants: `0`',
   'Unsafe public sequence grants: `0`',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'External product beta readiness: `ready_for_owner_approved_controlled_external_beta_testing`',
+  'External product beta readiness: `ready_for_controlled_owner_tester_product_walkthrough`',
   'External beta enabled in this phase: `true`',
   'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
   'Product-ready end-to-end local OSS tools: `0`',
@@ -648,10 +662,20 @@ const requiredText = [
   'completed_readonly_project_iam_inheritance_audit_no_broad_invoker',
   'blocked_pending_explicit_invite_identity_for_controlled_private_access_grant',
   'ready_for_owner_managed_external_beta_tester_membership_addition',
-  'ready_for_owner_approved_controlled_external_beta_testing',
+  'ready_for_controlled_owner_tester_product_walkthrough',
   '2026-06-27T15-05-37-588Z-5b451f5c',
   'f6611d7c0ed9fb4693e44fa3ebade02d107ed539319cc7aebf63555bd12446ca',
   '35cb90ef7935109a9b1d90d9bd7bf2308e8f87a8b314e7ac21cdcfbe21dd2b40',
+  'completed_external_beta_controlled_tester_product_flow_smoke',
+  'completed_guarded_authenticated_tester_mock_product_flow_smoke_no_persistent_runtime_mutation',
+  '2026-06-27T15-34-26-957Z-dbe78e9d',
+  'ed4be5c34449725443592cf1bcf459b5847601b229abacb48018c36a56f86522',
+  'a0b67ee1a562d5f3c2d91678eb7dd4bc6dd1bab814b615abd0055c43a3cd187e',
+  'planning.demo.chatNative.create',
+  'credits.estimate.create',
+  'jobs.gate.check',
+  'render.preview.create',
+  'backend_runtime_required',
   'not_run_missing_explicit_identity_list',
   'not_present_in_source',
   'external-beta-testers@reeditpro.com',
@@ -692,6 +716,7 @@ const requiredText = [
   'PR #577 remains open/draft/blocked and excluded',
   'RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1',
   'RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1',
+  'RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1',
   'Remotion execution in the current source chain was limited to confirmation-gated rendering of a generated local preview fixture under `/tmp`; no generated media was committed.',
 ]
 
@@ -774,10 +799,10 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'completed_owner_approved_tester_account_membership_smoke_external_beta_controlled_testing_ready') fail('record decision mismatch')
+if (record.decision !== 'completed_controlled_tester_product_flow_smoke_external_beta_owner_walkthrough_ready') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
-if (record.integrationHead !== '8295b650cb4f207c372e8724d76d7554b95702a6') fail('integration head mismatch')
-if (record.statuses?.externalProductBeta !== 'ready_for_owner_approved_controlled_external_beta_testing') fail('external beta status mismatch')
+if (record.integrationHead !== '5513c610ede7f96995b8b2f5da748064dca95ade') fail('integration head mismatch')
+if (record.statuses?.externalProductBeta !== 'ready_for_controlled_owner_tester_product_walkthrough') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.mainSupabaseTarget?.projectRef !== 'wmyyttnynmteqgcdishd') fail('main target ref mismatch')
@@ -841,6 +866,7 @@ if (record.sourceClosure?.controlledPrivateInviteIamInheritanceAudit !== 'rp_ext
 if (record.sourceClosure?.controlledPrivateInviteIamGrant1r !== 'rp_external_beta_controlled_private_invite_iam_grant_1r_after_identity_list') fail('controlled private invite IAM grant 1R source mismatch')
 if (record.sourceClosure?.ownerMemberSmokeReadback !== 'rp_external_beta_owner_member_smoke_readback_1') fail('owner-member smoke readback source mismatch')
 if (record.sourceClosure?.testerAccountMembershipSmoke !== 'rp_external_beta_tester_account_membership_smoke_1') fail('tester-account smoke source mismatch')
+if (record.sourceClosure?.controlledTesterProductFlowSmoke !== 'rp_external_beta_controlled_tester_product_flow_smoke_1') fail('controlled tester product-flow smoke source mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
 if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
@@ -948,7 +974,24 @@ if (record.mainSupabaseTarget?.testerAccountUnauthenticatedHealth !== 'blocked_4
 if (record.mainSupabaseTarget?.testerAccountAuthenticatedHealth !== 'passed_200') fail('tester-account authenticated health mismatch')
 if (record.mainSupabaseTarget?.testerAccountAuthenticatedReady !== 'passed_200') fail('tester-account authenticated ready mismatch')
 if (record.mainSupabaseTarget?.testerAccountAuthenticatedRuntimeStatus !== 'passed_200') fail('tester-account authenticated runtime mismatch')
-if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1') fail('next milestone mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowSmoke !== 'completed_external_beta_controlled_tester_product_flow_smoke') fail('controlled tester product-flow smoke status mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowExecution !== 'completed_guarded_authenticated_tester_mock_product_flow_smoke_no_persistent_runtime_mutation') fail('controlled tester product-flow smoke execution mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowRunId !== '2026-06-27T15-34-26-957Z-dbe78e9d') fail('controlled tester product-flow smoke run id mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowReportSha256 !== 'ed4be5c34449725443592cf1bcf459b5847601b229abacb48018c36a56f86522') fail('controlled tester product-flow report checksum mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowManifestSha256 !== 'a0b67ee1a562d5f3c2d91678eb7dd4bc6dd1bab814b615abd0055c43a3cd187e') fail('controlled tester product-flow manifest checksum mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowRouteMapTotalRoutes !== 109) fail('controlled tester product-flow route count mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowRouteMapMockReadyRoutes !== 67) fail('controlled tester product-flow mock-ready route count mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowRequiredRoutesPresent !== true) fail('controlled tester product-flow required route presence mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowUnauthenticatedHealth !== 'blocked_403') fail('controlled tester product-flow unauthenticated health mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowPlanningRoute !== 'passed_mock_only_stopped_at_approve_plan_and_credits') fail('controlled tester product-flow planning route mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowCreditEstimateRoute !== 'passed_mock_only_18_credits') fail('controlled tester product-flow credit estimate route mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowCreditGateRoute !== 'passed_mock_only') fail('controlled tester product-flow credit gate route mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowJobGateRoute !== 'passed_mock_only_job_gate_blocked') fail('controlled tester product-flow job gate route mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowRenderCreditGateRoute !== 'passed_mock_only') fail('controlled tester product-flow render credit gate route mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowRenderReadinessRoute !== 'passed_mock_only') fail('controlled tester product-flow render readiness route mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowApprovalRoute !== 'blocked_424_backend_runtime_required') fail('controlled tester product-flow approval route mismatch')
+if (record.mainSupabaseTarget?.controlledTesterProductFlowRenderPreviewRoute !== 'blocked_424_backend_runtime_required') fail('controlled tester product-flow render preview route mismatch')
+if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1') fail('next milestone mismatch')
 if (record.requiredNextOwnerDecision?.[0] !== 'keep_controlled_external_beta_tester_group_bounded') fail('controlled private invite next decision mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
@@ -1029,6 +1072,10 @@ if (record.safety?.testerAccountMembershipMutation !== false) fail('tester-accou
 if (record.safety?.testerAccountMembershipSmokeAccount !== 'aiediting@reeditpro.com') fail('tester-account smoke account mismatch')
 if (record.safety?.testerAccountMembershipSmokeRunId !== '2026-06-27T15-05-37-588Z-5b451f5c') fail('tester-account smoke run id mismatch')
 if (record.safety?.testerAccountAuthenticatedRouteExecution !== 'safe_get_health_ready_runtime_status_only') fail('tester-account route execution scope mismatch')
+if (record.safety?.controlledTesterProductFlowSmoke !== 'completed_guarded_authenticated_tester_mock_product_flow_smoke_no_persistent_runtime_mutation') fail('controlled tester product-flow smoke safety mismatch')
+if (record.safety?.controlledTesterProductFlowRouteExecution !== 'safe_get_api_routes_and_post_api_mock_only') fail('controlled tester product-flow route execution safety mismatch')
+if (record.safety?.controlledTesterProductFlowBackendRequiredBlockers !== 'planning_edit_plan_approve_and_render_preview_create_blocked_424_backend_runtime_required') fail('controlled tester product-flow backend-required blocker mismatch')
+if (record.safety?.controlledTesterProductFlowPersistentMutation !== false) fail('controlled tester product-flow persistent mutation flag mismatch')
 if (record.safety?.testerAccountUnauthenticatedAccessPublicOpen !== false) fail('tester-account public access flag mismatch')
 if (record.safety?.identityTokenPrinted !== false) fail('identity token printed flag mismatch')
 if (record.safety?.identityTokenPersisted !== false) fail('identity token persisted flag mismatch')
@@ -1116,6 +1163,18 @@ if (
 ) {
   fail('missing tester-account smoke diagnostics script')
 }
+if (
+  packageJson.scripts?.['rp-external-beta-controlled-tester-product-flow-smoke-1'] !==
+  'node scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1.mjs'
+) {
+  fail('missing controlled tester product-flow smoke runner script')
+}
+if (
+  packageJson.scripts?.['rp-external-beta-controlled-tester-product-flow-smoke-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1-diagnostics.mjs'
+) {
+  fail('missing controlled tester product-flow smoke diagnostics script')
+}
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
@@ -1143,6 +1202,7 @@ const allowed = new Set([
   ...controlledPrivateInviteIamGrant1rFiles,
   ...ownerMemberSmokeReadbackFiles,
   ...testerAccountMembershipSmokeFiles,
+  ...controlledTesterProductFlowSmokeFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -1188,7 +1248,7 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_owner_approved_tester_account_membership_smoke_external_beta_controlled_testing_ready')
-console.log('External product beta readiness: ready_for_owner_approved_controlled_external_beta_testing')
+console.log('Decision: completed_controlled_tester_product_flow_smoke_external_beta_owner_walkthrough_ready')
+console.log('External product beta readiness: ready_for_controlled_owner_tester_product_walkthrough')
 console.log('External beta enabled in this phase: true')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

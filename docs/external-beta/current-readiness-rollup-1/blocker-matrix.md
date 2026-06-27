@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `ready_for_controlled_external_beta_enablement` | controlled enablement packet with exact flag/runtime boundary and rollback path |
+| External beta | `ready_for_explicit_staging_flag_application` | staging flag application with exact env values and rollback path |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`
+`RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -247,6 +247,23 @@ Paid production, public artifacts, broad media, signed URL source-of-truth, fina
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next safe gate: `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`.
+
+## RP External Beta Controlled Enablement 1
+
+`RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1` records decision `completed_controlled_external_beta_enablement_source_contract_default_off` and execution `completed_source_contract_no_environment_mutation_or_deployment`.
+
+The packet adds the exact fail-closed source contract for future staging flag application:
+
+- `REEDITPRO_EXTERNAL_BETA_READY=true`
+- `REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd`
+- `REEDITPRO_EXTERNAL_BETA_SCOPE=controlled_private_preview`
+- `REEDITPRO_EXTERNAL_BETA_ROLLBACK_MODE=disable_REEDITPRO_EXTERNAL_BETA_READY`
+
+External beta source contract: `ready_for_explicit_staging_flag_application`. External beta enabled in this phase: `false`.
+
+Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe gate: `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

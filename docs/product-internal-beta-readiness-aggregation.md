@@ -200,3 +200,13 @@ The release go/no-go packet accepts the merged source chain for controlled exter
 Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked. Product-ready end-to-end local OSS tools: `0`.
 
 Next milestone: `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`.
+
+## RP External Beta Controlled Enablement 1
+
+`RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1` records decision `completed_controlled_external_beta_enablement_source_contract_default_off` and execution `completed_source_contract_no_environment_mutation_or_deployment`.
+
+The packet adds the source contract for the exact future staging flag values: `REEDITPRO_EXTERNAL_BETA_READY=true`, `REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd`, `REEDITPRO_EXTERNAL_BETA_SCOPE=controlled_private_preview`, and `REEDITPRO_EXTERNAL_BETA_ROLLBACK_MODE=disable_REEDITPRO_EXTERNAL_BETA_READY`.
+
+External beta source contract: `ready_for_explicit_staging_flag_application`; external beta enabled in this phase: `false`; product-ready end-to-end local OSS tools: `0`.
+
+Next milestone: `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1`.

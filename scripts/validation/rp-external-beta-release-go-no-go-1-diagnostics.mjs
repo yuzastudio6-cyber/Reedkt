@@ -29,6 +29,19 @@ const rollupFiles = [
   'implementation-status-and-next-phase.md',
 ]
 
+const controlledEnablementFiles = [
+  'docs/external-beta/controlled-enablement-1/source-audit.md',
+  'docs/external-beta/controlled-enablement-1/flag-boundary.md',
+  'docs/external-beta/controlled-enablement-1/rollback-boundary.md',
+  'docs/external-beta/controlled-enablement-1/controlled-enablement-record.json',
+  'docs/external-beta/controlled-enablement-1/validation-results.md',
+  'docs/activation-phase-rp-external-beta-controlled-enablement-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-staging-flag-application-1.md',
+  'server/config/external-beta-controlled-enablement-contract.ts',
+  'server/smoke/external-beta-controlled-enablement-contract-smoke.ts',
+  'scripts/validation/rp-external-beta-controlled-enablement-1-diagnostics.mjs',
+]
+
 const diagnosticFiles = [
   'scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qa-cleanup-observability-rollback-review-1-diagnostics.mjs',
@@ -36,15 +49,15 @@ const diagnosticFiles = [
   'package.json',
 ]
 
-const requiredFiles = [...releaseFiles, ...rollupFiles, ...diagnosticFiles]
+const requiredFiles = [...releaseFiles, ...rollupFiles, ...controlledEnablementFiles, ...diagnosticFiles]
 
 const requiredText = [
   packet,
   'approved_external_beta_release_go_no_go_source_chain_accepted',
   'completed_docs_only_release_go_no_go_no_runtime_unlock',
-  'ready_for_controlled_external_beta_enablement',
+  'ready_for_explicit_staging_flag_application',
   'External beta unlocked in this packet: `false`',
-  'RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1',
+  'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1',
   'Reeditpro` / `wmyyttnynmteqgcdishd` / `staging',
   'fajinbvwhcjnutkaumkm',
   'PR #577 remains open/draft/blocked and excluded',
@@ -112,6 +125,10 @@ const blockedPathPrefixes = [
   '.dockerignore',
   'requirements',
 ]
+const allowedServerFiles = new Set([
+  'server/config/external-beta-controlled-enablement-contract.ts',
+  'server/smoke/external-beta-controlled-enablement-contract-smoke.ts',
+])
 
 function fail(message) {
   console.error(`${packet} diagnostics failed: ${message}`)
@@ -208,20 +225,37 @@ if (releaseRecord.packageLock !== 'unchanged') fail('release package-lock status
 if (releaseRecord.generatedArtifactsCommitted !== 'none') fail('release generated artifact status mismatch')
 
 const rollupRecord = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollupRecord.decision !== 'approved_external_beta_release_go_no_go_source_chain_accepted') fail('rollup decision mismatch')
-if (rollupRecord.integrationHead !== 'd365e1195690daabe00edf10c95b13f62bfd3c7c') fail('rollup integration head mismatch')
+const acceptedRollupDecisions = new Set([
+  'approved_external_beta_release_go_no_go_source_chain_accepted',
+  'completed_controlled_external_beta_enablement_source_contract_default_off',
+])
+if (!acceptedRollupDecisions.has(rollupRecord.decision)) fail('rollup decision mismatch')
+if (!['d365e1195690daabe00edf10c95b13f62bfd3c7c', '05a815f0f9b210393a1b02c8b4257046f11ca5a7'].includes(rollupRecord.integrationHead)) {
+  fail('rollup integration head mismatch')
+}
 if (rollupRecord.sourceClosure?.releaseGoNoGo !== 'rp_external_beta_release_go_no_go_1') fail('rollup release closure missing')
-if (rollupRecord.statuses?.externalProductBeta !== 'ready_for_controlled_external_beta_enablement') fail('rollup external beta readiness mismatch')
 if (rollupRecord.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('rollup product-ready count mismatch')
 if (rollupRecord.mainSupabaseTarget?.projectRef !== 'wmyyttnynmteqgcdishd') fail('rollup target mismatch')
 if (rollupRecord.mainSupabaseTarget?.releaseGoNoGo !== 'approved_external_beta_release_go_no_go_source_chain_accepted') fail('rollup release status mismatch')
 if (rollupRecord.mainSupabaseTarget?.externalBetaUnlock !== false) fail('rollup external beta unlock must remain false')
-if (rollupRecord.mainSupabaseTarget?.controlledEnablementRequired !== true) fail('rollup controlled enablement flag mismatch')
-if (rollupRecord.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1') fail('rollup next milestone mismatch')
-if (rollupRecord.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1') fail('rollup next owner decision mismatch')
 if (rollupRecord.safety?.releaseGoNoGoApproved !== true) fail('rollup release approval flag mismatch')
-if (rollupRecord.safety?.controlledExternalBetaEnablement !== false) fail('rollup controlled enablement must remain false')
 if (rollupRecord.safety?.externalBetaUnlock !== false) fail('rollup external beta unlock safety mismatch')
+if (rollupRecord.decision === 'completed_controlled_external_beta_enablement_source_contract_default_off') {
+  if (rollupRecord.integrationHead !== '05a815f0f9b210393a1b02c8b4257046f11ca5a7') fail('post-controlled integration head mismatch')
+  if (rollupRecord.sourceClosure?.controlledEnablement !== 'rp_external_beta_controlled_enablement_1') fail('rollup controlled enablement closure missing')
+  if (rollupRecord.statuses?.externalProductBeta !== 'ready_for_explicit_staging_flag_application') fail('rollup controlled readiness mismatch')
+  if (rollupRecord.mainSupabaseTarget?.controlledEnablement !== 'completed_controlled_external_beta_enablement_source_contract_default_off') fail('rollup controlled enablement status mismatch')
+  if (rollupRecord.mainSupabaseTarget?.externalBetaEnabledInThisPhase !== false) fail('rollup external beta phase enablement must remain false')
+  if (rollupRecord.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1') fail('rollup staging flag next decision mismatch')
+  if (rollupRecord.safety?.controlledExternalBetaEnablementSourceContract !== true) fail('rollup controlled source contract flag mismatch')
+  if (rollupRecord.safety?.externalBetaEnvironmentUnlock !== false) fail('rollup external beta environment unlock mismatch')
+} else {
+  if (rollupRecord.statuses?.externalProductBeta !== 'ready_for_controlled_external_beta_enablement') fail('rollup external beta readiness mismatch')
+  if (rollupRecord.mainSupabaseTarget?.controlledEnablementRequired !== true) fail('rollup controlled enablement flag mismatch')
+  if (rollupRecord.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1') fail('rollup next milestone mismatch')
+  if (rollupRecord.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1') fail('rollup next owner decision mismatch')
+  if (rollupRecord.safety?.controlledExternalBetaEnablement !== false) fail('rollup controlled enablement must remain false')
+}
 if (rollupRecord.packageLock !== 'unchanged') fail('rollup package-lock status mismatch')
 if (rollupRecord.generatedArtifactsCommitted !== 'none') fail('rollup generated artifact status mismatch')
 
@@ -239,7 +273,9 @@ const allowed = new Set(requiredFiles)
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)
   for (const blockedPath of blockedPathPrefixes) {
-    if (file === blockedPath || file.startsWith(blockedPath)) fail(`blocked path changed: ${file}`)
+    if ((file === blockedPath || file.startsWith(blockedPath)) && !allowedServerFiles.has(file)) {
+      fail(`blocked path changed: ${file}`)
+    }
   }
   if (file.includes('/._') || file.startsWith('._') || file.includes('.DS_Store')) fail(`metadata artifact changed: ${file}`)
   if (file.startsWith('.env') || file.includes('/.env')) fail(`env file changed: ${file}`)
@@ -253,5 +289,5 @@ for (const file of changedFiles()) {
 
 console.log(`${packet} diagnostics passed`)
 console.log('Decision: approved_external_beta_release_go_no_go_source_chain_accepted')
-console.log('External product beta readiness: ready_for_controlled_external_beta_enablement')
+console.log('External product beta readiness: ready_for_explicit_staging_flag_application')
 console.log('External beta unlocked in this packet: false')

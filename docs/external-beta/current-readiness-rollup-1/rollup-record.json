@@ -1,8 +1,8 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "approved_external_beta_release_go_no_go_source_chain_accepted",
+  "decision": "completed_controlled_external_beta_enablement_source_contract_default_off",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
-  "integrationHead": "d365e1195690daabe00edf10c95b13f62bfd3c7c",
+  "integrationHead": "05a815f0f9b210393a1b02c8b4257046f11ca5a7",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
     "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
@@ -18,11 +18,12 @@
     "remotionPrivatePreviewExportRuntimeValidation": "rp_external_beta_remotion_private_preview_export_runtime_validation_1",
     "providerModelCallPolicyClosure": "rp_external_beta_provider_model_call_policy_closure_1",
     "qaCleanupObservabilityRollbackReview": "rp_external_beta_qa_cleanup_observability_rollback_review_1",
-    "releaseGoNoGo": "rp_external_beta_release_go_no_go_1"
+    "releaseGoNoGo": "rp_external_beta_release_go_no_go_1",
+    "controlledEnablement": "rp_external_beta_controlled_enablement_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
-    "externalProductBeta": "ready_for_controlled_external_beta_enablement",
+    "externalProductBeta": "ready_for_explicit_staging_flag_application",
     "paidProduction": "blocked",
     "finalDeliveryExport": "blocked",
     "productReadyEndToEndLocalOssTools": 0
@@ -112,14 +113,18 @@
     "rollbackReview": "transaction_rollback_and_fixture_residue_evidence_passed_ready_for_release_go_no_go",
     "securityPrivacySupportCostDeploymentReview": "reviewed_pending_release_go_no_go_operator_acceptance",
     "releaseGoNoGo": "approved_external_beta_release_go_no_go_source_chain_accepted",
+    "controlledEnablement": "completed_controlled_external_beta_enablement_source_contract_default_off",
+    "externalBetaSourceContract": "ready_for_explicit_staging_flag_application",
+    "externalBetaEnabledInThisPhase": false,
     "externalBetaUnlock": false,
-    "controlledEnablementRequired": true,
-    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1"
+    "controlledEnablementRequired": false,
+    "stagingFlagApplicationRequired": true,
+    "nextMilestone": "RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1"
   },
   "requiredNextOwnerDecision": [
-    "RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1",
-    "controlled_external_beta_enablement",
-    "exact_flag_runtime_boundary_required",
+    "RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1",
+    "apply_controlled_external_beta_staging_flag",
+    "exact_env_values_required",
     "rollback_path_required"
   ],
   "safety": {
@@ -169,7 +174,8 @@
     "ffprobeExecution": false,
     "qaCleanupObservabilityRollbackReviewRuntimeExecution": false,
     "releaseGoNoGoApproved": true,
-    "controlledExternalBetaEnablement": false
+    "controlledExternalBetaEnablementSourceContract": true,
+    "externalBetaEnvironmentUnlock": false
   },
   "packageLock": "unchanged",
   "generatedArtifactsCommitted": "none"

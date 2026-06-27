@@ -1,0 +1,70 @@
+{
+  "packet": "RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1",
+  "decision": "completed_controlled_external_beta_enablement_source_contract_default_off",
+  "execution": "completed_source_contract_no_environment_mutation_or_deployment",
+  "sourceDecision": "approved_external_beta_release_go_no_go_source_chain_accepted",
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging"
+  },
+  "flagBoundary": {
+    "readyEnvName": "REEDITPRO_EXTERNAL_BETA_READY",
+    "requiredReadyValue": "true",
+    "targetRefEnvName": "REEDITPRO_EXTERNAL_BETA_TARGET_REF",
+    "requiredTargetRef": "wmyyttnynmteqgcdishd",
+    "scopeEnvName": "REEDITPRO_EXTERNAL_BETA_SCOPE",
+    "requiredScope": "controlled_private_preview",
+    "rollbackModeEnvName": "REEDITPRO_EXTERNAL_BETA_ROLLBACK_MODE",
+    "requiredRollbackMode": "disable_REEDITPRO_EXTERNAL_BETA_READY"
+  },
+  "contractStatuses": {
+    "default": "disabled_pending_explicit_external_beta_ready_flag",
+    "validConfiguredInput": "enabled_controlled_external_beta_private_preview_only",
+    "badTarget": "blocked_target_ref_mismatch",
+    "missingRollback": "blocked_rollback_mode_missing"
+  },
+  "runtimeBoundary": {
+    "approvedSnapshotRequired": true,
+    "creditReservationRequired": true,
+    "privateArtifactsOnly": true,
+    "providerModelCallsDisabledByDefault": true,
+    "publicArtifactsAllowed": false,
+    "signedUrlSourceOfTruthAllowed": false,
+    "paidBillingAllowed": false,
+    "finalDeliveryExportAllowed": false,
+    "productionAllowed": false,
+    "broadMediaAllowed": false
+  },
+  "readiness": {
+    "externalBetaSourceContract": "ready_for_explicit_staging_flag_application",
+    "externalBetaEnabledInThisPhase": false,
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1"
+  },
+  "safety": {
+    "sourceOnlyContract": true,
+    "environmentMutationPerformed": false,
+    "deploymentPerformed": false,
+    "routeExecution": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "providerCall": false,
+    "modelCall": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlockAppliedToEnvironment": false,
+    "productionUnlock": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

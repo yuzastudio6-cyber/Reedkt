@@ -1453,3 +1453,15 @@ The external beta source chain is accepted for controlled external beta enableme
 Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked. Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next milestone: `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`.
+
+## RP External Beta Controlled Enablement 1
+
+`RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1` records decision `completed_controlled_external_beta_enablement_source_contract_default_off` and execution `completed_source_contract_no_environment_mutation_or_deployment`.
+
+The controlled enablement source contract is now present and default-off. It requires exact future staging flag values, including target `wmyyttnynmteqgcdishd`, scope `controlled_private_preview`, and rollback mode `disable_REEDITPRO_EXTERNAL_BETA_READY`.
+
+External beta source contract: `ready_for_explicit_staging_flag_application`. External beta enabled in this phase: `false`.
+
+Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked. Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next milestone: `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1`.

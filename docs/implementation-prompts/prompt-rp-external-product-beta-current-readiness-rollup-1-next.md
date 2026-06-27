@@ -1,21 +1,25 @@
 # RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Next Prompt
 
-Use this after `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1` records `approved_external_beta_release_go_no_go_source_chain_accepted`.
+Use this after `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1` records `completed_controlled_external_beta_enablement_source_contract_default_off`.
 
 ## Recommended Next Gate
 
-`RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`
+`RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1`
 
 ## Scope
 
-Implement or record the bounded controlled external beta enablement path from the accepted source chain without unlocking paid production, public artifacts, broad media, or final delivery/export. The packet must name the single active target:
+Apply or record the bounded controlled external beta staging flag from the accepted source chain without unlocking paid production, public artifacts, broad media, or final delivery/export. The packet must name the single active target:
 
 - `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
-The future controlled enablement packet must:
+The future staging flag application packet must:
 
 - carry forward release go/no-go decision `approved_external_beta_release_go_no_go_source_chain_accepted`;
-- keep external beta unlocked as `false` unless the packet names an exact reversible flag/runtime boundary and rollback path;
+- carry forward controlled enablement source contract `completed_controlled_external_beta_enablement_source_contract_default_off`;
+- require `REEDITPRO_EXTERNAL_BETA_READY=true`;
+- require `REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd`;
+- require `REEDITPRO_EXTERNAL_BETA_SCOPE=controlled_private_preview`;
+- require `REEDITPRO_EXTERNAL_BETA_ROLLBACK_MODE=disable_REEDITPRO_EXTERNAL_BETA_READY`;
 - use approved snapshot route-write and generated-local Remotion evidence as source-of-truth;
 - carry forward provider/model calls disabled by default;
 - carry forward QA review `source_evidence_review_passed_ready_for_release_go_no_go`;
@@ -34,4 +38,4 @@ The future controlled enablement packet must:
 
 ## Still Blocked
 
-External product beta readiness is `ready_for_controlled_external_beta_enablement`, but the product remains locked until a controlled enablement packet explicitly names the exact enablement toggle, runtime boundary, observability/rollback path, and non-production target.
+External product beta readiness is `ready_for_explicit_staging_flag_application`, but the product remains locked until a staging flag application packet explicitly applies or verifies the exact flag values, runtime boundary, observability/rollback path, and non-production target.

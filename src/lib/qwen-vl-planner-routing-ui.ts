@@ -26,6 +26,31 @@ export type QwenVlPlannerRoutingUiExecutionGates = {
   plannerMayUseRawPrompt: false
 }
 
+export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
+  routeId: 'jobs.qwen2_5_vl.privateInvoke.dryRun'
+  routePath: '/api/jobs/qwen2-5-vl/private-invoke/dry-run/mock'
+  clientHelper: 'callQwen25VlPrivateInvokeDryRun'
+  statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
+  routeRuntime: 'mock'
+  currentStatus: 'blocked_auth_reverify_required'
+  currentBlocker: string
+  boundaryNotes: string[]
+  runtimeFlags: {
+    usesCentralApiClient: true
+    serviceUrlResolvedNow: false
+    authHeaderCreated: false
+    identityTokenFetched: false
+    cloudRunInvocationAttempted: false
+    serviceRuntimeRequestSent: false
+    inferenceRun: false
+    workersDispatched: false
+    generatedAssetsCreated: false
+    publicArtifactsCreated: false
+    signedUrlsCreated: false
+    creditMutationCreated: false
+  }
+}
+
 export type QwenVlPlannerRoutingUiData = {
   mode: 'qwen_vl_planner_routing_ui_mock_only'
   title: string
@@ -37,9 +62,10 @@ export type QwenVlPlannerRoutingUiData = {
     dryRunPassedClaimed: false
   }
   handoffs: QwenVlPlannerRoutingUiHandoff[]
+  privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_43-PRIVATE-INVOKE-AUTH-VERIFY: refresh gcloud auth and run guarded read-only auth preflight, no token/no invocation'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_50-GCLOUD-REAUTH-USER: refresh local gcloud auth outside Codex, no token/no invocation'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -187,6 +213,35 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       dryRunPassedClaimed: false,
     },
     handoffs: handoffs.map((handoff) => ({ ...handoff })),
+    privateInvokeClient: {
+      routeId: 'jobs.qwen2_5_vl.privateInvoke.dryRun',
+      routePath: '/api/jobs/qwen2-5-vl/private-invoke/dry-run/mock',
+      clientHelper: 'callQwen25VlPrivateInvokeDryRun',
+      statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
+      routeRuntime: 'mock',
+      currentStatus: 'blocked_auth_reverify_required',
+      currentBlocker:
+        'Local gcloud auth requires interactive reauthentication before Cloud Run/IAM readiness can be reverified.',
+      boundaryNotes: [
+        'The frontend helper calls only the central ReeditPro API client boundary.',
+        'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
+        'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
+      ],
+      runtimeFlags: {
+        usesCentralApiClient: true,
+        serviceUrlResolvedNow: false,
+        authHeaderCreated: false,
+        identityTokenFetched: false,
+        cloudRunInvocationAttempted: false,
+        serviceRuntimeRequestSent: false,
+        inferenceRun: false,
+        workersDispatched: false,
+        generatedAssetsCreated: false,
+        publicArtifactsCreated: false,
+        signedUrlsCreated: false,
+        creditMutationCreated: false,
+      },
+    },
     executionGates: {
       plannerMayDispatchWorker: false,
       plannerMayInvokeCloudRun: false,
@@ -205,6 +260,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'D3, ECharts, and Vega-Lite own exact chart/dataviz output.',
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
-    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_43-PRIVATE-INVOKE-AUTH-VERIFY: refresh gcloud auth and run guarded read-only auth preflight, no token/no invocation',
+    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_50-GCLOUD-REAUTH-USER: refresh local gcloud auth outside Codex, no token/no invocation',
   }
 }

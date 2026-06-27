@@ -92,6 +92,29 @@ export function InlineQwenPlannerRoutingCard({ descriptor }: InlineQwenPlannerRo
         <span className="tool-planning-only-note">No generated assets</span>
       </div>
 
+      <section className="understanding-section">
+        <article className="tool-chain-item">
+          <div>
+            <span className="section-eyebrow">Private invoke client</span>
+            <h4>Mock route readiness</h4>
+            <p>{data.privateInvokeClient.currentBlocker}</p>
+          </div>
+          <Badge accent="warning">Blocked</Badge>
+        </article>
+        <div className="layout-mode-meta">
+          <span><strong>Route</strong>{data.privateInvokeClient.routeId}</span>
+          <span><strong>Path</strong>{data.privateInvokeClient.routePath}</span>
+          <span><strong>Client</strong>{data.privateInvokeClient.clientHelper}</span>
+          <span><strong>Runtime</strong>{data.privateInvokeClient.routeRuntime}</span>
+        </div>
+        <div className="understanding-chip-row">
+          <span className="tool-planning-only-note">No service URL</span>
+          <span className="tool-planning-only-note">No auth header</span>
+          <span className="tool-planning-only-note">No identity token</span>
+          <span className="tool-planning-only-note">Raw prompts rejected</span>
+        </div>
+      </section>
+
       <details className="understanding-section" open={descriptor?.status === 'warning' || descriptor?.status === 'blocking'}>
         <summary>Primary Qwen routes</summary>
         <div className="tool-chain-list">
@@ -117,6 +140,9 @@ export function InlineQwenPlannerRoutingCard({ descriptor }: InlineQwenPlannerRo
         <summary>Runtime gates and ownership</summary>
         <div className="layout-mode-meta">
           {Object.entries(data.executionGates).map(([gate, value]) => (
+            <span key={gate}><strong>{label(gate)}</strong>{String(value)}</span>
+          ))}
+          {Object.entries(data.privateInvokeClient.runtimeFlags).map(([gate, value]) => (
             <span key={gate}><strong>{label(gate)}</strong>{String(value)}</span>
           ))}
           {data.ownerBoundaries.map((boundary) => (

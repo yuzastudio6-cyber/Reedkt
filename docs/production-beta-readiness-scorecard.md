@@ -259,6 +259,20 @@ This is not a live Supabase write: `liveQueueWriteApprovedNow=false`,
 `workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,
 `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
 
+AI graphics external beta runtime queue service bridge decision
+`ai_graphics_external_beta_runtime_queue_service_bridge_prepared_with_runtime_blocks`
+bridges the external-beta local queue storage packet into the existing
+`createAiGraphicsToolRuntimeQueueService` boundary in forced mock mode.
+Diagnostics validate all 21 AI graphics tools through the runtime queue service
+that owns `enqueue_ai_graphics_tool_runtime_jobs` and
+`claim_ai_graphics_tool_runtime_job`, including the eight GPU/model tools on
+GPU-targeted runtime lanes and zero heavy-tool CPU fallbacks. This is still not
+a live Supabase queue write or worker claim: `liveQueueWriteApprovedNow=false`,
+`supabaseMutationPerformed=false`, `liveWorkerClaimInsertApprovedNow=false`,
+`workerLeaseCreated=false`, `workerDispatchPerformed=false`,
+`toolExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`,
+`externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
+
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
 shapes the all-21 queue-admission packets into backend queue adapter submission

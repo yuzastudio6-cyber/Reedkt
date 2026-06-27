@@ -23,15 +23,15 @@ const toolProfiles = [
   ['echarts', 'echarts', 'data_visualization', 'render_worker', 'browser_chart_runtime_later', false],
   ['vega_lite', 'vega_lite', 'data_visualization', 'cpu_analysis_worker', 'node_cpu_static', false],
   ['vega', 'vega', 'data_visualization', 'cpu_analysis_worker', 'node_cpu_static', false],
-  ['satori', 'satori', 'svg_graphics', 'render_worker', 'node_cpu_static_satori_font_runtime', false],
-  ['svgdotjs_svg_js', 'svgdotjs_svg_js', 'svg_graphics', 'render_worker', 'node_cpu_static_jsdom_svg_runtime', false],
-  ['viz_js', 'viz_js', 'diagram_graphics', 'render_worker', 'node_cpu_static_viz_runtime', false],
+  ['satori', 'satori', 'svg_graphics', 'render_worker', 'node_cpu_static', false],
+  ['svgdotjs_svg_js', 'svgdotjs_svg_js', 'svg_graphics', 'render_worker', 'node_cpu_static', false],
+  ['viz_js', 'viz_js', 'diagram_graphics', 'render_worker', 'node_cpu_static', false],
   ['lottie_web', 'lottie', 'animation_overlay', 'render_worker', 'browser_animation_runtime_later', false],
   ['animejs', 'animejs', 'animation_overlay', 'render_worker', 'browser_animation_runtime_later', false],
-  ['three_js', 'three_js', 'webgl_3d_scene', 'render_worker', 'browser_webgl_runtime_later', false],
+  ['three_js', 'three_js', 'webgl_3d_scene', 'render_worker', 'browser_canvas_webgl_runtime_later', false],
   ['pixi_js', 'pixijs', 'canvas_scene', 'render_worker', 'browser_canvas_webgl_runtime_later', false],
-  ['konva', 'konva', 'canvas_scene', 'render_worker', 'browser_canvas_runtime_later', false],
-  ['babylonjs', 'babylon_js', 'webgl_3d_scene', 'render_worker', 'browser_webgl_runtime_later', false],
+  ['konva', 'konva', 'canvas_scene', 'render_worker', 'browser_canvas_webgl_runtime_later', false],
+  ['babylonjs', 'babylon_js', 'webgl_3d_scene', 'render_worker', 'browser_canvas_webgl_runtime_later', false],
 ]
 
 const allTools = toolProfiles.map(([toolId]) => toolId)
@@ -671,6 +671,8 @@ const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-beta-runtime-queue-service-bridge": "tsx server/cli/ai-graphics-external-beta-runtime-queue-service-bridge.ts",',
+  '+    "ai-graphics:external-beta-runtime-queue-service-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-runtime-queue-service-bridge-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

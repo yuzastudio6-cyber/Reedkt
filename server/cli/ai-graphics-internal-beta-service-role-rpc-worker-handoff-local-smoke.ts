@@ -26,6 +26,81 @@ const validWorkerTypes = new Set<ProductionWorkerRuntimeType>([
   'tool_readiness_worker',
 ])
 
+const requiredServiceRoleRpcs = [
+  'enqueue_ai_graphics_tool_runtime_jobs',
+  'claim_ai_graphics_tool_runtime_job',
+  'record_ai_graphics_worker_event',
+  'record_ai_graphics_audit_event',
+]
+
+const requiredAdapterTrueBooleans = [
+  'internalBetaServiceRoleRpcAdapterLocalSmokeProofCompleted',
+  'sourceServiceRoleRpcLocalSmokeProofAccepted',
+  'sourceServiceRoleRpcSmokeReadinessAccepted',
+  'sourceServiceRoleRpcImplementationReadinessAccepted',
+  'all21ToolsSubmittedThroughAdapter',
+  'all12CapabilitiesCoveredBySubmittedPayloads',
+  'backendServiceAdapterExercised',
+  'localSupabaseHttpRpcExercised',
+  'localRpcFunctionsPresent',
+  'postgrestSchemaReloadNotified',
+  'localAdapterEnqueuePassed',
+  'localAdapterClaimPassed',
+  'localAdapterWorkerEventPassed',
+  'localAdapterAuditPassed',
+  'localAdapterCleanupPassed',
+  'privateArtifactManifestGuardUsed',
+  'reservedCreditReservationGuardUsed',
+  'approvedSnapshotGuardUsed',
+  'gpuHeavyToolsTargetGpuRuntime',
+  'agentCanSelectForPlanning',
+]
+
+const requiredAdapterFalseBooleans = [
+  'serviceRoleKeyCommitted',
+  'persistentSmokeFixtureRowsCreated',
+  'agentCanExecuteToolsNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'routeExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]
+
+const requiredZeroNowCounts = [
+  'toolExecutionsNow',
+  'routeExecutionsNow',
+  'workerExecutionsNow',
+  'providerExecutionsNow',
+  'browserWebglCanvasRuntimeExecutionsNow',
+  'gpuRuntimeExecutionsNow',
+  'signedUrlsCreatedNow',
+  'publicArtifactsCreatedNow',
+  'internalBetaReadyNowTools',
+  'externalBetaReadyNowTools',
+  'productionReadyNowTools',
+]
+
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
 }
@@ -53,32 +128,94 @@ function readJsonObjectFile(filePath: string): Record<string, unknown> {
   return packet as Record<string, unknown>
 }
 
-function isAdapterLocalSmokeProofPacket(packet: unknown): boolean {
-  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) return false
-  const record = packet as Record<string, unknown>
-  const counts = record.counts
-  const booleans = record.booleans
-  return (
-    record.decision === 'ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup' &&
-    record.status === 'adapter_local_smoke_passed_with_cleanup_no_tool_execution' &&
-    Boolean(
-      counts &&
-      typeof counts === 'object' &&
-      !Array.isArray(counts) &&
-      (counts as Record<string, unknown>).totalAiGraphicsTools === 21 &&
-      (counts as Record<string, unknown>).adapterInsertedJobCount === 21 &&
-      (counts as Record<string, unknown>).fixtureRowsPersistedAfterCleanup === 0,
-    ) &&
-    Boolean(
-      booleans &&
-      typeof booleans === 'object' &&
-      !Array.isArray(booleans) &&
-      (booleans as Record<string, unknown>).internalBetaServiceRoleRpcAdapterLocalSmokeProofCompleted === true &&
-      (booleans as Record<string, unknown>).localAdapterCleanupPassed === true &&
-      (booleans as Record<string, unknown>).agentCanExecuteToolsNow === false &&
-      (booleans as Record<string, unknown>).toolExecutionPerformed === false,
+function assertObjectField(record: Record<string, unknown>, key: string): Record<string, unknown> {
+  const value = record[key]
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Adapter local-smoke proof packet must include object field: ${key}.`)
+  }
+  return value as Record<string, unknown>
+}
+
+function assertNumberField(record: Record<string, unknown>, key: string, expected: number): void {
+  if (record[key] !== expected) {
+    throw new Error(
+      `Adapter local-smoke proof packet field ${key} must equal ${expected}; received ${String(record[key])}.`,
     )
-  )
+  }
+}
+
+function assertBooleanField(record: Record<string, unknown>, key: string, expected: boolean): void {
+  if (record[key] !== expected) {
+    throw new Error(
+      `Adapter local-smoke proof packet field ${key} must equal ${String(expected)}; received ${String(record[key])}.`,
+    )
+  }
+}
+
+function validateAdapterLocalSmokeProofPacket(packet: Record<string, unknown>): void {
+  if (packet.decision !== 'ai_graphics_internal_beta_service_role_rpc_adapter_local_smoke_passed_with_cleanup') {
+    throw new Error(`Unexpected adapter local-smoke proof decision: ${String(packet.decision)}.`)
+  }
+  if (packet.status !== 'adapter_local_smoke_passed_with_cleanup_no_tool_execution') {
+    throw new Error(`Unexpected adapter local-smoke proof status: ${String(packet.status)}.`)
+  }
+
+  const counts = assertObjectField(packet, 'counts')
+  const booleans = assertObjectField(packet, 'booleans')
+  const adapterSmokeCoverage = assertObjectField(packet, 'adapterSmokeCoverage')
+
+  for (const [key, expected] of Object.entries({
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    serviceRoleRpcsExercised: 4,
+    adapterEnqueueJobPayloadsSubmitted: 21,
+    adapterEnqueueJobIdsReturned: 21,
+    adapterInsertedJobCount: 21,
+    gpuRuntimeStartAllowedForAcceptedJobTools: 8,
+    fixtureRowsPersistedAfterCleanup: 0,
+  })) {
+    assertNumberField(counts, key, expected)
+  }
+
+  for (const key of requiredZeroNowCounts) {
+    assertNumberField(counts, key, 0)
+  }
+
+  for (const key of requiredAdapterTrueBooleans) {
+    assertBooleanField(booleans, key, true)
+  }
+  for (const key of requiredAdapterFalseBooleans) {
+    assertBooleanField(booleans, key, false)
+  }
+
+  if (!Array.isArray(adapterSmokeCoverage.serviceRoleRpcsExercised)) {
+    throw new Error('Adapter local-smoke proof packet must list exercised service-role RPCs.')
+  }
+  for (const rpc of requiredServiceRoleRpcs) {
+    if (!adapterSmokeCoverage.serviceRoleRpcsExercised.includes(rpc)) {
+      throw new Error(`Adapter local-smoke proof packet is missing exercised service-role RPC: ${rpc}.`)
+    }
+  }
+
+  for (const [key, expected] of Object.entries({
+    toolsSubmittedToAdapterEnqueue: 21,
+    jobsInsertedThenCleanedUp: 21,
+    jobIdsReturned: 21,
+    privateArtifactManifestRefsOnly: true,
+    gpuHeavyToolsTargetGpuRuntimeInPayloads: true,
+    gpuRuntimeStartAllowedForAcceptedJobTools: 8,
+    gpuRuntimeShouldStartNow: false,
+    toolExecutionPerformedBySmoke: false,
+  })) {
+    const actual = adapterSmokeCoverage[key]
+    if (actual !== expected) {
+      throw new Error(
+        `Adapter local-smoke proof packet coverage field ${key} must equal ${String(expected)}; received ${String(
+          actual,
+        )}.`,
+      )
+    }
+  }
 }
 
 function readSourceAdapterLocalSmokeProofPacket(): {
@@ -96,11 +233,7 @@ function readSourceAdapterLocalSmokeProofPacket(): {
   }
 
   const packet = readJsonObjectFile(filePath)
-  if (!isAdapterLocalSmokeProofPacket(packet)) {
-    throw new Error(
-      'Service-role RPC adapter local smoke proof packet must report adapter_local_smoke_passed_with_cleanup_no_tool_execution with all 21 tools represented and cleanup complete.',
-    )
-  }
+  validateAdapterLocalSmokeProofPacket(packet)
 
   return {
     sourceAdapterLocalSmokeProofPacketRead: true,
@@ -179,6 +312,8 @@ function buildPreparedContract() {
     allowedEnvironments: ['local'],
     requiredSupabaseEnv: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'],
     toolsCoveredByWorkerHandoff: 21,
+    gpuRuntimeStartAllowedForAcceptedJobTools: 8,
+    gpuRuntimeShouldStartNow: false,
     workerBoundaryDispatcherMode: 'mock_safe_in_memory_only',
     localFixtureRowsPersistedAfterCleanup: 0,
     liveProductionWorkerDispatchPerformed: false,
@@ -665,6 +800,7 @@ async function runWorkerHandoffSmoke() {
     const gpuHandoffTools = handoffResults.filter((result) => result.workerType === 'gpu_ai_worker').length
     const renderHandoffTools = handoffResults.filter((result) => result.workerType === 'render_worker').length
     const cpuHandoffTools = handoffResults.filter((result) => result.workerType === 'cpu_analysis_worker').length
+    const gpuRuntimeStartAllowedForAcceptedJobTools = jobs.filter((job) => job.workerType === 'gpu_ai_worker').length
 
     return {
       prefix,
@@ -682,6 +818,8 @@ async function runWorkerHandoffSmoke() {
         state.leases.filter((lease) => lease.leaseStatus === 'released').length,
       inMemoryDispatcherEventsRecorded: state.events.length,
       gpuHandoffTools,
+      gpuRuntimeStartAllowedForAcceptedJobTools,
+      gpuRuntimeShouldStartNow: false,
       renderHandoffTools,
       cpuHandoffTools,
       handoffResults,
@@ -733,6 +871,8 @@ async function main() {
     inMemoryDispatcherLeaseRecordsReleased: smoke.inMemoryDispatcherLeaseRecordsReleased,
     inMemoryDispatcherEventsRecorded: smoke.inMemoryDispatcherEventsRecorded,
     gpuHandoffTools: smoke.gpuHandoffTools,
+    gpuRuntimeStartAllowedForAcceptedJobTools: smoke.gpuRuntimeStartAllowedForAcceptedJobTools,
+    gpuRuntimeShouldStartNow: smoke.gpuRuntimeShouldStartNow,
     renderHandoffTools: smoke.renderHandoffTools,
     cpuHandoffTools: smoke.cpuHandoffTools,
     fixtureRowsPersistedAfterCleanup: 0,

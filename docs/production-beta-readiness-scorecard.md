@@ -995,8 +995,8 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 ## AI Graphics Internal Beta Service-Role RPC Worker-Handoff Source Packet
 
 - Decision remains `ai_graphics_internal_beta_service_role_rpc_worker_handoff_local_smoke_passed_with_cleanup`.
-- Source packet ingestion: `ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke` can now consume `--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet` when the source packet already reports adapter local-smoke cleanup pass, all 21 tools represented, and 0 persistent fixture rows. The packet-fed path reports `worker_handoff_local_smoke_prepared_not_executed` unless explicit local worker-handoff confirmation and local service-role credentials are supplied.
-- Runtime/beta/production: no unlock; `workerHandoffLocalSmokeExecutedNow=false`, `liveProductionWorkerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
+- Source packet ingestion: `ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke` can now consume `--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet` when the source packet already reports adapter local-smoke cleanup pass, all 21 tools represented, all 12 product-facing capabilities represented, exactly eight future accepted-job GPU runtime targets, `gpuRuntimeShouldStartNow=false`, and 0 persistent fixture rows. The packet-fed path reports `worker_handoff_local_smoke_prepared_not_executed` unless explicit local worker-handoff confirmation and local service-role credentials are supplied.
+- Runtime/beta/production: no unlock; `workerHandoffLocalSmokeExecutedNow=false`, `liveProductionWorkerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimeStartAllowedForAcceptedJobTools=8`, `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Internal Beta Production Worker Gate Source Packet
 

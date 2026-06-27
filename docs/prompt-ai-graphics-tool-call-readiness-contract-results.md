@@ -532,6 +532,15 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Validation run: `ai-graphics:internal-beta-backend-queue-storage-readiness:diagnostics` and `ai-graphics:internal-beta-service-role-queue-transaction-readiness:diagnostics` passed.
 - Latest observed PR state after backend queue and service-role source packet GPU hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `32eb131c31c756b14cbae1ff124efc8e53ca058c`, with an empty check rollup.
 
+## Follow-Up: Service-Role RPC Worker-Handoff Source Packet GPU Hardening
+
+- Tightened `ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke` source packet validation for `--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet`.
+- A source adapter local-smoke packet must now report `adapter_local_smoke_passed_with_cleanup_no_tool_execution`, all 21 tools, all 12 capabilities, 21 submitted adapter jobs, 21 cleaned-up inserted jobs, exactly eight future accepted-job GPU runtime targets, `gpuRuntimeShouldStartNow=false`, false runtime/beta/production gates, and 0 persistent fixture rows.
+- Prepared and packet-fed worker-handoff output now records `gpuRuntimeStartAllowedForAcceptedJobTools=8` and `gpuRuntimeShouldStartNow=false`.
+- Diagnostic coverage proves invalid source packets are rejected when tool coverage drops to 20, capability coverage drops to 11, the accepted-job GPU start count drops to 7, `gpuRuntimeShouldStartNow=true`, `gpuRuntimeApprovedNow=true`, tool execution is claimed, or fixture rows persist.
+- Runtime remains blocked: `workerHandoffLocalSmokeExecutedNow=false`, `liveProductionWorkerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+- Cost posture: the eight GPU/model tools remain GPU-targeted for accepted future worker/tool-call jobs only; no idle GPU runtime or standing GPU service is approved.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

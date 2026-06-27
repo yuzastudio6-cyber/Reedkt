@@ -22,8 +22,9 @@ URLs, public artifacts, internal beta, external beta, or production.
 - Source evidence policy:
   committed adapter proof or `--internal-beta-service-role-rpc-adapter-local-smoke-proof-packet`.
   The source packet must report adapter cleanup pass, all 21 tools represented,
-  and no tool execution. Worker-handoff smoke execution still requires explicit
-  local confirmation and local service-role credentials.
+  all 12 product-facing capabilities represented, exactly 8 future accepted-job
+  GPU runtime targets, `gpuRuntimeShouldStartNow=false`, false runtime/beta/
+  production gates, and no tool execution. Worker-handoff smoke execution still requires explicit local confirmation and local service-role credentials.
 - Source migration:
   `supabase/migrations/202606260002_ai_graphics_tool_runtime_service_role_rpcs.sql`
 - Worker-handoff smoke package script:
@@ -71,6 +72,8 @@ URLs, public artifacts, internal beta, external beta, or production.
 - Credit reservation fixture created: true
 - Private artifact manifest refs only: true
 - GPU-heavy tools target GPU runtime in worker payloads: true
+- GPU runtime start allowed for accepted-job tools: 8
+- GPU runtime should start now: false
 - Tool execution performed by smoke: false
 - Live production worker dispatch performed: false
 
@@ -143,6 +146,7 @@ only; it is not a runtime or production path.
 - `providerRuntimeApprovedNow`: false
 - `browserWebglCanvasRuntimeApprovedNow`: false
 - `gpuRuntimeApprovedNow`: false
+- `gpuRuntimeShouldStartNow`: false
 - `runtimeReadyNow`: false
 - `internalBetaReadyNow`: false
 - `externalBetaReadyNow`: false

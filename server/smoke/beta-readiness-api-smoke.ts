@@ -90,6 +90,10 @@ try {
     defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('libass-synthetic-burnin-qa-preflight')),
     'default operator status should name synthetic libass burn-in QA after filter proof',
   )
+  assert.ok(
+    defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('libass-synthetic-burnin-qa-evidence-preflight')),
+    'default operator status should name libass evidence recording preflight after synthetic QA',
+  )
 
   const deployedVerifierReportResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
     method: 'POST',

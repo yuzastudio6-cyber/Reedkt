@@ -1,0 +1,102 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_VLLM_L4_KV_CACHE_TUNING_1",
+  "decision": "completed_qwen2_5_vl_l4_vllm_kv_cache_tuning_structured_output_smoke_passed",
+  "execution": "completed_guarded_private_structured_output_smoke_with_tuned_l4_vllm_config_and_fail_closed_restore",
+  "integrationBase": "0de95eef8d41a55704ade915d774d988584c3ab8",
+  "sourceEvidence": {
+    "structuredOutputSourceImportPr": 1294,
+    "privateCallerImageSourceImportPr": 1297,
+    "structuredOutputSmokeRetryBlockerPr": 1305,
+    "excludedPr": 577
+  },
+  "tuningConfig": {
+    "QWEN_VLLM_MAX_MODEL_LEN": 2048,
+    "QWEN_VLLM_MAX_NUM_BATCHED_TOKENS": 1024,
+    "QWEN_VLLM_MAX_NUM_SEQS": 1,
+    "QWEN_VLLM_GPU_MEMORY_UTILIZATION": 0.92,
+    "QWEN_FIXTURE_MAX_TOKENS": 180,
+    "cloudRunJobTaskTimeoutSeconds": 900
+  },
+  "runtimeEvidence": {
+    "runId": "qwen25-vllm-l4-kv-cache-tuning-20260627T214934Z",
+    "execution": "reeditpro-qwen2-5-vl-private-caller-pdvgn",
+    "completion": "succeeded",
+    "duration": "7m21.49s",
+    "httpStatus": 200,
+    "serviceReason": "qwen_fixture_inference_smoke_completed",
+    "fixtureInferenceSmokePassed": true,
+    "structuredMetadataOutputAccepted": true,
+    "runtimeContractExecutesNow": true,
+    "runtimeVersionPresent": true
+  },
+  "metadataOutput": {
+    "parsedJson": true,
+    "schemaValid": true,
+    "objectCount": 3,
+    "textLikeRegionCount": 1,
+    "spatialRelationCount": 2,
+    "blockedActionCount": 4,
+    "rawOutputStoredInRepo": false,
+    "outputTextLength": 645,
+    "outputTextSha256": "f18b566fa1936ec68cf36dfd3c8fa5145ee22e0bc7a06ea9ca8930f50c2bd1d4",
+    "normalizedMetadataSha256": "f18b566fa1936ec68cf36dfd3c8fa5145ee22e0bc7a06ea9ca8930f50c2bd1d4"
+  },
+  "runtimeSideEffects": {
+    "identityTokenFetched": true,
+    "cloudRunInvocationAttempted": true,
+    "serviceRuntimeRequestSent": true,
+    "modelImportRun": true,
+    "modelLoadRun": true,
+    "vllmEngineInitialized": true,
+    "inferenceRun": true,
+    "generatedAssetsCreated": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "supabaseTouched": false,
+    "sqlExecuted": false,
+    "workersDispatched": false,
+    "creditMutationCreated": false
+  },
+  "failClosedRestore": {
+    "passed": true,
+    "serviceLatestReadyRevision": "reeditpro-qwen2-5-vl-l4-worker-00019-qgn",
+    "jobGeneration": 12,
+    "jobTaskTimeoutSeconds": 60,
+    "serviceGatesDisabled": true,
+    "jobGatesDisabled": true,
+    "temporaryTuningEnvRemoved": true,
+    "temporaryTargetAndAudienceRemoved": true
+  },
+  "readiness": {
+    "qwenRuntime": "ready_for_external_beta_runtime_gate_integration",
+    "structuredOutputSmoke": "passed",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_INTEGRATION_1",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "safety": {
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "frontendProviderCall": false,
+    "workerDispatch": false,
+    "productRouteExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "generatedAssetCreation": false,
+    "creditMutation": false,
+    "stripeProcessing": false,
+    "broadExternalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "arbitraryPrivateMediaProcessing": false,
+    "arbitraryUserMediaProcessing": false,
+    "dockerPush": false,
+    "packageInstallationBeyondDependencyValidation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  }
+}

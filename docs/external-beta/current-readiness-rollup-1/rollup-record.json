@@ -1,8 +1,8 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "completed_controlled_owner_browser_walkthrough",
+  "decision": "approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
-  "integrationHead": "7cc7d798c6a2b272a260f5220f2f0c911c4bea2f",
+  "integrationHead": "3c56071c0274abeb513f302414d702c113cc6ab7",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
     "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
@@ -32,11 +32,12 @@
     "controlledTesterProductFlowSmoke": "rp_external_beta_controlled_tester_product_flow_smoke_1",
     "controlledTesterUiFlowSmoke": "rp_external_beta_controlled_tester_ui_flow_smoke_1",
     "deployedBrowserUiSurfaceStagingDeploy": "rp_external_beta_deployed_browser_ui_surface_1r_staging_deploy",
-    "controlledOwnerBrowserWalkthrough": "rp_external_beta_controlled_owner_browser_walkthrough_1"
+    "controlledOwnerBrowserWalkthrough": "rp_external_beta_controlled_owner_browser_walkthrough_1",
+    "controlledOwnerGoNoGo": "rp_external_beta_controlled_owner_go_no_go_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
-    "externalProductBeta": "ready_for_controlled_owner_go_no_go",
+    "externalProductBeta": "ready_for_named_invited_tester_identity_and_walkthrough",
     "productApiReadiness": "ready_for_controlled_owner_tester_product_walkthrough",
     "paidProduction": "blocked",
     "finalDeliveryExport": "blocked",
@@ -264,11 +265,15 @@
     "controlledOwnerBrowserWalkthroughAuthenticatedEditor": "passed_200_html",
     "controlledOwnerBrowserWalkthroughAssetFetches": "passed",
     "controlledOwnerBrowserWalkthroughBrowserVisibleShell": true,
-    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1"
+    "controlledOwnerGoNoGo": "approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough",
+    "controlledOwnerGoNoGoExecution": "completed_docs_only_controlled_owner_go_no_go_no_runtime_mutation",
+    "controlledOwnerGoNoGoNextGate": "RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1",
+    "namedInvitedTesterIdentity": "required_before_next_walkthrough",
+    "nextMilestone": "RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1"
   },
   "requiredNextOwnerDecision": [
     "keep_controlled_external_beta_tester_group_bounded",
-    "review_controlled_owner_go_no_go",
+    "provide_named_invited_tester_identity_for_guarded_walkthrough",
     "no_public_access_provider_worker_media_or_production_unlock"
   ],
   "safety": {
@@ -371,6 +376,10 @@
     "controlledOwnerBrowserWalkthroughRouteExecution": "safe_get_browser_ui_surface_and_static_asset_probes_only",
     "controlledOwnerBrowserWalkthroughPersistentMutation": false,
     "controlledOwnerBrowserWalkthroughBrowserCapture": false,
+    "controlledOwnerGoNoGo": "completed_docs_only_controlled_owner_go_no_go_no_runtime_mutation",
+    "controlledOwnerGoNoGoPersistentMutation": false,
+    "controlledOwnerGoNoGoIamMutation": false,
+    "controlledOwnerGoNoGoCloudRunDeployment": false,
     "testerAccountUnauthenticatedAccessPublicOpen": false,
     "identityTokenPrinted": false,
     "identityTokenPersisted": false

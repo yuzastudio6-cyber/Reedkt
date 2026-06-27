@@ -31,6 +31,15 @@ const allowedFiles = new Set([
   ...requiredFiles,
   'scripts/validation/rp-external-beta-deployed-browser-ui-surface-1r-staging-deploy-diagnostics.mjs',
   'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
+  'docs/external-beta/controlled-owner-go-no-go-1/source-audit.md',
+  'docs/external-beta/controlled-owner-go-no-go-1/owner-decision.md',
+  'docs/external-beta/controlled-owner-go-no-go-1/readiness-gate.md',
+  'docs/external-beta/controlled-owner-go-no-go-1/safety-boundary.md',
+  'docs/external-beta/controlled-owner-go-no-go-1/validation-results.md',
+  'docs/external-beta/controlled-owner-go-no-go-1/controlled-owner-go-no-go-record.json',
+  'docs/activation-phase-rp-external-beta-controlled-owner-go-no-go-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-named-invited-tester-walkthrough-1.md',
+  'scripts/validation/rp-external-beta-controlled-owner-go-no-go-1-diagnostics.mjs',
 ])
 
 const requiredText = [
@@ -217,7 +226,9 @@ const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/ro
 if (rollup.sourceClosure?.controlledOwnerBrowserWalkthrough !== 'rp_external_beta_controlled_owner_browser_walkthrough_1') {
   fail('rollup missing controlled owner browser walkthrough source')
 }
-if (rollup.statuses?.externalProductBeta !== 'ready_for_controlled_owner_go_no_go') fail('rollup external beta status mismatch')
+if (!['ready_for_controlled_owner_go_no_go', 'ready_for_named_invited_tester_identity_and_walkthrough'].includes(rollup.statuses?.externalProductBeta)) {
+  fail('rollup external beta status mismatch')
+}
 if (rollup.mainSupabaseTarget?.controlledOwnerBrowserWalkthrough !== 'completed_external_beta_controlled_owner_browser_walkthrough') {
   fail('rollup owner walkthrough status mismatch')
 }

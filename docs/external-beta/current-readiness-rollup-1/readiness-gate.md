@@ -1,16 +1,16 @@
 # RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1
 
-Decision: `completed_controlled_owner_browser_walkthrough`
+Decision: `approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `7cc7d798c6a2b272a260f5220f2f0c911c4bea2f`
+Current integration head: `3c56071c0274abeb513f302414d702c113cc6ab7`
 
 Source closure: `RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1`
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
-External product beta readiness: `ready_for_controlled_owner_go_no_go`
+External product beta readiness: `ready_for_named_invited_tester_identity_and_walkthrough`
 
 Product API readiness: `ready_for_controlled_owner_tester_product_walkthrough`
 
@@ -59,7 +59,7 @@ The next beta gate must keep controlled private invite access bounded while pres
 3. Run a controlled owner browser walkthrough before broadening the beta audience.
 4. Future provider/model runtime confirmation packet only if a real call is explicitly approved later.
 
-Controlled external beta is enabled on the staging API only. The product API lane remains `ready_for_controlled_owner_tester_product_walkthrough` with `external beta enabled in this phase: true`, and the browser-visible UI lane is now `ready_for_controlled_owner_go_no_go` after `RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1`. Access is routed through the owner-managed Google security group `external-beta-testers@reeditpro.com`; do not broaden IAM beyond that staging service group binding. The approved owner/tester is `aiediting@reeditpro.com`, #1229 / `RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1` is the current tester-account source-of-truth, `RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1` is the current product-flow source-of-truth, `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY` records the deployed browser UI surface, and `RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1` records the successful authenticated owner browser surface walkthrough.
+Controlled external beta is enabled on the staging API only. The product API lane remains `ready_for_controlled_owner_tester_product_walkthrough` with `external beta enabled in this phase: true`, and the browser-visible UI lane is now `ready_for_named_invited_tester_identity_and_walkthrough` after `RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1`. Access is routed through the owner-managed Google security group `external-beta-testers@reeditpro.com`; do not broaden IAM beyond that staging service group binding. The approved owner/tester is `aiediting@reeditpro.com`, #1229 / `RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1` is the current tester-account source-of-truth, `RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1` is the current product-flow source-of-truth, `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY` records the deployed browser UI surface, `RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1` records the successful authenticated owner browser surface walkthrough, and `RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1` approves the next named invited tester walkthrough gate without broad public access.
 
 ## External Product Beta Readiness
 

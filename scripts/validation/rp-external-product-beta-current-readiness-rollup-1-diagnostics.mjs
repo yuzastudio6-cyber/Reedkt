@@ -437,6 +437,26 @@ const followOnControlledOwnerBrowserWalkthrough1Files = [
   'package.json',
 ]
 
+const followOnControlledOwnerGoNoGo1Files = [
+  'docs/external-beta/controlled-owner-go-no-go-1/source-audit.md',
+  'docs/external-beta/controlled-owner-go-no-go-1/owner-decision.md',
+  'docs/external-beta/controlled-owner-go-no-go-1/readiness-gate.md',
+  'docs/external-beta/controlled-owner-go-no-go-1/safety-boundary.md',
+  'docs/external-beta/controlled-owner-go-no-go-1/validation-results.md',
+  'docs/external-beta/controlled-owner-go-no-go-1/controlled-owner-go-no-go-record.json',
+  'docs/activation-phase-rp-external-beta-controlled-owner-go-no-go-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-named-invited-tester-walkthrough-1.md',
+  'docs/external-beta/current-readiness-rollup-1/readiness-gate.md',
+  'docs/external-beta/current-readiness-rollup-1/source-of-truth-audit.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/external-beta/current-readiness-rollup-1/rollup-record.json',
+  'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
+  'scripts/validation/rp-external-beta-controlled-owner-go-no-go-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-owner-browser-walkthrough-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -672,7 +692,7 @@ const requiredText = [
   'blocked_gcloud_reauthentication_required_before_staging_flag_application',
   'completed_controlled_external_beta_staging_flag_application',
   'completed_controlled_private_invite_iam_grant_for_owner_managed_group',
-  'completed_controlled_owner_browser_walkthrough',
+  'approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough',
   'completed_owner_member_group_access_smoke_readback_carried_forward',
   'completed_readonly_group_membership_readback_and_owner_member_authenticated_smoke',
   'completed_owner_approved_tester_account_membership_smoke',
@@ -700,7 +720,7 @@ const requiredText = [
   'Unsafe public mutation grants: `0`',
   'Unsafe public sequence grants: `0`',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'External product beta readiness: `ready_for_controlled_owner_go_no_go`',
+  'External product beta readiness: `ready_for_named_invited_tester_identity_and_walkthrough`',
   'Product API readiness: `ready_for_controlled_owner_tester_product_walkthrough`',
   'External beta enabled in this phase: `true`',
   'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
@@ -767,6 +787,8 @@ const requiredText = [
   '3b59add023f0e66fa29e028239563b8fe6b27c62efd2bbe7acc82bbbb6b52423',
   '53cca53c7a2198768836c0d4510993d2aaf98e9bba3304715f4a8ef94acc4896',
   'RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1',
+  'ready_for_named_invited_tester_identity_and_walkthrough',
+  'RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1',
   'RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1',
   'RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1',
   'planning.demo.chatNative.create',
@@ -899,10 +921,10 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'completed_controlled_owner_browser_walkthrough') fail('record decision mismatch')
+if (record.decision !== 'approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
-if (record.integrationHead !== '7cc7d798c6a2b272a260f5220f2f0c911c4bea2f') fail('integration head mismatch')
-if (record.statuses?.externalProductBeta !== 'ready_for_controlled_owner_go_no_go') fail('external beta status mismatch')
+if (record.integrationHead !== '3c56071c0274abeb513f302414d702c113cc6ab7') fail('integration head mismatch')
+if (record.statuses?.externalProductBeta !== 'ready_for_named_invited_tester_identity_and_walkthrough') fail('external beta status mismatch')
 if (record.statuses?.productApiReadiness !== 'ready_for_controlled_owner_tester_product_walkthrough') fail('product API readiness mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
@@ -971,6 +993,7 @@ if (record.sourceClosure?.controlledTesterProductFlowSmoke !== 'rp_external_beta
 if (record.sourceClosure?.controlledTesterUiFlowSmoke !== 'rp_external_beta_controlled_tester_ui_flow_smoke_1') fail('controlled tester UI flow smoke source mismatch')
 if (record.sourceClosure?.deployedBrowserUiSurfaceStagingDeploy !== 'rp_external_beta_deployed_browser_ui_surface_1r_staging_deploy') fail('deployed browser UI surface 1R source mismatch')
 if (record.sourceClosure?.controlledOwnerBrowserWalkthrough !== 'rp_external_beta_controlled_owner_browser_walkthrough_1') fail('controlled owner browser walkthrough source mismatch')
+if (record.sourceClosure?.controlledOwnerGoNoGo !== 'rp_external_beta_controlled_owner_go_no_go_1') fail('controlled owner go/no-go source mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
 if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
@@ -1124,7 +1147,11 @@ if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughAuthenticatedPro
 if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughAuthenticatedEditor !== 'passed_200_html') fail('controlled owner browser editor mismatch')
 if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughAssetFetches !== 'passed') fail('controlled owner browser asset fetches mismatch')
 if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughBrowserVisibleShell !== true) fail('controlled owner browser shell mismatch')
-if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1') fail('next milestone mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerGoNoGo !== 'approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough') fail('controlled owner go/no-go mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerGoNoGoExecution !== 'completed_docs_only_controlled_owner_go_no_go_no_runtime_mutation') fail('controlled owner go/no-go execution mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerGoNoGoNextGate !== 'RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1') fail('controlled owner go/no-go next gate mismatch')
+if (record.mainSupabaseTarget?.namedInvitedTesterIdentity !== 'required_before_next_walkthrough') fail('named invited tester requirement mismatch')
+if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1') fail('next milestone mismatch')
 if (record.requiredNextOwnerDecision?.[0] !== 'keep_controlled_external_beta_tester_group_bounded') fail('controlled private invite next decision mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
@@ -1332,6 +1359,12 @@ if (
 ) {
   fail('missing controlled owner browser walkthrough diagnostics script')
 }
+if (
+  packageJson.scripts?.['rp-external-beta-controlled-owner-go-no-go-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-controlled-owner-go-no-go-1-diagnostics.mjs'
+) {
+  fail('missing controlled owner go/no-go diagnostics script')
+}
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
@@ -1364,6 +1397,7 @@ const allowed = new Set([
   ...followOnDeployedBrowserUiSurfaceFiles,
   ...followOnDeployedBrowserUiSurface1rStagingDeployFiles,
   ...followOnControlledOwnerBrowserWalkthrough1Files,
+  ...followOnControlledOwnerGoNoGo1Files,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -1409,8 +1443,8 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_controlled_owner_browser_walkthrough')
-console.log('External product beta readiness: ready_for_controlled_owner_go_no_go')
+console.log('Decision: approved_controlled_external_beta_owner_go_no_go_for_named_invited_tester_walkthrough')
+console.log('External product beta readiness: ready_for_named_invited_tester_identity_and_walkthrough')
 console.log('Product API readiness: ready_for_controlled_owner_tester_product_walkthrough')
 console.log('External beta enabled in this phase: true')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

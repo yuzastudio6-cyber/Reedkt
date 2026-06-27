@@ -14,4 +14,6 @@ Tester identity variable: `REEDITPRO_EXTERNAL_BETA_TESTER_EMAIL`
 
 Confirmation absent result: `blocked_pending_external_beta_tester_account_smoke_confirmation`
 
-Tester missing result: `blocked_missing_valid_non_owner_external_tester_email`
+Tester missing result: `blocked_missing_valid_external_tester_email`
+
+Approved current tester email: `aiediting@reeditpro.com`

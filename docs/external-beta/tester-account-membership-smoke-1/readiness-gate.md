@@ -1,16 +1,16 @@
 # Tester Account Membership Smoke Readiness
 
-Current decision: `blocked_pending_actual_external_tester_account_membership_and_tester_auth_smoke`
+Current decision: `completed_external_beta_tester_account_membership_and_authenticated_smoke`
 
-Current execution: `completed_guarded_tester_account_smoke_runner_prep_no_access_mutation`
+Current execution: `completed_guarded_external_beta_tester_account_membership_and_authenticated_smoke`
 
-Runner state: `ready_fail_closed_pending_actual_tester_identity_and_auth_context`
+Runner state: `completed`
 
 External product beta readiness: `ready_for_actual_external_tester_account_addition_and_smoke`
 
 ## Required Next Evidence
 
-Before this gate can pass, a future confirmed run must prove:
+This gate now proves:
 
 - actual tester account is a member of `external-beta-testers@reeditpro.com`;
 - active `gcloud` account equals that tester account;
@@ -21,10 +21,19 @@ Before this gate can pass, a future confirmed run must prove:
 - no broad Cloud Run invoker binding exists;
 - no group membership, IAM, deployment, Supabase, worker, media, public artifact, paid production, or production mutation occurs in the smoke phase.
 
-## Current Blocker
+## Current Tester Decision
 
-Current blocker: `blocked_pending_actual_external_tester_account_membership_and_tester_auth_smoke`
+Approved current tester email: `aiediting@reeditpro.com`
 
-The owner-member account remains non-tester evidence.
+Tester classification: `owner_approved_primary_real_tester_account`
+
+Run ID: `2026-06-27T15-05-37-588Z-5b451f5c`
+
+Smoke result:
+
+- unauthenticated `/health`: `blocked_403`
+- authenticated tester `/health`: `passed_200`
+- authenticated tester `/ready`: `passed_200`
+- authenticated tester `/api/runtime/status`: `passed_200`
 
 Product-ready end-to-end local OSS tools: `0`

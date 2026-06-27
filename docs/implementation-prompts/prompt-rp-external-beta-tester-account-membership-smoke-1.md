@@ -1,6 +1,10 @@
 # RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1
 
-Use this prompt only after an actual external tester account has been added to `external-beta-testers@reeditpro.com`.
+Status: `completed_external_beta_tester_account_membership_and_authenticated_smoke`.
+
+Use this prompt only for revalidation or follow-up tester-account additions after an actual approved tester account is present in `external-beta-testers@reeditpro.com`.
+
+Current owner-approved tester account: `aiediting@reeditpro.com`.
 
 Use the guarded runner added by `RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1` runner prep. Do not perform ad hoc group mutation or smoke commands.
 
@@ -8,7 +12,7 @@ Confirmed command:
 
 ```bash
 REEDITPRO_CONFIRM_EXTERNAL_BETA_TESTER_ACCOUNT_SMOKE=true \
-REEDITPRO_EXTERNAL_BETA_TESTER_EMAIL=<tester@example.com> \
+REEDITPRO_EXTERNAL_BETA_TESTER_EMAIL=aiediting@reeditpro.com \
 npm run rp-external-beta-tester-account-membership-smoke-1
 ```
 
@@ -18,7 +22,7 @@ Prerequisite source:
 - `RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-GATE-READBACK-1`
 - decision `completed_owner_member_group_access_smoke_readback_external_tester_membership_still_pending`
 - external tester member count `0` at owner-member readback time
-- current blocker `blocked_pending_actual_external_tester_account_membership_and_tester_auth_smoke`
+- completed decision `completed_external_beta_tester_account_membership_and_authenticated_smoke`
 
 Required future scope:
 

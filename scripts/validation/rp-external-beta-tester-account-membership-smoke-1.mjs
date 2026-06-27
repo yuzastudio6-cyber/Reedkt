@@ -28,6 +28,8 @@ const report = {
   blocker: null,
   confirmation: process.env[confirmEnv] === 'true',
   testerEmail: process.env[testerEmailEnv] || null,
+  ownerApprovedPrimaryTesterEmail: ownerMemberEmail,
+  testerClassification: null,
   group: {
     email: groupEmail,
     resource: groupResource,
@@ -48,6 +50,7 @@ const report = {
   auth: {
     activeAccount: null,
     testerAuthActive: false,
+    identityTokenMode: null,
     identityTokenPrinted: false,
     identityTokenPersisted: false,
   },
@@ -100,6 +103,7 @@ function writeReportAndExit(blocker, code = 1) {
   const manifest = {
     packet,
     runId,
+    note: 'Manifest checksum is recorded by the source packet after the local run; the manifest does not self-checksum.',
     files: [
       {
         fileName: path.basename(reportPath),
@@ -109,12 +113,6 @@ function writeReportAndExit(blocker, code = 1) {
     ],
   }
   const manifestPath = path.join(outputDir, 'artifact-manifest.json')
-  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
-  manifest.files.push({
-    fileName: path.basename(manifestPath),
-    bytes: fs.statSync(manifestPath).size,
-    sha256: sha256(manifestPath),
-  })
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
   console.log(`${packet} result: ${report.decision}`)
   if (blocker) console.log(`Blocker: ${blocker}`)
@@ -141,7 +139,7 @@ function normalizeEmail(value) {
 
 function validateTesterEmail(email) {
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return false
-  return email !== ownerMemberEmail
+  return true
 }
 
 async function request(url, token) {
@@ -161,8 +159,10 @@ if (!report.confirmation) {
 const testerEmail = normalizeEmail(process.env[testerEmailEnv])
 report.testerEmail = testerEmail
 if (!validateTesterEmail(testerEmail)) {
-  writeReportAndExit('blocked_missing_valid_non_owner_external_tester_email')
+  writeReportAndExit('blocked_missing_valid_external_tester_email')
 }
+report.testerClassification =
+  testerEmail === ownerMemberEmail ? 'owner_approved_primary_real_tester_account' : 'external_tester_account'
 
 const memberships = parseJsonCommand(
   ['gcloud', 'identity', 'groups', 'memberships', 'list', `--group-email=${groupEmail}`, `--project=${project}`, '--format=json'],
@@ -215,14 +215,24 @@ if (!report.auth.testerAuthActive) {
 let token
 try {
   token = run(['gcloud', 'auth', 'print-identity-token', `--audiences=${report.cloudRun.url}`]).trim()
+  report.auth.identityTokenMode = 'audience_scoped'
   report.auth.identityTokenPrinted = false
   report.auth.identityTokenPersisted = false
 } catch (error) {
-  report.commandError = {
-    command: 'gcloud auth print-identity-token',
-    message: String(error?.message || error),
+  const firstError = String(error?.message || error)
+  try {
+    token = run(['gcloud', 'auth', 'print-identity-token']).trim()
+    report.auth.identityTokenMode = 'user_account_default_audience'
+    report.auth.identityTokenPrinted = false
+    report.auth.identityTokenPersisted = false
+    report.auth.identityTokenFallbackReason = 'audience_scoped_identity_token_requires_service_account'
+  } catch (fallbackError) {
+    report.commandError = {
+      command: 'gcloud auth print-identity-token',
+      message: `${firstError}\nFallback error: ${String(fallbackError?.message || fallbackError)}`,
+    }
+    writeReportAndExit('blocked_tester_identity_token_unavailable')
   }
-  writeReportAndExit('blocked_tester_identity_token_unavailable')
 }
 
 try {

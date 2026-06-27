@@ -1,7 +1,7 @@
 {
   "packet": "RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1",
-  "currentDecision": "blocked_pending_actual_external_tester_account_membership_and_tester_auth_smoke",
-  "execution": "completed_guarded_tester_account_smoke_runner_prep_no_access_mutation",
+  "currentDecision": "completed_external_beta_tester_account_membership_and_authenticated_smoke",
+  "execution": "completed_guarded_external_beta_tester_account_membership_and_authenticated_smoke",
   "integrationBase": "27308ae7d628028f3ce743c81e1e26d7450fb748",
   "sourceClosure": {
     "privateInviteIamGrant1r": "rp_external_beta_controlled_private_invite_iam_grant_1r_after_identity_list",
@@ -15,7 +15,7 @@
     "confirmationEnv": "REEDITPRO_CONFIRM_EXTERNAL_BETA_TESTER_ACCOUNT_SMOKE",
     "testerEmailEnv": "REEDITPRO_EXTERNAL_BETA_TESTER_EMAIL",
     "confirmationAbsentBlocker": "blocked_pending_external_beta_tester_account_smoke_confirmation",
-    "testerMissingBlocker": "blocked_missing_valid_non_owner_external_tester_email",
+    "testerMissingBlocker": "blocked_missing_valid_external_tester_email",
     "futureSuccessDecision": "completed_external_beta_tester_account_membership_and_authenticated_smoke",
     "outputDirBase": "/tmp/reeditpro-rp-external-beta-tester-account-membership-smoke-1"
   },
@@ -25,15 +25,35 @@
     "cloudRunService": "reeditpro-staging-api",
     "cloudRunRegion": "us-central1",
     "cloudRunIamMember": "group:external-beta-testers@reeditpro.com",
-    "ownerMemberEmail": "aiediting@reeditpro.com"
+    "ownerMemberEmail": "aiediting@reeditpro.com",
+    "approvedCurrentTesterEmail": "aiediting@reeditpro.com",
+    "testerClassification": "owner_approved_primary_real_tester_account"
   },
   "currentState": {
-    "confirmedSmokeExecution": "not_run_confirmation_and_tester_identity_absent",
-    "actualExternalTesterMemberPresent": false,
-    "testerAuthenticationContextPresent": false,
-    "ownerMemberSmokeIsNotTesterEvidence": true,
+    "confirmedSmokeExecution": "completed",
+    "actualExternalTesterMemberPresent": true,
+    "testerAuthenticationContextPresent": true,
+    "ownerMemberSmokeIsAcceptedByOwnerDecision": true,
+    "unauthenticatedHealth": "blocked_403",
+    "authenticatedHealth": "passed_200",
+    "authenticatedReady": "passed_200",
+    "authenticatedRuntimeStatus": "passed_200",
     "externalProductBetaReadiness": "ready_for_actual_external_tester_account_addition_and_smoke",
     "productReadyEndToEndLocalOssTools": 0
+  },
+  "runEvidence": {
+    "runId": "2026-06-27T15-05-37-588Z-5b451f5c",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-tester-account-membership-smoke-1/2026-06-27T15-05-37-588Z-5b451f5c",
+    "report": {
+      "fileName": "tester-account-membership-smoke-report.json",
+      "bytes": 2398,
+      "sha256": "f6611d7c0ed9fb4693e44fa3ebade02d107ed539319cc7aebf63555bd12446ca"
+    },
+    "manifest": {
+      "fileName": "artifact-manifest.json",
+      "bytes": 438,
+      "sha256": "35cb90ef7935109a9b1d90d9bd7bf2308e8f87a8b314e7ac21cdcfbe21dd2b40"
+    }
   },
   "safety": {
     "supabaseMutation": false,

@@ -64,6 +64,8 @@ Latest observed PR state after beta evidence exact GPU target propagation: [#862
 
 Latest observed PR state after ephemeral GPU runtime policy hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `128b8bce09ee83d4b9c6971f1b872066f663c37a`, with an empty check rollup.
 
+Latest observed PR state after worker payload runtime activation hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `3cf4ee346a36c501b2b9ccccbdd624523def574f`, with an empty check rollup.
+
 Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 
 ## Requirements

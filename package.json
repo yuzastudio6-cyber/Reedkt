@@ -478,6 +478,7 @@
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-frontend-client": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-transport-adapter": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-transport-adapter-smoke.ts",
+    "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-smoke-plan": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-smoke-plan-smoke.ts",
     "qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight": "tsx server/cli/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-verify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-verify-result-smoke.ts",

@@ -5,7 +5,7 @@ import { QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT } from '../activation/qwen2-
 const MODE =
   'qwen2_5_vl_private_invoke_auth_reverify_result_passed_no_invocation'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference'
+  'QWEN2_5_VL_STACK_TOOL_52-PRIVATE-INVOKE-SMOKE-EXECUTE: run controlled private invoke contract smoke, no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -76,7 +76,7 @@ assert.equal(result.verifiedToolState.cloudRunServiceIamBindingCount, 0)
 assert.equal(result.verifiedToolState.runtimeServiceAccountVerified, true)
 assert.equal(result.verifiedToolState.projectInvokerPolicyReadVerified, true)
 assert.equal(result.verifiedToolState.projectInvokerPolicyBindingCount, 0)
-assert.equal(result.remainingBlocker, 'private_invoke_smoke_plan_required_no_token_no_invocation')
+assert.equal(result.remainingBlocker, 'private_invoke_smoke_execution_required_no_inference')
 assert.equal(result.nextPrompt, NEXT_PROMPT)
 
 assert.equal(result.observedCloudRunCostPosture.gpuLimit, '1')

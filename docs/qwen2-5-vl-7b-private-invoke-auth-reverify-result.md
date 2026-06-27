@@ -93,4 +93,4 @@ The next action is no longer a manual `gcloud` reauth step. The remaining blocke
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference`
+`QWEN2_5_VL_STACK_TOOL_52-PRIVATE-INVOKE-SMOKE-EXECUTE: run controlled private invoke contract smoke, no inference`

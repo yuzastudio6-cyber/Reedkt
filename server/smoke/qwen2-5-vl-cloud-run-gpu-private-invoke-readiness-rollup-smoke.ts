@@ -16,9 +16,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_private_invoke_smoke_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_private_invoke_smoke_execution_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_51-PRIVATE-INVOKE-SMOKE-PLAN: define controlled private invoke smoke after auth/IAM reverify, no inference'
+  'QWEN2_5_VL_STACK_TOOL_52-PRIVATE-INVOKE-SMOKE-EXECUTE: run controlled private invoke contract smoke, no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -81,6 +81,7 @@ function scanValues(value: unknown, pathParts: string[] = []): string[] {
 function assertRollupFalseFlags(flags: JsonRecord) {
   for (const key of [
     'privateInvokeReady',
+    'privateInvokeSmokeExecuted',
     'betaReady',
     'productionReady',
     'serviceUrlResolvedNow',
@@ -183,7 +184,10 @@ for (const phrase of [
   'NVIDIA L4',
   'scale to zero required',
   'run-on-use and stop-when-idle',
-  'Controlled private invoke smoke approval',
+  'Controlled private invoke smoke execution',
+  '`privateInvokeSmokePlanDefined=true`',
+  '`privateInvokeSmokeExecuted=false`',
+  '`qwen_inference_disabled_after_contract_check`',
   'service-level max scale `3`',
   NEXT_PROMPT,
 ]) {
@@ -234,14 +238,14 @@ assert.equal(status.mayRunInference, false)
 assert.equal(status.mayDispatchWorker, false)
 
 const ui = getQwenVlPlannerRoutingUiData()
-assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_smoke_required')
+assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_smoke_execution_required')
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
 assert.equal(ui.summary.dryRunPassedClaimed, false)
 
 const auth = QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT
 assert.equal(auth.status, 'passed')
-assert.equal(auth.remainingBlocker, 'private_invoke_smoke_plan_required_no_token_no_invocation')
+assert.equal(auth.remainingBlocker, 'private_invoke_smoke_execution_required_no_inference')
 assert.equal(auth.qwenRuntimeReadiness.privateInvocationAuthVerified, true)
 assert.equal(auth.qwenRuntimeReadiness.cloudRunServiceDescribeVerified, true)
 assert.equal(auth.qwenRuntimeReadiness.cloudRunIamPolicyVerified, true)
@@ -260,9 +264,10 @@ assert.deepEqual(gateIds, [
   'frontend_client',
   'chat_ui_surface',
   'cloud_run_auth_reverify',
-  'private_invoke_smoke_approval',
+  'private_invoke_smoke_plan',
+  'private_invoke_smoke_execution',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 6)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 7)
 assert.equal(
   rollup.readinessGates.filter((gate) => gate.status === 'blocked_runtime_acceptance_required').length,
   1,
@@ -278,6 +283,8 @@ assert.equal(rollup.runtimeFlags.cloudRunServiceDescribeVerified, true)
 assert.equal(rollup.runtimeFlags.cloudRunIamPolicyVerified, true)
 assert.equal(rollup.runtimeFlags.runtimeServiceAccountVerified, true)
 assert.equal(rollup.runtimeFlags.projectInvokerPolicyVerified, true)
+assert.equal(rollup.runtimeFlags.privateInvokeSmokePlanDefined, true)
+assert.equal(rollup.runtimeFlags.privateInvokeSmokeExecuted, false)
 
 for (const file of [
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md',

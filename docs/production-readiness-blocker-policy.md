@@ -12,4 +12,16 @@ Intentional blanket blockers are invalid source truth. If a report says somethin
 
 Readiness and operator reports should expose the split in machine-readable form. The blocked action scope should name the exact unsafe action that is closed, while allowed forward-progress scopes should name the safe source review, local dependency proof, bounded command/import proof, preview, diagnostics, deployment preflight, owner approval, monitoring, support, or rollback lane that can continue.
 
+Production hardening reports must carry the same contract as the beta tool blocker ledger:
+
+- `blockerForwardProgressPolicy.intentionalBlanketBlocksAllowed: false`
+- `blockerForwardProgressPolicy.blockerScope: named_unsafe_action_only`
+- `blockerForwardProgressPolicy.safeForwardProgressRequired: true`
+- `blockerForwardProgressPolicy.nextSafeActionRequiredForBlockers: true`
+- `safeBlockerReductionAllowed: true`
+- `blockedActionScope`, limited to the unsafe launch/runtime/delivery actions still closed.
+- `allowedForwardProgressScopes`, listing safe source review, local proof, diagnostics, QA, deployment preflight, owner approval, security/privacy review, and rollback/monitoring/support planning lanes.
+
+If a future blocker says beta or production is blocked but omits this split, treat the report as incomplete. Repair the blocker metadata first, then keep reducing the named blocker through the smallest safe lane. Do not use the missing metadata as a reason to stop all safe work.
+
 Workers execute approved plan snapshots and private artifact references. Raw chat, signed URLs, and evaluation-only tools cannot become production execution inputs.

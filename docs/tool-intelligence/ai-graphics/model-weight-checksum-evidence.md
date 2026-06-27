@@ -90,6 +90,9 @@ After checksum evidence passes, use the manifest-authoring bridge with
 reviewed local/private source-license and model-card supplements:
 
 ```sh
+npm run --silent ai-graphics:model-weight-manifest-supplement:validate -- \
+  --supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements
+
 npm run --silent ai-graphics:model-weight-manifest-authoring -- \
   --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence \
   --supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements \

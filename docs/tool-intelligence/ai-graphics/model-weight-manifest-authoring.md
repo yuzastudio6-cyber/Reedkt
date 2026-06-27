@@ -69,6 +69,9 @@ npm run --silent ai-graphics:model-weight-manifest-supplement-scaffold -- \
 The command reads only local/private files and emits redacted status JSON:
 
 ```sh
+npm run --silent ai-graphics:model-weight-manifest-supplement:validate -- \
+  --supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements
+
 npm run --silent ai-graphics:model-weight-manifest-authoring -- \
   --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence \
   --supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements \

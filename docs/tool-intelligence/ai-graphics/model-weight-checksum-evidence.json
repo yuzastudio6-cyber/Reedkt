@@ -14,6 +14,7 @@
   },
   "sourceEvidence": {
     "modelWeightChecksumEvidenceScaffold": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence-scaffold.json",
+    "modelWeightManifestSupplement": "docs/tool-intelligence/ai-graphics/model-weight-manifest-supplement.json",
     "modelWeightManifestAuthoring": "docs/tool-intelligence/ai-graphics/model-weight-manifest-authoring.json",
     "modelWeightSourceCatalog": "docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json",
     "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
@@ -29,6 +30,8 @@
     "localPrivateChecksumEvidenceValidatorScript": "ai-graphics:model-weight-checksum-evidence:validate",
     "localPrivateChecksumEvidenceScaffold": "server/cli/ai-graphics-model-weight-checksum-evidence-scaffold.ts",
     "localPrivateChecksumEvidenceScaffoldScript": "ai-graphics:model-weight-checksum-evidence-scaffold",
+    "localPrivateManifestSupplementValidator": "server/cli/ai-graphics-model-weight-manifest-supplement.ts",
+    "localPrivateManifestSupplementValidatorScript": "ai-graphics:model-weight-manifest-supplement:validate",
     "localPrivateManifestAuthoringBridge": "server/cli/ai-graphics-model-weight-manifest-authoring.ts",
     "localPrivateManifestAuthoringBridgeScript": "ai-graphics:model-weight-manifest-authoring",
     "diagnostic": "scripts/validation/ai-graphics-model-weight-checksum-evidence-diagnostics.mjs",

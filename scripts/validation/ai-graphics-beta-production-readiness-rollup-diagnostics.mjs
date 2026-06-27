@@ -477,6 +477,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics": "node scripts/validation/ai-graphics-model-weight-checksum-evidence-scaffold-diagnostics.mjs",',
   '+    "ai-graphics:model-weight-manifest-authoring": "tsx server/cli/ai-graphics-model-weight-manifest-authoring.ts",',
   '+    "ai-graphics:model-weight-manifest-authoring:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-authoring-diagnostics.mjs",',
+  '+    "ai-graphics:model-weight-manifest-supplement:validate": "tsx server/cli/ai-graphics-model-weight-manifest-supplement.ts",',
+  '+    "ai-graphics:model-weight-manifest-supplement:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-supplement-diagnostics.mjs",',
   '+    "ai-graphics:model-weight-manifest-supplement-scaffold": "tsx server/cli/ai-graphics-model-weight-manifest-supplement-scaffold.ts",',
   '+    "ai-graphics:model-weight-manifest-supplement-scaffold:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-supplement-scaffold-diagnostics.mjs",',
   '+    "ai-graphics:internal-beta-go-no-go": "tsx server/cli/ai-graphics-internal-beta-go-no-go.ts",',

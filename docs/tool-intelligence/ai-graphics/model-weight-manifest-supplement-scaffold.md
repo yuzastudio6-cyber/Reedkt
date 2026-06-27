@@ -78,7 +78,15 @@ npm run --silent ai-graphics:model-weight-manifest-supplement-scaffold -- \
 
 ## Validation Flow
 
-After filling the local private supplement records and checksum evidence,
+After filling the local private supplement records, validate them before
+manifest authoring:
+
+```bash
+npm run --silent ai-graphics:model-weight-manifest-supplement:validate -- \
+  --supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements
+```
+
+Then combine the accepted supplements with accepted checksum evidence and
 generate private manifest drafts:
 
 ```bash

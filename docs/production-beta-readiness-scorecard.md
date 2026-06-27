@@ -894,3 +894,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Decision remains `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`.
 - Private model-weight manifests now require `checksumEvidenceRef` and `checksumEvidenceReviewed=true` before native GPU proof input can be accepted. The native GPU readiness probe validates checksum evidence through private/ref-redacted refs, and the GPU proof-result validator requires `model_manifest_checksum_evidence_ref_validated`.
 - This is readiness hardening only. It does not download model weights, load models, run inference, execute tools, run routes/workers/providers, run GPU runtime, create artifacts, unlock internal beta, unlock external beta, or unlock production.
+
+## AI Graphics Model-Weight Manifest Supplement Validator
+
+- Decision: `ai_graphics_model_weight_manifest_supplement_prepared_with_no_private_records`.
+- Scope: local/private source-license and model-card supplement validation for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background` before manifest authoring.
+- Result: default committed evidence provides 0 supplement records and accepts 0 records. Local private supplements must match the selected source-catalog candidate, use reviewed private refs for `sourceLicenseRef` and `modelCardRef`, and set every commercial-use, redistribution, provenance, quality, security, and internal-beta review boolean to true before manifest authoring can consume them.
+- Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `gpuRuntimeApprovedNow=false`, `modelWeightsDownloaded=false`, `modelWeightsLoaded=false`, `modelInferencePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

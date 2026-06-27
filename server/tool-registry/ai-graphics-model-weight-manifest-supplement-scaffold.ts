@@ -58,6 +58,7 @@ export interface AiGraphicsModelWeightManifestSupplementAuthoringChecklistItem {
   ]
   sourceEvidenceRefs: string[]
   validationCommands: [
+    'npm run --silent ai-graphics:model-weight-manifest-supplement:validate -- --supplement-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_SUPPLEMENT_ROOT"',
     'npm run --silent ai-graphics:model-weight-manifest-authoring -- --evidence-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_CHECKSUM_EVIDENCE_ROOT" --supplement-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_SUPPLEMENT_ROOT" --out-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
     'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
     'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
@@ -210,6 +211,7 @@ function authoringChecklistItemForTool(
     requiredReviewBooleans: [...requiredReviewBooleans],
     sourceEvidenceRefs: record.sourceCandidateGuidance.sourceEvidenceRefs,
     validationCommands: [
+      'npm run --silent ai-graphics:model-weight-manifest-supplement:validate -- --supplement-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_SUPPLEMENT_ROOT"',
       'npm run --silent ai-graphics:model-weight-manifest-authoring -- --evidence-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_CHECKSUM_EVIDENCE_ROOT" --supplement-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_SUPPLEMENT_ROOT" --out-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
       'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
       'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',

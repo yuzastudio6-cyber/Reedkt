@@ -244,6 +244,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after model-weight manifest authoring bridge completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `46a77404fa8d9063b08af67d498f330d39d39c28`, with an empty check rollup.
 - Model-weight manifest supplement scaffold: added local-only invalid-by-default templates and a checklist for the five manifest review supplement records consumed by the authoring bridge. The scaffold writes `manifest-review-supplement.json` files under `.local-artifacts/ai-graphics/model-weight-manifest-supplements`, uses rejected placeholder refs for source-license/model-card evidence, keeps all review booleans false, and proves placeholders fail authoring while filled local private supplements can produce manifest drafts. No model download/load/inference, GPU runtime, Tool Route, Worker, beta, or production gate is unlocked.
 - Latest observed PR state after model-weight manifest supplement scaffold completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `e9bf71bf14e538fff3716d8d2da0f293bb2eaf6b`, with an empty check rollup.
+- Model-weight manifest supplement validator: added a standalone local/private validator for the five source-license/model-card supplement records before manifest authoring. The validator rejects public, signed, raw GCS, and placeholder refs; requires all commercial use, redistribution, provenance, quality, security, and internal-beta review booleans; reports only redacted ref statuses; and proves valid local private supplements can be accepted without enabling model download/load/inference, GPU runtime, Tool Route, Worker, beta, or production.
 
 ## Runtime State
 
@@ -289,6 +290,8 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - `checksumEvidenceRefRequired=true`
 - `checksumEvidenceReviewRequired=true`
 - `modelManifestChecksumEvidenceRefValidatedRequired=true`
+- `modelManifestSupplementValidatorPrepared=true`
+- `modelManifestSupplementPrivateRefsRequired=true`
 - `privateArtifactRefNamespaceAccepted=true only with model-weight and GPU proof namespace evidence`
 - `sourceCatalogChecksumGuidanceEnforced=true`
 - `suggestedChecksumMismatchRejected=true`

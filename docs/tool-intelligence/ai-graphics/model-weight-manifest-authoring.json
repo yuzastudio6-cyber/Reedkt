@@ -15,6 +15,7 @@
   "sourceEvidence": {
     "modelWeightChecksumEvidence": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json",
     "modelWeightChecksumEvidenceScaffold": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence-scaffold.json",
+    "modelWeightManifestSupplement": "docs/tool-intelligence/ai-graphics/model-weight-manifest-supplement.json",
     "modelWeightManifestSupplementScaffold": "docs/tool-intelligence/ai-graphics/model-weight-manifest-supplement-scaffold.json",
     "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
     "modelWeightManifestReadinessContract": "docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.json",
@@ -25,6 +26,8 @@
     "serverExport": "server/tool-registry/index.ts",
     "localPrivateManifestAuthoringCli": "server/cli/ai-graphics-model-weight-manifest-authoring.ts",
     "localPrivateManifestAuthoringScript": "ai-graphics:model-weight-manifest-authoring",
+    "localPrivateManifestSupplementValidator": "server/cli/ai-graphics-model-weight-manifest-supplement.ts",
+    "localPrivateManifestSupplementValidatorScript": "ai-graphics:model-weight-manifest-supplement:validate",
     "localPrivateManifestSupplementScaffoldScript": "ai-graphics:model-weight-manifest-supplement-scaffold",
     "localPrivateChecksumEvidenceValidatorScript": "ai-graphics:model-weight-checksum-evidence:validate",
     "localPrivateManifestValidatorScript": "ai-graphics:model-weight-manifest-review:validate",

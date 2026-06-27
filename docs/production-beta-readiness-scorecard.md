@@ -986,6 +986,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Private evidence handoff bridge: the beta tool-call readiness evaluator can now ingest either an assembled beta evidence bundle packet or a full local beta evidence assembly packet containing `betaEvidenceBundle`. This connects local/private proof assembly to the 21-tool readiness gate without committing private refs or starting tools, routes, workers, browser runtimes, GPU runtimes, model downloads, media processing, beta, or production.
 - Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics External-Beta Readiness Gate
+
+- Decision: `ai_graphics_external_beta_readiness_gate_prepared_with_runtime_blocks`.
+- Scope: product-facing external-beta checkpoint across all 21 AI graphics tools, all 12 capabilities, install/mapping evidence, beta technical evidence, runtime soak, QA, cost/concurrency/privacy/rollback, incident response, and owner approval.
+- Result: all 21 tools remain installed or represented for the planned surface, all 21 remain mapped to production tool IDs, all eight heavy/model tools remain GPU-targeted, and heavy/model CPU fallback remains 0. Full future evidence can produce 21 external-beta candidates with provided evidence, but current external-beta-ready-now remains 0 of 21.
+- Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics Internal Beta Owner Approval
 
 - Decision: `ai_graphics_internal_beta_owner_approval_contract_prepared_with_fail_closed_defaults`.

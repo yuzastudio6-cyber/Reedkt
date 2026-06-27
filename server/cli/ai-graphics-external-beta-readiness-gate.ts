@@ -1,0 +1,58 @@
+import {
+  buildAiGraphicsExternalBetaReadinessGate,
+  type AiGraphicsExternalBetaReadinessEvidence,
+} from '../tool-registry/ai-graphics-external-beta-readiness-gate'
+
+function hasFlag(flag: string): boolean {
+  return process.argv.includes(flag)
+}
+
+const sharedGatesPassed = hasFlag('--all-shared-gates-passed')
+const allExternalBetaEvidencePassed = hasFlag('--all-external-beta-evidence-passed')
+
+const evidence: AiGraphicsExternalBetaReadinessEvidence = {
+  approvedPlanSnapshotGatePassed: sharedGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
+  creditReservationGatePassed: sharedGatesPassed || hasFlag('--credit-reservation-gate-passed'),
+  artifactBoundaryGatePassed: sharedGatesPassed || hasFlag('--artifact-boundary-gate-passed'),
+  toolRouteGatePassed: sharedGatesPassed || hasFlag('--tool-route-gate-passed'),
+  workerGatePassed: sharedGatesPassed || hasFlag('--worker-gate-passed'),
+  browserCanvasWebglSandboxPassed: hasFlag('--browser-canvas-webgl-sandbox-passed'),
+  nativeGpuRuntimeProofPassed: hasFlag('--native-gpu-runtime-proof-passed'),
+  modelWeightManifestsApproved: hasFlag('--model-weight-manifests-approved'),
+  modelWeightManifestReviewPacketAccepted: hasFlag('--model-weight-review-packet-accepted'),
+  internalBetaOwnerApprovalGranted:
+    sharedGatesPassed || hasFlag('--internal-beta-owner-approval-granted'),
+  internalBetaRuntimeSoakAccepted:
+    allExternalBetaEvidencePassed || hasFlag('--internal-beta-runtime-soak-accepted'),
+  externalBetaQaAccepted:
+    allExternalBetaEvidencePassed || hasFlag('--external-beta-qa-accepted'),
+  externalBetaCostConcurrencyPrivacyRollbackAccepted:
+    allExternalBetaEvidencePassed ||
+    hasFlag('--external-beta-cost-concurrency-privacy-rollback-accepted'),
+  externalBetaIncidentResponseAccepted:
+    allExternalBetaEvidencePassed || hasFlag('--external-beta-incident-response-accepted'),
+  externalBetaOwnerApprovalGranted:
+    allExternalBetaEvidencePassed || hasFlag('--external-beta-owner-approval-granted'),
+}
+
+const gate = buildAiGraphicsExternalBetaReadinessGate(evidence)
+
+console.log(JSON.stringify({
+  ...gate,
+  input: {
+    evaluatorOnly: true,
+    dependencyInstallPerformed: false,
+    packageLockMutationPerformed: false,
+    toolExecutionPerformed: false,
+    workerExecutionPerformed: false,
+    routeExecutionPerformed: false,
+    providerRuntimePerformed: false,
+    browserWebglCanvasRuntimePerformed: false,
+    gpuRuntimePerformed: false,
+    modelWeightsDownloaded: false,
+    modelWeightsLoaded: false,
+    mediaProcessingPerformed: false,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+  },
+}, null, 2))

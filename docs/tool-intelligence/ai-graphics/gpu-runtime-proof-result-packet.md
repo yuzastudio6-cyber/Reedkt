@@ -67,7 +67,7 @@ include:
 - no raw `privateArtifactRef`, `private://`, `gs://`, HTTP(S), signed URL, or public artifact refs
 - all runtime side-effect fields false
 
-If all four profile results pass, the aggregate status becomes
+If all six profile results pass, the aggregate status becomes
 `ready_for_owner_review_not_beta_ready`. That still does not approve agent tool
 execution, Tool Route execution, Worker execution, GPU runtime, beta, or
 production.

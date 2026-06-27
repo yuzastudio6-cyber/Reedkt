@@ -31,7 +31,7 @@
     "totalAiGraphicsTools": 21,
     "gpuRuntimeTargetedTools": 8,
     "modelWeightManifestRequiredTools": 5,
-    "runtimeProfilesRequired": 4,
+    "runtimeProfilesRequired": 6,
     "runtimeProofResultsProvided": 0,
     "runtimeProofResultsAcceptedForOwnerReview": 0,
     "runtimeReadyNow": 0,
@@ -76,7 +76,9 @@
     "gpu_worker_ai_graphics",
     "sam2",
     "birefnet",
-    "real_esrgan"
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
   ],
   "acceptedStatusAfterExternalProof": "ready_for_owner_review_not_beta_ready",
   "requiredRuntimeBucket": "native_linux_amd64_nvidia_l4_gpu_worker",
@@ -117,7 +119,6 @@
     "gpuRuntimeProofResultValidatorPrepared": true,
     "all8GpuRuntimeToolsCovered": true,
     "all5ModelWeightManifestToolsCovered": true,
-    "all4RuntimeProfilesCovered": true,
     "gpuRuntimeTargetsExact": true,
     "gpuRuntimeOnDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
@@ -148,6 +149,7 @@
     "supabaseMutationPerformed": false,
     "gcsUploadPerformed": false,
     "publicArtifactCreated": false,
-    "signedUrlCreated": false
+    "signedUrlCreated": false,
+    "all6RuntimeProfilesCovered": true
   }
 }

@@ -22,6 +22,8 @@ export const gpuRuntimeProfiles = [
   'sam2',
   'birefnet',
   'real_esrgan',
+  'rembg',
+  'transparent_background',
 ]
 
 export const expectedGpuRuntimeTargets = {
@@ -89,7 +91,7 @@ export function acceptedGpuRuntimeProofResultPacket() {
       gpuRuntimeProofResultValidatorPrepared: true,
       all8GpuRuntimeToolsCovered: true,
       all5ModelWeightManifestToolsCovered: true,
-      all4RuntimeProfilesCovered: true,
+      all6RuntimeProfilesCovered: true,
       gpuRuntimeTargetsExact: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,

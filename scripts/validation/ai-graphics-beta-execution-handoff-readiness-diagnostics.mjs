@@ -61,6 +61,8 @@ const requiredProfiles = [
   'sam2',
   'birefnet',
   'real_esrgan',
+  'rembg',
+  'transparent_background',
 ]
 
 const requiredImportsByProfile = {
@@ -90,6 +92,8 @@ const requiredImportsByProfile = {
     'skimage',
   ],
   real_esrgan: ['torch', 'torchvision', 'numpy', 'PIL', 'cv2', 'basicsr', 'realesrgan'],
+  rembg: ['torch', 'numpy', 'PIL', 'cv2', 'rembg'],
+  transparent_background: ['torch', 'torchvision', 'numpy', 'PIL', 'transparent_background'],
 }
 
 const manifestToolsByProfile = {
@@ -97,6 +101,8 @@ const manifestToolsByProfile = {
   sam2: ['sam2'],
   birefnet: ['birefnet'],
   real_esrgan: ['real_esrgan'],
+  rembg: ['rembg'],
+  transparent_background: ['transparent_background'],
 }
 
 const templateIdByTool = {

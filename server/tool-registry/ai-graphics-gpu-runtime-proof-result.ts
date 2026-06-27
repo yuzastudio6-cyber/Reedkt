@@ -9,6 +9,8 @@ export type AiGraphicsGpuRuntimeProofProfileId =
   | 'sam2'
   | 'birefnet'
   | 'real_esrgan'
+  | 'rembg'
+  | 'transparent_background'
 
 export type AiGraphicsGpuRuntimeProofAggregateStatus =
   | 'missing_native_gpu_runtime_proof_results'
@@ -87,7 +89,7 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
     gpuRuntimeProofResultValidatorPrepared: true
     all8GpuRuntimeToolsCovered: true
     all5ModelWeightManifestToolsCovered: true
-    all4RuntimeProfilesCovered: true
+    all6RuntimeProfilesCovered: true
     gpuRuntimeTargetsExact: true
     gpuRuntimeOnDemandOnly: true
     noIdleGpuRuntimeApproved: true
@@ -135,6 +137,8 @@ const runtimeProfilesRequired = [
   'sam2',
   'birefnet',
   'real_esrgan',
+  'rembg',
+  'transparent_background',
 ] as const satisfies readonly AiGraphicsGpuRuntimeProofProfileId[]
 
 export function listAiGraphicsGpuRuntimeProofRequiredProfiles(): readonly AiGraphicsGpuRuntimeProofProfileId[] {
@@ -185,6 +189,20 @@ const requiredImportsByProfile = {
     'basicsr',
     'realesrgan',
   ],
+  rembg: [
+    'torch',
+    'numpy',
+    'PIL',
+    'cv2',
+    'rembg',
+  ],
+  transparent_background: [
+    'torch',
+    'torchvision',
+    'numpy',
+    'PIL',
+    'transparent_background',
+  ],
 } as const satisfies Record<AiGraphicsGpuRuntimeProofProfileId, readonly string[]>
 
 const requiredManifestToolsByProfile = {
@@ -192,6 +210,8 @@ const requiredManifestToolsByProfile = {
   sam2: ['sam2'],
   birefnet: ['birefnet'],
   real_esrgan: ['real_esrgan'],
+  rembg: ['rembg'],
+  transparent_background: ['transparent_background'],
 } as const satisfies Record<AiGraphicsGpuRuntimeProofProfileId, readonly AiGraphicsModelWeightManifestToolId[]>
 
 const templateIdByManifestTool = {
@@ -512,6 +532,8 @@ function proofResultsByProfile(
     sam2: [],
     birefnet: [],
     real_esrgan: [],
+    rembg: [],
+    transparent_background: [],
   }
   for (const result of results) {
     const profile = profileFromInput(result)
@@ -560,7 +582,7 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
 
   const blockers = [
     status === 'missing_native_gpu_runtime_proof_results'
-      ? 'Native linux/amd64 NVIDIA L4 proof results have not been provided for the four required GPU runtime profiles.'
+      ? 'Native linux/amd64 NVIDIA L4 proof results have not been provided for the six required GPU runtime profiles.'
       : undefined,
     status === 'invalid_native_gpu_runtime_proof_results'
       ? 'One or more native GPU runtime proof results failed profile, CUDA, import, model-manifest, redaction, or false-gate validation.'
@@ -593,7 +615,7 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
       gpuRuntimeProofResultValidatorPrepared: true,
       all8GpuRuntimeToolsCovered: true,
       all5ModelWeightManifestToolsCovered: true,
-      all4RuntimeProfilesCovered: true,
+      all6RuntimeProfilesCovered: true,
       gpuRuntimeTargetsExact: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,

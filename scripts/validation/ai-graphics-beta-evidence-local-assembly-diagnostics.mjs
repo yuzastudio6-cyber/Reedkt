@@ -22,6 +22,8 @@ const runtimeProfiles = [
   'sam2',
   'birefnet',
   'real_esrgan',
+  'rembg',
+  'transparent_background',
 ]
 
 const expectedGpuRuntimeTargets = {
@@ -62,6 +64,8 @@ const requiredImportsByProfile = {
     'skimage',
   ],
   real_esrgan: ['torch', 'torchvision', 'numpy', 'PIL', 'cv2', 'basicsr', 'realesrgan'],
+  rembg: ['torch', 'numpy', 'PIL', 'cv2', 'rembg'],
+  transparent_background: ['torch', 'torchvision', 'numpy', 'PIL', 'transparent_background'],
 }
 
 const manifestToolsByProfile = {
@@ -69,6 +73,8 @@ const manifestToolsByProfile = {
   sam2: ['sam2'],
   birefnet: ['birefnet'],
   real_esrgan: ['real_esrgan'],
+  rembg: ['rembg'],
+  transparent_background: ['transparent_background'],
 }
 
 const templateIdByTool = {
@@ -375,7 +381,7 @@ if (packet.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) {
 for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
   modelWeightManifestRequiredTools: 5,
-  nativeGpuRuntimeProfilesRequired: 4,
+  nativeGpuRuntimeProfilesRequired: 6,
   localManifestRecordsProvided: 0,
   localGpuRuntimeProofResultsProvided: 0,
   defaultBetaTestingReadyTools: 0,
@@ -510,7 +516,7 @@ if (fullAssembly.status !== 'assembled_all21_beta_evidence_ready_for_owner_gate'
   fail(`full_status:${fullAssembly.status}`)
 }
 if (fullAssembly.localManifestRecordsProvided !== 5) fail(`full_manifest_records:${fullAssembly.localManifestRecordsProvided}`)
-if (fullAssembly.localGpuRuntimeProofResultsProvided !== 4) fail(`full_gpu_results:${fullAssembly.localGpuRuntimeProofResultsProvided}`)
+if (fullAssembly.localGpuRuntimeProofResultsProvided !== 6) fail(`full_gpu_results:${fullAssembly.localGpuRuntimeProofResultsProvided}`)
 if (fullAssembly.betaEvidenceBundle?.betaTestingReadyTools !== 21) fail('full_ready_not_21')
 if (fullAssembly.betaEvidenceBundle?.all21BetaEvidenceReady !== true) fail('full_all21_not_true')
 if (fullAssembly.betaEvidenceBundle?.all21TechnicalEvidenceReadyBeforeOwnerApproval !== true) {

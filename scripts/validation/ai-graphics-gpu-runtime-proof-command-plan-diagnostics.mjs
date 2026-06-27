@@ -84,6 +84,20 @@ const expectedProfiles = {
     tools: ['real_esrgan', 'torch_torchvision'],
     manifestTools: ['real_esrgan'],
   },
+  rembg: {
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    imageTag: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    tools: ['rembg'],
+    manifestTools: ['rembg'],
+  },
+  transparent_background: {
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    imageTag: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    tools: ['transparent_background'],
+    manifestTools: ['transparent_background'],
+  },
 }
 
 const failures = []
@@ -223,7 +237,7 @@ for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
   gpuRuntimeTargetedTools: 8,
   modelWeightManifestRequiredTools: 5,
-  runtimeProfiles: 4,
+  runtimeProfiles: 6,
   manifestRecordsProvided: 0,
   schemaValidManifestRecords: 0,
   reviewAcceptedManifestRecords: 0,
@@ -382,7 +396,7 @@ for (const key of [
   'sourceManifestReviewPacketAccepted',
   'all8GpuRuntimeToolsCovered',
   'all5ModelWeightManifestToolsCovered',
-  'all4RuntimeProfilesCovered',
+  'all6RuntimeProfilesCovered',
   'gpuRuntimeTargetsExact',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
@@ -438,7 +452,7 @@ if (noManifestPlan.nativeGpuProofInputStatus !== 'missing_private_manifests') {
 if (noManifestPlan.manifestReviewPacket?.manifestRecordsProvided !== 0) {
   fail('no_manifest_records_provided_not_zero')
 }
-if ((noManifestPlan.runtimeProfiles || []).length !== 4) {
+if ((noManifestPlan.runtimeProfiles || []).length !== 6) {
   fail(`no_manifest_runtime_profile_count:${noManifestPlan.runtimeProfiles?.length}`)
 }
 assertGpuRuntimePolicy(noManifestPlan, 'no_manifest')
@@ -544,6 +558,8 @@ for (const token of [
   'reeditpro/ai-graphics-sam2-runtime:proof-local',
   'reeditpro/ai-graphics-birefnet-runtime:proof-local',
   'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  '.local-artifacts/ai-graphics/gpu-runtime-proof-results/rembg.json',
+  '.local-artifacts/ai-graphics/gpu-runtime-proof-results/transparent_background.json',
   '.local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu_worker_ai_graphics.json',
   '.local-artifacts/ai-graphics/gpu-runtime-proof-results/sam2.json',
   '.local-artifacts/ai-graphics/gpu-runtime-proof-results/birefnet.json',

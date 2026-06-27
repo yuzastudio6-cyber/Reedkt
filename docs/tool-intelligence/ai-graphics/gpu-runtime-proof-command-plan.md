@@ -8,7 +8,8 @@ This packet prepares the next native GPU proof step for the eight AI graphics GP
 
 - GPU/runtime-targeted tools: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background`.
 - Private manifest-required tools: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`.
-- Runtime profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`.
+- Runtime profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`,
+  `real_esrgan`, `rembg`, and `transparent_background`.
 
 ## Command Plan
 
@@ -123,8 +124,10 @@ Expected local result files:
 - `.local-artifacts/ai-graphics/gpu-runtime-proof-results/sam2.json`
 - `.local-artifacts/ai-graphics/gpu-runtime-proof-results/birefnet.json`
 - `.local-artifacts/ai-graphics/gpu-runtime-proof-results/real_esrgan.json`
+- `.local-artifacts/ai-graphics/gpu-runtime-proof-results/rembg.json`
+- `.local-artifacts/ai-graphics/gpu-runtime-proof-results/transparent_background.json`
 
-After all four profile results are captured, validate them with:
+After all six profile results are captured, validate them with:
 
 ```bash
 npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results

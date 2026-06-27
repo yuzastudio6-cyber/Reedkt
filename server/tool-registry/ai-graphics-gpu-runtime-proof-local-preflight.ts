@@ -38,7 +38,7 @@ export interface AiGraphicsGpuRuntimeProofLocalPreflight {
   expectedGpuRuntimeTargets: Record<string, string>
   gpuRuntimePolicy: AiGraphicsGpuRuntimeProofActivationPolicy
   modelWeightManifestRequiredTools: 5
-  runtimeProfilesRequired: 4
+  runtimeProfilesRequired: 6
   localManifestFilesRead: number
   localProofResultFilesRead: number
   manifestInputStatus: AiGraphicsGpuRuntimeProofInputStatus
@@ -57,7 +57,7 @@ export interface AiGraphicsGpuRuntimeProofLocalPreflight {
     proofResultPacketAccepted: true
     all8GpuRuntimeToolsCovered: true
     all5ModelWeightManifestToolsCovered: true
-    all4RuntimeProfilesCovered: true
+    all6RuntimeProfilesCovered: true
     gpuRuntimeTargetsExact: true
     gpuRuntimeOnDemandOnly: true
     noIdleGpuRuntimeApproved: true
@@ -156,7 +156,7 @@ export function buildAiGraphicsGpuRuntimeProofLocalPreflight(input: {
     expectedGpuRuntimeTargets: commandPlan.expectedGpuRuntimeTargets,
     gpuRuntimePolicy: commandPlan.gpuRuntimePolicy,
     modelWeightManifestRequiredTools: 5,
-    runtimeProfilesRequired: 4,
+    runtimeProfilesRequired: 6,
     localManifestFilesRead: input.localManifestFilesRead ?? 0,
     localProofResultFilesRead: input.localProofResultFilesRead ?? 0,
     manifestInputStatus: commandPlan.nativeGpuProofInputStatus,
@@ -175,7 +175,7 @@ export function buildAiGraphicsGpuRuntimeProofLocalPreflight(input: {
       proofResultPacketAccepted: true,
       all8GpuRuntimeToolsCovered: true,
       all5ModelWeightManifestToolsCovered: true,
-      all4RuntimeProfilesCovered: true,
+      all6RuntimeProfilesCovered: true,
       gpuRuntimeTargetsExact: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,

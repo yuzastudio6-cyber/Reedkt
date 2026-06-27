@@ -19,8 +19,8 @@ call providers, create artifacts, or unlock beta/production.
   `transparent_background`.
 - Manifest-required tools: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and
   `transparent_background`.
-- Runtime proof profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and
-  `real_esrgan`.
+- Runtime proof profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`,
+  `real_esrgan`, `rembg`, and `transparent_background`.
 
 ## Command
 
@@ -107,6 +107,6 @@ heavy/model tools when a GPU runtime proof or runtime call is required.
 Fill reviewed private model-weight manifests locally, run the GPU runtime proof
 command plan, generate the local-only runner script at
 `.local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh`,
-run that script only on an approved native NVIDIA L4 runtime, capture all four
+run that script only on an approved native NVIDIA L4 runtime, capture all six
 result JSON files under `.local-artifacts`, then rerun this preflight with
 `--require-ready-for-owner-review`.

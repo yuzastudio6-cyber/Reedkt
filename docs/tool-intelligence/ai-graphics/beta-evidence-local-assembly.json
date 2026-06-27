@@ -55,7 +55,7 @@
   "counts": {
     "totalAiGraphicsTools": 21,
     "modelWeightManifestRequiredTools": 5,
-    "nativeGpuRuntimeProfilesRequired": 4,
+    "nativeGpuRuntimeProfilesRequired": 6,
     "localManifestRecordsProvided": 0,
     "localGpuRuntimeProofResultsProvided": 0,
     "defaultBetaTestingReadyTools": 0,

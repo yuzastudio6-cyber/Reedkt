@@ -144,7 +144,9 @@
       "gpu_worker_ai_graphics",
       "sam2",
       "birefnet",
-      "real_esrgan"
+      "real_esrgan",
+      "rembg",
+      "transparent_background"
     ],
     "requiredValidationResultFields": [
       "profileId",

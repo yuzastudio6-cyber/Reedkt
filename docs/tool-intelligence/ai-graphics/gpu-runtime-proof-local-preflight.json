@@ -31,7 +31,7 @@
     "totalAiGraphicsTools": 21,
     "gpuRuntimeTargetedTools": 8,
     "modelWeightManifestRequiredTools": 5,
-    "runtimeProfilesRequired": 4,
+    "runtimeProfilesRequired": 6,
     "localManifestFilesRead": 0,
     "localProofResultFilesRead": 0
   },
@@ -96,7 +96,6 @@
     "proofResultPacketAccepted": true,
     "all8GpuRuntimeToolsCovered": true,
     "all5ModelWeightManifestToolsCovered": true,
-    "all4RuntimeProfilesCovered": true,
     "gpuRuntimeTargetsExact": true,
     "gpuRuntimeOnDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
@@ -129,6 +128,7 @@
     "supabaseMutationPerformed": false,
     "gcsUploadPerformed": false,
     "publicArtifactCreated": false,
-    "signedUrlCreated": false
+    "signedUrlCreated": false,
+    "all6RuntimeProfilesCovered": true
   }
 }

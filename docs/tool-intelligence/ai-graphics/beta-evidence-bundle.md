@@ -53,9 +53,9 @@ evidence from before reviewed private namespace enforcement cannot satisfy beta
 readiness.
 
 The native GPU runtime proof packet must also include exact per-profile
-validation rows for `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and
-`real_esrgan`. Count-only GPU proof packets are rejected even when their summary
-counters say four results passed. Each accepted row must prove approved probe
+validation rows for `gpu_worker_ai_graphics`, `sam2`, `birefnet`,
+`real_esrgan`, `rembg`, and `transparent_background`. Count-only GPU proof packets are rejected even when their summary counters say six results passed.
+Each accepted row must prove approved probe
 metadata, required imports, `nvidia-smi`, CUDA, model-manifest checks, raw ref
 redaction, and false runtime side-effect fields.
 The GPU proof packet must carry the `model_manifest_private_namespace_enforced`

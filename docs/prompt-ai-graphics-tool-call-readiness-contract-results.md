@@ -128,7 +128,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
   - `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json`
   - `ai-graphics:gpu-runtime-proof-command-plan`
   - `ai-graphics:gpu-runtime-proof-command-plan:diagnostics`
-- GPU runtime proof command-plan result: all eight GPU/model tools, all five private-manifest-required tools, and all four native GPU runtime profiles are covered. The command-plan CLI can read local-only private manifest JSON, produce redacted native GPU proof commands with `<local-private-model-weight-root>` mount placeholders, and classify readiness as `missing_private_manifests`, `invalid_private_manifests`, or `ready_for_native_gpu_runtime_probe_input`. It does not run Docker, use GPU, load models, run inference, process media, or approve execution.
+- GPU runtime proof command-plan result: all eight GPU/model tools, all five private-manifest-required tools, and all six native GPU runtime profiles are covered. The command-plan CLI can read local-only private manifest JSON, produce redacted native GPU proof commands with `<local-private-model-weight-root>` mount placeholders, and classify readiness as `missing_private_manifests`, `invalid_private_manifests`, or `ready_for_native_gpu_runtime_probe_input`. It does not run Docker, use GPU, load models, run inference, process media, or approve execution.
 - Added local-only model-weight manifest scaffold:
   - `server/tool-registry/ai-graphics-model-weight-manifest-scaffold.ts`
   - `server/cli/ai-graphics-model-weight-manifest-scaffold.ts`
@@ -144,7 +144,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
   - `docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json`
   - `ai-graphics:gpu-runtime-proof-result:validate`
   - `ai-graphics:gpu-runtime-proof-result:diagnostics`
-- GPU runtime proof result validator: the validator accepts the future native NVIDIA proof output only when all four profiles (`gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`) pass import, `nvidia-smi`, CUDA capability >= 8.9, tiny tensor, model-manifest, redaction, and false-side-effect checks. Passing results become `ready_for_owner_review_not_beta_ready`; they do not approve agent execution, Tool Route execution, Worker execution, GPU runtime, beta, or production.
+- GPU runtime proof result validator: the validator accepts the future native NVIDIA proof output only when all six profiles (`gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, `transparent_background`) pass import, `nvidia-smi`, CUDA capability >= 8.9, tiny tensor, model-manifest, redaction, and false-side-effect checks. Passing results become `ready_for_owner_review_not_beta_ready`; they do not approve agent execution, Tool Route execution, Worker execution, GPU runtime, beta, or production.
 - Latest observed PR state after GPU runtime proof result validator completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `556ca474476647e748334c9a1bc32a8f7a85d502`, with an empty check rollup.
 - Added server-only beta activation gap report:
   - `server/tool-registry/ai-graphics-beta-activation-gap-report.ts`
@@ -210,6 +210,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Model-weight source catalog hardening: BiRefNet now reuses existing Phase 33 mask-model candidate, license, and verified staging storage evidence from `server/activation/mask-model-*`, and the catalog includes a private-manifest preparation plan. `sam2`, `birefnet`, and `real_esrgan` are ready for local-only private manifest authoring from existing evidence; `rembg` and `transparent_background` remain blocked pending source/model selection and review. Manifest validation and GPU proof command planning still require local-only private manifest input under `REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT`.
 - Latest observed PR state after model-weight source catalog completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `66b6bf03bbc08fad4a6d4e662137c12d8c73d58b`, with an empty check rollup.
 - Latest observed PR state after model-weight source evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `358dbbd070af639101d6f4d9be96f0145ed62d3e`, with an empty check rollup.
+- Per-tool GPU proof profile hardening: native GPU proof now requires six profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. `rembg` and `transparent_background` each require a dedicated shared-worker profile probe and their own model manifest validation. The generated local runner deduplicates the shared GPU image build while still running separate on-demand `docker run --rm --gpus all` profile checks. Execution/runtime/beta/production remain false, CPU fallback for heavy paths remains blocked, and no idle GPU runtime is approved.
 
 ## Runtime State
 
@@ -233,6 +234,8 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - `modelWeightManifestPerToolRowsRequired=true`
 - `gpuRuntimeProofResultValidatorPrepared=true`
 - `gpuRuntimeProofPerProfileRowsRequired=true`
+- `gpuRuntimeProofProfilesRequired=6`
+- `gpuRuntimeProofSharedWorkerImageBuildDeduped=true`
 - `gpuRuntimeProofDuplicateProfilesRejected=true`
 - `dedicatedGpuRuntimeTargetsExact=true`
 - `productionWorkerDedicatedGpuRuntimeTargetsExact=true`

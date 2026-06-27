@@ -44,6 +44,8 @@ const requiredProfiles = [
   'sam2',
   'birefnet',
   'real_esrgan',
+  'rembg',
+  'transparent_background',
 ]
 
 const requiredImportsByProfile = {
@@ -90,6 +92,20 @@ const requiredImportsByProfile = {
     'basicsr',
     'realesrgan',
   ],
+  rembg: [
+    'torch',
+    'numpy',
+    'PIL',
+    'cv2',
+    'rembg',
+  ],
+  transparent_background: [
+    'torch',
+    'torchvision',
+    'numpy',
+    'PIL',
+    'transparent_background',
+  ],
 }
 
 const requiredManifestToolsByProfile = {
@@ -97,6 +113,8 @@ const requiredManifestToolsByProfile = {
   sam2: ['sam2'],
   birefnet: ['birefnet'],
   real_esrgan: ['real_esrgan'],
+  rembg: ['rembg'],
+  transparent_background: ['transparent_background'],
 }
 
 const templateIdByTool = {
@@ -293,7 +311,7 @@ for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
   gpuRuntimeTargetedTools: 8,
   modelWeightManifestRequiredTools: 5,
-  runtimeProfilesRequired: 4,
+  runtimeProfilesRequired: 6,
   runtimeProofResultsProvided: 0,
   runtimeProofResultsAcceptedForOwnerReview: 0,
   runtimeReadyNow: 0,
@@ -399,7 +417,7 @@ for (const key of [
   'gpuRuntimeProofResultValidatorPrepared',
   'all8GpuRuntimeToolsCovered',
   'all5ModelWeightManifestToolsCovered',
-  'all4RuntimeProfilesCovered',
+  'all6RuntimeProfilesCovered',
   'gpuRuntimeTargetsExact',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
@@ -468,8 +486,8 @@ const validPacket = parseOutput(validOutput, 'valid_results')
 if (validPacket.status !== 'ready_for_owner_review_not_beta_ready') {
   fail(`valid_results_status_mismatch:${validPacket.status}`)
 }
-if (validPacket.runtimeProofResultsProvided !== 4) fail('valid_results_provided_not_4')
-if (validPacket.runtimeProofResultsAcceptedForOwnerReview !== 4) fail('valid_results_accepted_not_4')
+if (validPacket.runtimeProofResultsProvided !== 6) fail('valid_results_provided_not_6')
+if (validPacket.runtimeProofResultsAcceptedForOwnerReview !== 6) fail('valid_results_accepted_not_6')
 if (validPacket.nativeGpuRuntimeProofResultsAccepted !== true) fail('valid_results_not_accepted')
 assertExpectedGpuRuntimeTargets(validPacket, 'valid_packet')
 if (validPacket.booleans?.gpuRuntimeTargetsExact !== true) fail('valid_gpu_targets_exact_not_true')

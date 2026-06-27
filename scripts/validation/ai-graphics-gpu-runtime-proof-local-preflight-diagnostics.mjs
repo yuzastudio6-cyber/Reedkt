@@ -22,6 +22,8 @@ const runtimeProfiles = [
   'sam2',
   'birefnet',
   'real_esrgan',
+  'rembg',
+  'transparent_background',
 ]
 
 const requiredImportsByProfile = {
@@ -51,6 +53,8 @@ const requiredImportsByProfile = {
     'skimage',
   ],
   real_esrgan: ['torch', 'torchvision', 'numpy', 'PIL', 'cv2', 'basicsr', 'realesrgan'],
+  rembg: ['torch', 'numpy', 'PIL', 'cv2', 'rembg'],
+  transparent_background: ['torch', 'torchvision', 'numpy', 'PIL', 'transparent_background'],
 }
 
 const manifestToolsByProfile = {
@@ -58,6 +62,8 @@ const manifestToolsByProfile = {
   sam2: ['sam2'],
   birefnet: ['birefnet'],
   real_esrgan: ['real_esrgan'],
+  rembg: ['rembg'],
+  transparent_background: ['transparent_background'],
 }
 
 const templateIdByTool = {
@@ -304,7 +310,7 @@ for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
   gpuRuntimeTargetedTools: 8,
   modelWeightManifestRequiredTools: 5,
-  runtimeProfilesRequired: 4,
+  runtimeProfilesRequired: 6,
   localManifestFilesRead: 0,
   localProofResultFilesRead: 0,
 })) {
@@ -373,7 +379,7 @@ for (const key of [
   'proofResultPacketAccepted',
   'all8GpuRuntimeToolsCovered',
   'all5ModelWeightManifestToolsCovered',
-  'all4RuntimeProfilesCovered',
+  'all6RuntimeProfilesCovered',
   'gpuRuntimeTargetsExact',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
@@ -491,7 +497,7 @@ if (full.modelManifestsReadyForGpuProof !== true) fail('full_manifests_not_ready
 if (full.nativeGpuProofResultsAcceptedForOwnerReview !== true) fail('full_results_not_ready')
 if (full.allGpuRuntimeEvidenceReadyForOwnerReview !== true) fail('full_all_not_ready')
 if (full.localManifestFilesRead !== 5) fail(`full_manifest_file_count:${full.localManifestFilesRead}`)
-if (full.localProofResultFilesRead !== 4) fail(`full_result_file_count:${full.localProofResultFilesRead}`)
+if (full.localProofResultFilesRead !== 6) fail(`full_result_file_count:${full.localProofResultFilesRead}`)
 if (full.missingLocalEvidence?.length !== 0) fail('full_missing_local_evidence_not_empty')
 assertGpuRuntimePolicy(full, 'full')
 if (fullOutput.includes('private://reeditpro')) fail('full_output_leaked_private_ref')

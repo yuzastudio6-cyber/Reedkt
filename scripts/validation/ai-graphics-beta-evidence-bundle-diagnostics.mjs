@@ -78,6 +78,8 @@ const requiredProfiles = [
   'sam2',
   'birefnet',
   'real_esrgan',
+  'rembg',
+  'transparent_background',
 ]
 
 const requiredImportsByProfile = {
@@ -124,6 +126,20 @@ const requiredImportsByProfile = {
     'basicsr',
     'realesrgan',
   ],
+  rembg: [
+    'torch',
+    'numpy',
+    'PIL',
+    'cv2',
+    'rembg',
+  ],
+  transparent_background: [
+    'torch',
+    'torchvision',
+    'numpy',
+    'PIL',
+    'transparent_background',
+  ],
 }
 
 const requiredManifestToolsByProfile = {
@@ -131,6 +147,8 @@ const requiredManifestToolsByProfile = {
   sam2: ['sam2'],
   birefnet: ['birefnet'],
   real_esrgan: ['real_esrgan'],
+  rembg: ['rembg'],
+  transparent_background: ['transparent_background'],
 }
 
 const templateIdByTool = {
@@ -352,8 +370,8 @@ function writePacketFixtures() {
   fs.writeFileSync(countOnlyGpuPacketPath, `${JSON.stringify({
     decision: 'ai_graphics_gpu_runtime_proof_result_packet_prepared_with_no_runtime_results',
     status: 'ready_for_owner_review_not_beta_ready',
-    runtimeProofResultsProvided: 4,
-    runtimeProofResultsAcceptedForOwnerReview: 4,
+    runtimeProofResultsProvided: 6,
+    runtimeProofResultsAcceptedForOwnerReview: 6,
     nativeGpuRuntimeProofResultsAccepted: true,
     booleans: {
       nativeGpuRuntimeProofResultsAcceptedForOwnerReview: true,

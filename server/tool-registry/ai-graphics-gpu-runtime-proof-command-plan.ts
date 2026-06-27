@@ -38,7 +38,13 @@ export interface AiGraphicsGpuRuntimeProofActivationPolicy {
 }
 
 export interface AiGraphicsGpuRuntimeProofProfilePlan {
-  profileId: 'gpu_worker_ai_graphics' | 'sam2' | 'birefnet' | 'real_esrgan'
+  profileId:
+    | 'gpu_worker_ai_graphics'
+    | 'sam2'
+    | 'birefnet'
+    | 'real_esrgan'
+    | 'rembg'
+    | 'transparent_background'
   dockerfile: string
   imagePlaceholder: string
   localProofImageTag: string
@@ -97,7 +103,7 @@ export interface AiGraphicsGpuRuntimeProofCommandPlan {
     sourceManifestReviewPacketAccepted: true
     all8GpuRuntimeToolsCovered: true
     all5ModelWeightManifestToolsCovered: true
-    all4RuntimeProfilesCovered: true
+    all6RuntimeProfilesCovered: true
     gpuRuntimeTargetsExact: true
     gpuRuntimeOnDemandOnly: true
     noIdleGpuRuntimeApproved: true
@@ -245,6 +251,28 @@ const runtimeProfileSpecs = [
     requiredManifestTools: ['real_esrgan'],
     scriptCommand: 'python3 /usr/local/bin/ai-graphics-gpu-runtime-readiness.py',
   },
+  {
+    profileId: 'rembg',
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    imagePlaceholder: '<gpu-worker-image>',
+    localProofImageTag: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+    scriptPathInImage: '/usr/local/bin/ai-graphics-gpu-runtime-readiness.py',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    tools: ['rembg'],
+    requiredManifestTools: ['rembg'],
+    scriptCommand: 'python3 /usr/local/bin/ai-graphics-gpu-runtime-readiness.py',
+  },
+  {
+    profileId: 'transparent_background',
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    imagePlaceholder: '<gpu-worker-image>',
+    localProofImageTag: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+    scriptPathInImage: '/usr/local/bin/ai-graphics-gpu-runtime-readiness.py',
+    runtimeTarget: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    tools: ['transparent_background'],
+    requiredManifestTools: ['transparent_background'],
+    scriptCommand: 'python3 /usr/local/bin/ai-graphics-gpu-runtime-readiness.py',
+  },
 ] as const satisfies readonly {
   profileId: AiGraphicsGpuRuntimeProofProfilePlan['profileId']
   dockerfile: string
@@ -385,10 +413,19 @@ export function buildAiGraphicsGpuRuntimeProofNativeRunnerScript(
     '',
   ]
 
+  const emittedBuildCommands = new Set<string>()
+
   for (const profile of plan.runtimeProfiles) {
+    const buildLines = emittedBuildCommands.has(profile.localProofBuildCommand)
+      ? [`# Build proof target for ${profile.profileId} reuses an image already built above.`]
+      : [
+          `# Build proof target for ${profile.profileId}.`,
+          profile.localProofBuildCommand,
+        ]
+    emittedBuildCommands.add(profile.localProofBuildCommand)
+
     lines.push(
-      `# Build proof target for ${profile.profileId}.`,
-      profile.localProofBuildCommand,
+      ...buildLines,
       `# Run native GPU readiness proof for ${profile.profileId}.`,
       profile.localProofResultCaptureCommand,
       '',
@@ -450,7 +487,7 @@ export function buildAiGraphicsGpuRuntimeProofCommandPlan(
       sourceManifestReviewPacketAccepted: true,
       all8GpuRuntimeToolsCovered: true,
       all5ModelWeightManifestToolsCovered: true,
-      all4RuntimeProfilesCovered: true,
+      all6RuntimeProfilesCovered: true,
       gpuRuntimeTargetsExact: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,

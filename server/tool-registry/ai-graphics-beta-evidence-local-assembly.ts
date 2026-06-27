@@ -40,7 +40,7 @@ export interface AiGraphicsBetaEvidenceLocalAssembly {
     | 'assembled_all21_beta_evidence_ready_for_owner_gate'
   totalAiGraphicsTools: 21
   modelWeightManifestRequiredTools: 5
-  nativeGpuRuntimeProfilesRequired: 4
+  nativeGpuRuntimeProfilesRequired: 6
   localManifestRecordsProvided: number
   localGpuRuntimeProofResultsProvided: number
   expectedGpuRuntimeTargets: Record<string, string>
@@ -160,7 +160,7 @@ export function buildAiGraphicsBetaEvidenceLocalAssembly(
     }),
     totalAiGraphicsTools: 21,
     modelWeightManifestRequiredTools: 5,
-    nativeGpuRuntimeProfilesRequired: 4,
+    nativeGpuRuntimeProfilesRequired: 6,
     localManifestRecordsProvided: manifestRecords.length,
     localGpuRuntimeProofResultsProvided: gpuRuntimeProofResults.length,
     expectedGpuRuntimeTargets: betaEvidenceBundle.expectedGpuRuntimeTargets,

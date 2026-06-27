@@ -165,6 +165,7 @@ export interface AiGraphicsModelWeightManifestReviewPacket {
     all5ModelWeightToolsCovered: true
     all5TemplateTypesCovered: true
     manifestSchemaValidationReady: true
+    privateArtifactRefNamespaceRequired: true
     privateArtifactRefsNotLogged: true
     publicOrSignedArtifactRefsRejected: true
     checksumSha256Required: true
@@ -323,8 +324,10 @@ function privateArtifactRefStatus(privateArtifactRef: string | undefined): AiGra
   const hasPublicUrl = /^https?:\/\//i.test(normalizedRef) || /^public:\/\//i.test(normalizedRef)
   const hasSignedUrl = /^signed:\/\//i.test(normalizedRef) ||
     /[?&](X-Goog-Signature|X-Amz-Signature|Signature)=/i.test(normalizedRef)
+  const hasReviewedPrivateNamespace = /^(private:\/\/|reeditpro-private:\/\/|reeditpro-private-artifact-ref-)/i
+    .test(normalizedRef)
 
-  return hasPublicUrl || hasSignedUrl
+  return hasPublicUrl || hasSignedUrl || !hasReviewedPrivateNamespace
     ? 'invalid_public_or_signed_ref'
     : 'present_private_ref_not_logged'
 }
@@ -420,7 +423,9 @@ export function validateAiGraphicsModelWeightManifestRecord(
 
   const artifactRefStatus = privateArtifactRefStatus(record.privateArtifactRef)
   if (artifactRefStatus === 'invalid_public_or_signed_ref') {
-    errors.push('privateArtifactRef must be a private storage reference, not an HTTP(S), public, or signed URL.')
+    errors.push(
+      'privateArtifactRef must be a reviewed private storage reference using private://, reeditpro-private://, or reeditpro-private-artifact-ref-; HTTP(S), public, signed, raw gs://, and arbitrary placeholders are rejected.',
+    )
   }
 
   for (const field of requiredManifestReviewBooleanFields) {
@@ -549,6 +554,7 @@ export function buildAiGraphicsModelWeightManifestReviewPacket(
       all5ModelWeightToolsCovered: true,
       all5TemplateTypesCovered: true,
       manifestSchemaValidationReady: true,
+      privateArtifactRefNamespaceRequired: true,
       privateArtifactRefsNotLogged: true,
       publicOrSignedArtifactRefsRejected: true,
       checksumSha256Required: true,

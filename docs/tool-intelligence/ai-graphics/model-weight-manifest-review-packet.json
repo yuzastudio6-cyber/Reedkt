@@ -151,6 +151,7 @@
   ],
   "globalBlockers": [
     "No private model/checkpoint artifact refs are logged in public docs or diagnostics.",
+    "privateArtifactRef must use a reviewed private namespace such as private://, reeditpro-private://, or reeditpro-private-artifact-ref-; raw gs://, HTTP(S), signed, public, or arbitrary placeholder refs are rejected.",
     "Reviewed private manifests are only inputs to later native GPU proof; they do not approve model download, model load, or inference.",
     "Native linux/amd64 NVIDIA L4 proof, Tool Route gating, Worker gating, approved snapshot, credit reservation, private artifact boundary, and owner beta gates remain blocked.",
     "Agent/tool/route/worker/provider execution, media processing, signed URLs, public artifacts, beta, and production remain blocked."
@@ -162,6 +163,7 @@
     "all5TemplateTypesCovered": true,
     "manifestSchemaValidationReady": true,
     "localPrivateManifestValidatorPrepared": true,
+    "privateArtifactRefNamespaceRequired": true,
     "privateArtifactRefsNotLogged": true,
     "publicOrSignedArtifactRefsRejected": true,
     "checksumSha256Required": true,

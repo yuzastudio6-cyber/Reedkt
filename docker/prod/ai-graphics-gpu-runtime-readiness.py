@@ -228,6 +228,13 @@ def validate_private_artifact_ref(value: str, tool_id: str) -> None:
         raise RuntimeError(f"{tool_id} privateArtifactRef must not be a signed URL.")
     if lower.startswith("public/") or "/public/" in lower or lower.startswith("gs://public"):
         raise RuntimeError(f"{tool_id} privateArtifactRef must not point at a public artifact path.")
+    allowed_private_namespace = lower.startswith("private://") or \
+        lower.startswith("reeditpro-private://") or \
+        lower.startswith("reeditpro-private-artifact-ref-")
+    if not allowed_private_namespace:
+        raise RuntimeError(
+            f"{tool_id} privateArtifactRef must use a reviewed private artifact ref namespace."
+        )
 
 
 def validate_model_manifest(manifest_path: Path, tool_id: str) -> dict[str, str]:

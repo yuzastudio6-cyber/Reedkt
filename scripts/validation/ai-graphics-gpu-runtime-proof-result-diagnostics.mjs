@@ -266,6 +266,7 @@ const betaGate = json('docs/tool-intelligence/ai-graphics/beta-readiness-gate.js
 const moduleSource = read('server/tool-registry/ai-graphics-gpu-runtime-proof-result.ts')
 const cliSource = read('server/cli/ai-graphics-gpu-runtime-proof-result.ts')
 const indexSource = read('server/tool-registry/index.ts')
+const runtimeProbeSource = read('docker/prod/ai-graphics-gpu-runtime-readiness.py')
 const markdown = read('docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.md')
 
 if (pkg.scripts?.[validateScriptName] !== validateScriptCommand) fail(`missing_package_script:${validateScriptName}`)
@@ -355,6 +356,7 @@ for (const token of [
   'tiny_cuda_tensor_probe_passed',
   'profile_imports_present',
   'model_manifest_checks_validated_not_loaded',
+  'model_manifest_private_namespace_enforced',
   'private_artifact_refs_not_logged',
   'runtime_side_effect_fields_false',
 ]) {
@@ -402,6 +404,7 @@ for (const key of [
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'startsOnlyForApprovedWorkerOrToolCall',
+  'privateArtifactRefNamespaceRequired',
   'privateArtifactRefsNotLogged',
   'ownerReviewStillRequired',
   'agentCanSelectForPlanning',
@@ -434,6 +437,16 @@ for (const key of [
   'signedUrlCreated',
 ]) {
   if (packet.booleans?.[key] !== false) fail(`required_false_boolean_not_false:${key}`)
+}
+
+for (const token of [
+  'allowed_private_namespace',
+  'private://',
+  'reeditpro-private://',
+  'reeditpro-private-artifact-ref-',
+  'privateArtifactRef must use a reviewed private artifact ref namespace',
+]) {
+  if (!runtimeProbeSource.includes(token)) fail(`runtime_probe_missing_private_namespace_guard:${token}`)
 }
 
 const noInputOutput = runValidate()
@@ -610,6 +623,7 @@ const forbiddenTruePatterns = [
 for (const [label, text] of [
   ['module', moduleSource],
   ['cli', cliSource],
+  ['runtime_probe', runtimeProbeSource],
   ['markdown', markdown],
   ['packet', JSON.stringify(packet)],
 ]) {

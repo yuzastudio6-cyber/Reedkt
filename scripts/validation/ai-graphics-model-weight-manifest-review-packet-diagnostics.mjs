@@ -186,9 +186,12 @@ for (const token of [
   'buildAiGraphicsModelWeightManifestReviewPacket',
   'privateArtifactRefStatus',
   'sha256Pattern',
+  'privateArtifactRefNamespaceRequired',
   'present_private_ref_not_logged',
   'invalid_public_or_signed_ref',
-  'privateArtifactRef must be a private storage reference',
+  'privateArtifactRef must be a reviewed private storage reference',
+  'reviewed private storage reference using private://',
+  'reeditpro-private-artifact-ref-',
   'checksumSha256 must be a 64-character hex SHA-256 digest',
 ]) {
   if (!source.includes(token)) fail(`source_missing:${token}`)
@@ -201,6 +204,7 @@ for (const key of [
   'all5TemplateTypesCovered',
   'manifestSchemaValidationReady',
   'localPrivateManifestValidatorPrepared',
+  'privateArtifactRefNamespaceRequired',
   'privateArtifactRefsNotLogged',
   'publicOrSignedArtifactRefsRejected',
   'checksumSha256Required',
@@ -304,6 +308,36 @@ try {
   }
 } finally {
   fs.rmSync(invalidFixtureDir, { recursive: true, force: true })
+}
+
+const invalidNamespaceFixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-model-manifest-invalid-namespace-'))
+try {
+  writeManifestFixtures(invalidNamespaceFixtureDir, {
+    birefnet: {
+      privateArtifactRef: 'model-weights/birefnet/model_tree_manifest.json',
+    },
+  })
+  runValidator(invalidNamespaceFixtureDir)
+  fail('fixture_invalid_namespace_cli_unexpected_success')
+} catch (error) {
+  const output = String(error.stdout || '')
+  if (!output) {
+    fail(`fixture_invalid_namespace_cli_missing_output:${error.message}`)
+  } else {
+    const parsed = JSON.parse(output)
+    const birefnet = parsed.validationResults?.find((entry) => entry.toolId === 'birefnet')
+    if (birefnet?.privateArtifactRefStatus !== 'invalid_public_or_signed_ref') {
+      fail(`fixture_invalid_namespace_status_unexpected:${birefnet?.privateArtifactRefStatus}`)
+    }
+    if (!birefnet?.errors?.some((message) => /reviewed private storage reference/.test(message))) {
+      fail('fixture_invalid_namespace_error_missing')
+    }
+    if (output.includes('model-weights/birefnet/model_tree_manifest.json')) {
+      fail('fixture_invalid_namespace_ref_leaked')
+    }
+  }
+} finally {
+  fs.rmSync(invalidNamespaceFixtureDir, { recursive: true, force: true })
 }
 
 for (const key of [

@@ -62,6 +62,7 @@ include:
 - `cuda.tinyTensorProbePassed=true`
 - all profile-required imports
 - required model manifest checks with `validated_not_loaded`
+- native probe input manifests require reviewed private artifact namespaces only: `private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`
 - `privateArtifactRefStatus=present_private_ref_not_logged`
 - no raw `privateArtifactRef`, `private://`, `gs://`, HTTP(S), signed URL, or public artifact refs
 - all runtime side-effect fields false

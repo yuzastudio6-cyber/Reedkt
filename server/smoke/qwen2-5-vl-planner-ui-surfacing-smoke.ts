@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_plan_required',
-  'Private invoke client status must record the backend runtime persistence planning blocker.',
+  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_schema_draft_required',
+  'Private invoke client status must record the backend runtime persistence schema draft blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -167,8 +167,9 @@ check(
     docText.includes('fail_closed_backend_runtime_dispatch_coordinator_required') ||
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
-    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_plan_required',
-  'Doc/data must record backend runtime persistence planning blocker status.',
+    docText.includes('backend_runtime_persistence_schema_draft_required') ||
+    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_schema_draft_required',
+  'Doc/data must record backend runtime persistence schema draft blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
 check(docText.includes('`schemaKeys=[]`'), 'Doc must record the empty schema-key metadata.')
@@ -201,8 +202,12 @@ check(
   'Doc must record controlled backend dispatch dry-run review coverage.',
 )
 check(
-  docText.includes('User-facing readiness remains blocked until backend runtime persistence planning defines queue'),
-  'Doc must record backend runtime persistence planning as the remaining blocker.',
+  docText.includes('Backend runtime persistence plan maps Qwen dispatch to existing approved snapshot'),
+  'Doc must record backend runtime persistence plan coverage.',
+)
+check(
+  docText.includes('User-facing readiness remains blocked until a schema/draft review confirms Qwen-specific persistence constraints'),
+  'Doc must record schema/draft review as the remaining blocker.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

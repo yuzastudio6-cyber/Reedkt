@@ -64,6 +64,9 @@ defines the exact all-21 AI graphics worker enqueue scope for a future internal
 beta runtime lane. It names `productionToolId`, worker type, runtime target, and
 capability IDs for each tool, confirms the eight heavy/model tools remain
 GPU-targeted, and records runtime-enqueue scope approval with provided evidence.
+The eight GPU/model tool scopes also carry the runtime activation policy:
+on-demand only, no idle GPU runtime, GPU starts only for an approved
+worker/tool call, and CPU fallback is blocked for heavy/model paths.
 It does not live-enqueue workers, dispatch workers, execute tools, run Tool
 Routes, call providers/models, run browser/canvas/WebGL, run GPU/model runtime,
 download or load model weights, process media, create signed URLs or public

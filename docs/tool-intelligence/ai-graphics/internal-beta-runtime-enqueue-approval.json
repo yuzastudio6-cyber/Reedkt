@@ -60,15 +60,23 @@
     "approvesLiveQueueNow": false,
     "approvesRuntimeNow": false
   },
+  "gpuRuntimeActivationPolicy": {
+    "onDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false
+  },
   "allowedRuntimeEnqueueScopeActions": [
     "name productionToolId, workerType, runtimeTarget, and capability ids for each AI graphics tool",
     "confirm internal beta enqueue scope candidates for all 21 tools with provided evidence",
     "confirm eight heavy/model tools target GPU worker runtime lanes",
+    "bind GPU runtime activation to on-demand approved worker or tool calls only",
     "record a future runtime-enqueue approval reference without enqueueing work",
     "return live queue, execution, artifact, external beta, and production blockers"
   ],
   "blockedRuntimeActions": [
     "live worker queue enqueue",
+    "idle or always-on GPU runtime",
     "worker execution",
     "tool execution",
     "Tool Route execution",
@@ -90,6 +98,12 @@
     {
       "toolId": "torch_torchvision",
       "runtimeLane": "gpu_model_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -97,6 +111,12 @@
     {
       "toolId": "transformers",
       "runtimeLane": "gpu_model_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -104,6 +124,12 @@
     {
       "toolId": "sam2",
       "runtimeLane": "gpu_model_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -111,6 +137,12 @@
     {
       "toolId": "birefnet",
       "runtimeLane": "gpu_model_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -118,6 +150,12 @@
     {
       "toolId": "real_esrgan",
       "runtimeLane": "gpu_model_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -125,6 +163,12 @@
     {
       "toolId": "kornia",
       "runtimeLane": "gpu_model_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -132,6 +176,12 @@
     {
       "toolId": "rembg",
       "runtimeLane": "gpu_model_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -139,6 +189,12 @@
     {
       "toolId": "transparent_background",
       "runtimeLane": "gpu_model_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
       "enqueueScopeApprovedWithProvidedEvidence": true,
       "liveWorkerQueueApprovedNow": false,
       "liveWorkerExecutionApprovedNow": false
@@ -238,6 +294,7 @@
   "nextMilestones": [
     "Create a live internal beta worker queue authorization that supplies approved snapshot, credit reservation, private artifact manifest, and owner runtime approval references.",
     "Require reviewed private model-weight manifests and native NVIDIA runtime proof before any GPU/model tool can be queued.",
+    "Carry the on-demand GPU activation policy into every future queue and worker job candidate before live enqueue can be considered.",
     "Require browser/canvas/WebGL sandbox proof before browser-rendered graphics tools can be queued.",
     "Keep external beta and production launch gates separate until internal beta runtime evidence exists."
   ],
@@ -250,6 +307,10 @@
     "all21RuntimeEnqueueScopesPrepared": true,
     "all21RuntimeEnqueueScopesApprovedWithProvidedEvidence": true,
     "gpuHeavyToolsTargetGpuRuntime": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuStartsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,
     "routeExecutionApprovedNow": false,

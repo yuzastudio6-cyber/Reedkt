@@ -141,6 +141,7 @@ Latest observed PR state after model-weight source selection hardening: [#862](h
 Latest observed PR state after model-weight scaffold source-guidance hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `83a0cc4ae32a1021df31a16f3e207c56408dc98d`, with an empty check rollup.
 - Follow-up model-weight source-candidate manifest binding updates the private manifest validator, scaffold templates, native GPU readiness probe, and downstream readiness fixtures so `sourceCandidateId` must match the selected ReeditPro source-catalog candidate before native GPU proof input, beta evidence, or worker handoff can accept model-weight evidence. Wrong-candidate manifests fail closed, private refs remain redacted, GPU remains on-demand only, and runtime/beta/production stay false.
 Latest observed PR state after source-candidate manifest binding: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `170a25aa413acbc098774bdbbe900c32f46a336c`, with an empty check rollup.
+- Follow-up runtime-enqueue GPU activation policy hardening updates internal beta runtime-enqueue scope records so all eight GPU/model tools carry `onDemandOnly=true`, `noIdleGpuRuntimeApproved=true`, `startsOnlyForApprovedWorkerOrToolCall=true`, and `cpuFallbackAllowedForHeavyTools=false` before any future queue/job layer can consume the scope. GPU remains use-triggered by approved worker/tool-call jobs only; no idle GPU runtime, execution, beta, or production unlock occurs.
 
 ## Expected Validation
 

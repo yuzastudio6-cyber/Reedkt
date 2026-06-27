@@ -37,6 +37,17 @@ const allTools = [
   'babylonjs',
 ]
 
+const gpuToolIds = new Set([
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+])
+
 const capabilities = [
   'chart_overlay',
   'data_visualization',
@@ -239,6 +250,7 @@ for (const action of [
   'confirm eight heavy/model tools target GPU worker runtime lanes',
   'record a future runtime-enqueue approval reference without enqueueing work',
   'return live queue, execution, artifact, external beta, and production blockers',
+  'bind GPU runtime activation to on-demand approved worker or tool calls only',
 ]) {
   if (!docs.allowedRuntimeEnqueueScopeActions?.includes(action)) fail(`docs_missing_allowed_action:${action}`)
   if (!moduleSource.includes(action)) fail(`module_missing_allowed_action:${action}`)
@@ -246,6 +258,7 @@ for (const action of [
 
 for (const action of [
   'live worker queue enqueue',
+  'idle or always-on GPU runtime',
   'worker execution',
   'Tool Route execution',
   'production worker dispatch',
@@ -274,6 +287,24 @@ for (const key of [
   'agentCanSelectForPlanning',
 ]) {
   if (docs.booleans?.[key] !== true) fail(`docs_true_boolean_not_true:${key}`)
+}
+for (const [key, expected] of Object.entries({
+  gpuRuntimeOnDemandOnly: true,
+  noIdleGpuRuntimeApproved: true,
+  gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+  cpuFallbackAllowedForHeavyTools: false,
+})) {
+  if (docs.booleans?.[key] !== expected) fail(`docs_gpu_policy_boolean_mismatch:${key}:${docs.booleans?.[key]}`)
+}
+for (const [key, expected] of Object.entries({
+  onDemandOnly: true,
+  noIdleGpuRuntimeApproved: true,
+  startsOnlyForApprovedWorkerOrToolCall: true,
+  cpuFallbackAllowedForHeavyTools: false,
+})) {
+  if (docs.gpuRuntimeActivationPolicy?.[key] !== expected) {
+    fail(`docs_gpu_activation_policy_mismatch:${key}:${docs.gpuRuntimeActivationPolicy?.[key]}`)
+  }
 }
 for (const key of falseGateKeys) {
   if (docs.booleans?.[key] !== false) fail(`docs_false_boolean_not_false:${key}`)
@@ -341,6 +372,18 @@ for (const tool of allTools) {
   if (scope?.liveWorkerExecutionApprovedNow !== false) fail(`approved_tool_live_execution_not_false:${tool}`)
   if (!scope?.productionToolId || !scope?.workerType || !scope?.runtimeTarget) {
     fail(`approved_tool_scope_missing_runtime_mapping:${tool}`)
+  }
+  if (gpuToolIds.has(tool)) {
+    if (scope?.runtimeActivationPolicy?.onDemandOnly !== true) fail(`approved_tool_gpu_not_on_demand:${tool}`)
+    if (scope?.runtimeActivationPolicy?.noIdleGpuRuntimeApproved !== true) fail(`approved_tool_idle_gpu_allowed:${tool}`)
+    if (scope?.runtimeActivationPolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+      fail(`approved_tool_gpu_start_policy_mismatch:${tool}`)
+    }
+    if (scope?.runtimeActivationPolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+      fail(`approved_tool_cpu_fallback_allowed:${tool}`)
+    }
+  } else if (scope?.runtimeActivationPolicy !== null) {
+    fail(`approved_non_gpu_tool_has_gpu_policy:${tool}`)
   }
 }
 

@@ -14,6 +14,10 @@ This contract consumes the internal beta go/no-go owner approval and defines the
 - Runtime enqueue scopes approved with provided evidence: 21
 - GPU runtime targeted tools: 8
 - Heavy tools incorrectly targeting CPU: 0
+- GPU runtime activation: on-demand only
+- Idle or always-on GPU runtime approved: false
+- GPU starts only for approved worker/tool call: true
+- CPU fallback for heavy/model tools: false
 - Live worker queue approved now: 0
 - Live worker execution approved now: 0
 - Internal beta ready now: 0
@@ -67,16 +71,27 @@ This contract consumes the internal beta go/no-go owner approval and defines the
 - Approves live queue now: false
 - Approves runtime now: false
 
+## GPU Runtime Activation Policy
+
+- `onDemandOnly=true`
+- `noIdleGpuRuntimeApproved=true`
+- `startsOnlyForApprovedWorkerOrToolCall=true`
+- `cpuFallbackAllowedForHeavyTools=false`
+
+The eight GPU/model tools carry this policy in the runtime-enqueue scope. GPU
+startup is allowed only after a later approved worker or tool-call handoff for
+that specific job. This packet does not approve a standing GPU service.
+
 ## Tool Scope
 
-- `torch_torchvision`: runtime lane `gpu_model_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `transformers`: runtime lane `gpu_model_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `sam2`: runtime lane `gpu_model_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `birefnet`: runtime lane `gpu_model_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `real_esrgan`: runtime lane `gpu_model_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `kornia`: runtime lane `gpu_model_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `rembg`: runtime lane `gpu_model_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
-- `transparent_background`: runtime lane `gpu_model_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `torch_torchvision`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `transformers`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `sam2`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `birefnet`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `real_esrgan`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `kornia`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `rembg`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
+- `transparent_background`: runtime lane `gpu_model_worker`, on-demand GPU activation policy, enqueue scope approved with provided evidence, live queue false, live execution false.
 - `d3`: runtime lane `node_worker_cpu_static_or_browser_chart_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
 - `echarts`: runtime lane `browser_chart_worker`, enqueue scope approved with provided evidence, live queue false, live execution false.
 - `vega_lite`: runtime lane `node_worker_cpu_static_chart_spec`, enqueue scope approved with provided evidence, live queue false, live execution false.
@@ -96,12 +111,14 @@ This contract consumes the internal beta go/no-go owner approval and defines the
 - name productionToolId, workerType, runtimeTarget, and capability ids for each AI graphics tool
 - confirm internal beta enqueue scope candidates for all 21 tools with provided evidence
 - confirm eight heavy/model tools target GPU worker runtime lanes
+- bind GPU runtime activation to on-demand approved worker or tool calls only
 - record a future runtime-enqueue approval reference without enqueueing work
 - return live queue, execution, artifact, external beta, and production blockers
 
 ## Still Blocked
 
 - live worker queue enqueue
+- idle or always-on GPU runtime
 - worker execution
 - tool execution
 - Tool Route execution
@@ -123,8 +140,9 @@ This contract consumes the internal beta go/no-go owner approval and defines the
 
 1. Create a live internal beta worker queue authorization that supplies approved snapshot, credit reservation, private artifact manifest, and owner runtime approval references.
 2. Require reviewed private model-weight manifests and native NVIDIA runtime proof before any GPU/model tool can be queued.
-3. Require browser/canvas/WebGL sandbox proof before browser-rendered graphics tools can be queued.
-4. Keep external beta and production launch gates separate until internal beta runtime evidence exists.
+3. Carry the on-demand GPU activation policy into every future queue and worker job candidate before live enqueue can be considered.
+4. Require browser/canvas/WebGL sandbox proof before browser-rendered graphics tools can be queued.
+5. Keep external beta and production launch gates separate until internal beta runtime evidence exists.
 
 ## No Runtime Unlock
 

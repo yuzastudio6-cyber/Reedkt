@@ -85,7 +85,7 @@ try {
   assert.ok(acceptedCoreToolIds.includes('ffprobe'), 'core real-check evidence should accept ffprobe when its version check passes')
   assert.ok(acceptedCoreToolIds.includes('sharp'), 'core real-check evidence should accept sharp metadata after dependency install')
   assert.ok(acceptedCoreToolIds.includes('remotion'), 'core real-check evidence should accept remotion metadata after dependency install')
-  assert.ok(!acceptedCoreToolIds.includes('pyav'), 'core real-check evidence must not accept missing Python tools')
+  assert.ok(coreEvidenceResponse.data.skippedToolResults.every((record: { status: string }) => record.status !== 'passed'), 'core real-check evidence must not skip tools that passed')
   assert.equal(coreEvidenceResponse.data.report.toolExecutionReadiness.productReadyLocalOssCount, acceptedCoreToolIds.length, 'core real-check evidence should only count accepted passed tools')
 
   const invalidEvidenceResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evaluate`, {

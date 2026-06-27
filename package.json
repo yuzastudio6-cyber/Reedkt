@@ -53,6 +53,8 @@
     "prod:security:summary": "tsx server/cli/security-review-summary.ts",
     "prod:cost:summary": "tsx server/cli/cost-control-summary.ts",
     "prod:beta:summary": "tsx server/cli/beta-readiness-summary.ts",
+    "tools:readiness:install-core-python": "tsx server/cli/install-core-python-readiness.ts",
+    "smoke:prod-core-python-readiness": "tsx server/smoke/production-core-python-readiness-smoke.ts",
     "smoke:prompt6-ready": "tsx server/smoke/prompt6-readiness-smoke.ts",
     "smoke:render": "tsx server/cli/basic-render-smoke.ts",
     "smoke:render:strict": "tsx server/cli/basic-render-smoke.ts --strict",

@@ -61,8 +61,10 @@ The backend now exposes an authenticated, mock-safe evaluation surface for this 
 
 - `GET /v1/beta-readiness` returns the default source-of-truth readiness report.
 - `POST /v1/beta-readiness/evaluate` accepts structured evidence for checklist items, per-tool accepted execution, platform billing/deployment readiness, and human approvals, then returns the computed report.
+- `POST /v1/beta-readiness/evidence` records a sanitized evidence packet idempotently and returns the computed report.
+- `GET /v1/beta-readiness/evidence` lists stored evidence packets, the merged evidence view, and the computed report.
 
-These routes do not write Supabase rows, reserve or spend credits, call providers, run tools, enable beta, or mark production ready. They only make the gate executable from backend callers, so blocker state is computed from explicit evidence instead of a hidden hardcoded wall. Unknown tools, unknown checklist items, duplicate downstream evidence, and secret-like payloads fail closed.
+In mock mode, stored evidence is in-memory only. In non-mock mode, evidence writes require the `beta_readiness_evidence_packets` migration and backend service-role path; missing persistence fails closed instead of silently enabling beta. These routes do not reserve or spend credits, call providers, run tools, enable beta, or mark production ready by themselves. They make the gate executable from backend callers, so blocker state is computed from explicit evidence instead of a hidden hardcoded wall. Unknown tools, unknown checklist items, duplicate downstream evidence, and secret-like payloads fail closed.
 
 ## Evidence-Driven Policy
 

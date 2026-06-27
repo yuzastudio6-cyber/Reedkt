@@ -46,6 +46,36 @@ try {
     'platform preflight should name wallet settlement as remaining evidence',
   )
 
+  const platformBillingQaResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-billing-qa`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-billing-qa' },
+    body: JSON.stringify({
+      workspaceId: smokeWorkspaceId,
+      projectId: 'beta-readiness-api-smoke-platform-project',
+      sourceId: 'beta-readiness-api-smoke:platform-billing-qa',
+      sourceSha: '6666666666666666666666666666666666666666',
+      environment: 'local_mock',
+      notes: ['Smoke runs platform billing QA in mock-safe mode only.'],
+    }),
+  })
+  assert.equal(platformBillingQaResponse.ok, true, 'platform billing QA route should return ok')
+  assert.equal(platformBillingQaResponse.data.report.persistenceMode, 'mock_memory', 'platform billing QA smoke must use mock memory persistence')
+  assert.equal(platformBillingQaResponse.data.report.wouldClearPlatformBlocker, false, 'platform billing QA must not clear platform blockers by itself')
+  assert.ok(
+    platformBillingQaResponse.data.report.checks.some((check: { id: string; status: string }) =>
+      check.id === 'idempotent_replay' && check.status === 'passed'),
+    'platform billing QA should prove idempotent replay',
+  )
+  assert.ok(
+    platformBillingQaResponse.data.report.checks.some((check: { id: string; status: string }) =>
+      check.id === 'stripe_boundary' && check.status === 'passed'),
+    'platform billing QA should prove Stripe isolation',
+  )
+  assert.ok(
+    platformBillingQaResponse.data.report.missingPlatformEvidence.some((item: string) => item.includes('wallet settlement')),
+    'platform billing QA should still name wallet settlement as missing production evidence',
+  )
+
   const evidencePacketBody = buildCompleteEvidencePacketBody()
   const { workspaceId: _workspaceId, ...evaluationBody } = evidencePacketBody
   const schemaResult = betaReadinessEvidenceEvaluationSchema.safeParse(evaluationBody)

@@ -6,11 +6,13 @@ import { buildBetaReadinessReport } from '../beta-readiness'
 import { createBetaReadinessEvidenceService } from '../beta-readiness/beta-readiness-evidence-service'
 import { buildCoreRealCheckEvidencePacket } from '../beta-readiness/core-real-check-evidence'
 import { buildBetaPlatformEvidencePreflight } from '../beta-readiness/platform-evidence-preflight'
+import { runBetaPlatformBillingQa } from '../beta-readiness/platform-billing-qa'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 import {
   betaReadinessCoreRealCheckEvidenceSchema,
   betaReadinessEvidenceEvaluationSchema,
   betaReadinessEvidencePacketSchema,
+  betaReadinessPlatformBillingQaSchema,
 } from '../validation/beta-readiness-schemas'
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getServiceContext, sendOk } from './route-helpers'
@@ -70,6 +72,16 @@ export function createBetaReadinessRoutes(): Router {
     sendOk(response, { report }, [
       'Read-only local platform evidence preflight; no evidence was recorded and no beta/production gate was opened.',
       ...report.missingEvidence.map((item) => `Missing platform evidence: ${item}`),
+    ])
+  }))
+
+  router.post('/v1/beta-readiness/platform-billing-qa', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(betaReadinessPlatformBillingQaSchema, request.body)
+    assertNoSecretLikeBetaReadinessEvidence(body)
+    const report = await runBetaPlatformBillingQa(getServiceContext(request), body, getIdempotencyKey(request))
+    sendOk(response, { report }, [
+      'Platform billing QA ran only the tool-cost event/summary path; no media, provider, Stripe, wallet settlement, beta, or production action ran.',
+      ...report.missingPlatformEvidence.map((item) => `Missing platform evidence: ${item}`),
     ])
   }))
 

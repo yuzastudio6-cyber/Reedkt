@@ -20,7 +20,10 @@ AI graphics model-weight source catalog decision
 records the upstream/internal source candidates for the five model-weight tools:
 `sam2`, `birefnet`, `real_esrgan`, `rembg`, and
 `transparent_background`. SAM2, BiRefNet, and Real-ESRGAN have existing internal
-staging evidence recorded, while rembg and transparent-background still need
+staging evidence recorded. rembg now has the selected upstream
+`isnet-general-use.onnx` candidate, and transparent-background now has the
+selected upstream default base `ckpt_base.pth` candidate with upstream config
+MD5 `d692e3dd5fa1b9658949d452bebf1cda`; both still need
 source/license/checksum/provenance/quality/security review before private
 manifests can be approved. The catalog also confirms the 8 GPU/model tools
 remain exact NVIDIA L4 targets, GPU runtime is on-demand only, idle GPU runtime
@@ -29,8 +32,7 @@ approved now remain 0, beta-ready model-weight tools remain 0, and no model
 download/load/inference, worker execution, runtime, beta, or production unlock
 occurs. The catalog also records that SAM2, BiRefNet, and Real-ESRGAN can
 author local-only private manifest drafts from existing evidence, while rembg
-and transparent-background remain blocked pending source/model selection and
-review.
+and transparent-background remain blocked pending source review.
 
 AI graphics internal beta go/no-go decision
 `ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`

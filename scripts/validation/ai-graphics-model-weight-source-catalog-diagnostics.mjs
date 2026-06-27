@@ -23,15 +23,15 @@ const expectedCandidates = {
   sam2: 'facebook_sam2_1_hiera_tiny_existing_staging_evidence',
   birefnet: 'zhengpeng7_birefnet_official_weights_review_candidate',
   real_esrgan: 'xinntao_real_esrgan_x4plus',
-  rembg: 'danielgatis_rembg_model_menu_selection_required',
-  transparent_background: 'plemeri_transparent_background_inspyrenet_review_candidate',
+  rembg: 'danielgatis_rembg_isnet_general_use_review_candidate',
+  transparent_background: 'plemeri_transparent_background_base_ckpt_review_candidate',
 }
 
 const expectedStatuses = {
   sam2: 'internal_evidence_verified_private_manifest_required',
   birefnet: 'internal_evidence_verified_private_manifest_required',
   real_esrgan: 'internal_evidence_verified_private_manifest_required',
-  rembg: 'source_menu_identified_selection_required',
+  rembg: 'source_identified_review_required',
   transparent_background: 'source_identified_review_required',
 }
 
@@ -112,8 +112,8 @@ if (catalog.counts?.foundationGpuToolsWithoutStandaloneManifest !== 3) fail('fou
 if (catalog.counts?.modelWeightSourceCatalogTools !== 5) fail('source_catalog_tool_count_not_5')
 if (catalog.counts?.sourceCandidatesCovered !== 5) fail('source_candidate_count_not_5')
 if (catalog.counts?.internalEvidenceBackedCandidates !== 3) fail('internal_evidence_candidate_count_not_3')
-if (catalog.counts?.sourceIdentifiedReviewRequiredCandidates !== 1) fail('source_identified_review_candidate_count_not_1')
-if (catalog.counts?.sourceMenuSelectionRequiredCandidates !== 1) fail('source_menu_selection_candidate_count_not_1')
+if (catalog.counts?.sourceIdentifiedReviewRequiredCandidates !== 2) fail('source_identified_review_candidate_count_not_2')
+if (catalog.counts?.sourceMenuSelectionRequiredCandidates !== 0) fail('source_menu_selection_candidate_count_not_0')
 if (catalog.counts?.readyForPrivateManifestAuthoringFromExistingEvidence !== 3) {
   fail('private_manifest_authoring_ready_count_not_3')
 }
@@ -201,7 +201,12 @@ if (!JSON.stringify(catalog.sourceCandidates || []).includes('mit_source_claim_r
 if (!JSON.stringify(catalog.sourceCandidates || []).includes('raw gs:// refs remain source evidence')) fail('sam2_gcs_source_evidence_warning_missing')
 if (!JSON.stringify(catalog.sourceCandidates || []).includes('RealESRGAN_x4plus.pth')) fail('real_esrgan_release_asset_missing')
 if (!JSON.stringify(catalog.sourceCandidates || []).includes('https://github.com/plemeri/InSPyReNet')) fail('inspyrenet_source_url_missing')
-if (!JSON.stringify(catalog.sourceCandidates || []).includes('model menu')) fail('rembg_model_menu_not_recorded')
+if (!JSON.stringify(catalog.sourceCandidates || []).includes('isnet-general-use.onnx')) fail('rembg_isnet_general_use_missing')
+if (!JSON.stringify(catalog.sourceCandidates || []).includes('https://github.com/xuebinqin/DIS')) fail('rembg_dis_source_missing')
+if (!JSON.stringify(catalog.sourceCandidates || []).includes('ckpt_base.pth')) fail('transparent_background_base_checkpoint_missing')
+if (!JSON.stringify(catalog.sourceCandidates || []).includes('d692e3dd5fa1b9658949d452bebf1cda')) {
+  fail('transparent_background_base_checkpoint_md5_missing')
+}
 
 for (const key of [
   'onDemandOnly',
@@ -220,7 +225,7 @@ for (const key of [
   'internalEvidenceBackedSourcesRecorded',
   'privateManifestPreparationPlanPrepared',
   'existingEvidenceCanAuthor3PrivateManifestDrafts',
-  'sourceSelectionStillBlocks2PrivateManifestDrafts',
+  'sourceReviewStillBlocks2PrivateManifestDrafts',
   'privateManifestReviewStillRequired',
   'privateArtifactRefNamespaceRequired',
   'checksumReviewStillRequired',
@@ -236,6 +241,7 @@ for (const key of [
 }
 for (const key of [
   'cpuFallbackAllowedForHeavyTools',
+  'sourceSelectionStillBlocks2PrivateManifestDrafts',
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
@@ -277,6 +283,7 @@ for (const needle of [
   'privateManifestStatus',
   'privateManifestPreparationPlan',
   'source_menu_identified_selection_required',
+  'sourceReviewStillBlocks2PrivateManifestDrafts',
   'ready_for_private_manifest_authoring_from_existing_evidence',
   'blocked_pending_source_selection_or_review',
   'noIdleGpuRuntimeApproved',
@@ -290,6 +297,7 @@ for (const phrase of [
   'private://',
   'reeditpro-private://',
   'SAM2 existing `gs://` staging evidence is recorded only as internal source evidence',
+  'rembg` and `transparent_background` now have selected upstream checkpoint candidates',
   'Private manifests approved now: 0',
   'ready_for_private_manifest_authoring_from_existing_evidence',
   'blocked_pending_source_selection_or_review',

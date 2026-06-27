@@ -124,7 +124,8 @@ export interface AiGraphicsModelWeightSourceCatalogPacket {
     internalEvidenceBackedSourcesRecorded: true
     privateManifestPreparationPlanPrepared: true
     existingEvidenceCanAuthor3PrivateManifestDrafts: true
-    sourceSelectionStillBlocks2PrivateManifestDrafts: true
+    sourceSelectionStillBlocks2PrivateManifestDrafts: false
+    sourceReviewStillBlocks2PrivateManifestDrafts: true
     privateManifestReviewStillRequired: true
     privateArtifactRefNamespaceRequired: true
     checksumReviewStillRequired: true
@@ -323,17 +324,20 @@ export function listAiGraphicsModelWeightSourceCandidates(): AiGraphicsModelWeig
     realEsrganCandidate(),
     {
       toolId: 'rembg',
-      candidateId: 'danielgatis_rembg_model_menu_selection_required',
-      candidateStatus: 'source_menu_identified_selection_required',
-      reviewStatus: 'requires_model_choice_license_checksum_and_quality_review',
+      candidateId: 'danielgatis_rembg_isnet_general_use_review_candidate',
+      candidateStatus: 'source_identified_review_required',
+      reviewStatus: 'requires_manual_source_license_checksum_and_quality_review',
       upstreamSourceName: 'danielgatis/rembg',
       upstreamSourceUrl: 'https://github.com/danielgatis/rembg',
-      modelIdOrName: 'rembg model menu: u2net, isnet, sam, birefnet, and related ONNX/cache options',
+      sourceCodeUrl: 'https://github.com/xuebinqin/DIS',
+      artifactSourceUrl: 'https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx',
+      artifactFileName: 'isnet-general-use.onnx',
+      modelIdOrName: 'isnet-general-use',
       expectedRuntimePath: '/opt/reeditpro/model-weights/rembg/',
       existingInternalEvidenceRefs: [],
-      existingInternalEvidenceSummary: 'The upstream tool exposes multiple model choices; ReeditPro has not selected a default model, checksum, private cache layout, license record, or cutout-quality review.',
+      existingInternalEvidenceSummary: 'Primary-source review selected rembg isnet-general-use as the ReeditPro default candidate because upstream rembg documents it as a general-use model, stores models under ~/.u2net/U2NET_HOME, and supports NVIDIA GPU installs with rembg[gpu]; DIS source evidence remains review-required before private manifest approval.',
       checksumEvidenceStatus: 'checksum_required_before_private_manifest',
-      licenseClaim: 'unknown_requires_review',
+      licenseClaim: 'apache_2_0_source_claim_requires_owner_manifest_record',
       commercialUseReviewStatus: 'requires_manual_review',
       redistributionReviewStatus: 'requires_manual_review',
       privateManifestStatus: 'missing_reviewed_private_artifact_ref_namespace',
@@ -343,22 +347,24 @@ export function listAiGraphicsModelWeightSourceCandidates(): AiGraphicsModelWeig
       modelInferencePerformed: false,
       gpuRuntimeApprovedNow: false,
       runtimeReadyNow: false,
-      nextAction: 'Choose one rembg model/cache option for ReeditPro, review license/provenance and cutout quality, checksum the private artifact tree, and create a private manifest before GPU proof.',
+      nextAction: 'Review DIS/rembg isnet-general-use license and provenance, checksum the private isnet-general-use.onnx artifact tree, record the U2NET_HOME cache layout, create a private manifest, and then run native L4 proof.',
     },
     {
       toolId: 'transparent_background',
-      candidateId: 'plemeri_transparent_background_inspyrenet_review_candidate',
+      candidateId: 'plemeri_transparent_background_base_ckpt_review_candidate',
       candidateStatus: 'source_identified_review_required',
       reviewStatus: 'requires_manual_source_license_checksum_and_quality_review',
       upstreamSourceName: 'plemeri/transparent-background',
       upstreamSourceUrl: 'https://github.com/plemeri/transparent-background',
       sourceCodeUrl: 'https://github.com/plemeri/InSPyReNet',
-      modelIdOrName: 'transparent-background InSPyReNet checkpoint candidate',
+      artifactSourceUrl: 'https://github.com/plemeri/transparent-background/releases/download/1.2.12/ckpt_base.pth',
+      artifactFileName: 'ckpt_base.pth',
+      modelIdOrName: 'transparent-background base mode ckpt_base.pth',
       expectedRuntimePath: '/opt/reeditpro/model-weights/transparent-background/',
       existingInternalEvidenceRefs: [],
-      existingInternalEvidenceSummary: 'Upstream package/model family is identified, but exact checkpoint, license, redistribution, checksum, private manifest, and quality/security review are not approved.',
+      existingInternalEvidenceSummary: 'Primary-source review selected the upstream default base mode checkpoint, ckpt_base.pth from transparent-background v1.2.12, with upstream config MD5 d692e3dd5fa1b9658949d452bebf1cda; private manifest, license, redistribution, checksum, and quality/security review are still not approved.',
       checksumEvidenceStatus: 'checksum_required_before_private_manifest',
-      licenseClaim: 'unknown_requires_review',
+      licenseClaim: 'mit_source_claim_requires_owner_manifest_record',
       commercialUseReviewStatus: 'requires_manual_review',
       redistributionReviewStatus: 'requires_manual_review',
       privateManifestStatus: 'missing_reviewed_private_artifact_ref_namespace',
@@ -368,7 +374,7 @@ export function listAiGraphicsModelWeightSourceCandidates(): AiGraphicsModelWeig
       modelInferencePerformed: false,
       gpuRuntimeApprovedNow: false,
       runtimeReadyNow: false,
-      nextAction: 'Select the exact transparent-background/InSPyReNet checkpoint, record license/provenance and quality evidence, checksum the private artifact tree, and create a private manifest before GPU proof.',
+      nextAction: 'Review transparent-background/InSPyReNet license and provenance, verify ckpt_base.pth against the upstream MD5 before private manifest approval, record quality/security evidence, and then run native L4 proof.',
     },
   ]
 }
@@ -452,7 +458,8 @@ export function buildAiGraphicsModelWeightSourceCatalogPacket(): AiGraphicsModel
       internalEvidenceBackedSourcesRecorded: true,
       privateManifestPreparationPlanPrepared: true,
       existingEvidenceCanAuthor3PrivateManifestDrafts: true,
-      sourceSelectionStillBlocks2PrivateManifestDrafts: true,
+      sourceSelectionStillBlocks2PrivateManifestDrafts: false,
+      sourceReviewStillBlocks2PrivateManifestDrafts: true,
       privateManifestReviewStillRequired: true,
       privateArtifactRefNamespaceRequired: true,
       checksumReviewStillRequired: true,

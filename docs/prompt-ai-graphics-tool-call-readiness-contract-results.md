@@ -540,6 +540,8 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Diagnostic coverage proves invalid source packets are rejected when tool coverage drops to 20, capability coverage drops to 11, the accepted-job GPU start count drops to 7, `gpuRuntimeShouldStartNow=true`, `gpuRuntimeApprovedNow=true`, tool execution is claimed, or fixture rows persist.
 - Runtime remains blocked: `workerHandoffLocalSmokeExecutedNow=false`, `liveProductionWorkerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Cost posture: the eight GPU/model tools remain GPU-targeted for accepted future worker/tool-call jobs only; no idle GPU runtime or standing GPU service is approved.
+- Validation run: `ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke:diagnostics`, inherited service-role RPC/queue/on-demand/beta diagnostics, `open-source-tool-stack:audit:diagnostics`, `npm run typecheck:server`, and `git diff --check` passed.
+- Latest observed PR state after service-role RPC worker-handoff source packet GPU hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `da82c0ba53aa58ded04a5de026a6868023533a37`, with an empty check rollup.
 
 ## No-Scope
 

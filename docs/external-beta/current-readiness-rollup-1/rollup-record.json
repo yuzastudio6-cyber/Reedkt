@@ -1,6 +1,6 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "completed_controlled_tester_product_flow_smoke_external_beta_owner_walkthrough_ready",
+  "decision": "blocked_controlled_tester_ui_flow_smoke_deployed_browser_ui_surface_not_present",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
   "integrationHead": "5513c610ede7f96995b8b2f5da748064dca95ade",
   "sourceClosure": {
@@ -29,11 +29,13 @@
     "controlledPrivateInviteIamGrant1r": "rp_external_beta_controlled_private_invite_iam_grant_1r_after_identity_list",
     "ownerMemberSmokeReadback": "rp_external_beta_owner_member_smoke_readback_1",
     "testerAccountMembershipSmoke": "rp_external_beta_tester_account_membership_smoke_1",
-    "controlledTesterProductFlowSmoke": "rp_external_beta_controlled_tester_product_flow_smoke_1"
+    "controlledTesterProductFlowSmoke": "rp_external_beta_controlled_tester_product_flow_smoke_1",
+    "controlledTesterUiFlowSmoke": "rp_external_beta_controlled_tester_ui_flow_smoke_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
-    "externalProductBeta": "ready_for_controlled_owner_tester_product_walkthrough",
+    "externalProductBeta": "blocked_pending_deployed_browser_ui_surface_for_owner_walkthrough",
+    "productApiReadiness": "ready_for_controlled_owner_tester_product_walkthrough",
     "paidProduction": "blocked",
     "finalDeliveryExport": "blocked",
     "productReadyEndToEndLocalOssTools": 0
@@ -230,11 +232,22 @@
     "controlledTesterProductFlowRenderReadinessRoute": "passed_mock_only",
     "controlledTesterProductFlowApprovalRoute": "blocked_424_backend_runtime_required",
     "controlledTesterProductFlowRenderPreviewRoute": "blocked_424_backend_runtime_required",
-    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1"
+    "controlledTesterUiFlowSmoke": "blocked_external_beta_controlled_tester_ui_flow_smoke",
+    "controlledTesterUiFlowExecution": "completed_guarded_authenticated_ui_surface_probe_no_runtime_mutation",
+    "controlledTesterUiFlowBlocker": "blocked_deployed_browser_ui_surface_not_present",
+    "controlledTesterUiFlowRunId": "2026-06-27T16-07-23-427Z-7e136bc9",
+    "controlledTesterUiFlowReportSha256": "0bf0f4a53c435b3e8e1c62412d7f2cef7b7633de821eee36f62ace16f068b2e3",
+    "controlledTesterUiFlowManifestSha256": "5672d630490da26bfc5b0ef37d66b5da5bbcb041f83ebdcbf0dfa1d328dc3dae",
+    "controlledTesterUiFlowDeployedBrowserUiSurfacePresent": false,
+    "controlledTesterUiFlowAuthenticatedRoot": "blocked_404_json_route_not_found",
+    "controlledTesterUiFlowAuthenticatedDashboard": "blocked_404_json_route_not_found",
+    "controlledTesterUiFlowAuthenticatedProjects": "blocked_404_json_route_not_found",
+    "controlledTesterUiFlowAuthenticatedEditor": "blocked_404_json_route_not_found",
+    "nextMilestone": "RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1"
   },
   "requiredNextOwnerDecision": [
     "keep_controlled_external_beta_tester_group_bounded",
-    "run_controlled_tester_ui_flow_smoke",
+    "deploy_or_expose_controlled_browser_ui_surface",
     "no_public_access_provider_worker_media_or_production_unlock"
   ],
   "safety": {
@@ -328,6 +341,11 @@
     "controlledTesterProductFlowRouteExecution": "safe_get_api_routes_and_post_api_mock_only",
     "controlledTesterProductFlowBackendRequiredBlockers": "planning_edit_plan_approve_and_render_preview_create_blocked_424_backend_runtime_required",
     "controlledTesterProductFlowPersistentMutation": false,
+    "controlledTesterUiFlowSmoke": "completed_guarded_authenticated_ui_surface_probe_no_runtime_mutation",
+    "controlledTesterUiFlowBlocker": "blocked_deployed_browser_ui_surface_not_present",
+    "controlledTesterUiFlowRouteExecution": "safe_get_browser_ui_surface_probes_only",
+    "controlledTesterUiFlowPersistentMutation": false,
+    "controlledTesterUiFlowBrowserCapture": false,
     "testerAccountUnauthenticatedAccessPublicOpen": false,
     "identityTokenPrinted": false,
     "identityTokenPersisted": false

@@ -2,22 +2,23 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1'
+const packet = 'RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
-const packetDir = 'docs/external-beta/controlled-tester-product-flow-smoke-1'
+const packetDir = 'docs/external-beta/controlled-tester-ui-flow-smoke-1'
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
   `${packetDir}/runner-contract.md`,
-  `${packetDir}/product-flow-evidence.md`,
+  `${packetDir}/ui-surface-evidence.md`,
   `${packetDir}/readiness-gate.md`,
   `${packetDir}/safety-boundary.md`,
   `${packetDir}/validation-results.md`,
-  `${packetDir}/controlled-tester-product-flow-smoke-record.json`,
-  'docs/activation-phase-rp-external-beta-controlled-tester-product-flow-smoke-1-results.md',
+  `${packetDir}/controlled-tester-ui-flow-smoke-record.json`,
+  'docs/activation-phase-rp-external-beta-controlled-tester-ui-flow-smoke-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-controlled-tester-ui-flow-smoke-1.md',
-  'scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1.mjs',
-  'scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-rp-external-beta-deployed-browser-ui-surface-1.md',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
   'package.json',
 ]
 
@@ -31,31 +32,17 @@ const rollupFiles = [
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
 ]
 
-const relatedDiagnostics = [
-  'scripts/validation/rp-external-beta-tester-account-membership-smoke-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-controlled-private-invite-iam-grant-1r-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-owner-member-smoke-readback-1-diagnostics.mjs',
-]
-
-const followOnControlledTesterUiFlowSmokeFiles = [
-  'docs/external-beta/controlled-tester-ui-flow-smoke-1/source-audit.md',
-  'docs/external-beta/controlled-tester-ui-flow-smoke-1/runner-contract.md',
-  'docs/external-beta/controlled-tester-ui-flow-smoke-1/ui-surface-evidence.md',
-  'docs/external-beta/controlled-tester-ui-flow-smoke-1/readiness-gate.md',
-  'docs/external-beta/controlled-tester-ui-flow-smoke-1/safety-boundary.md',
-  'docs/external-beta/controlled-tester-ui-flow-smoke-1/validation-results.md',
-  'docs/external-beta/controlled-tester-ui-flow-smoke-1/controlled-tester-ui-flow-smoke-record.json',
-  'docs/activation-phase-rp-external-beta-controlled-tester-ui-flow-smoke-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-deployed-browser-ui-surface-1.md',
-  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1.mjs',
-  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
+const productFlowFiles = [
+  'docs/external-beta/controlled-tester-product-flow-smoke-1/controlled-tester-product-flow-smoke-record.json',
+  'scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1-diagnostics.mjs',
 ]
 
 const requiredText = [
   packet,
-  'completed_external_beta_controlled_tester_product_flow_smoke',
-  'completed_guarded_authenticated_tester_mock_product_flow_smoke_no_persistent_runtime_mutation',
-  'REEDITPRO_CONFIRM_EXTERNAL_BETA_CONTROLLED_TESTER_PRODUCT_FLOW_SMOKE',
+  'blocked_external_beta_controlled_tester_ui_flow_smoke',
+  'blocked_deployed_browser_ui_surface_not_present',
+  'completed_guarded_authenticated_ui_surface_probe_no_runtime_mutation',
+  'REEDITPRO_CONFIRM_EXTERNAL_BETA_CONTROLLED_TESTER_UI_FLOW_SMOKE',
   'REEDITPRO_EXTERNAL_BETA_TESTER_EMAIL',
   'aiediting@reeditpro.com',
   'owner_approved_primary_real_tester_account',
@@ -63,20 +50,16 @@ const requiredText = [
   'group:external-beta-testers@reeditpro.com',
   'reeditpro-staging-api',
   'us-central1',
-  '2026-06-27T15-34-26-957Z-dbe78e9d',
-  'ed4be5c34449725443592cf1bcf459b5847601b229abacb48018c36a56f86522',
-  'a0b67ee1a562d5f3c2d91678eb7dd4bc6dd1bab814b615abd0055c43a3cd187e',
-  'planning.demo.chatNative.create',
-  'credits.estimate.create',
-  'credits.gate.check',
-  'jobs.gate.check',
-  'render.creditGate.check',
-  'render.readiness.check',
-  'planning.editPlan.approve',
-  'render.preview.create',
-  'backend_runtime_required',
+  'reeditpro-staging-api-00005-7gs',
+  '2026-06-27T16-07-23-427Z-7e136bc9',
+  '0bf0f4a53c435b3e8e1c62412d7f2cef7b7633de821eee36f62ace16f068b2e3',
+  '5672d630490da26bfc5b0ef37d66b5da5bbcb041f83ebdcbf0dfa1d328dc3dae',
+  'authenticated_html_probe_root',
+  'Route not found: /dashboard',
+  'deployedBrowserUiSurfacePresent',
+  'blocked_pending_deployed_browser_ui_surface_for_owner_walkthrough',
   'ready_for_controlled_owner_tester_product_walkthrough',
-  'RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1',
+  'RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
@@ -108,6 +91,7 @@ const falseSafetyKeys = [
   'ffmpegExecution',
   'ffprobeExecution',
   'dockerExecution',
+  'browserCapture',
   'internalBetaBroadUnlock',
   'externalBetaBroadAudienceUnlock',
   'productionUnlock',
@@ -128,6 +112,7 @@ const forbiddenClaims = [
   /\bFFmpeg execution:\s*`?(true|enabled|completed)\b/i,
   /\bFFprobe execution:\s*`?(true|enabled|completed)\b/i,
   /\bDocker execution:\s*`?(true|enabled|completed)\b/i,
+  /\bbrowser capture:\s*`?(true|enabled|completed)\b/i,
 ]
 
 const blockedPrefixes = [
@@ -170,7 +155,7 @@ function changedFiles() {
 
 for (const file of requiredFiles) read(file)
 
-const corpus = [...requiredFiles, ...rollupFiles.filter(fs.existsSync)]
+const corpus = [...requiredFiles, ...rollupFiles.filter(fs.existsSync), ...productFlowFiles.filter(fs.existsSync)]
   .map((file) => read(file))
   .join('\n')
 for (const text of requiredText) {
@@ -180,38 +165,32 @@ for (const pattern of forbiddenClaims) {
   if (pattern.test(corpus)) fail(`forbidden claim matched: ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/controlled-tester-product-flow-smoke-record.json`))
+const record = JSON.parse(read(`${packetDir}/controlled-tester-ui-flow-smoke-record.json`))
 if (record.packet !== packet) fail('packet mismatch')
-if (record.decision !== 'completed_external_beta_controlled_tester_product_flow_smoke') fail('decision mismatch')
-if (record.execution !== 'completed_guarded_authenticated_tester_mock_product_flow_smoke_no_persistent_runtime_mutation') fail('execution mismatch')
-if (record.integrationBase !== '5513c610ede7f96995b8b2f5da748064dca95ade') fail('integration base mismatch')
+if (record.decision !== 'blocked_external_beta_controlled_tester_ui_flow_smoke') fail('decision mismatch')
+if (record.execution !== 'completed_guarded_authenticated_ui_surface_probe_no_runtime_mutation') fail('execution mismatch')
+if (record.blocker !== 'blocked_deployed_browser_ui_surface_not_present') fail('blocker mismatch')
+if (record.integrationBase !== 'ee88b79f85a71cebfe6c8c81cc02ce13529ad126') fail('integration base mismatch')
 if (record.target?.testerEmail !== 'aiediting@reeditpro.com') fail('tester email mismatch')
 if (record.target?.testerClassification !== 'owner_approved_primary_real_tester_account') fail('tester classification mismatch')
 if (record.target?.groupEmail !== 'external-beta-testers@reeditpro.com') fail('group email mismatch')
 if (record.target?.cloudRunIamMember !== 'group:external-beta-testers@reeditpro.com') fail('Cloud Run IAM member mismatch')
-if (record.runEvidence?.runId !== '2026-06-27T15-34-26-957Z-dbe78e9d') fail('run id mismatch')
-if (record.runEvidence?.report?.bytes !== 4967) fail('report byte count mismatch')
-if (record.runEvidence?.report?.sha256 !== 'ed4be5c34449725443592cf1bcf459b5847601b229abacb48018c36a56f86522') fail('report checksum mismatch')
-if (record.runEvidence?.manifest?.bytes !== 442) fail('manifest byte count mismatch')
-if (record.runEvidence?.manifest?.sha256 !== 'a0b67ee1a562d5f3c2d91678eb7dd4bc6dd1bab814b615abd0055c43a3cd187e') fail('manifest checksum mismatch')
-if (record.routeMap?.status !== 200) fail('route map status mismatch')
-if (record.routeMap?.totalRoutes !== 109) fail('route map total route count mismatch')
-if (record.routeMap?.mockReadyRoutes !== 67) fail('route map mock-ready count mismatch')
-if (record.routeMap?.requiredRoutesPresent !== true) fail('required routes presence mismatch')
-if (record.smoke?.unauthenticatedHealth !== 'blocked_403') fail('unauthenticated health mismatch')
-if (record.smoke?.planningDemo?.nextRequiredAction !== 'approve_plan_and_credits') fail('planning did not stop at approval')
-if (record.smoke?.planningDemo?.editPlanStatus !== 'awaiting_approval') fail('edit plan status mismatch')
-if (record.smoke?.planningDemo?.creditEstimateCredits !== 18) fail('planning credit estimate mismatch')
-if (record.smoke?.creditEstimate?.nextStep !== 'approve_plan_and_credits') fail('credit estimate next step mismatch')
-if (record.smoke?.creditGate?.creditGateOk !== true) fail('credit gate mismatch')
-if (record.smoke?.jobGate?.jobGateOk !== false) fail('job gate must remain blocked')
-if (record.smoke?.renderCreditGate?.creditGateOk !== true) fail('render credit gate mismatch')
-if (record.smoke?.renderReadiness?.mockOnly !== true) fail('render readiness mock-only mismatch')
-for (const item of record.smoke?.backendRequiredBlockedRoutes || []) {
-  if (item.httpStatus !== 424 || item.errorCode !== 'backend_runtime_required') fail(`backend-required route did not block: ${item.routeId}`)
+if (record.target?.uiServiceCandidates !== 0) fail('UI service candidate count mismatch')
+if (record.runEvidence?.runId !== '2026-06-27T16-07-23-427Z-7e136bc9') fail('run id mismatch')
+if (record.runEvidence?.report?.bytes !== 6576) fail('report byte count mismatch')
+if (record.runEvidence?.report?.sha256 !== '0bf0f4a53c435b3e8e1c62412d7f2cef7b7633de821eee36f62ace16f068b2e3') fail('report checksum mismatch')
+if (record.runEvidence?.manifest?.bytes !== 432) fail('manifest byte count mismatch')
+if (record.runEvidence?.manifest?.sha256 !== '5672d630490da26bfc5b0ef37d66b5da5bbcb041f83ebdcbf0dfa1d328dc3dae') fail('manifest checksum mismatch')
+if (record.uiSurface?.deployedBrowserUiSurfacePresent !== false) fail('browser UI surface must be false')
+if (record.uiSurface?.unauthenticatedRoot?.status !== 403) fail('unauthenticated root status mismatch')
+for (const probe of record.uiSurface?.authenticatedHtmlProbes || []) {
+  if (probe.status !== 404) fail(`authenticated HTML probe did not 404: ${probe.path}`)
+  if (probe.contentType !== 'application/json; charset=utf-8') fail(`authenticated HTML probe content type mismatch: ${probe.path}`)
+  if (probe.htmlLike !== false) fail(`authenticated HTML probe unexpectedly HTML-like: ${probe.path}`)
 }
-if (record.readiness?.externalProductBeta !== 'ready_for_controlled_owner_tester_product_walkthrough') fail('external product beta readiness mismatch')
-if (record.readiness?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1') fail('next milestone mismatch')
+if (record.readiness?.externalProductBeta !== 'blocked_pending_deployed_browser_ui_surface_for_owner_walkthrough') fail('external product beta readiness mismatch')
+if (record.readiness?.productApiReadiness !== 'ready_for_controlled_owner_tester_product_walkthrough') fail('product API readiness mismatch')
+if (record.readiness?.nextMilestone !== 'RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1') fail('next milestone mismatch')
 if (record.readiness?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 for (const key of falseSafetyKeys) {
   if (record.safety?.[key] !== false) fail(`safety flag must be false: ${key}`)
@@ -219,20 +198,18 @@ for (const key of falseSafetyKeys) {
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
-const runnerSource = read('scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1.mjs')
+const runnerSource = read('scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1.mjs')
 for (const text of [
   "process.env[confirmEnv] === 'true'",
-  'blocked_pending_external_beta_controlled_tester_product_flow_smoke_confirmation',
+  'blocked_pending_external_beta_controlled_tester_ui_flow_smoke_confirmation',
   'blocked_tester_email_not_owner_approved_primary_account',
   'blocked_pending_owner_approved_tester_group_membership',
+  'blocked_deployed_browser_ui_surface_not_present',
   'blocked_broad_cloud_run_invoker_binding_present',
-  'blocked_backend_required_route_not_safely_blocked',
-  'blocked_planning_flow_did_not_stop_before_approval',
-  'blocked_job_gate_unexpectedly_allowed_execution',
-  'planning.demo.chatNative.create',
-  'render.preview.create',
-  '/api/mock',
-  '/api/routes',
+  'print-identity-token',
+  'identityTokenPrinted',
+  'identityTokenPersisted',
+  'authenticated_html_probe_',
 ]) {
   if (!runnerSource.includes(text)) fail(`runner missing required guard/source: ${text}`)
 }
@@ -241,6 +218,7 @@ const forbiddenRunnerCommandPatterns = [
   ['add-iam-policy-binding', /\badd-iam-policy-binding\b/],
   ['remove-iam-policy-binding', /\bremove-iam-policy-binding\b/],
   ['run deploy', /\brun\b[\s\S]{0,80}\bdeploy\b/],
+  ['secrets versions access', /\bsecrets\b[\s\S]{0,80}\bversions\b[\s\S]{0,80}\baccess\b/],
   ['psql executable', /execFileSync\(\s*['"]psql['"]|spawnSync\(\s*['"]psql['"]|\[\s*['"]psql['"]/],
   ['ffmpeg executable', /execFileSync\(\s*['"]ffmpeg['"]|spawnSync\(\s*['"]ffmpeg['"]|\[\s*['"]ffmpeg['"]/],
   ['ffprobe executable', /execFileSync\(\s*['"]ffprobe['"]|spawnSync\(\s*['"]ffprobe['"]|\[\s*['"]ffprobe['"]/],
@@ -252,21 +230,21 @@ for (const [label, pattern] of forbiddenRunnerCommandPatterns) {
 
 const packageJson = JSON.parse(read('package.json'))
 if (
-  packageJson.scripts?.['rp-external-beta-controlled-tester-product-flow-smoke-1'] !==
-  'node scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1.mjs'
+  packageJson.scripts?.['rp-external-beta-controlled-tester-ui-flow-smoke-1'] !==
+  'node scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1.mjs'
 ) {
   fail('missing runner package script')
 }
 if (
-  packageJson.scripts?.['rp-external-beta-controlled-tester-product-flow-smoke-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-controlled-tester-ui-flow-smoke-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs'
 ) {
   fail('missing diagnostics package script')
 }
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowed = new Set([...requiredFiles, ...rollupFiles, ...relatedDiagnostics, ...followOnControlledTesterUiFlowSmokeFiles])
+const allowed = new Set([...requiredFiles, ...rollupFiles, ...productFlowFiles])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)
   for (const blocked of blockedPrefixes) {
@@ -277,7 +255,7 @@ for (const file of changedFiles()) {
   if (/sbp_[A-Za-z0-9_./=-]+/.test(text)) fail(`Supabase access token leaked in ${file}`)
   if (/https:\/\/[a-z0-9-]+\.supabase\.co/i.test(text)) fail(`Supabase URL leaked in ${file}`)
   const dbUrlRedacted = text.replaceAll('postgresql://[redacted]', '').replaceAll('postgres://[REDACTED]', '')
-  if (!file.startsWith('scripts/validation/') && /\bpostgres(?:ql)?:\/\/\S+/i.test(dbUrlRedacted)) fail(`DB URL leaked in ${file}`)
+  if (/\bpostgres(?:ql)?:\/\/\S+/i.test(dbUrlRedacted)) fail(`DB URL leaked in ${file}`)
   if (/\b(api[_-]?key|service[_-]?role[_-]?key|secret[_-]?key)\s*[:=]\s*['"][^'"]+['"]/i.test(text)) fail(`secret-like assignment in ${file}`)
   if (!file.startsWith('scripts/validation/')) {
     for (const pattern of forbiddenClaims) {
@@ -287,5 +265,6 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_external_beta_controlled_tester_product_flow_smoke')
-console.log('External product beta readiness: ready_for_controlled_owner_tester_product_walkthrough')
+console.log('Decision: blocked_external_beta_controlled_tester_ui_flow_smoke')
+console.log('Blocker: blocked_deployed_browser_ui_surface_not_present')
+console.log('External product beta readiness: blocked_pending_deployed_browser_ui_surface_for_owner_walkthrough')

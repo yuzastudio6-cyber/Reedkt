@@ -50,6 +50,7 @@ models
 **/activation/phase39*
 secrets
 **/*secret*
+!src/backend/providers/gateway/provider-secret-boundary.ts
 **/*credential*
 *.mp4
 *.mov

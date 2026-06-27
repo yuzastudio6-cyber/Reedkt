@@ -378,6 +378,7 @@ const controlledTesterUiFlowSmokeFiles = [
 ]
 
 const followOnDeployedBrowserUiSurfaceFiles = [
+  '.dockerignore',
   'Dockerfile.backend',
   'src/server/server-router.ts',
   'docs/external-beta/deployed-browser-ui-surface-1/source-audit.md',
@@ -790,6 +791,7 @@ const blockedPaths = [
 ]
 
 const allowedRuntimeImplementationFiles = new Set([
+  '.dockerignore',
   'src/server/server-router.ts',
   'server/config/external-beta-controlled-enablement-contract.ts',
   'server/config/internal-beta-supabase-credential-context-contract.ts',

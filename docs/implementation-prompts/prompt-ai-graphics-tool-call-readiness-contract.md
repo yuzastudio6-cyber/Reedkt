@@ -147,6 +147,8 @@ Latest observed PR state after runtime-enqueue GPU activation policy hardening: 
 Latest observed PR state after model-weight manifest authoring checklist hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `7aee0546a58b81977fe7735672f5d1e714912b9f`, with an empty check rollup.
 - Follow-up model-weight checksum guidance hardening updates the source catalog, scaffold packet, scaffold checklist, and diagnostics so SAM2 and BiRefNet carry existing internal aggregate SHA-256 guidance, Real-ESRGAN carries existing internal file SHA-256 guidance, and rembg/transparent-background remain blocked pending reviewed private artifact SHA-256 evidence. Placeholder manifests remain invalid and no private manifest, model download/load/inference, GPU runtime, beta, or production unlock occurs.
 Latest observed PR state after model-weight checksum guidance hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `0127d477cd8bbaeda2f753fcb734a620327b9697`, with an empty check rollup.
+- Follow-up beta activation gap six-profile alignment updates the activation gap report and diagnostics so native GPU proof requires all six current profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. Stale four-profile proof evidence remains insufficient for beta activation.
+- Follow-up GPU runtime readiness gate clarification preserves the four image-level probe placements from the earlier gate while explicitly linking them to the six downstream native GPU proof profiles. `rembg` and `transparent_background` remain separate on-demand shared-worker proof profiles, not idle GPU services.
 
 ## Expected Validation
 

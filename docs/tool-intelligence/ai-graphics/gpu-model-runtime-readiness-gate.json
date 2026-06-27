@@ -74,6 +74,16 @@
     "proofContainerIsEphemeral": true,
     "cpuFallbackAllowedForHeavyTools": false
   },
+  "runtimeProbeImageProfilesCount": 4,
+  "nativeGpuProofProfilesRequiredLater": [
+    "gpu_worker_ai_graphics",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "nativeGpuProofProfilesRequiredLaterCount": 6,
   "runtimeProfiles": [
     {
       "profileId": "gpu_worker_ai_graphics",
@@ -211,8 +221,9 @@
     "reason": "Local host can only prove the script refuses accidental runtime checks without explicit opt-in; it cannot prove native NVIDIA runtime readiness."
   },
   "nextRequiredProofs": [
-    "Build or pull the four GPU images on native linux/amd64.",
-    "Run the runtime readiness script with docker run --gpus all and REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true.",
+    "Build or pull the four GPU image targets on native linux/amd64.",
+    "Run the four image-level runtime readiness commands with docker run --gpus all and REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true.",
+    "Run and validate the six native GPU proof profiles from the current command-plan/result packets: gpu_worker_ai_graphics, sam2, birefnet, real_esrgan, rembg, and transparent_background.",
     "Mount reviewed private model_tree_manifest.json files for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background.",
     "Run model-loading and minimal private fixture proofs in a later approved lane.",
     "Only after runtime, model provenance, fixture, Tool Route, Worker, and QA gates pass may internal beta readiness be reconsidered."
@@ -221,6 +232,7 @@
     "gpuModelRuntimeReadinessGatePrepared": true,
     "all8GpuModelToolsCoveredByRuntimeGate": true,
     "all4GpuRuntimeProfilesHaveRuntimeProbe": true,
+    "all6NativeGpuProofProfilesCoveredByCommandPlan": true,
     "nativeNvidiaRuntimeRequired": true,
     "explicitRuntimeProofOptInRequired": true,
     "gpuRuntimeTargetsExact": true,

@@ -60,7 +60,12 @@ It does not download model weights, load checkpoints, process media, call
 providers, execute Product Tool Routes, execute Workers, create signed URLs,
 create public artifacts, unlock beta, or unlock production.
 
-## Image Placement
+## Image Probe Placement
+
+This earlier gate prepares four image-level probe placements. Current downstream
+native GPU proof uses six on-demand proof profiles because `rembg` and
+`transparent_background` are validated as separate shared-worker proof profiles
+even though they use the same GPU worker image.
 
 The runtime readiness probe is copied into these images:
 
@@ -179,6 +184,7 @@ outside an approved native NVIDIA proof lane.
 - `gpuModelRuntimeReadinessGatePrepared=true`
 - `all8GpuModelToolsCoveredByRuntimeGate=true`
 - `all4GpuRuntimeProfilesHaveRuntimeProbe=true`
+- `all6NativeGpuProofProfilesCoveredByCommandPlan=true`
 - `nativeNvidiaRuntimeRequired=true`
 - `explicitRuntimeProofOptInRequired=true`
 - `gpuRuntimeTargetsExact=true`
@@ -206,7 +212,10 @@ outside an approved native NVIDIA proof lane.
 
 ## Next Proof
 
-Run the four runtime readiness commands on an approved native NVIDIA builder
-with reviewed, schema-valid private model manifests mounted. After that, a
-separate approved lane must prove model loading and minimal private fixtures
-before agent/tool execution or beta readiness can be reconsidered.
+Run the four image-level runtime readiness commands on an approved native
+NVIDIA builder with reviewed, schema-valid private model manifests mounted.
+Then run and validate the six current native GPU proof profiles:
+`gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and
+`transparent_background`. A separate approved lane must still prove model
+loading and minimal private fixtures before agent/tool execution or beta
+readiness can be reconsidered.

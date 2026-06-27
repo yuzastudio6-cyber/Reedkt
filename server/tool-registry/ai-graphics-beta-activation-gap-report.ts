@@ -61,6 +61,8 @@ export interface AiGraphicsBetaActivationGapReport {
   gpuRuntimeTargetsExact: true
   gpuRuntimeOnDemandOnly: true
   expectedGpuRuntimeTargets: Record<string, string>
+  nativeGpuProofProfilesRequired: string[]
+  nativeGpuProofProfilesRequiredCount: 6
   heavyToolsIncorrectlyTargetingCpu: 0
   betaActivationReadyTools: 0
   blockedTools: 21
@@ -129,10 +131,19 @@ const commonRouteWorkerGates = [
   'worker_idempotency_key_readiness',
 ]
 
+const nativeGpuProofProfilesRequired = [
+  'gpu_worker_ai_graphics',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+] as const
+
 const activationSequence = [
   'Keep package/package-lock and GPU Docker install surfaces unchanged unless an explicit dependency milestone approves changes.',
   'Review private model-weight manifests for sam2, birefnet, real_esrgan, rembg, and transparent_background.',
-  'Run native linux/amd64 NVIDIA L4 proof for gpu_worker_ai_graphics, sam2, birefnet, and real_esrgan, then validate with ai-graphics:gpu-runtime-proof-result:validate.',
+  `Run native linux/amd64 NVIDIA L4 proof for ${nativeGpuProofProfilesRequired.join(', ')}, then validate with ai-graphics:gpu-runtime-proof-result:validate.`,
   'Use accepted committed Node, browser/canvas/WebGL, and Satori font runtime proof packets unless they drift; do not rerun those proofs just to satisfy this gap report.',
   'Package/profile license review is narrowed for all 21 AI graphics tools; model-weight, native GPU, Tool Route, Worker, snapshot, credit, artifact, and beta owner gates remain evidence-driven.',
   'Pass approved plan snapshot, credit reservation, artifact boundary, Tool Route, Worker, and beta owner approval gates before any beta tool execution.',
@@ -367,6 +378,8 @@ export function buildAiGraphicsBetaActivationGapReport(
     gpuRuntimeTargetsExact: true,
     gpuRuntimeOnDemandOnly: true,
     expectedGpuRuntimeTargets: { ...expectedGpuRuntimeTargets },
+    nativeGpuProofProfilesRequired: [...nativeGpuProofProfilesRequired],
+    nativeGpuProofProfilesRequiredCount: nativeGpuProofProfilesRequired.length as 6,
     heavyToolsIncorrectlyTargetingCpu: 0,
     betaActivationReadyTools: 0,
     blockedTools: tools.length as 21,

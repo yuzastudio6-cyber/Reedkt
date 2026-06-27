@@ -61,6 +61,15 @@ const modelWeightTools = [
   'transparent_background',
 ]
 
+const nativeGpuProofProfilesRequired = [
+  'gpu_worker_ai_graphics',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+]
+
 const failures = []
 
 function fail(message) {
@@ -169,6 +178,9 @@ if (report.gpuRuntimeTargetsExact !== true) fail('report_gpu_runtime_targets_not
 if (report.gpuRuntimeOnDemandOnly !== true) fail('report_gpu_runtime_not_on_demand')
 if (docPacket.gpuRuntimeTargetsExact !== true) fail('doc_gpu_runtime_targets_not_exact')
 if (docPacket.gpuRuntimeOnDemandOnly !== true) fail('doc_gpu_runtime_not_on_demand')
+if (docPacket.nativeGpuProofProfilesRequiredCount !== 6) fail('doc_native_gpu_profile_count_not_6')
+if (report.nativeGpuProofProfilesRequiredCount !== 6) fail('report_native_gpu_profile_count_not_6')
+if (proofResultPacket.counts?.runtimeProfilesRequired !== 6) fail('gpu_proof_result_runtime_profile_count_not_6')
 if (report.heavyToolsIncorrectlyTargetingCpu !== 0) fail('report_heavy_cpu_count_not_zero')
 if (report.betaActivationReadyTools !== 0) fail('report_beta_activation_ready_not_zero')
 if (report.blockedTools !== 21) fail('report_blocked_tools_not_21')
@@ -271,6 +283,22 @@ for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
 }
 if (!markdown.includes('GPU runtime remains on-demand only')) {
   fail('markdown_missing_gpu_on_demand_policy')
+}
+if (!markdown.includes('six GPU runtime profiles')) {
+  fail('markdown_missing_six_gpu_profile_requirement')
+}
+for (const profile of nativeGpuProofProfilesRequired) {
+  if (!docPacket.nativeGpuProofProfilesRequired?.includes(profile)) {
+    fail(`doc_missing_native_gpu_profile:${profile}`)
+  }
+  if (!report.nativeGpuProofProfilesRequired?.includes(profile)) {
+    fail(`report_missing_native_gpu_profile:${profile}`)
+  }
+  if (!proofResultPacket.runtimeProfilesRequired?.includes(profile)) {
+    fail(`gpu_proof_packet_missing_native_gpu_profile:${profile}`)
+  }
+  if (!markdown.includes(profile)) fail(`markdown_missing_native_gpu_profile:${profile}`)
+  if (!moduleSource.includes(profile)) fail(`module_missing_native_gpu_profile:${profile}`)
 }
 
 for (const tool of modelWeightTools) {

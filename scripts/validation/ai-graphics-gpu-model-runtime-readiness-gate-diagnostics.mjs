@@ -41,6 +41,7 @@ const resultRecord = read("docs/prompt-ai-graphics-gpu-model-runtime-readiness-g
 const implementationPrompt = read("docs/implementation-prompts/prompt-ai-graphics-gpu-model-runtime-readiness-gate.md");
 const scorecard = read("docs/production-beta-readiness-scorecard.md");
 const sourceInstallProof = readJson("docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json");
+const commandPlan = readJson("docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json");
 const runtimeScript = read("docker/prod/ai-graphics-gpu-runtime-readiness.py");
 
 const expectedScript = "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics";
@@ -158,6 +159,31 @@ for (const [profileId, expected] of Object.entries(expectedProfiles)) {
   if (!dockerfile.includes(expected.copyToken)) fail(`${expected.dockerfile} missing runtime readiness script copy`);
 }
 
+const expectedNativeProofProfiles = [
+  "gpu_worker_ai_graphics",
+  "sam2",
+  "birefnet",
+  "real_esrgan",
+  "rembg",
+  "transparent_background",
+];
+if (gate?.runtimeProbeImageProfilesCount !== 4) fail("Runtime gate must distinguish four image-level probe placements.");
+if (gate?.nativeGpuProofProfilesRequiredLaterCount !== 6) fail("Runtime gate must cite six downstream native GPU proof profiles.");
+if (commandPlan?.counts?.runtimeProfiles !== 6) fail("Command plan must cover six native GPU proof profiles.");
+if (commandPlan?.booleans?.all6RuntimeProfilesCovered !== true) fail("Command plan must record all6RuntimeProfilesCovered=true.");
+if (!gateMarkdown.includes("six current native GPU proof profiles")) {
+  fail("Markdown must distinguish six downstream native GPU proof profiles from four image probe placements.");
+}
+for (const profileId of expectedNativeProofProfiles) {
+  if (!gate?.nativeGpuProofProfilesRequiredLater?.includes(profileId)) {
+    fail(`Runtime gate missing downstream native GPU proof profile ${profileId}`);
+  }
+  if (!commandPlan?.runtimeProfiles?.some((entry) => entry.profileId === profileId)) {
+    fail(`Command plan missing downstream native GPU proof profile ${profileId}`);
+  }
+  if (!gateMarkdown.includes(profileId)) fail(`Markdown missing downstream native GPU proof profile ${profileId}`);
+}
+
 const expectedTools = [
   "torch_torchvision",
   "transformers",
@@ -221,6 +247,7 @@ for (const key of [
   "gpuModelRuntimeReadinessGatePrepared",
   "all8GpuModelToolsCoveredByRuntimeGate",
   "all4GpuRuntimeProfilesHaveRuntimeProbe",
+  "all6NativeGpuProofProfilesCoveredByCommandPlan",
   "nativeNvidiaRuntimeRequired",
   "explicitRuntimeProofOptInRequired",
   "modelWeightManifestGatePrepared",

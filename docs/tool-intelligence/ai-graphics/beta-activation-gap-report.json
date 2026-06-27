@@ -76,6 +76,15 @@
     "rembg": "native_linux_amd64_nvidia_l4_gpu_worker",
     "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
   },
+  "nativeGpuProofProfilesRequired": [
+    "gpu_worker_ai_graphics",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "nativeGpuProofProfilesRequiredCount": 6,
   "duplicateMappingRows": [],
   "sharedMissingGates": [
     "approved_plan_snapshot_gate",

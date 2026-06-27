@@ -64,7 +64,7 @@ workers or live GPU runtime before an approved worker job calls a GPU tool.
 
 ## Runtime-Specific Missing Gates
 
-- Native GPU proof results for the four GPU runtime profiles.
+- Native GPU proof results for the six GPU runtime profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`.
 - Reviewed private model-weight manifests for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`.
 - Browser/canvas/WebGL sandbox proof has an accepted committed proof packet; rerun only if package versions, browser sandbox policy, or proof evidence drift.
 - Owner-approved migration remains for any profile still marked `planning_only`, `future`, or `evaluation_only`; the proven 13 JavaScript graphics tools now have executable worker-surface profile mappings, while runtime execution remains blocked by the shared beta gates.
@@ -74,7 +74,7 @@ workers or live GPU runtime before an approved worker job calls a GPU tool.
 
 1. Keep package/package-lock and GPU Docker install surfaces unchanged unless an explicit dependency milestone approves changes.
 2. Review private model-weight manifests for `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`.
-3. Run native linux/amd64 NVIDIA L4 proof for `gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan`, then validate with `ai-graphics:gpu-runtime-proof-result:validate`.
+3. Run native linux/amd64 NVIDIA L4 proof for `gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`, then validate with `ai-graphics:gpu-runtime-proof-result:validate`.
 4. Use the accepted committed Node, browser/canvas/WebGL, and Satori font runtime proof packets unless they drift.
 5. Package/profile license review is narrowed for all 21 AI graphics tools; model-weight, native GPU, Tool Route, Worker, snapshot, credit, artifact, and beta owner gates remain evidence-driven.
 6. Pass approved plan snapshot, credit reservation, artifact boundary, Tool Route, Worker, and beta owner approval gates before any beta tool execution.

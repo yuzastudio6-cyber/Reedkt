@@ -196,6 +196,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after snapshot and credit evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `bedb3a5ba119a8ab7a3eb4b5b81ba464d17e6513`, with an empty check rollup.
 - Backend/service-role snapshot and credit propagation hardening: backend queue storage and service-role transaction envelope readiness now independently verify all 21 approved snapshot refs and all 21 credit reservation refs before reporting mock queue records or no-write service-role envelopes ready with provided evidence. This extends the same admission guard past queue admission toward the future Supabase/service-role boundary without enabling writes or runtime.
 - Model-weight private namespace hardening: model-weight manifest review and native GPU proof input now require `privateArtifactRef` to use an explicit reviewed private namespace (`private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`). HTTP(S), signed, public, raw `gs://`, and arbitrary placeholder refs fail before GPU proof or beta evidence can accept them. Valid private refs remain redacted, GPU runtime remains on-demand only, and execution/runtime/beta/production stay false.
+- Latest observed PR state after model-weight private namespace hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `719d6265e7c5db038207fb05708c845924ba873f`, with an empty check rollup.
 
 ## Runtime State
 

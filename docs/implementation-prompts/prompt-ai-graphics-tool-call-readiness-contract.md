@@ -124,6 +124,7 @@ Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`
 Latest observed PR state after snapshot and credit evidence hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `bedb3a5ba119a8ab7a3eb4b5b81ba464d17e6513`, with an empty check rollup.
 - Follow-up backend/service-role ref propagation hardening updates backend queue storage and service-role transaction readiness so all 21 approved snapshot refs and all 21 credit reservation refs must remain accepted before mock queue records or no-write service-role envelopes are ready with provided evidence.
 - Follow-up model-weight private namespace hardening updates model-weight manifest review and the native GPU readiness probe so `privateArtifactRef` must use `private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`. HTTP(S), signed, public, raw `gs://`, and arbitrary placeholder refs fail closed while valid private refs remain redacted and GPU runtime stays on-demand only.
+Latest observed PR state after model-weight private namespace hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `719d6265e7c5db038207fb05708c845924ba873f`, with an empty check rollup.
 
 ## Expected Validation
 

@@ -1,0 +1,7 @@
+# WORKER_RUNTIME_JOBS-SOUND-CPU-RUNTIME-EXECUTION-APPROVAL-GATE-REFRESH: Refresh Runtime Execution Approval Gate After Package Proof Retry, No Execution
+
+Use `worker_runtime_jobs_sound_cpu_runtime_beta_blocker_resolution_refresh_completed_with_warnings_ready_for_runtime_execution_approval_gate_refresh` as source evidence. Re-read current repo evidence after the successful no-media/no-artifact package proof retry and decide whether a later limited no-media/no-artifact execution-readiness packet may be planned.
+
+This prompt is no-execution and decision-only. Do not run package installation, Python proof runners, Docker build/run/push, GCP/Cloud Run/Secret Manager, worker dispatch, worker execution, route execution, tool runtime dispatch, media file open/process/write, FFmpeg/ffprobe, Supabase, SQL, artifact creation, signed/public URLs, provider/model calls, credit mutation, Stripe, beta unlock, production unlock, raw prompt execution, final render, or export.
+
+Required decision: either refresh the approval-gate criteria for a future limited no-media/no-artifact execution-readiness packet, select a specific blocker-fix packet, or stop if current repo evidence still lacks a safe path. Do not claim internal beta, external beta, production, tool-call readiness, route readiness, worker readiness, or runtime readiness unless a current merged source packet explicitly authorizes that exact claim.

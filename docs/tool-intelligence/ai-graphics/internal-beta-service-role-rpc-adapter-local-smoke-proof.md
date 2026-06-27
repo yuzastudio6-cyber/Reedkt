@@ -19,6 +19,13 @@ URLs, public artifacts, internal beta, external beta, or production.
 - Source PR: #862 `[tools] AI graphics tool call readiness contract`
 - Source decision:
   `ai_graphics_internal_beta_service_role_rpc_local_smoke_passed_with_rollback_fixtures`
+- Source packet mode:
+  `--internal-beta-service-role-rpc-local-smoke-proof-packet`
+- The source packet must already report
+  `local_rpc_smoke_passed_with_rollback_fixtures_no_tool_execution`, all 21
+  tools represented by readiness evidence, and 0 persistent fixture rows after
+  rollback. Adapter smoke execution still requires explicit local confirmation
+  and local service-role credentials.
 - Source migration:
   `supabase/migrations/202606260002_ai_graphics_tool_runtime_service_role_rpcs.sql`
 - Adapter smoke package script:

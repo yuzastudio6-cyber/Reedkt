@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { loadRuntimeEnv } from '../config/env'
 import { createAiGraphicsToolRuntimeQueueService } from '../services/ai-graphics-tool-runtime-queue-service'
 import { createSupabaseAdminClient } from '../supabase/admin-client'
@@ -10,6 +12,82 @@ const RUN_DECISION =
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
+}
+
+function valueAfterFlag(flag: string): string | undefined {
+  const index = process.argv.indexOf(flag)
+  return index >= 0 ? process.argv[index + 1] : undefined
+}
+
+function readJsonPath(filePath: string): unknown {
+  const resolvedPath = resolve(filePath)
+  if (!existsSync(resolvedPath)) {
+    throw new Error(`Evidence packet file does not exist: ${filePath}`)
+  }
+
+  return JSON.parse(readFileSync(resolvedPath, 'utf8'))
+}
+
+function readJsonObjectFile(filePath: string): Record<string, unknown> {
+  const packet = readJsonPath(filePath)
+  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) {
+    throw new Error(`Evidence packet must be a JSON object: ${filePath}`)
+  }
+
+  return packet as Record<string, unknown>
+}
+
+function isLocalRpcSmokeProofPacket(packet: unknown): boolean {
+  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) return false
+  const record = packet as Record<string, unknown>
+  const counts = record.counts
+  const booleans = record.booleans
+  return (
+    record.decision === 'ai_graphics_internal_beta_service_role_rpc_local_smoke_passed_with_rollback_fixtures' &&
+    record.status === 'local_rpc_smoke_passed_with_rollback_fixtures_no_tool_execution' &&
+    Boolean(
+      counts &&
+      typeof counts === 'object' &&
+      !Array.isArray(counts) &&
+      (counts as Record<string, unknown>).totalAiGraphicsTools === 21 &&
+      (counts as Record<string, unknown>).persistentSmokeFixtureRowsAfterRollback === 0,
+    ) &&
+    Boolean(
+      booleans &&
+      typeof booleans === 'object' &&
+      !Array.isArray(booleans) &&
+      (booleans as Record<string, unknown>).internalBetaServiceRoleRpcLocalSmokeProofCompleted === true &&
+      (booleans as Record<string, unknown>).localSmokeFixtureRowsRolledBack === true &&
+      (booleans as Record<string, unknown>).agentCanExecuteToolsNow === false,
+    )
+  )
+}
+
+function readSourceLocalRpcSmokeProofPacket(): {
+  sourceLocalRpcSmokeProofPacketRead: boolean
+  sourceEvidenceMode:
+    | 'constructed_from_committed_local_smoke_proof'
+    | 'internal_beta_service_role_rpc_local_smoke_proof_packet'
+} {
+  const filePath = valueAfterFlag('--internal-beta-service-role-rpc-local-smoke-proof-packet')
+  if (!filePath) {
+    return {
+      sourceLocalRpcSmokeProofPacketRead: false,
+      sourceEvidenceMode: 'constructed_from_committed_local_smoke_proof',
+    }
+  }
+
+  const packet = readJsonObjectFile(filePath)
+  if (!isLocalRpcSmokeProofPacket(packet)) {
+    throw new Error(
+      'Service-role RPC local smoke proof packet must report local_rpc_smoke_passed_with_rollback_fixtures_no_tool_execution with all 21 tools represented and rollback cleanup complete.',
+    )
+  }
+
+  return {
+    sourceLocalRpcSmokeProofPacketRead: true,
+    sourceEvidenceMode: 'internal_beta_service_role_rpc_local_smoke_proof_packet',
+  }
 }
 
 function sqlLiteral(value: string): string {
@@ -62,10 +140,12 @@ function assertAllowed(): string {
 }
 
 function buildPreparedContract() {
+  const source = readSourceLocalRpcSmokeProofPacket()
   return {
     ok: true,
     decision: RUN_DECISION,
     status: 'adapter_local_smoke_prepared_not_executed',
+    ...source,
     preparedScript: 'ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke',
     executeFlagRequired: '--execute-local-adapter-smoke',
     confirmationEnvRequired: 'REEDITPRO_CONFIRM_AI_GRAPHICS_RPC_ADAPTER_LOCAL_SMOKE=true',

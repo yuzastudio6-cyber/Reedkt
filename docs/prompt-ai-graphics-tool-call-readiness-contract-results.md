@@ -420,6 +420,14 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Static migration apply, non-production service-role credentials, explicit fixture IDs, and live smoke execution remain separate future-only gates.
 - Latest observed PR state after service-role RPC smoke source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `ccbb4f866c85d7b1ccf09dac5011edf77951729e`, with an empty check rollup.
 
+## Follow-Up: Service-Role RPC Adapter Source Packet Ingestion
+
+- Added evaluator-only local-smoke proof packet ingestion to `ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke`.
+- The command now accepts `--internal-beta-service-role-rpc-local-smoke-proof-packet`.
+- The source packet must already report `local_rpc_smoke_passed_with_rollback_fixtures_no_tool_execution`, all 21 tools represented by readiness evidence, and 0 persistent fixture rows after rollback.
+- Diagnostic coverage proves packet-fed adapter readiness stays `adapter_local_smoke_prepared_not_executed` unless explicit local smoke confirmation and local service-role credentials are supplied.
+- Runtime remains blocked: `toolExecutionPerformed=false`, `runtimeReadyNow=false`, `productionReadyNow=false`, no GPU runtime starts, and no live production worker dispatch is approved.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

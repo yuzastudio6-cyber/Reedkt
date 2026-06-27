@@ -287,6 +287,10 @@ actual adapter-to-RPC path while keeping tool execution, worker execution, route
 execution, provider/model runtime, browser/canvas/WebGL runtime, GPU/model
 runtime, media processing, signed URLs, public artifacts, internal beta runtime,
 external beta, and production blocked.
+The adapter prepared-contract path can now consume
+`--internal-beta-service-role-rpc-local-smoke-proof-packet` from the rollback
+local-smoke proof; actual adapter smoke execution still requires explicit local
+confirmation and local service-role credentials.
 
 AI graphics internal beta service-role RPC worker-handoff local smoke proof
 decision

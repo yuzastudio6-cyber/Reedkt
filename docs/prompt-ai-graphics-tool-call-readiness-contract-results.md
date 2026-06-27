@@ -492,6 +492,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Queue admission still reports `queueAdmissionPacketsReadyWithProvidedEvidence=21`, `gpuRuntimeStartAllowedForAcceptedJobTools=8`, and `gpuRuntimeShouldStartNow=false` only when the source packet and queue evidence are complete.
 - Runtime remains blocked: `workerQueueApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Validation run: `ai-graphics:internal-beta-queue-admission-readiness:diagnostics`, `ai-graphics:internal-beta-runtime-enqueue-approval:diagnostics`, `ai-graphics:internal-beta-queue-adapter-readiness:diagnostics`, `ai-graphics:on-demand-runtime-admission:diagnostics`, `ai-graphics:beta-readiness-gate:diagnostics`, `npm run typecheck:server`, and `git diff --check` passed.
+- Latest observed PR state after queue-admission source packet and on-demand GPU hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `a8e4487bc36255cf78ab927176e6df79916f4483`, with an empty check rollup.
 
 ## No-Scope
 

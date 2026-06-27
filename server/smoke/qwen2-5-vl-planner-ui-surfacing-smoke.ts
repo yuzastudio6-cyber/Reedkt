@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_validation_required',
-  'Private invoke client status must record the backend runtime persistence local validation blocker.',
+  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_config_required',
+  'Private invoke client status must record the backend runtime persistence local harness config blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -168,9 +168,9 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_local_validation_required') ||
-    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_validation_required',
-  'Doc/data must record backend runtime persistence local validation blocker status.',
+    docText.includes('backend_runtime_persistence_local_harness_config_required') ||
+    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_config_required',
+  'Doc/data must record backend runtime persistence local harness config blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
 check(docText.includes('`schemaKeys=[]`'), 'Doc must record the empty schema-key metadata.')
@@ -219,8 +219,12 @@ check(
   'Doc must record blocked local validation result evidence.',
 )
 check(
-  docText.includes('User-facing readiness remains blocked until an approved Qwen local database harness exists'),
-  'Doc must record local harness as the remaining blocker.',
+  docText.includes('Backend runtime persistence local harness plan is recorded'),
+  'Doc must record local harness plan evidence.',
+)
+check(
+  docText.includes('User-facing readiness remains blocked until a safe local Supabase config exists'),
+  'Doc must record local harness config as the remaining blocker.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

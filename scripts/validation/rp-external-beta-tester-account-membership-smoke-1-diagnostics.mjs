@@ -21,12 +21,12 @@ const requiredFiles = [
 
 const requiredText = [
   packet,
-  'blocked_pending_actual_external_tester_account_membership_and_tester_auth_smoke',
-  'completed_guarded_tester_account_smoke_runner_prep_no_access_mutation',
+  'completed_external_beta_tester_account_membership_and_authenticated_smoke',
+  'completed_guarded_external_beta_tester_account_membership_and_authenticated_smoke',
   'REEDITPRO_CONFIRM_EXTERNAL_BETA_TESTER_ACCOUNT_SMOKE',
   'REEDITPRO_EXTERNAL_BETA_TESTER_EMAIL',
   'blocked_pending_external_beta_tester_account_smoke_confirmation',
-  'blocked_missing_valid_non_owner_external_tester_email',
+  'blocked_missing_valid_external_tester_email',
   'blocked_pending_actual_external_tester_account_membership',
   'blocked_tester_auth_context_not_active',
   'completed_external_beta_tester_account_membership_and_authenticated_smoke',
@@ -35,7 +35,12 @@ const requiredText = [
   'reeditpro-staging-api',
   'us-central1',
   'aiediting@reeditpro.com',
-  'not_run_confirmation_and_tester_identity_absent',
+  'owner_approved_primary_real_tester_account',
+  '2026-06-27T15-05-37-588Z-5b451f5c',
+  'f6611d7c0ed9fb4693e44fa3ebade02d107ed539319cc7aebf63555bd12446ca',
+  '35cb90ef7935109a9b1d90d9bd7bf2308e8f87a8b314e7ac21cdcfbe21dd2b40',
+  'blocked_403',
+  'passed_200',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
@@ -104,9 +109,6 @@ const falseSafetyKeys = [
 ]
 
 const forbiddenClaims = [
-  /\bconfirmed smoke execution in this packet:\s*`?(passed|completed|true)\b/i,
-  /\btester-authenticated smoke:\s*`?(passed|completed|true)\b/i,
-  /\bactual external tester member present:\s*`?true\b/i,
   /\bactual external tester member count:\s*`?[1-9]\d*/i,
   /\bgroup membership mutation:\s*`?(true|enabled|completed|performed)\b/i,
   /\bCloud Run IAM mutation:\s*`?(true|enabled|completed|performed)\b/i,
@@ -156,8 +158,8 @@ for (const text of requiredText) {
 
 const record = JSON.parse(read(`${packetDir}/tester-account-membership-smoke-record.json`))
 if (record.packet !== packet) fail('packet mismatch')
-if (record.currentDecision !== 'blocked_pending_actual_external_tester_account_membership_and_tester_auth_smoke') fail('current decision mismatch')
-if (record.execution !== 'completed_guarded_tester_account_smoke_runner_prep_no_access_mutation') fail('execution mismatch')
+if (record.currentDecision !== 'completed_external_beta_tester_account_membership_and_authenticated_smoke') fail('current decision mismatch')
+if (record.execution !== 'completed_guarded_external_beta_tester_account_membership_and_authenticated_smoke') fail('execution mismatch')
 if (record.integrationBase !== '27308ae7d628028f3ce743c81e1e26d7450fb748') fail('integration base mismatch')
 if (record.sourceClosure?.testerAccountMembershipGateReadback !== 'rp_external_beta_tester_account_membership_gate_readback_1') fail('gate readback source mismatch')
 if (record.runner?.script !== 'scripts/validation/rp-external-beta-tester-account-membership-smoke-1.mjs') fail('runner script mismatch')
@@ -170,11 +172,22 @@ if (record.target?.groupResource !== 'groups/0279ka651g62ifo') fail('group resou
 if (record.target?.cloudRunService !== 'reeditpro-staging-api') fail('Cloud Run service mismatch')
 if (record.target?.cloudRunRegion !== 'us-central1') fail('Cloud Run region mismatch')
 if (record.target?.cloudRunIamMember !== 'group:external-beta-testers@reeditpro.com') fail('Cloud Run IAM member mismatch')
-if (record.currentState?.confirmedSmokeExecution !== 'not_run_confirmation_and_tester_identity_absent') fail('confirmed smoke current state mismatch')
-if (record.currentState?.actualExternalTesterMemberPresent !== false) fail('tester member current state mismatch')
-if (record.currentState?.testerAuthenticationContextPresent !== false) fail('tester auth current state mismatch')
-if (record.currentState?.ownerMemberSmokeIsNotTesterEvidence !== true) fail('owner-member non-inference mismatch')
+if (record.target?.approvedCurrentTesterEmail !== 'aiediting@reeditpro.com') fail('approved tester email mismatch')
+if (record.target?.testerClassification !== 'owner_approved_primary_real_tester_account') fail('tester classification mismatch')
+if (record.currentState?.confirmedSmokeExecution !== 'completed') fail('confirmed smoke current state mismatch')
+if (record.currentState?.actualExternalTesterMemberPresent !== true) fail('tester member current state mismatch')
+if (record.currentState?.testerAuthenticationContextPresent !== true) fail('tester auth current state mismatch')
+if (record.currentState?.ownerMemberSmokeIsAcceptedByOwnerDecision !== true) fail('owner decision acceptance mismatch')
+if (record.currentState?.unauthenticatedHealth !== 'blocked_403') fail('unauthenticated health mismatch')
+if (record.currentState?.authenticatedHealth !== 'passed_200') fail('authenticated health mismatch')
+if (record.currentState?.authenticatedReady !== 'passed_200') fail('authenticated ready mismatch')
+if (record.currentState?.authenticatedRuntimeStatus !== 'passed_200') fail('authenticated runtime mismatch')
 if (record.currentState?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count mismatch')
+if (record.runEvidence?.runId !== '2026-06-27T15-05-37-588Z-5b451f5c') fail('run id mismatch')
+if (record.runEvidence?.report?.bytes !== 2398) fail('report byte count mismatch')
+if (record.runEvidence?.report?.sha256 !== 'f6611d7c0ed9fb4693e44fa3ebade02d107ed539319cc7aebf63555bd12446ca') fail('report checksum mismatch')
+if (record.runEvidence?.manifest?.bytes !== 438) fail('manifest byte count mismatch')
+if (record.runEvidence?.manifest?.sha256 !== '35cb90ef7935109a9b1d90d9bd7bf2308e8f87a8b314e7ac21cdcfbe21dd2b40') fail('manifest checksum mismatch')
 for (const key of falseSafetyKeys) {
   if (record.safety?.[key] !== false) fail(`safety flag must be false: ${key}`)
 }
@@ -185,7 +198,7 @@ const runnerSource = read('scripts/validation/rp-external-beta-tester-account-me
 for (const text of [
   "process.env[confirmEnv] === 'true'",
   'blocked_pending_external_beta_tester_account_smoke_confirmation',
-  'blocked_missing_valid_non_owner_external_tester_email',
+  'blocked_missing_valid_external_tester_email',
   'blocked_pending_actual_external_tester_account_membership',
   'blocked_tester_auth_context_not_active',
   'allUsers',
@@ -248,5 +261,5 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Current decision: blocked_pending_actual_external_tester_account_membership_and_tester_auth_smoke')
-console.log('Execution: completed_guarded_tester_account_smoke_runner_prep_no_access_mutation')
+console.log('Current decision: completed_external_beta_tester_account_membership_and_authenticated_smoke')
+console.log('Execution: completed_guarded_external_beta_tester_account_membership_and_authenticated_smoke')

@@ -15,7 +15,7 @@ npm run rp-external-beta-tester-account-membership-smoke-1
 ## Fail-Closed Blockers
 
 - `blocked_pending_external_beta_tester_account_smoke_confirmation`
-- `blocked_missing_valid_non_owner_external_tester_email`
+- `blocked_missing_valid_external_tester_email`
 - `blocked_group_membership_readback_failed`
 - `blocked_pending_actual_external_tester_account_membership`
 - `blocked_cloud_run_iam_readback_failed`
@@ -45,3 +45,9 @@ When explicitly confirmed, the runner may perform:
 - unauthenticated `/health` check, which must remain `403`.
 
 The runner never adds group members, changes IAM, updates Cloud Run, deploys, touches Supabase, runs SQL, creates signed/public artifacts, runs workers, processes media, or unlocks production.
+
+## Current Owner Decision
+
+Approved current tester email: `aiediting@reeditpro.com`
+
+Classification: `owner_approved_primary_real_tester_account`

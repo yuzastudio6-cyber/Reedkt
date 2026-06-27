@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'private_runtime_readiness_review_required',
-  'Private invoke client status must record the private runtime readiness review blocker.',
+  data.privateInvokeClient.currentStatus === 'approved_worker_integration_review_required',
+  'Private invoke client status must record the approved worker integration review blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -162,9 +162,9 @@ check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advi
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
 check(
-  docText.includes('private_runtime_readiness_review_required') ||
-    data.privateInvokeClient.currentStatus === 'private_runtime_readiness_review_required',
-  'Doc/data must record private runtime readiness review blocker status.',
+  docText.includes('approved_worker_integration_review_required') ||
+    data.privateInvokeClient.currentStatus === 'approved_worker_integration_review_required',
+  'Doc/data must record approved worker integration review blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
 check(docText.includes('`schemaKeys=[]`'), 'Doc must record the empty schema-key metadata.')
@@ -175,6 +175,10 @@ check(docText.includes('`textLikeRegionCount=1`'), 'Doc must record structured t
 check(
   docText.includes('structured-output result review accepted the schema keys'),
   'Doc must record structured output result review acceptance.',
+)
+check(
+  docText.includes('Private runtime review accepted the controlled L4 runtime evidence'),
+  'Doc must record private runtime review acceptance.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

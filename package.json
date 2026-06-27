@@ -502,6 +502,7 @@
     "smoke:qwen2-5-vl-structured-fixture-output-fix": "tsx server/smoke/qwen2-5-vl-structured-fixture-output-fix-smoke.ts",
     "smoke:qwen2-5-vl-structured-fixture-output-smoke-retry-result": "tsx server/smoke/qwen2-5-vl-structured-fixture-output-smoke-retry-result-smoke.ts",
     "smoke:qwen2-5-vl-structured-fixture-output-result-review": "tsx server/smoke/qwen2-5-vl-structured-fixture-output-result-review-smoke.ts",
+    "smoke:qwen2-5-vl-private-runtime-readiness-review-result": "tsx server/smoke/qwen2-5-vl-private-runtime-readiness-review-result-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-verify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-verify-result-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-reverify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-reverify-result-smoke.ts",

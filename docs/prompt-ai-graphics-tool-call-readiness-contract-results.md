@@ -339,6 +339,15 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - GPU policy remains on-demand only: the eight GPU/model tools may start GPU capacity only for a future accepted worker/tool-call job with complete evidence; no idle GPU runtime is approved.
 - Latest observed PR state after beta tool-call evidence packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `1e8bd62ef6bec285714128a21cff5e43e7902e14`, with an empty check rollup.
 
+## Follow-Up: Internal Beta Owner Approval Packet Ingestion
+
+- Added evaluator-only packet ingestion to `ai-graphics:internal-beta-owner-approval`:
+  - `--beta-evidence-bundle-packet`
+  - `--beta-evidence-local-assembly-packet`
+- A technically complete packet now reaches `awaiting_owner_approval` without being treated as owner-approved.
+- The same packet becomes `owner_approved_all21_beta_evidence_ready` only when an explicit `AI_TOOLS_CREATIVE_GRAPHICS_OWNER` approval record and owner approval ref are supplied.
+- Diagnostic coverage proves the direct beta evidence bundle packet and full local assembly packet paths both preserve `betaToolCallableNowTools=0`, `agentCanExecuteToolsNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

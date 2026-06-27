@@ -57,6 +57,9 @@
   "ownerApprovalPolicy": {
     "technicalEvidenceRequiredBeforeApproval": true,
     "ownerApprovalRecordRequired": true,
+    "ownerApprovalSeparatedFromTechnicalEvidence": true,
+    "acceptsBetaEvidenceBundlePacket": true,
+    "acceptsBetaEvidenceLocalAssemblyPacket": true,
     "ownerApproverRole": "AI_TOOLS_CREATIVE_GRAPHICS_OWNER",
     "ownerApprovalRefRequired": true,
     "runtimeUnlockPerformed": false

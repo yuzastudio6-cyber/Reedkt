@@ -175,6 +175,7 @@ Latest observed PR state after beta evidence local authoring-input bridge comple
 
 - `git diff --check`
 - `npm run --silent ai-graphics:beta-tool-call-readiness:diagnostics`
+- `npm run --silent ai-graphics:internal-beta-owner-approval:diagnostics`
 - `npm run --silent ai-graphics:beta-evidence-local-assembly:diagnostics`
 - `npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-authoring:diagnostics`
@@ -213,3 +214,5 @@ Latest observed PR state after on-demand runtime admission queue propagation: [#
 Follow-up beta tool-call evidence packet ingestion updates `server/cli/ai-graphics-beta-tool-call-readiness.ts`, `docs/tool-intelligence/ai-graphics/beta-tool-call-readiness.md`, `docs/tool-intelligence/ai-graphics/beta-tool-call-readiness.json`, and `ai-graphics:beta-tool-call-readiness:diagnostics` so the readiness evaluator can ingest either an assembled beta evidence bundle packet or a full local assembly packet containing `betaEvidenceBundle`. The diagnostic proves both packet paths can reach all 21 tools beta-callable with provided complete evidence while preserving `betaToolCallableNowTools=0`, `agentCanExecuteToolsNow=false`, on-demand-only GPU startup, no idle GPU runtime, and false runtime/beta/production gates.
 
 Latest observed PR state after beta tool-call evidence packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `1e8bd62ef6bec285714128a21cff5e43e7902e14`, with an empty check rollup.
+
+Follow-up internal beta owner approval packet ingestion updates `server/tool-registry/ai-graphics-internal-beta-owner-approval.ts`, `server/cli/ai-graphics-internal-beta-owner-approval.ts`, `docs/tool-intelligence/ai-graphics/internal-beta-owner-approval.md`, `docs/tool-intelligence/ai-graphics/internal-beta-owner-approval.json`, and `ai-graphics:internal-beta-owner-approval:diagnostics` so the owner gate can ingest either an assembled beta evidence bundle packet or a full local assembly packet containing `betaEvidenceBundle`. Technical packets without owner approval remain `awaiting_owner_approval`; explicit `AI_TOOLS_CREATIVE_GRAPHICS_OWNER` approval and an owner approval ref are still required before the all-21 evidence bundle becomes owner-approved. Execution/runtime/beta/production gates remain false.

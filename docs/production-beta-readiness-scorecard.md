@@ -893,6 +893,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Decision: `ai_graphics_internal_beta_owner_approval_contract_prepared_with_fail_closed_defaults`.
 - Scope: server-only owner approval packet for the all-21 AI graphics beta evidence chain.
 - Result: default evidence is missing technical proof, technical evidence can reach `awaiting_owner_approval`, and explicit `AI_TOOLS_CREATIVE_GRAPHICS_OWNER` approval can produce `owner_approved_all21_beta_evidence_ready` with 21 of 21 tools beta-callable by evidence.
+- Evidence packet ingestion: owner approval can now consume an assembled beta evidence bundle packet or a full local beta evidence assembly packet containing `betaEvidenceBundle`. A technically complete packet without an owner approval record remains `awaiting_owner_approval`; explicit owner approval is still required before the all-21 evidence bundle becomes owner-approved.
 - Runtime/beta/production: no runtime unlock; `agentCanExecuteToolsNow=false`, `toolExecutionApprovedNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Beta/Production Readiness Rollup

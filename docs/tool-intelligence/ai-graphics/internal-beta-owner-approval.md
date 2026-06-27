@@ -4,6 +4,8 @@ Decision: `ai_graphics_internal_beta_owner_approval_contract_prepared_with_fail_
 
 This contract is the owner approval packet for the 21-tool AI graphics beta evidence chain. It consumes the technical evidence bundle after model manifests, native GPU proof results, committed JS proof packets, browser sandbox proof, and non-owner shared gates are complete. It then requires an explicit owner approval record before the all-21 beta evidence bundle can become owner-approved.
 
+The owner approval evaluator can consume either an assembled beta evidence bundle packet with `--beta-evidence-bundle-packet` or a full local assembly packet containing `betaEvidenceBundle` with `--beta-evidence-local-assembly-packet`. A technically complete packet without an owner approval record remains in `awaiting_owner_approval`; the packet becomes owner-approved only when `--owner-approval-granted`, `--owner-approval-ref`, and the `AI_TOOLS_CREATIVE_GRAPHICS_OWNER` role are supplied.
+
 ## States
 
 - Missing technical evidence: no beta approval is possible.

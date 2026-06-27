@@ -17,6 +17,7 @@ export type AiGraphicsInternalBetaOwnerApprovalStatus =
   | 'owner_approved_all21_beta_evidence_ready'
 
 export interface AiGraphicsInternalBetaOwnerApprovalInput {
+  evidenceBundle?: AiGraphicsBetaEvidenceBundle
   evidenceBundleInput?: AiGraphicsBetaEvidenceBundleInput
   ownerApprovalGranted?: boolean
   ownerApprovalRef?: string
@@ -98,21 +99,113 @@ function buildStatus(input: {
     : 'missing_technical_evidence'
 }
 
+function unique(values: readonly string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean)))
+}
+
+function isOwnerApprovalGap(value: string): boolean {
+  const normalized = value.toLowerCase()
+  return normalized.includes('internal_beta_owner_approval') ||
+    normalized.includes('internal beta owner approval') ||
+    normalized.includes('owner approval')
+}
+
+function asTechnicalEvidenceBundle(
+  bundle: AiGraphicsBetaEvidenceBundle,
+): AiGraphicsBetaEvidenceBundle {
+  const ownerGap = 'internal_beta_owner_approval'
+  const ownerBlocker = 'internal beta owner approval is not granted'
+  const technicalReady = bundle.all21TechnicalEvidenceReadyBeforeOwnerApproval
+
+  return {
+    ...bundle,
+    betaTestingReadyTools: technicalReady ? 0 : bundle.betaTestingReadyTools,
+    blockedTools: technicalReady ? 21 : bundle.blockedTools,
+    all21BetaEvidenceReady: false,
+    evidence: {
+      ...bundle.evidence,
+      internalBetaOwnerApprovalGranted: false,
+    },
+    tools: bundle.tools.map((tool) => ({
+      ...tool,
+      betaTestingReadyNow: false,
+      evidenceMissing: unique([
+        ...tool.evidenceMissing.filter((entry) => !isOwnerApprovalGap(entry)),
+        ...(technicalReady ? [ownerGap] : []),
+      ]),
+      blockers: unique([
+        ...tool.blockers.filter((entry) => !isOwnerApprovalGap(entry)),
+        ...(technicalReady ? [ownerBlocker] : []),
+      ]),
+    })),
+    missingEvidence: unique([
+      ...bundle.missingEvidence.filter((entry) => !isOwnerApprovalGap(entry)),
+      ...(technicalReady ? [ownerGap] : []),
+    ]),
+    booleans: {
+      ...bundle.booleans,
+      all21BetaEvidenceReady: false,
+      readyForInternalBetaOwnerGate: technicalReady,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
+function applyOwnerApprovalToEvidenceBundle(
+  bundle: AiGraphicsBetaEvidenceBundle,
+  ownerApprovalAccepted: boolean,
+): AiGraphicsBetaEvidenceBundle {
+  if (!ownerApprovalAccepted || !bundle.all21TechnicalEvidenceReadyBeforeOwnerApproval) {
+    return asTechnicalEvidenceBundle(bundle)
+  }
+
+  return {
+    ...bundle,
+    betaTestingReadyTools: 21,
+    blockedTools: 0,
+    all21BetaEvidenceReady: true,
+    evidence: {
+      ...bundle.evidence,
+      internalBetaOwnerApprovalGranted: true,
+    },
+    tools: bundle.tools.map((tool) => ({
+      ...tool,
+      betaTestingReadyNow: true,
+      evidenceMissing: tool.evidenceMissing.filter((entry) => !isOwnerApprovalGap(entry)),
+      blockers: tool.blockers.filter((entry) => !isOwnerApprovalGap(entry)),
+    })),
+    missingEvidence: bundle.missingEvidence.filter((entry) => !isOwnerApprovalGap(entry)),
+    booleans: {
+      ...bundle.booleans,
+      all21BetaEvidenceReady: true,
+      all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+      readyForInternalBetaOwnerGate: true,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
 export function buildAiGraphicsInternalBetaOwnerApproval(
   input: AiGraphicsInternalBetaOwnerApprovalInput = {},
 ): AiGraphicsInternalBetaOwnerApproval {
   const baseEvidenceInput = input.evidenceBundleInput ?? {}
-  const technicalEvidenceInput: AiGraphicsBetaEvidenceBundleInput = {
-    ...baseEvidenceInput,
-    internalBetaOwnerApprovalGranted: false,
-  }
-  const technicalEvidenceBundle = buildAiGraphicsBetaEvidenceBundle(technicalEvidenceInput)
+  const technicalEvidenceBundle = input.evidenceBundle
+    ? asTechnicalEvidenceBundle(input.evidenceBundle)
+    : buildAiGraphicsBetaEvidenceBundle({
+        ...baseEvidenceInput,
+        internalBetaOwnerApprovalGranted: false,
+      })
   const approvalAccepted = ownerApprovalRecordAccepted(input)
-  const approvedEvidenceInput: AiGraphicsBetaEvidenceBundleInput = {
-    ...baseEvidenceInput,
-    internalBetaOwnerApprovalGranted: approvalAccepted,
-  }
-  const approvedEvidenceBundle = buildAiGraphicsBetaEvidenceBundle(approvedEvidenceInput)
+  const approvedEvidenceBundle = input.evidenceBundle
+    ? applyOwnerApprovalToEvidenceBundle(input.evidenceBundle, approvalAccepted)
+    : buildAiGraphicsBetaEvidenceBundle({
+        ...baseEvidenceInput,
+        internalBetaOwnerApprovalGranted: approvalAccepted,
+      })
   const betaToolCallReadinessAfterOwnerApproval = buildAiGraphicsBetaToolCallReadiness({
     evidenceBundle: approvedEvidenceBundle,
   })

@@ -2,8 +2,8 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1'
-const dir = 'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1'
+const packet = 'RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1'
+const dir = 'docs/external-beta/job-queue-lease-event-guarded-remote-write-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
@@ -12,14 +12,15 @@ const requiredFiles = [
   `${dir}/readiness-gate.md`,
   `${dir}/safety-boundary.md`,
   `${dir}/runtime-validation-record.json`,
-  'docs/activation-phase-rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-results.md',
+  'docs/activation-phase-rp-external-beta-job-queue-lease-event-guarded-remote-write-1-results.md',
   'docs/external-beta/current-readiness-rollup-1/readiness-gate.md',
   'docs/external-beta/current-readiness-rollup-1/source-of-truth-audit.md',
   'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
   'docs/external-beta/current-readiness-rollup-1/rollup-record.json',
   'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
   'docs/production-beta-blocker-inventory.md',
-  'scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-job-queue-lease-event-guarded-remote-write-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-job-queue-lease-event-guarded-remote-write-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-approved-snapshot-persistence-guarded-remote-write-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-main-supabase-service-role-runtime-validation-1-diagnostics.mjs',
@@ -29,35 +30,25 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 
-const followOnJobQueueLeaseEventGuardedRemoteWriteFiles = [
-  'docs/external-beta/job-queue-lease-event-guarded-remote-write-1/source-audit.md',
-  'docs/external-beta/job-queue-lease-event-guarded-remote-write-1/validation-results.md',
-  'docs/external-beta/job-queue-lease-event-guarded-remote-write-1/readiness-gate.md',
-  'docs/external-beta/job-queue-lease-event-guarded-remote-write-1/safety-boundary.md',
-  'docs/external-beta/job-queue-lease-event-guarded-remote-write-1/runtime-validation-record.json',
-  'docs/activation-phase-rp-external-beta-job-queue-lease-event-guarded-remote-write-1-results.md',
-  'scripts/validation/rp-external-beta-job-queue-lease-event-guarded-remote-write-1-confirmed.mjs',
-  'scripts/validation/rp-external-beta-job-queue-lease-event-guarded-remote-write-1-diagnostics.mjs',
-]
-for (const file of followOnJobQueueLeaseEventGuardedRemoteWriteFiles) allowedChangedFiles.add(file)
-
 const requiredText = [
   packet,
-  'completed_credit_reservation_ledger_guarded_remote_write_readback',
-  'completed_guarded_transaction_rolled_back_credit_reservation_ledger_write_readback',
+  'completed_job_queue_lease_event_guarded_remote_write_readback',
+  'completed_guarded_transaction_rolled_back_job_queue_lease_event_write_readback',
   'Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`',
-  '2026-06-27T00-12-50-200Z-34a19fc2',
+  '2026-06-27T00-29-52-739Z-c91f8249',
   'set local role service_role',
-  'Credit ledger append-only update rejection: `passed`',
-  'credit ledger append-only update rejection: `passed`',
+  'Job batch status read back: `queued`',
+  'Job status read back: `queued`',
+  'Job event type read back: `queued`',
+  'Worker lease status read back: `claimed`',
+  'Job claim attempt result read back: `claimed`',
   'persistent validation rows created: `false`',
   'residue counts as `0`',
-  'ccbcd02a4264d0ecb1cba7394d7c9344e8c24ab3b3fe7f7ff5f21f385536044c',
-  'a2f6f7cb204903bb3bcca354fc9d5a649353330a8ef93a152bab560c331d7782',
-  'fe0dd616ae610e0887593990ea7c53f4d964e51892007022a5fa594fb468043c',
-  'e71d2daca8d91043f311840ab431b11a0b0469741ad12d2b3db20f7352b64308',
+  '351db63b480fd32c8afa731df50f8b8332fdaa42b23ff32296d1b6bcf8a51d42',
+  'b283940e84c41ca159bae48c4021d6d2b250cc72aacafeeadfa0cd58bea3507b',
+  '462662a3a23f947d245a791671727b81f422197670e7980aa9d763b7de33f0a7',
+  '10cefbad91d0b5e80a05f77b3888e0865f45e171bde89c82a90daf9ab283d02c',
   'blocked_external_product_beta_pending_remaining_runtime_gates_after_job_queue_lease_event_remote_write_readback',
-  'completed_job_queue_lease_event_guarded_remote_write_readback',
   'RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1',
   'Product-ready end-to-end local OSS tools: `0`',
   'Internal beta unlocked: `false`',
@@ -80,17 +71,17 @@ const forbiddenPatterns = [
   /persistentRowsCreated"?\s*:\s*true/i,
   /persistentCreditMutation"?\s*:\s*true/i,
   /persistentCreditReservationCreation"?\s*:\s*true/i,
+  /persistentJobEnqueue"?\s*:\s*true/i,
+  /persistentJobEventWrite"?\s*:\s*true/i,
+  /persistentWorkerLeaseClaim"?\s*:\s*true/i,
   /serviceRoleRouteExecution"?\s*:\s*true/i,
   /routeExecution"?\s*:\s*true/i,
   /workerExecution"?\s*:\s*true/i,
   /workerDispatch"?\s*:\s*true/i,
-  /workerLeaseClaim"?\s*:\s*true/i,
   /storageObjectCreation"?\s*:\s*true/i,
   /storageObjectRead"?\s*:\s*true/i,
   /signedUrlCreation"?\s*:\s*true/i,
   /publicArtifactCreation"?\s*:\s*true/i,
-  /jobEnqueue"?\s*:\s*true/i,
-  /jobEventWrite"?\s*:\s*true/i,
   /providerCall"?\s*:\s*true/i,
   /modelCall"?\s*:\s*true/i,
   /renderExport"?\s*:\s*true/i,
@@ -137,30 +128,40 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read(`${dir}/runtime-validation-record.json`))
-if (record.decision !== 'completed_credit_reservation_ledger_guarded_remote_write_readback') fail('record decision mismatch')
-if (record.execution !== 'completed_guarded_transaction_rolled_back_credit_reservation_ledger_write_readback') fail('record execution mismatch')
+if (record.decision !== 'completed_job_queue_lease_event_guarded_remote_write_readback') fail('record decision mismatch')
+if (record.execution !== 'completed_guarded_transaction_rolled_back_job_queue_lease_event_write_readback') fail('record execution mismatch')
 if (record.target?.projectRef !== 'wmyyttnynmteqgcdishd') fail('target ref mismatch')
-if (record.run?.runId !== '2026-06-27T00-12-50-200Z-34a19fc2') fail('run id mismatch')
-if (record.run?.reportSha256 !== 'ccbcd02a4264d0ecb1cba7394d7c9344e8c24ab3b3fe7f7ff5f21f385536044c') fail('report checksum mismatch')
-if (record.run?.manifestSha256 !== 'a2f6f7cb204903bb3bcca354fc9d5a649353330a8ef93a152bab560c331d7782') fail('manifest checksum mismatch')
-if (record.run?.writeReadbackSha256 !== 'fe0dd616ae610e0887593990ea7c53f4d964e51892007022a5fa594fb468043c') fail('write readback checksum mismatch')
-if (record.run?.rollbackResidueSha256 !== 'e71d2daca8d91043f311840ab431b11a0b0469741ad12d2b3db20f7352b64308') fail('rollback residue checksum mismatch')
-if (record.validation?.creditWalletInserted !== 1) fail('credit wallet insert readback mismatch')
-if (record.validation?.creditGrantInserted !== 1) fail('credit grant insert readback mismatch')
-if (record.validation?.creditApprovalInserted !== 1) fail('credit approval insert readback mismatch')
-if (record.validation?.approvedSnapshotInserted !== 1) fail('approved snapshot insert readback mismatch')
-if (record.validation?.creditReservationInserted !== 1) fail('credit reservation insert readback mismatch')
-if (record.validation?.creditLedgerEntryInserted !== 1) fail('credit ledger entry insert readback mismatch')
-if (record.validation?.auditEventInserted !== 1) fail('audit event insert readback mismatch')
-if (record.validation?.reservationStatus !== 'reserved') fail('reservation status mismatch')
-if (record.validation?.ledgerEntryType !== 'reservation') fail('ledger entry type mismatch')
-if (record.validation?.ledgerAmount !== -10) fail('ledger amount mismatch')
-if (record.validation?.ledgerBalanceAfter !== 90) fail('ledger balance mismatch')
-if (record.validation?.appendOnlyLedgerUpdateRejection !== 'passed') fail('append-only rejection mismatch')
+if (record.run?.runId !== '2026-06-27T00-29-52-739Z-c91f8249') fail('run id mismatch')
+if (record.run?.reportSha256 !== '462662a3a23f947d245a791671727b81f422197670e7980aa9d763b7de33f0a7') fail('report checksum mismatch')
+if (record.run?.manifestSha256 !== '10cefbad91d0b5e80a05f77b3888e0865f45e171bde89c82a90daf9ab283d02c') fail('manifest checksum mismatch')
+if (record.run?.writeReadbackSha256 !== '351db63b480fd32c8afa731df50f8b8332fdaa42b23ff32296d1b6bcf8a51d42') fail('write readback checksum mismatch')
+if (record.run?.rollbackResidueSha256 !== 'b283940e84c41ca159bae48c4021d6d2b250cc72aacafeeadfa0cd58bea3507b') fail('rollback residue checksum mismatch')
+for (const key of [
+  'approvedSnapshotInserted',
+  'creditReservationInserted',
+  'creditLedgerEntryInserted',
+  'jobBatchInserted',
+  'jobInserted',
+  'jobEventInserted',
+  'workerLeaseInserted',
+  'jobClaimAttemptInserted',
+  'auditEventInserted',
+]) {
+  if (record.validation?.[key] !== 1) fail(`${key} readback mismatch`)
+}
+if (record.validation?.jobBatchStatus !== 'queued') fail('job batch status mismatch')
+if (record.validation?.jobStatus !== 'queued') fail('job status mismatch')
+if (record.validation?.jobType !== 'render_preview') fail('job type mismatch')
+if (record.validation?.workerTarget !== 'render_worker') fail('worker target mismatch')
+if (record.validation?.runtimeType !== 'cloud_run_job') fail('runtime type mismatch')
+if (record.validation?.jobEventType !== 'queued') fail('job event type mismatch')
+if (record.validation?.workerLeaseStatus !== 'claimed') fail('worker lease status mismatch')
+if (record.validation?.workerLeaseWorkerKind !== 'render_worker') fail('worker lease kind mismatch')
+if (record.validation?.jobClaimAttemptResult !== 'claimed') fail('job claim attempt result mismatch')
 for (const [key, value] of Object.entries(record.validation?.rollbackResidueCounts ?? {})) {
   if (value !== 0) fail(`rollback residue count not zero: ${key}`)
 }
-if (record.readiness?.jobQueueLeaseEvents !== 'ready_for_guarded_remote_write_readback_validation') fail('job queue readiness mismatch')
+if (record.readiness?.privateArtifactStorageAccess !== 'ready_for_guarded_remote_write_readback_validation') fail('private artifact readiness mismatch')
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
@@ -177,15 +178,15 @@ const falseFlags = [
   'routeExecution',
   'workerExecution',
   'workerDispatch',
-  'workerLeaseClaim',
+  'persistentWorkerLeaseClaim',
   'storageObjectCreation',
   'storageObjectRead',
   'signedUrlCreation',
   'publicArtifactCreation',
   'persistentCreditMutation',
   'persistentCreditReservationCreation',
-  'jobEnqueue',
-  'jobEventWrite',
+  'persistentJobEnqueue',
+  'persistentJobEventWrite',
   'providerCall',
   'modelCall',
   'renderExport',
@@ -197,25 +198,23 @@ const falseFlags = [
 for (const key of falseFlags) {
   if (safety[key] !== false) fail(`safety flag must be false: ${key}`)
 }
-if (safety.remoteSupabaseMutation !== 'guarded_transaction_rolled_back_generated_credit_reservation_ledger_fixture_only') fail('remote Supabase mutation scope mismatch')
-if (safety.sqlMutation !== 'guarded_transaction_rolled_back_generated_credit_reservation_ledger_fixture_only') fail('SQL mutation scope mismatch')
+if (safety.remoteSupabaseMutation !== 'guarded_transaction_rolled_back_generated_job_queue_lease_event_fixture_only') fail('remote Supabase mutation scope mismatch')
+if (safety.sqlMutation !== 'guarded_transaction_rolled_back_generated_job_queue_lease_event_fixture_only') fail('SQL mutation scope mismatch')
 if (safety.creditMutation !== 'transaction_rolled_back_generated_credit_fixture_only') fail('credit mutation scope mismatch')
 if (safety.creditReservationCreation !== 'transaction_rolled_back_generated_credit_fixture_only') fail('credit reservation scope mismatch')
+if (safety.jobEnqueue !== 'transaction_rolled_back_generated_job_fixture_only') fail('job enqueue scope mismatch')
+if (safety.jobEventWrite !== 'transaction_rolled_back_generated_job_event_fixture_only') fail('job event scope mismatch')
+if (safety.workerLeaseClaim !== 'transaction_rolled_back_generated_worker_lease_fixture_only') fail('worker lease scope mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
 if (rollup.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_job_queue_lease_event_remote_write_readback') fail('rollup decision mismatch')
-if (rollup.mainSupabaseTarget?.approvedSnapshotPersistence !== 'completed_approved_snapshot_persistence_guarded_remote_write_readback') fail('rollup approved snapshot status mismatch')
-if (rollup.mainSupabaseTarget?.creditReservationLedger !== 'completed_credit_reservation_ledger_guarded_remote_write_readback') fail('rollup credit ledger status mismatch')
-if (rollup.mainSupabaseTarget?.creditReservationLedgerPersistentRowsCreated !== false) fail('rollup persistent credit rows flag mismatch')
-if (rollup.mainSupabaseTarget?.creditReservationLedgerRollbackResidueCount !== 0) fail('rollup credit residue count mismatch')
-if (rollup.mainSupabaseTarget?.creditLedgerAppendOnlyUpdateRejection !== 'passed') fail('rollup append-only status mismatch')
-if (rollup.mainSupabaseTarget?.jobQueueLeaseEvents !== 'completed_job_queue_lease_event_guarded_remote_write_readback') fail('rollup job queue status mismatch')
-if (rollup.mainSupabaseTarget?.jobQueueLeaseEventPersistentRowsCreated !== false) fail('rollup job persistent rows flag mismatch')
+if (rollup.mainSupabaseTarget?.jobQueueLeaseEvents !== 'completed_job_queue_lease_event_guarded_remote_write_readback') fail('rollup job gate status mismatch')
+if (rollup.mainSupabaseTarget?.jobQueueLeaseEventPersistentRowsCreated !== false) fail('rollup persistent job rows flag mismatch')
 if (rollup.mainSupabaseTarget?.jobQueueLeaseEventRollbackResidueCount !== 0) fail('rollup job residue count mismatch')
+if (rollup.mainSupabaseTarget?.jobQueueJobStatus !== 'queued') fail('rollup job status mismatch')
+if (rollup.mainSupabaseTarget?.jobQueueJobEventType !== 'queued') fail('rollup job event type mismatch')
+if (rollup.mainSupabaseTarget?.jobQueueWorkerLeaseStatus !== 'claimed') fail('rollup worker lease status mismatch')
 if (!rollup.requiredNextOwnerDecision?.includes('RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1')) fail('rollup next milestone mismatch')
-if (rollup.safety?.persistentCreditMutation !== false) fail('rollup persistent credit mutation flag mismatch')
-if (rollup.safety?.persistentCreditReservationCreation !== false) fail('rollup persistent reservation flag mismatch')
-if (rollup.safety?.creditSpend !== false) fail('rollup credit spend flag mismatch')
 if (rollup.safety?.jobEnqueue !== 'transaction_rolled_back_generated_job_fixture_only') fail('rollup job enqueue scope mismatch')
 if (rollup.safety?.persistentJobEnqueue !== false) fail('rollup persistent job enqueue flag mismatch')
 if (rollup.safety?.jobEventWrite !== 'transaction_rolled_back_generated_job_event_fixture_only') fail('rollup job event scope mismatch')
@@ -225,14 +224,14 @@ if (rollup.safety?.persistentWorkerLeaseClaim !== false) fail('rollup persistent
 
 const packageJson = JSON.parse(read('package.json'))
 if (
-  packageJson.scripts?.['rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-confirmed'] !==
-  'node scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-confirmed.mjs'
+  packageJson.scripts?.['rp-external-beta-job-queue-lease-event-guarded-remote-write-1-confirmed'] !==
+  'node scripts/validation/rp-external-beta-job-queue-lease-event-guarded-remote-write-1-confirmed.mjs'
 ) {
   fail('missing confirmed runner package script')
 }
 if (
-  packageJson.scripts?.['rp-external-beta-credit-reservation-ledger-guarded-remote-write-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-job-queue-lease-event-guarded-remote-write-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-job-queue-lease-event-guarded-remote-write-1-diagnostics.mjs'
 ) {
   fail('missing diagnostics package script')
 }
@@ -260,5 +259,5 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_credit_reservation_ledger_guarded_remote_write_readback')
-console.log('Next: RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1')
+console.log('Decision: completed_job_queue_lease_event_guarded_remote_write_readback')
+console.log('Next: RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1')

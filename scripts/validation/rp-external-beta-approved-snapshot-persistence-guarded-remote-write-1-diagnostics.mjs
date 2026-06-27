@@ -40,6 +40,18 @@ const followOnCreditReservationLedgerGuardedRemoteWriteFiles = [
 ]
 for (const file of followOnCreditReservationLedgerGuardedRemoteWriteFiles) allowedChangedFiles.add(file)
 
+const followOnJobQueueLeaseEventGuardedRemoteWriteFiles = [
+  'docs/external-beta/job-queue-lease-event-guarded-remote-write-1/source-audit.md',
+  'docs/external-beta/job-queue-lease-event-guarded-remote-write-1/validation-results.md',
+  'docs/external-beta/job-queue-lease-event-guarded-remote-write-1/readiness-gate.md',
+  'docs/external-beta/job-queue-lease-event-guarded-remote-write-1/safety-boundary.md',
+  'docs/external-beta/job-queue-lease-event-guarded-remote-write-1/runtime-validation-record.json',
+  'docs/activation-phase-rp-external-beta-job-queue-lease-event-guarded-remote-write-1-results.md',
+  'scripts/validation/rp-external-beta-job-queue-lease-event-guarded-remote-write-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-job-queue-lease-event-guarded-remote-write-1-diagnostics.mjs',
+]
+for (const file of followOnJobQueueLeaseEventGuardedRemoteWriteFiles) allowedChangedFiles.add(file)
+
 const requiredText = [
   packet,
   'completed_approved_snapshot_persistence_guarded_remote_write_readback',
@@ -55,6 +67,8 @@ const requiredText = [
   '2a5cdc3a3c9a7c3f9f16a28da05efd35084297a26304842f8a79d34c0656a339',
   '588ba11c60afcda8836a181ef392e45133067a987c13734298f18618a8b51d79',
   'RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1',
+  'completed_job_queue_lease_event_guarded_remote_write_readback',
+  'RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1',
   'Product-ready end-to-end local OSS tools: `0`',
   'Internal beta unlocked: `false`',
   'External beta unlocked: `false`',
@@ -188,12 +202,15 @@ if (safety.remoteSupabaseMutation !== 'guarded_transaction_rolled_back_generated
 if (safety.sqlMutation !== 'guarded_transaction_rolled_back_generated_approved_snapshot_fixture_only') fail('SQL mutation scope mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_credit_ledger_remote_write_readback') fail('rollup decision mismatch')
+if (rollup.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_job_queue_lease_event_remote_write_readback') fail('rollup decision mismatch')
 if (rollup.mainSupabaseTarget?.approvedSnapshotPersistence !== 'completed_approved_snapshot_persistence_guarded_remote_write_readback') fail('rollup approved snapshot status mismatch')
 if (rollup.mainSupabaseTarget?.approvedSnapshotPersistentRowsCreated !== false) fail('rollup persistent rows flag mismatch')
 if (rollup.mainSupabaseTarget?.approvedSnapshotRollbackResidueCount !== 0) fail('rollup residue count mismatch')
 if (rollup.mainSupabaseTarget?.creditReservationLedger !== 'completed_credit_reservation_ledger_guarded_remote_write_readback') fail('rollup credit ledger status mismatch')
-if (!rollup.requiredNextOwnerDecision?.includes('RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1')) fail('rollup next milestone mismatch')
+if (rollup.mainSupabaseTarget?.jobQueueLeaseEvents !== 'completed_job_queue_lease_event_guarded_remote_write_readback') fail('rollup job queue status mismatch')
+if (rollup.mainSupabaseTarget?.jobQueueLeaseEventPersistentRowsCreated !== false) fail('rollup job persistent rows flag mismatch')
+if (rollup.mainSupabaseTarget?.jobQueueLeaseEventRollbackResidueCount !== 0) fail('rollup job residue count mismatch')
+if (!rollup.requiredNextOwnerDecision?.includes('RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1')) fail('rollup next milestone mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
 if (

@@ -4,11 +4,12 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 
 ## Current Source Chain
 
-- Current integration head: `3d307c69dddd39742a1b5dab96bdb6897aef18ea`.
+- Current integration head: `007dc9480defb1b5aa508c25875f3620dc3c7e0e`.
 - `RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1`: source-of-truth for the completed main Reeditpro staging migration-history sync.
 - `RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1`: source-of-truth for main Reeditpro staging public mutation grant hardening and service-role grant-boundary validation.
 - `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1`: source-of-truth for transaction-rolled-back approved snapshot persistence remote write/readback validation.
 - `RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1`: source-of-truth for transaction-rolled-back credit reservation and ledger remote write/readback validation.
+- `RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1`: source-of-truth for transaction-rolled-back job queue, job event, worker lease, and job claim attempt remote write/readback validation.
 - PR #1102: source-of-truth for the single active Supabase target decision: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
 - PR #1019 / `SUPABASE-STAGING-MIGRATION-HISTORY-OWNER-DECISION-1`: historical source for the previous staging migration path blocker, now superseded by the guarded main-target migration sync.
 - PR #1016 / `SUPABASE-MIGRATION-HISTORY-RECONCILIATION-1`: source-of-truth for migration-history reconciliation posture.
@@ -26,8 +27,8 @@ The approved read-only DB URL secret already has a version, and source records `
 
 PR #577 remains open/draft/blocked and excluded as source-of-truth for this beta readiness decision.
 
-Older internal-beta candidate/readiness documents remain historical context only when they predate the main-target migration sync, service-role grant-boundary validation, approved snapshot guarded remote write/readback, and credit ledger guarded remote write/readback. They do not override the current blocker `blocked_external_product_beta_pending_remaining_runtime_gates_after_credit_ledger_remote_write_readback`.
+Older internal-beta candidate/readiness documents remain historical context only when they predate the main-target migration sync, service-role grant-boundary validation, approved snapshot guarded remote write/readback, credit ledger guarded remote write/readback, and job queue lease/event guarded remote write/readback. They do not override the current blocker `blocked_external_product_beta_pending_remaining_runtime_gates_after_job_queue_lease_event_remote_write_readback`.
 
 ## Current Interpretation
 
-The safe target, credential context, main Reeditpro staging migration history, public mutation grant boundary, approved snapshot persistence remote write/readback, and credit reservation ledger remote write/readback are now aligned enough for the next guarded runtime write/readback lane. The controlling blocker is no longer migration-history alignment, broad public mutation grants, approved snapshot remote write/readback, or credit ledger validation; it is workflow-specific runtime gate closure on the main target, including service-role route/runtime validation, job lease/event validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, and security/privacy/support/cost/deployment review.
+The safe target, credential context, main Reeditpro staging migration history, public mutation grant boundary, approved snapshot persistence remote write/readback, credit reservation ledger remote write/readback, and job queue lease/event remote write/readback are now aligned enough for the next guarded runtime write/readback lane. The controlling blocker is no longer migration-history alignment, broad public mutation grants, approved snapshot remote write/readback, credit ledger validation, or job queue lease/event validation; it is workflow-specific runtime gate closure on the main target, including service-role route/runtime validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, and security/privacy/support/cost/deployment review.

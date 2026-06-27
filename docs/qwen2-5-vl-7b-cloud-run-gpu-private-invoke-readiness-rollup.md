@@ -1,8 +1,8 @@
 # Qwen2.5-VL 7B Cloud Run GPU Private Invoke Readiness Rollup
 
-Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_cpu_only_internal_caller_contract_smoke_required`.
+Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_contract_smoke_passed_runtime_review_required`.
 
-This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded read-only Cloud Run auth/IAM reverify, controlled private invoke smoke plan, non-key impersonation token-path runner, narrow authz bindings, routing fix, internal caller harness plan, internal caller deploy preflight, internal route approval, Direct VPC route config, CPU-only caller source, and CPU-only caller deployment are in place. The latest local controlled smoke minted an identity token and sent one authenticated contract request from the local developer machine, but the response was HTTP `404` instead of the expected fail-closed contract JSON. The routing fix records the more precise blocker: the service ingress is `internal-and-cloud-load-balancing`, so a direct local generated-host request is not valid. The internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The route config created a dedicated `qwen-private-caller-us-central1` subnet with Private Google Access enabled and left the default subnet unchanged. The CPU-only caller source defines a no-model, no-vLLM, no-CUDA, no-inference caller image source. The caller image is built and pushed, a dedicated caller service account is created, narrow service-level Run Invoker is granted, and the controlled Cloud Run Job is deployed Ready. The remaining blocker is executing one controlled private-invoke contract smoke from the caller with inference still disabled.
+This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded read-only Cloud Run auth/IAM reverify, controlled private invoke smoke plan, non-key impersonation token-path runner, narrow authz bindings, routing fix, internal caller harness plan, internal caller deploy preflight, internal route approval, Direct VPC route config, CPU-only caller source, CPU-only caller deployment, and CPU-only caller contract smoke are in place. The earlier local developer-machine request returned HTTP `404`, classified as `private_invoke_response_unexpected`, because the service ingress is `internal-and-cloud-load-balancing`; the dedicated CPU-only Cloud Run Job now provides the approved private caller path. The controlled caller execution `reeditpro-qwen2-5-vl-private-caller-nlc88` observed HTTP `403` with `qwen_inference_disabled_after_contract_check`, `contractSatisfiedForFutureRuntime=true`, `runtimeContractExecutesNow=false`, and `modelInferenceEnabled=false`. The remaining blocker is runtime readiness review before any approved-fixture inference smoke.
 
 This is evidence only. It records that the guarded backend smoke resolved the target in memory, created an auth header, fetched an identity token without printing or storing token values, and sent one bounded Cloud Run contract request. The packet itself does not enable inference, dispatch a worker, mutate Supabase, execute SQL, create generated assets, create public artifacts, create signed URLs, mutate credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
@@ -15,7 +15,8 @@ This is evidence only. It records that the guarded backend smoke resolved the ta
 - chat-native readiness UI: ready
 - Cloud Run auth/IAM reverify: ready
 - controlled private invoke smoke plan: ready
-- controlled private invoke smoke execution: blocked until CPU-only caller contract smoke
+- controlled private invoke smoke execution: ready
+- private invoke runtime readiness review: blocked
 - private invoke runtime readiness: false
 - beta readiness: false
 - production readiness: false
@@ -44,7 +45,8 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 | Chat-native UI | ready | `InlineQwenPlannerRoutingCard` surfaces mock route/client readiness and blocked runtime gates. | none |
 | Cloud Run auth/IAM reverify | ready | Local `gcloud` version, active project, active account-domain, Cloud Run service describe, Cloud Run service IAM policy read, runtime service account describe, and project invoker policy read probes passed. | none |
 | Controlled private invoke smoke plan | ready | The plan allows only backend-only health/readiness and contract POST candidates. The expected contract POST response is `403` with `qwen_inference_disabled_after_contract_check`, `contractSatisfiedForFutureRuntime=true`, and `modelInferenceEnabled=false`. | none |
-| Controlled private invoke smoke execution | blocked CPU-only caller contract smoke required | Read-only auth/IAM reverify passed, narrow TokenCreator and Run Invoker bindings were applied, the smoke runner reviewed cost posture, minted an identity token without printing or storing it, and sent one local authenticated contract request. The response was HTTP `404` with no expected JSON contract, classified as `private_invoke_response_unexpected`. The routing fix records ingress `internal-and-cloud-load-balancing`. The internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path. The Direct VPC route config created the dedicated `qwen-private-caller-us-central1` subnet with Private Google Access enabled and left the default subnet unchanged. The CPU-only caller source is defined with no model loader, no vLLM runtime, no CUDA dependency, and no inference path. The CPU-only caller image is built and pushed, a dedicated caller service account exists, target service-level Run Invoker is granted, and the controlled caller job is Ready with zero executions after deploy. | Successful controlled caller contract response with inference disabled. |
+| Controlled private invoke smoke execution | ready | Read-only auth/IAM reverify passed, narrow TokenCreator and Run Invoker bindings were applied, the Direct VPC route config created the dedicated `qwen-private-caller-us-central1` subnet with Private Google Access enabled, the CPU-only caller source is defined, the CPU-only caller deploy path is ready, the caller Docker command was fixed to run the caller by default, and one controlled caller execution observed HTTP `403` with `qwen_inference_disabled_after_contract_check`, `contractSatisfiedForFutureRuntime=true`, `runtimeContractExecutesNow=false`, and `modelInferenceEnabled=false`. | none |
+| Private invoke runtime readiness review | blocked runtime readiness review required | The fail-closed private invoke contract path is proven and persistent CPU caller/GPU service configs remain fail-closed after the smoke. | Runtime readiness review for the first approved-fixture inference smoke, including approved snapshot, private artifact, QA, cost, no-public-output, no-beta, and no-production evidence. |
 
 ## Runtime Gates
 
@@ -74,16 +76,20 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `cpuOnlyCallerImageDeployed=true`
 - `cpuOnlyCallerJobDeployed=true`
 - `callerHarnessReady=true`
-- `callerHarnessExecuted=false`
-- `jobExecutionCount=0`
+- `callerHarnessExecuted=true`
+- `jobExecutionCount=1`
 - `serviceAccountCreated=true`
 - `targetServiceInvokerIamChanged=true`
 - `directVpcEgressConfigured=true`
 - `privateGoogleAccessChanged=false`
 - `internalCallerHarnessDeployed=true`
 - `privateInvokeSmokeAttempted=true`
-- `privateInvokeSmokeBlockedBeforeRequest=true`
-- `privateInvokeSmokeExecuted=false`
+- `privateInvokeSmokeBlockedBeforeRequest=false`
+- `privateInvokeSmokeExecuted=true`
+- `privateInvokeSmokePassed=true`
+- `failClosedResponseObserved=true`
+- `contractSatisfiedForFutureRuntime=true`
+- `runtimeContractExecutesNow=false`
 - `privateInvokeReady=false`
 - `betaReady=false`
 - `productionReady=false`
@@ -122,8 +128,8 @@ Qwen2.5-VL must not generate B-roll video, replace Wan or LTX generation routes,
 
 ## Required Next Step
 
-The next action is executing one controlled CPU-only caller contract smoke. That future prompt may execute the deployed caller only once and must preserve no model import, no generated assets, no public artifacts, no signed URLs, no Supabase mutation, no credit mutation, no beta, and no production posture.
+The next action is a runtime readiness review for the first approved-fixture inference smoke. That future prompt must preserve approved snapshot, private artifact, QA, cost, no-public-output, no-beta, and no-production boundaries and must not silently convert this contract-path pass into production readiness.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference`
+`QWEN2_5_VL_STACK_TOOL_56-PRIVATE-INVOKE-RUNTIME-READINESS-REVIEW: review contract smoke and plan first approved-fixture inference smoke, no generated assets/no beta`

@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'blocked_private_invoke_cpu_caller_contract_smoke_required',
-  'Private invoke client status must stay blocked on CPU-only caller contract smoke readiness.',
+  data.privateInvokeClient.currentStatus === 'contract_smoke_passed_runtime_review_required',
+  'Private invoke client status must record the passed contract smoke and runtime review blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -162,14 +162,14 @@ check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advi
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
 check(
-  docText.includes('blocked_private_invoke_cpu_caller_contract_smoke_required') ||
-    data.privateInvokeClient.currentStatus === 'blocked_private_invoke_cpu_caller_contract_smoke_required',
-  'Doc/data must record private invoke routing blocked status.',
+  docText.includes('contract_smoke_passed_runtime_review_required') ||
+    data.privateInvokeClient.currentStatus === 'contract_smoke_passed_runtime_review_required',
+  'Doc/data must record private invoke contract-smoke pass and runtime review status.',
 )
 check(
-  docText.includes('CPU-only caller source is defined') ||
-    docText.includes('CPU-only Cloud Run Job'),
-  'Doc must record the private invoke CPU-only caller contract smoke blocker.',
+  docText.includes('contractSatisfiedForFutureRuntime=true') ||
+    docText.includes('qwen_inference_disabled_after_contract_check'),
+  'Doc must record the private invoke CPU-only caller contract smoke result.',
 )
 check(docText.includes('The card provides no execution buttons'), 'Doc must forbid execution buttons.')
 check(docText.includes(data.nextPrompt), 'Doc must record the next prompt.')

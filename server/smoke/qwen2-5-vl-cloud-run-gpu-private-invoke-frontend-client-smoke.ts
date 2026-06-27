@@ -13,7 +13,7 @@ const ROOT = process.cwd()
 const DECISION =
   'qwen2_5_vl_7b_cloud_run_gpu_private_invoke_frontend_client_registered_mock_only'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference'
+  'QWEN2_5_VL_STACK_TOOL_56-PRIVATE-INVOKE-RUNTIME-READINESS-REVIEW: review contract smoke and plan first approved-fixture inference smoke, no generated assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 

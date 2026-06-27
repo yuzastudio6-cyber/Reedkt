@@ -17,4 +17,4 @@ ENV PYTHONUNBUFFERED=1 \
 
 COPY server/workers/qwen2_5_vl_private_invoke_cpu_caller/ /app/server/workers/qwen2_5_vl_private_invoke_cpu_caller/
 
-CMD ["python", "/app/server/workers/qwen2_5_vl_private_invoke_cpu_caller/internal_caller.py", "--print-status"]
+CMD ["python", "/app/server/workers/qwen2_5_vl_private_invoke_cpu_caller/internal_caller.py"]

@@ -208,6 +208,12 @@ for (const phrase of [
   'validate_contract_payload',
   'fetch_identity_token',
   'post_contract_request',
+  '_parse_json_body',
+  'bodyJson',
+  'serviceReason',
+  'contractSatisfiedForFutureRuntime',
+  'runtimeContractExecutesNow',
+  'qwen_inference_disabled_after_contract_check',
   'metadata_only',
   'raw_prompt_fields_blocked',
 ]) {
@@ -227,11 +233,13 @@ for (const phrase of [
   'PROVIDER_EXECUTION_ENABLED=false',
   'MEDIA_PROCESSING_ENABLED=false',
   'PUBLIC_OUTPUT_ENABLED=false',
+  'CMD ["python", "/app/server/workers/qwen2_5_vl_private_invoke_cpu_caller/internal_caller.py"]',
 ]) {
   assert.ok(dockerfile.includes(phrase), `Dockerfile missing phrase: ${phrase}`)
 }
 assert.ok(!dockerfile.includes('cuda'), 'Caller Dockerfile must not include CUDA')
 assert.ok(!dockerfile.includes('pip install'), 'Caller Dockerfile must not install model/runtime deps')
+assert.ok(!dockerfile.includes('--print-status"]'), 'Caller Dockerfile must not default to status-only mode')
 
 const statusOutput = execFileSync(
   'python3',

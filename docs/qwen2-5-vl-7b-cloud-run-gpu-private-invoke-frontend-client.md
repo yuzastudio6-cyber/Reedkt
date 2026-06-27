@@ -56,4 +56,4 @@ It is not a B-roll generator, renderer, exporter, OCR source of truth, chart ren
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference`
+`QWEN2_5_VL_STACK_TOOL_56-PRIVATE-INVOKE-RUNTIME-READINESS-REVIEW: review contract smoke and plan first approved-fixture inference smoke, no generated assets/no beta`

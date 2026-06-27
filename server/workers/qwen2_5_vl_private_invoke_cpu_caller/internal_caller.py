@@ -191,10 +191,26 @@ def post_contract_request(target_url: str, token: str, payload: Dict[str, Any], 
     try:
         with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
             body = response.read(MAX_RESPONSE_BYTES).decode("utf-8", errors="replace")
-            return {"httpStatus": response.status, "bodyPreview": body[:512]}
+            return {
+                "httpStatus": response.status,
+                "bodyPreview": body[:512],
+                "bodyJson": _parse_json_body(body),
+            }
     except urllib.error.HTTPError as error:
         body = error.read(MAX_RESPONSE_BYTES).decode("utf-8", errors="replace")
-        return {"httpStatus": error.code, "bodyPreview": body[:512]}
+        return {
+            "httpStatus": error.code,
+            "bodyPreview": body[:512],
+            "bodyJson": _parse_json_body(body),
+        }
+
+
+def _parse_json_body(body: str) -> Dict[str, Any]:
+    try:
+        parsed = json.loads(body)
+    except json.JSONDecodeError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
 
 
 def build_status(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -254,22 +270,37 @@ def main() -> int:
     timeout_seconds = int(os.environ.get("QWEN_CPU_CALLER_TIMEOUT_SECONDS", str(DEFAULT_TIMEOUT_SECONDS)))
     token = fetch_identity_token(audience, timeout_seconds)
     response = post_contract_request(target_url, token, payload, timeout_seconds)
+    response_body = response.get("bodyJson") if isinstance(response.get("bodyJson"), dict) else {}
+    service_reason = response_body.get("reason")
+    contract_satisfied = response_body.get("contractSatisfiedForFutureRuntime") is True
+    model_inference_enabled = response_body.get("modelInferenceEnabled") is True
+    runtime_contract_executes_now = response_body.get("runtimeContractExecutesNow") is True
+    response_ok = (
+        response.get("httpStatus") == 403
+        and service_reason == "qwen_inference_disabled_after_contract_check"
+        and contract_satisfied
+        and not model_inference_enabled
+        and not runtime_contract_executes_now
+    )
     print(
         json.dumps(
             {
-                "ok": response.get("httpStatus") == 403,
+                "ok": response_ok,
                 "mode": MODE,
                 "httpStatus": response.get("httpStatus"),
                 "expectedHttpStatus": 403,
+                "serviceReason": service_reason,
+                "contractSatisfiedForFutureRuntime": contract_satisfied,
+                "runtimeContractExecutesNow": runtime_contract_executes_now,
                 "identityTokenFetched": True,
                 "identityTokenPrinted": False,
                 "serviceRuntimeRequestSent": True,
-                "modelInferenceEnabled": False,
+                "modelInferenceEnabled": model_inference_enabled,
             },
             sort_keys=True,
         )
     )
-    return 0 if response.get("httpStatus") == 403 else 3
+    return 0 if response_ok else 3
 
 
 if __name__ == "__main__":

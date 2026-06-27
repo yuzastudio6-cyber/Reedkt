@@ -1,5 +1,6 @@
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE } from './mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-source'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_DEPLOY_RESULT } from './mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-deploy-result'
+import { QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT } from './mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-contract-smoke-result'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -13,6 +14,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_cpu_only_internal_caller_source_required'
   | 'blocked_cpu_only_internal_caller_deploy_required'
   | 'blocked_cpu_only_internal_caller_contract_smoke_required'
+  | 'blocked_runtime_readiness_review_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
   id: string
@@ -28,11 +30,13 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_cpu_only_internal_caller_contract_smoke_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_contract_smoke_passed_runtime_review_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_DEPLOY_RESULT.decision,
+  upstreamCpuCallerContractSmokeDecision:
+    QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -122,7 +126,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'private_invoke_smoke_execution',
       label: 'Controlled private invoke smoke execution',
-      status: 'blocked_cpu_only_internal_caller_contract_smoke_required',
+      status: 'ready',
       evidence: [
         'Read-only auth/IAM reverify passed without Cloud Run invocation.',
         'Observed Cloud Run posture uses one NVIDIA L4, concurrency 1, no min scale annotation, and template max scale 1.',
@@ -135,10 +139,23 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
         'Direct VPC route config created a dedicated qwen-private-caller-us-central1 subnet with Private Google Access enabled and left the default subnet unchanged.',
         'CPU-only internal caller source is defined with no model loader, no vLLM runtime, no CUDA dependency, and no inference path.',
         'CPU-only internal caller image was built and pushed, a dedicated caller service account was created, narrow service-level Run Invoker was granted, and the controlled Cloud Run Job was deployed Ready without execution.',
+        'CPU caller Docker command was fixed to run the caller by default, the caller now parses service JSON, and one controlled execution completed with HTTP 403, serviceReason qwen_inference_disabled_after_contract_check, contractSatisfiedForFutureRuntime=true, runtimeContractExecutesNow=false, and modelInferenceEnabled=false.',
       ],
       missingEvidence: [
-        'Successful controlled private invoke contract response with inference disabled.',
         'No beta or production runtime approval has been granted.',
+      ],
+    },
+    {
+      id: 'private_invoke_runtime_readiness_review',
+      label: 'Private invoke runtime readiness review',
+      status: 'blocked_runtime_readiness_review_required',
+      evidence: [
+        'Fail-closed private invoke contract path is proven through the CPU-only internal caller.',
+        'Persistent CPU caller and GPU service configs remain fail-closed after the smoke.',
+      ],
+      missingEvidence: [
+        'Runtime readiness review for the first approved-fixture inference smoke.',
+        'Approved snapshot, private artifact, QA, cost, no-public-output, no-beta, and no-production evidence for any future inference.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -174,16 +191,20 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     cpuOnlyCallerImageDeployed: true,
     cpuOnlyCallerJobDeployed: true,
     callerHarnessReady: true,
-    callerHarnessExecuted: false,
-    jobExecutionCount: 0,
+    callerHarnessExecuted: true,
+    jobExecutionCount: 1,
     serviceAccountCreated: true,
     targetServiceInvokerIamChanged: true,
     directVpcEgressConfigured: true,
     privateGoogleAccessChanged: false,
     internalCallerHarnessDeployed: true,
     privateInvokeSmokeAttempted: true,
-    privateInvokeSmokeBlockedBeforeRequest: true,
-    privateInvokeSmokeExecuted: false,
+    privateInvokeSmokeBlockedBeforeRequest: false,
+    privateInvokeSmokeExecuted: true,
+    privateInvokeSmokePassed: true,
+    failClosedResponseObserved: true,
+    contractSatisfiedForFutureRuntime: true,
+    runtimeContractExecutesNow: false,
     privateInvokeReady: false,
     betaReady: false,
     productionReady: false,
@@ -215,12 +236,12 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_safe_identity_token_path_approved',
-    'audience_bound_identity_token_fetch_passed_without_printing_or_storing_token',
-    'controlled_private_invoke_contract_response_observed',
+    'runtime_readiness_review_required_before_inference',
+    'approved_fixture_inference_smoke_plan_required',
+    'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference',
+    'QWEN2_5_VL_STACK_TOOL_56-PRIVATE-INVOKE-RUNTIME-READINESS-REVIEW: review contract smoke and plan first approved-fixture inference smoke, no generated assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

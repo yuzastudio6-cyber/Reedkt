@@ -11,6 +11,7 @@ import { QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT } from '../activation/qwen2-
 import { QWEN25_PRIVATE_INVOKE_AUTHZ_FIX_RESULT } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-authz-fix-result'
 import { QWEN25_PRIVATE_INVOKE_ROUTING_FIX_RESULT } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-routing-fix-result'
 import { QWEN25_PRIVATE_INVOKE_TOKEN_PATH_FIX_RESULT } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-token-path-fix-result'
+import { QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-contract-smoke-result'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_DEPLOY_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-deploy-result'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-source'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
@@ -21,9 +22,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_cpu_only_internal_caller_contract_smoke_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_contract_smoke_passed_runtime_review_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_55E-PRIVATE-INVOKE-CPU-CALLER-CONTRACT-SMOKE: execute one controlled CPU-only caller contract smoke, no inference'
+  'QWEN2_5_VL_STACK_TOOL_56-PRIVATE-INVOKE-RUNTIME-READINESS-REVIEW: review contract smoke and plan first approved-fixture inference smoke, no generated assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -86,7 +87,6 @@ function scanValues(value: unknown, pathParts: string[] = []): string[] {
 function assertRollupFalseFlags(flags: JsonRecord) {
   for (const key of [
     'privateInvokeReady',
-    'privateInvokeSmokeExecuted',
     'defaultSubnetPrivateGoogleAccess',
     'privateGoogleAccessChanged',
     'betaReady',
@@ -150,6 +150,7 @@ for (const file of [
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md',
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-frontend-client.md',
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-cpu-caller-deploy-result.md',
+  'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-cpu-caller-contract-smoke-result.md',
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-cpu-caller-source.md',
   'docs/qwen2-5-vl-7b-private-invoke-auth-reverify-result.md',
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-authz-fix-result.md',
@@ -157,6 +158,7 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-deploy-result.ts',
+  'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-contract-smoke-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-source.ts',
   'server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup-smoke.ts',
   'package.json',
@@ -200,8 +202,12 @@ for (const phrase of [
   'Controlled private invoke smoke execution',
   '`privateInvokeSmokePlanDefined=true`',
   '`privateInvokeSmokeAttempted=true`',
-  '`privateInvokeSmokeBlockedBeforeRequest=true`',
-  '`privateInvokeSmokeExecuted=false`',
+  '`privateInvokeSmokeBlockedBeforeRequest=false`',
+  '`privateInvokeSmokeExecuted=true`',
+  '`privateInvokeSmokePassed=true`',
+  '`failClosedResponseObserved=true`',
+  '`contractSatisfiedForFutureRuntime=true`',
+  '`runtimeContractExecutesNow=false`',
   '`internalCallerDeployPreflightRecorded=true`',
   '`internalRouteApprovalRecorded=true`',
   '`futureDirectVpcRouteConfigApproved=true`',
@@ -221,7 +227,7 @@ for (const phrase of [
   '`cpuOnlyCallerImageDeployed=true`',
   '`cpuOnlyCallerJobDeployed=true`',
   '`callerHarnessReady=true`',
-  '`jobExecutionCount=0`',
+  '`jobExecutionCount=1`',
   '`directVpcEgressConfigured=true`',
   '`privateGoogleAccessChanged=false`',
   'HTTP `404`',
@@ -230,7 +236,9 @@ for (const phrase of [
   'CPU-only Cloud Run Job',
   'qwen-private-caller-us-central1',
   'CPU-only caller source is defined',
-  'controlled caller job is Ready with zero executions after deploy',
+  'one controlled caller execution observed HTTP `403`',
+  '`qwen_inference_disabled_after_contract_check`',
+  'runtime readiness review',
   NEXT_PROMPT,
 ]) {
   assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)
@@ -245,6 +253,10 @@ assert.equal(
 assert.equal(
   rollup.upstreamCpuCallerDeployDecision,
   QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_DEPLOY_RESULT.decision,
+)
+assert.equal(
+  rollup.upstreamCpuCallerContractSmokeDecision,
+  QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT.decision,
 )
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
@@ -309,7 +321,7 @@ assert.equal(status.mayRunInference, false)
 assert.equal(status.mayDispatchWorker, false)
 
 const ui = getQwenVlPlannerRoutingUiData()
-assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_cpu_caller_contract_smoke_required')
+assert.equal(ui.privateInvokeClient.currentStatus, 'contract_smoke_passed_runtime_review_required')
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
 assert.equal(ui.summary.dryRunPassedClaimed, false)
@@ -337,15 +349,16 @@ assert.deepEqual(gateIds, [
   'cloud_run_auth_reverify',
   'private_invoke_smoke_plan',
   'private_invoke_smoke_execution',
+  'private_invoke_runtime_readiness_review',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 7)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 8)
 assert.equal(
-  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_runtime_acceptance_required').length,
-  0,
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_runtime_readiness_review_required').length,
+  1,
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_cpu_only_internal_caller_contract_smoke_required').length,
-  1,
+  0,
 )
 assertRollupFalseFlags(rollup.runtimeFlags)
 assert.equal(rollup.runtimeFlags.registryProfileReady, true)
@@ -379,15 +392,19 @@ assert.equal(rollup.runtimeFlags.cpuOnlyCallerImagePushed, true)
 assert.equal(rollup.runtimeFlags.cpuOnlyCallerImageDeployed, true)
 assert.equal(rollup.runtimeFlags.cpuOnlyCallerJobDeployed, true)
 assert.equal(rollup.runtimeFlags.callerHarnessReady, true)
-assert.equal(rollup.runtimeFlags.jobExecutionCount, 0)
+assert.equal(rollup.runtimeFlags.jobExecutionCount, 1)
 assert.equal(rollup.runtimeFlags.serviceAccountCreated, true)
 assert.equal(rollup.runtimeFlags.targetServiceInvokerIamChanged, true)
 assert.equal(rollup.runtimeFlags.directVpcEgressConfigured, true)
 assert.equal(rollup.runtimeFlags.privateGoogleAccessChanged, false)
 assert.equal(rollup.runtimeFlags.internalCallerHarnessDeployed, true)
 assert.equal(rollup.runtimeFlags.privateInvokeSmokeAttempted, true)
-assert.equal(rollup.runtimeFlags.privateInvokeSmokeBlockedBeforeRequest, true)
-assert.equal(rollup.runtimeFlags.privateInvokeSmokeExecuted, false)
+assert.equal(rollup.runtimeFlags.privateInvokeSmokeBlockedBeforeRequest, false)
+assert.equal(rollup.runtimeFlags.privateInvokeSmokeExecuted, true)
+assert.equal(rollup.runtimeFlags.privateInvokeSmokePassed, true)
+assert.equal(rollup.runtimeFlags.failClosedResponseObserved, true)
+assert.equal(rollup.runtimeFlags.contractSatisfiedForFutureRuntime, true)
+assert.equal(rollup.runtimeFlags.runtimeContractExecutesNow, false)
 assert.equal(rollup.runtimeFlags.serviceUrlResolvedNow, true)
 assert.equal(rollup.runtimeFlags.audienceResolvedNow, true)
 assert.equal(rollup.runtimeFlags.authHeaderCreated, true)
@@ -405,7 +422,14 @@ for (const file of [
   assertNoForbiddenText(file)
 }
 
-const forbiddenDataFindings = scanValues({ rollup, client, route, status, ui })
+const forbiddenDataFindings = scanValues({
+  rollup,
+  client,
+  route,
+  status,
+  ui,
+  contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
+})
 assert.deepEqual(
   forbiddenDataFindings,
   [],

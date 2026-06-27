@@ -92,6 +92,17 @@ export const betaReadinessCoreRealCheckEvidenceSchema = z.object({
   toolIds: z.array(z.enum(PRODUCTION_TOOL_IDS)).min(1).max(PRODUCTION_TOOL_IDS.length).optional(),
 }).strict()
 
+export const betaReadinessPlatformBillingQaSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  environment: z.enum(['local_mock', 'staging_persistent', 'production_persistent']).optional(),
+  allowPersistentStoreQa: z.boolean().optional(),
+  notes: z.array(noteSchema).min(1).max(20).optional(),
+}).strict()
+
 export type BetaReadinessEvidenceEvaluationBody = z.infer<typeof betaReadinessEvidenceEvaluationSchema>
 export type BetaReadinessEvidencePacketBody = z.infer<typeof betaReadinessEvidencePacketSchema>
 export type BetaReadinessCoreRealCheckEvidenceBody = z.infer<typeof betaReadinessCoreRealCheckEvidenceSchema>
+export type BetaReadinessPlatformBillingQaBody = z.infer<typeof betaReadinessPlatformBillingQaSchema>

@@ -218,7 +218,7 @@ const falseRuntimeFlags = [
 assertAllFalse(contract.runtimeFlags as JsonRecord, falseRuntimeFlags)
 assertAllFalse(changeLog.runtimeFlags as JsonRecord, falseRuntimeFlags)
 
-const blockedFixtureIds = contract.blockedQueueFixtures.map((fixture) => fixture.id)
+const blockedFixtureIds = new Set<string>(contract.blockedQueueFixtures.map((fixture) => fixture.id))
 for (const blockedId of [
   'missing_approved_snapshot',
   'missing_credit_reservation',
@@ -229,7 +229,7 @@ for (const blockedId of [
   'model_policy_mismatch',
   'worker_type_mismatch'
 ]) {
-  assert.ok(blockedFixtureIds.includes(blockedId), `missing blocked fixture ${blockedId}`)
+  assert.ok(blockedFixtureIds.has(blockedId), `missing blocked fixture ${blockedId}`)
   assert.ok((changeLog.blockedFixtures as string[]).includes(blockedId), `change log missing ${blockedId}`)
 }
 

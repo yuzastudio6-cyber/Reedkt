@@ -148,6 +148,7 @@ assert.equal(plan.futureRequestShape.maxBodyBytes, 65536)
 assert.equal(plan.futureRequestShape.schemaVersion, 'qwen2_5_vl_cloud_run_gpu_runtime_request_v1')
 assert.equal(plan.futureRequestShape.retriesEnabledNow, false)
 
+const futureAuthRequirements = new Set<string>(plan.futureAuthRequirements)
 for (const requirement of [
   'backend_controlled_runtime',
   'minimal_cloud_run_invoker_permission',
@@ -158,10 +159,11 @@ for (const requirement of [
   'no_frontend_tokens',
   'no_unauthenticated_access'
 ]) {
-  assert.ok(plan.futureAuthRequirements.includes(requirement), `missing auth requirement ${requirement}`)
+  assert.ok(futureAuthRequirements.has(requirement), `missing auth requirement ${requirement}`)
   assert.ok((changeLog.futureAuthRequirements as string[]).includes(requirement), `change log missing ${requirement}`)
 }
 
+const blockedBypasses = new Set<string>(plan.blockedBypasses)
 for (const bypass of [
   'direct_frontend_invocation',
   'unauthenticated_invocation',
@@ -175,7 +177,7 @@ for (const bypass of [
   'retry_without_idempotency',
   'credit_spend_without_verified_response_handling'
 ]) {
-  assert.ok(plan.blockedBypasses.includes(bypass), `missing blocked bypass ${bypass}`)
+  assert.ok(blockedBypasses.has(bypass), `missing blocked bypass ${bypass}`)
   assert.ok((changeLog.blockedBypasses as string[]).includes(bypass), `change log missing bypass ${bypass}`)
 }
 

@@ -170,6 +170,7 @@ for (const outcome of [
   assert.ok((changeLog.adapterOutcomes as string[]).includes(outcome), `change log missing outcome ${outcome}`)
 }
 
+const adapterRequirements = new Set<string>(adapter.requiredBeforeEnablingCloudRunInvocation)
 for (const required of [
   'backend_dispatch_route_for_qwen_worker',
   'service_role_transactional_job_claim_and_lease',
@@ -180,13 +181,14 @@ for (const required of [
   'failure_release_or_refund_policy',
   'observability_for_dispatch_attempts_and_results'
 ]) {
-  assert.ok(adapter.requiredBeforeEnablingCloudRunInvocation.includes(required), `adapter missing requirement ${required}`)
+  assert.ok(adapterRequirements.has(required), `adapter missing requirement ${required}`)
   assert.ok(
     (changeLog.requiredBeforeEnablingCloudRunInvocation as string[]).includes(required),
     `change log missing requirement ${required}`
   )
 }
 
+const adapterRefusedInputs = new Set<string>(adapter.refusedInputs)
 for (const refused of [
   'invalid_queue_contract',
   'raw_prompt_payload',
@@ -198,7 +200,7 @@ for (const refused of [
   'missing_credit_reservation',
   'missing_queue_lease'
 ]) {
-  assert.ok(adapter.refusedInputs.includes(refused), `adapter missing refused input ${refused}`)
+  assert.ok(adapterRefusedInputs.has(refused), `adapter missing refused input ${refused}`)
   assert.ok((changeLog.refusedInputs as string[]).includes(refused), `change log missing refused input ${refused}`)
 }
 

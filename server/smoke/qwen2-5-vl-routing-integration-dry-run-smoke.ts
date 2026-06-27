@@ -107,23 +107,29 @@ for (const evaluation of evaluations) {
   }
 }
 
-const blockedAiVideo = evaluations.find((item) => item.caseId === 'blocked_ai_video_generation')
-check(blockedAiVideo?.preferredAfter.includes('wan_video'), 'Wan must remain ahead of Qwen for generated B-roll.')
-check(blockedAiVideo?.preferredAfter.includes('ltx_video'), 'LTX must remain ahead of Qwen for fast-preview video routes.')
+function requireEvaluation(caseId: string) {
+  const found = evaluations.find((item) => item.caseId === caseId)
+  check(Boolean(found), `Missing evaluation ${caseId}`)
+  return found!
+}
 
-const blockedRender = evaluations.find((item) => item.caseId === 'blocked_final_render_export')
-check(blockedRender?.mustNotReplace.includes('remotion'), 'Qwen must not replace Remotion.')
-check(blockedRender?.mustNotReplace.includes('ffmpeg'), 'Qwen must not replace FFmpeg.')
-check(blockedRender?.mustNotReplace.includes('ffprobe'), 'Qwen must not replace ffprobe.')
+const blockedAiVideo = requireEvaluation('blocked_ai_video_generation')
+check(blockedAiVideo.preferredAfter.includes('wan_video'), 'Wan must remain ahead of Qwen for generated B-roll.')
+check(blockedAiVideo.preferredAfter.includes('ltx_video'), 'LTX must remain ahead of Qwen for fast-preview video routes.')
 
-const ocrCase = evaluations.find((item) => item.caseId === 'private_ocr_layout_reasoning')
-check(ocrCase?.preferredAfter.includes('paddleocr'), 'PaddleOCR must precede Qwen for OCR layout reasoning.')
-check(ocrCase?.mustNotReplace.includes('paddleocr'), 'Qwen must not replace PaddleOCR.')
+const blockedRender = requireEvaluation('blocked_final_render_export')
+check(blockedRender.mustNotReplace.includes('remotion'), 'Qwen must not replace Remotion.')
+check(blockedRender.mustNotReplace.includes('ffmpeg'), 'Qwen must not replace FFmpeg.')
+check(blockedRender.mustNotReplace.includes('ffprobe'), 'Qwen must not replace ffprobe.')
 
-const chartCase = evaluations.find((item) => item.caseId === 'private_chart_screen_reasoning')
-check(chartCase?.mustNotReplace.includes('d3'), 'Qwen must not replace D3.')
-check(chartCase?.mustNotReplace.includes('echarts'), 'Qwen must not replace ECharts.')
-check(chartCase?.mustNotReplace.includes('vega_lite'), 'Qwen must not replace Vega-Lite.')
+const ocrCase = requireEvaluation('private_ocr_layout_reasoning')
+check(ocrCase.preferredAfter.includes('paddleocr'), 'PaddleOCR must precede Qwen for OCR layout reasoning.')
+check(ocrCase.mustNotReplace.includes('paddleocr'), 'Qwen must not replace PaddleOCR.')
+
+const chartCase = requireEvaluation('private_chart_screen_reasoning')
+check(chartCase.mustNotReplace.includes('d3'), 'Qwen must not replace D3.')
+check(chartCase.mustNotReplace.includes('echarts'), 'Qwen must not replace ECharts.')
+check(chartCase.mustNotReplace.includes('vega_lite'), 'Qwen must not replace Vega-Lite.')
 
 check(docText.includes('Decision: `qwen_vl_routing_integration_dry_run_no_inference`'), 'Doc must record the dry-run decision.')
 check(docText.includes('This packet integrates the Qwen2.5-VL use-case ranking table'), 'Doc must explain ranking integration.')

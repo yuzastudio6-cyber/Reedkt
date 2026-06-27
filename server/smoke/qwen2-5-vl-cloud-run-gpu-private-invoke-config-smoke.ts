@@ -148,6 +148,7 @@ assert.equal(contract.requiredCandidateDefaults.retriesEnabledNow, false)
 assert.equal(contract.requiredCandidateDefaults.timeoutMs, 300000)
 assert.equal(contract.requiredCandidateDefaults.maxBodyBytes, 65536)
 
+const allowedBackendConfigKeys = new Set<string>(contract.allowedBackendConfigKeys)
 for (const key of [
   'QWEN25_VL_CLOUD_RUN_PROJECT',
   'QWEN25_VL_CLOUD_RUN_REGION',
@@ -157,7 +158,7 @@ for (const key of [
   'QWEN25_VL_CLOUD_RUN_MAX_BODY_BYTES',
   'QWEN25_VL_CLOUD_RUN_INVOCATION_ENABLED'
 ]) {
-  assert.ok(contract.allowedBackendConfigKeys.includes(key), `missing allowed config key ${key}`)
+  assert.ok(allowedBackendConfigKeys.has(key), `missing allowed config key ${key}`)
   assert.ok((changeLog.allowedBackendConfigKeys as string[]).includes(key), `change log missing key ${key}`)
 }
 
@@ -186,6 +187,7 @@ assert.equal(config.validationResults.validCandidate.ok, true)
 assert.equal(config.validationResults.invocationEnabledCandidate.ok, false)
 assert.equal(config.validationResults.storedUrlCandidate.ok, false)
 
+const blockedConfigBypasses = new Set<string>(config.blockedConfigBypasses)
 for (const bypass of [
   'stored_concrete_service_url',
   'stored_identity_token',
@@ -196,7 +198,7 @@ for (const bypass of [
   'timeout_above_service_bound',
   'body_limit_above_runtime_contract'
 ]) {
-  assert.ok(config.blockedConfigBypasses.includes(bypass), `missing bypass ${bypass}`)
+  assert.ok(blockedConfigBypasses.has(bypass), `missing bypass ${bypass}`)
   assert.ok((changeLog.blockedConfigBypasses as string[]).includes(bypass), `change log missing bypass ${bypass}`)
 }
 

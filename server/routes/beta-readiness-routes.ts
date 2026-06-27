@@ -19,6 +19,7 @@ import {
   createBetaPlatformSupabaseDeployedEvidenceProbeTransport,
   type BetaPlatformSupabaseAttestedProbeId,
 } from '../beta-readiness/platform-supabase-deployed-evidence-transport'
+import { buildBetaReadinessBackendOperatorStatus } from '../beta-readiness/beta-readiness-operator-status'
 import { runBetaPlatformBillingQa } from '../beta-readiness/platform-billing-qa'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 import {
@@ -89,6 +90,25 @@ export function createBetaReadinessRoutes(): Router {
     sendOk(response, { report }, [
       'Read-only local platform evidence preflight; no evidence was recorded and no beta/production gate was opened.',
       ...report.missingEvidence.map((item) => `Missing platform evidence: ${item}`),
+    ])
+  }))
+
+  router.get('/v1/beta-readiness/operator-status', requireAuth, asyncRoute(async (request, response) => {
+    const workspaceId = stringQueryValue(request.query.workspaceId)
+    if (!workspaceId) {
+      const status = buildBetaReadinessBackendOperatorStatus(buildBetaReadinessReport())
+      sendOk(response, { status }, status.warnings)
+      return
+    }
+
+    const result = await createBetaReadinessEvidenceService(getServiceContext(request)).getReport(workspaceId)
+    const status = buildBetaReadinessBackendOperatorStatus(result.report, {
+      workspaceId,
+      evidencePacketCount: result.evidencePacketCount,
+    })
+    sendOk(response, { status }, [
+      ...status.warnings,
+      ...result.warnings,
     ])
   }))
 

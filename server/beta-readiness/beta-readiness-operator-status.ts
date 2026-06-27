@@ -1,0 +1,114 @@
+import type { BetaReadinessReport } from './beta-readiness-types'
+
+export interface BetaReadinessBackendOperatorStatusOptions {
+  workspaceId?: string
+  evidencePacketCount?: number
+}
+
+export interface BetaReadinessBackendOperatorStatusReport {
+  readyForExternalBeta: boolean
+  readyForRealUserMediaBeta: boolean
+  readyForPaidProduction: boolean
+  evidenceSource: 'default_source_truth' | 'stored_workspace_evidence'
+  workspaceId?: string
+  evidencePacketCount: number
+  currentGate: {
+    totalTools: number
+    ownerCoverageToolCount: number
+    readinessSpecToolCount: number
+    toolBlockers: number
+    platformBlockers: number
+    productReadyLocalOssCount: number
+    externalBetaToolExecutionAllowed: boolean
+    productionToolExecutionAllowed: boolean
+    blockerPolicy: string
+    safeBlockerReductionAllowed: boolean
+    blockedActionScope: string[]
+  }
+  evidenceGaps: {
+    goNoGoBlockers: string[]
+    blockedChecklistItems: string[]
+    toolBlockers: number
+    platformBlockers: string[]
+  }
+  nextActions: string[]
+  warnings: string[]
+}
+
+export function buildBetaReadinessBackendOperatorStatus(
+  report: BetaReadinessReport,
+  options: BetaReadinessBackendOperatorStatusOptions = {},
+): BetaReadinessBackendOperatorStatusReport {
+  const blockedChecklistItems = report.checklist
+    .filter((item) => item.requiredForExternalBeta && item.status === 'blocked')
+    .map((item) => `${item.id}: ${item.label}`)
+  const blockedActionScope = buildBlockedActionScope(report)
+
+  return {
+    readyForExternalBeta: report.goNoGo.externalBetaAllowed,
+    readyForRealUserMediaBeta: report.goNoGo.realUserMediaBetaAllowed,
+    readyForPaidProduction: report.goNoGo.paidProductionAllowed,
+    evidenceSource: options.workspaceId ? 'stored_workspace_evidence' : 'default_source_truth',
+    workspaceId: options.workspaceId,
+    evidencePacketCount: options.evidencePacketCount ?? 0,
+    currentGate: {
+      totalTools: report.toolExecutionReadiness.totalTools,
+      ownerCoverageToolCount: report.toolExecutionReadiness.ownerCoverageToolCount,
+      readinessSpecToolCount: report.toolExecutionReadiness.readinessSpecToolCount,
+      toolBlockers: report.toolExecutionReadiness.blockers.length,
+      platformBlockers: report.toolExecutionReadiness.platformBlockers.length,
+      productReadyLocalOssCount: report.toolExecutionReadiness.productReadyLocalOssCount,
+      externalBetaToolExecutionAllowed: report.toolExecutionReadiness.externalBetaToolExecutionAllowed,
+      productionToolExecutionAllowed: report.toolExecutionReadiness.productionToolExecutionAllowed,
+      blockerPolicy: report.toolExecutionReadiness.blockerPolicy,
+      safeBlockerReductionAllowed: report.toolExecutionReadiness.safeBlockerReductionAllowed,
+      blockedActionScope,
+    },
+    evidenceGaps: {
+      goNoGoBlockers: report.goNoGo.blockers,
+      blockedChecklistItems,
+      toolBlockers: report.toolExecutionReadiness.blockers.length,
+      platformBlockers: report.toolExecutionReadiness.platformBlockers.map((blocker) => blocker.message),
+    },
+    nextActions: buildNextActions(report, options.workspaceId),
+    warnings: [
+      'Read-only backend operator status; no beta readiness evidence was recorded.',
+      'This status does not run tool checks, process media, call providers, write Supabase records, enable external beta, or enable production.',
+      'Blocked action scopes protect only unsafe beta/production actions while bounded blocker-reduction work remains allowed.',
+    ],
+  }
+}
+
+function buildBlockedActionScope(report: BetaReadinessReport): string[] {
+  const blockedActions = new Set(report.toolExecutionReadiness.blockedActionScope)
+  if (!report.goNoGo.externalBetaAllowed) blockedActions.add('external_beta_launch')
+  if (!report.goNoGo.realUserMediaBetaAllowed) blockedActions.add('real_user_media_beta')
+  if (!report.goNoGo.paidProductionAllowed) blockedActions.add('paid_production_launch')
+  return [...blockedActions]
+}
+
+function buildNextActions(report: BetaReadinessReport, workspaceId?: string): string[] {
+  const actions: string[] = []
+
+  if (!workspaceId) {
+    actions.push('Supply workspaceId to read stored beta-readiness evidence for a deployed workspace.')
+  }
+  if (!report.toolExecutionReadiness.externalBetaToolExecutionAllowed) {
+    actions.push('Record accepted bounded per-tool evidence through /v1/beta-readiness/evidence/core-real-check after real staging checks pass.')
+  }
+  if (report.toolExecutionReadiness.platformBlockers.length > 0) {
+    actions.push('Record deployed platform evidence through /v1/beta-readiness/platform-deployed-evidence/probe after migration, RLS, wallet, monitoring, billing QA, and owner approvals pass.')
+  }
+  if (!report.goNoGo.externalBetaAllowed) {
+    actions.push('Complete the named checklist and owner approval blockers before external beta launch.')
+  }
+  if (!report.goNoGo.realUserMediaBetaAllowed) {
+    actions.push('Keep real user media beta blocked until external beta is approved and real-user-media approval is explicitly recorded.')
+  }
+  if (!report.goNoGo.paidProductionAllowed) {
+    actions.push('Keep paid production blocked until real-user-media beta and paid-production approvals are explicitly recorded.')
+  }
+  actions.push('Rerun the operator status API and local smoke checks from the final source SHA after evidence changes.')
+
+  return [...new Set(actions)]
+}

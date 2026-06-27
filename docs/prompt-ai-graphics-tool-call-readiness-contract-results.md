@@ -228,6 +228,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime readiness gate clarification: the earlier GPU runtime readiness gate still has four image-level probe placements (`gpu_worker_ai_graphics`, `sam2`, `birefnet`, and `real_esrgan` images), but now explicitly references the downstream six native GPU proof profiles. `rembg` and `transparent_background` remain separate on-demand shared-worker proof profiles, not idle GPU services.
 - Latest observed PR state after native GPU proof profile alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ef2e593fd7c169433564cd6fc04d0cc985483a58`, with an empty check rollup.
 - Runtime install-readiness proof alignment: the older 21-tool runtime install-readiness packet now consumes accepted Node/static, browser/canvas/WebGL, and Satori font-fixture proof packets for all 13 JS graphics tools. Stale statuses such as `pending_browser_chart_runtime_proof`, `pending_animation_runtime_proof`, and `blocked_pending_approved_font_fixture_for_text_svg_layout` are rejected by diagnostics; agent execution, route execution, worker execution, beta, and production remain false.
+- Latest observed PR state after JS runtime proof evidence alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `119296472578d7dfe1454c7e55a991be1f2a2935`, with an empty check rollup.
 
 ## Runtime State
 

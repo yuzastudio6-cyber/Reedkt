@@ -427,6 +427,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - The source packet must already report `local_rpc_smoke_passed_with_rollback_fixtures_no_tool_execution`, all 21 tools represented by readiness evidence, and 0 persistent fixture rows after rollback.
 - Diagnostic coverage proves packet-fed adapter readiness stays `adapter_local_smoke_prepared_not_executed` unless explicit local smoke confirmation and local service-role credentials are supplied.
 - Runtime remains blocked: `toolExecutionPerformed=false`, `runtimeReadyNow=false`, `productionReadyNow=false`, no GPU runtime starts, and no live production worker dispatch is approved.
+- Latest observed PR state after service-role RPC adapter source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `7d75fd4c8ff9a9f8dd87323dd543e8e061b0fc01`, with an empty check rollup.
 
 ## No-Scope
 

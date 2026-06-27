@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { dirname, join, parse } from 'node:path'
 import type { ProductionToolId } from '../../tool-registry'
 import type { ProductionReadinessStatus } from './production-tool-readiness-types'
 import { CORE_TOOL_COMMAND_CHECKS, type CoreToolCommandCheckDefinition } from './core-tool-command-checks'
@@ -231,7 +233,7 @@ function runNodePackageCheck(
   checkedAt: string,
 ): CoreToolReadinessCheckResult {
   try {
-    const resolvedPath = requireFromReadiness.resolve(definition.packageJsonPath)
+    const resolvedPath = resolvePackageMetadataPath(definition)
     return {
       toolId: definition.toolId,
       checkKind: 'node_package_metadata',
@@ -261,6 +263,24 @@ function runNodePackageCheck(
       checkedAt,
     }
   }
+}
+
+function resolvePackageMetadataPath(definition: CoreToolNodePackageCheckDefinition): string {
+  try {
+    return requireFromReadiness.resolve(definition.packageJsonPath)
+  } catch (error) {
+    const packageJsonExportError = error as { code?: string }
+    if (packageJsonExportError.code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED') throw error
+  }
+
+  let current = dirname(requireFromReadiness.resolve(definition.packageName))
+  const root = parse(current).root
+  while (current && current !== root) {
+    const candidate = join(current, 'package.json')
+    if (existsSync(candidate)) return candidate
+    current = dirname(current)
+  }
+  throw new Error(`${definition.packageName} package metadata is not resolvable from ${definition.packageName}.`)
 }
 
 function dryRunResult(

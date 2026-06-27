@@ -130,8 +130,10 @@ REQUIRED_MODEL_MANIFEST_FIELDS = [
     "sourceCandidateId",
     "privateArtifactRef",
     "checksumSha256",
+    "checksumEvidenceRef",
     "sourceLicenseRef",
     "modelCardRef",
+    "checksumEvidenceReviewed",
     "commercialUseReviewed",
     "redistributionReviewed",
     "qualityReviewed",
@@ -141,6 +143,7 @@ REQUIRED_MODEL_MANIFEST_FIELDS = [
 ]
 
 REVIEW_BOOLEAN_FIELDS = [
+    "checksumEvidenceReviewed",
     "commercialUseReviewed",
     "redistributionReviewed",
     "qualityReviewed",
@@ -259,20 +262,20 @@ def require_non_empty_string(manifest: dict[str, Any], field: str, tool_id: str)
     return value.strip()
 
 
-def validate_private_artifact_ref(value: str, tool_id: str) -> None:
+def validate_private_artifact_ref(value: str, tool_id: str, field_name: str = "privateArtifactRef") -> None:
     lower = value.lower()
     if lower.startswith("http://") or lower.startswith("https://"):
-        raise RuntimeError(f"{tool_id} privateArtifactRef must not be an HTTP(S) URL.")
+        raise RuntimeError(f"{tool_id} {field_name} must not be an HTTP(S) URL.")
     if "x-goog-signature=" in lower or "x-amz-signature=" in lower or "signature=" in lower:
-        raise RuntimeError(f"{tool_id} privateArtifactRef must not be a signed URL.")
+        raise RuntimeError(f"{tool_id} {field_name} must not be a signed URL.")
     if lower.startswith("public/") or "/public/" in lower or lower.startswith("gs://public"):
-        raise RuntimeError(f"{tool_id} privateArtifactRef must not point at a public artifact path.")
+        raise RuntimeError(f"{tool_id} {field_name} must not point at a public artifact path.")
     allowed_private_namespace = lower.startswith("private://") or \
         lower.startswith("reeditpro-private://") or \
         lower.startswith("reeditpro-private-artifact-ref-")
     if not allowed_private_namespace:
         raise RuntimeError(
-            f"{tool_id} privateArtifactRef must use a reviewed private artifact ref namespace."
+            f"{tool_id} {field_name} must use a reviewed private artifact ref namespace."
         )
 
 
@@ -317,6 +320,9 @@ def validate_model_manifest(manifest_path: Path, tool_id: str) -> dict[str, str]
             f"{tool_id} model manifest checksumSha256 must match reviewed source-catalog checksum."
         )
 
+    checksum_evidence_ref = require_non_empty_string(manifest, "checksumEvidenceRef", tool_id)
+    validate_private_artifact_ref(checksum_evidence_ref, tool_id, "checksumEvidenceRef")
+
     require_non_empty_string(manifest, "sourceLicenseRef", tool_id)
     require_non_empty_string(manifest, "modelCardRef", tool_id)
 
@@ -337,6 +343,7 @@ def validate_model_manifest(manifest_path: Path, tool_id: str) -> dict[str, str]
         "sourceCatalogSuggestedChecksumSha256": expected_checksum,
         "sourceCatalogChecksumEvidenceStatus": MODEL_MANIFEST_CHECKSUM_EVIDENCE_STATUS[tool_id],
         "privateArtifactRefStatus": "present_private_ref_not_logged",
+        "checksumEvidenceRefStatus": "present_private_ref_not_logged",
         "checksumSha256": checksum,
         "status": "validated_not_loaded",
     }

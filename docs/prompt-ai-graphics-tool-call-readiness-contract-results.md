@@ -234,6 +234,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Native proof checksum boundary hardening: the native GPU readiness probe and GPU runtime proof-result validator now enforce reviewed source-catalog checksum guidance for `sam2`, `birefnet`, and `real_esrgan` all the way through native proof intake. Bad proof-result packets with mismatched manifest checksums fail closed, `sourceCatalogChecksumGuidanceEnforced=true`, `suggestedChecksumMismatchRejected=true`, and GPU runtime remains on-demand only with no model load, inference, route/worker execution, beta, or production unlock.
 - Install-readiness output clarification: `ai-graphics:21-tool-runtime-install-readiness:diagnostics` now reports `gpuToolsCovered=8` separately from `gpuRequirementLinesChecked=7`, because `sam2` is pinned from source in the Dockerfile rather than listed as a requirements-file line. The diagnostic also asserts all 8 GPU/model tools target `gpu_ai_worker`.
 - Latest observed PR state after native proof checksum boundary hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `dbbb6a3304c7c8299ac9566e19e35de6d0decf91`, with an empty check rollup.
+- Private checksum-evidence hardening: private model-weight manifests now require both `checksumEvidenceRef` and `checksumEvidenceReviewed=true` before native GPU proof input can be accepted. The native GPU readiness probe validates the checksum-evidence ref with the same private/ref-redaction boundary as model artifacts, the GPU proof-result validator requires `model_manifest_checksum_evidence_ref_validated`, and beta/local evidence fixtures now prove the stricter shape without leaking private refs. This protects `rembg` and `transparent_background`, which still need reviewed private artifact SHA-256 evidence, and does not unlock model download/load/inference, route/worker execution, GPU runtime, beta, or production.
 
 ## Runtime State
 
@@ -276,6 +277,9 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - `productionWorkerGateChecksValidateGpuRuntimeActivationPolicy=true`
 - `privateArtifactManifestPrivateSchemeRequired=true`
 - `privateArtifactRefNamespaceRequired=true`
+- `checksumEvidenceRefRequired=true`
+- `checksumEvidenceReviewRequired=true`
+- `modelManifestChecksumEvidenceRefValidatedRequired=true`
 - `privateArtifactRefNamespaceAccepted=true only with model-weight and GPU proof namespace evidence`
 - `sourceCatalogChecksumGuidanceEnforced=true`
 - `suggestedChecksumMismatchRejected=true`

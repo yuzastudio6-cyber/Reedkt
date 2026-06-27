@@ -179,8 +179,10 @@ function manifestRecord(toolId) {
     sourceCandidateId: sourceCandidateIdByTool[toolId],
     privateArtifactRef: `reeditpro-private-artifact-ref-redacted-${toolId}`,
     checksumSha256: sourceCatalogChecksumSha256ByTool[toolId] ?? 'a'.repeat(64),
+    checksumEvidenceRef: `reeditpro-private-artifact-ref-redacted-checksum-evidence-${toolId}`,
     sourceLicenseRef: `reviewed-private-license-record-${toolId}`,
     modelCardRef: `reviewed-private-model-card-${toolId}`,
+    checksumEvidenceReviewed: true,
     commercialUseReviewed: true,
     redistributionReviewed: true,
     qualityReviewed: true,
@@ -199,6 +201,7 @@ function manifestCheck(toolId) {
     sourceCatalogSuggestedChecksumSha256: sourceCatalogChecksumSha256ByTool[toolId],
     sourceCatalogChecksumEvidenceStatus: sourceCatalogChecksumEvidenceStatusByTool[toolId],
     privateArtifactRefStatus: 'present_private_ref_not_logged',
+    checksumEvidenceRefStatus: 'present_private_ref_not_logged',
     checksumSha256: sourceCatalogChecksumSha256ByTool[toolId] ?? 'b'.repeat(64),
     status: 'validated_not_loaded',
   }

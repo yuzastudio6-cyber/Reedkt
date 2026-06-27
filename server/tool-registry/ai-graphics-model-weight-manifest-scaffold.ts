@@ -36,6 +36,7 @@ export interface AiGraphicsModelWeightManifestAuthoringChecklistItem {
   acceptedPrivateArtifactRefNamespaces: ['private://', 'reeditpro-private://', 'reeditpro-private-artifact-ref-']
   requiredManifestFields: string[]
   requiredReviewBooleans: [
+    'checksumEvidenceReviewed',
     'commercialUseReviewed',
     'redistributionReviewed',
     'qualityReviewed',
@@ -162,8 +163,10 @@ const requiredManifestFields = [
   'sourceCandidateId',
   'privateArtifactRef',
   'checksumSha256',
+  'checksumEvidenceRef',
   'sourceLicenseRef',
   'modelCardRef',
+  'checksumEvidenceReviewed',
   'commercialUseReviewed',
   'redistributionReviewed',
   'qualityReviewed',
@@ -173,6 +176,7 @@ const requiredManifestFields = [
 ]
 
 const requiredReviewBooleans = [
+  'checksumEvidenceReviewed',
   'commercialUseReviewed',
   'redistributionReviewed',
   'qualityReviewed',
@@ -206,8 +210,10 @@ function placeholderRecordForTool(
     sourceCandidateId: sourceCandidateIdForTool(toolId),
     privateArtifactRef: `public://replace-with-reviewed-private-artifact-ref/${directoryName}/model_tree_manifest.json`,
     checksumSha256: 'REPLACE_WITH_64_HEX_SHA256',
+    checksumEvidenceRef: `public://replace-with-reviewed-private-checksum-evidence/${directoryName}.json`,
     sourceLicenseRef: `private://replace-with-reviewed-source-license-evidence/${directoryName}.json`,
     modelCardRef: `private://replace-with-reviewed-model-card-provenance/${directoryName}.json`,
+    checksumEvidenceReviewed: false,
     commercialUseReviewed: false,
     redistributionReviewed: false,
     qualityReviewed: false,

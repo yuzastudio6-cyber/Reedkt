@@ -71,8 +71,10 @@ const requiredManifestFields = [
   'sourceCandidateId',
   'privateArtifactRef',
   'checksumSha256',
+  'checksumEvidenceRef',
   'sourceLicenseRef',
   'modelCardRef',
+  'checksumEvidenceReviewed',
   'commercialUseReviewed',
   'redistributionReviewed',
   'qualityReviewed',
@@ -239,6 +241,8 @@ for (const key of [
   'all5TemplateTypesCovered',
   'privateArtifactManifestRequired',
   'checksumRequired',
+  'checksumEvidenceRefRequired',
+  'checksumEvidenceReviewRequired',
   'licenseReviewRequired',
   'provenanceReviewRequired',
   'qualityReviewRequired',
@@ -290,7 +294,7 @@ for (const token of [
   'blocked_model_manifest_validation_failed',
   'validated_not_loaded',
   'present_private_ref_not_logged',
-  'privateArtifactRef must not be an HTTP(S) URL',
+  'must use a reviewed private artifact ref namespace',
   'checksumSha256 must be a 64-character hex SHA-256 digest',
 ]) {
   if (!runtimeProbe.includes(token)) fail(`runtime_probe_missing:${token}`)

@@ -87,6 +87,7 @@ The generated templates are intentionally invalid until owner-reviewed:
 
 - `privateArtifactRef` starts with `public://replace-with-reviewed-private-artifact-ref/...`, which validation rejects.
 - `checksumSha256` is `REPLACE_WITH_64_HEX_SHA256`, which validation rejects.
+- `checksumEvidenceRef` is a public placeholder and must be replaced with a reviewed private checksum evidence ref.
 - `sourceCandidateId` is prefilled from the source catalog and must not be changed unless a later reviewed source-catalog lane selects a different candidate.
 - All review booleans are `false`.
 - The local checklist reports `committedManifestApproved=false` for every tool.

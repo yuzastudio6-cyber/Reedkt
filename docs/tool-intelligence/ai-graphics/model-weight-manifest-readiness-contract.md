@@ -40,8 +40,10 @@ Each approved private manifest must include:
 - `sourceCandidateId`
 - `privateArtifactRef`
 - `checksumSha256`
+- `checksumEvidenceRef`
 - `sourceLicenseRef`
 - `modelCardRef`
+- `checksumEvidenceReviewed`
 - `commercialUseReviewed`
 - `redistributionReviewed`
 - `qualityReviewed`
@@ -49,8 +51,9 @@ Each approved private manifest must include:
 - `provenanceReviewed`
 - `approvedForInternalBeta`
 
-The runtime probe rejects public or signed URL artifact refs, invalid SHA-256
-checksums, mismatched `toolId`/`templateId`/`sourceCandidateId`, false review booleans, and any
+The runtime probe rejects public or signed URL artifact/checksum evidence refs,
+invalid SHA-256 checksums, missing private checksum evidence, mismatched
+`toolId`/`templateId`/`sourceCandidateId`, false review booleans, and any
 manifest claim that model weights, inference, media processing, Tool Routes,
 Workers, public artifacts, or signed URLs already executed.
 

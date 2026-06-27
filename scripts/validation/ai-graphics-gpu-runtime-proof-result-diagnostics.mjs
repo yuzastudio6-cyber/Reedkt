@@ -221,6 +221,7 @@ function manifestCheck(toolId) {
     sourceCatalogSuggestedChecksumSha256: sourceCatalogChecksumSha256ByTool[toolId],
     sourceCatalogChecksumEvidenceStatus: sourceCatalogChecksumEvidenceStatusByTool[toolId],
     privateArtifactRefStatus: 'present_private_ref_not_logged',
+    checksumEvidenceRefStatus: 'present_private_ref_not_logged',
     checksumSha256: sourceCatalogChecksumSha256ByTool[toolId] ?? 'b'.repeat(64),
     status: 'validated_not_loaded',
   }
@@ -403,6 +404,7 @@ for (const token of [
   'model_manifest_checks_validated_not_loaded',
   'model_manifest_private_namespace_enforced',
   'model_manifest_source_catalog_checksum_enforced',
+  'model_manifest_checksum_evidence_ref_validated',
   'private_artifact_refs_not_logged',
   'runtime_side_effect_fields_false',
 ]) {
@@ -419,9 +421,11 @@ for (const token of [
   'invalid_native_gpu_runtime_proof_results',
   'capability>=8.9',
   'privateArtifactRefStatus',
+  'checksumEvidenceRefStatus',
   'sourceCatalogSuggestedChecksumSha256',
   'sourceCatalogChecksumEvidenceStatus',
   'source-catalog checksum',
+  'model_manifest_checksum_evidence_ref_validated',
   'validated_not_loaded',
   'duplicate native GPU proof result records',
 ]) {
@@ -495,7 +499,7 @@ for (const token of [
   'private://',
   'reeditpro-private://',
   'reeditpro-private-artifact-ref-',
-  'privateArtifactRef must use a reviewed private artifact ref namespace',
+  '{field_name} must use a reviewed private artifact ref namespace',
 ]) {
   if (!runtimeProbeSource.includes(token)) fail(`runtime_probe_missing_private_namespace_guard:${token}`)
 }

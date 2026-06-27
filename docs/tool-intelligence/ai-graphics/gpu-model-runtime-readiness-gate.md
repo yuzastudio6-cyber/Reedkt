@@ -51,10 +51,11 @@ execution, Supabase mutation, and GCS upload.
 
 When model manifests are required, the script now validates the
 `model_tree_manifest.json` content for exact `toolId`/`templateId`, non-empty
-private artifact and provenance refs, a 64-character `checksumSha256`, all
-review booleans set to true, no public or signed URL artifact refs, and no
-claims that model weights, inference, media, routes, workers, public artifacts,
-or signed URLs already executed.
+private artifact, checksum evidence, and provenance refs, a 64-character
+`checksumSha256`, all review booleans set to true including
+`checksumEvidenceReviewed`, no public or signed URL artifact/evidence refs, and
+no claims that model weights, inference, media, routes, workers, public
+artifacts, or signed URLs already executed.
 
 When reviewed source-catalog checksum guidance exists, the manifest
 `checksumSha256` must match that guidance exactly before the manifest can feed

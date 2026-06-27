@@ -854,3 +854,9 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Backend/service-role ref propagation hardening: backend queue storage and service-role transaction envelopes now independently verify all 21 approved snapshot refs and all 21 credit reservation refs before reporting their mock queue records or no-write service-role envelopes ready with provided evidence.
 - AI graphics worker handoff routing: production worker payloads now carry `aiGraphicsToolCallHandoff` metadata in `metadata_dry_run` mode, and dispatcher probes require all 21 tools to resolve to AI-graphics-specific mock-safe handoff handlers. This prepares the future approved worker/tool-call path without enabling live queue dispatch, tool execution, GPU/browser runtime, beta, or production.
 - Runtime/beta/production: no unlock; `internalBetaGoNoGoReadyWithProvidedEvidence=true` can be used for the next explicit owner go/no-go packet, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Private Checksum-Evidence Hardening
+
+- Decision remains `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`.
+- Private model-weight manifests now require `checksumEvidenceRef` and `checksumEvidenceReviewed=true` before native GPU proof input can be accepted. The native GPU readiness probe validates checksum evidence through private/ref-redacted refs, and the GPU proof-result validator requires `model_manifest_checksum_evidence_ref_validated`.
+- This is readiness hardening only. It does not download model weights, load models, run inference, execute tools, run routes/workers/providers, run GPU runtime, create artifacts, unlock internal beta, unlock external beta, or unlock production.

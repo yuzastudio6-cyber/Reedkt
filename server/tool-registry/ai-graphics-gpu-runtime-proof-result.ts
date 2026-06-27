@@ -273,6 +273,7 @@ const requiredProofChecks = [
   'model_manifest_checks_validated_not_loaded',
   'model_manifest_private_namespace_enforced',
   'model_manifest_source_catalog_checksum_enforced',
+  'model_manifest_checksum_evidence_ref_validated',
   'private_artifact_refs_not_logged',
   'runtime_side_effect_fields_false',
 ] as const
@@ -436,6 +437,10 @@ function validateModelManifestChecks(
     }
     if (check.privateArtifactRefStatus !== 'present_private_ref_not_logged') {
       errors.push(`${toolId} model manifest check must report present_private_ref_not_logged.`)
+      accepted = false
+    }
+    if (check.checksumEvidenceRefStatus !== 'present_private_ref_not_logged') {
+      errors.push(`${toolId} model manifest check checksumEvidenceRefStatus must report present_private_ref_not_logged.`)
       accepted = false
     }
     if (!sha256Pattern.test(String(check.checksumSha256 ?? ''))) {

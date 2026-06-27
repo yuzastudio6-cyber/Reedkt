@@ -100,6 +100,7 @@
     "model_manifest_checks_validated_not_loaded",
     "model_manifest_private_namespace_enforced",
     "model_manifest_source_catalog_checksum_enforced",
+    "model_manifest_checksum_evidence_ref_validated",
     "private_artifact_refs_not_logged",
     "runtime_side_effect_fields_false"
   ],

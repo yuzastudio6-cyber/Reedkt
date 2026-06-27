@@ -39,8 +39,10 @@ export interface AiGraphicsModelWeightManifestEvidenceRecord {
   sourceCandidateId: string
   privateArtifactRef: string
   checksumSha256: string
+  checksumEvidenceRef: string
   sourceLicenseRef: string
   modelCardRef: string
+  checksumEvidenceReviewed: boolean
   commercialUseReviewed: boolean
   redistributionReviewed: boolean
   qualityReviewed: boolean
@@ -142,6 +144,7 @@ export interface AiGraphicsModelWeightManifestValidationResult {
   expectedSourceCandidateId: string | null
   sourceCatalogSuggestedChecksumSha256: string | null
   sourceCatalogChecksumEvidenceStatus: string | null
+  checksumEvidenceRefStatus: AiGraphicsPrivateArtifactRefStatus
   manifestRecordProvided: boolean
   schemaValid: boolean
   reviewAccepted: boolean
@@ -176,6 +179,8 @@ export interface AiGraphicsModelWeightManifestReviewPacket {
     privateArtifactRefsNotLogged: true
     publicOrSignedArtifactRefsRejected: true
     checksumSha256Required: true
+    checksumEvidenceRefRequired: true
+    checksumEvidenceReviewRequired: true
     sourceCatalogChecksumGuidanceEnforced: true
     suggestedChecksumMismatchRejected: true
     licenseReviewRequired: true
@@ -215,8 +220,10 @@ const requiredManifestFields = [
   'sourceCandidateId',
   'privateArtifactRef',
   'checksumSha256',
+  'checksumEvidenceRef',
   'sourceLicenseRef',
   'modelCardRef',
+  'checksumEvidenceReviewed',
   'commercialUseReviewed',
   'redistributionReviewed',
   'qualityReviewed',
@@ -230,11 +237,13 @@ const requiredManifestStringFields = [
   'sourceCandidateId',
   'privateArtifactRef',
   'checksumSha256',
+  'checksumEvidenceRef',
   'sourceLicenseRef',
   'modelCardRef',
 ] as const satisfies readonly (keyof AiGraphicsModelWeightManifestEvidenceRecord)[]
 
 const requiredManifestReviewBooleanFields = [
+  'checksumEvidenceReviewed',
   'commercialUseReviewed',
   'redistributionReviewed',
   'qualityReviewed',
@@ -360,8 +369,10 @@ function manifestRecordIsApproved(
       hasText(record.sourceCandidateId) &&
       hasText(record.privateArtifactRef) &&
       hasText(record.checksumSha256) &&
+      hasText(record.checksumEvidenceRef) &&
       hasText(record.sourceLicenseRef) &&
       hasText(record.modelCardRef) &&
+      record.checksumEvidenceReviewed &&
       record.commercialUseReviewed &&
       record.redistributionReviewed &&
       record.qualityReviewed &&
@@ -415,6 +426,7 @@ export function validateAiGraphicsModelWeightManifestRecord(
       expectedSourceCandidateId: expectedSourceCandidateIdForTool(toolId),
       sourceCatalogSuggestedChecksumSha256,
       sourceCatalogChecksumEvidenceStatus,
+      checksumEvidenceRefStatus: 'missing',
       manifestRecordProvided: false,
       schemaValid: false,
       reviewAccepted: false,
@@ -466,9 +478,15 @@ export function validateAiGraphicsModelWeightManifestRecord(
   }
 
   const artifactRefStatus = privateArtifactRefStatus(record.privateArtifactRef)
+  const checksumEvidenceRefStatus = privateArtifactRefStatus(record.checksumEvidenceRef)
   if (artifactRefStatus === 'invalid_public_or_signed_ref') {
     errors.push(
       'privateArtifactRef must be a reviewed private storage reference using private://, reeditpro-private://, or reeditpro-private-artifact-ref-; HTTP(S), public, signed, raw gs://, and arbitrary placeholders are rejected.',
+    )
+  }
+  if (checksumEvidenceRefStatus === 'invalid_public_or_signed_ref') {
+    errors.push(
+      'checksumEvidenceRef must be a reviewed private checksum evidence reference using private://, reeditpro-private://, or reeditpro-private-artifact-ref-; HTTP(S), public, signed, raw gs://, and arbitrary placeholders are rejected.',
     )
   }
 
@@ -488,6 +506,7 @@ export function validateAiGraphicsModelWeightManifestRecord(
     expectedSourceCandidateId,
     sourceCatalogSuggestedChecksumSha256,
     sourceCatalogChecksumEvidenceStatus,
+    checksumEvidenceRefStatus,
     manifestRecordProvided: true,
     schemaValid,
     reviewAccepted,
@@ -530,8 +549,10 @@ function buildRequirement(
     !evidenceRecord ? `${input.templateId} reviewed private manifest record is missing.` : undefined,
     evidenceRecord && !hasText(evidenceRecord.privateArtifactRef) ? `${input.templateId} private artifact ref is missing.` : undefined,
     evidenceRecord && !hasText(evidenceRecord.checksumSha256) ? `${input.templateId} checksumSha256 is missing.` : undefined,
+    evidenceRecord && !hasText(evidenceRecord.checksumEvidenceRef) ? `${input.templateId} checksum evidence ref is missing.` : undefined,
     evidenceRecord && !hasText(evidenceRecord.sourceLicenseRef) ? `${input.templateId} source/license evidence ref is missing.` : undefined,
     evidenceRecord && !hasText(evidenceRecord.modelCardRef) ? `${input.templateId} model card or provenance ref is missing.` : undefined,
+    evidenceRecord && !evidenceRecord.checksumEvidenceReviewed ? `${input.templateId} checksum evidence review is not accepted.` : undefined,
     evidenceRecord && !evidenceRecord.commercialUseReviewed ? `${input.templateId} commercial-use review is not accepted.` : undefined,
     evidenceRecord && !evidenceRecord.redistributionReviewed ? `${input.templateId} redistribution review is not accepted.` : undefined,
     evidenceRecord && !evidenceRecord.qualityReviewed ? `${input.templateId} quality review is not accepted.` : undefined,
@@ -594,6 +615,7 @@ export function buildAiGraphicsModelWeightManifestReviewPacket(
       'privateArtifactRef must use an approved private artifact namespace; raw gs://, HTTP(S), signed, public, or arbitrary placeholder refs are rejected.',
       'sourceCandidateId must match the selected ReeditPro source-catalog candidate for the tool before native GPU proof input can be eligible.',
       'When the source catalog includes reviewed checksum guidance, checksumSha256 must match that value before native GPU proof input can be eligible.',
+      'checksumEvidenceRef must point to private checksum evidence, and checksumEvidenceReviewed must be true before native GPU proof input can be eligible.',
       'Reviewed private manifests are only inputs to later native GPU proof; they do not approve model download, model load, or inference.',
       'Native linux/amd64 NVIDIA L4 proof, Tool Route gating, Worker gating, approved snapshot, credit reservation, private artifact boundary, and owner beta gates remain blocked.',
       'Agent/tool/route/worker/provider execution, media processing, signed URLs, public artifacts, beta, and production remain blocked.',
@@ -608,6 +630,8 @@ export function buildAiGraphicsModelWeightManifestReviewPacket(
       privateArtifactRefsNotLogged: true,
       publicOrSignedArtifactRefsRejected: true,
       checksumSha256Required: true,
+      checksumEvidenceRefRequired: true,
+      checksumEvidenceReviewRequired: true,
       sourceCatalogChecksumGuidanceEnforced: true,
       suggestedChecksumMismatchRejected: true,
       licenseReviewRequired: true,

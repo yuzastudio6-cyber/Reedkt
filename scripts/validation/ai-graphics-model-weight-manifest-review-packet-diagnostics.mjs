@@ -62,8 +62,10 @@ const requiredManifestFields = [
   'sourceCandidateId',
   'privateArtifactRef',
   'checksumSha256',
+  'checksumEvidenceRef',
   'sourceLicenseRef',
   'modelCardRef',
+  'checksumEvidenceReviewed',
   'commercialUseReviewed',
   'redistributionReviewed',
   'qualityReviewed',
@@ -192,6 +194,7 @@ for (const tool of modelWeightTools) {
   if (result?.sourceCatalogChecksumEvidenceStatus !== sourceCatalogChecksumEvidenceStatusByTool[tool]) {
     fail(`source_catalog_checksum_evidence_status_mismatch:${tool}:${result?.sourceCatalogChecksumEvidenceStatus}`)
   }
+  if (result?.checksumEvidenceRefStatus !== 'missing') fail(`checksum_evidence_ref_status_not_missing:${tool}`)
   if (result?.schemaValid !== false) fail(`schema_valid_not_false_without_private_record:${tool}`)
   if (result?.reviewAccepted !== false) fail(`review_accepted_not_false_without_private_record:${tool}`)
   if (result?.eligibleForNativeGpuProofInput !== false) fail(`gpu_proof_input_not_false_without_private_record:${tool}`)
@@ -222,9 +225,11 @@ for (const token of [
   'expectedSourceCandidateId',
   'sourceCatalogSuggestedChecksumSha256',
   'sourceCatalogChecksumEvidenceStatus',
+  'checksumEvidenceRefStatus',
   'sourceCandidateId must be',
   'source-catalog checksum',
   'checksumSha256 must match reviewed source-catalog checksum',
+  'checksumEvidenceRef must be a reviewed private checksum evidence reference',
   'sha256Pattern',
   'privateArtifactRefNamespaceRequired',
   'present_private_ref_not_logged',
@@ -248,6 +253,8 @@ for (const key of [
   'privateArtifactRefsNotLogged',
   'publicOrSignedArtifactRefsRejected',
   'checksumSha256Required',
+  'checksumEvidenceRefRequired',
+  'checksumEvidenceReviewRequired',
   'sourceCatalogChecksumGuidanceEnforced',
   'suggestedChecksumMismatchRejected',
   'licenseReviewRequired',
@@ -280,8 +287,10 @@ function writeManifestFixtures(directory, override = {}) {
       sourceCandidateId: sourceCandidateIdByTool[toolId],
       privateArtifactRef: `private://reeditpro/ai-graphics/model-weights/${toolId}/model_tree_manifest.json`,
       checksumSha256: sourceCatalogSuggestedChecksumSha256ByTool[toolId] ?? 'a'.repeat(64),
+      checksumEvidenceRef: `private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
       sourceLicenseRef: `private://reeditpro/license-evidence/${toolId}.json`,
       modelCardRef: `private://reeditpro/model-card/${toolId}.json`,
+      checksumEvidenceReviewed: true,
       commercialUseReviewed: true,
       redistributionReviewed: true,
       qualityReviewed: true,
@@ -414,6 +423,34 @@ try {
   }
 } finally {
   fs.rmSync(invalidNamespaceFixtureDir, { recursive: true, force: true })
+}
+
+const invalidChecksumEvidenceFixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-model-manifest-invalid-checksum-evidence-'))
+try {
+  writeManifestFixtures(invalidChecksumEvidenceFixtureDir, {
+    rembg: {
+      checksumEvidenceRef: 'https://example.invalid/rembg/checksum.json',
+    },
+  })
+  runValidator(invalidChecksumEvidenceFixtureDir)
+  fail('fixture_invalid_checksum_evidence_cli_unexpected_success')
+} catch (error) {
+  const output = String(error.stdout || '')
+  if (!output) {
+    fail(`fixture_invalid_checksum_evidence_cli_missing_output:${error.message}`)
+  } else {
+    const parsed = JSON.parse(output)
+    const rembg = parsed.validationResults?.find((entry) => entry.toolId === 'rembg')
+    if (rembg?.checksumEvidenceRefStatus !== 'invalid_public_or_signed_ref') {
+      fail(`fixture_invalid_checksum_evidence_status_unexpected:${rembg?.checksumEvidenceRefStatus}`)
+    }
+    if (!rembg?.errors?.some((message) => /checksum evidence reference/.test(message))) {
+      fail('fixture_invalid_checksum_evidence_error_missing')
+    }
+    if (output.includes('https://example.invalid')) fail('fixture_invalid_checksum_evidence_ref_leaked')
+  }
+} finally {
+  fs.rmSync(invalidChecksumEvidenceFixtureDir, { recursive: true, force: true })
 }
 
 const invalidSourceCandidateFixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-model-manifest-invalid-source-candidate-'))

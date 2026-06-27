@@ -128,8 +128,10 @@ function makeValidManifest(toolId) {
     sourceCandidateId: expectedCandidateIds[toolId],
     privateArtifactRef: `private://reeditpro/ai-graphics/model-weights/${directoryNameByTool[toolId]}/model_tree_manifest.json`,
     checksumSha256: expectedSuggestedChecksums[toolId] ?? 'b'.repeat(64),
+    checksumEvidenceRef: `private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
     sourceLicenseRef: `private://reeditpro/license-evidence/${toolId}.json`,
     modelCardRef: `private://reeditpro/model-card/${toolId}.json`,
+    checksumEvidenceReviewed: true,
     commercialUseReviewed: true,
     redistributionReviewed: true,
     qualityReviewed: true,
@@ -407,7 +409,11 @@ for (const tool of modelWeightTools) {
     fail(`scaffold_private_ref_placeholder_not_invalid:${tool}`)
   }
   if (manifest.checksumSha256 !== 'REPLACE_WITH_64_HEX_SHA256') fail(`scaffold_checksum_placeholder_mismatch:${tool}`)
+  if (!manifest.checksumEvidenceRef.startsWith('public://replace-with-reviewed-private-checksum-evidence/')) {
+    fail(`scaffold_checksum_evidence_ref_placeholder_not_invalid:${tool}`)
+  }
   for (const field of [
+    'checksumEvidenceReviewed',
     'commercialUseReviewed',
     'redistributionReviewed',
     'qualityReviewed',
@@ -441,6 +447,12 @@ for (const tool of modelWeightTools) {
   }
   if (!checklistItem?.requiredManifestFields?.includes('sourceCandidateId')) {
     fail(`scaffold_checklist_missing_source_candidate_field:${tool}`)
+  }
+  if (!checklistItem?.requiredManifestFields?.includes('checksumEvidenceRef')) {
+    fail(`scaffold_checklist_missing_checksum_evidence_ref_field:${tool}`)
+  }
+  if (!checklistItem?.requiredReviewBooleans?.includes('checksumEvidenceReviewed')) {
+    fail(`scaffold_checklist_missing_checksum_evidence_review_boolean:${tool}`)
   }
   if (!checklistItem?.validationCommands?.some((command) => command.includes('model-weight-manifest-review:validate'))) {
     fail(`scaffold_checklist_missing_manifest_validation_command:${tool}`)

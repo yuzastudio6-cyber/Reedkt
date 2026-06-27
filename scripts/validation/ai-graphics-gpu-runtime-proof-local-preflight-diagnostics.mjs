@@ -191,8 +191,10 @@ function validManifest(toolId) {
     sourceCandidateId: sourceCandidateIdByTool[toolId],
     privateArtifactRef: `private://reeditpro/ai-graphics/model-weights/${directoryNameByTool[toolId]}/model_tree_manifest.json`,
     checksumSha256: sourceCatalogChecksumSha256ByTool[toolId] ?? 'c'.repeat(64),
+    checksumEvidenceRef: `private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
     sourceLicenseRef: `private://reeditpro/license-evidence/${toolId}.json`,
     modelCardRef: `private://reeditpro/model-card/${toolId}.json`,
+    checksumEvidenceReviewed: true,
     commercialUseReviewed: true,
     redistributionReviewed: true,
     qualityReviewed: true,
@@ -223,6 +225,7 @@ function manifestCheck(toolId) {
     sourceCatalogSuggestedChecksumSha256: sourceCatalogChecksumSha256ByTool[toolId],
     sourceCatalogChecksumEvidenceStatus: sourceCatalogChecksumEvidenceStatusByTool[toolId],
     privateArtifactRefStatus: 'present_private_ref_not_logged',
+    checksumEvidenceRefStatus: 'present_private_ref_not_logged',
     checksumSha256: sourceCatalogChecksumSha256ByTool[toolId] ?? 'd'.repeat(64),
     status: 'validated_not_loaded',
   }

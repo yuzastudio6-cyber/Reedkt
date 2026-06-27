@@ -30,6 +30,7 @@ const REQUIRED_PHRASES = [
   "| Docker build run | false |",
   "| Docker push run | false |",
   "| Artifact Registry image created | false |",
+  "| Runtime dependency scope | vLLM-focused Qwen image; SGLang remains a separate existing lane |",
   "| Model weights in image | false |",
   "| Request-time dependency install | false |",
   "| Health endpoint loads model | false |",
@@ -62,8 +63,7 @@ const REQUIRED_REQUIREMENTS = [
   "transformers==4.57.1",
   "qwen-vl-utils==0.0.11",
   "opencv-python-headless==4.11.0.86",
-  "google-cloud-storage==2.19.0",
-  "sglang[all]==0.4.10.post2"
+  "google-cloud-storage==2.19.0"
 ];
 
 const FALSE_FLAGS = [
@@ -166,6 +166,10 @@ const spec = QWEN2_5_VL_CLOUD_RUN_GPU_DOCKERFILE_SOURCE_SPEC;
 includesAll(doc, REQUIRED_PHRASES, "Dockerfile source spec doc");
 includesAll(dockerfile, REQUIRED_DOCKERFILE_PHRASES, "Qwen Dockerfile");
 includesAll(requirements, REQUIRED_REQUIREMENTS, "Qwen requirements");
+check(
+  !requirements.includes("sglang[all]"),
+  "Qwen Cloud Run requirements must not bundle SGLang; the SGLang lane remains separate"
+);
 includesAll(service, [
   "modelImportOnStartup",
   "modelInferenceEnabled",
@@ -199,12 +203,20 @@ check(changeLog.nextPrompt === NEXT_PROMPT, "Change log next prompt mismatch");
 check(spec.decision === DECISION, "Spec decision mismatch");
 check(spec.dockerfileSource.dockerfileSourceCreated === true, "Spec Dockerfile source flag mismatch");
 check(spec.dockerfileSource.serviceWrapperSourceCreated === true, "Spec service wrapper flag mismatch");
+check(
+  spec.dockerfileSource.runtimeDependencyScope ===
+    "vllm_focused_qwen_image_sglang_lane_remains_separate",
+  "Spec runtime dependency scope mismatch"
+);
 check(spec.dockerfileSource.modelWeightsInImage === false, "Spec model weights flag mismatch");
 check(spec.dockerfileSource.healthEndpointLoadsModel === false, "Health endpoint must not load model");
 check(spec.dockerfileSource.postExecutionAccepted === false, "POST execution must be rejected");
 check(spec.privateModelCache.mountPath === "/models/qwen2.5-vl-7b-instruct", "Spec mount path mismatch");
 check(spec.privateModelCache.volumeMounted === false, "Spec volume mount must be false");
 check(spec.privateModelCache.objectUploaded === false, "Spec object upload must be false");
+check(spec.dependencySource.vllmVersion === "0.11.0", "Spec vLLM version mismatch");
+check(spec.dependencySource.sglangBundledIntoQwenImage === false, "SGLang must not be bundled into Qwen image");
+check(spec.dependencySource.sglangLane === "separate_existing_runtime_lane", "Spec SGLang lane mismatch");
 check(spec.dependencySource.preparedWheelhouseCount === 158, "Spec wheelhouse count mismatch");
 check(spec.serviceCarryForward.minInstances === 0, "Spec min instances must be zero");
 check(spec.serviceCarryForward.maxInstances === 1, "Spec max instances must be one");

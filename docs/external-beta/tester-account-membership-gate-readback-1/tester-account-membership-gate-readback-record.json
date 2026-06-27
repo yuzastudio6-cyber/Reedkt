@@ -1,0 +1,94 @@
+{
+  "packet": "RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-GATE-READBACK-1",
+  "decision": "blocked_pending_actual_external_tester_account_membership_and_tester_auth_smoke",
+  "execution": "completed_readonly_tester_membership_gate_readback_no_access_mutation",
+  "integrationBase": "4c7ad626f5c9385d44e09dbdeaa45e111a72bad0",
+  "sourceClosure": {
+    "privateInviteIamGrant1r": "rp_external_beta_controlled_private_invite_iam_grant_1r_after_identity_list",
+    "ownerMemberSmokeReadback": "rp_external_beta_owner_member_smoke_readback_1",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "groupMembership": {
+    "groupEmail": "external-beta-testers@reeditpro.com",
+    "groupResource": "groups/0279ka651g62ifo",
+    "memberCount": 1,
+    "ownerMemberCount": 1,
+    "externalTesterMemberCount": 0,
+    "observedMembers": [
+      {
+        "email": "aiediting@reeditpro.com",
+        "roles": [
+          "OWNER",
+          "MEMBER"
+        ],
+        "classification": "owner_member_smoke_account"
+      }
+    ],
+    "membershipMutation": false
+  },
+  "cloudRun": {
+    "service": "reeditpro-staging-api",
+    "region": "us-central1",
+    "url": "https://reeditpro-staging-api-4wkjiqvdqa-uc.a.run.app",
+    "latestReadyRevision": "reeditpro-staging-api-00005-7gs",
+    "traffic": "100_percent_latest_revision",
+    "iamMember": "group:external-beta-testers@reeditpro.com",
+    "serviceLevelBindingCount": 1,
+    "allUsersGrant": false,
+    "allAuthenticatedUsersGrant": false,
+    "directTesterUserGrant": false,
+    "iamMutation": false,
+    "serviceUpdate": false,
+    "deployment": false
+  },
+  "testerSmoke": {
+    "actualExternalTesterAccountMembership": "blocked_pending_actual_external_tester_account_membership",
+    "testerAuthenticationContext": "not_present",
+    "testerAuthenticatedSmoke": "not_run_no_actual_external_tester_member",
+    "ownerMemberSmokeIsNotTesterEvidence": true
+  },
+  "readiness": {
+    "externalProductBeta": "ready_for_actual_external_tester_account_addition_and_smoke",
+    "testerAccountPath": "blocked_pending_actual_external_tester_account_membership_and_tester_auth_smoke",
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1"
+  },
+  "safety": {
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "browserCapture": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "internalBetaBroadUnlock": false,
+    "externalBetaBroadAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "dockerExecution": false,
+    "dependencyValidationNpmCi": "passed",
+    "packageInstallationBeyondDependencyValidation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "groupMembershipMutation": false,
+    "cloudRunIamMutation": false,
+    "cloudRunServiceUpdate": false,
+    "deployment": false,
+    "broadServiceRoleHandler": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

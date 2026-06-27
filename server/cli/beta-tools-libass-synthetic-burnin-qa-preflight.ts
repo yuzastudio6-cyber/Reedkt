@@ -254,7 +254,7 @@ function runSyntheticBurninProof(
   writeFileSync(captionPath, safeAssCaptionText(), 'utf8')
 
   try {
-    commandRecords.push(runCommand('font_discovery', mode, env, tempRoot, ['fc-match', 'sans'], runner, true))
+    commandRecords.push(runCommand('font_discovery', mode, env, tempRoot, ['fc-match', 'sans'], runner))
     commandRecords.push(runCommand('synthetic_video', mode, env, tempRoot, [
       'ffmpeg',
       '-hide_banner',
@@ -283,7 +283,7 @@ function runSyntheticBurninProof(
       '-i',
       commandPath(mode, inputPath, 'synthetic-caption-source.mp4'),
       '-vf',
-      `subtitles=${commandPath(mode, captionPath, 'synthetic-captions.ass')}`,
+      subtitlesFilterArg(mode, captionPath),
       '-c:v',
       'mpeg4',
       '-q:v',
@@ -293,17 +293,19 @@ function runSyntheticBurninProof(
       '-an',
       commandPath(mode, outputPath, 'synthetic-libass-burnin-output.mp4'),
     ], runner))
-    const probeRecord = runCommand('decode_probe', mode, env, tempRoot, [
-      'ffprobe',
-      '-v',
-      'error',
-      '-show_entries',
-      'format=duration',
-      '-of',
-      'default=noprint_wrappers=1:nokey=1',
-      commandPath(mode, outputPath, 'synthetic-libass-burnin-output.mp4'),
-    ], runner)
-    commandRecords.push(probeRecord)
+    if (commandRecords.some((record) => record.step === 'caption_burnin' && record.exitOk)) {
+      const probeRecord = runCommand('decode_probe', mode, env, tempRoot, [
+        'ffprobe',
+        '-v',
+        'error',
+        '-show_entries',
+        'format=duration',
+        '-of',
+        'default=noprint_wrappers=1:nokey=1',
+        commandPath(mode, outputPath, 'synthetic-libass-burnin-output.mp4'),
+      ], runner)
+      commandRecords.push(probeRecord)
+    }
   } catch (error) {
     commandRecords.push({
       step: 'caption_burnin',
@@ -342,7 +344,6 @@ function runCommand(
   tempRoot: string,
   innerCommandAndArgs: string[],
   runner: LibassSyntheticBurninCommandRunner,
-  optional = false,
 ): LibassSyntheticBurninCommandRecord {
   const { command, args } = commandForMode(mode, env, tempRoot, innerCommandAndArgs)
   try {
@@ -357,9 +358,6 @@ function runCommand(
     }
   } catch (error) {
     const failed = error as { stdout?: string | Buffer; stderr?: string | Buffer; message?: string }
-    if (!optional) {
-      throw error
-    }
     return {
       step,
       command,
@@ -399,6 +397,17 @@ function commandForMode(
 
 function commandPath(mode: 'host' | 'docker', hostPath: string, fileName: string): string {
   return mode === 'docker' ? `/work/${fileName}` : hostPath
+}
+
+function subtitlesFilterArg(
+  mode: 'host' | 'docker',
+  captionPath: string,
+): string {
+  return `subtitles=filename=${escapeFfmpegFilterValue(commandPath(mode, captionPath, 'synthetic-captions.ass'))}`
+}
+
+function escapeFfmpegFilterValue(value: string): string {
+  return value.replace(/([\\':,\\[\\]])/g, '\\$1')
 }
 
 function buildProof(input: {

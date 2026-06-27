@@ -41,6 +41,12 @@ assert.equal(hostReport.proof.tempRootRemoved, true, 'temp root must be removed'
 assert.equal(hostReport.proof.captionFile.safeStylePresetAccepted, true, 'safe ASS style must be accepted')
 assert.equal(hostReport.proof.outputVideo.exists, true, 'burn-in output should be observed')
 assert.equal(hostReport.proof.outputVideo.durationSeconds, 1, 'decode probe duration should be recorded')
+assert.ok(
+  hostReport.proof.commandRecords
+    .find((record) => record.step === 'caption_burnin')
+    ?.args.some((arg) => arg.startsWith('subtitles=filename=')),
+  'burn-in command should use explicit subtitles filename filter syntax',
+)
 assert.deepEqual(
   hostReport.wouldReduceBlockers,
   ['real_execution_not_verified', 'production_readiness_blocked', 'product_ready_acceptance_missing'],
@@ -85,6 +91,23 @@ const failingReport = runBetaToolsLibassSyntheticBurninQaPreflight(baseEnv, fail
 assert.equal(failingReport.ok, false, 'burn-in failure should fail closed')
 assert.equal(failingReport.acceptedToolEvidence.length, 0, 'failed burn-in must not produce accepted evidence')
 assert.equal(failingReport.proof.tempRootRemoved, true, 'failed run should still clean temp root')
+const failingBurninRecord = failingReport.proof.commandRecords.find((record) => record.step === 'caption_burnin')
+assert.equal(failingBurninRecord?.command, 'ffmpeg', 'failed burn-in should preserve the real ffmpeg command record')
+assert.equal(failingBurninRecord?.exitOk, false, 'failed burn-in command should be marked failed')
+assert.ok(
+  failingBurninRecord?.args.some((arg) => arg.startsWith('subtitles=filename=')),
+  'failed burn-in should preserve the subtitles filename filter argument',
+)
+assert.equal(
+  failingReport.proof.commandRecords.some((record) => record.command === 'internal'),
+  false,
+  'failed burn-in should not replace the real command with an internal placeholder',
+)
+assert.equal(
+  failingReport.proof.commandRecords.some((record) => record.step === 'decode_probe'),
+  false,
+  'decode probe should not run when burn-in failed',
+)
 
 console.log(JSON.stringify({
   ok: true,

@@ -218,10 +218,12 @@ def build_status(payload: Dict[str, Any]) -> Dict[str, Any]:
     target_url = os.environ.get("QWEN_PRIVATE_INVOKE_TARGET_URL")
     audience = os.environ.get("QWEN_PRIVATE_INVOKE_AUDIENCE")
     execution_enabled = _env_bool("QWEN_CPU_CALLER_EXECUTION_ENABLED", False)
+    fixture_inference_expected = _env_bool("QWEN_CPU_CALLER_EXPECT_FIXTURE_INFERENCE", False)
     return {
         "ok": contract_valid,
         "mode": MODE,
         "executionEnabled": execution_enabled,
+        "fixtureInferenceExpected": fixture_inference_expected,
         "contractPayloadValid": contract_valid,
         "contractRejectionReasons": contract_reasons,
         "target": _redacted_target(target_url),
@@ -272,30 +274,63 @@ def main() -> int:
     response = post_contract_request(target_url, token, payload, timeout_seconds)
     response_body = response.get("bodyJson") if isinstance(response.get("bodyJson"), dict) else {}
     service_reason = response_body.get("reason")
+    fixture_inference_expected = _env_bool("QWEN_CPU_CALLER_EXPECT_FIXTURE_INFERENCE", False)
     contract_satisfied = response_body.get("contractSatisfiedForFutureRuntime") is True
     model_inference_enabled = response_body.get("modelInferenceEnabled") is True
     runtime_contract_executes_now = response_body.get("runtimeContractExecutesNow") is True
-    response_ok = (
-        response.get("httpStatus") == 403
-        and service_reason == "qwen_inference_disabled_after_contract_check"
-        and contract_satisfied
-        and not model_inference_enabled
-        and not runtime_contract_executes_now
-    )
+    if fixture_inference_expected:
+        response_ok = (
+            response.get("httpStatus") == 200
+            and service_reason == "qwen_fixture_inference_smoke_completed"
+            and contract_satisfied
+            and model_inference_enabled
+            and runtime_contract_executes_now
+            and response_body.get("generatedAssetsCreated") is False
+            and response_body.get("publicArtifactsCreated") is False
+            and response_body.get("signedUrlsCreated") is False
+        )
+    else:
+        response_ok = (
+            response.get("httpStatus") == 403
+            and service_reason == "qwen_inference_disabled_after_contract_check"
+            and contract_satisfied
+            and not model_inference_enabled
+            and not runtime_contract_executes_now
+        )
     print(
         json.dumps(
             {
                 "ok": response_ok,
                 "mode": MODE,
                 "httpStatus": response.get("httpStatus"),
-                "expectedHttpStatus": 403,
+                "expectedHttpStatus": 200 if fixture_inference_expected else 403,
                 "serviceReason": service_reason,
                 "contractSatisfiedForFutureRuntime": contract_satisfied,
                 "runtimeContractExecutesNow": runtime_contract_executes_now,
+                "fixtureInferenceExpected": fixture_inference_expected,
+                "fixtureInferenceSmokePassed": response_ok if fixture_inference_expected else False,
                 "identityTokenFetched": True,
                 "identityTokenPrinted": False,
                 "serviceRuntimeRequestSent": True,
+                "runtimeVersionPresent": bool(response_body.get("runtimeVersion")),
+                "elapsedMs": response_body.get("elapsedMs"),
                 "modelInferenceEnabled": model_inference_enabled,
+                "runtimeSideEffects": {
+                    **status["runtimeSideEffects"],
+                    "identityTokenFetched": True,
+                    "cloudRunInvocationAttempted": True,
+                    "serviceRuntimeRequestSent": True,
+                    "modelImportRun": response_body.get("modelImportRun") is True,
+                    "modelLoadRun": response_body.get("modelLoadRun") is True,
+                    "vllmEngineInitialized": response_body.get("vllmEngineInitialized") is True,
+                    "inferenceRun": response_body.get("inferenceRun") is True,
+                    "generatedAssetsCreated": response_body.get("generatedAssetsCreated") is True,
+                    "publicArtifactsCreated": response_body.get("publicArtifactsCreated") is True,
+                    "signedUrlsCreated": response_body.get("signedUrlsCreated") is True,
+                },
+                "metadataOutput": response_body.get("metadataOutput")
+                if isinstance(response_body.get("metadataOutput"), dict)
+                else {},
             },
             sort_keys=True,
         )

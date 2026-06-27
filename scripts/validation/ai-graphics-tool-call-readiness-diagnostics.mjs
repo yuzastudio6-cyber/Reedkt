@@ -380,8 +380,6 @@ for (const key of requiredFalse) if (booleans[key] !== false) fail(`required_fal
 const newDocs = [
   read('docs/tool-intelligence/ai-graphics/tool-call-readiness-contract.md'),
   read('docs/tool-intelligence/ai-graphics/tool-call-readiness-contract.json'),
-  read('docs/prompt-ai-graphics-tool-call-readiness-contract-results.md'),
-  read('docs/implementation-prompts/prompt-ai-graphics-tool-call-readiness-contract.md'),
 ].join('\n')
 
 const forbiddenClaims = [

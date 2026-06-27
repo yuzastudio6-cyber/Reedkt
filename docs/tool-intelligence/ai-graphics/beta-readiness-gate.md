@@ -27,6 +27,9 @@ beta-eligible after their real gates pass.
 - Heavy tools incorrectly targeting CPU: 0.
 - Beta testing ready now: 0.
 - Blocked tools now: 21.
+- External-beta launch candidates now: 0.
+- External-beta blocked tools now: 21.
+- Production-ready tools now: 0.
 
 ## Evidence Evaluation Mode
 
@@ -60,6 +63,7 @@ promotions and package/code license review narrowing:
 - Still blocked without the accepted model review packet: 5 tools.
 - Blocked model/checkpoint tools until packet acceptance: `sam2`, `birefnet`, `real_esrgan`, `rembg`, `transparent_background`.
 - Beta-eligible with all current evidence flags plus accepted model review packet supplied: 21 tools.
+- External-beta launch remains blocked even when all current evidence flags are supplied; real internal beta runtime execution evidence, external-beta QA, cost/concurrency/privacy/rollback evidence, and owner approval remain separate future gates.
 
 ## Current Required Gates
 
@@ -74,6 +78,9 @@ promotions and package/code license review narrowing:
 - Browser/canvas/WebGL sandbox proof for browser runtime tools.
 - Production profile promotion away from `planning_only` where execution is expected.
 - License and model-weight policy approval where the production registry still records review blockers.
+- Real internal beta runtime execution evidence before external-beta launch.
+- External-beta QA, cost, concurrency, rollback, privacy, and incident-response acceptance.
+- External-beta owner approval after internal runtime soak evidence.
 
 ## No CPU Fallback For Heavy Tools
 

@@ -167,6 +167,12 @@ for (const needle of [
   'modelWeightPolicyAllowedByEvidence',
   'modelWeightManifestReviewPacketAccepted',
   'modelWeightManifestsAcceptedByEvidence',
+  'buildExternalBetaBlockers',
+  'externalBetaReadyNow: false',
+  'productionReadyNow: false',
+  'externalBetaBlockers',
+  'externalBetaReadyTools: 0',
+  'externalBetaBlockedTools: 21',
   'cpuFallbackAllowedForHeavyTool: false',
   'betaTestingReadyNow: uniqueBlockers.length === 0',
   'production registry profile is still future',
@@ -194,6 +200,9 @@ if (gate.counts?.gpuRuntimeTargetedTools !== 8) fail('gate_gpu_tool_count_not_8'
 if (gate.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) fail('gate_heavy_cpu_count_not_zero')
 if (gate.counts?.betaTestingReadyTools !== 0) fail('gate_beta_ready_count_not_zero')
 if (gate.counts?.blockedTools !== 21) fail('gate_blocked_tool_count_not_21')
+if (gate.counts?.externalBetaReadyTools !== 0) fail('gate_external_beta_ready_count_not_zero')
+if (gate.counts?.externalBetaBlockedTools !== 21) fail('gate_external_beta_blocked_count_not_21')
+if (gate.counts?.productionReadyTools !== 0) fail('gate_production_ready_count_not_zero')
 if (gate.evidenceEvaluationMode?.defaultEvidenceReadyTools !== 0) fail('gate_default_evidence_ready_not_zero')
 if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsReadyTools !== 16) fail('gate_all_evidence_without_review_packet_ready_not_16')
 if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsStillBlockedTools !== 5) fail('gate_all_evidence_without_review_packet_blocked_not_5')
@@ -208,6 +217,9 @@ if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsPlusModelReviewPacketSti
 }
 if (gate.evidenceEvaluationMode?.modelWeightManifestClaimAloneDoesNotUnblockModelTools !== true) {
   fail('gate_model_weight_claim_alone_not_guarded')
+}
+if (gate.evidenceEvaluationMode?.allCurrentEvidenceFlagsDoNotUnlockExternalBeta !== true) {
+  fail('gate_all_current_evidence_flags_external_beta_guard_missing')
 }
 if (gate.evidenceEvaluationMode?.readyOnlyWhenProfilesAndPoliciesAllow !== true) fail('gate_evidence_mode_policy_guard_missing')
 if (gate.evidenceEvaluationMode?.executionPerformedByEvaluator !== false) fail('gate_evaluator_execution_not_false')
@@ -273,6 +285,15 @@ if (reviewPacketEvidenceGate.betaTestingReadyTools !== 21) {
 if (reviewPacketEvidenceGate.blockedTools !== 0) {
   fail(`review_packet_evidence_blocked_count_not_0:${reviewPacketEvidenceGate.blockedTools}`)
 }
+if (reviewPacketEvidenceGate.externalBetaReadyTools !== 0) {
+  fail(`review_packet_evidence_external_beta_ready_not_zero:${reviewPacketEvidenceGate.externalBetaReadyTools}`)
+}
+if (reviewPacketEvidenceGate.externalBetaBlockedTools !== 21) {
+  fail(`review_packet_evidence_external_beta_blocked_not_21:${reviewPacketEvidenceGate.externalBetaBlockedTools}`)
+}
+if (reviewPacketEvidenceGate.productionReadyTools !== 0) {
+  fail(`review_packet_evidence_production_ready_not_zero:${reviewPacketEvidenceGate.productionReadyTools}`)
+}
 const reviewPacketReadyTools = (reviewPacketEvidenceGate.tools || [])
   .filter((tool) => tool.betaTestingReadyNow === true)
   .map((tool) => tool.toolId)
@@ -281,6 +302,15 @@ for (const tool of allTools) {
 }
 for (const row of reviewPacketEvidenceGate.tools || []) {
   if (row?.blockers?.length) fail(`review_packet_evidence_unexpected_blockers:${row.toolId}:${row.blockers.join('|')}`)
+  if (row?.externalBetaReadyNow !== false) {
+    fail(`review_packet_evidence_external_beta_ready_not_false:${row.toolId}`)
+  }
+  if (row?.productionReadyNow !== false) {
+    fail(`review_packet_evidence_production_ready_not_false:${row.toolId}`)
+  }
+  if (!Array.isArray(row?.externalBetaBlockers) || row.externalBetaBlockers.length < 4) {
+    fail(`review_packet_evidence_missing_external_beta_blockers:${row.toolId}`)
+  }
 }
 for (const key of [
   'toolExecutionPerformed',
@@ -309,12 +339,16 @@ for (const requiredGate of [
   'production registry profile must move away from planning_only before execution',
   'license and model-weight policies must be approved where currently under review',
   'accepted model-weight review packet is required in addition to model-weight manifest approval claims',
+  'real internal beta runtime execution evidence is required before external-beta launch',
+  'external-beta QA, cost, concurrency, rollback, privacy, and incident-response gates are required before external-beta launch',
+  'external-beta owner approval is required after internal runtime soak evidence',
 ]) {
   if (!gate.requiredCurrentGates?.includes(requiredGate)) fail(`required_current_gate_missing:${requiredGate}`)
 }
 
 for (const key of [
   'betaReadinessGatePrepared',
+  'externalBetaLaunchGatePrepared',
   'sourceToolCallPlanEvaluatorAccepted',
   'all21ToolsCovered',
   'all12ProductFacingCapabilitiesCovered',
@@ -337,6 +371,10 @@ for (const key of [
   'browserWebglCanvasRuntimeApprovedNow',
   'gpuRuntimeApprovedNow',
   'modelWeightsApprovedNow',
+  'externalBetaRuntimeEvidenceAccepted',
+  'externalBetaQaAccepted',
+  'externalBetaCostConcurrencyPrivacyAccepted',
+  'externalBetaOwnerApprovalGranted',
   'runtimeReadyNow',
   'internalBetaReadyNow',
   'externalBetaReadyNow',
@@ -420,4 +458,7 @@ console.log(JSON.stringify({
   heavyToolsIncorrectlyTargetingCpu: gate.counts.heavyToolsIncorrectlyTargetingCpu,
   betaTestingReadyTools: gate.counts.betaTestingReadyTools,
   blockedTools: gate.counts.blockedTools,
+  externalBetaReadyTools: gate.counts.externalBetaReadyTools,
+  externalBetaBlockedTools: gate.counts.externalBetaBlockedTools,
+  productionReadyTools: gate.counts.productionReadyTools,
 }, null, 2))

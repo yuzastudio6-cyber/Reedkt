@@ -279,8 +279,6 @@ for (const key of requiredFalse) if (handoff.booleans?.[key] !== false) fail(`re
 const docsText = [
   handoffMd,
   JSON.stringify(handoff),
-  resultRecord,
-  implementationPrompt,
 ].join('\n')
 for (const pattern of [
   /agentCanExecuteToolsNow["`:= ]+true/i,

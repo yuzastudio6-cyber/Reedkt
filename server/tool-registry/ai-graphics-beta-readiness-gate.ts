@@ -41,7 +41,10 @@ export interface AiGraphicsBetaReadinessToolGate {
   runtimePolicyAllowed: boolean
   productionStatus: ProductionToolStatus
   betaTestingReadyNow: boolean
+  externalBetaReadyNow: false
+  productionReadyNow: false
   blockers: string[]
+  externalBetaBlockers: string[]
   warnings: string[]
 }
 
@@ -56,9 +59,13 @@ export interface AiGraphicsBetaReadinessGate {
   heavyToolsIncorrectlyTargetingCpu: 0
   betaTestingReadyTools: number
   blockedTools: number
+  externalBetaReadyTools: 0
+  externalBetaBlockedTools: 21
+  productionReadyTools: 0
   evidence: Required<AiGraphicsBetaReadinessEvidence>
   tools: AiGraphicsBetaReadinessToolGate[]
   globalBlockers: string[]
+  externalBetaGlobalBlockers: string[]
 }
 
 const defaultEvidence: Required<AiGraphicsBetaReadinessEvidence> = {
@@ -144,6 +151,15 @@ function buildRuntimeSpecificBlockers(input: {
   }
 
   return blockers
+}
+
+function buildExternalBetaBlockers(toolId: AiGraphicsCanonicalToolId): string[] {
+  return [
+    `${toolId} still needs real internal beta runtime execution evidence before external beta.`,
+    `${toolId} still needs external-beta QA acceptance with real worker/tool-call artifacts.`,
+    `${toolId} still needs cost, concurrency, rollback, privacy, and incident-response gates approved for external beta.`,
+    `${toolId} still needs external beta owner approval after internal runtime soak evidence.`,
+  ]
 }
 
 function modelWeightManifestsAcceptedByEvidence(
@@ -296,7 +312,10 @@ export function buildAiGraphicsBetaReadinessGate(
       runtimePolicyAllowed: runtimeResult.allowed,
       productionStatus: profile.productionStatus,
       betaTestingReadyNow: uniqueBlockers.length === 0,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
       blockers: uniqueBlockers,
+      externalBetaBlockers: buildExternalBetaBlockers(record.toolId),
       warnings: Array.from(new Set([
         ...runtimeResult.warnings,
         ...licenseResult.warnings,
@@ -309,6 +328,9 @@ export function buildAiGraphicsBetaReadinessGate(
     .filter((tool) => tool.gpuRequiredForRuntime)
     .map((tool) => tool.toolId)
   const globalBlockers = Array.from(new Set(tools.flatMap((tool) => tool.blockers)))
+  const externalBetaGlobalBlockers = Array.from(
+    new Set(tools.flatMap((tool) => tool.externalBetaBlockers)),
+  )
   const betaTestingReadyTools = tools.filter((tool) => tool.betaTestingReadyNow).length
   const blockedTools = tools.length - betaTestingReadyTools
 
@@ -323,8 +345,12 @@ export function buildAiGraphicsBetaReadinessGate(
     heavyToolsIncorrectlyTargetingCpu: 0,
     betaTestingReadyTools,
     blockedTools,
+    externalBetaReadyTools: 0,
+    externalBetaBlockedTools: 21,
+    productionReadyTools: 0,
     evidence,
     tools,
     globalBlockers,
+    externalBetaGlobalBlockers,
   }
 }

@@ -38,7 +38,10 @@
     "gpuRuntimeTargetedTools": 8,
     "heavyToolsIncorrectlyTargetingCpu": 0,
     "betaTestingReadyTools": 0,
-    "blockedTools": 21
+    "blockedTools": 21,
+    "externalBetaReadyTools": 0,
+    "externalBetaBlockedTools": 21,
+    "productionReadyTools": 0
   },
   "evidenceEvaluationMode": {
     "defaultEvidenceReadyTools": 0,
@@ -49,7 +52,8 @@
     "allCurrentEvidenceFlagsRequireAcceptedModelReviewPacket": true,
     "allCurrentEvidenceFlagsPlusModelReviewPacketReadyTools": 21,
     "allCurrentEvidenceFlagsPlusModelReviewPacketStillBlockedTools": 0,
-    "modelWeightManifestClaimAloneDoesNotUnblockModelTools": true
+    "modelWeightManifestClaimAloneDoesNotUnblockModelTools": true,
+    "allCurrentEvidenceFlagsDoNotUnlockExternalBeta": true
   },
   "gpuRuntimeTargetedTools": [
     "torch_torchvision",
@@ -74,9 +78,14 @@
     "production registry profile must move away from planning_only before execution",
     "license and model-weight policies must be approved where currently under review",
     "accepted model-weight review packet is required in addition to model-weight manifest approval claims"
+    ,
+    "real internal beta runtime execution evidence is required before external-beta launch",
+    "external-beta QA, cost, concurrency, rollback, privacy, and incident-response gates are required before external-beta launch",
+    "external-beta owner approval is required after internal runtime soak evidence"
   ],
   "booleans": {
     "betaReadinessGatePrepared": true,
+    "externalBetaLaunchGatePrepared": true,
     "sourceToolCallPlanEvaluatorAccepted": true,
     "all21ToolsCovered": true,
     "all12ProductFacingCapabilitiesCovered": true,
@@ -94,6 +103,10 @@
     "browserWebglCanvasRuntimeApprovedNow": false,
     "gpuRuntimeApprovedNow": false,
     "modelWeightsApprovedNow": false,
+    "externalBetaRuntimeEvidenceAccepted": false,
+    "externalBetaQaAccepted": false,
+    "externalBetaCostConcurrencyPrivacyAccepted": false,
+    "externalBetaOwnerApprovalGranted": false,
     "runtimeReadyNow": false,
     "internalBetaReadyNow": false,
     "externalBetaReadyNow": false,

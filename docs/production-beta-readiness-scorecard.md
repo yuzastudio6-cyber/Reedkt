@@ -246,8 +246,12 @@ It can now consume a source `--internal-beta-queue-admission-readiness-packet`
 that already reports `internal_beta_queue_admission_ready_runtime_still_blocked`;
 that source packet must also prove all 21 tools, all 12 capabilities, exactly
 eight accepted-future-job GPU start candidates, `gpuRuntimeShouldStartNow=false`,
-and false runtime/beta/production gates. Mock job-service records remain the
-only accepted output in this lane, and live backend queue writes remain blocked.
+and false runtime/beta/production gates. It must also preserve nested
+runtime-enqueue, owner go/no-go, production worker gate, and production worker
+job evidence, including exact NVIDIA L4 GPU targets, on-demand-only GPU policy,
+no-idle GPU approval, and CPU-fallback blocking for heavy/model tools. Mock
+job-service records remain the only accepted output in this lane, and live
+backend queue writes remain blocked.
 
 AI graphics internal beta service-role queue transaction readiness decision
 `ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope`

@@ -38,6 +38,9 @@ export interface BetaPlatformEvidenceManifest {
   policy: {
     blockersAreEvidenceGaps: true
     blockersOnlyProtectUnsafeActions: true
+    intentionalBlanketBlocksAllowed: false
+    safeForwardProgressRequired: true
+    nextSafeActionRequiredForBlockers: true
     localProofDoesNotEnableExternalBeta: true
     deployedEvidenceCanClearPlatformBlocker: true
     supabaseClassification: 'no write / environment none / SQL none / migration no'
@@ -69,6 +72,9 @@ export function buildBetaPlatformEvidenceManifest(): BetaPlatformEvidenceManifes
     policy: {
       blockersAreEvidenceGaps: true,
       blockersOnlyProtectUnsafeActions: true,
+      intentionalBlanketBlocksAllowed: false,
+      safeForwardProgressRequired: true,
+      nextSafeActionRequiredForBlockers: true,
       localProofDoesNotEnableExternalBeta: true,
       deployedEvidenceCanClearPlatformBlocker: true,
       supabaseClassification: 'no write / environment none / SQL none / migration no',

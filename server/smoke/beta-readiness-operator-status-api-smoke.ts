@@ -52,6 +52,12 @@ const blockedFetch: BetaReadinessOperatorStatusApiFetch = async (url, init) => {
               externalBetaToolExecutionAllowed: false,
               productionToolExecutionAllowed: false,
               blockerPolicy: 'evidence_driven_block_unsafe_actions_only',
+              blockerForwardProgressPolicy: {
+                intentionalBlanketBlocksAllowed: false,
+                blockerScope: 'named_unsafe_action_only',
+                safeForwardProgressRequired: true,
+                nextSafeActionRequiredForBlockers: true,
+              },
               safeBlockerReductionAllowed: true,
               blockedActionScope: ['external_beta_tool_execution', 'external_beta_launch'],
               allowedForwardProgressScopes: [
@@ -89,6 +95,16 @@ assert.equal(capturedInit?.method, 'GET', 'CLI should use GET')
 assert.equal(capturedInit?.headers.authorization, 'Bearer status-api-secret-token', 'CLI should send bearer token only in the authorization header')
 assert.equal(blockedResult.readyForExternalBeta, false, 'blocked status should remain blocked')
 assert.equal(blockedResult.currentGate.safeBlockerReductionAllowed, true, 'CLI should preserve scoped blocker-reduction policy')
+assert.equal(
+  blockedResult.currentGate.blockerForwardProgressPolicy?.intentionalBlanketBlocksAllowed,
+  false,
+  'CLI should preserve the no intentional blanket blocker policy',
+)
+assert.equal(
+  blockedResult.currentGate.blockerForwardProgressPolicy?.nextSafeActionRequiredForBlockers,
+  true,
+  'CLI should preserve next-safe-action requirement for blockers',
+)
 assert.ok(blockedResult.currentGate.allowedForwardProgressScopes.includes('owner_approval_packet_collection'), 'CLI should preserve owner approval collection as allowed forward progress')
 assert.ok(blockedResult.currentGate.allowedForwardProgressScopes.includes('deployment_preflight_and_platform_evidence_collection'), 'CLI should preserve deployment evidence collection as allowed forward progress')
 assert.equal(blockedResult.evidenceGaps.goNoGoBlockers, 1, 'CLI should summarize go/no-go blockers')

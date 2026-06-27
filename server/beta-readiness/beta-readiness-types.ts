@@ -134,6 +134,12 @@ export interface ToolBetaExecutionReadinessReport {
   externalBetaToolExecutionAllowed: boolean
   productionToolExecutionAllowed: boolean
   blockerPolicy: 'evidence_driven_block_unsafe_actions_only'
+  blockerForwardProgressPolicy: {
+    intentionalBlanketBlocksAllowed: false
+    blockerScope: 'named_unsafe_action_only'
+    safeForwardProgressRequired: true
+    nextSafeActionRequiredForBlockers: true
+  }
   safeBlockerReductionAllowed: boolean
   blockedActionScope: string[]
   tools: ToolBetaExecutionReadinessRecord[]

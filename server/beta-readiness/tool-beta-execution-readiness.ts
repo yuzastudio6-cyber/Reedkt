@@ -80,6 +80,12 @@ export function buildToolBetaExecutionReadinessReport(
     externalBetaToolExecutionAllowed,
     productionToolExecutionAllowed,
     blockerPolicy: 'evidence_driven_block_unsafe_actions_only',
+    blockerForwardProgressPolicy: {
+      intentionalBlanketBlocksAllowed: false,
+      blockerScope: 'named_unsafe_action_only',
+      safeForwardProgressRequired: true,
+      nextSafeActionRequiredForBlockers: true,
+    },
     safeBlockerReductionAllowed: true,
     blockedActionScope,
     tools,
@@ -92,6 +98,7 @@ export function buildToolBetaExecutionReadinessReport(
       'External beta tool execution requires passed real readiness checks, owner approvals, deployed billing persistence, deployment/storage/security approval, and model/license review.',
       'Product-ready local OSS remains 0 until a later gate accepts real runtime evidence.',
       'Blockers protect only the unsafe external-beta/production action; bounded source reviews, local proofs, diagnostics, QA packets, deployment preflights, and owner-approval packets remain allowed when they reduce named blockers without bypassing the gate.',
+      'Intentional blanket blocking is not allowed; every blocker must name the unsafe action it protects and keep the next safe blocker-reduction lane visible.',
     ],
   }
 }

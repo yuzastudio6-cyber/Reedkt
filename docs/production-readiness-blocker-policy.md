@@ -8,6 +8,8 @@ Hard blockers must be actionable and evidence-driven. A blocker record should id
 
 Blocked means "do not perform the unsafe action yet"; it does not mean "stop reducing the blocker." Safe metadata, source review, local-only proofs, safe blocker-reduction previews, diagnostics, mock-safe backend skeletons, deployment preflights, owner approvals, QA packets, and rollback plans should continue when they can shrink or retire a named blocker without claiming beta, production, billing, provider, Supabase, storage, or product readiness early.
 
+Intentional blanket blockers are invalid source truth. If a report says something is blocked but cannot name the exact unsafe action, the missing evidence, and the next safe forward lane, the report itself is incomplete. Fix the blocker metadata first, then continue the smallest safe review/proof/QA/planning lane that reduces the blocker without opening the protected runtime gate.
+
 Readiness and operator reports should expose the split in machine-readable form. The blocked action scope should name the exact unsafe action that is closed, while allowed forward-progress scopes should name the safe source review, local dependency proof, bounded command/import proof, preview, diagnostics, deployment preflight, owner approval, monitoring, support, or rollback lane that can continue.
 
 Workers execute approved plan snapshots and private artifact references. Raw chat, signed URLs, and evaluation-only tools cannot become production execution inputs.

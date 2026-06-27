@@ -37,6 +37,12 @@ export interface BetaReadinessOperatorStatusReport {
     externalBetaToolExecutionAllowed: boolean
     productionToolExecutionAllowed: boolean
     blockerPolicy: string
+    blockerForwardProgressPolicy: {
+      intentionalBlanketBlocksAllowed: false
+      blockerScope: string
+      safeForwardProgressRequired: true
+      nextSafeActionRequiredForBlockers: true
+    }
     safeBlockerReductionAllowed: boolean
     blockedActionScope: string[]
     allowedForwardProgressScopes: string[]
@@ -114,6 +120,7 @@ export function buildBetaReadinessOperatorStatus(
       externalBetaToolExecutionAllowed: readiness.externalBetaToolExecutionAllowed,
       productionToolExecutionAllowed: readiness.productionToolExecutionAllowed,
       blockerPolicy: readiness.blockerPolicy,
+      blockerForwardProgressPolicy: readiness.blockerForwardProgressPolicy,
       safeBlockerReductionAllowed: readiness.safeBlockerReductionAllowed,
       blockedActionScope: readiness.blockedActionScope,
       allowedForwardProgressScopes: buildAllowedForwardProgressScopes(readiness.safeBlockerReductionAllowed),

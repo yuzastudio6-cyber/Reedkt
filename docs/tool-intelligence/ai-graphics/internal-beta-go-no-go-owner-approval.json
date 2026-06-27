@@ -55,6 +55,13 @@
     "approvalRef": "AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_OWNER_APPROVAL_PACKET",
     "approvesRuntimeNow": false
   },
+  "sourceEvidencePolicy": {
+    "acceptsLowLevelEvidenceFlags": true,
+    "acceptsInternalBetaGoNoGoPacket": true,
+    "sourceGoNoGoApprovedPacketRequired": true,
+    "ownerApprovalRequiredAfterSourcePacket": true,
+    "runtimeUnlockPerformed": false
+  },
   "approvedScope": [
     "owner-approve the all-21 AI graphics internal beta go/no-go evidence record",
     "confirm all 21 tools remain installed or represented for their planned ReeditPro surface",

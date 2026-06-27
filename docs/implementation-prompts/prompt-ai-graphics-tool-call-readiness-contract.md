@@ -177,6 +177,7 @@ Latest observed PR state after beta evidence local authoring-input bridge comple
 - `npm run --silent ai-graphics:beta-tool-call-readiness:diagnostics`
 - `npm run --silent ai-graphics:internal-beta-owner-approval:diagnostics`
 - `npm run --silent ai-graphics:internal-beta-go-no-go:diagnostics`
+- `npm run --silent ai-graphics:internal-beta-go-no-go-owner-approval:diagnostics`
 - `npm run --silent ai-graphics:beta-evidence-local-assembly:diagnostics`
 - `npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-authoring:diagnostics`
@@ -223,3 +224,5 @@ Latest observed PR state after internal beta owner approval packet ingestion: [#
 Follow-up internal beta go/no-go packet ingestion updates `server/cli/ai-graphics-internal-beta-go-no-go.ts`, `server/tool-registry/ai-graphics-beta-production-readiness-rollup.ts`, `docs/tool-intelligence/ai-graphics/internal-beta-go-no-go.md`, `docs/tool-intelligence/ai-graphics/internal-beta-go-no-go.json`, `docs/production-beta-readiness-scorecard.md`, and `ai-graphics:internal-beta-go-no-go:diagnostics` so the go/no-go gate can ingest either an assembled beta evidence bundle packet or a full local assembly packet containing `betaEvidenceBundle`. Owner-approved technical evidence can make the go/no-go candidate ready, but explicit `--internal-beta-go-no-go-approved` and `--internal-beta-go-no-go-ref` remain required before the packet becomes go/no-go approved, and even that approved state remains runtime-blocked. Execution/runtime/beta/production gates remain false.
 
 Latest observed PR state after internal beta go/no-go packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `d31938dd368289b014a94b41ae3b2361605b1cff`, with an empty check rollup.
+
+Follow-up internal beta go/no-go owner approval source packet ingestion updates `server/tool-registry/ai-graphics-internal-beta-go-no-go-owner-approval.ts`, `server/cli/ai-graphics-internal-beta-go-no-go-owner-approval.ts`, `docs/tool-intelligence/ai-graphics/internal-beta-go-no-go-owner-approval.md`, `docs/tool-intelligence/ai-graphics/internal-beta-go-no-go-owner-approval.json`, `docs/production-beta-readiness-scorecard.md`, and `ai-graphics:internal-beta-go-no-go-owner-approval:diagnostics` so the owner-approval gate can consume a source `--internal-beta-go-no-go-packet`. The packet must already report `internal_beta_go_no_go_approved_runtime_still_blocked`, and the owner approval record/ref remain separately required before owner approval is accepted. Execution/runtime/beta/production gates remain false.

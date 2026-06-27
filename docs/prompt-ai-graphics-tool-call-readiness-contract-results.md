@@ -360,6 +360,14 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Diagnostic coverage proves direct beta evidence bundle packet and full local assembly packet paths preserve `internalBetaReadyNowTools=0`, `agentCanExecuteToolsNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after internal beta go/no-go packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `d31938dd368289b014a94b41ae3b2361605b1cff`, with an empty check rollup.
 
+## Follow-Up: Internal Beta Go/No-Go Owner Approval Source Packet Ingestion
+
+- Added evaluator-only source packet ingestion to `ai-graphics:internal-beta-go-no-go-owner-approval`:
+  - `--internal-beta-go-no-go-packet`
+- A source go/no-go packet must already report `internal_beta_go_no_go_approved_runtime_still_blocked`; the downstream owner-approval record remains separate and required.
+- Diagnostic coverage proves a packet-fed owner gate reaches `awaiting_internal_beta_go_no_go_owner_approval` without the owner approval ref, and reaches `internal_beta_go_no_go_owner_approved_runtime_still_blocked` only with `--internal-beta-go-no-go-owner-approval-granted` and `--internal-beta-go-no-go-owner-approval-ref`.
+- Runtime remains blocked in both packet-fed paths: `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

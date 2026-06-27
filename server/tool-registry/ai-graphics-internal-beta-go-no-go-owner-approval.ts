@@ -15,6 +15,7 @@ export type AiGraphicsInternalBetaGoNoGoOwnerApprovalStatus =
 
 export interface AiGraphicsInternalBetaGoNoGoOwnerApprovalInput
   extends AiGraphicsInternalBetaGoNoGoInput {
+  sourceInternalBetaGoNoGoPacket?: AiGraphicsInternalBetaGoNoGo
   internalBetaGoNoGoOwnerApprovalGranted?: boolean
   internalBetaGoNoGoOwnerApprovalRef?: string
   internalBetaGoNoGoOwnerApproverRole?: string
@@ -140,15 +141,17 @@ export function buildAiGraphicsInternalBetaGoNoGoOwnerApproval(
   input: AiGraphicsInternalBetaGoNoGoOwnerApprovalInput = {},
 ): AiGraphicsInternalBetaGoNoGoOwnerApproval {
   const ownerApprovalAccepted = ownerApprovalRecordAccepted(input)
-  const sourceGoNoGo = buildAiGraphicsInternalBetaGoNoGo({
-    ...input,
-    internalBetaGoNoGoApproved:
-      input.internalBetaGoNoGoApproved ?? input.internalBetaGoNoGoOwnerApprovalGranted,
-    internalBetaGoNoGoRef:
-      input.internalBetaGoNoGoRef ?? input.internalBetaGoNoGoOwnerApprovalRef,
-    internalBetaGoNoGoApproverRole:
-      input.internalBetaGoNoGoApproverRole ?? input.internalBetaGoNoGoOwnerApproverRole,
-  })
+  const sourceGoNoGo =
+    input.sourceInternalBetaGoNoGoPacket ??
+    buildAiGraphicsInternalBetaGoNoGo({
+      ...input,
+      internalBetaGoNoGoApproved:
+        input.internalBetaGoNoGoApproved ?? input.internalBetaGoNoGoOwnerApprovalGranted,
+      internalBetaGoNoGoRef:
+        input.internalBetaGoNoGoRef ?? input.internalBetaGoNoGoOwnerApprovalRef,
+      internalBetaGoNoGoApproverRole:
+        input.internalBetaGoNoGoApproverRole ?? input.internalBetaGoNoGoOwnerApproverRole,
+    })
   const sourceAccepted =
     sourceGoNoGo.status === 'internal_beta_go_no_go_approved_runtime_still_blocked' &&
     sourceGoNoGo.booleans.all21ToolsInternalBetaGoNoGoApprovedWithProvidedEvidence

@@ -108,11 +108,15 @@ owner-approves the all-21 internal beta go/no-go evidence record with status
 `internal_beta_go_no_go_owner_approved_runtime_still_blocked`. It accepts the
 install, ranking, GPU targeting, duplicate coordination, and provided
 production-worker gate evidence for a future internal beta runtime-enqueue
-approval lane, but it does not execute tools, run Tool Routes, queue or
-dispatch Workers, call providers/models, run browser/canvas/WebGL, run
-GPU/model runtime, download or load model weights, process media, create signed
-URLs or public artifacts, unlock internal beta runtime, unlock external beta,
-or unlock production.
+approval lane. The evaluator can now consume a source
+`--internal-beta-go-no-go-packet` that already reports
+`internal_beta_go_no_go_approved_runtime_still_blocked`; the owner-approval
+record and ref remain separate and required after that source packet. This
+contract does not execute tools, run Tool Routes, queue or dispatch Workers,
+call providers/models, run browser/canvas/WebGL, run GPU/model runtime,
+download or load model weights, process media, create signed URLs or public
+artifacts, unlock internal beta runtime, unlock external beta, or unlock
+production.
 
 AI graphics internal beta runtime-enqueue approval decision
 `ai_graphics_internal_beta_runtime_enqueue_approval_contract_prepared_with_runtime_blocks`

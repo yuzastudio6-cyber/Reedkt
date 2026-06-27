@@ -229,6 +229,27 @@ for (const [key, expected] of Object.entries({
   }
 }
 
+for (const [key, expected] of Object.entries({
+  acceptsLowLevelEvidenceFlags: true,
+  acceptsInternalBetaGoNoGoPacket: true,
+  sourceGoNoGoApprovedPacketRequired: true,
+  ownerApprovalRequiredAfterSourcePacket: true,
+  runtimeUnlockPerformed: false,
+})) {
+  if (docs.sourceEvidencePolicy?.[key] !== expected) {
+    fail(`docs_source_evidence_policy_mismatch:${key}:${docs.sourceEvidencePolicy?.[key]}`)
+  }
+}
+if (!cliSource.includes('--internal-beta-go-no-go-packet')) {
+  fail('cli_missing_internal_beta_go_no_go_packet_flag')
+}
+if (!markdown.includes('--internal-beta-go-no-go-packet')) {
+  fail('markdown_missing_internal_beta_go_no_go_packet_flag')
+}
+if (!moduleSource.includes('sourceInternalBetaGoNoGoPacket')) {
+  fail('module_missing_source_go_no_go_packet_input')
+}
+
 for (const scope of [
   'owner-approve the all-21 AI graphics internal beta go/no-go evidence record',
   'confirm all 21 tools remain installed or represented for their planned ReeditPro surface',
@@ -342,6 +363,78 @@ if (approvedOutput.booleans?.all21ToolsInternalBetaGoNoGoOwnerApprovedWithProvid
   fail('approved_all21_owner_approval_not_true')
 }
 
+const sourceGoNoGoPacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-go-no-go', [
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--model-weight-manifest-review-packet',
+  manifestPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuPacketPath,
+  '--owner-approval-granted',
+  '--owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--internal-beta-go-no-go-approved',
+  '--internal-beta-go-no-go-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-approved',
+]), 'source_go_no_go_packet')
+const sourceGoNoGoPacketPath = path.join(path.dirname(manifestPacketPath), 'source-go-no-go-packet.json')
+fs.writeFileSync(sourceGoNoGoPacketPath, `${JSON.stringify(sourceGoNoGoPacket, null, 2)}\n`, 'utf8')
+let packetAwaitingOwnerExited = false
+let packetAwaitingOwnerText = ''
+try {
+  packetAwaitingOwnerText = runNpm(runScriptName, [
+    '--internal-beta-go-no-go-packet',
+    sourceGoNoGoPacketPath,
+    '--require-internal-beta-go-no-go-owner-approved',
+  ])
+} catch (error) {
+  packetAwaitingOwnerExited = true
+  packetAwaitingOwnerText = `${error.stdout || ''}${error.stderr || ''}`
+}
+const packetAwaitingOwnerOutput = parseJsonOutput(
+  packetAwaitingOwnerText,
+  'packet_awaiting_owner_approval',
+)
+if (!packetAwaitingOwnerExited) fail('packet_awaiting_owner_require_did_not_fail')
+if (packetAwaitingOwnerOutput.input?.sourceEvidenceMode !== 'internal_beta_go_no_go_packet') {
+  fail('packet_awaiting_owner_source_mode_not_reported')
+}
+if (packetAwaitingOwnerOutput.status !== 'awaiting_internal_beta_go_no_go_owner_approval') {
+  fail(`packet_awaiting_owner_status:${packetAwaitingOwnerOutput.status}`)
+}
+if (packetAwaitingOwnerOutput.sourceGoNoGo?.status !== 'internal_beta_go_no_go_approved_runtime_still_blocked') {
+  fail(`packet_awaiting_owner_source_status:${packetAwaitingOwnerOutput.sourceGoNoGo?.status}`)
+}
+if (packetAwaitingOwnerOutput.booleans?.sourceInternalBetaGoNoGoAccepted !== true) {
+  fail('packet_awaiting_owner_source_not_accepted')
+}
+if (packetAwaitingOwnerOutput.booleans?.internalBetaGoNoGoOwnerApprovalRecordAccepted !== false) {
+  fail('packet_awaiting_owner_record_not_false')
+}
+
+const packetApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--internal-beta-go-no-go-packet',
+  sourceGoNoGoPacketPath,
+  '--internal-beta-go-no-go-owner-approval-granted',
+  '--internal-beta-go-no-go-owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-owner-approved',
+]), 'packet_approved_owner_approval')
+if (packetApprovedOutput.input?.sourceEvidenceMode !== 'internal_beta_go_no_go_packet') {
+  fail('packet_approved_source_mode_not_reported')
+}
+if (packetApprovedOutput.status !== 'internal_beta_go_no_go_owner_approved_runtime_still_blocked') {
+  fail(`packet_approved_status:${packetApprovedOutput.status}`)
+}
+if (packetApprovedOutput.ownerApprovedToolsWithProvidedEvidence !== 21) {
+  fail('packet_approved_tools_not_21')
+}
+if (packetApprovedOutput.ownerApprovedCapabilitiesWithProvidedEvidence !== 12) {
+  fail('packet_approved_capabilities_not_12')
+}
+
 let runtimeRequireExited = false
 try {
   runNpm(runScriptName, [...approvedArgs, '--require-runtime-ready'])
@@ -350,7 +443,13 @@ try {
 }
 if (!runtimeRequireExited) fail('require_runtime_ready_did_not_fail')
 
-for (const output of [defaultOutput, awaitingOutput, approvedOutput]) {
+for (const output of [
+  defaultOutput,
+  awaitingOutput,
+  approvedOutput,
+  packetAwaitingOwnerOutput,
+  packetApprovedOutput,
+]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`false_gate_not_false:${key}`)

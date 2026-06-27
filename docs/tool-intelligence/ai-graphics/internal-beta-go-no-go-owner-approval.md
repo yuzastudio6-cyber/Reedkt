@@ -7,6 +7,13 @@ record for all 21 tools and all 12 product-facing capabilities. It confirms
 that the technical evidence can advance to a future runtime-enqueue approval
 lane, but it does not authorize runtime.
 
+The evaluator can consume either the low-level source evidence flags or a
+source go/no-go packet via `--internal-beta-go-no-go-packet`. A source packet
+must already report
+`internal_beta_go_no_go_approved_runtime_still_blocked`; this owner gate still
+requires a separate `--internal-beta-go-no-go-owner-approval-granted` record and
+`--internal-beta-go-no-go-owner-approval-ref` before owner approval is accepted.
+
 ## Current Status
 
 - Status: `internal_beta_go_no_go_owner_approved_runtime_still_blocked`

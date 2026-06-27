@@ -150,6 +150,12 @@ function writeAcceptedEvidencePackets() {
   return { manifestPacketPath, gpuPacketPath }
 }
 
+function writeJsonPacket(root, fileName, packet) {
+  const packetPath = path.join(root, fileName)
+  fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-internal-beta-go-no-go-owner-approval.ts',
   'server/cli/ai-graphics-internal-beta-go-no-go-owner-approval.ts',
@@ -233,6 +239,9 @@ for (const [key, expected] of Object.entries({
   acceptsLowLevelEvidenceFlags: true,
   acceptsInternalBetaGoNoGoPacket: true,
   sourceGoNoGoApprovedPacketRequired: true,
+  sourceGoNoGoPacketMustCoverAll21Tools: true,
+  sourceGoNoGoPacketMustCoverAll12Capabilities: true,
+  sourceGoNoGoPacketMustKeepRuntimeBetaAndProductionFalse: true,
   ownerApprovalRequiredAfterSourcePacket: true,
   runtimeUnlockPerformed: false,
 })) {
@@ -248,6 +257,16 @@ if (!markdown.includes('--internal-beta-go-no-go-packet')) {
 }
 if (!moduleSource.includes('sourceInternalBetaGoNoGoPacket')) {
   fail('module_missing_source_go_no_go_packet_input')
+}
+for (const expectedCliSourceGuard of [
+  'goNoGoCandidateToolsWithProvidedEvidence === 21',
+  'goNoGoCandidateCapabilitiesWithProvidedEvidence === 12',
+  'internalBetaGoNoGoApprovedToolsWithProvidedEvidence === 21',
+  'runtimeReadyNow',
+]) {
+  if (!cliSource.includes(expectedCliSourceGuard)) {
+    fail(`cli_missing_source_packet_guard:${expectedCliSourceGuard}`)
+  }
 }
 
 for (const scope of [
@@ -435,6 +454,73 @@ if (packetApprovedOutput.ownerApprovedCapabilitiesWithProvidedEvidence !== 12) {
   fail('packet_approved_capabilities_not_12')
 }
 
+const sourceRollupPacket = parseJsonOutput(runNpm('ai-graphics:beta-production-readiness-rollup', [
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--model-weight-manifest-review-packet',
+  manifestPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuPacketPath,
+  '--owner-approval-granted',
+  '--owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-ready',
+]), 'source_beta_production_rollup_packet')
+const sourceRollupPacketPath = writeJsonPacket(
+  path.dirname(manifestPacketPath),
+  'source-beta-production-rollup-packet.json',
+  sourceRollupPacket,
+)
+const rollupFedSourceGoNoGoPacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-go-no-go', [
+  '--beta-production-readiness-rollup-packet',
+  sourceRollupPacketPath,
+  '--internal-beta-go-no-go-approved',
+  '--internal-beta-go-no-go-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-approved',
+]), 'rollup_fed_source_go_no_go_packet')
+const rollupFedSourceGoNoGoPacketPath = writeJsonPacket(
+  path.dirname(manifestPacketPath),
+  'rollup-fed-source-go-no-go-packet.json',
+  rollupFedSourceGoNoGoPacket,
+)
+const rollupFedPacketApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--internal-beta-go-no-go-packet',
+  rollupFedSourceGoNoGoPacketPath,
+  '--internal-beta-go-no-go-owner-approval-granted',
+  '--internal-beta-go-no-go-owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-owner-approved',
+]), 'rollup_fed_packet_approved_owner_approval')
+if (sourceRollupPacket.status !== 'owner_approved_worker_gates_ready_runtime_still_blocked') {
+  fail(`source_rollup_packet_status:${sourceRollupPacket.status}`)
+}
+if (rollupFedSourceGoNoGoPacket.input?.rollupSourceMode !== 'beta_production_readiness_rollup_packet') {
+  fail(`rollup_fed_source_go_no_go_source_mode:${rollupFedSourceGoNoGoPacket.input?.rollupSourceMode}`)
+}
+if (rollupFedSourceGoNoGoPacket.status !== 'internal_beta_go_no_go_approved_runtime_still_blocked') {
+  fail(`rollup_fed_source_go_no_go_status:${rollupFedSourceGoNoGoPacket.status}`)
+}
+if (rollupFedPacketApprovedOutput.input?.sourceEvidenceMode !== 'internal_beta_go_no_go_packet') {
+  fail(`rollup_fed_packet_approved_source_mode:${rollupFedPacketApprovedOutput.input?.sourceEvidenceMode}`)
+}
+if (rollupFedPacketApprovedOutput.status !== 'internal_beta_go_no_go_owner_approved_runtime_still_blocked') {
+  fail(`rollup_fed_packet_approved_status:${rollupFedPacketApprovedOutput.status}`)
+}
+if (rollupFedPacketApprovedOutput.ownerApprovedToolsWithProvidedEvidence !== 21) {
+  fail('rollup_fed_packet_approved_tools_not_21')
+}
+if (rollupFedPacketApprovedOutput.ownerApprovedCapabilitiesWithProvidedEvidence !== 12) {
+  fail('rollup_fed_packet_approved_capabilities_not_12')
+}
+if (rollupFedPacketApprovedOutput.booleans?.runtimeReadyNow !== false) {
+  fail('rollup_fed_packet_runtime_ready_not_false')
+}
+if (rollupFedPacketApprovedOutput.booleans?.productionReadyNow !== false) {
+  fail('rollup_fed_packet_production_ready_not_false')
+}
+
 let runtimeRequireExited = false
 try {
   runNpm(runScriptName, [...approvedArgs, '--require-runtime-ready'])
@@ -449,6 +535,7 @@ for (const output of [
   approvedOutput,
   packetAwaitingOwnerOutput,
   packetApprovedOutput,
+  rollupFedPacketApprovedOutput,
 ]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
@@ -566,6 +653,7 @@ console.log(JSON.stringify({
   defaultStatus: defaultOutput.status,
   awaitingStatus: awaitingOutput.status,
   approvedStatus: approvedOutput.status,
+  rollupFedPacketApprovedStatus: rollupFedPacketApprovedOutput.status,
   toolsCovered: allTools.length,
   capabilitiesCovered: capabilities.length,
   ownerApprovedToolsWithProvidedEvidence:

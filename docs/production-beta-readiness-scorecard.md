@@ -117,6 +117,10 @@ call providers/models, run browser/canvas/WebGL, run GPU/model runtime,
 download or load model weights, process media, create signed URLs or public
 artifacts, unlock internal beta runtime, unlock external beta, or unlock
 production.
+Source go/no-go packet validation now requires all 21 tools, all 12
+capabilities, an approved go/no-go state, and runtime/beta/production gates
+false. The diagnostic also proves a beta/production-rollup-fed go/no-go packet
+can feed this owner approval without enabling runtime.
 
 AI graphics internal beta runtime-enqueue approval decision
 `ai_graphics_internal_beta_runtime_enqueue_approval_contract_prepared_with_runtime_blocks`

@@ -57,14 +57,37 @@ function readProofPacket(flag: string, committedPath: string): unknown | undefin
 }
 
 function isInternalBetaGoNoGoPacket(value: unknown): value is AiGraphicsInternalBetaGoNoGo {
-  return Boolean(
-    typeof value === 'object' &&
-      value !== null &&
-      !Array.isArray(value) &&
-      (value as Record<string, unknown>).decision ===
-        'ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks' &&
-      typeof (value as Record<string, unknown>).status === 'string' &&
-      typeof (value as Record<string, unknown>).booleans === 'object',
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const record = value as Record<string, unknown>
+  const booleans = record.booleans
+  return (
+    record.decision === 'ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks' &&
+    record.status === 'internal_beta_go_no_go_approved_runtime_still_blocked' &&
+    record.totalAiGraphicsTools === 21 &&
+    record.totalProductFacingCapabilities === 12 &&
+    record.goNoGoCandidateToolsWithProvidedEvidence === 21 &&
+    record.goNoGoCandidateCapabilitiesWithProvidedEvidence === 12 &&
+    record.internalBetaGoNoGoApprovedToolsWithProvidedEvidence === 21 &&
+    record.internalBetaReadyNowTools === 0 &&
+    record.externalBetaReadyNowTools === 0 &&
+    record.productionReadyNowTools === 0 &&
+    Boolean(
+      booleans &&
+      typeof booleans === 'object' &&
+      !Array.isArray(booleans) &&
+      (booleans as Record<string, unknown>).sourceBetaProductionReadinessRollupAccepted === true &&
+      (booleans as Record<string, unknown>).internalBetaGoNoGoReadyWithProvidedEvidence === true &&
+      (booleans as Record<string, unknown>).internalBetaGoNoGoApprovalRecordAccepted === true &&
+      (booleans as Record<string, unknown>).all21ToolsInternalBetaGoNoGoApprovedWithProvidedEvidence === true &&
+      (booleans as Record<string, unknown>).agentCanExecuteToolsNow === false &&
+      (booleans as Record<string, unknown>).workerQueueApprovedNow === false &&
+      (booleans as Record<string, unknown>).productionWorkerDispatchApprovedNow === false &&
+      (booleans as Record<string, unknown>).gpuRuntimeApprovedNow === false &&
+      (booleans as Record<string, unknown>).runtimeReadyNow === false &&
+      (booleans as Record<string, unknown>).internalBetaReadyNow === false &&
+      (booleans as Record<string, unknown>).externalBetaReadyNow === false &&
+      (booleans as Record<string, unknown>).productionReadyNow === false
+    )
   )
 }
 
@@ -76,7 +99,7 @@ function readSourceGoNoGoPacket(): {
   if (!sourcePacket) return { sourceEvidenceMode: 'constructed_from_cli_flags' }
   if (!isInternalBetaGoNoGoPacket(sourcePacket)) {
     throw new Error(
-      '--internal-beta-go-no-go-packet does not contain an AI graphics internal beta go/no-go packet',
+      '--internal-beta-go-no-go-packet must report internal_beta_go_no_go_approved_runtime_still_blocked for all 21 tools and all runtime/beta/production gates still false.',
     )
   }
   return {

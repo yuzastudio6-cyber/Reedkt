@@ -465,6 +465,13 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked: `agentCanExecuteToolsNow=false`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after internal beta go/no-go rollup packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `0caa655c4bb0b04de6285561dd7c6e01e6faaea0`, with an empty check rollup.
 
+## Follow-Up: Go/No-Go Owner Approval Source Packet Hardening
+
+- Tightened `ai-graphics:internal-beta-go-no-go-owner-approval` source packet validation for `--internal-beta-go-no-go-packet`.
+- A source go/no-go packet must now report `internal_beta_go_no_go_approved_runtime_still_blocked`, all 21 tools, all 12 capabilities, all 21 go/no-go approved tools with provided evidence, and runtime/beta/production gates false.
+- Diagnostic coverage proves a beta/production-rollup-fed go/no-go packet can feed owner approval and still reaches only `internal_beta_go_no_go_owner_approved_runtime_still_blocked`.
+- Runtime remains blocked: `agentCanExecuteToolsNow=false`, `workerQueueApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

@@ -10,8 +10,10 @@ lane, but it does not authorize runtime.
 The evaluator can consume either the low-level source evidence flags or a
 source go/no-go packet via `--internal-beta-go-no-go-packet`. A source packet
 must already report
-`internal_beta_go_no_go_approved_runtime_still_blocked`; this owner gate still
-requires a separate `--internal-beta-go-no-go-owner-approval-granted` record and
+`internal_beta_go_no_go_approved_runtime_still_blocked`, cover all 21 tools and
+all 12 capabilities, and keep runtime/beta/production gates false. This owner
+gate still requires a separate
+`--internal-beta-go-no-go-owner-approval-granted` record and
 `--internal-beta-go-no-go-owner-approval-ref` before owner approval is accepted.
 
 ## Current Status

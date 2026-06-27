@@ -59,6 +59,9 @@
     "acceptsLowLevelEvidenceFlags": true,
     "acceptsInternalBetaGoNoGoPacket": true,
     "sourceGoNoGoApprovedPacketRequired": true,
+    "sourceGoNoGoPacketMustCoverAll21Tools": true,
+    "sourceGoNoGoPacketMustCoverAll12Capabilities": true,
+    "sourceGoNoGoPacketMustKeepRuntimeBetaAndProductionFalse": true,
     "ownerApprovalRequiredAfterSourcePacket": true,
     "runtimeUnlockPerformed": false
   },

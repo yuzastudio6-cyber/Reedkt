@@ -1,0 +1,62 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_PRIVATE_CALLER_IMAGE_SOURCE_IMPORT_1",
+  "decision": "completed_qwen2_5_vl_private_caller_image_source_import_ready_for_guarded_structured_output_smoke_retry",
+  "execution": "completed_fail_closed_image_source_import_no_build_or_runtime_execution",
+  "integrationBase": "01791cb9b6c2465708fe6551d5efadcf262f005e",
+  "sourceEvidence": {
+    "structuredOutputSourceImportPr": 1294,
+    "structuredOutputSourceImportMerge": "01791cb9b6c2465708fe6551d5efadcf262f005e",
+    "callerDockerfileSourcePr": 1241,
+    "callerDockerfileSourceHead": "e04845e6bcea4f030366c7ced6b186efb4d56790",
+    "excludedPr": 577
+  },
+  "importedSource": {
+    "cpuCallerDockerfile": "docker/prod/qwen2-5-vl-private-invoke-cpu-caller/Dockerfile",
+    "copiedSourceDirectory": "server/workers/qwen2_5_vl_private_invoke_cpu_caller/",
+    "defaultCommand": "python /app/server/workers/qwen2_5_vl_private_invoke_cpu_caller/internal_caller.py",
+    "executionDefault": "fail_closed"
+  },
+  "readOnlyCloudRunMetadata": {
+    "project": "reeditpro",
+    "gpuService": "reeditpro-qwen2-5-vl-l4-worker",
+    "cpuCallerJob": "reeditpro-qwen2-5-vl-private-caller",
+    "mutationPerformed": false,
+    "runtimeExecutionPerformed": false,
+    "secretPayloadAccessed": false
+  },
+  "readiness": {
+    "cpuCallerImageSource": "ready_for_guarded_rebuild_update_before_smoke_retry",
+    "qwenRuntime": "blocked_pending_guarded_structured_output_smoke_retry",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_STRUCTURED_OUTPUT_SMOKE_RETRY_1",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "safety": {
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "cloudRunDeployment": false,
+    "cloudRunInvocation": false,
+    "identityTokenFetch": false,
+    "qwenExecution": false,
+    "modelImportLoad": false,
+    "vllmInitialization": false,
+    "dockerBuild": false,
+    "dockerPush": false,
+    "dockerExecution": false,
+    "mediaProcessing": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "deployment": false,
+    "productionUnlock": false,
+    "packageInstallation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  }
+}

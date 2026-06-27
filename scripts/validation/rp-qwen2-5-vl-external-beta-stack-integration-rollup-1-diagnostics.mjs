@@ -38,7 +38,17 @@ const followOnSourceImportFiles = [
   'scripts/validation/rp-qwen2-5-vl-external-beta-structured-output-source-import-1-diagnostics.mjs',
 ]
 
-const allowedFiles = new Set([...requiredFiles, ...followOnSourceImportFiles])
+const followOnPrivateCallerImageSourceImportFiles = [
+  'docker/prod/qwen2-5-vl-private-invoke-cpu-caller/Dockerfile',
+  'docs/external-beta/qwen2-5-vl-external-beta-private-caller-image-source-import-1/source-import.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-private-caller-image-source-import-1/runtime-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-private-caller-image-source-import-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-private-caller-image-source-import-1/qwen2-5-vl-private-caller-image-source-import-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-private-caller-image-source-import-1-results.md',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-private-caller-image-source-import-1-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([...requiredFiles, ...followOnSourceImportFiles, ...followOnPrivateCallerImageSourceImportFiles])
 
 const requiredText = [
   packet,

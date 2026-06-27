@@ -20,6 +20,7 @@ import { QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SERVICE_SOURCE } from '../../src/
 import { QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SERVICE_DEPLOY_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-service-deploy-result'
 import { QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SMOKE_EXECUTE_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-smoke-execute-result'
 import { QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SMOKE_FIX_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-smoke-fix-result'
+import { QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_RESULT_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-result-review'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -28,9 +29,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_approved_fixture_smoke_passed_result_review_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_structured_fixture_output_fix_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58D-APPROVED-FIXTURE-INFERENCE-RESULT-REVIEW: review sanitized Qwen fixture output metadata, no beta/no generated assets'
+  'QWEN2_5_VL_STACK_TOOL_58E-STRUCTURED-FIXTURE-OUTPUT-FIX: tune Qwen fixture prompt/parser for structured JSON metadata, no beta/no generated assets'
 
 type JsonRecord = Record<string, unknown>
 
@@ -162,6 +163,7 @@ for (const file of [
   'docs/qwen2-5-vl-7b-approved-fixture-inference-service-deploy-result.md',
   'docs/qwen2-5-vl-7b-approved-fixture-inference-smoke-execute-result.md',
   'docs/qwen2-5-vl-7b-approved-fixture-inference-smoke-fix-result.md',
+  'docs/qwen2-5-vl-7b-approved-fixture-inference-result-review.md',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup.ts',
   'src/backend/mock/mock-qwen2-5-vl-private-invoke-runtime-readiness-review.ts',
   'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-smoke-plan.ts',
@@ -169,6 +171,7 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-service-deploy-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-smoke-execute-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-smoke-fix-result.ts',
+  'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-result-review.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-deploy-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-contract-smoke-result.ts',
@@ -299,6 +302,15 @@ for (const phrase of [
   '`approvedFixtureInferenceMetadataOutputCreated=true`',
   '`approvedFixtureInferenceMetadataOutputAcceptedForRuntime=false`',
   '`controlledApprovedFixtureInferenceCompleted=true`',
+  'Approved-fixture inference result review',
+  'parsedJson=false',
+  'schemaKeys=[]',
+  'objectCount=0',
+  'textLikeRegionCount=0',
+  '`approvedFixtureInferenceResultReviewRecorded=true`',
+  '`approvedFixtureInferenceInvocationEvidenceAccepted=true`',
+  '`approvedFixtureInferenceStructuredOutputAccepted=false`',
+  '`approvedFixtureInferenceStructuredOutputFixRequired=true`',
   NEXT_PROMPT,
 ]) {
   assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)
@@ -341,6 +353,10 @@ assert.equal(
 assert.equal(
   rollup.upstreamApprovedFixtureInferenceSmokeFixDecision,
   QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SMOKE_FIX_RESULT.decision,
+)
+assert.equal(
+  rollup.upstreamApprovedFixtureInferenceResultReviewDecision,
+  QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_RESULT_REVIEW.decision,
 )
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
@@ -405,7 +421,7 @@ assert.equal(status.mayRunInference, false)
 assert.equal(status.mayDispatchWorker, false)
 
 const ui = getQwenVlPlannerRoutingUiData()
-assert.equal(ui.privateInvokeClient.currentStatus, 'approved_fixture_inference_result_review_required')
+assert.equal(ui.privateInvokeClient.currentStatus, 'structured_fixture_output_fix_required')
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
 assert.equal(ui.summary.dryRunPassedClaimed, false)
@@ -439,8 +455,9 @@ assert.deepEqual(gateIds, [
   'approved_fixture_inference_service_deploy',
   'first_approved_fixture_inference_smoke_execution',
   'approved_fixture_inference_smoke_fix_retry',
+  'approved_fixture_inference_result_review',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 13)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 14)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -455,6 +472,10 @@ assert.equal(
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_result_review_required').length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_structured_output_fix_required').length,
   1,
 )
 assert.equal(
@@ -546,15 +567,21 @@ assert.equal(rollup.runtimeFlags.approvedFixtureInferenceVllmEngineInitialized, 
 assert.equal(rollup.runtimeFlags.approvedFixtureInferenceMetadataOutputCreated, true)
 assert.equal(rollup.runtimeFlags.approvedFixtureInferenceMetadataOutputAcceptedForRuntime, false)
 assert.equal(rollup.runtimeFlags.controlledApprovedFixtureInferenceCompleted, true)
+assert.equal(rollup.runtimeFlags.approvedFixtureInferenceResultReviewRecorded, true)
+assert.equal(rollup.runtimeFlags.approvedFixtureInferenceInvocationEvidenceAccepted, true)
+assert.equal(rollup.runtimeFlags.approvedFixtureInferenceStructuredOutputAccepted, false)
+assert.equal(rollup.runtimeFlags.approvedFixtureInferenceStructuredOutputFixRequired, true)
 
 for (const file of [
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md',
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-routing-fix-result.md',
   'docs/qwen2-5-vl-7b-approved-fixture-inference-smoke-execute-result.md',
   'docs/qwen2-5-vl-7b-approved-fixture-inference-smoke-fix-result.md',
+  'docs/qwen2-5-vl-7b-approved-fixture-inference-result-review.md',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup.ts',
   'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-smoke-execute-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-smoke-fix-result.ts',
+  'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-result-review.ts',
 ]) {
   assertNoForbiddenText(file)
 }
@@ -567,6 +594,7 @@ const forbiddenDataFindings = scanValues({
   ui,
   fixtureSmokeExecuteResult: QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SMOKE_EXECUTE_RESULT,
   fixtureSmokeFixResult: QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SMOKE_FIX_RESULT,
+  fixtureResultReview: QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_RESULT_REVIEW,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

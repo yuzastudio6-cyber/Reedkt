@@ -4,12 +4,13 @@ import os from 'node:os'
 import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
-const runScriptName = 'ai-graphics:external-beta-launch-gap-report'
-const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-launch-gap-report.ts'
-const diagnosticScriptName = 'ai-graphics:external-beta-launch-gap-report:diagnostics'
+const runScriptName = 'ai-graphics:external-beta-launch-go-no-go'
+const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-launch-go-no-go.ts'
+const diagnosticScriptName = 'ai-graphics:external-beta-launch-go-no-go:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-launch-gap-report-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-beta-launch-go-no-go-diagnostics.mjs'
 const packetScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
+const launchGapScriptName = 'ai-graphics:external-beta-launch-gap-report'
 
 const allTools = [
   'torch_torchvision',
@@ -46,12 +47,12 @@ const gpuTools = [
   'transparent_background',
 ]
 
-const finalLaunchGateBlockers = [
-  'external beta launch switch is not approved',
-  'external beta rollout cohort is not approved',
-  'external beta cost and concurrency ceiling is not approved',
-  'external beta rollback and incident-response runbook is not approved for live users',
-  'external beta private artifact retention and support ownership are not approved',
+const requiredLaunchFields = [
+  'externalBetaLaunchRef',
+  'externalBetaRolloutCohortRef',
+  'externalBetaCostConcurrencyCeilingRef',
+  'externalBetaRollbackIncidentRunbookRef',
+  'externalBetaPrivateArtifactRetentionSupportRef',
 ]
 
 const falseGateKeys = [
@@ -146,27 +147,49 @@ function acceptedRecord(toolId) {
   }
 }
 
+const fullEvidenceArgs = [
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
+]
+
+const launchApprovalArgs = [
+  '--all-external-beta-launch-gates-approved',
+  '--external-beta-launch-ref',
+  'external-beta-launch://launch-switch-approved',
+  '--external-beta-rollout-cohort-ref',
+  'external-beta-launch://rollout-cohort-approved',
+  '--external-beta-cost-concurrency-ceiling-ref',
+  'external-beta-launch://cost-concurrency-ceiling-approved',
+  '--external-beta-rollback-incident-runbook-ref',
+  'external-beta-launch://rollback-incident-runbook-approved',
+  '--external-beta-private-artifact-retention-support-ref',
+  'external-beta-launch://private-artifact-retention-support-approved',
+  '--external-beta-launch-approver-role',
+  'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER',
+]
+
 const requiredFiles = [
+  'server/tool-registry/ai-graphics-external-beta-launch-go-no-go.ts',
+  'server/cli/ai-graphics-external-beta-launch-go-no-go.ts',
   'server/tool-registry/ai-graphics-external-beta-launch-gap-report.ts',
-  'server/cli/ai-graphics-external-beta-launch-gap-report.ts',
-  'server/tool-registry/ai-graphics-external-beta-evidence-scaffold.ts',
-  'server/tool-registry/ai-graphics-external-beta-evidence-packet.ts',
   'server/tool-registry/ai-graphics-external-beta-readiness-gate.ts',
   'server/tool-registry/index.ts',
+  'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.md',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-evidence-scaffold.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json',
   'docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json',
 ]
 
 for (const file of requiredFiles) read(file)
 
 const pkg = json('package.json')
-const docs = json('docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.md')
-const source = read('server/tool-registry/ai-graphics-external-beta-launch-gap-report.ts')
-const cli = read('server/cli/ai-graphics-external-beta-launch-gap-report.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.md')
+const source = read('server/tool-registry/ai-graphics-external-beta-launch-go-no-go.ts')
+const cli = read('server/cli/ai-graphics-external-beta-launch-go-no-go.ts')
 const index = read('server/tool-registry/index.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
@@ -174,85 +197,67 @@ if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_scr
 if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
   fail(`missing_package_script:${diagnosticScriptName}`)
 }
-if (!index.includes("export * from './ai-graphics-external-beta-launch-gap-report'")) {
-  fail('server_registry_index_missing_external_beta_launch_gap_report_export')
+if (!index.includes("export * from './ai-graphics-external-beta-launch-go-no-go'")) {
+  fail('server_registry_index_missing_external_beta_launch_go_no_go_export')
 }
-if (docs.decision !== 'ai_graphics_external_beta_launch_gap_report_prepared_with_remaining_blocks') {
+if (docs.decision !== 'ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
 
 for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
   totalProductFacingCapabilities: 12,
-  evidenceScaffoldRecordsPrepared: 21,
-  installReadyTools: 21,
-  productionMappedTools: 21,
-  planningSelectableTools: 21,
   gpuRuntimeTargetedTools: 8,
-  defaultExternalBetaCandidatesWithProvidedEvidenceTools: 0,
-  fullEvidenceExternalBetaCandidatesWithProvidedEvidenceTools: 21,
+  defaultExternalBetaLaunchCandidateToolsWithProvidedEvidence: 0,
+  fullEvidenceExternalBetaLaunchCandidateToolsWithProvidedEvidence: 21,
+  fullLaunchApprovalExternalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence: 21,
   externalBetaReadyNowTools: 0,
-  externalBetaBlockedNowTools: 21,
   productionReadyNowTools: 0,
 })) {
   if (docs.counts?.[key] !== expected) fail(`unexpected_docs_count:${key}:${docs.counts?.[key]}`)
 }
-
 for (const tool of allTools) {
   if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
 }
-if (gpuTools.length !== 8) fail('diagnostic_gpu_tool_count_not_8')
-
-for (const blocker of finalLaunchGateBlockers) {
-  if (!docs.remainingExternalBetaLaunchGates?.includes(blocker)) {
-    fail(`docs_missing_launch_gate_blocker:${blocker}`)
-  }
-  if (!source.includes(blocker)) fail(`source_missing_launch_gate_blocker:${blocker}`)
+for (const tool of gpuTools) {
+  if (!docs.gpuRuntimeTargetedTools?.includes(tool)) fail(`docs_missing_gpu_tool:${tool}`)
 }
-for (const sequenceNeedle of [
-  'Generate local-only external-beta evidence templates',
-  'Replace all rejected public placeholders with private/backend evidence refs',
-  'Validate the sanitized evidence',
-  'Feed the validated packet into ai-graphics:external-beta-readiness-gate',
-  'Run a separate external-beta launch go/no-go',
-]) {
-  if (!source.includes(sequenceNeedle)) fail(`source_missing_launch_sequence:${sequenceNeedle}`)
+for (const field of requiredLaunchFields) {
+  if (!source.includes(field)) fail(`source_missing_launch_field:${field}`)
 }
 for (const needle of [
-  'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GAP_REPORT_DECISION',
+  'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GO_NO_GO_DECISION',
+  'buildAiGraphicsExternalBetaLaunchGoNoGo',
   'buildAiGraphicsExternalBetaLaunchGapReport',
-  'buildAiGraphicsExternalBetaReadinessGate',
-  'buildAiGraphicsExternalBetaEvidenceScaffoldPacket',
+  'externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence',
   'externalBetaReadyNowTools: 0',
-  'externalBetaBlockedNowTools: 21',
   'productionReadyNowTools: 0',
   'gpuRuntimeOnDemandOnly: true',
   'agentCanExecuteToolsNow: false',
+  'external beta user traffic enablement',
 ]) {
   if (!source.includes(needle)) fail(`source_missing:${needle}`)
 }
 for (const needle of [
+  '--external-beta-launch-gap-report-packet',
   '--external-beta-evidence-packet',
-  '--all-shared-gates-passed',
-  '--all-external-beta-evidence-passed',
-  'reportOnly: true',
-  'toolExecutionPerformed: false',
-  'gpuRuntimePerformed: false',
+  '--all-external-beta-launch-gates-approved',
+  '--external-beta-launch-ref',
+  '--external-beta-private-artifact-retention-support-ref',
+  'evaluatorOnly: true',
 ]) {
   if (!cli.includes(needle)) fail(`cli_missing:${needle}`)
 }
-
 for (const key of [
-  'externalBetaLaunchGapReportPrepared',
-  'sourceExternalBetaReadinessGateAccepted',
-  'sourceExternalBetaEvidenceScaffoldAccepted',
+  'externalBetaLaunchGoNoGoContractPrepared',
+  'sourceExternalBetaLaunchGapAccepted',
+  'externalBetaLaunchCandidateWithProvidedEvidence',
+  'externalBetaLaunchGoNoGoApprovalRecordAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
-  'all21ToolsInstalledForPlannedSurface',
-  'all21ToolsMappedToProductionRegistry',
-  'evidenceScaffoldPreparedForAll21Tools',
+  'all8GpuToolsTargetGpuRuntime',
   'gpuRuntimeOnDemandOnly',
-  'externalBetaCandidatesWithProvidedEvidence',
+  'all21ToolsExternalBetaLaunchGoNoGoApprovedWithProvidedEvidence',
   'agentCanSelectForPlanning',
 ]) {
   if (docs.booleans?.[key] !== true) fail(`docs_required_true_not_true:${key}`)
@@ -260,12 +265,12 @@ for (const key of [
 for (const key of falseGateKeys) {
   if (docs.booleans?.[key] !== false) fail(`docs_required_false_not_false:${key}`)
 }
-if (!scorecard.includes('ai_graphics_external_beta_launch_gap_report_prepared_with_remaining_blocks')) {
-  fail('scorecard_missing_external_beta_launch_gap_report_decision')
-}
 if (!docsMd.includes('External-beta-ready now: `0`')) fail('markdown_missing_external_beta_ready_zero')
+if (!scorecard.includes('ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks')) {
+  fail('scorecard_missing_external_beta_launch_go_no_go_decision')
+}
 
-const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-launch-gap-'))
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-launch-go-no-go-'))
 const fullRecordsPath = writeJson(path.join(tempRoot, 'full-records.json'), allTools.map(acceptedRecord))
 const fullPacketPath = writeJson(
   path.join(tempRoot, 'full-packet.json'),
@@ -274,57 +279,80 @@ const fullPacketPath = writeJson(
     'full_packet_source',
   ),
 )
+const fullLaunchGapPath = writeJson(
+  path.join(tempRoot, 'full-launch-gap-report.json'),
+  parseJsonOutput(
+    runNpm(launchGapScriptName, [
+      ...fullEvidenceArgs,
+      '--external-beta-evidence-packet',
+      fullPacketPath,
+    ]),
+    'full_launch_gap_source',
+  ),
+)
 
-const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_launch_gap_report')
-const fullOutput = parseJsonOutput(runNpm(runScriptName, [
-  '--all-shared-gates-passed',
-  '--browser-canvas-webgl-sandbox-passed',
-  '--native-gpu-runtime-proof-passed',
-  '--model-weight-manifests-approved',
-  '--model-weight-review-packet-accepted',
+const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_launch_go_no_go')
+const fullEvidenceOutput = parseJsonOutput(runNpm(runScriptName, [
+  ...fullEvidenceArgs,
   '--external-beta-evidence-packet',
   fullPacketPath,
-]), 'full_launch_gap_report')
+]), 'full_evidence_launch_go_no_go')
+const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
+  ...fullEvidenceArgs,
+  '--external-beta-evidence-packet',
+  fullPacketPath,
+  ...launchApprovalArgs,
+]), 'approved_launch_go_no_go')
+const packetFedApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-launch-gap-report-packet',
+  fullLaunchGapPath,
+  ...launchApprovalArgs,
+]), 'packet_fed_approved_launch_go_no_go')
 
-if (defaultOutput.externalBetaCandidatesWithProvidedEvidenceTools !== 0) {
-  fail('default_launch_gap_candidates_not_0')
+if (defaultOutput.status !== 'missing_external_beta_candidate_evidence') {
+  fail(`default_status_unexpected:${defaultOutput.status}`)
 }
-if (defaultOutput.externalBetaReadyNowTools !== 0) fail('default_launch_gap_ready_now_not_0')
-if (defaultOutput.externalBetaBlockedNowTools !== 21) fail('default_launch_gap_blocked_not_21')
-if (defaultOutput.productionReadyNowTools !== 0) fail('default_launch_gap_production_not_0')
-if (defaultOutput.booleans?.externalBetaCandidatesWithProvidedEvidence !== false) {
-  fail('default_launch_gap_candidate_boolean_not_false')
+if (defaultOutput.externalBetaLaunchCandidateToolsWithProvidedEvidence !== 0) {
+  fail('default_candidate_tools_not_0')
+}
+if (defaultOutput.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 0) {
+  fail('default_approved_tools_not_0')
 }
 
-if (fullOutput.externalBetaCandidatesWithProvidedEvidenceTools !== 21) {
-  fail('full_launch_gap_candidates_not_21')
+if (fullEvidenceOutput.status !== 'awaiting_external_beta_launch_go_no_go_approval') {
+  fail(`full_evidence_status_unexpected:${fullEvidenceOutput.status}`)
 }
-if (fullOutput.externalBetaReadyNowTools !== 0) fail('full_launch_gap_ready_now_not_0')
-if (fullOutput.externalBetaBlockedNowTools !== 21) fail('full_launch_gap_blocked_not_21')
-if (fullOutput.productionReadyNowTools !== 0) fail('full_launch_gap_production_not_0')
-if (fullOutput.booleans?.externalBetaCandidatesWithProvidedEvidence !== true) {
-  fail('full_launch_gap_candidate_boolean_not_true')
+if (fullEvidenceOutput.externalBetaLaunchCandidateToolsWithProvidedEvidence !== 21) {
+  fail('full_evidence_candidate_tools_not_21')
 }
-for (const tool of allTools) {
-  const defaultTool = defaultOutput.tools?.find((entry) => entry.toolId === tool)
-  const fullTool = fullOutput.tools?.find((entry) => entry.toolId === tool)
-  if (!defaultTool) fail(`default_output_missing_tool:${tool}`)
-  if (!fullTool) fail(`full_output_missing_tool:${tool}`)
-  if (defaultTool?.externalBetaReadyNow !== false) fail(`default_tool_ready_now_not_false:${tool}`)
-  if (fullTool?.externalBetaReadyNow !== false) fail(`full_tool_ready_now_not_false:${tool}`)
-  if (fullTool?.productionReadyNow !== false) fail(`full_tool_production_not_false:${tool}`)
-  for (const blocker of finalLaunchGateBlockers) {
-    if (!fullTool?.remainingLaunchGates?.includes(blocker)) {
-      fail(`full_tool_missing_remaining_launch_gate:${tool}:${blocker}`)
-    }
+if (fullEvidenceOutput.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 0) {
+  fail('full_evidence_approved_tools_not_0')
+}
+if (!fullEvidenceOutput.missingLaunchGoNoGoEvidence?.includes('external_beta_launch_ref')) {
+  fail('full_evidence_missing_launch_ref_not_reported')
+}
+
+for (const [label, output] of Object.entries({
+  approvedOutput,
+  packetFedApprovedOutput,
+})) {
+  if (output.status !== 'external_beta_launch_go_no_go_approved_runtime_still_blocked') {
+    fail(`${label}_status_unexpected:${output.status}`)
+  }
+  if (output.externalBetaLaunchCandidateToolsWithProvidedEvidence !== 21) {
+    fail(`${label}_candidate_tools_not_21`)
+  }
+  if (output.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 21) {
+    fail(`${label}_approved_tools_not_21`)
+  }
+  if (output.externalBetaReadyNowTools !== 0) fail(`${label}_external_beta_ready_now_not_0`)
+  if (output.productionReadyNowTools !== 0) fail(`${label}_production_ready_now_not_0`)
+  if (output.booleans?.all21ToolsExternalBetaLaunchGoNoGoApprovedWithProvidedEvidence !== true) {
+    fail(`${label}_approved_boolean_not_true`)
   }
 }
-for (const tool of gpuTools) {
-  const fullTool = fullOutput.tools?.find((entry) => entry.toolId === tool)
-  if (fullTool?.gpuRequiredForRuntime !== true) fail(`gpu_tool_not_gpu_required:${tool}`)
-}
 
-for (const output of [defaultOutput, fullOutput]) {
+for (const output of [defaultOutput, fullEvidenceOutput, approvedOutput, packetFedApprovedOutput]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`output_required_false_not_false:${key}`)
@@ -333,10 +361,10 @@ for (const output of [defaultOutput, fullOutput]) {
 }
 
 const combinedText = [
-  'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.json',
-  'server/tool-registry/ai-graphics-external-beta-launch-gap-report.ts',
-  'server/cli/ai-graphics-external-beta-launch-gap-report.ts',
+  'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json',
+  'server/tool-registry/ai-graphics-external-beta-launch-go-no-go.ts',
+  'server/cli/ai-graphics-external-beta-launch-go-no-go.ts',
   'docs/production-beta-readiness-scorecard.md',
 ].map(read).join('\n')
 
@@ -384,8 +412,6 @@ const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-beta-launch-go-no-go": "tsx server/cli/ai-graphics-external-beta-launch-go-no-go.ts",',
-  '+    "ai-graphics:external-beta-launch-go-no-go:diagnostics": "node scripts/validation/ai-graphics-external-beta-launch-go-no-go-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue
@@ -412,13 +438,14 @@ console.log(JSON.stringify({
   decision: docs.decision,
   toolsCovered: allTools.length,
   gpuToolsCovered: gpuTools.length,
-  defaultExternalBetaCandidatesWithProvidedEvidenceTools:
-    defaultOutput.externalBetaCandidatesWithProvidedEvidenceTools,
-  fullExternalBetaCandidatesWithProvidedEvidenceTools:
-    fullOutput.externalBetaCandidatesWithProvidedEvidenceTools,
-  externalBetaReadyNowTools: fullOutput.externalBetaReadyNowTools,
-  externalBetaBlockedNowTools: fullOutput.externalBetaBlockedNowTools,
-  productionReadyNowTools: fullOutput.productionReadyNowTools,
-  agentCanExecuteToolsNow: fullOutput.booleans?.agentCanExecuteToolsNow,
-  gpuRuntimeApprovedNow: fullOutput.booleans?.gpuRuntimeApprovedNow,
+  defaultStatus: defaultOutput.status,
+  fullEvidenceStatus: fullEvidenceOutput.status,
+  approvedStatus: approvedOutput.status,
+  packetFedApprovedStatus: packetFedApprovedOutput.status,
+  externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence:
+    approvedOutput.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence,
+  externalBetaReadyNowTools: approvedOutput.externalBetaReadyNowTools,
+  productionReadyNowTools: approvedOutput.productionReadyNowTools,
+  agentCanExecuteToolsNow: approvedOutput.booleans?.agentCanExecuteToolsNow,
+  gpuRuntimeApprovedNow: approvedOutput.booleans?.gpuRuntimeApprovedNow,
 }, null, 2))

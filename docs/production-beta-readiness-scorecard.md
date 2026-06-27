@@ -1014,6 +1014,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: default evidence produces 0 external-beta candidates. A complete sanitized private/backend evidence packet can produce 21 external-beta candidates with provided evidence, but external-beta-ready-now remains 0 of 21 until a separate launch go/no-go approves rollout cohort, cost/concurrency ceilings, rollback, incident response, private artifact retention, support ownership, and the external launch switch.
 - Runtime/beta/production: no committed unlock; `agentCanSelectForPlanning=true`, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics External-Beta Launch Go/No-Go
+
+- Decision: `ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks`.
+- Scope: external launch go/no-go contract for all 21 AI graphics tools and all 12 capabilities after private/backend evidence is accepted by the external-beta readiness gate.
+- Result: default launch candidates remain 0. With complete private/backend evidence plus launch switch, rollout cohort, cost/concurrency ceiling, rollback/incident runbook, private artifact retention, support ownership, and `AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER` metadata, the contract can mark 21 tools launch-approved with provided evidence, while `externalBetaReadyNowTools=0` and `productionReadyNowTools=0` remain enforced.
+- Runtime/beta/production: no committed unlock; GPU remains on-demand only for accepted future jobs; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics Internal Beta Owner Approval
 
 - Decision: `ai_graphics_internal_beta_owner_approval_contract_prepared_with_fail_closed_defaults`.

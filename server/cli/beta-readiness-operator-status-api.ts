@@ -31,6 +31,7 @@ export interface BetaReadinessOperatorStatusApiRunResult {
     blockerPolicy?: string
     safeBlockerReductionAllowed?: boolean
     blockedActionScope: string[]
+    allowedForwardProgressScopes: string[]
   }
   evidenceGaps: {
     goNoGoBlockers: number
@@ -123,6 +124,7 @@ export function summarizeOperatorStatusApiResponse(
       blockerPolicy: stringValue(currentGate.blockerPolicy),
       safeBlockerReductionAllowed: booleanValue(currentGate.safeBlockerReductionAllowed),
       blockedActionScope: stringArray(currentGate.blockedActionScope),
+      allowedForwardProgressScopes: stringArray(currentGate.allowedForwardProgressScopes),
     },
     evidenceGaps: {
       goNoGoBlockers: stringArray(evidenceGaps.goNoGoBlockers).length,

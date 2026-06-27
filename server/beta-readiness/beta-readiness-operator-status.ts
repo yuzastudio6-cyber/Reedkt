@@ -24,6 +24,7 @@ export interface BetaReadinessBackendOperatorStatusReport {
     blockerPolicy: string
     safeBlockerReductionAllowed: boolean
     blockedActionScope: string[]
+    allowedForwardProgressScopes: string[]
   }
   evidenceGaps: {
     goNoGoBlockers: string[]
@@ -63,6 +64,7 @@ export function buildBetaReadinessBackendOperatorStatus(
       blockerPolicy: report.toolExecutionReadiness.blockerPolicy,
       safeBlockerReductionAllowed: report.toolExecutionReadiness.safeBlockerReductionAllowed,
       blockedActionScope,
+      allowedForwardProgressScopes: buildAllowedForwardProgressScopes(report.toolExecutionReadiness.safeBlockerReductionAllowed),
     },
     evidenceGaps: {
       goNoGoBlockers: report.goNoGo.blockers,
@@ -77,6 +79,20 @@ export function buildBetaReadinessBackendOperatorStatus(
       'Blocked action scopes protect only unsafe beta/production actions while bounded blocker-reduction work remains allowed.',
     ],
   }
+}
+
+function buildAllowedForwardProgressScopes(safeBlockerReductionAllowed: boolean): string[] {
+  if (!safeBlockerReductionAllowed) return []
+
+  return [
+    'source_review',
+    'local_dependency_install_proof',
+    'bounded_command_import_container_proof',
+    'diagnostics_and_qa_packets',
+    'deployment_preflight_and_platform_evidence_collection',
+    'owner_approval_packet_collection',
+    'rollback_monitoring_support_planning',
+  ]
 }
 
 function buildBlockedActionScope(report: BetaReadinessReport): string[] {

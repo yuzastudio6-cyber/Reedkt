@@ -229,6 +229,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after native GPU proof profile alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ef2e593fd7c169433564cd6fc04d0cc985483a58`, with an empty check rollup.
 - Runtime install-readiness proof alignment: the older 21-tool runtime install-readiness packet now consumes accepted Node/static, browser/canvas/WebGL, and Satori font-fixture proof packets for all 13 JS graphics tools. Stale statuses such as `pending_browser_chart_runtime_proof`, `pending_animation_runtime_proof`, and `blocked_pending_approved_font_fixture_for_text_svg_layout` are rejected by diagnostics; agent execution, route execution, worker execution, beta, and production remain false.
 - Latest observed PR state after JS runtime proof evidence alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `119296472578d7dfe1454c7e55a991be1f2a2935`, with an empty check rollup.
+- Source-catalog checksum enforcement: private model-weight manifest review now requires `checksumSha256` to match reviewed source-catalog checksum guidance when guidance exists. `sam2`, `birefnet`, and `real_esrgan` reject mismatched private manifest checksums before native GPU proof input; `rembg` and `transparent_background` still require reviewed private artifact SHA-256 evidence. Downstream beta/runtime diagnostic fixtures now use the same checksum map while keeping all model download/load/inference, GPU runtime, agent execution, beta, and production gates false.
 
 ## Runtime State
 
@@ -272,6 +273,8 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - `privateArtifactManifestPrivateSchemeRequired=true`
 - `privateArtifactRefNamespaceRequired=true`
 - `privateArtifactRefNamespaceAccepted=true only with model-weight and GPU proof namespace evidence`
+- `sourceCatalogChecksumGuidanceEnforced=true`
+- `suggestedChecksumMismatchRejected=true`
 - `betaActivationGapReportPrepared=true`
 - `betaReadinessEvidenceEvaluationPrepared=true`
 - `internalBetaProductionWorkerJobReadinessPrepared=true`

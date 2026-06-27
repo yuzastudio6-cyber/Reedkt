@@ -39,6 +39,22 @@ const sourceCandidateIdByTool = {
   transparent_background: 'plemeri_transparent_background_base_ckpt_review_candidate',
 }
 
+const sourceCatalogSuggestedChecksumSha256ByTool = {
+  sam2: '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',
+  birefnet: '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
+  real_esrgan: '4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1',
+  rembg: null,
+  transparent_background: null,
+}
+
+const sourceCatalogChecksumEvidenceStatusByTool = {
+  sam2: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+  birefnet: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+  real_esrgan: 'release_asset_checksum_required_before_private_manifest',
+  rembg: 'checksum_required_before_private_manifest',
+  transparent_background: 'checksum_required_before_private_manifest',
+}
+
 const requiredManifestFields = [
   'manifestId',
   'toolId',
@@ -170,6 +186,12 @@ for (const tool of modelWeightTools) {
   if (result?.expectedSourceCandidateId !== sourceCandidateIdByTool[tool]) {
     fail(`expected_source_candidate_id_mismatch:${tool}:${result?.expectedSourceCandidateId}`)
   }
+  if (result?.sourceCatalogSuggestedChecksumSha256 !== sourceCatalogSuggestedChecksumSha256ByTool[tool]) {
+    fail(`source_catalog_suggested_checksum_mismatch:${tool}:${result?.sourceCatalogSuggestedChecksumSha256}`)
+  }
+  if (result?.sourceCatalogChecksumEvidenceStatus !== sourceCatalogChecksumEvidenceStatusByTool[tool]) {
+    fail(`source_catalog_checksum_evidence_status_mismatch:${tool}:${result?.sourceCatalogChecksumEvidenceStatus}`)
+  }
   if (result?.schemaValid !== false) fail(`schema_valid_not_false_without_private_record:${tool}`)
   if (result?.reviewAccepted !== false) fail(`review_accepted_not_false_without_private_record:${tool}`)
   if (result?.eligibleForNativeGpuProofInput !== false) fail(`gpu_proof_input_not_false_without_private_record:${tool}`)
@@ -198,7 +220,11 @@ for (const token of [
   'buildAiGraphicsModelWeightManifestReviewPacket',
   'privateArtifactRefStatus',
   'expectedSourceCandidateId',
+  'sourceCatalogSuggestedChecksumSha256',
+  'sourceCatalogChecksumEvidenceStatus',
   'sourceCandidateId must be',
+  'source-catalog checksum',
+  'checksumSha256 must match reviewed source-catalog checksum',
   'sha256Pattern',
   'privateArtifactRefNamespaceRequired',
   'present_private_ref_not_logged',
@@ -222,6 +248,8 @@ for (const key of [
   'privateArtifactRefsNotLogged',
   'publicOrSignedArtifactRefsRejected',
   'checksumSha256Required',
+  'sourceCatalogChecksumGuidanceEnforced',
+  'suggestedChecksumMismatchRejected',
   'licenseReviewRequired',
   'provenanceReviewRequired',
   'qualityReviewRequired',
@@ -251,7 +279,7 @@ function writeManifestFixtures(directory, override = {}) {
       templateId,
       sourceCandidateId: sourceCandidateIdByTool[toolId],
       privateArtifactRef: `private://reeditpro/ai-graphics/model-weights/${toolId}/model_tree_manifest.json`,
-      checksumSha256: 'a'.repeat(64),
+      checksumSha256: sourceCatalogSuggestedChecksumSha256ByTool[toolId] ?? 'a'.repeat(64),
       sourceLicenseRef: `private://reeditpro/license-evidence/${toolId}.json`,
       modelCardRef: `private://reeditpro/model-card/${toolId}.json`,
       commercialUseReviewed: true,
@@ -295,6 +323,39 @@ try {
   fail(`fixture_valid_cli_failed:${error.message}`)
 } finally {
   fs.rmSync(validFixtureDir, { recursive: true, force: true })
+}
+
+const invalidChecksumFixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-model-manifest-invalid-checksum-'))
+try {
+  writeManifestFixtures(invalidChecksumFixtureDir, {
+    sam2: {
+      checksumSha256: 'b'.repeat(64),
+    },
+  })
+  runValidator(invalidChecksumFixtureDir)
+  fail('fixture_invalid_checksum_cli_unexpected_success')
+} catch (error) {
+  const output = String(error.stdout || '')
+  if (!output) {
+    fail(`fixture_invalid_checksum_cli_missing_output:${error.message}`)
+  } else {
+    const parsed = JSON.parse(output)
+    const sam2 = parsed.validationResults?.find((entry) => entry.toolId === 'sam2')
+    if (sam2?.sourceCatalogSuggestedChecksumSha256 !== sourceCatalogSuggestedChecksumSha256ByTool.sam2) {
+      fail(`fixture_invalid_checksum_expected_checksum_unexpected:${sam2?.sourceCatalogSuggestedChecksumSha256}`)
+    }
+    if (!sam2?.errors?.some((message) => message.includes('checksumSha256 must match reviewed source-catalog checksum'))) {
+      fail('fixture_invalid_checksum_error_missing')
+    }
+    if (sam2?.eligibleForNativeGpuProofInput !== false) {
+      fail('fixture_invalid_checksum_still_gpu_input_eligible')
+    }
+    if (output.includes('private://reeditpro/ai-graphics/model-weights/')) {
+      fail('fixture_invalid_checksum_private_ref_leaked')
+    }
+  }
+} finally {
+  fs.rmSync(invalidChecksumFixtureDir, { recursive: true, force: true })
 }
 
 const invalidFixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-model-manifest-invalid-'))

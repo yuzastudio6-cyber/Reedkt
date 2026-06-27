@@ -161,6 +161,14 @@ const sourceCandidateIdByTool = {
   transparent_background: 'plemeri_transparent_background_base_ckpt_review_candidate',
 }
 
+const sourceCatalogChecksumSha256ByTool = {
+  sam2: '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',
+  birefnet: '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
+  real_esrgan: '4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1',
+  rembg: null,
+  transparent_background: null,
+}
+
 const failures = []
 
 function fail(message) {
@@ -230,7 +238,7 @@ function manifestRecord(toolId) {
     templateId: templateIdByTool[toolId],
     sourceCandidateId: sourceCandidateIdByTool[toolId],
     privateArtifactRef: `reeditpro-private-artifact-ref-redacted-${toolId}`,
-    checksumSha256: 'a'.repeat(64),
+    checksumSha256: sourceCatalogChecksumSha256ByTool[toolId] ?? 'a'.repeat(64),
     sourceLicenseRef: `docs/tool-intelligence/ai-graphics/${toolId}-license-review.md`,
     modelCardRef: `docs/tool-intelligence/ai-graphics/${toolId}-model-card-review.md`,
     commercialUseReviewed: true,
@@ -249,7 +257,7 @@ function manifestCheck(toolId) {
     templateId: templateIdByTool[toolId],
     sourceCandidateId: sourceCandidateIdByTool[toolId],
     privateArtifactRefStatus: 'present_private_ref_not_logged',
-    checksumSha256: 'b'.repeat(64),
+    checksumSha256: sourceCatalogChecksumSha256ByTool[toolId] ?? 'b'.repeat(64),
     status: 'validated_not_loaded',
   }
 }

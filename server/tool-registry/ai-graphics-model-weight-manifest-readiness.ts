@@ -140,6 +140,8 @@ export interface AiGraphicsModelWeightManifestValidationResult {
   templateId: GpuModelWeightTemplateId | string
   expectedTemplateId: GpuModelWeightTemplateId | null
   expectedSourceCandidateId: string | null
+  sourceCatalogSuggestedChecksumSha256: string | null
+  sourceCatalogChecksumEvidenceStatus: string | null
   manifestRecordProvided: boolean
   schemaValid: boolean
   reviewAccepted: boolean
@@ -174,6 +176,8 @@ export interface AiGraphicsModelWeightManifestReviewPacket {
     privateArtifactRefsNotLogged: true
     publicOrSignedArtifactRefsRejected: true
     checksumSha256Required: true
+    sourceCatalogChecksumGuidanceEnforced: true
+    suggestedChecksumMismatchRejected: true
     licenseReviewRequired: true
     provenanceReviewRequired: true
     qualityReviewRequired: true
@@ -318,8 +322,12 @@ function templateById(templateId: GpuModelWeightTemplateId): ProductionModelWeig
   return template
 }
 
+function sourceCandidateForTool(toolId: AiGraphicsModelWeightManifestToolId | string | undefined) {
+  return listAiGraphicsModelWeightSourceCandidates().find((candidate) => candidate.toolId === toolId) ?? null
+}
+
 function expectedSourceCandidateIdForTool(toolId: AiGraphicsModelWeightManifestToolId | string | undefined): string | null {
-  return listAiGraphicsModelWeightSourceCandidates().find((candidate) => candidate.toolId === toolId)?.candidateId ?? null
+  return sourceCandidateForTool(toolId)?.candidateId ?? null
 }
 
 function hasText(value: string): boolean {
@@ -391,6 +399,9 @@ export function validateAiGraphicsModelWeightManifestRecord(
   const toolId = expectedTool?.toolId ?? record?.toolId ?? expectedToolId ?? 'unknown_model_weight_tool'
   const templateId = record?.templateId ?? expectedTool?.templateId ?? 'unknown_model_weight_template'
   const errors: string[] = []
+  const sourceCandidate = sourceCandidateForTool(expectedTool?.toolId ?? record?.toolId ?? expectedToolId)
+  const sourceCatalogSuggestedChecksumSha256 = sourceCandidate?.suggestedPrivateManifestChecksumSha256 ?? null
+  const sourceCatalogChecksumEvidenceStatus = sourceCandidate?.checksumEvidenceStatus ?? null
   const warnings: string[] = [
     `${toolId} remains blocked from agent, Tool Route, Worker, provider, public artifact, beta, and production execution.`,
     `${toolId} still requires native linux/amd64 NVIDIA L4 runtime proof before model load or inference.`,
@@ -402,6 +413,8 @@ export function validateAiGraphicsModelWeightManifestRecord(
       templateId,
       expectedTemplateId: expectedTool?.templateId ?? null,
       expectedSourceCandidateId: expectedSourceCandidateIdForTool(toolId),
+      sourceCatalogSuggestedChecksumSha256,
+      sourceCatalogChecksumEvidenceStatus,
       manifestRecordProvided: false,
       schemaValid: false,
       reviewAccepted: false,
@@ -441,6 +454,16 @@ export function validateAiGraphicsModelWeightManifestRecord(
   if (typeof record.checksumSha256 === 'string' && !sha256Pattern.test(record.checksumSha256)) {
     errors.push('checksumSha256 must be a 64-character hex SHA-256 digest.')
   }
+  if (
+    sourceCatalogSuggestedChecksumSha256 &&
+    typeof record.checksumSha256 === 'string' &&
+    sha256Pattern.test(record.checksumSha256) &&
+    record.checksumSha256.toLowerCase() !== sourceCatalogSuggestedChecksumSha256.toLowerCase()
+  ) {
+    errors.push(
+      `checksumSha256 must match reviewed source-catalog checksum ${sourceCatalogSuggestedChecksumSha256} for ${sourceCandidate?.candidateId}.`,
+    )
+  }
 
   const artifactRefStatus = privateArtifactRefStatus(record.privateArtifactRef)
   if (artifactRefStatus === 'invalid_public_or_signed_ref') {
@@ -463,6 +486,8 @@ export function validateAiGraphicsModelWeightManifestRecord(
     templateId,
     expectedTemplateId: expectedTool?.templateId ?? null,
     expectedSourceCandidateId,
+    sourceCatalogSuggestedChecksumSha256,
+    sourceCatalogChecksumEvidenceStatus,
     manifestRecordProvided: true,
     schemaValid,
     reviewAccepted,
@@ -566,6 +591,9 @@ export function buildAiGraphicsModelWeightManifestReviewPacket(
     validationResults,
     globalBlockers: [
       'No private model/checkpoint artifact refs are logged in public docs or diagnostics.',
+      'privateArtifactRef must use an approved private artifact namespace; raw gs://, HTTP(S), signed, public, or arbitrary placeholder refs are rejected.',
+      'sourceCandidateId must match the selected ReeditPro source-catalog candidate for the tool before native GPU proof input can be eligible.',
+      'When the source catalog includes reviewed checksum guidance, checksumSha256 must match that value before native GPU proof input can be eligible.',
       'Reviewed private manifests are only inputs to later native GPU proof; they do not approve model download, model load, or inference.',
       'Native linux/amd64 NVIDIA L4 proof, Tool Route gating, Worker gating, approved snapshot, credit reservation, private artifact boundary, and owner beta gates remain blocked.',
       'Agent/tool/route/worker/provider execution, media processing, signed URLs, public artifacts, beta, and production remain blocked.',
@@ -580,6 +608,8 @@ export function buildAiGraphicsModelWeightManifestReviewPacket(
       privateArtifactRefsNotLogged: true,
       publicOrSignedArtifactRefsRejected: true,
       checksumSha256Required: true,
+      sourceCatalogChecksumGuidanceEnforced: true,
+      suggestedChecksumMismatchRejected: true,
       licenseReviewRequired: true,
       provenanceReviewRequired: true,
       qualityReviewRequired: true,

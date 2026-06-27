@@ -127,7 +127,7 @@ function makeValidManifest(toolId) {
     templateId: templateIdByTool[toolId],
     sourceCandidateId: expectedCandidateIds[toolId],
     privateArtifactRef: `private://reeditpro/ai-graphics/model-weights/${directoryNameByTool[toolId]}/model_tree_manifest.json`,
-    checksumSha256: 'b'.repeat(64),
+    checksumSha256: expectedSuggestedChecksums[toolId] ?? 'b'.repeat(64),
     sourceLicenseRef: `private://reeditpro/license-evidence/${toolId}.json`,
     modelCardRef: `private://reeditpro/model-card/${toolId}.json`,
     commercialUseReviewed: true,

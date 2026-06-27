@@ -152,6 +152,7 @@ Latest observed PR state after model-weight checksum guidance hardening: [#862](
 Latest observed PR state after native GPU proof profile alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ef2e593fd7c169433564cd6fc04d0cc985483a58`, with an empty check rollup.
 - Follow-up runtime install-readiness proof alignment updates the older 21-tool install-readiness packet and diagnostics so accepted Node/static, browser/canvas/WebGL, and Satori font-fixture proof packets are consumed as proof evidence for the 13 JS tools while keeping all agent execution, route, worker, runtime, beta, and production gates false.
 Latest observed PR state after JS runtime proof evidence alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `119296472578d7dfe1454c7e55a991be1f2a2935`, with an empty check rollup.
+- Follow-up source-catalog checksum enforcement updates private model-weight manifest review and downstream beta/runtime diagnostics so `sam2`, `birefnet`, and `real_esrgan` private manifests must match reviewed source-catalog checksum guidance before native GPU proof input can be eligible. `rembg` and `transparent_background` still require reviewed private artifact SHA-256 evidence. GPU remains on-demand only and no model download/load/inference, route/worker/tool execution, beta, or production unlock occurs.
 
 ## Expected Validation
 

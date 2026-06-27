@@ -41,7 +41,17 @@ Every private manifest evidence record must include:
 - `provenanceReviewed`
 - `approvedForInternalBeta`
 
-The review validator requires a 64-character SHA-256 digest, exact `toolId`, `templateId`, and `sourceCandidateId`, non-empty license/provenance refs, and all review booleans set to true. `sourceCandidateId` must match the selected ReeditPro source-catalog candidate for the tool before native GPU proof input can be eligible. `privateArtifactRef` must use a reviewed private namespace: `private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`. It rejects HTTP(S), public, signed URL, raw `gs://`, or arbitrary placeholder artifact refs. Diagnostics report only `present_private_ref_not_logged` when a private ref exists.
+The review validator requires a 64-character SHA-256 digest, exact `toolId`, `templateId`, and `sourceCandidateId`, non-empty license/provenance refs, and all review booleans set to true. `sourceCandidateId` must match the selected ReeditPro source-catalog candidate for the tool before native GPU proof input can be eligible. When the source catalog includes reviewed checksum guidance, `checksumSha256` must match that value before native GPU proof input can be eligible. `privateArtifactRef` must use a reviewed private namespace: `private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`. It rejects HTTP(S), public, signed URL, raw `gs://`, or arbitrary placeholder artifact refs. Diagnostics report only `present_private_ref_not_logged` when a private ref exists.
+
+## Source-Catalog Checksum Guidance
+
+| Tool | Checksum guidance |
+| --- | --- |
+| `sam2` | must match the reviewed source-catalog aggregate SHA-256 |
+| `birefnet` | must match the reviewed source-catalog aggregate SHA-256 |
+| `real_esrgan` | must match the reviewed source-catalog release asset SHA-256 |
+| `rembg` | private artifact SHA-256 still required before manifest review |
+| `transparent_background` | private artifact SHA-256 still required before manifest review |
 
 ## Current Result
 

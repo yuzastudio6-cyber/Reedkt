@@ -64,6 +64,7 @@ The backend now exposes an authenticated, mock-safe evaluation surface for this 
 - `POST /v1/beta-readiness/evidence` records a sanitized evidence packet idempotently and returns the computed report.
 - `GET /v1/beta-readiness/evidence` lists stored evidence packets, the merged evidence view, and the computed report.
 - `POST /v1/beta-readiness/evidence/core-real-check` runs only the bounded core command/import/package-metadata checks and records accepted evidence only for tools that actually pass those checks.
+- `GET /v1/beta-readiness/platform-preflight` returns a read-only local platform evidence preflight. It verifies source artifacts such as migration files and backend route/store wiring, names the staging/production-only evidence still missing, and does not write evidence or open beta/production gates.
 
 In mock mode, stored evidence is in-memory only. In non-mock mode, evidence writes require the `beta_readiness_evidence_packets` migration and backend service-role path; missing persistence fails closed instead of silently enabling beta. These routes do not reserve or spend credits, call providers, run tools, enable beta, or mark production ready by themselves. They make the gate executable from backend callers, so blocker state is computed from explicit evidence instead of a hidden hardcoded wall. Unknown tools, unknown checklist items, duplicate downstream evidence, and secret-like payloads fail closed.
 
@@ -84,6 +85,8 @@ The beta go/no-go policy is not a permanent hardcoded block. External beta, real
 The default repo state remains blocked because those approvals and real execution proofs are not present yet.
 
 Every blocked state must remain paired with an unblock path. If a tool, checklist item, or platform gate is blocked, the report must describe the missing evidence and the next safe lane that can collect it. This policy keeps beta and production guarded, but prevents blockers from becoming intentional permanent walls when a smaller source-review, local-proof, diagnostics, or QA step can safely move the tool lane forward.
+
+The gate blocks only the unsafe action it is protecting. A tool blocker can block external beta execution for that tool without blocking source classification, package approval, local command/import proof, cost-metering integration, diagnostics, QA review, or rollback planning. A platform blocker can block billable external beta without blocking local source preflights, persistent-store skeletons, migration reviews, monitoring plans, wallet-settlement tests, or owner approval packets. Reports should prefer precise next lanes over broad stop language.
 
 ## Why This Does Not Flip Beta On
 

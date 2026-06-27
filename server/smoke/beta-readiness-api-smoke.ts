@@ -32,6 +32,20 @@ try {
   assert.equal(defaultResponse.data.report.goNoGo.externalBetaAllowed, false, 'default route must keep external beta blocked')
   assert.equal(defaultResponse.data.report.toolExecutionReadiness.productReadyLocalOssCount, 0, 'default route must not claim product-ready tools')
 
+  const platformPreflightResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-preflight`, { method: 'GET' })
+  assert.equal(platformPreflightResponse.ok, true, 'platform preflight route should return ok')
+  assert.equal(platformPreflightResponse.data.report.environment, 'local_preflight', 'platform preflight must identify local preflight mode')
+  assert.equal(platformPreflightResponse.data.report.wouldClearPlatformBlocker, false, 'local platform preflight must not clear the shared platform blocker')
+  assert.ok(
+    platformPreflightResponse.data.report.checks.some((check: { id: string; status: string }) =>
+      check.id === 'tool_cost_events_migration_source_present' && check.status === 'passed'),
+    'platform preflight should prove the tool_cost_events migration source exists',
+  )
+  assert.ok(
+    platformPreflightResponse.data.report.missingEvidence.some((item: string) => item.includes('Wallet settlement')),
+    'platform preflight should name wallet settlement as remaining evidence',
+  )
+
   const evidencePacketBody = buildCompleteEvidencePacketBody()
   const { workspaceId: _workspaceId, ...evaluationBody } = evidencePacketBody
   const schemaResult = betaReadinessEvidenceEvaluationSchema.safeParse(evaluationBody)

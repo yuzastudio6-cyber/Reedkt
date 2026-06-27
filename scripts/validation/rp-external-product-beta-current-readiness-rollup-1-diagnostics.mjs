@@ -324,6 +324,18 @@ const controlledPrivateInviteIamGrant1rFiles = [
   'scripts/validation/rp-external-beta-controlled-private-invite-iam-grant-1r-diagnostics.mjs',
 ]
 
+const ownerMemberSmokeReadbackFiles = [
+  'docs/external-beta/owner-member-smoke-readback-1/source-audit.md',
+  'docs/external-beta/owner-member-smoke-readback-1/smoke-readback.md',
+  'docs/external-beta/owner-member-smoke-readback-1/membership-readback.md',
+  'docs/external-beta/owner-member-smoke-readback-1/safety-boundary.md',
+  'docs/external-beta/owner-member-smoke-readback-1/owner-member-smoke-readback-record.json',
+  'docs/external-beta/owner-member-smoke-readback-1/validation-results.md',
+  'docs/activation-phase-rp-external-beta-owner-member-smoke-readback-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-tester-account-membership-smoke-1.md',
+  'scripts/validation/rp-external-beta-owner-member-smoke-readback-1-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -559,6 +571,8 @@ const requiredText = [
   'blocked_gcloud_reauthentication_required_before_staging_flag_application',
   'completed_controlled_external_beta_staging_flag_application',
   'completed_controlled_private_invite_iam_grant_for_owner_managed_group',
+  'completed_owner_member_group_access_smoke_readback_external_tester_membership_still_pending',
+  'completed_readonly_group_membership_readback_and_owner_member_authenticated_smoke',
   'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant',
   'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution',
   'completed_reeditpro_main_supabase_target_migration_history_sync',
@@ -581,7 +595,7 @@ const requiredText = [
   'Unsafe public mutation grants: `0`',
   'Unsafe public sequence grants: `0`',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'External product beta readiness: `ready_for_owner_managed_external_beta_tester_membership_addition`',
+  'External product beta readiness: `ready_for_actual_external_tester_account_addition_and_smoke`',
   'External beta enabled in this phase: `true`',
   'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
   'Product-ready end-to-end local OSS tools: `0`',
@@ -617,6 +631,8 @@ const requiredText = [
   'completed_readonly_project_iam_inheritance_audit_no_broad_invoker',
   'blocked_pending_explicit_invite_identity_for_controlled_private_access_grant',
   'ready_for_owner_managed_external_beta_tester_membership_addition',
+  'ready_for_actual_external_tester_account_addition_and_smoke',
+  'external tester member count `0`',
   'not_run_missing_explicit_identity_list',
   'not_present_in_source',
   'external-beta-testers@reeditpro.com',
@@ -737,10 +753,10 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'completed_controlled_private_invite_iam_grant_for_owner_managed_group') fail('record decision mismatch')
+if (record.decision !== 'completed_owner_member_group_access_smoke_readback_external_tester_membership_still_pending') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
-if (record.integrationHead !== '4ff3b917b9544ba04af0a73dfec3ec0c961b0b98') fail('integration head mismatch')
-if (record.statuses?.externalProductBeta !== 'ready_for_owner_managed_external_beta_tester_membership_addition') fail('external beta status mismatch')
+if (record.integrationHead !== '998cfd1367dade30800eb46988fe8aa5cdcce511') fail('integration head mismatch')
+if (record.statuses?.externalProductBeta !== 'ready_for_actual_external_tester_account_addition_and_smoke') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.mainSupabaseTarget?.projectRef !== 'wmyyttnynmteqgcdishd') fail('main target ref mismatch')
@@ -802,6 +818,7 @@ if (record.sourceClosure?.controlledPrivateInviteAccess !== 'rp_external_beta_co
 if (record.sourceClosure?.controlledPrivateInviteIamGrant !== 'rp_external_beta_controlled_private_invite_iam_grant_1') fail('controlled private invite IAM grant source mismatch')
 if (record.sourceClosure?.controlledPrivateInviteIamInheritanceAudit !== 'rp_external_beta_controlled_private_invite_iam_inheritance_audit_1') fail('controlled private invite IAM inheritance audit source mismatch')
 if (record.sourceClosure?.controlledPrivateInviteIamGrant1r !== 'rp_external_beta_controlled_private_invite_iam_grant_1r_after_identity_list') fail('controlled private invite IAM grant 1R source mismatch')
+if (record.sourceClosure?.ownerMemberSmokeReadback !== 'rp_external_beta_owner_member_smoke_readback_1') fail('owner-member smoke readback source mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
 if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
@@ -887,7 +904,18 @@ if (record.mainSupabaseTarget?.projectLevelRunInvokerAllUsersMemberCount !== 0) 
 if (record.mainSupabaseTarget?.projectLevelRunInvokerAllAuthenticatedUsersMemberCount !== 0) fail('project-level run.invoker allAuthenticatedUsers count mismatch')
 if (record.mainSupabaseTarget?.broadInheritedCloudRunInvokerAccess !== false) fail('broad inherited Cloud Run invoker mismatch')
 if (record.mainSupabaseTarget?.sanitizedProjectIamPrincipalNamesRecorded !== false) fail('project IAM principal sanitization mismatch')
-if (record.mainSupabaseTarget?.nextMilestone !== 'add_or_remove_external_beta_testers_by_google_group_membership') fail('next milestone mismatch')
+if (record.mainSupabaseTarget?.ownerMemberSmokeReadback !== 'completed_owner_member_group_access_smoke_readback_external_tester_membership_still_pending') fail('owner-member smoke readback status mismatch')
+if (record.mainSupabaseTarget?.ownerMemberSmokeExecution !== 'completed_readonly_group_membership_readback_and_owner_member_authenticated_smoke') fail('owner-member smoke execution mismatch')
+if (record.mainSupabaseTarget?.ownerMemberSmokeActiveAccount !== 'aiediting@reeditpro.com') fail('owner-member active account mismatch')
+if (record.mainSupabaseTarget?.ownerMemberSmokeGroupMemberCount !== 1) fail('owner-member group member count mismatch')
+if (record.mainSupabaseTarget?.ownerMemberSmokeOwnerMemberCount !== 1) fail('owner-member count mismatch')
+if (record.mainSupabaseTarget?.ownerMemberSmokeExternalTesterMemberCount !== 0) fail('external tester member count mismatch')
+if (record.mainSupabaseTarget?.ownerMemberSmokeUnauthenticatedHealth !== 'blocked_403') fail('owner-member unauthenticated health mismatch')
+if (record.mainSupabaseTarget?.ownerMemberSmokeAuthenticatedHealth !== 'passed_200') fail('owner-member authenticated health mismatch')
+if (record.mainSupabaseTarget?.ownerMemberSmokeAuthenticatedReady !== 'passed_200') fail('owner-member authenticated ready mismatch')
+if (record.mainSupabaseTarget?.ownerMemberSmokeAuthenticatedRuntimeStatus !== 'passed_200') fail('owner-member authenticated runtime mismatch')
+if (record.mainSupabaseTarget?.actualExternalTesterAccountMembership !== 'blocked_pending_actual_external_tester_account_membership') fail('actual external tester membership mismatch')
+if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1') fail('next milestone mismatch')
 if (record.requiredNextOwnerDecision?.[0] !== 'add_or_remove_external_beta_testers_by_google_group_membership') fail('controlled private invite next decision mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
@@ -1028,6 +1056,12 @@ if (
 ) {
   fail('missing controlled private invite IAM grant 1R diagnostics script')
 }
+if (
+  packageJson.scripts?.['rp-external-beta-owner-member-smoke-readback-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-owner-member-smoke-readback-1-diagnostics.mjs'
+) {
+  fail('missing owner-member smoke readback diagnostics script')
+}
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
@@ -1053,6 +1087,7 @@ const allowed = new Set([
   ...controlledPrivateInviteIamGrantFiles,
   ...controlledPrivateInviteIamInheritanceAuditFiles,
   ...controlledPrivateInviteIamGrant1rFiles,
+  ...ownerMemberSmokeReadbackFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -1098,7 +1133,7 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_controlled_private_invite_iam_grant_for_owner_managed_group')
-console.log('External product beta readiness: ready_for_owner_managed_external_beta_tester_membership_addition')
+console.log('Decision: completed_owner_member_group_access_smoke_readback_external_tester_membership_still_pending')
+console.log('External product beta readiness: ready_for_actual_external_tester_account_addition_and_smoke')
 console.log('External beta enabled in this phase: true')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

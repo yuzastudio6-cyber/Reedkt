@@ -61,6 +61,13 @@ assert.ok(incompleteReport.missingConfiguration.some((item) => item.includes('AL
 assert.ok(incompleteReport.missingOwnerApprovals.includes('deployment owner approval'), 'preflight should name missing owner approvals')
 assert.ok(incompleteReport.missingAttestations.includes('authenticated_rls_member_readback_verified'), 'preflight should name missing attestations')
 
+const noEnvReport = buildBetaPlatformStagingEvidencePreflight({})
+assert.equal(noEnvReport.readyToRunCollector, false, 'missing core env should block collector call readiness')
+assert.ok(noEnvReport.missingConfiguration.some((item) => item.includes('API_BASE_URL')), 'missing core env should name API base URL')
+assert.ok(noEnvReport.missingOwnerApprovals.includes('billing owner Stripe-boundary approval'), 'missing core env should still name owner approval gaps')
+assert.ok(noEnvReport.missingOwnerApprovals.includes('support owner approval'), 'missing core env should still name all owner approval gaps')
+assert.ok(noEnvReport.missingAttestations.includes('staging_billing_qa_verified'), 'missing core env should still name attestation gaps')
+
 const secretEvidenceReport = buildBetaPlatformStagingEvidencePreflight({
   ...completeEnv,
   REEDITPRO_BETA_PLATFORM_BILLING_QA_EVIDENCE: 'Bearer should-not-be-here',
@@ -81,6 +88,7 @@ console.log(JSON.stringify({
   readyToRecordEvidencePacket: readyReport.readyToRecordEvidencePacket,
   missingConfigurationCount: incompleteReport.missingConfiguration.length,
   missingOwnerApprovalCount: incompleteReport.missingOwnerApprovals.length,
+  noEnvOwnerApprovalCount: noEnvReport.missingOwnerApprovals.length,
   missingAttestationCount: incompleteReport.missingAttestations.length,
   secretEvidenceRejected: secretEvidenceReport.secretLikeInputPaths.length > 0,
   productionRejectedForStagingPreflight: !productionReport.readyToRecordEvidencePacket,

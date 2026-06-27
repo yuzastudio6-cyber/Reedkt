@@ -28,6 +28,7 @@ import { QWEN2_5_VL_PRIVATE_RUNTIME_READINESS_REVIEW_RESULT } from '../../src/ba
 import { QWEN2_5_VL_APPROVED_WORKER_INTEGRATION_READINESS_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-approved-worker-integration-readiness-review'
 import { QWEN2_5_VL_BACKEND_RUNTIME_DISPATCH_IMPLEMENTATION_PLAN } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-dispatch-implementation-plan'
 import { QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR } from '../../src/backend/mock/mock-qwen2-5-vl-fail-closed-backend-runtime-dispatch-coordinator'
+import { QWEN2_5_VL_CONTROLLED_BACKEND_DISPATCH_DRY_RUN_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-backend-dispatch-dry-run-result'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -36,9 +37,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_fail_closed_coordinator_implemented_controlled_dry_run_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_dispatch_dry_run_reviewed_persistence_plan_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58L-CONTROLLED-BACKEND-DISPATCH-DRY-RUN: run Qwen fail-closed backend dispatch coordinator smoke review, no cloud/no assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58M-BACKEND-RUNTIME-PERSISTENCE-PLAN: plan Qwen queue lease idempotency persistence, no cloud/no assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -178,6 +179,7 @@ for (const file of [
   'docs/qwen2-5-vl-7b-approved-worker-integration-readiness-review.md',
   'docs/qwen2-5-vl-7b-backend-runtime-dispatch-implementation-plan.md',
   'docs/qwen2-5-vl-7b-fail-closed-backend-runtime-dispatch-coordinator.md',
+  'docs/qwen2-5-vl-7b-controlled-backend-dispatch-dry-run.md',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup.ts',
   'src/backend/mock/mock-qwen2-5-vl-private-invoke-runtime-readiness-review.ts',
   'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-smoke-plan.ts',
@@ -193,6 +195,7 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-approved-worker-integration-readiness-review.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-dispatch-implementation-plan.ts',
   'src/backend/mock/mock-qwen2-5-vl-fail-closed-backend-runtime-dispatch-coordinator.ts',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-backend-dispatch-dry-run-result.ts',
   'src/backend/workers/qwen2-5-vl-backend-runtime-dispatch-coordinator.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-deploy-result.ts',
@@ -243,6 +246,8 @@ for (const phrase of [
   'approved worker integration review: ready',
   'backend runtime dispatch implementation plan: ready',
   'fail-closed backend runtime dispatch coordinator: ready',
+  'controlled backend dispatch dry-run review: ready',
+  'backend runtime persistence plan: blocked, planning required',
   '`privateInvokeReady=false`',
   '`betaReady=false`',
   '`productionReady=false`',
@@ -278,7 +283,9 @@ for (const phrase of [
   '`backendRuntimeDispatchImplementationPlanRecorded=true`',
   '`failClosedBackendRuntimeDispatchCoordinatorRequired=false`',
   '`backendRuntimeDispatchCoordinatorImplemented=true`',
-  '`controlledBackendDispatchDryRunRequired=true`',
+  '`controlledBackendDispatchDryRunRequired=false`',
+  '`controlledBackendDispatchDryRunReviewed=true`',
+  '`backendRuntimePersistencePlanRequired=true`',
   '`readyForRealWorkerDispatch=false`',
   '`structuredFixtureOutputSchemaValid=true`',
   '`structuredFixtureOutputParsedJson=true`',
@@ -358,6 +365,10 @@ assert.equal(
   rollup.upstreamFailClosedBackendRuntimeDispatchCoordinatorDecision,
   QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR.decision,
 )
+assert.equal(
+  rollup.upstreamControlledBackendDispatchDryRunDecision,
+  QWEN2_5_VL_CONTROLLED_BACKEND_DISPATCH_DRY_RUN_RESULT.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -421,7 +432,7 @@ assert.equal(status.mayRunInference, false)
 assert.equal(status.mayDispatchWorker, false)
 
 const ui = getQwenVlPlannerRoutingUiData()
-assert.equal(ui.privateInvokeClient.currentStatus, 'controlled_backend_dispatch_dry_run_required')
+assert.equal(ui.privateInvokeClient.currentStatus, 'backend_runtime_persistence_plan_required')
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
 assert.equal(ui.summary.dryRunPassedClaimed, false)
@@ -464,8 +475,9 @@ assert.deepEqual(gateIds, [
   'backend_runtime_dispatch_implementation',
   'fail_closed_backend_runtime_dispatch_coordinator',
   'controlled_backend_dispatch_dry_run',
+  'backend_runtime_persistence_plan',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 22)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 23)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -512,6 +524,10 @@ assert.equal(
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_controlled_backend_dispatch_dry_run_required').length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_plan_required').length,
   1,
 )
 assert.equal(
@@ -637,7 +653,9 @@ assert.equal(rollup.runtimeFlags.backendRuntimeDispatchImplementationRequired, f
 assert.equal(rollup.runtimeFlags.backendRuntimeDispatchImplementationPlanRecorded, true)
 assert.equal(rollup.runtimeFlags.failClosedBackendRuntimeDispatchCoordinatorRequired, false)
 assert.equal(rollup.runtimeFlags.backendRuntimeDispatchCoordinatorImplemented, true)
-assert.equal(rollup.runtimeFlags.controlledBackendDispatchDryRunRequired, true)
+assert.equal(rollup.runtimeFlags.controlledBackendDispatchDryRunRequired, false)
+assert.equal(rollup.runtimeFlags.controlledBackendDispatchDryRunReviewed, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistencePlanRequired, true)
 assert.equal(rollup.runtimeFlags.readyForRealWorkerDispatch, false)
 assert.equal(rollup.runtimeFlags.structuredFixtureOutputSchemaValid, true)
 assert.equal(rollup.runtimeFlags.structuredFixtureOutputParsedJson, true)
@@ -658,6 +676,7 @@ for (const file of [
   'docs/qwen2-5-vl-7b-approved-worker-integration-readiness-review.md',
   'docs/qwen2-5-vl-7b-backend-runtime-dispatch-implementation-plan.md',
   'docs/qwen2-5-vl-7b-fail-closed-backend-runtime-dispatch-coordinator.md',
+  'docs/qwen2-5-vl-7b-controlled-backend-dispatch-dry-run.md',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup.ts',
   'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-smoke-execute-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-approved-fixture-inference-smoke-fix-result.ts',
@@ -669,6 +688,7 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-approved-worker-integration-readiness-review.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-dispatch-implementation-plan.ts',
   'src/backend/mock/mock-qwen2-5-vl-fail-closed-backend-runtime-dispatch-coordinator.ts',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-backend-dispatch-dry-run-result.ts',
 ]) {
   assertNoForbiddenText(file)
 }
@@ -689,6 +709,7 @@ const forbiddenDataFindings = scanValues({
   approvedWorkerIntegrationReadinessReview: QWEN2_5_VL_APPROVED_WORKER_INTEGRATION_READINESS_REVIEW,
   backendRuntimeDispatchImplementationPlan: QWEN2_5_VL_BACKEND_RUNTIME_DISPATCH_IMPLEMENTATION_PLAN,
   failClosedBackendRuntimeDispatchCoordinator: QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR,
+  controlledBackendDispatchDryRunResult: QWEN2_5_VL_CONTROLLED_BACKEND_DISPATCH_DRY_RUN_RESULT,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

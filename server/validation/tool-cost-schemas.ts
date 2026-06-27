@@ -92,3 +92,15 @@ export const toolCostEventSchema = z.object({
   networkEgressMiB: nonnegativeNumberSchema.optional(),
   metadata: metadataSchema,
 }).strict()
+
+export const toolCostWalletSettlementSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  creditEstimateId: idSchema.nullable().optional(),
+  creditReservationId: idSchema.nullable().optional(),
+  toolCostCredits: z.number().int().nonnegative(),
+  billableToUser: z.boolean(),
+  failureCategory: z.enum(TOOL_COST_FAILURE_CATEGORIES).optional(),
+  settlementType: z.enum(['spend', 'release', 'refund']).optional(),
+  metadata: metadataSchema,
+}).strict()

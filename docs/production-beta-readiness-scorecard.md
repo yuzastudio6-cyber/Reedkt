@@ -15,6 +15,20 @@ browser/canvas/WebGL, run GPU/model runtime, download/load model weights,
 process media, create signed URLs or public artifacts, unlock internal/external
 beta, or unlock production.
 
+AI graphics model-weight source catalog decision
+`ai_graphics_model_weight_source_catalog_prepared_with_review_blocks`
+records the upstream/internal source candidates for the five model-weight tools:
+`sam2`, `birefnet`, `real_esrgan`, `rembg`, and
+`transparent_background`. SAM2 and Real-ESRGAN have existing internal staging
+evidence recorded, while BiRefNet, rembg, and transparent-background still need
+source/license/checksum/provenance/quality/security review before private
+manifests can be approved. The catalog also confirms the 8 GPU/model tools
+remain exact NVIDIA L4 targets, GPU runtime is on-demand only, idle GPU runtime
+is not approved, CPU fallback for heavy tools is blocked, private manifests
+approved now remain 0, beta-ready model-weight tools remain 0, and no model
+download/load/inference, worker execution, runtime, beta, or production unlock
+occurs.
+
 AI graphics internal beta go/no-go decision
 `ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`
 prepares the explicit owner go/no-go contract for the all-21 AI graphics

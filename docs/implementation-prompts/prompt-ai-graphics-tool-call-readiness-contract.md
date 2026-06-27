@@ -129,10 +129,12 @@ Latest observed PR state after model-weight private namespace hardening: [#862](
 Latest observed PR state after beta evidence private namespace propagation: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `f695ad42b4ff3f24ec732a864fd8ef051b7ee6b1`, with an empty check rollup.
 - Follow-up AI graphics production-worker handoff routing updates production worker job readiness, production worker routing, and queue dispatcher readiness so all 21 `ProductionWorkerJobPayload` candidates carry `aiGraphicsToolCallHandoff` metadata and dispatcher probes must resolve to AI-graphics-specific mock-safe handoff handlers. This removes the generic placeholder handoff from the AI graphics path while keeping live queue dispatch, tool execution, route execution, GPU/browser runtime, beta, and production blocked.
 Latest observed PR state after AI graphics production-worker handoff routing: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ba1ca42478ea5eae84e890c6eb8d11a14297ec55`, with an empty check rollup.
+- Follow-up model-weight source catalog adds `server/tool-registry/ai-graphics-model-weight-source-catalog.ts`, `docs/tool-intelligence/ai-graphics/model-weight-source-catalog.md`, `docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json`, and `ai-graphics:model-weight-source-catalog:diagnostics` so the five private-manifest-required GPU/model tools have explicit upstream/internal source candidates before private manifest creation. SAM2 and Real-ESRGAN have existing internal staging evidence recorded; BiRefNet, rembg, and transparent-background remain review-required or model-selection-required. Private manifests approved now remain 0, beta-ready model-weight tools remain 0, GPU runtime remains on-demand only, idle GPU runtime is not approved, and no model download/load/inference, route/worker/tool execution, beta, or production unlock occurs.
 
 ## Expected Validation
 
 - `git diff --check`
+- `npm run --silent ai-graphics:model-weight-source-catalog:diagnostics`
 - `npm run --silent ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics`
 - `npm run --silent ai-graphics:internal-beta-production-worker-job-readiness:diagnostics`
 - `npm run --silent ai-graphics:beta-readiness-gate:diagnostics`

@@ -105,6 +105,7 @@
     "ai-graphics:tool-route-readiness:diagnostics": "node scripts/validation/ai-graphics-tool-route-readiness-diagnostics.mjs",
     "ai-graphics:worker-handoff-readiness:diagnostics": "node scripts/validation/ai-graphics-worker-handoff-readiness-diagnostics.mjs",
     "ai-graphics:model-weight-manifest-readiness:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-readiness-diagnostics.mjs",
+    "ai-graphics:model-weight-source-catalog:diagnostics": "node scripts/validation/ai-graphics-model-weight-source-catalog-diagnostics.mjs",
     "ai-graphics:model-weight-manifest-review:validate": "tsx server/cli/ai-graphics-model-weight-manifest-review.ts",
     "ai-graphics:model-weight-manifest-review-packet:diagnostics": "node scripts/validation/ai-graphics-model-weight-manifest-review-packet-diagnostics.mjs",
     "ai-graphics:gpu-runtime-proof-command-plan": "tsx server/cli/ai-graphics-gpu-runtime-proof-command-plan.ts",

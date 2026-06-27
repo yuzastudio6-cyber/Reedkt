@@ -265,6 +265,7 @@ const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:model-weight-source-catalog:diagnostics": "node scripts/validation/ai-graphics-model-weight-source-catalog-diagnostics.mjs",',
   '+    "ai-graphics:beta-tool-call-readiness": "tsx server/cli/ai-graphics-beta-tool-call-readiness.ts",',
   '+    "ai-graphics:beta-tool-call-readiness:diagnostics": "node scripts/validation/ai-graphics-beta-tool-call-readiness-diagnostics.mjs",',
   '+    "ai-graphics:internal-beta-owner-approval": "tsx server/cli/ai-graphics-internal-beta-owner-approval.ts",',

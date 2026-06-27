@@ -201,6 +201,12 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after beta evidence private namespace propagation: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `f695ad42b4ff3f24ec732a864fd8ef051b7ee6b1`, with an empty check rollup.
 - AI graphics production-worker handoff routing: production worker payloads now carry `aiGraphicsToolCallHandoff` metadata in `metadata_dry_run` mode, and queue dispatcher probes require all 21 tools to route through AI-graphics-specific mock-safe handoff handlers (`ai_graphics_*`) instead of generic worker placeholders. GPU runtime remains on-demand only for a future approved worker/tool call; idle GPU service, live queue dispatch, tool execution, route execution, beta, and production remain false.
 - Latest observed PR state after AI graphics production-worker handoff routing: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ba1ca42478ea5eae84e890c6eb8d11a14297ec55`, with an empty check rollup.
+- AI graphics model-weight source catalog: added a server-only source catalog for the five private-manifest-required GPU/model tools:
+  - `server/tool-registry/ai-graphics-model-weight-source-catalog.ts`
+  - `docs/tool-intelligence/ai-graphics/model-weight-source-catalog.md`
+  - `docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json`
+  - `ai-graphics:model-weight-source-catalog:diagnostics`
+- Model-weight source catalog result: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background` now have explicit upstream/internal source candidates before private manifest creation. SAM2 and Real-ESRGAN record existing internal staging evidence; BiRefNet, rembg, and transparent-background remain review-required or model-selection-required. Private manifests approved now remain 0, beta-ready model-weight tools remain 0, GPU runtime remains on-demand only, idle GPU runtime is not approved, CPU fallback for heavy tools remains blocked, and no model download, model load, inference, runtime, beta, or production execution occurs.
 
 ## Runtime State
 

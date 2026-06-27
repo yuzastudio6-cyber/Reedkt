@@ -34,6 +34,7 @@ assert.equal(defaultReadiness.productionToolExecutionAllowed, false, 'default to
 assert.ok(defaultReadiness.platformBlockers.length > 0, 'default tool gate must keep platform blockers explicit')
 
 const requiredRequirementIds = [
+  'platform_deployed_evidence_verifier_ready',
   'tool_cost_events_migration_deployment',
   'beta_readiness_evidence_backend_only_deployment',
   'wallet_settlement_rpc_deployment',
@@ -55,6 +56,7 @@ assert.ok(manifest.remainingRequiredEvidence.length >= manifest.requirements.len
 assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-rls-readback:sql'), 'manifest should include RLS readback local proof')
 assert.ok(manifest.localProofCommands.includes('smoke:tool-cost-wallet-settlement:sql'), 'manifest should include wallet settlement SQL proof')
 assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-stripe-boundary'), 'manifest should include Stripe boundary source proof')
+assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-deployed-evidence-verifier'), 'manifest should include deployed evidence verifier proof')
 
 for (const command of manifest.localProofCommands) {
   assert.ok(packageJson.scripts?.[command], `local proof command must exist in package scripts: ${command}`)

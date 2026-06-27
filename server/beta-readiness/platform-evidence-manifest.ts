@@ -84,6 +84,28 @@ export function buildBetaPlatformEvidenceManifest(): BetaPlatformEvidenceManifes
 function buildRequirements(): BetaPlatformEvidenceManifestRequirement[] {
   return [
     {
+      id: 'platform_deployed_evidence_verifier_ready',
+      label: 'deployed platform evidence verifier is ready',
+      status: 'local_runtime_proven',
+      localProofCommands: ['smoke:beta-platform-deployed-evidence-verifier'],
+      sourceFiles: [
+        'server/beta-readiness/platform-deployed-evidence-verifier.ts',
+        'server/smoke/beta-platform-deployed-evidence-verifier-smoke.ts',
+      ],
+      localEvidence: [
+        'Verifier source can build a platform evidence packet only when all deployed probes and owner approvals pass.',
+        'Smoke coverage proves complete evidence clears the shared platform blocker while partial evidence, missing owner approvals, and secret-like notes fail closed.',
+      ],
+      remainingEvidence: [
+        'Connect the verifier to real staging or production Supabase/readback/monitoring probes.',
+        'Record the resulting evidence packet through the backend evidence route only after all deployed probes pass.',
+      ],
+      nextSafeAction: 'Implement and run the deployed staging probe transport using secret-safe backend runtime configuration.',
+      clearsPlatformGate: false,
+      requiresDeployedEvidence: true,
+      requiresOwnerApproval: false,
+    },
+    {
       id: 'tool_cost_events_migration_deployment',
       label: 'tool_cost_events migration is deployed and verified',
       status: 'deployed_evidence_required',

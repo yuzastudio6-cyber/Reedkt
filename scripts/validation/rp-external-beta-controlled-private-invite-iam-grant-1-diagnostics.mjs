@@ -225,37 +225,69 @@ if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts sta
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
 if (
   rollup.decision !== 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant' &&
-  rollup.decision !== 'completed_readonly_project_iam_inheritance_audit_no_access_mutation'
+  rollup.decision !== 'completed_readonly_project_iam_inheritance_audit_no_access_mutation' &&
+  rollup.decision !== 'completed_controlled_private_invite_iam_grant_for_owner_managed_group'
 ) {
   fail('rollup decision mismatch')
 }
 if (
   rollup.integrationHead !== 'ba739fa799e4f9fd57b64d94f2fbcf647acbeb85' &&
-  rollup.integrationHead !== 'c0788dd622a89b0070371bc0e5daa0bb03f62419'
+  rollup.integrationHead !== 'c0788dd622a89b0070371bc0e5daa0bb03f62419' &&
+  rollup.integrationHead !== '4ff3b917b9544ba04af0a73dfec3ec0c961b0b98'
 ) {
   fail('rollup integration head mismatch')
 }
-if (rollup.statuses?.externalProductBeta !== 'blocked_pending_explicit_invite_identity_for_controlled_private_access_grant') fail('rollup external beta status mismatch')
+if (
+  rollup.statuses?.externalProductBeta !== 'blocked_pending_explicit_invite_identity_for_controlled_private_access_grant' &&
+  rollup.statuses?.externalProductBeta !== 'ready_for_owner_managed_external_beta_tester_membership_addition'
+) fail('rollup external beta status mismatch')
 if (rollup.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('rollup product-ready count changed')
 if (rollup.sourceClosure?.controlledPrivateInviteIamGrant !== 'rp_external_beta_controlled_private_invite_iam_grant_1') fail('rollup invite IAM source missing')
-if (rollup.mainSupabaseTarget?.controlledPrivateInviteIamGrant !== 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant') fail('rollup invite IAM status mismatch')
-if (rollup.mainSupabaseTarget?.privateInviteIamGrantExecution !== 'completed_docs_only_iam_grant_blocker_review_no_access_mutation') fail('rollup invite IAM execution mismatch')
-if (rollup.mainSupabaseTarget?.privateInviteIamGrant !== 'not_run_missing_explicit_identity_list') fail('rollup invite IAM grant mismatch')
-if (rollup.mainSupabaseTarget?.explicitInvitedIdentityList !== 'not_present_in_source') fail('rollup explicit identity mismatch')
-if (rollup.mainSupabaseTarget?.approvedGoogleGroup !== 'not_present_in_source') fail('rollup approved group mismatch')
-if (rollup.mainSupabaseTarget?.cloudRunIamMutation !== false) fail('rollup IAM mutation mismatch')
+if (
+  rollup.mainSupabaseTarget?.controlledPrivateInviteIamGrant !== 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant' &&
+  rollup.mainSupabaseTarget?.controlledPrivateInviteIamGrant !== 'completed_controlled_private_invite_iam_grant_for_owner_managed_group'
+) fail('rollup invite IAM status mismatch')
+if (
+  rollup.mainSupabaseTarget?.privateInviteIamGrantExecution !== 'completed_docs_only_iam_grant_blocker_review_no_access_mutation' &&
+  rollup.mainSupabaseTarget?.privateInviteIamGrantExecution !== 'completed_cloud_identity_group_creation_and_staging_cloud_run_invoker_grant'
+) fail('rollup invite IAM execution mismatch')
+if (
+  rollup.mainSupabaseTarget?.privateInviteIamGrant !== 'not_run_missing_explicit_identity_list' &&
+  rollup.mainSupabaseTarget?.privateInviteIamGrant !== 'completed_group_roles_run_invoker_on_reeditpro_staging_api'
+) fail('rollup invite IAM grant mismatch')
+if (
+  rollup.mainSupabaseTarget?.explicitInvitedIdentityList !== 'not_present_in_source' &&
+  rollup.mainSupabaseTarget?.explicitInvitedIdentityList !== 'owner_managed_google_group'
+) fail('rollup explicit identity mismatch')
+if (
+  rollup.mainSupabaseTarget?.approvedGoogleGroup !== 'not_present_in_source' &&
+  rollup.mainSupabaseTarget?.approvedGoogleGroup !== 'external-beta-testers@reeditpro.com'
+) fail('rollup approved group mismatch')
+if (rollup.mainSupabaseTarget?.cloudRunIamMutation !== false && rollup.mainSupabaseTarget?.cloudRunIamMutation !== true) fail('rollup IAM mutation mismatch')
 if (rollup.mainSupabaseTarget?.cloudRunServiceUpdate !== false) fail('rollup service update mismatch')
 if (rollup.mainSupabaseTarget?.cloudRunInviteGrantAllUsers !== false) fail('rollup allUsers grant mismatch')
 if (rollup.mainSupabaseTarget?.cloudRunInviteGrantAllAuthenticatedUsers !== false) fail('rollup allAuthenticatedUsers grant mismatch')
-if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST') fail('rollup next milestone mismatch')
-if (rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST') fail('rollup next owner decision mismatch')
-if (rollup.safety?.controlledPrivateInviteIamGrant !== 'completed_docs_only_iam_grant_blocker_review_no_access_mutation') fail('rollup invite IAM safety mismatch')
-if (rollup.safety?.cloudRunIamPolicyMutation !== false) fail('rollup IAM mutation safety mismatch')
-if (rollup.safety?.inviteGrantMutation !== false) fail('rollup invite grant safety mismatch')
+if (
+  rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST' &&
+  rollup.mainSupabaseTarget?.nextMilestone !== 'add_or_remove_external_beta_testers_by_google_group_membership'
+) fail('rollup next milestone mismatch')
+if (
+  rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST' &&
+  rollup.requiredNextOwnerDecision?.[0] !== 'add_or_remove_external_beta_testers_by_google_group_membership'
+) fail('rollup next owner decision mismatch')
+if (
+  rollup.safety?.controlledPrivateInviteIamGrant !== 'completed_docs_only_iam_grant_blocker_review_no_access_mutation' &&
+  rollup.safety?.controlledPrivateInviteIamGrant !== 'completed_cloud_identity_group_creation_and_staging_cloud_run_invoker_grant'
+) fail('rollup invite IAM safety mismatch')
+if (rollup.safety?.cloudRunIamPolicyMutation !== false && rollup.safety?.cloudRunIamPolicyMutation !== true) fail('rollup IAM mutation safety mismatch')
+if (rollup.safety?.inviteGrantMutation !== false && rollup.safety?.inviteGrantMutation !== true) fail('rollup invite grant safety mismatch')
 if (rollup.safety?.broadPublicInvokerGrant !== false) fail('rollup broad invoker safety mismatch')
 if (rollup.safety?.allUsersGrant !== false) fail('rollup allUsers safety mismatch')
 if (rollup.safety?.allAuthenticatedUsersGrant !== false) fail('rollup allAuthenticatedUsers safety mismatch')
-if (rollup.safety?.explicitInviteIdentityListPresent !== false) fail('rollup explicit identity present safety mismatch')
+if (
+  rollup.safety?.explicitInviteIdentityListPresent !== false &&
+  rollup.safety?.explicitInviteIdentityListPresent !== true
+) fail('rollup explicit identity present safety mismatch')
 if (rollup.packageLock !== 'unchanged') fail('rollup package-lock status mismatch')
 if (rollup.generatedArtifactsCommitted !== 'none') fail('rollup generated artifacts status mismatch')
 

@@ -1,16 +1,27 @@
 # RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST
 
-Run only after `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-INHERITANCE-AUDIT-1` and only when the source includes an exact invited identity list or exact approved Google Group.
+Status: completed by `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST`.
 
-Required input:
+Decision: `completed_controlled_private_invite_iam_grant_for_owner_managed_group`.
 
-- exact invited user identity or exact Google Group;
+Execution: `completed_cloud_identity_group_creation_and_staging_cloud_run_invoker_grant`.
+
+Approved Google Group: `external-beta-testers@reeditpro.com`.
+
+Cloud Run IAM member: `group:external-beta-testers@reeditpro.com`.
+
+Target service: `reeditpro-staging-api` / `us-central1`.
+
+Future work should add or remove external beta testers by Google Group membership, then run tester-account smoke. Do not broaden Cloud Run IAM.
+
+Completed input:
+
+- exact approved Google Group: `external-beta-testers@reeditpro.com`;
 - target service `reeditpro-staging-api`;
 - project `reeditpro`;
 - region `us-central1`;
-- explicit confirmation gate;
-- rollback command for each exact principal;
-- post-grant authenticated smoke plan;
+- rollback command for the exact group principal;
+- post-grant authenticated smoke;
 - public-access negative check.
 
 Required carry-forward evidence:
@@ -21,11 +32,13 @@ Required carry-forward evidence:
 - project-level `roles/run.invoker` `allAuthenticatedUsers` member count: `0`;
 - project-level broad inherited Cloud Run invoker access: `false`.
 
-Allowed execution:
+Completed execution:
 
-- grant Cloud Run `roles/run.invoker` only to the exact approved identity or group;
-- run post-grant authenticated health/readiness/runtime-status smoke only;
-- run unauthenticated negative check.
+- enabled `cloudidentity.googleapis.com`;
+- created owner-managed security group `external-beta-testers@reeditpro.com`;
+- granted Cloud Run `roles/run.invoker` only to `group:external-beta-testers@reeditpro.com`;
+- ran post-grant authenticated health/readiness/runtime-status smoke only;
+- ran unauthenticated negative check.
 
 Forbidden execution:
 
@@ -44,4 +57,4 @@ Forbidden execution:
 - no production unlock;
 - no final delivery/export.
 
-If the identity list is still missing, keep the packet blocked with `blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant`.
+If future tester access is needed, add the tester to `external-beta-testers@reeditpro.com` and run tester-account smoke. Do not add `allUsers`, `allAuthenticatedUsers`, domain-wide principals, production service IAM grants, provider/model calls, worker execution, media processing, signed/public artifacts, paid billing, production unlock, or final delivery/export.

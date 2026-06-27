@@ -207,8 +207,14 @@ if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'completed_readonly_project_iam_inheritance_audit_no_access_mutation') fail('rollup decision mismatch')
-if (rollup.integrationHead !== 'c0788dd622a89b0070371bc0e5daa0bb03f62419') fail('rollup integration head mismatch')
+if (
+  rollup.decision !== 'completed_readonly_project_iam_inheritance_audit_no_access_mutation' &&
+  rollup.decision !== 'completed_controlled_private_invite_iam_grant_for_owner_managed_group'
+) fail('rollup decision mismatch')
+if (
+  rollup.integrationHead !== 'c0788dd622a89b0070371bc0e5daa0bb03f62419' &&
+  rollup.integrationHead !== '4ff3b917b9544ba04af0a73dfec3ec0c961b0b98'
+) fail('rollup integration head mismatch')
 if (rollup.sourceClosure?.controlledPrivateInviteIamInheritanceAudit !== 'rp_external_beta_controlled_private_invite_iam_inheritance_audit_1') fail('rollup audit source missing')
 if (rollup.mainSupabaseTarget?.controlledPrivateInviteIamInheritanceAudit !== 'completed_readonly_project_iam_inheritance_audit_no_broad_invoker') fail('rollup audit status mismatch')
 if (rollup.mainSupabaseTarget?.projectLevelRunInvokerBindingCount !== 1) fail('rollup project invoker binding count mismatch')
@@ -248,7 +254,8 @@ for (const file of changedFiles()) {
   const text = read(file)
   if (/sbp_[A-Za-z0-9_./=-]+/.test(text)) fail(`Supabase access token leaked in ${file}`)
   if (/https:\/\/[a-z0-9-]+\.supabase\.co/i.test(text)) fail(`Supabase URL leaked in ${file}`)
-  if (/\b(?:user|group):[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/i.test(text)) fail(`principal email leaked in ${file}`)
+  const approvedGroupRedacted = text.replaceAll('group:external-beta-testers@reeditpro.com', '')
+  if (/\b(?:user|group):[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/i.test(approvedGroupRedacted)) fail(`principal email leaked in ${file}`)
   const redacted = text.replaceAll('postgresql://[redacted]', '').replaceAll('postgres://[REDACTED]', '')
   if (!file.startsWith('scripts/validation/') && /\bpostgres(?:ql)?:\/\/\S+/i.test(redacted)) fail(`DB URL leaked in ${file}`)
 }

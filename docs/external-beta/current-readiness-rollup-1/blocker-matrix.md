@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `blocked_pending_explicit_invite_identity_for_controlled_private_access_grant` | explicit invite identity list or approved Google Group, then guarded IAM grant |
+| External beta | `ready_for_owner_managed_external_beta_tester_membership_addition` | add/remove testers through `external-beta-testers@reeditpro.com`; keep public/production access blocked |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST`
+Add or remove external beta testers by Google Group membership in `external-beta-testers@reeditpro.com`.
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -312,9 +312,9 @@ Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1
 
 Read-only Cloud Run IAM evidence for `reeditpro-staging-api` records service-level binding count `0`, service-level `allUsers` invoker binding `false`, and service-level `allAuthenticatedUsers` invoker binding `false`. The service remains at ready revision `reeditpro-staging-api-00005-7gs` with `100_percent_latest_revision` traffic. No Cloud Run IAM mutation, access grant, Cloud Run service update, deployment, invite email, app user creation, Supabase mutation, SQL execution, service-role route execution, provider/model call, worker execution, media processing, paid billing, production unlock, or final delivery/export occurred in this phase.
 
-External beta prior invite-access readiness: `controlled_external_beta_private_invite_access_policy_ready`. External beta enabled in this phase: `true`. Private invite access policy: `ready_for_explicit_invite_iam_grant_planning`. The follow-on IAM grant review is now blocked by missing explicit invite principal evidence. Paid production, public artifacts, signed URL source-of-truth, final delivery/export, broad media, provider/model calls, workers, Supabase mutation, SQL, and production unlock remain blocked.
+External beta prior invite-access readiness: `controlled_external_beta_private_invite_access_policy_ready`. External beta enabled in this phase: `true`. Private invite access policy: `ready_for_explicit_invite_iam_grant_planning`. The follow-on IAM grant review is now closed by `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST`, using the owner-managed Google Group `external-beta-testers@reeditpro.com`. Paid production, public artifacts, signed URL source-of-truth, final delivery/export, broad media, provider/model calls, workers, Supabase mutation, SQL, and production unlock remain blocked.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST`.
+Next recommended milestone: add or remove external beta testers by Google Group membership in `external-beta-testers@reeditpro.com`.
 
 ## RP External Beta Controlled Private Invite IAM Grant 1
 
@@ -322,9 +322,23 @@ Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRAN
 
 Exact invited identity list: `not_present_in_source`. Approved Google Group: `not_present_in_source`. Private invite IAM grant: `not_run_missing_explicit_identity_list`. Cloud Run IAM mutation: `not_run`. Cloud Run service update: `not_run`. Deployment: `not_run`. `allUsers` grant: `false`. `allAuthenticatedUsers` grant: `false`.
 
-External beta readiness: `blocked_pending_explicit_invite_identity_for_controlled_private_access_grant`.
+External beta readiness before 1R: `blocked_pending_explicit_invite_identity_for_controlled_private_access_grant`.
 
 Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST`.
+
+## RP External Beta Controlled Private Invite IAM Grant 1R After Identity List
+
+`RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST` records decision `completed_controlled_private_invite_iam_grant_for_owner_managed_group` and execution `completed_cloud_identity_group_creation_and_staging_cloud_run_invoker_grant`.
+
+Approved Google Group: `external-beta-testers@reeditpro.com`. Group resource: `groups/0279ka651g62ifo`. Cloud Run IAM member: `group:external-beta-testers@reeditpro.com`. Cloud Run IAM role: `roles/run.invoker`. Cloud Run service: `reeditpro-staging-api` / `us-central1`.
+
+Cloud Identity API enablement: `completed`. Service-level IAM readback after grant: one `roles/run.invoker` binding for `group:external-beta-testers@reeditpro.com`; `allUsers` grant: `false`; `allAuthenticatedUsers` grant: `false`; domain-wide grant: `false`; production service IAM mutation: `false`.
+
+Smoke after grant: unauthenticated `/health` `403`; authenticated `/health` `200`; authenticated `/ready` `200`; authenticated `/api/runtime/status` `200`; runtime mode `mock`; provider real calls `false`.
+
+External beta readiness: `ready_for_owner_managed_external_beta_tester_membership_addition`.
+
+Next recommended milestone: add or remove external beta testers by Google Group membership in `external-beta-testers@reeditpro.com`; run tester-account smoke only after a real tester account is added.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

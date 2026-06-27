@@ -475,6 +475,7 @@
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",
     "smoke:qwen2-5-vl-tool-routing-use-case-ranking": "tsx server/smoke/qwen2-5-vl-tool-routing-use-case-ranking-smoke.ts",
     "smoke:qwen2-5-vl-routing-integration-dry-run": "tsx server/smoke/qwen2-5-vl-routing-integration-dry-run-smoke.ts",
+    "smoke:qwen2-5-vl-planner-routing-handoff": "tsx server/smoke/qwen2-5-vl-planner-routing-handoff-smoke.ts",
     "activation:vlm-l4-compatible-candidate:plan": "tsx server/cli/activation-vlm-l4-compatible-candidate-plan.ts",
     "activation:vlm-l4-compatible-candidate": "tsx server/cli/activation-vlm-l4-compatible-candidate.ts",
     "activation:vlm-l4-compatible-candidate:report": "tsx server/cli/activation-vlm-l4-compatible-candidate-report.ts",

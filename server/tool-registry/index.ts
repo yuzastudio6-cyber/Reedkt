@@ -21,6 +21,7 @@ export * from './tool-fallback-policy'
 export * from './tool-qa-policy'
 export * from './qwen-vl-use-case-routing'
 export * from './qwen-vl-routing-dry-run'
+export * from './qwen-vl-planner-routing-handoff'
 
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {
   return PRODUCTION_TOOL_IDS.includes(toolId as ProductionToolId)

@@ -37,6 +37,26 @@ const productFlowFiles = [
   'scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1-diagnostics.mjs',
 ]
 
+const followOnDeployedBrowserUiSurfaceFiles = [
+  'Dockerfile.backend',
+  'src/server/server-router.ts',
+  'docs/external-beta/deployed-browser-ui-surface-1/source-audit.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/server-surface.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/local-smoke-evidence.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/readiness-gate.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/safety-boundary.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/validation-results.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/deployed-browser-ui-surface-record.json',
+  'docs/activation-phase-rp-external-beta-deployed-browser-ui-surface-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-deployed-browser-ui-surface-1.md',
+  'docs/implementation-prompts/prompt-rp-external-product-beta-current-readiness-rollup-1-next.md',
+  'scripts/validation/rp-external-beta-deployed-browser-ui-surface-1.mjs',
+  'scripts/validation/rp-external-beta-deployed-browser-ui-surface-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
+]
+
 const requiredText = [
   packet,
   'blocked_external_beta_controlled_tester_ui_flow_smoke',
@@ -244,11 +264,13 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowed = new Set([...requiredFiles, ...rollupFiles, ...productFlowFiles])
+const allowed = new Set([...requiredFiles, ...rollupFiles, ...productFlowFiles, ...followOnDeployedBrowserUiSurfaceFiles])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)
   for (const blocked of blockedPrefixes) {
-    if (file === blocked || file.startsWith(blocked)) fail(`blocked file scope changed: ${file}`)
+    if ((file === blocked || file.startsWith(blocked)) && !followOnDeployedBrowserUiSurfaceFiles.includes(file)) {
+      fail(`blocked file scope changed: ${file}`)
+    }
   }
   if (file.includes('/._') || file.startsWith('._') || file.includes('.DS_Store')) fail(`metadata artifact changed: ${file}`)
   const text = read(file)

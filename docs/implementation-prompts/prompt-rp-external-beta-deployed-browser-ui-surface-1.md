@@ -18,7 +18,9 @@ Provide a controlled browser-visible ReEditPro UI surface for the same staging t
 
 ## Required Outcome
 
-After the UI surface exists, rerun:
+`RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1` now records source readiness `ready_for_controlled_staging_browser_ui_deploy_and_ui_flow_resmoke` after a local compiled-server smoke. The next guarded packet is `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY`.
+
+After the updated source is merged and deployed to the existing controlled staging service, rerun:
 
 ```bash
 REEDITPRO_CONFIRM_EXTERNAL_BETA_CONTROLLED_TESTER_UI_FLOW_SMOKE=true REEDITPRO_EXTERNAL_BETA_TESTER_EMAIL=aiediting@reeditpro.com npm run rp-external-beta-controlled-tester-ui-flow-smoke-1

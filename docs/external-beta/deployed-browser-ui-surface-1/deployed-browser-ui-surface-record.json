@@ -1,0 +1,82 @@
+{
+  "packet": "RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1",
+  "decision": "completed_external_beta_deployed_browser_ui_surface_source_smoke",
+  "execution": "completed_local_browser_ui_static_surface_smoke_no_remote_mutation",
+  "integrationBase": "bb685e84bebe96ce62d9194cdf7f97bd7d7f727c",
+  "sourceInputs": {
+    "controlledTesterUiFlowSmoke": "blocked_deployed_browser_ui_surface_not_present",
+    "controlledTesterProductFlowSmoke": "completed_external_beta_controlled_tester_product_flow_smoke",
+    "testerAccount": "aiediting@reeditpro.com",
+    "cloudRunService": "reeditpro-staging-api",
+    "cloudRunInvoker": "group:external-beta-testers@reeditpro.com",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "localSurface": {
+    "runId": "2026-06-27T16-48-29-652Z-16d76e70",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-deployed-browser-ui-surface-1/2026-06-27T16-48-29-652Z-16d76e70",
+    "htmlProbesPassed": true,
+    "assetProbePassed": true,
+    "apiRoutesRegressionPassed": true,
+    "htmlRoutes": [
+      "/",
+      "/dashboard",
+      "/projects",
+      "/editor"
+    ],
+    "assetProbePath": "/assets/index-BNzAkO71.js",
+    "report": {
+      "fileName": "deployed-browser-ui-surface-report.json",
+      "bytes": 6755,
+      "sha256": "2b136a7bf99ef7f7154c6ba2c9c53631704c50a2c844e39bd8f6875c59262e91"
+    },
+    "manifest": {
+      "fileName": "artifact-manifest.json",
+      "bytes": 308,
+      "sha256": "cfe609820f0b13ae25a5cbd208b5039140a1971d36eb93ab7ecffccde0cd1257"
+    }
+  },
+  "dockerfilePackaging": {
+    "frontendBuildIncluded": true,
+    "distCopiedToRuntimeImage": true
+  },
+  "readiness": {
+    "externalProductBeta": "blocked_pending_controlled_staging_browser_ui_deploy_and_resmoke",
+    "productApiReadiness": "ready_for_controlled_owner_tester_product_walkthrough",
+    "sourceReadiness": "ready_for_controlled_staging_browser_ui_deploy_and_ui_flow_resmoke",
+    "nextMilestone": "RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "cloudRunIamMutation": false,
+    "cloudRunServiceUpdate": false,
+    "deployment": false,
+    "broadPublicInvokerGrant": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "persistentCreditMutation": false,
+    "persistentCreditReservationCreation": false,
+    "stripePaymentProcessing": false,
+    "renderExecution": false,
+    "mediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "dockerExecution": false,
+    "browserCapture": false,
+    "internalBetaBroadUnlock": false,
+    "externalBetaBroadAudienceUnlock": false,
+    "productionUnlock": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

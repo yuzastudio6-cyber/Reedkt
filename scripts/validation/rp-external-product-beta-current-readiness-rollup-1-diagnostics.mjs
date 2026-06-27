@@ -377,6 +377,26 @@ const controlledTesterUiFlowSmokeFiles = [
   'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
 ]
 
+const followOnDeployedBrowserUiSurfaceFiles = [
+  'Dockerfile.backend',
+  'src/server/server-router.ts',
+  'docs/external-beta/deployed-browser-ui-surface-1/source-audit.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/server-surface.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/local-smoke-evidence.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/readiness-gate.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/safety-boundary.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/validation-results.md',
+  'docs/external-beta/deployed-browser-ui-surface-1/deployed-browser-ui-surface-record.json',
+  'docs/activation-phase-rp-external-beta-deployed-browser-ui-surface-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-deployed-browser-ui-surface-1.md',
+  'docs/implementation-prompts/prompt-rp-external-product-beta-current-readiness-rollup-1-next.md',
+  'scripts/validation/rp-external-beta-deployed-browser-ui-surface-1.mjs',
+  'scripts/validation/rp-external-beta-deployed-browser-ui-surface-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -770,6 +790,7 @@ const blockedPaths = [
 ]
 
 const allowedRuntimeImplementationFiles = new Set([
+  'src/server/server-router.ts',
   'server/config/external-beta-controlled-enablement-contract.ts',
   'server/config/internal-beta-supabase-credential-context-contract.ts',
   'server/smoke/external-beta-controlled-enablement-contract-smoke.ts',
@@ -1251,6 +1272,7 @@ const allowed = new Set([
   ...testerAccountMembershipSmokeFiles,
   ...controlledTesterProductFlowSmokeFiles,
   ...controlledTesterUiFlowSmokeFiles,
+  ...followOnDeployedBrowserUiSurfaceFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,

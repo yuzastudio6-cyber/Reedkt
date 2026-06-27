@@ -14,6 +14,7 @@ This packet does not build an image, deploy Cloud Run, run the service, fetch an
   - adds `QWEN_APPROVED_FIXTURE_INFERENCE_ENABLED=true` plus `QWEN_INFERENCE_ENABLED=true` as the explicit future smoke gate;
   - lazy-loads vLLM from the private model mount only after contract validation and fixture gate approval;
   - generates one in-memory private synthetic fixture for visual metadata only;
+  - bounds the in-memory fixture image with `QWEN_FIXTURE_IMAGE_SIZE_PX` from `128` to `384` pixels so later smoke retries can reduce multimodal memory pressure without changing source media policy;
   - returns sanitized metadata summary without raw token, URL, media bytes, generated asset, public artifact, or signed URL output.
 - `server/workers/qwen2_5_vl_private_invoke_cpu_caller/internal_caller.py`
   - preserves the existing default 403 fail-closed contract-smoke expectation;
@@ -38,6 +39,7 @@ The future deployment/execution path must set all of these before the service ca
 
 - `QWEN_APPROVED_FIXTURE_INFERENCE_ENABLED=true`
 - `QWEN_INFERENCE_ENABLED=true`
+- optional `QWEN_FIXTURE_IMAGE_SIZE_PX` within the source-enforced `128` to `384` pixel range;
 - approved runtime request contract passes;
 - runtime request contains no raw prompt fields;
 - source-of-truth refs are private references;

@@ -15,6 +15,10 @@ export const QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SERVICE_SOURCE = {
     qwenInferenceGate: 'QWEN_INFERENCE_ENABLED',
     lazyVllmLoad: true,
     inMemoryPrivateFixtureOnly: true,
+    boundedFixtureImageSizeEnv: 'QWEN_FIXTURE_IMAGE_SIZE_PX',
+    defaultFixtureImageSizePx: 384,
+    minimumFixtureImageSizePx: 128,
+    maximumFixtureImageSizePx: 384,
     sanitizedMetadataOnlyResponse: true,
   },
   cpuCallerSource: {

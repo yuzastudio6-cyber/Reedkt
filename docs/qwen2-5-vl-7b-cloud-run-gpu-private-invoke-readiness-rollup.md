@@ -1,8 +1,8 @@
 # Qwen2.5-VL 7B Cloud Run GPU Private Invoke Readiness Rollup
 
-Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_fixture_smoke_fix_required`.
+Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_approved_fixture_smoke_passed_result_review_required`.
 
-This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded read-only Cloud Run auth/IAM reverify, controlled private invoke smoke plan, non-key impersonation token-path runner, narrow authz bindings, routing fix, internal caller harness plan, internal caller deploy preflight, internal route approval, Direct VPC route config, CPU-only caller source, CPU-only caller deployment, CPU-only caller contract smoke, runtime readiness review, first approved-fixture inference smoke plan, approved-fixture inference service source, approved-fixture inference service deploy result, and first controlled approved-fixture inference smoke attempt are in place. The earlier local developer-machine request returned HTTP `404`, classified as `private_invoke_response_unexpected`, because the service ingress is `internal-and-cloud-load-balancing`; the dedicated CPU-only Cloud Run Job now provides the approved private caller path. The controlled caller execution `reeditpro-qwen2-5-vl-private-caller-nlc88` observed HTTP `403` with `qwen_inference_disabled_after_contract_check`, `contractSatisfiedForFutureRuntime=true`, `runtimeContractExecutesNow=false`, and `modelInferenceEnabled=false`. The gated service source was deployed as Cloud Run revision `reeditpro-qwen2-5-vl-l4-worker-00005-bw9`; the first fixture smoke attempted execution through `reeditpro-qwen2-5-vl-private-caller-f2xtb`, temporarily deployed revision `reeditpro-qwen2-5-vl-l4-worker-00006-rr8`, restored fail-closed revision `reeditpro-qwen2-5-vl-l4-worker-00007-kpp`, and failed before inference because vLLM could not allocate KV cache memory after model load. The remaining blocker is a fixture inference smoke memory-envelope fix and retry.
+This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded read-only Cloud Run auth/IAM reverify, controlled private invoke smoke plan, non-key impersonation token-path runner, narrow authz bindings, routing fix, internal caller harness plan, internal caller deploy preflight, internal route approval, Direct VPC route config, CPU-only caller source, CPU-only caller deployment, CPU-only caller contract smoke, runtime readiness review, first approved-fixture inference smoke plan, approved-fixture inference service source, approved-fixture inference service deploy result, first controlled approved-fixture inference smoke attempt, and tuned approved-fixture inference smoke retry are in place. The earlier local developer-machine request returned HTTP `404`, classified as `private_invoke_response_unexpected`, because the service ingress is `internal-and-cloud-load-balancing`; the dedicated CPU-only Cloud Run Job now provides the approved private caller path. The controlled caller execution `reeditpro-qwen2-5-vl-private-caller-nlc88` observed HTTP `403` with `qwen_inference_disabled_after_contract_check`, `contractSatisfiedForFutureRuntime=true`, `runtimeContractExecutesNow=false`, and `modelInferenceEnabled=false`. The gated service source was deployed as Cloud Run revision `reeditpro-qwen2-5-vl-l4-worker-00005-bw9`; the first fixture smoke attempted execution through `reeditpro-qwen2-5-vl-private-caller-f2xtb`, temporarily deployed revision `reeditpro-qwen2-5-vl-l4-worker-00006-rr8`, restored fail-closed revision `reeditpro-qwen2-5-vl-l4-worker-00007-kpp`, and failed before inference because vLLM could not allocate KV cache memory after model load. The tuned retry `qwen25-approved-fixture-smoke-fix-20260627t184430z` deployed patched revision `reeditpro-qwen2-5-vl-l4-worker-00008-z6q` fail-closed, temporarily enabled fixture revision `reeditpro-qwen2-5-vl-l4-worker-00009-s5b`, executed CPU caller `reeditpro-qwen2-5-vl-private-caller-csr98`, observed HTTP `200` with `qwen_fixture_inference_smoke_completed`, created sanitized metadata-only output, and restored fail-closed revision `reeditpro-qwen2-5-vl-l4-worker-00010-rth`. The remaining blocker is result review for the sanitized fixture output metadata before any runtime readiness can advance.
 
 This is evidence only. It records that the guarded backend smoke resolved the target in memory, created an auth header, fetched an identity token without printing or storing token values, and sent one bounded Cloud Run contract request. The packet itself does not enable inference, dispatch a worker, mutate Supabase, execute SQL, create generated assets, create public artifacts, create signed URLs, mutate credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
@@ -20,7 +20,8 @@ This is evidence only. It records that the guarded backend smoke resolved the ta
 - first approved-fixture inference smoke plan: ready
 - approved-fixture inference service source: ready
 - approved-fixture inference service deploy: ready
-- first approved-fixture inference smoke execution: blocked, memory-envelope fix required
+- first approved-fixture inference smoke execution: ready, failed attempt documented
+- approved-fixture inference smoke fix retry: blocked, result review required
 - private invoke runtime readiness: false
 - beta readiness: false
 - production readiness: false
@@ -54,7 +55,8 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 | First approved-fixture inference smoke plan | ready | Runtime readiness review requires approved snapshot, private artifact, worker, QA, cost, no-public-output, no-beta, and no-production evidence before any inference smoke. The plan records the existing local queue contract, pinned model revision/checksum, L4 runtime posture, and use-case ranking. | none |
 | Approved-fixture inference service source | ready | The GPU service source supports a gated lazy vLLM approved-fixture inference path while preserving default fail-closed behavior, and the CPU caller source supports the future fixture-response expectation. | none |
 | Approved-fixture inference service deploy | ready | GPU service image was built and deployed with gated fixture inference source; GPU service revision `reeditpro-qwen2-5-vl-l4-worker-00005-bw9` is ready with NVIDIA L4, template max scale 1, internal ingress, no public unauthenticated access, and read-only private model-cache mount; CPU caller image was rebuilt and the Cloud Run Job was updated while execution stayed disabled. | none |
-| First approved-fixture inference smoke execution | blocked approved-fixture inference smoke fix required | One controlled private approved-fixture inference smoke was attempted through the CPU caller. The temporary GPU fixture revision was restored to fail-closed after the attempt. The Qwen weights loaded from the private mount, but vLLM reported `-0.96 GiB` available KV cache memory and failed before inference. | A tuned controlled retry that produces sanitized metadata-only inference output and a Qwen fixture result review after the KV-cache memory fix. |
+| First approved-fixture inference smoke execution | ready | One controlled private approved-fixture inference smoke was attempted through the CPU caller. The temporary GPU fixture revision was restored to fail-closed after the attempt. The Qwen weights loaded from the private mount, but vLLM reported `-0.96 GiB` available KV cache memory and failed before inference. | none |
+| Approved-fixture inference smoke fix retry | blocked approved-fixture inference result review required | The patched service bounds `QWEN_FIXTURE_IMAGE_SIZE_PX`, the patched image was deployed fail-closed, temporary revision `reeditpro-qwen2-5-vl-l4-worker-00009-s5b` ran one private CPU caller execution `reeditpro-qwen2-5-vl-private-caller-csr98`, and the retry observed HTTP `200` with `qwen_fixture_inference_smoke_completed`. Output is stored only as metadata: length `187`, hash `6534c929cddcb28fdfdc75a4e8d5ff656ac7741d669b8faa2560132e6b8a648f`, object count `0`, text-like region count `0`, parsed JSON `false`, and schema keys `[]`. | Qwen fixture inference result review for the sanitized metadata-only output; beta, production, arbitrary media, billing, worker, storage, and product acceptance remain required before user workflow runtime use. |
 
 ## Runtime Gates
 
@@ -115,7 +117,10 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `firstApprovedFixtureInferenceSmokeAttempted=true`
 - `firstApprovedFixtureInferenceSmokeExecuted=true`
 - `firstApprovedFixtureInferenceSmokePassed=false`
-- `approvedFixtureInferenceSmokeFixRequired=true`
+- `approvedFixtureInferenceSmokeFixRequired=false`
+- `approvedFixtureInferenceSmokeFixAttempted=true`
+- `approvedFixtureInferenceSmokeFixPassed=true`
+- `approvedFixtureInferenceSmokeResultReviewRequired=true`
 - `temporaryFixtureInferenceServiceRevisionDeployed=true`
 - `temporaryFixtureInferenceServiceRestored=true`
 - `serviceRestoredFailClosedAfterFixtureAttempt=true`
@@ -139,6 +144,10 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `modelLoadRun=true`
 - `modelLoadCompleted=true`
 - `vllmKvCacheMemoryFailureObserved=true`
+- `approvedFixtureInferenceVllmEngineInitialized=true`
+- `approvedFixtureInferenceMetadataOutputCreated=true`
+- `approvedFixtureInferenceMetadataOutputAcceptedForRuntime=false`
+- `controlledApprovedFixtureInferenceCompleted=true`
 - `vllmEngineInitialized=false`
 - `inferenceRun=false`
 - `workersDispatched=false`
@@ -159,8 +168,8 @@ Qwen2.5-VL must not generate B-roll video, replace Wan or LTX generation routes,
 
 ## Required Next Step
 
-The next action is a bounded memory-envelope fix before another private approved-fixture inference smoke. That future prompt must keep the service fail-closed by default, tune only the controlled fixture path, avoid generated assets and public outputs, and continue using run-on-use Cloud Run GPU behavior rather than an always-on instance.
+The next action is a result review for the sanitized metadata-only output from the successful private approved-fixture inference smoke. That future prompt must keep the service fail-closed by default, avoid generated assets and public outputs, and continue using run-on-use Cloud Run GPU behavior rather than an always-on instance.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58C-APPROVED-FIXTURE-INFERENCE-SMOKE-FIX: tune Qwen fixture inference memory envelope after failed L4 smoke, no generated assets/no beta`
+`QWEN2_5_VL_STACK_TOOL_58D-APPROVED-FIXTURE-INFERENCE-RESULT-REVIEW: review sanitized Qwen fixture output metadata, no beta/no generated assets`

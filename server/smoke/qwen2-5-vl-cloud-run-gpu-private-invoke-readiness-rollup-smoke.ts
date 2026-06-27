@@ -19,9 +19,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_direct_vpc_route_config_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_cpu_only_internal_caller_source_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_55B-PRIVATE-INVOKE-DIRECT-VPC-ROUTE-CONFIG: configure Direct VPC private route for CPU-only caller harness, no inference'
+  'QWEN2_5_VL_STACK_TOOL_55C-PRIVATE-INVOKE-CPU-CALLER-SOURCE: add CPU-only internal caller harness source, no deploy/no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -86,7 +86,6 @@ function assertRollupFalseFlags(flags: JsonRecord) {
     'privateInvokeReady',
     'privateInvokeSmokeExecuted',
     'defaultSubnetPrivateGoogleAccess',
-    'approvedPrivateRouteReady',
     'cpuOnlyCallerImageDefined',
     'directVpcEgressConfigured',
     'privateGoogleAccessChanged',
@@ -203,8 +202,14 @@ for (const phrase of [
   '`internalCallerDeployPreflightRecorded=true`',
   '`internalRouteApprovalRecorded=true`',
   '`futureDirectVpcRouteConfigApproved=true`',
+  '`directVpcRouteConfigResultRecorded=true`',
+  '`gcpNetworkMutationOccurred=true`',
+  '`dedicatedCallerSubnetCreated=true`',
+  '`dedicatedCallerSubnetPrivateGoogleAccess=true`',
   '`defaultSubnetPrivateGoogleAccess=false`',
-  '`approvedPrivateRouteReady=false`',
+  '`defaultSubnetChanged=false`',
+  '`approvedPrivateRouteReady=true`',
+  '`directVpcPrivateRoutePrerequisiteReady=true`',
   '`cpuOnlyCallerImageDefined=false`',
   '`directVpcEgressConfigured=false`',
   '`privateGoogleAccessChanged=false`',
@@ -212,7 +217,7 @@ for (const phrase of [
   '`private_invoke_response_unexpected`',
   '`internal-and-cloud-load-balancing`',
   'CPU-only Cloud Run Job',
-  'Private Google Access',
+  'qwen-private-caller-us-central1',
   NEXT_PROMPT,
 ]) {
   assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)
@@ -283,7 +288,7 @@ assert.equal(status.mayRunInference, false)
 assert.equal(status.mayDispatchWorker, false)
 
 const ui = getQwenVlPlannerRoutingUiData()
-assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_direct_vpc_route_config_required')
+assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_cpu_caller_source_required')
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
 assert.equal(ui.summary.dryRunPassedClaimed, false)
@@ -318,7 +323,7 @@ assert.equal(
   0,
 )
 assert.equal(
-  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_direct_vpc_route_config_required').length,
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_cpu_only_internal_caller_source_required').length,
   1,
 )
 assertRollupFalseFlags(rollup.runtimeFlags)
@@ -337,8 +342,14 @@ assert.equal(rollup.runtimeFlags.internalCallerHarnessPlanDefined, true)
 assert.equal(rollup.runtimeFlags.internalCallerDeployPreflightRecorded, true)
 assert.equal(rollup.runtimeFlags.internalRouteApprovalRecorded, true)
 assert.equal(rollup.runtimeFlags.futureDirectVpcRouteConfigApproved, true)
+assert.equal(rollup.runtimeFlags.directVpcRouteConfigResultRecorded, true)
+assert.equal(rollup.runtimeFlags.gcpNetworkMutationOccurred, true)
+assert.equal(rollup.runtimeFlags.dedicatedCallerSubnetCreated, true)
+assert.equal(rollup.runtimeFlags.dedicatedCallerSubnetPrivateGoogleAccess, true)
 assert.equal(rollup.runtimeFlags.defaultSubnetPrivateGoogleAccess, false)
-assert.equal(rollup.runtimeFlags.approvedPrivateRouteReady, false)
+assert.equal(rollup.runtimeFlags.defaultSubnetChanged, false)
+assert.equal(rollup.runtimeFlags.approvedPrivateRouteReady, true)
+assert.equal(rollup.runtimeFlags.directVpcPrivateRoutePrerequisiteReady, true)
 assert.equal(rollup.runtimeFlags.cpuOnlyCallerImageDefined, false)
 assert.equal(rollup.runtimeFlags.directVpcEgressConfigured, false)
 assert.equal(rollup.runtimeFlags.privateGoogleAccessChanged, false)

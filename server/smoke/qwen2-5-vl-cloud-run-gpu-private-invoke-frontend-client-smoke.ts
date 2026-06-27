@@ -13,7 +13,7 @@ const ROOT = process.cwd()
 const DECISION =
   'qwen2_5_vl_7b_cloud_run_gpu_private_invoke_frontend_client_registered_mock_only'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_55B-PRIVATE-INVOKE-DIRECT-VPC-ROUTE-CONFIG: configure Direct VPC private route for CPU-only caller harness, no inference'
+  'QWEN2_5_VL_STACK_TOOL_55C-PRIVATE-INVOKE-CPU-CALLER-SOURCE: add CPU-only internal caller harness source, no deploy/no inference'
 
 type JsonRecord = Record<string, unknown>
 

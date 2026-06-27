@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `ready_for_owner_managed_external_beta_tester_membership_addition` | add/remove testers through `external-beta-testers@reeditpro.com`; keep public/production access blocked |
+| External beta | `ready_for_actual_external_tester_account_addition_and_smoke` | owner-member smoke passed; add an actual external tester to `external-beta-testers@reeditpro.com`, then run tester-account smoke; keep public/production access blocked |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-Add or remove external beta testers by Google Group membership in `external-beta-testers@reeditpro.com`.
+Add an actual external beta tester by Google Group membership in `external-beta-testers@reeditpro.com`, then run tester-account smoke.
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -338,7 +338,17 @@ Smoke after grant: unauthenticated `/health` `403`; authenticated `/health` `200
 
 External beta readiness: `ready_for_owner_managed_external_beta_tester_membership_addition`.
 
-Next recommended milestone: add or remove external beta testers by Google Group membership in `external-beta-testers@reeditpro.com`; run tester-account smoke only after a real tester account is added.
+Next recommended milestone before owner-member readback: add or remove external beta testers by Google Group membership in `external-beta-testers@reeditpro.com`; run tester-account smoke only after a real tester account is added.
+
+## RP External Beta Owner-Member Smoke Readback 1
+
+`RP-EXTERNAL-BETA-OWNER-MEMBER-SMOKE-READBACK-1` records decision `completed_owner_member_group_access_smoke_readback_external_tester_membership_still_pending` and execution `completed_readonly_group_membership_readback_and_owner_member_authenticated_smoke`.
+
+Read-only group membership found owner-member `aiediting@reeditpro.com` only, with external tester member count `0`. Owner-member authenticated `/health`, `/ready`, and `/api/runtime/status` returned `200`; unauthenticated `/health` remained `403`.
+
+External beta readiness: `ready_for_actual_external_tester_account_addition_and_smoke`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

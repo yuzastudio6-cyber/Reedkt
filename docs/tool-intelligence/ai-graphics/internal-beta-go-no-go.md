@@ -13,11 +13,16 @@ the final beta/production readiness rollup via
 `--beta-production-readiness-rollup-packet`. A source rollup packet must already
 report `owner_approved_worker_gates_ready_runtime_still_blocked`, all 21 worker
 gate checks, all 12 capability scenarios, 0 hard failures, on-demand GPU policy,
-and runtime/beta/production gates false. Owner-approved technical evidence can
+exactly eight GPU/model gate checks, exactly eight nested GPU/model source job
+payloads, exact native NVIDIA L4 targets, on-demand-only GPU runtime, no idle
+GPU runtime approval, CPU fallback blocked for heavy/model tools, and
+runtime/beta/production gates false. Owner-approved technical evidence can
 make the go/no-go candidate ready, but the separate go/no-go record still
 requires `--internal-beta-go-no-go-approved` and
 `--internal-beta-go-no-go-ref` before it becomes approved with runtime still
 blocked.
+
+Source rollup GPU policy: exactly eight GPU/model gate checks, exactly eight nested GPU/model source job payloads, on-demand-only GPU runtime, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and runtime/beta/production gates false.
 
 ## Current Status
 

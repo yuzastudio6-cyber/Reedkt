@@ -501,6 +501,13 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked: `agentCanExecuteToolsNow=false`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after internal beta go/no-go rollup packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `0caa655c4bb0b04de6285561dd7c6e01e6faaea0`, with an empty check rollup.
 
+## Follow-Up: Internal Beta Go/No-Go Rollup Packet GPU Hardening
+
+- Tightened `ai-graphics:internal-beta-go-no-go` source packet validation for `--beta-production-readiness-rollup-packet`.
+- A source beta/production rollup packet must now preserve all-21/all-12 coverage, 21 accepted production-worker gate checks, 12 accepted capability gate scenarios, 0 hard failures, exactly eight GPU/model gate checks, exactly eight nested GPU/model source job payloads, exact native NVIDIA L4 targets, on-demand-only GPU runtime policy, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and false runtime/beta/production gates.
+- Diagnostic coverage proves invalid source rollup packets are rejected when tool coverage drops to 20, capability coverage drops to 11, GPU target counts or values drift, nested GPU gate/source payload classification drifts, on-demand GPU policy is removed, idle GPU runtime is approved, heavy-tool CPU fallback is allowed, `gpuRuntimeApprovedNow=true`, production-worker dispatch is approved, or tool execution is claimed.
+- Runtime remains blocked: `agentCanExecuteToolsNow=false`, `productionWorkerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## Follow-Up: Go/No-Go Owner Approval Source Packet Hardening
 
 - Tightened `ai-graphics:internal-beta-go-no-go-owner-approval` source packet validation for `--internal-beta-go-no-go-packet`.

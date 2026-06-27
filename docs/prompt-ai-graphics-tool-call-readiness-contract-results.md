@@ -512,6 +512,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Diagnostic coverage proves invalid source packets are rejected when tool coverage drops to 20, when `gpuRuntimeShouldStartNow=true`, when the accepted-job GPU start count drops to 7, when `gpuRuntimeApprovedNow=true`, or when an individual queue-admission packet claims GPU start-now.
 - Backend queue storage and service-role transaction outputs now keep `gpuRuntimeShouldStartNow=false` as an explicit false gate and keep live Supabase/service-role writes, worker claims, live dispatch, tool execution, GPU runtime, beta, and production blocked.
 - Validation run: `ai-graphics:internal-beta-backend-queue-storage-readiness:diagnostics` and `ai-graphics:internal-beta-service-role-queue-transaction-readiness:diagnostics` passed.
+- Latest observed PR state after backend queue and service-role source packet GPU hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `32eb131c31c756b14cbae1ff124efc8e53ca058c`, with an empty check rollup.
 
 ## No-Scope
 

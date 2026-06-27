@@ -36,6 +36,9 @@ const packageJson = readJson("package.json");
 const packageLock = readJson("package-lock.json");
 const readiness = readJson("docs/tool-intelligence/ai-graphics/21-tool-runtime-install-readiness.json");
 const readinessMarkdown = readText("docs/tool-intelligence/ai-graphics/21-tool-runtime-install-readiness.md");
+const nodeRuntimeProof = readJson("docs/tool-intelligence/ai-graphics/node-runtime-proof.json");
+const browserRuntimeProof = readJson("docs/tool-intelligence/ai-graphics/browser-runtime-proof.json");
+const satoriFontRuntimeProof = readJson("docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json");
 const gpuRequirements = readText("docker/prod/gpu-worker/requirements.gpu.txt");
 const gpuDockerfile = readText("docker/prod/gpu-worker/Dockerfile");
 const gpuPolicy = readText("docs/production-gpu-worker-tool-install-policy.md");
@@ -118,6 +121,35 @@ const requiredRequirementLines = [
   "realesrgan"
 ];
 
+const acceptedNodeRuntimeStatuses = {
+  d3: "node_runtime_proof_passed",
+  vega_lite: "node_runtime_compile_passed",
+  vega: "node_runtime_parse_passed",
+  "svgdotjs_svg_js": "node_runtime_svg_construction_passed",
+  viz_js: "node_runtime_dot_to_svg_passed"
+};
+
+const expectedReadinessRuntimeStatuses = {
+  echarts: "browser_svg_chart_runtime_proof_passed_but_not_agent_executable",
+  satori: "satori_font_fixture_svg_layout_proof_passed_but_not_agent_executable",
+  lottie_web: "browser_svg_animation_runtime_proof_passed_but_not_agent_executable",
+  animejs: "browser_dom_animation_runtime_proof_passed_but_not_agent_executable",
+  three_js: "browser_webgl_runtime_proof_passed_but_not_agent_executable",
+  pixi_js: "browser_canvas_webgl_runtime_proof_passed_but_not_agent_executable",
+  konva: "browser_canvas_runtime_proof_passed_but_not_agent_executable",
+  babylonjs: "browser_webgl_runtime_proof_passed_but_not_agent_executable"
+};
+
+const expectedBrowserRuntimeProofStatuses = {
+  echarts: "browser_svg_chart_runtime_proof_passed",
+  lottie_web: "browser_svg_animation_runtime_proof_passed",
+  animejs: "browser_dom_animation_runtime_proof_passed",
+  three_js: "browser_webgl_runtime_proof_passed",
+  pixi_js: "browser_canvas_webgl_runtime_proof_passed",
+  konva: "browser_canvas_runtime_proof_passed",
+  babylonjs: "browser_webgl_runtime_proof_passed"
+};
+
 function hasRequirement(requirement) {
   return gpuRequirements.split(/\r?\n/).some((line) => {
     const trimmed = line.trim();
@@ -153,6 +185,7 @@ for (const requiredText of [
 
 if (readiness) {
   const toolIds = new Set((readiness.tools || []).map((tool) => tool.toolId));
+  const readinessTools = new Map((readiness.tools || []).map((tool) => [tool.toolId, tool]));
   for (const toolId of expectedTools) {
     if (!toolIds.has(toolId)) {
       fail(`Readiness manifest missing tool ${toolId}`);
@@ -160,6 +193,41 @@ if (readiness) {
   }
   if (toolIds.size !== expectedTools.length) {
     fail(`Readiness manifest expected ${expectedTools.length} unique tools, saw ${toolIds.size}`);
+  }
+  if (readiness.toolCounts?.jsRuntimeProofEvidenceAligned !== 13) {
+    fail("Readiness manifest must align all 13 JS runtime proof evidence rows.");
+  }
+  if (readiness.toolCounts?.browserRuntimeProofToolsAligned !== 7) {
+    fail("Readiness manifest must align all 7 browser runtime proof rows.");
+  }
+  if (readiness.toolCounts?.satoriFontRuntimeProofAligned !== 1) {
+    fail("Readiness manifest must align the Satori font runtime proof row.");
+  }
+  if (readiness.toolCounts?.remainingNativeGpuRuntimeProofRequired !== 8) {
+    fail("Readiness manifest must keep 8 native GPU runtime proofs pending.");
+  }
+  if (readiness.toolCounts?.remainingToolRouteWorkerGateRequired !== 21) {
+    fail("Readiness manifest must keep Tool Route/Worker gates pending for all 21 tools.");
+  }
+  if (readiness.toolCounts?.remainingRuntimeProofRequired === 21) {
+    fail("Readiness manifest still carries stale all-21 runtime proof pending count.");
+  }
+  for (const [toolId, status] of Object.entries(expectedReadinessRuntimeStatuses)) {
+    if (readinessTools.get(toolId)?.runtimeStatus !== status) {
+      fail(`Readiness manifest ${toolId} runtimeStatus expected ${status}`);
+    }
+  }
+  for (const staleStatus of [
+    "pending_browser_chart_runtime_proof",
+    "blocked_pending_approved_font_fixture_for_text_svg_layout",
+    "pending_animation_runtime_proof",
+    "pending_browser_webgl_runtime_proof",
+    "pending_browser_canvas_webgl_runtime_proof",
+    "pending_canvas_runtime_proof"
+  ]) {
+    if ((readiness.tools || []).some((tool) => tool.runtimeStatus === staleStatus)) {
+      fail(`Readiness manifest still has stale runtime status ${staleStatus}`);
+    }
   }
   const booleans = readiness.booleans || {};
   const requiredTrue = [
@@ -169,6 +237,9 @@ if (readiness) {
     "sam2UsesPinnedGpuSourceInstall",
     "birefnetUsesTransformersModelPath",
     "heavyModelToolsTargetGpuWorker",
+    "all13JsGraphicsToolsHaveRuntimeProofEvidence",
+    "all7BrowserRuntimeProofToolsAccepted",
+    "satoriFontRuntimeProofAccepted",
     "coordinationDuplicateSearchCompleted",
     "agentCanSelectForPlanning"
   ];
@@ -198,6 +269,37 @@ if (readiness) {
       fail(`Expected ${key}=false`);
     }
   }
+}
+
+if (nodeRuntimeProof?.decision !== "ai_graphics_node_runtime_proof_completed_with_warnings") {
+  fail("Node runtime proof packet is missing or has unexpected decision.");
+}
+if (browserRuntimeProof?.decision !== "ai_graphics_browser_runtime_proof_completed_with_warnings") {
+  fail("Browser runtime proof packet is missing or has unexpected decision.");
+}
+if (satoriFontRuntimeProof?.decision !== "ai_graphics_satori_font_runtime_proof_completed_with_warnings") {
+  fail("Satori font runtime proof packet is missing or has unexpected decision.");
+}
+const nodeProofTools = new Map((nodeRuntimeProof?.tools || []).map((tool) => [tool.toolId, tool]));
+for (const [toolId, status] of Object.entries(acceptedNodeRuntimeStatuses)) {
+  if (nodeProofTools.get(toolId)?.status !== status) {
+    fail(`Node runtime proof ${toolId} expected ${status}`);
+  }
+}
+const browserProofTools = new Map((browserRuntimeProof?.tools || []).map((tool) => [tool.toolId, tool]));
+for (const [toolId, status] of Object.entries(expectedBrowserRuntimeProofStatuses)) {
+  if (browserProofTools.get(toolId)?.status !== status) {
+    fail(`Browser runtime proof ${toolId} expected ${status}`);
+  }
+}
+if (browserRuntimeProof?.booleans?.all7BrowserRuntimeToolsProofPassed !== true) {
+  fail("Browser runtime proof must accept all 7 browser tools.");
+}
+if (satoriFontRuntimeProof?.tool?.status !== "satori_font_fixture_svg_layout_proof_passed") {
+  fail("Satori font runtime proof status mismatch.");
+}
+if (satoriFontRuntimeProof?.booleans?.satoriTextSvgLayoutProofPassed !== true) {
+  fail("Satori font runtime proof boolean mismatch.");
 }
 
 for (const text of [

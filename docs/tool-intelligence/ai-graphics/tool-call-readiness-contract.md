@@ -27,6 +27,7 @@ This contract connects the 21 AI graphics tools to the agent-facing ranking and 
 - Node package-lock tools: 13.
 - GPU/model install targets: 8.
 - Node/Satori/browser proof evidence is aligned into the contract for the 13 JS graphics tools.
+- The 21-tool install-readiness record now consumes accepted Node/static, browser/canvas/WebGL, and Satori font-fixture proof packets unless proof evidence drifts; those accepted proof packets still do not make any tool agent-executable.
 - Production registry mappings: 21.
 - Planning-wrapper records without production IDs: 0.
 - GPU-required runtime tools: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background`.

@@ -244,7 +244,14 @@ for (const line of dependencyDiff.split(/\r?\n/)) {
       !line.includes("ai-graphics:gpu-runtime-proof-local-preflight") &&
       !line.includes("ai-graphics:gpu-runtime-proof-local-preflight:diagnostics") &&
       !line.includes("ai-graphics:model-weight-manifest-scaffold") &&
-      !line.includes("ai-graphics:model-weight-manifest-scaffold:diagnostics")
+      !line.includes("ai-graphics:model-weight-manifest-scaffold:diagnostics") &&
+      !line.includes("ai-graphics:model-weight-source-catalog:diagnostics") &&
+      !line.includes("ai-graphics:internal-beta-service-role-rpc-local-smoke") &&
+      !line.includes("ai-graphics:internal-beta-service-role-rpc-local-smoke:diagnostics") &&
+      !line.includes("ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke") &&
+      !line.includes("ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke:diagnostics") &&
+      !line.includes("ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke") &&
+      !line.includes("ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke:diagnostics")
     ) {
       fail(`Unexpected package.json addition: ${line}`);
     }

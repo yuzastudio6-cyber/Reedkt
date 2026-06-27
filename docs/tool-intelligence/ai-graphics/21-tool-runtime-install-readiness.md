@@ -25,7 +25,20 @@ The GPU worker image now uses a CUDA devel base and installs `git`, so pinned so
 
 ## Not Yet Beta Ready
 
-Beta readiness still requires actual image build, import smoke, approved model-weight manifests, approved synthetic or safe private fixtures, browser/canvas/WebGL runtime proofs, Tool Route and Worker handoff wiring, and approved snapshot/credit gates. Until those pass:
+Current downstream evidence now accepts runtime proof packets for all 13
+JavaScript graphics tools:
+
+- Node/static proof evidence: `d3`, `vega_lite`, `vega`,
+  `svgdotjs_svg_js`, and `viz_js`.
+- Browser/canvas/WebGL proof evidence: `echarts`, `lottie_web`, `animejs`,
+  `three_js`, `pixi_js`, `konva`, and `babylonjs`.
+- Satori font-fixture proof evidence: `satori`.
+
+Those proof packets do not approve agent tool calls by themselves. Beta
+readiness still requires native GPU image/runtime proof, approved model-weight
+manifests, approved synthetic or safe private fixtures where applicable, Tool
+Route and Worker handoff wiring, and approved snapshot/credit gates. Until
+those pass:
 
 - `agentCanExecuteToolsNow=false`
 - `toolRouteExecutionReadyNow=false`
@@ -35,6 +48,15 @@ Beta readiness still requires actual image build, import smoke, approved model-w
 - `runtimeBetaReadyNow=false`
 - `internalBetaReadyNow=false`
 - `productionReadyNow=false`
+
+## Remaining Runtime Blocks
+
+- 8 GPU/model tools still need native NVIDIA runtime proof and private
+  model/model-cache manifest evidence where applicable.
+- 21 tools still need Tool Route, Worker, approved snapshot, credit, artifact,
+  and beta-owner gates before agent execution can be enabled.
+- The accepted Node/browser/Satori proof packets should be consumed as evidence
+  unless package versions, sandbox policy, or proof records drift.
 
 ## Coordination
 

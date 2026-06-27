@@ -150,6 +150,7 @@ Latest observed PR state after model-weight checksum guidance hardening: [#862](
 - Follow-up beta activation gap six-profile alignment updates the activation gap report and diagnostics so native GPU proof requires all six current profiles: `gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`. Stale four-profile proof evidence remains insufficient for beta activation.
 - Follow-up GPU runtime readiness gate clarification preserves the four image-level probe placements from the earlier gate while explicitly linking them to the six downstream native GPU proof profiles. `rembg` and `transparent_background` remain separate on-demand shared-worker proof profiles, not idle GPU services.
 Latest observed PR state after native GPU proof profile alignment: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `ef2e593fd7c169433564cd6fc04d0cc985483a58`, with an empty check rollup.
+- Follow-up runtime install-readiness proof alignment updates the older 21-tool install-readiness packet and diagnostics so accepted Node/static, browser/canvas/WebGL, and Satori font-fixture proof packets are consumed as proof evidence for the 13 JS tools while keeping all agent execution, route, worker, runtime, beta, and production gates false.
 
 ## Expected Validation
 

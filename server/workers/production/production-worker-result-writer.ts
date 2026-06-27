@@ -6,6 +6,7 @@ import type {
   ProductionWorkerJobPayload,
   ProductionWorkerJobStatus,
   ProductionWorkerRouteOutput,
+  ProductionWorkerToolCostMetadata,
 } from './production-worker-types'
 
 function nowIso(): string {
@@ -18,6 +19,7 @@ export function createProductionWorkerResult(input: {
   gateChecks: ProductionWorkerGateCheck[]
   events: ProductionWorkerEventRecord[]
   output?: ProductionWorkerRouteOutput
+  toolCostMetadata?: ProductionWorkerToolCostMetadata
   warnings?: string[]
   error?: {
     code: string
@@ -34,6 +36,7 @@ export function createProductionWorkerResult(input: {
     events: input.events,
     output: input.output,
     toolRunResults: [],
+    toolCostMetadata: input.toolCostMetadata,
     artifactRecords: [],
     qualityGateResults: [],
     fallbackDecisions: [],

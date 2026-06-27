@@ -5,6 +5,7 @@ import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
 import { createProviderGatewayService } from '../services/provider-gateway-service'
 import { idSchema, validateBody } from '../validation/common-schemas'
+import { productionToolIdSchema } from '../validation/tool-cost-schemas'
 import { asyncRoute, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 
 const providerRequestSchema = z.object({
@@ -15,7 +16,10 @@ const providerRequestSchema = z.object({
   generationRequestId: idSchema.optional(),
   jobId: idSchema.optional(),
   approvedPlanSnapshotId: idSchema.optional(),
+  creditEstimateId: idSchema.optional(),
   creditReservationId: idSchema.optional(),
+  toolId: productionToolIdSchema.optional(),
+  approvedReservationRemainingCredits: z.number().int().nonnegative().optional(),
   requestPayload: z.record(z.string(), z.unknown()).optional(),
   mockOnly: z.boolean().optional(),
 })
@@ -38,7 +42,10 @@ export function createProviderGatewayRoutes(): Router {
       ...body,
       requestPayloadHash: hashPayload(body.requestPayload ?? {}),
     })
-    sendOk(response, { providerRequestAttempt: result.providerRequestAttempt }, result.warnings, 202)
+    sendOk(response, {
+      providerRequestAttempt: result.providerRequestAttempt,
+      toolCostEstimate: result.toolCostEstimate,
+    }, result.warnings, 202)
   }))
 
   router.post('/v1/provider-gateway/webhooks/:provider', requireAuth, asyncRoute(async (request, response) => {

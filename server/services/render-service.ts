@@ -1,4 +1,6 @@
 import { ApiError } from '../errors/api-error'
+import { estimateProductionToolCost, type ProductionToolCostEstimate } from '../tool-cost-metering'
+import type { ProductionToolId } from '../tool-registry'
 import type { ServiceContext } from '../types'
 import { createMockId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
 
@@ -8,28 +10,35 @@ export function createRenderService(context: ServiceContext) {
       workspaceId: string
       projectId: string
       approvedPlanSnapshotId: string
+      creditEstimateId?: string
       creditReservationId: string
       renderType: string
       renderQualityLevel?: string
+      approvedReservationRemainingCredits?: number
     }) {
       if (!input.approvedPlanSnapshotId || !input.creditReservationId) {
         throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Render jobs require approved snapshot and credit reservation IDs.', 409)
       }
 
       if (!context.clients.admin || context.env.mockOnly) {
+        const toolCostEstimate = buildRenderToolCostEstimate(input)
         return {
           renderJob: {
             id: createMockId('render_job'),
             workspaceId: input.workspaceId,
             projectId: input.projectId,
             approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+            creditEstimateId: input.creditEstimateId,
             creditReservationId: input.creditReservationId,
             renderType: input.renderType,
             renderQualityLevel: input.renderQualityLevel ?? 'draft',
+            toolId: mapRenderTypeToToolId(input.renderType),
+            toolCostEstimate,
             status: 'queued',
             createdAt: nowIso(),
             mockOnly: true,
           },
+          toolCostEstimate,
           warnings: [mockWarning('Render job creation'), 'No Remotion, FFmpeg, media download, or upload was executed.'],
         }
       }
@@ -93,4 +102,37 @@ export function createRenderService(context: ServiceContext) {
       return { previewReview: data, warnings: ['Preview review does not trigger final export.'] }
     },
   }
+}
+
+function buildRenderToolCostEstimate(input: {
+  workspaceId: string
+  projectId: string
+  approvedPlanSnapshotId: string
+  creditEstimateId?: string
+  creditReservationId: string
+  renderType: string
+  renderQualityLevel?: string
+  approvedReservationRemainingCredits?: number
+}): ProductionToolCostEstimate | undefined {
+  const toolId = mapRenderTypeToToolId(input.renderType)
+  const estimate = estimateProductionToolCost({
+    toolId,
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    productEditLevel: 'normal',
+    toolComputeLevel: input.renderQualityLevel === 'high' || input.renderQualityLevel === 'premium' ? 'premium' : 'standard',
+    qualityLevel: input.renderQualityLevel === 'high' || input.renderQualityLevel === 'premium' ? 'premium' : 'standard',
+    approvedReservationRemainingCredits: input.approvedReservationRemainingCredits,
+    idempotencyKey: `render-job:${toolId}:${input.approvedPlanSnapshotId}`,
+    estimateOnlyWhenBlocked: true,
+  })
+
+  return estimate.ok ? estimate.data : undefined
+}
+
+function mapRenderTypeToToolId(renderType: string): ProductionToolId {
+  return renderType === 'export' ? 'ffmpeg' : 'remotion'
 }

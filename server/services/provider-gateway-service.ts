@@ -1,4 +1,6 @@
 import { ApiError } from '../errors/api-error'
+import { estimateProductionToolCost, type ProductionToolCostEstimate } from '../tool-cost-metering'
+import type { ProductionToolId } from '../tool-registry'
 import type { ServiceContext } from '../types'
 import { createMockId, mockWarning, nowIso, sanitizeJson, throwOnSupabaseError } from './service-helpers'
 
@@ -16,7 +18,10 @@ export function createProviderGatewayService(context: ServiceContext) {
       generationRequestId?: string
       jobId?: string
       approvedPlanSnapshotId?: string
+      creditEstimateId?: string
       creditReservationId?: string
+      toolId?: ProductionToolId
+      approvedReservationRemainingCredits?: number
       requestPayloadHash: string
       mockOnly?: boolean
     }) {
@@ -28,6 +33,7 @@ export function createProviderGatewayService(context: ServiceContext) {
       }
 
       if (!context.clients.admin || context.env.mockOnly) {
+        const toolCostEstimate = buildProviderToolCostEstimate(input)
         return {
           providerRequestAttempt: {
             id: createMockId('provider_attempt'),
@@ -35,9 +41,11 @@ export function createProviderGatewayService(context: ServiceContext) {
             projectId: input.projectId,
             providerRoute: input.providerRoute,
             providerModel: input.providerModel,
+            toolId: input.toolId,
             generationRequestId: input.generationRequestId,
             jobId: input.jobId,
             approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+            creditEstimateId: input.creditEstimateId,
             creditReservationId: input.creditReservationId,
             attemptStatus: 'blocked',
             idempotencyKey: context.requestId,
@@ -48,6 +56,7 @@ export function createProviderGatewayService(context: ServiceContext) {
             updatedAt: nowIso(),
             mockOnly: true,
           },
+          toolCostEstimate,
           warnings: [mockWarning('Provider gateway attempt'), 'No OpenAI, Wan, Hailuo, Veo, Lyria, Mirelo, or MMAudio call was made.'],
         }
       }
@@ -128,6 +137,32 @@ export function createProviderGatewayService(context: ServiceContext) {
       return { providerWebhookEvent: data, warnings: ['Webhook recorded as sanitized summary only; generation state was not mutated.'] }
     },
   }
+}
+
+function buildProviderToolCostEstimate(input: {
+  workspaceId: string
+  projectId?: string
+  approvedPlanSnapshotId?: string
+  creditEstimateId?: string
+  creditReservationId?: string
+  toolId?: ProductionToolId
+  approvedReservationRemainingCredits?: number
+}): ProductionToolCostEstimate | undefined {
+  if (!input.toolId) return undefined
+  const estimate = estimateProductionToolCost({
+    toolId: input.toolId,
+    workspaceId: input.workspaceId,
+    projectId: input.projectId ?? 'project-provider-gateway-mock',
+    approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    productEditLevel: 'normal',
+    approvedReservationRemainingCredits: input.approvedReservationRemainingCredits,
+    idempotencyKey: `provider-gateway:${input.toolId}`,
+    estimateOnlyWhenBlocked: true,
+  })
+
+  return estimate.ok ? estimate.data : undefined
 }
 
 async function recordBlockedAttempt(

@@ -215,8 +215,12 @@ check(
   'Doc must record migration draft evidence as recorded.',
 )
 check(
-  docText.includes('User-facing readiness remains blocked until local validation applies the draft and tests'),
-  'Doc must record local validation as the remaining blocker.',
+  docText.includes('Backend runtime persistence local validation result is recorded as blocked'),
+  'Doc must record blocked local validation result evidence.',
+)
+check(
+  docText.includes('User-facing readiness remains blocked until an approved Qwen local database harness exists'),
+  'Doc must record local harness as the remaining blocker.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

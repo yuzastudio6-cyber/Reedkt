@@ -301,6 +301,6 @@ function nextActionsForBlockers(
     actions.push('Run product QA acceptance after real runtime evidence and billing persistence are available.')
   }
 
-  actions.push('Keep external beta, real user media beta, and paid production blocked until all tool execution blockers are closed.')
+  actions.push('Keep only the unsafe beta/production action blocked; continue bounded source reviews, local proofs, diagnostics, QA packets, and deployment preflights that can retire named blockers without bypassing the gate.')
   return [...new Set(actions)]
 }

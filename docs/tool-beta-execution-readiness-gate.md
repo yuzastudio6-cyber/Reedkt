@@ -86,6 +86,8 @@ The default repo state remains blocked because those approvals and real executio
 
 Every blocked state must remain paired with an unblock path. If a tool, checklist item, or platform gate is blocked, the report must describe the missing evidence and the next safe lane that can collect it. This policy keeps beta and production guarded, but prevents blockers from becoming intentional permanent walls when a smaller source-review, local-proof, diagnostics, or QA step can safely move the tool lane forward.
 
+The gate blocks only the unsafe action it is protecting. A tool blocker can block external beta execution for that tool without blocking source classification, package approval, local command/import proof, cost-metering integration, diagnostics, QA review, or rollback planning. A platform blocker can block billable external beta without blocking local source preflights, persistent-store skeletons, migration reviews, monitoring plans, wallet-settlement tests, or owner approval packets. Reports should prefer precise next lanes over broad stop language.
+
 ## Why This Does Not Flip Beta On
 
 The current evidence is dry-run and source-of-truth only. External beta needs real bounded runtime checks, deployment/storage/security approvals, deployed and verified cost persistence, model/license approvals, monitoring, rollback, and support readiness.

@@ -1,8 +1,8 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "completed_controlled_private_invite_access_policy_no_access_mutation",
+  "decision": "blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
-  "integrationHead": "4e0ca864be052008cea86e287a683b687a8139f1",
+  "integrationHead": "ba739fa799e4f9fd57b64d94f2fbcf647acbeb85",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
     "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
@@ -23,11 +23,12 @@
     "stagingFlagApplication": "rp_external_beta_staging_flag_application_1",
     "stagingFlagApplication1r": "rp_external_beta_staging_flag_application_1r_after_gcloud_reauth",
     "controlledSmokeValidation": "rp_external_beta_controlled_smoke_validation_1",
-    "controlledPrivateInviteAccess": "rp_external_beta_controlled_private_invite_access_1"
+    "controlledPrivateInviteAccess": "rp_external_beta_controlled_private_invite_access_1",
+    "controlledPrivateInviteIamGrant": "rp_external_beta_controlled_private_invite_iam_grant_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
-    "externalProductBeta": "controlled_external_beta_private_invite_access_policy_ready",
+    "externalProductBeta": "blocked_pending_explicit_invite_identity_for_controlled_private_access_grant",
     "paidProduction": "blocked",
     "finalDeliveryExport": "blocked",
     "productReadyEndToEndLocalOssTools": 0
@@ -150,12 +151,21 @@
     "cloudRunIngress": "all",
     "inviteAccessGrantMutation": false,
     "approvedInviteSource": "explicit_identity_list_required_before_grant",
-    "privateInviteAccessReadiness": "ready_for_explicit_invite_iam_grant_planning",
-    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1"
+    "privateInviteAccessReadiness": "blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant",
+    "controlledPrivateInviteIamGrant": "blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant",
+    "privateInviteIamGrantExecution": "completed_docs_only_iam_grant_blocker_review_no_access_mutation",
+    "privateInviteIamGrant": "not_run_missing_explicit_identity_list",
+    "explicitInvitedIdentityList": "not_present_in_source",
+    "approvedGoogleGroup": "not_present_in_source",
+    "cloudRunIamMutation": false,
+    "cloudRunServiceUpdate": false,
+    "cloudRunInviteGrantAllUsers": false,
+    "cloudRunInviteGrantAllAuthenticatedUsers": false,
+    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST"
   },
   "requiredNextOwnerDecision": [
-    "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1",
-    "explicit_invited_identity_list_and_guarded_iam_grant_required",
+    "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST",
+    "explicit_invited_identity_or_google_group_required",
     "no_public_access_provider_worker_media_or_production_unlock"
   ],
   "safety": {
@@ -217,10 +227,14 @@
     "authenticatedHealthReadinessRouteExecution": "safe_get_health_ready_runtime_status_only",
     "unauthenticatedAccessPublicOpen": false,
     "controlledPrivateInviteAccess": "completed_docs_only_invite_access_policy_and_readonly_iam_readback",
+    "controlledPrivateInviteIamGrant": "completed_docs_only_iam_grant_blocker_review_no_access_mutation",
     "cloudRunIamPolicyReadback": true,
     "cloudRunIamPolicyMutation": false,
     "inviteGrantMutation": false,
-    "broadPublicInvokerGrant": false
+    "broadPublicInvokerGrant": false,
+    "allUsersGrant": false,
+    "allAuthenticatedUsersGrant": false,
+    "explicitInviteIdentityListPresent": false
   },
   "packageLock": "unchanged",
   "generatedArtifactsCommitted": "none"

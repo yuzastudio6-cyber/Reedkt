@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `controlled_external_beta_private_invite_access_policy_ready` | explicit invite identity list and guarded IAM grant |
+| External beta | `blocked_pending_explicit_invite_identity_for_controlled_private_access_grant` | explicit invite identity list or approved Google Group, then guarded IAM grant |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1`
+`RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -312,9 +312,19 @@ Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1
 
 Read-only Cloud Run IAM evidence for `reeditpro-staging-api` records service-level binding count `0`, service-level `allUsers` invoker binding `false`, and service-level `allAuthenticatedUsers` invoker binding `false`. The service remains at ready revision `reeditpro-staging-api-00005-7gs` with `100_percent_latest_revision` traffic. No Cloud Run IAM mutation, access grant, Cloud Run service update, deployment, invite email, app user creation, Supabase mutation, SQL execution, service-role route execution, provider/model call, worker execution, media processing, paid billing, production unlock, or final delivery/export occurred in this phase.
 
-External beta readiness: `controlled_external_beta_private_invite_access_policy_ready`. External beta enabled in this phase: `true`. Private invite access: `ready_for_explicit_invite_iam_grant_planning`. Paid production, public artifacts, signed URL source-of-truth, final delivery/export, broad media, provider/model calls, workers, Supabase mutation, SQL, and production unlock remain blocked.
+External beta prior invite-access readiness: `controlled_external_beta_private_invite_access_policy_ready`. External beta enabled in this phase: `true`. Private invite access policy: `ready_for_explicit_invite_iam_grant_planning`. The follow-on IAM grant review is now blocked by missing explicit invite principal evidence. Paid production, public artifacts, signed URL source-of-truth, final delivery/export, broad media, provider/model calls, workers, Supabase mutation, SQL, and production unlock remain blocked.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST`.
+
+## RP External Beta Controlled Private Invite IAM Grant 1
+
+`RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1` records decision `blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant` and execution `completed_docs_only_iam_grant_blocker_review_no_access_mutation`.
+
+Exact invited identity list: `not_present_in_source`. Approved Google Group: `not_present_in_source`. Private invite IAM grant: `not_run_missing_explicit_identity_list`. Cloud Run IAM mutation: `not_run`. Cloud Run service update: `not_run`. Deployment: `not_run`. `allUsers` grant: `false`. `allAuthenticatedUsers` grant: `false`.
+
+External beta readiness: `blocked_pending_explicit_invite_identity_for_controlled_private_access_grant`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

@@ -146,21 +146,47 @@ The active blocker is no longer job queue lease/event remote write/readback. Rem
 
 Next recommended milestone: `RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1`.
 
+## RP External Beta Private Artifact Storage Access Guarded Remote Write 1
+
+`RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1` records decision `completed_private_artifact_storage_access_guarded_remote_write_readback` and execution `completed_guarded_generated_private_storage_object_write_read_delete_and_transaction_rolled_back_artifact_metadata_readback`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Run ID: `2026-06-27T01-26-45-265Z-df201682`.
+
+The confirmed runner validated private artifact storage/access on the single main Reeditpro staging project only. It read back eight expected private buckets, private bucket public count `0`, anonymous storage object policy count `0`, created/read/deleted a generated private storage JSON fixture in `previews`, and verified post-delete absence with storage object residue count: `0`. It then inserted/read back generated `storage_object_records`, `artifact_manifests`, `artifact_manifest_items`, and an audit event inside a `set local role service_role` transaction that rolled back with artifact metadata rollback residue count: `0`.
+
+Artifact checksums:
+- `validation-report.json`: `809bea0a749e09cd63da4893e607420c719ab79d72da9d712d56bb3c91263686`
+- `artifact-manifest.json`: `16ee022cb847d5367f05678880c69cf50b4f83f407f10f174e3351b039960b2d`
+- `private-storage-object-write-read-delete-readback.json`: `d77f891561faefc114f64d41bfc481576aef3a20780967945868ad1a660154d8`
+- `private-bucket-policy-readback.json`: `a24c768f4eb5d7732ce3d1d42d4b9014ad7628e2e60fb11e6c31333f2f0608ed`
+- `private-artifact-metadata-write-readback.json`: `8ef4e302e9de3b1e99e55f9bca53665ad3d1d418c8adc2d8b0c5be0da4d9d5c5`
+- `rollback-residue-readback.json`: `997207e57bfb3c9463b2258b630bdb614ef661ef8b7fc6c064475201755825af`
+
+signed URL creation: `false`. public artifact creation: `false`. private/user media processing: `false`.
+
+Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+The active blocker is no longer private artifact storage/access. Remaining blockers are route-specific service-role execution validation, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1`.
+
 ## RP External Product Beta Current Readiness Rollup 1
 
-`RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.
+`RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1` records decision `blocked_external_product_beta_pending_remaining_runtime_gates_after_private_artifact_storage_access_remote_write_readback` and execution `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`.
 
-Current integration head: `7fc216c101d74b68ae175830ab5fa34b3e956d33`. Source closure: `RP-EXTERNAL-BETA-REEDITPRO-SUPABASE-MAIN-TARGET-MIGRATION-SYNC-1`.
+Current integration head: `5d725481c2a36c6e4710d068094010ae571c5984`. Source closure includes `RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1`.
 
 The Supabase target, credential-validation, and main staging migration-history lanes are no longer the active blocker: source records `completed_guarded_supabase_target_rls_storage_readonly_validation`, the single active target is `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`, final dry-run records `Remote database is up to date.`, and Supabase lint records `No schema errors found`.
 
-The active blocker is `blocked_external_product_beta_pending_runtime_gate_closure_after_main_supabase_migration_sync`. Remaining blockers are service-role route/runtime validation, approved snapshot persistence write validation, credit reservation/ledger validation, job lease/event validation, private artifact access, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+The active blocker is `blocked_external_product_beta_pending_remaining_runtime_gates_after_private_artifact_storage_access_remote_write_readback`. Remaining blockers are route-specific service-role execution validation, Remotion/private preview-export runtime validation, provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`. External product beta status: `blocked`. Paid production status: `blocked`. Final delivery/export status: `blocked`.
 
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-Next safe action: `RP-EXTERNAL-BETA-MAIN-SUPABASE-SERVICE-ROLE-RUNTIME-VALIDATION-1`.
+Next safe action: `RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1`.
 
 ## SUPABASE Clean Staging Target Owner Approval 1
 

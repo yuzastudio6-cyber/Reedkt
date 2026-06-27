@@ -146,6 +146,17 @@ const jobQueueLeaseEventGuardedRemoteWriteFiles = [
   'scripts/validation/rp-external-beta-job-queue-lease-event-guarded-remote-write-1-diagnostics.mjs',
 ]
 
+const privateArtifactStorageAccessGuardedRemoteWriteFiles = [
+  'docs/external-beta/private-artifact-storage-access-guarded-remote-write-1/source-audit.md',
+  'docs/external-beta/private-artifact-storage-access-guarded-remote-write-1/validation-results.md',
+  'docs/external-beta/private-artifact-storage-access-guarded-remote-write-1/readiness-gate.md',
+  'docs/external-beta/private-artifact-storage-access-guarded-remote-write-1/safety-boundary.md',
+  'docs/external-beta/private-artifact-storage-access-guarded-remote-write-1/runtime-validation-record.json',
+  'docs/activation-phase-rp-external-beta-private-artifact-storage-access-guarded-remote-write-1-results.md',
+  'scripts/validation/rp-external-beta-private-artifact-storage-access-guarded-remote-write-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-private-artifact-storage-access-guarded-remote-write-1-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -377,13 +388,15 @@ const followOnApprovedSnapshotServiceRolePersistenceImplementation1Files = [
 
 const requiredText = [
   packet,
-  'blocked_external_product_beta_pending_remaining_runtime_gates_after_job_queue_lease_event_remote_write_readback',
+  'blocked_external_product_beta_pending_remaining_runtime_gates_after_private_artifact_storage_access_remote_write_readback',
   'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution',
   'completed_reeditpro_main_supabase_target_migration_history_sync',
   'completed_main_supabase_service_role_runtime_grant_boundary_validation',
   'completed_approved_snapshot_persistence_guarded_remote_write_readback',
   'completed_credit_reservation_ledger_guarded_remote_write_readback',
   'completed_job_queue_lease_event_guarded_remote_write_readback',
+  'completed_private_artifact_storage_access_guarded_remote_write_readback',
+  'completed_guarded_generated_private_storage_object_write_read_delete_and_transaction_rolled_back_artifact_metadata_readback',
   'source_aligned_and_up_to_date_through_20260626224600',
   'Remote database is up to date.',
   'No schema errors found',
@@ -395,14 +408,19 @@ const requiredText = [
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  'RP-EXTERNAL-BETA-PRIVATE-ARTIFACT-STORAGE-ACCESS-GUARDED-REMOTE-WRITE-1',
+  'RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1',
   'residue counts as `0`',
+  'storage object residue count: `0`',
+  'artifact metadata rollback residue count: `0`',
+  'private bucket public count: `0`',
+  'signed URL creation: `false`',
+  'public artifact creation: `false`',
   'fajinbvwhcjnutkaumkm` is no longer an active target and no data was copied from it',
   '20260626163138_public_production_edit_session_brief_qwen_gates.sql',
   '20260626224600_worker_runtime_fail_retry_count_lint_fix.sql',
   '20260626233000_external_beta_public_grant_hardening.sql',
   'PR #577 remains open/draft/blocked and excluded',
-  'Remote Supabase mutation for the preceding sync, service-role validation, approved snapshot validation, credit ledger validation, and job queue lease/event validation packets was limited to guarded staging migration apply, guarded public grant hardening, a transaction-rolled-back generated approved snapshot fixture, a transaction-rolled-back generated credit reservation and ledger fixture, and a transaction-rolled-back generated job queue, job event, and worker lease fixture on the single main Reeditpro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project and approved snapshot, credit ledger, and job queue lease/event residue readback was `0`.',
+  'Remote Supabase mutation for the preceding sync, service-role validation, approved snapshot validation, credit ledger validation, job queue lease/event validation, and private artifact storage/access packets was limited to guarded staging migration apply, guarded public grant hardening, a transaction-rolled-back generated approved snapshot fixture, a transaction-rolled-back generated credit reservation and ledger fixture, a transaction-rolled-back generated job queue, job event, and worker lease fixture, a guarded generated private storage JSON fixture created/read/deleted, and a transaction-rolled-back generated private artifact metadata fixture on the single main Reeditpro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project and approved snapshot, credit ledger, job queue lease/event, storage object, and artifact metadata residue readback was `0`.',
 ]
 
 const forbiddenPatterns = [
@@ -479,7 +497,7 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_job_queue_lease_event_remote_write_readback') fail('record decision mismatch')
+if (record.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_private_artifact_storage_access_remote_write_readback') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
 if (record.statuses?.externalProductBeta !== 'blocked') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
@@ -502,10 +520,19 @@ if (record.mainSupabaseTarget?.jobQueueLeaseEventRollbackResidueCount !== 0) fai
 if (record.mainSupabaseTarget?.jobQueueJobStatus !== 'queued') fail('job queue status mismatch')
 if (record.mainSupabaseTarget?.jobQueueJobEventType !== 'queued') fail('job event type mismatch')
 if (record.mainSupabaseTarget?.jobQueueWorkerLeaseStatus !== 'claimed') fail('worker lease status mismatch')
+if (record.mainSupabaseTarget?.privateArtifactStorageAccess !== 'completed_private_artifact_storage_access_guarded_remote_write_readback') fail('private artifact storage status mismatch')
+if (record.mainSupabaseTarget?.privateArtifactBucketCount !== 8) fail('private artifact bucket count mismatch')
+if (record.mainSupabaseTarget?.privateArtifactBucketPublicCount !== 0) fail('private artifact public bucket count mismatch')
+if (record.mainSupabaseTarget?.privateArtifactAnonStoragePolicyCount !== 0) fail('private artifact anonymous policy count mismatch')
+if (record.mainSupabaseTarget?.privateArtifactStorageObjectResidueCount !== 0) fail('private artifact storage residue mismatch')
+if (record.mainSupabaseTarget?.privateArtifactMetadataRollbackResidueCount !== 0) fail('private artifact metadata residue mismatch')
+if (record.mainSupabaseTarget?.privateArtifactStorageRunId !== '2026-06-27T01-26-45-265Z-df201682') fail('private artifact run id mismatch')
+if (record.mainSupabaseTarget?.privateArtifactStorageReportSha256 !== '809bea0a749e09cd63da4893e607420c719ab79d72da9d712d56bb3c91263686') fail('private artifact report checksum mismatch')
+if (record.mainSupabaseTarget?.privateArtifactStorageManifestSha256 !== '16ee022cb847d5367f05678880c69cf50b4f83f407f10f174e3351b039960b2d') fail('private artifact manifest checksum mismatch')
 if (record.mainSupabaseTarget?.isolatedSandboxActive !== false) fail('isolated sandbox must not be active')
 if (record.mainSupabaseTarget?.isolatedSandboxDataCopied !== false) fail('isolated sandbox data copy must be false')
-if (record.safety?.supabaseMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_and_job_queue_fixture_only') fail('Supabase mutation scope mismatch')
-if (record.safety?.sqlMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_and_job_queue_fixture_only') fail('SQL mutation scope mismatch')
+if (record.safety?.supabaseMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_private_storage_json_fixture_only') fail('Supabase mutation scope mismatch')
+if (record.safety?.sqlMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_only') fail('SQL mutation scope mismatch')
 if (record.safety?.migrationApply !== 'guarded_main_staging_migration_apply_and_grant_hardening_only') fail('migration apply scope mismatch')
 if (record.safety?.persistentRowsCreated !== false) fail('persistent rows flag mismatch')
 if (record.safety?.persistentCreditMutation !== false) fail('persistent credit mutation flag mismatch')
@@ -517,6 +544,16 @@ if (record.safety?.jobEventWrite !== 'transaction_rolled_back_generated_job_even
 if (record.safety?.persistentJobEventWrite !== false) fail('persistent job event flag mismatch')
 if (record.safety?.workerLeaseClaim !== 'transaction_rolled_back_generated_worker_lease_fixture_only') fail('worker lease scope mismatch')
 if (record.safety?.persistentWorkerLeaseClaim !== false) fail('persistent worker lease flag mismatch')
+if (record.safety?.storageObjectCreation !== 'guarded_generated_private_storage_json_fixture_created_then_deleted') fail('storage object creation scope mismatch')
+if (record.safety?.storageObjectRead !== 'guarded_generated_private_storage_json_fixture_readback_only') fail('storage object read scope mismatch')
+if (record.safety?.storageObjectDelete !== 'guarded_generated_private_storage_json_fixture_cleanup') fail('storage object delete scope mismatch')
+if (record.safety?.storageObjectResidueCount !== 0) fail('storage object residue safety mismatch')
+if (record.safety?.secretPayloadAccess !== 'guarded_ephemeral_storage_service_role_key_payload_only') fail('secret payload access scope mismatch')
+if (record.safety?.secretPayloadPrinted !== false) fail('secret payload printed flag mismatch')
+if (record.safety?.secretPayloadPersisted !== false) fail('secret payload persisted flag mismatch')
+if (record.safety?.previewRenderExecution !== false) fail('preview render execution flag mismatch')
+if (record.safety?.privateMediaProcessing !== false) fail('private media processing flag mismatch')
+if (record.safety?.userMediaProcessing !== false) fail('user media processing flag mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
@@ -537,6 +574,7 @@ const allowed = new Set([
   ...approvedSnapshotGuardedRemoteWriteFiles,
   ...creditReservationLedgerGuardedRemoteWriteFiles,
   ...jobQueueLeaseEventGuardedRemoteWriteFiles,
+  ...privateArtifactStorageAccessGuardedRemoteWriteFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -582,6 +620,6 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_external_product_beta_pending_remaining_runtime_gates_after_job_queue_lease_event_remote_write_readback')
+console.log('Decision: blocked_external_product_beta_pending_remaining_runtime_gates_after_private_artifact_storage_access_remote_write_readback')
 console.log('External product beta: blocked')
-console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_and_job_queue_fixture_only')
+console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_only')

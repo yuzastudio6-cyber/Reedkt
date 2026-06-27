@@ -69,6 +69,8 @@ In mock mode, stored evidence is in-memory only. In non-mock mode, evidence writ
 
 Core real-check evidence is deliberately narrow: it may run version checks, Python imports, and Node package metadata resolution already defined by the production readiness specs. It does not process media, render/export, run providers, download models, run Docker, or accept missing tools. A tool is counted as product-ready local OSS only when the request explicitly accepts production readiness and product-ready local OSS for passed checks.
 
+For local core Python readiness proof, run `npm run tools:readiness:install-core-python` to hydrate the ignored `.reeditpro-tool-readiness-python/` virtualenv from `docker/prod/tool-readiness-worker/requirements.readiness.txt`, then run `npm run smoke:prod-core-python-readiness`. This imports only the safe core Python packages (`av`, `scenedetect`, `cv2`, `duckdb`, `polars`, and `opentimelineio`) and must not process media, run Docker, call providers, or enable beta/production.
+
 ## Evidence-Driven Policy
 
 The beta go/no-go policy is not a permanent hardcoded block. External beta, real-user-media beta, and paid production are computed from supplied evidence and approvals:
@@ -80,6 +82,8 @@ The beta go/no-go policy is not a permanent hardcoded block. External beta, real
 - real-user-media beta and paid production require their own explicit approvals.
 
 The default repo state remains blocked because those approvals and real execution proofs are not present yet.
+
+Every blocked state must remain paired with an unblock path. If a tool, checklist item, or platform gate is blocked, the report must describe the missing evidence and the next safe lane that can collect it. This policy keeps beta and production guarded, but prevents blockers from becoming intentional permanent walls when a smaller source-review, local-proof, diagnostics, or QA step can safely move the tool lane forward.
 
 ## Why This Does Not Flip Beta On
 

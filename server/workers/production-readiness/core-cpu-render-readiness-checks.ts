@@ -343,7 +343,7 @@ export function runCoreCpuRenderReadinessChecks(
 ): RunCoreCpuRenderReadinessResult {
   const realCheckMode = options.realCheckMode === true
   const strict = options.strict === true
-  const timeoutMs = options.timeoutMs ?? 5000
+  const timeoutMs = options.timeoutMs ?? 15000
   const maxBuffer = options.maxBuffer ?? 1024 * 1024
   const checkedAt = new Date().toISOString()
 

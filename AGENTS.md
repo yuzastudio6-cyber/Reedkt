@@ -94,6 +94,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Real Motion is premium and credit-heavy.
 - RP-FIX-09 credit runtime helpers are the current mock-safe approval/reservation gate. Real reserve, spend, release, refund, provider execution, rendering, and worker jobs remain backend-required.
 - RP-FIX-10 job runtime helpers are the current mock-safe queue/readiness layer. Real worker dispatch, Cloud Run jobs, service-role job mutation, provider execution, and rendering remain backend-required.
+- Blockers are evidence gaps, not permanent stop signs. When a path is blocked, the repo should name the exact missing approval, proof, deployment, license, persistence, or runtime evidence and the next smallest safe step that can retire that blocker. Do not use broad "production blocked", "backend-required", or "product-ready false" language to intentionally freeze unrelated safe work. Keep approval, credit, privacy, secret, provider, worker, Supabase, storage, beta, and production gates strict, but move forward through bounded source reviews, mock-safe skeletons, local proofs, diagnostics, and QA packets whenever those steps can reduce a named blocker without bypassing the gate.
 
 ## Backend And Database Architecture
 

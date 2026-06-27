@@ -432,6 +432,9 @@ if (approvedOutput.workerHandoffEvidenceInput?.browserCanvasWebglSandboxPassed !
 if (approvedOutput.workerHandoffEvidenceInput?.modelWeightManifestsApproved !== true) {
   fail('approved_worker_evidence_model_manifest_not_true')
 }
+if (!String(approvedOutput.workerHandoffEvidenceInput?.privateArtifactManifestRef ?? '').startsWith('private://')) {
+  fail('approved_worker_evidence_private_manifest_ref_not_private_scheme')
+}
 
 for (const output of [defaultOutput, awaitingOutput, approvedOutput]) {
   for (const key of [

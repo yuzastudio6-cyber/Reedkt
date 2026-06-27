@@ -27,7 +27,7 @@ It does not queue workers, execute tools, process media, load model weights, cal
 - Approved plan snapshot ID.
 - Credit reservation ID.
 - Artifact boundary approval.
-- Private artifact manifest reference.
+- Private artifact manifest reference with a `private://` or `reeditpro-private://` scheme.
 - Tool Route approval reference.
 - Worker approval reference.
 - Idempotency key.

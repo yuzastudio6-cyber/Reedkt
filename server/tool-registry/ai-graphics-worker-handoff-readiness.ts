@@ -133,6 +133,15 @@ function normalizeEvidence(
   }
 }
 
+function privateArtifactManifestOnly(ref: string): boolean {
+  if (!ref) return false
+  if (/^https?:\/\//i.test(ref)) return false
+  if (/^signed:\/\//i.test(ref)) return false
+  if (/^public:\/\//i.test(ref)) return false
+  if (/^gs:\/\//i.test(ref)) return false
+  return /^private:\/\//i.test(ref) || /^reeditpro-private:\/\//i.test(ref)
+}
+
 function workItemKindForTool(tool: AiGraphicsToolCallHandoffTool): string {
   if (tool.gpuRequiredForRuntime) return 'ai_graphics_gpu_model_worker_job'
   if (tool.runtimeTarget === 'node_cpu_static') return 'ai_graphics_cpu_static_worker_job'
@@ -148,6 +157,9 @@ function buildGlobalBlockers(evidence: Required<AiGraphicsWorkerHandoffEvidence>
     !evidence.creditReservationId ? 'credit reservation id is missing' : undefined,
     !evidence.artifactBoundaryApproved ? 'artifact boundary approval is missing' : undefined,
     !evidence.privateArtifactManifestRef ? 'private artifact manifest reference is missing' : undefined,
+    evidence.privateArtifactManifestRef && !privateArtifactManifestOnly(evidence.privateArtifactManifestRef)
+      ? 'private artifact manifest reference must use a private-only scheme'
+      : undefined,
     !evidence.routeApprovalRef ? 'Tool Route approval reference is missing' : undefined,
     !evidence.workerApprovalRef ? 'Worker approval reference is missing' : undefined,
     !evidence.workerIdempotencyKeyReady ? 'worker idempotency key is not ready' : undefined,

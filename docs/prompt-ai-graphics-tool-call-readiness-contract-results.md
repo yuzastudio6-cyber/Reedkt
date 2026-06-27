@@ -190,6 +190,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after ephemeral GPU runtime policy hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `128b8bce09ee83d4b9c6971f1b872066f663c37a`, with an empty check rollup.
 - Worker payload runtime activation hardening: internal beta worker payload readiness now preserves caller-provided `approvedPlanSnapshotId`, `creditReservationId`, and private artifact manifest refs, and embeds the GPU runtime activation policy directly in GPU-capable payloads. Production worker job readiness carries that policy into `ProductionWorkerJobPayload.metadata`, and the canonical production worker gate rejects GPU payloads unless `onDemandOnly`, `noIdleGpuRuntimeApproved`, and `startsOnlyForApprovedWorkerOrToolCall` are true while `cpuFallbackAllowedForHeavyTools` remains false. Queue adapter diagnostics now prove non-default snapshot, credit reservation, and private manifest refs pass through to the production worker job candidate without falling back to fixture-only evidence.
 - Latest observed PR state after worker payload runtime activation hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `3cf4ee346a36c501b2b9ccccbdd624523def574f`, with an empty check rollup.
+- Worker handoff private artifact boundary hardening: the worker handoff contract now rejects non-private artifact manifest refs before queue admission. `privateArtifactManifestRef` must use a `private://` or `reeditpro-private://` scheme; `http://`, `https://`, `signed://`, `public://`, and `gs://` refs remain invalid. Beta execution handoff evidence now passes a private-scheme manifest ref into worker handoff readiness.
 
 ## Runtime State
 
@@ -228,6 +229,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - `workerPayloadsPreserveCreditReservationId=true`
 - `workerPayloadsEmbedGpuRuntimeActivationPolicy=true`
 - `productionWorkerGateChecksValidateGpuRuntimeActivationPolicy=true`
+- `privateArtifactManifestPrivateSchemeRequired=true`
 - `betaActivationGapReportPrepared=true`
 - `betaReadinessEvidenceEvaluationPrepared=true`
 - `internalBetaProductionWorkerJobReadinessPrepared=true`

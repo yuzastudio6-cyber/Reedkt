@@ -129,6 +129,7 @@
     "approvedSnapshotRequired": true,
     "creditReservationRequired": true,
     "privateArtifactManifestRequired": true,
+    "privateArtifactManifestPrivateSchemeRequired": true,
     "workerIdempotencyRequired": true,
     "workerQueueTransportRequired": true,
     "runtimeProofRequired": true,

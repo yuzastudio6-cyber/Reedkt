@@ -186,7 +186,7 @@ function buildWorkerEvidenceInput(
       : '',
     artifactBoundaryApproved: ownerApprovedEvidenceReady,
     privateArtifactManifestRef: ownerApprovedEvidenceReady
-      ? 'owner-approved-ai-graphics-private-artifact-manifest-ref-redacted'
+      ? 'private://ai-graphics/internal-beta/owner-approved-artifact-manifest.json'
       : '',
     routeApprovalRef: ownerApprovedEvidenceReady
       ? 'AI_GRAPHICS_OWNER_APPROVED_ROUTE_HANDOFF_EVIDENCE'

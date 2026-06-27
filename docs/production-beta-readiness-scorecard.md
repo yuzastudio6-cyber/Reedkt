@@ -229,8 +229,10 @@ runtime, GPU/model runtime, model-weight loading, media processing, signed URLs,
 public artifacts, internal beta runtime, external beta, and production blocked.
 It can now consume a source `--internal-beta-queue-admission-readiness-packet`
 that already reports `internal_beta_queue_admission_ready_runtime_still_blocked`;
-mock job-service records remain the only accepted output in this lane, and live
-backend queue writes remain blocked.
+that source packet must also prove all 21 tools, all 12 capabilities, exactly
+eight accepted-future-job GPU start candidates, `gpuRuntimeShouldStartNow=false`,
+and false runtime/beta/production gates. Mock job-service records remain the
+only accepted output in this lane, and live backend queue writes remain blocked.
 
 AI graphics internal beta service-role queue transaction readiness decision
 `ai_graphics_internal_beta_service_role_queue_transaction_readiness_contract_prepared_with_no_write_rpc_envelope`
@@ -244,9 +246,12 @@ keeps Supabase writes, worker claims, live dispatch, route execution, tool
 execution, browser/canvas/WebGL runtime, GPU/model runtime, model-weight
 loading, media processing, signed URLs, public artifacts, internal beta runtime,
 external beta, and production blocked.
-It can also consume the source queue-admission readiness packet, then prepares
-only the no-write transaction envelope. Live service-role transactions, inserts,
-worker claims, dispatch, and runtime execution remain blocked.
+It can also consume the source queue-admission readiness packet only when that
+packet preserves all-21/all-12 coverage, exactly eight accepted-future-job GPU
+start candidates, `gpuRuntimeShouldStartNow=false`, and false
+runtime/beta/production gates. It then prepares only the no-write transaction
+envelope. Live service-role transactions, inserts, worker claims, dispatch, and
+runtime execution remain blocked.
 
 AI graphics internal beta service-role RPC implementation readiness decision
 `ai_graphics_internal_beta_service_role_rpc_implementation_readiness_contract_prepared_with_static_migration`

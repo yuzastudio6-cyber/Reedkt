@@ -20,7 +20,7 @@ internal beta runtime, unlock external beta, or unlock production.
 - Source backend queue storage gate: `ai_graphics_internal_beta_backend_queue_storage_readiness_contract_prepared_with_mock_service_records`
 - Source queue dispatcher gate: `ai_graphics_internal_beta_queue_dispatcher_readiness_contract_prepared_with_mock_safe_dispatcher`
 - Source queue-admission packet mode: `--internal-beta-queue-admission-readiness-packet`
-- Source queue-admission packet must report `internal_beta_queue_admission_ready_runtime_still_blocked`; backend queue storage and service-role envelope evidence remain separately required.
+- Source queue-admission packet must report `internal_beta_queue_admission_ready_runtime_still_blocked`, cover all 21 tools and all 12 capabilities, keep exactly eight GPU/model tools eligible for accepted future job startup, keep `gpuRuntimeShouldStartNow=false`, and keep runtime/beta/production gates false; backend queue storage and service-role envelope evidence remain separately required.
 - AI graphics tools covered: 21
 - Product-facing capabilities covered: 12
 - Service-role transaction envelopes prepared: 21
@@ -33,6 +33,8 @@ internal beta runtime, unlock external beta, or unlock production.
 - Service-role worker event rows prepared: 42
 - Service-role audit event rows prepared: 21
 - GPU runtime targeted tools: 8
+- GPU runtime start allowed for accepted future jobs: 8
+- GPU runtime should start now: false
 - Heavy tools incorrectly targeting CPU: 0
 - Live service-role transactions now: 0
 - Live job batch rows inserted now: 0

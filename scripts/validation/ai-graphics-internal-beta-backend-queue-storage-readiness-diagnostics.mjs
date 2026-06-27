@@ -102,6 +102,7 @@ const falseGateKeys = [
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
   'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
   'runtimeReadyNow',
   'internalBetaReadyNow',
   'externalBetaReadyNow',
@@ -186,6 +187,7 @@ function runNpm(scriptName, args = []) {
     encoding: 'utf8',
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
     maxBuffer: 128 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
   })
 }
 
@@ -253,6 +255,30 @@ function writeQueueAdmissionReadinessPacket(manifestPacketPath, gpuPacketPath) {
   return packetPath
 }
 
+function writeMutatedQueueAdmissionPacket(sourcePacketPath, label, mutate) {
+  const packet = JSON.parse(fs.readFileSync(sourcePacketPath, 'utf8'))
+  mutate(packet)
+  const packetPath = path.join(path.dirname(sourcePacketPath), `${label}.json`)
+  fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
+function expectQueueAdmissionPacketRejected(sourcePacketPath, label, mutate, manifestPacketPath, gpuPacketPath) {
+  const badPacketPath = writeMutatedQueueAdmissionPacket(sourcePacketPath, label, mutate)
+  let rejected = false
+  try {
+    runNpm(runScriptName, [
+      ...acceptedArgs(manifestPacketPath, gpuPacketPath),
+      '--internal-beta-queue-admission-readiness-packet',
+      badPacketPath,
+      '--require-mock-service-queue-records-ready',
+    ])
+  } catch {
+    rejected = true
+  }
+  if (!rejected) fail(`bad_queue_admission_packet_not_rejected:${label}`)
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-internal-beta-backend-queue-storage-readiness.ts',
   'server/cli/ai-graphics-internal-beta-backend-queue-storage-readiness.ts',
@@ -309,6 +335,11 @@ for (const [key, expected] of Object.entries({
   acceptsQueueAdmissionReadinessPacket: true,
   sourceQueueAdmissionReadinessPacketRequired: true,
   sourceQueueAdmissionPacketMustReportReady: true,
+  sourceQueueAdmissionPacketMustCoverAll21Tools: true,
+  sourceQueueAdmissionPacketMustCoverAll12Capabilities: true,
+  sourceQueueAdmissionPacketMustKeepEightGpuFutureStartTools: true,
+  sourceQueueAdmissionPacketMustKeepGpuStartNowFalse: true,
+  sourceQueueAdmissionPacketMustKeepRuntimeBetaAndProductionFalse: true,
   queueDispatcherProbeStillRequired: true,
   productionWorkerJobEvidenceStillRequired: true,
   mockServiceRecordsOnly: true,
@@ -428,6 +459,9 @@ if (docs.counts?.mockJobBatchCreated !== true) fail('docs_mock_job_batch_not_cre
 if (docs.counts?.mockJobBatchWarningCount !== 1) fail(`docs_batch_warning_count:${docs.counts?.mockJobBatchWarningCount}`)
 if (docs.counts?.mockJobServiceWarnings !== 22) fail(`docs_mock_job_service_warnings:${docs.counts?.mockJobServiceWarnings}`)
 if (docs.counts?.gpuRuntimeTargetedTools !== 8) fail(`docs_gpu_runtime_tools:${docs.counts?.gpuRuntimeTargetedTools}`)
+if (docs.counts?.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail(`docs_gpu_future_start_tools:${docs.counts?.gpuRuntimeStartAllowedForAcceptedJobTools}`)
+}
 if (docs.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) {
   fail(`docs_heavy_tools_cpu:${docs.counts?.heavyToolsIncorrectlyTargetingCpu}`)
 }
@@ -530,6 +564,52 @@ for (const key of falseGateKeys) {
 for (const key of inputFalseKeys) {
   if (packetFedOutput.input?.[key] !== false) fail(`packet_fed_input_false_gate_not_false:${key}`)
 }
+
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-tool-count',
+  (packet) => {
+    packet.totalAiGraphicsTools = 20
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-gpu-start-now-boolean',
+  (packet) => {
+    packet.booleans.gpuRuntimeShouldStartNow = true
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-gpu-future-start-count',
+  (packet) => {
+    packet.gpuRuntimeStartAllowedForAcceptedJobTools = 7
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-gpu-approved-now',
+  (packet) => {
+    packet.booleans.gpuRuntimeApprovedNow = true
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
+expectQueueAdmissionPacketRejected(
+  queueAdmissionPacketPath,
+  'bad-tool-scope-gpu-start-now',
+  (packet) => {
+    packet.queueAdmissionPackets[0].gpuRuntimeShouldStartNow = true
+  },
+  manifestPacketPath,
+  gpuPacketPath,
+)
 
 let liveWritesExited = false
 try {
@@ -654,6 +734,8 @@ console.log(JSON.stringify({
   liveWorkerClaimRowsNow: docs.counts.liveWorkerClaimRowsNow,
   liveWorkerDispatchesNow: docs.counts.liveWorkerDispatchesNow,
   gpuRuntimeTargetedTools: docs.counts.gpuRuntimeTargetedTools,
+  gpuRuntimeStartAllowedForAcceptedJobTools: docs.counts.gpuRuntimeStartAllowedForAcceptedJobTools,
+  gpuRuntimeShouldStartNow: docs.booleans.gpuRuntimeShouldStartNow,
   serviceRoleSupabaseWritesApprovedNow:
     docs.booleans.serviceRoleSupabaseWritesApprovedNow,
   backendQueueSubmissionApprovedNow: docs.booleans.backendQueueSubmissionApprovedNow,

@@ -111,6 +111,7 @@ export interface AiGraphicsInternalBetaBackendQueueStorageReadiness {
     providerRuntimeApprovedNow: false
     browserWebglCanvasRuntimeApprovedNow: false
     gpuRuntimeApprovedNow: false
+    gpuRuntimeShouldStartNow: false
     runtimeReadyNow: false
     internalBetaReadyNow: false
     externalBetaReadyNow: false
@@ -494,6 +495,7 @@ export async function buildAiGraphicsInternalBetaBackendQueueStorageReadiness(
       providerRuntimeApprovedNow: false,
       browserWebglCanvasRuntimeApprovedNow: false,
       gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
       runtimeReadyNow: false,
       internalBetaReadyNow: false,
       externalBetaReadyNow: false,

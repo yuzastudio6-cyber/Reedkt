@@ -505,6 +505,14 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Validation run: `ai-graphics:internal-beta-queue-adapter-readiness:diagnostics`, `ai-graphics:internal-beta-queue-admission-readiness:diagnostics`, `ai-graphics:internal-beta-runtime-enqueue-approval:diagnostics`, `ai-graphics:internal-beta-queue-dispatcher-readiness:diagnostics`, `ai-graphics:on-demand-runtime-admission:diagnostics`, `ai-graphics:beta-readiness-gate:diagnostics`, `open-source-tool-stack:audit:diagnostics`, `npm run typecheck:server`, and `git diff --check` passed.
 - Latest observed PR state after queue-adapter source packet and on-demand GPU hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `56dbf434136e5005c9ea4331593bb161465d1be3`, with an empty check rollup.
 
+## Follow-Up: Backend Queue And Service-Role Source Packet GPU Hardening
+
+- Tightened `ai-graphics:internal-beta-backend-queue-storage-readiness` and `ai-graphics:internal-beta-service-role-queue-transaction-readiness` source packet validation for `--internal-beta-queue-admission-readiness-packet`.
+- A source queue-admission packet must now report `internal_beta_queue_admission_ready_runtime_still_blocked`, all 21 tools, all 12 capabilities, 21 ready queue-admission packets, 21 ready runtime-admission packets, eight GPU-targeted tools, eight accepted-future-job GPU start candidates, and runtime/beta/production gates false before backend mock-service records or service-role no-write envelopes can be accepted.
+- Diagnostic coverage proves invalid source packets are rejected when tool coverage drops to 20, when `gpuRuntimeShouldStartNow=true`, when the accepted-job GPU start count drops to 7, when `gpuRuntimeApprovedNow=true`, or when an individual queue-admission packet claims GPU start-now.
+- Backend queue storage and service-role transaction outputs now keep `gpuRuntimeShouldStartNow=false` as an explicit false gate and keep live Supabase/service-role writes, worker claims, live dispatch, tool execution, GPU runtime, beta, and production blocked.
+- Validation run: `ai-graphics:internal-beta-backend-queue-storage-readiness:diagnostics` and `ai-graphics:internal-beta-service-role-queue-transaction-readiness:diagnostics` passed.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

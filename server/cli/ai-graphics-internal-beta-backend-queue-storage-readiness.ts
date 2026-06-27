@@ -70,6 +70,137 @@ function isQueueAdmissionReadinessPacket(
   )
 }
 
+const falseGateKeys = [
+  'agentCanExecuteToolsNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'productionWorkerJobEnqueueApprovedNow',
+  'productionWorkerDispatchApprovedNow',
+  'productionWorkerRouteExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'routeExecutionPerformed',
+  'productionWorkerDispatchPerformed',
+  'productionWorkerRouteExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+] as const
+
+function assertBooleanField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: boolean,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(
+      `${flag} must have ${key}=${String(expected)}; received ${String(object[key])}`,
+    )
+  }
+}
+
+function assertNumberField(
+  object: Record<string, unknown>,
+  key: string,
+  expected: number,
+  flag: string,
+): void {
+  if (object[key] !== expected) {
+    throw new Error(`${flag} must have ${key}=${expected}; received ${String(object[key])}`)
+  }
+}
+
+function validateQueueAdmissionReadinessPacket(
+  packet: AiGraphicsInternalBetaQueueAdmissionReadiness,
+  flag: string,
+): void {
+  const packetRecord = packet as unknown as Record<string, unknown>
+  const booleans = packetRecord.booleans
+  if (typeof booleans !== 'object' || booleans === null || Array.isArray(booleans)) {
+    throw new Error(`${flag} must contain a booleans object`)
+  }
+  const booleanRecord = booleans as Record<string, unknown>
+
+  assertNumberField(packetRecord, 'totalAiGraphicsTools', 21, flag)
+  assertNumberField(packetRecord, 'totalProductFacingCapabilities', 12, flag)
+  assertNumberField(packetRecord, 'queueAdmissionPacketsPrepared', 21, flag)
+  assertNumberField(packetRecord, 'queueAdmissionPacketsReadyWithProvidedEvidence', 21, flag)
+  assertNumberField(packetRecord, 'queueAdmissionCapabilitiesReadyWithProvidedEvidence', 12, flag)
+  assertNumberField(packetRecord, 'runtimeAdmissionPacketsReadyWithProvidedEvidence', 21, flag)
+  assertNumberField(packetRecord, 'gpuRuntimeStartAllowedForAcceptedJobTools', 8, flag)
+  assertNumberField(packetRecord, 'liveWorkerQueueApprovedNowTools', 0, flag)
+  assertNumberField(packetRecord, 'liveWorkerExecutionApprovedNowTools', 0, flag)
+
+  for (const [key, expected] of Object.entries({
+    sourceRuntimeEnqueueScopeAccepted: true,
+    queueAdmissionPrerequisitesSatisfied: true,
+    all21ToolsCovered: true,
+    all12CapabilitiesCovered: true,
+    all21QueueAdmissionPacketsPrepared: true,
+    all21QueueAdmissionPacketsReadyWithProvidedEvidence: true,
+    all21RuntimeAdmissionPacketsReadyWithProvidedEvidence: true,
+    all12CapabilitiesReadyWithProvidedEvidence: true,
+    approvedPlanSnapshotRefAccepted: true,
+    creditReservationRefAccepted: true,
+    privateArtifactManifestOnly: true,
+    gpuHeavyToolsTargetGpuRuntime: true,
+    gpuRuntimeTargetsExact: true,
+    gpuRuntimeOnDemandOnly: true,
+    onDemandRuntimeAdmissionApplied: true,
+    gpuRuntimeStartAllowedOnlyForAcceptedJobs: true,
+    agentCanSelectForPlanning: true,
+  })) {
+    assertBooleanField(booleanRecord, key, expected, flag)
+  }
+  for (const key of falseGateKeys) {
+    assertBooleanField(booleanRecord, key, false, flag)
+  }
+
+  if (!Array.isArray(packet.queueAdmissionPackets) || packet.queueAdmissionPackets.length !== 21) {
+    throw new Error(`${flag} must contain exactly 21 queueAdmissionPackets`)
+  }
+  const gpuPackets = packet.queueAdmissionPackets.filter((candidate) => candidate.gpuRequiredForRuntime)
+  if (gpuPackets.length !== 8) {
+    throw new Error(`${flag} must contain exactly 8 GPU runtime-targeted queue packets`)
+  }
+  for (const queuePacket of packet.queueAdmissionPackets) {
+    if (queuePacket.queueAdmissionReadyWithProvidedEvidence !== true) {
+      throw new Error(`${flag} tool ${queuePacket.toolId} must be queue-admission ready`)
+    }
+    if (queuePacket.runtimeAdmissionReadyWithProvidedEvidence !== true) {
+      throw new Error(`${flag} tool ${queuePacket.toolId} must be runtime-admission ready`)
+    }
+    if (queuePacket.gpuRuntimeShouldStartNow !== false) {
+      throw new Error(`${flag} tool ${queuePacket.toolId} must have gpuRuntimeShouldStartNow=false`)
+    }
+    if (queuePacket.gpuRuntimeStartAllowedForAcceptedJob !== queuePacket.gpuRequiredForRuntime) {
+      throw new Error(
+        `${flag} tool ${queuePacket.toolId} must allow GPU start exactly when GPU runtime is required`,
+      )
+    }
+  }
+}
+
 function readSourceQueueAdmissionReadinessPacket(): {
   sourceQueueAdmissionReadinessPacket?: AiGraphicsInternalBetaQueueAdmissionReadiness
   sourceEvidenceMode:
@@ -87,6 +218,10 @@ function readSourceQueueAdmissionReadinessPacket(): {
       'Queue-admission readiness packet must report internal_beta_queue_admission_ready_runtime_still_blocked with all 21 queue-admission packets ready.',
     )
   }
+  validateQueueAdmissionReadinessPacket(
+    packet,
+    '--internal-beta-queue-admission-readiness-packet',
+  )
 
   return {
     sourceQueueAdmissionReadinessPacket: packet,

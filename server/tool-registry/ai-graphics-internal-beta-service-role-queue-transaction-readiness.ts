@@ -135,6 +135,7 @@ export interface AiGraphicsInternalBetaServiceRoleQueueTransactionReadiness {
     providerRuntimeApprovedNow: false
     browserWebglCanvasRuntimeApprovedNow: false
     gpuRuntimeApprovedNow: false
+    gpuRuntimeShouldStartNow: false
     runtimeReadyNow: false
     internalBetaReadyNow: false
     externalBetaReadyNow: false
@@ -482,6 +483,7 @@ export async function buildAiGraphicsInternalBetaServiceRoleQueueTransactionRead
       providerRuntimeApprovedNow: false,
       browserWebglCanvasRuntimeApprovedNow: false,
       gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
       runtimeReadyNow: false,
       internalBetaReadyNow: false,
       externalBetaReadyNow: false,

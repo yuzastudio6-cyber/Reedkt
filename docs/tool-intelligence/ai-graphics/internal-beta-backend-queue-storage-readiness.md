@@ -16,7 +16,7 @@ This is still mock-service queue readiness. It does not write Supabase rows, cre
 - Source queue-admission gate: `ai_graphics_internal_beta_queue_admission_readiness_contract_prepared_with_runtime_blocks`
 - Source production worker job gate: `ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime`
 - Source evidence modes: low-level evidence flags or source queue-admission packet via `--internal-beta-queue-admission-readiness-packet`
-- Source queue-admission packet must report `internal_beta_queue_admission_ready_runtime_still_blocked`; queue-dispatcher probe evidence and production-worker job payload evidence remain separately required.
+- Source queue-admission packet must report `internal_beta_queue_admission_ready_runtime_still_blocked`, cover all 21 tools and all 12 capabilities, keep exactly eight GPU/model tools eligible for accepted future job startup, keep `gpuRuntimeShouldStartNow=false`, and keep runtime/beta/production gates false; queue-dispatcher probe evidence and production-worker job payload evidence remain separately required.
 - AI graphics tools covered: 21
 - Product-facing capabilities covered: 12
 - Backend queue storage records prepared: 21
@@ -27,6 +27,8 @@ This is still mock-service queue readiness. It does not write Supabase rows, cre
 - Mock job batch warning count: 1
 - Mock job service warning count: 22
 - GPU runtime targeted tools: 8
+- GPU runtime start allowed for accepted future jobs: 8
+- GPU runtime should start now: false
 - Heavy tools incorrectly targeting CPU: 0
 - Live Supabase job writes now: 0
 - Live worker claim rows now: 0

@@ -2,21 +2,22 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_INTEGRATION_1'
-const packetDir = 'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1'
+const packet = 'QWEN2_5_VL_EXTERNAL_BETA_BACKEND_RUNTIME_ADAPTER_1'
+const packetDir = 'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/runtime-gate-contract.md`,
+  `${packetDir}/backend-runtime-adapter-contract.md`,
   `${packetDir}/readiness-gate.md`,
   `${packetDir}/safety-boundary.md`,
   `${packetDir}/validation-results.md`,
-  `${packetDir}/qwen2-5-vl-runtime-gate-integration-record.json`,
-  'docs/activation-phase-rp-qwen2-5-vl-external-beta-runtime-gate-integration-1-results.md',
-  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-backend-runtime-adapter-1.md',
-  'server/config/qwen2-5-vl-external-beta-runtime-gate-contract.ts',
-  'server/smoke/qwen2-5-vl-external-beta-runtime-gate-integration-1-smoke.ts',
+  `${packetDir}/qwen2-5-vl-backend-runtime-adapter-record.json`,
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-backend-runtime-adapter-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1.md',
+  'server/services/qwen2-5-vl-external-beta-backend-runtime-adapter.ts',
+  'server/smoke/qwen2-5-vl-external-beta-backend-runtime-adapter-1-smoke.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-backend-runtime-adapter-1-diagnostics.mjs',
   'scripts/validation/rp-qwen2-5-vl-external-beta-runtime-gate-integration-1-diagnostics.mjs',
   'scripts/validation/rp-qwen2-5-vl-external-beta-vllm-l4-kv-cache-tuning-1-diagnostics.mjs',
   'scripts/validation/rp-qwen2-5-vl-external-beta-structured-output-smoke-retry-1-diagnostics.mjs',
@@ -26,51 +27,45 @@ const requiredFiles = [
   'package.json',
 ]
 
-const followOnBackendRuntimeAdapterFiles = [
-  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/source-audit.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/backend-runtime-adapter-contract.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/readiness-gate.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/safety-boundary.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/validation-results.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/qwen2-5-vl-backend-runtime-adapter-record.json',
-  'docs/activation-phase-rp-qwen2-5-vl-external-beta-backend-runtime-adapter-1-results.md',
-  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1.md',
-  'server/services/qwen2-5-vl-external-beta-backend-runtime-adapter.ts',
-  'server/smoke/qwen2-5-vl-external-beta-backend-runtime-adapter-1-smoke.ts',
-  'scripts/validation/rp-qwen2-5-vl-external-beta-backend-runtime-adapter-1-diagnostics.mjs',
-]
-
-const allowedFiles = new Set([...requiredFiles, ...followOnBackendRuntimeAdapterFiles])
+const allowedFiles = new Set(requiredFiles)
 
 const requiredText = [
   packet,
-  'completed_qwen2_5_vl_external_beta_runtime_gate_integration_source_contract',
-  'completed_source_contract_no_qwen_runtime_execution',
+  'completed_qwen2_5_vl_external_beta_backend_runtime_adapter_source_contract',
+  'completed_backend_only_adapter_source_no_qwen_runtime_execution',
   '#1294',
   '#1297',
   '#1305',
   '#1312',
+  '#1315',
+  '#577 remains open/draft/blocked/excluded',
   '76353668c50a3720db6ae73302f6935368347fd2',
+  '8beda22122829f7bd202a73b5816d13db827203b',
   'reeditpro-qwen2-5-vl-private-caller-pdvgn',
   'parsedJson=true',
   'schemaValid=true',
   'objectCount=3',
   'textLikeRegionCount=1',
   'structuredMetadataOutputAccepted=true',
-  'Fail-closed restore: `passed`',
-  'QWEN_VLLM_MAX_MODEL_LEN=2048',
-  'QWEN_VLLM_MAX_NUM_BATCHED_TOKENS=1024',
-  'QWEN_VLLM_MAX_NUM_SEQS=1',
-  'QWEN_VLLM_GPU_MEMORY_UTILIZATION=0.92',
+  'rawOutputStoredInRepo=false',
+  'REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE=true',
+  'REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd',
+  'REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_SCOPE=approved_snapshot_structured_metadata_only',
   'approved snapshot reference',
   'credit reservation reference',
   'queue lease reference',
   'idempotency key',
   'private artifact manifest reference',
   'private artifact checksum reference',
-  'ready_backend_only_qwen_structured_metadata_runtime_gate',
-  'ready_for_backend_only_external_beta_runtime_gate_adapter',
-  'QWEN2_5_VL_EXTERNAL_BETA_BACKEND_RUNTIME_ADAPTER_1',
+  'QWEN_VLLM_MAX_MODEL_LEN=2048',
+  'QWEN_VLLM_MAX_NUM_BATCHED_TOKENS=1024',
+  'QWEN_VLLM_MAX_NUM_SEQS=1',
+  'QWEN_VLLM_GPU_MEMORY_UTILIZATION=0.92',
+  'reeditpro-qwen2-5-vl-l4-worker',
+  'reeditpro-qwen2-5-vl-private-caller',
+  'ready_for_confirmed_qwen2_5_vl_external_beta_adapter_runtime_fixture',
+  'QWEN2_5_VL_EXTERNAL_BETA_CONFIRMED_ADAPTER_RUNTIME_FIXTURE_1',
+  'QWEN runtime execution in this phase: `false`',
   'External beta unlocked in this phase: `false`',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
@@ -79,7 +74,7 @@ const requiredText = [
 
 const forbiddenPatterns = [
   /External beta unlocked in this phase:\s*`?true`?/i,
-  /externalBetaUnlock(?:ed|AppliedToEnvironment)?"?\s*:\s*true/i,
+  /QWEN runtime execution in this phase:\s*`?true`?/i,
   /productionUnlock"?\s*:\s*true/i,
   /paidProductionAllowed"?\s*:\s*true/i,
   /publicArtifactsAllowed"?\s*:\s*true/i,
@@ -92,6 +87,7 @@ const forbiddenPatterns = [
   /qwenRuntimeExecuted"?\s*:\s*true/i,
   /cloudRunServiceUpdated"?\s*:\s*true/i,
   /cloudRunJobExecuted"?\s*:\s*true/i,
+  /identityTokenFetch"?\s*:\s*true/i,
   /providerCall"?\s*:\s*true/i,
   /modelCall"?\s*:\s*true/i,
   /workerExecution"?\s*:\s*true/i,
@@ -105,6 +101,19 @@ const forbiddenPatterns = [
   /mediaProcessing"?\s*:\s*true/i,
   /packageLockMutation"?\s*:\s*true/i,
   /Product-ready end-to-end local OSS tools:\s*`?[1-9]/i,
+]
+
+const forbiddenFilePatterns = [
+  /^package-lock\.json$/,
+  /^supabase\//,
+  /^database\//,
+  /^src\//,
+  /^docker\//,
+  /^cloudbuild\//,
+  /^\.github\//,
+  /^\.dockerignore$/,
+  /^requirements/i,
+  /^\.env/,
 ]
 
 function fail(message) {
@@ -142,25 +151,32 @@ for (const pattern of forbiddenPatterns) {
   if (pattern.test(corpus)) fail(`forbidden claim matched: ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/qwen2-5-vl-runtime-gate-integration-record.json`))
+const record = JSON.parse(read(`${packetDir}/qwen2-5-vl-backend-runtime-adapter-record.json`))
 if (record.packet !== packet) fail('packet mismatch')
-if (record.decision !== 'completed_qwen2_5_vl_external_beta_runtime_gate_integration_source_contract') fail('decision mismatch')
-if (record.execution !== 'completed_source_contract_no_qwen_runtime_execution') fail('execution mismatch')
-if (record.integrationBase !== '76353668c50a3720db6ae73302f6935368347fd2') fail('integration base mismatch')
+if (record.decision !== 'completed_qwen2_5_vl_external_beta_backend_runtime_adapter_source_contract') fail('decision mismatch')
+if (record.execution !== 'completed_backend_only_adapter_source_no_qwen_runtime_execution') fail('execution mismatch')
+if (record.integrationBase !== '8beda22122829f7bd202a73b5816d13db827203b') fail('integration base mismatch')
 if (record.sourceEvidence?.vllmL4KvCacheTuningPr !== 1312) fail('missing #1312 source evidence')
-if (record.sourceEvidence?.vllmL4KvCacheTuningMergeSha !== '76353668c50a3720db6ae73302f6935368347fd2') fail('missing #1312 merge SHA')
+if (record.sourceEvidence?.runtimeGateIntegrationPr !== 1315) fail('missing #1315 source evidence')
 if (record.sourceEvidence?.excludedPr !== 577) fail('missing #577 exclusion')
-if (record.acceptedRuntimeEvidence?.parsedJson !== true) fail('parsedJson mismatch')
-if (record.acceptedRuntimeEvidence?.schemaValid !== true) fail('schemaValid mismatch')
-if (record.acceptedRuntimeEvidence?.objectCount !== 3) fail('object count mismatch')
-if (record.acceptedRuntimeEvidence?.textLikeRegionCount !== 1) fail('text-like region count mismatch')
-if (record.acceptedRuntimeEvidence?.structuredMetadataOutputAccepted !== true) fail('structured output acceptance mismatch')
-if (record.acceptedRuntimeEvidence?.rawOutputStoredInRepo !== false) fail('raw output status mismatch')
-if (record.acceptedRuntimeEvidence?.failClosedRestorePassed !== true) fail('fail-closed restore mismatch')
+if (record.adapter?.backendOnly !== true) fail('adapter must remain backend-only')
+if (record.adapter?.sourceOnlyContract !== true) fail('adapter must remain source-only')
+if (record.adapter?.executeNow !== false) fail('adapter executeNow must be false')
+if (record.adapter?.futureConfirmedRuntimePacketRequired !== true) fail('future confirmed runtime packet must be required')
+if (record.adapter?.targetRef !== 'wmyyttnynmteqgcdishd') fail('target ref mismatch')
+if (record.adapter?.runtimeScope !== 'approved_snapshot_structured_metadata_only') fail('runtime scope mismatch')
+if (record.adapter?.adapterReadiness !== 'ready_for_confirmed_qwen2_5_vl_external_beta_adapter_runtime_fixture') {
+  fail('adapter readiness mismatch')
+}
 if (record.requiredL4VllmConfig?.QWEN_VLLM_MAX_MODEL_LEN !== 2048) fail('max model len mismatch')
 if (record.requiredL4VllmConfig?.QWEN_VLLM_MAX_NUM_BATCHED_TOKENS !== 1024) fail('max batched tokens mismatch')
 if (record.requiredL4VllmConfig?.QWEN_VLLM_MAX_NUM_SEQS !== 1) fail('max seqs mismatch')
 if (record.requiredL4VllmConfig?.QWEN_VLLM_GPU_MEMORY_UTILIZATION !== 0.92) fail('gpu memory utilization mismatch')
+if (record.cloudRunPlan?.gpuService !== 'reeditpro-qwen2-5-vl-l4-worker') fail('gpu service mismatch')
+if (record.cloudRunPlan?.cpuCallerJob !== 'reeditpro-qwen2-5-vl-private-caller') fail('cpu caller job mismatch')
+for (const key of ['serviceUpdateAllowed', 'jobExecutionAllowedInThisPhase', 'identityTokenFetchAllowedInThisPhase', 'secretPayloadAccessAllowed']) {
+  if (record.cloudRunPlan?.[key] !== false) fail(`Cloud Run plan flag must be false: ${key}`)
+}
 for (const key of [
   'approvedSnapshotRequired',
   'creditReservationRequired',
@@ -187,10 +203,19 @@ for (const key of [
 ]) {
   if (record.runtimeGate?.[key] !== false) fail(`runtime gate flag must be false: ${key}`)
 }
-if (record.readiness?.qwenStructuredOutputRuntime !== 'ready_for_backend_only_external_beta_runtime_gate_adapter') fail('QWEN readiness mismatch')
+if (record.artifactPolicy?.privateArtifactsOnly !== true) fail('private artifact policy mismatch')
+if (record.artifactPolicy?.publicArtifactsAllowed !== false) fail('public artifact policy mismatch')
+if (record.artifactPolicy?.signedUrlsAllowed !== false) fail('signed URL policy mismatch')
+if (record.artifactPolicy?.rawOutputStoredInRepo !== false) fail('raw output policy mismatch')
+if (record.readiness?.backendAdapter !== 'ready_for_confirmed_qwen2_5_vl_external_beta_adapter_runtime_fixture') {
+  fail('readiness backend adapter mismatch')
+}
+if (record.readiness?.qwenRuntimeExecutionInThisPhase !== false) fail('QWEN runtime execution must be false')
 if (record.readiness?.externalBetaUnlockedInThisPhase !== false) fail('external beta unlock must remain false')
 if (record.readiness?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
-if (record.readiness?.nextMilestone !== 'QWEN2_5_VL_EXTERNAL_BETA_BACKEND_RUNTIME_ADAPTER_1') fail('next milestone mismatch')
+if (record.readiness?.nextMilestone !== 'QWEN2_5_VL_EXTERNAL_BETA_CONFIRMED_ADAPTER_RUNTIME_FIXTURE_1') {
+  fail('next milestone mismatch')
+}
 for (const [key, value] of Object.entries(record.safety ?? {})) {
   if (key === 'sourceOnlyContract') {
     if (value !== true) fail('sourceOnlyContract must be true')
@@ -201,32 +226,32 @@ for (const [key, value] of Object.entries(record.safety ?? {})) {
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
-const contract = read('server/config/qwen2-5-vl-external-beta-runtime-gate-contract.ts')
+const service = read('server/services/qwen2-5-vl-external-beta-backend-runtime-adapter.ts')
 for (const text of [
+  'buildQwen25VlExternalBetaBackendRuntimeAdapterContract',
+  'assertQwen25VlExternalBetaBackendRuntimeAdapterResult',
   'evaluateQwen25VlExternalBetaRuntimeGate',
   'assertQwen25VlExternalBetaRuntimeGateResult',
-  'REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE',
-  'REEDITPRO_EXTERNAL_BETA_TARGET_REF',
-  'REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_SCOPE',
-  'approved_snapshot_structured_metadata_only',
-  'blocked_missing_approved_snapshot_reference',
-  'blocked_frontend_provider_or_model_call_attempt',
-  'blocked_public_or_signed_artifact_request',
-  'ready_backend_only_qwen_structured_metadata_runtime_gate',
+  'ready_for_confirmed_qwen2_5_vl_external_beta_adapter_runtime_fixture',
+  'reeditpro-qwen2-5-vl-l4-worker',
+  'reeditpro-qwen2-5-vl-private-caller',
+  'futureConfirmedRuntimePacketRequired: true',
+  'executeNow: false',
+  'jobExecutionAllowedInThisPhase: false',
 ]) {
-  if (!contract.includes(text)) fail(`contract missing ${text}`)
+  if (!service.includes(text)) fail(`adapter source missing ${text}`)
 }
 
 const packageJson = JSON.parse(read('package.json'))
 if (
-  packageJson.scripts?.['smoke:qwen2-5-vl-external-beta-runtime-gate-integration-1'] !==
-  'tsx server/smoke/qwen2-5-vl-external-beta-runtime-gate-integration-1-smoke.ts'
+  packageJson.scripts?.['smoke:qwen2-5-vl-external-beta-backend-runtime-adapter-1'] !==
+  'tsx server/smoke/qwen2-5-vl-external-beta-backend-runtime-adapter-1-smoke.ts'
 ) {
   fail('missing smoke script')
 }
 if (
-  packageJson.scripts?.['rp-qwen2-5-vl-external-beta-runtime-gate-integration-1:diagnostics'] !==
-  'node scripts/validation/rp-qwen2-5-vl-external-beta-runtime-gate-integration-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-qwen2-5-vl-external-beta-backend-runtime-adapter-1:diagnostics'] !==
+  'node scripts/validation/rp-qwen2-5-vl-external-beta-backend-runtime-adapter-1-diagnostics.mjs'
 ) {
   fail('missing diagnostics script')
 }
@@ -235,7 +260,7 @@ execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEn
 
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
-  if (file === 'package-lock.json') fail('package-lock changed')
+  if (forbiddenFilePatterns.some((pattern) => pattern.test(file))) fail(`forbidden file changed: ${file}`)
   if (file.includes('/._') || file.startsWith('._') || file.includes('.DS_Store')) fail(`metadata artifact changed: ${file}`)
   const text = read(file)
   if (/sbp_[A-Za-z0-9_./=-]+/.test(text)) fail(`Supabase access token leaked in ${file}`)
@@ -251,5 +276,5 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_qwen2_5_vl_external_beta_runtime_gate_integration_source_contract')
-console.log('Next milestone: QWEN2_5_VL_EXTERNAL_BETA_BACKEND_RUNTIME_ADAPTER_1')
+console.log('Decision: completed_qwen2_5_vl_external_beta_backend_runtime_adapter_source_contract')
+console.log('Next milestone: QWEN2_5_VL_EXTERNAL_BETA_CONFIRMED_ADAPTER_RUNTIME_FIXTURE_1')

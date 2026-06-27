@@ -82,6 +82,20 @@ const followOnRuntimeGateIntegrationFiles = [
   'scripts/validation/rp-qwen2-5-vl-external-beta-runtime-gate-integration-1-diagnostics.mjs',
 ]
 
+const followOnBackendRuntimeAdapterFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/backend-runtime-adapter-contract.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/readiness-gate.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-backend-runtime-adapter-1/qwen2-5-vl-backend-runtime-adapter-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-backend-runtime-adapter-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1.md',
+  'server/services/qwen2-5-vl-external-beta-backend-runtime-adapter.ts',
+  'server/smoke/qwen2-5-vl-external-beta-backend-runtime-adapter-1-smoke.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-backend-runtime-adapter-1-diagnostics.mjs',
+]
+
 const allowedFiles = new Set([
   ...requiredFiles,
   ...followOnSourceImportFiles,
@@ -89,10 +103,12 @@ const allowedFiles = new Set([
   ...followOnStructuredOutputSmokeRetryFiles,
   ...followOnVllmL4KvCacheTuningFiles,
   ...followOnRuntimeGateIntegrationFiles,
+  ...followOnBackendRuntimeAdapterFiles,
 ])
 const smokeRetryFiles = new Set(followOnStructuredOutputSmokeRetryFiles)
 const vllmL4KvCacheTuningFiles = new Set(followOnVllmL4KvCacheTuningFiles)
 const runtimeGateIntegrationFiles = new Set(followOnRuntimeGateIntegrationFiles)
+const backendRuntimeAdapterFiles = new Set(followOnBackendRuntimeAdapterFiles)
 
 const requiredText = [
   packet,
@@ -243,7 +259,11 @@ execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEn
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   for (const blocked of blockedPrefixes) {
-    if (!runtimeGateIntegrationFiles.has(file) && (file === blocked || file.startsWith(`${blocked}/`))) {
+    if (
+      !runtimeGateIntegrationFiles.has(file) &&
+      !backendRuntimeAdapterFiles.has(file) &&
+      (file === blocked || file.startsWith(`${blocked}/`))
+    ) {
       fail(`blocked file scope changed: ${file}`)
     }
   }
@@ -256,7 +276,12 @@ for (const file of changedFiles()) {
   if (/\b(api[_-]?key|service[_-]?role[_-]?key|secret[_-]?key)\s*[:=]\s*['"][^'"]+['"]/i.test(text)) {
     fail(`secret-like assignment in ${file}`)
   }
-  if (smokeRetryFiles.has(file) || vllmL4KvCacheTuningFiles.has(file) || runtimeGateIntegrationFiles.has(file)) continue
+  if (
+    smokeRetryFiles.has(file) ||
+    vllmL4KvCacheTuningFiles.has(file) ||
+    runtimeGateIntegrationFiles.has(file) ||
+    backendRuntimeAdapterFiles.has(file)
+  ) continue
   for (const pattern of forbiddenClaims) {
     if (pattern.test(text)) fail(`forbidden claim in ${file}: ${pattern}`)
   }

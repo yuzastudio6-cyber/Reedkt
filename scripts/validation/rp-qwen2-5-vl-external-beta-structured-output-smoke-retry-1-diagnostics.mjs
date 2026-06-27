@@ -34,7 +34,25 @@ const followOnVllmL4KvCacheTuningFiles = [
   'scripts/validation/rp-qwen2-5-vl-external-beta-private-caller-image-source-import-1-diagnostics.mjs',
 ]
 
-const allowedFiles = new Set([...requiredFiles, ...followOnVllmL4KvCacheTuningFiles])
+const followOnRuntimeGateIntegrationFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/runtime-gate-contract.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/readiness-gate.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/qwen2-5-vl-runtime-gate-integration-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-runtime-gate-integration-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-backend-runtime-adapter-1.md',
+  'server/config/qwen2-5-vl-external-beta-runtime-gate-contract.ts',
+  'server/smoke/qwen2-5-vl-external-beta-runtime-gate-integration-1-smoke.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-runtime-gate-integration-1-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([
+  ...requiredFiles,
+  ...followOnVllmL4KvCacheTuningFiles,
+  ...followOnRuntimeGateIntegrationFiles,
+])
 
 const requiredText = [
   packet,

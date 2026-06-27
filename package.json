@@ -719,6 +719,8 @@
     "rp-qwen2-5-vl-external-beta-private-caller-image-source-import-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-private-caller-image-source-import-1-diagnostics.mjs",
     "rp-qwen2-5-vl-external-beta-structured-output-smoke-retry-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-structured-output-smoke-retry-1-diagnostics.mjs",
     "rp-qwen2-5-vl-external-beta-vllm-l4-kv-cache-tuning-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-vllm-l4-kv-cache-tuning-1-diagnostics.mjs",
+    "smoke:qwen2-5-vl-external-beta-runtime-gate-integration-1": "tsx server/smoke/qwen2-5-vl-external-beta-runtime-gate-integration-1-smoke.ts",
+    "rp-qwen2-5-vl-external-beta-runtime-gate-integration-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-runtime-gate-integration-1-diagnostics.mjs",
     "rp-external-beta-reeditpro-supabase-main-target-migration-sync-1:diagnostics": "node scripts/validation/rp-external-beta-reeditpro-supabase-main-target-migration-sync-1-diagnostics.mjs",
     "rp-external-beta-main-supabase-service-role-runtime-validation-1-confirmed": "node scripts/validation/rp-external-beta-main-supabase-service-role-runtime-validation-1-confirmed.mjs",
     "rp-external-beta-main-supabase-service-role-runtime-validation-1:diagnostics": "node scripts/validation/rp-external-beta-main-supabase-service-role-runtime-validation-1-diagnostics.mjs",

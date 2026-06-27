@@ -25,12 +25,24 @@ assert.equal(report.allToolsHaveReadinessSpecs, true, 'all tools should have rea
 assert.equal(report.internalDryRunMonitoringAllowed, true, 'internal dry-run monitoring can proceed after coverage')
 assert.equal(report.externalBetaToolExecutionAllowed, false, 'external beta tool execution must remain blocked')
 assert.equal(report.productionToolExecutionAllowed, false, 'production tool execution must remain blocked')
+assert.equal(report.blockerPolicy, 'evidence_driven_block_unsafe_actions_only', 'blocker policy must block only unsafe actions')
+assert.equal(report.safeBlockerReductionAllowed, true, 'safe blocker-reduction work must remain allowed')
+assert.deepEqual(
+  report.blockedActionScope,
+  ['external_beta_tool_execution', 'paid_production_tool_execution'],
+  'default blocked action scope should name only unsafe beta/production execution',
+)
 assert.equal(report.tools.length, PRODUCTION_TOOL_IDS.length, 'one tool record per production tool is required')
 assert.ok(report.blockers.length > 0, 'tool execution blockers must be explicit')
 assert.ok(report.platformBlockers.length > 0, 'shared platform blockers must be explicit')
 assert.ok(report.nextActions.length > 0, 'tool execution next actions must be explicit')
 assert.ok(report.tools.every((tool) => tool.productReadyLocalOss === false), 'every tool must keep productReadyLocalOss false')
 assert.ok(report.tools.every((tool) => tool.executableForProduction === false), 'every tool must keep production execution false')
+assert.ok(report.tools.every((tool) => tool.safeBlockerReductionAllowed === true), 'every blocked tool must still allow safe unblock work')
+assert.ok(
+  report.tools.every((tool) => tool.blockedActionScope.includes('external_beta_tool_execution')),
+  'tool blocked action scope must identify external beta execution without freezing unrelated work',
+)
 assert.ok(report.tools.every((tool) => tool.expectedWorkerTypes.length > 0), 'every tool must list expected worker types')
 assert.ok(report.tools.every((tool) => tool.imageRoles.length > 0), 'every tool must list image roles')
 assert.ok(report.tools.some((tool) => tool.toolId === 'revideo' && tool.blockers.length > 0), 'Revideo must remain blocked/evaluation-only')
@@ -64,6 +76,7 @@ assert.equal(evidenceReport.productReadyLocalOssCount, 1, 'accepted evidence sho
 assert.equal(acceptedFfmpeg.productReadyLocalOss, true, 'accepted evidence should make only the named tool product-ready')
 assert.equal(acceptedFfmpeg.readinessDryRun, false, 'accepted real execution evidence should clear dry-run status for the named tool')
 assert.equal(acceptedFfmpeg.executableForExternalBeta, true, 'accepted evidence should make the named tool externally executable at record level')
+assert.deepEqual(acceptedFfmpeg.blockedActionScope, [], 'accepted named tool should have no tool-level blocked action scope')
 assert.equal(acceptedFfmpeg.blockers.length, 0, 'accepted evidence should clear named tool blockers')
 assert.equal(evidenceReport.externalBetaToolExecutionAllowed, false, 'platform and remaining tool blockers must still block full external beta')
 assert.ok(evidenceReport.platformBlockers.length > 0, 'accepted evidence must not bypass shared platform blockers')
@@ -112,6 +125,7 @@ assert.equal(fullyEvidencedReport.platformBlockers.length, 0, 'complete platform
 assert.equal(fullyEvidencedReport.productReadyLocalOssCount, PRODUCTION_TOOL_IDS.length, 'complete evidence should count every tool as product-ready in the evidence report')
 assert.equal(fullyEvidencedReport.externalBetaToolExecutionAllowed, true, 'complete accepted evidence should allow external beta tool execution')
 assert.equal(fullyEvidencedReport.productionToolExecutionAllowed, true, 'complete accepted evidence should allow production tool execution at the tool gate')
+assert.deepEqual(fullyEvidencedReport.blockedActionScope, [], 'complete evidence should clear global blocked action scope')
 
 assert.ok(
   buildToolBetaExecutionReadinessReport({

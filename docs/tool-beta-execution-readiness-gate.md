@@ -99,6 +99,14 @@ Every blocked state must remain paired with an unblock path. If a tool, checklis
 
 The gate blocks only the unsafe action it is protecting. A tool blocker can block external beta execution for that tool without blocking source classification, package approval, local command/import proof, cost-metering integration, diagnostics, QA review, or rollback planning. A platform blocker can block billable external beta without blocking local source preflights, persistent-store skeletons, migration reviews, monitoring plans, wallet-settlement tests, or owner approval packets. Reports should prefer precise next lanes over broad stop language.
 
+The executable report now exposes this as source-of-truth metadata:
+
+- `blockerPolicy: evidence_driven_block_unsafe_actions_only`
+- `safeBlockerReductionAllowed: true`
+- `blockedActionScope`, which must name only the unsafe beta/production actions currently closed.
+
+These fields are intentionally separate from `externalBetaToolExecutionAllowed` and `productionToolExecutionAllowed`. They let automation and agents keep building the next bounded unblock step while still refusing live beta/production execution until the required evidence exists.
+
 The platform evidence manifest makes that policy executable. Each shared platform blocker must name the local source/runtime proof already available, the deployed or owner evidence still missing, and the next safe lane that can gather it. A missing platform requirement can block live external beta without blocking source-of-truth review, local SQL proof, service-role call-shape proof, monitoring-template proof, Stripe-boundary proof, billing QA planning, or named owner approval collection.
 
 The deployed platform evidence verifier is the handoff point for the next safe lane. It is designed for a future staging transport to supply verified migration, service-role, RLS, idempotency, wallet-settlement, Stripe-boundary, monitoring, and billing-QA probe results. It does not write the evidence packet by itself and does not carry secrets; recording remains behind the authenticated/idempotent backend evidence route.

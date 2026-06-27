@@ -90,10 +90,10 @@ check(
   data.privateInvokeClient.clientHelper === 'callQwen25VlPrivateInvokeDryRun',
   'UI data must name the typed private invoke frontend client.',
 )
-	check(
-	  data.privateInvokeClient.currentStatus === 'blocked_private_invoke_token_creator_required',
-	  'Private invoke client status must stay blocked on TokenCreator approval.',
-	)
+check(
+  data.privateInvokeClient.currentStatus === 'blocked_private_invoke_routing_contract_response_required',
+  'Private invoke client status must stay blocked on route/contract response readiness.',
+)
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
     data.privateInvokeClient.runtimeFlags.usesCentralApiClient === true,
@@ -161,15 +161,15 @@ check(docText.includes('4 primary Qwen metadata routes'), 'Doc must record prima
 check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advisory route count.')
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
-	check(
-	  docText.includes('blocked_private_invoke_token_creator_required') ||
-	    data.privateInvokeClient.currentStatus === 'blocked_private_invoke_token_creator_required',
-	  'Doc/data must record private invoke TokenCreator blocked status.',
-	)
-	check(
-	  docText.includes('iam.serviceAccounts.getAccessToken'),
-	  'Doc must record the TokenCreator/getAccessToken blocker.',
-	)
+check(
+  docText.includes('blocked_private_invoke_routing_contract_response_required') ||
+    data.privateInvokeClient.currentStatus === 'blocked_private_invoke_routing_contract_response_required',
+  'Doc/data must record private invoke routing blocked status.',
+)
+check(
+  docText.includes('HTTP `404`') || docText.includes('fail-closed contract JSON'),
+  'Doc must record the private invoke route/contract response blocker.',
+)
 check(docText.includes('The card provides no execution buttons'), 'Doc must forbid execution buttons.')
 check(docText.includes(data.nextPrompt), 'Doc must record the next prompt.')
 

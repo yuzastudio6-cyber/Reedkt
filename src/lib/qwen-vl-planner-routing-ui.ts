@@ -28,11 +28,11 @@ export type QwenVlPlannerRoutingUiExecutionGates = {
 
 export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
   routeId: 'jobs.qwen2_5_vl.privateInvoke.dryRun'
-	  routePath: '/api/jobs/qwen2-5-vl/private-invoke/dry-run/mock'
-	  clientHelper: 'callQwen25VlPrivateInvokeDryRun'
-	  statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
-	  routeRuntime: 'mock'
-	  currentStatus: 'blocked_private_invoke_token_creator_required'
+  routePath: '/api/jobs/qwen2-5-vl/private-invoke/dry-run/mock'
+  clientHelper: 'callQwen25VlPrivateInvokeDryRun'
+  statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
+  routeRuntime: 'mock'
+  currentStatus: 'blocked_private_invoke_routing_contract_response_required'
   currentBlocker: string
   boundaryNotes: string[]
   runtimeFlags: {
@@ -65,7 +65,7 @@ export type QwenVlPlannerRoutingUiData = {
   privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-	  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_53-PRIVATE-INVOKE-ROUTING-FIX: fix controlled private invoke route/ingress contract response, no inference'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -219,14 +219,14 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       clientHelper: 'callQwen25VlPrivateInvokeDryRun',
       statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
       routeRuntime: 'mock',
-	      currentStatus: 'blocked_private_invoke_token_creator_required',
-	      currentBlocker:
-	        'Controlled private invoke smoke now uses the non-key impersonation path, but token minting is blocked by missing TokenCreator/getAccessToken permission.',
+      currentStatus: 'blocked_private_invoke_routing_contract_response_required',
+      currentBlocker:
+        'Controlled private invoke auth now mints an identity token and sends one request, but Cloud Run returned HTTP 404 instead of the expected fail-closed contract JSON.',
       boundaryNotes: [
         'The frontend helper calls only the central ReeditPro API client boundary.',
         'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
         'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
-	        'The next runtime gate must approve TokenCreator/getAccessToken or an attached-service-account token path without key files.',
+        'The next runtime gate must fix Cloud Run ingress, private route, load balancer, proxy, service URL, or audience reachability without enabling inference.',
       ],
       runtimeFlags: {
         usesCentralApiClient: true,
@@ -261,6 +261,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'D3, ECharts, and Vega-Lite own exact chart/dataviz output.',
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
-	    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference',
+    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_53-PRIVATE-INVOKE-ROUTING-FIX: fix controlled private invoke route/ingress contract response, no inference',
   }
 }

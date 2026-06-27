@@ -575,6 +575,12 @@ function nextPromptForResult(status: ResultStatus, blockers: readonly string[]) 
   ) {
     return 'QWEN2_5_VL_STACK_TOOL_52-AUTHZ-FIX-PRIVATE-INVOKE-SMOKE: approve TokenCreator or attached-service-account token path, no inference'
   }
+  if (
+    blockers.includes('private_invoke_response_unexpected') ||
+    blockers.includes('cloud_run_contract_post_blocked')
+  ) {
+    return 'QWEN2_5_VL_STACK_TOOL_53-PRIVATE-INVOKE-ROUTING-FIX: fix controlled private invoke route/ingress contract response, no inference'
+  }
   return 'QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference'
 }
 

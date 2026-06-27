@@ -230,6 +230,23 @@ for (const [key, expected] of Object.entries({
   }
 }
 
+for (const [key, expected] of Object.entries({
+  acceptsLowLevelEvidenceFlags: true,
+  acceptsBetaEvidenceBundlePacket: true,
+  acceptsBetaEvidenceLocalAssemblyPacket: true,
+  ownerApprovalRequiredBeforeGoNoGoCandidateReady: true,
+  goNoGoApprovalSeparatedFromOwnerEvidence: true,
+  runtimeUnlockPerformed: false,
+})) {
+  if (docs.evidencePolicy?.[key] !== expected) {
+    fail(`docs_evidence_policy_mismatch:${key}:${docs.evidencePolicy?.[key]}`)
+  }
+}
+for (const flag of ['--beta-evidence-bundle-packet', '--beta-evidence-local-assembly-packet']) {
+  if (!cliSource.includes(flag)) fail(`cli_missing_packet_flag:${flag}`)
+  if (!markdown.includes(flag)) fail(`markdown_missing_packet_flag:${flag}`)
+}
+
 for (const action of [
   'accept all-21 install, ranking, GPU targeting, and cross-owner coordination evidence',
   'accept all-21 production worker gate checks with provided evidence and zero hard failures',
@@ -358,6 +375,101 @@ if (approvedOutput.booleans?.all21ToolsInternalBetaGoNoGoApprovedWithProvidedEvi
   fail('approved_all21_go_no_go_not_true')
 }
 
+const technicalBundlePacket = parseJsonOutput(runNpm('ai-graphics:beta-evidence-bundle:validate', [
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--model-weight-manifest-review-packet',
+  manifestPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuPacketPath,
+]), 'technical_beta_evidence_bundle_packet')
+const bundlePacketPath = path.join(path.dirname(manifestPacketPath), 'technical-beta-evidence-bundle-packet.json')
+fs.writeFileSync(bundlePacketPath, `${JSON.stringify(technicalBundlePacket, null, 2)}\n`, 'utf8')
+let packetAwaitingExited = false
+let packetAwaitingOutputText = ''
+try {
+  packetAwaitingOutputText = runNpm(runScriptName, [
+    '--beta-evidence-bundle-packet',
+    bundlePacketPath,
+    '--owner-approval-granted',
+    '--owner-approval-ref',
+    'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+    '--require-internal-beta-go-no-go-approved',
+  ])
+} catch (error) {
+  packetAwaitingExited = true
+  packetAwaitingOutputText = `${error.stdout || ''}${error.stderr || ''}`
+}
+const packetAwaitingOutput = parseJsonOutput(packetAwaitingOutputText, 'packet_awaiting_go_no_go')
+if (!packetAwaitingExited) fail('packet_awaiting_go_no_go_require_did_not_fail')
+if (packetAwaitingOutput.input?.evidenceSourceMode !== 'beta_evidence_bundle_packet') {
+  fail('packet_awaiting_source_mode_not_reported')
+}
+if (packetAwaitingOutput.status !== 'awaiting_internal_beta_go_no_go_approval') {
+  fail(`packet_awaiting_status:${packetAwaitingOutput.status}`)
+}
+if (packetAwaitingOutput.booleans?.internalBetaGoNoGoReadyWithProvidedEvidence !== true) {
+  fail('packet_awaiting_ready_with_provided_evidence_not_true')
+}
+if (packetAwaitingOutput.booleans?.internalBetaGoNoGoApprovalRecordAccepted !== false) {
+  fail('packet_awaiting_go_no_go_approval_not_false')
+}
+
+const packetApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--beta-evidence-bundle-packet',
+  bundlePacketPath,
+  '--owner-approval-granted',
+  '--owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--internal-beta-go-no-go-approved',
+  '--internal-beta-go-no-go-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-approved',
+]), 'packet_approved_go_no_go')
+if (packetApprovedOutput.input?.evidenceSourceMode !== 'beta_evidence_bundle_packet') {
+  fail('packet_approved_source_mode_not_reported')
+}
+if (packetApprovedOutput.status !== 'internal_beta_go_no_go_approved_runtime_still_blocked') {
+  fail(`packet_approved_status:${packetApprovedOutput.status}`)
+}
+if (packetApprovedOutput.internalBetaGoNoGoApprovedToolsWithProvidedEvidence !== 21) {
+  fail('packet_approved_tools_not_21')
+}
+if (packetApprovedOutput.internalBetaReadyNowTools !== 0) {
+  fail('packet_approved_internal_beta_now_not_0')
+}
+
+const localAssemblyPacketPath = path.join(path.dirname(manifestPacketPath), 'technical-beta-evidence-local-assembly-packet.json')
+fs.writeFileSync(
+  localAssemblyPacketPath,
+  `${JSON.stringify({
+    decision: 'ai_graphics_beta_evidence_local_assembly_prepared_with_directory_inputs',
+    betaEvidenceBundle: technicalBundlePacket,
+  }, null, 2)}\n`,
+  'utf8',
+)
+const localAssemblyPacketApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--beta-evidence-local-assembly-packet',
+  localAssemblyPacketPath,
+  '--owner-approval-granted',
+  '--owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--internal-beta-go-no-go-approved',
+  '--internal-beta-go-no-go-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-approved',
+]), 'local_assembly_packet_approved_go_no_go')
+if (localAssemblyPacketApprovedOutput.input?.evidenceSourceMode !== 'beta_evidence_local_assembly_packet') {
+  fail('local_assembly_packet_source_mode_not_reported')
+}
+if (localAssemblyPacketApprovedOutput.status !== 'internal_beta_go_no_go_approved_runtime_still_blocked') {
+  fail(`local_assembly_packet_approved_status:${localAssemblyPacketApprovedOutput.status}`)
+}
+if (localAssemblyPacketApprovedOutput.internalBetaGoNoGoApprovedToolsWithProvidedEvidence !== 21) {
+  fail('local_assembly_packet_approved_tools_not_21')
+}
+
 let runtimeRequireExited = false
 try {
   runNpm(runScriptName, [...approvedArgs, '--require-runtime-ready'])
@@ -366,7 +478,14 @@ try {
 }
 if (!runtimeRequireExited) fail('require_runtime_ready_did_not_fail')
 
-for (const output of [defaultOutput, awaitingOutput, approvedOutput]) {
+for (const output of [
+  defaultOutput,
+  awaitingOutput,
+  approvedOutput,
+  packetAwaitingOutput,
+  packetApprovedOutput,
+  localAssemblyPacketApprovedOutput,
+]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`false_gate_not_false:${key}`)

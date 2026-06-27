@@ -349,6 +349,16 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Diagnostic coverage proves the direct beta evidence bundle packet and full local assembly packet paths both preserve `betaToolCallableNowTools=0`, `agentCanExecuteToolsNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after internal beta owner approval packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `1fdcf1452863eb355f1976e0b4e2296cf90af3f0`, with an empty check rollup.
 
+## Follow-Up: Internal Beta Go/No-Go Packet Ingestion
+
+- Added evaluator-only packet ingestion to `ai-graphics:internal-beta-go-no-go`:
+  - `--beta-evidence-bundle-packet`
+  - `--beta-evidence-local-assembly-packet`
+- A technically complete beta evidence bundle packet with owner approval can now make the go/no-go candidate ready with provided evidence, but it remains `awaiting_internal_beta_go_no_go_approval` until a separate go/no-go approval record and ref are supplied.
+- The same packet reaches `internal_beta_go_no_go_approved_runtime_still_blocked` only when `--internal-beta-go-no-go-approved` and `--internal-beta-go-no-go-ref` are present.
+- The beta/production readiness rollup now recognizes runtime-proof acceptance from a prebuilt beta evidence bundle as well as from low-level proof flags, so packet-fed go/no-go evaluations report the same activation-gap evidence.
+- Diagnostic coverage proves direct beta evidence bundle packet and full local assembly packet paths preserve `internalBetaReadyNowTools=0`, `agentCanExecuteToolsNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

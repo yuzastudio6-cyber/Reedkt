@@ -56,6 +56,14 @@
     "goNoGoRefRequired": true,
     "approvesRuntimeNow": false
   },
+  "evidencePolicy": {
+    "acceptsLowLevelEvidenceFlags": true,
+    "acceptsBetaEvidenceBundlePacket": true,
+    "acceptsBetaEvidenceLocalAssemblyPacket": true,
+    "ownerApprovalRequiredBeforeGoNoGoCandidateReady": true,
+    "goNoGoApprovalSeparatedFromOwnerEvidence": true,
+    "runtimeUnlockPerformed": false
+  },
   "allowedGoNoGoActions": [
     "accept all-21 install, ranking, GPU targeting, and cross-owner coordination evidence",
     "accept all-21 production worker gate checks with provided evidence and zero hard failures",

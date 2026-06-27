@@ -91,6 +91,11 @@ prepares the explicit owner go/no-go contract for the all-21 AI graphics
 technical evidence bundle. Current status is
 `awaiting_internal_beta_go_no_go_approval`: the technical rollup can be accepted
 with provided evidence, but the go/no-go approval record is still required.
+The evaluator can now consume the same assembled beta evidence bundle packet or
+local beta evidence assembly packet used by the owner gate. Owner-approved
+technical evidence can make the go/no-go candidate ready, but a separate
+`--internal-beta-go-no-go-approved` record and ref are still required before the
+go/no-go packet becomes approved, and the approved state still blocks runtime.
 This contract does not execute tools, run Tool Routes, queue or dispatch
 Workers, call providers/models, run browser/canvas/WebGL, run GPU/model
 runtime, download or load model weights, process media, create signed URLs or
@@ -895,6 +900,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: default evidence is missing technical proof, technical evidence can reach `awaiting_owner_approval`, and explicit `AI_TOOLS_CREATIVE_GRAPHICS_OWNER` approval can produce `owner_approved_all21_beta_evidence_ready` with 21 of 21 tools beta-callable by evidence.
 - Evidence packet ingestion: owner approval can now consume an assembled beta evidence bundle packet or a full local beta evidence assembly packet containing `betaEvidenceBundle`. A technically complete packet without an owner approval record remains `awaiting_owner_approval`; explicit owner approval is still required before the all-21 evidence bundle becomes owner-approved.
 - Runtime/beta/production: no runtime unlock; `agentCanExecuteToolsNow=false`, `toolExecutionApprovedNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics Internal Beta Go/No-Go
+
+- Decision: `ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`.
+- Scope: server-only explicit go/no-go gate for the owner-approved all-21 beta evidence chain.
+- Result: default evidence remains `awaiting_internal_beta_go_no_go_approval`. The evaluator can consume either the low-level proof flags, an assembled beta evidence bundle packet, or a local beta evidence assembly packet containing `betaEvidenceBundle`; with owner approval evidence, the candidate can become ready with provided evidence, but it still requires a separate go/no-go approval record and ref before reporting `internal_beta_go_no_go_approved_runtime_still_blocked`.
+- Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Beta/Production Readiness Rollup
 

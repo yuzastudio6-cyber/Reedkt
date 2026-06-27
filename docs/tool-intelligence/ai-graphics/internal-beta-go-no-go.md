@@ -6,6 +6,15 @@ This contract is the next gate after the AI graphics beta/production readiness
 rollup. It converts the all-21 technical evidence bundle into an explicit
 internal beta go/no-go question without unlocking runtime.
 
+The evaluator can consume either low-level evidence flags, an assembled beta
+evidence bundle packet via `--beta-evidence-bundle-packet`, or a full local
+assembly packet containing `betaEvidenceBundle` via
+`--beta-evidence-local-assembly-packet`. Owner-approved technical evidence can
+make the go/no-go candidate ready, but the separate go/no-go record still
+requires `--internal-beta-go-no-go-approved` and
+`--internal-beta-go-no-go-ref` before it becomes approved with runtime still
+blocked.
+
 ## Current Status
 
 - Status: `awaiting_internal_beta_go_no_go_approval`

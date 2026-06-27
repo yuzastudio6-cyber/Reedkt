@@ -162,11 +162,16 @@ function statusFromGate(
 export function buildAiGraphicsBetaProductionReadinessRollup(
   input: AiGraphicsBetaProductionReadinessRollupInput = {},
 ): AiGraphicsBetaProductionReadinessRollup {
+  const evidenceBundle = input.evidenceBundle
   const activationGapReport = buildAiGraphicsBetaActivationGapReport({
-    nodeRuntimeProofAccepted: Boolean(input.evidenceBundleInput?.nodeRuntimeProofPacket),
+    nodeRuntimeProofAccepted: Boolean(input.evidenceBundleInput?.nodeRuntimeProofPacket) ||
+      evidenceBundle?.evidenceSources.nodeRuntimeProofPacketAccepted === true,
     browserRuntimeProofAccepted: Boolean(input.evidenceBundleInput?.browserRuntimeProofPacket) ||
-      input.evidenceBundleInput?.browserCanvasWebglSandboxPassed === true,
-    satoriFontRuntimeProofAccepted: Boolean(input.evidenceBundleInput?.satoriFontRuntimeProofPacket),
+      input.evidenceBundleInput?.browserCanvasWebglSandboxPassed === true ||
+      evidenceBundle?.evidenceSources.browserRuntimeProofPacketAccepted === true ||
+      evidenceBundle?.evidence.browserCanvasWebglSandboxPassed === true,
+    satoriFontRuntimeProofAccepted: Boolean(input.evidenceBundleInput?.satoriFontRuntimeProofPacket) ||
+      evidenceBundle?.evidenceSources.satoriFontRuntimeProofPacketAccepted === true,
   })
   const crossOwnerCoordination = buildAiGraphicsCrossOwnerCoordinationPacket()
   const productionWorkerGateReadiness =

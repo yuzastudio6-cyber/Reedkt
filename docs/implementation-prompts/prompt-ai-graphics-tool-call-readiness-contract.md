@@ -176,6 +176,7 @@ Latest observed PR state after beta evidence local authoring-input bridge comple
 - `git diff --check`
 - `npm run --silent ai-graphics:beta-tool-call-readiness:diagnostics`
 - `npm run --silent ai-graphics:internal-beta-owner-approval:diagnostics`
+- `npm run --silent ai-graphics:internal-beta-go-no-go:diagnostics`
 - `npm run --silent ai-graphics:beta-evidence-local-assembly:diagnostics`
 - `npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold:diagnostics`
 - `npm run --silent ai-graphics:model-weight-manifest-authoring:diagnostics`
@@ -218,3 +219,5 @@ Latest observed PR state after beta tool-call evidence packet ingestion: [#862](
 Follow-up internal beta owner approval packet ingestion updates `server/tool-registry/ai-graphics-internal-beta-owner-approval.ts`, `server/cli/ai-graphics-internal-beta-owner-approval.ts`, `docs/tool-intelligence/ai-graphics/internal-beta-owner-approval.md`, `docs/tool-intelligence/ai-graphics/internal-beta-owner-approval.json`, and `ai-graphics:internal-beta-owner-approval:diagnostics` so the owner gate can ingest either an assembled beta evidence bundle packet or a full local assembly packet containing `betaEvidenceBundle`. Technical packets without owner approval remain `awaiting_owner_approval`; explicit `AI_TOOLS_CREATIVE_GRAPHICS_OWNER` approval and an owner approval ref are still required before the all-21 evidence bundle becomes owner-approved. Execution/runtime/beta/production gates remain false.
 
 Latest observed PR state after internal beta owner approval packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `1fdcf1452863eb355f1976e0b4e2296cf90af3f0`, with an empty check rollup.
+
+Follow-up internal beta go/no-go packet ingestion updates `server/cli/ai-graphics-internal-beta-go-no-go.ts`, `server/tool-registry/ai-graphics-beta-production-readiness-rollup.ts`, `docs/tool-intelligence/ai-graphics/internal-beta-go-no-go.md`, `docs/tool-intelligence/ai-graphics/internal-beta-go-no-go.json`, `docs/production-beta-readiness-scorecard.md`, and `ai-graphics:internal-beta-go-no-go:diagnostics` so the go/no-go gate can ingest either an assembled beta evidence bundle packet or a full local assembly packet containing `betaEvidenceBundle`. Owner-approved technical evidence can make the go/no-go candidate ready, but explicit `--internal-beta-go-no-go-approved` and `--internal-beta-go-no-go-ref` remain required before the packet becomes go/no-go approved, and even that approved state remains runtime-blocked. Execution/runtime/beta/production gates remain false.

@@ -129,3 +129,12 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 - Creates: extensions to `approved_plan_snapshots`, `api_idempotency_keys`, `upload_intents`, `storage_object_records`, `signed_url_events`, `worker_job_claims`, `tool_runtime_checks`, `provider_request_attempts`, `provider_webhook_events`, helper functions `can_create_approved_plan_snapshot`, `active_worker_claim_exists`, and `can_claim_worker_job`, plus RLS, indexes, uniqueness constraints, and updated-at triggers.
 - Does not create: remote Supabase execution, deployed backend handlers, signed URL generation, Cloud Run workers, provider calls, render execution, Stripe, secret reads, real uploads, or production migration execution.
 - Notes: Workers must execute approved snapshots, not raw chat. Expensive work remains blocked until approved edit plan, approved credit estimate, credit reservation, idempotency, worker claim, storage, timing, and QA gates are implemented by future backend/service-role code.
+
+## 15. Tool Cost Metering Event Ledger
+
+- File: `migrations/202606270001_tool_cost_metering_events.sql`
+- Purpose: Adds a local/review-ready append-only tool cost event table for backend-recorded, idempotent ReEditPro tool metering events.
+- Depends on: core `workspaces` and `projects`, membership helpers, approved plan/credit reservation architecture, and backend service-role route enforcement.
+- Creates: `tool_cost_events`, a unique idempotency key, workspace/project summary indexes, credit reservation index, comments, RLS, and authenticated select policy scoped to workspace/project members.
+- Does not create: remote Supabase deployment, wallet spend/release/refund settlement, Stripe, production billing, provider calls, tool execution, worker dispatch, render/export charging, or public product readiness.
+- Notes: Insert/update/delete remain service-role/backend only. ReEditPro service/edit fees are intentionally excluded from tool events.

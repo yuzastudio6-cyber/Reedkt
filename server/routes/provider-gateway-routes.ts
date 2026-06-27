@@ -38,7 +38,10 @@ export function createProviderGatewayRoutes(): Router {
       ...body,
       requestPayloadHash: hashPayload(body.requestPayload ?? {}),
     })
-    sendOk(response, { providerRequestAttempt: result.providerRequestAttempt }, result.warnings, 202)
+    sendOk(response, {
+      providerRequestAttempt: result.providerRequestAttempt,
+      toolCostEstimate: result.toolCostEstimate,
+    }, result.warnings, 202)
   }))
 
   router.post('/v1/provider-gateway/webhooks/:provider', requireAuth, asyncRoute(async (request, response) => {

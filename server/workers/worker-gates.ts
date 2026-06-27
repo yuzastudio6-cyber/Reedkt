@@ -30,6 +30,7 @@ export function collectWorkerGateChecks(input: {
     assertJobDependenciesReady(input.job),
     assertWorkerCanClaimJob(input.job),
     assertApprovedSnapshotForJob(input.job),
+    assertCreditEstimateForExpensiveJob(input.job),
     assertCreditReservationForExpensiveJob(input.job),
     assertRequiredToolReady(input.job.jobType, input.toolResults ?? []),
   ]
@@ -71,6 +72,18 @@ export function assertApprovedSnapshotForJob(job: WorkerJobRecord): WorkerGateCh
     message: !expensive || job.approvedPlanSnapshotId
       ? 'Approved snapshot gate passed or is not required for this job.'
       : 'Execution jobs require approvedPlanSnapshotId before worker execution.',
+  })
+}
+
+export function assertCreditEstimateForExpensiveJob(job: WorkerJobRecord): WorkerGateCheckResult {
+  const expensive = EXPENSIVE_JOB_TYPES.has(job.jobType)
+  return createGateResult({
+    gate: 'credit_estimate',
+    required: expensive,
+    passed: !expensive || Boolean(job.creditEstimateId),
+    message: !expensive || job.creditEstimateId
+      ? 'Credit estimate gate passed or is not required for this job.'
+      : 'Expensive jobs require creditEstimateId before worker execution.',
   })
 }
 

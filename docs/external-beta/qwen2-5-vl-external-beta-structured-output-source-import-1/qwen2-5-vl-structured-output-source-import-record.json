@@ -1,0 +1,56 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_STRUCTURED_OUTPUT_SOURCE_IMPORT_1",
+  "decision": "completed_qwen2_5_vl_fail_closed_structured_output_source_import_ready_for_guarded_smoke_retry",
+  "execution": "completed_fail_closed_source_import_no_runtime_execution",
+  "integrationBase": "5ee54acde1641dadcabf965703f4ad7e7207f2e3",
+  "sourceEvidence": {
+    "topPr": 1287,
+    "topHead": "46e43a0dcbe7de602a9403caf96f1b7693a74eb5",
+    "rollupPr": 1290,
+    "rollupMerge": "5ee54acde1641dadcabf965703f4ad7e7207f2e3"
+  },
+  "importedSource": {
+    "gpuService": "server/workers/qwen2_5_vl_cloud_run_gpu/service.py",
+    "cpuCaller": "server/workers/qwen2_5_vl_private_invoke_cpu_caller/internal_caller.py",
+    "structuredOutputSchemaVersion": "qwen_fixture_visual_metadata_v1",
+    "parserSupportsDirectJson": true,
+    "parserSupportsFencedJson": true,
+    "parserSupportsProseWrappedJson": true,
+    "cpuCallerRequiresStructuredMetadata": true
+  },
+  "readiness": {
+    "qwenRuntime": "blocked_pending_guarded_structured_output_smoke_retry",
+    "controlledSingleTesterExternalBeta": "ready_for_aiediting_reeditpro_com_without_qwen_runtime_enablement",
+    "broadExternalBeta": "blocked_no_additional_named_tester_list",
+    "externalProduction": "blocked_pending_broad_beta_tool_runtime_billing_support_legal_security_and_final_export_gates",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_STRUCTURED_OUTPUT_SMOKE_RETRY_1",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "safety": {
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "cloudRunDeployment": false,
+    "cloudRunInvocation": false,
+    "identityTokenFetch": false,
+    "qwenExecution": false,
+    "modelImportLoad": false,
+    "vllmInitialization": false,
+    "dockerExecution": false,
+    "mediaProcessing": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "deployment": false,
+    "productionUnlock": false,
+    "packageInstallation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  }
+}

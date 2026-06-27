@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'runtime_review_passed_fixture_plan_required',
-  'Private invoke client status must record the runtime review and fixture-plan blocker.',
+  data.privateInvokeClient.currentStatus === 'fixture_plan_ready_execution_required',
+  'Private invoke client status must record the fixture plan and execution blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -162,9 +162,9 @@ check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advi
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
 check(
-  docText.includes('runtime_review_passed_fixture_plan_required') ||
-    data.privateInvokeClient.currentStatus === 'runtime_review_passed_fixture_plan_required',
-  'Doc/data must record runtime review and first fixture-plan status.',
+  docText.includes('fixture_plan_ready_execution_required') ||
+    data.privateInvokeClient.currentStatus === 'fixture_plan_ready_execution_required',
+  'Doc/data must record first fixture-plan and execution status.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

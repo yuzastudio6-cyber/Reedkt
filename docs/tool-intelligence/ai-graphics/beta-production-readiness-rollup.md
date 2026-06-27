@@ -12,8 +12,13 @@ The rollup can ingest a source
 `--internal-beta-production-worker-gate-readiness-packet` only when that packet
 already reports `owner_approved_production_worker_gate_checks_ready`, all 21
 production-worker gate checks accepted with provided evidence, all 12 capability
-scenarios accepted with provided evidence, 0 hard failures, and enqueue,
-dispatch, GPU/runtime, beta, and production gates still false.
+scenarios accepted with provided evidence, 0 hard failures, exactly eight
+GPU/model gate checks and nested source job payloads with exact native NVIDIA L4
+targets, on-demand-only GPU runtime policy, no idle GPU runtime approval, CPU
+fallback blocked for heavy/model tools, and enqueue, dispatch, GPU/runtime,
+beta, and production gates still false.
+
+Source packet GPU policy: exactly eight GPU/model gate checks, exactly eight nested GPU/model source job payloads, on-demand-only GPU runtime, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and no enqueue/dispatch/runtime/beta/production approval.
 
 ## Current Result
 

@@ -13,6 +13,10 @@
     "sourceProductionWorkerGatePacketMustCoverAll21Tools": true,
     "sourceProductionWorkerGatePacketMustCoverAll12Capabilities": true,
     "sourceProductionWorkerGatePacketMustHaveZeroHardFailures": true,
+    "sourceProductionWorkerGatePacketMustPreserveEightGpuRuntimeTargets": true,
+    "sourceProductionWorkerGatePacketMustPreserveOnDemandGpuRuntimePolicy": true,
+    "sourceProductionWorkerGatePacketMustKeepNoIdleGpuRuntime": true,
+    "sourceProductionWorkerGatePacketMustBlockCpuFallbackForHeavyTools": true,
     "sourceProductionWorkerGatePacketMustKeepEnqueueDispatchRuntimeGpuAndProductionFalse": true,
     "rollupStillDoesNotApproveExecutionOrRuntime": true
   },

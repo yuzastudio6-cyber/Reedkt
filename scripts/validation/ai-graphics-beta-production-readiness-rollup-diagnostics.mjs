@@ -147,6 +147,7 @@ function git(args) {
 function runNpm(scriptName, args = []) {
   return execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
     encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
   })
 }
@@ -181,6 +182,48 @@ function writeJsonPacket(root, fileName, packet) {
   const packetPath = path.join(root, fileName)
   fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
   return packetPath
+}
+
+function deepMerge(base, patch) {
+  const output = Array.isArray(base) ? [...base] : { ...base }
+  for (const [key, value] of Object.entries(patch ?? {})) {
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      base?.[key] &&
+      typeof base[key] === 'object' &&
+      !Array.isArray(base[key])
+    ) {
+      output[key] = deepMerge(base[key], value)
+    } else {
+      output[key] = value
+    }
+  }
+  return output
+}
+
+function deepClone(value) {
+  return JSON.parse(JSON.stringify(value))
+}
+
+function expectSourceGatePacketRejected(label, packetRoot, sourceGatePacket, mutatePacket) {
+  const packet = typeof mutatePacket === 'function' ? mutatePacket(deepClone(sourceGatePacket)) : deepClone(sourceGatePacket)
+  const packetPath = writeJsonPacket(
+    packetRoot,
+    `bad-internal-beta-production-worker-gate-readiness-packet-${label}.json`,
+    packet,
+  )
+  try {
+    runNpm(runScriptName, [
+      '--internal-beta-production-worker-gate-readiness-packet',
+      packetPath,
+      '--require-internal-beta-go-no-go-ready',
+    ])
+    fail(`bad_source_production_worker_gate_packet_was_accepted:${label}`)
+  } catch {
+    // Expected: malformed source gate evidence must fail before rollup acceptance.
+  }
 }
 
 const requiredFiles = [
@@ -226,6 +269,10 @@ for (const [key, expected] of Object.entries({
   sourceProductionWorkerGatePacketMustCoverAll21Tools: true,
   sourceProductionWorkerGatePacketMustCoverAll12Capabilities: true,
   sourceProductionWorkerGatePacketMustHaveZeroHardFailures: true,
+  sourceProductionWorkerGatePacketMustPreserveEightGpuRuntimeTargets: true,
+  sourceProductionWorkerGatePacketMustPreserveOnDemandGpuRuntimePolicy: true,
+  sourceProductionWorkerGatePacketMustKeepNoIdleGpuRuntime: true,
+  sourceProductionWorkerGatePacketMustBlockCpuFallbackForHeavyTools: true,
   sourceProductionWorkerGatePacketMustKeepEnqueueDispatchRuntimeGpuAndProductionFalse: true,
   rollupStillDoesNotApproveExecutionOrRuntime: true,
 })) {
@@ -311,6 +358,15 @@ for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
 }
 if (!markdown.includes('GPU runtime remains on-demand only')) {
   fail('markdown_missing_gpu_on_demand_policy')
+}
+for (const phrase of [
+  'exactly eight GPU/model gate checks',
+  'exactly eight nested GPU/model source job payloads',
+  'on-demand-only GPU runtime',
+  'no idle GPU runtime approval',
+  'CPU fallback blocked for heavy/model tools',
+]) {
+  if (!markdown.includes(phrase)) fail(`markdown_missing_source_gpu_policy:${phrase}`)
 }
 for (const key of [
   'betaProductionReadinessRollupPrepared',
@@ -488,6 +544,55 @@ if (packetFedOutput.booleans?.externalBetaGoNoGoReadyWithProvidedEvidence !== fa
 if (packetFedOutput.booleans?.productionGoNoGoReadyWithProvidedEvidence !== false) {
   fail('packet_fed_production_go_no_go_not_false')
 }
+
+expectSourceGatePacketRejected('missing_tool_coverage', packetRoot, sourceGatePacket, (packet) =>
+  deepMerge(packet, { totalAiGraphicsTools: 20 }),
+)
+expectSourceGatePacketRejected('missing_capability_coverage', packetRoot, sourceGatePacket, (packet) =>
+  deepMerge(packet, { totalProductFacingCapabilities: 11 }),
+)
+expectSourceGatePacketRejected('wrong_gpu_gate_check_count', packetRoot, sourceGatePacket, (packet) => {
+  const gateCheck = packet.productionWorkerGateChecks.find((candidate) => candidate.toolId === 'sam2')
+  gateCheck.toolId = 'sam2_misclassified'
+  return packet
+})
+expectSourceGatePacketRejected('wrong_nested_gpu_source_payload_count', packetRoot, sourceGatePacket, (packet) => {
+  const payload = packet.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+    (candidate) => candidate.sourceToolId === 'sam2',
+  )
+  payload.sourceToolId = 'sam2_misclassified'
+  return packet
+})
+expectSourceGatePacketRejected('gpu_runtime_on_demand_policy_removed', packetRoot, sourceGatePacket, (packet) => {
+  const payload = packet.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+    (candidate) => candidate.sourceToolId === 'sam2',
+  )
+  payload.productionWorkerJobPayload.metadata.aiGraphicsRuntimeActivationPolicy.onDemandOnly = false
+  return packet
+})
+expectSourceGatePacketRejected('idle_gpu_runtime_approved', packetRoot, sourceGatePacket, (packet) => {
+  const payload = packet.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+    (candidate) => candidate.sourceToolId === 'sam2',
+  )
+  payload.productionWorkerJobPayload.metadata.noIdleGpuRuntimeApproved = false
+  return packet
+})
+expectSourceGatePacketRejected('heavy_tool_cpu_fallback_allowed', packetRoot, sourceGatePacket, (packet) => {
+  const payload = packet.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+    (candidate) => candidate.sourceToolId === 'sam2',
+  )
+  payload.productionWorkerJobPayload.metadata.cpuFallbackAllowedForHeavyTools = true
+  return packet
+})
+expectSourceGatePacketRejected('gpu_runtime_approved_now', packetRoot, sourceGatePacket, (packet) =>
+  deepMerge(packet, { booleans: { gpuRuntimeApprovedNow: true } }),
+)
+expectSourceGatePacketRejected('production_worker_dispatch_approved_now', packetRoot, sourceGatePacket, (packet) =>
+  deepMerge(packet, { booleans: { productionWorkerDispatchApprovedNow: true } }),
+)
+expectSourceGatePacketRejected('tool_execution_performed', packetRoot, sourceGatePacket, (packet) =>
+  deepMerge(packet, { booleans: { toolExecutionPerformed: true } }),
+)
 
 for (const output of [defaultOutput, awaitingOutput, approvedOutput, packetFedOutput]) {
   for (const key of falseGateKeys) {

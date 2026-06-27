@@ -483,6 +483,13 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked: `agentCanExecuteToolsNow=false`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after beta/production rollup gate packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `4c95f37ce0ed982e7a0b8447777fcadaf44cc8e4`, with an empty check rollup.
 
+## Follow-Up: Beta/Production Rollup Source Packet GPU Hardening
+
+- Tightened `ai-graphics:beta-production-readiness-rollup` source packet validation for `--internal-beta-production-worker-gate-readiness-packet`.
+- A source production-worker gate packet must now preserve all-21/all-12 coverage, 21 accepted production-worker gate checks, 12 accepted capability gate scenarios, 0 hard failures, exactly eight GPU/model gate checks, exactly eight nested GPU/model source job payloads, exact native NVIDIA L4 targets, on-demand-only GPU runtime policy, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and false runtime/beta/production gates.
+- Diagnostic coverage proves invalid source packets are rejected when tool coverage drops to 20, capability coverage drops to 11, GPU gate/source payload classification drifts, on-demand GPU policy is removed, idle GPU runtime is approved, heavy-tool CPU fallback is allowed, `gpuRuntimeApprovedNow=true`, production-worker dispatch is approved, or tool execution is claimed.
+- Runtime remains blocked: `agentCanExecuteToolsNow=false`, `productionWorkerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## Follow-Up: Internal Beta Go/No-Go Rollup Packet Ingestion
 
 - Added evaluator-only beta/production readiness rollup packet ingestion to `ai-graphics:internal-beta-go-no-go`.

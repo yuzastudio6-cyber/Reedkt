@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `controlled_external_beta_enabled_on_staging_api` | safe health/readiness smoke validation |
+| External beta | `controlled_external_beta_smoke_validated_authenticated_staging_api` | controlled private invite access policy |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1`
+`RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -293,6 +293,18 @@ Applied and read back:
 External beta enabled in this phase: `true`. Scope: `controlled_staging_api_private_preview_only`. Paid production, public artifacts, signed URL source-of-truth, final delivery/export, broad media, provider/model calls, workers, Supabase mutation, SQL, and production unlock remain blocked.
 
 Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1`.
+
+## RP External Beta Controlled Smoke Validation 1
+
+`RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1` records decision `completed_controlled_external_beta_authenticated_staging_smoke_validation` and execution `completed_authenticated_health_readiness_source_status_smoke_only`.
+
+Cloud Run source-status readback for `reeditpro-staging-api` / `us-central1` verified revision `reeditpro-staging-api-00005-7gs`, `100_percent_latest_revision` traffic, and `Ready`, `ConfigurationsReady`, and `RoutesReady` all `True`.
+
+Unauthenticated `/health`, `/health/readiness`, `/ready`, and `/api/runtime/status` returned `403`, so this remains controlled private preview rather than public/open access. Authenticated safe endpoints passed: `/health` returned `200`, `/ready` returned `200`, and `/api/runtime/status` returned `200`. The deployed runtime read back `mode: mock`, `mockOnly: true`, `providerRealCallsEnabled: false`, `supabaseServiceRoleConfigured: false`, and frontend secret leak check `ok: true`.
+
+External beta readiness: `controlled_external_beta_smoke_validated_authenticated_staging_api`. External beta enabled in this phase: `true`. Paid production, public artifacts, signed URL source-of-truth, final delivery/export, broad media, provider/model calls, workers, Supabase mutation, SQL, and production unlock remain blocked.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

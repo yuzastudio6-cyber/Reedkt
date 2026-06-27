@@ -1,6 +1,6 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "completed_controlled_external_beta_staging_flag_application",
+  "decision": "completed_controlled_external_beta_authenticated_staging_smoke_validation",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
   "integrationHead": "1a934253ec5cfab26a0ad75e29b978984b0639a5",
   "sourceClosure": {
@@ -21,11 +21,12 @@
     "releaseGoNoGo": "rp_external_beta_release_go_no_go_1",
     "controlledEnablement": "rp_external_beta_controlled_enablement_1",
     "stagingFlagApplication": "rp_external_beta_staging_flag_application_1",
-    "stagingFlagApplication1r": "rp_external_beta_staging_flag_application_1r_after_gcloud_reauth"
+    "stagingFlagApplication1r": "rp_external_beta_staging_flag_application_1r_after_gcloud_reauth",
+    "controlledSmokeValidation": "rp_external_beta_controlled_smoke_validation_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
-    "externalProductBeta": "controlled_external_beta_enabled_on_staging_api",
+    "externalProductBeta": "controlled_external_beta_smoke_validated_authenticated_staging_api",
     "paidProduction": "blocked",
     "finalDeliveryExport": "blocked",
     "productReadyEndToEndLocalOssTools": 0
@@ -131,12 +132,20 @@
     "cloudRunTraffic": "100_percent_latest_revision",
     "environmentMutation": "completed_controlled_staging_api_env_update",
     "deployment": "completed_cloud_run_revision_for_staging_api",
-    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1"
+    "controlledSmokeValidation": "completed_controlled_external_beta_authenticated_staging_smoke_validation",
+    "unauthenticatedAccess": "blocked_403",
+    "authenticatedHealth": "passed_200",
+    "authenticatedReadiness": "passed_200_ready_endpoint",
+    "authenticatedRuntimeStatus": "passed_200",
+    "runtimeMode": "mock",
+    "mockOnly": true,
+    "providerRealCallsEnabled": false,
+    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1"
   },
   "requiredNextOwnerDecision": [
-    "RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1",
-    "safe_health_readiness_validation_required",
-    "no_provider_worker_media_or_production_unlock"
+    "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1",
+    "controlled_private_invite_access_policy_required",
+    "no_public_access_provider_worker_media_or_production_unlock"
   ],
   "safety": {
     "supabaseMutation": "guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_private_storage_json_fixture_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only",
@@ -192,7 +201,10 @@
     "deploymentPerformed": true,
     "deploymentScope": "cloud_run_staging_api_revision_only",
     "externalBetaEnvironmentUnlock": true,
-    "externalBetaEnvironmentUnlockScope": "controlled_staging_api_private_preview_only"
+    "externalBetaEnvironmentUnlockScope": "controlled_staging_api_private_preview_only",
+    "controlledSmokeValidation": "completed_authenticated_health_readiness_source_status_smoke_only",
+    "authenticatedHealthReadinessRouteExecution": "safe_get_health_ready_runtime_status_only",
+    "unauthenticatedAccessPublicOpen": false
   },
   "packageLock": "unchanged",
   "generatedArtifactsCommitted": "none"

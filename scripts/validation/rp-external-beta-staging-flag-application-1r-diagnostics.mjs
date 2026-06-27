@@ -156,12 +156,31 @@ if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'completed_controlled_external_beta_staging_flag_application') fail('rollup decision mismatch')
-if (rollup.statuses?.externalProductBeta !== 'controlled_external_beta_enabled_on_staging_api') fail('rollup external beta status mismatch')
+const rollupIsSmokeCompleted =
+  rollup.decision === 'completed_controlled_external_beta_authenticated_staging_smoke_validation'
+if (
+  rollup.decision !== 'completed_controlled_external_beta_staging_flag_application' &&
+  !rollupIsSmokeCompleted
+) {
+  fail('rollup decision mismatch')
+}
+if (
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_enabled_on_staging_api' &&
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_smoke_validated_authenticated_staging_api'
+) {
+  fail('rollup external beta status mismatch')
+}
 if (rollup.sourceClosure?.stagingFlagApplication1r !== 'rp_external_beta_staging_flag_application_1r_after_gcloud_reauth') fail('rollup 1R source missing')
 if (rollup.mainSupabaseTarget?.stagingFlagApplication !== 'completed_controlled_external_beta_staging_flag_application') fail('rollup staging status mismatch')
 if (rollup.mainSupabaseTarget?.cloudRunLatestReadyRevision !== 'reeditpro-staging-api-00005-7gs') fail('rollup revision mismatch')
 if (rollup.mainSupabaseTarget?.externalBetaEnabledInThisPhase !== true) fail('rollup enabled phase flag mismatch')
+if (rollupIsSmokeCompleted) {
+  if (rollup.sourceClosure?.controlledSmokeValidation !== 'rp_external_beta_controlled_smoke_validation_1') fail('rollup smoke source missing')
+  if (rollup.mainSupabaseTarget?.controlledSmokeValidation !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation') fail('rollup smoke status mismatch')
+  if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1') fail('rollup next milestone mismatch')
+} else if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1') {
+  fail('rollup next milestone mismatch')
+}
 if (rollup.safety?.externalBetaEnvironmentUnlock !== true) fail('rollup external beta environment unlock mismatch')
 if (rollup.safety?.productionUnlock !== false) fail('rollup production unlock must remain false')
 

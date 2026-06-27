@@ -1,0 +1,66 @@
+{
+  "packet": "RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1",
+  "decision": "completed_external_beta_provider_model_call_policy_closure_no_runtime_calls",
+  "execution": "completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution",
+  "baseIntegrationHead": "acd4730c8216adb136c7b7d23de3004ac4335577",
+  "singleActiveSupabaseTarget": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "targetClass": "staging"
+  },
+  "sourceChain": {
+    "approvedSnapshotRouteWrite": "completed_approved_snapshot_route_write_runtime_validation",
+    "remotionPrivatePreviewExport": "completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation",
+    "disabledProviderAdapterScaffold": "completed_disabled_internal_beta_provider_adapter_scaffold_no_provider_calls",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "providerPolicy": {
+    "providerModelRuntime": "disabled_by_default",
+    "providerModelCallsExecuted": "none",
+    "modelCallsExecuted": "none",
+    "frontendProviderCalls": "forbidden",
+    "backendOnlyProviderAdapters": "required",
+    "approvedSnapshotRequired": true,
+    "creditReservationRequired": true,
+    "idempotencyRequired": true,
+    "costCapRequired": true,
+    "qaFallbackPolicyRequired": true,
+    "serverSideSecretIsolationRequired": true,
+    "rawPromptExecutionAllowed": false,
+    "signedUrlSourceOfTruthAllowed": false,
+    "publicArtifactAllowed": false
+  },
+  "readiness": {
+    "providerPolicyClosure": "completed",
+    "externalProductBeta": "blocked_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_review_after_provider_policy_closure",
+    "nextMilestone": "RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretManagerPayloadAccess": false,
+    "providerSecretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "routeExecution": false,
+    "rawPromptExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "creditReservationCreation": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "remotionExecutionInThisPhase": false,
+    "dockerExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

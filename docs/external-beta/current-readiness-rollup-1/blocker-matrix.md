@@ -18,8 +18,8 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Job queue leases/events | `completed_job_queue_lease_event_guarded_remote_write_readback` | carry forward transaction-rolled-back job/lease/event remote write/readback evidence |
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
-| Provider/model calls | `blocked_pending_provider_owner_runtime_approval` | backend-only disabled-by-default policy and explicit approval |
-| External beta | `blocked` | internal beta evidence plus security/privacy/support/cost/deployment review |
+| Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
+| External beta | `blocked` | QA/cleanup/observability/rollback plus security/privacy/support/cost/deployment review |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`
+`RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -194,9 +194,9 @@ Route write readback:
 
 Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-The active blocker is no longer approved snapshot route write runtime validation. Remotion/private preview-export runtime validation is now source-closed by `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`; remaining blockers are provider/model-call policy, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
+The active blocker is no longer approved snapshot route write runtime validation. Remotion/private preview-export runtime validation is now source-closed by `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`; provider/model-call policy is now source-closed by `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`; remaining blockers are QA/cleanup/observability/rollback review, security/privacy/support/cost/deployment review, and #577 Remotion runtime proof exclusion.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
 
 ## RP External Beta Remotion Private Preview Export Runtime Validation 1
 
@@ -208,9 +208,21 @@ Run ID: `2026-06-27T02-41-01-252Z-7ce79dc6`. Output file: `reeditpro-external-be
 
 Remotion execution: `true`. Remotion renderer media encoding: `true`. Direct FFmpeg command execution by runner: `false`. FFprobe execution: `false`. Signed URL creation: `false`. Public artifact creation: `false`. Generated artifacts committed: `none`.
 
-External product beta remains `blocked_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation`.
+External product beta remains `blocked_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure` after provider/model policy closure.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
+
+## RP External Beta Provider Model Call Policy Closure 1
+
+`RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1` records decision `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` and execution `completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution`.
+
+Provider/model runtime remains `disabled_by_default`. Provider/model calls executed: `none`. Frontend provider calls: `forbidden`. Backend-only provider adapters: `required`. Future real provider calls require approved snapshot, credit reservation, idempotency, cost cap, model-routing, QA fallback, private artifact manifest, and server-side secret isolation gates.
+
+No provider call, model call, Secret Manager payload access, provider secret payload access, raw prompt execution, worker dispatch, route execution, Supabase mutation, SQL execution, signed URL creation, public artifact creation, media processing, Remotion execution, Docker execution, FFmpeg/FFprobe execution, external beta unlock, production unlock, package-lock mutation, or generated artifact commit occurred in this phase.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe gate: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

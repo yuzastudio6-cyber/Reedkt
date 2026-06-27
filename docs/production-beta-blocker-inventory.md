@@ -1421,3 +1421,13 @@ Next prompt: `TRACKA-GPAC-MP4BOX-OWNER-SOURCE-CLASSIFICATION-REQUEST-1`.
 Product-ready local OSS tools: `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains open/draft/blocked and excluded as source-of-truth. Supabase classification: no write / environment none / SQL none / migration no. Supabase update status: `not_applicable_docs_only`.
 
 Package-lock/Dockerfile/.dockerignore/runtime source mutation: `none`. Generated artifacts committed: `none`.
+
+## RP External Beta Provider Model Call Policy Closure 1
+
+`RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1` records decision `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` and execution `completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution`.
+
+External product beta remains blocked, but not because provider-policy ownership is ambiguous. Provider/model runtime is now source-recorded as `disabled_by_default`; provider/model calls executed: `none`; frontend provider calls: `forbidden`; backend-only provider adapters: `required`; future real calls require approved snapshot, credit reservation, idempotency, cost cap, model-routing, QA fallback, private artifact manifest, and server-side secret isolation gates.
+
+Current external product beta blocker: `blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.

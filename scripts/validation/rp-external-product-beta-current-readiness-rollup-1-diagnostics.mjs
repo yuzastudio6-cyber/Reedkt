@@ -193,6 +193,18 @@ const remotionPrivatePreviewExportRuntimeValidationFiles = [
   'scripts/validation/rp-external-beta-remotion-private-preview-export-runtime-validation-1-diagnostics.mjs',
 ]
 
+const providerModelCallPolicyClosureFiles = [
+  'docs/external-beta/provider-model-call-policy-closure-1/source-audit.md',
+  'docs/external-beta/provider-model-call-policy-closure-1/provider-runtime-boundary.md',
+  'docs/external-beta/provider-model-call-policy-closure-1/readiness-gate.md',
+  'docs/external-beta/provider-model-call-policy-closure-1/safety-boundary.md',
+  'docs/external-beta/provider-model-call-policy-closure-1/policy-closure-record.json',
+  'docs/external-beta/provider-model-call-policy-closure-1/validation-results.md',
+  'docs/activation-phase-rp-external-beta-provider-model-call-policy-closure-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qa-cleanup-observability-rollback-review-1.md',
+  'scripts/validation/rp-external-beta-provider-model-call-policy-closure-1-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -424,7 +436,7 @@ const followOnApprovedSnapshotServiceRolePersistenceImplementation1Files = [
 
 const requiredText = [
   packet,
-  'blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation',
+  'blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure',
   'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution',
   'completed_reeditpro_main_supabase_target_migration_history_sync',
   'completed_main_supabase_service_role_runtime_grant_boundary_validation',
@@ -454,6 +466,13 @@ const requiredText = [
   'RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1',
   'RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1',
   'RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1',
+  'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls',
+  'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution',
+  'provider/model runtime as `disabled_by_default`',
+  'Provider/model calls executed: `none`',
+  'Frontend provider calls: `forbidden`',
+  'Backend-only provider adapters: `required`',
+  'RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1',
   'reeditpro-external-beta-generated-local-preview.mp4',
   'ea12d55c9ef1675da711769c97c9e76bb2da8547bd4c471176a0ff64b03c1c5b',
   'residue counts as `0`',
@@ -550,7 +569,7 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation') fail('record decision mismatch')
+if (record.decision !== 'blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
 if (record.statuses?.externalProductBeta !== 'blocked') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
@@ -603,6 +622,23 @@ if (record.mainSupabaseTarget?.remotionPrivatePreviewExportOutputBytes !== 64855
 if (record.mainSupabaseTarget?.remotionPrivatePreviewExportOutputSha256 !== 'ea12d55c9ef1675da711769c97c9e76bb2da8547bd4c471176a0ff64b03c1c5b') fail('Remotion output checksum mismatch')
 if (record.mainSupabaseTarget?.remotionPrivatePreviewExportManifestSha256 !== '24675b34cb0bd3b1ff255dd29343ffce2e12d7d045070bf59fba3404db15356c') fail('Remotion manifest checksum mismatch')
 if (record.mainSupabaseTarget?.remotionPrivatePreviewExportQaReportSha256 !== '847efc9202c556f394d17df16a6a9250513f4106c6b3ebe884a453caaa8e5879') fail('Remotion QA checksum mismatch')
+if (record.sourceClosure?.providerModelCallPolicyClosure !== 'rp_external_beta_provider_model_call_policy_closure_1') fail('provider policy closure source mismatch')
+if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
+if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
+if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
+if (record.mainSupabaseTarget?.providerModelCallsExecuted !== 'none') fail('provider calls executed mismatch')
+if (record.mainSupabaseTarget?.frontendProviderCalls !== 'forbidden') fail('frontend provider policy mismatch')
+if (record.mainSupabaseTarget?.backendOnlyProviderAdapters !== 'required') fail('backend adapter policy mismatch')
+for (const key of [
+  'providerApprovedSnapshotRequired',
+  'providerCreditReservationRequired',
+  'providerIdempotencyRequired',
+  'providerCostCapRequired',
+  'providerQaFallbackPolicyRequired',
+  'providerServerSideSecretIsolationRequired',
+]) {
+  if (record.mainSupabaseTarget?.[key] !== true) fail(`${key} mismatch`)
+}
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteReportSha256 !== '25772fc0efe3d6d1aa699a1408ec621cc7df0dbe13bb52fe526b3939030fbb65') fail('service-role route report checksum mismatch')
@@ -635,6 +671,10 @@ if (record.safety?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role
 if (record.safety?.secretPayloadAccess !== 'guarded_ephemeral_storage_and_route_runtime_service_role_key_payload_only') fail('secret payload access scope mismatch')
 if (record.safety?.secretPayloadPrinted !== false) fail('secret payload printed flag mismatch')
 if (record.safety?.secretPayloadPersisted !== false) fail('secret payload persisted flag mismatch')
+if (record.safety?.providerModelCall !== false) fail('provider/model call flag mismatch')
+if (record.safety?.providerModelPolicyClosure !== 'completed_docs_only_no_runtime_calls') fail('provider policy closure safety mismatch')
+if (record.safety?.providerSecretPayloadAccess !== false) fail('provider secret payload flag mismatch')
+if (record.safety?.rawPromptExecution !== false) fail('raw prompt execution flag mismatch')
 if (record.safety?.previewRenderExecution !== 'confirmation_gated_generated_local_remotion_preview_fixture_only') fail('preview render execution scope mismatch')
 if (record.safety?.remotionExecution !== 'confirmation_gated_generated_local_remotion_preview_fixture_only') fail('Remotion execution scope mismatch')
 if (record.safety?.directFfmpegCommandExecutionByRunner !== false) fail('direct FFmpeg command flag mismatch')
@@ -665,6 +705,7 @@ const allowed = new Set([
   ...serviceRoleRouteRuntimeValidationFiles,
   ...approvedSnapshotRouteWriteRuntimeValidationFiles,
   ...remotionPrivatePreviewExportRuntimeValidationFiles,
+  ...providerModelCallPolicyClosureFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -710,6 +751,6 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation')
+console.log('Decision: blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure')
 console.log('External product beta: blocked')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

@@ -954,3 +954,13 @@ This closes the Remotion/private preview-export generated-local runtime gate for
 Current external product beta blocker: `blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation`.
 
 Next safe gate: `RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`.
+
+## RP External Beta Provider Model Call Policy Closure 1
+
+`RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1` records decision `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` and execution `completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution`.
+
+Provider/model calls remain disabled by default and were not executed. Frontend provider calls remain forbidden. Any future real provider call must be backend-only and require approved snapshot, credit reservation, idempotency, cost cap, model-routing policy, QA fallback policy, private artifact manifest handling, and server-side secret isolation.
+
+Current external product beta blocker: `blocked_external_product_beta_pending_qa_cleanup_observability_security_privacy_support_cost_deployment_after_provider_policy_closure`.
+
+Next safe gate: `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`.

@@ -81,6 +81,41 @@ try {
     'failed deployed verifier route should name the failed service-role probe',
   )
 
+  const supabaseProbeNoAdminResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/probe`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-supabase-probe-no-admin' },
+    body: JSON.stringify({
+      workspaceId: 'beta-readiness-api-smoke-supabase-probe-no-admin-workspace',
+      projectId: 'beta-readiness-api-smoke-supabase-probe-no-admin-project',
+      sourceId: 'beta-readiness-api-smoke:platform-supabase-deployed-probe',
+      sourceSha: '9999999999999999999999999999999999999999',
+      environment: 'staging',
+      ownerApprovals: {
+        billingOwnerStripeBoundaryApproved: true,
+        deploymentApproved: true,
+        securityApproved: true,
+        storageApproved: true,
+        legalApproved: true,
+        monitoringApproved: true,
+        supportApproved: true,
+      },
+      notes: ['Smoke verifies Supabase deployed probe route fails closed without service-role runtime.'],
+      allowPersistentProbeWrites: false,
+    }),
+  })
+  assert.equal(supabaseProbeNoAdminResponse.ok, true, 'Supabase deployed probe route should return a report in mock/no-admin mode')
+  assert.equal(supabaseProbeNoAdminResponse.data.report.evidencePacketReady, false, 'Supabase deployed probe route must not build evidence without deployed probes')
+  assert.ok(
+    supabaseProbeNoAdminResponse.data.report.checks.some((check: { evidence: string[] }) =>
+      check.evidence.some((item) => item.includes('Supabase service-role admin client is unavailable'))),
+    'Supabase deployed probe route should name missing service-role runtime',
+  )
+  assert.equal(
+    supabaseProbeNoAdminResponse.data.report.evaluatedReadiness.toolExecutionReadiness.externalBetaToolExecutionAllowed,
+    false,
+    'Supabase deployed probe route must not enable external beta in mock/no-admin mode',
+  )
+
   const blockedRecordResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-deployed-evidence/verify`, {
     method: 'POST',
     headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-deployed-record-blocked' },

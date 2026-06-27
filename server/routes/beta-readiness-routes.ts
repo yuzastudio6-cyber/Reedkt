@@ -11,6 +11,14 @@ import {
   type BetaPlatformDeployedEvidenceProbeRunners,
   type BetaPlatformDeployedProbeResult,
 } from '../beta-readiness/platform-deployed-evidence-verifier'
+import {
+  createBetaPlatformDeployedEvidenceProbeRunners,
+  type BetaPlatformDeployedEvidenceObservation,
+} from '../beta-readiness/platform-deployed-evidence-probes'
+import {
+  createBetaPlatformSupabaseDeployedEvidenceProbeTransport,
+  type BetaPlatformSupabaseAttestedProbeId,
+} from '../beta-readiness/platform-supabase-deployed-evidence-transport'
 import { runBetaPlatformBillingQa } from '../beta-readiness/platform-billing-qa'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 import {
@@ -19,7 +27,9 @@ import {
   betaReadinessEvidencePacketSchema,
   betaReadinessPlatformBillingQaSchema,
   betaReadinessPlatformDeployedEvidenceSchema,
+  betaReadinessPlatformSupabaseDeployedProbeSchema,
   type BetaReadinessPlatformDeployedEvidenceBody,
+  type BetaReadinessPlatformSupabaseDeployedProbeBody,
 } from '../validation/beta-readiness-schemas'
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getServiceContext, sendOk } from './route-helpers'
@@ -141,6 +151,69 @@ export function createBetaReadinessRoutes(): Router {
     ])
   }))
 
+  router.post('/v1/beta-readiness/platform-deployed-evidence/probe', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(betaReadinessPlatformSupabaseDeployedProbeSchema, request.body)
+    assertNoSecretLikeBetaReadinessEvidence(body)
+    const context = getServiceContext(request)
+    const transport = createBetaPlatformSupabaseDeployedEvidenceProbeTransport({
+      admin: context.clients.admin,
+      workspaceId: body.workspaceId,
+      projectId: body.projectId,
+      sourceId: body.sourceId,
+      sourceSha: body.sourceSha,
+      idempotencyKey: getIdempotencyKey(request),
+      allowPersistentProbeWrites: body.allowPersistentProbeWrites === true,
+      walletSettlementProbeToolCostEventId: body.walletSettlementProbeToolCostEventId,
+      attestations: bodyToAttestations(body),
+    })
+    const report = await runBetaPlatformDeployedEvidenceVerifier(
+      body,
+      createBetaPlatformDeployedEvidenceProbeRunners(transport),
+    )
+
+    if (body.recordEvidence === true) {
+      if (body.confirmRecordEvidence !== true) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'confirmRecordEvidence=true is required before recording probed deployed platform evidence.',
+          400,
+        )
+      }
+      if (!report.evidencePacket) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Probed deployed platform evidence cannot be recorded until every transport probe and owner approval passes.',
+          400,
+          {
+            missingEvidence: report.missingEvidence,
+            ownerApprovalGaps: report.ownerApprovalGaps,
+          },
+        )
+      }
+
+      const result = await createBetaReadinessEvidenceService(context).recordEvidence(
+        report.evidencePacket,
+        getIdempotencyKey(request),
+      )
+      sendOk(response, {
+        report,
+        packet: result.packet,
+        replayed: result.replayed,
+        storedReadinessReport: result.report,
+      }, [
+        ...report.warnings,
+        ...result.warnings,
+        'Supabase deployed probe transport recorded platform evidence only after every probe and owner approval passed.',
+      ], result.replayed ? 200 : 201)
+      return
+    }
+
+    sendOk(response, { report }, [
+      ...report.warnings,
+      'Supabase deployed probe transport ran in report-only mode; no beta readiness evidence was recorded.',
+    ])
+  }))
+
   router.post('/v1/beta-readiness/evidence', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
     const body = validateBody(betaReadinessEvidencePacketSchema, request.body)
     assertNoSecretLikeBetaReadinessEvidence(body)
@@ -200,4 +273,21 @@ function bodyToProbeRunners(
     probes.set(probe.id, probe)
   }
   return Object.fromEntries([...probes].map(([id, result]) => [id, () => result]))
+}
+
+function bodyToAttestations(
+  body: BetaReadinessPlatformSupabaseDeployedProbeBody,
+): Partial<Record<BetaPlatformSupabaseAttestedProbeId, BetaPlatformDeployedEvidenceObservation>> {
+  const attestations = new Map<BetaPlatformSupabaseAttestedProbeId, BetaPlatformDeployedEvidenceObservation>()
+  for (const probe of body.attestedProbes ?? []) {
+    if (attestations.has(probe.id)) {
+      throw new ApiError('VALIDATION_FAILED', `Duplicate attested deployed platform probe: ${probe.id}.`, 400)
+    }
+    attestations.set(probe.id, {
+      ok: probe.status === 'passed',
+      evidence: probe.evidence,
+      nextAction: probe.nextAction,
+    })
+  }
+  return Object.fromEntries(attestations)
 }

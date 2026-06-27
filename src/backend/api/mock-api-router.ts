@@ -39,6 +39,10 @@ import {
   runMockLeaseReleaseFlow,
 } from '../orchestrators/mock-worker-lease-orchestrator'
 import {
+  runQwen25VlPrivateInvokeDryRun,
+  type Qwen25VlPrivateInvokeDryRunInput,
+} from '../workers/qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run'
+import {
   runMockReferenceMediaUploadFlow,
   runMockSourceSequenceUploadFlow,
   runMockUploadReadinessFlow,
@@ -66,7 +70,18 @@ import { validateUploadFile } from '../storage/upload-validation-service'
 import type { CreateUploadPlanInput, UploadPlan, UploadPurpose } from '../../types/upload'
 import { createWorkerRuntimeRegistrySummary, WORKER_RUNTIME_REGISTRY } from '../runtime/worker-runtime-registry'
 
+type JsonRecord = Record<string, unknown>
+
 const registeredHandlers = new Map<string, ApiRouteHandler>()
+const rawPromptFieldNames = new Set([
+  'prompt',
+  'raw_prompt',
+  'rawPrompt',
+  'rawWorkerPrompt',
+  'raw_worker_prompt',
+  'rawPromptPayload',
+  'workerPrompt',
+])
 
 export function createMockApiRuntimeContext(
   input: Partial<ApiRuntimeContext> = {},
@@ -181,6 +196,7 @@ const DEFAULT_MOCK_HANDLERS: Record<string, ApiRouteHandler> = {
   'jobs.cancel': handleMockJobCancel,
   'runtime.envelope.create': handleMockRuntimeEnvelopeCreate,
   'runtime.transport.mockSend': handleMockRuntimeTransportSend,
+  'jobs.qwen2_5_vl.privateInvoke.dryRun': handleMockQwenPrivateInvokeDryRun,
   'worker.lease.claim': handleMockWorkerLeaseClaim,
   'worker.lease.heartbeat': handleMockWorkerLeaseHeartbeat,
   'worker.lease.renew': handleMockWorkerLeaseRenew,
@@ -429,6 +445,57 @@ function handleMockRuntimeEnvelopeCreate(): ApiResponseEnvelope {
 function handleMockRuntimeTransportSend(): ApiResponseEnvelope {
   const result = runMockWorkerLeaseBackendRuntimeTransportFlow()
   return createApiMockResponse(result, result.warnings)
+}
+
+function handleMockQwenPrivateInvokeDryRun(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  if (hasRawPromptField(request.body)) {
+    return createApiErrorResponse(
+      'qwen_private_invoke_dry_run_raw_prompt_rejected',
+      'Qwen private invoke dry-run route requires approved-snapshot structured payloads, not raw prompt fields.',
+      {
+        statusCode: 400,
+        warnings: [
+          'No Qwen dry-run coordinator was executed.',
+          'No service URL, auth header, identity token, Cloud Run request, inference, worker dispatch, Supabase mutation, credit mutation, or generated asset was created.',
+        ],
+        mockOnly: true,
+      },
+    )
+  }
+
+  const result = runQwen25VlPrivateInvokeDryRun(toQwenDryRunInput(request.body))
+  return createApiMockResponse(result, result.warnings)
+}
+
+function toQwenDryRunInput(body: unknown): Qwen25VlPrivateInvokeDryRunInput {
+  const input = asJsonRecord(body)
+  return {
+    queueFixture: asOptionalJsonRecord(input.queueFixture),
+    configCandidate: input.configCandidate as Qwen25VlPrivateInvokeDryRunInput['configCandidate'],
+    simulatedResponse: input.simulatedResponse as Qwen25VlPrivateInvokeDryRunInput['simulatedResponse'],
+    transportBlocker: input.transportBlocker as Qwen25VlPrivateInvokeDryRunInput['transportBlocker'],
+  }
+}
+
+function hasRawPromptField(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some((item) => hasRawPromptField(item))
+  if (!value || typeof value !== 'object') return false
+
+  return Object.entries(value as JsonRecord).some(([key, nested]) =>
+    rawPromptFieldNames.has(key) || hasRawPromptField(nested),
+  )
+}
+
+function asJsonRecord(value: unknown): JsonRecord {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as JsonRecord
+    : {}
+}
+
+function asOptionalJsonRecord(value: unknown): JsonRecord | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as JsonRecord
+    : undefined
 }
 
 function handleMockWorkerLeaseClaim(): ApiResponseEnvelope {

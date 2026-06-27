@@ -1,10 +1,10 @@
 # Qwen2.5-VL 7B Cloud Run GPU Private Invoke Readiness Rollup
 
-Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_private_runtime_review_accepted_worker_integration_required`.
+Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_worker_integration_accepted_backend_runtime_dispatch_required`.
 
-This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded Cloud Run auth/IAM reverify, controlled private invoke smoke plan, private caller route, Direct VPC route config, CPU-only caller source, CPU-only caller deploy, CPU-only caller contract smoke, runtime readiness review, approved-fixture inference smoke plan, gated service source, service deploy, first fixture attempt, tuned fixture retry, structured output source fix, controlled structured-output retry, structured fixture output result review, and private runtime readiness review result are recorded.
+This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded Cloud Run auth/IAM reverify, controlled private invoke smoke plan, private caller route, Direct VPC route config, CPU-only caller source, CPU-only caller deploy, CPU-only caller contract smoke, runtime readiness review, approved-fixture inference smoke plan, gated service source, service deploy, first fixture attempt, tuned fixture retry, structured output source fix, controlled structured-output retry, structured fixture output result review, private runtime readiness review result, and approved worker integration readiness review are recorded.
 
-The latest controlled retry `qwen25-structured-fixture-output-retry-20260627t204453z` built and deployed the fixed GPU image fail-closed, temporarily enabled only approved fixture gates, ran CPU caller execution `reeditpro-qwen2-5-vl-private-caller-hn9sw`, observed HTTP `200` with `qwen_fixture_inference_smoke_completed`, accepted structured metadata with `parsedJson=true` and `schemaValid=true`, and restored fail-closed GPU revision `reeditpro-qwen2-5-vl-l4-worker-00013-kms`. The structured output result review accepts the schema version, required keys, row counts, normalized metadata hash, and raw-output exclusion as metadata evidence. The private runtime readiness review accepts the controlled L4 runtime evidence for metadata-only fixture readiness while keeping user-facing worker integration blocked. Raw model output text is intentionally not stored in the repo.
+The latest controlled retry `qwen25-structured-fixture-output-retry-20260627t204453z` built and deployed the fixed GPU image fail-closed, temporarily enabled only approved fixture gates, ran CPU caller execution `reeditpro-qwen2-5-vl-private-caller-hn9sw`, observed HTTP `200` with `qwen_fixture_inference_smoke_completed`, accepted structured metadata with `parsedJson=true` and `schemaValid=true`, and restored fail-closed GPU revision `reeditpro-qwen2-5-vl-l4-worker-00013-kms`. The structured output result review accepts the schema version, required keys, row counts, normalized metadata hash, and raw-output exclusion as metadata evidence. The private runtime readiness review accepts the controlled L4 runtime evidence for metadata-only fixture readiness. The approved worker integration readiness review accepts the local queue contract, fail-closed dispatch adapter, private invoke plan/config, structured fixture metadata, and private runtime evidence while keeping real backend dispatch blocked. Raw model output text is intentionally not stored in the repo.
 
 This is evidence only. It does not enable persistent inference, dispatch a user-facing worker, mutate Supabase, execute SQL, create generated assets, create public artifacts, create signed URLs, mutate credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
@@ -29,7 +29,8 @@ This is evidence only. It does not enable persistent inference, dispatch a user-
 - structured fixture output smoke retry: ready, schema-valid structured metadata accepted for review
 - structured fixture output result review: ready, metadata-only review accepted
 - private runtime readiness result review: ready, controlled fixture runtime evidence accepted
-- approved worker integration review: blocked, review required
+- approved worker integration review: ready
+- backend runtime dispatch implementation: blocked, implementation required
 - private invoke runtime readiness: false
 - beta readiness: false
 - production readiness: false
@@ -68,7 +69,8 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 | Structured fixture output smoke retry | ready | Fixed GPU image tag `structured-fixture-output-retry-46e43a0d-20260627t204453z` ran one controlled private retry, observed `parsedJson=true`, `schemaValid=true`, `objectCount=3`, `textLikeRegionCount=1`, `spatialRelationCount=2`, and `blockedActionCount=4`, then restored fail-closed revision `reeditpro-qwen2-5-vl-l4-worker-00013-kms`. | none |
 | Structured fixture output result review | ready | Result review accepted schema version, required schema keys, object rows, text-like region rows, spatial relations, blocked actions, normalized metadata hash, and raw output exclusion. | none |
 | Private runtime readiness result review | ready | Review accepted the controlled L4 runtime evidence for metadata-only fixture readiness and confirmed Qwen remains visual understanding and visual QA metadata only. | none |
-| Approved worker integration review | blocked approved worker integration review required | Qwen has a fail-closed dispatch adapter and backend-only private invocation config contract. | Verify backend service-role queue mutation, lease, idempotency, credit reservation, private source-of-truth references, and observability before user-facing worker readiness. |
+| Approved worker integration review | ready | Review accepted the local queue contract, fail-closed dispatch adapter, private invoke plan/config, structured fixture metadata, and private runtime evidence for the next backend runtime dispatch implementation step. | none |
+| Backend runtime dispatch implementation | blocked backend runtime dispatch implementation required | The fail-closed adapter accepts the validated queue shape and refuses Cloud Run invocation. | Implement backend dispatcher route, transactional job create/claim/lease/heartbeat/completion/failure/stale recovery, approved snapshot verification, credit verification, idempotency handling, private runtime target resolution, and observability. |
 
 ## Runtime Gates
 
@@ -112,7 +114,16 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `controlledPrivateFixtureRuntimeEvidenceAccepted=true`
 - `privateFixtureStructuredMetadataAccepted=true`
 - `privateInvokeReadyForControlledFixtureMetadata=true`
-- `approvedWorkerIntegrationReviewRequired=true`
+- `approvedWorkerIntegrationReviewRequired=false`
+- `approvedWorkerIntegrationReadinessReviewRecorded=true`
+- `approvedWorkerIntegrationEvidenceAccepted=true`
+- `localQueueContractAcceptedForWorkerIntegration=true`
+- `failClosedDispatchAdapterAcceptedForWorkerIntegration=true`
+- `privateInvokePlanAndConfigAcceptedForWorkerIntegration=true`
+- `structuredFixtureMetadataAcceptedForWorkerIntegration=true`
+- `privateRuntimeEvidenceAcceptedForWorkerIntegration=true`
+- `backendRuntimeDispatchImplementationRequired=true`
+- `readyForRealWorkerDispatch=false`
 - `structuredFixtureOutputSchemaValid=true`
 - `structuredFixtureOutputParsedJson=true`
 - `structuredFixtureOutputObjectCount=3`
@@ -146,7 +157,7 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `dryRunPassedClaimed=false`
 - `generatedLocalFixturePassedClaimed=false`
 
-The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent user-facing runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the private runtime review is accepted only for metadata-only controlled fixture readiness. User-facing worker integration still requires a separate review.
+The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent user-facing runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the private runtime review is accepted only for metadata-only controlled fixture readiness. Approved worker integration review is recorded, but user-facing dispatch still requires backend runtime implementation.
 
 ## Scope Boundaries
 
@@ -156,8 +167,8 @@ Qwen2.5-VL must not generate B-roll video, replace Wan or LTX generation routes,
 
 ## Required Next Step
 
-The next action is approved worker integration review after private runtime evidence acceptance. That future review must inspect backend service-role queue mutation, lease, idempotency, credit reservation, private source-of-truth references, observability, QA, product, beta, and production boundaries without rerunning inference, committing raw model output text, enabling beta, enabling production, creating generated assets, creating public artifacts, creating signed URLs, or claiming `generated_local_fixture_passed`.
+The next action is backend runtime dispatch implementation planning after approved worker integration acceptance. That future prompt must plan the backend dispatcher route, transactional queue mutation, lease, idempotency, credit reservation verification, private source-of-truth references, observability, QA, product, beta, and production boundaries without rerunning inference, committing raw model output text, enabling beta, enabling production, creating generated assets, creating public artifacts, creating signed URLs, or claiming `generated_local_fixture_passed`.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58I-APPROVED-WORKER-INTEGRATION-READINESS: review Qwen approved worker integration after private runtime acceptance, no beta/no generated assets`
+`QWEN2_5_VL_STACK_TOOL_58J-BACKEND-RUNTIME-DISPATCH-IMPLEMENTATION-PLAN: plan Qwen backend runtime dispatch integration after approved worker readiness, no beta/no generated assets`

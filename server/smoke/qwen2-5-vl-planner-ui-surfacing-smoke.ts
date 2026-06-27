@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'approved_worker_integration_review_required',
-  'Private invoke client status must record the approved worker integration review blocker.',
+  data.privateInvokeClient.currentStatus === 'backend_runtime_dispatch_implementation_required',
+  'Private invoke client status must record the backend runtime dispatch implementation blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -163,8 +163,9 @@ check(docText.includes('5 blocked routes'), 'Doc must record blocked route count
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
 check(
   docText.includes('approved_worker_integration_review_required') ||
-    data.privateInvokeClient.currentStatus === 'approved_worker_integration_review_required',
-  'Doc/data must record approved worker integration review blocker status.',
+    docText.includes('backend_runtime_dispatch_implementation_required') ||
+    data.privateInvokeClient.currentStatus === 'backend_runtime_dispatch_implementation_required',
+  'Doc/data must record backend runtime dispatch implementation blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
 check(docText.includes('`schemaKeys=[]`'), 'Doc must record the empty schema-key metadata.')
@@ -179,6 +180,10 @@ check(
 check(
   docText.includes('Private runtime review accepted the controlled L4 runtime evidence'),
   'Doc must record private runtime review acceptance.',
+)
+check(
+  docText.includes('Approved worker integration review accepted the local queue contract'),
+  'Doc must record approved worker integration review acceptance.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

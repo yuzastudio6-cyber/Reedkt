@@ -32,7 +32,7 @@ export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
   clientHelper: 'callQwen25VlPrivateInvokeDryRun'
   statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
   routeRuntime: 'mock'
-  currentStatus: 'approved_worker_integration_review_required'
+  currentStatus: 'backend_runtime_dispatch_implementation_required'
   currentBlocker: string
   boundaryNotes: string[]
   runtimeFlags: {
@@ -65,7 +65,7 @@ export type QwenVlPlannerRoutingUiData = {
   privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58I-APPROVED-WORKER-INTEGRATION-READINESS: review Qwen approved worker integration after private runtime acceptance, no beta/no generated assets'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58J-BACKEND-RUNTIME-DISPATCH-IMPLEMENTATION-PLAN: plan Qwen backend runtime dispatch integration after approved worker readiness, no beta/no generated assets'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -219,14 +219,14 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       clientHelper: 'callQwen25VlPrivateInvokeDryRun',
       statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
       routeRuntime: 'mock',
-      currentStatus: 'approved_worker_integration_review_required',
+      currentStatus: 'backend_runtime_dispatch_implementation_required',
       currentBlocker:
-        'Controlled private invoke auth works, the dedicated Direct VPC private route subnet is configured, the no-model CPU-only caller source is defined, the controlled caller job is deployed, one caller contract smoke observed the expected fail-closed response with inference disabled, runtime readiness review is recorded, the first approved-fixture inference smoke plan is defined, gated fixture inference service source is deployed, the first approved-fixture smoke failure is documented, the tuned retry produced sanitized metadata-only output, and the structured-output source fix is deployed. The controlled structured-output retry passed with parsedJson=true, schemaValid=true, objectCount=3, and textLikeRegionCount=1. The structured-output result review accepted the schema keys, row counts, normalized metadata hash, and raw-output exclusion as metadata evidence. Private runtime review accepted the controlled L4 runtime evidence for metadata-only fixture readiness. User-facing readiness remains blocked until approved worker integration verifies backend privileged queue mutation, lease, idempotency, credit reservation, private source-of-truth references, and observability.',
+        'Controlled private invoke auth works, the dedicated Direct VPC private route subnet is configured, the no-model CPU-only caller source is defined, the controlled caller job is deployed, one caller contract smoke observed the expected fail-closed response with inference disabled, runtime readiness review is recorded, the first approved-fixture inference smoke plan is defined, gated fixture inference service source is deployed, the first approved-fixture smoke failure is documented, the tuned retry produced sanitized metadata-only output, and the structured-output source fix is deployed. The controlled structured-output retry passed with parsedJson=true, schemaValid=true, objectCount=3, and textLikeRegionCount=1. The structured-output result review accepted the schema keys, row counts, normalized metadata hash, and raw-output exclusion as metadata evidence. Private runtime review accepted the controlled L4 runtime evidence for metadata-only fixture readiness. Approved worker integration review accepted the local queue contract, fail-closed dispatch adapter, private invoke plan/config, structured fixture metadata, and private runtime evidence. User-facing readiness remains blocked until backend runtime dispatch implementation adds backend privileged queue mutation, lease, idempotency, credit reservation verification, private source-of-truth references, and observability.',
       boundaryNotes: [
         'The frontend helper calls only the central ReeditPro API client boundary.',
         'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
         'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
-        'The next runtime gate may review approved worker integration after accepted private runtime evidence, but must not rerun inference, enable beta, enable production, create public artifacts, create signed URLs, or create generated assets.',
+        'The next runtime gate may plan backend runtime dispatch after accepted worker integration evidence, but must not rerun inference, enable beta, enable production, create public artifacts, create signed URLs, or create generated assets.',
       ],
       runtimeFlags: {
         usesCentralApiClient: true,
@@ -261,6 +261,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'D3, ECharts, and Vega-Lite own exact chart/dataviz output.',
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
-    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58I-APPROVED-WORKER-INTEGRATION-READINESS: review Qwen approved worker integration after private runtime acceptance, no beta/no generated assets',
+    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58J-BACKEND-RUNTIME-DISPATCH-IMPLEMENTATION-PLAN: plan Qwen backend runtime dispatch integration after approved worker readiness, no beta/no generated assets',
   }
 }

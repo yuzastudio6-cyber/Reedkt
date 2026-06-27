@@ -300,6 +300,7 @@ for (const [key, expected] of Object.entries({
   inMemoryDispatcherLeaseRecordsCreated: 21,
   inMemoryDispatcherLeaseRecordsReleased: 21,
   inMemoryDispatcherEventsRecorded: 189,
+  aiGraphicsToolCallHandoffRoutes: 21,
   gpuRuntimeTargetedTools: 8,
   heavyToolsIncorrectlyTargetingCpu: 0,
   liveBackendQueueSubmissionsNow: 0,
@@ -338,9 +339,9 @@ if (!markdown.includes('GPU runtime remains on-demand only')) {
 
 for (const action of [
   'run all 21 adapter payloads through the in-memory production worker dispatcher probe',
-  'evaluate production worker gates, idempotency, lease lifecycle, event emission, and placeholder routing',
+  'evaluate production worker gates, idempotency, lease lifecycle, event emission, and AI graphics tool-call handoff routing',
   'verify GPU-heavy tools remain assigned to gpu_ai_worker dispatcher probes',
-  'verify dispatcher routes remain mockOnly and do not execute tools, providers, browser runtimes, or GPU model runtimes',
+  'verify dispatcher routes land on AI graphics handoff handlers, remain mockOnly, and do not execute tools, providers, browser runtimes, or GPU model runtimes',
 ]) {
   if (!docs.allowedMockSafeDispatcherProbeActions?.includes(action)) fail(`docs_missing_allowed_action:${action}`)
   if (!moduleSource.includes(action)) fail(`module_missing_allowed_action:${action}`)
@@ -373,6 +374,7 @@ for (const [key, expected] of Object.entries({
   all12CapabilityScenariosCompletedWithProvidedEvidence: true,
   allDispatcherGateHardBlocksClear: true,
   allDispatcherRoutesMockOnly: true,
+  allDispatcherRoutesAiGraphicsToolCallHandoff: true,
   allInMemoryLeaseRecordsReleased: true,
   gpuHeavyToolsTargetGpuRuntime: true,
   gpuRuntimeTargetsExact: true,
@@ -420,6 +422,7 @@ if (approvedOutput.dispatcherHardGateBlockCount !== 0) fail('approved_hard_gate_
 if (approvedOutput.inMemoryDispatcherLeaseRecordsCreated !== 21) fail('approved_in_memory_leases_created_not_21')
 if (approvedOutput.inMemoryDispatcherLeaseRecordsReleased !== 21) fail('approved_in_memory_leases_released_not_21')
 if (approvedOutput.inMemoryDispatcherEventsRecorded !== 189) fail('approved_dispatcher_events_not_189')
+if (approvedOutput.aiGraphicsToolCallHandoffRoutes !== 21) fail('approved_ai_graphics_handoff_routes_not_21')
 if (approvedOutput.dispatcherProbeResults?.length !== 21) fail('approved_dispatcher_results_length_not_21')
 if (approvedOutput.dispatcherCapabilityScenarios?.length !== 12) fail('approved_dispatcher_capabilities_length_not_12')
 if (approvedOutput.dispatcherProbeResults?.filter((result) => result.workerType === 'gpu_ai_worker').length !== 8) {
@@ -443,6 +446,10 @@ for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
 for (const result of approvedOutput.dispatcherProbeResults ?? []) {
   if (result.productionWorkerJobStatus !== 'completed') fail(`probe_not_completed:${result.toolId}`)
   if (result.dispatcherProbeCompletedWithProvidedEvidence !== true) fail(`probe_not_ready:${result.toolId}`)
+  if (result.aiGraphicsToolCallHandoffRoute !== true) fail(`probe_not_ai_graphics_handoff_route:${result.toolId}`)
+  if (!String(result.futureHandler || '').startsWith('ai_graphics_')) {
+    fail(`probe_future_handler_not_ai_graphics:${result.toolId}:${result.futureHandler}`)
+  }
   if (result.mockOnlyRoute !== true) fail(`probe_not_mock_only:${result.toolId}`)
   if (result.hardGateBlockCount !== 0) fail(`probe_hard_gate_blocks:${result.toolId}`)
   if (result.inMemoryLeaseRecordCreated !== true) fail(`probe_lease_not_created:${result.toolId}`)

@@ -56,6 +56,7 @@
     "inMemoryDispatcherLeaseRecordsCreated": 21,
     "inMemoryDispatcherLeaseRecordsReleased": 21,
     "inMemoryDispatcherEventsRecorded": 189,
+    "aiGraphicsToolCallHandoffRoutes": 21,
     "gpuRuntimeTargetedTools": 8,
     "heavyToolsIncorrectlyTargetingCpu": 0,
     "liveBackendQueueSubmissionsNow": 0,
@@ -93,6 +94,7 @@
     "sourceAdapterSubmissionReadyWithProvidedEvidence",
     "productionWorkerJobStatus",
     "futureHandler",
+    "aiGraphicsToolCallHandoffRoute",
     "mockOnlyRoute",
     "gateChecksEvaluated",
     "hardGateBlockCount",
@@ -108,9 +110,9 @@
   ],
   "allowedMockSafeDispatcherProbeActions": [
     "run all 21 adapter payloads through the in-memory production worker dispatcher probe",
-    "evaluate production worker gates, idempotency, lease lifecycle, event emission, and placeholder routing",
+    "evaluate production worker gates, idempotency, lease lifecycle, event emission, and AI graphics tool-call handoff routing",
     "verify GPU-heavy tools remain assigned to gpu_ai_worker dispatcher probes",
-    "verify dispatcher routes remain mockOnly and do not execute tools, providers, browser runtimes, or GPU model runtimes",
+    "verify dispatcher routes land on AI graphics handoff handlers, remain mockOnly, and do not execute tools, providers, browser runtimes, or GPU model runtimes",
     "return fail-closed live queue, live lease, live dispatch, route, and execution blockers"
   ],
   "blockedRuntimeActions": [
@@ -144,6 +146,7 @@
     "all12CapabilityScenariosCompletedWithProvidedEvidence": true,
     "allDispatcherGateHardBlocksClear": true,
     "allDispatcherRoutesMockOnly": true,
+    "allDispatcherRoutesAiGraphicsToolCallHandoff": true,
     "allInMemoryLeaseRecordsReleased": true,
     "gpuHeavyToolsTargetGpuRuntime": true,
     "gpuRuntimeTargetsExact": true,

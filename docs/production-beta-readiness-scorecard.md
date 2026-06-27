@@ -83,7 +83,8 @@ AI graphics internal beta queue-dispatcher readiness decision
 `ai_graphics_internal_beta_queue_dispatcher_readiness_contract_prepared_with_mock_safe_dispatcher`
 verifies that the all-21 queue-adapter submissions can traverse the existing
 production worker dispatcher probe with gate checks, idempotency, in-memory
-lease lifecycle, event emission, and mock-only placeholder routing. It reports
+lease lifecycle, event emission, and AI-graphics-specific mock-only handoff
+routing. It reports
 21 of 21 dispatcher probe jobs completed with provided evidence, 12 of 12
 capability scenarios covered, 0 hard gate blocks, all 8 heavy/model tools still
 targeting exact native NVIDIA L4 GPU runtime targets, and 0 heavy/model tools
@@ -93,7 +94,9 @@ route execution, tool execution, browser/canvas/WebGL runtime, GPU/model
 runtime, model-weight loading, media processing, signed URLs, public artifacts,
 internal beta runtime, external beta, and production blocked.
 The dispatcher probe is mock-safe and does not keep any idle GPU runtime
-running.
+running. The probe now requires `aiGraphicsToolCallHandoff` metadata and
+`ai_graphics_*` future handlers for all 21 payloads instead of generic worker
+placeholders; live dispatch and runtime execution remain blocked.
 
 AI graphics internal beta backend queue storage readiness decision
 `ai_graphics_internal_beta_backend_queue_storage_readiness_contract_prepared_with_mock_service_records`
@@ -819,4 +822,5 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Private artifact boundary: worker handoff now requires `privateArtifactManifestRef` to use `private://` or `reeditpro-private://` before later queue admission can consume it. Public, signed URL, raw HTTP, and GCS refs remain invalid for AI graphics runtime handoff.
 - Snapshot and credit evidence hardening: worker handoff and queue admission now accept approved snapshot and credit reservation refs only as backend UUIDs or explicit `approved_snapshot_*` / `credit_reservation_*` fixture refs. Generic placeholders fail before queue readiness, so an on-demand GPU worker can only be prepared from real approval/credit evidence or a clearly marked local fixture lane.
 - Backend/service-role ref propagation hardening: backend queue storage and service-role transaction envelopes now independently verify all 21 approved snapshot refs and all 21 credit reservation refs before reporting their mock queue records or no-write service-role envelopes ready with provided evidence.
+- AI graphics worker handoff routing: production worker payloads now carry `aiGraphicsToolCallHandoff` metadata in `metadata_dry_run` mode, and dispatcher probes require all 21 tools to resolve to AI-graphics-specific mock-safe handoff handlers. This prepares the future approved worker/tool-call path without enabling live queue dispatch, tool execution, GPU/browser runtime, beta, or production.
 - Runtime/beta/production: no unlock; `internalBetaGoNoGoReadyWithProvidedEvidence=true` can be used for the next explicit owner go/no-go packet, while `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `productionWorkerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

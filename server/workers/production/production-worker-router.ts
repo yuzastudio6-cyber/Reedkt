@@ -29,6 +29,17 @@ import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
 
 export async function routeProductionWorkerJob(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
+  if (hasAiGraphicsToolCallHandoffRequest(payload)) {
+    return {
+      summary: 'AI graphics tool-call metadata handoff completed in planning-only mode.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: true,
+      futureHandler: aiGraphicsFutureHandler(payload.workerType),
+      aiGraphicsToolCallHandoffResult: buildAiGraphicsToolCallHandoffResult(payload),
+    }
+  }
+
   switch (payload.workerType) {
     case 'cpu_analysis_worker':
       if (hasMediaFoundationRequest(payload)) {
@@ -418,6 +429,48 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         mockOnly: true,
         futureHandler: 'tool_readiness_worker_placeholder',
       }
+  }
+}
+
+function hasAiGraphicsToolCallHandoffRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.aiGraphicsToolCallHandoff
+  if (!request || typeof request !== 'object' || Array.isArray(request)) return false
+  const mode = (request as Record<string, unknown>).mode
+  const planningOnly = (request as Record<string, unknown>).planningOnly
+  const canExecute = (request as Record<string, unknown>).agentCanExecuteToolsNow
+  return payload.executionMode === 'dry_run' && mode === 'metadata_dry_run' && planningOnly === true && canExecute === false
+}
+
+function aiGraphicsFutureHandler(workerType: ProductionWorkerJobPayload['workerType']): string {
+  if (workerType === 'gpu_ai_worker') return 'ai_graphics_gpu_model_tool_call_handoff'
+  if (workerType === 'render_worker') return 'ai_graphics_render_tool_call_handoff'
+  if (workerType === 'cpu_analysis_worker') return 'ai_graphics_cpu_static_tool_call_handoff'
+  if (workerType === 'qa_worker') return 'ai_graphics_qa_tool_call_handoff'
+  return 'ai_graphics_tool_readiness_handoff'
+}
+
+function buildAiGraphicsToolCallHandoffResult(payload: ProductionWorkerJobPayload) {
+  const request = payload.metadata?.aiGraphicsToolCallHandoff as Record<string, unknown>
+  return {
+    mode: 'metadata_dry_run',
+    canonicalToolId: request.canonicalToolId,
+    productionToolId: request.productionToolId,
+    runtimeTarget: request.runtimeTarget,
+    capabilityIds: Array.isArray(request.capabilityIds) ? request.capabilityIds : [],
+    workerType: payload.workerType,
+    requestedToolIds: payload.requestedToolIds,
+    requestedRecipeIds: payload.requestedRecipeIds,
+    storageReferenceIds: payload.storageReferenceIds,
+    planningOnly: true,
+    mockOnly: true,
+    agentCanExecuteToolsNow: false,
+    toolExecutionPerformed: false,
+    routeExecutionPerformed: false,
+    workerExecutionPerformed: false,
+    gpuRuntimePerformed: false,
+    browserWebglCanvasRuntimePerformed: false,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
   }
 }
 

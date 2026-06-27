@@ -88,6 +88,7 @@
     "workerPayloadsValidateCanonicalAiGraphicsRegistry": true,
     "workerPayloadsPreserveCreditReservationId": true,
     "workerPayloadsEmbedGpuRuntimeActivationPolicy": true,
+    "workerPayloadsEmbedAiGraphicsToolCallHandoff": true,
     "gpuRuntimeOnDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
     "startsOnlyForApprovedWorkerOrToolCall": true,
@@ -102,6 +103,7 @@
     "populate toolExecutionPlanId from the approved tool strategy id",
     "populate storageReferenceIds with private manifest references only",
     "attach canonical tool id, capability ids, runtime target, and blocker metadata",
+    "attach AI graphics tool-call handoff metadata in metadata_dry_run mode",
     "validate worker job payloads against canonical AI graphics production registry mapping",
     "validate production worker payload shape without queueing or executing it"
   ],

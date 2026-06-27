@@ -61,6 +61,8 @@ Each payload is also checked against the canonical AI graphics registry before i
 
 Each payload preserves the provided `creditReservationId` from the worker-payload evidence. GPU payload metadata also embeds the runtime activation policy: on-demand only, no idle GPU runtime, starts only for an approved worker or tool call, and no CPU fallback for heavy tools.
 
+Each payload also embeds an `aiGraphicsToolCallHandoff` metadata envelope in `metadata_dry_run` mode. That envelope carries the canonical tool id, production tool id, runtime target, product-facing capability ids, `planningOnly: true`, and `agentCanExecuteToolsNow: false`, so the later queue dispatcher can route AI graphics payloads through AI-graphics-specific mock-safe handoff handlers instead of generic worker placeholders.
+
 ## Capability Scenarios
 
 - `chart_overlay`
@@ -100,6 +102,7 @@ Node/static and browser/render tools may have package or proof evidence, but thi
 - Populate `toolExecutionPlanId` from the approved tool strategy id.
 - Populate `storageReferenceIds` with private manifest references only.
 - Attach canonical tool id, capability ids, runtime target, and blocker metadata.
+- Attach AI graphics tool-call handoff metadata in `metadata_dry_run` mode.
 - Validate worker job payloads against canonical AI graphics production registry mapping.
 - Validate production worker payload shape without queueing or executing it.
 

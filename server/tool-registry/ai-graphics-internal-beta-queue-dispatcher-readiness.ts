@@ -37,6 +37,7 @@ export interface AiGraphicsInternalBetaQueueDispatcherProbeResult {
   sourceAdapterSubmissionReadyWithProvidedEvidence: boolean
   productionWorkerJobStatus: ProductionWorkerJobStatus | 'skipped'
   futureHandler: string
+  aiGraphicsToolCallHandoffRoute: boolean
   mockOnlyRoute: boolean
   gateChecksEvaluated: number
   hardGateBlockCount: number
@@ -77,6 +78,7 @@ export interface AiGraphicsInternalBetaQueueDispatcherReadiness {
   inMemoryDispatcherLeaseRecordsCreated: number
   inMemoryDispatcherLeaseRecordsReleased: number
   inMemoryDispatcherEventsRecorded: number
+  aiGraphicsToolCallHandoffRoutes: number
   liveBackendQueueSubmissionsNow: 0
   liveWorkerLeasesCreatedNow: 0
   liveProductionWorkerDispatchesNow: 0
@@ -98,6 +100,7 @@ export interface AiGraphicsInternalBetaQueueDispatcherReadiness {
     all12CapabilityScenariosCompletedWithProvidedEvidence: boolean
     allDispatcherGateHardBlocksClear: boolean
     allDispatcherRoutesMockOnly: boolean
+    allDispatcherRoutesAiGraphicsToolCallHandoff: boolean
     allInMemoryLeaseRecordsReleased: boolean
     gpuHeavyToolsTargetGpuRuntime: boolean
     gpuRuntimeTargetsExact: boolean
@@ -160,9 +163,9 @@ const productFacingCapabilities = [
 
 const allowedMockSafeDispatcherProbeActions = [
   'run all 21 adapter payloads through the in-memory production worker dispatcher probe',
-  'evaluate production worker gates, idempotency, lease lifecycle, event emission, and placeholder routing',
+  'evaluate production worker gates, idempotency, lease lifecycle, event emission, and AI graphics tool-call handoff routing',
   'verify GPU-heavy tools remain assigned to gpu_ai_worker dispatcher probes',
-  'verify dispatcher routes remain mockOnly and do not execute tools, providers, browser runtimes, or GPU model runtimes',
+  'verify dispatcher routes land on AI graphics handoff handlers, remain mockOnly, and do not execute tools, providers, browser runtimes, or GPU model runtimes',
   'return fail-closed live queue, live lease, live dispatch, route, and execution blockers',
 ]
 
@@ -227,6 +230,7 @@ function skippedProbeResult(
       submission.adapterSubmissionReadyWithProvidedEvidence,
     productionWorkerJobStatus: 'skipped',
     futureHandler: 'queue_adapter_evidence_missing',
+    aiGraphicsToolCallHandoffRoute: false,
     mockOnlyRoute: false,
     gateChecksEvaluated: 0,
     hardGateBlockCount: 0,
@@ -272,10 +276,14 @@ async function dispatchProbeResult(input: {
       lease.jobId === result.jobId && lease.leaseStatus === 'released'
     ))
   const mockOnlyRoute = result.output?.mockOnly === true
+  const aiGraphicsToolCallHandoffRoute =
+    result.output?.futureHandler?.startsWith('ai_graphics_') === true &&
+    Boolean(result.output?.aiGraphicsToolCallHandoffResult)
   const dispatcherProbeCompletedWithProvidedEvidence =
     input.submission.adapterSubmissionReadyWithProvidedEvidence &&
     result.status === 'completed' &&
     hardGateBlockCount === 0 &&
+    aiGraphicsToolCallHandoffRoute &&
     mockOnlyRoute &&
     result.toolRunResults.length === 0 &&
     result.artifactRecords.length === 0 &&
@@ -291,6 +299,7 @@ async function dispatchProbeResult(input: {
       input.submission.adapterSubmissionReadyWithProvidedEvidence,
     productionWorkerJobStatus: result.status,
     futureHandler: result.output?.futureHandler ?? 'missing_future_handler',
+    aiGraphicsToolCallHandoffRoute,
     mockOnlyRoute,
     gateChecksEvaluated: result.gateChecks.length,
     hardGateBlockCount,
@@ -372,6 +381,8 @@ export async function buildAiGraphicsInternalBetaQueueDispatcherReadiness(
   const inMemoryDispatcherEventsRecorded = state.events.length
   const allDispatcherRoutesMockOnly =
     dispatcherProbeResults.every((result) => result.mockOnlyRoute)
+  const aiGraphicsToolCallHandoffRoutes =
+    dispatcherProbeResults.filter((result) => result.aiGraphicsToolCallHandoffRoute).length
   const gpuRuntimeTargetedTools =
     dispatcherProbeResults.filter((result) => result.workerType === 'gpu_ai_worker').length
   const gpuRuntimeTargetsExactForResults = gpuRuntimeTargetsExact(dispatcherProbeResults)
@@ -391,6 +402,7 @@ export async function buildAiGraphicsInternalBetaQueueDispatcherReadiness(
     inMemoryDispatcherLeaseRecordsCreated,
     inMemoryDispatcherLeaseRecordsReleased,
     inMemoryDispatcherEventsRecorded,
+    aiGraphicsToolCallHandoffRoutes,
     liveBackendQueueSubmissionsNow: 0,
     liveWorkerLeasesCreatedNow: 0,
     liveProductionWorkerDispatchesNow: 0,
@@ -414,6 +426,8 @@ export async function buildAiGraphicsInternalBetaQueueDispatcherReadiness(
         dispatcherCapabilityScenariosCompletedWithProvidedEvidence === 12,
       allDispatcherGateHardBlocksClear: dispatcherHardGateBlockCount === 0,
       allDispatcherRoutesMockOnly,
+      allDispatcherRoutesAiGraphicsToolCallHandoff:
+        aiGraphicsToolCallHandoffRoutes === 21,
       allInMemoryLeaseRecordsReleased:
         inMemoryDispatcherLeaseRecordsCreated === 21 &&
         inMemoryDispatcherLeaseRecordsReleased === 21,

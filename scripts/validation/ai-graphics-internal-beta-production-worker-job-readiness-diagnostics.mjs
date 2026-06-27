@@ -245,6 +245,8 @@ for (const token of [
   'toolExecutionPlanId',
   'canonicalRegistryValidationPassed',
   'runtimeActivationPolicyAccepted',
+  'aiGraphicsToolCallHandoff',
+  'metadata_dry_run',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'startsOnlyForApprovedWorkerOrToolCall',
@@ -274,6 +276,9 @@ if (docs.runtimeTargets?.workerPayloadsPreserveCreditReservationId !== true) {
 }
 if (docs.runtimeTargets?.workerPayloadsEmbedGpuRuntimeActivationPolicy !== true) {
   fail('docs_missing_runtime_activation_policy')
+}
+if (docs.runtimeTargets?.workerPayloadsEmbedAiGraphicsToolCallHandoff !== true) {
+  fail('docs_missing_ai_graphics_tool_call_handoff')
 }
 if (docs.runtimeTargets?.gpuRuntimeOnDemandOnly !== true) fail('docs_gpu_runtime_not_on_demand')
 if (docs.runtimeTargets?.noIdleGpuRuntimeApproved !== true) fail('docs_idle_gpu_policy_not_blocked')
@@ -413,6 +418,26 @@ for (const candidate of approvedOutput.productionWorkerJobPayloads ?? []) {
   }
   if (job.metadata?.aiGraphicsRuntimeActivationPolicy?.cpuFallbackAllowedForHeavyTools !== false) {
     fail(`job_policy_cpu_fallback_not_false:${candidate.sourceToolId}`)
+  }
+  const handoff = job.metadata?.aiGraphicsToolCallHandoff
+  if (handoff?.mode !== 'metadata_dry_run') {
+    fail(`job_handoff_bad_mode:${candidate.sourceToolId}:${handoff?.mode}`)
+  }
+  if (handoff?.canonicalToolId !== candidate.sourceToolId) {
+    fail(`job_handoff_tool_mismatch:${candidate.sourceToolId}:${handoff?.canonicalToolId}`)
+  }
+  if (handoff?.productionToolId !== candidate.sourceProductionToolId) {
+    fail(`job_handoff_production_tool_mismatch:${candidate.sourceToolId}:${handoff?.productionToolId}`)
+  }
+  if (handoff?.runtimeTarget !== candidate.sourceRuntimeTarget) {
+    fail(`job_handoff_runtime_target_mismatch:${candidate.sourceToolId}:${handoff?.runtimeTarget}`)
+  }
+  if (!Array.isArray(handoff?.capabilityIds) || handoff.capabilityIds.length === 0) {
+    fail(`job_handoff_missing_capabilities:${candidate.sourceToolId}`)
+  }
+  if (handoff?.planningOnly !== true) fail(`job_handoff_planning_only_not_true:${candidate.sourceToolId}`)
+  if (handoff?.agentCanExecuteToolsNow !== false) {
+    fail(`job_handoff_execute_not_false:${candidate.sourceToolId}`)
   }
   if (gpuTools.includes(candidate.sourceToolId)) {
     if (job.workerType !== 'gpu_ai_worker') fail(`gpu_tool_not_gpu_worker:${candidate.sourceToolId}:${job.workerType}`)

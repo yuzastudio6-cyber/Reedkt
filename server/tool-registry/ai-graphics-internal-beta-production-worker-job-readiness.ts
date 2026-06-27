@@ -236,6 +236,15 @@ function buildProductionWorkerJobPayload(
       cpuFallbackAllowedForHeavyTools:
         payload.runtimeActivationPolicy.cpuFallbackAllowedForHeavyTools,
       expectedOutputRefs: payload.expectedOutputRefs,
+      aiGraphicsToolCallHandoff: {
+        mode: 'metadata_dry_run',
+        canonicalToolId: payload.toolId,
+        productionToolId: payload.productionToolId,
+        runtimeTarget: payload.runtimeTarget,
+        capabilityIds: productFacingCapabilityIds,
+        planningOnly: true,
+        agentCanExecuteToolsNow: false,
+      },
       sourcePayloadReadyWithProvidedEvidence: payload.payloadReadyWithProvidedEvidence,
       canEnqueueProductionWorkerJobNow: false,
       canRunProductionWorkerRouteNow: false,

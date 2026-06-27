@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_internal_beta_queue_dispatcher_readiness_contract_prepared_with_mock_safe_dispatcher`
 
-This packet verifies that the all-21 AI graphics queue-adapter submissions can traverse the existing production worker dispatcher in the in-memory, mock-safe probe path. It evaluates production worker gates, idempotency, lease lifecycle, event emission, and placeholder worker routing without submitting to a backend queue, creating live leases, dispatching live workers, running Tool Routes, executing tools, calling providers, running browser/WebGL/canvas runtimes, or running GPU/model runtimes.
+This packet verifies that the all-21 AI graphics queue-adapter submissions can traverse the existing production worker dispatcher in the in-memory, mock-safe probe path. It evaluates production worker gates, idempotency, lease lifecycle, event emission, and AI graphics tool-call handoff routing without submitting to a backend queue, creating live leases, dispatching live workers, running Tool Routes, executing tools, calling providers, running browser/WebGL/canvas runtimes, or running GPU/model runtimes.
 
 ## Current Status
 
@@ -21,6 +21,7 @@ This packet verifies that the all-21 AI graphics queue-adapter submissions can t
 - In-memory dispatcher lease records created: 21
 - In-memory dispatcher lease records released: 21
 - In-memory dispatcher events recorded: 189
+- AI graphics tool-call handoff routes: 21
 - GPU runtime targeted tools: 8
 - GPU runtime targets exact: true
 - GPU runtime on-demand only: true
@@ -83,6 +84,7 @@ This packet verifies that the all-21 AI graphics queue-adapter submissions can t
 - `sourceAdapterSubmissionReadyWithProvidedEvidence`
 - `productionWorkerJobStatus`
 - `futureHandler`
+- `aiGraphicsToolCallHandoffRoute`
 - `mockOnlyRoute`
 - `gateChecksEvaluated`
 - `hardGateBlockCount`
@@ -105,9 +107,9 @@ GPU runtime remains on-demand only. The dispatcher probe is in-memory and mock-s
 ## Allowed Probe Actions
 
 - run all 21 adapter payloads through the in-memory production worker dispatcher probe
-- evaluate production worker gates, idempotency, lease lifecycle, event emission, and placeholder routing
+- evaluate production worker gates, idempotency, lease lifecycle, event emission, and AI graphics tool-call handoff routing
 - verify GPU-heavy tools remain assigned to gpu_ai_worker dispatcher probes
-- verify dispatcher routes remain mockOnly and do not execute tools, providers, browser runtimes, or GPU model runtimes
+- verify dispatcher routes land on AI graphics handoff handlers, remain mockOnly, and do not execute tools, providers, browser runtimes, or GPU model runtimes
 - return fail-closed live queue, live lease, live dispatch, route, and execution blockers
 
 ## Still Blocked

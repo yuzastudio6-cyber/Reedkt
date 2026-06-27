@@ -42,6 +42,14 @@ export interface AiGraphicsExternalBetaWorkerEnqueueCandidate {
   workerType: string
   capabilityId: string
   runtimeTarget: string
+  approvedPlanSnapshotId: string
+  creditReservationId: string
+  privateArtifactManifestRef: string
+  artifactBoundaryApprovalRef: string
+  toolRouteApprovalRef: string
+  workerApprovalRef: string
+  runtimeEnqueueApprovalRef: string
+  ownerRuntimeApprovalRef: string
   gpuRequiredForRuntime: boolean
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
   gpuRuntimeShouldStartNow: false
@@ -226,6 +234,14 @@ function buildWorkerCandidate(input: {
     workerType: tool.workerType,
     capabilityId: input.runtimeAdmission.capabilityId,
     runtimeTarget: tool.runtimeTarget,
+    approvedPlanSnapshotId: input.input.approvedPlanSnapshotId ?? '',
+    creditReservationId: input.input.creditReservationId ?? '',
+    privateArtifactManifestRef: input.input.privateArtifactManifestRef ?? '',
+    artifactBoundaryApprovalRef: input.input.artifactBoundaryApprovalRef ?? '',
+    toolRouteApprovalRef: input.input.toolRouteApprovalRef ?? '',
+    workerApprovalRef: input.input.workerApprovalRef ?? '',
+    runtimeEnqueueApprovalRef: input.input.runtimeEnqueueApprovalRef ?? '',
+    ownerRuntimeApprovalRef: input.input.ownerRuntimeApprovalRef ?? '',
     gpuRequiredForRuntime: tool.gpuRequiredForRuntime,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
       input.runtimeAdmission.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,

@@ -208,6 +208,19 @@ This is a side-effect-free gateway check and does not execute tools, enqueue
 workers, start GPU runtime, create artifacts, unlock external beta, or unlock
 production.
 
+AI graphics external beta worker enqueue adapter decision
+`ai_graphics_external_beta_worker_enqueue_adapter_contract_prepared_with_runtime_blocks`
+shapes a gateway-approved external beta request into a canonical
+`ProductionWorkerJobPayload` candidate for a future backend worker queue. The
+SAM2 example targets `native_linux_amd64_nvidia_l4_sam2_runtime` and the D3
+example targets `node_cpu_static`, both with `executionMode=production_blocked`.
+This is still an adapter contract only: `backendQueueSubmissionPerformed=false`,
+`workerEnqueuePerformed=false`, `workerLeaseCreated=false`,
+`workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,
+`externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
+The GPU path remains on-demand only: a GPU runtime is start-allowed only for a
+future accepted worker/tool-call job, never as an idle service.
+
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
 shapes the all-21 queue-admission packets into backend queue adapter submission

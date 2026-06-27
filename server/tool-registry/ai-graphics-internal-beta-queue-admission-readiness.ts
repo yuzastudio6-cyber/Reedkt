@@ -26,6 +26,7 @@ export type AiGraphicsInternalBetaQueueAdmissionReadinessStatus =
 
 export interface AiGraphicsInternalBetaQueueAdmissionReadinessInput
   extends AiGraphicsInternalBetaRuntimeEnqueueApprovalInput {
+  sourceRuntimeEnqueueApprovalPacket?: AiGraphicsInternalBetaRuntimeEnqueueApproval
   approvedPlanSnapshotId?: string
   creditReservationId?: string
   privateArtifactManifestRef?: string
@@ -390,6 +391,7 @@ export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
   input: AiGraphicsInternalBetaQueueAdmissionReadinessInput = {},
 ): AiGraphicsInternalBetaQueueAdmissionReadiness {
   const sourceRuntimeEnqueueApproval =
+    input.sourceRuntimeEnqueueApprovalPacket ??
     buildAiGraphicsInternalBetaRuntimeEnqueueApproval(input)
   const sourceRuntimeEnqueueScopeAccepted =
     sourceRuntimeEnqueueApproval.status ===

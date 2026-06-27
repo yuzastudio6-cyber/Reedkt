@@ -148,6 +148,12 @@ groups ready with provided evidence, while keeping live queue enqueue, worker
 dispatch, route execution, tool execution, browser/canvas/WebGL runtime,
 GPU/model runtime, model-weight loading, media processing, signed URLs, public
 artifacts, internal beta runtime, external beta, and production blocked.
+The evaluator can now consume a source
+`--internal-beta-runtime-enqueue-approval-packet` that already reports
+`internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked`; approved
+snapshot, credit reservation, private artifact, Tool Route, Worker, queue
+transport, runtime owner, and runtime proof refs remain separate and required
+after that source packet.
 It also runs the server-only on-demand runtime admission gate for each future
 queue candidate. With provided private proof refs, all 21 runtime-admission
 packets are ready for future worker enqueue, and the eight GPU/model tools are

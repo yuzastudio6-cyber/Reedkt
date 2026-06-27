@@ -110,6 +110,14 @@
     "creditReservationId": "backend UUID or explicit credit_reservation_* fixture ref",
     "privateArtifactManifestRef": "private:// or reeditpro-private:// only"
   },
+  "sourceEvidencePolicy": {
+    "acceptsLowLevelEvidenceFlags": true,
+    "acceptsRuntimeEnqueueApprovalPacket": true,
+    "sourceRuntimeEnqueueApprovalPacketRequired": true,
+    "queueAdmissionPrerequisitesRequiredAfterSourcePacket": true,
+    "liveQueueUnlockPerformed": false,
+    "runtimeUnlockPerformed": false
+  },
   "allowedQueueAdmissionPreparationActions": [
     "bind all 21 AI graphics production tool IDs to approved snapshot and credit reservation evidence",
     "bind each candidate to a private artifact manifest reference",

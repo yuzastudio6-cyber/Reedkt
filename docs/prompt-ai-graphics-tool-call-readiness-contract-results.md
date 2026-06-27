@@ -378,6 +378,15 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Runtime remains blocked in both packet-fed paths: `workerQueueApprovedNow=false`, `productionWorkerJobEnqueueApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 - Latest observed PR state after internal beta runtime-enqueue source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `85ba6a4978876ea295537fdefdc9f475c06a1a15`, with an empty check rollup.
 
+## Follow-Up: Internal Beta Queue-Admission Source Packet Ingestion
+
+- Added evaluator-only source packet ingestion to `ai-graphics:internal-beta-queue-admission-readiness`:
+  - `--internal-beta-runtime-enqueue-approval-packet`
+- A source runtime-enqueue packet must already report `internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked`; queue-admission prerequisites remain separate and required.
+- Diagnostic coverage proves a packet-fed queue-admission gate stays `missing_queue_admission_prerequisites` without approved snapshot, credit reservation, private artifact, Tool Route, Worker, queue transport, runtime owner, and runtime proof refs.
+- With those prerequisites supplied, the packet-fed path reaches `internal_beta_queue_admission_ready_runtime_still_blocked` with 21 queue-admission packets ready and eight GPU tools authorized only for future on-demand startup after an accepted worker job.
+- Runtime remains blocked in both packet-fed paths: `workerQueueApprovedNow=false`, `productionWorkerJobEnqueueApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## No-Scope
 
 No dependencies were installed, no `npm ci` was run, no `npm install` was run, no tools/routes/workers/providers executed, no browser/WebGL/canvas runtime ran, no GPU/model runtime ran, no model weights were downloaded, no media was processed, no Supabase/GCS mutation occurred, no signed URL or public artifact was created, and no beta or production gate was unlocked.

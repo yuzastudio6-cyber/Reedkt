@@ -4,6 +4,13 @@ Decision: `ai_graphics_internal_beta_queue_admission_readiness_contract_prepared
 
 This contract turns the all-21 runtime-enqueue scope into explicit queue-admission readiness inputs. It binds the AI graphics tools to approved snapshot, credit reservation, private artifact manifest, Tool Route approval, Worker approval, queue transport, idempotency namespace, and internal beta runtime owner approval metadata without enqueueing or executing work.
 
+The evaluator can consume either low-level source evidence flags or a source
+runtime-enqueue approval packet via
+`--internal-beta-runtime-enqueue-approval-packet`. A source packet must already
+report `internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked`;
+queue-admission prerequisites remain separate and required after that source
+packet.
+
 ## Current Status
 
 - Status: `internal_beta_queue_admission_ready_runtime_still_blocked`

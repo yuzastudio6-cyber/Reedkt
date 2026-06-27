@@ -321,6 +321,27 @@ if (docs.queueAdmissionEvidenceFormat?.creditReservationId !==
   'backend UUID or explicit credit_reservation_* fixture ref') {
   fail('docs_missing_credit_reservation_format_policy')
 }
+for (const [key, expected] of Object.entries({
+  acceptsLowLevelEvidenceFlags: true,
+  acceptsRuntimeEnqueueApprovalPacket: true,
+  sourceRuntimeEnqueueApprovalPacketRequired: true,
+  queueAdmissionPrerequisitesRequiredAfterSourcePacket: true,
+  liveQueueUnlockPerformed: false,
+  runtimeUnlockPerformed: false,
+})) {
+  if (docs.sourceEvidencePolicy?.[key] !== expected) {
+    fail(`docs_source_evidence_policy_mismatch:${key}:${docs.sourceEvidencePolicy?.[key]}`)
+  }
+}
+if (!cliSource.includes('--internal-beta-runtime-enqueue-approval-packet')) {
+  fail('cli_missing_runtime_enqueue_approval_packet_flag')
+}
+if (!markdown.includes('--internal-beta-runtime-enqueue-approval-packet')) {
+  fail('markdown_missing_runtime_enqueue_approval_packet_flag')
+}
+if (!moduleSource.includes('sourceRuntimeEnqueueApprovalPacket')) {
+  fail('module_missing_source_runtime_enqueue_packet_input')
+}
 
 for (const token of [
   'approvedPlanSnapshotRefAccepted',
@@ -549,6 +570,64 @@ for (const packet of approvedOutput.queueAdmissionPackets || []) {
   if (packet.gpuRuntimeShouldStartNow !== false) fail(`approved_packet_gpu_start_now:${packet.toolId}`)
 }
 
+const sourceRuntimeEnqueuePacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-runtime-enqueue-approval', [
+  ...acceptedSourceArgs(manifestPacketPath, gpuPacketPath),
+  '--require-internal-beta-runtime-enqueue-approved',
+]), 'source_runtime_enqueue_packet')
+const sourceRuntimeEnqueuePacketPath = path.join(
+  path.dirname(manifestPacketPath),
+  'source-runtime-enqueue-approval-packet.json',
+)
+fs.writeFileSync(sourceRuntimeEnqueuePacketPath, `${JSON.stringify(sourceRuntimeEnqueuePacket, null, 2)}\n`, 'utf8')
+let packetMissingPrereqExited = false
+let packetMissingPrereqText = ''
+try {
+  packetMissingPrereqText = runNpm(runScriptName, [
+    '--internal-beta-runtime-enqueue-approval-packet',
+    sourceRuntimeEnqueuePacketPath,
+    '--require-queue-admission-ready',
+  ])
+} catch (error) {
+  packetMissingPrereqExited = true
+  packetMissingPrereqText = `${error.stdout || ''}${error.stderr || ''}`
+}
+const packetMissingPrereqOutput = parseJsonOutput(packetMissingPrereqText, 'packet_missing_prereq_queue_admission')
+if (!packetMissingPrereqExited) fail('packet_missing_prereq_require_did_not_fail')
+if (packetMissingPrereqOutput.input?.sourceEvidenceMode !== 'internal_beta_runtime_enqueue_approval_packet') {
+  fail('packet_missing_prereq_source_mode_not_reported')
+}
+if (packetMissingPrereqOutput.status !== 'missing_queue_admission_prerequisites') {
+  fail(`packet_missing_prereq_status:${packetMissingPrereqOutput.status}`)
+}
+if (packetMissingPrereqOutput.sourceRuntimeEnqueueScopeAccepted !== true) {
+  fail('packet_missing_prereq_source_not_accepted')
+}
+if (packetMissingPrereqOutput.queueAdmissionPrerequisitesSatisfied !== false) {
+  fail('packet_missing_prereq_prereqs_not_false')
+}
+
+const packetApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--internal-beta-runtime-enqueue-approval-packet',
+  sourceRuntimeEnqueuePacketPath,
+  '--all-queue-admission-prerequisites-provided',
+  '--require-queue-admission-ready',
+]), 'packet_approved_queue_admission')
+if (packetApprovedOutput.input?.sourceEvidenceMode !== 'internal_beta_runtime_enqueue_approval_packet') {
+  fail('packet_approved_source_mode_not_reported')
+}
+if (packetApprovedOutput.status !== 'internal_beta_queue_admission_ready_runtime_still_blocked') {
+  fail(`packet_approved_status:${packetApprovedOutput.status}`)
+}
+if (packetApprovedOutput.queueAdmissionPacketsReadyWithProvidedEvidence !== 21) {
+  fail('packet_approved_queue_packets_not_21')
+}
+if (packetApprovedOutput.runtimeAdmissionPacketsReadyWithProvidedEvidence !== 21) {
+  fail('packet_approved_runtime_admission_packets_not_21')
+}
+if (packetApprovedOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail('packet_approved_gpu_start_allowed_tools_not_8')
+}
+
 let liveQueueExited = false
 try {
   runNpm(runScriptName, [
@@ -560,6 +639,14 @@ try {
   liveQueueExited = true
 }
 if (!liveQueueExited) fail('require_live_worker_queue_did_not_fail_closed')
+
+for (const output of [packetMissingPrereqOutput, packetApprovedOutput]) {
+  for (const key of falseGateKeys) {
+    if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
+      fail(`packet_false_gate_not_false:${key}`)
+    }
+  }
+}
 
 const forbiddenPatterns = [
   /agentCanExecuteToolsNow["`:= ]+true/i,

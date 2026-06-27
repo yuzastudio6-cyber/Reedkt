@@ -4,6 +4,9 @@ import {
   buildAiGraphicsInternalBetaQueueAdmissionReadiness,
 } from '../tool-registry/ai-graphics-internal-beta-queue-admission-readiness'
 import type {
+  AiGraphicsInternalBetaRuntimeEnqueueApproval,
+} from '../tool-registry/ai-graphics-internal-beta-runtime-enqueue-approval'
+import type {
   AiGraphicsBetaEvidenceBundleInput,
 } from '../tool-registry/ai-graphics-beta-evidence-bundle'
 
@@ -28,6 +31,15 @@ function readJsonFile(flag: string): unknown | undefined {
   return JSON.parse(readFileSync(resolvedPath, 'utf8'))
 }
 
+function readJsonObjectFile(flag: string): Record<string, unknown> | undefined {
+  const parsed = readJsonFile(flag)
+  if (!parsed) return undefined
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new Error(`Evidence packet file for ${flag} must contain a JSON object`)
+  }
+  return parsed as Record<string, unknown>
+}
+
 function readJsonPath(filePath: string): unknown {
   const resolvedPath = resolve(filePath)
   if (!existsSync(resolvedPath)) {
@@ -44,43 +56,81 @@ function readProofPacket(flag: string, committedPath: string): unknown | undefin
   return undefined
 }
 
+function isRuntimeEnqueueApprovalPacket(
+  value: unknown,
+): value is AiGraphicsInternalBetaRuntimeEnqueueApproval {
+  return Boolean(
+    typeof value === 'object' &&
+      value !== null &&
+      !Array.isArray(value) &&
+      (value as Record<string, unknown>).decision ===
+        'ai_graphics_internal_beta_runtime_enqueue_approval_contract_prepared_with_runtime_blocks' &&
+      typeof (value as Record<string, unknown>).status === 'string' &&
+      Array.isArray((value as Record<string, unknown>).toolScopes) &&
+      typeof (value as Record<string, unknown>).booleans === 'object',
+  )
+}
+
+function readSourceRuntimeEnqueueApprovalPacket(): {
+  sourceRuntimeEnqueueApproval?: AiGraphicsInternalBetaRuntimeEnqueueApproval
+  sourceEvidenceMode: 'constructed_from_cli_flags' | 'internal_beta_runtime_enqueue_approval_packet'
+} {
+  const sourcePacket = readJsonObjectFile('--internal-beta-runtime-enqueue-approval-packet')
+  if (!sourcePacket) return { sourceEvidenceMode: 'constructed_from_cli_flags' }
+  if (!isRuntimeEnqueueApprovalPacket(sourcePacket)) {
+    throw new Error(
+      '--internal-beta-runtime-enqueue-approval-packet does not contain an AI graphics internal beta runtime-enqueue approval packet',
+    )
+  }
+  return {
+    sourceRuntimeEnqueueApproval: sourcePacket,
+    sourceEvidenceMode: 'internal_beta_runtime_enqueue_approval_packet',
+  }
+}
+
 function queueValue(flag: string, defaultValue: string): string | undefined {
   return valueAfterFlag(flag) ??
     (hasFlag('--all-queue-admission-prerequisites-provided') ? defaultValue : undefined)
 }
 
 const allTechnicalGatesPassed = hasFlag('--all-technical-gates-passed')
-const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput = {
-  approvedPlanSnapshotGatePassed:
-    allTechnicalGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
-  creditReservationGatePassed:
-    allTechnicalGatesPassed || hasFlag('--credit-reservation-gate-passed'),
-  artifactBoundaryGatePassed:
-    allTechnicalGatesPassed || hasFlag('--artifact-boundary-gate-passed'),
-  toolRouteGatePassed: allTechnicalGatesPassed || hasFlag('--tool-route-gate-passed'),
-  workerGatePassed: allTechnicalGatesPassed || hasFlag('--worker-gate-passed'),
-  browserCanvasWebglSandboxPassed: hasFlag('--browser-canvas-webgl-sandbox-passed'),
-  modelWeightManifestReviewPacket: readJsonFile(
-    '--model-weight-manifest-review-packet',
-  ) as AiGraphicsBetaEvidenceBundleInput['modelWeightManifestReviewPacket'],
-  gpuRuntimeProofResultPacket: readJsonFile(
-    '--gpu-runtime-proof-result-packet',
-  ) as AiGraphicsBetaEvidenceBundleInput['gpuRuntimeProofResultPacket'],
-  nodeRuntimeProofPacket: readProofPacket(
-    '--node-runtime-proof-packet',
-    'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
-  ) as AiGraphicsBetaEvidenceBundleInput['nodeRuntimeProofPacket'],
-  browserRuntimeProofPacket: readProofPacket(
-    '--browser-runtime-proof-packet',
-    'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
-  ) as AiGraphicsBetaEvidenceBundleInput['browserRuntimeProofPacket'],
-  satoriFontRuntimeProofPacket: readProofPacket(
-    '--satori-font-runtime-proof-packet',
-    'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
-  ) as AiGraphicsBetaEvidenceBundleInput['satoriFontRuntimeProofPacket'],
-}
+const sourcePacket = readSourceRuntimeEnqueueApprovalPacket()
+const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput | undefined =
+  sourcePacket.sourceRuntimeEnqueueApproval
+    ? undefined
+    : {
+        approvedPlanSnapshotGatePassed:
+          allTechnicalGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
+        creditReservationGatePassed:
+          allTechnicalGatesPassed || hasFlag('--credit-reservation-gate-passed'),
+        artifactBoundaryGatePassed:
+          allTechnicalGatesPassed || hasFlag('--artifact-boundary-gate-passed'),
+        toolRouteGatePassed:
+          allTechnicalGatesPassed || hasFlag('--tool-route-gate-passed'),
+        workerGatePassed: allTechnicalGatesPassed || hasFlag('--worker-gate-passed'),
+        browserCanvasWebglSandboxPassed: hasFlag('--browser-canvas-webgl-sandbox-passed'),
+        modelWeightManifestReviewPacket: readJsonFile(
+          '--model-weight-manifest-review-packet',
+        ) as AiGraphicsBetaEvidenceBundleInput['modelWeightManifestReviewPacket'],
+        gpuRuntimeProofResultPacket: readJsonFile(
+          '--gpu-runtime-proof-result-packet',
+        ) as AiGraphicsBetaEvidenceBundleInput['gpuRuntimeProofResultPacket'],
+        nodeRuntimeProofPacket: readProofPacket(
+          '--node-runtime-proof-packet',
+          'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+        ) as AiGraphicsBetaEvidenceBundleInput['nodeRuntimeProofPacket'],
+        browserRuntimeProofPacket: readProofPacket(
+          '--browser-runtime-proof-packet',
+          'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+        ) as AiGraphicsBetaEvidenceBundleInput['browserRuntimeProofPacket'],
+        satoriFontRuntimeProofPacket: readProofPacket(
+          '--satori-font-runtime-proof-packet',
+          'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+        ) as AiGraphicsBetaEvidenceBundleInput['satoriFontRuntimeProofPacket'],
+      }
 
 const queueAdmission = buildAiGraphicsInternalBetaQueueAdmissionReadiness({
+  sourceRuntimeEnqueueApprovalPacket: sourcePacket.sourceRuntimeEnqueueApproval,
   evidenceBundleInput,
   ownerApprovalGranted: hasFlag('--owner-approval-granted'),
   ownerApprovalRef: valueAfterFlag('--owner-approval-ref'),
@@ -133,9 +183,21 @@ const output = {
   ...queueAdmission,
   input: {
     validatorOnly: true,
+    sourceEvidenceMode: sourcePacket.sourceEvidenceMode,
+    internalBetaRuntimeEnqueueApprovalPacketRead: Boolean(
+      valueAfterFlag('--internal-beta-runtime-enqueue-approval-packet'),
+    ),
     committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
     allQueueAdmissionPrerequisitesProvided:
       hasFlag('--all-queue-admission-prerequisites-provided'),
+    evidencePacketFilesRead: [
+      valueAfterFlag('--internal-beta-runtime-enqueue-approval-packet'),
+      valueAfterFlag('--model-weight-manifest-review-packet'),
+      valueAfterFlag('--gpu-runtime-proof-result-packet'),
+      valueAfterFlag('--node-runtime-proof-packet'),
+      valueAfterFlag('--browser-runtime-proof-packet'),
+      valueAfterFlag('--satori-font-runtime-proof-packet'),
+    ].filter(Boolean).length,
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

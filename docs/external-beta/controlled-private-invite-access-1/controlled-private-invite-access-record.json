@@ -1,0 +1,93 @@
+{
+  "packet": "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1",
+  "decision": "completed_controlled_private_invite_access_policy_no_access_mutation",
+  "execution": "completed_docs_only_invite_access_policy_and_iam_readback_no_access_grants",
+  "baseIntegrationHead": "4e0ca864be052008cea86e287a683b687a8139f1",
+  "target": {
+    "cloudRunService": "reeditpro-staging-api",
+    "region": "us-central1",
+    "project": "reeditpro",
+    "supabaseProjectRef": "wmyyttnynmteqgcdishd",
+    "latestReadyRevision": "reeditpro-staging-api-00005-7gs",
+    "traffic": "100_percent_latest_revision",
+    "externalBetaScope": "controlled_private_preview"
+  },
+  "sourceEvidence": {
+    "controlledSmokeValidation": "completed_controlled_external_beta_authenticated_staging_smoke_validation",
+    "unauthenticatedAccess": "blocked_403",
+    "authenticatedHealth": "passed_200",
+    "authenticatedReadiness": "passed_200_ready_endpoint",
+    "authenticatedRuntimeStatus": "passed_200",
+    "runtimeMode": "mock",
+    "mockOnly": true,
+    "providerRealCallsEnabled": false,
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "iamReadback": {
+    "commandClass": "readonly_cloud_run_iam_policy_and_service_status",
+    "serviceLevelBindingCount": 0,
+    "serviceLevelAllUsersInvoker": false,
+    "serviceLevelAllAuthenticatedUsersInvoker": false,
+    "serviceReady": true,
+    "configurationsReady": true,
+    "routesReady": true,
+    "ingress": "all",
+    "iamPolicyMutation": "not_run",
+    "accessGrantMutation": "not_run"
+  },
+  "invitePolicy": {
+    "accessModel": "authenticated_private_invite_only",
+    "inviteIdentityList": "required_before_access_grant",
+    "allowedFuturePrincipalClasses": [
+      "explicit_user_identity",
+      "explicit_google_group"
+    ],
+    "blockedPrincipalClasses": [
+      "allUsers",
+      "allAuthenticatedUsers"
+    ],
+    "rollbackRequired": true,
+    "postGrantSmokeRequired": true,
+    "publicAccessNegativeCheckRequired": true
+  },
+  "readiness": {
+    "externalProductBeta": "controlled_external_beta_private_invite_access_policy_ready",
+    "externalBetaEnabledInThisPhase": true,
+    "privateInviteAccess": "ready_for_explicit_invite_iam_grant_planning",
+    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "cloudRunIamPolicyReadback": true,
+    "cloudRunServiceStatusReadback": true,
+    "cloudRunIamMutation": false,
+    "cloudRunServiceUpdated": false,
+    "deploymentPerformed": false,
+    "publicInvokerGrant": false,
+    "allUsersGrant": false,
+    "allAuthenticatedUsersGrant": false,
+    "secretPayloadAccess": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "serviceRoleRouteExecution": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "providerCall": false,
+    "modelCall": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "internalBetaUnlock": false,
+    "productionUnlock": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

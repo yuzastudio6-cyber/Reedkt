@@ -736,6 +736,7 @@
     "rp-external-beta-staging-flag-application-1:diagnostics": "node scripts/validation/rp-external-beta-staging-flag-application-1-diagnostics.mjs",
     "rp-external-beta-staging-flag-application-1r:diagnostics": "node scripts/validation/rp-external-beta-staging-flag-application-1r-diagnostics.mjs",
     "rp-external-beta-controlled-smoke-validation-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-smoke-validation-1-diagnostics.mjs",
+    "rp-external-beta-controlled-private-invite-access-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-private-invite-access-1-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

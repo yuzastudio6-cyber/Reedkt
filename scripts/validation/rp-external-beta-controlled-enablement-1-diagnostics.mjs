@@ -60,6 +60,18 @@ const followOnControlledSmokeValidation1Files = [
   'scripts/validation/rp-external-beta-controlled-smoke-validation-1-diagnostics.mjs',
 ]
 
+const followOnControlledPrivateInviteAccess1Files = [
+  'docs/external-beta/controlled-private-invite-access-1/source-audit.md',
+  'docs/external-beta/controlled-private-invite-access-1/invite-access-policy.md',
+  'docs/external-beta/controlled-private-invite-access-1/iam-readback.md',
+  'docs/external-beta/controlled-private-invite-access-1/safety-boundary.md',
+  'docs/external-beta/controlled-private-invite-access-1/controlled-private-invite-access-record.json',
+  'docs/external-beta/controlled-private-invite-access-1/validation-results.md',
+  'docs/activation-phase-rp-external-beta-controlled-private-invite-access-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-private-invite-iam-grant-1.md',
+  'scripts/validation/rp-external-beta-controlled-private-invite-access-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'completed_controlled_external_beta_enablement_source_contract_default_off',
@@ -112,6 +124,7 @@ const allowedChanged = new Set([
   ...requiredFiles,
   ...followOnStagingFlagApplication1rFiles,
   ...followOnControlledSmokeValidation1Files,
+  ...followOnControlledPrivateInviteAccess1Files,
 ])
 const allowedServerFiles = new Set([
   'server/config/external-beta-controlled-enablement-contract.ts',
@@ -232,11 +245,14 @@ const rollupIsStagingCompleted =
   rollup.decision === 'completed_controlled_external_beta_staging_flag_application'
 const rollupIsSmokeCompleted =
   rollup.decision === 'completed_controlled_external_beta_authenticated_staging_smoke_validation'
+const rollupIsInviteAccessCompleted =
+  rollup.decision === 'completed_controlled_private_invite_access_policy_no_access_mutation'
 if (
   rollup.decision !== 'completed_controlled_external_beta_enablement_source_contract_default_off' &&
   !rollupIsStagingBlocked &&
   !rollupIsStagingCompleted &&
-  !rollupIsSmokeCompleted
+  !rollupIsSmokeCompleted &&
+  !rollupIsInviteAccessCompleted
 ) {
   fail('rollup decision mismatch')
 }
@@ -245,18 +261,20 @@ if (
   rollup.statuses?.externalProductBeta !== 'ready_for_explicit_staging_flag_application' &&
   rollup.statuses?.externalProductBeta !== 'blocked_pending_gcloud_reauthentication_before_staging_flag_application' &&
   rollup.statuses?.externalProductBeta !== 'controlled_external_beta_enabled_on_staging_api' &&
-  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_smoke_validated_authenticated_staging_api'
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_smoke_validated_authenticated_staging_api' &&
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_private_invite_access_policy_ready'
 ) {
   fail('rollup external beta readiness mismatch')
 }
 if (rollup.mainSupabaseTarget?.controlledEnablement !== 'completed_controlled_external_beta_enablement_source_contract_default_off') fail('rollup controlled enablement status mismatch')
-if (rollup.mainSupabaseTarget?.externalBetaEnabledInThisPhase !== (rollupIsStagingCompleted || rollupIsSmokeCompleted)) fail('rollup enabled phase flag mismatch')
+if (rollup.mainSupabaseTarget?.externalBetaEnabledInThisPhase !== (rollupIsStagingCompleted || rollupIsSmokeCompleted || rollupIsInviteAccessCompleted)) fail('rollup enabled phase flag mismatch')
 if (rollup.mainSupabaseTarget?.stagingFlagApplicationRequired !== true) fail('staging flag application required flag mismatch')
 if (
   rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1' &&
   rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH' &&
   rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1' &&
-  rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1'
+  rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1' &&
+  rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1'
 ) {
   fail('rollup next decision mismatch')
 }
@@ -276,8 +294,17 @@ if (rollupIsSmokeCompleted) {
   if (rollup.mainSupabaseTarget?.controlledSmokeValidation !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation') fail('controlled smoke status mismatch')
   if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1') fail('controlled smoke next milestone mismatch')
 }
+if (rollupIsInviteAccessCompleted) {
+  if (rollup.sourceClosure?.stagingFlagApplication1r !== 'rp_external_beta_staging_flag_application_1r_after_gcloud_reauth') fail('staging flag 1R source missing')
+  if (rollup.sourceClosure?.controlledSmokeValidation !== 'rp_external_beta_controlled_smoke_validation_1') fail('controlled smoke source missing')
+  if (rollup.sourceClosure?.controlledPrivateInviteAccess !== 'rp_external_beta_controlled_private_invite_access_1') fail('controlled invite access source missing')
+  if (rollup.mainSupabaseTarget?.stagingFlagApplication !== 'completed_controlled_external_beta_staging_flag_application') fail('completed staging flag status mismatch')
+  if (rollup.mainSupabaseTarget?.controlledSmokeValidation !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation') fail('controlled smoke status mismatch')
+  if (rollup.mainSupabaseTarget?.controlledPrivateInviteAccess !== 'completed_controlled_private_invite_access_policy_no_access_mutation') fail('controlled invite access status mismatch')
+  if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1') fail('controlled invite access next milestone mismatch')
+}
 if (rollup.safety?.controlledExternalBetaEnablementSourceContract !== true) fail('rollup source contract flag mismatch')
-if (rollup.safety?.externalBetaEnvironmentUnlock !== (rollupIsStagingCompleted || rollupIsSmokeCompleted)) fail('rollup external beta environment unlock mismatch')
+if (rollup.safety?.externalBetaEnvironmentUnlock !== (rollupIsStagingCompleted || rollupIsSmokeCompleted || rollupIsInviteAccessCompleted)) fail('rollup external beta environment unlock mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
 if (

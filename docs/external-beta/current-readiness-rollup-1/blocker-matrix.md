@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `blocked_pending_deployed_browser_ui_surface_for_owner_walkthrough` | product API lane is `ready_for_controlled_owner_tester_product_walkthrough`, but controlled tester UI flow smoke found no deployed browser UI surface |
+| External beta | `ready_for_controlled_owner_browser_walkthrough` | product API lane is `ready_for_controlled_owner_tester_product_walkthrough`; deployed browser UI surface and controlled tester UI smoke are now complete for `aiediting@reeditpro.com` |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-Deploy or expose a controlled browser UI surface for `aiediting@reeditpro.com`, then rerun the controlled tester UI flow smoke while keeping `external-beta-testers@reeditpro.com` as the only staging API invoker group and keeping public/production access blocked.
+Run a controlled owner browser walkthrough for `aiediting@reeditpro.com` while keeping `external-beta-testers@reeditpro.com` as the only staging API invoker group and keeping public/production access blocked.
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -376,17 +376,17 @@ Next recommended milestone after product-flow smoke: `RP-EXTERNAL-BETA-CONTROLLE
 
 ## RP External Beta Controlled Tester UI Flow Smoke 1
 
-`RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1` records decision `blocked_external_beta_controlled_tester_ui_flow_smoke`, blocker `blocked_deployed_browser_ui_surface_not_present`, and execution `completed_guarded_authenticated_ui_surface_probe_no_runtime_mutation`.
+`RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY` records decision `completed_external_beta_deployed_browser_ui_surface_staging_deploy_and_controlled_tester_ui_smoke`, Cloud Build `54fd2cfd-4f19-472d-8b5f-5fbfe55f59b1`, Cloud Run revision `reeditpro-staging-api-00006-6gw`, and controlled tester UI smoke run `2026-06-27T17-15-34-003Z-a728f2ff`.
 
-The guarded smoke used `aiediting@reeditpro.com`, preserved `group:external-beta-testers@reeditpro.com` as the only staging API invoker group, performed read-only Cloud Run service discovery and IAM/service-status readback, and probed browser-visible paths only. No deployed product browser UI service was found, and authenticated `/`, `/dashboard`, `/projects`, and `/editor` probes on `reeditpro-staging-api` returned API JSON `404` responses.
+The guarded smoke used `aiediting@reeditpro.com`, preserved `group:external-beta-testers@reeditpro.com` as the only staging API invoker group, performed read-only Cloud Run service discovery and IAM/service-status readback, and probed browser-visible paths only. Unauthenticated `/` stayed `403`; authenticated `/`, `/dashboard`, `/projects`, and `/editor` returned `200` HTML responses.
 
 Run ID: `2026-06-27T16-07-23-427Z-7e136bc9`. Report SHA-256: `0bf0f4a53c435b3e8e1c62412d7f2cef7b7633de821eee36f62ace16f068b2e3`. Manifest SHA-256: `5672d630490da26bfc5b0ef37d66b5da5bbcb041f83ebdcbf0dfa1d328dc3dae`.
 
-External product beta readiness: `blocked_pending_deployed_browser_ui_surface_for_owner_walkthrough`.
+External product beta readiness: `ready_for_controlled_owner_browser_walkthrough`.
 
 Product API readiness: `ready_for_controlled_owner_tester_product_walkthrough`.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1`.
+Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

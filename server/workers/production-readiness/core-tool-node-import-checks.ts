@@ -5,6 +5,7 @@ export interface CoreToolNodePackageCheckDefinition {
   checkName: string
   packageName: string
   packageJsonPath: string
+  sourcePath?: string
   optional: boolean
   metadataOnly: boolean
   notes: string[]
@@ -31,12 +32,13 @@ export const CORE_TOOL_NODE_PACKAGE_CHECKS: CoreToolNodePackageCheckDefinition[]
   },
   {
     toolId: 'hyperframe',
-    checkName: 'node_package_metadata_hyperframe',
-    packageName: 'hyperframe',
-    packageJsonPath: 'hyperframe/package.json',
+    checkName: 'source_metadata_hyperframe_bridge',
+    packageName: 'Hyperframe metadata boundary',
+    packageJsonPath: '',
+    sourcePath: 'server/workers/timeline/hyperframe-timeline-bridge.ts',
     optional: true,
     metadataOnly: true,
-    notes: ['Hyperframe remains a timeline/preview boundary; do not import browser runtime.'],
+    notes: ['Hyperframe remains a timeline/preview boundary; prove internal bridge source instead of importing browser runtime or a package.'],
   },
 ]
 

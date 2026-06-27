@@ -13,7 +13,7 @@ Milestone 10 extends production readiness with safe CPU/render checks while pres
 - FFmpeg and ffprobe version checks;
 - safe libass support inspection;
 - Python import checks for PyAV, PySceneDetect, OpenCV headless, DuckDB, Polars, OpenTimelineIO, and optional color packages;
-- Node package metadata checks for Sharp, Remotion, and Hyperframe if present.
+- Node package metadata checks for Sharp and Remotion, plus an internal Hyperframe bridge source-boundary check.
 
 Real check mode must not run media processing, frontend/browser runtime, GPU/model packages, model-weight checks, provider calls, or render/export jobs.
 

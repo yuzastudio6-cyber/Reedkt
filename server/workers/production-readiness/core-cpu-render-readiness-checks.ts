@@ -233,7 +233,9 @@ function runNodePackageCheck(
   checkedAt: string,
 ): CoreToolReadinessCheckResult {
   try {
-    const resolvedPath = resolvePackageMetadataPath(definition)
+    const resolvedPath = definition.sourcePath
+      ? resolveSourceMetadataPath(definition)
+      : resolvePackageMetadataPath(definition)
     return {
       toolId: definition.toolId,
       checkKind: 'node_package_metadata',
@@ -241,10 +243,12 @@ function runNodePackageCheck(
       status: 'passed',
       optional: definition.optional,
       manualReviewRequired: false,
-      message: `${definition.packageName} package metadata is resolvable without importing runtime code.`,
+      message: definition.sourcePath
+        ? `${definition.packageName} source boundary is present without importing runtime code.`
+        : `${definition.packageName} package metadata is resolvable without importing runtime code.`,
       detail: resolvedPath,
       packageName: definition.packageName,
-      importName: definition.packageJsonPath,
+      importName: definition.sourcePath ?? definition.packageJsonPath,
       checkedAt,
     }
   } catch (error) {
@@ -256,13 +260,22 @@ function runNodePackageCheck(
       status: definition.optional ? 'not_installed' : 'missing',
       optional: definition.optional,
       manualReviewRequired: false,
-      message: `${definition.packageName} package metadata is not currently resolvable.`,
+      message: definition.sourcePath
+        ? `${definition.packageName} source boundary is not currently resolvable.`
+        : `${definition.packageName} package metadata is not currently resolvable.`,
       detail: cleanDetail(failed.message),
       packageName: definition.packageName,
-      importName: definition.packageJsonPath,
+      importName: definition.sourcePath ?? definition.packageJsonPath,
       checkedAt,
     }
   }
+}
+
+function resolveSourceMetadataPath(definition: CoreToolNodePackageCheckDefinition): string {
+  if (!definition.sourcePath) throw new Error(`${definition.packageName} source path is not configured.`)
+  const candidate = join(process.cwd(), definition.sourcePath)
+  if (!existsSync(candidate)) throw new Error(`${definition.packageName} source boundary is missing: ${definition.sourcePath}`)
+  return candidate
 }
 
 function resolvePackageMetadataPath(definition: CoreToolNodePackageCheckDefinition): string {

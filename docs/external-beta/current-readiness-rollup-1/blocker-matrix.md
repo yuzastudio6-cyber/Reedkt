@@ -13,8 +13,8 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Worker RPC 4R | `main_target_schema_present_pending_runtime_validation` | guarded main-target service-role/runtime readback |
 | Service-role route runtime | `not_run_pending_route_specific_guarded_write_validation` | guarded backend-only service-role route write/readback validation |
 | Approved snapshot persistence | `completed_approved_snapshot_persistence_guarded_remote_write_readback` | carry forward transaction-rolled-back remote write/readback evidence |
-| Credit reservation ledger | `ready_for_guarded_remote_write_readback_validation` | guarded internal ledger mutation/readback evidence |
-| Job queue leases/events | `blocked_pending_service_role_runtime_validation` | guarded job record/lease/event validation |
+| Credit reservation ledger | `completed_credit_reservation_ledger_guarded_remote_write_readback` | carry forward transaction-rolled-back credit reservation/ledger readback evidence |
+| Job queue leases/events | `ready_for_guarded_remote_write_readback_validation` | guarded job record/lease/event validation |
 | Private artifact storage/access | `blocked_pending_private_storage_runtime_validation` | private bucket/readback/access evidence |
 | Remotion private preview/export | `blocked_pending_render_worker_runtime_validation` | private preview/export evidence, no public artifacts |
 | Provider/model calls | `blocked_pending_provider_owner_runtime_approval` | backend-only disabled-by-default policy and explicit approval |
@@ -26,7 +26,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1`
+`RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -72,11 +72,27 @@ The confirmed runner used `set local role service_role` inside a generated valid
 
 Run ID: `2026-06-27T00-00-12-289Z-7f5e51bd`. Report checksum: `aa4d16b57305072242427398a5f2c3fadf6637490d08f4a76466087b269cb865`. Manifest checksum: `36edc2f5c48567da9ccd5860ce6b634858465933e974c9bec64bc2d59bfd73ed`.
 
-Service-role route execution remains `not_run_pending_route_specific_guarded_write_validation`. Credit reservation ledger is now `ready_for_guarded_remote_write_readback_validation`.
+Service-role route execution remains `not_run_pending_route_specific_guarded_write_validation`. Credit reservation ledger is now `completed_credit_reservation_ledger_guarded_remote_write_readback`.
 
 Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next recommended milestone: `RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1`.
+
+## RP External Beta Credit Reservation Ledger Guarded Remote Write 1
+
+`RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1` records decision `completed_credit_reservation_ledger_guarded_remote_write_readback` and execution `completed_guarded_transaction_rolled_back_credit_reservation_ledger_write_readback`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+The confirmed runner used `set local role service_role` inside a generated validation transaction, inserted/read back a credit wallet, credit grant, credit approval, approved snapshot, credit reservation, credit ledger entry, and audit event, validated ledger append-only update rejection, rolled the transaction back, and validated residue counts as `0`.
+
+Run ID: `2026-06-27T00-12-50-200Z-34a19fc2`. Report checksum: `ccbcd02a4264d0ecb1cba7394d7c9344e8c24ab3b3fe7f7ff5f21f385536044c`. Manifest checksum: `a2f6f7cb204903bb3bcca354fc9d5a649353330a8ef93a152bab560c331d7782`.
+
+Service-role route execution remains `not_run_pending_route_specific_guarded_write_validation`. Job queue leases/events are now `ready_for_guarded_remote_write_readback_validation`.
+
+Product-ready end-to-end local OSS tools: `0`. Internal beta unlocked: `false`. External beta unlocked: `false`. Production unlocked: `false`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

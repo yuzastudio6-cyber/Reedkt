@@ -124,6 +124,17 @@ const approvedSnapshotGuardedRemoteWriteFiles = [
   'scripts/validation/rp-external-beta-approved-snapshot-persistence-guarded-remote-write-1-diagnostics.mjs',
 ]
 
+const creditReservationLedgerGuardedRemoteWriteFiles = [
+  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/source-audit.md',
+  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/validation-results.md',
+  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/readiness-gate.md',
+  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/safety-boundary.md',
+  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/runtime-validation-record.json',
+  'docs/activation-phase-rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-results.md',
+  'scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -355,11 +366,12 @@ const followOnApprovedSnapshotServiceRolePersistenceImplementation1Files = [
 
 const requiredText = [
   packet,
-  'blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_remote_write_readback',
+  'blocked_external_product_beta_pending_remaining_runtime_gates_after_credit_ledger_remote_write_readback',
   'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution',
   'completed_reeditpro_main_supabase_target_migration_history_sync',
   'completed_main_supabase_service_role_runtime_grant_boundary_validation',
   'completed_approved_snapshot_persistence_guarded_remote_write_readback',
+  'completed_credit_reservation_ledger_guarded_remote_write_readback',
   'source_aligned_and_up_to_date_through_20260626224600',
   'Remote database is up to date.',
   'No schema errors found',
@@ -371,14 +383,14 @@ const requiredText = [
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  'RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1',
+  'RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1',
   'residue counts as `0`',
   'fajinbvwhcjnutkaumkm` is no longer an active target and no data was copied from it',
   '20260626163138_public_production_edit_session_brief_qwen_gates.sql',
   '20260626224600_worker_runtime_fail_retry_count_lint_fix.sql',
   '20260626233000_external_beta_public_grant_hardening.sql',
   'PR #577 remains open/draft/blocked and excluded',
-  'Remote Supabase mutation for the preceding sync, service-role validation, and approved snapshot validation packets was limited to guarded staging migration apply, guarded public grant hardening, and a transaction-rolled-back generated approved snapshot fixture on the single main Reeditpro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project and approved snapshot validation residue readback was `0`.',
+  'Remote Supabase mutation for the preceding sync, service-role validation, approved snapshot validation, and credit ledger validation packets was limited to guarded staging migration apply, guarded public grant hardening, a transaction-rolled-back generated approved snapshot fixture, and a transaction-rolled-back generated credit reservation and ledger fixture on the single main Reeditpro project `wmyyttnynmteqgcdishd`; no data was copied from the isolated project and approved snapshot plus credit ledger residue readback was `0`.',
 ]
 
 const forbiddenPatterns = [
@@ -455,7 +467,7 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_remote_write_readback') fail('record decision mismatch')
+if (record.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_credit_ledger_remote_write_readback') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
 if (record.statuses?.externalProductBeta !== 'blocked') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
@@ -468,12 +480,21 @@ if (record.mainSupabaseTarget?.unsafePublicSequenceGrantCount !== 0) fail('main 
 if (record.mainSupabaseTarget?.approvedSnapshotPersistence !== 'completed_approved_snapshot_persistence_guarded_remote_write_readback') fail('approved snapshot persistence status mismatch')
 if (record.mainSupabaseTarget?.approvedSnapshotPersistentRowsCreated !== false) fail('approved snapshot persistent rows flag mismatch')
 if (record.mainSupabaseTarget?.approvedSnapshotRollbackResidueCount !== 0) fail('approved snapshot residue count mismatch')
+if (record.mainSupabaseTarget?.creditReservationLedger !== 'completed_credit_reservation_ledger_guarded_remote_write_readback') fail('credit reservation ledger status mismatch')
+if (record.mainSupabaseTarget?.creditReservationLedgerPersistentRowsCreated !== false) fail('credit ledger persistent rows flag mismatch')
+if (record.mainSupabaseTarget?.creditReservationLedgerRollbackResidueCount !== 0) fail('credit ledger residue count mismatch')
+if (record.mainSupabaseTarget?.creditLedgerAppendOnlyUpdateRejection !== 'passed') fail('credit ledger append-only status mismatch')
 if (record.mainSupabaseTarget?.isolatedSandboxActive !== false) fail('isolated sandbox must not be active')
 if (record.mainSupabaseTarget?.isolatedSandboxDataCopied !== false) fail('isolated sandbox data copy must be false')
-if (record.safety?.supabaseMutation !== 'guarded_main_staging_migration_apply_grant_hardening_and_transaction_rolled_back_snapshot_fixture_only') fail('Supabase mutation scope mismatch')
-if (record.safety?.sqlMutation !== 'guarded_main_staging_migration_apply_grant_hardening_and_transaction_rolled_back_snapshot_fixture_only') fail('SQL mutation scope mismatch')
+if (record.safety?.supabaseMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_and_transaction_rolled_back_credit_fixture_only') fail('Supabase mutation scope mismatch')
+if (record.safety?.sqlMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_and_transaction_rolled_back_credit_fixture_only') fail('SQL mutation scope mismatch')
 if (record.safety?.migrationApply !== 'guarded_main_staging_migration_apply_and_grant_hardening_only') fail('migration apply scope mismatch')
 if (record.safety?.persistentRowsCreated !== false) fail('persistent rows flag mismatch')
+if (record.safety?.persistentCreditMutation !== false) fail('persistent credit mutation flag mismatch')
+if (record.safety?.persistentCreditReservationCreation !== false) fail('persistent credit reservation flag mismatch')
+if (record.safety?.creditSpend !== false) fail('credit spend flag mismatch')
+if (record.safety?.jobEnqueue !== false) fail('job enqueue flag mismatch')
+if (record.safety?.jobEventWrite !== false) fail('job event write flag mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
@@ -492,6 +513,7 @@ const allowed = new Set([
   ...mainTargetMigrationSyncFiles,
   ...mainSupabaseServiceRoleRuntimeValidationFiles,
   ...approvedSnapshotGuardedRemoteWriteFiles,
+  ...creditReservationLedgerGuardedRemoteWriteFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -537,6 +559,6 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_remote_write_readback')
+console.log('Decision: blocked_external_product_beta_pending_remaining_runtime_gates_after_credit_ledger_remote_write_readback')
 console.log('External product beta: blocked')
-console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_and_transaction_rolled_back_snapshot_fixture_only')
+console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_and_transaction_rolled_back_credit_fixture_only')

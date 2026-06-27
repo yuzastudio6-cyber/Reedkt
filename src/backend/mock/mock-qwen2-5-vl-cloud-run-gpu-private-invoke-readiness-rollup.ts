@@ -18,6 +18,7 @@ import { QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR } from './m
 import { QWEN2_5_VL_CONTROLLED_BACKEND_DISPATCH_DRY_RUN_RESULT } from './mock-qwen2-5-vl-controlled-backend-dispatch-dry-run-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_PLAN } from './mock-qwen2-5-vl-backend-runtime-persistence-plan'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_SCHEMA_DRAFT_REVIEW } from './mock-qwen2-5-vl-backend-runtime-persistence-schema-draft-review'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_MIGRATION_DRAFT } from './mock-qwen2-5-vl-backend-runtime-persistence-migration-draft'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -44,6 +45,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_plan_required'
   | 'blocked_backend_runtime_persistence_schema_draft_required'
   | 'blocked_backend_runtime_persistence_migration_draft_required'
+  | 'blocked_backend_runtime_persistence_local_validation_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -60,7 +62,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_schema_draft_reviewed_migration_draft_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_migration_draft_recorded_local_validation_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -101,6 +103,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_PLAN.decision,
   upstreamBackendRuntimePersistenceSchemaDraftReviewDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_SCHEMA_DRAFT_REVIEW.decision,
+  upstreamBackendRuntimePersistenceMigrationDraftDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_MIGRATION_DRAFT.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -404,12 +408,23 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_migration_draft',
       label: 'Backend runtime persistence migration draft',
-      status: 'blocked_backend_runtime_persistence_migration_draft_required',
+      status: 'ready',
       evidence: [
-        'The next code step can draft Qwen runtime persistence constraints and local SQL tests without deploying migrations.',
+        'Backend runtime persistence migration draft is recorded.',
+        'Draft SQL extends existing ReEditPro runtime surfaces instead of creating a parallel Qwen queue.',
+        'Draft local SQL tests cover Qwen job payload refs, sanitized events, non-secret runtime configs, leases, runtime messages, claim attempts, qwen_vl tool runtime checks, one-active claim/lease indexes, signed URL source-of-truth rejection, and raw prompt column rejection.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_local_validation',
+      label: 'Backend runtime persistence local validation',
+      status: 'blocked_backend_runtime_persistence_local_validation_required',
+      evidence: [
+        'The next code step can validate the Qwen persistence draft against an approved local database harness without deploying migrations.',
       ],
       missingEvidence: [
-        'Draft migration and test SQL must encode the reviewed Qwen worker/job type, idempotency scope, claim/lease constraints, sanitized JSON payload checks, private source-of-truth refs, RLS/service-role write boundaries, credit failure handling, observability, and cleanup while keeping Cloud Run, inference, generated assets, beta, and production disabled.',
+        'Local validation must apply the draft and tests only in an approved local/non-production database, record sanitized results, clean up safely, and keep Cloud Run, inference, generated assets, beta, and production disabled.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -549,7 +564,9 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistencePlanRecorded: true,
     backendRuntimePersistenceSchemaDraftRequired: false,
     backendRuntimePersistenceSchemaDraftReviewRecorded: true,
-    backendRuntimePersistenceMigrationDraftRequired: true,
+    backendRuntimePersistenceMigrationDraftRequired: false,
+    backendRuntimePersistenceMigrationDraftRecorded: true,
+    backendRuntimePersistenceLocalValidationRequired: true,
     readyForRealWorkerDispatch: false,
     structuredFixtureOutputSchemaValid: true,
     structuredFixtureOutputParsedJson: true,
@@ -567,11 +584,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_migration_draft_required',
+    'backend_runtime_persistence_local_validation_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58O-BACKEND-RUNTIME-PERSISTENCE-MIGRATION-DRAFT: draft Qwen runtime persistence constraints and local SQL tests, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58P-BACKEND-RUNTIME-PERSISTENCE-LOCAL-VALIDATION: validate Qwen persistence draft against an approved local database, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

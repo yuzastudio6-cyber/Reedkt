@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_migration_draft_required',
-  'Private invoke client status must record the backend runtime persistence migration draft blocker.',
+  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_validation_required',
+  'Private invoke client status must record the backend runtime persistence local validation blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -168,9 +168,9 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_migration_draft_required') ||
-    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_migration_draft_required',
-  'Doc/data must record backend runtime persistence migration draft blocker status.',
+    docText.includes('backend_runtime_persistence_local_validation_required') ||
+    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_validation_required',
+  'Doc/data must record backend runtime persistence local validation blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
 check(docText.includes('`schemaKeys=[]`'), 'Doc must record the empty schema-key metadata.')
@@ -211,8 +211,12 @@ check(
   'Doc must record backend runtime persistence schema review acceptance.',
 )
 check(
-  docText.includes('User-facing readiness remains blocked until a migration draft and local SQL tests encode those constraints'),
-  'Doc must record migration draft as the remaining blocker.',
+  docText.includes('Backend runtime persistence migration draft and local SQL tests are recorded'),
+  'Doc must record migration draft evidence as recorded.',
+)
+check(
+  docText.includes('User-facing readiness remains blocked until local validation applies the draft and tests'),
+  'Doc must record local validation as the remaining blocker.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

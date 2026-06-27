@@ -20,7 +20,18 @@ const requiredFiles = [
   'package.json',
 ]
 
-const allowedFiles = new Set(requiredFiles)
+const followOnQwenRollupFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-stack-integration-rollup-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-stack-integration-rollup-1/qwen-stack-decision.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-stack-integration-rollup-1/source-import-plan.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-stack-integration-rollup-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-stack-integration-rollup-1/qwen2-5-vl-stack-rollup-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-stack-integration-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-structured-output-source-import-1.md',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-stack-integration-rollup-1-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([...requiredFiles, ...followOnQwenRollupFiles])
 
 const requiredText = [
   packet,

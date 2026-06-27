@@ -145,6 +145,7 @@ Latest observed PR state after source-candidate manifest binding: [#862](https:/
 Latest observed PR state after runtime-enqueue GPU activation policy hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `19f58f8da027065fdbffd8727a0ee212cc213cd6`, with an empty check rollup.
 - Follow-up model-weight manifest authoring checklist hardening updates the scaffold CLI to emit local-only checklist JSON and Markdown support files next to the placeholder manifests. The checklist carries selected source candidates, required manifest fields, review booleans, private namespace rules, source evidence refs, and validation commands; manifest discovery ignores the support JSON so it cannot be accepted as duplicate manifest evidence.
 Latest observed PR state after model-weight manifest authoring checklist hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `7aee0546a58b81977fe7735672f5d1e714912b9f`, with an empty check rollup.
+- Follow-up model-weight checksum guidance hardening updates the source catalog, scaffold packet, scaffold checklist, and diagnostics so SAM2 and BiRefNet carry existing internal aggregate SHA-256 guidance, Real-ESRGAN carries existing internal file SHA-256 guidance, and rembg/transparent-background remain blocked pending reviewed private artifact SHA-256 evidence. Placeholder manifests remain invalid and no private manifest, model download/load/inference, GPU runtime, beta, or production unlock occurs.
 
 ## Expected Validation
 

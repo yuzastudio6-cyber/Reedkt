@@ -13,6 +13,8 @@ This catalog narrows the GPU/model-weight path for the 8 heavy AI graphics tools
 - Foundation GPU tools without standalone model-weight manifests: `torch_torchvision`, `transformers`, `kornia`.
 - Model-weight source catalog tools: `sam2`, `birefnet`, `real_esrgan`, `rembg`, `transparent_background`.
 - Internal staging-evidence-backed model-weight candidates: 3 (`sam2`, `birefnet`, `real_esrgan`).
+- Suggested private manifest SHA-256 values from existing internal evidence: 3.
+- Private artifact SHA-256 still required from reviewed artifact bytes: 2 (`rembg`, `transparent_background`).
 - Private manifests approved now: 0.
 - Beta-ready model-weight tools: 0.
 
@@ -29,11 +31,11 @@ GPU capacity remains future worker-only and starts only for an approved proof co
 
 | Tool | Candidate | Status | Existing Evidence | Next Action |
 | --- | --- | --- | --- | --- |
-| `sam2` | `facebook_sam2_1_hiera_tiny_existing_staging_evidence` | internal evidence verified; private manifest still required | `server/activation/sam2-runtime/sam2-runtime-policy.ts`, `server/activation/sam2-runtime/approved-sam2-runtime-evidence.ts` | Convert existing SAM2.1 tiny evidence into a reviewed private manifest using an accepted private namespace, then run native L4 proof. |
-| `birefnet` | `zhengpeng7_birefnet_official_weights_review_candidate` | internal evidence verified; private manifest still required | `server/activation/mask-model-approval/mask-model-candidate-registry.ts`, `server/activation/mask-model-approval/mask-model-license-evidence.ts`, `server/activation/mask-model-download/approved-mask-model-download-evidence.ts` | Convert existing Phase 33 BiRefNet staging evidence into a reviewed private manifest using an accepted private namespace, then run native L4 proof. |
-| `real_esrgan` | `xinntao_real_esrgan_x4plus` | internal evidence verified; private manifest still required | `server/activation/enhancement-model-approval/enhancement-model-candidate-registry.ts`, `server/activation/enhancement-model-approval/enhancement-model-license-evidence.ts` | Create reviewed private RealESRGAN_x4plus manifest with checksum and review evidence, then run native L4 proof. |
-| `rembg` | `danielgatis_rembg_isnet_general_use_review_candidate` | source candidate selected; review required | none | Review DIS/rembg `isnet-general-use.onnx` license/provenance and cutout quality, checksum private artifact tree, record `U2NET_HOME` cache layout, create private manifest, then run native L4 proof. |
-| `transparent_background` | `plemeri_transparent_background_base_ckpt_review_candidate` | source candidate selected; review required | none | Review transparent-background/InSPyReNet `ckpt_base.pth` license/provenance/quality/security, verify upstream MD5 before private manifest approval, checksum private artifact tree, then run native L4 proof. |
+| `sam2` | `facebook_sam2_1_hiera_tiny_existing_staging_evidence` | internal evidence verified; private manifest still required | `45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2` from `existing_internal_aggregate_sha256`; must match reviewed private artifact | Convert existing SAM2.1 tiny evidence into a reviewed private manifest using an accepted private namespace, then run native L4 proof. |
+| `birefnet` | `zhengpeng7_birefnet_official_weights_review_candidate` | internal evidence verified; private manifest still required | `1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7` from `existing_internal_aggregate_sha256`; must match reviewed private artifact | Convert existing Phase 33 BiRefNet staging evidence into a reviewed private manifest using an accepted private namespace, then run native L4 proof. |
+| `real_esrgan` | `xinntao_real_esrgan_x4plus` | internal evidence verified; private manifest still required | `4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1` from `existing_internal_file_sha256`; must match reviewed private artifact | Create reviewed private RealESRGAN_x4plus manifest with checksum and review evidence, then run native L4 proof. |
+| `rembg` | `danielgatis_rembg_isnet_general_use_review_candidate` | source candidate selected; review required | `requires_private_artifact_sha256` | Review DIS/rembg `isnet-general-use.onnx` license/provenance and cutout quality, checksum private artifact tree, record `U2NET_HOME` cache layout, create private manifest, then run native L4 proof. |
+| `transparent_background` | `plemeri_transparent_background_base_ckpt_review_candidate` | source candidate selected; review required | `requires_private_artifact_sha256`; upstream MD5 remains source evidence only | Review transparent-background/InSPyReNet `ckpt_base.pth` license/provenance/quality/security, verify upstream MD5 before private manifest approval, checksum private artifact tree, then run native L4 proof. |
 
 ## Source URLs
 
@@ -56,6 +58,7 @@ GPU capacity remains future worker-only and starts only for an approved proof co
 - Private artifact refs must use `private://`, `reeditpro-private://`, or `reeditpro-private-artifact-ref-`; public, signed, HTTP(S), raw `gs://`, and arbitrary placeholder refs remain rejected as manifest inputs.
 - SAM2 existing `gs://` staging evidence is recorded only as internal source evidence, not an accepted manifest `privateArtifactRef`.
 - Exact private namespace refs, model-card/provenance refs, quality review, security review, and owner beta approval remain required. BiRefNet, SAM2, and Real-ESRGAN have staging checksum/source evidence that must still be converted into reviewed private manifest records.
+- Suggested checksum values do not approve private manifests. Each value must match the reviewed private artifact tree or file before the manifest can pass validation; `rembg` and `transparent_background` still require a reviewed private artifact SHA-256.
 - Native linux/amd64 NVIDIA L4 proof remains required before any model load or inference.
 
 ## Private Manifest Preparation Plan
@@ -79,6 +82,9 @@ The catalog now separates source readiness from runtime readiness:
 - `existingEvidenceCanAuthor3PrivateManifestDrafts`: true.
 - `sourceSelectionStillBlocks2PrivateManifestDrafts`: false.
 - `sourceReviewStillBlocks2PrivateManifestDrafts`: true.
+- `existingEvidenceChecksumSuggestionsRecorded`: true.
+- `privateArtifactSha256StillRequiredFor2`: true.
+- `suggestedChecksumsDoNotApprovePrivateManifest`: true.
 - `agentCanSelectForPlanning`: true.
 - `agentCanExecuteToolsNow`: false.
 - `routeExecutionApprovedNow`: false.

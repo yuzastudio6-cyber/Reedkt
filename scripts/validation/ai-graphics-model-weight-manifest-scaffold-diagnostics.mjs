@@ -56,6 +56,20 @@ const expectedArtifactFileNames = {
   transparent_background: 'ckpt_base.pth',
 }
 
+const expectedSuggestedChecksums = {
+  sam2: '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',
+  birefnet: '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
+  real_esrgan: '4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1',
+}
+
+const expectedSuggestedChecksumSources = {
+  sam2: 'existing_internal_aggregate_sha256',
+  birefnet: 'existing_internal_aggregate_sha256',
+  real_esrgan: 'existing_internal_file_sha256',
+  rembg: 'requires_private_artifact_sha256',
+  transparent_background: 'requires_private_artifact_sha256',
+}
+
 const failures = []
 
 function fail(message) {
@@ -207,12 +221,36 @@ for (const tool of modelWeightTools) {
   if (sourceCandidate && scaffoldFile?.sourceCandidateGuidance?.candidateId !== sourceCandidate.candidateId) {
     fail(`packet_candidate_guidance_not_sourced_from_catalog:${tool}`)
   }
+  if (scaffoldFile?.sourceCandidateGuidance?.suggestedPrivateManifestChecksumSource !== expectedSuggestedChecksumSources[tool]) {
+    fail(`packet_candidate_guidance_checksum_source_mismatch:${tool}:${scaffoldFile?.sourceCandidateGuidance?.suggestedPrivateManifestChecksumSource}`)
+  }
+  if (scaffoldFile?.sourceCandidateGuidance?.checksumStillMustMatchReviewedPrivateArtifact !== true) {
+    fail(`packet_candidate_guidance_checksum_private_match_not_true:${tool}`)
+  }
+  if (expectedSuggestedChecksums[tool]) {
+    if (scaffoldFile?.sourceCandidateGuidance?.suggestedPrivateManifestChecksumSha256 !== expectedSuggestedChecksums[tool]) {
+      fail(`packet_candidate_guidance_checksum_mismatch:${tool}:${scaffoldFile?.sourceCandidateGuidance?.suggestedPrivateManifestChecksumSha256}`)
+    }
+  } else if (scaffoldFile?.sourceCandidateGuidance?.suggestedPrivateManifestChecksumSha256) {
+    fail(`packet_candidate_guidance_blocked_tool_has_checksum:${tool}`)
+  }
   if (expectedArtifactFileNames[tool] && scaffoldFile?.sourceCandidateGuidance?.artifactFileName !== expectedArtifactFileNames[tool]) {
     fail(`packet_candidate_guidance_artifact_mismatch:${tool}:${scaffoldFile?.sourceCandidateGuidance?.artifactFileName}`)
   }
 }
 if (!JSON.stringify(packet.scaffoldFiles || []).includes('d692e3dd5fa1b9658949d452bebf1cda')) {
   fail('packet_missing_transparent_background_upstream_md5')
+}
+for (const [tool, checksum] of Object.entries(expectedSuggestedChecksums)) {
+  if (!JSON.stringify(packet.scaffoldFiles || []).includes(checksum)) {
+    fail(`packet_missing_suggested_checksum:${tool}`)
+  }
+}
+if (!markdown.includes('Suggested checksum guidance is included for local authoring')) {
+  fail('markdown_missing_checksum_guidance_section')
+}
+if (!markdown.includes('These suggestions do not approve private manifests')) {
+  fail('markdown_missing_checksum_non_approval_scope')
 }
 if (!JSON.stringify(packet.scaffoldFiles || []).includes('blocked_until_source_review_accepts_selected_candidate')) {
   fail('packet_missing_source_review_block_status')
@@ -235,6 +273,19 @@ for (const tool of modelWeightTools) {
   if (!checklistItem?.acceptedPrivateArtifactRefNamespaces?.includes('private://')) {
     fail(`packet_checklist_missing_private_namespace:${tool}`)
   }
+  if (checklistItem?.suggestedPrivateManifestChecksumSource !== expectedSuggestedChecksumSources[tool]) {
+    fail(`packet_checklist_checksum_source_mismatch:${tool}:${checklistItem?.suggestedPrivateManifestChecksumSource}`)
+  }
+  if (checklistItem?.checksumStillMustMatchReviewedPrivateArtifact !== true) {
+    fail(`packet_checklist_checksum_private_match_not_true:${tool}`)
+  }
+  if (expectedSuggestedChecksums[tool]) {
+    if (checklistItem?.suggestedPrivateManifestChecksumSha256 !== expectedSuggestedChecksums[tool]) {
+      fail(`packet_checklist_checksum_mismatch:${tool}:${checklistItem?.suggestedPrivateManifestChecksumSha256}`)
+    }
+  } else if (checklistItem?.suggestedPrivateManifestChecksumSha256) {
+    fail(`packet_checklist_blocked_tool_has_checksum:${tool}`)
+  }
   if (checklistItem?.localOnly !== true || checklistItem?.committedManifestApproved !== false) {
     fail(`packet_checklist_scope_mismatch:${tool}`)
   }
@@ -248,6 +299,8 @@ for (const token of [
   'sourceCandidateGuidanceForTool',
   'sourceCandidateIdForTool',
   'manifestAuthoringChecklistPrepared',
+  'suggestedPrivateManifestChecksumSha256',
+  'checksumStillMustMatchReviewedPrivateArtifact',
   'upstreamArtifactChecksumMd5ByTool',
   'blocked_until_source_review_accepts_selected_candidate',
   'public://replace-with-reviewed-private-artifact-ref',
@@ -335,6 +388,11 @@ if (!JSON.stringify(scaffoldRun.scaffoldRecords || []).includes('ckpt_base.pth')
 if (!JSON.stringify(scaffoldRun.scaffoldRecords || []).includes('d692e3dd5fa1b9658949d452bebf1cda')) {
   fail('scaffold_run_missing_transparent_background_md5_guidance')
 }
+for (const [tool, checksum] of Object.entries(expectedSuggestedChecksums)) {
+  if (!JSON.stringify(scaffoldRun.scaffoldRecords || []).includes(checksum)) {
+    fail(`scaffold_run_missing_suggested_checksum:${tool}`)
+  }
+}
 
 for (const tool of modelWeightTools) {
   const filePath = manifestPath(scaffoldDir, tool)
@@ -390,6 +448,25 @@ for (const tool of modelWeightTools) {
   if (!checklistItem?.validationCommands?.some((command) => command.includes('gpu-runtime-proof-command-plan'))) {
     fail(`scaffold_checklist_missing_gpu_command_plan:${tool}`)
   }
+  if (checklistItem?.suggestedPrivateManifestChecksumSource !== expectedSuggestedChecksumSources[tool]) {
+    fail(`scaffold_checklist_checksum_source_mismatch:${tool}:${checklistItem?.suggestedPrivateManifestChecksumSource}`)
+  }
+  if (checklistItem?.checksumStillMustMatchReviewedPrivateArtifact !== true) {
+    fail(`scaffold_checklist_checksum_private_match_not_true:${tool}`)
+  }
+  if (expectedSuggestedChecksums[tool]) {
+    if (checklistItem?.suggestedPrivateManifestChecksumSha256 !== expectedSuggestedChecksums[tool]) {
+      fail(`scaffold_checklist_checksum_mismatch:${tool}:${checklistItem?.suggestedPrivateManifestChecksumSha256}`)
+    }
+  } else if (checklistItem?.suggestedPrivateManifestChecksumSha256) {
+    fail(`scaffold_checklist_blocked_tool_has_checksum:${tool}`)
+  }
+}
+for (const checksum of Object.values(expectedSuggestedChecksums)) {
+  if (!checklistMarkdown.includes(checksum)) fail(`scaffold_checklist_markdown_missing_checksum:${checksum}`)
+}
+if (!checklistMarkdown.includes('requires_private_artifact_sha256')) {
+  fail('scaffold_checklist_markdown_missing_private_checksum_required_status')
 }
 
 let scaffoldValidationOutput = ''
@@ -527,6 +604,7 @@ console.log(JSON.stringify({
   invalidScaffoldRecordsProvided: scaffoldValidation.manifestRecordsProvided,
   validNestedManifestStatus: validValidation.nativeGpuProofInputEligibleRecords === 5,
   commandPlanStatus: commandPlan.nativeGpuProofInputStatus,
+  suggestedPrivateManifestChecksumsFromExistingEvidence: Object.keys(expectedSuggestedChecksums).length,
   privateArtifactRefsLogged: packet.counts?.privateArtifactRefsLogged,
   runtimeReadyNow: packet.booleans?.runtimeReadyNow,
 }, null, 2))

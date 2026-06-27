@@ -35,6 +35,16 @@ Each scaffold record is linked to the current model-weight source catalog so loc
 - `rembg`: `danielgatis_rembg_isnet_general_use_review_candidate`, artifact candidate `isnet-general-use.onnx`; blocked until source/license/checksum/provenance/quality/security review accepts the selected candidate.
 - `transparent_background`: `plemeri_transparent_background_base_ckpt_review_candidate`, artifact candidate `ckpt_base.pth`, upstream MD5 `d692e3dd5fa1b9658949d452bebf1cda`; blocked until source/license/checksum/provenance/quality/security review accepts the selected candidate.
 
+Suggested checksum guidance is included for local authoring:
+
+- `sam2`: `45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2` from `existing_internal_aggregate_sha256`.
+- `birefnet`: `1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7` from `existing_internal_aggregate_sha256`.
+- `real_esrgan`: `4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1` from `existing_internal_file_sha256`.
+- `rembg`: `requires_private_artifact_sha256`.
+- `transparent_background`: `requires_private_artifact_sha256`; the upstream MD5 remains source evidence only.
+
+Each suggested checksum must still match the reviewed private artifact before a manifest can pass review. These suggestions do not approve private manifests, model downloads, model loading, inference, GPU runtime, beta, or production.
+
 Generated placeholder records include `sourceCandidateId` set to the selected candidate above. The review validator and native GPU readiness probe reject records whose `sourceCandidateId` does not match the source catalog.
 
 ## Authoring Checklist
@@ -49,6 +59,8 @@ The checklist records, per tool:
 - required manifest fields
 - required review booleans
 - source evidence refs, where available
+- suggested private manifest checksum source and SHA-256 where existing internal evidence provides one
+- `checksumStillMustMatchReviewedPrivateArtifact=true`
 - validation commands for the manifest review and GPU proof command-plan steps
 
 This closes the handoff gap between source selection and private manifest

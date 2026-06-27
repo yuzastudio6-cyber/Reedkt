@@ -61,6 +61,9 @@
         "upstreamSourceUrl": "https://github.com/facebookresearch/sam2",
         "artifactFileName": "sam2.1_hiera_tiny.pt",
         "modelIdOrName": "sam2.1_hiera_tiny",
+        "suggestedPrivateManifestChecksumSha256": "45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2",
+        "suggestedPrivateManifestChecksumSource": "existing_internal_aggregate_sha256",
+        "checksumStillMustMatchReviewedPrivateArtifact": true,
         "privateManifestAuthoringStatus": "ready_from_existing_internal_evidence_after_private_ref_authoring"
       }
     },
@@ -77,6 +80,9 @@
         "upstreamSourceUrl": "https://huggingface.co/ZhengPeng7/BiRefNet",
         "sourceCodeUrl": "https://github.com/ZhengPeng7/BiRefNet",
         "modelIdOrName": "ZhengPeng7/BiRefNet",
+        "suggestedPrivateManifestChecksumSha256": "1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7",
+        "suggestedPrivateManifestChecksumSource": "existing_internal_aggregate_sha256",
+        "checksumStillMustMatchReviewedPrivateArtifact": true,
         "privateManifestAuthoringStatus": "ready_from_existing_internal_evidence_after_private_ref_authoring"
       }
     },
@@ -94,6 +100,9 @@
         "artifactSourceUrl": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth",
         "artifactFileName": "RealESRGAN_x4plus.pth",
         "modelIdOrName": "RealESRGAN_x4plus",
+        "suggestedPrivateManifestChecksumSha256": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
+        "suggestedPrivateManifestChecksumSource": "existing_internal_file_sha256",
+        "checksumStillMustMatchReviewedPrivateArtifact": true,
         "privateManifestAuthoringStatus": "ready_from_existing_internal_evidence_after_private_ref_authoring"
       }
     },
@@ -112,6 +121,8 @@
         "artifactSourceUrl": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx",
         "artifactFileName": "isnet-general-use.onnx",
         "modelIdOrName": "isnet-general-use",
+        "suggestedPrivateManifestChecksumSource": "requires_private_artifact_sha256",
+        "checksumStillMustMatchReviewedPrivateArtifact": true,
         "privateManifestAuthoringStatus": "blocked_until_source_review_accepts_selected_candidate"
       }
     },
@@ -131,6 +142,8 @@
         "artifactFileName": "ckpt_base.pth",
         "modelIdOrName": "transparent-background base mode ckpt_base.pth",
         "upstreamArtifactChecksumMd5": "d692e3dd5fa1b9658949d452bebf1cda",
+        "suggestedPrivateManifestChecksumSource": "requires_private_artifact_sha256",
+        "checksumStillMustMatchReviewedPrivateArtifact": true,
         "privateManifestAuthoringStatus": "blocked_until_source_review_accepts_selected_candidate"
       }
     }
@@ -150,6 +163,9 @@
         "server/activation/sam2-runtime/sam2-runtime-policy.ts",
         "server/activation/sam2-runtime/approved-sam2-runtime-evidence.ts"
       ],
+      "suggestedPrivateManifestChecksumSha256": "45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2",
+      "suggestedPrivateManifestChecksumSource": "existing_internal_aggregate_sha256",
+      "checksumStillMustMatchReviewedPrivateArtifact": true,
       "validationCommands": [
         "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
         "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
@@ -172,6 +188,9 @@
         "server/activation/mask-model-approval/mask-model-license-evidence.ts",
         "server/activation/mask-model-download/approved-mask-model-download-evidence.ts"
       ],
+      "suggestedPrivateManifestChecksumSha256": "1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7",
+      "suggestedPrivateManifestChecksumSource": "existing_internal_aggregate_sha256",
+      "checksumStillMustMatchReviewedPrivateArtifact": true,
       "validationCommands": [
         "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
         "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
@@ -194,6 +213,9 @@
         "server/activation/enhancement-model-approval/enhancement-model-license-evidence.ts",
         "server/activation/enhancement-model-download/approved-enhancement-model-download-evidence.ts"
       ],
+      "suggestedPrivateManifestChecksumSha256": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
+      "suggestedPrivateManifestChecksumSource": "existing_internal_file_sha256",
+      "checksumStillMustMatchReviewedPrivateArtifact": true,
       "validationCommands": [
         "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
         "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
@@ -212,6 +234,8 @@
       "requiredManifestFields": ["manifestId", "toolId", "templateId", "sourceCandidateId", "privateArtifactRef", "checksumSha256", "sourceLicenseRef", "modelCardRef", "commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
       "requiredReviewBooleans": ["commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
       "sourceEvidenceRefs": [],
+      "suggestedPrivateManifestChecksumSource": "requires_private_artifact_sha256",
+      "checksumStillMustMatchReviewedPrivateArtifact": true,
       "validationCommands": [
         "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
         "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
@@ -230,6 +254,8 @@
       "requiredManifestFields": ["manifestId", "toolId", "templateId", "sourceCandidateId", "privateArtifactRef", "checksumSha256", "sourceLicenseRef", "modelCardRef", "commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
       "requiredReviewBooleans": ["commercialUseReviewed", "redistributionReviewed", "qualityReviewed", "securityReviewed", "provenanceReviewed", "approvedForInternalBeta"],
       "sourceEvidenceRefs": [],
+      "suggestedPrivateManifestChecksumSource": "requires_private_artifact_sha256",
+      "checksumStillMustMatchReviewedPrivateArtifact": true,
       "validationCommands": [
         "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
         "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""

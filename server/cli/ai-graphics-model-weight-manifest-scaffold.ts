@@ -62,6 +62,11 @@ function checklistMarkdown(packet: AiGraphicsModelWeightManifestScaffoldPacket):
     lines.push(`- Local manifest path: \`${item.localOnlyManifestPath}\``)
     lines.push(`- Runtime manifest path: \`${item.expectedRuntimeManifestPath}\``)
     lines.push(`- Accepted private refs: \`${item.acceptedPrivateArtifactRefNamespaces.join('`, `')}\``)
+    lines.push(`- Suggested checksum source: \`${item.suggestedPrivateManifestChecksumSource}\``)
+    if (item.suggestedPrivateManifestChecksumSha256) {
+      lines.push(`- Suggested checksum SHA-256: \`${item.suggestedPrivateManifestChecksumSha256}\``)
+    }
+    lines.push(`- Checksum must match reviewed private artifact: ${item.checksumStillMustMatchReviewedPrivateArtifact}`)
     lines.push(`- Committed manifest approved: ${item.committedManifestApproved}`)
     lines.push(`- Next action: ${item.nextAction}`)
     if (item.sourceEvidenceRefs.length > 0) {

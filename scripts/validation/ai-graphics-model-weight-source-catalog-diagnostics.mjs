@@ -46,6 +46,20 @@ const expectedUrls = {
   transparent_background: 'https://github.com/plemeri/transparent-background',
 }
 
+const expectedSuggestedChecksums = {
+  sam2: '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',
+  birefnet: '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
+  real_esrgan: '4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1',
+}
+
+const expectedSuggestedChecksumSources = {
+  sam2: 'existing_internal_aggregate_sha256',
+  birefnet: 'existing_internal_aggregate_sha256',
+  real_esrgan: 'existing_internal_file_sha256',
+  rembg: 'requires_private_artifact_sha256',
+  transparent_background: 'requires_private_artifact_sha256',
+}
+
 const errors = []
 
 function fail(message) {
@@ -114,6 +128,10 @@ if (catalog.counts?.sourceCandidatesCovered !== 5) fail('source_candidate_count_
 if (catalog.counts?.internalEvidenceBackedCandidates !== 3) fail('internal_evidence_candidate_count_not_3')
 if (catalog.counts?.sourceIdentifiedReviewRequiredCandidates !== 2) fail('source_identified_review_candidate_count_not_2')
 if (catalog.counts?.sourceMenuSelectionRequiredCandidates !== 0) fail('source_menu_selection_candidate_count_not_0')
+if (catalog.counts?.suggestedPrivateManifestChecksumsFromExistingEvidence !== 3) {
+  fail('suggested_checksum_count_not_3')
+}
+if (catalog.counts?.privateArtifactSha256StillRequired !== 2) fail('private_artifact_sha256_required_count_not_2')
 if (catalog.counts?.readyForPrivateManifestAuthoringFromExistingEvidence !== 3) {
   fail('private_manifest_authoring_ready_count_not_3')
 }
@@ -140,6 +158,19 @@ for (const tool of sourceTools) {
   if (candidate.candidateId !== expectedCandidates[tool]) fail(`candidate_id_mismatch:${tool}:${candidate.candidateId}`)
   if (candidate.candidateStatus !== expectedStatuses[tool]) fail(`candidate_status_mismatch:${tool}:${candidate.candidateStatus}`)
   if (candidate.upstreamSourceUrl !== expectedUrls[tool]) fail(`candidate_url_mismatch:${tool}:${candidate.upstreamSourceUrl}`)
+  if (candidate.suggestedPrivateManifestChecksumSource !== expectedSuggestedChecksumSources[tool]) {
+    fail(`candidate_suggested_checksum_source_mismatch:${tool}:${candidate.suggestedPrivateManifestChecksumSource}`)
+  }
+  if (candidate.checksumStillMustMatchReviewedPrivateArtifact !== true) {
+    fail(`candidate_checksum_match_private_artifact_not_true:${tool}`)
+  }
+  if (manifestReadyTools.includes(tool)) {
+    if (candidate.suggestedPrivateManifestChecksumSha256 !== expectedSuggestedChecksums[tool]) {
+      fail(`candidate_suggested_checksum_mismatch:${tool}:${candidate.suggestedPrivateManifestChecksumSha256}`)
+    }
+  } else if (candidate.suggestedPrivateManifestChecksumSha256) {
+    fail(`candidate_blocked_tool_has_suggested_checksum:${tool}`)
+  }
   if (candidate.privateManifestStatus !== 'missing_reviewed_private_artifact_ref_namespace') fail(`private_manifest_status_wrong:${tool}`)
   for (const key of [
     'approvedForInternalBetaNow',
@@ -200,6 +231,9 @@ if (!JSON.stringify(catalog.sourceCandidates || []).includes('e2bf8e4460fc8fa32b
 if (!JSON.stringify(catalog.sourceCandidates || []).includes('mit_source_claim_requires_owner_manifest_record')) fail('birefnet_mit_license_claim_missing')
 if (!JSON.stringify(catalog.sourceCandidates || []).includes('raw gs:// refs remain source evidence')) fail('sam2_gcs_source_evidence_warning_missing')
 if (!JSON.stringify(catalog.sourceCandidates || []).includes('RealESRGAN_x4plus.pth')) fail('real_esrgan_release_asset_missing')
+if (!JSON.stringify(catalog.sourceCandidates || []).includes('5cee93bc531570df59a772293ecae30f89c4519f93478cbb74ddce9f0e9bb4a5')) {
+  fail('real_esrgan_existing_internal_aggregate_missing')
+}
 if (!JSON.stringify(catalog.sourceCandidates || []).includes('https://github.com/plemeri/InSPyReNet')) fail('inspyrenet_source_url_missing')
 if (!JSON.stringify(catalog.sourceCandidates || []).includes('isnet-general-use.onnx')) fail('rembg_isnet_general_use_missing')
 if (!JSON.stringify(catalog.sourceCandidates || []).includes('https://github.com/xuebinqin/DIS')) fail('rembg_dis_source_missing')
@@ -226,6 +260,9 @@ for (const key of [
   'privateManifestPreparationPlanPrepared',
   'existingEvidenceCanAuthor3PrivateManifestDrafts',
   'sourceReviewStillBlocks2PrivateManifestDrafts',
+  'existingEvidenceChecksumSuggestionsRecorded',
+  'privateArtifactSha256StillRequiredFor2',
+  'suggestedChecksumsDoNotApprovePrivateManifest',
   'privateManifestReviewStillRequired',
   'privateArtifactRefNamespaceRequired',
   'checksumReviewStillRequired',
@@ -282,6 +319,8 @@ for (const needle of [
   'buildAiGraphicsModelWeightPrivateManifestPreparationPlan',
   'privateManifestStatus',
   'privateManifestPreparationPlan',
+  'suggestedPrivateManifestChecksumSha256',
+  'checksumStillMustMatchReviewedPrivateArtifact',
   'source_menu_identified_selection_required',
   'sourceReviewStillBlocks2PrivateManifestDrafts',
   'ready_for_private_manifest_authoring_from_existing_evidence',
@@ -301,6 +340,9 @@ for (const phrase of [
   'Private manifests approved now: 0',
   'ready_for_private_manifest_authoring_from_existing_evidence',
   'blocked_pending_source_selection_or_review',
+  'Suggested private manifest SHA-256 values from existing internal evidence: 3',
+  'requires_private_artifact_sha256',
+  'Suggested checksum values do not approve private manifests',
   'model-weight-manifest-review:validate',
   'Beta-ready model-weight tools: 0',
   'GPU capacity remains future worker-only',
@@ -374,6 +416,8 @@ console.log(JSON.stringify({
   modelWeightSourceCatalogTools: catalog.counts.modelWeightSourceCatalogTools,
   sourceCandidatesCovered: catalog.counts.sourceCandidatesCovered,
   internalEvidenceBackedCandidates: catalog.counts.internalEvidenceBackedCandidates,
+  suggestedPrivateManifestChecksumsFromExistingEvidence: catalog.counts.suggestedPrivateManifestChecksumsFromExistingEvidence,
+  privateArtifactSha256StillRequired: catalog.counts.privateArtifactSha256StillRequired,
   readyForPrivateManifestAuthoringFromExistingEvidence: catalog.counts.readyForPrivateManifestAuthoringFromExistingEvidence,
   blockedPendingSourceSelectionOrReview: catalog.counts.blockedPendingSourceSelectionOrReview,
   privateManifestsApprovedNow: catalog.counts.privateManifestsApprovedNow,

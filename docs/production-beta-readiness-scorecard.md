@@ -32,7 +32,11 @@ approved now remain 0, beta-ready model-weight tools remain 0, and no model
 download/load/inference, worker execution, runtime, beta, or production unlock
 occurs. The catalog also records that SAM2, BiRefNet, and Real-ESRGAN can
 author local-only private manifest drafts from existing evidence, while rembg
-and transparent-background remain blocked pending source review.
+and transparent-background remain blocked pending source review. SAM2, BiRefNet,
+and Real-ESRGAN now include suggested private manifest SHA-256 guidance from
+existing internal evidence; these suggestions do not approve private manifests
+and must still match reviewed private artifacts. rembg and
+transparent-background still require reviewed private artifact SHA-256 evidence.
 
 AI graphics internal beta go/no-go decision
 `ai_graphics_internal_beta_go_no_go_contract_prepared_with_runtime_blocks`

@@ -5,6 +5,7 @@ import type {
 } from './ai-graphics-model-weight-manifest-readiness'
 import {
   listAiGraphicsModelWeightSourceCandidates,
+  type AiGraphicsModelWeightSuggestedPrivateManifestChecksumSource,
   type AiGraphicsModelWeightSourceCandidateStatus,
   type AiGraphicsModelWeightSourceReviewStatus,
 } from './ai-graphics-model-weight-source-catalog'
@@ -43,6 +44,9 @@ export interface AiGraphicsModelWeightManifestAuthoringChecklistItem {
     'approvedForInternalBeta',
   ]
   sourceEvidenceRefs: string[]
+  suggestedPrivateManifestChecksumSha256?: string
+  suggestedPrivateManifestChecksumSource: AiGraphicsModelWeightSuggestedPrivateManifestChecksumSource
+  checksumStillMustMatchReviewedPrivateArtifact: true
   validationCommands: [
     'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
     'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
@@ -63,6 +67,9 @@ export interface AiGraphicsModelWeightManifestScaffoldSourceCandidateGuidance {
   artifactFileName?: string
   upstreamArtifactChecksumMd5?: string
   modelIdOrName: string
+  suggestedPrivateManifestChecksumSha256?: string
+  suggestedPrivateManifestChecksumSource: AiGraphicsModelWeightSuggestedPrivateManifestChecksumSource
+  checksumStillMustMatchReviewedPrivateArtifact: true
   checksumEvidenceStatus: string
   licenseClaim: string
   reviewRequiredBeforePrivateManifest: true
@@ -232,6 +239,9 @@ function sourceCandidateGuidanceForTool(
     artifactFileName: sourceCandidate.artifactFileName,
     upstreamArtifactChecksumMd5: upstreamArtifactChecksumMd5ByTool[toolId],
     modelIdOrName: sourceCandidate.modelIdOrName,
+    suggestedPrivateManifestChecksumSha256: sourceCandidate.suggestedPrivateManifestChecksumSha256,
+    suggestedPrivateManifestChecksumSource: sourceCandidate.suggestedPrivateManifestChecksumSource,
+    checksumStillMustMatchReviewedPrivateArtifact: true,
     checksumEvidenceStatus: sourceCandidate.checksumEvidenceStatus,
     licenseClaim: sourceCandidate.licenseClaim,
     reviewRequiredBeforePrivateManifest: true,
@@ -257,6 +267,9 @@ function authoringChecklistItemForTool(
     requiredReviewBooleans: [...requiredReviewBooleans],
     sourceEvidenceRefs: listAiGraphicsModelWeightSourceCandidates()
       .find((candidate) => candidate.toolId === record.toolId)?.existingInternalEvidenceRefs ?? [],
+    suggestedPrivateManifestChecksumSha256: record.sourceCandidateGuidance.suggestedPrivateManifestChecksumSha256,
+    suggestedPrivateManifestChecksumSource: record.sourceCandidateGuidance.suggestedPrivateManifestChecksumSource,
+    checksumStillMustMatchReviewedPrivateArtifact: true,
     validationCommands: [
       'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
       'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',

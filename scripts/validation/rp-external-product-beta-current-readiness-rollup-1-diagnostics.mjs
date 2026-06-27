@@ -16,6 +16,7 @@ const requiredFiles = [
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs',
   'package.json',
 ]
 
@@ -217,6 +218,18 @@ const qaCleanupObservabilityRollbackReviewFiles = [
   'docs/activation-phase-rp-external-beta-qa-cleanup-observability-rollback-review-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-release-go-no-go-1.md',
   'scripts/validation/rp-external-beta-qa-cleanup-observability-rollback-review-1-diagnostics.mjs',
+]
+
+const releaseGoNoGoFiles = [
+  'docs/external-beta/release-go-no-go-1/source-audit.md',
+  'docs/external-beta/release-go-no-go-1/release-boundary.md',
+  'docs/external-beta/release-go-no-go-1/readiness-gate.md',
+  'docs/external-beta/release-go-no-go-1/safety-boundary.md',
+  'docs/external-beta/release-go-no-go-1/release-decision-record.json',
+  'docs/external-beta/release-go-no-go-1/validation-results.md',
+  'docs/activation-phase-rp-external-beta-release-go-no-go-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-enablement-1.md',
+  'scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs',
 ]
 
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
@@ -450,7 +463,7 @@ const followOnApprovedSnapshotServiceRolePersistenceImplementation1Files = [
 
 const requiredText = [
   packet,
-  'blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review',
+  'approved_external_beta_release_go_no_go_source_chain_accepted',
   'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution',
   'completed_reeditpro_main_supabase_target_migration_history_sync',
   'completed_main_supabase_service_role_runtime_grant_boundary_validation',
@@ -472,7 +485,8 @@ const requiredText = [
   'Unsafe public mutation grants: `0`',
   'Unsafe public sequence grants: `0`',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'External product beta status: `blocked`',
+  'External product beta readiness: `ready_for_controlled_external_beta_enablement`',
+  'External beta unlocked in this packet: `false`',
   'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
@@ -490,6 +504,7 @@ const requiredText = [
   'Backend-only provider adapters: `required`',
   'RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1',
   'RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1',
+  'RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1',
   'source_evidence_review_passed_ready_for_release_go_no_go',
   'ephemeral_fixture_cleanup_evidence_passed_ready_for_release_go_no_go',
   'audit_manifest_checksum_status_evidence_passed_ready_for_release_go_no_go',
@@ -591,9 +606,9 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review') fail('record decision mismatch')
+if (record.decision !== 'approved_external_beta_release_go_no_go_source_chain_accepted') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
-if (record.statuses?.externalProductBeta !== 'blocked') fail('external beta status mismatch')
+if (record.statuses?.externalProductBeta !== 'ready_for_controlled_external_beta_enablement') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.mainSupabaseTarget?.projectRef !== 'wmyyttnynmteqgcdishd') fail('main target ref mismatch')
@@ -646,6 +661,7 @@ if (record.mainSupabaseTarget?.remotionPrivatePreviewExportManifestSha256 !== '2
 if (record.mainSupabaseTarget?.remotionPrivatePreviewExportQaReportSha256 !== '847efc9202c556f394d17df16a6a9250513f4106c6b3ebe884a453caaa8e5879') fail('Remotion QA checksum mismatch')
 if (record.sourceClosure?.providerModelCallPolicyClosure !== 'rp_external_beta_provider_model_call_policy_closure_1') fail('provider policy closure source mismatch')
 if (record.sourceClosure?.qaCleanupObservabilityRollbackReview !== 'rp_external_beta_qa_cleanup_observability_rollback_review_1') fail('QA cleanup review source mismatch')
+if (record.sourceClosure?.releaseGoNoGo !== 'rp_external_beta_release_go_no_go_1') fail('release go/no-go source mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
 if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
@@ -668,7 +684,11 @@ if (record.mainSupabaseTarget?.cleanupReview !== 'ephemeral_fixture_cleanup_evid
 if (record.mainSupabaseTarget?.observabilityReview !== 'audit_manifest_checksum_status_evidence_passed_ready_for_release_go_no_go') fail('observability review mismatch')
 if (record.mainSupabaseTarget?.rollbackReview !== 'transaction_rollback_and_fixture_residue_evidence_passed_ready_for_release_go_no_go') fail('rollback review mismatch')
 if (record.mainSupabaseTarget?.securityPrivacySupportCostDeploymentReview !== 'reviewed_pending_release_go_no_go_operator_acceptance') fail('security/privacy/support/cost/deployment review mismatch')
-if (record.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1') fail('release go/no-go next decision mismatch')
+if (record.mainSupabaseTarget?.releaseGoNoGo !== 'approved_external_beta_release_go_no_go_source_chain_accepted') fail('release go/no-go status mismatch')
+if (record.mainSupabaseTarget?.externalBetaUnlock !== false) fail('external beta unlock must remain false')
+if (record.mainSupabaseTarget?.controlledEnablementRequired !== true) fail('controlled enablement required flag mismatch')
+if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1') fail('next milestone mismatch')
+if (record.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1') fail('controlled enablement next decision mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteReportSha256 !== '25772fc0efe3d6d1aa699a1408ec621cc7df0dbe13bb52fe526b3939030fbb65') fail('service-role route report checksum mismatch')
@@ -710,7 +730,8 @@ if (record.safety?.remotionExecution !== 'confirmation_gated_generated_local_rem
 if (record.safety?.directFfmpegCommandExecutionByRunner !== false) fail('direct FFmpeg command flag mismatch')
 if (record.safety?.ffprobeExecution !== false) fail('FFprobe flag mismatch')
 if (record.safety?.qaCleanupObservabilityRollbackReviewRuntimeExecution !== false) fail('QA cleanup review runtime flag mismatch')
-if (record.safety?.releaseGoNoGoApproved !== false) fail('release go/no-go approval flag mismatch')
+if (record.safety?.releaseGoNoGoApproved !== true) fail('release go/no-go approval flag mismatch')
+if (record.safety?.controlledExternalBetaEnablement !== false) fail('controlled external beta enablement flag mismatch')
 if (record.safety?.privateMediaProcessing !== false) fail('private media processing flag mismatch')
 if (record.safety?.userMediaProcessing !== false) fail('user media processing flag mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
@@ -729,6 +750,12 @@ if (
 ) {
   fail('missing QA cleanup diagnostics script')
 }
+if (
+  packageJson.scripts?.['rp-external-beta-release-go-no-go-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs'
+) {
+  fail('missing release go/no-go diagnostics script')
+}
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
@@ -745,6 +772,7 @@ const allowed = new Set([
   ...remotionPrivatePreviewExportRuntimeValidationFiles,
   ...providerModelCallPolicyClosureFiles,
   ...qaCleanupObservabilityRollbackReviewFiles,
+  ...releaseGoNoGoFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -790,6 +818,7 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review')
-console.log('External product beta: blocked')
+console.log('Decision: approved_external_beta_release_go_no_go_source_chain_accepted')
+console.log('External product beta readiness: ready_for_controlled_external_beta_enablement')
+console.log('External beta unlocked: false')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

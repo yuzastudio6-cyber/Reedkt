@@ -1,14 +1,16 @@
 # Activation Phase: RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Results
 
-Decision: `blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review`
+Decision: `approved_external_beta_release_go_no_go_source_chain_accepted`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `f011452aeba9f4c32208cea8b3305df5b892c8bb`
+Current integration head: `d365e1195690daabe00edf10c95b13f62bfd3c7c`
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
-External product beta status: `blocked`
+External product beta readiness: `ready_for_controlled_external_beta_enablement`
+
+External beta unlocked in this packet: `false`
 
 Paid production status: `blocked`
 
@@ -46,9 +48,11 @@ The Supabase target credential/target-validation lane has moved past the missing
 
 `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1` records decision `completed_external_beta_qa_cleanup_observability_rollback_review_no_runtime_execution` and execution `completed_docs_only_qa_cleanup_observability_rollback_review_no_runtime_execution`. QA review is `source_evidence_review_passed_ready_for_release_go_no_go`; cleanup review is `ephemeral_fixture_cleanup_evidence_passed_ready_for_release_go_no_go`; observability review is `audit_manifest_checksum_status_evidence_passed_ready_for_release_go_no_go`; rollback review is `transaction_rollback_and_fixture_residue_evidence_passed_ready_for_release_go_no_go`; security/privacy/support/cost/deployment review is `reviewed_pending_release_go_no_go_operator_acceptance`.
 
-The active blocker is now `blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review`. Therefore external product beta remains blocked until `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1` explicitly accepts or rejects the reviewed source chain for external beta.
+`RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1` records decision `approved_external_beta_release_go_no_go_source_chain_accepted` and execution `completed_docs_only_release_go_no_go_no_runtime_unlock`. The release go/no-go packet accepts the reviewed source chain for controlled external beta enablement planning. It does not itself toggle, deploy, run workers/routes/providers, mutate Supabase, run SQL, create signed/public artifacts, process media, or unlock production.
 
-Next safe action: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.
+Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked.
+
+Next safe action: `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`.
 
 ## Safety
 

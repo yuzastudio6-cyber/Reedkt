@@ -17,8 +17,16 @@ const requiredFiles = [
   `${packetDir}/validation-results.md`,
   'docs/activation-phase-rp-external-beta-qa-cleanup-observability-rollback-review-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-release-go-no-go-1.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-enablement-1.md',
   'docs/implementation-prompts/prompt-rp-external-beta-qa-cleanup-observability-rollback-review-1.md',
   'docs/implementation-prompts/prompt-rp-external-product-beta-current-readiness-rollup-1-next.md',
+  'docs/external-beta/release-go-no-go-1/source-audit.md',
+  'docs/external-beta/release-go-no-go-1/release-boundary.md',
+  'docs/external-beta/release-go-no-go-1/readiness-gate.md',
+  'docs/external-beta/release-go-no-go-1/safety-boundary.md',
+  'docs/external-beta/release-go-no-go-1/release-decision-record.json',
+  'docs/external-beta/release-go-no-go-1/validation-results.md',
+  'docs/activation-phase-rp-external-beta-release-go-no-go-1-results.md',
   'docs/external-beta/current-readiness-rollup-1/readiness-gate.md',
   'docs/external-beta/current-readiness-rollup-1/source-of-truth-audit.md',
   'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
@@ -29,6 +37,7 @@ const requiredFiles = [
   'implementation-status-and-next-phase.md',
   'scripts/validation/rp-external-beta-qa-cleanup-observability-rollback-review-1-diagnostics.mjs',
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs',
   'package.json',
 ]
 
@@ -70,7 +79,6 @@ const forbiddenPatterns = [
   /externalBetaUnlock"?\s*:\s*true/i,
   /internalBetaUnlock"?\s*:\s*true/i,
   /productionUnlock"?\s*:\s*true/i,
-  /releaseGoNoGoApproved"?\s*:\s*true/i,
   /providerCall"?\s*:\s*true/i,
   /modelCall"?\s*:\s*true/i,
   /workerExecution"?\s*:\s*true/i,
@@ -202,7 +210,11 @@ if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review') fail('rollup decision mismatch')
+const acceptedRollupDecisions = new Set([
+  'blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review',
+  'approved_external_beta_release_go_no_go_source_chain_accepted',
+])
+if (!acceptedRollupDecisions.has(rollup.decision)) fail('rollup decision mismatch')
 if (rollup.sourceClosure?.qaCleanupObservabilityRollbackReview !== 'rp_external_beta_qa_cleanup_observability_rollback_review_1') fail('rollup source closure missing')
 if (rollup.mainSupabaseTarget?.qaCleanupObservabilityRollbackReview !== 'completed_external_beta_qa_cleanup_observability_rollback_review_no_runtime_execution') fail('rollup QA review status mismatch')
 if (rollup.mainSupabaseTarget?.qaReview !== 'source_evidence_review_passed_ready_for_release_go_no_go') fail('rollup QA review mismatch')
@@ -210,9 +222,19 @@ if (rollup.mainSupabaseTarget?.cleanupReview !== 'ephemeral_fixture_cleanup_evid
 if (rollup.mainSupabaseTarget?.observabilityReview !== 'audit_manifest_checksum_status_evidence_passed_ready_for_release_go_no_go') fail('rollup observability review mismatch')
 if (rollup.mainSupabaseTarget?.rollbackReview !== 'transaction_rollback_and_fixture_residue_evidence_passed_ready_for_release_go_no_go') fail('rollup rollback review mismatch')
 if (rollup.mainSupabaseTarget?.securityPrivacySupportCostDeploymentReview !== 'reviewed_pending_release_go_no_go_operator_acceptance') fail('rollup security/privacy review mismatch')
-if (rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1') fail('rollup next decision mismatch')
+if (rollup.decision === 'approved_external_beta_release_go_no_go_source_chain_accepted') {
+  if (rollup.sourceClosure?.releaseGoNoGo !== 'rp_external_beta_release_go_no_go_1') fail('rollup release source closure missing')
+  if (rollup.statuses?.externalProductBeta !== 'ready_for_controlled_external_beta_enablement') fail('rollup post-release readiness mismatch')
+  if (rollup.mainSupabaseTarget?.releaseGoNoGo !== 'approved_external_beta_release_go_no_go_source_chain_accepted') fail('rollup release status mismatch')
+  if (rollup.mainSupabaseTarget?.externalBetaUnlock !== false) fail('rollup external beta unlock must remain false')
+  if (rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1') fail('rollup controlled enablement next decision mismatch')
+  if (rollup.safety?.releaseGoNoGoApproved !== true) fail('rollup release approval flag mismatch')
+  if (rollup.safety?.controlledExternalBetaEnablement !== false) fail('rollup controlled enablement flag mismatch')
+} else {
+  if (rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1') fail('rollup next decision mismatch')
+  if (rollup.safety?.releaseGoNoGoApproved !== false) fail('rollup release approval flag mismatch')
+}
 if (rollup.safety?.qaCleanupObservabilityRollbackReviewRuntimeExecution !== false) fail('rollup QA review runtime flag mismatch')
-if (rollup.safety?.releaseGoNoGoApproved !== false) fail('rollup release approval flag mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
 if (
@@ -220,6 +242,12 @@ if (
   'node scripts/validation/rp-external-beta-qa-cleanup-observability-rollback-review-1-diagnostics.mjs'
 ) {
   fail('missing package diagnostics script')
+}
+if (
+  packageJson.scripts?.['rp-external-beta-release-go-no-go-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs'
+) {
+  fail('missing release go/no-go diagnostics script')
 }
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })

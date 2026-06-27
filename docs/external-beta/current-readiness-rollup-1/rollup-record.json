@@ -1,8 +1,8 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review",
+  "decision": "approved_external_beta_release_go_no_go_source_chain_accepted",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
-  "integrationHead": "f011452aeba9f4c32208cea8b3305df5b892c8bb",
+  "integrationHead": "d365e1195690daabe00edf10c95b13f62bfd3c7c",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
     "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
@@ -17,11 +17,12 @@
     "pr577": "open_draft_blocked_excluded",
     "remotionPrivatePreviewExportRuntimeValidation": "rp_external_beta_remotion_private_preview_export_runtime_validation_1",
     "providerModelCallPolicyClosure": "rp_external_beta_provider_model_call_policy_closure_1",
-    "qaCleanupObservabilityRollbackReview": "rp_external_beta_qa_cleanup_observability_rollback_review_1"
+    "qaCleanupObservabilityRollbackReview": "rp_external_beta_qa_cleanup_observability_rollback_review_1",
+    "releaseGoNoGo": "rp_external_beta_release_go_no_go_1"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
-    "externalProductBeta": "blocked",
+    "externalProductBeta": "ready_for_controlled_external_beta_enablement",
     "paidProduction": "blocked",
     "finalDeliveryExport": "blocked",
     "productReadyEndToEndLocalOssTools": 0
@@ -109,13 +110,17 @@
     "cleanupReview": "ephemeral_fixture_cleanup_evidence_passed_ready_for_release_go_no_go",
     "observabilityReview": "audit_manifest_checksum_status_evidence_passed_ready_for_release_go_no_go",
     "rollbackReview": "transaction_rollback_and_fixture_residue_evidence_passed_ready_for_release_go_no_go",
-    "securityPrivacySupportCostDeploymentReview": "reviewed_pending_release_go_no_go_operator_acceptance"
+    "securityPrivacySupportCostDeploymentReview": "reviewed_pending_release_go_no_go_operator_acceptance",
+    "releaseGoNoGo": "approved_external_beta_release_go_no_go_source_chain_accepted",
+    "externalBetaUnlock": false,
+    "controlledEnablementRequired": true,
+    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1"
   },
   "requiredNextOwnerDecision": [
-    "RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1",
-    "external_beta_release_go_no_go",
-    "operator_approval_required",
-    "continue_blocked"
+    "RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1",
+    "controlled_external_beta_enablement",
+    "exact_flag_runtime_boundary_required",
+    "rollback_path_required"
   ],
   "safety": {
     "supabaseMutation": "guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_private_storage_json_fixture_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only",
@@ -163,7 +168,8 @@
     "directFfmpegCommandExecutionByRunner": false,
     "ffprobeExecution": false,
     "qaCleanupObservabilityRollbackReviewRuntimeExecution": false,
-    "releaseGoNoGoApproved": false
+    "releaseGoNoGoApproved": true,
+    "controlledExternalBetaEnablement": false
   },
   "packageLock": "unchanged",
   "generatedArtifactsCommitted": "none"

@@ -49,16 +49,21 @@ const requiredText = [
 const allowedPrefixes = [
   'docs/external-beta/tester-account-membership-smoke-1/',
   'docs/external-beta/current-readiness-rollup-1/',
+  'docs/external-beta/controlled-tester-product-flow-smoke-1/',
 ]
 
 const allowedExact = new Set([
   'docs/activation-phase-rp-external-beta-tester-account-membership-smoke-1-results.md',
+  'docs/activation-phase-rp-external-beta-controlled-tester-product-flow-smoke-1-results.md',
   'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-tester-account-membership-smoke-1.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-tester-ui-flow-smoke-1.md',
   'docs/implementation-prompts/prompt-rp-external-product-beta-current-readiness-rollup-1-next.md',
   'package.json',
   'scripts/validation/rp-external-beta-tester-account-membership-smoke-1.mjs',
   'scripts/validation/rp-external-beta-tester-account-membership-smoke-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-tester-account-membership-gate-readback-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-owner-member-smoke-readback-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-controlled-private-invite-iam-grant-1r-diagnostics.mjs',

@@ -1,14 +1,14 @@
 # Activation Phase: RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Results
 
-Decision: `completed_owner_approved_tester_account_membership_smoke_external_beta_controlled_testing_ready`
+Decision: `completed_controlled_tester_product_flow_smoke_external_beta_owner_walkthrough_ready`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `8295b650cb4f207c372e8724d76d7554b95702a6`
+Current integration head: `5513c610ede7f96995b8b2f5da748064dca95ade`
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
-External product beta readiness: `ready_for_owner_approved_controlled_external_beta_testing`
+External product beta readiness: `ready_for_controlled_owner_tester_product_walkthrough`
 
 External beta enabled in this phase: `true`
 
@@ -70,9 +70,11 @@ The Supabase target credential/target-validation lane has moved past the missing
 
 `RP-EXTERNAL-BETA-TESTER-ACCOUNT-MEMBERSHIP-SMOKE-1` records decision `completed_owner_approved_tester_account_membership_smoke` and execution `completed_guarded_cloud_run_auth_readback_no_mutation`. The user clarified that `aiediting@reeditpro.com` is the real tester account. The guarded smoke classified it as `owner_approved_primary_real_tester_account`, preserved unauthenticated `/health` as `403`, and confirmed authenticated `/health`, `/ready`, and `/api/runtime/status` returned `200`. Run ID: `2026-06-27T15-05-37-588Z-5b451f5c`. Report SHA-256: `f6611d7c0ed9fb4693e44fa3ebade02d107ed539319cc7aebf63555bd12446ca`. Manifest SHA-256: `35cb90ef7935109a9b1d90d9bd7bf2308e8f87a8b314e7ac21cdcfbe21dd2b40`.
 
+`RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1` records decision `completed_external_beta_controlled_tester_product_flow_smoke` and execution `completed_guarded_authenticated_tester_mock_product_flow_smoke_no_persistent_runtime_mutation`. The guarded smoke used `aiediting@reeditpro.com`, preserved unauthenticated `/health` as `blocked_403`, read `/api/routes` as `200`, verified `109` total routes and `67` mock-ready routes, ran mock chat-native planning to `approve_plan_and_credits`, read a mock credit estimate of `18` credits, verified the mock job gate stayed blocked, and confirmed real plan approval and preview render routes stayed blocked as `424 backend_runtime_required`. Run ID: `2026-06-27T15-34-26-957Z-dbe78e9d`. Report SHA-256: `ed4be5c34449725443592cf1bcf459b5847601b229abacb48018c36a56f86522`. Manifest SHA-256: `a0b67ee1a562d5f3c2d91678eb7dd4bc6dd1bab814b615abd0055c43a3cd187e`.
+
 Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked.
 
-Next safe action: run a controlled tester product-flow smoke with `aiediting@reeditpro.com` while preserving group-only staging access and without public access, providers, workers, paid billing, broad media, or production.
+Next safe action: run a controlled tester UI flow smoke with `aiediting@reeditpro.com` while preserving group-only staging access and without public access, providers, workers, paid billing, broad media, or production.
 
 ## Safety
 

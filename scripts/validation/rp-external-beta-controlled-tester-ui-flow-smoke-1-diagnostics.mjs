@@ -38,6 +38,7 @@ const productFlowFiles = [
 ]
 
 const followOnDeployedBrowserUiSurfaceFiles = [
+  '.dockerignore',
   'Dockerfile.backend',
   'src/server/server-router.ts',
   'docs/external-beta/deployed-browser-ui-surface-1/source-audit.md',

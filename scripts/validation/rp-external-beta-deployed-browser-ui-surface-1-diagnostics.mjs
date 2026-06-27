@@ -20,6 +20,7 @@ const packetFiles = [
 ]
 
 const implementationFiles = [
+  '.dockerignore',
   'Dockerfile.backend',
   'src/server/server-router.ts',
   'scripts/validation/rp-external-beta-deployed-browser-ui-surface-1.mjs',
@@ -175,6 +176,11 @@ for (const key of [
 const dockerfile = read('Dockerfile.backend')
 if (!dockerfile.includes('RUN npm run build && npm run build:server')) fail('Dockerfile does not build frontend dist before server')
 if (!dockerfile.includes('COPY --from=build /app/dist ./dist')) fail('Dockerfile does not copy frontend dist into runtime image')
+
+const dockerignore = read('.dockerignore')
+if (!dockerignore.includes('!src/backend/providers/gateway/provider-secret-boundary.ts')) {
+  fail('.dockerignore must allow the provider secret-boundary source module required by frontend typecheck')
+}
 
 const router = read('src/server/server-router.ts')
 for (const text of [

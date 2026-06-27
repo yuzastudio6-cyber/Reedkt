@@ -11,6 +11,7 @@ import { QWEN25_PRIVATE_INVOKE_AUTH_REVERIFY_RESULT } from '../activation/qwen2-
 import { QWEN25_PRIVATE_INVOKE_AUTHZ_FIX_RESULT } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-authz-fix-result'
 import { QWEN25_PRIVATE_INVOKE_ROUTING_FIX_RESULT } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-routing-fix-result'
 import { QWEN25_PRIVATE_INVOKE_TOKEN_PATH_FIX_RESULT } from '../activation/qwen2-5-vl-cloud-run-gpu-private-invoke-token-path-fix-result'
+import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-source'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -19,9 +20,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_cpu_only_internal_caller_source_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_cpu_only_internal_caller_deploy_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_55C-PRIVATE-INVOKE-CPU-CALLER-SOURCE: add CPU-only internal caller harness source, no deploy/no inference'
+  'QWEN2_5_VL_STACK_TOOL_55D-PRIVATE-INVOKE-CPU-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -86,7 +87,9 @@ function assertRollupFalseFlags(flags: JsonRecord) {
     'privateInvokeReady',
     'privateInvokeSmokeExecuted',
     'defaultSubnetPrivateGoogleAccess',
-    'cpuOnlyCallerImageDefined',
+    'cpuOnlyCallerImageBuilt',
+    'cpuOnlyCallerImagePushed',
+    'cpuOnlyCallerImageDeployed',
     'directVpcEgressConfigured',
     'privateGoogleAccessChanged',
     'internalCallerHarnessDeployed',
@@ -150,11 +153,13 @@ function expectThrows(action: () => unknown, message: string) {
 for (const file of [
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md',
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-frontend-client.md',
+  'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-cpu-caller-source.md',
   'docs/qwen2-5-vl-7b-private-invoke-auth-reverify-result.md',
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-authz-fix-result.md',
   'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-routing-fix-result.md',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client.ts',
+  'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-source.ts',
   'server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup-smoke.ts',
   'package.json',
 ]) {
@@ -210,7 +215,12 @@ for (const phrase of [
   '`defaultSubnetChanged=false`',
   '`approvedPrivateRouteReady=true`',
   '`directVpcPrivateRoutePrerequisiteReady=true`',
-  '`cpuOnlyCallerImageDefined=false`',
+  '`cpuOnlyCallerSourceDefined=true`',
+  '`cpuOnlyCallerImageSourceDefined=true`',
+  '`cpuOnlyCallerImageDefined=true`',
+  '`cpuOnlyCallerImageBuilt=false`',
+  '`cpuOnlyCallerImagePushed=false`',
+  '`cpuOnlyCallerImageDeployed=false`',
   '`directVpcEgressConfigured=false`',
   '`privateGoogleAccessChanged=false`',
   'HTTP `404`',
@@ -218,6 +228,7 @@ for (const phrase of [
   '`internal-and-cloud-load-balancing`',
   'CPU-only Cloud Run Job',
   'qwen-private-caller-us-central1',
+  'CPU-only caller source is now defined',
   NEXT_PROMPT,
 ]) {
   assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)
@@ -225,6 +236,10 @@ for (const phrase of [
 
 const rollup = QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP
 assert.equal(rollup.decision, DECISION)
+assert.equal(
+  rollup.upstreamCpuCallerSourceDecision,
+  QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -288,7 +303,7 @@ assert.equal(status.mayRunInference, false)
 assert.equal(status.mayDispatchWorker, false)
 
 const ui = getQwenVlPlannerRoutingUiData()
-assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_cpu_caller_source_required')
+assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_cpu_caller_deploy_required')
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
 assert.equal(ui.summary.dryRunPassedClaimed, false)
@@ -323,7 +338,7 @@ assert.equal(
   0,
 )
 assert.equal(
-  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_cpu_only_internal_caller_source_required').length,
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_cpu_only_internal_caller_deploy_required').length,
   1,
 )
 assertRollupFalseFlags(rollup.runtimeFlags)
@@ -350,7 +365,12 @@ assert.equal(rollup.runtimeFlags.defaultSubnetPrivateGoogleAccess, false)
 assert.equal(rollup.runtimeFlags.defaultSubnetChanged, false)
 assert.equal(rollup.runtimeFlags.approvedPrivateRouteReady, true)
 assert.equal(rollup.runtimeFlags.directVpcPrivateRoutePrerequisiteReady, true)
-assert.equal(rollup.runtimeFlags.cpuOnlyCallerImageDefined, false)
+assert.equal(rollup.runtimeFlags.cpuOnlyCallerSourceDefined, true)
+assert.equal(rollup.runtimeFlags.cpuOnlyCallerImageSourceDefined, true)
+assert.equal(rollup.runtimeFlags.cpuOnlyCallerImageDefined, true)
+assert.equal(rollup.runtimeFlags.cpuOnlyCallerImageBuilt, false)
+assert.equal(rollup.runtimeFlags.cpuOnlyCallerImagePushed, false)
+assert.equal(rollup.runtimeFlags.cpuOnlyCallerImageDeployed, false)
 assert.equal(rollup.runtimeFlags.directVpcEgressConfigured, false)
 assert.equal(rollup.runtimeFlags.privateGoogleAccessChanged, false)
 assert.equal(rollup.runtimeFlags.internalCallerHarnessDeployed, false)

@@ -337,6 +337,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - The local assembly path accepts a full local assembly packet containing `betaEvidenceBundle`; committed docs remain sanitized and do not include private refs, GPU proof logs, model files, generated media, public URLs, or signed URLs.
 - Diagnostic coverage now proves both packet paths reach `betaToolCallableWithProvidedEvidenceTools=21` only when the complete all-21 evidence bundle is present, while `betaToolCallableNowTools=0`, `agentCanExecuteToolsNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimePerformed=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
 - GPU policy remains on-demand only: the eight GPU/model tools may start GPU capacity only for a future accepted worker/tool-call job with complete evidence; no idle GPU runtime is approved.
+- Latest observed PR state after beta tool-call evidence packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `1e8bd62ef6bec285714128a21cff5e43e7902e14`, with an empty check rollup.
 
 ## No-Scope
 

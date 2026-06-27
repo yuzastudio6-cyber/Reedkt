@@ -29,6 +29,12 @@ export interface BetaReadinessOperatorStatusApiRunResult {
     externalBetaToolExecutionAllowed?: boolean
     productionToolExecutionAllowed?: boolean
     blockerPolicy?: string
+    blockerForwardProgressPolicy?: {
+      intentionalBlanketBlocksAllowed?: boolean
+      blockerScope?: string
+      safeForwardProgressRequired?: boolean
+      nextSafeActionRequiredForBlockers?: boolean
+    }
     safeBlockerReductionAllowed?: boolean
     blockedActionScope: string[]
     allowedForwardProgressScopes: string[]
@@ -98,6 +104,9 @@ export function summarizeOperatorStatusApiResponse(
   const data = isRecord(payload) && isRecord(payload.data) ? payload.data : {}
   const operatorStatus = isRecord(data.status) ? data.status : {}
   const currentGate = isRecord(operatorStatus.currentGate) ? operatorStatus.currentGate : {}
+  const blockerForwardProgressPolicy = isRecord(currentGate.blockerForwardProgressPolicy)
+    ? currentGate.blockerForwardProgressPolicy
+    : undefined
   const evidenceGaps = isRecord(operatorStatus.evidenceGaps) ? operatorStatus.evidenceGaps : {}
   const statusWarnings = stringArray(operatorStatus.warnings)
   const responseWarnings = stringArray(isRecord(payload) ? payload.warnings : undefined)
@@ -122,6 +131,14 @@ export function summarizeOperatorStatusApiResponse(
       externalBetaToolExecutionAllowed: booleanValue(currentGate.externalBetaToolExecutionAllowed),
       productionToolExecutionAllowed: booleanValue(currentGate.productionToolExecutionAllowed),
       blockerPolicy: stringValue(currentGate.blockerPolicy),
+      blockerForwardProgressPolicy: blockerForwardProgressPolicy
+        ? {
+          intentionalBlanketBlocksAllowed: booleanValue(blockerForwardProgressPolicy.intentionalBlanketBlocksAllowed),
+          blockerScope: stringValue(blockerForwardProgressPolicy.blockerScope),
+          safeForwardProgressRequired: booleanValue(blockerForwardProgressPolicy.safeForwardProgressRequired),
+          nextSafeActionRequiredForBlockers: booleanValue(blockerForwardProgressPolicy.nextSafeActionRequiredForBlockers),
+        }
+        : undefined,
       safeBlockerReductionAllowed: booleanValue(currentGate.safeBlockerReductionAllowed),
       blockedActionScope: stringArray(currentGate.blockedActionScope),
       allowedForwardProgressScopes: stringArray(currentGate.allowedForwardProgressScopes),

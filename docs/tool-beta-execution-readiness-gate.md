@@ -124,6 +124,10 @@ The gate blocks only the unsafe action it is protecting. A tool blocker can bloc
 The executable report now exposes this as source-of-truth metadata:
 
 - `blockerPolicy: evidence_driven_block_unsafe_actions_only`
+- `blockerForwardProgressPolicy.intentionalBlanketBlocksAllowed: false`
+- `blockerForwardProgressPolicy.blockerScope: named_unsafe_action_only`
+- `blockerForwardProgressPolicy.safeForwardProgressRequired: true`
+- `blockerForwardProgressPolicy.nextSafeActionRequiredForBlockers: true`
 - `safeBlockerReductionAllowed: true`
 - `blockedActionScope`, which must name only the unsafe beta/production actions currently closed.
 - `allowedForwardProgressScopes`, which names bounded source review, local proof, safe blocker-reduction preview, diagnostics, QA, deployment preflight, owner approval, rollback, monitoring, and support planning lanes that can continue while beta/production execution remains closed.

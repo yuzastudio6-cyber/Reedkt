@@ -52,6 +52,16 @@ try {
   assert.equal(defaultOperatorStatusResponse.data.status.evidenceSource, 'default_source_truth', 'operator status without workspace should use default source truth')
   assert.equal(defaultOperatorStatusResponse.data.status.readyForExternalBeta, false, 'default operator status must keep external beta blocked')
   assert.equal(defaultOperatorStatusResponse.data.status.currentGate.safeBlockerReductionAllowed, true, 'operator status should preserve scoped blocker-reduction policy')
+  assert.equal(
+    defaultOperatorStatusResponse.data.status.currentGate.blockerForwardProgressPolicy.intentionalBlanketBlocksAllowed,
+    false,
+    'operator status should reject intentional blanket blockers',
+  )
+  assert.equal(
+    defaultOperatorStatusResponse.data.status.currentGate.blockerForwardProgressPolicy.nextSafeActionRequiredForBlockers,
+    true,
+    'operator status should require next safe actions for blockers',
+  )
   assert.ok(
     defaultOperatorStatusResponse.data.status.currentGate.allowedForwardProgressScopes.includes('safe_blocker_reduction_preview'),
     'operator status should expose safe local preview as allowed forward progress',

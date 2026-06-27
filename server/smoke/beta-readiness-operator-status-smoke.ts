@@ -81,6 +81,21 @@ assert.equal(readyReport.currentGate.totalTools, 49, 'operator report should inc
 assert.equal(readyReport.currentGate.externalBetaToolExecutionAllowed, false, 'operator status must not claim external beta is enabled')
 assert.equal(readyReport.currentGate.productionToolExecutionAllowed, false, 'operator status must not claim production is enabled')
 assert.equal(readyReport.currentGate.safeBlockerReductionAllowed, true, 'operator status should allow safe blocker-reduction lanes')
+assert.equal(
+  readyReport.currentGate.blockerForwardProgressPolicy.intentionalBlanketBlocksAllowed,
+  false,
+  'operator status should not allow intentional blanket blockers',
+)
+assert.equal(
+  readyReport.currentGate.blockerForwardProgressPolicy.safeForwardProgressRequired,
+  true,
+  'operator status should require safe forward progress lanes',
+)
+assert.equal(
+  readyReport.currentGate.blockerForwardProgressPolicy.nextSafeActionRequiredForBlockers,
+  true,
+  'operator status should require next safe actions for blockers',
+)
 assert.deepEqual(readyReport.currentGate.blockedActionScope, ['external_beta_tool_execution', 'paid_production_tool_execution'], 'operator status should block only beta/production execution actions')
 assert.ok(readyReport.currentGate.allowedForwardProgressScopes.includes('owner_approval_packet_collection'), 'operator status should preserve owner approval collection as allowed forward progress')
 assert.ok(readyReport.currentGate.allowedForwardProgressScopes.includes('bounded_command_import_container_proof'), 'operator status should preserve bounded proof lanes as allowed forward progress')

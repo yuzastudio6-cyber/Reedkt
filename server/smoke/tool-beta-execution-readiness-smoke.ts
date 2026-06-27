@@ -26,6 +26,26 @@ assert.equal(report.internalDryRunMonitoringAllowed, true, 'internal dry-run mon
 assert.equal(report.externalBetaToolExecutionAllowed, false, 'external beta tool execution must remain blocked')
 assert.equal(report.productionToolExecutionAllowed, false, 'production tool execution must remain blocked')
 assert.equal(report.blockerPolicy, 'evidence_driven_block_unsafe_actions_only', 'blocker policy must block only unsafe actions')
+assert.equal(
+  report.blockerForwardProgressPolicy.intentionalBlanketBlocksAllowed,
+  false,
+  'blocker policy must not allow intentional blanket freezes',
+)
+assert.equal(
+  report.blockerForwardProgressPolicy.blockerScope,
+  'named_unsafe_action_only',
+  'blocker policy must scope blockers to named unsafe actions',
+)
+assert.equal(
+  report.blockerForwardProgressPolicy.safeForwardProgressRequired,
+  true,
+  'blocker policy must require safe forward progress lanes',
+)
+assert.equal(
+  report.blockerForwardProgressPolicy.nextSafeActionRequiredForBlockers,
+  true,
+  'blocker policy must require a next safe action for blockers',
+)
 assert.equal(report.safeBlockerReductionAllowed, true, 'safe blocker-reduction work must remain allowed')
 assert.deepEqual(
   report.blockedActionScope,
@@ -36,6 +56,7 @@ assert.equal(report.tools.length, PRODUCTION_TOOL_IDS.length, 'one tool record p
 assert.ok(report.blockers.length > 0, 'tool execution blockers must be explicit')
 assert.ok(report.platformBlockers.length > 0, 'shared platform blockers must be explicit')
 assert.ok(report.nextActions.length > 0, 'tool execution next actions must be explicit')
+assert.ok(report.tools.every((tool) => tool.nextAction.trim().length > 0), 'every tool record must include a next safe action')
 assert.ok(report.tools.every((tool) => tool.productReadyLocalOss === false), 'every tool must keep productReadyLocalOss false')
 assert.ok(report.tools.every((tool) => tool.executableForProduction === false), 'every tool must keep production execution false')
 assert.ok(report.tools.every((tool) => tool.safeBlockerReductionAllowed === true), 'every blocked tool must still allow safe unblock work')

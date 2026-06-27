@@ -190,3 +190,13 @@ The review is docs/status/diagnostics-only. It carries forward QA, cleanup, obse
 Current external product beta blocker: `blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review`. Product-ready end-to-end local OSS tools: `0`.
 
 Next milestone: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.
+
+## RP External Beta Release Go No-Go 1
+
+`RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1` records decision `approved_external_beta_release_go_no_go_source_chain_accepted` and execution `completed_docs_only_release_go_no_go_no_runtime_unlock`.
+
+The release go/no-go packet accepts the merged source chain for controlled external beta enablement planning. External product beta readiness is `ready_for_controlled_external_beta_enablement`; external beta unlocked in this packet is `false`.
+
+Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked. Product-ready end-to-end local OSS tools: `0`.
+
+Next milestone: `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`.

@@ -1443,3 +1443,13 @@ Current external product beta blocker: `blocked_external_product_beta_pending_re
 Paid production, public artifacts, broad media, and final delivery/export remain blocked. Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next milestone: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.
+
+## RP External Beta Release Go No Go 1
+
+`RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1` records decision `approved_external_beta_release_go_no_go_source_chain_accepted` and execution `completed_docs_only_release_go_no_go_no_runtime_unlock`.
+
+The external beta source chain is accepted for controlled external beta enablement planning. External product beta readiness is `ready_for_controlled_external_beta_enablement`; external beta unlocked in this packet is `false`.
+
+Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked. Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next milestone: `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`.

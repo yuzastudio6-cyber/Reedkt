@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `blocked` | release go/no-go and operator approval after QA/cleanup/observability/rollback review |
+| External beta | `ready_for_controlled_external_beta_enablement` | controlled enablement packet with exact flag/runtime boundary and rollback path |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1`
+`RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -235,6 +235,18 @@ No provider call, model call, worker dispatch, route execution, Supabase mutatio
 Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next safe gate: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.
+
+## RP External Beta Release Go No-Go 1
+
+`RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1` records decision `approved_external_beta_release_go_no_go_source_chain_accepted` and execution `completed_docs_only_release_go_no_go_no_runtime_unlock`.
+
+The release go/no-go packet accepts the merged source chain for controlled external beta enablement planning. External product beta readiness is now `ready_for_controlled_external_beta_enablement`, but external beta unlocked remains `false` in this packet.
+
+Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked. Controlled external beta enablement still requires a separately scoped, reversible, observable enablement packet.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next safe gate: `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

@@ -974,3 +974,13 @@ QA review: `source_evidence_review_passed_ready_for_release_go_no_go`. Cleanup r
 External beta remains blocked by `blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review`.
 
 Next safe gate: `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`.
+
+## RP External Beta Release Go No Go 1
+
+`RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1` records decision `approved_external_beta_release_go_no_go_source_chain_accepted` and execution `completed_docs_only_release_go_no_go_no_runtime_unlock`.
+
+External product beta readiness is now `ready_for_controlled_external_beta_enablement`, but external beta unlocked in this packet is `false`. The next step must be a bounded controlled enablement packet that names the exact flag/runtime boundary and rollback path.
+
+Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked.
+
+Next safe gate: `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`.

@@ -1,19 +1,21 @@
 # RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Next Prompt
 
-Use this after `RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1` records `completed_external_beta_qa_cleanup_observability_rollback_review_no_runtime_execution`.
+Use this after `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1` records `approved_external_beta_release_go_no_go_source_chain_accepted`.
 
 ## Recommended Next Gate
 
-`RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1`
+`RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`
 
 ## Scope
 
-Make the final external beta release go/no-go decision from the current source chain without unlocking paid production, public artifacts, broad media, or final delivery/export. The packet must name the single active target:
+Implement or record the bounded controlled external beta enablement path from the accepted source chain without unlocking paid production, public artifacts, broad media, or final delivery/export. The packet must name the single active target:
 
 - `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
-The future release go/no-go review must:
+The future controlled enablement packet must:
 
+- carry forward release go/no-go decision `approved_external_beta_release_go_no_go_source_chain_accepted`;
+- keep external beta unlocked as `false` unless the packet names an exact reversible flag/runtime boundary and rollback path;
 - use approved snapshot route-write and generated-local Remotion evidence as source-of-truth;
 - carry forward provider/model calls disabled by default;
 - carry forward QA review `source_evidence_review_passed_ready_for_release_go_no_go`;
@@ -28,8 +30,8 @@ The future release go/no-go review must:
 - avoid worker dispatch/execution;
 - avoid real provider/model calls unless an explicit future runtime confirmation gate authorizes one bounded call;
 - avoid broad media processing and user/private media;
-- keep internal beta, external beta, and production locked.
+- keep paid production, broad media, public artifacts, final delivery/export, and production locked.
 
 ## Still Blocked
 
-External product beta remains `blocked_external_product_beta_pending_release_go_no_go_operator_approval_after_qa_cleanup_observability_rollback_review` until a release go/no-go packet explicitly accepts or rejects the reviewed source chain.
+External product beta readiness is `ready_for_controlled_external_beta_enablement`, but the product remains locked until a controlled enablement packet explicitly names the exact enablement toggle, runtime boundary, observability/rollback path, and non-production target.

@@ -38,7 +38,22 @@ const followOnApprovedSnapshotGuardedRemoteWriteFiles = [
   'scripts/validation/rp-external-beta-approved-snapshot-persistence-guarded-remote-write-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...followOnApprovedSnapshotGuardedRemoteWriteFiles])
+const followOnCreditReservationLedgerGuardedRemoteWriteFiles = [
+  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/source-audit.md',
+  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/validation-results.md',
+  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/readiness-gate.md',
+  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/safety-boundary.md',
+  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/runtime-validation-record.json',
+  'docs/activation-phase-rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-results.md',
+  'scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([
+  ...requiredFiles,
+  ...followOnApprovedSnapshotGuardedRemoteWriteFiles,
+  ...followOnCreditReservationLedgerGuardedRemoteWriteFiles,
+])
 
 const requiredText = [
   packet,
@@ -185,14 +200,15 @@ if (safety.sqlMutation !== 'guarded_main_staging_public_grant_hardening_migratio
 if (safety.migrationApply !== '20260626233000_external_beta_public_grant_hardening') fail('migration apply scope mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_remote_write_readback') fail('rollup decision mismatch')
+if (rollup.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_credit_ledger_remote_write_readback') fail('rollup decision mismatch')
 if (rollup.mainSupabaseTarget?.serviceRoleGrantBoundary !== 'completed_main_supabase_service_role_runtime_grant_boundary_validation') fail('rollup grant boundary mismatch')
 if (rollup.mainSupabaseTarget?.unsafePublicMutationGrantCount !== 0) fail('rollup unsafe public mutation grants not zero')
 if (rollup.mainSupabaseTarget?.unsafePublicSequenceGrantCount !== 0) fail('rollup unsafe public sequence grants not zero')
 if (rollup.mainSupabaseTarget?.approvedSnapshotPersistence !== 'completed_approved_snapshot_persistence_guarded_remote_write_readback') fail('rollup approved snapshot status mismatch')
-if (!rollup.requiredNextOwnerDecision?.includes('RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1')) fail('rollup next milestone mismatch')
-if (rollup.safety?.supabaseMutation !== 'guarded_main_staging_migration_apply_grant_hardening_and_transaction_rolled_back_snapshot_fixture_only') fail('rollup Supabase mutation scope mismatch')
-if (rollup.safety?.sqlMutation !== 'guarded_main_staging_migration_apply_grant_hardening_and_transaction_rolled_back_snapshot_fixture_only') fail('rollup SQL mutation scope mismatch')
+if (rollup.mainSupabaseTarget?.creditReservationLedger !== 'completed_credit_reservation_ledger_guarded_remote_write_readback') fail('rollup credit ledger status mismatch')
+if (!rollup.requiredNextOwnerDecision?.includes('RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1')) fail('rollup next milestone mismatch')
+if (rollup.safety?.supabaseMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_and_transaction_rolled_back_credit_fixture_only') fail('rollup Supabase mutation scope mismatch')
+if (rollup.safety?.sqlMutation !== 'guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_and_transaction_rolled_back_credit_fixture_only') fail('rollup SQL mutation scope mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
 if (

@@ -2,8 +2,8 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-PERSISTENCE-GUARDED-REMOTE-WRITE-1'
-const dir = 'docs/external-beta/approved-snapshot-persistence-guarded-remote-write-1'
+const packet = 'RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1'
+const dir = 'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
@@ -12,14 +12,15 @@ const requiredFiles = [
   `${dir}/readiness-gate.md`,
   `${dir}/safety-boundary.md`,
   `${dir}/runtime-validation-record.json`,
-  'docs/activation-phase-rp-external-beta-approved-snapshot-persistence-guarded-remote-write-1-results.md',
+  'docs/activation-phase-rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-results.md',
   'docs/external-beta/current-readiness-rollup-1/readiness-gate.md',
   'docs/external-beta/current-readiness-rollup-1/source-of-truth-audit.md',
   'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
   'docs/external-beta/current-readiness-rollup-1/rollup-record.json',
   'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
   'docs/production-beta-blocker-inventory.md',
-  'scripts/validation/rp-external-beta-approved-snapshot-persistence-guarded-remote-write-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-approved-snapshot-persistence-guarded-remote-write-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-main-supabase-service-role-runtime-validation-1-diagnostics.mjs',
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
@@ -28,33 +29,23 @@ const requiredFiles = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 
-const followOnCreditReservationLedgerGuardedRemoteWriteFiles = [
-  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/source-audit.md',
-  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/validation-results.md',
-  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/readiness-gate.md',
-  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/safety-boundary.md',
-  'docs/external-beta/credit-reservation-ledger-guarded-remote-write-1/runtime-validation-record.json',
-  'docs/activation-phase-rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-results.md',
-  'scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-confirmed.mjs',
-  'scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-diagnostics.mjs',
-]
-for (const file of followOnCreditReservationLedgerGuardedRemoteWriteFiles) allowedChangedFiles.add(file)
-
 const requiredText = [
   packet,
-  'completed_approved_snapshot_persistence_guarded_remote_write_readback',
-  'completed_guarded_transaction_rolled_back_approved_snapshot_persistence_write_readback',
+  'completed_credit_reservation_ledger_guarded_remote_write_readback',
+  'completed_guarded_transaction_rolled_back_credit_reservation_ledger_write_readback',
   'Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`',
-  '2026-06-27T00-00-12-289Z-7f5e51bd',
+  '2026-06-27T00-12-50-200Z-34a19fc2',
   'set local role service_role',
-  'Immutable snapshot update rejection: `passed`',
-  'persistent validation rows',
+  'Credit ledger append-only update rejection: `passed`',
+  'credit ledger append-only update rejection: `passed`',
+  'persistent validation rows created: `false`',
   'residue counts as `0`',
-  'aa4d16b57305072242427398a5f2c3fadf6637490d08f4a76466087b269cb865',
-  '36edc2f5c48567da9ccd5860ce6b634858465933e974c9bec64bc2d59bfd73ed',
-  '2a5cdc3a3c9a7c3f9f16a28da05efd35084297a26304842f8a79d34c0656a339',
-  '588ba11c60afcda8836a181ef392e45133067a987c13734298f18618a8b51d79',
-  'RP-EXTERNAL-BETA-CREDIT-RESERVATION-LEDGER-GUARDED-REMOTE-WRITE-1',
+  'ccbcd02a4264d0ecb1cba7394d7c9344e8c24ab3b3fe7f7ff5f21f385536044c',
+  'a2f6f7cb204903bb3bcca354fc9d5a649353330a8ef93a152bab560c331d7782',
+  'fe0dd616ae610e0887593990ea7c53f4d964e51892007022a5fa594fb468043c',
+  'e71d2daca8d91043f311840ab431b11a0b0469741ad12d2b3db20f7352b64308',
+  'blocked_external_product_beta_pending_remaining_runtime_gates_after_credit_ledger_remote_write_readback',
+  'RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1',
   'Product-ready end-to-end local OSS tools: `0`',
   'Internal beta unlocked: `false`',
   'External beta unlocked: `false`',
@@ -74,6 +65,8 @@ const forbiddenPatterns = [
   /databaseUrlPersistedInRepo"?\s*:\s*true/i,
   /frontendServiceRoleCredentialExposure"?\s*:\s*true/i,
   /persistentRowsCreated"?\s*:\s*true/i,
+  /persistentCreditMutation"?\s*:\s*true/i,
+  /persistentCreditReservationCreation"?\s*:\s*true/i,
   /serviceRoleRouteExecution"?\s*:\s*true/i,
   /routeExecution"?\s*:\s*true/i,
   /workerExecution"?\s*:\s*true/i,
@@ -83,8 +76,6 @@ const forbiddenPatterns = [
   /storageObjectRead"?\s*:\s*true/i,
   /signedUrlCreation"?\s*:\s*true/i,
   /publicArtifactCreation"?\s*:\s*true/i,
-  /creditMutation"?\s*:\s*true/i,
-  /creditReservationCreation"?\s*:\s*true/i,
   /jobEnqueue"?\s*:\s*true/i,
   /jobEventWrite"?\s*:\s*true/i,
   /providerCall"?\s*:\s*true/i,
@@ -92,6 +83,7 @@ const forbiddenPatterns = [
   /renderExport"?\s*:\s*true/i,
   /mediaProcessing"?\s*:\s*true/i,
   /packageLockMutation"?\s*:\s*true/i,
+  /dependency mutation:\s*`?true`?/i,
 ]
 
 function fail(message) {
@@ -132,22 +124,30 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read(`${dir}/runtime-validation-record.json`))
-if (record.decision !== 'completed_approved_snapshot_persistence_guarded_remote_write_readback') fail('record decision mismatch')
-if (record.execution !== 'completed_guarded_transaction_rolled_back_approved_snapshot_persistence_write_readback') fail('record execution mismatch')
+if (record.decision !== 'completed_credit_reservation_ledger_guarded_remote_write_readback') fail('record decision mismatch')
+if (record.execution !== 'completed_guarded_transaction_rolled_back_credit_reservation_ledger_write_readback') fail('record execution mismatch')
 if (record.target?.projectRef !== 'wmyyttnynmteqgcdishd') fail('target ref mismatch')
-if (record.run?.runId !== '2026-06-27T00-00-12-289Z-7f5e51bd') fail('run id mismatch')
-if (record.run?.reportSha256 !== 'aa4d16b57305072242427398a5f2c3fadf6637490d08f4a76466087b269cb865') fail('report checksum mismatch')
-if (record.run?.manifestSha256 !== '36edc2f5c48567da9ccd5860ce6b634858465933e974c9bec64bc2d59bfd73ed') fail('manifest checksum mismatch')
+if (record.run?.runId !== '2026-06-27T00-12-50-200Z-34a19fc2') fail('run id mismatch')
+if (record.run?.reportSha256 !== 'ccbcd02a4264d0ecb1cba7394d7c9344e8c24ab3b3fe7f7ff5f21f385536044c') fail('report checksum mismatch')
+if (record.run?.manifestSha256 !== 'a2f6f7cb204903bb3bcca354fc9d5a649353330a8ef93a152bab560c331d7782') fail('manifest checksum mismatch')
+if (record.run?.writeReadbackSha256 !== 'fe0dd616ae610e0887593990ea7c53f4d964e51892007022a5fa594fb468043c') fail('write readback checksum mismatch')
+if (record.run?.rollbackResidueSha256 !== 'e71d2daca8d91043f311840ab431b11a0b0469741ad12d2b3db20f7352b64308') fail('rollback residue checksum mismatch')
+if (record.validation?.creditWalletInserted !== 1) fail('credit wallet insert readback mismatch')
+if (record.validation?.creditGrantInserted !== 1) fail('credit grant insert readback mismatch')
+if (record.validation?.creditApprovalInserted !== 1) fail('credit approval insert readback mismatch')
 if (record.validation?.approvedSnapshotInserted !== 1) fail('approved snapshot insert readback mismatch')
-if (record.validation?.approvalRecordInserted !== 1) fail('approval record insert readback mismatch')
-if (record.validation?.idempotencyKeyInserted !== 1) fail('idempotency key insert readback mismatch')
+if (record.validation?.creditReservationInserted !== 1) fail('credit reservation insert readback mismatch')
+if (record.validation?.creditLedgerEntryInserted !== 1) fail('credit ledger entry insert readback mismatch')
 if (record.validation?.auditEventInserted !== 1) fail('audit event insert readback mismatch')
-if (record.validation?.snapshotImmutable !== true) fail('immutable snapshot flag mismatch')
-if (record.validation?.immutableUpdateRejection !== 'passed') fail('immutability rejection mismatch')
+if (record.validation?.reservationStatus !== 'reserved') fail('reservation status mismatch')
+if (record.validation?.ledgerEntryType !== 'reservation') fail('ledger entry type mismatch')
+if (record.validation?.ledgerAmount !== -10) fail('ledger amount mismatch')
+if (record.validation?.ledgerBalanceAfter !== 90) fail('ledger balance mismatch')
+if (record.validation?.appendOnlyLedgerUpdateRejection !== 'passed') fail('append-only rejection mismatch')
 for (const [key, value] of Object.entries(record.validation?.rollbackResidueCounts ?? {})) {
   if (value !== 0) fail(`rollback residue count not zero: ${key}`)
 }
-if (record.readiness?.creditReservationLedger !== 'ready_for_guarded_remote_write_readback_validation') fail('credit ledger readiness mismatch')
+if (record.readiness?.jobQueueLeaseEvents !== 'ready_for_guarded_remote_write_readback_validation') fail('job queue readiness mismatch')
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
@@ -169,8 +169,8 @@ const falseFlags = [
   'storageObjectRead',
   'signedUrlCreation',
   'publicArtifactCreation',
-  'creditMutation',
-  'creditReservationCreation',
+  'persistentCreditMutation',
+  'persistentCreditReservationCreation',
   'jobEnqueue',
   'jobEventWrite',
   'providerCall',
@@ -184,27 +184,35 @@ const falseFlags = [
 for (const key of falseFlags) {
   if (safety[key] !== false) fail(`safety flag must be false: ${key}`)
 }
-if (safety.remoteSupabaseMutation !== 'guarded_transaction_rolled_back_generated_approved_snapshot_fixture_only') fail('remote Supabase mutation scope mismatch')
-if (safety.sqlMutation !== 'guarded_transaction_rolled_back_generated_approved_snapshot_fixture_only') fail('SQL mutation scope mismatch')
+if (safety.remoteSupabaseMutation !== 'guarded_transaction_rolled_back_generated_credit_reservation_ledger_fixture_only') fail('remote Supabase mutation scope mismatch')
+if (safety.sqlMutation !== 'guarded_transaction_rolled_back_generated_credit_reservation_ledger_fixture_only') fail('SQL mutation scope mismatch')
+if (safety.creditMutation !== 'transaction_rolled_back_generated_credit_fixture_only') fail('credit mutation scope mismatch')
+if (safety.creditReservationCreation !== 'transaction_rolled_back_generated_credit_fixture_only') fail('credit reservation scope mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
 if (rollup.decision !== 'blocked_external_product_beta_pending_remaining_runtime_gates_after_credit_ledger_remote_write_readback') fail('rollup decision mismatch')
 if (rollup.mainSupabaseTarget?.approvedSnapshotPersistence !== 'completed_approved_snapshot_persistence_guarded_remote_write_readback') fail('rollup approved snapshot status mismatch')
-if (rollup.mainSupabaseTarget?.approvedSnapshotPersistentRowsCreated !== false) fail('rollup persistent rows flag mismatch')
-if (rollup.mainSupabaseTarget?.approvedSnapshotRollbackResidueCount !== 0) fail('rollup residue count mismatch')
 if (rollup.mainSupabaseTarget?.creditReservationLedger !== 'completed_credit_reservation_ledger_guarded_remote_write_readback') fail('rollup credit ledger status mismatch')
+if (rollup.mainSupabaseTarget?.creditReservationLedgerPersistentRowsCreated !== false) fail('rollup persistent credit rows flag mismatch')
+if (rollup.mainSupabaseTarget?.creditReservationLedgerRollbackResidueCount !== 0) fail('rollup credit residue count mismatch')
+if (rollup.mainSupabaseTarget?.creditLedgerAppendOnlyUpdateRejection !== 'passed') fail('rollup append-only status mismatch')
 if (!rollup.requiredNextOwnerDecision?.includes('RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1')) fail('rollup next milestone mismatch')
+if (rollup.safety?.persistentCreditMutation !== false) fail('rollup persistent credit mutation flag mismatch')
+if (rollup.safety?.persistentCreditReservationCreation !== false) fail('rollup persistent reservation flag mismatch')
+if (rollup.safety?.creditSpend !== false) fail('rollup credit spend flag mismatch')
+if (rollup.safety?.jobEnqueue !== false) fail('rollup job enqueue flag mismatch')
+if (rollup.safety?.jobEventWrite !== false) fail('rollup job event flag mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
 if (
-  packageJson.scripts?.['rp-external-beta-approved-snapshot-persistence-guarded-remote-write-1-confirmed'] !==
-  'node scripts/validation/rp-external-beta-approved-snapshot-persistence-guarded-remote-write-1-confirmed.mjs'
+  packageJson.scripts?.['rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-confirmed'] !==
+  'node scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-confirmed.mjs'
 ) {
   fail('missing confirmed runner package script')
 }
 if (
-  packageJson.scripts?.['rp-external-beta-approved-snapshot-persistence-guarded-remote-write-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-approved-snapshot-persistence-guarded-remote-write-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-credit-reservation-ledger-guarded-remote-write-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-credit-reservation-ledger-guarded-remote-write-1-diagnostics.mjs'
 ) {
   fail('missing diagnostics package script')
 }
@@ -232,5 +240,5 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_approved_snapshot_persistence_guarded_remote_write_readback')
+console.log('Decision: completed_credit_reservation_ledger_guarded_remote_write_readback')
 console.log('Next: RP-EXTERNAL-BETA-JOB-QUEUE-LEASE-EVENT-GUARDED-REMOTE-WRITE-1')

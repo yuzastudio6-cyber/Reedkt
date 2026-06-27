@@ -197,17 +197,41 @@ if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'completed_controlled_private_invite_access_policy_no_access_mutation') fail('rollup decision mismatch')
-if (rollup.statuses?.externalProductBeta !== 'controlled_external_beta_private_invite_access_policy_ready') fail('rollup external beta status mismatch')
+const rollupInviteIamGrantBlocked = rollup.decision === 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant'
+if (
+  rollup.decision !== 'completed_controlled_private_invite_access_policy_no_access_mutation' &&
+  !rollupInviteIamGrantBlocked
+) {
+  fail('rollup decision mismatch')
+}
+if (
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_private_invite_access_policy_ready' &&
+  rollup.statuses?.externalProductBeta !== 'blocked_pending_explicit_invite_identity_for_controlled_private_access_grant'
+) {
+  fail('rollup external beta status mismatch')
+}
 if (rollup.sourceClosure?.controlledPrivateInviteAccess !== 'rp_external_beta_controlled_private_invite_access_1') fail('rollup invite source missing')
 if (rollup.mainSupabaseTarget?.controlledPrivateInviteAccess !== 'completed_controlled_private_invite_access_policy_no_access_mutation') fail('rollup invite status mismatch')
 if (rollup.mainSupabaseTarget?.cloudRunIamServiceLevelBindingCount !== 0) fail('rollup IAM binding count mismatch')
 if (rollup.mainSupabaseTarget?.cloudRunAllUsersInvoker !== false) fail('rollup allUsers mismatch')
 if (rollup.mainSupabaseTarget?.cloudRunAllAuthenticatedUsersInvoker !== false) fail('rollup allAuthenticatedUsers mismatch')
 if (rollup.mainSupabaseTarget?.inviteAccessGrantMutation !== false) fail('rollup invite grant mutation mismatch')
-if (rollup.mainSupabaseTarget?.privateInviteAccessReadiness !== 'ready_for_explicit_invite_iam_grant_planning') fail('rollup invite readiness mismatch')
-if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1') fail('rollup next milestone mismatch')
-if (rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1') fail('rollup required next decision mismatch')
+if (
+  rollup.mainSupabaseTarget?.privateInviteAccessReadiness !== 'ready_for_explicit_invite_iam_grant_planning' &&
+  rollup.mainSupabaseTarget?.privateInviteAccessReadiness !== 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant'
+) {
+  fail('rollup invite readiness mismatch')
+}
+if (rollupInviteIamGrantBlocked) {
+  if (rollup.sourceClosure?.controlledPrivateInviteIamGrant !== 'rp_external_beta_controlled_private_invite_iam_grant_1') fail('rollup invite IAM source missing')
+  if (rollup.mainSupabaseTarget?.controlledPrivateInviteIamGrant !== 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant') fail('rollup invite IAM status mismatch')
+  if (rollup.mainSupabaseTarget?.privateInviteIamGrant !== 'not_run_missing_explicit_identity_list') fail('rollup invite IAM grant mismatch')
+  if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST') fail('rollup next milestone mismatch')
+  if (rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST') fail('rollup required next decision mismatch')
+} else {
+  if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1') fail('rollup next milestone mismatch')
+  if (rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1') fail('rollup required next decision mismatch')
+}
 if (rollup.safety?.controlledPrivateInviteAccess !== 'completed_docs_only_invite_access_policy_and_readonly_iam_readback') fail('rollup invite safety mismatch')
 if (rollup.safety?.cloudRunIamPolicyReadback !== true) fail('rollup IAM readback safety mismatch')
 if (rollup.safety?.cloudRunIamPolicyMutation !== false) fail('rollup IAM mutation safety mismatch')

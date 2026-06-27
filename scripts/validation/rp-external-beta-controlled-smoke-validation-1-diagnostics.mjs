@@ -190,15 +190,18 @@ if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts sta
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
 const rollupIsInviteAccessCompleted =
   rollup.decision === 'completed_controlled_private_invite_access_policy_no_access_mutation'
+const rollupInviteIamGrantBlocked = rollup.decision === 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant'
 if (
   rollup.decision !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation' &&
-  !rollupIsInviteAccessCompleted
+  !rollupIsInviteAccessCompleted &&
+  !rollupInviteIamGrantBlocked
 ) {
   fail('rollup decision mismatch')
 }
 if (
   rollup.statuses?.externalProductBeta !== 'controlled_external_beta_smoke_validated_authenticated_staging_api' &&
-  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_private_invite_access_policy_ready'
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_private_invite_access_policy_ready' &&
+  rollup.statuses?.externalProductBeta !== 'blocked_pending_explicit_invite_identity_for_controlled_private_access_grant'
 ) {
   fail('rollup external beta status mismatch')
 }
@@ -208,7 +211,13 @@ if (rollup.mainSupabaseTarget?.unauthenticatedAccess !== 'blocked_403') fail('ro
 if (rollup.mainSupabaseTarget?.authenticatedHealth !== 'passed_200') fail('rollup health mismatch')
 if (rollup.mainSupabaseTarget?.authenticatedReadiness !== 'passed_200_ready_endpoint') fail('rollup readiness mismatch')
 if (rollup.mainSupabaseTarget?.providerRealCallsEnabled !== false) fail('rollup provider real call flag mismatch')
-if (rollupIsInviteAccessCompleted) {
+if (rollupInviteIamGrantBlocked) {
+  if (rollup.sourceClosure?.controlledPrivateInviteAccess !== 'rp_external_beta_controlled_private_invite_access_1') fail('rollup invite source missing')
+  if (rollup.sourceClosure?.controlledPrivateInviteIamGrant !== 'rp_external_beta_controlled_private_invite_iam_grant_1') fail('rollup invite IAM source missing')
+  if (rollup.mainSupabaseTarget?.controlledPrivateInviteAccess !== 'completed_controlled_private_invite_access_policy_no_access_mutation') fail('rollup invite status mismatch')
+  if (rollup.mainSupabaseTarget?.controlledPrivateInviteIamGrant !== 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant') fail('rollup invite IAM status mismatch')
+  if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST') fail('rollup next milestone mismatch')
+} else if (rollupIsInviteAccessCompleted) {
   if (rollup.sourceClosure?.controlledPrivateInviteAccess !== 'rp_external_beta_controlled_private_invite_access_1') fail('rollup invite source missing')
   if (rollup.mainSupabaseTarget?.controlledPrivateInviteAccess !== 'completed_controlled_private_invite_access_policy_no_access_mutation') fail('rollup invite status mismatch')
   if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1') fail('rollup next milestone mismatch')

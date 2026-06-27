@@ -10,9 +10,14 @@ Source evidence policy: the gate can consume
 `--internal-beta-production-worker-job-readiness-packet` when that packet already
 reports `owner_approved_production_worker_jobs_ready`, all 21 production-worker
 job payloads ready with provided evidence, all 12 capability scenarios ready
-with provided evidence, and enqueue/runtime gates still false. Packet-fed gate
-readiness still only runs shared gate validation; it does not enqueue jobs,
-dispatch workers, run Tool Routes, execute tools, or start GPU runtime.
+with provided evidence, exactly eight GPU/model production worker payloads with
+the expected native NVIDIA L4 runtime targets, on-demand-only GPU runtime
+policy, no idle GPU runtime approval, CPU fallback blocked for heavy/model
+tools, and enqueue/runtime gates still false. Packet-fed gate readiness still
+only runs shared gate validation; it does not enqueue jobs, dispatch workers,
+run Tool Routes, execute tools, or start GPU runtime.
+
+Source packet GPU policy: exactly eight GPU/model production worker payloads, on-demand-only GPU runtime, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and packet-fed gate readiness still only runs shared gate validation.
 
 ## Tools
 

@@ -5,6 +5,11 @@
     "acceptsProductionWorkerJobReadinessPacket": true,
     "sourceProductionWorkerJobPacketMustReportOwnerApprovedJobsReady": true,
     "sourceProductionWorkerJobPacketMustCoverAll21Tools": true,
+    "sourceProductionWorkerJobPacketMustCoverAll12Capabilities": true,
+    "sourceProductionWorkerJobPacketMustPreserveEightGpuRuntimeTargets": true,
+    "sourceProductionWorkerJobPacketMustPreserveOnDemandGpuRuntimePolicy": true,
+    "sourceProductionWorkerJobPacketMustKeepNoIdleGpuRuntime": true,
+    "sourceProductionWorkerJobPacketMustBlockCpuFallbackForHeavyTools": true,
     "sourceProductionWorkerJobPacketMustKeepEnqueueAndRuntimeFalse": true,
     "gateReadinessStillDoesNotEnqueueOrDispatch": true,
     "runtimeUnlockPerformed": false

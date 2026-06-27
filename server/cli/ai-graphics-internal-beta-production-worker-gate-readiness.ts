@@ -10,6 +10,49 @@ import type {
   AiGraphicsBetaEvidenceBundleInput,
 } from '../tool-registry/ai-graphics-beta-evidence-bundle'
 
+const expectedGpuRuntimeTargets: Record<string, string> = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
+const requiredSourceFalseBooleans = [
+  'agentCanExecuteToolsNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'productionWorkerJobEnqueueApprovedNow',
+  'productionWorkerRouteExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'routeExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]
+
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
 }
@@ -47,33 +90,101 @@ function readProofPacket(flag: string, committedPath: string): unknown | undefin
   return undefined
 }
 
-function isProductionWorkerJobReadinessPacket(
-  packet: unknown,
-): packet is AiGraphicsInternalBetaProductionWorkerJobReadiness {
-  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) return false
-  const record = packet as Record<string, unknown>
-  const booleans = record.booleans
-  return (
-    record.decision === 'ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime' &&
-    record.status === 'owner_approved_production_worker_jobs_ready' &&
-    record.totalAiGraphicsTools === 21 &&
-    record.totalProductFacingCapabilities === 12 &&
-    record.productionWorkerJobPayloadsReadyWithProvidedEvidence === 21 &&
-    record.capabilityProductionWorkerJobScenariosReadyWithProvidedEvidence === 12 &&
-    record.productionWorkerJobPayloadsReadyNow === 0 &&
-    Array.isArray(record.productionWorkerJobPayloads) &&
-    record.productionWorkerJobPayloads.length === 21 &&
-    Boolean(
-      booleans &&
-      typeof booleans === 'object' &&
-      !Array.isArray(booleans) &&
-      (booleans as Record<string, unknown>).ownerApprovedProductionWorkerJobEvidenceAccepted === true &&
-      (booleans as Record<string, unknown>).all21ProductionWorkerJobPayloadsReadyWithProvidedEvidence === true &&
-      (booleans as Record<string, unknown>).agentCanExecuteToolsNow === false &&
-      (booleans as Record<string, unknown>).productionWorkerJobEnqueueApprovedNow === false &&
-      (booleans as Record<string, unknown>).runtimeReadyNow === false,
+function asRecord(value: unknown, field: string): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Production worker job readiness packet must include object field: ${field}.`)
+  }
+  return value as Record<string, unknown>
+}
+
+function assertField(record: Record<string, unknown>, key: string, expected: unknown): void {
+  if (record[key] !== expected) {
+    throw new Error(
+      `Production worker job readiness packet field ${key} must equal ${String(expected)}; received ${String(
+        record[key],
+      )}.`,
     )
+  }
+}
+
+function validateProductionWorkerJobReadinessPacket(
+  packet: unknown,
+): AiGraphicsInternalBetaProductionWorkerJobReadiness {
+  const record = asRecord(packet, 'packet')
+  assertField(
+    record,
+    'decision',
+    'ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime',
   )
+  assertField(record, 'status', 'owner_approved_production_worker_jobs_ready')
+  assertField(record, 'totalAiGraphicsTools', 21)
+  assertField(record, 'totalProductFacingCapabilities', 12)
+  assertField(record, 'productionWorkerJobPayloadsReadyWithProvidedEvidence', 21)
+  assertField(record, 'capabilityProductionWorkerJobScenariosReadyWithProvidedEvidence', 12)
+  assertField(record, 'productionWorkerJobPayloadsReadyNow', 0)
+  assertField(record, 'capabilityProductionWorkerJobScenariosReadyNow', 0)
+
+  const booleans = asRecord(record.booleans, 'booleans')
+  for (const [key, expected] of Object.entries({
+    ownerApprovedProductionWorkerJobEvidenceAccepted: true,
+    all21ProductionWorkerJobPayloadsReadyWithProvidedEvidence: true,
+    all12CapabilityProductionWorkerJobScenariosReadyWithProvidedEvidence: true,
+  })) {
+    assertField(booleans, key, expected)
+  }
+  for (const key of requiredSourceFalseBooleans) {
+    assertField(booleans, key, false)
+  }
+
+  if (!Array.isArray(record.productionWorkerJobPayloads) || record.productionWorkerJobPayloads.length !== 21) {
+    throw new Error('Production worker job readiness packet must include exactly 21 production worker job payloads.')
+  }
+  if (
+    !Array.isArray(record.capabilityProductionWorkerJobScenarios) ||
+    record.capabilityProductionWorkerJobScenarios.length !== 12
+  ) {
+    throw new Error('Production worker job readiness packet must include exactly 12 capability job scenarios.')
+  }
+
+  const expectedGpuTools = new Set(Object.keys(expectedGpuRuntimeTargets))
+  const gpuPayloads = record.productionWorkerJobPayloads.filter((candidate): boolean => {
+    const candidateRecord = asRecord(candidate, 'productionWorkerJobPayloads[]')
+    return expectedGpuTools.has(String(candidateRecord.sourceToolId))
+  })
+  if (gpuPayloads.length !== 8) {
+    throw new Error(`Production worker job readiness packet must include exactly 8 GPU/model payloads; got ${gpuPayloads.length}.`)
+  }
+
+  for (const candidate of record.productionWorkerJobPayloads) {
+    const candidateRecord = asRecord(candidate, 'productionWorkerJobPayloads[]')
+    const toolId = String(candidateRecord.sourceToolId)
+    const payload = asRecord(candidateRecord.productionWorkerJobPayload, `productionWorkerJobPayload:${toolId}`)
+    const metadata = asRecord(payload.metadata, `productionWorkerJobPayload.metadata:${toolId}`)
+    const policy = asRecord(metadata.aiGraphicsRuntimeActivationPolicy, `runtimeActivationPolicy:${toolId}`)
+    assertField(candidateRecord, 'productionWorkerJobReadyWithProvidedEvidence', true)
+    assertField(candidateRecord, 'canEnqueueProductionWorkerJobNow', false)
+    assertField(candidateRecord, 'canRunProductionWorkerRouteNow', false)
+    assertField(candidateRecord, 'canExecuteToolNow', false)
+    assertField(policy, 'onDemandOnly', true)
+    assertField(policy, 'noIdleGpuRuntimeApproved', true)
+    assertField(policy, 'startsOnlyForApprovedWorkerOrToolCall', true)
+    assertField(policy, 'cpuFallbackAllowedForHeavyTools', false)
+    assertField(metadata, 'gpuRuntimeOnDemandOnly', true)
+    assertField(metadata, 'noIdleGpuRuntimeApproved', true)
+    assertField(metadata, 'startsOnlyForApprovedWorkerOrToolCall', true)
+    assertField(metadata, 'cpuFallbackAllowedForHeavyTools', false)
+
+    const expectedGpuTarget = expectedGpuRuntimeTargets[toolId]
+    if (expectedGpuTarget) {
+      assertField(candidateRecord, 'sourceRuntimeTarget', expectedGpuTarget)
+      assertField(payload, 'workerType', 'gpu_ai_worker')
+      assertField(metadata, 'aiGraphicsRuntimeTarget', expectedGpuTarget)
+    } else if (payload.workerType === 'gpu_ai_worker' || String(candidateRecord.sourceRuntimeTarget).includes('nvidia_l4')) {
+      throw new Error(`Unexpected GPU/model production worker job payload for non-GPU tool: ${toolId}.`)
+    }
+  }
+
+  return packet as AiGraphicsInternalBetaProductionWorkerJobReadiness
 }
 
 function readSourceProductionWorkerJobReadinessPacket(): {
@@ -82,14 +193,10 @@ function readSourceProductionWorkerJobReadinessPacket(): {
 } {
   const packet = readJsonFile('--internal-beta-production-worker-job-readiness-packet')
   if (!packet) return { sourceEvidenceMode: 'constructed_from_cli_flags' }
-  if (!isProductionWorkerJobReadinessPacket(packet)) {
-    throw new Error(
-      '--internal-beta-production-worker-job-readiness-packet must report owner_approved_production_worker_jobs_ready with all 21 production-worker job payloads ready by evidence and runtime gates still false.',
-    )
-  }
+  const validatedPacket = validateProductionWorkerJobReadinessPacket(packet)
 
   return {
-    sourceProductionWorkerJobReadinessPacket: packet,
+    sourceProductionWorkerJobReadinessPacket: validatedPacket,
     sourceEvidenceMode: 'internal_beta_production_worker_job_readiness_packet',
   }
 }

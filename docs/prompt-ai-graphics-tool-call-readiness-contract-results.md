@@ -460,10 +460,17 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 
 - Added evaluator-only production-worker job readiness packet ingestion to `ai-graphics:internal-beta-production-worker-gate-readiness`.
 - The command now accepts `--internal-beta-production-worker-job-readiness-packet`.
-- The source packet must already report `owner_approved_production_worker_jobs_ready`, all 21 production-worker job payloads ready with provided evidence, all 12 capability scenarios ready with provided evidence, and enqueue/runtime gates still false.
+- The source packet must already report `owner_approved_production_worker_jobs_ready`, all 21 production-worker job payloads ready with provided evidence, all 12 capability scenarios ready with provided evidence, exactly eight GPU/model payloads on native NVIDIA L4 targets, on-demand-only GPU runtime policy, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and enqueue/runtime gates still false.
 - Diagnostic coverage proves packet-fed production-worker gate readiness reaches `owner_approved_production_worker_gate_checks_ready` with 21 accepted gate checks, 12 accepted capability scenarios, and 0 hard gate failures.
 - Runtime remains blocked: `productionWorkerGateChecksReadyNow=0`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `productionReadyNow=false`, no queue enqueue occurs, and no worker dispatch is approved.
 - Latest observed PR state after production worker gate source packet ingestion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/MERGEABLE at `c4759813f9b6f5864d0d8654b5a76de077d9e3e9`, with an empty check rollup.
+
+## Follow-Up: Production Worker Gate Source Packet GPU Hardening
+
+- Tightened `ai-graphics:internal-beta-production-worker-gate-readiness` source packet validation for `--internal-beta-production-worker-job-readiness-packet`.
+- A source production-worker job packet must now preserve all-21/all-12 coverage, 21 owner-approved production-worker job payloads, 12 owner-approved capability scenarios, exactly eight GPU/model payloads with exact native NVIDIA L4 targets, on-demand-only GPU runtime policy, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and false runtime/beta/production gates.
+- Diagnostic coverage proves invalid source packets are rejected when tool coverage drops to 20, capability coverage drops to 11, GPU payload classification drifts, on-demand GPU policy is removed, idle GPU runtime is approved, heavy-tool CPU fallback is allowed, `gpuRuntimeApprovedNow=true`, production-worker enqueue is approved, or tool execution is claimed.
+- Runtime remains blocked: `productionWorkerGateChecksReadyNow=0`, `productionWorkerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## Follow-Up: Beta/Production Rollup Gate Packet Ingestion
 

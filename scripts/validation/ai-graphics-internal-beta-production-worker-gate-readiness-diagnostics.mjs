@@ -117,6 +117,8 @@ const falseGateKeys = [
   'modelWeightsDownloaded',
   'modelWeightsLoaded',
   'mediaProcessingPerformed',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
   'publicArtifactCreated',
   'signedUrlCreated',
 ]
@@ -154,6 +156,7 @@ function git(args) {
 function runNpm(scriptName, args = []) {
   return execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
     encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
   })
 }
@@ -184,7 +187,26 @@ function writeAcceptedEvidencePackets() {
   return { manifestPacketPath, gpuPacketPath }
 }
 
-function writeAcceptedProductionWorkerJobReadinessPacket(manifestPacketPath, gpuPacketPath) {
+function deepMerge(base, patch) {
+  const output = Array.isArray(base) ? [...base] : { ...base }
+  for (const [key, value] of Object.entries(patch ?? {})) {
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      base?.[key] &&
+      typeof base[key] === 'object' &&
+      !Array.isArray(base[key])
+    ) {
+      output[key] = deepMerge(base[key], value)
+    } else {
+      output[key] = value
+    }
+  }
+  return output
+}
+
+function writeAcceptedProductionWorkerJobReadinessPacket(manifestPacketPath, gpuPacketPath, mutatePacket) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-production-worker-gate-source-'))
   const packetPath = path.join(root, 'production-worker-job-readiness-packet.json')
   const packetText = runNpm('ai-graphics:internal-beta-production-worker-job-readiness', [
@@ -204,8 +226,22 @@ function writeAcceptedProductionWorkerJobReadinessPacket(manifestPacketPath, gpu
   if (packet.status !== 'owner_approved_production_worker_jobs_ready') {
     fail(`source_job_packet_status:${packet.status}`)
   }
-  fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+  const outputPacket = typeof mutatePacket === 'function' ? mutatePacket(packet) : packet
+  fs.writeFileSync(packetPath, `${JSON.stringify(outputPacket, null, 2)}\n`, 'utf8')
   return packetPath
+}
+
+function expectSourceProductionWorkerJobPacketRejected(label, manifestPacketPath, gpuPacketPath, mutatePacket) {
+  try {
+    runNpm(runScriptName, [
+      '--internal-beta-production-worker-job-readiness-packet',
+      writeAcceptedProductionWorkerJobReadinessPacket(manifestPacketPath, gpuPacketPath, mutatePacket),
+      '--require-owner-approved-production-worker-gates-ready',
+    ])
+    fail(`bad_source_production_worker_job_packet_was_accepted:${label}`)
+  } catch {
+    // Expected: malformed source job-readiness evidence must fail before gate acceptance.
+  }
 }
 
 const requiredFiles = [
@@ -248,6 +284,21 @@ if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustReportOwnerApp
 }
 if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustCoverAll21Tools !== true) {
   fail('docs_source_policy_missing_21_tool_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustCoverAll12Capabilities !== true) {
+  fail('docs_source_policy_missing_12_capability_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustPreserveEightGpuRuntimeTargets !== true) {
+  fail('docs_source_policy_missing_8_gpu_target_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustPreserveOnDemandGpuRuntimePolicy !== true) {
+  fail('docs_source_policy_missing_on_demand_gpu_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustKeepNoIdleGpuRuntime !== true) {
+  fail('docs_source_policy_missing_no_idle_gpu_requirement')
+}
+if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustBlockCpuFallbackForHeavyTools !== true) {
+  fail('docs_source_policy_missing_cpu_fallback_block_requirement')
 }
 if (docs.sourceEvidencePolicy?.sourceProductionWorkerJobPacketMustKeepEnqueueAndRuntimeFalse !== true) {
   fail('docs_source_policy_missing_false_gate_requirement')
@@ -297,6 +348,10 @@ for (const token of [
 for (const phrase of [
   'Source evidence policy',
   '`--internal-beta-production-worker-job-readiness-packet`',
+  'exactly eight GPU/model production worker payloads',
+  'on-demand-only GPU runtime',
+  'no idle GPU runtime approval',
+  'CPU fallback blocked for heavy/model tools',
   'Packet-fed gate',
   'readiness still only runs shared gate validation',
   'does not enqueue jobs',
@@ -436,6 +491,81 @@ if (packetFedOutput.booleans?.runtimeReadyNow !== false) {
 if (packetFedOutput.booleans?.productionReadyNow !== false) {
   fail('packet_fed_production_not_false')
 }
+
+expectSourceProductionWorkerJobPacketRejected(
+  'missing_tool_coverage',
+  manifestPacketPath,
+  gpuPacketPath,
+  (packet) => deepMerge(packet, { totalAiGraphicsTools: 20 }),
+)
+expectSourceProductionWorkerJobPacketRejected(
+  'missing_capability_coverage',
+  manifestPacketPath,
+  gpuPacketPath,
+  (packet) => deepMerge(packet, { totalProductFacingCapabilities: 11 }),
+)
+expectSourceProductionWorkerJobPacketRejected(
+  'wrong_gpu_runtime_target_count',
+  manifestPacketPath,
+  gpuPacketPath,
+  (packet) => {
+    const next = deepMerge(packet, {})
+    const sam2 = next.productionWorkerJobPayloads.find((candidate) => candidate.sourceToolId === 'sam2')
+    sam2.sourceToolId = 'sam2_misclassified'
+    return next
+  },
+)
+expectSourceProductionWorkerJobPacketRejected(
+  'gpu_runtime_on_demand_policy_removed',
+  manifestPacketPath,
+  gpuPacketPath,
+  (packet) => {
+    const next = deepMerge(packet, {})
+    const sam2 = next.productionWorkerJobPayloads.find((candidate) => candidate.sourceToolId === 'sam2')
+    sam2.productionWorkerJobPayload.metadata.aiGraphicsRuntimeActivationPolicy.onDemandOnly = false
+    return next
+  },
+)
+expectSourceProductionWorkerJobPacketRejected(
+  'idle_gpu_runtime_approved',
+  manifestPacketPath,
+  gpuPacketPath,
+  (packet) => {
+    const next = deepMerge(packet, {})
+    const sam2 = next.productionWorkerJobPayloads.find((candidate) => candidate.sourceToolId === 'sam2')
+    sam2.productionWorkerJobPayload.metadata.noIdleGpuRuntimeApproved = false
+    return next
+  },
+)
+expectSourceProductionWorkerJobPacketRejected(
+  'heavy_tool_cpu_fallback_allowed',
+  manifestPacketPath,
+  gpuPacketPath,
+  (packet) => {
+    const next = deepMerge(packet, {})
+    const sam2 = next.productionWorkerJobPayloads.find((candidate) => candidate.sourceToolId === 'sam2')
+    sam2.productionWorkerJobPayload.metadata.cpuFallbackAllowedForHeavyTools = true
+    return next
+  },
+)
+expectSourceProductionWorkerJobPacketRejected(
+  'gpu_runtime_approved_now',
+  manifestPacketPath,
+  gpuPacketPath,
+  (packet) => deepMerge(packet, { booleans: { gpuRuntimeApprovedNow: true } }),
+)
+expectSourceProductionWorkerJobPacketRejected(
+  'production_worker_job_enqueue_approved_now',
+  manifestPacketPath,
+  gpuPacketPath,
+  (packet) => deepMerge(packet, { booleans: { productionWorkerJobEnqueueApprovedNow: true } }),
+)
+expectSourceProductionWorkerJobPacketRejected(
+  'tool_execution_performed',
+  manifestPacketPath,
+  gpuPacketPath,
+  (packet) => deepMerge(packet, { booleans: { toolExecutionPerformed: true } }),
+)
 
 for (const gateResult of approvedOutput.productionWorkerGateChecks ?? []) {
   if (gateResult.gateCheckShapeValid !== true) fail(`gate_shape_invalid:${gateResult.toolId}`)

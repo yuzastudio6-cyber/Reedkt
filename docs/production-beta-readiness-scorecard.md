@@ -1001,7 +1001,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 ## AI Graphics Internal Beta Production Worker Gate Source Packet
 
 - Decision remains `ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime`.
-- Source packet ingestion: `ai-graphics:internal-beta-production-worker-gate-readiness` can now consume `--internal-beta-production-worker-job-readiness-packet` when the source packet already reports `owner_approved_production_worker_jobs_ready`, 21 production-worker job payloads ready with provided evidence, 12 capability scenarios ready with provided evidence, and enqueue/runtime gates still false.
+- Source packet ingestion: `ai-graphics:internal-beta-production-worker-gate-readiness` can now consume `--internal-beta-production-worker-job-readiness-packet` when the source packet already reports `owner_approved_production_worker_jobs_ready`, 21 production-worker job payloads ready with provided evidence, 12 capability scenarios ready with provided evidence, exactly eight GPU/model payloads on native NVIDIA L4 targets, on-demand-only GPU runtime policy, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and enqueue/runtime gates still false.
 - Runtime/beta/production: no unlock; `productionWorkerGateChecksReadyNow=0`, `productionWorkerDispatchApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `internalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Private Checksum-Evidence Hardening

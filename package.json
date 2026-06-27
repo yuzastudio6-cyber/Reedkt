@@ -746,6 +746,8 @@
     "rp-external-beta-tester-account-membership-smoke-1:diagnostics": "node scripts/validation/rp-external-beta-tester-account-membership-smoke-1-diagnostics.mjs",
     "rp-external-beta-controlled-tester-product-flow-smoke-1": "node scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1.mjs",
     "rp-external-beta-controlled-tester-product-flow-smoke-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1-diagnostics.mjs",
+    "rp-external-beta-controlled-tester-ui-flow-smoke-1": "node scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1.mjs",
+    "rp-external-beta-controlled-tester-ui-flow-smoke-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

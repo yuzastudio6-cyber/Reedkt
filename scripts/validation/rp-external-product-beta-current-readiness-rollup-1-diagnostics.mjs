@@ -363,6 +363,20 @@ const controlledTesterProductFlowSmokeFiles = [
   'scripts/validation/rp-external-beta-controlled-tester-product-flow-smoke-1-diagnostics.mjs',
 ]
 
+const controlledTesterUiFlowSmokeFiles = [
+  'docs/external-beta/controlled-tester-ui-flow-smoke-1/source-audit.md',
+  'docs/external-beta/controlled-tester-ui-flow-smoke-1/runner-contract.md',
+  'docs/external-beta/controlled-tester-ui-flow-smoke-1/ui-surface-evidence.md',
+  'docs/external-beta/controlled-tester-ui-flow-smoke-1/readiness-gate.md',
+  'docs/external-beta/controlled-tester-ui-flow-smoke-1/safety-boundary.md',
+  'docs/external-beta/controlled-tester-ui-flow-smoke-1/validation-results.md',
+  'docs/external-beta/controlled-tester-ui-flow-smoke-1/controlled-tester-ui-flow-smoke-record.json',
+  'docs/activation-phase-rp-external-beta-controlled-tester-ui-flow-smoke-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-deployed-browser-ui-surface-1.md',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -598,7 +612,7 @@ const requiredText = [
   'blocked_gcloud_reauthentication_required_before_staging_flag_application',
   'completed_controlled_external_beta_staging_flag_application',
   'completed_controlled_private_invite_iam_grant_for_owner_managed_group',
-  'completed_controlled_tester_product_flow_smoke_external_beta_owner_walkthrough_ready',
+  'blocked_controlled_tester_ui_flow_smoke_deployed_browser_ui_surface_not_present',
   'completed_owner_member_group_access_smoke_readback_carried_forward',
   'completed_readonly_group_membership_readback_and_owner_member_authenticated_smoke',
   'completed_owner_approved_tester_account_membership_smoke',
@@ -626,7 +640,8 @@ const requiredText = [
   'Unsafe public mutation grants: `0`',
   'Unsafe public sequence grants: `0`',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'External product beta readiness: `ready_for_controlled_owner_tester_product_walkthrough`',
+  'External product beta readiness: `blocked_pending_deployed_browser_ui_surface_for_owner_walkthrough`',
+  'Product API readiness: `ready_for_controlled_owner_tester_product_walkthrough`',
   'External beta enabled in this phase: `true`',
   'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
   'Product-ready end-to-end local OSS tools: `0`',
@@ -671,6 +686,13 @@ const requiredText = [
   '2026-06-27T15-34-26-957Z-dbe78e9d',
   'ed4be5c34449725443592cf1bcf459b5847601b229abacb48018c36a56f86522',
   'a0b67ee1a562d5f3c2d91678eb7dd4bc6dd1bab814b615abd0055c43a3cd187e',
+  'blocked_external_beta_controlled_tester_ui_flow_smoke',
+  'completed_guarded_authenticated_ui_surface_probe_no_runtime_mutation',
+  'blocked_deployed_browser_ui_surface_not_present',
+  '2026-06-27T16-07-23-427Z-7e136bc9',
+  '0bf0f4a53c435b3e8e1c62412d7f2cef7b7633de821eee36f62ace16f068b2e3',
+  '5672d630490da26bfc5b0ef37d66b5da5bbcb041f83ebdcbf0dfa1d328dc3dae',
+  'RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1',
   'planning.demo.chatNative.create',
   'credits.estimate.create',
   'jobs.gate.check',
@@ -799,10 +821,11 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'completed_controlled_tester_product_flow_smoke_external_beta_owner_walkthrough_ready') fail('record decision mismatch')
+if (record.decision !== 'blocked_controlled_tester_ui_flow_smoke_deployed_browser_ui_surface_not_present') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
 if (record.integrationHead !== '5513c610ede7f96995b8b2f5da748064dca95ade') fail('integration head mismatch')
-if (record.statuses?.externalProductBeta !== 'ready_for_controlled_owner_tester_product_walkthrough') fail('external beta status mismatch')
+if (record.statuses?.externalProductBeta !== 'blocked_pending_deployed_browser_ui_surface_for_owner_walkthrough') fail('external beta status mismatch')
+if (record.statuses?.productApiReadiness !== 'ready_for_controlled_owner_tester_product_walkthrough') fail('product API readiness mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.mainSupabaseTarget?.projectRef !== 'wmyyttnynmteqgcdishd') fail('main target ref mismatch')
@@ -867,6 +890,7 @@ if (record.sourceClosure?.controlledPrivateInviteIamGrant1r !== 'rp_external_bet
 if (record.sourceClosure?.ownerMemberSmokeReadback !== 'rp_external_beta_owner_member_smoke_readback_1') fail('owner-member smoke readback source mismatch')
 if (record.sourceClosure?.testerAccountMembershipSmoke !== 'rp_external_beta_tester_account_membership_smoke_1') fail('tester-account smoke source mismatch')
 if (record.sourceClosure?.controlledTesterProductFlowSmoke !== 'rp_external_beta_controlled_tester_product_flow_smoke_1') fail('controlled tester product-flow smoke source mismatch')
+if (record.sourceClosure?.controlledTesterUiFlowSmoke !== 'rp_external_beta_controlled_tester_ui_flow_smoke_1') fail('controlled tester UI flow smoke source mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
 if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
@@ -991,7 +1015,18 @@ if (record.mainSupabaseTarget?.controlledTesterProductFlowRenderCreditGateRoute 
 if (record.mainSupabaseTarget?.controlledTesterProductFlowRenderReadinessRoute !== 'passed_mock_only') fail('controlled tester product-flow render readiness route mismatch')
 if (record.mainSupabaseTarget?.controlledTesterProductFlowApprovalRoute !== 'blocked_424_backend_runtime_required') fail('controlled tester product-flow approval route mismatch')
 if (record.mainSupabaseTarget?.controlledTesterProductFlowRenderPreviewRoute !== 'blocked_424_backend_runtime_required') fail('controlled tester product-flow render preview route mismatch')
-if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-TESTER-UI-FLOW-SMOKE-1') fail('next milestone mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowSmoke !== 'blocked_external_beta_controlled_tester_ui_flow_smoke') fail('controlled tester UI flow status mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowExecution !== 'completed_guarded_authenticated_ui_surface_probe_no_runtime_mutation') fail('controlled tester UI flow execution mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowBlocker !== 'blocked_deployed_browser_ui_surface_not_present') fail('controlled tester UI flow blocker mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowRunId !== '2026-06-27T16-07-23-427Z-7e136bc9') fail('controlled tester UI flow run id mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowReportSha256 !== '0bf0f4a53c435b3e8e1c62412d7f2cef7b7633de821eee36f62ace16f068b2e3') fail('controlled tester UI flow report checksum mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowManifestSha256 !== '5672d630490da26bfc5b0ef37d66b5da5bbcb041f83ebdcbf0dfa1d328dc3dae') fail('controlled tester UI flow manifest checksum mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowDeployedBrowserUiSurfacePresent !== false) fail('controlled tester UI deployed browser surface mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowAuthenticatedRoot !== 'blocked_404_json_route_not_found') fail('controlled tester UI root probe mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowAuthenticatedDashboard !== 'blocked_404_json_route_not_found') fail('controlled tester UI dashboard probe mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowAuthenticatedProjects !== 'blocked_404_json_route_not_found') fail('controlled tester UI projects probe mismatch')
+if (record.mainSupabaseTarget?.controlledTesterUiFlowAuthenticatedEditor !== 'blocked_404_json_route_not_found') fail('controlled tester UI editor probe mismatch')
+if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1') fail('next milestone mismatch')
 if (record.requiredNextOwnerDecision?.[0] !== 'keep_controlled_external_beta_tester_group_bounded') fail('controlled private invite next decision mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
@@ -1175,6 +1210,18 @@ if (
 ) {
   fail('missing controlled tester product-flow smoke diagnostics script')
 }
+if (
+  packageJson.scripts?.['rp-external-beta-controlled-tester-ui-flow-smoke-1'] !==
+  'node scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1.mjs'
+) {
+  fail('missing controlled tester UI flow smoke runner script')
+}
+if (
+  packageJson.scripts?.['rp-external-beta-controlled-tester-ui-flow-smoke-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs'
+) {
+  fail('missing controlled tester UI flow smoke diagnostics script')
+}
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
@@ -1203,6 +1250,7 @@ const allowed = new Set([
   ...ownerMemberSmokeReadbackFiles,
   ...testerAccountMembershipSmokeFiles,
   ...controlledTesterProductFlowSmokeFiles,
+  ...controlledTesterUiFlowSmokeFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -1248,7 +1296,8 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_controlled_tester_product_flow_smoke_external_beta_owner_walkthrough_ready')
-console.log('External product beta readiness: ready_for_controlled_owner_tester_product_walkthrough')
+console.log('Decision: blocked_controlled_tester_ui_flow_smoke_deployed_browser_ui_surface_not_present')
+console.log('External product beta readiness: blocked_pending_deployed_browser_ui_surface_for_owner_walkthrough')
+console.log('Product API readiness: ready_for_controlled_owner_tester_product_walkthrough')
 console.log('External beta enabled in this phase: true')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

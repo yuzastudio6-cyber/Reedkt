@@ -75,6 +75,29 @@ const followOnDeployedBrowserUiSurface1rStagingDeployFiles = [
   'package.json',
 ]
 
+const followOnControlledOwnerBrowserWalkthrough1Files = [
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/source-audit.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/runner-contract.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/browser-walkthrough-evidence.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/readiness-gate.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/safety-boundary.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/validation-results.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/controlled-owner-browser-walkthrough-record.json',
+  'docs/activation-phase-rp-external-beta-controlled-owner-browser-walkthrough-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-owner-go-no-go-1.md',
+  'docs/external-beta/current-readiness-rollup-1/readiness-gate.md',
+  'docs/external-beta/current-readiness-rollup-1/source-of-truth-audit.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/external-beta/current-readiness-rollup-1/rollup-record.json',
+  'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
+  'scripts/validation/rp-external-beta-controlled-owner-browser-walkthrough-1.mjs',
+  'scripts/validation/rp-external-beta-controlled-owner-browser-walkthrough-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-deployed-browser-ui-surface-1r-staging-deploy-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
+  'package.json',
+]
+
 const requiredText = [
   packet,
   'blocked_external_beta_controlled_tester_ui_flow_smoke',
@@ -288,6 +311,7 @@ const allowed = new Set([
   ...productFlowFiles,
   ...followOnDeployedBrowserUiSurfaceFiles,
   ...followOnDeployedBrowserUiSurface1rStagingDeployFiles,
+  ...followOnControlledOwnerBrowserWalkthrough1Files,
 ])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)

@@ -414,6 +414,29 @@ const followOnDeployedBrowserUiSurface1rStagingDeployFiles = [
   'package.json',
 ]
 
+const followOnControlledOwnerBrowserWalkthrough1Files = [
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/source-audit.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/runner-contract.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/browser-walkthrough-evidence.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/readiness-gate.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/safety-boundary.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/validation-results.md',
+  'docs/external-beta/controlled-owner-browser-walkthrough-1/controlled-owner-browser-walkthrough-record.json',
+  'docs/activation-phase-rp-external-beta-controlled-owner-browser-walkthrough-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-owner-go-no-go-1.md',
+  'docs/external-beta/current-readiness-rollup-1/readiness-gate.md',
+  'docs/external-beta/current-readiness-rollup-1/source-of-truth-audit.md',
+  'docs/external-beta/current-readiness-rollup-1/blocker-matrix.md',
+  'docs/external-beta/current-readiness-rollup-1/rollup-record.json',
+  'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
+  'scripts/validation/rp-external-beta-controlled-owner-browser-walkthrough-1.mjs',
+  'scripts/validation/rp-external-beta-controlled-owner-browser-walkthrough-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-deployed-browser-ui-surface-1r-staging-deploy-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
+  'package.json',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -649,7 +672,7 @@ const requiredText = [
   'blocked_gcloud_reauthentication_required_before_staging_flag_application',
   'completed_controlled_external_beta_staging_flag_application',
   'completed_controlled_private_invite_iam_grant_for_owner_managed_group',
-  'completed_deployed_browser_ui_surface_staging_deploy_and_controlled_tester_ui_smoke',
+  'completed_controlled_owner_browser_walkthrough',
   'completed_owner_member_group_access_smoke_readback_carried_forward',
   'completed_readonly_group_membership_readback_and_owner_member_authenticated_smoke',
   'completed_owner_approved_tester_account_membership_smoke',
@@ -677,7 +700,7 @@ const requiredText = [
   'Unsafe public mutation grants: `0`',
   'Unsafe public sequence grants: `0`',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'External product beta readiness: `ready_for_controlled_owner_browser_walkthrough`',
+  'External product beta readiness: `ready_for_controlled_owner_go_no_go`',
   'Product API readiness: `ready_for_controlled_owner_tester_product_walkthrough`',
   'External beta enabled in this phase: `true`',
   'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
@@ -737,6 +760,13 @@ const requiredText = [
   '63f1730ebcfc018141e9ebd8a29b1104363cab6f75c9a2ccfb7c850dc7d311fb',
   'a1f89539506674d0c2877b437b39d6cf0c9592eeb08a2978f52970f35b666ffe',
   'ready_for_controlled_owner_browser_walkthrough',
+  'ready_for_controlled_owner_go_no_go',
+  'completed_external_beta_controlled_owner_browser_walkthrough',
+  'completed_guarded_authenticated_browser_surface_walkthrough_no_runtime_mutation',
+  '2026-06-27T17-44-11-103Z-d5f1043a',
+  '3b59add023f0e66fa29e028239563b8fe6b27c62efd2bbe7acc82bbbb6b52423',
+  '53cca53c7a2198768836c0d4510993d2aaf98e9bba3304715f4a8ef94acc4896',
+  'RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1',
   'RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1',
   'RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1',
   'planning.demo.chatNative.create',
@@ -869,10 +899,10 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'completed_deployed_browser_ui_surface_staging_deploy_and_controlled_tester_ui_smoke') fail('record decision mismatch')
+if (record.decision !== 'completed_controlled_owner_browser_walkthrough') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
-if (record.integrationHead !== '9db791f8d33b3f5f1dd794225fe2e9b9b52f779c') fail('integration head mismatch')
-if (record.statuses?.externalProductBeta !== 'ready_for_controlled_owner_browser_walkthrough') fail('external beta status mismatch')
+if (record.integrationHead !== '7cc7d798c6a2b272a260f5220f2f0c911c4bea2f') fail('integration head mismatch')
+if (record.statuses?.externalProductBeta !== 'ready_for_controlled_owner_go_no_go') fail('external beta status mismatch')
 if (record.statuses?.productApiReadiness !== 'ready_for_controlled_owner_tester_product_walkthrough') fail('product API readiness mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
@@ -940,6 +970,7 @@ if (record.sourceClosure?.testerAccountMembershipSmoke !== 'rp_external_beta_tes
 if (record.sourceClosure?.controlledTesterProductFlowSmoke !== 'rp_external_beta_controlled_tester_product_flow_smoke_1') fail('controlled tester product-flow smoke source mismatch')
 if (record.sourceClosure?.controlledTesterUiFlowSmoke !== 'rp_external_beta_controlled_tester_ui_flow_smoke_1') fail('controlled tester UI flow smoke source mismatch')
 if (record.sourceClosure?.deployedBrowserUiSurfaceStagingDeploy !== 'rp_external_beta_deployed_browser_ui_surface_1r_staging_deploy') fail('deployed browser UI surface 1R source mismatch')
+if (record.sourceClosure?.controlledOwnerBrowserWalkthrough !== 'rp_external_beta_controlled_owner_browser_walkthrough_1') fail('controlled owner browser walkthrough source mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
 if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
@@ -1081,7 +1112,19 @@ if (record.mainSupabaseTarget?.controlledTesterUiFlowAuthenticatedRoot !== 'pass
 if (record.mainSupabaseTarget?.controlledTesterUiFlowAuthenticatedDashboard !== 'passed_200_html') fail('controlled tester UI dashboard probe mismatch')
 if (record.mainSupabaseTarget?.controlledTesterUiFlowAuthenticatedProjects !== 'passed_200_html') fail('controlled tester UI projects probe mismatch')
 if (record.mainSupabaseTarget?.controlledTesterUiFlowAuthenticatedEditor !== 'passed_200_html') fail('controlled tester UI editor probe mismatch')
-if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1') fail('next milestone mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthrough !== 'completed_external_beta_controlled_owner_browser_walkthrough') fail('controlled owner browser walkthrough status mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughExecution !== 'completed_guarded_authenticated_browser_surface_walkthrough_no_runtime_mutation') fail('controlled owner browser walkthrough execution mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughRunId !== '2026-06-27T17-44-11-103Z-d5f1043a') fail('controlled owner browser walkthrough run id mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughReportSha256 !== '3b59add023f0e66fa29e028239563b8fe6b27c62efd2bbe7acc82bbbb6b52423') fail('controlled owner browser walkthrough report checksum mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughManifestSha256 !== '53cca53c7a2198768836c0d4510993d2aaf98e9bba3304715f4a8ef94acc4896') fail('controlled owner browser walkthrough manifest checksum mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughUnauthenticatedRoot !== 'blocked_403') fail('controlled owner browser unauthenticated root mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughAuthenticatedRoot !== 'passed_200_html') fail('controlled owner browser root mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughAuthenticatedDashboard !== 'passed_200_html') fail('controlled owner browser dashboard mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughAuthenticatedProjects !== 'passed_200_html') fail('controlled owner browser projects mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughAuthenticatedEditor !== 'passed_200_html') fail('controlled owner browser editor mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughAssetFetches !== 'passed') fail('controlled owner browser asset fetches mismatch')
+if (record.mainSupabaseTarget?.controlledOwnerBrowserWalkthroughBrowserVisibleShell !== true) fail('controlled owner browser shell mismatch')
+if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1') fail('next milestone mismatch')
 if (record.requiredNextOwnerDecision?.[0] !== 'keep_controlled_external_beta_tester_group_bounded') fail('controlled private invite next decision mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
@@ -1283,6 +1326,12 @@ if (
 ) {
   fail('missing deployed browser UI surface 1R diagnostics script')
 }
+if (
+  packageJson.scripts?.['rp-external-beta-controlled-owner-browser-walkthrough-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-controlled-owner-browser-walkthrough-1-diagnostics.mjs'
+) {
+  fail('missing controlled owner browser walkthrough diagnostics script')
+}
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
@@ -1314,6 +1363,7 @@ const allowed = new Set([
   ...controlledTesterUiFlowSmokeFiles,
   ...followOnDeployedBrowserUiSurfaceFiles,
   ...followOnDeployedBrowserUiSurface1rStagingDeployFiles,
+  ...followOnControlledOwnerBrowserWalkthrough1Files,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -1359,8 +1409,8 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_deployed_browser_ui_surface_staging_deploy_and_controlled_tester_ui_smoke')
-console.log('External product beta readiness: ready_for_controlled_owner_browser_walkthrough')
+console.log('Decision: completed_controlled_owner_browser_walkthrough')
+console.log('External product beta readiness: ready_for_controlled_owner_go_no_go')
 console.log('Product API readiness: ready_for_controlled_owner_tester_product_walkthrough')
 console.log('External beta enabled in this phase: true')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

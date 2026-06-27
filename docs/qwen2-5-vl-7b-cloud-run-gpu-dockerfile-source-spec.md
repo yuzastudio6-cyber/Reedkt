@@ -24,7 +24,7 @@ This packet does not build Docker, push images, create Artifact Registry images,
 | File | Purpose |
 | --- | --- |
 | `docker/prod/qwen2-5-vl-cloud-run-gpu/Dockerfile` | Source-only Cloud Run image definition aligned with the existing VLM runtime boundary. |
-| `docker/prod/qwen2-5-vl-cloud-run-gpu/requirements.qwen2-5-vl.txt` | Qwen2.5-VL runtime pins matching the prepared Linux L4 wheelhouse and SGLang fallback package. |
+| `docker/prod/qwen2-5-vl-cloud-run-gpu/requirements.qwen2-5-vl.txt` | Qwen2.5-VL vLLM-focused runtime pins. The separate SGLang lane remains separate and is not bundled into this image. |
 | `docker/prod/qwen2-5-vl-cloud-run-gpu/Dockerfile.dockerignore` | Minimal build context allowlist for a future build approval. |
 | `docker/prod/qwen2-5-vl-cloud-run-gpu/README.md` | Source-spec scope and fail-closed behavior. |
 | `server/workers/qwen2_5_vl_cloud_run_gpu/service.py` | Tiny health/readiness wrapper that does not import or load Qwen and rejects POST execution. |
@@ -42,6 +42,7 @@ This packet does not build Docker, push images, create Artifact Registry images,
 | CUDA/L4 alignment | yes, inherited from existing VLM lane source pattern |
 | Existing VLM lane reused | yes |
 | Duplicate runtime stack created | false |
+| Runtime dependency scope | vLLM-focused Qwen image; SGLang remains a separate existing lane |
 | Model weights in image | false |
 | Request-time dependency install | false |
 | Model hub download path | disabled |

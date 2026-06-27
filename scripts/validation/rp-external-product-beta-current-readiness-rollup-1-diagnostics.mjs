@@ -312,6 +312,18 @@ const controlledPrivateInviteIamInheritanceAuditFiles = [
   'scripts/validation/rp-external-beta-controlled-private-invite-iam-inheritance-audit-1-diagnostics.mjs',
 ]
 
+const controlledPrivateInviteIamGrant1rFiles = [
+  'docs/external-beta/controlled-private-invite-iam-grant-1r-after-identity-list/source-audit.md',
+  'docs/external-beta/controlled-private-invite-iam-grant-1r-after-identity-list/iam-grant-result.md',
+  'docs/external-beta/controlled-private-invite-iam-grant-1r-after-identity-list/smoke-readback.md',
+  'docs/external-beta/controlled-private-invite-iam-grant-1r-after-identity-list/rollback-and-membership-plan.md',
+  'docs/external-beta/controlled-private-invite-iam-grant-1r-after-identity-list/safety-boundary.md',
+  'docs/external-beta/controlled-private-invite-iam-grant-1r-after-identity-list/controlled-private-invite-iam-grant-1r-record.json',
+  'docs/external-beta/controlled-private-invite-iam-grant-1r-after-identity-list/validation-results.md',
+  'docs/activation-phase-rp-external-beta-controlled-private-invite-iam-grant-1r-results.md',
+  'scripts/validation/rp-external-beta-controlled-private-invite-iam-grant-1r-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -546,7 +558,7 @@ const requiredText = [
   'completed_controlled_external_beta_enablement_source_contract_default_off',
   'blocked_gcloud_reauthentication_required_before_staging_flag_application',
   'completed_controlled_external_beta_staging_flag_application',
-  'completed_readonly_project_iam_inheritance_audit_no_access_mutation',
+  'completed_controlled_private_invite_iam_grant_for_owner_managed_group',
   'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant',
   'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution',
   'completed_reeditpro_main_supabase_target_migration_history_sync',
@@ -569,7 +581,7 @@ const requiredText = [
   'Unsafe public mutation grants: `0`',
   'Unsafe public sequence grants: `0`',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'External product beta readiness: `blocked_pending_explicit_invite_identity_for_controlled_private_access_grant`',
+  'External product beta readiness: `ready_for_owner_managed_external_beta_tester_membership_addition`',
   'External beta enabled in this phase: `true`',
   'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
   'Product-ready end-to-end local OSS tools: `0`',
@@ -600,11 +612,16 @@ const requiredText = [
   'completed_controlled_private_invite_access_policy_no_access_mutation',
   'completed_docs_only_invite_access_policy_and_iam_readback_no_access_grants',
   'completed_docs_only_iam_grant_blocker_review_no_access_mutation',
+  'completed_cloud_identity_group_creation_and_staging_cloud_run_invoker_grant',
   'completed_readonly_project_iam_policy_analysis_no_iam_mutation',
   'completed_readonly_project_iam_inheritance_audit_no_broad_invoker',
   'blocked_pending_explicit_invite_identity_for_controlled_private_access_grant',
+  'ready_for_owner_managed_external_beta_tester_membership_addition',
   'not_run_missing_explicit_identity_list',
   'not_present_in_source',
+  'external-beta-testers@reeditpro.com',
+  'group:external-beta-testers@reeditpro.com',
+  'groups/0279ka651g62ifo',
   'Project-level `roles/run.invoker` binding count: `1`',
   'Project-level `roles/run.invoker` member classes: `serviceAccount`',
   'Broad inherited Cloud Run invoker access: `false`',
@@ -720,10 +737,10 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'completed_readonly_project_iam_inheritance_audit_no_access_mutation') fail('record decision mismatch')
+if (record.decision !== 'completed_controlled_private_invite_iam_grant_for_owner_managed_group') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
-if (record.integrationHead !== 'c0788dd622a89b0070371bc0e5daa0bb03f62419') fail('integration head mismatch')
-if (record.statuses?.externalProductBeta !== 'blocked_pending_explicit_invite_identity_for_controlled_private_access_grant') fail('external beta status mismatch')
+if (record.integrationHead !== '4ff3b917b9544ba04af0a73dfec3ec0c961b0b98') fail('integration head mismatch')
+if (record.statuses?.externalProductBeta !== 'ready_for_owner_managed_external_beta_tester_membership_addition') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.mainSupabaseTarget?.projectRef !== 'wmyyttnynmteqgcdishd') fail('main target ref mismatch')
@@ -784,6 +801,7 @@ if (record.sourceClosure?.controlledSmokeValidation !== 'rp_external_beta_contro
 if (record.sourceClosure?.controlledPrivateInviteAccess !== 'rp_external_beta_controlled_private_invite_access_1') fail('controlled private invite access source mismatch')
 if (record.sourceClosure?.controlledPrivateInviteIamGrant !== 'rp_external_beta_controlled_private_invite_iam_grant_1') fail('controlled private invite IAM grant source mismatch')
 if (record.sourceClosure?.controlledPrivateInviteIamInheritanceAudit !== 'rp_external_beta_controlled_private_invite_iam_inheritance_audit_1') fail('controlled private invite IAM inheritance audit source mismatch')
+if (record.sourceClosure?.controlledPrivateInviteIamGrant1r !== 'rp_external_beta_controlled_private_invite_iam_grant_1r_after_identity_list') fail('controlled private invite IAM grant 1R source mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
 if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
@@ -838,16 +856,26 @@ if (record.mainSupabaseTarget?.cloudRunAllUsersInvoker !== false) fail('Cloud Ru
 if (record.mainSupabaseTarget?.cloudRunAllAuthenticatedUsersInvoker !== false) fail('Cloud Run allAuthenticatedUsers invoker mismatch')
 if (record.mainSupabaseTarget?.inviteAccessGrantMutation !== false) fail('invite access grant mutation mismatch')
 if (record.mainSupabaseTarget?.approvedInviteSource !== 'explicit_identity_list_required_before_grant') fail('approved invite source mismatch')
-if (record.mainSupabaseTarget?.privateInviteAccessReadiness !== 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant') fail('private invite readiness mismatch')
-if (record.mainSupabaseTarget?.controlledPrivateInviteIamGrant !== 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant') fail('private invite IAM grant status mismatch')
-if (record.mainSupabaseTarget?.privateInviteIamGrantExecution !== 'completed_docs_only_iam_grant_blocker_review_no_access_mutation') fail('private invite IAM grant execution mismatch')
-if (record.mainSupabaseTarget?.privateInviteIamGrant !== 'not_run_missing_explicit_identity_list') fail('private invite IAM grant mismatch')
-if (record.mainSupabaseTarget?.explicitInvitedIdentityList !== 'not_present_in_source') fail('explicit invited identity list mismatch')
-if (record.mainSupabaseTarget?.approvedGoogleGroup !== 'not_present_in_source') fail('approved Google Group mismatch')
-if (record.mainSupabaseTarget?.cloudRunIamMutation !== false) fail('Cloud Run IAM mutation mismatch')
+if (record.mainSupabaseTarget?.privateInviteAccessReadiness !== 'ready_for_owner_managed_external_beta_tester_membership_addition') fail('private invite readiness mismatch')
+if (record.mainSupabaseTarget?.controlledPrivateInviteIamGrant !== 'completed_controlled_private_invite_iam_grant_for_owner_managed_group') fail('private invite IAM grant status mismatch')
+if (record.mainSupabaseTarget?.privateInviteIamGrantExecution !== 'completed_cloud_identity_group_creation_and_staging_cloud_run_invoker_grant') fail('private invite IAM grant execution mismatch')
+if (record.mainSupabaseTarget?.privateInviteIamGrant !== 'completed_group_roles_run_invoker_on_reeditpro_staging_api') fail('private invite IAM grant mismatch')
+if (record.mainSupabaseTarget?.explicitInvitedIdentityList !== 'owner_managed_google_group') fail('explicit invited identity list mismatch')
+if (record.mainSupabaseTarget?.approvedGoogleGroup !== 'external-beta-testers@reeditpro.com') fail('approved Google Group mismatch')
+if (record.mainSupabaseTarget?.approvedGoogleGroupResource !== 'groups/0279ka651g62ifo') fail('approved Google Group resource mismatch')
+if (record.mainSupabaseTarget?.cloudIdentityApiEnablement !== 'completed') fail('Cloud Identity API enablement mismatch')
+if (record.mainSupabaseTarget?.cloudRunIamMutation !== true) fail('Cloud Run IAM mutation mismatch')
+if (record.mainSupabaseTarget?.cloudRunIamMutationScope !== 'roles/run.invoker_on_reeditpro-staging-api_for_group_external-beta-testers_only') fail('Cloud Run IAM mutation scope mismatch')
+if (record.mainSupabaseTarget?.cloudRunIamServiceLevelBindingCountAfterGrant !== 1) fail('Cloud Run IAM binding count after grant mismatch')
+if (record.mainSupabaseTarget?.cloudRunIamServiceLevelMemberAfterGrant !== 'group:external-beta-testers@reeditpro.com') fail('Cloud Run IAM member after grant mismatch')
 if (record.mainSupabaseTarget?.cloudRunServiceUpdate !== false) fail('Cloud Run service update mismatch')
 if (record.mainSupabaseTarget?.cloudRunInviteGrantAllUsers !== false) fail('Cloud Run allUsers grant mismatch')
 if (record.mainSupabaseTarget?.cloudRunInviteGrantAllAuthenticatedUsers !== false) fail('Cloud Run allAuthenticatedUsers grant mismatch')
+if (record.mainSupabaseTarget?.controlledPrivateInviteIamGrant1r !== 'completed_controlled_private_invite_iam_grant_for_owner_managed_group') fail('private invite IAM grant 1R status mismatch')
+if (record.mainSupabaseTarget?.postGrantUnauthenticatedHealth !== 'blocked_403') fail('post-grant unauthenticated health mismatch')
+if (record.mainSupabaseTarget?.postGrantAuthenticatedHealth !== 'passed_200') fail('post-grant authenticated health mismatch')
+if (record.mainSupabaseTarget?.postGrantAuthenticatedReady !== 'passed_200') fail('post-grant authenticated ready mismatch')
+if (record.mainSupabaseTarget?.postGrantAuthenticatedRuntimeStatus !== 'passed_200') fail('post-grant runtime status mismatch')
 if (record.mainSupabaseTarget?.controlledPrivateInviteIamInheritanceAudit !== 'completed_readonly_project_iam_inheritance_audit_no_broad_invoker') fail('private invite IAM inheritance audit status mismatch')
 if (record.mainSupabaseTarget?.projectLevelRunInvokerBindingCount !== 1) fail('project-level run.invoker binding count mismatch')
 if (record.mainSupabaseTarget?.projectLevelRunInvokerMemberCount !== 1) fail('project-level run.invoker member count mismatch')
@@ -859,8 +887,8 @@ if (record.mainSupabaseTarget?.projectLevelRunInvokerAllUsersMemberCount !== 0) 
 if (record.mainSupabaseTarget?.projectLevelRunInvokerAllAuthenticatedUsersMemberCount !== 0) fail('project-level run.invoker allAuthenticatedUsers count mismatch')
 if (record.mainSupabaseTarget?.broadInheritedCloudRunInvokerAccess !== false) fail('broad inherited Cloud Run invoker mismatch')
 if (record.mainSupabaseTarget?.sanitizedProjectIamPrincipalNamesRecorded !== false) fail('project IAM principal sanitization mismatch')
-if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST') fail('next milestone mismatch')
-if (record.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST') fail('controlled private invite next decision mismatch')
+if (record.mainSupabaseTarget?.nextMilestone !== 'add_or_remove_external_beta_testers_by_google_group_membership') fail('next milestone mismatch')
+if (record.requiredNextOwnerDecision?.[0] !== 'add_or_remove_external_beta_testers_by_google_group_membership') fail('controlled private invite next decision mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteReportSha256 !== '25772fc0efe3d6d1aa699a1408ec621cc7df0dbe13bb52fe526b3939030fbb65') fail('service-role route report checksum mismatch')
@@ -915,21 +943,25 @@ if (record.safety?.controlledSmokeValidation !== 'completed_authenticated_health
 if (record.safety?.authenticatedHealthReadinessRouteExecution !== 'safe_get_health_ready_runtime_status_only') fail('authenticated health/readiness route scope mismatch')
 if (record.safety?.unauthenticatedAccessPublicOpen !== false) fail('unauthenticated public access flag mismatch')
 if (record.safety?.controlledPrivateInviteAccess !== 'completed_docs_only_invite_access_policy_and_readonly_iam_readback') fail('controlled private invite safety mismatch')
-if (record.safety?.controlledPrivateInviteIamGrant !== 'completed_docs_only_iam_grant_blocker_review_no_access_mutation') fail('controlled private invite IAM grant safety mismatch')
+if (record.safety?.controlledPrivateInviteIamGrant !== 'completed_cloud_identity_group_creation_and_staging_cloud_run_invoker_grant') fail('controlled private invite IAM grant safety mismatch')
+if (record.safety?.controlledPrivateInviteIamGrant1r !== 'completed_cloud_identity_group_creation_and_staging_cloud_run_invoker_grant') fail('controlled private invite IAM grant 1R safety mismatch')
 if (record.safety?.controlledPrivateInviteIamInheritanceAudit !== 'completed_readonly_project_iam_policy_analysis_no_iam_mutation') fail('controlled private invite IAM inheritance audit safety mismatch')
 if (record.safety?.cloudRunIamPolicyReadback !== true) fail('Cloud Run IAM policy readback safety mismatch')
-if (record.safety?.cloudRunIamPolicyMutation !== false) fail('Cloud Run IAM mutation safety mismatch')
+if (record.safety?.cloudRunIamPolicyMutation !== true) fail('Cloud Run IAM mutation safety mismatch')
+if (record.safety?.cloudRunIamMutationScope !== 'roles/run.invoker_on_reeditpro-staging-api_for_group_external-beta-testers_only') fail('Cloud Run IAM mutation scope safety mismatch')
 if (record.safety?.projectIamPolicyReadback !== true) fail('project IAM policy readback safety mismatch')
 if (record.safety?.projectIamPolicyMutation !== false) fail('project IAM policy mutation safety mismatch')
 if (record.safety?.projectLevelRunInvokerAllUsers !== false) fail('project-level allUsers invoker safety mismatch')
 if (record.safety?.projectLevelRunInvokerAllAuthenticatedUsers !== false) fail('project-level allAuthenticatedUsers invoker safety mismatch')
 if (record.safety?.broadInheritedCloudRunInvokerGrant !== false) fail('broad inherited invoker grant safety mismatch')
 if (record.safety?.sanitizedProjectIamPrincipalNamesRecorded !== false) fail('project IAM principal sanitization safety mismatch')
-if (record.safety?.inviteGrantMutation !== false) fail('invite grant mutation safety mismatch')
+if (record.safety?.inviteGrantMutation !== true) fail('invite grant mutation safety mismatch')
+if (record.safety?.inviteGrantMutationScope !== 'owner_managed_google_group_on_staging_api_only') fail('invite grant mutation scope safety mismatch')
 if (record.safety?.broadPublicInvokerGrant !== false) fail('broad public invoker grant safety mismatch')
 if (record.safety?.allUsersGrant !== false) fail('allUsers grant safety mismatch')
 if (record.safety?.allAuthenticatedUsersGrant !== false) fail('allAuthenticatedUsers grant safety mismatch')
-if (record.safety?.explicitInviteIdentityListPresent !== false) fail('explicit invite identity list safety mismatch')
+if (record.safety?.explicitInviteIdentityListPresent !== true) fail('explicit invite identity list safety mismatch')
+if (record.safety?.approvedGoogleGroup !== 'external-beta-testers@reeditpro.com') fail('approved Google Group safety mismatch')
 if (record.safety?.privateMediaProcessing !== false) fail('private media processing flag mismatch')
 if (record.safety?.userMediaProcessing !== false) fail('user media processing flag mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
@@ -990,6 +1022,12 @@ if (
 ) {
   fail('missing controlled private invite IAM inheritance audit diagnostics script')
 }
+if (
+  packageJson.scripts?.['rp-external-beta-controlled-private-invite-iam-grant-1r:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-controlled-private-invite-iam-grant-1r-diagnostics.mjs'
+) {
+  fail('missing controlled private invite IAM grant 1R diagnostics script')
+}
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
@@ -1014,6 +1052,7 @@ const allowed = new Set([
   ...controlledPrivateInviteAccessFiles,
   ...controlledPrivateInviteIamGrantFiles,
   ...controlledPrivateInviteIamInheritanceAuditFiles,
+  ...controlledPrivateInviteIamGrant1rFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -1059,7 +1098,7 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_readonly_project_iam_inheritance_audit_no_access_mutation')
-console.log('External product beta readiness: blocked_pending_explicit_invite_identity_for_controlled_private_access_grant')
+console.log('Decision: completed_controlled_private_invite_iam_grant_for_owner_managed_group')
+console.log('External product beta readiness: ready_for_owner_managed_external_beta_tester_membership_addition')
 console.log('External beta enabled in this phase: true')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

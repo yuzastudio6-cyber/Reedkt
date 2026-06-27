@@ -33,6 +33,8 @@ Tool-cost wallet settlement has a backend-owned settlement path for platform bil
 
 `npm run smoke:beta-platform-stripe-boundary` verifies that tool-cost and beta billing surfaces do not depend on Stripe, import Stripe, instantiate Stripe, call Stripe APIs, or lose Stripe-isolation and service-fee-exclusion audit markers. It does not grant billing-owner approval or enable Stripe.
 
+`npm run smoke:beta-platform-evidence-manifest` verifies that remaining platform billing blocks are actionable evidence requirements, not permanent intentional stops. It connects local proof commands and source files to the staging deployment evidence, billing-owner approval, monitoring deployment, billing QA, and launch-owner approvals still required before external beta or production can open.
+
 ## Mock Status
 
 The mock gate returns allowed/blocked decisions and warnings. It does not call Stripe, provider APIs, workers, rendering, or remote Supabase.

@@ -92,6 +92,20 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'Run the source smoke, then record billing-owner approval that Stripe remains backend-only and separated from tool cost events.',
     ),
     sourceFileCheck(
+      'beta_platform_evidence_manifest_present',
+      'Beta platform evidence manifest source smoke is present',
+      'server/smoke/beta-platform-evidence-manifest-smoke.ts',
+      ['blockersAreEvidenceGaps', 'completePlatformEvidenceClearsPlatformBlocker', 'externalBetaToolExecutionAllowed'],
+      'Use the manifest to collect deployed staging evidence and named owner approvals without bypassing beta or production gates.',
+    ),
+    sourceFileCheck(
+      'beta_platform_evidence_manifest_source_present',
+      'Beta platform evidence manifest source is present',
+      'server/beta-readiness/platform-evidence-manifest.ts',
+      ['blockersAreEvidenceGaps', 'blockersOnlyProtectUnsafeActions', 'remainingRequiredEvidence', 'nextSafeAction'],
+      'Keep each platform blocker paired with local proof, deployed/owner evidence, and a next safe action.',
+    ),
+    sourceFileCheck(
       'tool_cost_persistent_store_present',
       'Persistent tool cost event store source is present',
       'server/tool-cost-metering/tool-cost-persistent-store.ts',

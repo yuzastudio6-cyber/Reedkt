@@ -22,7 +22,21 @@ export type AiGraphicsInternalBetaWorkerPayloadReadinessStatus =
   | 'owner_approved_worker_payloads_ready'
 
 export interface AiGraphicsInternalBetaWorkerPayloadReadinessInput
-  extends AiGraphicsInternalBetaDryRunReadinessInput {}
+  extends AiGraphicsInternalBetaDryRunReadinessInput {
+  workspaceId?: string
+  projectId?: string
+  approvedPlanSnapshotId?: string
+  editPlanId?: string
+  creditReservationId?: string
+  privateArtifactManifestRef?: string
+}
+
+export interface AiGraphicsInternalBetaRuntimeActivationPolicy {
+  onDemandOnly: true
+  noIdleGpuRuntimeApproved: true
+  startsOnlyForApprovedWorkerOrToolCall: true
+  cpuFallbackAllowedForHeavyTools: false
+}
 
 export interface AiGraphicsInternalBetaWorkerPayload {
   jobId: string
@@ -30,6 +44,7 @@ export interface AiGraphicsInternalBetaWorkerPayload {
   projectId: string
   approvedSnapshotId: string
   editPlanId: string
+  creditReservationId: string
   workerType: ProductionRegistryWorkerType
   executionMode: 'metadata_dry_run_payload_only'
   idempotencyKey: string
@@ -41,6 +56,7 @@ export interface AiGraphicsInternalBetaWorkerPayload {
   capabilityIds: AiGraphicsCapabilityId[]
   toolStrategyId: string
   privateArtifactManifestRef: string
+  runtimeActivationPolicy: AiGraphicsInternalBetaRuntimeActivationPolicy
   expectedOutputRefs: string[]
   payloadReadyWithProvidedEvidence: boolean
   canQueueWorkerNow: false
@@ -146,6 +162,38 @@ const blockedRuntimeActions = [
   'production unlock',
 ]
 
+const runtimeActivationPolicy: AiGraphicsInternalBetaRuntimeActivationPolicy = {
+  onDemandOnly: true,
+  noIdleGpuRuntimeApproved: true,
+  startsOnlyForApprovedWorkerOrToolCall: true,
+  cpuFallbackAllowedForHeavyTools: false,
+}
+
+function inputOrDefault(value: string | undefined, fallback: string): string {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : fallback
+}
+
+function workerPayloadEvidence(input: AiGraphicsInternalBetaWorkerPayloadReadinessInput) {
+  return {
+    workspaceId: inputOrDefault(input.workspaceId, 'workspace_ai_graphics_internal_beta_fixture'),
+    projectId: inputOrDefault(input.projectId, 'project_ai_graphics_internal_beta_fixture'),
+    approvedSnapshotId: inputOrDefault(
+      input.approvedPlanSnapshotId,
+      'approved_snapshot_ai_graphics_internal_beta_fixture',
+    ),
+    editPlanId: inputOrDefault(input.editPlanId, 'edit_plan_ai_graphics_internal_beta_fixture'),
+    creditReservationId: inputOrDefault(
+      input.creditReservationId,
+      'credit_reservation_ai_graphics_internal_beta_fixture',
+    ),
+    privateArtifactManifestRef: inputOrDefault(
+      input.privateArtifactManifestRef,
+      'private://ai-graphics/internal-beta/artifact-manifest.json',
+    ),
+  }
+}
+
 function statusFromDryRun(
   dryRun: AiGraphicsInternalBetaDryRunReadiness,
 ): AiGraphicsInternalBetaWorkerPayloadReadinessStatus {
@@ -167,6 +215,7 @@ export function buildAiGraphicsInternalBetaWorkerPayloadReadiness(
   const status = statusFromDryRun(sourceDryRunReadiness)
   const ownerApprovedPayloadEvidenceAccepted = status === 'owner_approved_worker_payloads_ready'
   const handoffToolsById = new Map(listAiGraphicsToolCallHandoffTools().map((tool) => [tool.toolId, tool]))
+  const payloadEvidence = workerPayloadEvidence(input)
 
   const workerPayloads = sourceDryRunReadiness.toolCases.map((toolCase): AiGraphicsInternalBetaWorkerPayload => {
     const handoffTool = handoffToolsById.get(toolCase.toolId)
@@ -176,10 +225,11 @@ export function buildAiGraphicsInternalBetaWorkerPayloadReadiness(
 
     return {
       jobId: `ai-graphics-beta-${idPart(toolCase.toolId)}-metadata-payload`,
-      workspaceId: 'workspace_ai_graphics_internal_beta_fixture',
-      projectId: 'project_ai_graphics_internal_beta_fixture',
-      approvedSnapshotId: 'approved_snapshot_ai_graphics_internal_beta_fixture',
-      editPlanId: 'edit_plan_ai_graphics_internal_beta_fixture',
+      workspaceId: payloadEvidence.workspaceId,
+      projectId: payloadEvidence.projectId,
+      approvedSnapshotId: payloadEvidence.approvedSnapshotId,
+      editPlanId: payloadEvidence.editPlanId,
+      creditReservationId: payloadEvidence.creditReservationId,
       workerType: toolCase.workerType,
       executionMode: 'metadata_dry_run_payload_only',
       idempotencyKey: `ai_graphics_beta_${idPart(toolCase.toolId)}_metadata_payload_v1`,
@@ -190,7 +240,8 @@ export function buildAiGraphicsInternalBetaWorkerPayloadReadiness(
       runtimeTarget: toolCase.runtimeTarget,
       capabilityIds: handoffTool?.capabilities ?? [],
       toolStrategyId: `tool_strategy_${idPart(toolCase.toolId)}_internal_beta_metadata`,
-      privateArtifactManifestRef: 'private-artifact-manifest-ref-redacted-ai-graphics-internal-beta',
+      privateArtifactManifestRef: payloadEvidence.privateArtifactManifestRef,
+      runtimeActivationPolicy,
       expectedOutputRefs: [
         `metadata://ai-graphics/internal-beta/${toolCase.toolId}/selection`,
         `metadata://ai-graphics/internal-beta/${toolCase.toolId}/blockers`,

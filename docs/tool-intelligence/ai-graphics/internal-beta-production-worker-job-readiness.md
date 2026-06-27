@@ -59,6 +59,8 @@ Each payload also uses the shared production worker idempotency format from `bui
 
 Each payload is also checked against the canonical AI graphics registry before it can count as ready with provided evidence. The check requires the canonical tool id, production tool alias, worker type, runtime target, and capability ids to match the all-21 AI graphics tool-call readiness contract.
 
+Each payload preserves the provided `creditReservationId` from the worker-payload evidence. GPU payload metadata also embeds the runtime activation policy: on-demand only, no idle GPU runtime, starts only for an approved worker or tool call, and no CPU fallback for heavy tools.
+
 ## Capability Scenarios
 
 - `chart_overlay`

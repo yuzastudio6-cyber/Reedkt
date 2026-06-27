@@ -68,6 +68,7 @@ const payloadFields = [
   'projectId',
   'approvedSnapshotId',
   'editPlanId',
+  'creditReservationId',
   'workerType',
   'executionMode',
   'idempotencyKey',
@@ -79,6 +80,7 @@ const payloadFields = [
   'capabilityIds',
   'toolStrategyId',
   'privateArtifactManifestRef',
+  'runtimeActivationPolicy',
   'expectedOutputRefs',
 ]
 
@@ -222,7 +224,10 @@ for (const field of payloadFields) {
 for (const token of [
   'metadata_dry_run_payload_only',
   'idempotencyKey',
+  'creditReservationId',
   'privateArtifactManifestRef',
+  'runtimeActivationPolicy',
+  '--credit-reservation-id',
   'expectedOutputRefs',
   '--require-owner-approved-worker-payloads-ready',
 ]) {
@@ -237,6 +242,12 @@ if (docs.counts?.ownerApprovedCapabilityPayloadScenariosReadyWithProvidedEvidenc
   fail('docs_owner_capability_payloads_not_12')
 }
 if (docs.counts?.workerPayloadsReadyNow !== 0) fail('docs_payloads_ready_now_not_0')
+if (docs.runtimeTargets?.gpuRuntimeOnDemandOnly !== true) fail('docs_gpu_runtime_not_on_demand')
+if (docs.runtimeTargets?.noIdleGpuRuntimeApproved !== true) fail('docs_idle_gpu_policy_not_blocked')
+if (docs.runtimeTargets?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+  fail('docs_gpu_start_policy_not_worker_call_only')
+}
+if (docs.runtimeTargets?.cpuFallbackAllowedForHeavyTools !== false) fail('docs_cpu_fallback_not_false')
 
 const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_worker_payload')
 if (defaultOutput.status !== 'missing_technical_evidence') fail(`default_status:${defaultOutput.status}`)
@@ -298,6 +309,7 @@ for (const payload of approvedOutput.workerPayloads ?? []) {
   }
   if (payload.executionMode !== 'metadata_dry_run_payload_only') fail(`payload_bad_execution_mode:${payload.toolId}`)
   if (!payload.idempotencyKey?.startsWith('ai_graphics_beta_')) fail(`payload_bad_idempotency:${payload.toolId}`)
+  if (!payload.creditReservationId) fail(`payload_missing_credit_reservation:${payload.toolId}`)
   if (!Array.isArray(payload.expectedOutputRefs) || payload.expectedOutputRefs.length !== 3) {
     fail(`payload_bad_expected_outputs:${payload.toolId}`)
   }
@@ -306,6 +318,14 @@ for (const payload of approvedOutput.workerPayloads ?? []) {
   }
   if (payload.canQueueWorkerNow !== false) fail(`payload_queue_not_false:${payload.toolId}`)
   if (payload.canExecuteWorkerNow !== false) fail(`payload_execute_not_false:${payload.toolId}`)
+  if (payload.runtimeActivationPolicy?.onDemandOnly !== true) fail(`payload_gpu_policy_not_on_demand:${payload.toolId}`)
+  if (payload.runtimeActivationPolicy?.noIdleGpuRuntimeApproved !== true) fail(`payload_idle_gpu_allowed:${payload.toolId}`)
+  if (payload.runtimeActivationPolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+    fail(`payload_gpu_start_policy_not_worker_call_only:${payload.toolId}`)
+  }
+  if (payload.runtimeActivationPolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+    fail(`payload_cpu_fallback_not_false:${payload.toolId}`)
+  }
   if (gpuTools.includes(payload.toolId)) {
     if (payload.workerType !== 'gpu_ai_worker') fail(`gpu_tool_not_gpu_worker:${payload.toolId}:${payload.workerType}`)
     if (!payload.runtimeTarget.includes('nvidia_l4')) fail(`gpu_tool_not_l4_target:${payload.toolId}:${payload.runtimeTarget}`)

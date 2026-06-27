@@ -73,6 +73,12 @@ const readiness = buildAiGraphicsInternalBetaProductionWorkerGateReadiness({
   ownerApprovalGranted: hasFlag('--owner-approval-granted'),
   ownerApprovalRef: valueAfterFlag('--owner-approval-ref'),
   ownerApproverRole: valueAfterFlag('--owner-approver-role') ?? 'AI_TOOLS_CREATIVE_GRAPHICS_OWNER',
+  workspaceId: valueAfterFlag('--workspace-id'),
+  projectId: valueAfterFlag('--project-id'),
+  approvedPlanSnapshotId: valueAfterFlag('--approved-plan-snapshot-id'),
+  editPlanId: valueAfterFlag('--edit-plan-id'),
+  creditReservationId: valueAfterFlag('--credit-reservation-id'),
+  privateArtifactManifestRef: valueAfterFlag('--private-artifact-manifest-ref'),
 })
 
 const output = {

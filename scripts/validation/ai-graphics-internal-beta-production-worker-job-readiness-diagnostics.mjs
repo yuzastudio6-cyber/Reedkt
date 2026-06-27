@@ -244,8 +244,13 @@ for (const token of [
   'storageReferenceIds',
   'toolExecutionPlanId',
   'canonicalRegistryValidationPassed',
+  'runtimeActivationPolicyAccepted',
+  'gpuRuntimeOnDemandOnly',
+  'noIdleGpuRuntimeApproved',
+  'startsOnlyForApprovedWorkerOrToolCall',
   'validateProductionWorkerJobAgainstCanonicalRegistry',
   'render_asset_integrity',
+  '--credit-reservation-id',
   '--require-owner-approved-production-worker-jobs-ready',
 ]) {
   if (!moduleSource.includes(token) && !cliSource.includes(token) && !JSON.stringify(docs).includes(token)) {
@@ -264,6 +269,18 @@ if (docs.counts?.productionWorkerJobPayloadsReadyNow !== 0) fail('docs_worker_jo
 if (docs.runtimeTargets?.workerPayloadsValidateCanonicalAiGraphicsRegistry !== true) {
   fail('docs_missing_canonical_registry_validation')
 }
+if (docs.runtimeTargets?.workerPayloadsPreserveCreditReservationId !== true) {
+  fail('docs_missing_credit_reservation_preservation')
+}
+if (docs.runtimeTargets?.workerPayloadsEmbedGpuRuntimeActivationPolicy !== true) {
+  fail('docs_missing_runtime_activation_policy')
+}
+if (docs.runtimeTargets?.gpuRuntimeOnDemandOnly !== true) fail('docs_gpu_runtime_not_on_demand')
+if (docs.runtimeTargets?.noIdleGpuRuntimeApproved !== true) fail('docs_idle_gpu_policy_not_blocked')
+if (docs.runtimeTargets?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+  fail('docs_gpu_start_policy_not_worker_call_only')
+}
+if (docs.runtimeTargets?.cpuFallbackAllowedForHeavyTools !== false) fail('docs_cpu_fallback_not_false')
 if (docs.runtimeTargets?.dedicatedGpuRuntimeTargetsExact !== true) fail('docs_missing_dedicated_gpu_runtime_target_guard')
 for (const [tool, expectedTarget] of Object.entries(expectedGpuRuntimeTargets)) {
   if (docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool] !== expectedTarget) {
@@ -340,6 +357,9 @@ for (const candidate of approvedOutput.productionWorkerJobPayloads ?? []) {
   if (candidate.canonicalRegistryValidationPassed !== true) {
     fail(`job_canonical_registry_invalid:${candidate.sourceToolId}`)
   }
+  if (candidate.runtimeActivationPolicyAccepted !== true) {
+    fail(`job_runtime_activation_policy_invalid:${candidate.sourceToolId}`)
+  }
   if (candidate.canonicalRegistryValidationFailures?.length !== 0) {
     fail(`job_canonical_registry_failures:${candidate.sourceToolId}:${candidate.canonicalRegistryValidationFailures}`)
   }
@@ -353,6 +373,7 @@ for (const candidate of approvedOutput.productionWorkerJobPayloads ?? []) {
   if (job.requestedToolIds?.[0] !== candidate.sourceProductionToolId) {
     fail(`job_requested_tool_mismatch:${candidate.sourceToolId}`)
   }
+  if (!job.creditReservationId) fail(`job_missing_credit_reservation:${candidate.sourceToolId}`)
   if (!job.idempotencyKey?.startsWith('prod-worker:')) fail(`job_bad_idempotency:${candidate.sourceToolId}`)
   if (!job.toolExecutionPlanId?.startsWith('tool_strategy_')) fail(`job_bad_plan_id:${candidate.sourceToolId}`)
   if (job.requestedRecipeIds?.length !== 1) fail(`job_bad_recipe_count:${candidate.sourceToolId}`)
@@ -374,6 +395,24 @@ for (const candidate of approvedOutput.productionWorkerJobPayloads ?? []) {
   }
   if (job.metadata?.canExecuteToolNow !== false) {
     fail(`job_metadata_execute_not_false:${candidate.sourceToolId}`)
+  }
+  if (job.metadata?.gpuRuntimeOnDemandOnly !== true) fail(`job_metadata_gpu_not_on_demand:${candidate.sourceToolId}`)
+  if (job.metadata?.noIdleGpuRuntimeApproved !== true) fail(`job_metadata_idle_gpu_allowed:${candidate.sourceToolId}`)
+  if (job.metadata?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+    fail(`job_metadata_gpu_start_policy_not_worker_call_only:${candidate.sourceToolId}`)
+  }
+  if (job.metadata?.cpuFallbackAllowedForHeavyTools !== false) fail(`job_metadata_cpu_fallback_not_false:${candidate.sourceToolId}`)
+  if (job.metadata?.aiGraphicsRuntimeActivationPolicy?.onDemandOnly !== true) {
+    fail(`job_policy_not_on_demand:${candidate.sourceToolId}`)
+  }
+  if (job.metadata?.aiGraphicsRuntimeActivationPolicy?.noIdleGpuRuntimeApproved !== true) {
+    fail(`job_policy_idle_gpu_allowed:${candidate.sourceToolId}`)
+  }
+  if (job.metadata?.aiGraphicsRuntimeActivationPolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+    fail(`job_policy_start_not_worker_call_only:${candidate.sourceToolId}`)
+  }
+  if (job.metadata?.aiGraphicsRuntimeActivationPolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+    fail(`job_policy_cpu_fallback_not_false:${candidate.sourceToolId}`)
   }
   if (gpuTools.includes(candidate.sourceToolId)) {
     if (job.workerType !== 'gpu_ai_worker') fail(`gpu_tool_not_gpu_worker:${candidate.sourceToolId}:${job.workerType}`)

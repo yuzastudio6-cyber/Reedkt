@@ -53,6 +53,7 @@
     "projectId",
     "approvedSnapshotId",
     "editPlanId",
+    "creditReservationId",
     "workerType",
     "executionMode",
     "idempotencyKey",
@@ -64,8 +65,15 @@
     "capabilityIds",
     "toolStrategyId",
     "privateArtifactManifestRef",
+    "runtimeActivationPolicy",
     "expectedOutputRefs"
   ],
+  "runtimeTargets": {
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false
+  },
   "counts": {
     "totalTools": 21,
     "totalProductFacingCapabilities": 12,

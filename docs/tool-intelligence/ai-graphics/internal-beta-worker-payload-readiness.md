@@ -17,6 +17,7 @@ This contract prepares worker payload metadata for the 21 AI graphics tools afte
 - `projectId`
 - `approvedSnapshotId`
 - `editPlanId`
+- `creditReservationId`
 - `workerType`
 - `executionMode`
 - `idempotencyKey`
@@ -28,6 +29,7 @@ This contract prepares worker payload metadata for the 21 AI graphics tools afte
 - `capabilityIds`
 - `toolStrategyId`
 - `privateArtifactManifestRef`
+- `runtimeActivationPolicy`
 - `expectedOutputRefs`
 
 ## Coverage
@@ -37,6 +39,17 @@ This contract prepares worker payload metadata for the 21 AI graphics tools afte
 - Owner-approved worker payloads ready with provided evidence: 21 tools.
 - Owner-approved capability payload scenarios ready with provided evidence: 12 capabilities.
 - Worker payloads ready now: 0.
+
+## Runtime Activation Policy
+
+Worker payload metadata carries the GPU activation policy forward with the payload:
+
+- `onDemandOnly=true`
+- `noIdleGpuRuntimeApproved=true`
+- `startsOnlyForApprovedWorkerOrToolCall=true`
+- `cpuFallbackAllowedForHeavyTools=false`
+
+GPU capacity is represented as a per-approved-worker-call runtime, not an always-on idle service.
 
 ## Tool Coverage
 

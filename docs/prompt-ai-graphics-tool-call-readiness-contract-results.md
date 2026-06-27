@@ -188,6 +188,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - Latest observed PR state after beta evidence exact GPU propagation: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `3cafb7cf8b3d2ca3d146257e1934b080d7d3342a`, with an empty check rollup.
 - Ephemeral GPU runtime policy hardening: the GPU proof command plan, local preflight, proof result packet, beta evidence bundle, local evidence assembly, and beta tool-call readiness now all require exact GPU targets, on-demand GPU runtime, no idle GPU runtime, ephemeral `docker run --rm --gpus all` proof/runtime containers, and blocked CPU fallback for heavy/model paths. GPU capacity starts only for an approved proof command or future approved Worker/Tool Route handoff, then releases after the command or job finishes.
 - Latest observed PR state after ephemeral GPU runtime policy hardening: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `128b8bce09ee83d4b9c6971f1b872066f663c37a`, with an empty check rollup.
+- Worker payload runtime activation hardening: internal beta worker payload readiness now preserves caller-provided `approvedPlanSnapshotId`, `creditReservationId`, and private artifact manifest refs, and embeds the GPU runtime activation policy directly in GPU-capable payloads. Production worker job readiness carries that policy into `ProductionWorkerJobPayload.metadata`, and the canonical production worker gate rejects GPU payloads unless `onDemandOnly`, `noIdleGpuRuntimeApproved`, and `startsOnlyForApprovedWorkerOrToolCall` are true while `cpuFallbackAllowedForHeavyTools` remains false. Queue adapter diagnostics now prove non-default snapshot, credit reservation, and private manifest refs pass through to the production worker job candidate without falling back to fixture-only evidence.
 
 ## Runtime State
 
@@ -221,7 +222,11 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
 - `gpuRuntimeOnDemandOnly=true`
 - `gpuRuntimeProofContainersEphemeral=true`
 - `noIdleGpuRuntimeApproved=true`
+- `startsOnlyForApprovedWorkerOrToolCall=true`
 - `cpuFallbackAllowedForHeavyTools=false`
+- `workerPayloadsPreserveCreditReservationId=true`
+- `workerPayloadsEmbedGpuRuntimeActivationPolicy=true`
+- `productionWorkerGateChecksValidateGpuRuntimeActivationPolicy=true`
 - `betaActivationGapReportPrepared=true`
 - `betaReadinessEvidenceEvaluationPrepared=true`
 - `internalBetaProductionWorkerJobReadinessPrepared=true`

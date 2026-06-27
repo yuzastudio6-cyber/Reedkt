@@ -188,6 +188,12 @@ export function aiGraphicsCanonicalRegistryGate(payload: ProductionWorkerJobPayl
   const aiGraphicsRuntimeTarget = typeof metadata.aiGraphicsRuntimeTarget === 'string'
     ? metadata.aiGraphicsRuntimeTarget
     : ''
+  const runtimeActivationPolicy =
+    typeof metadata.aiGraphicsRuntimeActivationPolicy === 'object' &&
+      metadata.aiGraphicsRuntimeActivationPolicy !== null &&
+      !Array.isArray(metadata.aiGraphicsRuntimeActivationPolicy)
+      ? metadata.aiGraphicsRuntimeActivationPolicy as Record<string, unknown>
+      : {}
   const aiGraphicsCapabilityIds = Array.isArray(metadata.aiGraphicsCapabilityIds)
     ? metadata.aiGraphicsCapabilityIds.filter((capabilityId): capabilityId is string => typeof capabilityId === 'string')
     : []
@@ -232,6 +238,29 @@ export function aiGraphicsCanonicalRegistryGate(payload: ProductionWorkerJobPayl
     }
     if (aiGraphicsRuntimeTarget !== readiness.runtimeTarget) {
       blockingReasons.push(`AI graphics runtime target metadata must be ${readiness.runtimeTarget} for ${readiness.toolId}.`)
+    }
+    if (productionProfile.workerType === 'gpu_ai_worker') {
+      if (runtimeActivationPolicy.onDemandOnly !== true || metadata.gpuRuntimeOnDemandOnly !== true) {
+        blockingReasons.push(`AI graphics GPU payload for ${readiness.toolId} must declare on-demand runtime activation.`)
+      }
+      if (
+        runtimeActivationPolicy.noIdleGpuRuntimeApproved !== true ||
+        metadata.noIdleGpuRuntimeApproved !== true
+      ) {
+        blockingReasons.push(`AI graphics GPU payload for ${readiness.toolId} must block idle GPU runtime.`)
+      }
+      if (
+        runtimeActivationPolicy.startsOnlyForApprovedWorkerOrToolCall !== true ||
+        metadata.startsOnlyForApprovedWorkerOrToolCall !== true
+      ) {
+        blockingReasons.push(`AI graphics GPU payload for ${readiness.toolId} must start GPU runtime only for an approved worker or tool call.`)
+      }
+      if (
+        runtimeActivationPolicy.cpuFallbackAllowedForHeavyTools !== false ||
+        metadata.cpuFallbackAllowedForHeavyTools !== false
+      ) {
+        blockingReasons.push(`AI graphics GPU payload for ${readiness.toolId} must disallow CPU fallback for heavy tools.`)
+      }
     }
 
     const allowedCapabilities = new Set<string>(readiness.capabilities.filter((capability) => (

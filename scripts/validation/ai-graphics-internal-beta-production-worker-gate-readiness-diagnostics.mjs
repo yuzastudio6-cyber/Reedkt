@@ -263,6 +263,15 @@ if (docs.runtimeTargets?.dedicatedGpuRuntimeTargetsExact !== true) fail('docs_mi
 if (docs.runtimeTargets?.productionWorkerGateChecksValidateCanonicalAiGraphicsRegistry !== true) {
   fail('docs_missing_canonical_registry_validation')
 }
+if (docs.runtimeTargets?.productionWorkerGateChecksValidateGpuRuntimeActivationPolicy !== true) {
+  fail('docs_missing_gpu_runtime_activation_policy_gate')
+}
+if (docs.runtimeTargets?.gpuRuntimeOnDemandOnly !== true) fail('docs_gpu_runtime_not_on_demand')
+if (docs.runtimeTargets?.noIdleGpuRuntimeApproved !== true) fail('docs_idle_gpu_policy_not_blocked')
+if (docs.runtimeTargets?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+  fail('docs_gpu_start_policy_not_worker_call_only')
+}
+if (docs.runtimeTargets?.cpuFallbackAllowedForHeavyTools !== false) fail('docs_cpu_fallback_not_false')
 for (const [tool, expectedTarget] of Object.entries(expectedGpuRuntimeTargets)) {
   if (docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool] !== expectedTarget) {
     fail(`docs_expected_gpu_runtime_target_mismatch:${tool}:${docs.runtimeTargets?.expectedGpuRuntimeTargets?.[tool]}`)
@@ -336,6 +345,11 @@ for (const gateResult of approvedOutput.productionWorkerGateChecks ?? []) {
   if (gateResult.canDispatchProductionWorkerJobNow !== false) fail(`gate_dispatch_not_false:${gateResult.toolId}`)
   if (gateResult.canRunProductionWorkerRouteNow !== false) fail(`gate_route_not_false:${gateResult.toolId}`)
   if (gateResult.canExecuteToolNow !== false) fail(`gate_execute_not_false:${gateResult.toolId}`)
+  const canonicalGate = (gateResult.gateChecks ?? []).find((gate) => gate.gateName === 'ai_graphics_canonical_registry')
+  if (canonicalGate?.status !== 'passed') fail(`canonical_gate_not_passed:${gateResult.toolId}:${canonicalGate?.status}`)
+  if (canonicalGate?.message?.includes('on-demand runtime activation')) {
+    fail(`canonical_gate_missing_gpu_policy:${gateResult.toolId}`)
+  }
   if (gpuTools.includes(gateResult.toolId)) {
     if (gateResult.workerType !== 'gpu_ai_worker') fail(`gpu_tool_not_gpu_worker:${gateResult.toolId}:${gateResult.workerType}`)
     if (!gateResult.runtimeTarget?.includes('nvidia_l4')) {

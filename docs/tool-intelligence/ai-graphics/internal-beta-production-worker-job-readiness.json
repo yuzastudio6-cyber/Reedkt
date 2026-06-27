@@ -86,6 +86,12 @@
     },
     "workerPayloadsUseProductionWorkerJobPayloadShape": true,
     "workerPayloadsValidateCanonicalAiGraphicsRegistry": true,
+    "workerPayloadsPreserveCreditReservationId": true,
+    "workerPayloadsEmbedGpuRuntimeActivationPolicy": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false,
     "executionMode": "dry_run",
     "canEnqueueProductionWorkerJobNow": false,
     "canRunProductionWorkerRouteNow": false

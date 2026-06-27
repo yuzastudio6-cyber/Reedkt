@@ -204,6 +204,12 @@ function acceptedArgs(manifestPacketPath, gpuPacketPath) {
     '--internal-beta-runtime-enqueue-approval-granted',
     '--internal-beta-runtime-enqueue-approval-ref',
     'AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_PACKET',
+    '--approved-plan-snapshot-id',
+    'approved_snapshot_ai_graphics_internal_beta_queue_adapter_custom',
+    '--credit-reservation-id',
+    'credit_reservation_ai_graphics_internal_beta_queue_adapter_custom',
+    '--private-artifact-manifest-ref',
+    'private://ai-graphics/internal-beta/queue-adapter/custom-artifact-manifest.json',
     '--all-queue-admission-prerequisites-provided',
   ]
 }

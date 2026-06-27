@@ -36,6 +36,7 @@ export interface AiGraphicsInternalBetaProductionWorkerJobCandidate {
   productionWorkerJobShapeValid: boolean
   canonicalRegistryValidationPassed: boolean
   canonicalRegistryValidationFailures: string[]
+  runtimeActivationPolicyAccepted: boolean
   productionWorkerJobReadyWithProvidedEvidence: boolean
   canEnqueueProductionWorkerJobNow: false
   canRunProductionWorkerRouteNow: false
@@ -220,13 +221,20 @@ function buildProductionWorkerJobPayload(
     requestedToolIds: [payload.productionToolId],
     requestedRecipeIds: [recipeIdForPayload(payload)],
     storageReferenceIds: [payload.privateArtifactManifestRef],
-    creditReservationId: 'credit_reservation_ai_graphics_internal_beta_fixture',
+    creditReservationId: payload.creditReservationId,
     requiredQualityGateTypes: ['render_asset_integrity'],
     createdAt: '2026-06-26T00:00:00.000Z',
     metadata: {
       aiGraphicsCanonicalToolId: payload.toolId,
       aiGraphicsCapabilityIds: productFacingCapabilityIds,
       aiGraphicsRuntimeTarget: payload.runtimeTarget,
+      aiGraphicsRuntimeActivationPolicy: payload.runtimeActivationPolicy,
+      gpuRuntimeOnDemandOnly: payload.runtimeActivationPolicy.onDemandOnly,
+      noIdleGpuRuntimeApproved: payload.runtimeActivationPolicy.noIdleGpuRuntimeApproved,
+      startsOnlyForApprovedWorkerOrToolCall:
+        payload.runtimeActivationPolicy.startsOnlyForApprovedWorkerOrToolCall,
+      cpuFallbackAllowedForHeavyTools:
+        payload.runtimeActivationPolicy.cpuFallbackAllowedForHeavyTools,
       expectedOutputRefs: payload.expectedOutputRefs,
       sourcePayloadReadyWithProvidedEvidence: payload.payloadReadyWithProvidedEvidence,
       canEnqueueProductionWorkerJobNow: false,
@@ -251,7 +259,9 @@ function hasRequiredProductionWorkerJobShape(payload: ProductionWorkerJobPayload
     Boolean(payload.toolExecutionPlanId) &&
     Boolean(payload.idempotencyKey) &&
     Boolean(payload.approvedSnapshotId) &&
-    Boolean(payload.creditReservationId)
+    Boolean(payload.creditReservationId) &&
+    typeof payload.metadata?.aiGraphicsRuntimeActivationPolicy === 'object' &&
+    payload.metadata.aiGraphicsRuntimeActivationPolicy !== null
 }
 
 function validateProductionWorkerJobAgainstCanonicalRegistry(
@@ -312,6 +322,30 @@ function validateProductionWorkerJobAgainstCanonicalRegistry(
   return failures
 }
 
+function runtimeActivationPolicyAccepted(
+  payload: ProductionWorkerJobPayload,
+  sourcePayload: AiGraphicsInternalBetaWorkerPayload,
+): boolean {
+  const policy = payload.metadata?.aiGraphicsRuntimeActivationPolicy
+  return Boolean(
+    typeof policy === 'object' &&
+      policy !== null &&
+      !Array.isArray(policy) &&
+      (policy as Record<string, unknown>).onDemandOnly === true &&
+      (policy as Record<string, unknown>).noIdleGpuRuntimeApproved === true &&
+      (policy as Record<string, unknown>).startsOnlyForApprovedWorkerOrToolCall === true &&
+      (policy as Record<string, unknown>).cpuFallbackAllowedForHeavyTools === false &&
+      payload.metadata?.gpuRuntimeOnDemandOnly === true &&
+      payload.metadata?.noIdleGpuRuntimeApproved === true &&
+      payload.metadata?.startsOnlyForApprovedWorkerOrToolCall === true &&
+      payload.metadata?.cpuFallbackAllowedForHeavyTools === false &&
+      sourcePayload.runtimeActivationPolicy.onDemandOnly === true &&
+      sourcePayload.runtimeActivationPolicy.noIdleGpuRuntimeApproved === true &&
+      sourcePayload.runtimeActivationPolicy.startsOnlyForApprovedWorkerOrToolCall === true &&
+      sourcePayload.runtimeActivationPolicy.cpuFallbackAllowedForHeavyTools === false,
+  )
+}
+
 export function buildAiGraphicsInternalBetaProductionWorkerJobReadiness(
   input: AiGraphicsInternalBetaProductionWorkerJobReadinessInput = {},
 ): AiGraphicsInternalBetaProductionWorkerJobReadiness {
@@ -327,11 +361,16 @@ export function buildAiGraphicsInternalBetaProductionWorkerJobReadiness(
       const canonicalRegistryValidationFailures =
         validateProductionWorkerJobAgainstCanonicalRegistry(productionWorkerJobPayload, sourcePayload)
       const canonicalRegistryValidationPassed = canonicalRegistryValidationFailures.length === 0
+      const runtimeActivationPolicyIsAccepted = runtimeActivationPolicyAccepted(
+        productionWorkerJobPayload,
+        sourcePayload,
+      )
       const productionWorkerJobReadyWithProvidedEvidence =
         ownerApprovedProductionWorkerJobEvidenceAccepted &&
         sourcePayload.payloadReadyWithProvidedEvidence &&
         productionWorkerJobShapeValid &&
-        canonicalRegistryValidationPassed
+        canonicalRegistryValidationPassed &&
+        runtimeActivationPolicyIsAccepted
 
       return {
         sourceToolId: sourcePayload.toolId,
@@ -342,6 +381,7 @@ export function buildAiGraphicsInternalBetaProductionWorkerJobReadiness(
         productionWorkerJobShapeValid,
         canonicalRegistryValidationPassed,
         canonicalRegistryValidationFailures,
+        runtimeActivationPolicyAccepted: runtimeActivationPolicyIsAccepted,
         productionWorkerJobReadyWithProvidedEvidence,
         canEnqueueProductionWorkerJobNow: false,
         canRunProductionWorkerRouteNow: false,

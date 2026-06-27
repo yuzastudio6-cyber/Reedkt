@@ -66,6 +66,8 @@ The payloads use shared production-worker idempotency keys and private storage r
 
 The gate checks also preserve exact GPU runtime targets for the dedicated model images: `sam2 -> native_linux_amd64_nvidia_l4_sam2_runtime`, `birefnet -> native_linux_amd64_nvidia_l4_birefnet_runtime`, and `real_esrgan -> native_linux_amd64_nvidia_l4_real_esrgan_runtime`. Runtime target validation remains metadata-only and does not start a GPU worker.
 
+For GPU AI graphics payloads, the canonical registry gate also validates the runtime activation policy: GPU runtime must be on-demand only, idle GPU runtime is not approved, GPU startup is allowed only for an approved worker or tool call, and CPU fallback remains blocked for heavy/model tools.
+
 ## Counts
 
 - Production worker gate checks prepared: 21

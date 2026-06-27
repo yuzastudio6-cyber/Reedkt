@@ -80,6 +80,11 @@
       "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
     },
     "productionWorkerGateChecksValidateCanonicalAiGraphicsRegistry": true,
+    "productionWorkerGateChecksValidateGpuRuntimeActivationPolicy": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false,
     "canEnqueueProductionWorkerJobNow": false,
     "canDispatchProductionWorkerJobNow": false,
     "canRunProductionWorkerRouteNow": false

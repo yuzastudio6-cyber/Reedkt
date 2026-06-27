@@ -15,6 +15,7 @@ export interface BetaReadinessEvidencePacketInput {
   checklistEvidence?: BetaReadinessChecklistEvidence[]
   acceptedToolEvidence?: ToolBetaAcceptedExecutionEvidence[]
   platformEvidence?: ToolBetaPlatformReadinessEvidence
+  scopeApprovalEvidence?: BetaReadinessScopeApprovalEvidence[]
   approvals?: Pick<
     BuildBetaReadinessReportOptions,
     | 'deploymentApproved'
@@ -27,6 +28,14 @@ export interface BetaReadinessEvidencePacketInput {
     | 'realUserMediaBetaApproved'
     | 'paidProductionApproved'
   >
+}
+
+export interface BetaReadinessScopeApprovalEvidence {
+  scope: 'real_user_media_beta' | 'paid_production'
+  sourceId: string
+  sourceSha?: string
+  status: 'passed'
+  notes: string[]
 }
 
 export interface BetaReadinessEvidencePacket {

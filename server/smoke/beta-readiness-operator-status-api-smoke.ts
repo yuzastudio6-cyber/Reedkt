@@ -70,7 +70,10 @@ const blockedFetch: BetaReadinessOperatorStatusApiFetch = async (url, init) => {
               toolBlockers: 4,
               platformBlockers: ['Platform evidence is incomplete.'],
             },
-            nextActions: ['Record accepted bounded per-tool evidence.'],
+            nextActions: [
+              'Record accepted bounded per-tool evidence.',
+              'After external beta is ready, run beta:readiness:scope-approval-evidence-preflight.',
+            ],
             warnings: ['Read-only backend operator status.'],
           },
         },
@@ -89,6 +92,7 @@ assert.equal(blockedResult.currentGate.safeBlockerReductionAllowed, true, 'CLI s
 assert.ok(blockedResult.currentGate.allowedForwardProgressScopes.includes('owner_approval_packet_collection'), 'CLI should preserve owner approval collection as allowed forward progress')
 assert.ok(blockedResult.currentGate.allowedForwardProgressScopes.includes('deployment_preflight_and_platform_evidence_collection'), 'CLI should preserve deployment evidence collection as allowed forward progress')
 assert.equal(blockedResult.evidenceGaps.goNoGoBlockers, 1, 'CLI should summarize go/no-go blockers')
+assert.ok(blockedResult.nextActions.some((action) => action.includes('scope-approval-evidence-preflight')), 'CLI should preserve later scope approval guidance')
 assert.equal(JSON.stringify(blockedResult).includes('status-api-secret-token'), false, 'CLI summary must not include bearer token')
 
 await assert.rejects(

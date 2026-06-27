@@ -151,6 +151,10 @@ function serviceSummary(serviceItem) {
 }
 
 function writeReportAndExit(blocker, code = 1) {
+  if (!blocker) {
+    report.readiness.externalProductBeta = 'ready_for_controlled_owner_browser_walkthrough'
+    report.readiness.nextMilestone = 'RP-EXTERNAL-BETA-CONTROLLED-OWNER-BROWSER-WALKTHROUGH-1'
+  }
   report.decision = blocker
     ? 'blocked_external_beta_controlled_tester_ui_flow_smoke'
     : 'completed_external_beta_controlled_tester_ui_flow_smoke'

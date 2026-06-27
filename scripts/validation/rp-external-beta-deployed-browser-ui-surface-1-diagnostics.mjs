@@ -38,6 +38,23 @@ const rollupFiles = [
   'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
 ]
 
+const followOnDeployedBrowserUiSurface1rStagingDeployFiles = [
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/source-audit.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/cloud-build-deploy-evidence.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/controlled-tester-ui-smoke-evidence.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/readiness-gate.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/safety-boundary.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/validation-results.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/deployed-browser-ui-surface-1r-staging-deploy-record.json',
+  'docs/activation-phase-rp-external-beta-deployed-browser-ui-surface-1r-staging-deploy-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-owner-browser-walkthrough-1.md',
+  'scripts/validation/rp-external-beta-deployed-browser-ui-surface-1r-staging-deploy-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
+]
+
 const requiredFiles = [...packetFiles, ...implementationFiles]
 
 const requiredText = [
@@ -223,7 +240,12 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowed = new Set([...packetFiles, ...implementationFiles, ...rollupFiles])
+const allowed = new Set([
+  ...packetFiles,
+  ...implementationFiles,
+  ...rollupFiles,
+  ...followOnDeployedBrowserUiSurface1rStagingDeployFiles,
+])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)
   if (file.includes('/._') || file.startsWith('._') || file.includes('.DS_Store')) fail(`metadata artifact changed: ${file}`)

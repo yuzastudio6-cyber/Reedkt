@@ -58,6 +58,23 @@ const followOnDeployedBrowserUiSurfaceFiles = [
   'package.json',
 ]
 
+const followOnDeployedBrowserUiSurface1rStagingDeployFiles = [
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/source-audit.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/cloud-build-deploy-evidence.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/controlled-tester-ui-smoke-evidence.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/readiness-gate.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/safety-boundary.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/validation-results.md',
+  'docs/external-beta/deployed-browser-ui-surface-1r-staging-deploy/deployed-browser-ui-surface-1r-staging-deploy-record.json',
+  'docs/activation-phase-rp-external-beta-deployed-browser-ui-surface-1r-staging-deploy-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-owner-browser-walkthrough-1.md',
+  'scripts/validation/rp-external-beta-deployed-browser-ui-surface-1r-staging-deploy-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1.mjs',
+  'scripts/validation/rp-external-beta-controlled-tester-ui-flow-smoke-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'package.json',
+]
+
 const requiredText = [
   packet,
   'blocked_external_beta_controlled_tester_ui_flow_smoke',
@@ -265,7 +282,13 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowed = new Set([...requiredFiles, ...rollupFiles, ...productFlowFiles, ...followOnDeployedBrowserUiSurfaceFiles])
+const allowed = new Set([
+  ...requiredFiles,
+  ...rollupFiles,
+  ...productFlowFiles,
+  ...followOnDeployedBrowserUiSurfaceFiles,
+  ...followOnDeployedBrowserUiSurface1rStagingDeployFiles,
+])
 for (const file of changedFiles()) {
   if (!allowed.has(file)) fail(`unexpected changed file: ${file}`)
   for (const blocked of blockedPrefixes) {

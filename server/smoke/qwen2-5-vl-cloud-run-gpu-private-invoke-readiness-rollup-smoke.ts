@@ -19,9 +19,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_internal_ingress_private_caller_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_internal_caller_harness_deploy_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_54-PRIVATE-INVOKE-INTERNAL-CALLER-HARNESS: create controlled internal caller or internal LB/PSC path for contract smoke, no inference'
+  'QWEN2_5_VL_STACK_TOOL_55-PRIVATE-INVOKE-INTERNAL-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference'
 
 type JsonRecord = Record<string, unknown>
 
@@ -180,6 +180,8 @@ for (const phrase of [
   '`serviceRuntimeRequestSent=true`',
   '`responseClassifiedLocally=true`',
   '`restrictedIngressDirectLocalRequestBlocked=true`',
+  '`internalCallerHarnessPlanDefined=true`',
+  '`internalCallerHarnessDeployed=false`',
   '`inferenceRun=false`',
   '`workersDispatched=false`',
   '`generatedAssetsCreated=false`',
@@ -195,7 +197,7 @@ for (const phrase of [
   'HTTP `404`',
   '`private_invoke_response_unexpected`',
   '`internal-and-cloud-load-balancing`',
-  'approved internal caller',
+  'CPU-only Cloud Run Job',
   NEXT_PROMPT,
 ]) {
   assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)
@@ -227,7 +229,10 @@ assert.equal(
   true,
 )
 assert.equal(QWEN25_PRIVATE_INVOKE_ROUTING_FIX_RESULT.runtimeFlags.cloudRunInvocationAttempted, false)
-assert.equal(QWEN25_PRIVATE_INVOKE_ROUTING_FIX_RESULT.nextPrompt, NEXT_PROMPT)
+assert.equal(
+  QWEN25_PRIVATE_INVOKE_ROUTING_FIX_RESULT.nextPrompt,
+  'QWEN2_5_VL_STACK_TOOL_54-PRIVATE-INVOKE-INTERNAL-CALLER-HARNESS: create controlled internal caller or internal LB/PSC path for contract smoke, no inference',
+)
 
 const qwenProfile = getProductionToolProfile('qwen_vl')
 check(qwenProfile, 'Qwen production tool profile must exist.')
@@ -263,7 +268,7 @@ assert.equal(status.mayRunInference, false)
 assert.equal(status.mayDispatchWorker, false)
 
 const ui = getQwenVlPlannerRoutingUiData()
-assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_internal_caller_required')
+assert.equal(ui.privateInvokeClient.currentStatus, 'blocked_private_invoke_internal_caller_deploy_required')
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
 assert.equal(ui.summary.dryRunPassedClaimed, false)
@@ -298,7 +303,7 @@ assert.equal(
   0,
 )
 assert.equal(
-  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_internal_ingress_private_caller_required').length,
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_internal_caller_harness_deploy_required').length,
   1,
 )
 assertRollupFalseFlags(rollup.runtimeFlags)
@@ -313,6 +318,8 @@ assert.equal(rollup.runtimeFlags.cloudRunIamPolicyVerified, true)
 assert.equal(rollup.runtimeFlags.runtimeServiceAccountVerified, true)
 assert.equal(rollup.runtimeFlags.projectInvokerPolicyVerified, true)
 assert.equal(rollup.runtimeFlags.privateInvokeSmokePlanDefined, true)
+assert.equal(rollup.runtimeFlags.internalCallerHarnessPlanDefined, true)
+assert.equal(rollup.runtimeFlags.internalCallerHarnessDeployed, false)
 assert.equal(rollup.runtimeFlags.privateInvokeSmokeAttempted, true)
 assert.equal(rollup.runtimeFlags.privateInvokeSmokeBlockedBeforeRequest, true)
 assert.equal(rollup.runtimeFlags.privateInvokeSmokeExecuted, false)

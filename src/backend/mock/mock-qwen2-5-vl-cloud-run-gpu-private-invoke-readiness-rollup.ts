@@ -6,6 +6,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_token_creator_permission_required'
   | 'blocked_routing_contract_response_required'
   | 'blocked_internal_ingress_private_caller_required'
+  | 'blocked_internal_caller_harness_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
   id: string
@@ -21,7 +22,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_internal_ingress_private_caller_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_internal_caller_harness_deploy_required',
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -111,16 +112,17 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'private_invoke_smoke_execution',
       label: 'Controlled private invoke smoke execution',
-      status: 'blocked_internal_ingress_private_caller_required',
+      status: 'blocked_internal_caller_harness_deploy_required',
       evidence: [
         'Read-only auth/IAM reverify passed without Cloud Run invocation.',
         'Observed Cloud Run posture uses one NVIDIA L4, concurrency 1, no min scale annotation, and template max scale 1.',
         'Private invoke smoke plan is defined.',
         'Controlled smoke runner supports non-key service-account impersonation, TokenCreator and Run Invoker bindings are present, and one bounded request returned HTTP 404 instead of the expected fail-closed contract JSON.',
         'Routing fix records ingress internal-and-cloud-load-balancing and blocks future direct local service-host requests before token fetch unless an approved internal route is confirmed.',
+        'Internal caller harness plan selects a CPU-only Cloud Run Job with Direct VPC egress as the preferred no-idle-GPU future path.',
       ],
       missingEvidence: [
-        'Approved internal caller, internal load balancer, Private Service Connect, or VPC-routed path that reaches the fail-closed contract handler.',
+        'Deployed controlled CPU-only internal caller harness or approved fallback private path.',
         'Successful controlled private invoke contract response with inference disabled.',
         'No beta or production runtime approval has been granted.',
       ],
@@ -138,6 +140,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     runtimeServiceAccountVerified: true,
     projectInvokerPolicyVerified: true,
     privateInvokeSmokePlanDefined: true,
+    internalCallerHarnessPlanDefined: true,
+    internalCallerHarnessDeployed: false,
     privateInvokeSmokeAttempted: true,
     privateInvokeSmokeBlockedBeforeRequest: true,
     privateInvokeSmokeExecuted: false,
@@ -174,11 +178,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   blockedUntil: [
     'backend_safe_identity_token_path_approved',
     'audience_bound_identity_token_fetch_passed_without_printing_or_storing_token',
-    'restricted_ingress_internal_caller_path_approved',
+    'controlled_cpu_only_internal_caller_harness_deployed',
     'controlled_private_invoke_contract_response_observed',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_54-PRIVATE-INVOKE-INTERNAL-CALLER-HARNESS: create controlled internal caller or internal LB/PSC path for contract smoke, no inference',
+    'QWEN2_5_VL_STACK_TOOL_55-PRIVATE-INVOKE-INTERNAL-CALLER-DEPLOY: deploy controlled CPU-only internal caller harness, no inference',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

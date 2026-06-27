@@ -78,6 +78,33 @@ check(advisory.length === 4, 'UI data must include four advisory metadata routes
 check(blocked.length === 5, 'UI data must include five blocked routes.')
 check(data.summary.dryRunPassedClaimed === false, 'UI data must not claim dry-run pass.')
 check(Object.values(data.executionGates).every((value) => value === false), 'Every UI execution gate must remain false.')
+check(
+  data.privateInvokeClient.routeId === 'jobs.qwen2_5_vl.privateInvoke.dryRun',
+  'UI data must include the private invoke dry-run route id.',
+)
+check(
+  data.privateInvokeClient.routePath === '/api/jobs/qwen2-5-vl/private-invoke/dry-run/mock',
+  'UI data must include the mock private invoke route path.',
+)
+check(
+  data.privateInvokeClient.clientHelper === 'callQwen25VlPrivateInvokeDryRun',
+  'UI data must name the typed private invoke frontend client.',
+)
+check(
+  data.privateInvokeClient.currentStatus === 'blocked_auth_reverify_required',
+  'Private invoke client status must stay blocked on auth reverify.',
+)
+check(
+  Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
+    data.privateInvokeClient.runtimeFlags.usesCentralApiClient === true,
+  'Private invoke client must use the central API client.',
+)
+check(
+  Object.entries(data.privateInvokeClient.runtimeFlags)
+    .filter(([key]) => key !== 'usesCentralApiClient')
+    .every(([, value]) => value === false),
+  'Every private invoke runtime side-effect gate must remain false.',
+)
 
 check(
   primary.some((handoff) => handoff.id === 'planner_broll_relevance_scoring'),
@@ -117,6 +144,12 @@ check(componentText.includes('No Cloud Run invocation'), 'Component must display
 check(componentText.includes('No inference'), 'Component must display inference blocked state.')
 check(componentText.includes('No worker dispatch'), 'Component must display worker dispatch blocked state.')
 check(componentText.includes('No generated assets'), 'Component must display generated asset blocked state.')
+check(componentText.includes('Private invoke client'), 'Component must display private invoke client readiness.')
+check(componentText.includes('Mock route readiness'), 'Component must display mock route readiness.')
+check(componentText.includes('No service URL'), 'Component must display service URL blocked state.')
+check(componentText.includes('No auth header'), 'Component must display auth header blocked state.')
+check(componentText.includes('No identity token'), 'Component must display identity token blocked state.')
+check(componentText.includes('Raw prompts rejected'), 'Component must display raw prompt rejection.')
 check(!componentText.includes('<button'), 'Qwen card must not add execution buttons.')
 check(!componentText.includes('onClick='), 'Qwen card must not add click actions.')
 check(!componentText.includes('Call provider'), 'Qwen card must not expose provider actions.')
@@ -127,6 +160,8 @@ check(docText.includes('Decision: `qwen_vl_planner_ui_surfacing_mock_only`'), 'D
 check(docText.includes('4 primary Qwen metadata routes'), 'Doc must record primary route count.')
 check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advisory route count.')
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
+check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
+check(docText.includes('blocked_auth_reverify_required'), 'Doc must record private invoke auth blocked status.')
 check(docText.includes('The card provides no execution buttons'), 'Doc must forbid execution buttons.')
 check(docText.includes(data.nextPrompt), 'Doc must record the next prompt.')
 
@@ -149,5 +184,7 @@ console.log(JSON.stringify({
   plannerMayInvokeCloudRun: data.executionGates.plannerMayInvokeCloudRun,
   plannerMayRunInference: data.executionGates.plannerMayRunInference,
   plannerMayCreateGeneratedAsset: data.executionGates.plannerMayCreateGeneratedAsset,
+  privateInvokeRouteId: data.privateInvokeClient.routeId,
+  privateInvokeStatus: data.privateInvokeClient.currentStatus,
   nextPrompt: data.nextPrompt,
 }, null, 2))

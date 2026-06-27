@@ -17,6 +17,14 @@ The older `restricted_internal_testing_candidate` aggregation remains metadata-o
 
 Current status: internal beta `blocked_pending_explicit_staging_migration_path_approval`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.
 
+## External Beta Remotion Runtime Closure
+
+`RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1` records decision `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` and execution `completed_confirmation_gated_external_beta_generated_local_remotion_render`.
+
+The generated-local Remotion proof closes the preview/export runtime evidence gap for the external beta source chain without using Supabase, SQL, storage objects, signed URLs, public artifacts, workers, providers, model calls, user/private media, or beta unlocks.
+
+Current external product beta blocker: `blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation`. Product-ready end-to-end local OSS tools: `0`.
+
 ## Clean Target Approval Follow-Up
 
 `SUPABASE-CLEAN-STAGING-TARGET-OWNER-APPROVAL-1` selects the clean non-production staging branch/project path for future guarded execution. It does not unlock internal beta or external beta. Current status after that owner approval remains internal beta `blocked_pending_clean_staging_target_migration_chain_and_runtime_gate_closure`; external product beta `blocked`; paid production `blocked`; final delivery/export `blocked`; product-ready end-to-end local OSS tools `0`.

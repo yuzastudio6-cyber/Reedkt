@@ -1,30 +1,30 @@
 # RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Next Prompt
 
-Use this after `RP-EXTERNAL-BETA-APPROVED-SNAPSHOT-ROUTE-WRITE-RUNTIME-VALIDATION-1` records `completed_approved_snapshot_route_write_runtime_validation`.
+Use this after `RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1` records `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation`.
 
 ## Recommended Next Gate
 
-`RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1`
+`RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1`
 
 ## Scope
 
-Validate one Remotion/private preview-export runtime path only if the future packet includes an explicit confirmation gate and names the single active target:
+Close provider/model-call policy for the external beta lane without enabling real provider calls unless a later packet explicitly confirms them. The policy packet must name the single active target:
 
 - `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`
 
-The future preview/export runtime proof must:
+The future provider/model policy closure must:
 
-- use approved snapshot route-write evidence as source-of-truth;
-- create only generated validation fixture rows and generated local/private preview evidence;
-- clean up generated rows and local/private artifacts unless intentionally recorded as `/tmp` evidence;
-- verify residue count `0`;
+- use approved snapshot route-write and generated-local Remotion evidence as source-of-truth;
+- keep provider/model calls disabled by default;
+- require backend-only provider adapters and server-side secret isolation;
+- require approved snapshot, credit reservation, idempotency, cost-control, and QA fallback boundaries before any real call;
 - avoid signed URL creation;
 - avoid public artifact creation;
 - avoid worker dispatch/execution;
-- avoid provider/model calls;
+- avoid real provider/model calls unless an explicit future runtime confirmation gate authorizes one bounded call;
 - avoid broad media processing and user/private media;
 - keep internal beta, external beta, and production locked.
 
 ## Still Blocked
 
-External product beta remains `blocked_external_product_beta_pending_remaining_runtime_gates_after_approved_snapshot_route_write_validation` until Remotion/private preview-export runtime validation, provider/model-call policy closure, QA/cleanup/observability/rollback validation, and security/privacy/support/cost/deployment review pass.
+External product beta remains `blocked_external_product_beta_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation` until provider/model-call policy closure, QA/cleanup/observability/rollback validation, and security/privacy/support/cost/deployment review pass.

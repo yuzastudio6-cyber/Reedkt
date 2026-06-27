@@ -1,0 +1,59 @@
+{
+  "packet": "RP-EXTERNAL-BETA-REMOTION-PRIVATE-PREVIEW-EXPORT-RUNTIME-VALIDATION-1",
+  "decision": "completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation",
+  "execution": "completed_confirmation_gated_external_beta_generated_local_remotion_render",
+  "runStatus": "passed_external_beta_generated_local_private_preview_fixture",
+  "sourceChain": {
+    "mainTarget": "wmyyttnynmteqgcdishd",
+    "approvedSnapshotRouteWrite": "completed_approved_snapshot_route_write_runtime_validation",
+    "internalBetaRemotionConfirmedRun": "completed_generated_local_remotion_private_preview_export_confirmed_run",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "run": {
+    "runId": "2026-06-27T02-41-01-252Z-7ce79dc6",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-remotion-private-preview-export-runtime-validation-1/2026-06-27T02-41-01-252Z-7ce79dc6",
+    "compositionId": "ReeditProExternalBetaGeneratedLocalPreview",
+    "outputFile": "reeditpro-external-beta-generated-local-preview.mp4",
+    "outputBytes": 64855,
+    "outputSha256": "ea12d55c9ef1675da711769c97c9e76bb2da8547bd4c471176a0ff64b03c1c5b",
+    "manifestFile": "manifest.json",
+    "manifestBytes": 8357,
+    "manifestSha256": "24675b34cb0bd3b1ff255dd29343ffce2e12d7d045070bf59fba3404db15356c",
+    "qaReportFile": "qa-report.json",
+    "qaReportBytes": 884,
+    "qaReportSha256": "847efc9202c556f394d17df16a6a9250513f4106c6b3ebe884a453caaa8e5879",
+    "sourceIndexBytes": 1398,
+    "sourceIndexSha256": "883d9d335be350952f5e980781a025a7f6df3e9649868cb057f009ca7a790b29"
+  },
+  "readiness": {
+    "remotionPrivatePreviewExportRuntimeValidation": "completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation",
+    "providerModelCalls": "blocked_pending_provider_owner_runtime_approval",
+    "externalProductBeta": "blocked_pending_provider_policy_security_privacy_support_cost_deployment_after_remotion_runtime_validation"
+  },
+  "safety": {
+    "generatedLocalFixtureOnly": true,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "storageObjectCreation": false,
+    "storageObjectRead": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "providerModelCall": false,
+    "remotionExecution": true,
+    "remotionRendererMediaEncoding": true,
+    "directFfmpegCommandExecutionByRunner": false,
+    "ffprobeExecution": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false
+  },
+  "externalProductBetaReady": false,
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "RP-EXTERNAL-BETA-PROVIDER-MODEL-CALL-POLICY-CLOSURE-1"
+}

@@ -2,6 +2,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
   | 'blocked_auth_reverify_required'
   | 'blocked_runtime_acceptance_required'
+  | 'blocked_identity_token_path_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
   id: string
@@ -17,7 +18,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_private_invoke_smoke_execution_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_identity_token_path_required',
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -107,16 +108,17 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'private_invoke_smoke_execution',
       label: 'Controlled private invoke smoke execution',
-      status: 'blocked_runtime_acceptance_required',
+      status: 'blocked_identity_token_path_required',
       evidence: [
-        'Read-only auth/IAM reverify passed without token fetch or Cloud Run invocation.',
+        'Read-only auth/IAM reverify passed without Cloud Run invocation.',
         'Observed Cloud Run posture uses one NVIDIA L4, concurrency 1, no min scale annotation, and template max scale 1.',
         'Private invoke smoke plan is defined.',
+        'Controlled smoke runner reviewed cost posture, resolved the service target in memory, and stopped before request because audience-bound identity token fetch was blocked for the active user account.',
       ],
       missingEvidence: [
-        'Controlled private invoke smoke execution must explicitly approve whether an identity token may be fetched.',
-        'Controlled private invoke smoke execution must verify service audience and request body handling without raw prompts.',
-        'Cost guard must review observed service-level max scale annotation of 3 before invocation.',
+        'Approved backend-safe service-account token path or impersonation path without key files.',
+        'Permission evidence for minting an audience-bound identity token for the Cloud Run service.',
+        'Successful controlled private invoke contract response with inference disabled.',
         'No beta or production runtime approval has been granted.',
       ],
     },
@@ -133,11 +135,16 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     runtimeServiceAccountVerified: true,
     projectInvokerPolicyVerified: true,
     privateInvokeSmokePlanDefined: true,
+    privateInvokeSmokeAttempted: true,
+    privateInvokeSmokeBlockedBeforeRequest: true,
     privateInvokeSmokeExecuted: false,
     privateInvokeReady: false,
     betaReady: false,
     productionReady: false,
     serviceUrlResolvedNow: false,
+    serviceUrlValueStored: false,
+    audienceResolvedNow: false,
+    audienceValueStored: false,
     authHeaderCreated: false,
     identityTokenFetched: false,
     cloudRunInvocationAttempted: false,
@@ -157,14 +164,13 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'controlled_private_invoke_smoke_execution_approved',
-    'identity_token_fetch_policy_explicitly_approved',
-    'service_audience_resolution_policy_explicitly_approved',
-    'cloud_run_service_max_scale_cost_guard_reviewed',
-    'private_invoke_smoke_result_reviewed',
+    'backend_safe_identity_token_path_approved',
+    'service_account_impersonation_or_non_key_token_path_verified',
+    'audience_bound_identity_token_fetch_passed_without_printing_or_storing_token',
+    'controlled_private_invoke_contract_response_observed',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_52-PRIVATE-INVOKE-SMOKE-EXECUTE: run controlled private invoke contract smoke, no inference',
+    'QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

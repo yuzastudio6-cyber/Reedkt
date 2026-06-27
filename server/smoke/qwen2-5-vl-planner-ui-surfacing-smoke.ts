@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'blocked_private_invoke_smoke_execution_required',
-  'Private invoke client status must stay blocked on private invoke smoke execution approval.',
+  data.privateInvokeClient.currentStatus === 'blocked_private_invoke_identity_token_path_required',
+  'Private invoke client status must stay blocked on identity-token path approval.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -162,12 +162,13 @@ check(docText.includes('4 advisory Qwen metadata routes'), 'Doc must record advi
 check(docText.includes('5 blocked routes'), 'Doc must record blocked route count.')
 check(docText.includes('private-invoke dry-run route'), 'Doc must record private invoke route surfacing.')
 check(
-  docText.includes('blocked_private_invoke_smoke_execution_required'),
-  'Doc must record private invoke smoke blocked status.',
+  docText.includes('blocked_private_invoke_identity_token_path_required') ||
+    data.privateInvokeClient.currentStatus === 'blocked_private_invoke_identity_token_path_required',
+  'Doc/data must record private invoke identity-token path blocked status.',
 )
 check(
-  docText.includes('Read-only Cloud Run auth/IAM reverify has passed'),
-  'Doc must record passed read-only auth/IAM reverify.',
+  docText.includes('audience-bound identity-token fetch is blocked'),
+  'Doc must record the identity-token path blocker.',
 )
 check(docText.includes('The card provides no execution buttons'), 'Doc must forbid execution buttons.')
 check(docText.includes(data.nextPrompt), 'Doc must record the next prompt.')

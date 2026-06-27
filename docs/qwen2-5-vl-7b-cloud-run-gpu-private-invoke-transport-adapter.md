@@ -65,4 +65,4 @@ The latest guarded auth/IAM reverify passed without fetching an identity token o
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_52-PRIVATE-INVOKE-SMOKE-EXECUTE: run controlled private invoke contract smoke, no inference`
+`QWEN2_5_VL_STACK_TOOL_52-FIX-PRIVATE-INVOKE-SMOKE: fix controlled private invoke smoke blocker, no inference`

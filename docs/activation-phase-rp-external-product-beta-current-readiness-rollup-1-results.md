@@ -1,16 +1,16 @@
 # Activation Phase: RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Results
 
-Decision: `blocked_gcloud_reauthentication_required_before_staging_flag_application`
+Decision: `completed_controlled_external_beta_staging_flag_application`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `a923aee6825523ced8cdefedbe3ebc2087a59de8`
+Current integration head: `1a934253ec5cfab26a0ad75e29b978984b0639a5`
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
-External product beta readiness: `blocked_pending_gcloud_reauthentication_before_staging_flag_application`
+External product beta readiness: `controlled_external_beta_enabled_on_staging_api`
 
-External beta enabled in this phase: `false`
+External beta enabled in this phase: `true`
 
 Paid production status: `blocked`
 
@@ -54,9 +54,11 @@ The Supabase target credential/target-validation lane has moved past the missing
 
 `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1` records decision `blocked_gcloud_reauthentication_required_before_staging_flag_application` and execution `completed_local_gcloud_auth_probe_no_environment_mutation`. The local Google Cloud auth preflight read active account `aiediting@reeditpro.com` and project `reeditpro`, then failed token refresh with reauthentication required before Cloud Run service discovery or environment mutation could complete. No Cloud Run service was updated, no deployment was created, and external beta remains disabled.
 
+`RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH` records decision `completed_controlled_external_beta_staging_flag_application` and execution `completed_gcloud_run_staging_api_env_flag_update`. The staging API service `reeditpro-staging-api` in `us-central1` was updated to revision `reeditpro-staging-api-00005-7gs` and read back with `REEDITPRO_EXTERNAL_BETA_READY=true`, `REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd`, `REEDITPRO_EXTERNAL_BETA_SCOPE=controlled_private_preview`, and `REEDITPRO_EXTERNAL_BETA_ROLLBACK_MODE=disable_REEDITPRO_EXTERNAL_BETA_READY`.
+
 Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked.
 
-Next safe action: `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH`.
+Next safe action: `RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1`.
 
 ## Safety
 

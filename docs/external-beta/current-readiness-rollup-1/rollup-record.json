@@ -1,8 +1,8 @@
 {
   "packet": "RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1",
-  "decision": "blocked_gcloud_reauthentication_required_before_staging_flag_application",
+  "decision": "completed_controlled_external_beta_staging_flag_application",
   "execution": "completed_docs_only_current_beta_readiness_rollup_no_runtime_execution",
-  "integrationHead": "a923aee6825523ced8cdefedbe3ebc2087a59de8",
+  "integrationHead": "1a934253ec5cfab26a0ad75e29b978984b0639a5",
   "sourceClosure": {
     "mainTargetMigrationSync": "rp_external_beta_reeditpro_supabase_main_target_migration_sync_1",
     "mainSupabaseServiceRoleRuntimeValidation": "rp_external_beta_main_supabase_service_role_runtime_validation_1",
@@ -20,11 +20,12 @@
     "qaCleanupObservabilityRollbackReview": "rp_external_beta_qa_cleanup_observability_rollback_review_1",
     "releaseGoNoGo": "rp_external_beta_release_go_no_go_1",
     "controlledEnablement": "rp_external_beta_controlled_enablement_1",
-    "stagingFlagApplication": "rp_external_beta_staging_flag_application_1"
+    "stagingFlagApplication": "rp_external_beta_staging_flag_application_1",
+    "stagingFlagApplication1r": "rp_external_beta_staging_flag_application_1r_after_gcloud_reauth"
   },
   "statuses": {
     "internalBeta": "blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates",
-    "externalProductBeta": "blocked_pending_gcloud_reauthentication_before_staging_flag_application",
+    "externalProductBeta": "controlled_external_beta_enabled_on_staging_api",
     "paidProduction": "blocked",
     "finalDeliveryExport": "blocked",
     "productReadyEndToEndLocalOssTools": 0
@@ -116,22 +117,26 @@
     "releaseGoNoGo": "approved_external_beta_release_go_no_go_source_chain_accepted",
     "controlledEnablement": "completed_controlled_external_beta_enablement_source_contract_default_off",
     "externalBetaSourceContract": "ready_for_explicit_staging_flag_application",
-    "externalBetaEnabledInThisPhase": false,
+    "externalBetaEnabledInThisPhase": true,
     "externalBetaUnlock": false,
     "controlledEnablementRequired": false,
     "stagingFlagApplicationRequired": true,
-    "stagingFlagApplication": "blocked_gcloud_reauthentication_required_before_staging_flag_application",
-    "stagingFlagApplicationBlocker": "gcloud_reauthentication_required_before_staging_flag_application",
-    "cloudRunServiceDiscovery": "not_completed_reauthentication_required",
-    "environmentMutation": "not_run_gcloud_reauthentication_required",
-    "deployment": "not_run_gcloud_reauthentication_required",
-    "nextMilestone": "RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH"
+    "stagingFlagApplication": "completed_controlled_external_beta_staging_flag_application",
+    "stagingFlagApplicationBlocker": "closed",
+    "cloudRunServiceDiscovery": "completed",
+    "cloudRunService": "reeditpro-staging-api",
+    "cloudRunRegion": "us-central1",
+    "cloudRunPreviousReadyRevision": "reeditpro-staging-api-00004-4lh",
+    "cloudRunLatestReadyRevision": "reeditpro-staging-api-00005-7gs",
+    "cloudRunTraffic": "100_percent_latest_revision",
+    "environmentMutation": "completed_controlled_staging_api_env_update",
+    "deployment": "completed_cloud_run_revision_for_staging_api",
+    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1"
   },
   "requiredNextOwnerDecision": [
-    "RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH",
-    "apply_controlled_external_beta_staging_flag",
-    "exact_env_values_required",
-    "rollback_path_required"
+    "RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1",
+    "safe_health_readiness_validation_required",
+    "no_provider_worker_media_or_production_unlock"
   ],
   "safety": {
     "supabaseMutation": "guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_private_storage_json_fixture_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only",
@@ -181,10 +186,13 @@
     "qaCleanupObservabilityRollbackReviewRuntimeExecution": false,
     "releaseGoNoGoApproved": true,
     "controlledExternalBetaEnablementSourceContract": true,
-    "stagingFlagApplication": "blocked_gcloud_reauthentication_required_before_staging_flag_application",
-    "cloudRunServiceUpdated": false,
-    "deploymentPerformed": false,
-    "externalBetaEnvironmentUnlock": false
+    "stagingFlagApplication": "completed_controlled_external_beta_staging_flag_application",
+    "cloudRunServiceUpdated": true,
+    "cloudRunServiceUpdatedName": "reeditpro-staging-api",
+    "deploymentPerformed": true,
+    "deploymentScope": "cloud_run_staging_api_revision_only",
+    "externalBetaEnvironmentUnlock": true,
+    "externalBetaEnvironmentUnlockScope": "controlled_staging_api_private_preview_only"
   },
   "packageLock": "unchanged",
   "generatedArtifactsCommitted": "none"

@@ -112,8 +112,16 @@ const corpus = requiredFiles.map((file) => read(file)).join('\n')
 for (const text of requiredText) {
   if (!corpus.includes(text)) fail(`missing required text: ${text}`)
 }
+const blockerPacketSafetyCorpus = requiredFiles
+  .filter(
+    (file) =>
+      !file.startsWith('docs/external-beta/current-readiness-rollup-1/') &&
+      file !== 'docs/activation-phase-rp-external-product-beta-current-readiness-rollup-1-results.md',
+  )
+  .map((file) => read(file))
+  .join('\n')
 for (const pattern of forbiddenPatterns) {
-  if (pattern.test(corpus)) fail(`forbidden claim matched: ${pattern}`)
+  if (pattern.test(blockerPacketSafetyCorpus)) fail(`forbidden claim matched: ${pattern}`)
 }
 
 const record = JSON.parse(read(`${packetDir}/staging-flag-application-record.json`))
@@ -156,11 +164,29 @@ if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'blocked_gcloud_reauthentication_required_before_staging_flag_application') fail('rollup decision mismatch')
+const rollupIsCompleted = rollup.decision === 'completed_controlled_external_beta_staging_flag_application'
+if (
+  rollup.decision !== 'blocked_gcloud_reauthentication_required_before_staging_flag_application' &&
+  !rollupIsCompleted
+) {
+  fail('rollup decision mismatch')
+}
 if (rollup.sourceClosure?.stagingFlagApplication !== 'rp_external_beta_staging_flag_application_1') fail('rollup staging source missing')
-if (rollup.statuses?.externalProductBeta !== 'blocked_pending_gcloud_reauthentication_before_staging_flag_application') fail('rollup external beta status mismatch')
-if (rollup.mainSupabaseTarget?.externalBetaEnabledInThisPhase !== false) fail('rollup enabled phase mismatch')
-if (rollup.mainSupabaseTarget?.stagingFlagApplicationBlocker !== 'gcloud_reauthentication_required_before_staging_flag_application') fail('rollup blocker mismatch')
+if (
+  rollup.statuses?.externalProductBeta !== 'blocked_pending_gcloud_reauthentication_before_staging_flag_application' &&
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_enabled_on_staging_api'
+) {
+  fail('rollup external beta status mismatch')
+}
+if (rollup.mainSupabaseTarget?.externalBetaEnabledInThisPhase !== rollupIsCompleted) fail('rollup enabled phase mismatch')
+if (rollupIsCompleted) {
+  if (rollup.sourceClosure?.stagingFlagApplication1r !== 'rp_external_beta_staging_flag_application_1r_after_gcloud_reauth') fail('rollup 1R source missing')
+  if (rollup.mainSupabaseTarget?.stagingFlagApplication !== 'completed_controlled_external_beta_staging_flag_application') fail('rollup completed status mismatch')
+  if (rollup.mainSupabaseTarget?.stagingFlagApplicationBlocker !== 'closed') fail('rollup blocker closure mismatch')
+  if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1') fail('rollup next milestone mismatch')
+} else {
+  if (rollup.mainSupabaseTarget?.stagingFlagApplicationBlocker !== 'gcloud_reauthentication_required_before_staging_flag_application') fail('rollup blocker mismatch')
+}
 
 const packageJson = JSON.parse(read('package.json'))
 if (

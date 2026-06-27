@@ -1,0 +1,75 @@
+{
+  "packet": "RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH",
+  "decision": "completed_controlled_external_beta_staging_flag_application",
+  "execution": "completed_gcloud_run_staging_api_env_flag_update",
+  "integrationBase": "1a934253ec5cfab26a0ad75e29b978984b0639a5",
+  "sourceChain": {
+    "releaseGoNoGo": "approved_external_beta_release_go_no_go_source_chain_accepted",
+    "controlledEnablement": "completed_controlled_external_beta_enablement_source_contract_default_off",
+    "previousStagingFlagApplication": "blocked_gcloud_reauthentication_required_before_staging_flag_application",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "target": {
+    "googleCloudProjectId": "reeditpro",
+    "googleCloudAccount": "aiediting@reeditpro.com",
+    "cloudRunService": "reeditpro-staging-api",
+    "region": "us-central1",
+    "previousReadyRevision": "reeditpro-staging-api-00004-4lh",
+    "latestCreatedRevision": "reeditpro-staging-api-00005-7gs",
+    "latestReadyRevision": "reeditpro-staging-api-00005-7gs",
+    "traffic": "100_percent_latest_revision",
+    "serviceUrl": "https://reeditpro-staging-api-4wkjiqvdqa-uc.a.run.app",
+    "supabaseProjectName": "Reeditpro",
+    "supabaseProjectRef": "wmyyttnynmteqgcdishd",
+    "supabaseEnvironment": "staging",
+    "isolatedSandboxProjectRef": "fajinbvwhcjnutkaumkm",
+    "isolatedSandboxStatus": "historical_sandbox_evidence_only_not_active"
+  },
+  "appliedFlags": {
+    "REEDITPRO_EXTERNAL_BETA_READY": "true",
+    "REEDITPRO_EXTERNAL_BETA_TARGET_REF": "wmyyttnynmteqgcdishd",
+    "REEDITPRO_EXTERNAL_BETA_SCOPE": "controlled_private_preview",
+    "REEDITPRO_EXTERNAL_BETA_ROLLBACK_MODE": "disable_REEDITPRO_EXTERNAL_BETA_READY"
+  },
+  "readback": {
+    "flagValuesVerified": true,
+    "trafficVerified": true,
+    "cloudRunServiceDiscovery": "completed",
+    "environmentMutation": "completed_controlled_staging_api_env_update",
+    "deployment": "completed_cloud_run_revision_for_staging_api",
+    "rollbackExecution": "not_run_no_rollback_requested"
+  },
+  "readiness": {
+    "externalProductBeta": "controlled_external_beta_enabled_on_staging_api",
+    "externalBetaEnabledInThisPhase": true,
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1"
+  },
+  "safety": {
+    "environmentMutationPerformed": true,
+    "deploymentPerformed": true,
+    "cloudRunServiceUpdated": true,
+    "updatedServiceOnly": "reeditpro-staging-api",
+    "routeExecution": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "providerCall": false,
+    "modelCall": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "internalBetaUnlock": false,
+    "externalBetaUnlockAppliedToEnvironment": true,
+    "externalBetaUnlockScope": "controlled_staging_api_private_preview_only",
+    "productionUnlock": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

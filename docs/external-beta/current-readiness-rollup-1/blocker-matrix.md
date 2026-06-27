@@ -19,7 +19,7 @@ Packet: `RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1`
 | Private artifact storage/access | `completed_private_artifact_storage_access_guarded_remote_write_readback` | carry forward generated private storage object write/read/delete and rolled-back artifact metadata evidence |
 | Remotion private preview/export | `completed_external_beta_generated_local_remotion_private_preview_export_runtime_validation` | carry forward generated-local Remotion preview/export evidence; no public artifacts |
 | Provider/model calls | `completed_external_beta_provider_model_call_policy_closure_no_runtime_calls` | carry forward disabled-by-default backend-only policy; no runtime calls |
-| External beta | `blocked_pending_gcloud_reauthentication_before_staging_flag_application` | refresh Google Cloud auth, then apply exact env values with rollback path |
+| External beta | `controlled_external_beta_enabled_on_staging_api` | safe health/readiness smoke validation |
 | Paid production | `blocked` | separate billing/legal/support/rollback approval |
 | Final delivery/export | `blocked` | separate production delivery gate |
 
@@ -27,7 +27,7 @@ Product-ready end-to-end local OSS tools: `0`
 
 ## Current Next Action
 
-`RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH`
+`RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1`
 
 ## RP External Beta Reeditpro Supabase Main Target Migration Sync 1
 
@@ -263,7 +263,7 @@ External beta source contract: `ready_for_explicit_staging_flag_application`. Ex
 
 Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked. Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
-Next safe gate: `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH`.
+Next safe gate: `RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1`.
 
 ## RP External Beta Staging Flag Application 1
 
@@ -275,7 +275,24 @@ Active Supabase target remains `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
 
 The local Google auth preflight failed before token issuance with `gcloud_reauthentication_required_before_staging_flag_application`. Cloud Run service discovery was not completed, environment mutation was not run, deployment was not run, rollback execution was not needed because no environment change occurred, and external beta enabled in this phase remains `false`.
 
-Next recommended milestone: `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH`.
+Next recommended milestone: `closed_by_RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH`.
+
+## RP External Beta Staging Flag Application 1R After GCloud Reauth
+
+`RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH` records decision `completed_controlled_external_beta_staging_flag_application` and execution `completed_gcloud_run_staging_api_env_flag_update`.
+
+The approved staging API service `reeditpro-staging-api` in `us-central1` was updated from previous ready revision `reeditpro-staging-api-00004-4lh` to ready revision `reeditpro-staging-api-00005-7gs`, with `100_percent_latest_revision` traffic.
+
+Applied and read back:
+
+- `REEDITPRO_EXTERNAL_BETA_READY=true`
+- `REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd`
+- `REEDITPRO_EXTERNAL_BETA_SCOPE=controlled_private_preview`
+- `REEDITPRO_EXTERNAL_BETA_ROLLBACK_MODE=disable_REEDITPRO_EXTERNAL_BETA_READY`
+
+External beta enabled in this phase: `true`. Scope: `controlled_staging_api_private_preview_only`. Paid production, public artifacts, signed URL source-of-truth, final delivery/export, broad media, provider/model calls, workers, Supabase mutation, SQL, and production unlock remain blocked.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1`.
 
 ## SUPABASE Clean Staging Branch Migration History Reconciliation 1
 

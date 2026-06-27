@@ -9,6 +9,7 @@ import { QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SMOKE_EXECUTE_RESULT } from './mo
 import { QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_SMOKE_FIX_RESULT } from './mock-qwen2-5-vl-approved-fixture-inference-smoke-fix-result'
 import { QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_RESULT_REVIEW } from './mock-qwen2-5-vl-approved-fixture-inference-result-review'
 import { QWEN2_5_VL_STRUCTURED_FIXTURE_OUTPUT_FIX } from './mock-qwen2-5-vl-structured-fixture-output-fix'
+import { QWEN2_5_VL_STRUCTURED_FIXTURE_OUTPUT_SMOKE_RETRY_RESULT } from './mock-qwen2-5-vl-structured-fixture-output-smoke-retry-result'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -26,7 +27,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_approved_fixture_inference_smoke_fix_required'
   | 'blocked_approved_fixture_inference_result_review_required'
   | 'blocked_approved_fixture_structured_output_fix_required'
-  | 'blocked_approved_fixture_structured_output_smoke_retry_required'
+  | 'blocked_approved_fixture_structured_output_result_review_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -43,7 +44,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_structured_fixture_output_source_fix_ready_retry_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_structured_fixture_output_smoke_passed_review_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -66,6 +67,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_APPROVED_FIXTURE_INFERENCE_RESULT_REVIEW.decision,
   upstreamStructuredFixtureOutputFixDecision:
     QWEN2_5_VL_STRUCTURED_FIXTURE_OUTPUT_FIX.decision,
+  upstreamStructuredFixtureOutputSmokeRetryDecision:
+    QWEN2_5_VL_STRUCTURED_FIXTURE_OUTPUT_SMOKE_RETRY_RESULT.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -272,15 +275,27 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'approved_fixture_structured_output_smoke_retry',
       label: 'Structured fixture output smoke retry',
-      status: 'blocked_approved_fixture_structured_output_smoke_retry_required',
+      status: 'ready',
       evidence: [
-        'Source-level structured output fix is ready.',
-        'Default service and persistent CPU caller configs remain fail-closed until a future bounded retry.',
+        'Fixed GPU image was built and deployed fail-closed before retry.',
+        'One controlled private approved-fixture structured output smoke ran through CPU caller execution reeditpro-qwen2-5-vl-private-caller-hn9sw.',
+        'The retry observed HTTP 200 with qwen_fixture_inference_smoke_completed, parsedJson=true, schemaValid=true, objectCount=3, and textLikeRegionCount=1.',
+        'Raw model output text is not stored in the repo; evidence is stored as schema keys, counts, and hashes only.',
+        'GPU service was restored to fail-closed revision reeditpro-qwen2-5-vl-l4-worker-00013-kms and the persistent CPU caller job remains disabled.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'approved_fixture_structured_output_result_review',
+      label: 'Structured fixture output result review',
+      status: 'blocked_approved_fixture_structured_output_result_review_required',
+      evidence: [
+        'Structured output smoke retry passed and produced schema-valid metadata-only evidence.',
+        'Default GPU service and persistent CPU caller configs remain fail-closed after the retry.',
       ],
       missingEvidence: [
-        'Build and deploy the fixed GPU service source fail-closed.',
-        'Run one controlled private approved-fixture structured output smoke with temporary gates.',
-        'Restore the GPU service and CPU caller fail-closed after the retry.',
+        'Review accepted structured metadata counts, schema keys, and normalized metadata hash before advancing private runtime readiness.',
+        'Confirm product/QA metadata acceptance without creating generated assets, public artifacts, signed URLs, or beta/production readiness.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -390,7 +405,16 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     structuredFixtureMetadataNormalizationDefined: true,
     structuredFixtureCpuCallerPassConditionTightened: true,
     structuredFixtureOutputLocalParserValidationPassed: true,
-    structuredFixtureOutputSmokeRetryRequired: true,
+    structuredFixtureOutputSmokeRetryRequired: false,
+    structuredFixtureOutputSmokeRetryAttempted: true,
+    structuredFixtureOutputSmokeRetryPassed: true,
+    structuredFixtureOutputAcceptedForReview: true,
+    structuredFixtureOutputResultReviewRequired: true,
+    structuredFixtureOutputSchemaValid: true,
+    structuredFixtureOutputParsedJson: true,
+    structuredFixtureOutputObjectCount: 3,
+    structuredFixtureOutputTextLikeRegionCount: 1,
+    structuredFixtureOutputRawOutputStoredInRepo: false,
     workersDispatched: false,
     supabaseTouched: false,
     sqlExecuted: false,
@@ -402,11 +426,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'approved_fixture_structured_output_smoke_retry_required',
+    'approved_fixture_structured_output_result_review_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58F-STRUCTURED-FIXTURE-OUTPUT-SMOKE-RETRY: deploy fixed Qwen fixture source and run controlled private structured output smoke, no beta/no generated assets',
+    'QWEN2_5_VL_STACK_TOOL_58G-STRUCTURED-FIXTURE-OUTPUT-RESULT-REVIEW: review accepted structured Qwen fixture metadata, no beta/no generated assets',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

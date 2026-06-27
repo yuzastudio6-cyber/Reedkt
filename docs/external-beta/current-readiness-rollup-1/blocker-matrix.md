@@ -379,3 +379,13 @@ Next recommended milestone: `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-
 `SUPABASE-WORKER-RUNTIME-TRANSACTIONAL-RPC-ISOLATED-TARGET-READBACK-1` records `completed_worker_runtime_transactional_rpc_isolated_target_readback`. The isolated target has the expected private `worker_runtime` schema, service-role-only security-definer RPC functions, and worker job/event/artifact tables with RLS and service-role DML grants. Internal beta remains blocked pending service-role runtime boundary validation, private storage/artifact runtime gates, job fixture validation, and end-to-end negative safety evidence.
 
 Next recommended milestone: `SUPABASE-SERVICE-ROLE-RUNTIME-BOUNDARY-VALIDATION-1`.
+
+## RP External Beta Controlled Private Invite IAM Inheritance Audit 1
+
+`RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-INHERITANCE-AUDIT-1` records decision `completed_readonly_project_iam_inheritance_audit_no_access_mutation` and execution `completed_readonly_project_iam_policy_analysis_no_iam_mutation`.
+
+Project-level `roles/run.invoker` binding count: `1`. Project-level `roles/run.invoker` member count: `1`. Project-level `roles/run.invoker` member classes: `serviceAccount`. Project-level user, group, domain, `allUsers`, and `allAuthenticatedUsers` member counts for `roles/run.invoker`: `0`. Broad inherited Cloud Run invoker access: `false`.
+
+External beta readiness remains `blocked_pending_explicit_invite_identity_for_controlled_private_access_grant`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1R-AFTER-IDENTITY-LIST`.

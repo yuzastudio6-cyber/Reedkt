@@ -223,8 +223,18 @@ if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
 const rollup = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (rollup.decision !== 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant') fail('rollup decision mismatch')
-if (rollup.integrationHead !== 'ba739fa799e4f9fd57b64d94f2fbcf647acbeb85') fail('rollup integration head mismatch')
+if (
+  rollup.decision !== 'blocked_pending_explicit_invited_identity_list_for_guarded_iam_grant' &&
+  rollup.decision !== 'completed_readonly_project_iam_inheritance_audit_no_access_mutation'
+) {
+  fail('rollup decision mismatch')
+}
+if (
+  rollup.integrationHead !== 'ba739fa799e4f9fd57b64d94f2fbcf647acbeb85' &&
+  rollup.integrationHead !== 'c0788dd622a89b0070371bc0e5daa0bb03f62419'
+) {
+  fail('rollup integration head mismatch')
+}
 if (rollup.statuses?.externalProductBeta !== 'blocked_pending_explicit_invite_identity_for_controlled_private_access_grant') fail('rollup external beta status mismatch')
 if (rollup.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('rollup product-ready count changed')
 if (rollup.sourceClosure?.controlledPrivateInviteIamGrant !== 'rp_external_beta_controlled_private_invite_iam_grant_1') fail('rollup invite IAM source missing')

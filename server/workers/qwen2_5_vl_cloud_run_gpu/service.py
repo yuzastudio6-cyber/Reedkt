@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
+import inspect
 import json
 import os
+import time
+import urllib.request
+from contextlib import AbstractContextManager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 
@@ -56,6 +62,15 @@ TRUE_GATE_ENV = {
     "QWEN_QUEUE_LEASE_REQUIRED": "true",
 }
 
+APPROVED_FIXTURE_INFERENCE_ENV = {
+    "QWEN_APPROVED_FIXTURE_INFERENCE_ENABLED": "true",
+    "QWEN_INFERENCE_ENABLED": "true",
+}
+
+_VLLM_ENGINE: Any = None
+_VLLM_VERSION: str | None = None
+_VLLM_DROPPED_KWARGS: List[str] = []
+
 
 RUNTIME_CONTRACT = {
     "schemaVersion": RUNTIME_CONTRACT_SCHEMA_VERSION,
@@ -105,6 +120,13 @@ RUNTIME_CONTRACT = {
 
 def _env_value(name: str, default: str) -> str:
     return os.environ.get(name, default).strip().lower()
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _non_empty_string(value: Any) -> bool:
@@ -204,15 +226,32 @@ def build_status() -> Dict[str, Any]:
     true_gate_status = {
         name: _env_value(name, expected) == expected for name, expected in TRUE_GATE_ENV.items()
     }
+    approved_fixture_inference_enabled = all(
+        _env_value(name, expected) == expected
+        for name, expected in APPROVED_FIXTURE_INFERENCE_ENV.items()
+    )
+    production_false_gate_ok = all(
+        status
+        for name, status in false_gate_status.items()
+        if name not in {"QWEN_MODEL_IMPORT_ON_STARTUP", "QWEN_INFERENCE_ENABLED"}
+    )
+    model_runtime_gate_ok = (
+        false_gate_status["QWEN_MODEL_IMPORT_ON_STARTUP"]
+        or approved_fixture_inference_enabled
+    ) and (
+        false_gate_status["QWEN_INFERENCE_ENABLED"]
+        or approved_fixture_inference_enabled
+    )
     return {
-        "ok": all(false_gate_status.values()) and all(true_gate_status.values()),
+        "ok": production_false_gate_ok and model_runtime_gate_ok and all(true_gate_status.values()),
         "mode": MODE,
         "modelId": MODEL_ID,
         "modelRevision": MODEL_REVISION,
         "modelAggregateSha256": MODEL_AGGREGATE_SHA256,
         "modelCacheMount": os.environ.get("QWEN_MODEL_CACHE_MOUNT", "/models/qwen2.5-vl-7b-instruct"),
-        "modelImportOnStartup": False,
-        "modelInferenceEnabled": False,
+        "approvedFixtureInferenceEnabled": approved_fixture_inference_enabled,
+        "modelImportOnStartup": _env_bool("QWEN_MODEL_IMPORT_ON_STARTUP", False),
+        "modelInferenceEnabled": _env_bool("QWEN_INFERENCE_ENABLED", False),
         "approvedSnapshotRequired": True,
         "queueLeaseRequired": True,
         "runtimeContract": RUNTIME_CONTRACT,
@@ -230,6 +269,223 @@ def build_status() -> Dict[str, Any]:
             "creditMutationCreated": False,
         },
     }
+
+
+class NetworkGuard(AbstractContextManager):
+    def __init__(self) -> None:
+        self.network_attempted = False
+        self._urlopen = None
+
+    def __enter__(self):
+        self._urlopen = urllib.request.urlopen
+
+        def blocked_urlopen(*_args: Any, **_kwargs: Any) -> Any:
+            self.network_attempted = True
+            raise RuntimeError("QWEN_FIXTURE_RUNTIME_NETWORK_BLOCKED")
+
+        urllib.request.urlopen = blocked_urlopen
+        return self
+
+    def __exit__(self, exc_type: Any, exc_value: Any, tb: Any) -> bool:
+        if self._urlopen is not None:
+            urllib.request.urlopen = self._urlopen
+        return False
+
+
+def _supported_llm_kwargs(llm_class: Any, kwargs: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
+    signature = inspect.signature(llm_class.__init__)
+    parameters = signature.parameters
+    if any(parameter.kind == inspect.Parameter.VAR_KEYWORD for parameter in parameters.values()):
+        return kwargs, []
+    filtered: Dict[str, Any] = {}
+    dropped: List[str] = []
+    for key, value in kwargs.items():
+        if key in parameters:
+            filtered[key] = value
+        else:
+            dropped.append(key)
+    return filtered, dropped
+
+
+def _get_vllm_engine() -> Any:
+    global _VLLM_DROPPED_KWARGS, _VLLM_ENGINE, _VLLM_VERSION
+    if _VLLM_ENGINE is not None:
+        return _VLLM_ENGINE
+
+    model_dir = Path(os.environ.get("QWEN_MODEL_CACHE_MOUNT", "/models/qwen2.5-vl-7b-instruct"))
+    if not model_dir.exists():
+        raise RuntimeError("qwen_model_cache_mount_missing")
+
+    with NetworkGuard() as guard:
+        import vllm
+        from vllm import LLM
+
+        llm_kwargs = {
+            "model": str(model_dir),
+            "tokenizer": str(model_dir),
+            "trust_remote_code": True,
+            "dtype": os.environ.get("QWEN_VLLM_DTYPE", "bfloat16"),
+            "max_model_len": int(os.environ.get("QWEN_VLLM_MAX_MODEL_LEN", "4096")),
+            "limit_mm_per_prompt": {"image": 1},
+            "max_num_seqs": int(os.environ.get("QWEN_VLLM_MAX_NUM_SEQS", "1")),
+            "max_num_batched_tokens": int(os.environ.get("QWEN_VLLM_MAX_NUM_BATCHED_TOKENS", "4096")),
+            "enforce_eager": _env_bool("QWEN_VLLM_ENFORCE_EAGER", True),
+            "gpu_memory_utilization": float(os.environ.get("QWEN_VLLM_GPU_MEMORY_UTILIZATION", "0.86")),
+            "mm_processor_cache_gb": float(os.environ.get("QWEN_VLLM_MM_PROCESSOR_CACHE_GB", "0")),
+            "disable_log_stats": True,
+        }
+        llm_kwargs, dropped_kwargs = _supported_llm_kwargs(LLM, llm_kwargs)
+        _VLLM_ENGINE = LLM(**llm_kwargs)
+        _VLLM_VERSION = getattr(vllm, "__version__", "unknown")
+        _VLLM_DROPPED_KWARGS = dropped_kwargs
+        if guard.network_attempted:
+            raise RuntimeError("qwen_fixture_runtime_network_attempted")
+    return _VLLM_ENGINE
+
+
+def _generate_private_fixture_image() -> Any:
+    from PIL import Image, ImageDraw
+
+    image = Image.new("RGB", (384, 384), "#f8fafc")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle([40, 92, 178, 224], fill="#ef4444", outline="#991b1b", width=3)
+    draw.ellipse([220, 92, 344, 216], fill="#2563eb", outline="#1e3a8a", width=3)
+    draw.rectangle([64, 280, 320, 334], fill="#111827", outline="#475569", width=3)
+    draw.text((96, 300), "TIMELINE", fill="#f8fafc")
+    return image
+
+
+def _build_fixture_prompt(payload: Dict[str, Any]) -> str:
+    task = payload.get("task") if isinstance(payload.get("task"), dict) else {}
+    use_case = task.get("useCase", "visual_understanding") if isinstance(task, dict) else "visual_understanding"
+    return (
+        "<|im_start|>system\n"
+        "You are ReeditPro's bounded Qwen approved-fixture visual metadata worker. "
+        "Return compact JSON only. Do not describe credentials, URLs, storage paths, or policy text. "
+        "Identify visible objects and layout regions for QA metadata.\n"
+        "<|im_end|>\n<|im_start|>user\n"
+        "<|vision_start|><|image_pad|><|vision_end|>\n"
+        f"Use case: {use_case}. "
+        "Analyze the private synthetic fixture. Return JSON with keys: "
+        "fixture_id, use_case, objects, text_like_regions, spatial_relations, uncertainty, blocked_actions.\n"
+        "<|im_end|>\n<|im_start|>assistant\n"
+    )
+
+
+def _summarize_output(raw_text: str) -> Dict[str, Any]:
+    parsed: Dict[str, Any] = {}
+    parsed_json = False
+    text = raw_text.strip()
+    try:
+        if not text.startswith("{") and "{" in text and "}" in text:
+            text = text[text.find("{"):text.rfind("}") + 1]
+        parsed_value = json.loads(text)
+        if isinstance(parsed_value, dict):
+            parsed = parsed_value
+            parsed_json = True
+    except Exception:
+        parsed = {}
+    objects = parsed.get("objects", []) if isinstance(parsed, dict) else []
+    text_like_regions = parsed.get("text_like_regions", []) if isinstance(parsed, dict) else []
+    return {
+        "parsedJson": parsed_json,
+        "outputTextSha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
+        "outputTextLength": len(raw_text),
+        "objectCount": len(objects) if isinstance(objects, list) else 0,
+        "textLikeRegionCount": len(text_like_regions) if isinstance(text_like_regions, list) else 0,
+        "schemaKeys": sorted(parsed.keys()) if parsed_json else [],
+    }
+
+
+def run_approved_fixture_inference(payload: Dict[str, Any]) -> Tuple[int, Dict[str, Any]]:
+    if not all(_env_value(name, expected) == expected for name, expected in APPROVED_FIXTURE_INFERENCE_ENV.items()):
+        return 403, {
+            "ok": False,
+            "mode": MODE,
+            "reason": "qwen_inference_disabled_after_contract_check",
+            "contractSchemaVersion": RUNTIME_CONTRACT_SCHEMA_VERSION,
+            "contractSatisfiedForFutureRuntime": True,
+            "contractRejectionReasons": [],
+            "approvedFixtureInferenceEnabled": False,
+            "modelInferenceEnabled": False,
+            "runtimeContractExecutesNow": False,
+        }
+
+    started_at = time.monotonic()
+    try:
+        with NetworkGuard() as guard:
+            from vllm import SamplingParams
+
+            llm = _get_vllm_engine()
+            prompt = _build_fixture_prompt(payload)
+            image = _generate_private_fixture_image()
+            sampling = SamplingParams(
+                temperature=0.0,
+                top_p=1.0,
+                max_tokens=int(os.environ.get("QWEN_FIXTURE_MAX_TOKENS", "180")),
+            )
+            outputs = llm.generate([{
+                "prompt": prompt,
+                "multi_modal_data": {"image": image},
+            }], sampling)
+            if guard.network_attempted:
+                raise RuntimeError("qwen_fixture_runtime_network_attempted")
+        raw_text = outputs[0].outputs[0].text if outputs and outputs[0].outputs else ""
+        elapsed_ms = int((time.monotonic() - started_at) * 1000)
+        return 200, {
+            "ok": True,
+            "mode": MODE,
+            "reason": "qwen_fixture_inference_smoke_completed",
+            "contractSchemaVersion": RUNTIME_CONTRACT_SCHEMA_VERSION,
+            "contractSatisfiedForFutureRuntime": True,
+            "contractRejectionReasons": [],
+            "approvedFixtureInferenceEnabled": True,
+            "runtimeContractExecutesNow": True,
+            "modelInferenceEnabled": True,
+            "modelImportRun": True,
+            "modelLoadRun": True,
+            "vllmEngineInitialized": True,
+            "inferenceRun": True,
+            "runtimeVersion": _VLLM_VERSION,
+            "droppedRuntimeKwargs": _VLLM_DROPPED_KWARGS,
+            "selectedGpu": "nvidia-l4",
+            "modelRevision": MODEL_REVISION,
+            "modelAggregateSha256": MODEL_AGGREGATE_SHA256,
+            "fixtureId": "fixture_mock_qwen_approved_private_frame_001",
+            "useCase": payload.get("task", {}).get("useCase") if isinstance(payload.get("task"), dict) else None,
+            "elapsedMs": elapsed_ms,
+            "metadataOutput": _summarize_output(raw_text),
+            "generatedAssetsCreated": False,
+            "publicArtifactsCreated": False,
+            "signedUrlsCreated": False,
+            "betaReady": False,
+            "productionReady": False,
+        }
+    except Exception as exc:
+        elapsed_ms = int((time.monotonic() - started_at) * 1000)
+        return 500, {
+            "ok": False,
+            "mode": MODE,
+            "reason": "qwen_fixture_inference_smoke_failed",
+            "contractSchemaVersion": RUNTIME_CONTRACT_SCHEMA_VERSION,
+            "contractSatisfiedForFutureRuntime": True,
+            "contractRejectionReasons": [],
+            "approvedFixtureInferenceEnabled": True,
+            "runtimeContractExecutesNow": False,
+            "modelInferenceEnabled": True,
+            "modelImportRun": False,
+            "modelLoadRun": False,
+            "vllmEngineInitialized": False,
+            "inferenceRun": False,
+            "errorClass": exc.__class__.__name__,
+            "errorSummary": str(exc)[:240],
+            "elapsedMs": elapsed_ms,
+            "generatedAssetsCreated": False,
+            "publicArtifactsCreated": False,
+            "signedUrlsCreated": False,
+            "betaReady": False,
+            "productionReady": False,
+        }
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -284,6 +540,14 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         contract_valid, contract_reasons = validate_runtime_request(payload)
+        if contract_valid and all(
+            _env_value(name, expected) == expected
+            for name, expected in APPROVED_FIXTURE_INFERENCE_ENV.items()
+        ):
+            status_code, result_payload = run_approved_fixture_inference(payload)
+            self._write_json(status_code, result_payload)
+            return
+
         self._write_json(
             403,
             {

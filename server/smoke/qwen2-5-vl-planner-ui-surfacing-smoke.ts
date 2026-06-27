@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'backend_runtime_dispatch_implementation_required',
-  'Private invoke client status must record the backend runtime dispatch implementation blocker.',
+  data.privateInvokeClient.currentStatus === 'fail_closed_backend_runtime_dispatch_coordinator_required',
+  'Private invoke client status must record the fail-closed backend runtime dispatch coordinator blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -164,8 +164,9 @@ check(docText.includes('private-invoke dry-run route'), 'Doc must record private
 check(
   docText.includes('approved_worker_integration_review_required') ||
     docText.includes('backend_runtime_dispatch_implementation_required') ||
-    data.privateInvokeClient.currentStatus === 'backend_runtime_dispatch_implementation_required',
-  'Doc/data must record backend runtime dispatch implementation blocker status.',
+    docText.includes('fail_closed_backend_runtime_dispatch_coordinator_required') ||
+    data.privateInvokeClient.currentStatus === 'fail_closed_backend_runtime_dispatch_coordinator_required',
+  'Doc/data must record fail-closed backend runtime dispatch coordinator blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
 check(docText.includes('`schemaKeys=[]`'), 'Doc must record the empty schema-key metadata.')
@@ -184,6 +185,10 @@ check(
 check(
   docText.includes('Approved worker integration review accepted the local queue contract'),
   'Doc must record approved worker integration review acceptance.',
+)
+check(
+  docText.includes('Backend runtime dispatch implementation plan is recorded'),
+  'Doc must record backend runtime dispatch implementation planning.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

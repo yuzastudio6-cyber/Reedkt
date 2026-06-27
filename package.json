@@ -255,6 +255,7 @@
     "worker-runtime-jobs:sound-cpu-internal-beta-required-evidence-plan-after-runner-boundary-execution-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-internal-beta-required-evidence-plan-after-runner-boundary-execution-proof-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-approved-snapshot-payload-evidence-plan-after-runner-boundary-execution-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-approved-snapshot-payload-evidence-plan-after-runner-boundary-execution-proof-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-no-real-user-media-boundary-evidence-plan-after-runner-boundary-execution-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-no-real-user-media-boundary-evidence-plan-after-runner-boundary-execution-proof-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-no-artifact-storage-delivery-evidence-plan-after-runner-boundary-execution-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-no-artifact-storage-delivery-evidence-plan-after-runner-boundary-execution-proof-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

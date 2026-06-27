@@ -1,14 +1,14 @@
 # Activation Phase: RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Results
 
-Decision: `completed_controlled_external_beta_enablement_source_contract_default_off`
+Decision: `blocked_gcloud_reauthentication_required_before_staging_flag_application`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `05a815f0f9b210393a1b02c8b4257046f11ca5a7`
+Current integration head: `a923aee6825523ced8cdefedbe3ebc2087a59de8`
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
-External product beta readiness: `ready_for_explicit_staging_flag_application`
+External product beta readiness: `blocked_pending_gcloud_reauthentication_before_staging_flag_application`
 
 External beta enabled in this phase: `false`
 
@@ -52,9 +52,11 @@ The Supabase target credential/target-validation lane has moved past the missing
 
 `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1` records decision `completed_controlled_external_beta_enablement_source_contract_default_off` and execution `completed_source_contract_no_environment_mutation_or_deployment`. It adds the exact source contract for future staging flag application but does not apply the flag to any environment.
 
+`RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1` records decision `blocked_gcloud_reauthentication_required_before_staging_flag_application` and execution `completed_local_gcloud_auth_probe_no_environment_mutation`. The local Google Cloud auth preflight read active account `aiediting@reeditpro.com` and project `reeditpro`, then failed token refresh with reauthentication required before Cloud Run service discovery or environment mutation could complete. No Cloud Run service was updated, no deployment was created, and external beta remains disabled.
+
 Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked.
 
-Next safe action: `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1`.
+Next safe action: `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH`.
 
 ## Safety
 

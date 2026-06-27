@@ -246,6 +246,16 @@ const controlledEnablementFiles = [
   'scripts/validation/rp-external-beta-controlled-enablement-1-diagnostics.mjs',
 ]
 
+const stagingFlagApplicationFiles = [
+  'docs/external-beta/staging-flag-application-1/source-audit.md',
+  'docs/external-beta/staging-flag-application-1/flag-application-attempt.md',
+  'docs/external-beta/staging-flag-application-1/staging-flag-application-record.json',
+  'docs/external-beta/staging-flag-application-1/validation-results.md',
+  'docs/activation-phase-rp-external-beta-staging-flag-application-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-staging-flag-application-1r-after-gcloud-reauth.md',
+  'scripts/validation/rp-external-beta-staging-flag-application-1-diagnostics.mjs',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -478,6 +488,7 @@ const followOnApprovedSnapshotServiceRolePersistenceImplementation1Files = [
 const requiredText = [
   packet,
   'completed_controlled_external_beta_enablement_source_contract_default_off',
+  'blocked_gcloud_reauthentication_required_before_staging_flag_application',
   'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution',
   'completed_reeditpro_main_supabase_target_migration_history_sync',
   'completed_main_supabase_service_role_runtime_grant_boundary_validation',
@@ -499,7 +510,7 @@ const requiredText = [
   'Unsafe public mutation grants: `0`',
   'Unsafe public sequence grants: `0`',
   'completed_guarded_supabase_target_rls_storage_readonly_validation',
-  'External product beta readiness: `ready_for_explicit_staging_flag_application`',
+  'External product beta readiness: `blocked_pending_gcloud_reauthentication_before_staging_flag_application`',
   'External beta enabled in this phase: `false`',
   'Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`',
   'Product-ready end-to-end local OSS tools: `0`',
@@ -519,7 +530,7 @@ const requiredText = [
   'RP-EXTERNAL-BETA-QA-CLEANUP-OBSERVABILITY-ROLLBACK-REVIEW-1',
   'RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1',
   'RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1',
-  'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1',
+  'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH',
   'source_evidence_review_passed_ready_for_release_go_no_go',
   'ephemeral_fixture_cleanup_evidence_passed_ready_for_release_go_no_go',
   'audit_manifest_checksum_status_evidence_passed_ready_for_release_go_no_go',
@@ -623,10 +634,10 @@ for (const pattern of forbiddenPatterns) {
 }
 
 const record = JSON.parse(read('docs/external-beta/current-readiness-rollup-1/rollup-record.json'))
-if (record.decision !== 'completed_controlled_external_beta_enablement_source_contract_default_off') fail('record decision mismatch')
+if (record.decision !== 'blocked_gcloud_reauthentication_required_before_staging_flag_application') fail('record decision mismatch')
 if (record.execution !== 'completed_docs_only_current_beta_readiness_rollup_no_runtime_execution') fail('record execution mismatch')
-if (record.integrationHead !== '05a815f0f9b210393a1b02c8b4257046f11ca5a7') fail('integration head mismatch')
-if (record.statuses?.externalProductBeta !== 'ready_for_explicit_staging_flag_application') fail('external beta status mismatch')
+if (record.integrationHead !== 'a923aee6825523ced8cdefedbe3ebc2087a59de8') fail('integration head mismatch')
+if (record.statuses?.externalProductBeta !== 'blocked_pending_gcloud_reauthentication_before_staging_flag_application') fail('external beta status mismatch')
 if (record.statuses?.internalBeta !== 'blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates') fail('internal beta status mismatch')
 if (record.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.mainSupabaseTarget?.projectRef !== 'wmyyttnynmteqgcdishd') fail('main target ref mismatch')
@@ -681,6 +692,7 @@ if (record.sourceClosure?.providerModelCallPolicyClosure !== 'rp_external_beta_p
 if (record.sourceClosure?.qaCleanupObservabilityRollbackReview !== 'rp_external_beta_qa_cleanup_observability_rollback_review_1') fail('QA cleanup review source mismatch')
 if (record.sourceClosure?.releaseGoNoGo !== 'rp_external_beta_release_go_no_go_1') fail('release go/no-go source mismatch')
 if (record.sourceClosure?.controlledEnablement !== 'rp_external_beta_controlled_enablement_1') fail('controlled enablement source mismatch')
+if (record.sourceClosure?.stagingFlagApplication !== 'rp_external_beta_staging_flag_application_1') fail('staging flag application source mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyClosure !== 'completed_external_beta_provider_model_call_policy_closure_no_runtime_calls') fail('provider policy closure status mismatch')
 if (record.mainSupabaseTarget?.providerModelCallPolicyExecution !== 'completed_docs_only_provider_model_policy_closure_no_provider_or_model_execution') fail('provider policy closure execution mismatch')
 if (record.mainSupabaseTarget?.providerModelRuntime !== 'disabled_by_default') fail('provider runtime status mismatch')
@@ -709,8 +721,13 @@ if (record.mainSupabaseTarget?.controlledEnablement !== 'completed_controlled_ex
 if (record.mainSupabaseTarget?.externalBetaSourceContract !== 'ready_for_explicit_staging_flag_application') fail('external beta source contract mismatch')
 if (record.mainSupabaseTarget?.externalBetaEnabledInThisPhase !== false) fail('external beta enabled in this phase must remain false')
 if (record.mainSupabaseTarget?.stagingFlagApplicationRequired !== true) fail('staging flag application required flag mismatch')
-if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1') fail('next milestone mismatch')
-if (record.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1') fail('staging flag next decision mismatch')
+if (record.mainSupabaseTarget?.stagingFlagApplication !== 'blocked_gcloud_reauthentication_required_before_staging_flag_application') fail('staging flag application status mismatch')
+if (record.mainSupabaseTarget?.stagingFlagApplicationBlocker !== 'gcloud_reauthentication_required_before_staging_flag_application') fail('staging flag blocker mismatch')
+if (record.mainSupabaseTarget?.cloudRunServiceDiscovery !== 'not_completed_reauthentication_required') fail('Cloud Run service discovery status mismatch')
+if (record.mainSupabaseTarget?.environmentMutation !== 'not_run_gcloud_reauthentication_required') fail('environment mutation status mismatch')
+if (record.mainSupabaseTarget?.deployment !== 'not_run_gcloud_reauthentication_required') fail('deployment status mismatch')
+if (record.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH') fail('next milestone mismatch')
+if (record.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH') fail('staging flag next decision mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteFixtureResidueCount !== 0) fail('service-role route residue mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteRunId !== '2026-06-27T01-48-16-104Z-82f6c630') fail('service-role route run id mismatch')
 if (record.mainSupabaseTarget?.serviceRoleRouteReportSha256 !== '25772fc0efe3d6d1aa699a1408ec621cc7df0dbe13bb52fe526b3939030fbb65') fail('service-role route report checksum mismatch')
@@ -809,6 +826,7 @@ const allowed = new Set([
   ...qaCleanupObservabilityRollbackReviewFiles,
   ...releaseGoNoGoFiles,
   ...controlledEnablementFiles,
+  ...stagingFlagApplicationFiles,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,
@@ -854,7 +872,7 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_controlled_external_beta_enablement_source_contract_default_off')
-console.log('External product beta readiness: ready_for_explicit_staging_flag_application')
+console.log('Decision: blocked_gcloud_reauthentication_required_before_staging_flag_application')
+console.log('External product beta readiness: blocked_pending_gcloud_reauthentication_before_staging_flag_application')
 console.log('External beta enabled in this phase: false')
 console.log('SQL mutation: guarded_main_staging_migration_apply_grant_hardening_transaction_rolled_back_snapshot_fixture_credit_fixture_job_queue_fixture_and_private_artifact_metadata_fixture_plus_generated_route_metadata_fixture_and_generated_approved_snapshot_route_fixture_setup_cleanup_only')

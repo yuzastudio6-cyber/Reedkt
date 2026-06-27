@@ -207,6 +207,7 @@ Latest observed PR state after beta rollup GPU runtime target propagation: [#862
   - `docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json`
   - `ai-graphics:model-weight-source-catalog:diagnostics`
 - Model-weight source catalog result: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background` now have explicit upstream/internal source candidates before private manifest creation. SAM2 and Real-ESRGAN record existing internal staging evidence; BiRefNet, rembg, and transparent-background remain review-required or model-selection-required. Private manifests approved now remain 0, beta-ready model-weight tools remain 0, GPU runtime remains on-demand only, idle GPU runtime is not approved, CPU fallback for heavy tools remains blocked, and no model download, model load, inference, runtime, beta, or production execution occurs.
+- Latest observed PR state after model-weight source catalog completion: [#862](https://github.com/yuzastudio6-cyber/Reedkt/pull/862), open/draft/CLEAN at `66b6bf03bbc08fad4a6d4e662137c12d8c73d58b`, with an empty check rollup.
 
 ## Runtime State
 

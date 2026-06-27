@@ -22,6 +22,7 @@ const env = loadRuntimeEnv({
 const app = createReeditProApiApp(env)
 const server = app.listen(0)
 const smokeWorkspaceId = 'beta-readiness-api-smoke-workspace'
+const coreWorkspaceId = 'beta-readiness-api-smoke-core-workspace'
 
 try {
   const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
@@ -66,6 +67,26 @@ try {
   const evidenceListResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evidence?workspaceId=${encodeURIComponent(smokeWorkspaceId)}`, { method: 'GET' })
   assert.equal(evidenceListResponse.data.packets.length, 1, 'stored evidence should be listed once')
   assert.equal(evidenceListResponse.data.report.goNoGo.externalBetaAllowed, true, 'stored evidence should drive evidence listing report')
+
+  const coreEvidenceResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evidence/core-real-check`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-core-real-check' },
+    body: JSON.stringify({
+      workspaceId: coreWorkspaceId,
+      sourceId: 'beta-readiness-api-smoke:core-real-check',
+      sourceSha: '5555555555555555555555555555555555555555',
+      acceptProductionReadiness: true,
+      acceptProductReadyLocalOss: true,
+      notes: ['Smoke accepts only tools that pass bounded core real-check evidence.'],
+    }),
+  }, 201)
+  const acceptedCoreToolIds = coreEvidenceResponse.data.acceptedToolEvidence.map((record: { toolId: string }) => record.toolId)
+  assert.ok(acceptedCoreToolIds.includes('ffmpeg'), 'core real-check evidence should accept ffmpeg when its version check passes')
+  assert.ok(acceptedCoreToolIds.includes('ffprobe'), 'core real-check evidence should accept ffprobe when its version check passes')
+  assert.ok(acceptedCoreToolIds.includes('sharp'), 'core real-check evidence should accept sharp metadata after dependency install')
+  assert.ok(acceptedCoreToolIds.includes('remotion'), 'core real-check evidence should accept remotion metadata after dependency install')
+  assert.ok(!acceptedCoreToolIds.includes('pyav'), 'core real-check evidence must not accept missing Python tools')
+  assert.equal(coreEvidenceResponse.data.report.toolExecutionReadiness.productReadyLocalOssCount, acceptedCoreToolIds.length, 'core real-check evidence should only count accepted passed tools')
 
   const invalidEvidenceResponse = await requestJson(`${baseUrl}/v1/beta-readiness/evaluate`, {
     method: 'POST',

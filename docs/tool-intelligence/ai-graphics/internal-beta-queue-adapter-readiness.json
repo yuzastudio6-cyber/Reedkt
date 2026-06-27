@@ -16,6 +16,12 @@
     "sourceQueueAdmissionPacketMustKeepEightGpuFutureStartTools": true,
     "sourceQueueAdmissionPacketMustKeepGpuStartNowFalse": true,
     "sourceQueueAdmissionPacketMustKeepRuntimeBetaAndProductionFalse": true,
+    "sourceQueueAdmissionPacketMustPreserveNestedRuntimeEnqueueApproval": true,
+    "sourceQueueAdmissionPacketMustPreserveNestedOwnerApproval": true,
+    "sourceQueueAdmissionPacketMustPreserveNestedProductionWorkerGateEvidence": true,
+    "sourceQueueAdmissionPacketMustPreserveNestedProductionWorkerJobEvidence": true,
+    "sourceQueueAdmissionPacketMustPreserveNestedOnDemandGpuPolicy": true,
+    "sourceQueueAdmissionPacketMustRejectCpuFallbackForNestedHeavyTools": true,
     "productionWorkerJobEvidenceStillRequired": true,
     "backendQueueSubmissionPerformed": false,
     "runtimeUnlockPerformed": false

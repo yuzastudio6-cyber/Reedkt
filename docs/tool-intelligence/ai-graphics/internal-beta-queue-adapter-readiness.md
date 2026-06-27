@@ -10,7 +10,8 @@ This contract shapes the all-21 AI graphics queue-admission packets into backend
 - Source queue-admission gate: `ai_graphics_internal_beta_queue_admission_readiness_contract_prepared_with_runtime_blocks`
 - Source production worker job gate: `ai_graphics_internal_beta_production_worker_job_readiness_contract_prepared_with_fail_closed_runtime`
 - Source evidence modes: low-level evidence flags or source queue-admission packet via `--internal-beta-queue-admission-readiness-packet`
-- Source queue-admission packet must report `internal_beta_queue_admission_ready_runtime_still_blocked`, cover all 21 tools and all 12 capabilities, keep exactly eight GPU/model tools eligible for accepted future job startup, keep `gpuRuntimeShouldStartNow=false`, and keep runtime/beta/production gates false; production worker job payload evidence remains separately required.
+- Source queue-admission packet must report `internal_beta_queue_admission_ready_runtime_still_blocked`, cover all 21 tools and all 12 capabilities, keep exactly eight GPU/model tools eligible for accepted future job startup, keep `gpuRuntimeShouldStartNow=false`, and keep runtime/beta/production gates false.
+- Source queue-admission packet must also preserve the nested runtime-enqueue, owner-approved go/no-go, production worker gate, and production worker job evidence: all eight GPU/model tools must keep exact native NVIDIA L4 targets, on-demand-only startup, no idle GPU approval, and CPU fallback blocked; production worker job payload evidence remains separately required.
 - AI graphics tools covered: 21
 - Product-facing capabilities covered: 12
 - Queue adapter submissions prepared: 21

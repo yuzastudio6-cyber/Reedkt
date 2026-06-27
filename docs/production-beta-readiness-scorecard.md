@@ -199,6 +199,11 @@ The adapter can also consume a source
 admission ready. That source packet must prove all 21 tools, all 12
 capabilities, exactly eight accepted-future-job GPU start candidates,
 `gpuRuntimeShouldStartNow=false`, and false runtime/beta/production gates.
+It must also preserve nested runtime-enqueue, owner go/no-go, production worker
+gate, and production worker job evidence so the adapter rejects stripped or
+weakened source packets that lose exact NVIDIA L4 GPU targets, on-demand-only
+GPU policy, no-idle GPU approval, or CPU-fallback blocking for heavy/model
+tools.
 Adapter submissions preserve `gpuRuntimeStartAllowedForAcceptedJob=true` only
 for the eight GPU/model worker candidates and keep `gpuRuntimeShouldStartNow`
 false for every tool. Production-worker job payload evidence remains separately

@@ -57,6 +57,13 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'Run the SQL smoke against a disposable local Postgres database, then repeat equivalent checks against staging Supabase.',
     ),
     sourceFileCheck(
+      'beta_platform_rls_readback_sql_smoke_present',
+      'beta platform RLS readback local SQL smoke is present',
+      'server/smoke/beta-platform-rls-readback-sql-smoke.ts',
+      ['tool_cost_events', 'tool_cost_wallet_settlements', 'beta_readiness_evidence_packets', 'set role authenticated', 'authenticatedInsertDenied'],
+      'Run the SQL smoke against a disposable local Postgres database, then repeat equivalent authenticated readback checks against staging Supabase.',
+    ),
+    sourceFileCheck(
       'backend_evidence_routes_present',
       'Backend beta readiness evidence routes are present',
       'server/routes/beta-readiness-routes.ts',
@@ -82,8 +89,8 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
     blockedCheck(
       'rls_member_read_path_verified',
       'RLS member read path is verified',
-      'Local source preflight cannot prove authenticated member reads against deployed RLS.',
-      'Run authenticated member readback in staging or production.',
+      'Local SQL smoke can prove disposable RLS behavior, but deployed authenticated member reads are not verified here.',
+      'Run authenticated member readback in staging or production after applying the migrations.',
     ),
     blockedCheck(
       'wallet_settlement_verified',

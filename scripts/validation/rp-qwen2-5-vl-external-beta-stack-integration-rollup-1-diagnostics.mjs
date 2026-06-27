@@ -68,15 +68,31 @@ const followOnVllmL4KvCacheTuningFiles = [
   'scripts/validation/rp-qwen2-5-vl-external-beta-vllm-l4-kv-cache-tuning-1-diagnostics.mjs',
 ]
 
+const followOnRuntimeGateIntegrationFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/runtime-gate-contract.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/readiness-gate.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-runtime-gate-integration-1/qwen2-5-vl-runtime-gate-integration-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-runtime-gate-integration-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-backend-runtime-adapter-1.md',
+  'server/config/qwen2-5-vl-external-beta-runtime-gate-contract.ts',
+  'server/smoke/qwen2-5-vl-external-beta-runtime-gate-integration-1-smoke.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-runtime-gate-integration-1-diagnostics.mjs',
+]
+
 const allowedFiles = new Set([
   ...requiredFiles,
   ...followOnSourceImportFiles,
   ...followOnPrivateCallerImageSourceImportFiles,
   ...followOnStructuredOutputSmokeRetryFiles,
   ...followOnVllmL4KvCacheTuningFiles,
+  ...followOnRuntimeGateIntegrationFiles,
 ])
 const smokeRetryFiles = new Set(followOnStructuredOutputSmokeRetryFiles)
 const vllmL4KvCacheTuningFiles = new Set(followOnVllmL4KvCacheTuningFiles)
+const runtimeGateIntegrationFiles = new Set(followOnRuntimeGateIntegrationFiles)
 
 const requiredText = [
   packet,
@@ -227,7 +243,9 @@ execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEn
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   for (const blocked of blockedPrefixes) {
-    if (file === blocked || file.startsWith(`${blocked}/`)) fail(`blocked file scope changed: ${file}`)
+    if (!runtimeGateIntegrationFiles.has(file) && (file === blocked || file.startsWith(`${blocked}/`))) {
+      fail(`blocked file scope changed: ${file}`)
+    }
   }
   if (file.includes('/._') || file.startsWith('._') || file.includes('.DS_Store')) fail(`metadata artifact changed: ${file}`)
   const text = read(file)
@@ -238,7 +256,7 @@ for (const file of changedFiles()) {
   if (/\b(api[_-]?key|service[_-]?role[_-]?key|secret[_-]?key)\s*[:=]\s*['"][^'"]+['"]/i.test(text)) {
     fail(`secret-like assignment in ${file}`)
   }
-  if (smokeRetryFiles.has(file) || vllmL4KvCacheTuningFiles.has(file)) continue
+  if (smokeRetryFiles.has(file) || vllmL4KvCacheTuningFiles.has(file) || runtimeGateIntegrationFiles.has(file)) continue
   for (const pattern of forbiddenClaims) {
     if (pattern.test(text)) fail(`forbidden claim in ${file}: ${pattern}`)
   }

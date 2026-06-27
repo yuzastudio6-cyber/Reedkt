@@ -43,6 +43,7 @@
     "smoke:prod-security-privacy": "tsx server/smoke/production-security-privacy-smoke.ts",
     "smoke:prod-cost-controls": "tsx server/smoke/production-cost-control-smoke.ts",
     "smoke:tool-cost-metering": "tsx server/smoke/professional-tool-cost-metering-smoke.ts",
+    "smoke:tool-beta-execution-readiness": "tsx server/smoke/tool-beta-execution-readiness-smoke.ts",
     "smoke:beta-readiness": "tsx server/smoke/beta-readiness-smoke.ts",
     "prod:readiness:summary": "tsx server/cli/production-readiness-summary.ts",
     "prod:readiness:command-plan": "tsx server/cli/production-readiness-command-plan.ts",

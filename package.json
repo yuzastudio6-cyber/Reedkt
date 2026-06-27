@@ -508,6 +508,7 @@
     "smoke:qwen2-5-vl-fail-closed-backend-runtime-dispatch-coordinator": "tsx server/smoke/qwen2-5-vl-fail-closed-backend-runtime-dispatch-coordinator-smoke.ts",
     "smoke:qwen2-5-vl-controlled-backend-dispatch-dry-run": "tsx server/smoke/qwen2-5-vl-controlled-backend-dispatch-dry-run-smoke.ts",
     "smoke:qwen2-5-vl-backend-runtime-persistence-plan": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-plan-smoke.ts",
+    "smoke:qwen2-5-vl-backend-runtime-persistence-schema-draft-review": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-schema-draft-review-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-verify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-verify-result-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-reverify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-reverify-result-smoke.ts",

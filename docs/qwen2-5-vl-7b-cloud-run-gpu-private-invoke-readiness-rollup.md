@@ -1,10 +1,10 @@
 # Qwen2.5-VL 7B Cloud Run GPU Private Invoke Readiness Rollup
 
-Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_plan_recorded_schema_draft_required`.
+Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_schema_draft_reviewed_migration_draft_required`.
 
-This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded Cloud Run auth/IAM reverify, controlled private invoke smoke plan, private caller route, Direct VPC route config, CPU-only caller source, CPU-only caller deploy, CPU-only caller contract smoke, runtime readiness review, approved-fixture inference smoke plan, gated service source, service deploy, first fixture attempt, tuned fixture retry, structured output source fix, controlled structured-output retry, structured fixture output result review, private runtime readiness review result, approved worker integration readiness review, backend runtime dispatch implementation plan, fail-closed backend runtime dispatch coordinator, controlled backend dispatch dry-run review, and backend runtime persistence plan are recorded.
+This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded Cloud Run auth/IAM reverify, controlled private invoke smoke plan, private caller route, Direct VPC route config, CPU-only caller source, CPU-only caller deploy, CPU-only caller contract smoke, runtime readiness review, approved-fixture inference smoke plan, gated service source, service deploy, first fixture attempt, tuned fixture retry, structured output source fix, controlled structured-output retry, structured fixture output result review, private runtime readiness review result, approved worker integration readiness review, backend runtime dispatch implementation plan, fail-closed backend runtime dispatch coordinator, controlled backend dispatch dry-run review, backend runtime persistence plan, and backend runtime persistence schema draft review are recorded.
 
-The latest controlled retry `qwen25-structured-fixture-output-retry-20260627t204453z` built and deployed the fixed GPU image fail-closed, temporarily enabled only approved fixture gates, ran CPU caller execution `reeditpro-qwen2-5-vl-private-caller-hn9sw`, observed HTTP `200` with `qwen_fixture_inference_smoke_completed`, accepted structured metadata with `parsedJson=true` and `schemaValid=true`, and restored fail-closed GPU revision `reeditpro-qwen2-5-vl-l4-worker-00013-kms`. The structured output result review accepts the schema version, required keys, row counts, normalized metadata hash, and raw-output exclusion as metadata evidence. The private runtime readiness review accepts the controlled L4 runtime evidence for metadata-only fixture readiness. The approved worker integration readiness review accepts the local queue contract, fail-closed dispatch adapter, private invoke plan/config, structured fixture metadata, and private runtime evidence. The backend runtime dispatch implementation plan records the exact queue, lease, idempotency, adapter, envelope, config, and transport-preview surfaces. The fail-closed backend runtime dispatch coordinator composes those surfaces and returns deterministic blocked outcomes with no runtime side effects. The controlled backend dispatch dry-run review covers all eight coordinator outcomes. The backend runtime persistence plan maps Qwen dispatch to existing approved snapshot, credit reservation, job, event, worker runtime config, worker lease, runtime message, claim, idempotency, private storage record, signed URL audit, tool check, QA, and audit surfaces. Raw model output text is intentionally not stored in the repo.
+The latest controlled retry `qwen25-structured-fixture-output-retry-20260627t204453z` built and deployed the fixed GPU image fail-closed, temporarily enabled only approved fixture gates, ran CPU caller execution `reeditpro-qwen2-5-vl-private-caller-hn9sw`, observed HTTP `200` with `qwen_fixture_inference_smoke_completed`, accepted structured metadata with `parsedJson=true` and `schemaValid=true`, and restored fail-closed GPU revision `reeditpro-qwen2-5-vl-l4-worker-00013-kms`. The structured output result review accepts the schema version, required keys, row counts, normalized metadata hash, and raw-output exclusion as metadata evidence. The private runtime readiness review accepts the controlled L4 runtime evidence for metadata-only fixture readiness. The approved worker integration readiness review accepts the local queue contract, fail-closed dispatch adapter, private invoke plan/config, structured fixture metadata, and private runtime evidence. The backend runtime dispatch implementation plan records the exact queue, lease, idempotency, adapter, envelope, config, and transport-preview surfaces. The fail-closed backend runtime dispatch coordinator composes those surfaces and returns deterministic blocked outcomes with no runtime side effects. The controlled backend dispatch dry-run review covers all eight coordinator outcomes. The backend runtime persistence plan maps Qwen dispatch to existing approved snapshot, credit reservation, job, event, worker runtime config, worker lease, runtime message, claim, idempotency, private storage record, signed URL audit, tool check, QA, and audit surfaces. The backend runtime persistence schema draft review confirms those existing surfaces should be reused, rejects a parallel Qwen queue schema, and defines the Qwen worker/job type, idempotency, payload, source-of-truth, lease/claim, RLS, event sanitization, and cleanup constraints required for a future draft migration and SQL test pack. Raw model output text is intentionally not stored in the repo.
 
 This is evidence only. It does not enable persistent inference, dispatch a user-facing worker, mutate Supabase, execute SQL, create generated assets, create public artifacts, create signed URLs, mutate credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
@@ -34,7 +34,8 @@ This is evidence only. It does not enable persistent inference, dispatch a user-
 - fail-closed backend runtime dispatch coordinator: ready
 - controlled backend dispatch dry-run review: ready
 - backend runtime persistence plan: ready
-- backend runtime persistence schema draft: blocked, review required
+- backend runtime persistence schema draft: ready, schema review recorded
+- backend runtime persistence migration draft: blocked, draft required
 - private invoke runtime readiness: false
 - beta readiness: false
 - production readiness: false
@@ -78,7 +79,8 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 | Fail-closed backend runtime dispatch coordinator | ready | Coordinator composes the approved worker job schema, approved snapshot checks, credit checks, source-of-truth checks, idempotency checks, real lease precondition, Qwen fail-closed adapter, private invoke envelope, and transport preview. | none |
 | Controlled backend dispatch dry-run review | ready | Dry-run review covers all eight fail-closed coordinator outcomes and confirms no runtime side effects. | none |
 | Backend runtime persistence plan | ready | Plan maps Qwen dispatch to existing approved snapshot, credit reservation, job, event, worker runtime config, worker lease, runtime message, claim, idempotency, private storage record, signed URL audit, tool check, QA, and audit surfaces. | none |
-| Backend runtime persistence schema draft | blocked backend runtime persistence schema draft required | The next step can draft or review Qwen-specific persistence schema constraints. | Confirm worker type, job type, idempotency scope, lease/claim constraints, sanitized event payloads, private source-of-truth refs, credit failure handling, observability, and cleanup without deploying migrations or enabling runtime execution. |
+| Backend runtime persistence schema draft | ready | Schema draft review confirms Qwen should reuse existing approved snapshot, credit reservation, job, event, worker runtime config, worker lease, runtime message, claim, idempotency, private storage, signed URL audit, tool check, QA, and audit surfaces. | none |
+| Backend runtime persistence migration draft | blocked backend runtime persistence migration draft required | The next step can draft Qwen runtime persistence constraints and local SQL tests. | Draft migration and test SQL must encode Qwen worker/job type, idempotency scope, claim/lease constraints, sanitized JSON payload checks, private source-of-truth refs, RLS/service-role write boundaries, credit failure handling, observability, and cleanup without deploying migrations or enabling runtime execution. |
 
 ## Runtime Gates
 
@@ -138,7 +140,9 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `controlledBackendDispatchDryRunReviewed=true`
 - `backendRuntimePersistencePlanRequired=false`
 - `backendRuntimePersistencePlanRecorded=true`
-- `backendRuntimePersistenceSchemaDraftRequired=true`
+- `backendRuntimePersistenceSchemaDraftRequired=false`
+- `backendRuntimePersistenceSchemaDraftReviewRecorded=true`
+- `backendRuntimePersistenceMigrationDraftRequired=true`
 - `readyForRealWorkerDispatch=false`
 - `structuredFixtureOutputSchemaValid=true`
 - `structuredFixtureOutputParsedJson=true`
@@ -173,7 +177,7 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `dryRunPassedClaimed=false`
 - `generatedLocalFixturePassedClaimed=false`
 
-The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent user-facing runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the private runtime review is accepted only for metadata-only controlled fixture readiness. Approved worker integration review, backend runtime dispatch planning, fail-closed coordinator implementation, controlled backend dispatch dry-run review, and backend runtime persistence planning are recorded, but user-facing dispatch still requires schema/draft review and later real runtime approval.
+The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent user-facing runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the private runtime review is accepted only for metadata-only controlled fixture readiness. Approved worker integration review, backend runtime dispatch planning, fail-closed coordinator implementation, controlled backend dispatch dry-run review, backend runtime persistence planning, and backend runtime persistence schema draft review are recorded, but user-facing dispatch still requires a migration draft/test packet and later real runtime approval.
 
 ## Scope Boundaries
 
@@ -183,8 +187,8 @@ Qwen2.5-VL must not generate B-roll video, replace Wan or LTX generation routes,
 
 ## Required Next Step
 
-The next action is a backend runtime persistence schema draft review after persistence planning. That future prompt must draft or review Qwen-specific queue, lease, idempotency, source-of-truth, credit, job event, observability, and cleanup constraints without deploying migrations, rerunning inference, committing raw model output text, enabling beta, enabling production, creating generated assets, creating public artifacts, creating signed URLs, or claiming `generated_local_fixture_passed`.
+The next action is a backend runtime persistence migration draft after schema review. That future prompt must draft Qwen-specific queue, lease, idempotency, source-of-truth, credit, job event, observability, and cleanup constraints plus local SQL tests without deploying migrations, rerunning inference, committing raw model output text, enabling beta, enabling production, creating generated assets, creating public artifacts, creating signed URLs, or claiming `generated_local_fixture_passed`.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58N-BACKEND-RUNTIME-PERSISTENCE-SCHEMA-DRAFT: draft Qwen queue lease idempotency persistence schema review, no deploy/no cloud/no assets/no beta`
+`QWEN2_5_VL_STACK_TOOL_58O-BACKEND-RUNTIME-PERSISTENCE-MIGRATION-DRAFT: draft Qwen runtime persistence constraints and local SQL tests, no deploy/no cloud/no assets/no beta`

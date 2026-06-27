@@ -37,10 +37,19 @@ export type ToolBetaExecutionReadinessBlockerId =
   | 'production_billing_persistence_missing'
   | 'product_ready_acceptance_missing'
 
+export type ToolBetaExecutionReadinessPlatformBlockerId =
+  | 'production_billing_deployment_unverified'
+
 export interface ToolBetaExecutionReadinessBlocker {
   toolId: string
   blockerId: ToolBetaExecutionReadinessBlockerId
   message: string
+}
+
+export interface ToolBetaExecutionReadinessPlatformBlocker {
+  blockerId: ToolBetaExecutionReadinessPlatformBlockerId
+  message: string
+  requiredForExternalBeta: true
 }
 
 export interface ToolBetaExecutionReadinessRecord {
@@ -83,6 +92,7 @@ export interface ToolBetaExecutionReadinessReport {
   externalBetaToolExecutionAllowed: boolean
   productionToolExecutionAllowed: boolean
   tools: ToolBetaExecutionReadinessRecord[]
+  platformBlockers: ToolBetaExecutionReadinessPlatformBlocker[]
   blockers: ToolBetaExecutionReadinessBlocker[]
   nextActions: string[]
   notes: string[]

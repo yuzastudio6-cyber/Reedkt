@@ -24,6 +24,7 @@ export function buildBetaReadinessReport(options: BuildBetaReadinessReportOption
   const blockers = [
     ...goNoGo.blockers,
     ...scenarioMatrix.flatMap((scenario) => scenario.blockers),
+    ...toolExecutionReadiness.platformBlockers.map((blocker) => `tool execution platform: ${blocker.message}`),
     ...toolExecutionReadiness.blockers.map((blocker) => `${blocker.toolId}: ${blocker.message}`),
   ]
   const warnings = [

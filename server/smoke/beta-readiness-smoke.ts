@@ -25,11 +25,16 @@ assert.equal(report.toolExecutionReadiness.internalDryRunMonitoringAllowed, true
 assert.equal(report.toolExecutionReadiness.externalBetaToolExecutionAllowed, false, 'tool execution readiness must block external beta execution')
 assert.equal(report.toolExecutionReadiness.productionToolExecutionAllowed, false, 'tool execution readiness must block production execution')
 assert.ok(report.toolExecutionReadiness.blockers.length > 0, 'tool execution readiness must surface blockers')
+assert.ok(report.toolExecutionReadiness.platformBlockers.length > 0, 'tool execution readiness must surface platform blockers')
 assert.ok(report.toolExecutionReadiness.tools.some((tool) => tool.toolId === 'ffmpeg'), 'tool execution readiness must include ffmpeg')
 assert.ok(report.toolExecutionReadiness.tools.some((tool) => tool.toolId === 'remotion'), 'tool execution readiness must include remotion')
 assert.ok(
-  report.toolExecutionReadiness.blockers.some((blocker) => blocker.blockerId === 'production_billing_persistence_missing'),
-  'tool execution readiness must require durable billing persistence before external beta',
+  report.toolExecutionReadiness.platformBlockers.some((blocker) => blocker.blockerId === 'production_billing_deployment_unverified'),
+  'tool execution readiness must require durable billing deployment validation before external beta',
+)
+assert.ok(
+  !report.toolExecutionReadiness.blockers.some((blocker) => blocker.blockerId === 'production_billing_persistence_missing'),
+  'billing deployment validation must not be duplicated across every tool after persistence is implemented',
 )
 
 const approvalOnlyGate = evaluateBetaGoNoGo({

@@ -20,7 +20,7 @@ The current registry contains 49 production tool IDs. The smoke test fails if an
 - Every registered tool exposes its production readiness worker types, container image roles, readiness check modes, and missing-readiness production blocker status.
 - Every registered tool requires an approved plan snapshot, credit estimate, credit reservation, and idempotent event key before billable work.
 - Tool events exclude the ReEditPro service fee.
-- Real production persistence remains `backend_required`; mock mode stores events in memory only.
+- Supabase-backed event persistence now has a backend skeleton and local migration artifact; live deployment, service-role validation, wallet settlement, Stripe, monitoring, and billing QA remain blocked.
 - Product-ready local OSS tools remain `0`.
 
 ## API
@@ -29,4 +29,4 @@ The current registry contains 49 production tool IDs. The smoke test fails if an
 
 ## Boundary
 
-This coverage makes tool cost ownership explicit for ReEditPro’s registered tool stack. It does not enable live charging, provider calls, Supabase writes, Stripe, production billing, product runtime execution, or external beta readiness.
+This coverage makes tool cost ownership explicit for ReEditPro’s registered tool stack. It adds a persistent backend path for audited tool events, but it does not enable live charging, provider calls, remote Supabase deployment, Stripe, production billing, product runtime execution, or external beta readiness.

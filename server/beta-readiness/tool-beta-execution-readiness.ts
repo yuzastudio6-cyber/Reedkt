@@ -16,6 +16,7 @@ import type {
 } from '../workers/production-readiness'
 import type {
   ToolBetaExecutionReadinessBlocker,
+  ToolBetaExecutionReadinessPlatformBlocker,
   ToolBetaExecutionReadinessRecord,
   ToolBetaExecutionReadinessReport,
 } from './beta-readiness-types'
@@ -40,7 +41,10 @@ export function buildToolBetaExecutionReadinessReport(): ToolBetaExecutionReadin
     ...coverageBlockers(ownerCoverageSummary.missingReadinessSpecToolIds, 'missing_readiness_spec'),
     ...tools.flatMap((tool) => tool.blockers),
   ]
-  const externalBetaToolExecutionAllowed = blockers.length === 0 && tools.every((tool) => tool.executableForExternalBeta)
+  const platformBlockers = buildPlatformBlockers(ownerCoverageSummary.productionBillingPersistence)
+  const externalBetaToolExecutionAllowed = blockers.length === 0 &&
+    platformBlockers.length === 0 &&
+    tools.every((tool) => tool.executableForExternalBeta)
   const productionToolExecutionAllowed = externalBetaToolExecutionAllowed &&
     tools.every((tool) => tool.executableForProduction)
 
@@ -63,12 +67,13 @@ export function buildToolBetaExecutionReadinessReport(): ToolBetaExecutionReadin
     externalBetaToolExecutionAllowed,
     productionToolExecutionAllowed,
     tools,
+    platformBlockers,
     blockers: uniqueBlockers(blockers),
-    nextActions: nextActionsForBlockers(blockers),
+    nextActions: nextActionsForBlockers(blockers, platformBlockers),
     notes: [
       'This report answers whether registered ReEditPro production tools are executable for external beta or production.',
       'Current mode is dry-run only; command/import/Docker/model checks are not executed by this report.',
-      'External beta tool execution requires passed real readiness checks, owner approvals, durable billing persistence, deployment/storage/security approval, and model/license review.',
+      'External beta tool execution requires passed real readiness checks, owner approvals, deployed billing persistence, deployment/storage/security approval, and model/license review.',
       'Product-ready local OSS remains 0 until a later gate accepts real runtime evidence.',
     ],
   }
@@ -145,10 +150,6 @@ function buildToolBlockers(input: {
     blockers.push(blocker(input.toolId, 'model_weight_approval_missing', 'Model/checkpoint approval is required before beta execution.'))
   }
 
-  if (input.ownerCoverage?.productionBillingPersistence === 'backend_required') {
-    blockers.push(blocker(input.toolId, 'production_billing_persistence_missing', 'Tool event persistence is mock-safe only; production ledger persistence is backend-required.'))
-  }
-
   if (input.ownerCoverage?.productReadyLocalOss === false) {
     blockers.push(blocker(input.toolId, 'product_ready_acceptance_missing', 'No product-ready local OSS acceptance exists for this tool.'))
   }
@@ -171,6 +172,28 @@ function coverageBlockers(
   return toolIds.map((toolId) => blocker(toolId, blockerId, `${blockerId} for ${toolId}.`))
 }
 
+function buildPlatformBlockers(
+  productionBillingPersistence: string,
+): ToolBetaExecutionReadinessPlatformBlocker[] {
+  if (productionBillingPersistence === 'backend_required') {
+    return [{
+      blockerId: 'production_billing_deployment_unverified',
+      requiredForExternalBeta: true,
+      message: 'Durable tool cost event persistence is not implemented, so billable external beta execution remains blocked.',
+    }]
+  }
+
+  if (productionBillingPersistence === 'supabase_tool_cost_events_implemented_pending_deployment') {
+    return [{
+      blockerId: 'production_billing_deployment_unverified',
+      requiredForExternalBeta: true,
+      message: 'Supabase-backed tool_cost_events persistence is implemented in source, but migration deployment, RLS/service-role validation, wallet settlement, Stripe, monitoring, and billing QA are not yet verified.',
+    }]
+  }
+
+  return []
+}
+
 function uniqueBlockers(
   blockers: ToolBetaExecutionReadinessBlocker[],
 ): ToolBetaExecutionReadinessBlocker[] {
@@ -190,13 +213,16 @@ function nextActionForTool(blockers: ToolBetaExecutionReadinessBlocker[]): strin
   if (blockerIds.has('missing_readiness_spec')) return 'Add missing production readiness spec.'
   if (blockerIds.has('model_weight_approval_missing')) return 'Complete model/checkpoint source, license, checksum, and private staging approval.'
   if (blockerIds.has('readiness_not_passed')) return 'Run and pass the bounded real readiness check for this tool in the correct worker image.'
-  if (blockerIds.has('production_billing_persistence_missing')) return 'Implement durable backend cost ledger persistence before billable beta execution.'
   if (blockerIds.has('product_ready_acceptance_missing')) return 'Run QA acceptance after real runtime evidence exists.'
   return 'No tool-specific blocker detected.'
 }
 
-function nextActionsForBlockers(blockers: ToolBetaExecutionReadinessBlocker[]): string[] {
+function nextActionsForBlockers(
+  blockers: ToolBetaExecutionReadinessBlocker[],
+  platformBlockers: ToolBetaExecutionReadinessPlatformBlocker[],
+): string[] {
   const blockerIds = new Set(blockers.map((item) => item.blockerId))
+  const platformBlockerIds = new Set(platformBlockers.map((item) => item.blockerId))
   const actions: string[] = []
 
   if (blockerIds.has('missing_tool_cost_owner_coverage')) actions.push('Complete missing tool cost owner coverage before any beta execution.')
@@ -207,8 +233,8 @@ function nextActionsForBlockers(blockers: ToolBetaExecutionReadinessBlocker[]): 
   if (blockerIds.has('model_weight_approval_missing')) {
     actions.push('Complete model/checkpoint source, license, checksum, and staging approvals for model-backed tools.')
   }
-  if (blockerIds.has('production_billing_persistence_missing')) {
-    actions.push('Implement durable backend/Supabase cost event ledger persistence before billable external beta.')
+  if (platformBlockerIds.has('production_billing_deployment_unverified')) {
+    actions.push('Deploy and verify the Supabase tool_cost_events migration, service-role write path, wallet settlement, Stripe boundary, monitoring, and billing QA before billable external beta.')
   }
   if (blockerIds.has('product_ready_acceptance_missing')) {
     actions.push('Run product QA acceptance after real runtime evidence and billing persistence are available.')

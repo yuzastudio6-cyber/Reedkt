@@ -1,7 +1,7 @@
-import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import { estimateToolCost, emitToolCostEvent } from './cost-math'
 import { buildMockToolCostSummary, recordMockToolCostEvent } from './mock-tool-cost-store'
+import { buildPersistentToolCostSummary, recordPersistentToolCostEvent } from './tool-cost-persistent-store'
 import type { ToolCostEstimateInput, ToolCostEventInput } from './types'
 
 export function createToolCostMeteringService(context: ServiceContext) {
@@ -13,16 +13,20 @@ export function createToolCostMeteringService(context: ServiceContext) {
       }
     },
 
-    emitToolCostEvent(input: ToolCostEventInput, idempotencyKey: string) {
+    async emitToolCostEvent(input: ToolCostEventInput, idempotencyKey: string) {
       const event = emitToolCostEvent(input)
 
       if (context.clients.admin && !context.env.mockOnly) {
-        throw new ApiError(
-          'TOOL_COST_BACKEND_REQUIRED',
-          'Tool cost event persistence requires the production metering table/RPC before live billing can be enabled.',
-          409,
-          { rateCardVersion: event.rateCardVersion },
-        )
+        const stored = await recordPersistentToolCostEvent(context.clients.admin, idempotencyKey, event)
+        return {
+          event: stored.event,
+          replayed: stored.replayed,
+          warnings: [
+            'Persistent tool cost event recorded through the backend service-role path.',
+            'ReEditPro service/edit fee is intentionally excluded from tool cost events.',
+            stored.replayed ? 'Idempotent replay returned the original persistent tool cost event.' : 'Tool cost event recorded once for this idempotency key.',
+          ],
+        }
       }
 
       const stored = recordMockToolCostEvent(idempotencyKey, event)
@@ -36,13 +40,12 @@ export function createToolCostMeteringService(context: ServiceContext) {
       }
     },
 
-    getToolCostSummary(input: { workspaceId: string; projectId: string }) {
+    async getToolCostSummary(input: { workspaceId: string; projectId: string }) {
       if (context.clients.admin && !context.env.mockOnly) {
-        throw new ApiError(
-          'TOOL_COST_BACKEND_REQUIRED',
-          'Tool cost summary requires production metering persistence before live billing can be enabled.',
-          409,
-        )
+        return {
+          summary: await buildPersistentToolCostSummary(context.clients.admin, input.workspaceId, input.projectId),
+          warnings: ['Persistent Supabase-backed tool cost summary.'],
+        }
       }
 
       return {

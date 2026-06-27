@@ -14,6 +14,7 @@ import {
   resetMockToolCostStore,
   roundBillableMs,
   toolCostRateCard,
+  type ToolCostEventRow,
 } from '../tool-cost-metering'
 import type { ServiceContext } from '../types'
 
@@ -203,7 +204,7 @@ assert.throws(() => emitToolCostEvent({
 
 const context = createMockContext()
 const service = createToolCostMeteringService(context)
-const first = service.emitToolCostEvent({
+const first = await service.emitToolCostEvent({
   workspaceId,
   projectId,
   jobId: '00000000-0000-4000-8000-000000000111',
@@ -222,7 +223,7 @@ const first = service.emitToolCostEvent({
   inputAudioSeconds: 90,
   billableToUser: true,
 }, 'tool-cost-idempotency-key')
-const replay = service.emitToolCostEvent({
+const replay = await service.emitToolCostEvent({
   ...first.event,
   metadata: { changedOnReplay: true },
 }, 'tool-cost-idempotency-key')
@@ -230,21 +231,55 @@ assert.equal(first.replayed, false, 'First event write should not be replayed')
 assert.equal(replay.replayed, true, 'Duplicate idempotency key should replay the original event')
 assert.deepEqual(replay.event, first.event, 'Duplicate idempotency replay must not double-charge or mutate the event')
 
-const summary = service.getToolCostSummary({ workspaceId, projectId }).summary
+const summary = (await service.getToolCostSummary({ workspaceId, projectId })).summary
 assert.equal(summary.billableEventCount, 1, 'Summary should count one stored billable event after idempotent replay')
 assert.equal(summary.actualToolCostCredits, first.event.toolCostCredits, 'Summary credits should aggregate stored billable events')
 assert.equal(summary.byUsageCategory.transcription.eventCount, 1, 'Summary should group by usage category')
 assert.equal(summary.byUsageCategory.rendering.eventCount, 0, 'Summary should not include unpersisted direct helper events')
 
-const backendRequiredService = createToolCostMeteringService({
+const persistentService = createToolCostMeteringService({
   ...context,
   env: { ...context.env, mockOnly: false, hasSupabaseAdmin: true },
-  clients: { admin: {} as ServiceContext['clients']['admin'], public: null },
+  clients: { admin: createFakeToolCostAdminClient(), public: null },
 })
-assert.throws(() => backendRequiredService.emitToolCostEvent({
+const persistentFirst = await persistentService.emitToolCostEvent({
   workspaceId,
   projectId,
   jobId: '00000000-0000-4000-8000-000000000112',
+  creditEstimateId,
+  creditReservationId,
+  toolId: 'persistent-store',
+  toolName: 'Persistent store',
+  usageCategory: 'other',
+  providerType: 'cloud_run_job',
+  providerName: 'cloud-run',
+  modelName: null,
+  qualityLevel: 'preview',
+  startedAt,
+  completedAt,
+  wallClockMs: 1_000,
+  billableToUser: true,
+}, 'persistent-store-key')
+const persistentReplay = await persistentService.emitToolCostEvent({
+  ...persistentFirst.event,
+  metadata: { changedOnReplay: true },
+}, 'persistent-store-key')
+assert.equal(persistentFirst.replayed, false, 'Persistent first write should not be replayed')
+assert.equal(persistentReplay.replayed, true, 'Persistent duplicate idempotency key should replay the original event')
+assert.deepEqual(persistentReplay.event, persistentFirst.event, 'Persistent idempotency replay must not double-charge or mutate the event')
+const persistentSummary = (await persistentService.getToolCostSummary({ workspaceId, projectId })).summary
+assert.equal(persistentSummary.billableEventCount, 1, 'Persistent summary should aggregate one stored billable event')
+assert.equal(persistentSummary.actualToolCostCredits, persistentFirst.event.toolCostCredits, 'Persistent summary credits should aggregate stored events')
+
+const missingMigrationService = createToolCostMeteringService({
+  ...context,
+  env: { ...context.env, mockOnly: false, hasSupabaseAdmin: true },
+  clients: { admin: createFakeToolCostAdminClient({ missingMigration: true }), public: null },
+})
+await assert.rejects(() => missingMigrationService.emitToolCostEvent({
+  workspaceId,
+  projectId,
+  jobId: '00000000-0000-4000-8000-000000000113',
   creditEstimateId,
   creditReservationId,
   toolId: 'backend-required',
@@ -274,7 +309,11 @@ assert.equal(ownerCoverageSummary.duplicateToolIds.length, 0, 'Coverage summary 
 assert.equal(ownerCoverageSummary.duplicateReadinessSpecToolIds.length, 0, 'Coverage summary should not duplicate readiness specs')
 assert.equal(ownerCoverageSummary.productReadyLocalOssCount, 0, 'Metering coverage must not claim product-ready local OSS tools')
 assert.equal(ownerCoverageSummary.serviceFeeIncluded, false, 'Owner coverage must preserve service-fee exclusion')
-assert.equal(ownerCoverageSummary.productionBillingPersistence, 'backend_required', 'Owner coverage must not imply real production billing persistence')
+assert.equal(
+  ownerCoverageSummary.productionBillingPersistence,
+  'supabase_tool_cost_events_implemented_pending_deployment',
+  'Owner coverage should expose implemented persistence while keeping deployment validation blocked',
+)
 assert.equal(ownerCoverage.every((record) => record.requiresApprovedPlanSnapshot), true, 'Every tool case should require an approved plan snapshot')
 assert.equal(ownerCoverage.every((record) => record.requiresCreditEstimate), true, 'Every tool case should require a credit estimate')
 assert.equal(ownerCoverage.every((record) => record.requiresCreditReservation), true, 'Every tool case should require a credit reservation')
@@ -306,7 +345,8 @@ console.log(JSON.stringify({
     'idempotent_event_replay',
     'secret_rejection',
     'summary_grouping',
-    'backend_persistence_required_blocker',
+    'persistent_store_idempotency',
+    'backend_missing_migration_blocker',
     'production_tool_owner_coverage',
     'owner_case_requirements',
   ],
@@ -349,4 +389,98 @@ function createMockContext(): ServiceContext {
       isMockUser: true,
     },
   }
+}
+
+function createFakeToolCostAdminClient(options: { missingMigration?: boolean } = {}): ServiceContext['clients']['admin'] {
+  const rows: ToolCostEventRow[] = []
+
+  class FakeToolCostQuery {
+    private readonly filters: Array<[keyof ToolCostEventRow, unknown]> = []
+    private pendingInsert: ToolCostEventRow | null = null
+    private readonly storedRows: ToolCostEventRow[]
+
+    constructor(storedRows: ToolCostEventRow[]) {
+      this.storedRows = storedRows
+    }
+
+    select(_columns = '*'): this {
+      return this
+    }
+
+    eq(column: keyof ToolCostEventRow, value: unknown): this {
+      this.filters.push([column, value])
+      return this
+    }
+
+    insert(row: ToolCostEventRow): this {
+      this.pendingInsert = row
+      return this
+    }
+
+    async maybeSingle(): Promise<{ data: ToolCostEventRow | null; error: null }> {
+      return { data: this.matchingRows()[0] ?? null, error: null }
+    }
+
+    async single(): Promise<{ data: ToolCostEventRow | null; error: null }> {
+      if (this.pendingInsert) {
+        const existing = this.storedRows.find((row) => row.idempotency_key === this.pendingInsert?.idempotency_key)
+        if (existing) return { data: existing, error: null }
+        this.storedRows.push(this.pendingInsert)
+        return { data: this.pendingInsert, error: null }
+      }
+
+      return { data: this.matchingRows()[0] ?? null, error: null }
+    }
+
+    async order(_column: keyof ToolCostEventRow, _options: { ascending: boolean }): Promise<{
+      data: ToolCostEventRow[]
+      error: null
+    }> {
+      return { data: this.matchingRows(), error: null }
+    }
+
+    private matchingRows(): ToolCostEventRow[] {
+      return this.storedRows.filter((row) => this.filters.every(([column, value]) => row[column] === value))
+    }
+  }
+
+  class MissingMigrationToolCostQuery {
+    select(_columns = '*'): this {
+      return this
+    }
+
+    eq(_column: string, _value: unknown): this {
+      return this
+    }
+
+    insert(_row: ToolCostEventRow): this {
+      return this
+    }
+
+    async maybeSingle(): Promise<{ data: null; error: { code: string; message: string } }> {
+      return {
+        data: null,
+        error: { code: '42P01', message: 'relation "public.tool_cost_events" does not exist' },
+      }
+    }
+
+    async single(): Promise<{ data: null; error: { code: string; message: string } }> {
+      return this.maybeSingle()
+    }
+
+    async order(_column: string, _options: { ascending: boolean }): Promise<{
+      data: null
+      error: { code: string; message: string }
+    }> {
+      return this.maybeSingle()
+    }
+  }
+
+  return {
+    from(tableName: string) {
+      assert.equal(tableName, 'tool_cost_events', 'Persistent smoke should only touch tool_cost_events')
+      if (options.missingMigration) return new MissingMigrationToolCostQuery()
+      return new FakeToolCostQuery(rows)
+    },
+  } as unknown as ServiceContext['clients']['admin']
 }

@@ -33,7 +33,9 @@ export type ToolCostMeteringOwner =
   | 'frontend_preview_metering_owner'
   | 'planning_metadata_metering_owner'
 
-export type ToolCostProductionBillingPersistence = 'backend_required'
+export type ToolCostProductionBillingPersistence =
+  | 'backend_required'
+  | 'supabase_tool_cost_events_implemented_pending_deployment'
 
 export type ToolCostOwnerCoverageStatus =
   | 'covered_launch_core_mock_safe'
@@ -301,7 +303,7 @@ export function buildToolCostOwnerCoverageSummary(matrix = buildToolCostOwnerCov
     productReadyLocalOssCount: 0,
     rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
     serviceFeeIncluded: false,
-    productionBillingPersistence: 'backend_required',
+    productionBillingPersistence: 'supabase_tool_cost_events_implemented_pending_deployment',
     missingToolIds: PRODUCTION_TOOL_IDS.filter((toolId) => !coveredToolIds.has(toolId)),
     missingReadinessSpecToolIds: PRODUCTION_TOOL_IDS.filter((toolId) => !readinessSpecIds.has(toolId)),
     duplicateToolIds,
@@ -313,7 +315,7 @@ export function buildToolCostOwnerCoverageSummary(matrix = buildToolCostOwnerCov
     notes: [
       'Coverage is generated from the production tool registry so owners can see every registered tool case.',
       'Each coverage case also references the matching production readiness spec for worker/image and production-blocker context.',
-      'This is mock-safe metering coverage only; production billing persistence, wallet spend/release/refund, Stripe, and Supabase ledger writes remain backend-required.',
+      'Supabase-backed tool cost event persistence is implemented as a backend skeleton and migration artifact; deployment, wallet spend/release/refund, Stripe, and production billing QA remain blocked.',
       'ReEditPro service fee is intentionally excluded from tool events.',
       'Product-ready local OSS tools remain 0 until separate production runtime and owner approval gates pass.',
     ],
@@ -353,14 +355,14 @@ function buildCoverageRecord(
     requiresCreditEstimate: true,
     requiresCreditReservation: true,
     requiresIdempotentEvent: true,
-    productionBillingPersistence: 'backend_required',
+    productionBillingPersistence: 'supabase_tool_cost_events_implemented_pending_deployment',
     productReadyLocalOss: false,
     coverageStatus: coverageStatusForProfile(profile),
     notes: [
       `Default usage bucket: ${toolUsageOverrides[profile.toolId] ?? categoryUsageMap[profile.category]}.`,
       `Default metering owner follows worker type: ${profile.workerType}.`,
       `Readiness fallback status when missing: ${readinessSpec.readinessStatusWhenMissing}.`,
-      'Real production billing remains blocked until durable backend persistence and owner-approved rate cards are implemented.',
+      'Tool cost event persistence has a Supabase-backed skeleton; live billing remains blocked until deployment, RLS/service-role validation, wallet settlement, Stripe, and owner QA pass.',
     ],
   }
 }

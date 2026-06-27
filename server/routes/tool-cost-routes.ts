@@ -19,7 +19,7 @@ export function createToolCostRoutes(): Router {
 
   router.post('/v1/tool-costs/events', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
     const body = validateBody(toolCostEventSchema, request.body)
-    const result = createToolCostMeteringService(getServiceContext(request)).emitToolCostEvent(body, getIdempotencyKey(request))
+    const result = await createToolCostMeteringService(getServiceContext(request)).emitToolCostEvent(body, getIdempotencyKey(request))
     sendOk(response, { event: result.event, replayed: result.replayed }, result.warnings, result.replayed ? 200 : 201)
   }))
 
@@ -36,7 +36,7 @@ export function createToolCostRoutes(): Router {
     if (!workspaceId) {
       throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required for tool cost summaries.', 400)
     }
-    const result = createToolCostMeteringService(getServiceContext(request)).getToolCostSummary({
+    const result = await createToolCostMeteringService(getServiceContext(request)).getToolCostSummary({
       workspaceId,
       projectId: getRouteParam(request, 'projectId'),
     })

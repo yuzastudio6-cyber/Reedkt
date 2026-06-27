@@ -731,6 +731,8 @@
     "rp-external-beta-provider-model-call-policy-closure-1:diagnostics": "node scripts/validation/rp-external-beta-provider-model-call-policy-closure-1-diagnostics.mjs",
     "rp-external-beta-qa-cleanup-observability-rollback-review-1:diagnostics": "node scripts/validation/rp-external-beta-qa-cleanup-observability-rollback-review-1-diagnostics.mjs",
     "rp-external-beta-release-go-no-go-1:diagnostics": "node scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs",
+    "smoke:external-beta-controlled-enablement-contract": "tsx server/smoke/external-beta-controlled-enablement-contract-smoke.ts",
+    "rp-external-beta-controlled-enablement-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-enablement-1-diagnostics.mjs",
     "track-a:private-e2e-revalidation-1:diagnostics": "node scripts/validation/track-a-private-e2e-revalidation-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-1:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-1-diagnostics.mjs",
     "worker-runtime:tracka-private-e2e-gate-2:diagnostics": "node scripts/validation/worker-runtime-tracka-private-e2e-gate-2-diagnostics.mjs",

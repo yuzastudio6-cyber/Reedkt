@@ -1,16 +1,16 @@
 # Activation Phase: RP-EXTERNAL-PRODUCT-BETA-CURRENT-READINESS-ROLLUP-1 Results
 
-Decision: `approved_external_beta_release_go_no_go_source_chain_accepted`
+Decision: `completed_controlled_external_beta_enablement_source_contract_default_off`
 
 Execution: `completed_docs_only_current_beta_readiness_rollup_no_runtime_execution`
 
-Current integration head: `d365e1195690daabe00edf10c95b13f62bfd3c7c`
+Current integration head: `05a815f0f9b210393a1b02c8b4257046f11ca5a7`
 
 Internal beta status: `blocked_pending_service_role_runtime_private_artifact_render_provider_security_gates`
 
-External product beta readiness: `ready_for_controlled_external_beta_enablement`
+External product beta readiness: `ready_for_explicit_staging_flag_application`
 
-External beta unlocked in this packet: `false`
+External beta enabled in this phase: `false`
 
 Paid production status: `blocked`
 
@@ -50,9 +50,11 @@ The Supabase target credential/target-validation lane has moved past the missing
 
 `RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1` records decision `approved_external_beta_release_go_no_go_source_chain_accepted` and execution `completed_docs_only_release_go_no_go_no_runtime_unlock`. The release go/no-go packet accepts the reviewed source chain for controlled external beta enablement planning. It does not itself toggle, deploy, run workers/routes/providers, mutate Supabase, run SQL, create signed/public artifacts, process media, or unlock production.
 
+`RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1` records decision `completed_controlled_external_beta_enablement_source_contract_default_off` and execution `completed_source_contract_no_environment_mutation_or_deployment`. It adds the exact source contract for future staging flag application but does not apply the flag to any environment.
+
 Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked.
 
-Next safe action: `RP-EXTERNAL-BETA-CONTROLLED-ENABLEMENT-1`.
+Next safe action: `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1`.
 
 ## Safety
 

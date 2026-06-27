@@ -29,10 +29,12 @@ Tool-cost wallet settlement has a backend-owned settlement path for platform bil
 
 `npm run smoke:beta-platform-monitoring-catalog` verifies source-only metric and alert templates for tool-cost event writes, idempotent replay, persistent write failures, wallet settlement, RLS readback, billing QA missing evidence, and Stripe-boundary violations. It does not deploy dashboards or alerts.
 
+`npm run smoke:beta-platform-stripe-boundary` verifies that tool-cost and beta billing surfaces do not depend on Stripe, import Stripe, instantiate Stripe, call Stripe APIs, or lose Stripe-isolation and service-fee-exclusion audit markers. It does not grant billing-owner approval or enable Stripe.
+
 ## Mock Status
 
 The mock gate returns allowed/blocked decisions and warnings. It does not call Stripe, provider APIs, workers, rendering, or remote Supabase.
 
 ## Remaining Work
 
-Production still needs deployed migration evidence, service-role runtime verification, authenticated RLS readback, billing-owner QA, monitoring, and owner approvals before this settlement path can clear the platform blocker.
+Production still needs deployed migration evidence, service-role runtime verification, authenticated RLS readback, billing-owner Stripe-boundary approval, billing-owner QA, monitoring, and owner approvals before this settlement path can clear the platform blocker.

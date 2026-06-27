@@ -76,6 +76,25 @@ try {
     'platform billing QA should still name wallet settlement as missing production evidence',
   )
 
+  const settlementResponse = await requestJson(`${baseUrl}/v1/tool-costs/events/${encodeURIComponent(platformBillingQaResponse.data.report.toolEventId)}/settle`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-tool-cost-wallet-settlement' },
+    body: JSON.stringify({
+      workspaceId: smokeWorkspaceId,
+      projectId: 'beta-readiness-api-smoke-platform-project',
+      creditEstimateId: 'platform-billing-qa-credit-estimate',
+      creditReservationId: 'platform-billing-qa-credit-reservation',
+      toolCostCredits: platformBillingQaResponse.data.report.toolEventCredits,
+      billableToUser: true,
+      failureCategory: 'none',
+      settlementType: 'spend',
+      metadata: { smoke: 'beta-readiness-api-tool-cost-wallet-settlement' },
+    }),
+  }, 201)
+  assert.equal(settlementResponse.ok, true, 'tool-cost wallet settlement route should return ok')
+  assert.equal(settlementResponse.data.settlement.creditsDelta, -platformBillingQaResponse.data.report.toolEventCredits, 'wallet settlement route should debit tool event credits in mock mode')
+  assert.equal(settlementResponse.data.settlement.stripeCallAttempted, false, 'wallet settlement route must not call Stripe')
+
   const evidencePacketBody = buildCompleteEvidencePacketBody()
   const { workspaceId: _workspaceId, ...evaluationBody } = evidencePacketBody
   const schemaResult = betaReadinessEvidenceEvaluationSchema.safeParse(evaluationBody)

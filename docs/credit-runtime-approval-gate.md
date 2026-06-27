@@ -21,6 +21,8 @@ Frontend code may display estimates and mock gate results. It must not be truste
 
 RP-FIX-10 uses the credit gate as one required input before mock worker queue items can dispatch. The production rule remains unchanged: no worker, provider, render, or export job may run without approved credits and a valid reservation.
 
+Tool-cost wallet settlement has a mock-safe backend skeleton for platform billing QA. `POST /v1/tool-costs/events/:toolCostEventId/settle` requires auth and idempotency, creates only a mock ledger effect in local/mock mode, keeps Stripe and ReEditPro service/edit fees out of tool owner cost events, and fails closed in non-mock runtime until a transactional Supabase wallet settlement RPC exists.
+
 ## Mock Status
 
 The mock gate returns allowed/blocked decisions and warnings. It does not call Stripe, provider APIs, workers, rendering, or remote Supabase.

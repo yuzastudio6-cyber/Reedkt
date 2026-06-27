@@ -35,6 +35,8 @@ assert.equal(report.persistenceMode, 'mock_memory', 'Smoke must use mock memory 
 assert.equal(report.wouldClearPlatformBlocker, false, 'Platform billing QA must not clear the shared platform blocker.')
 assert.ok(report.toolEventId, 'Platform billing QA should create a controlled tool-cost event.')
 assert.ok(report.toolEventCredits > 0, 'Tool-cost event should have non-zero credits.')
+assert.ok(report.walletSettlementId, 'Platform billing QA should create an explicit mock wallet settlement.')
+assert.equal(report.walletSettlementCreditsDelta, -report.toolEventCredits, 'Explicit mock wallet settlement should spend the event credits.')
 assert.ok(report.billableEventCount >= 1, 'Summary should include a billable event.')
 assert.ok(report.summaryCredits >= report.toolEventCredits, 'Summary credits should include the QA event credits.')
 assert.ok(report.checks.every((check) => check.status === 'passed'), 'All local QA checks should pass.')
@@ -46,5 +48,6 @@ console.log(JSON.stringify({
   reportId: report.reportId,
   persistenceMode: report.persistenceMode,
   checkIds: report.checks.map((check) => check.id),
+  walletSettlementCreditsDelta: report.walletSettlementCreditsDelta,
   missingPlatformEvidence: report.missingPlatformEvidence,
 }, null, 2))

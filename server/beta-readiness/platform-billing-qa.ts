@@ -1,5 +1,6 @@
 import type { ServiceContext } from '../types'
 import { createToolCostMeteringService } from '../tool-cost-metering/tool-cost-metering-service'
+import { settleToolCostWallet } from '../tool-cost-metering/tool-cost-wallet-settlement'
 import type { ToolCostEventInput } from '../tool-cost-metering/types'
 
 export type BetaPlatformBillingQaEnvironment = 'local_mock' | 'staging_persistent' | 'production_persistent'
@@ -33,6 +34,8 @@ export interface BetaPlatformBillingQaReport {
   wouldClearPlatformBlocker: false
   toolEventId: string | null
   toolEventCredits: number
+  walletSettlementId: string | null
+  walletSettlementCreditsDelta: number
   billableEventCount: number
   summaryCredits: number
   checks: BetaPlatformBillingQaCheck[]
@@ -52,7 +55,7 @@ export async function runBetaPlatformBillingQa(
   const requestedEnvironment = input.environment ?? 'local_mock'
   const hasPersistentRuntime = Boolean(context.clients.admin && !context.env.mockOnly)
 
-  if (hasPersistentRuntime && !input.allowPersistentStoreQa) {
+  if (hasPersistentRuntime) {
     return buildBlockedPersistentReport(input, requestedEnvironment, createdAt)
   }
 
@@ -60,6 +63,32 @@ export async function runBetaPlatformBillingQa(
   const eventInput = buildQaEventInput(input)
   const first = await service.emitToolCostEvent(eventInput, `${idempotencyKey}:tool-cost-event`)
   const replay = await service.emitToolCostEvent(eventInput, `${idempotencyKey}:tool-cost-event`)
+  const settlement = await settleToolCostWallet(context, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    toolCostEventId: first.event.id,
+    creditEstimateId: first.event.creditEstimateId,
+    creditReservationId: first.event.creditReservationId,
+    toolCostCredits: first.event.toolCostCredits,
+    billableToUser: first.event.billableToUser,
+    failureCategory: first.event.failureCategory,
+    settlementType: 'spend',
+    metadata: {
+      qaHarness: 'beta-platform-billing-qa',
+      sourceId: input.sourceId,
+    },
+  }, `${idempotencyKey}:wallet-settlement`)
+  const settlementReplay = await settleToolCostWallet(context, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    toolCostEventId: first.event.id,
+    creditEstimateId: first.event.creditEstimateId,
+    creditReservationId: first.event.creditReservationId,
+    toolCostCredits: first.event.toolCostCredits,
+    billableToUser: first.event.billableToUser,
+    failureCategory: first.event.failureCategory,
+    settlementType: 'spend',
+  }, `${idempotencyKey}:wallet-settlement`)
   const summary = await service.getToolCostSummary({
     workspaceId: input.workspaceId,
     projectId: input.projectId,
@@ -80,6 +109,8 @@ export async function runBetaPlatformBillingQa(
     wouldClearPlatformBlocker: false,
     toolEventId: first.event.id,
     toolEventCredits: first.event.toolCostCredits,
+    walletSettlementId: settlement.settlement.id,
+    walletSettlementCreditsDelta: settlement.settlement.creditsDelta,
     billableEventCount: summary.summary.billableEventCount,
     summaryCredits: summary.summary.actualToolCostCredits,
     checks: [
@@ -126,6 +157,21 @@ export async function runBetaPlatformBillingQa(
         'Implement and verify wallet spend/release/refund settlement before platform evidence can clear.',
       ),
       check(
+        'explicit_wallet_settlement',
+        'Explicit wallet settlement skeleton records an idempotent mock ledger effect',
+        settlement.settlement.status === 'settled_mock' &&
+          settlement.settlement.creditsDelta === -first.event.toolCostCredits &&
+          settlementReplay.replayed &&
+          settlementReplay.settlement.id === settlement.settlement.id,
+        [
+          `settlementId=${settlement.settlement.id}`,
+          `creditsDelta=${settlement.settlement.creditsDelta}`,
+          `replayed=${settlementReplay.replayed}`,
+          'walletMutationMode=mock_ledger_only',
+        ],
+        'Replace mock settlement with a transactional Supabase wallet settlement RPC before platform evidence can clear.',
+      ),
+      check(
         'stripe_boundary',
         'Stripe is isolated from tool event recording',
         first.event.metadata.stripeCallAttempted === false,
@@ -147,14 +193,14 @@ export async function runBetaPlatformBillingQa(
       'staging or production migration deployment evidence',
       'service-role write path evidence from deployed runtime',
       'authenticated RLS member summary readback evidence',
-      'transactional wallet settlement evidence',
+      'transactional wallet settlement evidence from deployed backend runtime',
       'Stripe boundary owner approval evidence',
       'monitoring and billing QA evidence from staging or production',
       'deployment, security, storage, legal, and support approvals',
     ],
     notes: [
       ...(input.notes ?? []),
-      'This QA harness does not process media, call providers, call Stripe, settle wallets, enable beta, or mark production ready.',
+      'This QA harness does not process media, call providers, call Stripe, settle real wallets, enable beta, or mark production ready.',
       'The report is blocker-reduction evidence only; ToolBetaPlatformReadinessEvidence still requires staging or production proof.',
     ],
   }
@@ -175,27 +221,30 @@ function buildBlockedPersistentReport(
     wouldClearPlatformBlocker: false,
     toolEventId: null,
     toolEventCredits: 0,
+    walletSettlementId: null,
+    walletSettlementCreditsDelta: 0,
     billableEventCount: 0,
     summaryCredits: 0,
     checks: [
       {
         id: 'persistent_store_qa_requires_explicit_approval',
-        label: 'Persistent store billing QA requires explicit approval in non-mock runtime',
+        label: 'Persistent platform billing QA requires transactional wallet settlement before non-mock writes',
         status: 'blocked',
         evidence: [
           'service-role runtime is available',
-          'allowPersistentStoreQa was not true',
+          'tool-cost event persistence exists',
+          'transactional wallet settlement RPC is not implemented yet',
         ],
-        nextAction: 'Set allowPersistentStoreQa only in an approved staging/production billing QA run.',
+        nextAction: 'Implement and verify transactional wallet spend/release/refund settlement before running persistent billing QA.',
       },
     ],
     missingPlatformEvidence: [
-      'explicit persistent-store QA approval',
+      'transactional wallet settlement RPC',
       'staging or production billing QA evidence',
     ],
     notes: [
       ...(input.notes ?? []),
-      'No persistent write was attempted because explicit persistent-store QA approval was missing.',
+      'No persistent write was attempted because non-mock platform billing QA requires a transactional settlement path first.',
     ],
   }
 }

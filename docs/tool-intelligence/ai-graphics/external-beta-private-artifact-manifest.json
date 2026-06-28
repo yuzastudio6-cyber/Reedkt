@@ -83,6 +83,7 @@
   ],
   "acceptanceCriteria": {
     "sourceWorkerDispatchSmokeProofAccepted": true,
+    "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "manifestRecordsPrepared": 21,
     "manifestRecordsReadyWithProvidedEvidence": 21,
     "gpuRuntimeTargetedTools": 8,
@@ -100,6 +101,7 @@
   "booleans": {
     "externalBetaPrivateArtifactManifestPrepared": true,
     "sourceWorkerDispatchSmokeProofAccepted": false,
+    "sourceRuntimeQueueServiceProofBridgeAccepted": false,
     "privateArtifactManifestControlsAccepted": false,
     "privateArtifactManifestReadyWithProvidedEvidence": false,
     "all21ToolsCovered": true,

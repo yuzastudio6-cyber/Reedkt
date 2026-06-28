@@ -45,6 +45,7 @@ export interface AiGraphicsExternalBetaToolRouteRuntimeProofRecord {
   privateLeaseAuditRef: string | null
   modelWeightOrCacheManifestRef: string | null
   gpuRuntimeTargeted: boolean
+  sourceRuntimeQueueServiceProofBridgeAccepted: boolean
   toolRoutePolicyRef: string | null
   toolRouteSchemaRef: string | null
   toolRouteAdmissionRef: string | null
@@ -66,6 +67,7 @@ export interface AiGraphicsExternalBetaToolRouteRuntimeProof {
   decision: AiGraphicsExternalBetaToolRouteRuntimeProofStatus
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_ROUTE_RUNTIME_PROOF_DECISION
   sourcePrivateArtifactManifestAccepted: boolean
+  sourcePrivateArtifactManifestProofBridgeAccepted: boolean
   missingToolRouteRuntimeProofControls: string[]
   toolRouteRuntimeProofReadyWithProvidedEvidence: boolean
   totalAiGraphicsTools: 21
@@ -73,6 +75,7 @@ export interface AiGraphicsExternalBetaToolRouteRuntimeProof {
   gpuRuntimeTargetedTools: 8
   toolRouteRecordsPrepared: 21
   toolRouteRecordsReadyWithProvidedEvidence: number
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
   acceptedPrivateRefNamespaces: string[]
@@ -98,6 +101,7 @@ export interface AiGraphicsExternalBetaToolRouteRuntimeProof {
   booleans: {
     externalBetaToolRouteRuntimeProofPrepared: true
     sourcePrivateArtifactManifestAccepted: boolean
+    sourceRuntimeQueueServiceProofBridgeAccepted: boolean
     toolRouteRuntimeProofControlsAccepted: boolean
     toolRouteRuntimeProofReadyWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -215,9 +219,16 @@ function sourceManifestAccepted(
     packet.privateArtifactManifestReadyWithProvidedEvidence === true &&
     packet.manifestRecordsPrepared === 21 &&
     packet.manifestRecordsReadyWithProvidedEvidence === 21 &&
+    packet.sourceWorkerDispatchSmokeProofBridgeAccepted === true &&
+    packet.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet.records.length === 21 &&
+    packet.records.every((record) => (
+      record.sourceRuntimeQueueServiceProofBridgeAccepted === true
+    )) &&
     packet.gpuRuntimeTargetedTools === 8 &&
     packet.externalBetaReadyNowTools === 0 &&
     packet.productionReadyNowTools === 0 &&
+    packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.routeExecutionApprovedNow === false &&
     packet.booleans.workerDispatchApprovedNow === false &&
@@ -295,6 +306,9 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
       isSafePrivateRef(manifestRecord.telemetryRef) &&
       isSafePrivateRef(manifestRecord.leaseAuditRef) &&
       (!record.gpuRequiredForRuntime || isSafePrivateRef(manifestRecord.modelWeightOrCacheManifestRef))
+    const proofBridgeAccepted =
+      sourceAccepted &&
+      manifestRecord?.sourceRuntimeQueueServiceProofBridgeAccepted === true
 
     return {
       toolId: record.toolId,
@@ -316,6 +330,7 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
       privateLeaseAuditRef: manifestRecord?.leaseAuditRef ?? null,
       modelWeightOrCacheManifestRef: manifestRecord?.modelWeightOrCacheManifestRef ?? null,
       gpuRuntimeTargeted: record.gpuRequiredForRuntime,
+      sourceRuntimeQueueServiceProofBridgeAccepted: proofBridgeAccepted,
       toolRoutePolicyRef: controlsAccepted ? input.externalBetaToolRoutePolicyRef?.trim() ?? null : null,
       toolRouteSchemaRef: controlsAccepted ? input.externalBetaToolRouteSchemaRef?.trim() ?? null : null,
       toolRouteAdmissionRef: controlsAccepted ? input.externalBetaToolRouteAdmissionRef?.trim() ?? null : null,
@@ -323,7 +338,8 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
       toolRouteRateLimitRef: controlsAccepted ? input.externalBetaToolRouteRateLimitRef?.trim() ?? null : null,
       toolRouteAuditRef: controlsAccepted ? input.externalBetaToolRouteAuditRef?.trim() ?? null : null,
       toolRouteRollbackRef: controlsAccepted ? input.externalBetaToolRouteRollbackRef?.trim() ?? null : null,
-      toolRouteRuntimeProofReadyWithProvidedEvidence: controlsAccepted && manifestAccepted,
+      toolRouteRuntimeProofReadyWithProvidedEvidence:
+        controlsAccepted && manifestAccepted && proofBridgeAccepted,
       routeExecutionApprovedNow: false,
       workerDispatchApprovedNow: false,
       toolExecutionApprovedNow: false,
@@ -337,9 +353,12 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
   const readyRecords = records.filter((record) => (
     record.toolRouteRuntimeProofReadyWithProvidedEvidence
   ))
+  const sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence =
+    records.filter((record) => record.sourceRuntimeQueueServiceProofBridgeAccepted).length
   const readyWithProvidedEvidence =
     controlsAccepted &&
-    readyRecords.length === AI_GRAPHICS_CANONICAL_TOOL_IDS.length
+    readyRecords.length === AI_GRAPHICS_CANONICAL_TOOL_IDS.length &&
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21
 
   return {
     decision: statusFromInput({
@@ -349,6 +368,7 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
     }),
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_TOOL_ROUTE_RUNTIME_PROOF_DECISION,
     sourcePrivateArtifactManifestAccepted: sourceAccepted,
+    sourcePrivateArtifactManifestProofBridgeAccepted: sourceAccepted,
     missingToolRouteRuntimeProofControls: missingControls,
     toolRouteRuntimeProofReadyWithProvidedEvidence: readyWithProvidedEvidence,
     totalAiGraphicsTools: 21,
@@ -356,6 +376,7 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
     gpuRuntimeTargetedTools: records.filter((record) => record.gpuRuntimeTargeted).length as 8,
     toolRouteRecordsPrepared: records.length as 21,
     toolRouteRecordsReadyWithProvidedEvidence: readyRecords.length,
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     acceptedPrivateRefNamespaces,
@@ -381,6 +402,7 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
     booleans: {
       externalBetaToolRouteRuntimeProofPrepared: true,
       sourcePrivateArtifactManifestAccepted: sourceAccepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted: sourceAccepted,
       toolRouteRuntimeProofControlsAccepted: controlsAccepted,
       toolRouteRuntimeProofReadyWithProvidedEvidence: readyWithProvidedEvidence,
       all21ToolsCovered: true,

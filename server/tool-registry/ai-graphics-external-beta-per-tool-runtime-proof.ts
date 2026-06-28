@@ -85,6 +85,7 @@ export interface AiGraphicsExternalBetaPerToolRuntimeProofRecord {
   runtimeProofStatus: AiGraphicsExternalBetaPerToolRuntimeProofRecordStatus
   sourceProofStatus: string | null
   routeRuntimeProofAccepted: boolean
+  sourceRuntimeQueueServiceProofBridgeAccepted: boolean
   runtimeProofAcceptedWithProvidedEvidence: boolean
   blockedReason: string | null
   gpuRuntimeTargeted: boolean
@@ -105,6 +106,7 @@ export interface AiGraphicsExternalBetaPerToolRuntimeProof {
   decision: AiGraphicsExternalBetaPerToolRuntimeProofStatus
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_PER_TOOL_RUNTIME_PROOF_DECISION
   sourceToolRouteRuntimeProofAccepted: boolean
+  sourceToolRouteRuntimeProofBridgeAccepted: boolean
   sourceExternalBetaNativeGpuProofCollectionAccepted: boolean
   missingPerToolRuntimeProofControls: string[]
   totalAiGraphicsTools: 21
@@ -112,6 +114,7 @@ export interface AiGraphicsExternalBetaPerToolRuntimeProof {
   gpuRuntimeTargetedTools: 8
   runtimeProofRecordsPrepared: 21
   runtimeProofAcceptedWithProvidedEvidenceTools: number
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
   jsRuntimeProofAcceptedWithProvidedEvidenceTools: number
   nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: number
   blockedPendingNativeGpuRuntimeProofTools: number
@@ -141,6 +144,7 @@ export interface AiGraphicsExternalBetaPerToolRuntimeProof {
   booleans: {
     externalBetaPerToolRuntimeProofPrepared: true
     sourceToolRouteRuntimeProofAccepted: boolean
+    sourceRuntimeQueueServiceProofBridgeAccepted: boolean
     sourceExternalBetaNativeGpuProofCollectionAccepted: boolean
     perToolRuntimeProofControlsAccepted: boolean
     all21ToolsCovered: true
@@ -273,9 +277,16 @@ function sourceRouteAccepted(packet?: AiGraphicsExternalBetaToolRouteRuntimeProo
     packet.toolRouteRuntimeProofReadyWithProvidedEvidence === true &&
     packet.toolRouteRecordsPrepared === 21 &&
     packet.toolRouteRecordsReadyWithProvidedEvidence === 21 &&
+    packet.sourcePrivateArtifactManifestProofBridgeAccepted === true &&
+    packet.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet.records.length === 21 &&
+    packet.records.every((record) => (
+      record.sourceRuntimeQueueServiceProofBridgeAccepted === true
+    )) &&
     packet.gpuRuntimeTargetedTools === 8 &&
     packet.externalBetaReadyNowTools === 0 &&
     packet.productionReadyNowTools === 0 &&
+    packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.routeExecutionApprovedNow === false &&
     packet.booleans.workerDispatchApprovedNow === false &&
@@ -439,6 +450,13 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
 
   const records = listAiGraphicsToolCallReadiness().map((tool): AiGraphicsExternalBetaPerToolRuntimeProofRecord => {
     if (!tool.productionToolId) throw new Error(`AI graphics tool ${tool.toolId} is missing a productionToolId.`)
+    const sourceRouteRecord =
+      input.sourceToolRouteRuntimeProofPacket?.records.find((record) => (
+        record.toolId === tool.toolId
+      ))
+    const sourceRuntimeQueueServiceProofBridgeAccepted =
+      routeAccepted &&
+      sourceRouteRecord?.sourceRuntimeQueueServiceProofBridgeAccepted === true
     const source = proofSourceForTool(tool.toolId)
     let sourceStatus: string | null = null
     let sourceAccepted = false
@@ -471,7 +489,11 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
       }
     }
 
-    const runtimeProofAcceptedWithProvidedEvidence = routeAccepted && controlsAccepted && sourceAccepted
+    const runtimeProofAcceptedWithProvidedEvidence =
+      routeAccepted &&
+      controlsAccepted &&
+      sourceRuntimeQueueServiceProofBridgeAccepted &&
+      sourceAccepted
     const runtimeProofStatus: AiGraphicsExternalBetaPerToolRuntimeProofRecordStatus =
       runtimeProofAcceptedWithProvidedEvidence
         ? 'runtime_proof_accepted_with_provided_evidence'
@@ -496,6 +518,7 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
       runtimeProofStatus,
       sourceProofStatus: sourceStatus,
       routeRuntimeProofAccepted: routeAccepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted,
       runtimeProofAcceptedWithProvidedEvidence,
       blockedReason,
       gpuRuntimeTargeted: gpuRuntimeToolSet.has(tool.toolId),
@@ -517,6 +540,8 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
   const acceptedJsRecords = acceptedRecords.filter((record) => record.runtimeProofSource !== 'native_gpu_runtime_proof')
   const acceptedGpuRecords = acceptedRecords.filter((record) => record.runtimeProofSource === 'native_gpu_runtime_proof')
   const blockedGpuRecords = records.filter((record) => record.runtimeProofStatus === 'blocked_pending_native_gpu_runtime_proof')
+  const sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence =
+    records.filter((record) => record.sourceRuntimeQueueServiceProofBridgeAccepted).length
 
   return {
     decision: statusFromInput({
@@ -528,6 +553,7 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
     }),
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_PER_TOOL_RUNTIME_PROOF_DECISION,
     sourceToolRouteRuntimeProofAccepted: routeAccepted,
+    sourceToolRouteRuntimeProofBridgeAccepted: routeAccepted,
     sourceExternalBetaNativeGpuProofCollectionAccepted,
     missingPerToolRuntimeProofControls: missing,
     totalAiGraphicsTools: 21,
@@ -535,6 +561,7 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
     gpuRuntimeTargetedTools: gpuRuntimeTools.length as 8,
     runtimeProofRecordsPrepared: AI_GRAPHICS_CANONICAL_TOOL_IDS.length as 21,
     runtimeProofAcceptedWithProvidedEvidenceTools: acceptedRecords.length,
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence,
     jsRuntimeProofAcceptedWithProvidedEvidenceTools: acceptedJsRecords.length,
     nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: acceptedGpuRecords.length,
     blockedPendingNativeGpuRuntimeProofTools: blockedGpuRecords.length,
@@ -564,6 +591,7 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
     booleans: {
       externalBetaPerToolRuntimeProofPrepared: true,
       sourceToolRouteRuntimeProofAccepted: routeAccepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted: routeAccepted,
       sourceExternalBetaNativeGpuProofCollectionAccepted,
       perToolRuntimeProofControlsAccepted: controlsAccepted,
       all21ToolsCovered: true,

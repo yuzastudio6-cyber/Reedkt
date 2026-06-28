@@ -47,6 +47,7 @@ export interface AiGraphicsExternalBetaPrivateArtifactRecord {
   privateLeaseAuditRequired: true
   publicArtifactAllowed: false
   signedUrlAllowed: false
+  sourceRuntimeQueueServiceProofBridgeAccepted: boolean
   refsAcceptedWithProvidedEvidence: boolean
   manifestReadyWithProvidedEvidence: boolean
   toolExecutionApprovedNow: false
@@ -58,6 +59,7 @@ export interface AiGraphicsExternalBetaPrivateArtifactManifest {
   decision: AiGraphicsExternalBetaPrivateArtifactManifestStatus
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_PRIVATE_ARTIFACT_MANIFEST_DECISION
   sourceWorkerDispatchSmokeProofAccepted: boolean
+  sourceWorkerDispatchSmokeProofBridgeAccepted: boolean
   missingPrivateArtifactControls: string[]
   privateArtifactManifestReadyWithProvidedEvidence: boolean
   totalAiGraphicsTools: 21
@@ -65,6 +67,7 @@ export interface AiGraphicsExternalBetaPrivateArtifactManifest {
   gpuRuntimeTargetedTools: 8
   manifestRecordsPrepared: 21
   manifestRecordsReadyWithProvidedEvidence: number
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
   acceptedPrivateRefNamespaces: string[]
@@ -88,6 +91,7 @@ export interface AiGraphicsExternalBetaPrivateArtifactManifest {
   booleans: {
     externalBetaPrivateArtifactManifestPrepared: true
     sourceWorkerDispatchSmokeProofAccepted: boolean
+    sourceRuntimeQueueServiceProofBridgeAccepted: boolean
     privateArtifactManifestControlsAccepted: boolean
     privateArtifactManifestReadyWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -202,9 +206,12 @@ function sourceProofAccepted(
     packet.counts.sourceCapabilityScenariosCompletedWithProvidedEvidence === 12 &&
     packet.counts.sourceInMemoryLeaseRecordsCreated === 21 &&
     packet.counts.sourceInMemoryLeaseRecordsReleased === 21 &&
+    packet.counts.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet.evidence.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === true &&
     packet.counts.sourceLiveWorkerLeasesCreatedNow === 0 &&
     packet.counts.sourceLiveWorkerDispatchesNow === 0 &&
     packet.counts.sourceLiveToolExecutionsNow === 0 &&
+    packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.workerDispatchPerformed === false &&
     packet.booleans.gpuRuntimeShouldStartNow === false
@@ -331,17 +338,21 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
       privateLeaseAuditRequired: true,
       publicArtifactAllowed: false,
       signedUrlAllowed: false,
+      sourceRuntimeQueueServiceProofBridgeAccepted: sourceAccepted,
       refsAcceptedWithProvidedEvidence: controlsAccepted && refsAccepted,
-      manifestReadyWithProvidedEvidence: controlsAccepted && refsAccepted,
+      manifestReadyWithProvidedEvidence: controlsAccepted && refsAccepted && sourceAccepted,
       toolExecutionApprovedNow: false,
       workerDispatchApprovedNow: false,
       gpuRuntimeShouldStartNow: false,
     }
   })
   const readyRecords = records.filter((record) => record.manifestReadyWithProvidedEvidence)
+  const sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence =
+    records.filter((record) => record.sourceRuntimeQueueServiceProofBridgeAccepted).length
   const manifestReadyWithProvidedEvidence =
     controlsAccepted &&
-    readyRecords.length === AI_GRAPHICS_CANONICAL_TOOL_IDS.length
+    readyRecords.length === AI_GRAPHICS_CANONICAL_TOOL_IDS.length &&
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21
 
   return {
     decision: statusFromInput({
@@ -351,6 +362,7 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
     }),
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_PRIVATE_ARTIFACT_MANIFEST_DECISION,
     sourceWorkerDispatchSmokeProofAccepted: sourceAccepted,
+    sourceWorkerDispatchSmokeProofBridgeAccepted: sourceAccepted,
     missingPrivateArtifactControls: missingControls,
     privateArtifactManifestReadyWithProvidedEvidence: manifestReadyWithProvidedEvidence,
     totalAiGraphicsTools: 21,
@@ -358,6 +370,7 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
     gpuRuntimeTargetedTools: records.filter((record) => record.gpuRuntimeTargeted).length as 8,
     manifestRecordsPrepared: records.length as 21,
     manifestRecordsReadyWithProvidedEvidence: readyRecords.length,
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     acceptedPrivateRefNamespaces,
@@ -381,6 +394,7 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
     booleans: {
       externalBetaPrivateArtifactManifestPrepared: true,
       sourceWorkerDispatchSmokeProofAccepted: sourceAccepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted: sourceAccepted,
       privateArtifactManifestControlsAccepted: controlsAccepted,
       privateArtifactManifestReadyWithProvidedEvidence: manifestReadyWithProvidedEvidence,
       all21ToolsCovered: true,

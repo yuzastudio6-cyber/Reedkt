@@ -12,6 +12,7 @@ It does not execute tools, execute Tool Routes, dispatch Workers, call providers
 - Product-facing capabilities covered: `12`
 - JavaScript runtime proofs accepted with provided evidence: `13`
 - Native GPU runtime proofs accepted with provided evidence: `0`
+- Source runtime queue service proof bridge accepted in committed docs: `false`
 - GPU/model tools blocked pending native runtime proof: `8`
 - External-beta-ready now: `0`
 - Production-ready now: `0`
@@ -39,7 +40,7 @@ The gate accepts these existing proof packets when supplied with private/backend
 - `browser-runtime-proof.json` for `echarts`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, and `babylonjs`
 - `satori-font-runtime-proof.json` for `satori`
 
-Those 13 tools are runtime-proof accepted with provided evidence, but still not agent-executable because Tool Route, Worker, approved snapshot, credit, artifact, cost, rollback, QA, and external beta gates remain closed.
+Those 13 tools are runtime-proof accepted with provided evidence only when the source Tool Route runtime proof preserves the 21-tool runtime queue service proof bridge. They are still not agent-executable because Tool Route, Worker, approved snapshot, credit, artifact, cost, rollback, QA, and external beta gates remain closed.
 
 ## Blocked Runtime Proofs
 

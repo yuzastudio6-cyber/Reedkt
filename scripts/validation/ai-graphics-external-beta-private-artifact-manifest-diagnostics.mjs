@@ -229,6 +229,7 @@ for (const forbidden of ['http://', 'https://', 'signed-url://', 'public://', 'g
   if (!docs.forbiddenArtifactRefPatterns?.includes(forbidden)) fail(`docs_missing_forbidden_ref:${forbidden}`)
 }
 for (const [key, expected] of Object.entries({
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
   manifestRecordsPrepared: 21,
   manifestRecordsReadyWithProvidedEvidence: 21,
   gpuRuntimeTargetedTools: 8,
@@ -271,6 +272,9 @@ for (const key of [
 }
 for (const key of falseGateKeys) {
   if (docs.booleans?.[key] !== false) fail(`docs_required_false_not_false:${key}`)
+}
+if (docs.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== false) {
+  fail('docs_source_runtime_queue_service_proof_bridge_not_false')
 }
 
 for (const phrase of [
@@ -379,6 +383,12 @@ try {
   if (accepted.manifestRecordsReadyWithProvidedEvidence !== 21) {
     fail(`accepted_ready_records_not_21:${accepted.manifestRecordsReadyWithProvidedEvidence}`)
   }
+  if (accepted.sourceWorkerDispatchSmokeProofBridgeAccepted !== true) {
+    fail('accepted_source_worker_dispatch_smoke_proof_bridge_not_true')
+  }
+  if (accepted.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_count_not_21')
+  }
   if (accepted.gpuRuntimeTargetedTools !== 8) fail(`accepted_gpu_tools_not_8:${accepted.gpuRuntimeTargetedTools}`)
   if (accepted.records?.length !== 21) fail(`accepted_records_not_21:${accepted.records?.length}`)
   if ((accepted.records ?? []).filter((record) => record.gpuRuntimeTargeted).length !== 8) {
@@ -390,6 +400,9 @@ try {
     if (record.privateOutputArtifactRequired !== true) fail(`record_output_not_required:${record.toolId}`)
     if (record.publicArtifactAllowed !== false) fail(`record_public_allowed:${record.toolId}`)
     if (record.signedUrlAllowed !== false) fail(`record_signed_allowed:${record.toolId}`)
+    if (record.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+      fail(`record_source_runtime_queue_service_proof_bridge_not_true:${record.toolId}`)
+    }
     if (record.toolExecutionApprovedNow !== false) fail(`record_tool_execution_not_false:${record.toolId}`)
     if (record.workerDispatchApprovedNow !== false) fail(`record_worker_dispatch_not_false:${record.toolId}`)
     if (record.gpuRuntimeShouldStartNow !== false) fail(`record_gpu_start_not_false:${record.toolId}`)
@@ -405,6 +418,52 @@ try {
   }
   for (const key of falseGateKeys) {
     if (accepted.booleans?.[key] !== false) fail(`accepted_false_gate_not_false:${key}`)
+  }
+  if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_boolean_not_true')
+  }
+
+  const strippedBridgeProofPath = writeJson(
+    path.join(tmpRoot, 'stripped-bridge-worker-dispatch-smoke-proof.json'),
+    {
+      ...proof,
+      counts: {
+        ...proof.counts,
+        sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
+      },
+      evidence: {
+        ...proof.evidence,
+        sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: false,
+      },
+      booleans: {
+        ...proof.booleans,
+        sourceRuntimeQueueServiceProofBridgeAccepted: false,
+      },
+    },
+  )
+  const strippedBridge = parseJsonOutput(runNpm(manifestScriptName, [
+    '--external-beta-worker-dispatch-smoke-proof-packet',
+    strippedBridgeProofPath,
+    '--external-beta-private-artifact-policy-ref',
+    'private://ai-graphics/external-beta/artifacts/policy.json',
+    '--external-beta-artifact-manifest-schema-ref',
+    'private://ai-graphics/external-beta/artifacts/schema.json',
+    '--external-beta-storage-namespace-ref',
+    'private://ai-graphics/external-beta/private-artifacts',
+    '--external-beta-access-boundary-ref',
+    'backend-evidence://ai-graphics/external-beta/artifacts/access-boundary.json',
+    '--external-beta-encryption-policy-ref',
+    'private://ai-graphics/external-beta/artifacts/encryption.json',
+    '--external-beta-retention-policy-ref',
+    'private://ai-graphics/external-beta/artifacts/retention.json',
+    '--external-beta-artifact-telemetry-ref',
+    'external-beta-evidence://ai-graphics/artifacts/telemetry.json',
+  ]), 'stripped-bridge')
+  if (strippedBridge.decision !== 'external_beta_worker_dispatch_smoke_proof_rejected') {
+    fail(`stripped_bridge_decision:${strippedBridge.decision}`)
+  }
+  if (strippedBridge.sourceWorkerDispatchSmokeProofBridgeAccepted !== false) {
+    fail('stripped_bridge_source_worker_dispatch_smoke_proof_bridge_not_false')
   }
 
   const publicBlocked = parseJsonOutput(runNpm(manifestScriptName, [

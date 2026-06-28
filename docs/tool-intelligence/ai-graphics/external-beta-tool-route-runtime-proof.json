@@ -83,6 +83,7 @@
   ],
   "acceptanceCriteria": {
     "sourcePrivateArtifactManifestAccepted": true,
+    "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "toolRouteRecordsPrepared": 21,
     "toolRouteRecordsReadyWithProvidedEvidence": 21,
     "gpuRuntimeTargetedTools": 8,
@@ -104,6 +105,7 @@
   "booleans": {
     "externalBetaToolRouteRuntimeProofPrepared": true,
     "sourcePrivateArtifactManifestAccepted": false,
+    "sourceRuntimeQueueServiceProofBridgeAccepted": false,
     "toolRouteRuntimeProofControlsAccepted": false,
     "toolRouteRuntimeProofReadyWithProvidedEvidence": false,
     "all21ToolsCovered": true,

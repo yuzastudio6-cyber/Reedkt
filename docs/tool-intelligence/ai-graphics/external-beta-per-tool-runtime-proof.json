@@ -121,6 +121,7 @@
   ],
   "acceptanceCriteria": {
     "sourceToolRouteRuntimeProofAccepted": true,
+    "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "sourceExternalBetaNativeGpuProofCollectionAcceptedForRecheck": true,
     "runtimeProofRecordsPrepared": 21,
     "runtimeProofAcceptedWithProvidedEvidenceTools": 13,
@@ -142,6 +143,7 @@
   "booleans": {
     "externalBetaPerToolRuntimeProofPrepared": true,
     "sourceToolRouteRuntimeProofAccepted": false,
+    "sourceRuntimeQueueServiceProofBridgeAccepted": false,
     "sourceExternalBetaNativeGpuProofCollectionAccepted": false,
     "perToolRuntimeProofControlsAccepted": false,
     "all21ToolsCovered": true,

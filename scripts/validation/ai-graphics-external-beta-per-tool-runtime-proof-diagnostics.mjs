@@ -274,6 +274,7 @@ for (const [key, expected] of Object.entries({
 }
 for (const [key, expected] of Object.entries({
   sourceToolRouteRuntimeProofAccepted: true,
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
   sourceExternalBetaNativeGpuProofCollectionAcceptedForRecheck: true,
   runtimeProofRecordsPrepared: 21,
   runtimeProofAcceptedWithProvidedEvidenceTools: 13,
@@ -308,6 +309,7 @@ for (const key of [
   if (docs.booleans?.[key] !== true) fail(`docs_required_true_not_true:${key}`)
 }
 for (const key of [
+  'sourceRuntimeQueueServiceProofBridgeAccepted',
   'sourceExternalBetaNativeGpuProofCollectionAccepted',
   'all8NativeGpuRuntimeProofsAccepted',
   'nativeGpuRuntimeProofResultsAcceptedForOwnerReview',
@@ -487,6 +489,12 @@ try {
   if (accepted.runtimeProofAcceptedWithProvidedEvidenceTools !== 13) {
     fail(`accepted_runtime_proof_tools_not_13:${accepted.runtimeProofAcceptedWithProvidedEvidenceTools}`)
   }
+  if (accepted.sourceToolRouteRuntimeProofBridgeAccepted !== true) {
+    fail('accepted_source_tool_route_runtime_proof_bridge_not_true')
+  }
+  if (accepted.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_count_not_21')
+  }
   if (accepted.jsRuntimeProofAcceptedWithProvidedEvidenceTools !== 13) {
     fail(`accepted_js_tools_not_13:${accepted.jsRuntimeProofAcceptedWithProvidedEvidenceTools}`)
   }
@@ -502,6 +510,9 @@ try {
   for (const tool of jsTools) {
     const record = accepted.records?.find((entry) => entry.toolId === tool)
     if (!record) fail(`accepted_missing_js_record:${tool}`)
+    if (record?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+      fail(`accepted_js_source_runtime_queue_service_proof_bridge_not_true:${tool}`)
+    }
     if (record?.runtimeProofStatus !== 'runtime_proof_accepted_with_provided_evidence') {
       fail(`accepted_js_status:${tool}:${record?.runtimeProofStatus}`)
     }
@@ -509,6 +520,9 @@ try {
   for (const tool of gpuTools) {
     const record = accepted.records?.find((entry) => entry.toolId === tool)
     if (!record) fail(`accepted_missing_gpu_record:${tool}`)
+    if (record?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+      fail(`accepted_gpu_source_runtime_queue_service_proof_bridge_not_true:${tool}`)
+    }
     if (record?.runtimeProofStatus !== 'blocked_pending_native_gpu_runtime_proof') {
       fail(`accepted_gpu_status:${tool}:${record?.runtimeProofStatus}`)
     }
@@ -517,6 +531,9 @@ try {
     }
   }
   for (const record of accepted.records ?? []) {
+    if (record.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+      fail(`record_source_runtime_queue_service_proof_bridge_not_true:${record.toolId}`)
+    }
     if (record.routeExecutionApprovedNow !== false) fail(`record_route_execution_not_false:${record.toolId}`)
     if (record.workerDispatchApprovedNow !== false) fail(`record_worker_dispatch_not_false:${record.toolId}`)
     if (record.toolExecutionApprovedNow !== false) fail(`record_tool_execution_not_false:${record.toolId}`)
@@ -526,6 +543,9 @@ try {
   }
   for (const key of falseGateKeys) {
     if (accepted.booleans?.[key] !== false) fail(`accepted_false_gate_not_false:${key}`)
+  }
+  if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_boolean_not_true')
   }
 
   const acceptedPerToolPath = writeJson(path.join(tmpRoot, 'accepted-per-tool-runtime-proof.json'), accepted)
@@ -616,12 +636,23 @@ try {
   if (acceptedAfterNativeGpuCollection.blockedPendingNativeGpuRuntimeProofTools !== 0) {
     fail(`accepted_after_native_gpu_collection_blocked_not_0:${acceptedAfterNativeGpuCollection.blockedPendingNativeGpuRuntimeProofTools}`)
   }
+  if (acceptedAfterNativeGpuCollection.sourceToolRouteRuntimeProofBridgeAccepted !== true) {
+    fail('accepted_after_native_gpu_collection_source_tool_route_runtime_proof_bridge_not_true')
+  }
+  if (
+    acceptedAfterNativeGpuCollection.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21
+  ) {
+    fail('accepted_after_native_gpu_collection_source_runtime_queue_service_proof_bridge_count_not_21')
+  }
   if (acceptedAfterNativeGpuCollection.booleans?.sourceExternalBetaNativeGpuProofCollectionAccepted !== true) {
     fail('accepted_after_native_gpu_collection_source_collection_not_accepted')
   }
   for (const tool of gpuTools) {
     const record = acceptedAfterNativeGpuCollection.records?.find((entry) => entry.toolId === tool)
     if (!record) fail(`accepted_after_native_gpu_collection_missing_gpu_record:${tool}`)
+    if (record?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+      fail(`accepted_after_native_gpu_collection_source_runtime_queue_service_proof_bridge_not_true:${tool}`)
+    }
     if (record?.runtimeProofStatus !== 'runtime_proof_accepted_with_provided_evidence') {
       fail(`accepted_after_native_gpu_collection_gpu_status:${tool}:${record?.runtimeProofStatus}`)
     }
@@ -631,6 +662,56 @@ try {
     if (acceptedAfterNativeGpuCollection.booleans?.[key] !== false) {
       fail(`accepted_after_native_gpu_collection_false_gate_not_false:${key}`)
     }
+  }
+  if (
+    acceptedAfterNativeGpuCollection.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true
+  ) {
+    fail('accepted_after_native_gpu_collection_source_runtime_queue_service_proof_bridge_boolean_not_true')
+  }
+
+  const strippedBridgeRouteProofPath = writeJson(
+    path.join(tmpRoot, 'stripped-bridge-tool-route-runtime-proof.json'),
+    {
+      ...routeProof,
+      sourcePrivateArtifactManifestProofBridgeAccepted: false,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
+      records: routeProof.records.map((record) => ({
+        ...record,
+        sourceRuntimeQueueServiceProofBridgeAccepted: false,
+      })),
+      booleans: {
+        ...routeProof.booleans,
+        sourceRuntimeQueueServiceProofBridgeAccepted: false,
+      },
+    },
+  )
+  const strippedBridge = parseJsonOutput(runNpm(runScriptName, [
+    '--external-beta-tool-route-runtime-proof-packet',
+    strippedBridgeRouteProofPath,
+    '--node-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+    '--browser-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+    '--satori-font-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+    '--gpu-runtime-proof-result-packet',
+    'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json',
+    '--external-beta-per-tool-runtime-proof-policy-ref',
+    'private://ai-graphics/external-beta/runtime-proof/policy.json',
+    '--external-beta-per-tool-runtime-proof-schema-ref',
+    'private://ai-graphics/external-beta/runtime-proof/schema.json',
+    '--external-beta-runtime-proof-evidence-ref',
+    'backend-evidence://ai-graphics/external-beta/runtime-proof/evidence.json',
+    '--external-beta-runtime-proof-telemetry-ref',
+    'external-beta-evidence://ai-graphics/runtime-proof/telemetry.json',
+    '--external-beta-runtime-proof-rollback-ref',
+    'private://ai-graphics/external-beta/runtime-proof/rollback.json',
+  ]), 'stripped-bridge')
+  if (strippedBridge.decision !== 'external_beta_tool_route_runtime_proof_rejected') {
+    fail(`stripped_bridge_decision:${strippedBridge.decision}`)
+  }
+  if (strippedBridge.sourceToolRouteRuntimeProofBridgeAccepted !== false) {
+    fail('stripped_bridge_source_tool_route_runtime_proof_bridge_not_false')
   }
 
   const publicBlocked = parseJsonOutput(runNpm(runScriptName, [

@@ -1,0 +1,110 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_RUNTIME_VALIDATION_1",
+  "decision": "completed_qwen2_5_vl_product_route_readback_runtime_validation_fail_closed",
+  "execution": "completed_local_in_process_route_readback_runtime_validation_no_provider_or_remote_execution",
+  "integrationBase": "1eb45f3ec695d827de26ab4bec06e5bd7442235d",
+  "sourceEvidence": {
+    "backendRuntimeAdapterPr": 1321,
+    "confirmedAdapterRuntimeFixturePr": 1328,
+    "productWorkflowBindingPr": 1333,
+    "productWorkflowRouteIntegrationPr": 1339,
+    "productRouteReadbackValidationPr": 1343,
+    "productRouteHandlerSourcePr": 1354,
+    "productRouteHandlerFailClosedRuntimeValidationPr": 1358,
+    "productRouteReadbackValidationConfirmedPr": 1361,
+    "productRouteReadbackValidationConfirmedMergeSha": "1eb45f3ec695d827de26ab4bec06e5bd7442235d",
+    "excludedPr": 577
+  },
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "class": "staging",
+    "secretMetadataOnly": true
+  },
+  "route": {
+    "routeId": "providers.qwen25Vl.structuredVisualMetadataPlan",
+    "method": "POST",
+    "path": "/api/providers/qwen2-5-vl/structured-visual-metadata",
+    "localRuntimeTarget": "local_in_process_express_app",
+    "routeHandlerRegisteredNow": true,
+    "routeHandlerFailClosed": true,
+    "validatedProviderRouteBlocked": true,
+    "validatedHttpStatus": 424,
+    "idempotencyDatabaseMutationInThisPhase": false
+  },
+  "confirmationGate": {
+    "env": "REEDITPRO_CONFIRM_QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION",
+    "requiredValue": "true",
+    "confirmationPresentInRuntime": true,
+    "remoteReadbackExecuted": false
+  },
+  "runtimeValidation": {
+    "missingIdempotencyHeader": {
+      "status": 400,
+      "code": "IDEMPOTENCY_KEY_REQUIRED"
+    },
+    "confirmedReadbackGateWithGeneratedRefs": {
+      "status": 424,
+      "code": "PROVIDER_ROUTE_BLOCKED",
+      "handlerStatus": "blocked_provider_runtime_not_enabled",
+      "readbackValidationOk": true,
+      "readbackValidationStatus": "ready_for_confirmed_qwen2_5_vl_product_route_readback_validation_runtime_packet"
+    },
+    "unsafeRemoteReadbackRequestFlag": {
+      "status": 424,
+      "code": "PROVIDER_ROUTE_BLOCKED",
+      "handlerStatus": "blocked_product_route_handler_unsafe_runtime_request"
+    }
+  },
+  "allowedExecution": {
+    "localProductRouteReadbackRuntimeValidation": true,
+    "routeHandlerFailClosed": true,
+    "actualRemoteReadbackAllowedNow": false,
+    "supabaseReadbackExecutionAllowedNow": false,
+    "serviceRoleReadbackExecutionAllowedNow": false,
+    "providerModelCallAllowedNow": false,
+    "workerDispatchAllowedNow": false,
+    "mediaProcessingAllowedNow": false,
+    "signedUrlCreationAllowedNow": false,
+    "publicArtifactAllowedNow": false,
+    "finalRenderExportAllowedNow": false,
+    "externalBetaUnlockAllowedNow": false,
+    "paidProductionUnlockAllowedNow": false,
+    "productionUnlockAllowedNow": false
+  },
+  "safety": {
+    "localInProcessRouteReadbackRuntimeValidation": true,
+    "remoteRouteExecution": false,
+    "routeReadbackExecution": false,
+    "supabaseReadbackExecution": false,
+    "serviceRoleReadbackExecution": false,
+    "qwenRuntimeExecutedInThisPhase": false,
+    "providerCall": false,
+    "modelCall": false,
+    "frontendProviderModelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "privateUserMediaProcessing": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "externalBetaUnlockAppliedToEnvironment": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "creditMutation": false,
+    "packageLockMutation": false
+  },
+  "readiness": {
+    "qwenProductRouteReadbackRuntimeValidation": "completed_fail_closed_ready_for_provider_runtime_enablement_review",
+    "externalBetaUnlockedInThisPhase": false,
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_ENABLEMENT_REVIEW_1"
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

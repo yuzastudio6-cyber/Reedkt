@@ -4,6 +4,10 @@ import {
   type AiGraphicsExternalBetaRuntimeAdmission,
   type AiGraphicsExternalBetaRuntimeAdmissionInput,
 } from './ai-graphics-external-beta-runtime-admission'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_RUNTIME_ADMISSION_DECISION,
+  type AiGraphicsExternalBetaCpuStaticRuntimeAdmission,
+} from './ai-graphics-external-beta-cpu-static-runtime-admission'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_GATEWAY_DECISION =
   'ai_graphics_external_beta_tool_call_gateway_contract_prepared_with_runtime_blocks'
@@ -19,6 +23,7 @@ export type AiGraphicsExternalBetaToolCallGatewayStatus =
 export interface AiGraphicsExternalBetaToolCallGatewayInput
   extends AiGraphicsExternalBetaRuntimeAdmissionInput {
   sourceExternalBetaRuntimeAdmissionPacket?: AiGraphicsExternalBetaRuntimeAdmission
+  sourceExternalBetaCpuStaticRuntimeAdmissionPacket?: AiGraphicsExternalBetaCpuStaticRuntimeAdmission
   externalBetaUserId?: string
   externalBetaWorkspaceId?: string
   externalBetaRequestId?: string
@@ -62,12 +67,18 @@ export interface AiGraphicsExternalBetaWorkerEnqueueCandidate {
 export interface AiGraphicsExternalBetaToolCallGateway {
   decision: AiGraphicsExternalBetaToolCallGatewayStatus
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_GATEWAY_DECISION
-  sourceExternalBetaRuntimeAdmissionDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_RUNTIME_ADMISSION_DECISION
+  sourceExternalBetaRuntimeAdmissionDecision:
+    | typeof AI_GRAPHICS_EXTERNAL_BETA_RUNTIME_ADMISSION_DECISION
+    | typeof AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_RUNTIME_ADMISSION_DECISION
+  sourceRuntimeAdmissionMode: 'all_tools_external_beta' | 'cpu_static_first_cohort'
   capabilityId: string
   requestedToolId: string | null
   executionRequested: boolean
-  sourceExternalBetaRuntimeAdmission: AiGraphicsExternalBetaRuntimeAdmission
+  sourceExternalBetaRuntimeAdmission:
+    | AiGraphicsExternalBetaRuntimeAdmission
+    | AiGraphicsExternalBetaCpuStaticRuntimeAdmission
   sourceExternalBetaRuntimeAdmissionAccepted: boolean
+  sourceExternalBetaCpuStaticRuntimeAdmissionAccepted: boolean
   missingGatewayControls: string[]
   externalBetaGatewayControlsSatisfied: boolean
   externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence: boolean
@@ -158,7 +169,11 @@ function hasValue(value?: string): boolean {
   return typeof value === 'string' && value.trim().length > 0
 }
 
-function runtimeAdmissionAccepted(packet: AiGraphicsExternalBetaRuntimeAdmission): boolean {
+type AiGraphicsExternalBetaGatewayRuntimeAdmission =
+  | AiGraphicsExternalBetaRuntimeAdmission
+  | AiGraphicsExternalBetaCpuStaticRuntimeAdmission
+
+function allToolsRuntimeAdmissionAccepted(packet: AiGraphicsExternalBetaRuntimeAdmission): boolean {
   return packet.decision === 'external_beta_runtime_admission_ready_for_worker_enqueue' &&
     packet.externalBetaRuntimeAdmissionReadyWithProvidedEvidence === true &&
     packet.externalBetaWorkerEnqueueAllowedWithProvidedEvidence === true &&
@@ -167,6 +182,28 @@ function runtimeAdmissionAccepted(packet: AiGraphicsExternalBetaRuntimeAdmission
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.workerQueueApprovedNow === false &&
     packet.booleans.gpuRuntimeShouldStartNow === false
+}
+
+function cpuStaticRuntimeAdmissionAccepted(
+  packet: AiGraphicsExternalBetaCpuStaticRuntimeAdmission,
+): boolean {
+  return packet.decision === 'external_beta_cpu_static_runtime_admission_ready_for_worker_enqueue' &&
+    packet.cpuStaticRuntimeAdmissionReadyWithProvidedEvidence === true &&
+    packet.externalBetaWorkerEnqueueAllowedWithProvidedEvidence === true &&
+    packet.selectedToolInCpuStaticCohort === true &&
+    packet.selectedToolBlockedPendingNativeGpuProof === false &&
+    packet.externalBetaCallableNowTools === 0 &&
+    packet.externalBetaReadyNowTools === 0 &&
+    packet.productionReadyNowTools === 0 &&
+    packet.booleans.agentCanExecuteToolsNow === false &&
+    packet.booleans.workerQueueApprovedNow === false &&
+    packet.booleans.gpuRuntimeShouldStartNow === false
+}
+
+function runtimeAdmissionAccepted(packet: AiGraphicsExternalBetaGatewayRuntimeAdmission): boolean {
+  return packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_RUNTIME_ADMISSION_DECISION
+    ? cpuStaticRuntimeAdmissionAccepted(packet as AiGraphicsExternalBetaCpuStaticRuntimeAdmission)
+    : allToolsRuntimeAdmissionAccepted(packet as AiGraphicsExternalBetaRuntimeAdmission)
 }
 
 function missingGatewayControls(input: AiGraphicsExternalBetaToolCallGatewayInput): string[] {
@@ -203,7 +240,7 @@ function missingGatewayControls(input: AiGraphicsExternalBetaToolCallGatewayInpu
 }
 
 function decisionFromInput(input: {
-  runtimeAdmission: AiGraphicsExternalBetaRuntimeAdmission
+  runtimeAdmission: AiGraphicsExternalBetaGatewayRuntimeAdmission
   runtimeAccepted: boolean
   executionRequested: boolean
   gatewayReady: boolean
@@ -257,8 +294,13 @@ export function evaluateAiGraphicsExternalBetaToolCallGateway(
   input: AiGraphicsExternalBetaToolCallGatewayInput,
 ): AiGraphicsExternalBetaToolCallGateway {
   const runtimeAdmission =
+    input.sourceExternalBetaCpuStaticRuntimeAdmissionPacket ??
     input.sourceExternalBetaRuntimeAdmissionPacket ??
     evaluateAiGraphicsExternalBetaRuntimeAdmission(input)
+  const sourceRuntimeAdmissionMode =
+    runtimeAdmission.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_RUNTIME_ADMISSION_DECISION
+      ? 'cpu_static_first_cohort'
+      : 'all_tools_external_beta'
   const executionRequested =
     input.executionRequested === true || runtimeAdmission.executionRequested === true
   const runtimeAccepted = runtimeAdmissionAccepted(runtimeAdmission)
@@ -280,12 +322,15 @@ export function evaluateAiGraphicsExternalBetaToolCallGateway(
     }),
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_GATEWAY_DECISION,
     sourceExternalBetaRuntimeAdmissionDecision:
-      AI_GRAPHICS_EXTERNAL_BETA_RUNTIME_ADMISSION_DECISION,
+      runtimeAdmission.sourceDecision,
+    sourceRuntimeAdmissionMode,
     capabilityId: runtimeAdmission.capabilityId,
     requestedToolId: runtimeAdmission.requestedToolId,
     executionRequested,
     sourceExternalBetaRuntimeAdmission: runtimeAdmission,
     sourceExternalBetaRuntimeAdmissionAccepted: runtimeAccepted,
+    sourceExternalBetaCpuStaticRuntimeAdmissionAccepted:
+      sourceRuntimeAdmissionMode === 'cpu_static_first_cohort' && runtimeAccepted,
     missingGatewayControls: missingGateway,
     externalBetaGatewayControlsSatisfied: gatewayReady,
     externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence: gatewayReady,

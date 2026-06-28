@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_external_beta_tool_call_gateway_contract_prepared_with_runtime_blocks`
 
-This contract is the external-beta request gateway for AI graphics tool calls. It consumes the external-beta runtime admission packet, then adds request-level controls for a real beta user: workspace, request id, feature flag evaluation, rollout assignment, rate limit, cost ceiling, audit event, trace id, idempotency key, and worker enqueue candidate reference.
+This contract is the external-beta request gateway for AI graphics tool calls. It consumes either the all-tools external-beta runtime admission packet or the CPU/static first-cohort runtime admission packet, then adds request-level controls for a real beta user: workspace, request id, feature flag evaluation, rollout assignment, rate limit, cost ceiling, audit event, trace id, idempotency key, and worker enqueue candidate reference.
 
 ## Current Result
 
@@ -10,6 +10,7 @@ This contract is the external-beta request gateway for AI graphics tool calls. I
 - Product-facing capabilities covered: `12`
 - GPU runtime targeted tools: `8`
 - Full gateway worker enqueue candidate examples ready with provided evidence: `2`
+- CPU/static first-cohort gateway worker enqueue candidate examples ready with provided evidence: `1`
 - GPU runtime start allowed for accepted external-beta job examples: `1`
 - Worker enqueue performed now: `0`
 - GPU runtime should start now: `0`
@@ -20,10 +21,12 @@ This contract is the external-beta request gateway for AI graphics tool calls. I
 
 An external-beta tool-call request can become a worker enqueue candidate with provided evidence only when:
 
-1. The source external-beta runtime admission packet is accepted.
+1. The source external-beta runtime admission packet is accepted, or the source CPU/static first-cohort runtime admission packet is accepted.
 2. The request has an external beta user id, workspace id, request id, idempotency key, and trace id.
 3. Feature flag evaluation, rollout assignment, rate limit, cost ceiling, and audit event refs are present.
 4. A worker enqueue candidate ref is prepared.
+
+The CPU/static first-cohort path prepares a gateway candidate for tools such as `d3` from the 13-tool JavaScript/static cohort. It does not admit `sam2` or the other GPU/model tools; those stay blocked pending native GPU proof.
 
 ## GPU Boundary
 

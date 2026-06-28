@@ -1262,6 +1262,14 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - GPU policy: this first cohort never starts GPU runtime. GPU remains on-demand only and blocked for the 8 GPU/model tools until native linux/amd64 NVIDIA L4 proof and private model manifests pass.
 - Runtime/beta/production: no unlock; `externalBetaWorkerEnqueueAllowedWithProvidedEvidence` may be true for a fully referenced CPU/static example, but `externalBetaCallableNowTools=0`, `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics External-Beta CPU/Static Gateway Bridge
+
+- Decision source: `ai_graphics_external_beta_tool_call_gateway_contract_prepared_with_runtime_blocks`.
+- Scope: extends the external-beta Tool Call Gateway so it can consume the CPU/static first-cohort runtime-admission packet directly.
+- Result: the gateway now prepares a `d3` worker-enqueue candidate from `sourceRuntimeAdmissionMode=cpu_static_first_cohort` when request-level controls are provided. `sam2` and the other GPU/model tools remain outside this first cohort until native GPU proof is accepted.
+- GPU policy: no GPU startup is allowed by the CPU/static gateway bridge; `gpuRuntimeShouldStartNow=false`.
+- Runtime/beta/production: no unlock; `workerEnqueuePerformed=false`, `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics External-Beta Native GPU Proof Collection
 
 - Decision: `ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks`.

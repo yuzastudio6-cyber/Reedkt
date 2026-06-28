@@ -5,6 +5,9 @@ import {
 } from '../tool-registry/ai-graphics-external-beta-tool-call-gateway'
 import type { AiGraphicsExternalBetaLaunchGoNoGo } from '../tool-registry/ai-graphics-external-beta-launch-go-no-go'
 import type { AiGraphicsExternalBetaRuntimeAdmission } from '../tool-registry/ai-graphics-external-beta-runtime-admission'
+import type {
+  AiGraphicsExternalBetaCpuStaticRuntimeAdmission,
+} from '../tool-registry/ai-graphics-external-beta-cpu-static-runtime-admission'
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -23,6 +26,10 @@ function readJsonFile<T>(flag: string): T | undefined {
 }
 
 const input: AiGraphicsExternalBetaToolCallGatewayInput = {
+  sourceExternalBetaCpuStaticRuntimeAdmissionPacket:
+    readJsonFile<AiGraphicsExternalBetaCpuStaticRuntimeAdmission>(
+      '--external-beta-cpu-static-runtime-admission-packet',
+    ),
   sourceExternalBetaRuntimeAdmissionPacket:
     readJsonFile<AiGraphicsExternalBetaRuntimeAdmission>('--external-beta-runtime-admission-packet'),
   sourceExternalBetaLaunchGoNoGoPacket:
@@ -77,6 +84,8 @@ console.log(JSON.stringify({
     evaluatorOnly: true,
     sourceRuntimeAdmissionPacketRead:
       Boolean(stringFlag('--external-beta-runtime-admission-packet')),
+    sourceCpuStaticRuntimeAdmissionPacketRead:
+      Boolean(stringFlag('--external-beta-cpu-static-runtime-admission-packet')),
     sourceLaunchGoNoGoPacketRead:
       Boolean(stringFlag('--external-beta-launch-go-no-go-packet')),
     dependencyInstallPerformed: false,

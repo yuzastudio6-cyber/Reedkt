@@ -5,6 +5,8 @@
   "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
   "sourceEvidence": {
     "externalBetaRuntimeAdmission": "docs/tool-intelligence/ai-graphics/external-beta-runtime-admission.json",
+    "externalBetaCpuStaticRuntimeAdmission": "docs/tool-intelligence/ai-graphics/external-beta-cpu-static-runtime-admission.json",
+    "externalBetaCpuStaticCohortAdmission": "docs/tool-intelligence/ai-graphics/external-beta-cpu-static-cohort-admission.json",
     "externalBetaLaunchGoNoGo": "docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json",
     "externalBetaReadinessGate": "docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json",
     "onDemandRuntimeAdmission": "docs/tool-intelligence/ai-graphics/on-demand-runtime-admission.json"
@@ -23,6 +25,7 @@
     "gpuRuntimeTargetedTools": 8,
     "defaultGatewayReadyExamples": 0,
     "fullGatewayWorkerEnqueueCandidateReadyExamples": 2,
+    "cpuStaticGatewayWorkerEnqueueCandidateReadyExamples": 1,
     "gpuRuntimeStartAllowedForAcceptedExternalBetaJobExamples": 1,
     "gpuRuntimeShouldStartNow": 0,
     "workerEnqueuePerformedNow": 0,
@@ -43,6 +46,8 @@
     "external beta idempotency key",
     "external beta worker enqueue candidate reference",
     "accepted external-beta runtime admission packet"
+    ,
+    "accepted external-beta CPU/static runtime admission packet for the first cohort"
   ],
   "gatewayPolicy": {
     "sideEffectFreeGatewayCheck": true,
@@ -125,6 +130,16 @@
     },
     {
       "id": "accepted_future_d3_gateway_worker_enqueue_candidate",
+      "sourceRuntimeAdmissionMode": "all_tools_external_beta",
+      "decision": "external_beta_worker_enqueue_candidate_ready",
+      "externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence": true,
+      "workerEnqueuePerformed": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
+      "gpuRuntimeShouldStartNow": false
+    },
+    {
+      "id": "accepted_future_d3_cpu_static_gateway_worker_enqueue_candidate",
+      "sourceRuntimeAdmissionMode": "cpu_static_first_cohort",
       "decision": "external_beta_worker_enqueue_candidate_ready",
       "externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence": true,
       "workerEnqueuePerformed": false,
@@ -135,6 +150,7 @@
   "booleans": {
     "externalBetaToolCallGatewayPrepared": true,
     "sourceExternalBetaRuntimeAdmissionAccepted": true,
+    "sourceExternalBetaCpuStaticRuntimeAdmissionAccepted": true,
     "externalBetaGatewayControlsSatisfied": true,
     "externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence": true,
     "all21ToolsCovered": true,

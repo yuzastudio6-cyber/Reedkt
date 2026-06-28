@@ -9,6 +9,8 @@ const NEXT_PROMPT =
   'WORKER_RUNTIME_JOBS-SOUND-CPU-BOUNDED-EXTERNAL-BETA-STATE-CHANGE-EXECUTION-AFTER-PLAN: execute bounded external beta scorecard state change, no runtime/no production'
 const SCOPE_FIX_DECISION =
   'worker_runtime_jobs_sound_cpu_bounded_external_beta_state_change_scope_fix_completed_with_warnings_ready_for_bounded_external_beta_state_change_execution'
+const CONSUMER_SCOPE_DECISION =
+  'worker_runtime_jobs_sound_cpu_bounded_external_beta_consumer_scope_fix_completed_with_warnings_ready_for_bounded_external_beta_state_change_execution'
 
 const FILES = {
   plan: {
@@ -210,8 +212,8 @@ assertSupabaseNoop(claim.supabaseClassification, 'claim')
 
 const prompt = read(PROMPT)
 assert(
-  prompt.includes(DECISION) || prompt.includes(SCOPE_FIX_DECISION),
-  'future execution prompt missing state-change or scope-fix source decision'
+  prompt.includes(DECISION) || prompt.includes(SCOPE_FIX_DECISION) || prompt.includes(CONSUMER_SCOPE_DECISION),
+  'future execution prompt missing state-change, scope-fix, or consumer-scope source decision'
 )
 assert(prompt.includes('no runtime/no production'), 'future execution prompt missing no runtime/no production scope')
 for (const file of FUTURE_FILES) {

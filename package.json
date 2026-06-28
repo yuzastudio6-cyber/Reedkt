@@ -98,6 +98,8 @@
     "ai-graphics:external-beta-tool-route-runtime-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs",
     "ai-graphics:external-beta-per-tool-runtime-proof": "tsx server/cli/ai-graphics-external-beta-per-tool-runtime-proof.ts",
     "ai-graphics:external-beta-per-tool-runtime-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-per-tool-runtime-proof-diagnostics.mjs",
+    "ai-graphics:external-beta-cpu-static-cohort-admission": "tsx server/cli/ai-graphics-external-beta-cpu-static-cohort-admission.ts",
+    "ai-graphics:external-beta-cpu-static-cohort-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-cpu-static-cohort-admission-diagnostics.mjs",
     "ai-graphics:external-beta-native-gpu-proof-collection": "tsx server/cli/ai-graphics-external-beta-native-gpu-proof-collection.ts",
     "ai-graphics:external-beta-native-gpu-proof-collection:diagnostics": "node scripts/validation/ai-graphics-external-beta-native-gpu-proof-collection-diagnostics.mjs",
     "ai-graphics:external-beta-native-gpu-proof-operator-handoff": "tsx server/cli/ai-graphics-external-beta-native-gpu-proof-operator-handoff.ts",

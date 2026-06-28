@@ -1246,6 +1246,14 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - GPU policy: GPU remains on-demand only. No idle GPU runtime is approved, and the blocked GPU/model tools cannot CPU-fallback into external beta.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics External-Beta CPU/Static Cohort Admission
+
+- Decision: `ai_graphics_external_beta_cpu_static_cohort_admission_prepared_with_gpu_blocks`.
+- Scope: first-cohort admission bridge after per-tool runtime proof, focused on the external-beta path rather than owner-lane ceremony.
+- Result: the evaluator accepts the provided 13-tool JavaScript/static runtime proof split as a candidate cohort for external-beta admission. The 8 GPU/model tools remain blocked pending native linux/amd64 NVIDIA L4 runtime proof and private model/cache manifests.
+- GPU policy: GPU remains on-demand only. No idle GPU runtime is approved, and GPU may start only for a later accepted worker/tool call after native proof and runtime gates pass.
+- Runtime/beta/production: no unlock; `externalBetaCallableNowTools=0`, `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics External-Beta Native GPU Proof Collection
 
 - Decision: `ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks`.

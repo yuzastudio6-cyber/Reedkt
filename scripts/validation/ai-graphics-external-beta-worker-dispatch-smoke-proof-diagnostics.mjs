@@ -516,6 +516,8 @@ const allowedPackageAdditions = new Set([
   `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
   '+    "ai-graphics:external-beta-evidence-admission-bundle": "tsx server/cli/ai-graphics-external-beta-evidence-admission-bundle.ts",',
   '+    "ai-graphics:external-beta-evidence-admission-bundle:diagnostics": "node scripts/validation/ai-graphics-external-beta-evidence-admission-bundle-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-end-to-end-readiness": "tsx server/cli/ai-graphics-external-beta-end-to-end-readiness.ts",',
+  '+    "ai-graphics:external-beta-end-to-end-readiness:diagnostics": "node scripts/validation/ai-graphics-external-beta-end-to-end-readiness-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

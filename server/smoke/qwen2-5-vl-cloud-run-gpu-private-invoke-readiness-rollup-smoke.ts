@@ -37,6 +37,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PLAN } from '../..
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_CREATE } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-config-create'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_VERIFY } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-config-verify'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PORT_FIX } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-port-fix'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -45,9 +46,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_validation_blocked_port_fix_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_port_fix_recorded_validation_retry_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58U-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-PORT-FIX: adjust Qwen local Supabase harness ports and retry validation, no deploy/no cloud/no assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58V-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY: retry Qwen persistence draft validation with non-conflicting local Supabase harness ports, no deploy/no cloud/no assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -277,6 +278,11 @@ assert.equal(
   'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result-smoke.ts',
   'local harness validation result package script mismatch',
 )
+assert.equal(
+  packageJson.scripts?.['smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-port-fix'],
+  'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-port-fix-smoke.ts',
+  'local harness port fix package script mismatch',
+)
 
 const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md')
 for (const phrase of [
@@ -317,14 +323,23 @@ for (const phrase of [
   'backend runtime persistence local harness config: ready, config created',
   'backend runtime persistence local harness config verification: ready, verification passed',
   'backend runtime persistence local harness validation: ready, blocked port-conflict result recorded',
-  'backend runtime persistence local harness port fix: blocked, port fix required',
+  'backend runtime persistence local harness port fix: ready, non-conflicting ports configured',
+  'backend runtime persistence local harness validation retry: blocked, validation retry required',
   'port `54322` is already allocated',
+  '`55430`',
+  '`55431`',
+  '`55432`',
+  '`55433`',
+  '`55434`',
   '`backendRuntimePersistenceLocalHarnessValidationResultRecorded=true`',
   '`backendRuntimePersistenceLocalHarnessValidationAttempted=true`',
   '`backendRuntimePersistenceLocalHarnessValidationRequired=false`',
   '`backendRuntimePersistenceLocalHarnessStartAttempted=true`',
   '`backendRuntimePersistenceLocalHarnessPortConflictDetected=true`',
-  '`backendRuntimePersistenceLocalHarnessPortFixRequired=true`',
+  '`backendRuntimePersistenceLocalHarnessPortFixRequired=false`',
+  '`backendRuntimePersistenceLocalHarnessPortFixRecorded=true`',
+  '`backendRuntimePersistenceLocalHarnessNonConflictingPortsConfigured=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetryRequired=true`',
   '`privateInvokeReady=false`',
   '`betaReady=false`',
   '`productionReady=false`',
@@ -385,7 +400,10 @@ for (const phrase of [
   '`backendRuntimePersistenceLocalHarnessStartAttempted=true`',
   '`backendRuntimePersistenceLocalHarnessStarted=false`',
   '`backendRuntimePersistenceLocalHarnessPortConflictDetected=true`',
-  '`backendRuntimePersistenceLocalHarnessPortFixRequired=true`',
+  '`backendRuntimePersistenceLocalHarnessPortFixRequired=false`',
+  '`backendRuntimePersistenceLocalHarnessPortFixRecorded=true`',
+  '`backendRuntimePersistenceLocalHarnessNonConflictingPortsConfigured=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetryRequired=true`',
   '`qwenLocalContainersLeftBehind=false`',
   '`configTomlCreated=true`',
   '`configTomlExistsAfter=true`',
@@ -574,7 +592,7 @@ assert.equal(status.mayRunInference, false)
 assert.equal(status.mayDispatchWorker, false)
 
 const ui = getQwenVlPlannerRoutingUiData()
-assert.equal(ui.privateInvokeClient.currentStatus, 'backend_runtime_persistence_local_harness_port_fix_required')
+assert.equal(ui.privateInvokeClient.currentStatus, 'backend_runtime_persistence_local_harness_validation_retry_required')
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
 assert.equal(ui.summary.dryRunPassedClaimed, false)
@@ -626,8 +644,9 @@ assert.deepEqual(gateIds, [
   'backend_runtime_persistence_local_harness_config_verify',
   'backend_runtime_persistence_local_harness_validation',
   'backend_runtime_persistence_local_harness_port_fix',
+  'backend_runtime_persistence_local_harness_validation_retry',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 31)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 32)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -706,6 +725,10 @@ assert.equal(
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_local_harness_port_fix_required').length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_local_harness_validation_retry_required').length,
   1,
 )
 assert.equal(
@@ -856,7 +879,10 @@ assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidation
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessStartAttempted, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessStarted, false)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessPortConflictDetected, true)
-assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessPortFixRequired, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessPortFixRequired, false)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessPortFixRecorded, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessNonConflictingPortsConfigured, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetryRequired, true)
 assert.equal(rollup.runtimeFlags.existingLocalSupabaseProjectDetected, true)
 assert.equal(rollup.runtimeFlags.qwenLocalContainersLeftBehind, false)
 assert.equal(rollup.runtimeFlags.configTomlCreated, true)
@@ -895,6 +921,8 @@ for (const file of [
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-validation-result.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-config-create-report.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-config-verify-report.md',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-result.md',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-port-fix.md',
   'database/migration-drafts/024_qwen2_5_vl_backend_runtime_persistence.draft.sql',
   'database/test-sql/022_qwen2_5_vl_backend_runtime_persistence_tests.sql',
   'supabase/config.toml',
@@ -917,6 +945,8 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-plan.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-config-create.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-config-verify.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-port-fix.ts',
 ]) {
   assertNoForbiddenText(file)
 }
@@ -946,6 +976,7 @@ const forbiddenDataFindings = scanValues({
   backendRuntimePersistenceLocalHarnessConfigCreate: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_CREATE,
   backendRuntimePersistenceLocalHarnessConfigVerify: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_VERIFY,
   backendRuntimePersistenceLocalHarnessValidationResult: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT,
+  backendRuntimePersistenceLocalHarnessPortFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PORT_FIX,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

@@ -2,14 +2,14 @@ project_id = "reeditpro_qwen_local_harness"
 
 [api]
 enabled = true
-port = 54321
+port = 55431
 schemas = ["public", "storage"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [db]
-port = 54322
-shadow_port = 54320
+port = 55432
+shadow_port = 55430
 major_version = 17
 
 [db.pooler]
@@ -20,12 +20,12 @@ enabled = false
 
 [studio]
 enabled = false
-port = 54323
-api_url = "http://127.0.0.1:54321"
+port = 55433
+api_url = "http://127.0.0.1:55431"
 
 [inbucket]
 enabled = false
-port = 54324
+port = 55434
 
 [storage]
 enabled = true

@@ -58,6 +58,11 @@ const manifestBackedNodePackages = new Map<ProductionToolId, [string, string]>([
   ['sharp', ['sharp', '0.35.2']],
   ['remotion', ['remotion', '4.0.484']],
 ])
+const sourceInstallReviewedToolIds = new Set<ProductionToolId>([
+  'duckdb',
+  'polars',
+  'opentimelineio',
+])
 
 function dryRunStatusForSpec(specStatus: ProductionReadinessStatus): ProductionReadinessStatus {
   if (specStatus === 'passed' || specStatus === 'warning') return 'not_checked'
@@ -128,6 +133,7 @@ function dryRunStatusForTool(
     manifestBackedToolIds.has(specToolId) &&
     (baseStatus === 'missing' || baseStatus === 'not_installed')
   ) {
+    if (sourceInstallReviewedToolIds.has(specToolId)) return 'pending_manual_review'
     return 'source_install_review_required'
   }
   return baseStatus
@@ -140,7 +146,9 @@ function buildDryRunWarnings(specToolId: ProductionToolId, manifestBackedToolIds
   ]
 
   if (manifestBackedToolIds.has(specToolId)) {
-    warnings.push('Persistent launch-core manifest source exists; static readiness records source_install_review_required until runtime/install policy closes.')
+    warnings.push(sourceInstallReviewedToolIds.has(specToolId)
+      ? 'Persistent launch-core manifest source passed source-install review; static readiness records pending_manual_review until runtime policy closes.'
+      : 'Persistent launch-core manifest source exists; static readiness records source_install_review_required until runtime/install policy closes.')
   }
 
   if (profile?.modelWeightsRequired) {

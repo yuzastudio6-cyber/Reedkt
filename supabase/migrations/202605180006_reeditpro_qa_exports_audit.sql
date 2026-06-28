@@ -20,7 +20,9 @@ create table if not exists public.qa_check_results (
   qa_report_id uuid not null references public.qa_reports(id) on delete cascade,
   category text,
   label text,
-  check text,
+  -- check is a reserved SQL keyword in PostgreSQL; keep the intended
+  -- legacy column name quoted so older baseline validation can parse.
+  "check" text,
   status text,
   severity text,
   fallback_actions_json jsonb not null default '[]'::jsonb,

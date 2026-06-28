@@ -42,6 +42,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATION_REQUESTS_APP
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_8_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-8-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATED_ASSET_VERSIONS_VERSION_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-generated-asset-versions-version-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_9_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-9-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_CHECK_RESULTS_CHECK_COLUMN_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-qa-check-results-check-column-fix'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -90,6 +91,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_generated_asset_versions_version_baseline_fix_required'
   | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_generated_asset_versions_version_fix_required'
   | 'blocked_backend_runtime_persistence_qa_check_results_check_reserved_column_baseline_fix_required'
+  | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_qa_check_results_check_column_fix_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -106,7 +108,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_retry_9_recorded_qa_check_results_fix_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_qa_check_results_fix_recorded_retry_10_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -195,6 +197,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATED_ASSET_VERSIONS_VERSION_FIX.decision,
   upstreamBackendRuntimePersistenceLocalHarnessValidationRetry9ResultDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_9_RESULT.decision,
+  upstreamBackendRuntimePersistenceBaselineQaCheckResultsCheckColumnFixDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_CHECK_RESULTS_CHECK_COLUMN_FIX.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -775,13 +779,25 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_qa_check_results_check_reserved_column_baseline_fix',
       label: 'Backend runtime persistence QA check results reserved column baseline fix',
-      status: 'blocked_backend_runtime_persistence_qa_check_results_check_reserved_column_baseline_fix_required',
+      status: 'ready',
       evidence: [
-        'Backend runtime persistence local harness validation retry 9 isolated the next active baseline blocker.',
-        'The active baseline now advances past idx_generated_asset_versions_asset_version and stops at qa_check_results.check in 202605180006_reeditpro_qa_exports_audit.sql.',
+        'Backend runtime persistence QA check results reserved column baseline fix is recorded.',
+        'The active ReEditPro QA exports/audit migration now preserves qa_check_results.check as a quoted identifier so PostgreSQL can parse the table definition.',
+        'The fix intentionally does not rename the column, create replacement QA tables, create QA rows, or invent generated assets, jobs, worker rows, provider outputs, credit records, or Qwen runtime records.',
+        'The fix does not create a new migration, deploy a migration, run SQL, apply the Qwen draft, or run Qwen local SQL tests.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_local_harness_validation_retry_after_qa_check_results_check_column_fix',
+      label: 'Backend runtime persistence local harness validation retry after QA check results check column fix',
+      status: 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_qa_check_results_check_column_fix_required',
+      evidence: [
+        'Backend runtime persistence QA check results reserved column baseline fix is recorded.',
+        'The active baseline now quotes qa_check_results.check in 202605180006_reeditpro_qa_exports_audit.sql.',
       ],
       missingEvidence: [
-        'Fix the active QA exports/audit migration so qa_check_results no longer declares an unquoted reserved check column.',
+        'Run the next approved local harness retry to determine whether the active baseline reaches Qwen draft SQL.',
         'Do not touch Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, beta, or production.',
       ],
     },
@@ -1040,7 +1056,12 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceLocalHarnessValidationRetry9Attempted: true,
     backendRuntimePersistenceLocalHarnessValidationRetry9Passed: false,
     backendRuntimePersistenceGeneratedAssetVersionsVersionBaselineFixVerified: true,
-    backendRuntimePersistenceQaCheckResultsCheckReservedColumnFixRequired: true,
+    backendRuntimePersistenceQaCheckResultsCheckReservedColumnFixRequired: false,
+    backendRuntimePersistenceBaselineQaCheckResultsCheckColumnFixRecorded: true,
+    activeBaselineQaExportsAuditMigrationEdited: true,
+    qaCheckResultsCheckColumnQuoted: true,
+    qaCheckResultsCheckColumnRenameSkipped: true,
+    backendRuntimePersistenceLocalHarnessValidationRetryAfterQaCheckResultsCheckColumnFixRequired: true,
     qwenDraftSqlApplied: false,
     qwenLocalSqlTestsExecuted: false,
     existingLocalSupabaseProjectDetected: true,
@@ -1071,11 +1092,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_qa_check_results_check_reserved_column_baseline_fix_required',
+    'backend_runtime_persistence_local_harness_validation_retry_after_qa_check_results_check_column_fix_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58AM-BACKEND-RUNTIME-PERSISTENCE-BASELINE-QA-CHECK-RESULTS-CHECK-COLUMN-FIX: fix ReEditPro local baseline qa_check_results check column for Qwen harness validation, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58AN-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-10: retry Qwen local harness validation after qa_check_results check column fix, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

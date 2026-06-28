@@ -102,6 +102,9 @@ create table if not exists public.approved_plan_snapshots (
 -- tables already exist without approved snapshot reference columns. These
 -- guards intentionally add nullable references only and do not backfill or
 -- invent approved snapshot rows.
+alter table if exists public.credit_estimates
+  add column if not exists edit_plan_version_id uuid;
+
 alter table if exists public.credit_reservations
   add column if not exists approved_plan_snapshot_id uuid;
 
@@ -116,12 +119,19 @@ comment on table public.approval_records is 'Approval links the exact plan versi
 comment on table public.credit_reservations is 'Future credit reservation planning table. Real reservation logic remains backend/service controlled.';
 comment on table public.credit_ledger_entries is 'Append-only future credit ledger. Normal users must not update or delete ledger entries.';
 comment on column public.approved_plan_snapshots.snapshot_json is 'Frozen approved EditPlan JSONB, including tier constraints, provider routes, fallback rules, QA, and tool notes.';
+comment on column public.credit_estimates.edit_plan_version_id is 'Compatibility reference to immutable edit plan versions. Added nullable for older local baselines before project-plan indexes; no backfill is invented here.';
 comment on column public.credit_reservations.approved_plan_snapshot_id is 'Compatibility reference to immutable approved plan snapshots. Added nullable for older local baselines; no backfill is invented here.';
 comment on column public.credit_ledger_entries.approved_plan_snapshot_id is 'Compatibility reference to immutable approved plan snapshots. Added nullable for older local baselines; no backfill is invented here.';
 comment on column public.approval_records.approved_snapshot_id is 'Compatibility reference to immutable approved plan snapshots. Added nullable for older local baselines; no backfill is invented here.';
 
 do $$
 begin
+  if not exists (select 1 from pg_constraint where conname = 'credit_estimates_edit_plan_version_id_fkey') then
+    alter table public.credit_estimates
+      add constraint credit_estimates_edit_plan_version_id_fkey
+      foreign key (edit_plan_version_id) references public.edit_plan_versions(id) on delete cascade;
+  end if;
+
   if not exists (select 1 from pg_constraint where conname = 'credit_reservations_approved_plan_snapshot_id_fkey') then
     alter table public.credit_reservations
       add constraint credit_reservations_approved_plan_snapshot_id_fkey

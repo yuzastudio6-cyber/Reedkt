@@ -13,8 +13,9 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 FROM base AS build
+ENV NODE_ENV=development
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 COPY . .
 RUN npm run build:server
 

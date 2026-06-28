@@ -2,7 +2,9 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
 const workflowPath = '.github/workflows/beta-readiness-api-staging-deploy.yml'
+const apiDockerfilePath = 'docker/prod/api/Dockerfile'
 const workflow = readFileSync(workflowPath, 'utf8')
+const apiDockerfile = readFileSync(apiDockerfilePath, 'utf8')
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const report = JSON.parse(readFileSync('docs/beta-readiness/api-staging-deploy-workflow/2026-06-28-api-staging-deploy-workflow.json', 'utf8')) as {
   decision: string
@@ -75,6 +77,13 @@ assert.equal(workflow.includes(' --allow-unauthenticated'), false, 'workflow mus
 assert.equal(workflow.includes('${{ secrets.'), false, 'workflow should not interpolate GitHub secret values into shell commands')
 assert.equal(workflow.includes('npm run beta:readiness:external-beta-evidence-collector'), false, 'workflow must not run evidence collection')
 assert.equal(workflow.includes('npm run beta:readiness:paid-production-evidence-collector'), false, 'workflow must not run paid production evidence collection')
+
+assert.ok(apiDockerfile.includes('FROM base AS build'), 'API Dockerfile must keep a dedicated build stage')
+assert.ok(apiDockerfile.includes('ENV NODE_ENV=development'), 'API Dockerfile build stage must allow dev build tools')
+assert.ok(apiDockerfile.includes('RUN npm ci --include=dev'), 'API Dockerfile build stage must install TypeScript/Vite dev tools')
+assert.ok(apiDockerfile.includes('FROM base AS runtime'), 'API Dockerfile must keep a dedicated runtime stage')
+assert.ok(apiDockerfile.includes('COPY --from=deps /app/node_modules ./node_modules'), 'API runtime stage must still copy production deps from deps stage')
+assert.equal(apiDockerfile.includes('RUN npm ci --omit=dev'), true, 'API deps stage must still install production dependencies only')
 
 console.log(JSON.stringify({
   ok: true,

@@ -1,0 +1,97 @@
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_8_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-8-result'
+
+export const QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATED_ASSET_VERSIONS_VERSION_FIX = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_backend_runtime_persistence_baseline_generated_asset_versions_version_fix_only',
+  decision:
+    'qwen2_5_vl_backend_runtime_persistence_baseline_generated_asset_versions_version_fix_recorded',
+  upstreamBackendRuntimePersistenceLocalHarnessValidationRetry8ResultDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_8_RESULT.decision,
+  repairedMigration: {
+    path: 'supabase/migrations/202605180005_reeditpro_generation_assets_jobs.sql',
+    failedStatementCategory: 'idx_generated_asset_versions_asset_version',
+    previousFailure:
+      'column_version_does_not_exist_on_public_generated_asset_versions_sqlstate_42703',
+    repair: 'add_idempotent_generated_asset_versions_version_compatibility_column',
+    compatibilityColumns: [
+      'public.generated_asset_versions.version',
+    ],
+    olderBaselineTables: [
+      'public.generated_asset_versions',
+    ],
+    olderBaselineColumnsObserved: [
+      'public.generated_asset_versions.version_number',
+    ],
+    compatibilityBackfills: [],
+    backfillPolicy:
+      'no_backfill_because_migration_must_not_invent_generated_asset_versions_storage_jobs_workers_provider_outputs_credit_records_or_qwen_runtime_records',
+    constraintsUnblocked: [],
+    indexesUnblocked: [
+      'idx_generated_asset_versions_asset_version',
+    ],
+  },
+  runtimeFlags: {
+    baselineGeneratedAssetVersionsVersionFixRecorded: true,
+    activeBaselineGenerationAssetsJobsMigrationEdited: true,
+    generatedAssetVersionsVersionColumnGuarded: true,
+    generatedAssetVersionsVersionBackfillSkipped: true,
+    generatedAssetVersionsAssetVersionIndexUnblocked: true,
+    newActiveMigrationCreated: false,
+    qwenActiveMigrationCreated: false,
+    supabaseCliExecuted: false,
+    dockerStarted: false,
+    sqlExecuted: false,
+    migrationDeployed: false,
+    qwenDraftSqlApplied: false,
+    qwenLocalSqlTestsExecuted: false,
+    localHarnessStarted: false,
+    localHarnessValidationAttemptedAfterFix: false,
+    localHarnessValidationPassedAfterFix: false,
+    readyForRealWorkerDispatch: false,
+    privateInvokeReady: false,
+    realJobCreated: false,
+    realLeaseClaimed: false,
+    idempotencyRowCreated: false,
+    jobEventCreated: false,
+    backendRuntimeMessageCreated: false,
+    workerClaimCreated: false,
+    storageObjectRecordCreated: false,
+    signedUrlEventCreated: false,
+    qaReportCreated: false,
+    auditEventCreated: false,
+    cloudRunInvocationAttempted: false,
+    serviceRuntimeRequestSent: false,
+    serviceUrlResolvedNow: false,
+    audienceResolvedNow: false,
+    identityTokenFetched: false,
+    authHeaderCreated: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    vllmEngineInitialized: false,
+    promptProcessed: false,
+    forwardPassRun: false,
+    inferenceRun: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseCloudTouched: false,
+    stagingTouched: false,
+    productionTouched: false,
+    generatedAssetsCreated: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    mediaProcessingRun: false,
+    renderExportRun: false,
+    creditMutationCreated: false,
+    betaReady: false,
+    productionReady: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt:
+    'QWEN2_5_VL_STACK_TOOL_58AL-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-9: retry Qwen local harness validation after generated_asset_versions version baseline fix, no deploy/no cloud/no assets/no beta',
+} as const
+
+export type Qwen25VlBackendRuntimePersistenceBaselineGeneratedAssetVersionsVersionFix =
+  typeof QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATED_ASSET_VERSIONS_VERSION_FIX

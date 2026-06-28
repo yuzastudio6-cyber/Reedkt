@@ -1,0 +1,59 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-MIGRATION-APPLY-1",
+  "decision": "completed_qwen_runtime_persistence_staging_migration_apply_and_readback_validation",
+  "execution": "completed_guarded_single_qwen_staging_migration_apply",
+  "integrationBase": "524130ab4764a0d83a0637a3321a7ba3f12aefdf",
+  "sourceAlignmentPr": 1495,
+  "excludedPr": 577,
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging",
+    "class": "non_production_staging"
+  },
+  "preApplyDryRun": {
+    "result": "passed_only_qwen_pending",
+    "pendingMigration": "20260628000100_qwen2_5_vl_backend_runtime_persistence.sql"
+  },
+  "apply": {
+    "result": "passed",
+    "appliedMigration": "20260628000100_qwen2_5_vl_backend_runtime_persistence.sql",
+    "remoteMutationScope": "single_staging_migration_apply_only"
+  },
+  "postApplyReadback": {
+    "migrationList": "passed_qwen_remote_present",
+    "sqlTestFile": "database/test-sql/022_qwen2_5_vl_backend_runtime_persistence_tests.sql",
+    "sqlTests": "passed",
+    "requiredRuntimeBaselineTables": 13,
+    "mediaAnalysisJobType": 1,
+    "qwenConstraints": 6,
+    "qwenToolRuntimeCheckAllowsQwenVl": 1,
+    "qwenSpecificIndexes": 5,
+    "activeClaimLeaseIndexes": 2,
+    "storageObjectSignedUrlColumns": 0,
+    "signedUrlEventUrlValueColumns": 0,
+    "runtimeRawPromptColumns": 0,
+    "finalDryRun": "passed_remote_database_is_up_to_date"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": "ephemeral_db_url_only_not_printed_or_persisted",
+    "remoteSupabaseMutation": true,
+    "remoteMutationScope": "single_staging_migration_apply_only",
+    "remoteMigrationApply": true,
+    "migrationHistoryRepairEdit": false,
+    "providerModelCalls": false,
+    "qwenRuntimeExecution": false,
+    "workerDispatch": false,
+    "routeExecution": false,
+    "cloudRunInvocation": false,
+    "mediaProcessing": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "broadExternalBetaUnlock": false,
+    "productionFinalExportUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-RLS-STORAGE-READBACK-1"
+}

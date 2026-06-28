@@ -4,6 +4,9 @@ import {
   type AiGraphicsExternalBetaNativeGpuProofCollectionInput,
 } from '../tool-registry/ai-graphics-external-beta-native-gpu-proof-collection'
 import type {
+  AiGraphicsExternalBetaNativeGpuProofCloudRunResultCollectorPacket,
+} from '../tool-registry/ai-graphics-external-beta-native-gpu-proof-cloud-run-result-collector'
+import type {
   AiGraphicsExternalBetaPerToolRuntimeProof,
 } from '../tool-registry/ai-graphics-external-beta-per-tool-runtime-proof'
 import type {
@@ -52,6 +55,10 @@ const input: AiGraphicsExternalBetaNativeGpuProofCollectionInput = {
     readJsonFile<AiGraphicsGpuRuntimeProofResultPacket>(
       '--gpu-runtime-proof-result-packet',
     ),
+  cloudRunResultCollectorPacket:
+    readJsonFile<AiGraphicsExternalBetaNativeGpuProofCloudRunResultCollectorPacket>(
+      '--cloud-run-result-collector-packet',
+    ),
   externalBetaNativeGpuProofCollectionPolicyRef:
     stringFlag('--external-beta-native-gpu-proof-collection-policy-ref'),
   externalBetaNativeGpuProofCollectionSchemaRef:
@@ -82,6 +89,8 @@ console.log(JSON.stringify({
       Boolean(stringFlag('--model-weight-manifest-review-packet')),
     gpuRuntimeProofResultPacketRead:
       Boolean(stringFlag('--gpu-runtime-proof-result-packet')),
+    cloudRunResultCollectorPacketRead:
+      Boolean(stringFlag('--cloud-run-result-collector-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

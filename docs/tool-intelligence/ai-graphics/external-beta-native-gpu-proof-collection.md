@@ -17,6 +17,8 @@ The current external-beta state remains blocked for these tools. The 13 JavaScri
 
 The source per-tool runtime proof must also preserve the runtime queue service proof bridge: `sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence=21`. This prevents stale or stripped proof packets from feeding the native GPU collection path.
 
+For the external Cloud Run path, ready-state also requires the local Cloud Run result collector packet to preserve the native GPU proof collection bridge. A valid GPU proof result packet alone is not enough; the collection gate expects `sourceCloudRunResultCollectorBridgeAcceptedWithProvidedEvidence=6` from the saved private L4 proof logs before it can move to the per-tool runtime proof recheck.
+
 ## Runtime Targets
 
 | Tool | Runtime Target |
@@ -48,6 +50,8 @@ Current accepted reviewed private manifests: `0 / 5`
 
 Current accepted native GPU proof profiles: `0 / 6`
 
+Current accepted Cloud Run result collector profiles: `0 / 6`
+
 Required native proof profiles:
 
 - `gpu_worker_ai_graphics`
@@ -69,6 +73,7 @@ npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest
 npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh
 npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible
 npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results
+npm run --silent ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector -- --source-cloud-run-job-scaffold-packet docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-job-scaffold.json --logs-dir .local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results --out-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results
 npm run --silent ai-graphics:external-beta-per-tool-runtime-proof -- --external-beta-tool-route-runtime-proof-packet docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json --node-runtime-proof-packet docs/tool-intelligence/ai-graphics/node-runtime-proof.json --browser-runtime-proof-packet docs/tool-intelligence/ai-graphics/browser-runtime-proof.json --satori-font-runtime-proof-packet docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json --gpu-runtime-proof-result-packet .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json --external-beta-per-tool-runtime-proof-policy-ref private://ai-graphics/external-beta/per-tool-runtime-proof/policy --external-beta-per-tool-runtime-proof-schema-ref private://ai-graphics/external-beta/per-tool-runtime-proof/schema --external-beta-runtime-proof-evidence-ref private://ai-graphics/external-beta/per-tool-runtime-proof/evidence --external-beta-runtime-proof-telemetry-ref private://ai-graphics/external-beta/per-tool-runtime-proof/telemetry --external-beta-runtime-proof-rollback-ref private://ai-graphics/external-beta/per-tool-runtime-proof/rollback
 ```
 
@@ -82,10 +87,12 @@ The only accepted ready state from this checkpoint is `external_beta_native_gpu_
 
 - Source per-tool runtime proof accepted: `true`
 - Source runtime queue service proof bridge accepted with provided evidence: `21 / 21`
+- Source Cloud Run result collector bridge accepted with provided evidence: `0 / 6`
 - GPU command plan accepted: `true`
 - Private checksum evidence accepted for all five model tools: `false`
 - Private model manifests accepted for all five model tools: `false`
 - Native GPU runtime proof results accepted for all six profiles: `false`
+- Cloud Run result collector accepted for all six profiles: `false`
 - Ready for per-tool runtime proof recheck: `false`
 - Agent can select for planning: `true`
 - Agent can execute tools now: `false`

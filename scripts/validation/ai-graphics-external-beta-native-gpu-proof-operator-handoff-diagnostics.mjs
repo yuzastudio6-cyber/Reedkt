@@ -249,6 +249,7 @@ for (const key of [
   'gpuRuntimeProofCommandPlanPacket',
   'nativeGpuHostPreflight',
   'gpuRuntimeProofResultPacket',
+  'cloudRunResultCollectorPacket',
   'nativeGpuProofCollectionPacket',
   'perToolRuntimeProofRecheckPacket',
 ]) {
@@ -273,6 +274,16 @@ for (const needle of [
   'cpuFallbackAllowedForHeavyTools: false',
 ]) {
   if (!source.includes(needle)) fail(`source_missing:${needle}`)
+}
+for (const needle of [
+  '--cloud-run-result-collector-packet',
+  'cloud-run-native-gpu-proof-result-collector-packet.json',
+]) {
+  if (!source.includes(needle)) fail(`source_collection_command_missing:${needle}`)
+  if (!docsMd.includes(needle)) fail(`markdown_collection_command_missing:${needle}`)
+  if (!JSON.stringify(docs.operatorSteps || []).includes(needle)) {
+    fail(`docs_collection_command_missing:${needle}`)
+  }
 }
 for (const needle of [
   '--external-beta-native-gpu-proof-collection-packet',

@@ -99,6 +99,15 @@ const capabilities = [
   'model_runtime_foundation',
 ]
 
+const runtimeProfiles = [
+  'gpu_worker_ai_graphics',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+]
+
 const falseGateKeys = [
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
@@ -211,6 +220,25 @@ function acceptedChecksumEvidenceFixture() {
     booleans: {
       all5ModelWeightToolsCovered: true,
       privateArtifactRefsNotLogged: true,
+    },
+  }
+}
+
+function acceptedCloudRunResultCollectorFixture() {
+  return {
+    decision: 'ai_graphics_external_beta_native_gpu_proof_cloud_run_result_collector_prepared_local_only',
+    currentStatus: 'external_beta_native_gpu_proof_cloud_run_result_collector_prepared_pending_private_cloud_run_logs',
+    sourceCloudRunJobScaffoldBridgeAccepted: true,
+    runtimeProfilesRequired: runtimeProfiles,
+    counts: {
+      runtimeProfilesExtracted: 6,
+    },
+    booleans: {
+      sourceCloudRunJobScaffoldAccepted: true,
+      sourceNativeGpuProofCollectionBridgeAccepted: true,
+      gpuRuntimeApprovedNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
     },
   }
 }
@@ -558,6 +586,10 @@ try {
     path.join(tmpRoot, 'accepted-gpu-runtime-result.json'),
     acceptedGpuRuntimeProofResultPacket(),
   )
+  const collectorPath = writeJson(
+    path.join(tmpRoot, 'accepted-cloud-run-result-collector.json'),
+    acceptedCloudRunResultCollectorFixture(),
+  )
   const collection = parseJsonOutput(runNpm(nativeGpuProofCollectionScriptName, [
     '--external-beta-per-tool-runtime-proof-packet',
     acceptedPerToolPath,
@@ -569,6 +601,8 @@ try {
     manifestReviewPath,
     '--gpu-runtime-proof-result-packet',
     gpuResultPath,
+    '--cloud-run-result-collector-packet',
+    collectorPath,
     '--external-beta-native-gpu-proof-collection-policy-ref',
     'external-beta-evidence://ai-graphics/native-gpu-proof/policy',
     '--external-beta-native-gpu-proof-collection-schema-ref',

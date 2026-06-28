@@ -2,6 +2,9 @@ import type {
   AiGraphicsExternalBetaPerToolRuntimeProof,
 } from './ai-graphics-external-beta-per-tool-runtime-proof'
 import type {
+  AiGraphicsExternalBetaNativeGpuProofCloudRunResultCollectorPacket,
+} from './ai-graphics-external-beta-native-gpu-proof-cloud-run-result-collector'
+import type {
   AiGraphicsGpuRuntimeProofCommandPlan,
 } from './ai-graphics-gpu-runtime-proof-command-plan'
 import {
@@ -35,6 +38,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollectionInput {
   modelWeightChecksumEvidencePacket?: AiGraphicsModelWeightChecksumEvidencePacket
   modelWeightManifestReviewPacket?: AiGraphicsModelWeightManifestReviewPacket
   gpuRuntimeProofResultPacket?: AiGraphicsGpuRuntimeProofResultPacket
+  cloudRunResultCollectorPacket?: AiGraphicsExternalBetaNativeGpuProofCloudRunResultCollectorPacket
   externalBetaNativeGpuProofCollectionPolicyRef?: string
   externalBetaNativeGpuProofCollectionSchemaRef?: string
   externalBetaNativeGpuProofCollectionHostPoolRef?: string
@@ -60,6 +64,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollection {
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION
   sourcePerToolRuntimeProofAccepted: boolean
   sourcePerToolRuntimeProofBridgeAccepted: boolean
+  sourceCloudRunResultCollectorAccepted: boolean
   missingNativeGpuProofCollectionControls: string[]
   totalAiGraphicsTools: 21
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
@@ -78,12 +83,14 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollection {
     totalAiGraphicsTools: 21
     gpuRuntimeTargetedTools: 8
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
+    sourceCloudRunResultCollectorBridgeAcceptedWithProvidedEvidence: number
     modelWeightChecksumEvidenceRequiredTools: 5
     modelWeightChecksumEvidenceAccepted: number
     modelWeightManifestRequiredTools: 5
     modelWeightManifestReviewAccepted: number
     nativeGpuRuntimeProofProfilesRequired: 6
     nativeGpuRuntimeProofProfilesAccepted: number
+    cloudRunResultCollectorProfilesAccepted: number
     nativeGpuRuntimeProofAcceptedTools: number
     blockedPendingPrivateManifestTools: number
     blockedPendingNativeGpuRuntimeProofTools: number
@@ -98,6 +105,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollection {
     nativeGpuProofScriptGenerate: 'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh'
     nativeGpuHostPreflight: 'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible'
     nativeGpuProofResultValidate: 'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results'
+    cloudRunResultCollector: 'npm run --silent ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector -- --source-cloud-run-job-scaffold-packet docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-job-scaffold.json --logs-dir .local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results --out-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results'
     externalPerToolRuntimeProofRecheck: 'npm run --silent ai-graphics:external-beta-per-tool-runtime-proof -- --external-beta-tool-route-runtime-proof-packet docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json --node-runtime-proof-packet docs/tool-intelligence/ai-graphics/node-runtime-proof.json --browser-runtime-proof-packet docs/tool-intelligence/ai-graphics/browser-runtime-proof.json --satori-font-runtime-proof-packet docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json --gpu-runtime-proof-result-packet .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json --external-beta-per-tool-runtime-proof-policy-ref private://ai-graphics/external-beta/per-tool-runtime-proof/policy --external-beta-per-tool-runtime-proof-schema-ref private://ai-graphics/external-beta/per-tool-runtime-proof/schema --external-beta-runtime-proof-evidence-ref private://ai-graphics/external-beta/per-tool-runtime-proof/evidence --external-beta-runtime-proof-telemetry-ref private://ai-graphics/external-beta/per-tool-runtime-proof/telemetry --external-beta-runtime-proof-rollback-ref private://ai-graphics/external-beta/per-tool-runtime-proof/rollback'
   }
   localOnlyEvidencePaths: {
@@ -110,6 +118,8 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollection {
     externalBetaNativeGpuProofCollectionPrepared: true
     sourcePerToolRuntimeProofAccepted: boolean
     sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+    sourceCloudRunResultCollectorAccepted: boolean
+    sourceNativeGpuProofCollectionBridgeAccepted: boolean
     commandPlanAccepted: boolean
     checksumEvidenceAcceptedForAll5ModelTools: boolean
     privateModelManifestsAcceptedForAll5ModelTools: boolean
@@ -296,6 +306,30 @@ function nativeGpuRuntimeProfilesAccepted(packet?: AiGraphicsGpuRuntimeProofResu
     0
 }
 
+function cloudRunResultCollectorProfilesAccepted(
+  packet?: AiGraphicsExternalBetaNativeGpuProofCloudRunResultCollectorPacket,
+): number {
+  const counts = (packet as unknown as { counts?: Record<string, number> } | undefined)?.counts
+  return counts?.runtimeProfilesExtracted ?? 0
+}
+
+function cloudRunResultCollectorAccepted(
+  packet?: AiGraphicsExternalBetaNativeGpuProofCloudRunResultCollectorPacket,
+): boolean {
+  return Boolean(packet) &&
+    packet?.decision === 'ai_graphics_external_beta_native_gpu_proof_cloud_run_result_collector_prepared_local_only' &&
+    packet?.currentStatus ===
+      'external_beta_native_gpu_proof_cloud_run_result_collector_prepared_pending_private_cloud_run_logs' &&
+    packet?.sourceCloudRunJobScaffoldBridgeAccepted === true &&
+    packet?.runtimeProfilesRequired?.length === 6 &&
+    cloudRunResultCollectorProfilesAccepted(packet) === 6 &&
+    packet?.booleans?.sourceCloudRunJobScaffoldAccepted === true &&
+    packet?.booleans?.sourceNativeGpuProofCollectionBridgeAccepted === true &&
+    packet?.booleans?.gpuRuntimeApprovedNow === false &&
+    packet?.booleans?.externalBetaReadyNow === false &&
+    packet?.booleans?.productionReadyNow === false
+}
+
 function buildRequirement(
   requirementId: string,
   currentAccepted: number,
@@ -325,9 +359,14 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
   const checksumAccepted = checksumEvidenceAccepted(input.modelWeightChecksumEvidencePacket)
   const manifestAccepted = manifestReviewAccepted(input.modelWeightManifestReviewPacket)
   const nativeProfilesAccepted = nativeGpuRuntimeProfilesAccepted(input.gpuRuntimeProofResultPacket)
+  const cloudRunCollectorProfilesAccepted =
+    cloudRunResultCollectorProfilesAccepted(input.cloudRunResultCollectorPacket)
+  const cloudRunCollectorAccepted =
+    cloudRunResultCollectorAccepted(input.cloudRunResultCollectorPacket)
   const readyForPerToolRuntimeProofRecheck =
     sourceAccepted &&
     commandAccepted &&
+    cloudRunCollectorAccepted &&
     missingNativeGpuProofCollectionControls.length === 0 &&
     checksumAccepted === 5 &&
     manifestAccepted === 5 &&
@@ -366,6 +405,13 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
       'blocked_pending_native_gpu_result',
       'Run the native linux/amd64 NVIDIA L4 proof script and validate six profile JSON results.',
     ),
+    buildRequirement(
+      'cloud_run_result_collector_bridge_for_6_profiles',
+      cloudRunCollectorProfilesAccepted,
+      6,
+      'blocked_pending_native_gpu_result',
+      'Run the local-only Cloud Run result collector from saved private L4 proof logs and preserve the native GPU proof collection bridge.',
+    ),
   ]
 
   const blockedPendingPrivateManifestTools = Math.max(0, 5 - Math.min(manifestAccepted, 5))
@@ -376,6 +422,7 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION,
     sourcePerToolRuntimeProofAccepted: sourceAccepted,
     sourcePerToolRuntimeProofBridgeAccepted: sourceBridgeAccepted,
+    sourceCloudRunResultCollectorAccepted: cloudRunCollectorAccepted,
     missingNativeGpuProofCollectionControls,
     totalAiGraphicsTools: 21,
     gpuRuntimeTargetedTools: [...gpuRuntimeTargetedTools],
@@ -395,12 +442,15 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
       gpuRuntimeTargetedTools: 8,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
         sourceBridgeAccepted ? 21 : 0,
+      sourceCloudRunResultCollectorBridgeAcceptedWithProvidedEvidence:
+        cloudRunCollectorAccepted ? 6 : 0,
       modelWeightChecksumEvidenceRequiredTools: 5,
       modelWeightChecksumEvidenceAccepted: checksumAccepted,
       modelWeightManifestRequiredTools: 5,
       modelWeightManifestReviewAccepted: manifestAccepted,
       nativeGpuRuntimeProofProfilesRequired: 6,
       nativeGpuRuntimeProofProfilesAccepted: nativeProfilesAccepted,
+      cloudRunResultCollectorProfilesAccepted: cloudRunCollectorProfilesAccepted,
       nativeGpuRuntimeProofAcceptedTools: readyForPerToolRuntimeProofRecheck ? 8 : 0,
       blockedPendingPrivateManifestTools,
       blockedPendingNativeGpuRuntimeProofTools,
@@ -422,6 +472,8 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
         'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible',
       nativeGpuProofResultValidate:
         'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results',
+      cloudRunResultCollector:
+        'npm run --silent ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector -- --source-cloud-run-job-scaffold-packet docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-job-scaffold.json --logs-dir .local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results --out-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results',
       externalPerToolRuntimeProofRecheck:
         'npm run --silent ai-graphics:external-beta-per-tool-runtime-proof -- --external-beta-tool-route-runtime-proof-packet docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json --node-runtime-proof-packet docs/tool-intelligence/ai-graphics/node-runtime-proof.json --browser-runtime-proof-packet docs/tool-intelligence/ai-graphics/browser-runtime-proof.json --satori-font-runtime-proof-packet docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json --gpu-runtime-proof-result-packet .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json --external-beta-per-tool-runtime-proof-policy-ref private://ai-graphics/external-beta/per-tool-runtime-proof/policy --external-beta-per-tool-runtime-proof-schema-ref private://ai-graphics/external-beta/per-tool-runtime-proof/schema --external-beta-runtime-proof-evidence-ref private://ai-graphics/external-beta/per-tool-runtime-proof/evidence --external-beta-runtime-proof-telemetry-ref private://ai-graphics/external-beta/per-tool-runtime-proof/telemetry --external-beta-runtime-proof-rollback-ref private://ai-graphics/external-beta/per-tool-runtime-proof/rollback',
     },
@@ -435,6 +487,8 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
       externalBetaNativeGpuProofCollectionPrepared: true,
       sourcePerToolRuntimeProofAccepted: sourceAccepted,
       sourceRuntimeQueueServiceProofBridgeAccepted: sourceBridgeAccepted,
+      sourceCloudRunResultCollectorAccepted: cloudRunCollectorAccepted,
+      sourceNativeGpuProofCollectionBridgeAccepted: cloudRunCollectorAccepted,
       commandPlanAccepted: commandAccepted,
       checksumEvidenceAcceptedForAll5ModelTools: checksumAccepted === 5,
       privateModelManifestsAcceptedForAll5ModelTools: manifestAccepted === 5,

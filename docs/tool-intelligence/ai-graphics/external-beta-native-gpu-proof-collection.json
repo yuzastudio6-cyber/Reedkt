@@ -6,6 +6,7 @@
     "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json",
     "modelWeightChecksumEvidence": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json",
     "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "cloudRunResultCollector": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-result-collector.json",
     "gpuRuntimeProofResultPacket": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json"
   },
   "contractSurface": {
@@ -64,12 +65,14 @@
     "totalAiGraphicsTools": 21,
     "gpuRuntimeTargetedTools": 8,
     "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
+    "sourceCloudRunResultCollectorBridgeAcceptedWithProvidedEvidence": 0,
     "modelWeightChecksumEvidenceRequiredTools": 5,
     "modelWeightChecksumEvidenceAccepted": 0,
     "modelWeightManifestRequiredTools": 5,
     "modelWeightManifestReviewAccepted": 0,
     "nativeGpuRuntimeProofProfilesRequired": 6,
     "nativeGpuRuntimeProofProfilesAccepted": 0,
+    "cloudRunResultCollectorProfilesAccepted": 0,
     "nativeGpuRuntimeProofAcceptedTools": 0,
     "blockedPendingPrivateManifestTools": 5,
     "blockedPendingNativeGpuRuntimeProofTools": 8,
@@ -94,6 +97,12 @@
       "currentAccepted": 0,
       "requiredAccepted": 6,
       "status": "blocked_pending_native_gpu_result"
+    },
+    {
+      "requirementId": "cloud_run_result_collector_bridge_for_6_profiles",
+      "currentAccepted": 0,
+      "requiredAccepted": 6,
+      "status": "blocked_pending_native_gpu_result"
     }
   ],
   "requiredCollectionCommands": {
@@ -104,6 +113,7 @@
     "nativeGpuProofScriptGenerate": "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh",
     "nativeGpuHostPreflight": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible",
     "nativeGpuProofResultValidate": "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
+    "cloudRunResultCollector": "npm run --silent ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector -- --source-cloud-run-job-scaffold-packet docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-job-scaffold.json --logs-dir .local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results --out-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results",
     "externalPerToolRuntimeProofRecheck": "npm run --silent ai-graphics:external-beta-per-tool-runtime-proof -- --external-beta-tool-route-runtime-proof-packet docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json --node-runtime-proof-packet docs/tool-intelligence/ai-graphics/node-runtime-proof.json --browser-runtime-proof-packet docs/tool-intelligence/ai-graphics/browser-runtime-proof.json --satori-font-runtime-proof-packet docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json --gpu-runtime-proof-result-packet .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json --external-beta-per-tool-runtime-proof-policy-ref private://ai-graphics/external-beta/per-tool-runtime-proof/policy --external-beta-per-tool-runtime-proof-schema-ref private://ai-graphics/external-beta/per-tool-runtime-proof/schema --external-beta-runtime-proof-evidence-ref private://ai-graphics/external-beta/per-tool-runtime-proof/evidence --external-beta-runtime-proof-telemetry-ref private://ai-graphics/external-beta/per-tool-runtime-proof/telemetry --external-beta-runtime-proof-rollback-ref private://ai-graphics/external-beta/per-tool-runtime-proof/rollback"
   },
   "localOnlyEvidencePaths": {
@@ -130,6 +140,8 @@
     "externalBetaNativeGpuProofCollectionPrepared": true,
     "sourcePerToolRuntimeProofAccepted": true,
     "sourceRuntimeQueueServiceProofBridgeAccepted": true,
+    "sourceCloudRunResultCollectorAccepted": false,
+    "sourceNativeGpuProofCollectionBridgeAccepted": false,
     "commandPlanAccepted": true,
     "checksumEvidenceAcceptedForAll5ModelTools": false,
     "privateModelManifestsAcceptedForAll5ModelTools": false,

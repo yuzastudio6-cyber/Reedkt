@@ -197,6 +197,7 @@ function acceptedBetaEvidenceBundleFixture() {
 
 const fullEvidenceArgs = [
   '--all-shared-gates-passed',
+  '--all-external-beta-evidence-passed',
   '--browser-canvas-webgl-sandbox-passed',
   '--native-gpu-runtime-proof-passed',
   '--model-weight-manifests-approved',

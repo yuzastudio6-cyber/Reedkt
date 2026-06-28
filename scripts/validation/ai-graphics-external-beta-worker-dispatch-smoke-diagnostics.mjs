@@ -34,6 +34,14 @@ const toolRouteRuntimeProofDiagnosticScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
 const toolRouteRuntimeProofDiagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
+const perToolRuntimeProofScriptName =
+  'ai-graphics:external-beta-per-tool-runtime-proof'
+const perToolRuntimeProofScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-per-tool-runtime-proof.ts'
+const perToolRuntimeProofDiagnosticScriptName =
+  'ai-graphics:external-beta-per-tool-runtime-proof:diagnostics'
+const perToolRuntimeProofDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-per-tool-runtime-proof-diagnostics.mjs'
 
 const allTools = [
   'torch_torchvision',
@@ -389,6 +397,8 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 }
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
+  `+    "${perToolRuntimeProofScriptName}": "${perToolRuntimeProofScriptCommand}",`,
+  `+    "${perToolRuntimeProofDiagnosticScriptName}": "${perToolRuntimeProofDiagnosticScriptCommand}",`,
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   `+    "${proofScriptName}": "${proofScriptCommand}",`,

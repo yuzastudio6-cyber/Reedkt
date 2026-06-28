@@ -53,3 +53,7 @@ The gate rejects `http://`, `https://`, `signed-url://`, `public://`, `gs://`, a
 ## Runtime Boundary
 
 Agent selection remains planning/study metadata only. Tool execution, Tool Route execution, Worker execution, provider/model runtime, browser/WebGL/canvas runtime, GPU runtime, model download/load, media processing, Supabase/GCS mutation, signed URL creation, public artifact creation, runtime readiness, external beta, and production all remain blocked.
+
+## Next External-Beta Gate
+
+The next external checkpoint is per-tool runtime proof. It can accept the existing 13 JavaScript runtime proof packets, but it must keep the 8 GPU/model tools blocked until native linux/amd64 NVIDIA L4 runtime proof and private model manifests pass.

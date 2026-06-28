@@ -3,14 +3,6 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-const toolRouteRuntimeProofScriptName =
-  'ai-graphics:external-beta-tool-route-runtime-proof'
-const toolRouteRuntimeProofScriptCommand =
-  'tsx server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts'
-const toolRouteRuntimeProofDiagnosticScriptName =
-  'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
-const toolRouteRuntimeProofDiagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
 const perToolRuntimeProofScriptName =
   'ai-graphics:external-beta-per-tool-runtime-proof'
 const perToolRuntimeProofScriptCommand =
@@ -20,16 +12,16 @@ const perToolRuntimeProofDiagnosticScriptName =
 const perToolRuntimeProofDiagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-per-tool-runtime-proof-diagnostics.mjs'
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
-const routeScriptName = 'ai-graphics:external-beta-tool-route-runtime-proof'
-const routeScriptCommand =
-  'tsx server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts'
-const routeDiagnosticScriptName =
-  'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
-const routeDiagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
+const runScriptName = 'ai-graphics:external-beta-per-tool-runtime-proof'
+const runScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-per-tool-runtime-proof.ts'
+const diagnosticScriptName = 'ai-graphics:external-beta-per-tool-runtime-proof:diagnostics'
+const diagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-per-tool-runtime-proof-diagnostics.mjs'
 const sourceSmokeScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke'
 const sourceProofScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke-proof'
 const privateManifestScriptName = 'ai-graphics:external-beta-private-artifact-manifest'
+const routeProofScriptName = 'ai-graphics:external-beta-tool-route-runtime-proof'
 
 const allTools = [
   'torch_torchvision',
@@ -40,6 +32,22 @@ const allTools = [
   'kornia',
   'rembg',
   'transparent_background',
+  'd3',
+  'echarts',
+  'vega_lite',
+  'vega',
+  'satori',
+  'svgdotjs_svg_js',
+  'viz_js',
+  'lottie_web',
+  'animejs',
+  'three_js',
+  'pixi_js',
+  'konva',
+  'babylonjs',
+]
+
+const jsTools = [
   'd3',
   'echarts',
   'vega_lite',
@@ -174,79 +182,72 @@ function writeJson(filePath, value) {
   return filePath
 }
 
-function refIsPrivate(value) {
-  return [
-    'private://',
-    'reeditpro-private://',
-    'backend-evidence://',
-    'external-beta-evidence://',
-  ].some((prefix) => String(value).startsWith(prefix))
-}
-
 const requiredFiles = [
+  'server/tool-registry/ai-graphics-external-beta-per-tool-runtime-proof.ts',
+  'server/cli/ai-graphics-external-beta-per-tool-runtime-proof.ts',
   'server/tool-registry/ai-graphics-external-beta-tool-route-runtime-proof.ts',
-  'server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts',
-  'server/tool-registry/ai-graphics-external-beta-private-artifact-manifest.ts',
   'server/tool-registry/index.ts',
+  'docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.md',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.json',
+  'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+  'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+  'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+  'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
 
 for (const file of requiredFiles) read(file)
 
 const pkg = json('package.json')
-const docs = json('docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.md')
-const source = read('server/tool-registry/ai-graphics-external-beta-tool-route-runtime-proof.ts')
-const cli = read('server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.md')
+const source = read('server/tool-registry/ai-graphics-external-beta-per-tool-runtime-proof.ts')
+const cli = read('server/cli/ai-graphics-external-beta-per-tool-runtime-proof.ts')
 const index = read('server/tool-registry/index.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
-if (pkg.scripts?.[routeScriptName] !== routeScriptCommand) fail(`missing_package_script:${routeScriptName}`)
-if (pkg.scripts?.[routeDiagnosticScriptName] !== routeDiagnosticScriptCommand) {
-  fail(`missing_package_script:${routeDiagnosticScriptName}`)
+if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_script:${runScriptName}`)
+if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
+  fail(`missing_package_script:${diagnosticScriptName}`)
 }
-if (!index.includes("export * from './ai-graphics-external-beta-tool-route-runtime-proof'")) {
+if (!index.includes("export * from './ai-graphics-external-beta-per-tool-runtime-proof'")) {
   fail('missing_tool_registry_export')
 }
-if (docs.decision !== 'ai_graphics_external_beta_tool_route_runtime_proof_prepared_with_runtime_blocks') {
+if (docs.decision !== 'ai_graphics_external_beta_per_tool_runtime_proof_prepared_with_gpu_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
-
-for (const tool of allTools) {
-  if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
+for (const tool of allTools) if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
+for (const tool of jsTools) {
+  if (!docs.jsRuntimeProofAcceptedTools?.includes(tool)) fail(`docs_missing_js_runtime_tool:${tool}`)
 }
 for (const tool of gpuTools) {
-  if (!docs.gpuTools?.includes(tool)) fail(`docs_missing_gpu_tool:${tool}`)
+  if (!docs.gpuRuntimeBlockedTools?.includes(tool)) fail(`docs_missing_gpu_blocked_tool:${tool}`)
 }
 for (const capability of capabilities) {
   if (!docs.capabilities?.includes(capability)) fail(`docs_missing_capability:${capability}`)
 }
-for (const namespace of ['private://', 'reeditpro-private://', 'backend-evidence://', 'external-beta-evidence://']) {
-  if (!docs.acceptedPrivateRefNamespaces?.includes(namespace)) fail(`docs_missing_private_namespace:${namespace}`)
-}
-for (const forbidden of ['http://', 'https://', 'signed-url://', 'public://', 'gs://', 'gcs://']) {
-  if (!docs.forbiddenRouteRefPatterns?.includes(forbidden)) fail(`docs_missing_forbidden_ref:${forbidden}`)
+for (const [key, expected] of Object.entries({
+  totalAiGraphicsTools: 21,
+  totalProductFacingCapabilities: 12,
+  jsRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
+  nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 0,
+  blockedPendingNativeGpuRuntimeProofTools: 8,
+  externalBetaReadyNowTools: 0,
+  productionReadyNowTools: 0,
+})) {
+  if (docs.counts?.[key] !== expected) fail(`unexpected_docs_count:${key}:${docs.counts?.[key]}`)
 }
 for (const [key, expected] of Object.entries({
-  sourcePrivateArtifactManifestAccepted: true,
-  toolRouteRecordsPrepared: 21,
-  toolRouteRecordsReadyWithProvidedEvidence: 21,
-  gpuRuntimeTargetedTools: 8,
-  privateArtifactManifestAccepted: true,
-  toolRoutePolicyRequired: true,
-  toolRouteSchemaRequired: true,
-  toolRouteAdmissionRequired: true,
-  toolRouteAuthzRequired: true,
-  toolRouteRateLimitRequired: true,
-  toolRouteAuditRequired: true,
-  toolRouteRollbackRequired: true,
-  publicArtifactRefsRejected: true,
-  signedUrlRefsRejected: true,
-  rawHttpRefsRejected: true,
-  rawGcsPublicRefsRejected: true,
+  sourceToolRouteRuntimeProofAccepted: true,
+  runtimeProofRecordsPrepared: 21,
+  runtimeProofAcceptedWithProvidedEvidenceTools: 13,
+  jsRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
+  nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 0,
+  blockedPendingNativeGpuRuntimeProofTools: 8,
+  nativeGpuRuntimeProofRequiredForGpuTools: true,
+  gpuRuntimeOnDemandOnly: true,
+  noIdleGpuRuntimeApproved: true,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
 })) {
@@ -255,26 +256,12 @@ for (const [key, expected] of Object.entries({
   }
 }
 for (const key of [
-  'externalBetaToolRouteRuntimeProofPrepared',
+  'externalBetaPerToolRuntimeProofPrepared',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
-  'all21ToolRouteRecordsPrepared',
-  'privateInputArtifactsRequired',
-  'privateOutputArtifactsRequired',
-  'privateTelemetryRequired',
-  'privateLeaseAuditRequired',
-  'toolRoutePolicyRequired',
-  'toolRouteSchemaRequired',
-  'toolRouteAdmissionRequired',
-  'toolRouteAuthzRequired',
-  'toolRouteRateLimitRequired',
-  'toolRouteAuditRequired',
-  'toolRouteRollbackRequired',
-  'publicArtifactRefsRejected',
-  'signedUrlRefsRejected',
-  'rawHttpRefsRejected',
-  'rawGcsPublicRefsRejected',
+  'all13JsRuntimeProofsAccepted',
+  'blockedPendingNativeGpuRuntimeProofTools',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
@@ -282,40 +269,44 @@ for (const key of [
 ]) {
   if (docs.booleans?.[key] !== true) fail(`docs_required_true_not_true:${key}`)
 }
-for (const key of falseGateKeys) {
+for (const key of [
+  'all8NativeGpuRuntimeProofsAccepted',
+  'nativeGpuRuntimeProofResultsAcceptedForOwnerReview',
+  ...falseGateKeys,
+]) {
   if (docs.booleans?.[key] !== false) fail(`docs_required_false_not_false:${key}`)
 }
 
 for (const phrase of [
-  '--external-beta-private-artifact-manifest-packet',
-  '--external-beta-tool-route-policy-ref',
-  '--external-beta-tool-route-schema-ref',
-  '--external-beta-tool-route-admission-ref',
-  '--external-beta-tool-route-authz-ref',
-  '--external-beta-tool-route-rate-limit-ref',
-  '--external-beta-tool-route-audit-ref',
-  '--external-beta-tool-route-rollback-ref',
-  'external_beta_tool_route_runtime_proof_ready_with_runtime_blocks',
-  'runtimeProofOnlyNoRouteExecution',
-  'publicArtifactAllowed: false',
-  'signedUrlAllowed: false',
+  '--external-beta-tool-route-runtime-proof-packet',
+  '--node-runtime-proof-packet',
+  '--browser-runtime-proof-packet',
+  '--satori-font-runtime-proof-packet',
+  '--gpu-runtime-proof-result-packet',
+  'external_beta_per_tool_runtime_proof_ready_with_gpu_blocks',
+  'blocked_pending_native_gpu_runtime_proof',
+  'runtimeProofOnlyNoToolExecution',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
   }
 }
-if (!scorecard.includes('AI Graphics External-Beta Tool Route Runtime Proof')) {
-  fail('scorecard_missing_external_beta_tool_route_runtime_proof')
+if (!scorecard.includes('AI Graphics External-Beta Per-Tool Runtime Proof')) {
+  fail('scorecard_missing_external_beta_per_tool_runtime_proof')
 }
 
-const missingOutput = parseJsonOutput(runNpm(routeScriptName), 'missing')
-if (missingOutput.decision !== 'missing_external_beta_private_artifact_manifest') {
+const missingOutput = parseJsonOutput(runNpm(runScriptName), 'missing')
+if (missingOutput.decision !== 'missing_external_beta_tool_route_runtime_proof') {
   fail(`missing_output_decision:${missingOutput.decision}`)
 }
-if (missingOutput.toolRouteRecordsPrepared !== 21) fail(`missing_records_not_21:${missingOutput.toolRouteRecordsPrepared}`)
-if (missingOutput.toolRouteRecordsReadyWithProvidedEvidence !== 0) fail('missing_records_ready_should_be_0')
+if (missingOutput.runtimeProofRecordsPrepared !== 21) {
+  fail(`missing_records_not_21:${missingOutput.runtimeProofRecordsPrepared}`)
+}
+if (missingOutput.runtimeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('missing_records_accepted_should_be_0')
+}
 
-const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-tool-route-runtime-proof-'))
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-per-tool-runtime-proof-'))
 try {
   const readinessPacketPath = writeJson(path.join(tmpRoot, 'worker-dispatch-readiness.json'), {
     decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
@@ -377,7 +368,7 @@ try {
     'external-beta-evidence://ai-graphics/artifacts/telemetry.json',
   ]), 'private-manifest')
   const manifestPath = writeJson(path.join(tmpRoot, 'private-artifact-manifest.json'), manifest)
-  const accepted = parseJsonOutput(runNpm(routeScriptName, [
+  const routeProof = parseJsonOutput(runNpm(routeProofScriptName, [
     '--external-beta-private-artifact-manifest-packet',
     manifestPath,
     '--external-beta-tool-route-policy-ref',
@@ -394,75 +385,108 @@ try {
     'external-beta-evidence://ai-graphics/tool-route/audit.json',
     '--external-beta-tool-route-rollback-ref',
     'private://ai-graphics/external-beta/tool-route/rollback.json',
+  ]), 'route-proof')
+  const routeProofPath = writeJson(path.join(tmpRoot, 'tool-route-runtime-proof.json'), routeProof)
+
+  const accepted = parseJsonOutput(runNpm(runScriptName, [
+    '--external-beta-tool-route-runtime-proof-packet',
+    routeProofPath,
+    '--node-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+    '--browser-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+    '--satori-font-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+    '--gpu-runtime-proof-result-packet',
+    'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json',
+    '--external-beta-per-tool-runtime-proof-policy-ref',
+    'private://ai-graphics/external-beta/runtime-proof/policy.json',
+    '--external-beta-per-tool-runtime-proof-schema-ref',
+    'private://ai-graphics/external-beta/runtime-proof/schema.json',
+    '--external-beta-runtime-proof-evidence-ref',
+    'backend-evidence://ai-graphics/external-beta/runtime-proof/evidence.json',
+    '--external-beta-runtime-proof-telemetry-ref',
+    'external-beta-evidence://ai-graphics/runtime-proof/telemetry.json',
+    '--external-beta-runtime-proof-rollback-ref',
+    'private://ai-graphics/external-beta/runtime-proof/rollback.json',
   ]), 'accepted')
 
-  if (accepted.decision !== 'external_beta_tool_route_runtime_proof_ready_with_runtime_blocks') {
+  if (accepted.decision !== 'external_beta_per_tool_runtime_proof_ready_with_gpu_blocks') {
     fail(`accepted_decision:${accepted.decision}`)
   }
-  if (accepted.toolRouteRecordsReadyWithProvidedEvidence !== 21) {
-    fail(`accepted_ready_records_not_21:${accepted.toolRouteRecordsReadyWithProvidedEvidence}`)
+  if (accepted.runtimeProofAcceptedWithProvidedEvidenceTools !== 13) {
+    fail(`accepted_runtime_proof_tools_not_13:${accepted.runtimeProofAcceptedWithProvidedEvidenceTools}`)
   }
-  if (accepted.gpuRuntimeTargetedTools !== 8) fail(`accepted_gpu_tools_not_8:${accepted.gpuRuntimeTargetedTools}`)
-  if (accepted.records?.length !== 21) fail(`accepted_records_not_21:${accepted.records?.length}`)
-  if ((accepted.records ?? []).filter((record) => record.gpuRuntimeTargeted).length !== 8) {
-    fail('accepted_gpu_record_count_not_8')
+  if (accepted.jsRuntimeProofAcceptedWithProvidedEvidenceTools !== 13) {
+    fail(`accepted_js_tools_not_13:${accepted.jsRuntimeProofAcceptedWithProvidedEvidenceTools}`)
+  }
+  if (accepted.nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools !== 0) {
+    fail('accepted_gpu_tools_should_be_0')
+  }
+  if (accepted.blockedPendingNativeGpuRuntimeProofTools !== 8) {
+    fail(`accepted_gpu_blocked_not_8:${accepted.blockedPendingNativeGpuRuntimeProofTools}`)
+  }
+  if ((accepted.records ?? []).filter((record) => record.runtimeProofAcceptedWithProvidedEvidence).length !== 13) {
+    fail('accepted_record_count_not_13')
+  }
+  for (const tool of jsTools) {
+    const record = accepted.records?.find((entry) => entry.toolId === tool)
+    if (!record) fail(`accepted_missing_js_record:${tool}`)
+    if (record?.runtimeProofStatus !== 'runtime_proof_accepted_with_provided_evidence') {
+      fail(`accepted_js_status:${tool}:${record?.runtimeProofStatus}`)
+    }
+  }
+  for (const tool of gpuTools) {
+    const record = accepted.records?.find((entry) => entry.toolId === tool)
+    if (!record) fail(`accepted_missing_gpu_record:${tool}`)
+    if (record?.runtimeProofStatus !== 'blocked_pending_native_gpu_runtime_proof') {
+      fail(`accepted_gpu_status:${tool}:${record?.runtimeProofStatus}`)
+    }
+    if (!/NVIDIA L4 GPU runtime proof/.test(record?.blockedReason ?? '')) {
+      fail(`accepted_gpu_missing_block_reason:${tool}`)
+    }
   }
   for (const record of accepted.records ?? []) {
-    if (record.toolRouteRuntimeProofReadyWithProvidedEvidence !== true) fail(`record_not_ready:${record.toolId}`)
-    if (record.privateArtifactManifestAccepted !== true) fail(`record_manifest_not_accepted:${record.toolId}`)
-    if (record.routeMode !== 'runtime_proof_only') fail(`record_route_mode_unexpected:${record.toolId}`)
-    if (record.publicArtifactAllowed !== false) fail(`record_public_allowed:${record.toolId}`)
-    if (record.signedUrlAllowed !== false) fail(`record_signed_allowed:${record.toolId}`)
     if (record.routeExecutionApprovedNow !== false) fail(`record_route_execution_not_false:${record.toolId}`)
     if (record.workerDispatchApprovedNow !== false) fail(`record_worker_dispatch_not_false:${record.toolId}`)
     if (record.toolExecutionApprovedNow !== false) fail(`record_tool_execution_not_false:${record.toolId}`)
     if (record.gpuRuntimeShouldStartNow !== false) fail(`record_gpu_start_not_false:${record.toolId}`)
-    for (const ref of [
-      record.privateInputManifestRef,
-      record.privateOutputManifestRef,
-      record.privateTelemetryRef,
-      record.privateLeaseAuditRef,
-      record.modelWeightOrCacheManifestRef,
-      record.toolRoutePolicyRef,
-      record.toolRouteSchemaRef,
-      record.toolRouteAdmissionRef,
-      record.toolRouteAuthzRef,
-      record.toolRouteRateLimitRef,
-      record.toolRouteAuditRef,
-      record.toolRouteRollbackRef,
-    ].filter(Boolean)) {
-      if (!refIsPrivate(ref)) fail(`record_ref_not_private:${record.toolId}:${ref}`)
-    }
+    if (record.publicArtifactAllowed !== false) fail(`record_public_allowed:${record.toolId}`)
+    if (record.signedUrlAllowed !== false) fail(`record_signed_allowed:${record.toolId}`)
   }
   for (const key of falseGateKeys) {
     if (accepted.booleans?.[key] !== false) fail(`accepted_false_gate_not_false:${key}`)
   }
 
-  const publicBlocked = parseJsonOutput(runNpm(routeScriptName, [
-    '--external-beta-private-artifact-manifest-packet',
-    manifestPath,
-    '--external-beta-tool-route-policy-ref',
+  const publicBlocked = parseJsonOutput(runNpm(runScriptName, [
+    '--external-beta-tool-route-runtime-proof-packet',
+    routeProofPath,
+    '--node-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+    '--browser-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+    '--satori-font-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+    '--gpu-runtime-proof-result-packet',
+    'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json',
+    '--external-beta-per-tool-runtime-proof-policy-ref',
     'public://unsafe/policy.json',
-    '--external-beta-tool-route-schema-ref',
-    'private://ai-graphics/external-beta/tool-route/schema.json',
-    '--external-beta-tool-route-admission-ref',
-    'signed-url://unsafe/admission.json',
-    '--external-beta-tool-route-authz-ref',
-    'backend-evidence://ai-graphics/external-beta/tool-route/authz.json',
-    '--external-beta-tool-route-rate-limit-ref',
-    'gs://unsafe-public-bucket/rate-limit.json',
-    '--external-beta-tool-route-audit-ref',
-    'https://example.invalid/audit.json',
-    '--external-beta-tool-route-rollback-ref',
-    'private://ai-graphics/external-beta/tool-route/rollback.json',
+    '--external-beta-per-tool-runtime-proof-schema-ref',
+    'private://ai-graphics/external-beta/runtime-proof/schema.json',
+    '--external-beta-runtime-proof-evidence-ref',
+    'signed-url://unsafe/evidence.json',
+    '--external-beta-runtime-proof-telemetry-ref',
+    'https://example.invalid/telemetry.json',
+    '--external-beta-runtime-proof-rollback-ref',
+    'gs://unsafe/rollback.json',
   ]), 'public-blocked')
-  if (publicBlocked.decision !== 'missing_external_beta_tool_route_runtime_proof_controls') {
+  if (publicBlocked.decision !== 'missing_external_beta_per_tool_runtime_proof_controls') {
     fail(`public_blocked_decision:${publicBlocked.decision}`)
   }
-  if (publicBlocked.toolRouteRecordsReadyWithProvidedEvidence !== 0) {
-    fail('public_blocked_records_ready_not_0')
+  if (publicBlocked.runtimeProofAcceptedWithProvidedEvidenceTools !== 0) {
+    fail('public_blocked_records_accepted_not_0')
   }
-  if (!JSON.stringify(publicBlocked.missingToolRouteRuntimeProofControls ?? []).includes('not private')) {
+  if (!JSON.stringify(publicBlocked.missingPerToolRuntimeProofControls ?? []).includes('not private')) {
     fail('public_blocked_missing_not_private_reason')
   }
 } finally {
@@ -476,10 +500,11 @@ for (const pattern of [
   /workerExecutionApprovedNow["'`\s:]*true/i,
   /workerDispatchApprovedNow["'`\s:]*true/i,
   /toolExecutionApprovedNow["'`\s:]*true/i,
+  /gpuRuntimeApprovedNow["'`\s:]*true/i,
+  /gpuRuntimePerformed["'`\s:]*true/i,
   /runtimeReadyNow["'`\s:]*true/i,
   /externalBetaReadyNow["'`\s:]*true/i,
   /productionReadyNow["'`\s:]*true/i,
-  /gpuRuntimePerformed["'`\s:]*true/i,
   /publicArtifactCreated["'`\s:]*true/i,
   /signedUrlCreated["'`\s:]*true/i,
 ]) {
@@ -502,10 +527,8 @@ const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${perToolRuntimeProofScriptName}": "${perToolRuntimeProofScriptCommand}",`,
   `+    "${perToolRuntimeProofDiagnosticScriptName}": "${perToolRuntimeProofDiagnosticScriptCommand}",`,
-  `+    "${routeScriptName}": "${routeScriptCommand}",`,
-  `+    "${routeDiagnosticScriptName}": "${routeDiagnosticScriptCommand}",`,
-  `+    "${toolRouteRuntimeProofScriptName}": "${toolRouteRuntimeProofScriptCommand}",`,
-  `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
+  `+    "${runScriptName}": "${runScriptCommand}",`,
+  `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue
@@ -529,14 +552,12 @@ if (failures.length) {
 console.log(JSON.stringify({
   status: 'passed',
   decision: docs.decision,
-  acceptedDecision: 'external_beta_tool_route_runtime_proof_ready_with_runtime_blocks',
+  acceptedDecision: 'external_beta_per_tool_runtime_proof_ready_with_gpu_blocks',
   toolsCovered: allTools.length,
   capabilitiesCovered: capabilities.length,
-  gpuToolsCovered: gpuTools.length,
-  toolRouteRecordsReadyWithProvidedEvidence: 21,
-  routeExecutionApprovedNow: false,
-  workerDispatchApprovedNow: false,
-  toolExecutionApprovedNow: false,
+  jsRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
+  nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 0,
+  blockedPendingNativeGpuRuntimeProofTools: 8,
   gpuRuntimeShouldStartNow: false,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,

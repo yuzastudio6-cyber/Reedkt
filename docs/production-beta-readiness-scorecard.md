@@ -1237,3 +1237,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: Tool Route runtime proof gate for all 21 AI graphics tools and all 12 product-facing capabilities after the private artifact manifest.
 - Result: the evaluator requires an accepted private artifact manifest plus private/backend refs for Tool Route policy, schema, admission, authorization, rate limiting, audit, and rollback. With those refs, it prepares 21 runtime-proof-only Tool Route records that carry private artifact refs and production worker/runtime metadata. It performs no Tool Route execution, Worker dispatch, storage mutation, or public artifact creation.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `publicArtifactCreated=false`, `signedUrlCreated=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta Per-Tool Runtime Proof
+
+- Decision: `ai_graphics_external_beta_per_tool_runtime_proof_prepared_with_gpu_blocks`.
+- Scope: per-tool runtime proof gate for all 21 AI graphics tools and all 12 product-facing capabilities after Tool Route runtime proof.
+- Result: the evaluator accepts the current Node, browser, and Satori runtime proof packets for 13 JavaScript graphics tools. The 8 GPU/model tools remain blocked pending native linux/amd64 NVIDIA L4 runtime proof results and private model/cache manifests.
+- GPU policy: GPU remains on-demand only. No idle GPU runtime is approved, and the blocked GPU/model tools cannot CPU-fallback into external beta.
+- Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

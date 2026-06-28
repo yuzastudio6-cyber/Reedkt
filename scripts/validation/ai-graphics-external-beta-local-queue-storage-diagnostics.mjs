@@ -11,6 +11,14 @@ const toolRouteRuntimeProofDiagnosticScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
 const toolRouteRuntimeProofDiagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
+const perToolRuntimeProofScriptName =
+  'ai-graphics:external-beta-per-tool-runtime-proof'
+const perToolRuntimeProofScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-per-tool-runtime-proof.ts'
+const perToolRuntimeProofDiagnosticScriptName =
+  'ai-graphics:external-beta-per-tool-runtime-proof:diagnostics'
+const perToolRuntimeProofDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-per-tool-runtime-proof-diagnostics.mjs'
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:external-beta-local-queue-storage'
 const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-local-queue-storage.ts'
@@ -677,6 +685,8 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
+  `+    "${perToolRuntimeProofScriptName}": "${perToolRuntimeProofScriptCommand}",`,
+  `+    "${perToolRuntimeProofDiagnosticScriptName}": "${perToolRuntimeProofDiagnosticScriptCommand}",`,
   `+    "${toolRouteRuntimeProofScriptName}": "${toolRouteRuntimeProofScriptCommand}",`,
   `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
   `+    "${runScriptName}": "${runScriptCommand}",`,

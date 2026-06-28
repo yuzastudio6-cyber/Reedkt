@@ -27,6 +27,14 @@ const toolRouteRuntimeProofDiagnosticScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
 const toolRouteRuntimeProofDiagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
+const perToolRuntimeProofScriptName =
+  'ai-graphics:external-beta-per-tool-runtime-proof'
+const perToolRuntimeProofScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-per-tool-runtime-proof.ts'
+const perToolRuntimeProofDiagnosticScriptName =
+  'ai-graphics:external-beta-per-tool-runtime-proof:diagnostics'
+const perToolRuntimeProofDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-per-tool-runtime-proof-diagnostics.mjs'
 const sourceSmokeScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke'
 
 const allTools = [
@@ -413,6 +421,8 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 }
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
+  `+    "${perToolRuntimeProofScriptName}": "${perToolRuntimeProofScriptCommand}",`,
+  `+    "${perToolRuntimeProofDiagnosticScriptName}": "${perToolRuntimeProofDiagnosticScriptCommand}",`,
   `+    "${proofScriptName}": "${proofScriptCommand}",`,
   `+    "${proofDiagnosticScriptName}": "${proofDiagnosticScriptCommand}",`,
   `+    "${privateArtifactManifestScriptName}": "${privateArtifactManifestScriptCommand}",`,

@@ -169,5 +169,5 @@
     "publicArtifactCreated": false,
     "signedUrlCreated": false
   },
-  "nextExternalBetaGap": "Feed accepted Tool Route runtime proof into per-tool runtime execution proof, Worker runtime proof, cost/rollback, QA, and external-beta readiness gates. Agent tool execution remains blocked until those gates pass."
+  "nextExternalBetaGap": "Feed accepted Tool Route runtime proof into per-tool runtime proof. That gate can accept the 13 JavaScript runtime proofs and must keep the 8 GPU/model tools blocked until native linux/amd64 NVIDIA L4 runtime proof and private model manifests pass. Agent tool execution remains blocked until Worker, cost/rollback, QA, and external-beta gates pass."
 }

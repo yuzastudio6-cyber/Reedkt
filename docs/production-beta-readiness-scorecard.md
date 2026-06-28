@@ -1206,3 +1206,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: the gate can prepare 21 worker dispatch readiness records and 12 capability scenarios from an accepted queue-smoke proof plus worker lease, dispatch, idempotency, telemetry, private artifact, and GPU on-demand policy refs. It creates no live leases and performs no worker dispatch.
 - GPU policy: all eight GPU/model tools remain native NVIDIA L4 targeted. GPU can be marked start-allowed only for accepted future worker jobs, while `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `workerDispatchPerformed=false`, and `toolExecutionPerformed=false` remain enforced.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `workerLeaseCreationApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta Worker Dispatch Smoke
+
+- Decision: `ai_graphics_external_beta_worker_dispatch_smoke_prepared_with_runtime_blocks`.
+- Scope: controlled mock dispatcher smoke for all 21 AI graphics tools and all 12 product-facing capabilities after worker dispatch readiness is accepted.
+- Result: the accepted-path smoke uses the production worker dispatcher in dry-run metadata handoff mode, creates and releases in-memory leases for 21 tools, records dispatcher events, keeps routes `mockOnly=true`, and leaves tool runs, artifacts, and quality-gate records empty.
+- GPU policy: the eight GPU/model tools remain GPU-targeted but `gpuRuntimeShouldStartNow=false`; no idle GPU runtime is approved and no GPU starts without a later accepted worker job plus native runtime proof.
+- Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

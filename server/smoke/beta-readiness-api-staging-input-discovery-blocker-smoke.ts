@@ -11,6 +11,8 @@ const workflowReadyJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2
 const workflowReadyMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-workflow-ready.md'
 const ownerRemediationPermissionBlockerJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-permission-blocker.json'
 const ownerRemediationPermissionBlockerMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-permission-blocker.md'
+const ownerRemediationPartialResultsBlockerJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-partial-results-blocker.json'
+const ownerRemediationPartialResultsBlockerMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-partial-results-blocker.md'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const report = JSON.parse(readFileSync(jsonPath, 'utf8')) as {
@@ -171,6 +173,32 @@ const ownerRemediationPermissionBlockerReport = JSON.parse(readFileSync(ownerRem
   }
 }
 const ownerRemediationPermissionBlockerMarkdown = readFileSync(ownerRemediationPermissionBlockerMarkdownPath, 'utf8')
+const ownerRemediationPartialResultsBlockerReport = JSON.parse(readFileSync(ownerRemediationPartialResultsBlockerJsonPath, 'utf8')) as {
+  decision: string
+  workflowImprovements: Array<{ pr: number; mergeSha: string }>
+  latestRun: {
+    runId: number
+    headSha: string
+    conclusion: string
+    failedStep: string
+  }
+  prerequisiteResults: Array<{ id: string; status: string; permission?: string; reason: string }>
+  verificationResults: Array<{ id: string; status: string; permission?: string; reason: string }>
+  blockedAction: string
+  notABlanketBlocker: boolean
+  safeForwardProgress: string[]
+  blockedScopes: string[]
+  productReadyLocalOssCount: number
+  externalBetaEnabled: boolean
+  productionEnabled: boolean
+  supabase: {
+    write: string
+    environment: string
+    sql: string
+    migration: string
+  }
+}
+const ownerRemediationPartialResultsBlockerMarkdown = readFileSync(ownerRemediationPartialResultsBlockerMarkdownPath, 'utf8')
 
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-api-staging-input-discovery-blocker'],
@@ -373,6 +401,53 @@ assert.ok(ownerRemediationPermissionBlockerMarkdown.includes('Product-ready loca
 assert.equal(JSON.stringify(ownerRemediationPermissionBlockerReport).includes('gha-creds'), false, 'owner remediation blocker report must not include credential-file paths')
 assert.equal(JSON.stringify(ownerRemediationPermissionBlockerReport).includes('SERVICE_ROLE_KEY'), false, 'owner remediation blocker report must not include secret values')
 
+assert.equal(ownerRemediationPartialResultsBlockerReport.decision, 'beta_readiness_api_staging_owner_remediation_blocked_by_owner_privilege_required')
+assert.deepEqual(ownerRemediationPartialResultsBlockerReport.workflowImprovements.map((item) => item.pr), [1386, 1388])
+assert.equal(ownerRemediationPartialResultsBlockerReport.latestRun.runId, 28310853041)
+assert.equal(ownerRemediationPartialResultsBlockerReport.latestRun.headSha, '8a6c5764dabb8a048483895bd29eba265a53b3b7')
+assert.equal(ownerRemediationPartialResultsBlockerReport.latestRun.conclusion, 'failure')
+assert.equal(ownerRemediationPartialResultsBlockerReport.latestRun.failedStep, 'Verify exact staging API owner remediation inputs')
+assert.deepEqual(ownerRemediationPartialResultsBlockerReport.prerequisiteResults.map((result) => result.id), [
+  'artifact_registry_writer_binding',
+  'runtime_service_account_create',
+  'deployer_act_as_runtime_binding',
+  'cloud_run_admin_binding',
+  'runtime_secret_accessor_bindings',
+])
+assert.ok(ownerRemediationPartialResultsBlockerReport.prerequisiteResults.every((result) => result.status === 'failure'))
+assert.ok(ownerRemediationPartialResultsBlockerReport.prerequisiteResults.some((result) => result.permission === 'artifactregistry.repositories.getIamPolicy'))
+assert.ok(ownerRemediationPartialResultsBlockerReport.prerequisiteResults.some((result) => result.permission === 'iam.serviceAccounts.create'))
+assert.ok(ownerRemediationPartialResultsBlockerReport.prerequisiteResults.some((result) => result.permission === 'secretmanager.secrets.getIamPolicy'))
+assert.ok(ownerRemediationPartialResultsBlockerReport.prerequisiteResults.some((result) => result.reason === 'NOT_FOUND'))
+assert.deepEqual(ownerRemediationPartialResultsBlockerReport.verificationResults.map((result) => result.id), [
+  'artifact_registry_repository_describe',
+  'runtime_service_account_describe',
+])
+assert.ok(ownerRemediationPartialResultsBlockerReport.verificationResults.some((result) => result.permission === 'artifactregistry.repositories.get'))
+assert.ok(ownerRemediationPartialResultsBlockerReport.verificationResults.some((result) => result.reason === 'NOT_FOUND'))
+assert.equal(ownerRemediationPartialResultsBlockerReport.blockedAction, 'staging_api_deploy_until_higher_privilege_owner_applies_exact_iam_and_runtime_account_prerequisites')
+assert.equal(ownerRemediationPartialResultsBlockerReport.notABlanketBlocker, true)
+assert.ok(ownerRemediationPartialResultsBlockerReport.safeForwardProgress.includes('higher_privilege_owner_applies_exact_staging_repository_iam_binding'))
+assert.ok(ownerRemediationPartialResultsBlockerReport.safeForwardProgress.includes('rerun_exact_input_validation_after_owner_side_remediation'))
+assert.ok(ownerRemediationPartialResultsBlockerReport.blockedScopes.includes('cloud_run_deploy_not_run'))
+assert.ok(ownerRemediationPartialResultsBlockerReport.blockedScopes.includes('runtime_service_account_not_available'))
+assert.ok(ownerRemediationPartialResultsBlockerReport.blockedScopes.includes('external_beta_not_enabled'))
+assert.equal(ownerRemediationPartialResultsBlockerReport.productReadyLocalOssCount, 0)
+assert.equal(ownerRemediationPartialResultsBlockerReport.externalBetaEnabled, false)
+assert.equal(ownerRemediationPartialResultsBlockerReport.productionEnabled, false)
+assert.deepEqual(ownerRemediationPartialResultsBlockerReport.supabase, {
+  write: 'no write',
+  environment: 'none',
+  sql: 'none',
+  migration: 'no',
+})
+assert.ok(ownerRemediationPartialResultsBlockerMarkdown.includes('higher-privilege owner'))
+assert.ok(ownerRemediationPartialResultsBlockerMarkdown.includes('artifactregistry.repositories.getIamPolicy'))
+assert.ok(ownerRemediationPartialResultsBlockerMarkdown.includes('iam.serviceAccounts.create'))
+assert.ok(ownerRemediationPartialResultsBlockerMarkdown.includes('secretmanager.secrets.getIamPolicy'))
+assert.equal(JSON.stringify(ownerRemediationPartialResultsBlockerReport).includes('gha-creds'), false, 'partial remediation report must not include credential-file paths')
+assert.equal(JSON.stringify(ownerRemediationPartialResultsBlockerReport).includes('SERVICE_ROLE_KEY'), false, 'partial remediation report must not include secret values')
+
 console.log(JSON.stringify({
   ok: true,
   decisions: [
@@ -381,16 +456,20 @@ console.log(JSON.stringify({
     remediationReport.decision,
     workflowReadyReport.decision,
     ownerRemediationPermissionBlockerReport.decision,
+    ownerRemediationPartialResultsBlockerReport.decision,
   ],
   runId: report.defaultBranchWorkflow.latestRun.runId,
   exactRunId: exactReport.defaultBranchWorkflow.latestRun.runId,
   ownerRemediationRunId: ownerRemediationPermissionBlockerReport.defaultBranchWorkflow.latestRun.runId,
+  ownerRemediationPartialRunId: ownerRemediationPartialResultsBlockerReport.latestRun.runId,
   probeFailures: report.readOnlyPreflight.probeFailures,
   exactProbeFailures: exactReport.readOnlyPreflight.probeFailures,
   ownerRemediationPermissionDenied: ownerRemediationPermissionBlockerReport.observedResult.permissionDenied,
+  ownerRemediationPrerequisites: ownerRemediationPartialResultsBlockerReport.prerequisiteResults.map((result) => `${result.id}:${result.status}`),
   blockedAction: report.blockedAction,
   exactBlockedAction: exactReport.blockedAction,
   ownerRemediationBlockedAction: ownerRemediationPermissionBlockerReport.blockedAction,
+  ownerRemediationPartialBlockedAction: ownerRemediationPartialResultsBlockerReport.blockedAction,
   ownerActions: remediationReport.requiredOwnerActions.map((action) => action.id),
   ownerWorkflow: workflowReadyReport.defaultBranchWorkflow.path,
 }, null, 2))

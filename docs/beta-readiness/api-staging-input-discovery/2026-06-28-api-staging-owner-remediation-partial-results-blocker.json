@@ -1,0 +1,122 @@
+{
+  "reportId": "beta-readiness-api-staging-owner-remediation-partial-results-blocker-2026-06-28",
+  "decision": "beta_readiness_api_staging_owner_remediation_blocked_by_owner_privilege_required",
+  "sourceSha": "9e896af764e4fb2630696d795fca91c200a1a0f9",
+  "workflowImprovements": [
+    {
+      "pr": 1386,
+      "mergeSha": "64aefc77eb121a356629d9953f92e6bfbbac92fb",
+      "purpose": "attempt independent IAM/service-account prerequisites and report partial results while failing closed"
+    },
+    {
+      "pr": 1388,
+      "mergeSha": "8a6c5764dabb8a048483895bd29eba265a53b3b7",
+      "purpose": "sanitize exact verification gcloud failure output"
+    }
+  ],
+  "latestRun": {
+    "runId": 28310853041,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28310853041",
+    "headSha": "8a6c5764dabb8a048483895bd29eba265a53b3b7",
+    "conclusion": "failure",
+    "createdAt": "2026-06-28T04:06:01Z",
+    "failedJob": "Apply exact staging API owner remediation",
+    "failedStep": "Verify exact staging API owner remediation inputs"
+  },
+  "lockedInputs": {
+    "projectId": "reeditpro",
+    "region": "us-east1",
+    "artifactRegion": "us-central1",
+    "artifactRepository": "reeditpro-staging-workers",
+    "deployerServiceAccount": "sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com",
+    "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+    "serviceName": "reeditpro-api-staging"
+  },
+  "prerequisiteResults": [
+    {
+      "id": "artifact_registry_writer_binding",
+      "status": "failure",
+      "permission": "artifactregistry.repositories.getIamPolicy",
+      "resource": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers",
+      "reason": "IAM_PERMISSION_DENIED",
+      "ownerAction": "repository IAM admin or higher-privilege owner grants roles/artifactregistry.writer to the deployer on the exact staging repository"
+    },
+    {
+      "id": "runtime_service_account_create",
+      "status": "failure",
+      "permission": "iam.serviceAccounts.create",
+      "resource": "projects/reeditpro",
+      "reason": "IAM_PERMISSION_DENIED",
+      "ownerAction": "project IAM admin or higher-privilege owner creates reeditpro-api-staging@reeditpro.iam.gserviceaccount.com or selects an approved existing runtime account"
+    },
+    {
+      "id": "deployer_act_as_runtime_binding",
+      "status": "failure",
+      "reason": "NOT_FOUND",
+      "resource": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+      "ownerAction": "after the runtime account exists, grant the deployer roles/iam.serviceAccountUser on that account"
+    },
+    {
+      "id": "cloud_run_admin_binding",
+      "status": "failure",
+      "permission": "resourcemanager.projects.getIamPolicy",
+      "resource": "projects/reeditpro",
+      "reason": "IAM_PERMISSION_DENIED",
+      "ownerAction": "project IAM admin or higher-privilege owner grants the deployer the approved Cloud Run deploy role"
+    },
+    {
+      "id": "runtime_secret_accessor_bindings",
+      "status": "failure",
+      "permission": "secretmanager.secrets.getIamPolicy",
+      "resource": "fixed staging API Secret Manager entries",
+      "reason": "IAM_PERMISSION_DENIED",
+      "ownerAction": "secret admin or higher-privilege owner grants the staging runtime service account secret accessor on only the fixed staging API secret entries"
+    }
+  ],
+  "verificationResults": [
+    {
+      "id": "artifact_registry_repository_describe",
+      "status": "failure",
+      "permission": "artifactregistry.repositories.get",
+      "resource": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers",
+      "reason": "IAM_PERMISSION_DENIED"
+    },
+    {
+      "id": "runtime_service_account_describe",
+      "status": "failure",
+      "resource": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+      "reason": "NOT_FOUND"
+    }
+  ],
+  "blockedAction": "staging_api_deploy_until_higher_privilege_owner_applies_exact_iam_and_runtime_account_prerequisites",
+  "notABlanketBlocker": true,
+  "safeForwardProgress": [
+    "higher_privilege_owner_applies_exact_staging_repository_iam_binding",
+    "higher_privilege_owner_creates_or_selects_exact_staging_runtime_service_account",
+    "higher_privilege_owner_applies_exact_deployer_act_as_runtime_binding",
+    "higher_privilege_owner_applies_exact_cloud_run_deploy_permission",
+    "higher_privilege_owner_applies_exact_runtime_secret_accessor_bindings",
+    "rerun_exact_input_validation_after_owner_side_remediation"
+  ],
+  "blockedScopes": [
+    "cloud_run_deploy_not_run",
+    "docker_build_not_run",
+    "artifact_registry_push_not_run",
+    "runtime_service_account_not_available",
+    "artifact_registry_writer_not_granted",
+    "run_admin_not_granted",
+    "runtime_secret_accessor_not_granted",
+    "evidence_collectors_not_run",
+    "external_beta_not_enabled",
+    "paid_production_not_enabled"
+  ],
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "productionEnabled": false
+}

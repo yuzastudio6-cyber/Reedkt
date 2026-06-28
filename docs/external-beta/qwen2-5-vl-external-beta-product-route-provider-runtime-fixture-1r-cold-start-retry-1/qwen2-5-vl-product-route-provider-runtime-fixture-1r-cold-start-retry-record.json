@@ -1,0 +1,64 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R_COLD_START_RETRY_1",
+  "decision": "completed_qwen2_5_vl_product_route_provider_runtime_fixture_after_cold_start_retry",
+  "execution": "completed_confirmed_product_route_provider_runtime_fixture_after_cold_start_retry",
+  "base": "e2b8a5d08a8f80de24477be6c811d5f072a3dcd7",
+  "sourceEvidence": {
+    "confirmedBlockerPr": 1394,
+    "backendJobHandoffPr": 1380,
+    "excludedRemotionPr": 577
+  },
+  "runtime": {
+    "coldStartRetryRunId": "qwen25-product-route-provider-runtime-fixture-cold-start-retry-1-2026-06-28T04-59-27-073Z-f334595a",
+    "productRouteRunId": "qwen25-product-route-provider-runtime-fixture-1r-2026-06-28T04-59-27-133Z-37e1aba2",
+    "adapterRunId": "qwen25-adapter-runtime-fixture-2026-06-28T04-59-27-623Z-37144e9c",
+    "cloudRunExecution": "reeditpro-qwen2-5-vl-private-caller-8rnk9",
+    "httpStatus": 200,
+    "serviceReason": "qwen_fixture_inference_smoke_completed",
+    "structuredMetadataOutputAccepted": true,
+    "runtimeContractExecutesNow": true,
+    "modelInferenceEnabled": true,
+    "inferenceRun": true,
+    "metadata": {
+      "schemaVersion": "qwen_fixture_visual_metadata_v1",
+      "schemaValid": true,
+      "objectCount": 3,
+      "textLikeRegionCount": 1,
+      "spatialRelationCount": 2,
+      "blockedActionCount": 4,
+      "rawOutputStoredInRepo": false,
+      "normalizedMetadataSha256": "f18b566fa1936ec68cf36dfd3c8fa5145ee22e0bc7a06ea9ca8930f50c2bd1d4"
+    },
+    "retryPolicy": {
+      "adapterMaxAttempts": 2,
+      "coldStartWaitSeconds": 300,
+      "attemptsUsed": 1,
+      "retryableHttpStatuses": [502]
+    },
+    "failClosedRestorePassed": true
+  },
+  "safety": {
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "frontendProviderCall": false,
+    "rawPromptExecution": false,
+    "arbitraryPrivateMediaProcessing": false,
+    "arbitraryUserMediaProcessing": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "generatedAssetCreation": false,
+    "workerDispatchFromProductRoute": false,
+    "creditMutation": false,
+    "stripeProcessing": false,
+    "externalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "RP-EXTERNAL-BETA-QWEN2_5_VL_PRODUCT_ROUTE_RUNTIME_READINESS_ROLLUP_1"
+}

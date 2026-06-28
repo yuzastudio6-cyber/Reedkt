@@ -53,6 +53,15 @@ const requiredText = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-runtime-persistence-local-harness-validation-retry-12-diagnostics.mjs')
+allowedChangedFiles.add('docs/activation-phase-rp-external-beta-qwen-runtime-persistence-staging-migration-validation-1-results.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-staging-migration-validation-1/source-audit.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-staging-migration-validation-1/remote-migration-history-readback.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-staging-migration-validation-1/staging-validation-result.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-staging-migration-validation-1/validation-results.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-staging-migration-validation-1/safety-boundary.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-staging-migration-validation-1/qwen-runtime-persistence-staging-migration-validation-record.json')
+allowedChangedFiles.add('docs/implementation-prompts/prompt-rp-external-beta-staging-migration-history-source-alignment-1.md')
+allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-runtime-persistence-staging-migration-validation-1-diagnostics.mjs')
 
 const blockedPrefixes = [
   'package-lock.json',

@@ -1,0 +1,64 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-MIGRATION-VALIDATION-1",
+  "decision": "blocked_remote_staging_migration_history_requires_source_alignment_before_qwen_apply",
+  "execution": "completed_guarded_staging_migration_dry_run_no_migration_apply",
+  "integrationBase": "e98796027c7067ad7a765fdafd8bf5d12a6b164a",
+  "activeMigrationPromotionPr": 1490,
+  "excludedPr": 577,
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging",
+    "class": "non_production_staging"
+  },
+  "activeMigrationSource": "supabase/migrations/20260628000100_qwen2_5_vl_backend_runtime_persistence.sql",
+  "remoteReadback": {
+    "migrationList": "passed",
+    "dryRun": "blocked_remote_only_versions_present",
+    "readOnlySchemaMigrationsSql": "passed",
+    "localPendingMigration": "20260628000100",
+    "remoteOnlyMigrations": [
+      {
+        "version": "202606270001",
+        "name": "tool_cost_metering_events",
+        "statementCount": 12,
+        "statementsMd5": "71e9214a04a1726aafae6aea3a9f4a1b"
+      },
+      {
+        "version": "202606270002",
+        "name": "beta_readiness_evidence_packets",
+        "statementCount": 9,
+        "statementsMd5": "9d83b4b38dfe2b15521c59474c6fba7c"
+      },
+      {
+        "version": "202606270003",
+        "name": "tool_cost_wallet_settlement_rpc",
+        "statementCount": 10,
+        "statementsMd5": "47998b2f5e92887527f4800973fc6803"
+      }
+    ]
+  },
+  "blocker": "remote_staging_migration_history_has_uncommitted_source_versions",
+  "safety": {
+    "secretManagerPayloadAccess": "ephemeral_db_url_and_supabase_pat_only_not_printed_or_persisted",
+    "remoteSupabaseCommandExecution": "read_only_and_dry_run_only",
+    "remoteSqlExecution": "read_only_migration_history_inspection_only",
+    "remoteSupabaseMutation": false,
+    "remoteMigrationApply": false,
+    "migrationHistoryRepairEdit": false,
+    "providerModelCalls": false,
+    "qwenRuntimeExecution": false,
+    "workerDispatch": false,
+    "routeExecution": false,
+    "cloudRunInvocation": false,
+    "mediaProcessing": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "broadExternalBetaUnlock": false,
+    "productionFinalExportUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "RP-EXTERNAL-BETA-STAGING-MIGRATION-HISTORY-SOURCE-ALIGNMENT-1"
+}

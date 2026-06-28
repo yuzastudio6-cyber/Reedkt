@@ -21,6 +21,21 @@ const requiredFiles = [
   'package.json',
 ]
 
+const followOnFeedbackSourceCapture1Files = [
+  'docs/external-beta/single-tester-feedback-source-capture-1/source-audit.md',
+  'docs/external-beta/single-tester-feedback-source-capture-1/feedback-source.md',
+  'docs/external-beta/single-tester-feedback-source-capture-1/triage-routing.md',
+  'docs/external-beta/single-tester-feedback-source-capture-1/safety-boundary.md',
+  'docs/external-beta/single-tester-feedback-source-capture-1/readiness-gate.md',
+  'docs/external-beta/single-tester-feedback-source-capture-1/validation-results.md',
+  'docs/external-beta/single-tester-feedback-source-capture-1/single-tester-feedback-source-capture-record.json',
+  'docs/activation-phase-rp-external-beta-single-tester-feedback-source-capture-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-live-feedback-triage-1r.md',
+  'scripts/validation/rp-external-beta-single-tester-feedback-source-capture-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-single-tester-live-feedback-triage-1-diagnostics.mjs',
+  'package.json',
+]
+
 const relatedSourceFiles = [
   'docs/external-beta/controlled-single-tester-go-no-go-1/controlled-single-tester-go-no-go-record.json',
   'docs/external-beta/single-tester-active-lane-closure-1/single-tester-active-lane-closure-record.json',
@@ -51,7 +66,7 @@ const requiredText = [
   'Generated artifacts committed: `none`',
 ]
 
-const allowedChangedFiles = new Set(requiredFiles)
+const allowedChangedFiles = new Set([...requiredFiles, ...followOnFeedbackSourceCapture1Files])
 
 const blockedPrefixes = [
   'package-lock.json',

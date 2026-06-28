@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 
 const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-27-local-accepted-evidence-bundle.json'
-const DEFAULT_CURRENT_SOURCE_SHA = 'ffb1dc81325f24d37a0753783264052fe69ca0ee'
 const DEFAULT_SOURCE_ID = 'beta-tools-local-accepted-evidence-after-libass-snapshot'
 
 export interface BetaReadinessDeployedEvidenceInputManifestEnv extends Record<string, string | undefined> {}
@@ -25,7 +24,7 @@ export interface BetaReadinessDeployedEvidenceInputManifest {
   sourceTruth: {
     localAcceptedEvidenceSnapshotPath: string
     localAcceptedEvidenceSourceSha: string
-    currentSourceSha: string
+    currentSourceSha?: string
     currentSourceDerivedFromSnapshot: boolean
     locallyAcceptedToolCount: number
     locallyAcceptedToolIds: string[]
@@ -39,6 +38,7 @@ export interface BetaReadinessDeployedEvidenceInputManifest {
     requiredProductReadyLocalOssCount: number
     platformEnvironment: 'staging'
     externalBetaReadyRequired: true
+    deployedEvidenceSourceShaRequired: true
   }
   requiredInputs: DeployedEvidenceInputRecord[]
   pendingRequiredInputs: string[]
@@ -74,7 +74,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
   options: { snapshotPath?: string; currentSourceSha?: string } = {},
 ): BetaReadinessDeployedEvidenceInputManifest {
   const snapshotPath = options.snapshotPath ?? DEFAULT_SNAPSHOT_PATH
-  const currentSourceSha = clean(options.currentSourceSha) ?? clean(env.REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA) ?? DEFAULT_CURRENT_SOURCE_SHA
+  const currentSourceSha = clean(options.currentSourceSha) ?? clean(env.REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA)
   const snapshot = loadSnapshot(snapshotPath)
   const localAcceptedEvidenceSourceSha = required(snapshot.sourceSha, 'snapshot.sourceSha')
   const locallyAcceptedToolIds = requiredArray(snapshot.locallyAcceptedToolIds, 'snapshot.locallyAcceptedToolIds')
@@ -137,7 +137,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
       localAcceptedEvidenceSnapshotPath: snapshotPath,
       localAcceptedEvidenceSourceSha,
       currentSourceSha,
-      currentSourceDerivedFromSnapshot: currentSourceSha !== localAcceptedEvidenceSourceSha,
+      currentSourceDerivedFromSnapshot: Boolean(currentSourceSha && currentSourceSha !== localAcceptedEvidenceSourceSha),
       locallyAcceptedToolCount: requiredProductReadyLocalOssCount,
       locallyAcceptedToolIds,
       coreToolIds,
@@ -150,6 +150,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
       requiredProductReadyLocalOssCount,
       platformEnvironment: 'staging',
       externalBetaReadyRequired: true,
+      deployedEvidenceSourceShaRequired: true,
     },
     requiredInputs,
     pendingRequiredInputs,
@@ -179,7 +180,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
 function buildRequiredInputs(
   env: BetaReadinessDeployedEvidenceInputManifestEnv,
   fixed: {
-    currentSourceSha: string
+    currentSourceSha?: string
     coreToolIdsCsv: string
     libassContainerImage: string
     requiredProductReadyLocalOssCount: string
@@ -190,6 +191,7 @@ function buildRequiredInputs(
     input(env, 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN', 'shared', true, 'external_beta_evidence_sequence'),
     input(env, 'REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID', 'shared', false, 'external_beta_evidence_sequence'),
     input(env, 'REEDITPRO_BETA_EXTERNAL_PROJECT_ID', 'shared', false, 'external_beta_evidence_sequence'),
+    input(env, 'REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA', 'shared', false, 'external_beta_evidence_sequence'),
     input(env, 'REEDITPRO_BETA_EXTERNAL_SOURCE_SHA', 'shared', false, 'external_beta_evidence_sequence', fixed.currentSourceSha),
     input(env, 'REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE', 'shared', false, 'external_beta_evidence_sequence', 'true'),
     input(env, 'REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY', 'shared', false, 'external_beta_evidence_sequence', 'true'),
@@ -251,18 +253,20 @@ function buildRequiredInputs(
 function buildValueGaps(
   env: BetaReadinessDeployedEvidenceInputManifestEnv,
   fixed: {
-    currentSourceSha: string
+    currentSourceSha?: string
     coreToolIds: string[]
     libassContainerImage: string
     requiredProductReadyLocalOssCount: number
   },
 ): string[] {
   const gaps: string[] = []
-  requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_EXTERNAL_SOURCE_SHA', fixed.currentSourceSha)
-  requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA', fixed.currentSourceSha)
-  requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_PLATFORM_SOURCE_SHA', fixed.currentSourceSha)
-  requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_LAUNCH_SOURCE_SHA', fixed.currentSourceSha)
-  requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_STATUS_SOURCE_SHA', fixed.currentSourceSha)
+  if (fixed.currentSourceSha) {
+    requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_EXTERNAL_SOURCE_SHA', fixed.currentSourceSha)
+    requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA', fixed.currentSourceSha)
+    requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_PLATFORM_SOURCE_SHA', fixed.currentSourceSha)
+    requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_LAUNCH_SOURCE_SHA', fixed.currentSourceSha)
+    requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_STATUS_SOURCE_SHA', fixed.currentSourceSha)
+  }
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE', 'docker')
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE', fixed.libassContainerImage)
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_PLATFORM_ENVIRONMENT', 'staging')

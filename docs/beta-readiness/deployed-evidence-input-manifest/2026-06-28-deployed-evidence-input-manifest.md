@@ -2,13 +2,14 @@
 
 Decision: `beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs`
 
-This packet converts the local accepted evidence snapshot into the exact deployed-evidence input contract for the next beta tools gate. It is source-traceable to `codex/sound-music-audio-1abc-checkpoint` at `ffb1dc81325f24d37a0753783264052fe69ca0ee`.
+This packet converts the local accepted evidence snapshot into the exact deployed-evidence input contract for the next beta tools gate. The deployed source SHA is intentionally operator-supplied at run time with `REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA`; it must match the staging release being evidenced.
 
-The local accepted snapshot remains `docs/beta-readiness/local-accepted-evidence-bundle/2026-06-27-local-accepted-evidence-bundle.json`, captured at `5bc6abf0ef238d8038ea0b95877ca06dd73738fc`. The later `ffb1dc81325f24d37a0753783264052fe69ca0ee` source only adds source-truth metadata and smoke coverage; it does not change the accepted local tool behavior.
+The local accepted snapshot remains `docs/beta-readiness/local-accepted-evidence-bundle/2026-06-27-local-accepted-evidence-bundle.json`, captured at `5bc6abf0ef238d8038ea0b95877ca06dd73738fc`. Later source-truth PRs add metadata and smoke coverage; they do not change the accepted local tool behavior. The evidence collector must use the actual deployed source SHA for the release under test.
 
 ## Fixed Inputs
 
-- `REEDITPRO_BETA_EXTERNAL_SOURCE_SHA=ffb1dc81325f24d37a0753783264052fe69ca0ee`
+- `REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA=<current deployed staging source SHA>`
+- `REEDITPRO_BETA_EXTERNAL_SOURCE_SHA=<same value as REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA>`
 - `REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE=true`
 - `REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY=true`
 - `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS=ffmpeg,ffprobe,pyav,opentimelineio,hyperframe,remotion,sharp,duckdb,polars,pyscenedetect,opencv,opencolorio,openimageio`

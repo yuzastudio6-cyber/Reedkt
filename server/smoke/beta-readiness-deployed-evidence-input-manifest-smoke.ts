@@ -4,7 +4,7 @@ import {
   type BetaReadinessDeployedEvidenceInputManifestEnv,
 } from '../cli/beta-readiness-deployed-evidence-input-manifest'
 
-const expectedCurrentSourceSha = 'ffb1dc81325f24d37a0753783264052fe69ca0ee'
+const expectedCurrentSourceSha = '716fa8ee0ab94c6f43361b73faa6af1bc2674beb'
 const expectedCoreToolIds = [
   'ffmpeg',
   'ffprobe',
@@ -27,7 +27,7 @@ assert.equal(emptyManifest.ok, true)
 assert.equal(emptyManifest.readyToRunExternalBetaEvidenceCollector, false, 'empty env should not be ready to run deployed evidence')
 assert.equal(emptyManifest.decision, 'beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs')
 assert.equal(emptyManifest.sourceTruth.locallyAcceptedToolCount, 14)
-assert.equal(emptyManifest.sourceTruth.currentSourceSha, expectedCurrentSourceSha)
+assert.equal(emptyManifest.sourceTruth.currentSourceSha, undefined)
 assert.equal(emptyManifest.sourceTruth.localAcceptedEvidenceSourceSha, '5bc6abf0ef238d8038ea0b95877ca06dd73738fc')
 assert.deepEqual([...emptyManifest.sourceTruth.coreToolIds].sort(), [...expectedCoreToolIds].sort())
 assert.deepEqual(emptyManifest.sourceTruth.libassToolIds, ['libass'])
@@ -38,6 +38,7 @@ assert.equal(emptyManifest.fixedInputs.platformEnvironment, 'staging')
 assert.equal(emptyManifest.fixedInputs.externalBetaReadyRequired, true)
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERNAL_API_BASE_URL'))
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'))
+assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA'))
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY'))
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_PLATFORM_WALLET_SETTLEMENT_EVENT_ID'))
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'))
@@ -50,6 +51,7 @@ const readyEnv: BetaReadinessDeployedEvidenceInputManifestEnv = {
   REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN: 'secret-token-not-reported',
   REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID: 'workspace-deployed-evidence-input-manifest-smoke',
   REEDITPRO_BETA_EXTERNAL_PROJECT_ID: 'project-deployed-evidence-input-manifest-smoke',
+  REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA: expectedCurrentSourceSha,
   REEDITPRO_BETA_EXTERNAL_SOURCE_SHA: expectedCurrentSourceSha,
   REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE: 'true',
   REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY: 'true',

@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
+import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 
 const perToolRuntimeProofScriptName =
   'ai-graphics:external-beta-per-tool-runtime-proof'
@@ -190,6 +192,29 @@ function writeJson(filePath, value) {
   return filePath
 }
 
+function acceptedChecksumEvidenceFixture() {
+  return {
+    decision: 'ai_graphics_model_weight_checksum_evidence_prepared_with_no_private_records',
+    totalAiGraphicsTools: 21,
+    modelWeightChecksumEvidenceRequiredTools: [
+      'sam2',
+      'birefnet',
+      'real_esrgan',
+      'rembg',
+      'transparent_background',
+    ],
+    checksumEvidenceRecordsProvided: 5,
+    checksumEvidenceRecordsAccepted: 5,
+    manifestAuthoringEligibleRecords: 5,
+    privateArtifactRefsLogged: 0,
+    betaReadyModelWeightTools: 0,
+    booleans: {
+      all5ModelWeightToolsCovered: true,
+      privateArtifactRefsNotLogged: true,
+    },
+  }
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-external-beta-per-tool-runtime-proof.ts',
   'server/cli/ai-graphics-external-beta-per-tool-runtime-proof.ts',
@@ -198,6 +223,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json',
   'docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.md',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-collection.json',
   'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
   'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
   'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
@@ -248,6 +274,7 @@ for (const [key, expected] of Object.entries({
 }
 for (const [key, expected] of Object.entries({
   sourceToolRouteRuntimeProofAccepted: true,
+  sourceExternalBetaNativeGpuProofCollectionAcceptedForRecheck: true,
   runtimeProofRecordsPrepared: 21,
   runtimeProofAcceptedWithProvidedEvidenceTools: 13,
   jsRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
@@ -256,6 +283,9 @@ for (const [key, expected] of Object.entries({
   nativeGpuRuntimeProofRequiredForGpuTools: true,
   gpuRuntimeOnDemandOnly: true,
   noIdleGpuRuntimeApproved: true,
+  readyAfterNativeGpuCollectionRuntimeProofAcceptedWithProvidedEvidenceTools: 21,
+  readyAfterNativeGpuCollectionNativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 8,
+  readyAfterNativeGpuCollectionBlockedPendingNativeGpuRuntimeProofTools: 0,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
 })) {
@@ -278,11 +308,31 @@ for (const key of [
   if (docs.booleans?.[key] !== true) fail(`docs_required_true_not_true:${key}`)
 }
 for (const key of [
+  'sourceExternalBetaNativeGpuProofCollectionAccepted',
   'all8NativeGpuRuntimeProofsAccepted',
   'nativeGpuRuntimeProofResultsAcceptedForOwnerReview',
   ...falseGateKeys,
 ]) {
   if (docs.booleans?.[key] !== false) fail(`docs_required_false_not_false:${key}`)
+}
+
+if (!docs.runtimeProofGate?.requiredInputFlags?.includes('--external-beta-native-gpu-proof-collection-packet')) {
+  fail('docs_runtime_gate_missing_native_gpu_collection_flag')
+}
+for (const [key, expected] of Object.entries({
+  sourcePacketFlag: '--external-beta-native-gpu-proof-collection-packet',
+  sourceCollectionDecision: 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready',
+  acceptedDecision: 'external_beta_per_tool_runtime_proof_ready_with_runtime_blocks',
+  runtimeProofAcceptedWithProvidedEvidenceTools: 21,
+  nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 8,
+  blockedPendingNativeGpuRuntimeProofTools: 0,
+  gpuRuntimeShouldStartNow: false,
+  externalBetaReadyNowTools: 0,
+  productionReadyNowTools: 0,
+})) {
+  if (docs.readyAfterNativeGpuCollection?.[key] !== expected) {
+    fail(`unexpected_ready_after_native_gpu_collection:${key}:${docs.readyAfterNativeGpuCollection?.[key]}`)
+  }
 }
 
 for (const phrase of [
@@ -291,7 +341,10 @@ for (const phrase of [
   '--browser-runtime-proof-packet',
   '--satori-font-runtime-proof-packet',
   '--gpu-runtime-proof-result-packet',
+  '--external-beta-native-gpu-proof-collection-packet',
+  'sourceExternalBetaNativeGpuProofCollectionAccepted',
   'external_beta_per_tool_runtime_proof_ready_with_gpu_blocks',
+  'external_beta_per_tool_runtime_proof_ready_with_runtime_blocks',
   'blocked_pending_native_gpu_runtime_proof',
   'runtimeProofOnlyNoToolExecution',
 ]) {
@@ -466,6 +519,111 @@ try {
     if (accepted.booleans?.[key] !== false) fail(`accepted_false_gate_not_false:${key}`)
   }
 
+  const acceptedPerToolPath = writeJson(path.join(tmpRoot, 'accepted-per-tool-runtime-proof.json'), accepted)
+  const checksumPath = writeJson(path.join(tmpRoot, 'accepted-checksum-evidence.json'), acceptedChecksumEvidenceFixture())
+  const manifestReviewPath = writeJson(
+    path.join(tmpRoot, 'accepted-model-manifest-review.json'),
+    acceptedModelWeightManifestReviewPacket(),
+  )
+  const gpuResultPath = writeJson(
+    path.join(tmpRoot, 'accepted-gpu-runtime-result.json'),
+    acceptedGpuRuntimeProofResultPacket(),
+  )
+  const collection = parseJsonOutput(runNpm(nativeGpuProofCollectionScriptName, [
+    '--external-beta-per-tool-runtime-proof-packet',
+    acceptedPerToolPath,
+    '--gpu-runtime-proof-command-plan-packet',
+    'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json',
+    '--model-weight-checksum-evidence-packet',
+    checksumPath,
+    '--model-weight-manifest-review-packet',
+    manifestReviewPath,
+    '--gpu-runtime-proof-result-packet',
+    gpuResultPath,
+    '--external-beta-native-gpu-proof-collection-policy-ref',
+    'external-beta-evidence://ai-graphics/native-gpu-proof/policy',
+    '--external-beta-native-gpu-proof-collection-schema-ref',
+    'external-beta-evidence://ai-graphics/native-gpu-proof/schema',
+    '--external-beta-native-gpu-proof-collection-host-pool-ref',
+    'backend-evidence://ai-graphics/native-gpu-proof/nvidia-l4-host-pool',
+    '--external-beta-native-gpu-proof-collection-private-artifact-namespace-ref',
+    'private://ai-graphics/model-weight-artifacts',
+    '--external-beta-native-gpu-proof-collection-telemetry-ref',
+    'backend-evidence://ai-graphics/native-gpu-proof/telemetry',
+    '--external-beta-native-gpu-proof-collection-rollback-ref',
+    'backend-evidence://ai-graphics/native-gpu-proof/rollback',
+  ]), 'native-gpu-collection')
+  if (collection.decision !== 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready') {
+    fail(`native_gpu_collection_decision:${collection.decision}`)
+  }
+  if (collection.counts?.nativeGpuRuntimeProofAcceptedTools !== 8) {
+    fail(`native_gpu_collection_accepted_tools_not_8:${collection.counts?.nativeGpuRuntimeProofAcceptedTools}`)
+  }
+  if (collection.counts?.blockedPendingNativeGpuRuntimeProofTools !== 0) {
+    fail(`native_gpu_collection_blocked_tools_not_0:${collection.counts?.blockedPendingNativeGpuRuntimeProofTools}`)
+  }
+  if (collection.booleans?.readyForPerToolRuntimeProofRecheck !== true) {
+    fail('native_gpu_collection_not_ready_for_recheck')
+  }
+  for (const key of falseGateKeys) {
+    if (Object.hasOwn(collection.booleans ?? {}, key) && collection.booleans?.[key] !== false) {
+      fail(`native_gpu_collection_false_gate_not_false:${key}`)
+    }
+  }
+  const collectionPath = writeJson(path.join(tmpRoot, 'native-gpu-proof-collection.json'), collection)
+  const acceptedAfterNativeGpuCollection = parseJsonOutput(runNpm(runScriptName, [
+    '--external-beta-tool-route-runtime-proof-packet',
+    routeProofPath,
+    '--node-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+    '--browser-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+    '--satori-font-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+    '--gpu-runtime-proof-result-packet',
+    'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json',
+    '--external-beta-native-gpu-proof-collection-packet',
+    collectionPath,
+    '--external-beta-per-tool-runtime-proof-policy-ref',
+    'private://ai-graphics/external-beta/runtime-proof/policy.json',
+    '--external-beta-per-tool-runtime-proof-schema-ref',
+    'private://ai-graphics/external-beta/runtime-proof/schema.json',
+    '--external-beta-runtime-proof-evidence-ref',
+    'backend-evidence://ai-graphics/external-beta/runtime-proof/evidence.json',
+    '--external-beta-runtime-proof-telemetry-ref',
+    'external-beta-evidence://ai-graphics/runtime-proof/telemetry.json',
+    '--external-beta-runtime-proof-rollback-ref',
+    'private://ai-graphics/external-beta/runtime-proof/rollback.json',
+  ]), 'accepted-after-native-gpu-collection')
+  if (acceptedAfterNativeGpuCollection.decision !== 'external_beta_per_tool_runtime_proof_ready_with_runtime_blocks') {
+    fail(`accepted_after_native_gpu_collection_decision:${acceptedAfterNativeGpuCollection.decision}`)
+  }
+  if (acceptedAfterNativeGpuCollection.runtimeProofAcceptedWithProvidedEvidenceTools !== 21) {
+    fail(`accepted_after_native_gpu_collection_tools_not_21:${acceptedAfterNativeGpuCollection.runtimeProofAcceptedWithProvidedEvidenceTools}`)
+  }
+  if (acceptedAfterNativeGpuCollection.nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools !== 8) {
+    fail(`accepted_after_native_gpu_collection_gpu_tools_not_8:${acceptedAfterNativeGpuCollection.nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools}`)
+  }
+  if (acceptedAfterNativeGpuCollection.blockedPendingNativeGpuRuntimeProofTools !== 0) {
+    fail(`accepted_after_native_gpu_collection_blocked_not_0:${acceptedAfterNativeGpuCollection.blockedPendingNativeGpuRuntimeProofTools}`)
+  }
+  if (acceptedAfterNativeGpuCollection.booleans?.sourceExternalBetaNativeGpuProofCollectionAccepted !== true) {
+    fail('accepted_after_native_gpu_collection_source_collection_not_accepted')
+  }
+  for (const tool of gpuTools) {
+    const record = acceptedAfterNativeGpuCollection.records?.find((entry) => entry.toolId === tool)
+    if (!record) fail(`accepted_after_native_gpu_collection_missing_gpu_record:${tool}`)
+    if (record?.runtimeProofStatus !== 'runtime_proof_accepted_with_provided_evidence') {
+      fail(`accepted_after_native_gpu_collection_gpu_status:${tool}:${record?.runtimeProofStatus}`)
+    }
+    if (record?.gpuRuntimeShouldStartNow !== false) fail(`accepted_after_native_gpu_collection_gpu_start_not_false:${tool}`)
+  }
+  for (const key of falseGateKeys) {
+    if (acceptedAfterNativeGpuCollection.booleans?.[key] !== false) {
+      fail(`accepted_after_native_gpu_collection_false_gate_not_false:${key}`)
+    }
+  }
+
   const publicBlocked = parseJsonOutput(runNpm(runScriptName, [
     '--external-beta-tool-route-runtime-proof-packet',
     routeProofPath,
@@ -582,6 +740,9 @@ console.log(JSON.stringify({
   jsRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
   nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 0,
   blockedPendingNativeGpuRuntimeProofTools: 8,
+  readyAfterNativeGpuCollectionRuntimeProofAcceptedWithProvidedEvidenceTools: 21,
+  readyAfterNativeGpuCollectionNativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 8,
+  readyAfterNativeGpuCollectionBlockedPendingNativeGpuRuntimeProofTools: 0,
   gpuRuntimeShouldStartNow: false,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,

@@ -8,6 +8,9 @@ import type {
   AiGraphicsExternalBetaToolRouteRuntimeProof,
 } from '../tool-registry/ai-graphics-external-beta-tool-route-runtime-proof'
 import type {
+  AiGraphicsExternalBetaNativeGpuProofCollection,
+} from '../tool-registry/ai-graphics-external-beta-native-gpu-proof-collection'
+import type {
   AiGraphicsGpuRuntimeProofResultPacket,
 } from '../tool-registry/ai-graphics-gpu-runtime-proof-result'
 
@@ -36,6 +39,10 @@ const input: AiGraphicsExternalBetaPerToolRuntimeProofInput = {
     readJsonFile<AiGraphicsRuntimeProofPacket>('--satori-font-runtime-proof-packet'),
   gpuRuntimeProofResultPacket:
     readJsonFile<AiGraphicsGpuRuntimeProofResultPacket>('--gpu-runtime-proof-result-packet'),
+  sourceExternalBetaNativeGpuProofCollectionPacket:
+    readJsonFile<AiGraphicsExternalBetaNativeGpuProofCollection>(
+      '--external-beta-native-gpu-proof-collection-packet',
+    ),
   externalBetaPerToolRuntimeProofPolicyRef:
     stringFlag('--external-beta-per-tool-runtime-proof-policy-ref'),
   externalBetaPerToolRuntimeProofSchemaRef:
@@ -63,6 +70,8 @@ console.log(JSON.stringify({
       Boolean(stringFlag('--satori-font-runtime-proof-packet')),
     gpuRuntimeProofResultPacketRead:
       Boolean(stringFlag('--gpu-runtime-proof-result-packet')),
+    sourceExternalBetaNativeGpuProofCollectionPacketRead:
+      Boolean(stringFlag('--external-beta-native-gpu-proof-collection-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

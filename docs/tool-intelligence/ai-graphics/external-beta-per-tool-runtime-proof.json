@@ -1,6 +1,6 @@
 {
   "decision": "ai_graphics_external_beta_per_tool_runtime_proof_prepared_with_gpu_blocks",
-  "summary": "External-beta per-tool runtime proof gate after Tool Route runtime proof. It accepts the existing Node, browser, and Satori runtime proof packets for the 13 JavaScript graphics tools, keeps the 8 GPU/model tools blocked pending native linux/amd64 NVIDIA L4 runtime proof and private model manifests, and performs no tool, route, worker, provider, storage, public artifact, signed URL, beta, or production execution.",
+  "summary": "External-beta per-tool runtime proof gate after Tool Route runtime proof. It accepts the existing Node, browser, and Satori runtime proof packets for the 13 JavaScript graphics tools, keeps the default checked-in state blocked for the 8 GPU/model tools pending native linux/amd64 NVIDIA L4 runtime proof and private model manifests, and can accept a reviewed native GPU proof collection packet for a full 21-tool proof recheck without performing tool, route, worker, provider, storage, public artifact, signed URL, beta, or production execution.",
   "tools": [
     "torch_torchvision",
     "transformers",
@@ -74,6 +74,7 @@
       "--browser-runtime-proof-packet",
       "--satori-font-runtime-proof-packet",
       "--gpu-runtime-proof-result-packet",
+      "--external-beta-native-gpu-proof-collection-packet",
       "--external-beta-per-tool-runtime-proof-policy-ref",
       "--external-beta-per-tool-runtime-proof-schema-ref",
       "--external-beta-runtime-proof-evidence-ref",
@@ -93,6 +94,17 @@
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
+  "readyAfterNativeGpuCollection": {
+    "sourcePacketFlag": "--external-beta-native-gpu-proof-collection-packet",
+    "sourceCollectionDecision": "external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready",
+    "acceptedDecision": "external_beta_per_tool_runtime_proof_ready_with_runtime_blocks",
+    "runtimeProofAcceptedWithProvidedEvidenceTools": 21,
+    "nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools": 8,
+    "blockedPendingNativeGpuRuntimeProofTools": 0,
+    "gpuRuntimeShouldStartNow": false,
+    "externalBetaReadyNowTools": 0,
+    "productionReadyNowTools": 0
+  },
   "acceptedPrivateRefNamespaces": [
     "private://",
     "reeditpro-private://",
@@ -109,6 +121,7 @@
   ],
   "acceptanceCriteria": {
     "sourceToolRouteRuntimeProofAccepted": true,
+    "sourceExternalBetaNativeGpuProofCollectionAcceptedForRecheck": true,
     "runtimeProofRecordsPrepared": 21,
     "runtimeProofAcceptedWithProvidedEvidenceTools": 13,
     "jsRuntimeProofAcceptedWithProvidedEvidenceTools": 13,
@@ -120,12 +133,16 @@
     "nativeGpuRuntimeProofRequiredForGpuTools": true,
     "gpuRuntimeOnDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
+    "readyAfterNativeGpuCollectionRuntimeProofAcceptedWithProvidedEvidenceTools": 21,
+    "readyAfterNativeGpuCollectionNativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools": 8,
+    "readyAfterNativeGpuCollectionBlockedPendingNativeGpuRuntimeProofTools": 0,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
   "booleans": {
     "externalBetaPerToolRuntimeProofPrepared": true,
     "sourceToolRouteRuntimeProofAccepted": false,
+    "sourceExternalBetaNativeGpuProofCollectionAccepted": false,
     "perToolRuntimeProofControlsAccepted": false,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

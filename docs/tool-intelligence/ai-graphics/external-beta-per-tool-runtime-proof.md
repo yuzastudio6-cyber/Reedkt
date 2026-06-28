@@ -16,6 +16,21 @@ It does not execute tools, execute Tool Routes, dispatch Workers, call providers
 - External-beta-ready now: `0`
 - Production-ready now: `0`
 
+## Native GPU Collection Recheck
+
+The gate can also consume `--external-beta-native-gpu-proof-collection-packet`.
+When that packet reports
+`external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready`,
+the per-tool recheck returns
+`external_beta_per_tool_runtime_proof_ready_with_runtime_blocks` with all `21`
+tools runtime-proof accepted with provided evidence, including the `8`
+native-GPU/model tools, and `0` GPU tools blocked pending native proof.
+
+That recheck still does not execute tools, dispatch workers, run Tool Routes,
+start GPU runtime, download or load model weights, create artifacts, create
+signed URLs, or unlock external beta/production. GPU remains on-demand only for
+a later approved worker/tool call.
+
 ## Accepted Runtime Proofs
 
 The gate accepts these existing proof packets when supplied with private/backend per-tool runtime proof controls:

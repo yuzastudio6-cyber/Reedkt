@@ -7,6 +7,10 @@ import {
 import type {
   AiGraphicsExternalBetaToolRouteRuntimeProof,
 } from './ai-graphics-external-beta-tool-route-runtime-proof'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION,
+  type AiGraphicsExternalBetaNativeGpuProofCollection,
+} from './ai-graphics-external-beta-native-gpu-proof-collection'
 import type { AiGraphicsGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-proof-result'
 import type { ProductionRegistryWorkerType, ProductionToolId } from './production-tool-types'
 
@@ -50,6 +54,7 @@ export interface AiGraphicsExternalBetaPerToolRuntimeProofInput {
   browserRuntimeProofPacket?: AiGraphicsRuntimeProofPacket
   satoriFontRuntimeProofPacket?: AiGraphicsRuntimeProofPacket
   gpuRuntimeProofResultPacket?: AiGraphicsGpuRuntimeProofResultPacket
+  sourceExternalBetaNativeGpuProofCollectionPacket?: AiGraphicsExternalBetaNativeGpuProofCollection
   externalBetaPerToolRuntimeProofPolicyRef?: string
   externalBetaPerToolRuntimeProofSchemaRef?: string
   externalBetaRuntimeProofEvidenceRef?: string
@@ -100,6 +105,7 @@ export interface AiGraphicsExternalBetaPerToolRuntimeProof {
   decision: AiGraphicsExternalBetaPerToolRuntimeProofStatus
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_PER_TOOL_RUNTIME_PROOF_DECISION
   sourceToolRouteRuntimeProofAccepted: boolean
+  sourceExternalBetaNativeGpuProofCollectionAccepted: boolean
   missingPerToolRuntimeProofControls: string[]
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
@@ -135,6 +141,7 @@ export interface AiGraphicsExternalBetaPerToolRuntimeProof {
   booleans: {
     externalBetaPerToolRuntimeProofPrepared: true
     sourceToolRouteRuntimeProofAccepted: boolean
+    sourceExternalBetaNativeGpuProofCollectionAccepted: boolean
     perToolRuntimeProofControlsAccepted: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
@@ -371,6 +378,29 @@ function gpuProofAccepted(packet?: AiGraphicsGpuRuntimeProofResultPacket): boole
     packet.booleans.externalBetaReadyNow === false
 }
 
+function nativeGpuProofCollectionAccepted(
+  packet?: AiGraphicsExternalBetaNativeGpuProofCollection,
+): boolean {
+  return Boolean(packet) &&
+    packet?.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION &&
+    packet?.decision === 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready' &&
+    packet?.counts.nativeGpuRuntimeProofAcceptedTools === 8 &&
+    packet?.counts.nativeGpuRuntimeProofProfilesAccepted === 6 &&
+    packet?.counts.modelWeightManifestReviewAccepted === 5 &&
+    packet?.counts.blockedPendingNativeGpuRuntimeProofTools === 0 &&
+    packet?.booleans.readyForPerToolRuntimeProofRecheck === true &&
+    packet?.booleans.gpuRuntimeOnDemandOnly === true &&
+    packet?.booleans.noIdleGpuRuntimeApproved === true &&
+    packet?.booleans.cpuFallbackAllowedForHeavyTools === false &&
+    packet?.booleans.agentCanExecuteToolsNow === false &&
+    packet?.booleans.gpuRuntimeApprovedNow === false &&
+    packet?.booleans.gpuRuntimeShouldStartNow === false &&
+    packet?.booleans.modelWeightsLoaded === false &&
+    packet?.booleans.modelInferencePerformed === false &&
+    packet?.booleans.externalBetaReadyNow === false &&
+    packet?.booleans.productionReadyNow === false
+}
+
 function proofSourceForTool(
   toolId: AiGraphicsCanonicalToolId,
 ): AiGraphicsExternalBetaPerToolRuntimeProofSource {
@@ -401,7 +431,11 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
   const routeAccepted = sourceRouteAccepted(input.sourceToolRouteRuntimeProofPacket)
   const missing = routeAccepted ? missingControls(input) : []
   const controlsAccepted = routeAccepted && missing.length === 0
-  const nativeGpuAccepted = gpuProofAccepted(input.gpuRuntimeProofResultPacket)
+  const sourceExternalBetaNativeGpuProofCollectionAccepted =
+    nativeGpuProofCollectionAccepted(input.sourceExternalBetaNativeGpuProofCollectionPacket)
+  const nativeGpuAccepted =
+    gpuProofAccepted(input.gpuRuntimeProofResultPacket) ||
+    sourceExternalBetaNativeGpuProofCollectionAccepted
 
   const records = listAiGraphicsToolCallReadiness().map((tool): AiGraphicsExternalBetaPerToolRuntimeProofRecord => {
     if (!tool.productionToolId) throw new Error(`AI graphics tool ${tool.toolId} is missing a productionToolId.`)
@@ -427,7 +461,10 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
       sourceAccepted = satoriProofAccepted(input.satoriFontRuntimeProofPacket)
       if (!sourceAccepted) blockedReason = 'Satori font runtime proof is missing or rejected'
     } else {
-      sourceStatus = input.gpuRuntimeProofResultPacket?.status ?? null
+      sourceStatus =
+        input.sourceExternalBetaNativeGpuProofCollectionPacket?.decision ??
+        input.gpuRuntimeProofResultPacket?.status ??
+        null
       sourceAccepted = nativeGpuAccepted
       if (!sourceAccepted) {
         blockedReason = 'native linux/amd64 NVIDIA L4 GPU runtime proof and private model manifests are still pending'
@@ -491,6 +528,7 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
     }),
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_PER_TOOL_RUNTIME_PROOF_DECISION,
     sourceToolRouteRuntimeProofAccepted: routeAccepted,
+    sourceExternalBetaNativeGpuProofCollectionAccepted,
     missingPerToolRuntimeProofControls: missing,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: productCapabilityCount(),
@@ -526,6 +564,7 @@ export function buildAiGraphicsExternalBetaPerToolRuntimeProof(
     booleans: {
       externalBetaPerToolRuntimeProofPrepared: true,
       sourceToolRouteRuntimeProofAccepted: routeAccepted,
+      sourceExternalBetaNativeGpuProofCollectionAccepted,
       perToolRuntimeProofControlsAccepted: controlsAccepted,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,

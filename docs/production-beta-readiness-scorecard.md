@@ -1270,7 +1270,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_beta_per_tool_runtime_proof_prepared_with_gpu_blocks`.
 - Scope: per-tool runtime proof gate for all 21 AI graphics tools and all 12 product-facing capabilities after Tool Route runtime proof.
-- Result: the evaluator accepts the current Node, browser, and Satori runtime proof packets for 13 JavaScript graphics tools. The 8 GPU/model tools remain blocked pending native linux/amd64 NVIDIA L4 runtime proof results and private model/cache manifests.
+- Result: the evaluator accepts the current Node, browser, and Satori runtime proof packets for 13 JavaScript graphics tools. The checked-in baseline keeps the 8 GPU/model tools blocked pending native linux/amd64 NVIDIA L4 runtime proof results and private model/cache manifests. When a reviewed `--external-beta-native-gpu-proof-collection-packet` is supplied, the per-tool recheck can report `runtimeProofAcceptedWithProvidedEvidenceTools=21`, `nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools=8`, and `blockedPendingNativeGpuRuntimeProofTools=0` while still keeping runtime and external beta blocked.
 - GPU policy: GPU remains on-demand only. No idle GPU runtime is approved, and the blocked GPU/model tools cannot CPU-fallback into external beta.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 

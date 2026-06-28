@@ -24,6 +24,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PLAN } from './moc
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_CREATE } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-config-create'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_VERIFY } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-config-verify'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PORT_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-port-fix'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -54,6 +55,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_local_harness_config_verify_required'
   | 'blocked_backend_runtime_persistence_local_harness_validation_required'
   | 'blocked_backend_runtime_persistence_local_harness_port_fix_required'
+  | 'blocked_backend_runtime_persistence_local_harness_validation_retry_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -70,7 +72,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_validation_blocked_port_fix_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_port_fix_recorded_validation_retry_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -123,6 +125,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_VERIFY.decision,
   upstreamBackendRuntimePersistenceLocalHarnessValidationResultDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT.decision,
+  upstreamBackendRuntimePersistenceLocalHarnessPortFixDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PORT_FIX.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -490,13 +494,24 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_local_harness_port_fix',
       label: 'Backend runtime persistence local harness port fix',
-      status: 'blocked_backend_runtime_persistence_local_harness_port_fix_required',
+      status: 'ready',
       evidence: [
-        'Qwen local harness config and toolchain are verified.',
-        'The first local harness start attempt detected an existing local Supabase project on port 54322.',
+        'Backend runtime persistence local harness port fix is recorded.',
+        'Qwen local harness config now uses non-conflicting local ports 55430, 55431, 55432, 55433, and 55434.',
+        'The existing local reeditpro Supabase project was not stopped, reset, mutated, or reused.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_local_harness_validation_retry',
+      label: 'Backend runtime persistence local harness validation retry',
+      status: 'blocked_backend_runtime_persistence_local_harness_validation_retry_required',
+      evidence: [
+        'Qwen local harness config, toolchain, first blocked validation result, and port fix are recorded.',
+        'The next retry can use non-conflicting local ports without touching unrelated local Supabase projects.',
       ],
       missingEvidence: [
-        'Adjust the Qwen local Supabase harness to non-conflicting loopback ports, re-verify config safety, then retry the approved local harness validation without stopping or mutating unrelated local projects.',
+        'Retry approved local Supabase harness validation: start only the Qwen local harness on the non-conflicting port set, load the ReEditPro baseline, apply only the Qwen draft SQL, run only the Qwen local SQL tests, record sanitized output, and verify cleanup.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -655,7 +670,10 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceLocalHarnessStartAttempted: true,
     backendRuntimePersistenceLocalHarnessStarted: false,
     backendRuntimePersistenceLocalHarnessPortConflictDetected: true,
-    backendRuntimePersistenceLocalHarnessPortFixRequired: true,
+    backendRuntimePersistenceLocalHarnessPortFixRequired: false,
+    backendRuntimePersistenceLocalHarnessPortFixRecorded: true,
+    backendRuntimePersistenceLocalHarnessNonConflictingPortsConfigured: true,
+    backendRuntimePersistenceLocalHarnessValidationRetryRequired: true,
     existingLocalSupabaseProjectDetected: true,
     qwenLocalContainersLeftBehind: false,
     configTomlCreated: true,
@@ -684,11 +702,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_local_harness_port_fix_required',
+    'backend_runtime_persistence_local_harness_validation_retry_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58U-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-PORT-FIX: adjust Qwen local Supabase harness ports and retry validation, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58V-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY: retry Qwen persistence draft validation with non-conflicting local Supabase harness ports, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

@@ -1,0 +1,124 @@
+{
+  "reportId": "beta-readiness-api-staging-owner-prerequisite-audit-rerun-after-current-source-local-evidence-bundle-2026-06-28",
+  "decision": "beta_readiness_api_staging_owner_prerequisite_audit_rerun_after_current_source_local_bundle_blocked_by_same_owner_prerequisites",
+  "createdAt": "2026-06-28T11:41:11Z",
+  "toolsSourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+  "toolsSourceSha": "0f8e95cdd7d4c9b072bf1a75bd48131237f19363",
+  "currentSourceLocalAcceptedEvidenceBundle": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-28-current-source-local-accepted-evidence-bundle.md",
+  "currentSourceLocalAcceptedEvidenceDecision": "beta_tools_current_source_local_accepted_evidence_bundle_passed_ready_for_deployed_staging_evidence_recording",
+  "workflow": {
+    "path": ".github/workflows/beta-readiness-api-staging-owner-prerequisite-audit.yml",
+    "defaultBranch": "codex/reeditpro-web-ui-shell",
+    "workflowHeadSha": "bf663414d78f4612fb436037efa73fad23433a35",
+    "workflowDispatchOnly": true,
+    "confirmationPhrase": "AUDIT_STAGING_BETA_API_OWNER_PREREQUISITES",
+    "runId": 28321041675,
+    "runUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28321041675",
+    "jobId": 83902913014,
+    "jobUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28321041675/job/83902913014",
+    "conclusion": "failure",
+    "createdAt": "2026-06-28T11:40:47Z",
+    "completedAt": "2026-06-28T11:41:11Z"
+  },
+  "lockedInputs": {
+    "projectId": "reeditpro",
+    "region": "us-east1",
+    "artifactRegion": "us-central1",
+    "artifactRepository": "reeditpro-staging-workers",
+    "deployerServiceAccount": "sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com",
+    "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+    "serviceName": "reeditpro-api-staging"
+  },
+  "auditResults": [
+    {
+      "id": "artifact_registry_repository_exists",
+      "status": "failed",
+      "permission": "artifactregistry.repositories.get",
+      "resource": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers",
+      "reason": "IAM_PERMISSION_DENIED",
+      "ownerAction": "grant the deployer read access to the exact staging Artifact Registry repository or verify the repository exists with a higher-privilege owner"
+    },
+    {
+      "id": "artifact_registry_upload_permission",
+      "status": "failed",
+      "missingPermission": "artifactregistry.repositories.uploadArtifacts",
+      "resource": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers",
+      "reason": "permissions_missing",
+      "ownerAction": "grant the deployer Artifact Registry upload permission on only the exact staging repository"
+    },
+    {
+      "id": "runtime_service_account_exists",
+      "status": "failed",
+      "resource": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+      "reason": "NOT_FOUND",
+      "ownerAction": "create the exact staging API runtime service account or approve a specific existing replacement"
+    },
+    {
+      "id": "deployer_can_act_as_runtime_service_account",
+      "status": "failed",
+      "resource": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+      "reason": "runtime_service_account_not_found_http_404",
+      "ownerAction": "after the runtime service account exists, grant the deployer iam.serviceAccounts.actAs on that account"
+    },
+    {
+      "id": "cloud_run_deploy_permissions",
+      "status": "passed",
+      "allowedPermissions": [
+        "run.operations.get",
+        "run.services.create",
+        "run.services.get",
+        "run.services.update"
+      ],
+      "resource": "projects/reeditpro",
+      "reason": "permissions_verified"
+    },
+    {
+      "id": "fixed_staging_secret_entries_exist",
+      "status": "failed",
+      "permission": "secretmanager.secrets.get",
+      "resources": [
+        "fixed_staging_api_secret_entry_1",
+        "fixed_staging_api_secret_entry_2",
+        "fixed_staging_api_secret_entry_3",
+        "fixed_staging_api_secret_entry_4"
+      ],
+      "reason": "IAM_PERMISSION_DENIED",
+      "ownerAction": "grant the deployer permission to describe only the fixed staging API secret entries and separately grant runtime secret access to the staging runtime account"
+    }
+  ],
+  "secretValuesRead": false,
+  "runtimeSecretAccessClaimed": false,
+  "blockedAction": "staging_api_deploy_until_artifact_registry_runtime_service_account_and_secret_entry_prerequisites_are_proven",
+  "notABlanketBlocker": true,
+  "safeForwardProgress": [
+    "higher_privilege_owner_grants_exact_artifact_registry_get_and_upload_permissions",
+    "higher_privilege_owner_creates_or_approves_exact_staging_runtime_service_account",
+    "higher_privilege_owner_grants_deployer_act_as_runtime_after_account_exists",
+    "higher_privilege_owner_grants_deployer_describe_access_to_fixed_staging_secret_entries",
+    "higher_privilege_owner_grants_runtime_secret_access_to_fixed_staging_secret_entries",
+    "rerun_read_only_owner_prerequisite_audit_after_owner_side_remediation"
+  ],
+  "blockedScopes": [
+    "cloud_run_deploy_not_run",
+    "docker_build_not_run",
+    "artifact_registry_push_not_run",
+    "runtime_service_account_not_available",
+    "artifact_registry_upload_not_granted",
+    "runtime_secret_entries_not_describable_by_deployer",
+    "runtime_secret_access_not_claimed",
+    "evidence_collectors_not_run",
+    "external_beta_not_enabled",
+    "real_user_media_beta_not_enabled",
+    "paid_production_not_enabled"
+  ],
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "realUserMediaBetaEnabled": false,
+  "productionEnabled": false
+}

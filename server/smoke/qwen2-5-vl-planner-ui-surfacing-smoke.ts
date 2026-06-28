@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_validation_retry_after_media_assets_status_fix_required',
-  'Private invoke client status must record the backend runtime persistence retry-after-media-assets-status-fix blocker.',
+  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_edit_plan_segments_version_baseline_fix_required',
+  'Private invoke client status must record the backend runtime persistence edit-plan-segments version baseline blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -168,8 +168,8 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_media_assets_status_fix_required') ||
-    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_validation_retry_after_media_assets_status_fix_required',
+    docText.includes('backend_runtime_persistence_edit_plan_segments_version_baseline_fix_required') ||
+    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_edit_plan_segments_version_baseline_fix_required',
   'Doc/data must record backend runtime persistence local harness validation-retry blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
@@ -243,9 +243,14 @@ check(
   'Doc must record the media assets status baseline migration blocker.',
 )
 check(
-  docText.includes('The media-assets status baseline fix is now recorded') &&
-    docText.includes('retry 4 validates the local harness after that fix'),
-  'Doc must record the media-assets status baseline fix and retry-4 blocker.',
+  docText.includes('The media-assets status baseline fix is recorded') &&
+    docText.includes('retry 4 verified that migration now applies'),
+  'Doc must record the media-assets status baseline fix and retry-4 result.',
+)
+check(
+  docText.includes('`202605180003_reeditpro_intent_plan_versions.sql`') &&
+    docText.includes('`edit_plan_segments.edit_plan_version_id`'),
+  'Doc must record the edit plan segments version baseline migration blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

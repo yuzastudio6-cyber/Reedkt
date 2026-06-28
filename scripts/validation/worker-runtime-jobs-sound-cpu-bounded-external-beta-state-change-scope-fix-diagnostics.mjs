@@ -155,7 +155,10 @@ assert(prompt.includes('no runtime/no production'), 'execution prompt missing no
 assert(prompt.includes('No runtime execution'), 'execution prompt missing forbidden runtime statement')
 
 const typeText = read(TYPE_FILE)
-assert(typeText.includes('externalBetaAllowed: false'), 'current type boundary no longer matches expected pre-execution constraint')
+assert(
+  typeText.includes('externalBetaAllowed: false') || typeText.includes('externalBetaAllowed: boolean'),
+  'current type boundary no longer matches expected pre- or post-execution constraint'
+)
 
 console.log(
   JSON.stringify(

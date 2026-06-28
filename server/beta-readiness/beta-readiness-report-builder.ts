@@ -31,7 +31,7 @@ export function buildBetaReadinessReport(options: BuildBetaReadinessReportOption
   return {
     reportId: `beta-readiness-${new Date().toISOString()}`,
     createdAt: new Date().toISOString(),
-    overallStatus: goNoGo.internalDryRunTestingAllowed ? 'internal_testing_ready' : 'blocked',
+    overallStatus: goNoGo.externalBetaAllowed ? 'warning' : goNoGo.internalDryRunTestingAllowed ? 'internal_testing_ready' : 'blocked',
     productionReady: false,
     checklist,
     scenarioMatrix,
@@ -39,8 +39,8 @@ export function buildBetaReadinessReport(options: BuildBetaReadinessReportOption
     blockers: [...new Set(blockers)],
     warnings: [...new Set(warnings)],
     nextActions: [
-      'Run M16B dry-run E2E and M17 hardening smokes before any internal demo.',
-      'Complete human security, cost, storage, deployment, model, and legal reviews before external beta.',
+      'Use bounded external beta only as a no-runtime, no-real-user-media scorecard state.',
+      'Complete human security, cost, storage, deployment, model, and legal reviews before real-user media beta.',
       'Keep real user media beta and paid production blocked until readiness is explicitly approved.',
     ],
   }

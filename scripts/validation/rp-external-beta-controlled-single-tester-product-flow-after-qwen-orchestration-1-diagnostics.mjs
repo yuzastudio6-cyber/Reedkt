@@ -32,6 +32,21 @@ const allowedChangedFiles = new Set([
   ...requiredFiles,
 ])
 
+const followOnSingleTesterQwenProductFlowRuntimeFiles = [
+  'docs/external-beta/controlled-single-tester-qwen-product-flow-runtime-1/source-audit.md',
+  'docs/external-beta/controlled-single-tester-qwen-product-flow-runtime-1/runtime-result.md',
+  'docs/external-beta/controlled-single-tester-qwen-product-flow-runtime-1/safety-boundary.md',
+  'docs/external-beta/controlled-single-tester-qwen-product-flow-runtime-1/artifact-manifest.md',
+  'docs/external-beta/controlled-single-tester-qwen-product-flow-runtime-1/validation-results.md',
+  'docs/external-beta/controlled-single-tester-qwen-product-flow-runtime-1/controlled-single-tester-qwen-product-flow-runtime-record.json',
+  'docs/activation-phase-rp-external-beta-controlled-single-tester-qwen-product-flow-runtime-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-real-product-walkthrough-qa-1.md',
+  'scripts/validation/rp-external-beta-controlled-single-tester-qwen-product-flow-runtime-1.mjs',
+  'scripts/validation/rp-external-beta-controlled-single-tester-qwen-product-flow-runtime-1-diagnostics.mjs',
+]
+
+for (const file of followOnSingleTesterQwenProductFlowRuntimeFiles) allowedChangedFiles.add(file)
+
 const requiredText = [
   packet,
   'completed_controlled_single_tester_product_flow_after_qwen_orchestration_source_readiness',
@@ -102,6 +117,10 @@ const forbiddenContentPatterns = [
   /https:\/\/[a-z0-9-]+\.supabase\.co/i,
   /sbp_[A-Za-z0-9_./=-]+/,
 ]
+
+const allowedFollowOnRuntimeContentPatterns = new Set([
+  String(/qwenRuntimeExecutedInThisPacket"?\s*:\s*true/i),
+])
 
 function fail(message) {
   console.error(`${packet} diagnostics failed: ${message}`)
@@ -216,6 +235,12 @@ for (const file of changedFiles()) {
   const text = read(file)
   if (!file.endsWith('-diagnostics.mjs')) {
     for (const pattern of forbiddenContentPatterns) {
+      if (
+        file.startsWith('docs/external-beta/controlled-single-tester-qwen-product-flow-runtime-1/') &&
+        allowedFollowOnRuntimeContentPatterns.has(String(pattern))
+      ) {
+        continue
+      }
       if (pattern.test(text)) fail(`forbidden content matched in ${file}: ${pattern}`)
     }
   }

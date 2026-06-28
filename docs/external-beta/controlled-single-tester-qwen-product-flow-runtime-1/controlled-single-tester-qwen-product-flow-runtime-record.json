@@ -1,0 +1,83 @@
+{
+  "packet": "RP-EXTERNAL-BETA-CONTROLLED-SINGLE-TESTER-QWEN-PRODUCT-FLOW-RUNTIME-1",
+  "decision": "completed_controlled_single_tester_qwen_product_flow_runtime_validation",
+  "execution": "completed_confirmed_controlled_single_tester_qwen_product_flow_runtime_validation",
+  "integrationBase": "afde458c1967cc0f90bf7db6aebea0e5e6f9b544",
+  "sourceEvidence": {
+    "productFlowAfterQwenPr": 1423,
+    "productFlowAfterQwenMergeSha": "afde458c1967cc0f90bf7db6aebea0e5e6f9b544",
+    "qwenQaRollupPr": 1417,
+    "qwenQaRollupMergeSha": "2b32604324fb843d3c52c9a006dffda3f685b441",
+    "currentReadinessRollupAfterQwenPr": 1419,
+    "currentReadinessRollupAfterQwenMergeSha": "cd51c6999b02e1d18a0cfe087c652cdbe181204d",
+    "excludedPr": 577
+  },
+  "controlledTester": {
+    "email": "aiediting@reeditpro.com",
+    "additionalTesterExpansion": "blocked_no_additional_named_tester_list"
+  },
+  "confirmationGate": {
+    "env": "REEDITPRO_CONFIRM_EXTERNAL_BETA_SINGLE_TESTER_QWEN_PRODUCT_FLOW_RUNTIME",
+    "requiredValue": "true"
+  },
+  "delegatedChecks": {
+    "controlledTesterProductFlowSmoke": {
+      "script": "rp-external-beta-controlled-tester-product-flow-smoke-1",
+      "runId": "2026-06-28T10-28-10-870Z-daae948b",
+      "decision": "completed_external_beta_controlled_tester_product_flow_smoke",
+      "unauthenticatedHealth": "blocked_403",
+      "routeMapStatus": 200,
+      "mockReadyRoutes": 67,
+      "requiredRoutesPresent": true,
+      "planningStoppedAtApproval": "approve_plan_and_credits",
+      "backendRequiredRoutesBlocked": true,
+      "jobGateAllowedWorkerExecution": false
+    },
+    "qwenApprovedSnapshotJobOrchestrationRuntimeFixture": {
+      "script": "rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1",
+      "wrapperRunId": "qwen25-approved-snapshot-job-orchestration-runtime-fixture-1-2026-06-28T10-28-26-132Z-44389d09",
+      "qwenRuntimeRunId": "qwen25-product-route-provider-runtime-fixture-1r-2026-06-28T10-28-30-250Z-3e4c842a",
+      "qwenColdStartRetryRunId": "qwen25-product-route-provider-runtime-fixture-cold-start-retry-1-2026-06-28T10-28-29-856Z-6b095c0c",
+      "adapterRunId": "qwen25-adapter-runtime-fixture-2026-06-28T10-28-35-312Z-24693f06",
+      "cloudRunExecution": "reeditpro-qwen2-5-vl-private-caller-qn4q8",
+      "httpStatus": 200,
+      "serviceReason": "qwen_fixture_inference_smoke_completed",
+      "structuredMetadataAccepted": true,
+      "schemaValid": true,
+      "failClosedRestorePassed": true
+    }
+  },
+  "readiness": {
+    "productFlowRuntime": "validated_for_single_tester_qwen_product_flow_walkthrough_qa",
+    "nextMilestone": "RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-PRODUCT-WALKTHROUGH-QA-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "boundedSingleTesterRuntimeValidation": true,
+    "controlledTesterProductFlowSmokeExecuted": true,
+    "qwenRuntimeExecutedInThisPacket": true,
+    "boundedQwenProviderModelCall": true,
+    "additionalTesterExpansion": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "persistentCreditMutation": false,
+    "creditSpend": false,
+    "stripePaymentProcessing": false,
+    "browserCapture": false,
+    "mediaProcessing": false,
+    "privateUserMediaProcessing": false,
+    "finalRenderExport": false,
+    "externalBetaGlobalUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "deployment": false,
+    "cloudRunServiceUpdate": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

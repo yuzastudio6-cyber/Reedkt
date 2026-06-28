@@ -26,6 +26,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_VERIFY } fr
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PORT_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-port-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_MIGRATION_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-migration-fix'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -58,6 +59,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_local_harness_port_fix_required'
   | 'blocked_backend_runtime_persistence_local_harness_validation_retry_required'
   | 'blocked_backend_runtime_persistence_local_harness_baseline_migration_fix_required'
+  | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_baseline_fix_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -74,7 +76,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_validation_retry_blocked_baseline_fix_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_baseline_migration_fix_recorded_retry_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -131,6 +133,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PORT_FIX.decision,
   upstreamBackendRuntimePersistenceLocalHarnessValidationRetryResultDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_RESULT.decision,
+  upstreamBackendRuntimePersistenceBaselineMigrationFixDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_MIGRATION_FIX.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -521,13 +525,23 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_local_harness_baseline_migration_fix',
       label: 'Backend runtime persistence local harness baseline migration fix',
-      status: 'blocked_backend_runtime_persistence_local_harness_baseline_migration_fix_required',
+      status: 'ready',
       evidence: [
-        'The Qwen port fix is recorded and the validation retry reached active ReEditPro baseline migration loading.',
-        'The active baseline failed before Qwen draft SQL at migration 202605130007_generation_providers_generated_assets.sql.',
+        'Backend runtime persistence baseline migration fix is recorded.',
+        'The active ReEditPro generation provider model seed now qualifies seed.description and related seed fields.',
+        'The fix does not create a new migration, deploy a migration, run SQL, apply the Qwen draft, or run Qwen local SQL tests.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_local_harness_validation_retry_after_baseline_fix',
+      label: 'Backend runtime persistence local harness validation retry after baseline fix',
+      status: 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_baseline_fix_required',
+      evidence: [
+        'The Qwen local harness config, first blocked validation result, port fix, blocked retry result, and baseline migration fix are recorded.',
       ],
       missingEvidence: [
-        'Fix the ambiguous description reference in the active ReEditPro baseline migration, then retry local harness validation without touching Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, beta, or production.',
+        'Retry the approved local Supabase harness validation after the baseline migration fix: start only the Qwen local harness on the non-conflicting port set, load the ReEditPro baseline, apply only the Qwen draft SQL, run only the Qwen local SQL tests, record sanitized output, and verify cleanup.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -695,7 +709,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceLocalHarnessValidationRetryPassed: false,
     backendRuntimePersistenceLocalHarnessBaselineMigrationAttempted: true,
     backendRuntimePersistenceLocalHarnessBaselineMigrationPassed: false,
-    backendRuntimePersistenceLocalHarnessBaselineMigrationFixRequired: true,
+    backendRuntimePersistenceLocalHarnessBaselineMigrationFixRequired: false,
+    backendRuntimePersistenceBaselineMigrationFixRecorded: true,
+    activeBaselineMigrationEdited: true,
+    ambiguousDescriptionReferenceFixed: true,
+    backendRuntimePersistenceLocalHarnessValidationRetryAfterBaselineFixRequired: true,
     qwenDraftSqlApplied: false,
     qwenLocalSqlTestsExecuted: false,
     existingLocalSupabaseProjectDetected: true,
@@ -726,11 +744,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_local_harness_baseline_migration_fix_required',
+    'backend_runtime_persistence_local_harness_validation_retry_after_baseline_fix_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58W-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-BASELINE-MIGRATION-FIX: fix ReEditPro local baseline migration ambiguity for Qwen harness validation, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58X-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-2: retry Qwen local harness validation after baseline migration fix, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

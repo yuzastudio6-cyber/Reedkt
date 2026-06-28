@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
+import { dirname, join, parse } from 'node:path'
 import type { ProductionToolId } from '../../tool-registry'
 import type { ProductionReadinessStatus } from './production-tool-readiness-types'
 import { CORE_TOOL_COMMAND_CHECKS, type CoreToolCommandCheckDefinition } from './core-tool-command-checks'
@@ -231,7 +232,7 @@ function runNodePackageCheck(
   checkedAt: string,
 ): CoreToolReadinessCheckResult {
   try {
-    const resolvedPath = requireFromReadiness.resolve(definition.packageJsonPath)
+    const resolvedPath = resolveNodePackageMetadataPath(definition)
     return {
       toolId: definition.toolId,
       checkKind: 'node_package_metadata',
@@ -260,6 +261,32 @@ function runNodePackageCheck(
       importName: definition.packageJsonPath,
       checkedAt,
     }
+  }
+}
+
+function resolveNodePackageMetadataPath(definition: CoreToolNodePackageCheckDefinition): string {
+  try {
+    return requireFromReadiness.resolve(definition.packageJsonPath)
+  } catch (error) {
+    const packageJsonError = error
+    try {
+      const entryPath = requireFromReadiness.resolve(definition.packageName)
+      const root = parse(entryPath).root
+      let current = dirname(entryPath)
+
+      while (current !== root) {
+        const packageJsonPath = join(current, 'package.json')
+        try {
+          return requireFromReadiness.resolve(packageJsonPath)
+        } catch {
+          current = dirname(current)
+        }
+      }
+    } catch {
+      throw packageJsonError
+    }
+
+    throw packageJsonError
   }
 }
 

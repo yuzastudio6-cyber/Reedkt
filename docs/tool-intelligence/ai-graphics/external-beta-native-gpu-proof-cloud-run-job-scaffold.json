@@ -1,6 +1,7 @@
 {
   "decision": "ai_graphics_external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_local_only",
   "currentStatus": "external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_pending_private_cloud_run_execution",
+  "sourceOperatorHandoffBridgeAccepted": true,
   "summary": "Local-only scaffold for an on-demand Google Cloud Run Jobs NVIDIA L4 native GPU proof path. It writes a job plan, guarded deploy script, guarded execute script, and checklist under an ignored local output directory. It does not deploy Cloud Run, execute a job, start GPU runtime, download model weights, load models, run inference, process media, mutate storage, create signed URLs, create public artifacts, or unlock external beta/production.",
   "sourceChain": {
     "operatorHandoff": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-operator-handoff.json",
@@ -120,6 +121,7 @@
   "booleans": {
     "externalBetaNativeGpuProofCloudRunJobScaffoldPrepared": true,
     "sourceOperatorHandoffAccepted": true,
+    "sourceNativeGpuProofCollectionBridgeAccepted": true,
     "all8GpuRuntimeToolsCovered": true,
     "all5ModelWeightToolsCovered": true,
     "all6NativeGpuProfilesCovered": true,

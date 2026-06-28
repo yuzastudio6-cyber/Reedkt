@@ -4,6 +4,8 @@ Decision: `ai_graphics_external_beta_native_gpu_proof_operator_handoff_prepared_
 
 This is the operator-facing bridge from the current native GPU proof collection gate to the actual private/native evidence run needed for the 8 GPU/model AI graphics tools. It does not approve external beta, production, route execution, worker execution, tool execution, provider/model runtime, GPU runtime, model download, model load, inference, media processing, storage mutation, signed URLs, or public artifacts.
 
+The source native GPU proof collection must preserve `sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence=21`. Operator handoff is rejected when that proof bridge is missing or stripped.
+
 ## Covered GPU Tools
 
 - `torch_torchvision`

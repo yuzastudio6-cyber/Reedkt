@@ -4,6 +4,8 @@ Decision: `ai_graphics_external_beta_native_gpu_proof_cloud_run_job_scaffold_pre
 
 This packet prepares the external-beta on-demand GPU proof path for the 8 model/GPU AI graphics tools. It generates local Cloud Run Job operator files only. It does not deploy Cloud Run, execute a job, start GPU runtime, download model weights, load models, run inference, process media, mutate Supabase/GCS, create signed URLs, create public artifacts, or unlock external beta/production.
 
+The source operator handoff must preserve the native GPU proof collection bridge, including `sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence=21`. The Cloud Run scaffold is not accepted when that bridge is missing or stripped.
+
 ## Command
 
 ```sh

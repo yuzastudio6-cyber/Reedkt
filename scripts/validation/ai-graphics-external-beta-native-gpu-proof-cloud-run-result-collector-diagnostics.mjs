@@ -301,6 +301,9 @@ if (docs.decision !== 'ai_graphics_external_beta_native_gpu_proof_cloud_run_resu
 if (docs.currentStatus !== 'external_beta_native_gpu_proof_cloud_run_result_collector_prepared_pending_private_cloud_run_logs') {
   fail(`unexpected_current_status:${docs.currentStatus}`)
 }
+if (docs.sourceCloudRunJobScaffoldBridgeAccepted !== true) {
+  fail('docs_source_scaffold_bridge_not_accepted')
+}
 assertSet('docs_gpu_tools', docs.gpuRuntimeTargetedTools || [], gpuTools)
 assertSet('docs_runtime_profiles', docs.runtimeProfilesRequired || [], runtimeProfiles)
 for (const profile of runtimeProfiles) {
@@ -310,6 +313,7 @@ for (const profile of runtimeProfiles) {
 }
 for (const [key, value] of Object.entries({
   sourceCloudRunJobScaffoldAccepted: true,
+  sourceNativeGpuProofCollectionBridgeAccepted: true,
   all8GpuRuntimeToolsCovered: true,
   all6NativeGpuProfilesCovered: true,
   parsesCloudRunLogsOnly: true,
@@ -335,6 +339,7 @@ for (const needle of [
 }
 for (const needle of [
   'ai_graphics_external_beta_native_gpu_proof_cloud_run_result_collector_prepared_local_only',
+  'sourceCloudRunJobScaffoldBridgeAccepted',
   'parsesCloudRunLogsOnly',
   'cloudRunJobExecutionPerformed: false',
 ]) {
@@ -343,6 +348,7 @@ for (const needle of [
 for (const needle of [
   'ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector',
   'ai-graphics:gpu-runtime-proof-result:validate',
+  'sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence=21',
   'Native GPU proof profiles accepted now: `0/6`',
 ]) {
   if (!markdown.includes(needle)) fail(`markdown_missing:${needle}`)
@@ -379,6 +385,12 @@ if (collectorOutput.decision !== 'ai_graphics_external_beta_native_gpu_proof_clo
 if (collectorOutput.runtimeProfilesExtracted !== 6) {
   fail(`collector_output_profile_count_unexpected:${collectorOutput.runtimeProfilesExtracted}`)
 }
+if (collectorOutput.sourceCloudRunJobScaffoldAccepted !== true) {
+  fail('collector_output_source_scaffold_not_accepted')
+}
+if (collectorOutput.sourceNativeGpuProofCollectionBridgeAccepted !== true) {
+  fail('collector_output_source_bridge_not_accepted')
+}
 for (const profile of runtimeProfiles) {
   const extractedPath = collectorOutput.extractedProfileResults?.[profile]
   if (!extractedPath || !fs.existsSync(extractedPath)) fail(`missing_extracted_profile_result:${profile}`)
@@ -386,6 +398,48 @@ for (const profile of runtimeProfiles) {
   if (extracted.profile !== profile) fail(`extracted_profile_mismatch:${profile}:${extracted.profile}`)
 }
 if (!fs.existsSync(collectorOutput.collectorPacket)) fail('collector_packet_missing')
+const collectorPacket = collectorOutput.collectorPacket && fs.existsSync(collectorOutput.collectorPacket)
+  ? JSON.parse(fs.readFileSync(collectorOutput.collectorPacket, 'utf8'))
+  : {}
+if (collectorPacket.sourceCloudRunJobScaffoldBridgeAccepted !== true) {
+  fail('collector_packet_source_bridge_not_accepted')
+}
+if (collectorPacket.booleans?.sourceNativeGpuProofCollectionBridgeAccepted !== true) {
+  fail('collector_packet_source_native_gpu_bridge_not_accepted')
+}
+
+const strippedScaffoldPath = path.join(tmpDir, 'cloud-run-job-scaffold-stripped-bridge.json')
+const strippedScaffold = JSON.parse(
+  fs.readFileSync('docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-job-scaffold.json', 'utf8'),
+)
+strippedScaffold.sourceOperatorHandoffBridgeAccepted = false
+strippedScaffold.booleans.sourceNativeGpuProofCollectionBridgeAccepted = false
+fs.writeFileSync(strippedScaffoldPath, `${JSON.stringify(strippedScaffold, null, 2)}\n`, 'utf8')
+const strippedOutDir = path.join(tmpDir, 'out-stripped-bridge')
+const strippedCollectorOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--source-cloud-run-job-scaffold-packet',
+  strippedScaffoldPath,
+  '--logs-dir',
+  logsDir,
+  '--out-dir',
+  strippedOutDir,
+]), 'cloud_run_result_collector_stripped_bridge')
+if (strippedCollectorOutput.sourceCloudRunJobScaffoldAccepted !== false) {
+  fail('stripped_bridge_source_scaffold_unexpectedly_accepted')
+}
+if (strippedCollectorOutput.sourceNativeGpuProofCollectionBridgeAccepted !== false) {
+  fail('stripped_bridge_source_bridge_unexpectedly_accepted')
+}
+const strippedCollectorPacket =
+  strippedCollectorOutput.collectorPacket && fs.existsSync(strippedCollectorOutput.collectorPacket)
+    ? JSON.parse(fs.readFileSync(strippedCollectorOutput.collectorPacket, 'utf8'))
+    : {}
+if (strippedCollectorPacket.booleans?.sourceCloudRunJobScaffoldAccepted !== false) {
+  fail('stripped_bridge_collector_packet_source_scaffold_unexpectedly_accepted')
+}
+if (strippedCollectorPacket.booleans?.sourceNativeGpuProofCollectionBridgeAccepted !== false) {
+  fail('stripped_bridge_collector_packet_source_bridge_unexpectedly_accepted')
+}
 
 const validated = parseJsonOutput(runNpm(validateScriptName, ['--result-dir', outDir]), 'gpu_runtime_proof_result_validate')
 if (validated.status !== 'ready_for_owner_review_not_beta_ready') {

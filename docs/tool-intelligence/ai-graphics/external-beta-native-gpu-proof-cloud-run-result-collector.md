@@ -4,6 +4,8 @@ Decision: `ai_graphics_external_beta_native_gpu_proof_cloud_run_result_collector
 
 This packet prepares the local collector that turns already-saved Cloud Run native GPU proof logs into JSON files accepted by `ai-graphics:gpu-runtime-proof-result:validate`. It does not deploy Cloud Run, execute jobs, start GPU runtime, download model weights, load models, run inference, process media, mutate Supabase/GCS, create signed URLs, create public artifacts, or unlock external beta/production.
 
+The source Cloud Run job scaffold must preserve the native GPU proof collection bridge, including `sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence=21`. The result collector is not accepted when that bridge is missing or stripped.
+
 ## Command
 
 ```sh

@@ -6,7 +6,18 @@ export const AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_CLOUD_RUN_JOB_SCAFFOLD_D
 export type AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffoldStatus =
   | 'external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_pending_private_cloud_run_execution'
 
+export interface AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffoldSourceOperatorHandoffPacket {
+  decision?: string
+  sourceDecision?: string
+  currentStatus?: string
+  sourceNativeGpuProofCollectionBridgeAccepted?: boolean
+  booleans?: {
+    sourceRuntimeQueueServiceProofBridgeAccepted?: boolean
+  }
+}
+
 export interface AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffoldInput {
+  sourceOperatorHandoffPacket?: AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffoldSourceOperatorHandoffPacket
   sourceOperatorHandoffDecision?: string
   sourceOperatorHandoffStatus?: string
   cloudRunProjectRef?: string
@@ -33,6 +44,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffold {
   currentStatus: AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffoldStatus
   sourceOperatorHandoffDecisionAccepted: boolean
   sourceOperatorHandoffStatusAccepted: boolean
+  sourceOperatorHandoffBridgeAccepted: boolean
   totalAiGraphicsTools: 21
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
   modelWeightManifestRequiredTools: string[]
@@ -72,6 +84,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffold {
   booleans: {
     externalBetaNativeGpuProofCloudRunJobScaffoldPrepared: true
     sourceOperatorHandoffAccepted: boolean
+    sourceNativeGpuProofCollectionBridgeAccepted: boolean
     all8GpuRuntimeToolsCovered: true
     all5ModelWeightToolsCovered: true
     all6NativeGpuProfilesCovered: true
@@ -160,15 +173,30 @@ const generatedFiles = {
 } as const
 
 function sourceOperatorHandoffAccepted(input: AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffoldInput): boolean {
-  return input.sourceOperatorHandoffDecision ===
+  const packet = input.sourceOperatorHandoffPacket
+  const decision = packet?.sourceDecision ?? packet?.decision ?? input.sourceOperatorHandoffDecision
+  return decision ===
     'ai_graphics_external_beta_native_gpu_proof_operator_handoff_prepared_with_private_evidence_runtime_blocks'
 }
 
 function sourceOperatorHandoffStatusAccepted(input: AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffoldInput): boolean {
-  return input.sourceOperatorHandoffStatus ===
+  const packet = input.sourceOperatorHandoffPacket
+  const status = packet?.sourceDecision
+    ? packet.decision
+    : packet?.currentStatus ?? input.sourceOperatorHandoffStatus
+  return status ===
     'external_beta_native_gpu_proof_operator_handoff_prepared_with_pending_private_evidence_and_native_gpu_results' ||
-    input.sourceOperatorHandoffStatus ===
+    status ===
       'external_beta_native_gpu_proof_operator_handoff_ready_for_per_tool_recheck_not_beta_ready'
+}
+
+function sourceOperatorHandoffBridgeAccepted(
+  input: AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffoldInput,
+): boolean {
+  const packet = input.sourceOperatorHandoffPacket
+  return Boolean(packet) &&
+    packet?.sourceNativeGpuProofCollectionBridgeAccepted === true &&
+    packet?.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted === true
 }
 
 const cloudRunCommands: AiGraphicsExternalBetaNativeGpuProofCloudRunCommand[] = [
@@ -214,12 +242,14 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffold(
   const selectedMode = input.privateModelWeightDeliveryMode ?? 'prebaked_private_image_layer'
   const sourceDecisionAccepted = sourceOperatorHandoffAccepted(input)
   const sourceStatusAccepted = sourceOperatorHandoffStatusAccepted(input)
+  const sourceBridgeAccepted = sourceOperatorHandoffBridgeAccepted(input)
 
   return {
     decision: AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_CLOUD_RUN_JOB_SCAFFOLD_DECISION,
     currentStatus: 'external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_pending_private_cloud_run_execution',
     sourceOperatorHandoffDecisionAccepted: sourceDecisionAccepted,
     sourceOperatorHandoffStatusAccepted: sourceStatusAccepted,
+    sourceOperatorHandoffBridgeAccepted: sourceBridgeAccepted,
     totalAiGraphicsTools: 21,
     gpuRuntimeTargetedTools: [...gpuRuntimeTargetedTools],
     modelWeightManifestRequiredTools: [...modelWeightManifestRequiredTools],
@@ -248,7 +278,9 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffold(
     cloudRunCommands,
     booleans: {
       externalBetaNativeGpuProofCloudRunJobScaffoldPrepared: true,
-      sourceOperatorHandoffAccepted: sourceDecisionAccepted && sourceStatusAccepted,
+      sourceOperatorHandoffAccepted:
+        sourceDecisionAccepted && sourceStatusAccepted && sourceBridgeAccepted,
+      sourceNativeGpuProofCollectionBridgeAccepted: sourceBridgeAccepted,
       all8GpuRuntimeToolsCovered: true,
       all5ModelWeightToolsCovered: true,
       all6NativeGpuProfilesCovered: true,

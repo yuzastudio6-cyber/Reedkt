@@ -267,6 +267,7 @@ if (docs.completionCriteria?.productionReadyNowTools !== 0) fail('production_com
 for (const needle of [
   'buildAiGraphicsExternalBetaNativeGpuProofOperatorHandoff',
   'sourceCollectionAccepted',
+  'sourceCollectionBridgeAccepted',
   'fullPerToolRuntimeProofRecheckCommandPrepared',
   'gpuRuntimeShouldStartNow: false',
   'cpuFallbackAllowedForHeavyTools: false',
@@ -296,6 +297,7 @@ for (const forbidden of ['signed-url://', 'public://', 'gs://', 'gcs://', 'http:
 for (const key of [
   'externalBetaNativeGpuProofOperatorHandoffPrepared',
   'sourceNativeGpuProofCollectionAccepted',
+  'sourceRuntimeQueueServiceProofBridgeAccepted',
   'all8GpuRuntimeToolsCovered',
   'all5ModelWeightToolsCovered',
   'all6NativeGpuProfilesCovered',
@@ -320,13 +322,16 @@ const acceptedCollectionFixture = {
   sourceDecision: 'ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks',
   totalAiGraphicsTools: 21,
   counts: {
+    totalAiGraphicsTools: 21,
     gpuRuntimeTargetedTools: 8,
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
     modelWeightManifestRequiredTools: 5,
     nativeGpuRuntimeProofProfilesRequired: 6,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
   },
   booleans: {
+    sourceRuntimeQueueServiceProofBridgeAccepted: true,
     gpuRuntimeOnDemandOnly: true,
     gpuRuntimeShouldStartNow: false,
     agentCanExecuteToolsNow: false,
@@ -363,6 +368,9 @@ if (acceptedOutput.decision !== 'external_beta_native_gpu_proof_operator_handoff
   fail(`accepted_output_decision_unexpected:${acceptedOutput.decision}`)
 }
 if (acceptedOutput.sourceCollectionAccepted !== true) fail('accepted_output_source_not_accepted')
+if (acceptedOutput.sourceNativeGpuProofCollectionBridgeAccepted !== true) {
+  fail('accepted_output_source_bridge_not_accepted')
+}
 if (acceptedOutput.booleans?.readyForPerToolRuntimeProofRecheck !== false) {
   fail('accepted_output_ready_for_recheck_not_false')
 }
@@ -382,6 +390,33 @@ if (readyOutput.booleans?.readyForPerToolRuntimeProofRecheck !== true) {
   fail('ready_output_ready_for_recheck_not_true')
 }
 assertFalseGates(readyOutput, 'ready_output')
+
+const strippedBridgeCollectionFixture = {
+  ...acceptedCollectionFixture,
+  counts: {
+    ...acceptedCollectionFixture.counts,
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
+  },
+  booleans: {
+    ...acceptedCollectionFixture.booleans,
+    sourceRuntimeQueueServiceProofBridgeAccepted: false,
+  },
+}
+const strippedBridgePath = writeJson(
+  path.join(tmpDir, 'stripped-bridge-collection.json'),
+  strippedBridgeCollectionFixture,
+)
+const strippedBridgeOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-native-gpu-proof-collection-packet',
+  strippedBridgePath,
+  ...privateRefs,
+]), 'stripped_bridge_operator_handoff')
+if (strippedBridgeOutput.decision !== 'external_beta_native_gpu_proof_collection_not_accepted') {
+  fail(`stripped_bridge_output_decision_unexpected:${strippedBridgeOutput.decision}`)
+}
+if (strippedBridgeOutput.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== false) {
+  fail('stripped_bridge_output_source_bridge_not_false')
+}
 
 const unsafeOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-native-gpu-proof-collection-packet',

@@ -143,6 +143,7 @@
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
+  "sourceNativeGpuProofCollectionBridgeAccepted": true,
   "acceptedPrivateRefNamespaces": [
     "private://",
     "reeditpro-private://",
@@ -161,6 +162,7 @@
   "booleans": {
     "externalBetaNativeGpuProofOperatorHandoffPrepared": true,
     "sourceNativeGpuProofCollectionAccepted": true,
+    "sourceRuntimeQueueServiceProofBridgeAccepted": true,
     "all8GpuRuntimeToolsCovered": true,
     "all5ModelWeightToolsCovered": true,
     "all6NativeGpuProfilesCovered": true,
@@ -201,6 +203,7 @@
   "missingOperatorControls": [],
   "sourceCollectionAccepted": true,
   "counts": {
+    "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "operatorStepsWithCommands": 10,
     "operatorStepsWithOutputPaths": 10
   },

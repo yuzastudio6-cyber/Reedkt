@@ -165,6 +165,9 @@ if (docs.decision !== 'ai_graphics_external_beta_native_gpu_proof_cloud_run_job_
 if (docs.currentStatus !== 'external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_pending_private_cloud_run_execution') {
   fail(`unexpected_current_status:${docs.currentStatus}`)
 }
+if (docs.sourceOperatorHandoffBridgeAccepted !== true) {
+  fail('docs_source_operator_handoff_bridge_not_accepted')
+}
 assertSet('docs_gpu_tools', docs.gpuRuntimeTargetedTools || [], gpuTools)
 assertSet('docs_model_weight_tools', docs.modelWeightManifestRequiredTools || [], modelWeightTools)
 assertSet('docs_runtime_profiles', docs.runtimeProfilesRequired || [], runtimeProfiles)
@@ -176,6 +179,7 @@ for (const [key, value] of Object.entries({
   gpuRuntimeOnDemandOnly: true,
   noIdleGpuRuntimeApproved: true,
   gpuStartsOnlyForApprovedProofJob: true,
+  sourceNativeGpuProofCollectionBridgeAccepted: true,
   privateModelWeightDeliveryRequired: true,
   privateArtifactRefsRequired: true,
   agentCanSelectForPlanning: true,
@@ -226,6 +230,7 @@ for (const needle of [
 for (const needle of [
   'google_cloud_run_jobs',
   'nvidia-l4',
+  'sourceOperatorHandoffBridgeAccepted',
   'cloudRunJobExecutionPerformed: false',
   'gpuRuntimeShouldStartNow: false',
 ]) {
@@ -265,6 +270,12 @@ const scaffoldOutput = parseJsonOutput(runNpm(runScriptName, [
 if (scaffoldOutput.decision !== 'ai_graphics_external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_local_only') {
   fail(`scaffold_output_decision_unexpected:${scaffoldOutput.decision}`)
 }
+if (scaffoldOutput.sourceOperatorHandoffAccepted !== true) {
+  fail('scaffold_output_source_handoff_not_accepted')
+}
+if (scaffoldOutput.sourceNativeGpuProofCollectionBridgeAccepted !== true) {
+  fail('scaffold_output_source_bridge_not_accepted')
+}
 if (scaffoldOutput.generatedOnly !== true) fail('scaffold_output_generated_only_not_true')
 if (scaffoldOutput.scriptRequiresExplicitCloudRunGpuProofConfirmation !== true) {
   fail('scaffold_output_confirmation_guard_not_true')
@@ -283,8 +294,37 @@ assertSet('generated_job_plan_gpu_tools', jobPlan.gpuRuntimeTargetedTools || [],
 assertSet('generated_job_plan_runtime_profiles', jobPlan.runtimeProfilesRequired || [], runtimeProfiles)
 assertFalseGates(jobPlan, 'generated_job_plan')
 if (jobPlan.cloudRunRuntimeTarget?.gpuType !== 'nvidia-l4') fail('generated_job_gpu_type_unexpected')
+if (jobPlan.booleans?.sourceNativeGpuProofCollectionBridgeAccepted !== true) {
+  fail('generated_job_source_bridge_not_true')
+}
 if (jobPlan.privateModelWeightDelivery?.rawGcsRefsAllowedAsEvidence !== false) {
   fail('generated_job_raw_gcs_refs_not_false')
+}
+
+const strippedBridgeOperatorPath = path.join(tmpDir, 'stripped-bridge-operator-handoff.json')
+const operatorPacket = json('docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-operator-handoff.json')
+fs.writeFileSync(strippedBridgeOperatorPath, `${JSON.stringify({
+  ...operatorPacket,
+  sourceNativeGpuProofCollectionBridgeAccepted: false,
+  booleans: {
+    ...operatorPacket.booleans,
+    sourceRuntimeQueueServiceProofBridgeAccepted: false,
+  },
+}, null, 2)}\n`, 'utf8')
+const strippedOutputDir = path.join(tmpDir, 'stripped-cloud-run')
+const strippedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--source-operator-handoff-packet',
+  strippedBridgeOperatorPath,
+  '--private-model-weight-delivery-mode',
+  'prebaked_private_image_layer',
+  '--out-dir',
+  strippedOutputDir,
+]), 'stripped_bridge_cloud_run_job_scaffold')
+if (strippedOutput.sourceOperatorHandoffAccepted !== false) {
+  fail('stripped_output_source_handoff_not_false')
+}
+if (strippedOutput.sourceNativeGpuProofCollectionBridgeAccepted !== false) {
+  fail('stripped_output_source_bridge_not_false')
 }
 
 const deployScript = read(generatedFiles.deployScript)

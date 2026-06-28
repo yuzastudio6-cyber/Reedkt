@@ -1,6 +1,7 @@
 {
   "decision": "ai_graphics_external_beta_native_gpu_proof_cloud_run_result_collector_prepared_local_only",
   "currentStatus": "external_beta_native_gpu_proof_cloud_run_result_collector_prepared_pending_private_cloud_run_logs",
+  "sourceCloudRunJobScaffoldBridgeAccepted": true,
   "summary": "Local-only collector for already-saved Cloud Run native GPU proof logs. It extracts approved GPU runtime readiness JSON records into local profile result JSON files that can be fed into the existing GPU runtime proof result validator. It does not deploy Cloud Run, execute jobs, start GPU runtime, download model weights, load models, run inference, process media, mutate storage, create signed URLs, create public artifacts, or unlock external beta/production.",
   "sourceChain": {
     "cloudRunJobScaffold": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-job-scaffold.json",
@@ -61,6 +62,7 @@
   "booleans": {
     "externalBetaNativeGpuProofCloudRunResultCollectorPrepared": true,
     "sourceCloudRunJobScaffoldAccepted": true,
+    "sourceNativeGpuProofCollectionBridgeAccepted": true,
     "all8GpuRuntimeToolsCovered": true,
     "all6NativeGpuProfilesCovered": true,
     "parsesCloudRunLogsOnly": true,

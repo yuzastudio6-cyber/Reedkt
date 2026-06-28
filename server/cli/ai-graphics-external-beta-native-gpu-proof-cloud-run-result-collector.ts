@@ -113,12 +113,17 @@ function proofResultFromLog(logPath: string, profile: AiGraphicsGpuRuntimeProofP
 const sourceCloudRunJobScaffold = readJsonFile<{
   decision?: string
   currentStatus?: string
+  sourceOperatorHandoffBridgeAccepted?: boolean
+  booleans?: {
+    sourceNativeGpuProofCollectionBridgeAccepted?: boolean
+  }
 }>('--source-cloud-run-job-scaffold-packet')
 const logsDirectory = resolve(requiredStringFlag('--logs-dir'))
 const outputDirectory = resolve(requiredStringFlag('--out-dir'))
 mkdirSync(outputDirectory, { recursive: true })
 
 const packet = buildAiGraphicsExternalBetaNativeGpuProofCloudRunResultCollectorPacket({
+  sourceCloudRunJobScaffoldPacket: sourceCloudRunJobScaffold,
   sourceCloudRunJobScaffoldDecision: sourceCloudRunJobScaffold?.decision,
   sourceCloudRunJobScaffoldStatus: sourceCloudRunJobScaffold?.currentStatus,
   logsDirectory,
@@ -160,6 +165,9 @@ console.log(JSON.stringify({
   extractedProfileResults: extractedFiles,
   runtimeProfilesExtracted: Object.keys(extractedFiles).length,
   followUpValidationCommand: packet.followUpValidationCommand,
+  sourceCloudRunJobScaffoldAccepted: packet.booleans.sourceCloudRunJobScaffoldAccepted,
+  sourceNativeGpuProofCollectionBridgeAccepted:
+    packet.booleans.sourceNativeGpuProofCollectionBridgeAccepted,
   cloudRunDeploymentPerformed: false,
   cloudRunJobExecutionPerformed: false,
   gpuRuntimePerformed: false,

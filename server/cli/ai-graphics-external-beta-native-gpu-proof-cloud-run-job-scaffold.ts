@@ -165,10 +165,16 @@ npm run --silent ai-graphics:external-beta-native-gpu-proof-cloud-run-result-col
 
 const sourceOperatorHandoff = readJsonFile<{
   decision?: string
+  sourceDecision?: string
   currentStatus?: string
+  sourceNativeGpuProofCollectionBridgeAccepted?: boolean
+  booleans?: {
+    sourceRuntimeQueueServiceProofBridgeAccepted?: boolean
+  }
 }>('--source-operator-handoff-packet')
 
 const input: AiGraphicsExternalBetaNativeGpuProofCloudRunJobScaffoldInput = {
+  sourceOperatorHandoffPacket: sourceOperatorHandoff,
   sourceOperatorHandoffDecision: sourceOperatorHandoff?.decision,
   sourceOperatorHandoffStatus: sourceOperatorHandoff?.currentStatus,
   cloudRunProjectRef: stringFlag('--cloud-run-project-ref'),
@@ -208,6 +214,8 @@ console.log(JSON.stringify({
     checklist: checklistPath,
   },
   sourceOperatorHandoffAccepted: packet.booleans.sourceOperatorHandoffAccepted,
+  sourceNativeGpuProofCollectionBridgeAccepted:
+    packet.booleans.sourceNativeGpuProofCollectionBridgeAccepted,
   gpuRuntimeTargetedTools: packet.gpuRuntimeTargetedTools.length,
   runtimeProfilesRequired: packet.runtimeProfilesRequired.length,
   cloudRunRuntimeTarget: packet.cloudRunRuntimeTarget,

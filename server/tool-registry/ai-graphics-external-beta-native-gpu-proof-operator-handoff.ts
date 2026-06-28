@@ -39,6 +39,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofOperatorHandoff {
   decision: AiGraphicsExternalBetaNativeGpuProofOperatorHandoffStatus
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_OPERATOR_HANDOFF_DECISION
   sourceCollectionAccepted: boolean
+  sourceNativeGpuProofCollectionBridgeAccepted: boolean
   missingOperatorControls: string[]
   totalAiGraphicsTools: 21
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
@@ -66,6 +67,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofOperatorHandoff {
   booleans: {
     externalBetaNativeGpuProofOperatorHandoffPrepared: true
     sourceNativeGpuProofCollectionAccepted: boolean
+    sourceRuntimeQueueServiceProofBridgeAccepted: boolean
     all8GpuRuntimeToolsCovered: true
     all5ModelWeightToolsCovered: true
     all6NativeGpuProfilesCovered: true
@@ -187,11 +189,23 @@ function sourceCollectionAccepted(
     ) &&
     (packet?.totalAiGraphicsTools === 21 || counts?.totalAiGraphicsTools === 21) &&
     counts?.gpuRuntimeTargetedTools === 8 &&
+    counts?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
     counts?.modelWeightManifestRequiredTools === 5 &&
     counts?.nativeGpuRuntimeProofProfilesRequired === 6 &&
+    booleans?.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
     booleans?.gpuRuntimeOnDemandOnly === true &&
     booleans?.gpuRuntimeShouldStartNow === false &&
     booleans?.agentCanExecuteToolsNow === false
+}
+
+function sourceCollectionBridgeAccepted(
+  packet?: AiGraphicsExternalBetaNativeGpuProofOperatorHandoffInput['sourceNativeGpuProofCollectionPacket'],
+): boolean {
+  const counts = packet?.counts
+  const booleans = packet?.booleans
+  return Boolean(packet) &&
+    counts?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    booleans?.sourceRuntimeQueueServiceProofBridgeAccepted === true
 }
 
 const expectedPacketPaths = {
@@ -307,6 +321,8 @@ export function buildAiGraphicsExternalBetaNativeGpuProofOperatorHandoff(
   input: AiGraphicsExternalBetaNativeGpuProofOperatorHandoffInput = {},
 ): AiGraphicsExternalBetaNativeGpuProofOperatorHandoff {
   const sourceAccepted = sourceCollectionAccepted(input.sourceNativeGpuProofCollectionPacket)
+  const sourceBridgeAccepted =
+    sourceCollectionBridgeAccepted(input.sourceNativeGpuProofCollectionPacket)
   const missingOperatorControls = missingControls(input)
   const readyForPerToolRuntimeProofRecheck =
     sourceAccepted &&
@@ -328,6 +344,7 @@ export function buildAiGraphicsExternalBetaNativeGpuProofOperatorHandoff(
     decision,
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_OPERATOR_HANDOFF_DECISION,
     sourceCollectionAccepted: sourceAccepted,
+    sourceNativeGpuProofCollectionBridgeAccepted: sourceBridgeAccepted,
     missingOperatorControls,
     totalAiGraphicsTools: 21,
     gpuRuntimeTargetedTools: [...gpuRuntimeTargetedTools],
@@ -347,6 +364,7 @@ export function buildAiGraphicsExternalBetaNativeGpuProofOperatorHandoff(
     booleans: {
       externalBetaNativeGpuProofOperatorHandoffPrepared: true,
       sourceNativeGpuProofCollectionAccepted: sourceAccepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted: sourceBridgeAccepted,
       all8GpuRuntimeToolsCovered: true,
       all5ModelWeightToolsCovered: true,
       all6NativeGpuProfilesCovered: true,

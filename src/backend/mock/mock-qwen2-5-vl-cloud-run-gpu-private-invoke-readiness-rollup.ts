@@ -32,6 +32,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_CURRENT_EDIT_SESSION_FI
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_3_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-3-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_MEDIA_ASSETS_STATUS_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-media-assets-status-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_4_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-4-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_EDIT_PLAN_SEGMENTS_VERSION_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-edit-plan-segments-version-fix'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -70,6 +71,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_media_assets_status_baseline_fix_required'
   | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_media_assets_status_fix_required'
   | 'blocked_backend_runtime_persistence_edit_plan_segments_version_baseline_fix_required'
+  | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_edit_plan_segments_version_fix_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -86,7 +88,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_validation_retry_4_edit_plan_segments_version_fix_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_edit_plan_segments_version_fix_recorded_retry_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -155,6 +157,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_MEDIA_ASSETS_STATUS_FIX.decision,
   upstreamBackendRuntimePersistenceLocalHarnessValidationRetry4ResultDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_4_RESULT.decision,
+  upstreamBackendRuntimePersistenceBaselineEditPlanSegmentsVersionFixDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_EDIT_PLAN_SEGMENTS_VERSION_FIX.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -615,12 +619,24 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_edit_plan_segments_version_baseline_fix',
       label: 'Backend runtime persistence edit plan segments version baseline fix',
-      status: 'blocked_backend_runtime_persistence_edit_plan_segments_version_baseline_fix_required',
+      status: 'ready',
       evidence: [
-        'Backend runtime persistence local harness validation retry 4 proved the media-assets status baseline fix and identified the next active baseline prerequisite.',
+        'Backend runtime persistence edit plan segments version baseline fix is recorded.',
+        'The active ReEditPro intent plan versions migration now adds an idempotent edit_plan_segments.edit_plan_version_id compatibility column before idx_edit_plan_segments_plan_order runs.',
+        'The fix intentionally does not backfill from edit_plan_id because it must not invent edit_plan_versions records.',
+        'The fix does not create a new migration, deploy a migration, run SQL, apply the Qwen draft, or run Qwen local SQL tests.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_local_harness_validation_retry_after_edit_plan_segments_version_fix',
+      label: 'Backend runtime persistence local harness validation retry after edit plan segments version fix',
+      status: 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_edit_plan_segments_version_fix_required',
+      evidence: [
+        'Backend runtime persistence edit plan segments version baseline fix is recorded.',
       ],
       missingEvidence: [
-        'Fix active baseline migration 202605180003_reeditpro_intent_plan_versions.sql so it is idempotent when loaded after the earlier edit_plan_segments baseline table that uses edit_plan_id instead of edit_plan_version_id.',
+        'Retry the approved local Supabase harness after the edit_plan_segments version compatibility fix to determine whether the active baseline reaches the Qwen draft SQL.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -820,7 +836,13 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceLocalHarnessValidationRetry4Attempted: true,
     backendRuntimePersistenceLocalHarnessValidationRetry4Passed: false,
     backendRuntimePersistenceMediaAssetsStatusBaselineFixVerified: true,
-    backendRuntimePersistenceEditPlanSegmentsVersionBaselineFixRequired: true,
+    backendRuntimePersistenceEditPlanSegmentsVersionBaselineFixRequired: false,
+    backendRuntimePersistenceBaselineEditPlanSegmentsVersionFixRecorded: true,
+    activeBaselineEditPlanSegmentsVersionMigrationEdited: true,
+    editPlanSegmentsVersionColumnGuarded: true,
+    editPlanSegmentsVersionBackfillSkipped: true,
+    editPlanSegmentsPlanOrderIndexUnblocked: true,
+    backendRuntimePersistenceLocalHarnessValidationRetryAfterEditPlanSegmentsVersionFixRequired: true,
     qwenDraftSqlApplied: false,
     qwenLocalSqlTestsExecuted: false,
     existingLocalSupabaseProjectDetected: true,
@@ -851,11 +873,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_edit_plan_segments_version_baseline_fix_required',
+    'backend_runtime_persistence_local_harness_validation_retry_after_edit_plan_segments_version_fix_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58AC-BACKEND-RUNTIME-PERSISTENCE-BASELINE-EDIT-PLAN-SEGMENTS-VERSION-FIX: fix ReEditPro local baseline edit_plan_segments edit_plan_version_id prerequisite for Qwen harness validation, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58AD-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-5: retry Qwen local harness validation after edit_plan_segments version baseline fix, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

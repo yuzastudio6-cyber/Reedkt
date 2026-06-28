@@ -1,0 +1,72 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN2_5_VL_APPROVED_SNAPSHOT_JOB_ORCHESTRATION_E2E_1",
+  "decision": "completed_qwen2_5_vl_approved_snapshot_job_orchestration_e2e_source_contract",
+  "execution": "completed_backend_only_approved_snapshot_job_orchestration_source_no_runtime_execution",
+  "base": "71fe816d96135674bb634389ae08e2358806c33f",
+  "sourceEvidence": {
+    "approvedSnapshotPersistencePr": 1116,
+    "creditReservationLedgerPr": 1118,
+    "jobQueueLeaseEventPr": 1123,
+    "privateArtifactStoragePr": 1128,
+    "qwenProductRouteBackendHandoffPr": 1380,
+    "qwenProductRouteProviderRuntimeColdStartRetryPr": 1403,
+    "qwenProductRouteRuntimeReadinessRollupPr": 1407,
+    "qwenProductRouteRuntimeReadinessRollupMergeSha": "71fe816d96135674bb634389ae08e2358806c33f",
+    "excludedPr": 577
+  },
+  "requiredReferences": [
+    "approvedSnapshotRef",
+    "approvalRecordRef",
+    "creditEstimateRef",
+    "creditReservationRef",
+    "jobBatchRef",
+    "jobRef",
+    "workerLeaseRef",
+    "routeIdempotencyKey",
+    "providerRequestId",
+    "privateInputManifestRef",
+    "privateArtifactManifestRef",
+    "privateArtifactChecksumRef",
+    "sourceSequenceMapRef",
+    "compiledIntentRef",
+    "modelRoutingPolicyRef",
+    "qaPolicyRef",
+    "qwenRuntimeReadinessRollupRef",
+    "qwenProductRouteRuntimeRunId"
+  ],
+  "requiredState": {
+    "approvedSnapshotStatus": "approved",
+    "creditReservationStatus": "reserved",
+    "jobStatus": "queued_or_leased",
+    "workerLeaseStatus": "claimed",
+    "qwenProductRouteRuntimeHttpStatus": 200,
+    "qwenStructuredMetadataAccepted": true,
+    "qwenFailClosedRestorePassed": true
+  },
+  "readiness": {
+    "qwenApprovedSnapshotJobOrchestration": "ready_for_guarded_qwen2_5_vl_approved_snapshot_job_orchestration_runtime_fixture",
+    "externalBetaUnlocked": false
+  },
+  "safety": {
+    "backendOnlySourceContract": true,
+    "routeExecution": false,
+    "qwenRuntimeExecutedInThisPhase": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "cloudRunJobExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "creditMutation": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "finalRenderExport": false,
+    "externalBetaUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "RP-EXTERNAL-BETA-QWEN2_5_VL_APPROVED_SNAPSHOT_JOB_ORCHESTRATION_RUNTIME_FIXTURE_1"
+}

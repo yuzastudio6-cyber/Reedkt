@@ -746,6 +746,8 @@
     "rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1": "node scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1.mjs",
     "rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1-diagnostics.mjs",
     "rp-external-beta-qwen2-5-vl-product-route-runtime-readiness-rollup-1:diagnostics": "node scripts/validation/rp-external-beta-qwen2-5-vl-product-route-runtime-readiness-rollup-1-diagnostics.mjs",
+    "smoke:qwen2-5-vl-external-beta-approved-snapshot-job-orchestration-e2e-1": "tsx server/smoke/qwen2-5-vl-external-beta-approved-snapshot-job-orchestration-e2e-1-smoke.ts",
+    "rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-e2e-1:diagnostics": "node scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-e2e-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-external-beta-product-route-handler-source-1": "tsx server/smoke/qwen2-5-vl-external-beta-product-route-handler-source-1-smoke.ts",
     "rp-qwen2-5-vl-external-beta-product-route-handler-source-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-product-route-handler-source-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1": "tsx server/smoke/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-smoke.ts",

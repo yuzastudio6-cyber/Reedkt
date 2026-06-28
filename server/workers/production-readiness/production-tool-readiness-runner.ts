@@ -62,6 +62,11 @@ const sourceInstallReviewedToolIds = new Set<ProductionToolId>([
   'duckdb',
   'polars',
   'opentimelineio',
+  'pyav',
+  'pyscenedetect',
+  'opencv',
+  'sharp',
+  'remotion',
 ])
 
 function dryRunStatusForSpec(specStatus: ProductionReadinessStatus): ProductionReadinessStatus {

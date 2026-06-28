@@ -309,6 +309,7 @@
     "worker-runtime-jobs:sound-cpu-native-runtime-split-manifest-source-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-native-runtime-split-manifest-source-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-native-runtime-isolated-install-import-proof-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-native-runtime-isolated-install-import-proof-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-controlled-native-runtime-isolated-install-import-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-controlled-native-runtime-isolated-install-import-proof-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-native-runtime-isolated-proof-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-native-runtime-isolated-proof-owner-review-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

@@ -349,6 +349,54 @@ Remote Supabase mutation, SQL execution, migration execution, RLS policy apply, 
 
 Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-DECISION-1`.
 
+## RP-INTERNAL-BETA Supabase Target Owner Decision 1
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-DECISION-1` records decision `completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning` and execution `completed_docs_only_supabase_target_owner_decision_no_remote_execution`.
+
+Approved non-production Supabase target: `wmyyttnynmteqgcdishd`.
+
+Target name: `Reeditpro`.
+
+Target class: `staging`.
+
+Approval scope: `future_guarded_rls_storage_validation_planning_only`.
+
+Remote Supabase target: `staging_named_for_guarded_validation_planning`.
+
+Supabase target project: `wmyyttnynmteqgcdishd`.
+
+Target adoption status: `source_derived_owner_decision_recorded`.
+
+Remote mutation: `not_approved`.
+
+SQL/migration apply: `not_approved`.
+
+Remote validation approval: `guarded_prompt_required`.
+
+SQL/advisor/storage readback approval: `not_approved_until_guarded_validation_prompt`.
+
+Service-role secret payload access: `forbidden`.
+
+Frontend service-role credential exposure: `forbidden`.
+
+Public buckets/artifacts: `blocked`.
+
+RLS validation: `not_run`.
+
+Storage validation: `not_run`.
+
+Service-role runtime: `blocked_pending_guarded_rls_storage_validation`.
+
+Readiness: `ready_for_guarded_supabase_target_rls_storage_validation_1r`.
+
+Internal beta end-to-end status: `not_ready_pending_guarded_supabase_rls_storage_validation_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`.
+
+Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Remote Supabase mutation, SQL execution, migration execution, RLS policy apply, storage bucket/object access, service-role secret payload access, service-role route execution, frontend service-role credential exposure, signed URL creation, public artifact creation, Google Cloud API calls, worker execution, provider/model calls, render/export, deployment, internal beta unlock, external beta unlock, production unlock, and final delivery/export remain blocked.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

@@ -336,6 +336,26 @@ No remote Supabase mutation, SQL execution, migration execution, RLS policy appl
 
 Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-DECISION-1`.
 
+## RP-INTERNAL-BETA Supabase Target Owner Decision 1
+
+`RP-INTERNAL-BETA-SUPABASE-TARGET-OWNER-DECISION-1` records decision `completed_source_derived_staging_supabase_target_owner_decision_for_guarded_validation_planning` and execution `completed_docs_only_supabase_target_owner_decision_no_remote_execution`.
+
+Approved non-production Supabase target: `wmyyttnynmteqgcdishd`. Target name: `Reeditpro`. Target class: `staging`. Approval scope: `future_guarded_rls_storage_validation_planning_only`.
+
+Remote Supabase target is `staging_named_for_guarded_validation_planning`, Supabase target project is `wmyyttnynmteqgcdishd`, and target adoption status is `source_derived_owner_decision_recorded`.
+
+Remote mutation is `not_approved`, SQL/migration apply is `not_approved`, remote validation approval is `guarded_prompt_required`, SQL/advisor/storage readback approval is `not_approved_until_guarded_validation_prompt`, service-role secret payload access remains `forbidden`, frontend service-role credential exposure remains `forbidden`, and public buckets/artifacts remain `blocked`.
+
+RLS validation is `not_run`, storage validation is `not_run`, and service-role runtime is `blocked_pending_guarded_rls_storage_validation`.
+
+Readiness: `ready_for_guarded_supabase_target_rls_storage_validation_1r`.
+
+Internal beta end-to-end status: `not_ready_pending_guarded_supabase_rls_storage_validation_and_runtime_implementation`. Product-ready end-to-end local OSS tools: `0`.
+
+No remote Supabase mutation, SQL execution, migration execution, RLS policy apply, storage bucket/object access, service-role secret payload access, service-role route execution, frontend service-role credential exposure, signed URL creation, public artifact creation, Google Cloud API call, worker execution, provider/model call, render/export, deployment, or internal beta unlock is enabled by this packet.
+
+Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R`.
+
 ## RP-TRIM-01 Status
 
 Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.

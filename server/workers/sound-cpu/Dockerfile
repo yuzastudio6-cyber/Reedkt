@@ -16,7 +16,12 @@ WORKDIR /opt/reeditpro/sound-cpu
 COPY server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt ./requirements.sound-oss-tools.txt
 
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y libatomic1 \
+    && apt-get install --no-install-recommends -y \
+        ffmpeg \
+        fontconfig \
+        fonts-dejavu-core \
+        libass9 \
+        libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir --requirement ./requirements.sound-oss-tools.txt

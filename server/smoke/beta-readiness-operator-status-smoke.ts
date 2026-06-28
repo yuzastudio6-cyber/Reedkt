@@ -118,6 +118,8 @@ assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readine
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta-readiness-api-staging-input-discovery.yml')), 'ready report should name read-only staging input discovery before deploy')
 assert.ok(readyReport.nextActions.some((action) => action.includes('higher-privilege GCP owner')), 'ready report should name the higher-privilege owner prerequisite')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta-readiness-api-staging-owner-remediation.yml')), 'ready report should name the owner remediation workflow as partial-results evidence')
+assert.ok(readyReport.nextActions.some((action) => action.includes('beta-readiness-api-staging-owner-prerequisite-audit.yml')), 'ready report should name the read-only owner prerequisite audit workflow')
+assert.ok(readyReport.nextActions.some((action) => action.includes('28312122163')), 'ready report should name the latest read-only prerequisite audit run')
 assert.ok(readyReport.nextActions.some((action) => action.includes('28310853041')), 'ready report should name the latest owner-remediation partial-results run')
 assert.ok(readyReport.nextActions.some((action) => action.includes('exactRuntimeServiceAccount')), 'ready report should name the exact runtime service account blocker')
 assert.ok(readyReport.nextActions.some((action) => action.includes('gh workflow run beta-readiness-api-staging-deploy.yml')), 'ready report should name the guarded staging API workflow')
@@ -157,6 +159,9 @@ assert.ok(emptyReport.nextActions.some((action) => action.includes('beta-readine
 assert.ok(emptyReport.nextActions.some((action) => action.includes('higher-privilege GCP owner')), 'empty report should name higher-privilege owner remediation before exact input validation')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('deployer cannot self-remediate')), 'empty report should preserve the self-remediation blocker')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('artifactregistry.repositories.get')), 'empty report should name the exact Artifact Registry permission blocker')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('artifactregistry.repositories.get/uploadArtifacts')), 'empty report should name the exact Artifact Registry get/upload blocker')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('secret-entry describe access')), 'empty report should name the fixed secret-entry describe blocker')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('beta-readiness-api-staging-owner-prerequisite-audit.yml')), 'empty report should name the read-only owner prerequisite audit rerun')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('gh workflow run beta-readiness-api-staging-deploy.yml')), 'empty report should name the guarded default-branch workflow before API deployment preflight')
 
 console.log(JSON.stringify({

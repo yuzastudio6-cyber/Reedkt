@@ -2,33 +2,18 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-SOURCE-CAPTURE-1'
-const packetDir = 'docs/external-beta/single-tester-feedback-source-capture-1'
+const packet = 'RP-EXTERNAL-BETA-SINGLE-TESTER-LIVE-FEEDBACK-TRIAGE-1R'
+const packetDir = 'docs/external-beta/single-tester-live-feedback-triage-1r'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/feedback-source.md`,
-  `${packetDir}/triage-routing.md`,
-  `${packetDir}/safety-boundary.md`,
+  `${packetDir}/triage-decision.md`,
+  `${packetDir}/safe-gate-burndown-routing.md`,
   `${packetDir}/readiness-gate.md`,
+  `${packetDir}/safety-boundary.md`,
   `${packetDir}/validation-results.md`,
-  `${packetDir}/single-tester-feedback-source-capture-record.json`,
-  'docs/activation-phase-rp-external-beta-single-tester-feedback-source-capture-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-live-feedback-triage-1r.md',
-  'scripts/validation/rp-external-beta-single-tester-feedback-source-capture-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-single-tester-live-feedback-triage-1-diagnostics.mjs',
-  'package.json',
-]
-
-const followOnLiveFeedbackTriage1rFiles = [
-  'docs/external-beta/single-tester-live-feedback-triage-1r/source-audit.md',
-  'docs/external-beta/single-tester-live-feedback-triage-1r/triage-decision.md',
-  'docs/external-beta/single-tester-live-feedback-triage-1r/safe-gate-burndown-routing.md',
-  'docs/external-beta/single-tester-live-feedback-triage-1r/readiness-gate.md',
-  'docs/external-beta/single-tester-live-feedback-triage-1r/safety-boundary.md',
-  'docs/external-beta/single-tester-live-feedback-triage-1r/validation-results.md',
-  'docs/external-beta/single-tester-live-feedback-triage-1r/single-tester-live-feedback-triage-1r-record.json',
+  `${packetDir}/single-tester-live-feedback-triage-1r-record.json`,
   'docs/activation-phase-rp-external-beta-single-tester-live-feedback-triage-1r-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-single-tester-safe-gate-burndown-1.md',
   'scripts/validation/rp-external-beta-single-tester-live-feedback-triage-1r-diagnostics.mjs',
@@ -37,41 +22,41 @@ const followOnLiveFeedbackTriage1rFiles = [
 ]
 
 const relatedSourceFiles = [
+  'docs/external-beta/single-tester-feedback-source-capture-1/single-tester-feedback-source-capture-record.json',
   'docs/external-beta/single-tester-live-feedback-triage-1/single-tester-live-feedback-triage-record.json',
-  'docs/external-beta/additional-named-tester-list-decision-1/additional-named-tester-list-decision-record.json',
-  'docs/external-beta/controlled-single-tester-go-no-go-1/controlled-single-tester-go-no-go-record.json',
 ]
 
 const requiredText = [
   packet,
-  'completed_single_tester_feedback_source_capture_from_current_owner_tester_support_note',
-  'completed_docs_only_feedback_source_capture_no_runtime_execution',
-  'af655a8f88226fcbafbcefeb5abd9169289284b4',
+  'completed_single_tester_live_feedback_triage_1r_ready_for_safe_gate_burndown',
+  'completed_docs_only_single_tester_feedback_triage_no_runtime_execution',
+  '38a55432140795b146eafd3a0af58c2390aab855',
   '#1434',
   '#1445',
   '#1450',
   '#1454',
+  '#1457',
   '#577',
   'aiediting@reeditpro.com',
   'external-beta-testers@reeditpro.com',
   'go_single_tester_only',
   'current_thread_owner_tester_support_note_sanitized',
   'sanitized_owner_tester_support_note',
-  'external_beta_product_readiness_direction',
-  'prefer_external_beta_readiness_over_internal_beta_only_target',
-  'use_single_main_reeditpro_supabase_project_for_future_guarded_validation_planning',
-  'use_source_derived_repo_github_evidence_when_sufficient',
-  'keep_aiediting_reeditpro_com_as_current_single_tester',
-  'keep_real_gates_for_credentials_supabase_sql_workers_providers_media_artifacts_billing_export_and_production',
+  'accepted_for_docs_status_decision_packets_when_repo_github_evidence_sufficient',
+  'carry_forward_single_main_reeditpro_project_only',
+  'manual_owner_observed_single_tester_support_active',
+  'ready_for_single_tester_safe_gate_burndown',
   'blocked_no_additional_named_tester_list',
-  'ready_for_live_feedback_triage_1r',
-  'RP-EXTERNAL-BETA-SINGLE-TESTER-LIVE-FEEDBACK-TRIAGE-1R',
+  'requires_explicit_confirmation_per_guarded_packet',
+  'requires_explicit_guarded_validation_packet',
+  'requires_approved_snapshot_credit_and_runtime_gates',
+  'RP-EXTERNAL-BETA-SINGLE-TESTER-SAFE-GATE-BURNDOWN-1',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...followOnLiveFeedbackTriage1rFiles])
+const allowedChangedFiles = new Set(requiredFiles)
 
 const blockedPrefixes = [
   'package-lock.json',
@@ -126,13 +111,6 @@ const falseSafetyKeys = [
 ]
 
 const forbiddenClaims = [
-  /\bSource contains secrets:\s*`?true`?/i,
-  /\bSource contains private media:\s*`?true`?/i,
-  /\bSource contains signed URLs:\s*`?true`?/i,
-  /\bSource creates public artifacts:\s*`?true`?/i,
-  /\bSource grants additional tester access:\s*`?true`?/i,
-  /\bSource unlocks broad external beta:\s*`?true`?/i,
-  /\bSource unlocks production:\s*`?true`?/i,
   /\badditional tester access approved:\s*`?true`?/i,
   /\bbroad external beta audience:\s*`?(enabled|approved|true|unlocked)\b/i,
   /\bpaid production(?: unlock)?:\s*`?(enabled|approved|true|unlocked)\b/i,
@@ -174,19 +152,16 @@ for (const text of requiredText) {
   if (!corpus.includes(text)) fail(`missing required text: ${text}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/single-tester-feedback-source-capture-record.json`))
+const record = JSON.parse(read(`${packetDir}/single-tester-live-feedback-triage-1r-record.json`))
 if (record.packet !== packet) fail('packet mismatch')
-if (record.decision !== 'completed_single_tester_feedback_source_capture_from_current_owner_tester_support_note') {
+if (record.decision !== 'completed_single_tester_live_feedback_triage_1r_ready_for_safe_gate_burndown') {
   fail('decision mismatch')
 }
-if (record.execution !== 'completed_docs_only_feedback_source_capture_no_runtime_execution') fail('execution mismatch')
-if (record.integrationBase !== 'af655a8f88226fcbafbcefeb5abd9169289284b4') fail('integration base mismatch')
-if (record.sourceClosure?.controlledSingleTesterGoNoGoPr !== 1434) fail('missing #1434 source')
-if (record.sourceClosure?.singleTesterActiveLaneClosurePr !== 1445) fail('missing #1445 source')
-if (record.sourceClosure?.additionalNamedTesterListDecisionPr !== 1450) fail('missing #1450 source')
-if (record.sourceClosure?.singleTesterLiveFeedbackTriagePr !== 1454) fail('missing #1454 source')
-if (record.sourceClosure?.singleTesterLiveFeedbackTriageMergeSha !== 'af655a8f88226fcbafbcefeb5abd9169289284b4') {
-  fail('missing #1454 merge sha')
+if (record.execution !== 'completed_docs_only_single_tester_feedback_triage_no_runtime_execution') fail('execution mismatch')
+if (record.integrationBase !== '38a55432140795b146eafd3a0af58c2390aab855') fail('integration base mismatch')
+if (record.sourceClosure?.singleTesterFeedbackSourceCapturePr !== 1457) fail('missing #1457 source')
+if (record.sourceClosure?.singleTesterFeedbackSourceCaptureMergeSha !== '38a55432140795b146eafd3a0af58c2390aab855') {
+  fail('missing #1457 merge sha')
 }
 if (record.sourceClosure?.pr577 !== 'open_draft_blocked_excluded') fail('missing #577 exclusion')
 if (record.currentTester?.email !== 'aiediting@reeditpro.com') fail('tester email mismatch')
@@ -195,67 +170,57 @@ if (record.currentTester?.lane !== 'go_single_tester_only') fail('tester lane mi
 if (record.feedbackSource?.source !== 'current_thread_owner_tester_support_note_sanitized') fail('feedback source mismatch')
 if (record.feedbackSource?.sourceClass !== 'sanitized_owner_tester_support_note') fail('source class mismatch')
 if (record.feedbackSource?.sourceStatus !== 'captured') fail('source status mismatch')
-if (record.feedbackSource?.sourceScope !== 'external_beta_product_readiness_direction') fail('source scope mismatch')
-for (const key of [
-  'containsSecrets',
-  'containsPrivateMedia',
-  'containsSignedUrls',
-  'createsPublicArtifacts',
-  'grantsAdditionalTesterAccess',
-  'unlocksBroadExternalBeta',
-  'unlocksProduction',
-]) {
-  if (record.feedbackSource?.[key] !== false) fail(`feedback source flag must be false: ${key}`)
-}
-if (record.capturedFeedback?.externalBetaDirection !== 'prefer_external_beta_readiness_over_internal_beta_only_target') {
-  fail('external beta direction mismatch')
-}
 if (
-  record.capturedFeedback?.supabaseProjectDirection !==
-  'use_single_main_reeditpro_supabase_project_for_future_guarded_validation_planning'
+  record.triageOutcomes?.sourceDerivedOwnerDecisionPolicy !==
+  'accepted_for_docs_status_decision_packets_when_repo_github_evidence_sufficient'
 ) {
-  fail('Supabase project direction mismatch')
+  fail('source-derived owner policy mismatch')
 }
-if (record.capturedFeedback?.ownerDecisionDirection !== 'use_source_derived_repo_github_evidence_when_sufficient') {
-  fail('owner decision direction mismatch')
+if (record.triageOutcomes?.mainReeditProSupabaseProjectConsistency !== 'carry_forward_single_main_reeditpro_project_only') {
+  fail('main Supabase project consistency mismatch')
 }
-if (record.capturedFeedback?.currentTesterDirection !== 'keep_aiediting_reeditpro_com_as_current_single_tester') {
-  fail('current tester direction mismatch')
+if (record.triageOutcomes?.currentSingleTesterSupportPosture !== 'manual_owner_observed_single_tester_support_active') {
+  fail('support posture mismatch')
 }
-if (
-  record.capturedFeedback?.safeGateDirection !==
-  'keep_real_gates_for_credentials_supabase_sql_workers_providers_media_artifacts_billing_export_and_production'
-) {
-  fail('safe gate direction mismatch')
+if (record.triageOutcomes?.safeGateBurnDownReadiness !== 'ready_for_single_tester_safe_gate_burndown') {
+  fail('safe-gate burn-down readiness mismatch')
 }
-if (record.capturedFeedback?.testerExpansionDirection !== 'blocked_no_additional_named_tester_list') {
-  fail('tester expansion direction mismatch')
+if (record.triageOutcomes?.additionalTesterExpansion !== 'blocked_no_additional_named_tester_list') {
+  fail('additional tester expansion mismatch')
 }
-if (record.readiness?.feedbackSourceCapture !== 'completed') fail('feedback source capture readiness mismatch')
-if (record.readiness?.singleTesterLiveFeedbackTriage1r !== 'ready_for_live_feedback_triage_1r') {
-  fail('triage 1R readiness mismatch')
+if (record.triageOutcomes?.secretCredentialGates !== 'requires_explicit_confirmation_per_guarded_packet') {
+  fail('secret gate routing mismatch')
 }
-if (record.readiness?.nextMilestone !== 'RP-EXTERNAL-BETA-SINGLE-TESTER-LIVE-FEEDBACK-TRIAGE-1R') {
+if (record.triageOutcomes?.supabaseSqlMutation !== 'requires_explicit_guarded_validation_packet') {
+  fail('Supabase/SQL routing mismatch')
+}
+if (record.triageOutcomes?.providersModelsWorkersMedia !== 'requires_approved_snapshot_credit_and_runtime_gates') {
+  fail('provider/worker/media routing mismatch')
+}
+if (record.readiness?.safeGateBurnDown !== 'ready_for_single_tester_safe_gate_burndown') fail('readiness mismatch')
+if (record.readiness?.nextMilestone !== 'RP-EXTERNAL-BETA-SINGLE-TESTER-SAFE-GATE-BURNDOWN-1') {
   fail('next milestone mismatch')
 }
 if (record.readiness?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
-if (record.safety?.docsOnlyCapture !== true) fail('docsOnlyCapture must be true')
+if (record.safety?.docsOnlyTriage !== true) fail('docsOnlyTriage must be true')
 for (const key of falseSafetyKeys) {
   if (record.safety?.[key] !== false) fail(`safety flag must be false: ${key}`)
 }
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifact status mismatch')
 
-const triage = JSON.parse(read('docs/external-beta/single-tester-live-feedback-triage-1/single-tester-live-feedback-triage-record.json'))
-if (triage.decision !== 'blocked_no_single_tester_feedback_source_present') fail('prior triage source mismatch')
-if (triage.readiness?.feedbackSourceCapture !== 'ready_for_single_tester_feedback_source_capture') {
-  fail('prior triage feedback-source readiness mismatch')
+const capture = JSON.parse(
+  read('docs/external-beta/single-tester-feedback-source-capture-1/single-tester-feedback-source-capture-record.json'),
+)
+if (capture.decision !== 'completed_single_tester_feedback_source_capture_from_current_owner_tester_support_note') {
+  fail('feedback source capture source mismatch')
 }
+if (capture.feedbackSource?.source !== record.feedbackSource.source) fail('feedback source carry-forward mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
 if (
-  packageJson.scripts?.['rp-external-beta-single-tester-feedback-source-capture-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-single-tester-feedback-source-capture-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-single-tester-live-feedback-triage-1r:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-single-tester-live-feedback-triage-1r-diagnostics.mjs'
 ) {
   fail('missing package diagnostics script')
 }
@@ -284,5 +249,5 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_single_tester_feedback_source_capture_from_current_owner_tester_support_note')
-console.log('Next milestone: RP-EXTERNAL-BETA-SINGLE-TESTER-LIVE-FEEDBACK-TRIAGE-1R')
+console.log('Decision: completed_single_tester_live_feedback_triage_1r_ready_for_safe_gate_burndown')
+console.log('Next milestone: RP-EXTERNAL-BETA-SINGLE-TESTER-SAFE-GATE-BURNDOWN-1')

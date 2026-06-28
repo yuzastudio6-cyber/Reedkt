@@ -731,6 +731,8 @@
     "rp-qwen2-5-vl-external-beta-product-workflow-route-integration-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-product-workflow-route-integration-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-external-beta-product-route-readback-validation-1": "tsx server/smoke/qwen2-5-vl-external-beta-product-route-readback-validation-1-smoke.ts",
     "rp-qwen2-5-vl-external-beta-product-route-readback-validation-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-validation-1-diagnostics.mjs",
+    "smoke:qwen2-5-vl-external-beta-product-route-handler-source-1": "tsx server/smoke/qwen2-5-vl-external-beta-product-route-handler-source-1-smoke.ts",
+    "rp-qwen2-5-vl-external-beta-product-route-handler-source-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-product-route-handler-source-1-diagnostics.mjs",
     "rp-external-beta-reeditpro-supabase-main-target-migration-sync-1:diagnostics": "node scripts/validation/rp-external-beta-reeditpro-supabase-main-target-migration-sync-1-diagnostics.mjs",
     "rp-external-beta-main-supabase-service-role-runtime-validation-1-confirmed": "node scripts/validation/rp-external-beta-main-supabase-service-role-runtime-validation-1-confirmed.mjs",
     "rp-external-beta-main-supabase-service-role-runtime-validation-1:diagnostics": "node scripts/validation/rp-external-beta-main-supabase-service-role-runtime-validation-1-diagnostics.mjs",

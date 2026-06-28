@@ -3,7 +3,8 @@
 ```json worker-runtime-jobs-sound-cpu-ffmpeg-ffprobe-libass-static-validation-plan
 {
   "prompt": "WORKER_RUNTIME_JOBS-SOUND-CPU-FFMPEG-FFPROBE-LIBASS-STATIC-VALIDATION-PLAN",
-  "requiredSourceDecision": "worker_runtime_jobs_sound_cpu_ffmpeg_ffprobe_libass_container_source_plan_completed_with_warnings_ready_for_container_source_owner_review_no_media_no_docker_build",
+  "requiredSourceDecision": "worker_runtime_jobs_sound_cpu_ffmpeg_ffprobe_libass_container_source_owner_review_passed_with_warnings_ready_for_container_source_creation_no_media_no_docker_build",
+  "requiredSourceCreationDecision": "container_source_creation_gate_merges",
   "goal": "Plan static validation for FFmpeg, ffprobe, and libass source declarations after owner review and source creation.",
   "blockedUntil": [
     "container_source_owner_review_passes",

@@ -9,6 +9,8 @@ const SOURCE_HEAD = '11e143256583676a2fe9b15950d433e82214a6f8'
 const NEXT_PROMPT =
   'WORKER_RUNTIME_JOBS-SOUND-CPU-FFMPEG-FFPROBE-LIBASS-CONTAINER-SOURCE-OWNER-REVIEW: review FFmpeg/ffprobe/libass container source plan, no media/no Docker build'
 const FUTURE_SOURCE_PATH = 'server/workers/sound-cpu/Dockerfile'
+const OWNER_REVIEW_DECISION =
+  'worker_runtime_jobs_sound_cpu_ffmpeg_ffprobe_libass_container_source_owner_review_passed_with_warnings_ready_for_container_source_creation_no_media_no_docker_build'
 
 const FILES = {
   plan: {
@@ -217,7 +219,10 @@ assert(ownerPrompt.allowedScope.dockerfileEdit === false, 'owner prompt must blo
 assert(ownerPrompt.allowedScope.dockerBuildRunPush === false, 'owner prompt must block Docker build')
 
 const staticPrompt = parsed.staticPrompt
-assert(staticPrompt.requiredSourceDecision === DECISION, 'static prompt source decision mismatch')
+assert(
+  [DECISION, OWNER_REVIEW_DECISION].includes(staticPrompt.requiredSourceDecision),
+  'static prompt source decision mismatch',
+)
 assert(staticPrompt.blockedUntil.includes('container_source_owner_review_passes'), 'static prompt owner gate missing')
 assert(staticPrompt.blockedUntil.includes('actual_source_creation_gate_merges'), 'static prompt source gate missing')
 

@@ -1,0 +1,79 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R",
+  "decision": "blocked_pending_product_route_provider_runtime_fixture_confirmation",
+  "execution": "completed_guarded_runner_source_no_provider_or_model_execution",
+  "integrationBase": "8b4ebd66cbf634311b9acd1cc512ef77a5ce1333",
+  "sourceEvidence": {
+    "confirmedAdapterRuntimeFixturePr": 1328,
+    "productWorkflowBindingPr": 1333,
+    "productWorkflowRouteIntegrationPr": 1339,
+    "productRouteReadbackRuntimeValidationPr": 1368,
+    "productRouteProviderRuntimeEnablementReviewPr": 1370,
+    "productRouteProviderRuntimeFixturePr": 1376,
+    "productRouteProviderRuntimeFixtureMergeSha": "c0f7d05020dedc0d63e43d293d68a6fb893ff3e8",
+    "backendJobHandoffPr": 1380,
+    "backendJobHandoffMergeSha": "8b4ebd66cbf634311b9acd1cc512ef77a5ce1333",
+    "excludedPr": 577
+  },
+  "confirmationGate": {
+    "env": "REEDITPRO_CONFIRM_QWEN2_5_VL_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE",
+    "requiredValue": "true",
+    "defaultConfirmed": false,
+    "currentImplementationEnvironmentConfirmed": false
+  },
+  "requiredGates": {
+    "backendJobHandoff": "REEDITPRO_CONFIRM_QWEN2_5_VL_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF=true",
+    "routeReadbackValidation": "REEDITPRO_CONFIRM_QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION=true",
+    "runtimeGate": "REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE=true",
+    "targetRef": "REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd",
+    "runtimeScope": "REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_SCOPE=approved_snapshot_structured_metadata_only"
+  },
+  "runner": {
+    "script": "scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r.mjs",
+    "packageScript": "rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r",
+    "outputDirPattern": "/tmp/reeditpro-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r/<runId>/",
+    "delegatesToExistingAdapterFixture": true,
+    "delegatedAdapterFixtureScript": "scripts/validation/rp-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1-confirmed.mjs",
+    "backendHandoffSmoke": "smoke:qwen2-5-vl-external-beta-product-route-backend-job-handoff-1"
+  },
+  "route": {
+    "routeId": "providers.qwen25Vl.structuredVisualMetadataPlan",
+    "path": "/api/providers/qwen2-5-vl/structured-visual-metadata",
+    "routeBehaviorChangedInThisPhase": false,
+    "productRouteProviderRuntimeFixture": "not_run_confirmation_absent"
+  },
+  "blocker": "blocked_pending_product_route_provider_runtime_fixture_confirmation",
+  "safety": {
+    "guardedRunnerSource": true,
+    "providerRuntimeExecutedInThisPhase": false,
+    "modelRuntimeExecutedInThisPhase": false,
+    "cloudRunExecutionInThisPhase": false,
+    "routeExecutionInThisPhase": false,
+    "frontendProviderModelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "secretPayloadAccess": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "privateUserMediaProcessing": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "externalBetaUnlockAppliedToEnvironment": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "creditMutation": false,
+    "packageLockMutation": false
+  },
+  "readiness": {
+    "backendJobHandoff": "ready_for_guarded_qwen2_5_vl_product_route_provider_runtime_fixture",
+    "qwenProductRouteProviderRuntimeFixture1r": "blocked_pending_product_route_provider_runtime_fixture_confirmation",
+    "externalBetaUnlockedInThisPhase": false,
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R_CONFIRMED"
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

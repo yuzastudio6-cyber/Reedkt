@@ -26,3 +26,11 @@ Run the guarded product-route provider runtime fixture through the backend-only 
 - fail-closed restore evidence if any runtime path updates Cloud Run or caller job configuration;
 - `/tmp` report/manifest/checksum artifacts only;
 - package-lock unchanged.
+
+## Source Update
+
+`QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R` adds the guarded runner and records
+`blocked_pending_product_route_provider_runtime_fixture_confirmation` when
+`REEDITPRO_CONFIRM_QWEN2_5_VL_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE=true` is absent.
+
+The confirmed follow-up is `QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R_CONFIRMED`.

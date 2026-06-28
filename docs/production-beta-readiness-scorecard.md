@@ -1396,3 +1396,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: the evaluator accepts an external-beta admission candidate only when the beta technical evidence bundle is accepted for all 21 tools and the external-beta evidence packet contains accepted private/backend refs for all 21 tools. With full provided evidence, it reports 21 admission-candidate tools, 0 external-beta-ready-now tools, and 0 production-ready tools.
 - GPU policy: the 8 GPU/model tools remain native NVIDIA L4 targeted and on-demand only. No idle GPU runtime is approved; GPU can start only for a later accepted worker/tool call after launch and runtime-admission gates pass.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta End-to-End Readiness
+
+- Decision: `ai_graphics_external_beta_end_to_end_readiness_prepared_with_remaining_blocks`.
+- Scope: top-level all-21 AI graphics external-beta checkpoint across install surface, production mapping, ranking selection, GPU targeting, cross-owner coordination, readiness evidence, service-role queue smoke preflight, and saved service-role queue smoke proof.
+- Result: default committed evidence remains blocked with 0 external-beta candidates. Full provided evidence can report 21 candidate tools only when both `--external-beta-service-role-queue-smoke-preflight-packet` and `--external-beta-service-role-queue-smoke-proof-packet` are supplied, while `externalBetaReadyNowTools=0` and `productionReadyNowTools=0` remain enforced.
+- Runtime/beta/production: no unlock; this packet does not execute tools, enqueue workers, start GPU runtime, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production.

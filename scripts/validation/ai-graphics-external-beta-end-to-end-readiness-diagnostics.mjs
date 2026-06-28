@@ -50,6 +50,7 @@ const requiredFiles = [
   'scripts/validation/ai-graphics-external-beta-end-to-end-readiness-diagnostics.mjs',
   'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json',
   'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json',
 ]
 
 const falseBooleanKeys = [
@@ -133,6 +134,21 @@ function runPreflight(args = [], env = {}) {
   return JSON.parse(output)
 }
 
+function runProof(args = []) {
+  const output = execFileSync(
+    'npm',
+    ['run', '--silent', 'ai-graphics:external-beta-service-role-queue-smoke-proof', '--', ...args],
+    {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      },
+    },
+  )
+  return JSON.parse(output)
+}
+
 function git(args) {
   return execFileSync('git', args, {
     encoding: 'utf8',
@@ -149,7 +165,7 @@ function assertCount(record, key, expected, label) {
   }
 }
 
-function assertBooleanMap(record, label, expectedPreflightReady) {
+function assertBooleanMap(record, label, expectedPreflightReady, expectedProofAccepted) {
   const booleans = record?.booleans ?? {}
   for (const key of falseBooleanKeys) {
     if (booleans[key] !== false) fail(`${label}_${key}_not_false`)
@@ -177,6 +193,12 @@ function assertBooleanMap(record, label, expectedPreflightReady) {
   ) {
     fail(`${label}_service_role_ready_unexpected:${booleans.serviceRoleQueueSmokeReadyToExecute}`)
   }
+  if (
+    typeof expectedProofAccepted === 'boolean' &&
+    booleans.serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence !== expectedProofAccepted
+  ) {
+    fail(`${label}_service_role_proof_unexpected:${booleans.serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence}`)
+  }
 }
 
 function assertTools(record, label) {
@@ -203,6 +225,46 @@ function assertTools(record, label) {
         fail(`${label}_gpu_runtime_target_not_nvidia_l4:${tool.toolId}`)
       }
     }
+  }
+}
+
+function serviceRoleQueueSmokeReadinessFixture() {
+  return {
+    decision: 'external_beta_service_role_queue_smoke_prepared_not_executed',
+    serviceRoleQueueSmokePreparedWithProvidedEvidence: true,
+    sourceExternalBetaRuntimeQueueServiceBridgeAccepted: true,
+    sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted: true,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+    booleans: {
+      sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted: true,
+      agentCanExecuteToolsNow: false,
+      workerDispatchPerformed: false,
+      gpuRuntimeShouldStartNow: false,
+    },
+  }
+}
+
+function serviceRoleQueueSmokeResultFixture() {
+  return {
+    ok: true,
+    decision: 'ai_graphics_external_beta_service_role_queue_smoke_passed_with_cleanup',
+    status: 'external_beta_service_role_queue_smoke_passed_with_cleanup_no_tool_execution',
+    toolsSubmitted: 21,
+    toolsSubmittedIds: allTools,
+    jobIdsReturned: 21,
+    workerClaimsReturned: 21,
+    gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
+    sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    liveServiceRoleQueueSmokeExecutedNow: true,
+    liveSupabaseQueueWritesNow: 21,
+    liveWorkerClaimRowsNow: 21,
+    liveWorkerDispatchesNow: 0,
+    liveToolExecutionsNow: 0,
+    gpuRuntimeShouldStartNow: false,
+    fixtureRowsPersistedAfterCleanup: 0,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
   }
 }
 
@@ -240,8 +302,14 @@ if (docsJson.counts?.defaultServiceRoleQueueSmokePreflightPayloadsPrepared !== 2
 if (docsJson.counts?.defaultServiceRoleQueueSmokePreflightReadyToExecute !== 0) {
   fail('docs_default_service_role_ready_not_0')
 }
+if (docsJson.counts?.defaultServiceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence !== 0) {
+  fail('docs_default_service_role_proof_tools_not_0')
+}
 if (docsJson.counts?.fullEvidenceServiceRoleQueueSmokePreflightReadyToExecute !== 1) {
   fail('docs_full_service_role_ready_not_1')
+}
+if (docsJson.counts?.fullEvidenceServiceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('docs_full_service_role_proof_tools_not_21')
 }
 if (docsJson.counts?.fullEvidenceExternalBetaCandidateReadyWithProvidedEvidenceTools !== 21) {
   fail('docs_full_evidence_candidate_count_not_21')
@@ -250,14 +318,24 @@ if (docsJson.sourceEvidence?.externalBetaServiceRoleQueueSmokePreflight !==
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json') {
   fail('docs_missing_service_role_preflight_source_evidence')
 }
+if (docsJson.sourceEvidence?.externalBetaServiceRoleQueueSmokeProof !==
+  'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json') {
+  fail('docs_missing_service_role_proof_source_evidence')
+}
 if (docsJson.booleans?.defaultServiceRoleQueueSmokePayloadsPreparedForAll21Tools !== true) {
   fail('docs_default_service_role_payloads_not_true')
 }
 if (docsJson.booleans?.defaultServiceRoleQueueSmokeReadyToExecute !== false) {
   fail('docs_default_service_role_ready_not_false')
 }
+if (docsJson.booleans?.defaultServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence !== false) {
+  fail('docs_default_service_role_proof_not_false')
+}
 if (docsJson.booleans?.fullEvidenceServiceRoleQueueSmokeReadyToExecute !== true) {
   fail('docs_full_service_role_ready_not_true')
+}
+if (docsJson.booleans?.fullEvidenceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence !== true) {
+  fail('docs_full_service_role_proof_not_true')
 }
 assertBooleanMap(docsJson, 'docs', undefined)
 
@@ -272,8 +350,9 @@ assertCount(defaultReport, 'gpuRuntimeTargetedTools', 8, 'default')
 assertCount(defaultReport, 'externalBetaCandidateReadyWithProvidedEvidenceTools', 0, 'default')
 assertCount(defaultReport, 'serviceRoleQueueSmokePreflightPayloadsPrepared', 21, 'default')
 assertCount(defaultReport, 'serviceRoleQueueSmokePreflightReadyToExecute', 0, 'default')
+assertCount(defaultReport, 'serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence', 0, 'default')
 assertCount(defaultReport, 'externalBetaReadyNowTools', 0, 'default')
-assertBooleanMap(defaultReport, 'default', false)
+assertBooleanMap(defaultReport, 'default', false, false)
 assertTools(defaultReport, 'default')
 if (defaultReport.serviceRoleQueueSmokePreflight?.status !== 'missing_required_environment_or_flags') {
   fail(`default_service_role_preflight_status:${defaultReport.serviceRoleQueueSmokePreflight?.status}`)
@@ -315,6 +394,55 @@ fs.writeFileSync(
   readyServiceRolePreflightPath,
   `${JSON.stringify(readyServiceRolePreflight, null, 2)}\n`,
 )
+const serviceRoleQueueSmokeReadinessPath = path.join(tmpDir, 'service-role-queue-smoke-readiness.json')
+fs.writeFileSync(
+  serviceRoleQueueSmokeReadinessPath,
+  `${JSON.stringify(serviceRoleQueueSmokeReadinessFixture(), null, 2)}\n`,
+)
+const serviceRoleQueueSmokeResultPath = path.join(tmpDir, 'service-role-queue-smoke-result.json')
+fs.writeFileSync(
+  serviceRoleQueueSmokeResultPath,
+  `${JSON.stringify(serviceRoleQueueSmokeResultFixture(), null, 2)}\n`,
+)
+const serviceRoleQueueSmokeProof = runProof([
+  '--external-beta-service-role-queue-smoke-readiness-packet',
+  serviceRoleQueueSmokeReadinessPath,
+  '--external-beta-service-role-queue-smoke-result',
+  serviceRoleQueueSmokeResultPath,
+  '--external-beta-service-role-queue-smoke-evidence-ref',
+  'private://ai-graphics/external-beta/service-role-queue-smoke-proof/evidence.json',
+  '--external-beta-service-role-queue-smoke-telemetry-ref',
+  'private://ai-graphics/external-beta/service-role-queue-smoke-proof/telemetry.json',
+  '--external-beta-service-role-queue-smoke-cleanup-proof-ref',
+  'private://ai-graphics/external-beta/service-role-queue-smoke-proof/cleanup.json',
+])
+if (serviceRoleQueueSmokeProof.proofAcceptedWithProvidedEvidence !== true) {
+  fail('service_role_queue_smoke_proof_not_accepted')
+}
+const serviceRoleQueueSmokeProofPath = path.join(tmpDir, 'service-role-queue-smoke-proof.json')
+fs.writeFileSync(
+  serviceRoleQueueSmokeProofPath,
+  `${JSON.stringify(serviceRoleQueueSmokeProof, null, 2)}\n`,
+)
+
+const preflightOnlyFullEvidenceReport = runCli([
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
+  '--internal-beta-owner-approval-granted',
+  '--all-external-beta-evidence-passed',
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
+])
+if (preflightOnlyFullEvidenceReport.status !== 'installed_and_mapped_runtime_blocked') {
+  fail(`preflight_only_full_status:${preflightOnlyFullEvidenceReport.status}`)
+}
+assertCount(preflightOnlyFullEvidenceReport, 'externalBetaCandidateReadyWithProvidedEvidenceTools', 0, 'preflight_only_full')
+assertCount(preflightOnlyFullEvidenceReport, 'serviceRoleQueueSmokePreflightReadyToExecute', 1, 'preflight_only_full')
+assertCount(preflightOnlyFullEvidenceReport, 'serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence', 0, 'preflight_only_full')
+assertBooleanMap(preflightOnlyFullEvidenceReport, 'preflight_only_full', true, false)
 
 const fullEvidenceReport = runCli([
   '--all-shared-gates-passed',
@@ -326,6 +454,8 @@ const fullEvidenceReport = runCli([
   '--all-external-beta-evidence-passed',
   '--external-beta-service-role-queue-smoke-preflight-packet',
   readyServiceRolePreflightPath,
+  '--external-beta-service-role-queue-smoke-proof-packet',
+  serviceRoleQueueSmokeProofPath,
 ])
 if (
   fullEvidenceReport.status !==
@@ -337,9 +467,11 @@ assertCount(fullEvidenceReport, 'betaTechnicalEvidenceReadyWithProvidedEvidenceT
 assertCount(fullEvidenceReport, 'externalBetaCandidateReadyWithProvidedEvidenceTools', 21, 'full')
 assertCount(fullEvidenceReport, 'serviceRoleQueueSmokePreflightPayloadsPrepared', 21, 'full')
 assertCount(fullEvidenceReport, 'serviceRoleQueueSmokePreflightReadyToExecute', 1, 'full')
+assertCount(fullEvidenceReport, 'serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence', 21, 'full')
+assertCount(fullEvidenceReport, 'serviceRoleQueueSmokeProofLiveQueueWritesAcceptedWithProvidedEvidence', 21, 'full')
 assertCount(fullEvidenceReport, 'externalBetaReadyNowTools', 0, 'full')
 assertCount(fullEvidenceReport, 'productionReadyNowTools', 0, 'full')
-assertBooleanMap(fullEvidenceReport, 'full', true)
+assertBooleanMap(fullEvidenceReport, 'full', true, true)
 assertTools(fullEvidenceReport, 'full')
 if (fullEvidenceReport.booleans?.externalBetaCandidateReadyWithProvidedEvidence !== true) {
   fail('full_evidence_candidate_boolean_not_true')

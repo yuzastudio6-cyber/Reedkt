@@ -19,6 +19,15 @@ const requiredFiles = [
   'server/smoke/qwen2-5-vl-external-beta-product-route-backend-job-handoff-1-smoke.ts',
   'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1-diagnostics.mjs',
   'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-backend-job-handoff-1-diagnostics.mjs',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r/product-route-runtime-fixture-1r.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r/qwen2-5-vl-product-route-provider-runtime-fixture-1r-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-results.md',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r.mjs',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-diagnostics.mjs',
+  'server/smoke/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-smoke.ts',
   'package.json',
 ]
 

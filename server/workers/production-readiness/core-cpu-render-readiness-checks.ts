@@ -188,15 +188,7 @@ function runPythonImportCheck(
   }
 
   try {
-    execFileSync(pythonCommand, [
-      '-c',
-      `import importlib; importlib.import_module(${JSON.stringify(definition.importName)}); print("ok")`,
-    ], {
-      encoding: 'utf8',
-      timeout: options.timeoutMs,
-      maxBuffer: options.maxBuffer,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
+    const firstAttempt = runPythonImportAttempt(definition, pythonCommand, options)
 
     return {
       toolId: definition.toolId,
@@ -205,7 +197,10 @@ function runPythonImportCheck(
       status: 'passed',
       optional: definition.optional,
       manualReviewRequired: false,
-      message: `${definition.importName} Python import check passed.`,
+      message: firstAttempt.retried
+        ? `${definition.importName} Python import check passed after one bounded retry.`
+        : `${definition.importName} Python import check passed.`,
+      detail: firstAttempt.firstFailureDetail,
       packageName: definition.packageName,
       importName: definition.importName,
       checkedAt,
@@ -224,6 +219,39 @@ function runPythonImportCheck(
       packageName: definition.packageName,
       importName: definition.importName,
       checkedAt,
+    }
+  }
+}
+
+function runPythonImportAttempt(
+  definition: CoreToolPythonImportCheckDefinition,
+  pythonCommand: string,
+  options: Required<Pick<RunCoreCpuRenderReadinessOptions, 'timeoutMs' | 'maxBuffer'>>,
+): { retried: boolean, firstFailureDetail?: string } {
+  const args = [
+    '-c',
+    `import importlib; importlib.import_module(${JSON.stringify(definition.importName)}); print("ok")`,
+  ]
+
+  try {
+    execFileSync(pythonCommand, args, {
+      encoding: 'utf8',
+      timeout: options.timeoutMs,
+      maxBuffer: options.maxBuffer,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    return { retried: false }
+  } catch (error) {
+    const firstFailure = error as { stderr?: string | Buffer, message?: string }
+    execFileSync(pythonCommand, args, {
+      encoding: 'utf8',
+      timeout: options.timeoutMs,
+      maxBuffer: options.maxBuffer,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    return {
+      retried: true,
+      firstFailureDetail: `first attempt: ${cleanDetail(firstFailure.stderr) || cleanDetail(firstFailure.message)}`,
     }
   }
 }
@@ -356,14 +384,15 @@ export function runCoreCpuRenderReadinessChecks(
 ): RunCoreCpuRenderReadinessResult {
   const realCheckMode = options.realCheckMode === true
   const strict = options.strict === true
-  const timeoutMs = options.timeoutMs ?? 15000
+  const timeoutMs = options.timeoutMs ?? 45000
   const maxBuffer = options.maxBuffer ?? 1024 * 1024
   const checkedAt = new Date().toISOString()
+  const pythonCommand = realCheckMode ? findPythonCommand(timeoutMs) : undefined
 
   const results: CoreToolReadinessCheckResult[] = realCheckMode
     ? [
         ...CORE_TOOL_COMMAND_CHECKS.map((definition) => runCommandCheck(definition, checkedAt, { timeoutMs, maxBuffer })),
-        ...CORE_TOOL_PYTHON_IMPORT_CHECKS.map((definition) => runPythonImportCheck(definition, checkedAt, findPythonCommand(timeoutMs), { timeoutMs, maxBuffer })),
+        ...CORE_TOOL_PYTHON_IMPORT_CHECKS.map((definition) => runPythonImportCheck(definition, checkedAt, pythonCommand, { timeoutMs, maxBuffer })),
         ...CORE_TOOL_NODE_PACKAGE_CHECKS.map((definition) => runNodePackageCheck(definition, checkedAt)),
         ...policyResults(checkedAt),
       ]

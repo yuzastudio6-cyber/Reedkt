@@ -1,0 +1,47 @@
+{
+  "reportId": "beta-core-python-cold-import-timeout-hardening-2026-06-28",
+  "decision": "beta_core_python_cold_import_timeout_hardening_passed_ready_for_current_source_validation",
+  "createdAt": "2026-06-28T10:34:00Z",
+  "toolsSourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+  "baseSourceSha": "df7d1474326818a5847b2aa768ec46d780a7f8be",
+  "reason": "Post-merge validation after PR #1424 reproduced a cold-start PySceneDetect import timeout immediately after readiness venv hydration. Direct bounded imports passed, and immediate reruns passed, showing the package was installed but the readiness timeout was too tight for cold native import paths.",
+  "implementation": {
+    "file": "server/workers/production-readiness/core-cpu-render-readiness-checks.ts",
+    "changes": [
+      "Increase the default bounded readiness timeout from 15000ms to 45000ms.",
+      "Resolve the readiness Python command once per real-check run and reuse it for all Python imports.",
+      "Retry a failed Python import once before classifying the tool as missing, while still failing closed when the retry also fails."
+    ],
+    "unchangedBoundaries": [
+      "No media processing",
+      "No Docker build or run",
+      "No backend evidence writes",
+      "No Supabase or GCS writes",
+      "No external beta activation",
+      "No paid production activation"
+    ]
+  },
+  "expectedValidation": [
+    "npm run tools:readiness:install-core-python",
+    "npm run smoke:prod-core-python-readiness",
+    "fresh-venv immediate smoke validation after deleting .reeditpro-tool-readiness-python",
+    "npm run beta:tools:core-real-check-preview:hydrated",
+    "npm run smoke:beta-tools-core-real-check-preview:hydrated",
+    "npm run smoke:beta-readiness-blocker-ledger",
+    "git diff --check",
+    "git diff --cached --check"
+  ],
+  "blockedAction": "external_beta_real_user_media_beta_and_paid_production_until_deployed_tool_evidence_platform_evidence_and_launch_approvals_pass",
+  "notABlanketBlocker": true,
+  "nextSafeAction": "Refresh current-source libass synthetic subtitle QA evidence, then reissue the 14-tool local accepted evidence bundle for the latest tools SHA.",
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "realUserMediaBetaEnabled": false,
+  "productionEnabled": false
+}

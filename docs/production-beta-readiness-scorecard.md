@@ -291,6 +291,15 @@ still performs no live smoke: `liveServiceRoleQueueSmokeExecutedNow=false`,
 `liveSupabaseQueueWritesNow=0`, `liveWorkerClaimRowsNow=0`,
 `workerDispatchPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
 
+AI graphics external beta service-role queue smoke proof and worker-dispatch
+readiness now preserve the same source gateway runtime-admission map. The proof
+requires `sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence=21` and
+`sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence=1`, with `d3`
+marked as `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`. Worker
+dispatch readiness copies that marker into its records while keeping
+`workerLeaseCreated=false`, `workerDispatchPerformed=false`,
+`toolExecutionPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
+
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
 shapes the all-21 queue-admission packets into backend queue adapter submission

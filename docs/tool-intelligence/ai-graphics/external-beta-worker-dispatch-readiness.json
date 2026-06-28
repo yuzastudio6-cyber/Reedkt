@@ -73,6 +73,8 @@
     "sourceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence": true,
     "sourceLiveQueueWritesAcceptedWithProvidedEvidence": 21,
     "sourceWorkerClaimRowsAcceptedWithProvidedEvidence": 21,
+    "sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence": 21,
+    "sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence": 1,
     "sourceWorkerDispatchesAcceptedWithProvidedEvidence": 0,
     "sourceToolExecutionsAcceptedWithProvidedEvidence": 0,
     "cleanupPersistedRowsAfterSmoke": 0,
@@ -84,6 +86,10 @@
     "liveToolExecutionsNow": 0,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
+  },
+  "sourceGatewayRuntimeAdmissionModes": {
+    "d3": "cpu_static_first_cohort",
+    "defaultForOtherAcceptedTools": "all_tools_external_beta"
   },
   "booleans": {
     "externalBetaWorkerDispatchReadinessPrepared": true,

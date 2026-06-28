@@ -203,6 +203,8 @@ for (const phrase of [
   '--external-beta-service-role-queue-smoke-cleanup-proof-ref',
   'toolsSubmittedIds',
   'fixtureRowsPersistedAfterCleanup',
+  'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
+  'sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence',
   'noWorkerDispatchByProofValidator',
   'noGpuRuntimeStartByProofValidator',
 ]) {
@@ -223,6 +225,15 @@ for (const key of falseGateKeys) {
 if (docs.acceptanceCriteria?.toolsSubmitted !== 21) fail('docs_tools_submitted_not_21')
 if (docs.acceptanceCriteria?.jobIdsReturned !== 21) fail('docs_jobs_not_21')
 if (docs.acceptanceCriteria?.workerClaimsReturned !== 21) fail('docs_claims_not_21')
+if (docs.acceptanceCriteria?.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence !== 21) {
+  fail('docs_source_modes_not_21')
+}
+if (docs.acceptanceCriteria?.sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence !== 1) {
+  fail('docs_cpu_static_first_cohort_not_1')
+}
+if (docs.sourceGatewayRuntimeAdmissionModes?.d3 !== 'cpu_static_first_cohort') {
+  fail('docs_d3_source_mode_unexpected')
+}
 if (docs.acceptanceCriteria?.fixtureRowsPersistedAfterCleanup !== 0) fail('docs_cleanup_not_0')
 
 const missingOutput = parseOutput(runNpm(proofScriptName), 'missing')
@@ -289,6 +300,18 @@ try {
   }
   if (accepted.counts?.sourceWorkerClaimRowsAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_claims_not_21')
+  }
+  if (accepted.counts?.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_modes_not_21')
+  }
+  if (accepted.counts?.sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence !== 1) {
+    fail('accepted_cpu_static_first_cohort_not_1')
+  }
+  if (!accepted.acceptedCpuStaticFirstCohortTools?.includes('d3')) {
+    fail('accepted_cpu_static_first_cohort_missing_d3')
+  }
+  if (accepted.evidence?.sourceGatewayRuntimeAdmissionModesByTool?.d3 !== 'cpu_static_first_cohort') {
+    fail('accepted_d3_source_mode_unexpected')
   }
   if (accepted.counts?.sourceWorkerDispatchesAcceptedWithProvidedEvidence !== 0) {
     fail('accepted_dispatches_not_0')

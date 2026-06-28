@@ -32,6 +32,8 @@ The gate can report `external_beta_worker_dispatch_readiness_prepared_with_runti
 
 The accepted source proof must show 21 queue writes, 21 worker-claim rows, zero worker dispatches, zero tool executions, zero persisted fixture rows after cleanup, and zero external-beta/production-ready tools.
 
+The source proof must also carry the source gateway runtime-admission map. The current accepted map marks `d3` as `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` and keeps the remaining accepted tools on `all_tools_external_beta`, so dispatch readiness can separate CPU/static first-cohort jobs from GPU/model worker lanes.
+
 ## GPU Boundary
 
 GPU remains on-demand only. The eight GPU/model tools can be marked `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=true` only after accepted queue-smoke proof and worker dispatch controls are present. Even then, this gate keeps `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `workerDispatchPerformed=false`, and `toolExecutionPerformed=false`.

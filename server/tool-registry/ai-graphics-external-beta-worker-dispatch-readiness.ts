@@ -5,6 +5,7 @@ import {
 } from './ai-graphics-tool-call-readiness'
 import type {
   AiGraphicsExternalBetaServiceRoleQueueSmokeProof,
+  AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode,
 } from './ai-graphics-external-beta-service-role-queue-smoke-proof'
 import type {
   ProductionRegistryWorkerType,
@@ -36,6 +37,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadinessRecord {
   productionToolId: ProductionToolId | null
   workerType: ProductionRegistryWorkerType | 'none'
   runtimeTarget: string
+  sourceGatewayRuntimeAdmissionMode: AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode
   capabilityIds: string[]
   sourceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence: boolean
   workerLeaseReadinessPreparedWithProvidedEvidence: boolean
@@ -190,6 +192,12 @@ function sourceProofAccepted(
     packet.counts.serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence === 21 &&
     packet.counts.sourceLiveQueueWritesAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceWorkerClaimRowsAcceptedWithProvidedEvidence === 21 &&
+    packet.counts.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence === 21 &&
+    packet.counts.sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence === 1 &&
+    packet.acceptedCpuStaticFirstCohortTools?.length === 1 &&
+    packet.acceptedCpuStaticFirstCohortTools[0] === 'd3' &&
+    packet.evidence.sourceGatewayRuntimeAdmissionModesByTool?.d3 ===
+      'cpu_static_first_cohort' &&
     packet.counts.sourceWorkerDispatchesAcceptedWithProvidedEvidence === 0 &&
     packet.counts.sourceToolExecutionsAcceptedWithProvidedEvidence === 0 &&
     packet.counts.cleanupPersistedRowsAfterSmoke === 0 &&
@@ -242,14 +250,20 @@ function statusFromInput(input: {
 function buildRecords(input: {
   proofAccepted: boolean
   controlsSatisfied: boolean
+  sourceGatewayRuntimeAdmissionModesByTool?:
+    Record<string, AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode>
 }): AiGraphicsExternalBetaWorkerDispatchReadinessRecord[] {
   return listAiGraphicsToolCallReadiness().map((record) => {
     const readyWithEvidence = input.proofAccepted && input.controlsSatisfied
+    const sourceGatewayRuntimeAdmissionMode =
+      input.sourceGatewayRuntimeAdmissionModesByTool?.[record.toolId] ??
+      (record.toolId === 'd3' ? 'cpu_static_first_cohort' : 'all_tools_external_beta')
     return {
       toolId: record.toolId,
       productionToolId: record.productionToolId,
       workerType: record.productionWorkerType,
       runtimeTarget: record.runtimeTarget,
+      sourceGatewayRuntimeAdmissionMode,
       capabilityIds: [...record.capabilities],
       sourceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence:
         input.proofAccepted,
@@ -302,7 +316,13 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
   )
   const missingControls = proofAccepted ? missingDispatchControls(input) : []
   const controlsSatisfied = proofAccepted && missingControls.length === 0
-  const records = buildRecords({ proofAccepted, controlsSatisfied })
+  const records = buildRecords({
+    proofAccepted,
+    controlsSatisfied,
+    sourceGatewayRuntimeAdmissionModesByTool:
+      input.sourceExternalBetaServiceRoleQueueSmokeProofPacket
+        ?.evidence.sourceGatewayRuntimeAdmissionModesByTool,
+  })
   const capabilityScenarios = buildCapabilityScenarios(records)
   const recordsReady = records.filter((record) => (
     record.workerDispatchReadinessPreparedWithProvidedEvidence

@@ -71,6 +71,13 @@ const gpuTools = [
   'transparent_background',
 ]
 
+const sourceGatewayRuntimeAdmissionModesByTool = Object.fromEntries(
+  allTools.map((toolId) => [
+    toolId,
+    toolId === 'd3' ? 'cpu_static_first_cohort' : 'all_tools_external_beta',
+  ]),
+)
+
 const capabilities = [
   'chart_overlay',
   'data_visualization',
@@ -224,6 +231,8 @@ for (const capability of capabilities) {
 for (const [key, expected] of Object.entries({
   sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
   sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
+  sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
+  sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
   sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
   sourceToolExecutionsAcceptedWithProvidedEvidence: 0,
   cleanupPersistedRowsAfterSmoke: 0,
@@ -265,6 +274,7 @@ for (const phrase of [
   '--external-beta-gpu-on-demand-policy-ref',
   '--external-beta-private-artifact-policy-ref',
   'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
+  'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
   'noLiveWorkerLeaseByReadinessGate',
   'noLiveWorkerDispatchByReadinessGate',
   'noGpuRuntimeStartByReadinessGate',
@@ -293,13 +303,19 @@ try {
   const proofPacketPath = writeJson(path.join(tmpRoot, 'service-role-queue-smoke-proof.json'), {
     decision: 'external_beta_service_role_queue_smoke_proof_accepted_with_runtime_blocks',
     proofAcceptedWithProvidedEvidence: true,
+    acceptedCpuStaticFirstCohortTools: ['d3'],
     counts: {
       serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: 21,
       sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
       sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
+      sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
+      sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
       sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
       sourceToolExecutionsAcceptedWithProvidedEvidence: 0,
       cleanupPersistedRowsAfterSmoke: 0,
+    },
+    evidence: {
+      sourceGatewayRuntimeAdmissionModesByTool,
     },
     booleans: {
       agentCanExecuteToolsNow: false,
@@ -334,6 +350,16 @@ try {
   }
   if (accepted.gpuRuntimeTargetedTools !== 8) {
     fail(`accepted_gpu_tools_not_8:${accepted.gpuRuntimeTargetedTools}`)
+  }
+  const d3Record = (accepted.records ?? []).find((record) => record.toolId === 'd3')
+  if (d3Record?.sourceGatewayRuntimeAdmissionMode !== 'cpu_static_first_cohort') {
+    fail('accepted_d3_source_mode_unexpected')
+  }
+  const sourceModeReady = (accepted.records ?? []).filter(
+    (record) => typeof record.sourceGatewayRuntimeAdmissionMode === 'string',
+  )
+  if (sourceModeReady.length !== 21) {
+    fail(`accepted_source_mode_record_count:${sourceModeReady.length}`)
   }
   if (accepted.liveWorkerLeasesCreatedNow !== 0) fail('accepted_live_leases_not_0')
   if (accepted.liveWorkerDispatchesNow !== 0) fail('accepted_live_dispatches_not_0')

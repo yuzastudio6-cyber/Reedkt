@@ -74,6 +74,8 @@
     "jobIdsReturned": 21,
     "workerClaimsReturned": 21,
     "gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools": 8,
+    "sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence": 21,
+    "sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence": 1,
     "sourceLiveSupabaseQueueWritesAcceptedWithProvidedEvidence": 21,
     "sourceWorkerClaimRowsAcceptedWithProvidedEvidence": 21,
     "sourceWorkerDispatchesAcceptedWithProvidedEvidence": 0,
@@ -82,6 +84,10 @@
     "fixtureRowsPersistedAfterCleanup": 0,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
+  },
+  "sourceGatewayRuntimeAdmissionModes": {
+    "d3": "cpu_static_first_cohort",
+    "defaultForOtherAcceptedTools": "all_tools_external_beta"
   },
   "booleans": {
     "externalBetaServiceRoleQueueSmokeProofPrepared": true,

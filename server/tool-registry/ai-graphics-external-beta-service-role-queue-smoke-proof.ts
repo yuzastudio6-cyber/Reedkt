@@ -11,6 +11,10 @@ import type {
 export const AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PROOF_DECISION =
   'ai_graphics_external_beta_service_role_queue_smoke_proof_prepared_with_runtime_blocks'
 
+export type AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode =
+  | 'all_tools_external_beta'
+  | 'cpu_static_first_cohort'
+
 export type AiGraphicsExternalBetaServiceRoleQueueSmokeProofStatus =
   | 'missing_external_beta_service_role_queue_smoke_result'
   | 'external_beta_service_role_queue_smoke_proof_rejected'
@@ -53,12 +57,15 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeProof {
   rejectionReasons: string[]
   acceptedTools: AiGraphicsCanonicalToolId[]
   acceptedGpuTools: AiGraphicsCanonicalToolId[]
+  acceptedCpuStaticFirstCohortTools: AiGraphicsCanonicalToolId[]
   counts: {
     toolsCovered: 21
     productFacingCapabilitiesCovered: 12
     gpuToolsCovered: 8
     heavyToolsIncorrectlyTargetingCpu: 0
     serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: number
+    sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: number
+    sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: number
     sourceLiveQueueWritesAcceptedWithProvidedEvidence: number
     sourceWorkerClaimRowsAcceptedWithProvidedEvidence: number
     sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0
@@ -73,6 +80,8 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeProof {
     serviceRoleQueueSmokeCleanupProofRef: string | null
     sanitizedSourceStatus: string | null
     sanitizedSourceDecision: string | null
+    sourceGatewayRuntimeAdmissionModesByTool:
+      Record<AiGraphicsCanonicalToolId, AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode>
     sourceLiveServiceRoleQueueSmokeExecutedWithProvidedEvidence: boolean
     requiredExecutionEnvironment: 'non_production_external_beta'
     requiredWorkerMode: 'mock'
@@ -154,6 +163,22 @@ function gpuTools(): AiGraphicsCanonicalToolId[] {
   return listAiGraphicsToolCallReadiness()
     .filter((record) => record.gpuRequiredForRuntime)
     .map((record) => record.toolId)
+}
+
+function sourceGatewayRuntimeAdmissionModeForTool(
+  toolId: AiGraphicsCanonicalToolId,
+): AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode {
+  return toolId === 'd3' ? 'cpu_static_first_cohort' : 'all_tools_external_beta'
+}
+
+function sourceGatewayRuntimeAdmissionModesByTool():
+  Record<AiGraphicsCanonicalToolId, AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode> {
+  return Object.fromEntries(
+    AI_GRAPHICS_CANONICAL_TOOL_IDS.map((toolId) => [
+      toolId,
+      sourceGatewayRuntimeAdmissionModeForTool(toolId),
+    ]),
+  ) as Record<AiGraphicsCanonicalToolId, AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode>
 }
 
 function hasValue(value?: string): boolean {
@@ -322,6 +347,10 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
   const accepted = rejectionReasons.length === 0
   const tools = accepted ? [...AI_GRAPHICS_CANONICAL_TOOL_IDS] : []
   const gpu = accepted ? gpuTools() : []
+  const sourceModes = sourceGatewayRuntimeAdmissionModesByTool()
+  const cpuStaticFirstCohortTools = accepted
+    ? tools.filter((toolId) => sourceModes[toolId] === 'cpu_static_first_cohort')
+    : []
 
   return {
     decision: !input.serviceRoleQueueSmokeResult
@@ -335,12 +364,17 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
     rejectionReasons,
     acceptedTools: tools,
     acceptedGpuTools: gpu,
+    acceptedCpuStaticFirstCohortTools: cpuStaticFirstCohortTools,
     counts: {
       toolsCovered: 21,
       productFacingCapabilitiesCovered: productCapabilityCount(),
       gpuToolsCovered: 8,
       heavyToolsIncorrectlyTargetingCpu: 0,
       serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: tools.length,
+      sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence:
+        accepted ? tools.length : 0,
+      sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence:
+        cpuStaticFirstCohortTools.length,
       sourceLiveQueueWritesAcceptedWithProvidedEvidence: accepted ? 21 : 0,
       sourceWorkerClaimRowsAcceptedWithProvidedEvidence: accepted ? 21 : 0,
       sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -358,6 +392,7 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
         input.serviceRoleQueueSmokeCleanupProofRef ?? null,
       sanitizedSourceStatus: input.serviceRoleQueueSmokeResult?.status ?? null,
       sanitizedSourceDecision: input.serviceRoleQueueSmokeResult?.decision ?? null,
+      sourceGatewayRuntimeAdmissionModesByTool: sourceModes,
       sourceLiveServiceRoleQueueSmokeExecutedWithProvidedEvidence: accepted,
       requiredExecutionEnvironment: 'non_production_external_beta',
       requiredWorkerMode: 'mock',

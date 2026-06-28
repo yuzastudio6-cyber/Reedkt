@@ -150,7 +150,7 @@ const report = {
   },
   backendHandoff: {
     sourceContract: 'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_1',
-    smokeCommand: 'npm run smoke:qwen2-5-vl-external-beta-product-route-backend-job-handoff-1',
+    smokeCommand: 'npm run smoke:qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r',
     validatedInThisRun: false,
   },
   runtime: {
@@ -211,7 +211,7 @@ const runtimeEnv = {
   [adapterFixtureConfirmEnv]: 'true',
 }
 
-const handoffSmoke = run('npm', ['run', 'smoke:qwen2-5-vl-external-beta-product-route-backend-job-handoff-1'], runtimeEnv)
+const handoffSmoke = run('npm', ['run', 'smoke:qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r'], runtimeEnv)
 report.backendHandoff.smoke = handoffSmoke
 report.backendHandoff.validatedInThisRun = handoffSmoke.status === 0
 if (handoffSmoke.status !== 0) {

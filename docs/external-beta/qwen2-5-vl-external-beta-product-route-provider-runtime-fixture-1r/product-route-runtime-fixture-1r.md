@@ -26,7 +26,7 @@ When `REEDITPRO_CONFIRM_QWEN2_5_VL_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE` is ab
 
 When all required gates are present, the runner first validates the product-route backend handoff source contract through:
 
-`npm run smoke:qwen2-5-vl-external-beta-product-route-backend-job-handoff-1`
+`npm run smoke:qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r`
 
 Only after that local handoff validation passes may it delegate to the existing bounded adapter runtime fixture script:
 

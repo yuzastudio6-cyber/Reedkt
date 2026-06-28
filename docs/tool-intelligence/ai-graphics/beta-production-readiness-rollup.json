@@ -113,6 +113,8 @@
     "accepted Tool Route approval gate",
     "accepted Worker approval gate",
     "accepted production worker gate checks",
+    "accepted external beta service-role queue smoke preflight",
+    "accepted saved external beta service-role queue smoke proof",
     "explicit internal beta owner go/no-go approval",
     "separate external beta approval",
     "separate production launch approval"
@@ -122,6 +124,7 @@
     "Tool Route execution",
     "Worker queue enqueue",
     "Worker execution",
+    "live service-role queue writes",
     "production worker dispatch",
     "production worker route execution",
     "provider/model execution",
@@ -137,8 +140,10 @@
     "production unlock"
   ],
   "nextMilestones": [
-    "Provide reviewed private model-weight manifest packet and redacted native NVIDIA L4 GPU proof results.",
-    "Run the all-technical-gates-plus-owner-approval rollup and confirm 21 production worker gate checks are accepted with zero hard failures.",
+    "Feed an accepted external beta native GPU proof collection packet into the rollup before the final external-beta go/no-go.",
+    "Re-run the external per-tool runtime proof gate after accepted native GPU collection evidence is available.",
+    "Run the all-technical-gates-plus-owner-approval rollup and confirm 21 production worker gate checks are accepted with zero hard failures and native GPU proof collection is ready for per-tool recheck.",
+    "Preserve the external-beta service-role queue smoke preflight and accepted saved smoke proof before any external beta launch decision.",
     "Complete a separate internal beta go/no-go owner packet that explicitly authorizes runtime enqueue/dispatch scope.",
     "After internal beta evidence exists, run separate external beta and production launch reviews; this rollup never unlocks them by itself."
   ],

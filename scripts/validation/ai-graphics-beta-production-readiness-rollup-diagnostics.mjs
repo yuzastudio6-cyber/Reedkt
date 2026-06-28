@@ -107,6 +107,8 @@ const requiredFinalGoNoGoGates = [
   'accepted Tool Route approval gate',
   'accepted Worker approval gate',
   'accepted production worker gate checks',
+  'accepted external beta service-role queue smoke preflight',
+  'accepted saved external beta service-role queue smoke proof',
   'explicit internal beta owner go/no-go approval',
   'separate external beta approval',
   'separate production launch approval',
@@ -502,6 +504,7 @@ for (const gate of requiredFinalGoNoGoGates) {
 for (const blockedAction of [
   'Tool Route execution',
   'Worker queue enqueue',
+  'live service-role queue writes',
   'production worker dispatch',
   'browser/WebGL/canvas runtime execution',
   'GPU/model runtime execution',
@@ -555,6 +558,13 @@ for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
 }
 if (!markdown.includes('GPU runtime remains on-demand only')) {
   fail('markdown_missing_gpu_on_demand_policy')
+}
+for (const phrase of [
+  'service-role queue smoke preflight',
+  'accepted saved service-role queue smoke proof',
+  'does not approve live queue writes',
+]) {
+  if (!markdown.includes(phrase)) fail(`markdown_missing_external_beta_queue_gate:${phrase}`)
 }
 for (const phrase of [
   'exactly eight GPU/model gate checks',
@@ -849,6 +859,9 @@ if (!scorecard.includes('ai_graphics_beta_production_readiness_rollup_prepared_w
 }
 if (!scorecard.includes('$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT')) {
   fail('scorecard_missing_private_model_weight_root_env')
+}
+if (!scorecard.includes('service-role queue smoke preflight') || !scorecard.includes('saved service-role queue smoke proof')) {
+  fail('scorecard_missing_external_beta_queue_smoke_gates')
 }
 
 const forbiddenTruePatterns = [

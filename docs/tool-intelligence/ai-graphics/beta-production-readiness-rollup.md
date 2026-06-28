@@ -29,6 +29,11 @@ accepted, `readyForPerToolRuntimeProofRecheck=true`, on-demand-only GPU runtime,
 no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and
 all execution/runtime/beta/production gates still false.
 
+External beta launch decisions also require the later service-role queue smoke
+preflight and accepted saved service-role queue smoke proof. This rollup names
+those gates but does not approve live queue writes, worker dispatch, tool
+execution, external beta, or production by itself.
+
 ## Current Result
 
 - AI graphics tools covered: 21
@@ -132,6 +137,8 @@ the GPU runtime may start now. The accepted source packet must preserve
 - accepted Tool Route approval gate
 - accepted Worker approval gate
 - accepted production worker gate checks
+- accepted external beta service-role queue smoke preflight
+- accepted saved external beta service-role queue smoke proof
 - explicit internal beta owner go/no-go approval
 - separate external beta approval
 - separate production launch approval
@@ -142,6 +149,7 @@ the GPU runtime may start now. The accepted source packet must preserve
 - Tool Route execution
 - Worker queue enqueue
 - Worker execution
+- live service-role queue writes
 - production worker dispatch
 - production worker route execution
 - provider/model execution
@@ -161,8 +169,9 @@ the GPU runtime may start now. The accepted source packet must preserve
 1. Feed an accepted external beta native GPU proof collection packet into the rollup before the final external-beta go/no-go.
 2. Re-run the external per-tool runtime proof gate after accepted native GPU collection evidence is available.
 3. Run the all-technical-gates-plus-owner-approval rollup and confirm 21 production worker gate checks are accepted with zero hard failures and native GPU proof collection is ready for per-tool recheck.
-4. Complete a separate internal beta go/no-go owner packet that explicitly authorizes runtime enqueue/dispatch scope.
-5. After internal beta evidence exists, run separate external beta and production launch reviews; this rollup never unlocks them by itself.
+4. Preserve the external-beta service-role queue smoke preflight and accepted saved smoke proof before any external beta launch decision.
+5. Complete a separate internal beta go/no-go owner packet that explicitly authorizes runtime enqueue/dispatch scope.
+6. After internal beta evidence exists, run separate external beta and production launch reviews; this rollup never unlocks them by itself.
 
 ## No Runtime Unlock
 

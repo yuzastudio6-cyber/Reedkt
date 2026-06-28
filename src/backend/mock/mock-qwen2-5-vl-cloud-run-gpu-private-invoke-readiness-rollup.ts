@@ -50,6 +50,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_RLS_FUNCTION_PARAMETER_
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_12_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-12-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_BUCKETS_COMMENT_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-storage-buckets-comment-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_13_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-13-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_OBJECTS_POLICY_COMMENT_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-storage-objects-policy-comment-fix'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -105,7 +106,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix_required'
   | 'blocked_backend_runtime_persistence_storage_buckets_comment_baseline_fix_required'
   | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_storage_buckets_comment_fix_required'
-  | 'blocked_backend_runtime_persistence_storage_objects_policy_comment_baseline_fix_required'
+  | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_storage_objects_policy_comment_fix_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -122,7 +123,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_retry_13_recorded_storage_objects_policy_comment_fix_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_storage_objects_policy_comment_fix_recorded_retry_14_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -227,6 +228,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_BUCKETS_COMMENT_FIX.decision,
   upstreamBackendRuntimePersistenceLocalHarnessValidationRetry13ResultDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_13_RESULT.decision,
+  upstreamBackendRuntimePersistenceBaselineStorageObjectsPolicyCommentFixDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_OBJECTS_POLICY_COMMENT_FIX.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -904,14 +907,26 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_storage_objects_policy_comment_baseline_fix',
       label: 'Backend runtime persistence storage objects policy comment baseline fix',
-      status:
-        'blocked_backend_runtime_persistence_storage_objects_policy_comment_baseline_fix_required',
+      status: 'ready',
       evidence: [
         'Backend runtime persistence local harness validation retry 13 result is recorded.',
         'Retry 13 isolated the next blocker to policy-comment ownership behavior on Supabase platform relation storage.objects.',
+        'Backend runtime persistence baseline storage objects policy comment fix is recorded.',
+        'The active storage buckets policies migration now guards storage.objects policy comments with an insufficient_privilege notice.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_local_harness_validation_retry_after_storage_objects_policy_comment_fix',
+      label: 'Backend runtime persistence local harness validation retry after storage objects policy comment fix',
+      status:
+        'blocked_backend_runtime_persistence_local_harness_validation_retry_after_storage_objects_policy_comment_fix_required',
+      evidence: [
+        'Backend runtime persistence baseline storage objects policy comment fix is recorded.',
+        'Storage.objects policy definitions remain unchanged; only documentation-only policy comments are guarded.',
       ],
       missingEvidence: [
-        'Fix the active storage buckets policies baseline so storage.objects policy comments do not abort when the local migration role does not own the platform relation.',
+        'Run retry 14 to determine whether the active baseline now reaches Qwen draft SQL.',
         'Do not touch Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, credit records, beta, or production readiness.',
       ],
     },
@@ -1213,7 +1228,12 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceLocalHarnessValidationRetry13Attempted: true,
     backendRuntimePersistenceLocalHarnessValidationRetry13Passed: false,
     backendRuntimePersistenceStorageBucketsCommentFixVerified: true,
-    backendRuntimePersistenceStorageObjectsPolicyCommentBaselineFixRequired: true,
+    backendRuntimePersistenceStorageObjectsPolicyCommentBaselineFixRequired: false,
+    backendRuntimePersistenceBaselineStorageObjectsPolicyCommentFixRecorded: true,
+    storageObjectsPolicyCommentInsufficientPrivilegeGuarded: true,
+    storageObjectsPolicyCommentsSkippedWhenNotOwner: true,
+    storageObjectPolicySemanticsChanged: false,
+    backendRuntimePersistenceLocalHarnessValidationRetryAfterStorageObjectsPolicyCommentFixRequired: true,
     qwenDraftSqlApplied: false,
     qwenLocalSqlTestsExecuted: false,
     existingLocalSupabaseProjectDetected: true,
@@ -1244,11 +1264,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_storage_objects_policy_comment_baseline_fix_required',
+    'backend_runtime_persistence_local_harness_validation_retry_after_storage_objects_policy_comment_fix_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58AU-BACKEND-RUNTIME-PERSISTENCE-BASELINE-STORAGE-OBJECTS-POLICY-COMMENT-FIX: fix ReEditPro local baseline storage.objects policy comment ownership for Qwen harness validation, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58AV-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-14: retry Qwen local harness validation after storage.objects policy comment baseline fix, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

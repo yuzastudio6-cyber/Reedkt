@@ -34,6 +34,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_MEDIA_ASSETS_STATUS_FIX
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_4_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-4-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_EDIT_PLAN_SEGMENTS_VERSION_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-edit-plan-segments-version-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_5_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-5-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_CREDIT_APPROVAL_SNAPSHOTS_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-credit-approval-snapshots-fix'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -74,6 +75,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_edit_plan_segments_version_baseline_fix_required'
   | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_edit_plan_segments_version_fix_required'
   | 'blocked_backend_runtime_persistence_credit_approval_snapshots_baseline_fix_required'
+  | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_credit_approval_snapshots_fix_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -90,7 +92,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_validation_retry_5_credit_approval_snapshots_fix_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_credit_approval_snapshots_fix_recorded_retry_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -163,6 +165,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_EDIT_PLAN_SEGMENTS_VERSION_FIX.decision,
   upstreamBackendRuntimePersistenceLocalHarnessValidationRetry5ResultDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_5_RESULT.decision,
+  upstreamBackendRuntimePersistenceBaselineCreditApprovalSnapshotsFixDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_CREDIT_APPROVAL_SNAPSHOTS_FIX.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -647,12 +651,24 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_credit_approval_snapshots_baseline_fix',
       label: 'Backend runtime persistence credit approval snapshots baseline fix',
-      status: 'blocked_backend_runtime_persistence_credit_approval_snapshots_baseline_fix_required',
+      status: 'ready',
       evidence: [
-        'Backend runtime persistence local harness validation retry 5 proved the edit-plan-segments version baseline fix and identified the next active baseline prerequisite.',
+        'Backend runtime persistence credit approval snapshots baseline fix is recorded.',
+        'The active ReEditPro credits approval snapshots migration now adds nullable idempotent approved snapshot reference columns before the credit reservation, credit ledger, and approval foreign key guards run.',
+        'The fix intentionally does not backfill because it must not invent approved_plan_snapshots rows, approval records, credit reservations, credit ledger entries, or credit movements.',
+        'The fix does not create a new migration, deploy a migration, run SQL, apply the Qwen draft, or run Qwen local SQL tests.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_local_harness_validation_retry_after_credit_approval_snapshots_fix',
+      label: 'Backend runtime persistence local harness validation retry after credit approval snapshots fix',
+      status: 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_credit_approval_snapshots_fix_required',
+      evidence: [
+        'Backend runtime persistence credit approval snapshots baseline fix is recorded.',
       ],
       missingEvidence: [
-        'Fix active baseline migration 202605180004_reeditpro_credits_approval_snapshots.sql so it is idempotent when loaded after older credit_reservations, credit_ledger_entries, and approval_records baseline tables that lack approved snapshot reference columns.',
+        'Retry the local Supabase harness after the credit approval snapshots baseline fix to determine whether the active baseline reaches Qwen draft SQL.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -863,7 +879,15 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceLocalHarnessValidationRetry5Attempted: true,
     backendRuntimePersistenceLocalHarnessValidationRetry5Passed: false,
     backendRuntimePersistenceEditPlanSegmentsVersionBaselineFixVerified: true,
-    backendRuntimePersistenceCreditApprovalSnapshotsBaselineFixRequired: true,
+    backendRuntimePersistenceCreditApprovalSnapshotsBaselineFixRequired: false,
+    backendRuntimePersistenceBaselineCreditApprovalSnapshotsFixRecorded: true,
+    activeBaselineCreditApprovalSnapshotsMigrationEdited: true,
+    creditReservationsApprovedPlanSnapshotColumnGuarded: true,
+    creditLedgerEntriesApprovedPlanSnapshotColumnGuarded: true,
+    approvalRecordsApprovedSnapshotColumnGuarded: true,
+    approvedSnapshotReferenceBackfillSkipped: true,
+    creditApprovalSnapshotForeignKeysUnblocked: true,
+    backendRuntimePersistenceLocalHarnessValidationRetryAfterCreditApprovalSnapshotsFixRequired: true,
     qwenDraftSqlApplied: false,
     qwenLocalSqlTestsExecuted: false,
     existingLocalSupabaseProjectDetected: true,
@@ -894,11 +918,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_credit_approval_snapshots_baseline_fix_required',
+    'backend_runtime_persistence_local_harness_validation_retry_after_credit_approval_snapshots_fix_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58AE-BACKEND-RUNTIME-PERSISTENCE-BASELINE-CREDIT-APPROVAL-SNAPSHOTS-FIX: fix ReEditPro local baseline approved snapshot credit/approval columns for Qwen harness validation, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58AF-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-6: retry Qwen local harness validation after credit approval snapshots baseline fix, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

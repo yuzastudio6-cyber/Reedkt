@@ -98,11 +98,27 @@ create table if not exists public.approved_plan_snapshots (
   created_at timestamptz not null default now()
 );
 
+-- Compatibility guards for older active baselines where credit/approval
+-- tables already exist without approved snapshot reference columns. These
+-- guards intentionally add nullable references only and do not backfill or
+-- invent approved snapshot rows.
+alter table if exists public.credit_reservations
+  add column if not exists approved_plan_snapshot_id uuid;
+
+alter table if exists public.credit_ledger_entries
+  add column if not exists approved_plan_snapshot_id uuid;
+
+alter table if exists public.approval_records
+  add column if not exists approved_snapshot_id uuid;
+
 comment on table public.approved_plan_snapshots is 'Immutable worker execution contract. Workers execute snapshot_json, not raw chat or mutable current plan state.';
 comment on table public.approval_records is 'Approval links the exact plan version, credit estimate, and approved snapshot.';
 comment on table public.credit_reservations is 'Future credit reservation planning table. Real reservation logic remains backend/service controlled.';
 comment on table public.credit_ledger_entries is 'Append-only future credit ledger. Normal users must not update or delete ledger entries.';
 comment on column public.approved_plan_snapshots.snapshot_json is 'Frozen approved EditPlan JSONB, including tier constraints, provider routes, fallback rules, QA, and tool notes.';
+comment on column public.credit_reservations.approved_plan_snapshot_id is 'Compatibility reference to immutable approved plan snapshots. Added nullable for older local baselines; no backfill is invented here.';
+comment on column public.credit_ledger_entries.approved_plan_snapshot_id is 'Compatibility reference to immutable approved plan snapshots. Added nullable for older local baselines; no backfill is invented here.';
+comment on column public.approval_records.approved_snapshot_id is 'Compatibility reference to immutable approved plan snapshots. Added nullable for older local baselines; no backfill is invented here.';
 
 do $$
 begin

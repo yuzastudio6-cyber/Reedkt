@@ -39,6 +39,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_6
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_CREDIT_ESTIMATES_PLAN_VERSION_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-credit-estimates-plan-version-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_7_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-7-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATION_REQUESTS_APPROVED_SNAPSHOT_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-generation-requests-approved-snapshot-fix'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_8_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-8-result'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -84,6 +85,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_credit_estimates_plan_version_fix_required'
   | 'blocked_backend_runtime_persistence_generation_requests_approved_snapshot_baseline_fix_required'
   | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_generation_requests_approved_snapshot_fix_required'
+  | 'blocked_backend_runtime_persistence_generated_asset_versions_version_baseline_fix_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -100,7 +102,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_generation_requests_fix_recorded_retry_8_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_validation_retry_8_generated_asset_versions_fix_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -183,6 +185,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_7_RESULT.decision,
   upstreamBackendRuntimePersistenceBaselineGenerationRequestsApprovedSnapshotFixDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATION_REQUESTS_APPROVED_SNAPSHOT_FIX.decision,
+  upstreamBackendRuntimePersistenceLocalHarnessValidationRetry8ResultDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_8_RESULT.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -727,13 +731,26 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_local_harness_validation_retry_after_generation_requests_approved_snapshot_fix',
       label: 'Backend runtime persistence local harness validation retry after generation requests approved snapshot fix',
-      status: 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_generation_requests_approved_snapshot_fix_required',
+      status: 'ready',
       evidence: [
-        'Backend runtime persistence generation requests approved snapshot baseline fix is recorded.',
-        'The active baseline now guards generation_requests.approved_plan_snapshot_id before idx_generation_requests_project_snapshot runs on older local baselines.',
+        'Backend runtime persistence local harness validation retry 8 result is recorded.',
+        'The retry verified 202605180005_reeditpro_generation_assets_jobs.sql now applies past idx_generation_requests_project_snapshot after the generation_requests.approved_plan_snapshot_id compatibility guard.',
+        'The retry stopped before Qwen draft SQL because the same active baseline migration creates idx_generated_asset_versions_asset_version before generated_asset_versions.version exists on the older active baseline table.',
+        'Cleanup was verified: Qwen local containers were stopped, generated Supabase temp metadata was removed, and the fixed Qwen local ports were free after cleanup.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_generated_asset_versions_version_baseline_fix',
+      label: 'Backend runtime persistence generated asset versions version baseline fix',
+      status: 'blocked_backend_runtime_persistence_generated_asset_versions_version_baseline_fix_required',
+      evidence: [
+        'Backend runtime persistence local harness validation retry 8 result is recorded.',
+        'The retry verified the generation requests approved snapshot compatibility fix and isolated the next active baseline blocker to generated_asset_versions.version before idx_generated_asset_versions_asset_version.',
+        'The older active generated-assets baseline already exposes generated_asset_versions.version_number, so the next fix must be a compatibility guard rather than a duplicate table or invented generated asset version row.',
       ],
       missingEvidence: [
-        'Run the next approved local harness retry to determine whether the active baseline reaches Qwen draft SQL.',
+        'Guard generated_asset_versions.version before idx_generated_asset_versions_asset_version without backfilling or inventing generated asset versions, storage objects, jobs, worker rows, provider outputs, credit records, or Qwen runtime records.',
         'Do not touch Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, beta, or production.',
       ],
     },
@@ -977,7 +994,12 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generationRequestsApprovedPlanSnapshotForeignKeyGuarded: true,
     generationRequestsProjectSnapshotIndexUnblocked: true,
     generationRequestsApprovedSnapshotBackfillSkipped: true,
-    backendRuntimePersistenceLocalHarnessValidationRetryAfterGenerationRequestsApprovedSnapshotFixRequired: true,
+    backendRuntimePersistenceLocalHarnessValidationRetryAfterGenerationRequestsApprovedSnapshotFixRequired: false,
+    backendRuntimePersistenceLocalHarnessValidationRetry8ResultRecorded: true,
+    backendRuntimePersistenceLocalHarnessValidationRetry8Attempted: true,
+    backendRuntimePersistenceLocalHarnessValidationRetry8Passed: false,
+    backendRuntimePersistenceGenerationRequestsApprovedSnapshotBaselineFixVerified: true,
+    backendRuntimePersistenceGeneratedAssetVersionsVersionBaselineFixRequired: true,
     qwenDraftSqlApplied: false,
     qwenLocalSqlTestsExecuted: false,
     existingLocalSupabaseProjectDetected: true,
@@ -1008,11 +1030,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_local_harness_validation_retry_after_generation_requests_approved_snapshot_fix_required',
+    'backend_runtime_persistence_generated_asset_versions_version_baseline_fix_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58AJ-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-8: retry Qwen local harness validation after generation requests approved-snapshot baseline fix, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58AK-BACKEND-RUNTIME-PERSISTENCE-BASELINE-GENERATED-ASSET-VERSIONS-VERSION-FIX: fix ReEditPro local baseline generated_asset_versions version for Qwen harness validation, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_validation_retry_after_generation_requests_approved_snapshot_fix_required',
-  'Private invoke client status must record the backend runtime persistence retry-8 blocker.',
+  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_generated_asset_versions_version_baseline_fix_required',
+  'Private invoke client status must record the generated asset versions version baseline blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -168,8 +168,8 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_generation_requests_approved_snapshot_fix_required') ||
-    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_validation_retry_after_generation_requests_approved_snapshot_fix_required',
+    docText.includes('backend_runtime_persistence_generated_asset_versions_version_baseline_fix_required') ||
+    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_generated_asset_versions_version_baseline_fix_required',
   'Doc/data must record backend runtime persistence local harness validation-retry blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
@@ -279,9 +279,11 @@ check(
   'Doc must record the generation requests approved-snapshot baseline blocker after retry 7.',
 )
 check(
-  docText.includes('The generation requests approved-snapshot baseline fix is now recorded') &&
-    docText.includes('User-facing readiness remains blocked until the next approved local harness retry runs after that fix'),
-  'Doc must record the generation requests approved-snapshot fix and retry-8 requirement.',
+  docText.includes('Retry 8 verified the generation requests approved-snapshot baseline fix') &&
+    docText.includes('`idx_generated_asset_versions_asset_version`') &&
+    docText.includes('`generated_asset_versions.version`') &&
+    docText.includes('`version_number`'),
+  'Doc must record the retry-8 generated asset versions version blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

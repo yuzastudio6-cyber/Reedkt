@@ -7,6 +7,8 @@ const SOURCE_DECISION =
 const SOURCE_COMMIT = '1b10ed3aa67f17e3e2a3a4ca49916028bbba9cc7'
 const NEXT_PROMPT =
   'WORKER_RUNTIME_JOBS-SOUND-CPU-BOUNDED-EXTERNAL-BETA-STATE-CHANGE-EXECUTION-AFTER-PLAN: execute bounded external beta scorecard state change, no runtime/no production'
+const SCOPE_FIX_DECISION =
+  'worker_runtime_jobs_sound_cpu_bounded_external_beta_state_change_scope_fix_completed_with_warnings_ready_for_bounded_external_beta_state_change_execution'
 
 const FILES = {
   plan: {
@@ -207,7 +209,10 @@ for (const required of [
 assertSupabaseNoop(claim.supabaseClassification, 'claim')
 
 const prompt = read(PROMPT)
-assert(prompt.includes(DECISION), 'future execution prompt missing source decision')
+assert(
+  prompt.includes(DECISION) || prompt.includes(SCOPE_FIX_DECISION),
+  'future execution prompt missing state-change or scope-fix source decision'
+)
 assert(prompt.includes('no runtime/no production'), 'future execution prompt missing no runtime/no production scope')
 for (const file of FUTURE_FILES) {
   assert(prompt.includes(file), `future execution prompt missing exact file ${file}`)

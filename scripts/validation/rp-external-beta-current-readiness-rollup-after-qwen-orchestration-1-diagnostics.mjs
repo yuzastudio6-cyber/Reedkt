@@ -23,6 +23,18 @@ const allowedSupportFiles = [
   'scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1-diagnostics.mjs',
 ]
 
+const followOnControlledSingleTesterProductFlowAfterQwenFiles = [
+  'docs/external-beta/controlled-single-tester-product-flow-after-qwen-orchestration-1/source-audit.md',
+  'docs/external-beta/controlled-single-tester-product-flow-after-qwen-orchestration-1/product-flow-bridge.md',
+  'docs/external-beta/controlled-single-tester-product-flow-after-qwen-orchestration-1/blocker-matrix.md',
+  'docs/external-beta/controlled-single-tester-product-flow-after-qwen-orchestration-1/safety-boundary.md',
+  'docs/external-beta/controlled-single-tester-product-flow-after-qwen-orchestration-1/validation-results.md',
+  'docs/external-beta/controlled-single-tester-product-flow-after-qwen-orchestration-1/controlled-single-tester-product-flow-after-qwen-orchestration-record.json',
+  'docs/activation-phase-rp-external-beta-controlled-single-tester-product-flow-after-qwen-orchestration-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-single-tester-qwen-product-flow-runtime-1.md',
+  'scripts/validation/rp-external-beta-controlled-single-tester-product-flow-after-qwen-orchestration-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'completed_external_beta_current_readiness_rollup_after_qwen_orchestration',
@@ -149,7 +161,11 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowedFiles = new Set([...requiredFiles, ...allowedSupportFiles])
+const allowedFiles = new Set([
+  ...requiredFiles,
+  ...allowedSupportFiles,
+  ...followOnControlledSingleTesterProductFlowAfterQwenFiles,
+])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   if (

@@ -59,6 +59,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_CHECK_RESULTS_CHECK_
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_10_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-10-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_REPORTS_APPROVED_SNAPSHOT_FIX } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_11_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-11-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_RLS_FUNCTION_PARAMETER_FIX } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-rls-function-parameter-fix'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -67,9 +68,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_retry_11_recorded_rls_function_fix_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_rls_function_fix_recorded_retry_12_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58AQ-BACKEND-RUNTIME-PERSISTENCE-BASELINE-RLS-FUNCTION-PARAMETER-FIX: fix ReEditPro local baseline is_workspace_member parameter compatibility for Qwen harness validation, no deploy/no cloud/no assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58AR-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-12: retry Qwen local harness validation after RLS function parameter fix, no deploy/no cloud/no assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -239,6 +240,7 @@ for (const file of [
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-10-result.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-11-result.md',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-baseline-rls-function-parameter-fix.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-8-result.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-baseline-generated-asset-versions-version-fix.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-9-result.md',
@@ -290,7 +292,9 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-9-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-qa-check-results-check-column-fix.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-10-result.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-11-result.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-rls-function-parameter-fix.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-7-result-smoke.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-generation-requests-approved-snapshot-fix-smoke.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-8-result-smoke.ts',
@@ -298,7 +302,9 @@ for (const file of [
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-9-result-smoke.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-qa-check-results-check-column-fix-smoke.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-10-result-smoke.ts',
+  'server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix-smoke.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-11-result-smoke.ts',
+  'server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-rls-function-parameter-fix-smoke.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-credit-estimates-plan-version-fix-smoke.ts',
   'src/backend/workers/qwen2-5-vl-backend-runtime-dispatch-coordinator.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client.ts',
@@ -469,6 +475,11 @@ assert.equal(
   packageJson.scripts?.['smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-11-result'],
   'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-11-result-smoke.ts',
   'local harness validation retry 11 package script mismatch',
+)
+assert.equal(
+  packageJson.scripts?.['smoke:qwen2-5-vl-backend-runtime-persistence-baseline-rls-function-parameter-fix'],
+  'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-rls-function-parameter-fix-smoke.ts',
+  'RLS function parameter baseline fix package script mismatch',
 )
 
 const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md')
@@ -652,7 +663,13 @@ for (const phrase of [
   '`backendRuntimePersistenceLocalHarnessValidationRetry11Attempted=true`',
   '`backendRuntimePersistenceLocalHarnessValidationRetry11Passed=false`',
   '`backendRuntimePersistenceQaReportsApprovedSnapshotFixVerified=true`',
-  '`backendRuntimePersistenceRlsFunctionParameterFixRequired=true`',
+  '`backendRuntimePersistenceRlsFunctionParameterFixRequired=false`',
+  '`backendRuntimePersistenceBaselineRlsFunctionParameterFixRecorded=true`',
+  '`activeBaselineRlsPoliciesMigrationEdited=true`',
+  '`isWorkspaceMemberParameterNamePreserved=true`',
+  '`isWorkspaceOwnerOrAdminParameterNamePreserved=true`',
+  '`workspaceUuidParameterRenameSkipped=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetryAfterRlsFunctionParameterFixRequired=true`',
   '`202605180006_reeditpro_qa_exports_audit.sql`',
   '`202605180007_reeditpro_rls_policies.sql`',
   '`public.is_workspace_member(uuid)`',
@@ -834,7 +851,9 @@ for (const phrase of [
   '`backendRuntimePersistenceLocalHarnessValidationRetry11Attempted=true`',
   '`backendRuntimePersistenceLocalHarnessValidationRetry11Passed=false`',
   '`backendRuntimePersistenceQaReportsApprovedSnapshotFixVerified=true`',
-  '`backendRuntimePersistenceRlsFunctionParameterFixRequired=true`',
+  '`backendRuntimePersistenceRlsFunctionParameterFixRequired=false`',
+  '`backendRuntimePersistenceBaselineRlsFunctionParameterFixRecorded=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetryAfterRlsFunctionParameterFixRequired=true`',
   '`structuredFixtureOutputSchemaValid=true`',
   '`structuredFixtureOutputParsedJson=true`',
   '`structuredFixtureOutputRawOutputStoredInRepo=false`',
@@ -1072,6 +1091,10 @@ assert.equal(
   rollup.upstreamBackendRuntimePersistenceLocalHarnessValidationRetry11ResultDecision,
   QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_11_RESULT.decision,
 )
+assert.equal(
+  rollup.upstreamBackendRuntimePersistenceBaselineRlsFunctionParameterFixDecision,
+  QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_RLS_FUNCTION_PARAMETER_FIX.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -1137,7 +1160,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'backend_runtime_persistence_rls_function_parameter_baseline_fix_required',
+  'backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -1212,8 +1235,9 @@ assert.deepEqual(gateIds, [
   'backend_runtime_persistence_qa_reports_approved_plan_snapshot_baseline_fix',
   'backend_runtime_persistence_local_harness_validation_retry_after_qa_reports_approved_snapshot_fix',
   'backend_runtime_persistence_rls_function_parameter_baseline_fix',
+  'backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 53)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 54)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -1380,6 +1404,10 @@ assert.equal(
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_rls_function_parameter_baseline_fix_required').length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix_required').length,
   1,
 )
 assert.equal(
@@ -1671,7 +1699,16 @@ assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidation
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry11Attempted, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry11Passed, false)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceQaReportsApprovedSnapshotFixVerified, true)
-assert.equal(rollup.runtimeFlags.backendRuntimePersistenceRlsFunctionParameterFixRequired, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceRlsFunctionParameterFixRequired, false)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceBaselineRlsFunctionParameterFixRecorded, true)
+assert.equal(rollup.runtimeFlags.activeBaselineRlsPoliciesMigrationEdited, true)
+assert.equal(rollup.runtimeFlags.isWorkspaceMemberParameterNamePreserved, true)
+assert.equal(rollup.runtimeFlags.isWorkspaceOwnerOrAdminParameterNamePreserved, true)
+assert.equal(rollup.runtimeFlags.workspaceUuidParameterRenameSkipped, true)
+assert.equal(
+  rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetryAfterRlsFunctionParameterFixRequired,
+  true,
+)
 assert.equal(rollup.runtimeFlags.qwenDraftSqlApplied, false)
 assert.equal(rollup.runtimeFlags.qwenLocalSqlTestsExecuted, false)
 assert.equal(rollup.runtimeFlags.existingLocalSupabaseProjectDetected, true)

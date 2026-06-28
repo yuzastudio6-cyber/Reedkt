@@ -537,6 +537,7 @@
     "smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-10-result": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-10-result-smoke.ts",
     "smoke:qwen2-5-vl-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix-smoke.ts",
     "smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-11-result": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-11-result-smoke.ts",
+    "smoke:qwen2-5-vl-backend-runtime-persistence-baseline-rls-function-parameter-fix": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-rls-function-parameter-fix-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-verify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-verify-result-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-reverify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-reverify-result-smoke.ts",

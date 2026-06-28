@@ -46,6 +46,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_CHECK_RESULTS_CHECK_
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_10_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-10-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_REPORTS_APPROVED_SNAPSHOT_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_11_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-11-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_RLS_FUNCTION_PARAMETER_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-rls-function-parameter-fix'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -98,6 +99,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_qa_reports_approved_plan_snapshot_baseline_fix_required'
   | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_qa_reports_approved_snapshot_fix_required'
   | 'blocked_backend_runtime_persistence_rls_function_parameter_baseline_fix_required'
+  | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -114,7 +116,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_retry_11_recorded_rls_function_fix_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_rls_function_fix_recorded_retry_12_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -211,6 +213,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_REPORTS_APPROVED_SNAPSHOT_FIX.decision,
   upstreamBackendRuntimePersistenceLocalHarnessValidationRetry11ResultDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_11_RESULT.decision,
+  upstreamBackendRuntimePersistenceBaselineRlsFunctionParameterFixDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_RLS_FUNCTION_PARAMETER_FIX.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -839,15 +843,27 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_rls_function_parameter_baseline_fix',
       label: 'Backend runtime persistence RLS function parameter baseline fix',
-      status: 'blocked_backend_runtime_persistence_rls_function_parameter_baseline_fix_required',
+      status: 'ready',
       evidence: [
-        'Backend runtime persistence local harness validation retry 11 isolated the next blocker to 202605180007_reeditpro_rls_policies.sql.',
-        'Older active baseline migrations created public.is_workspace_member(uuid) with input parameter target_workspace_id.',
-        'The RLS policy migration attempted CREATE OR REPLACE FUNCTION public.is_workspace_member(workspace_uuid uuid), which PostgreSQL rejects as an input parameter rename.',
-        'Qwen draft SQL and Qwen local SQL tests were not reached.',
+        'Backend runtime persistence RLS function parameter baseline fix is recorded.',
+        'The active RLS policies migration now preserves target_workspace_id for public.is_workspace_member(uuid).',
+        'The active RLS policies migration also preserves target_workspace_id for public.is_workspace_owner_or_admin(uuid) to avoid the sibling parameter rename blocker.',
+        'The fix does not create a new migration, deploy a migration, run SQL, apply the Qwen draft, or run Qwen local SQL tests.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix',
+      label: 'Backend runtime persistence local harness validation retry after RLS function parameter fix',
+      status:
+        'blocked_backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix_required',
+      evidence: [
+        'Backend runtime persistence RLS function parameter baseline fix is recorded.',
+        'The prior retry 11 blocker is addressed in source, but no local harness validation retry has run after the fix.',
+        'Qwen draft SQL and Qwen local SQL tests remain unverified after the RLS helper parameter fix.',
       ],
       missingEvidence: [
-        'Fix the RLS helper function compatibility so public.is_workspace_member(uuid) preserves the existing target_workspace_id parameter name or otherwise avoids unsafe parameter renaming.',
+        'Run approved local harness validation retry 12 after the RLS function parameter compatibility fix.',
         'Do not touch Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, credit records, beta, or production readiness.',
       ],
     },
@@ -1127,7 +1143,13 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceLocalHarnessValidationRetry11Attempted: true,
     backendRuntimePersistenceLocalHarnessValidationRetry11Passed: false,
     backendRuntimePersistenceQaReportsApprovedSnapshotFixVerified: true,
-    backendRuntimePersistenceRlsFunctionParameterFixRequired: true,
+    backendRuntimePersistenceRlsFunctionParameterFixRequired: false,
+    backendRuntimePersistenceBaselineRlsFunctionParameterFixRecorded: true,
+    activeBaselineRlsPoliciesMigrationEdited: true,
+    isWorkspaceMemberParameterNamePreserved: true,
+    isWorkspaceOwnerOrAdminParameterNamePreserved: true,
+    workspaceUuidParameterRenameSkipped: true,
+    backendRuntimePersistenceLocalHarnessValidationRetryAfterRlsFunctionParameterFixRequired: true,
     qwenDraftSqlApplied: false,
     qwenLocalSqlTestsExecuted: false,
     existingLocalSupabaseProjectDetected: true,
@@ -1158,11 +1180,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_rls_function_parameter_baseline_fix_required',
+    'backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58AQ-BACKEND-RUNTIME-PERSISTENCE-BASELINE-RLS-FUNCTION-PARAMETER-FIX: fix ReEditPro local baseline is_workspace_member parameter compatibility for Qwen harness validation, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58AR-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-12: retry Qwen local harness validation after RLS function parameter fix, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

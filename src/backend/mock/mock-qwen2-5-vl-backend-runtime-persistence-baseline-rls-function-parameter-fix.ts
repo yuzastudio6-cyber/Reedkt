@@ -1,0 +1,96 @@
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_11_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-11-result'
+
+export const QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_RLS_FUNCTION_PARAMETER_FIX = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_backend_runtime_persistence_baseline_rls_function_parameter_fix',
+  decision:
+    'qwen2_5_vl_backend_runtime_persistence_baseline_rls_function_parameter_fix_recorded',
+  upstreamBackendRuntimePersistenceLocalHarnessValidationRetry11ResultDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_11_RESULT.decision,
+  repairedMigration: 'supabase/migrations/202605180007_reeditpro_rls_policies.sql',
+  failureContext: {
+    failedBaselineMigration:
+      QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_11_RESULT.attempt.failedBaselineMigration,
+    failedFunction:
+      QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_11_RESULT.attempt.failedFunction,
+    existingBaselineParameterObserved: 'target_workspace_id',
+    attemptedReplacementParameter: 'workspace_uuid',
+    sanitizedFailureReason:
+      'cannot_change_name_of_input_parameter_target_workspace_id_sqlstate_42p13',
+  },
+  functionCompatibilityFixes: [
+    {
+      functionName: 'public.is_workspace_member(uuid)',
+      preservedParameterName: 'target_workspace_id',
+      skippedParameterName: 'workspace_uuid',
+      bodyReferencesPreservedParameter: true,
+    },
+    {
+      functionName: 'public.is_workspace_owner_or_admin(uuid)',
+      preservedParameterName: 'target_workspace_id',
+      skippedParameterName: 'workspace_uuid',
+      bodyReferencesPreservedParameter: true,
+    },
+  ],
+  runtimeFlags: {
+    backendRuntimePersistenceBaselineRlsFunctionParameterFixRecorded: true,
+    activeBaselineRlsPoliciesMigrationEdited: true,
+    isWorkspaceMemberParameterNamePreserved: true,
+    isWorkspaceOwnerOrAdminParameterNamePreserved: true,
+    workspaceUuidParameterRenameSkipped: true,
+    newMigrationCreated: false,
+    qwenDraftSqlApplied: false,
+    qwenLocalSqlTestsExecuted: false,
+    qwenLocalContainersStarted: false,
+    qwenLocalContainersLeftBehind: false,
+    activeMigrationCreated: false,
+    qwenActiveMigrationCreated: false,
+    migrationDeployed: false,
+    readyForRealWorkerDispatch: false,
+    privateInvokeReady: false,
+    realJobCreated: false,
+    realLeaseClaimed: false,
+    idempotencyRowCreated: false,
+    jobEventCreated: false,
+    backendRuntimeMessageCreated: false,
+    workerClaimCreated: false,
+    storageObjectRecordCreated: false,
+    signedUrlEventCreated: false,
+    qaReportCreated: false,
+    auditEventCreated: false,
+    cloudRunInvocationAttempted: false,
+    serviceRuntimeRequestSent: false,
+    serviceUrlResolvedNow: false,
+    audienceResolvedNow: false,
+    identityTokenFetched: false,
+    authHeaderCreated: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    vllmEngineInitialized: false,
+    promptProcessed: false,
+    forwardPassRun: false,
+    inferenceRun: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseCloudTouched: false,
+    stagingTouched: false,
+    productionTouched: false,
+    generatedAssetsCreated: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    mediaProcessingRun: false,
+    renderExportRun: false,
+    creditMutationCreated: false,
+    betaReady: false,
+    productionReady: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt:
+    'QWEN2_5_VL_STACK_TOOL_58AR-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-12: retry Qwen local harness validation after RLS function parameter fix, no deploy/no cloud/no assets/no beta',
+} as const
+
+export type Qwen25VlBackendRuntimePersistenceBaselineRlsFunctionParameterFix =
+  typeof QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_RLS_FUNCTION_PARAMETER_FIX

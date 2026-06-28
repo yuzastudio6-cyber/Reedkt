@@ -90,10 +90,28 @@ create table if not exists public.worker_events (
   created_at timestamptz not null default now()
 );
 
+-- Compatibility guard for older active baselines where generation_requests
+-- already exists without an approved snapshot reference column. This adds the
+-- nullable execution contract reference only; it does not backfill or invent
+-- approved snapshots, generation requests, assets, jobs, worker rows, or
+-- credit records.
+alter table if exists public.generation_requests
+  add column if not exists approved_plan_snapshot_id uuid;
+
 comment on table public.generation_requests is 'Provider generation requests must reference approved_plan_snapshot_id before worker execution starts.';
+comment on column public.generation_requests.approved_plan_snapshot_id is 'Compatibility reference to immutable approved plan snapshots. Added nullable for older local baselines before project-snapshot indexes; no backfill is invented here.';
 comment on table public.editing_jobs is 'Editing jobs execute approved snapshots, not raw chat or mutable current plan state.';
 comment on table public.job_steps is 'Worker-controlled job steps. Normal users must not directly insert or update job_steps in production.';
 comment on table public.worker_events is 'Worker and fallback events should be audited through backend/service-role paths.';
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'generation_requests_approved_plan_snapshot_id_fkey') then
+    alter table public.generation_requests
+      add constraint generation_requests_approved_plan_snapshot_id_fkey
+      foreign key (approved_plan_snapshot_id) references public.approved_plan_snapshots(id) on delete restrict;
+  end if;
+end $$;
 
 create index if not exists idx_generation_requests_project_snapshot on public.generation_requests(project_id, approved_plan_snapshot_id);
 create index if not exists idx_generation_requests_status on public.generation_requests(status);

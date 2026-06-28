@@ -1,0 +1,97 @@
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_7_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-7-result'
+
+export const QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATION_REQUESTS_APPROVED_SNAPSHOT_FIX = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_backend_runtime_persistence_baseline_generation_requests_approved_snapshot_fix_only',
+  decision:
+    'qwen2_5_vl_backend_runtime_persistence_baseline_generation_requests_approved_snapshot_fix_recorded',
+  upstreamBackendRuntimePersistenceLocalHarnessValidationRetry7ResultDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_7_RESULT.decision,
+  repairedMigration: {
+    path: 'supabase/migrations/202605180005_reeditpro_generation_assets_jobs.sql',
+    failedStatementCategory: 'idx_generation_requests_project_snapshot',
+    previousFailure:
+      'column_approved_plan_snapshot_id_does_not_exist_on_public_generation_requests_sqlstate_42703',
+    repair: 'add_idempotent_generation_requests_approved_plan_snapshot_compatibility_column',
+    compatibilityColumns: [
+      'public.generation_requests.approved_plan_snapshot_id',
+    ],
+    olderBaselineTables: [
+      'public.generation_requests',
+    ],
+    compatibilityBackfills: [],
+    backfillPolicy:
+      'no_backfill_because_migration_must_not_invent_approved_snapshots_generation_requests_assets_jobs_workers_storage_or_credit_records',
+    constraintsUnblocked: [
+      'generation_requests_approved_plan_snapshot_id_fkey',
+    ],
+    indexesUnblocked: [
+      'idx_generation_requests_project_snapshot',
+    ],
+  },
+  runtimeFlags: {
+    baselineGenerationRequestsApprovedSnapshotFixRecorded: true,
+    activeBaselineGenerationAssetsJobsMigrationEdited: true,
+    generationRequestsApprovedPlanSnapshotColumnGuarded: true,
+    generationRequestsApprovedPlanSnapshotForeignKeyGuarded: true,
+    generationRequestsProjectSnapshotIndexUnblocked: true,
+    generationRequestsApprovedSnapshotBackfillSkipped: true,
+    newActiveMigrationCreated: false,
+    qwenActiveMigrationCreated: false,
+    supabaseCliExecuted: false,
+    dockerStarted: false,
+    sqlExecuted: false,
+    migrationDeployed: false,
+    qwenDraftSqlApplied: false,
+    qwenLocalSqlTestsExecuted: false,
+    localHarnessStarted: false,
+    localHarnessValidationAttemptedAfterFix: false,
+    localHarnessValidationPassedAfterFix: false,
+    readyForRealWorkerDispatch: false,
+    privateInvokeReady: false,
+    realJobCreated: false,
+    realLeaseClaimed: false,
+    idempotencyRowCreated: false,
+    jobEventCreated: false,
+    backendRuntimeMessageCreated: false,
+    workerClaimCreated: false,
+    storageObjectRecordCreated: false,
+    signedUrlEventCreated: false,
+    qaReportCreated: false,
+    auditEventCreated: false,
+    cloudRunInvocationAttempted: false,
+    serviceRuntimeRequestSent: false,
+    serviceUrlResolvedNow: false,
+    audienceResolvedNow: false,
+    identityTokenFetched: false,
+    authHeaderCreated: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    vllmEngineInitialized: false,
+    promptProcessed: false,
+    forwardPassRun: false,
+    inferenceRun: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseCloudTouched: false,
+    stagingTouched: false,
+    productionTouched: false,
+    generatedAssetsCreated: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    mediaProcessingRun: false,
+    renderExportRun: false,
+    creditMutationCreated: false,
+    betaReady: false,
+    productionReady: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt:
+    'QWEN2_5_VL_STACK_TOOL_58AJ-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-8: retry Qwen local harness validation after generation requests approved-snapshot baseline fix, no deploy/no cloud/no assets/no beta',
+} as const
+
+export type Qwen25VlBackendRuntimePersistenceBaselineGenerationRequestsApprovedSnapshotFix =
+  typeof QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATION_REQUESTS_APPROVED_SNAPSHOT_FIX

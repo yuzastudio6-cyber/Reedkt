@@ -10,6 +10,20 @@ Required source chain:
 - `RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-RLS-STORAGE-READBACK-1` read-only RLS/storage readback source-of-truth.
 - #577 remains excluded unless it is separately repaired and validated.
 
+Decision to record:
+
+- `blocked_pending_explicit_qwen_runtime_persistence_staging_service_role_route_gate_confirmation`
+- `completed_docs_only_qwen_service_role_route_gate_plan_no_remote_execution`
+
+Required future confirmation:
+
+`REEDITPRO_CONFIRM_EXTERNAL_BETA_QWEN_RUNTIME_PERSISTENCE_STAGING_SERVICE_ROLE_ROUTE_GATE=true`
+
+Required future route:
+
+- Route id: `providers.qwen25Vl.structuredVisualMetadataPlan`
+- Method/path: `POST /api/providers/qwen2-5-vl/structured-visual-metadata`
+
 Default boundary:
 
 - Remote mutation remains blocked unless the prompt explicitly names the exact staging target, exact route, exact fixture, exact service-role secret source, exact cleanup/readback policy, and an explicit confirmation gate.
@@ -17,3 +31,7 @@ Default boundary:
 - Worker dispatch remains disabled.
 - Signed/public artifacts remain disabled.
 - Broad external beta, production, and final export remain blocked.
+
+Next milestone:
+
+`RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-SERVICE-ROLE-ROUTE-GATE-1-CONFIRMED`

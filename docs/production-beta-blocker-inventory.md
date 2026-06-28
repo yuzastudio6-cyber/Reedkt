@@ -1302,6 +1302,24 @@ Remote Supabase mutation, SQL execution, migration execution, RLS policy apply, 
 
 Next recommended milestone: `RP-INTERNAL-BETA-SUPABASE-TARGET-RLS-STORAGE-VALIDATION-1R-CONFIRMED`.
 
+## RP External Beta QWEN Runtime Persistence Staging Service-Role Route Gate 1
+
+`RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-SERVICE-ROLE-ROUTE-GATE-1` records decision `blocked_pending_explicit_qwen_runtime_persistence_staging_service_role_route_gate_confirmation` and execution `completed_docs_only_qwen_service_role_route_gate_plan_no_remote_execution`.
+
+Target: `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
+
+Source chain: #1499 guarded QWEN staging migration apply, #1500 QWEN staging RLS/storage readback, #1495 migration-history source alignment, and #577 excluded.
+
+Future route gate: `POST /api/providers/qwen2-5-vl/structured-visual-metadata` with route id `providers.qwen25Vl.structuredVisualMetadataPlan`.
+
+Required future confirmation: `REEDITPRO_CONFIRM_EXTERNAL_BETA_QWEN_RUNTIME_PERSISTENCE_STAGING_SERVICE_ROLE_ROUTE_GATE=true`.
+
+Current phase route execution: `not_run`. Service-role route execution: `not_run`. QWEN runtime execution: `false`. Provider/model call: `false`. Worker dispatch: `false`. Remote Supabase mutation: `false`. SQL execution: `false`.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-SERVICE-ROLE-ROUTE-GATE-1-CONFIRMED`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

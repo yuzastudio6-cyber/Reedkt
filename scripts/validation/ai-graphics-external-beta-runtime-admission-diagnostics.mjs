@@ -183,6 +183,112 @@ function acceptedRecord(toolId) {
   }
 }
 
+function readyServiceRoleQueueSmokePreflightFixture() {
+  return {
+    decision:
+      'ai_graphics_external_beta_service_role_queue_smoke_preflight_prepared_with_environment_blocks',
+    status: 'ready_to_execute_non_production_service_role_queue_smoke',
+    toolsCovered: 21,
+    productFacingCapabilitiesCovered: 12,
+    gpuRuntimeTargetedTools: 8,
+    heavyToolsIncorrectlyTargetingCpu: 0,
+    requiredEnvChecks: [],
+    requiredFlagChecks: [],
+    missingEnvironment: [],
+    missingFlags: [],
+    sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    all21PayloadsPrepared: true,
+    payloadPreviews: allTools.map((toolId) => {
+      const gpuRequiredForRuntime = gpuTools.includes(toolId)
+      return {
+        toolId,
+        productionToolId: `ai_graphics.${toolId}`,
+        workerType: gpuRequiredForRuntime
+          ? 'ai_graphics_gpu_model_worker'
+          : 'ai_graphics_cpu_static_worker',
+        runtimeTarget: gpuRequiredForRuntime
+          ? 'native_gpu_model_runtime'
+          : 'node_cpu_static_runtime',
+        capabilityIds: gpuRequiredForRuntime
+          ? ['model_runtime_foundation']
+          : ['planning_metadata_only'],
+        gpuRequiredForRuntime,
+        gpuRuntimeStartAllowedForAcceptedExternalBetaJob: gpuRequiredForRuntime,
+        payloadShapeValid: true,
+        toolExecutionApprovedNow: false,
+        workerDispatchPerformed: false,
+        gpuRuntimeShouldStartNow: false,
+      }
+    }),
+    readyToExecuteLiveNonProductionSmoke: true,
+    executeCommandTemplate:
+      'preflight-only fixture; live smoke remains unexecuted by this diagnostic',
+    liveServiceRoleQueueSmokeExecutedNow: false,
+    liveSupabaseQueueWritesNow: 0,
+    liveWorkerClaimRowsNow: 0,
+    liveWorkerDispatchesNow: 0,
+    liveToolExecutionsNow: 0,
+    gpuRuntimeShouldStartNow: false,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+    booleans: {
+      externalBetaServiceRoleQueueSmokePreflightPrepared: true,
+      all21ToolsCovered: true,
+      all12CapabilitiesCovered: true,
+      all8GpuToolsTargetGpuRuntime: true,
+      all21PayloadsPrepared: true,
+      requiredEnvironmentSatisfied: true,
+      requiredFlagsSatisfied: true,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+      readyToExecuteLiveNonProductionSmoke: true,
+      serviceRoleCredentialsServerOnly: true,
+      secretsRedactedFromOutput: true,
+      nonProductionEnvironmentRequired: true,
+      explicitSmokeConfirmationRequired: true,
+      cleanupRequired: true,
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      workerQueueApprovedNow: false,
+      serviceRoleQueueSmokeApprovedNow: false,
+      liveServiceRoleQueueSmokeExecutedNow: false,
+      liveQueueWriteApprovedNow: false,
+      liveWorkerClaimInsertApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      toolExecutionPerformed: false,
+      workerExecutionPerformed: false,
+      routeExecutionPerformed: false,
+      serviceRoleQueueSmokePerformed: false,
+      supabaseMutationPerformed: false,
+      workerLeaseCreated: false,
+      workerDispatchPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimePerformed: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      mediaProcessingPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-external-beta-runtime-admission.ts',
   'server/cli/ai-graphics-external-beta-runtime-admission.ts',
@@ -192,6 +298,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-runtime-admission.json',
   'docs/tool-intelligence/ai-graphics/external-beta-runtime-admission.md',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json',
   'docs/tool-intelligence/ai-graphics/on-demand-runtime-admission.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
@@ -245,6 +352,7 @@ for (const capability of capabilities) {
 
 for (const gate of [
   'external beta launch go/no-go approval',
+  'external beta service-role queue smoke preflight acceptance',
   'external beta feature flag approval',
   'external beta runtime admission reference',
   'external beta tool allowlist reference',
@@ -302,6 +410,9 @@ for (const needle of [
   'launchGoNoGoRuntimeProofBridgeAccepted',
   'sourceLaunchGoNoGoRuntimeProofBridgeAccepted',
   'sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted',
+  'sourceExternalBetaServiceRoleQueueSmokePreflightAccepted',
+  'sourceServiceRoleQueueSmokePreflight?.status',
+  'ready_to_execute_non_production_service_role_queue_smoke',
   'externalBetaRuntimeAdmissionReadyWithProvidedEvidence',
   'externalBetaWorkerEnqueueAllowedWithProvidedEvidence',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJob',
@@ -433,6 +544,10 @@ const workerDispatchSmokeProofPath = writeJson(
     'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
   ]), 'external_beta_worker_dispatch_smoke_proof'),
 )
+const readyServiceRolePreflightPath = writeJson(
+  path.join(tmpRoot, 'ready-service-role-queue-smoke-preflight.json'),
+  readyServiceRoleQueueSmokePreflightFixture(),
+)
 
 const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   ...fullEvidenceArgs,
@@ -440,6 +555,8 @@ const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   fullPacketPath,
   '--external-beta-worker-dispatch-smoke-proof',
   workerDispatchSmokeProofPath,
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
   ...launchApprovalArgs,
 ]), 'external_beta_launch_go_no_go')
 if (launchGoNoGo.status !== 'external_beta_launch_go_no_go_approved_runtime_still_blocked') {
@@ -447,6 +564,9 @@ if (launchGoNoGo.status !== 'external_beta_launch_go_no_go_approved_runtime_stil
 }
 if (launchGoNoGo.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 21) {
   fail('launch_go_no_go_approved_tools_not_21')
+}
+if (launchGoNoGo.booleans?.sourceExternalBetaServiceRoleQueueSmokePreflightAccepted !== true) {
+  fail('launch_go_no_go_service_role_preflight_not_accepted')
 }
 const launchGoNoGoPath = writeJson(path.join(tmpRoot, 'launch-go-no-go.json'), launchGoNoGo)
 const weakenedLaunchGoNoGoPath = writeJson(

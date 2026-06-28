@@ -195,8 +195,9 @@ external-beta worker job; `gpuRuntimeShouldStartNow=false`,
 `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
 GPU runtime is only start-allowed for an accepted future external-beta worker job.
 Runtime admission now also rejects source launch go/no-go packets that strip or
-weaken the native GPU runtime-proof bridge, so external-beta worker admission
-cannot bypass the all-21 runtime-proof bridge before enqueue.
+weaken the native GPU runtime-proof bridge or omit the ready service-role queue
+smoke preflight, so external-beta worker admission cannot bypass the all-21
+runtime-proof and queue-smoke preflight bridges before enqueue.
 
 AI graphics external beta tool-call gateway decision
 `ai_graphics_external_beta_tool_call_gateway_contract_prepared_with_runtime_blocks`
@@ -1179,7 +1180,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks`.
 - Scope: external launch go/no-go contract for all 21 AI graphics tools and all 12 capabilities after private/backend evidence is accepted by the external-beta readiness gate.
-- Result: default launch candidates remain 0. With complete private/backend evidence or the external-beta evidence admission bundle plus launch switch, rollout cohort, cost/concurrency ceiling, rollback/incident runbook, private artifact retention, support ownership, and `AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER` metadata, the contract can mark 21 tools launch-approved with provided evidence, while `externalBetaReadyNowTools=0` and `productionReadyNowTools=0` remain enforced. Source launch-gap packets must preserve the runtime-proof bridge: 13 checked-in accepted tools, 8 checked-in GPU blockers, and 21 accepted / 0 GPU blocked after accepted native GPU collection evidence.
+- Result: default launch candidates remain 0. With complete private/backend evidence or the external-beta evidence admission bundle plus a ready service-role queue smoke preflight packet, launch switch, rollout cohort, cost/concurrency ceiling, rollback/incident runbook, private artifact retention, support ownership, and `AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER` metadata, the contract can mark 21 tools launch-approved with provided evidence, while `externalBetaReadyNowTools=0` and `productionReadyNowTools=0` remain enforced. Source launch-gap packets must preserve the runtime-proof bridge: 13 checked-in accepted tools, 8 checked-in GPU blockers, and 21 accepted / 0 GPU blocked after accepted native GPU collection evidence.
 - Runtime/beta/production: no committed unlock; GPU remains on-demand only for accepted future jobs; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Internal Beta Owner Approval

@@ -195,6 +195,112 @@ function acceptedBetaEvidenceBundleFixture() {
   }
 }
 
+function readyServiceRoleQueueSmokePreflightFixture() {
+  return {
+    decision:
+      'ai_graphics_external_beta_service_role_queue_smoke_preflight_prepared_with_environment_blocks',
+    status: 'ready_to_execute_non_production_service_role_queue_smoke',
+    toolsCovered: 21,
+    productFacingCapabilitiesCovered: 12,
+    gpuRuntimeTargetedTools: 8,
+    heavyToolsIncorrectlyTargetingCpu: 0,
+    requiredEnvChecks: [],
+    requiredFlagChecks: [],
+    missingEnvironment: [],
+    missingFlags: [],
+    sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    all21PayloadsPrepared: true,
+    payloadPreviews: allTools.map((toolId) => {
+      const gpuRequiredForRuntime = gpuTools.includes(toolId)
+      return {
+        toolId,
+        productionToolId: `ai_graphics.${toolId}`,
+        workerType: gpuRequiredForRuntime
+          ? 'ai_graphics_gpu_model_worker'
+          : 'ai_graphics_cpu_static_worker',
+        runtimeTarget: gpuRequiredForRuntime
+          ? 'native_gpu_model_runtime'
+          : 'node_cpu_static_runtime',
+        capabilityIds: gpuRequiredForRuntime
+          ? ['model_runtime_foundation']
+          : ['planning_metadata_only'],
+        gpuRequiredForRuntime,
+        gpuRuntimeStartAllowedForAcceptedExternalBetaJob: gpuRequiredForRuntime,
+        payloadShapeValid: true,
+        toolExecutionApprovedNow: false,
+        workerDispatchPerformed: false,
+        gpuRuntimeShouldStartNow: false,
+      }
+    }),
+    readyToExecuteLiveNonProductionSmoke: true,
+    executeCommandTemplate:
+      'preflight-only fixture; live smoke remains unexecuted by this diagnostic',
+    liveServiceRoleQueueSmokeExecutedNow: false,
+    liveSupabaseQueueWritesNow: 0,
+    liveWorkerClaimRowsNow: 0,
+    liveWorkerDispatchesNow: 0,
+    liveToolExecutionsNow: 0,
+    gpuRuntimeShouldStartNow: false,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+    booleans: {
+      externalBetaServiceRoleQueueSmokePreflightPrepared: true,
+      all21ToolsCovered: true,
+      all12CapabilitiesCovered: true,
+      all8GpuToolsTargetGpuRuntime: true,
+      all21PayloadsPrepared: true,
+      requiredEnvironmentSatisfied: true,
+      requiredFlagsSatisfied: true,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+      readyToExecuteLiveNonProductionSmoke: true,
+      serviceRoleCredentialsServerOnly: true,
+      secretsRedactedFromOutput: true,
+      nonProductionEnvironmentRequired: true,
+      explicitSmokeConfirmationRequired: true,
+      cleanupRequired: true,
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      workerQueueApprovedNow: false,
+      serviceRoleQueueSmokeApprovedNow: false,
+      liveServiceRoleQueueSmokeExecutedNow: false,
+      liveQueueWriteApprovedNow: false,
+      liveWorkerClaimInsertApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      toolExecutionPerformed: false,
+      workerExecutionPerformed: false,
+      routeExecutionPerformed: false,
+      serviceRoleQueueSmokePerformed: false,
+      supabaseMutationPerformed: false,
+      workerLeaseCreated: false,
+      workerDispatchPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimePerformed: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      mediaProcessingPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}
+
 const fullEvidenceArgs = [
   '--all-shared-gates-passed',
   '--all-external-beta-evidence-passed',
@@ -230,6 +336,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.md',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.json',
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json',
   'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json',
   'docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json',
 ]
@@ -262,6 +369,7 @@ for (const [key, expected] of Object.entries({
   defaultExternalBetaLaunchCandidateToolsWithProvidedEvidence: 0,
   fullEvidenceExternalBetaLaunchCandidateToolsWithProvidedEvidence: 21,
   admissionBundleExternalBetaLaunchCandidateToolsWithProvidedEvidence: 21,
+  serviceRoleQueueSmokePreflightAccepted: true,
   sourceLaunchGapRuntimeProofBridgeAccepted: true,
   fullLaunchApprovalExternalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence: 21,
   externalBetaReadyNowTools: 0,
@@ -281,10 +389,13 @@ for (const field of requiredLaunchFields) {
 for (const needle of [
   'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GO_NO_GO_DECISION',
   'AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION',
+  'AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PREFLIGHT_DECISION',
   'buildAiGraphicsExternalBetaLaunchGoNoGo',
   'buildAiGraphicsExternalBetaLaunchGapReport',
   'evidenceAdmissionBundleAccepted',
+  'serviceRoleQueueSmokePreflightAccepted',
   'sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted',
+  'sourceExternalBetaServiceRoleQueueSmokePreflightAccepted',
   'launchGapRuntimeProofBridgeAccepted',
   'readyAfterNativeGpuCollectionRuntimeProofAcceptedWithProvidedEvidenceTools === 21',
   'readyAfterNativeGpuCollectionBlockedPendingNativeGpuRuntimeProofTools === 0',
@@ -300,6 +411,7 @@ for (const needle of [
 for (const needle of [
   '--external-beta-launch-gap-report-packet',
   '--external-beta-evidence-admission-bundle-packet',
+  '--external-beta-service-role-queue-smoke-preflight-packet',
   '--external-beta-evidence-admission-bundle',
   '--external-beta-worker-dispatch-smoke-proof',
   '--external-beta-worker-dispatch-smoke-proof-accepted',
@@ -316,6 +428,7 @@ for (const key of [
   'sourceExternalBetaLaunchGapAccepted',
   'sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted',
   'sourceExternalBetaEvidenceAdmissionBundleAccepted',
+  'sourceExternalBetaServiceRoleQueueSmokePreflightAccepted',
   'externalBetaLaunchCandidateWithProvidedEvidence',
   'externalBetaLaunchGoNoGoApprovalRecordAccepted',
   'all21ToolsCovered',
@@ -428,6 +541,10 @@ const fullLaunchGapPath = writeJson(
   path.join(tempRoot, 'full-launch-gap-report.json'),
   fullLaunchGapPacket,
 )
+const readyServiceRolePreflightPath = writeJson(
+  path.join(tempRoot, 'ready-service-role-queue-smoke-preflight.json'),
+  readyServiceRoleQueueSmokePreflightFixture(),
+)
 const weakenedLaunchGapPath = writeJson(
   path.join(tempRoot, 'weakened-launch-gap-report.json'),
   {
@@ -440,12 +557,21 @@ const weakenedLaunchGapPath = writeJson(
 )
 
 const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_launch_go_no_go')
+const fullEvidenceWithoutPreflightOutput = parseJsonOutput(runNpm(runScriptName, [
+  ...fullEvidenceArgs,
+  '--external-beta-evidence-packet',
+  fullPacketPath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
+]), 'full_evidence_without_preflight_launch_go_no_go')
 const fullEvidenceOutput = parseJsonOutput(runNpm(runScriptName, [
   ...fullEvidenceArgs,
   '--external-beta-evidence-packet',
   fullPacketPath,
   '--external-beta-worker-dispatch-smoke-proof',
   workerDispatchSmokeProofPath,
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
 ]), 'full_evidence_launch_go_no_go')
 const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   ...fullEvidenceArgs,
@@ -453,6 +579,8 @@ const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   fullPacketPath,
   '--external-beta-worker-dispatch-smoke-proof',
   workerDispatchSmokeProofPath,
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
   ...launchApprovalArgs,
 ]), 'approved_launch_go_no_go')
 const admissionBundleOutput = parseJsonOutput(runNpm(runScriptName, [
@@ -461,21 +589,35 @@ const admissionBundleOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-worker-dispatch-smoke-proof',
   workerDispatchSmokeProofPath,
 ]), 'admission_bundle_launch_go_no_go')
+const admissionBundleWithPreflightOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-evidence-admission-bundle-packet',
+  admissionBundlePath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
+]), 'admission_bundle_with_preflight_launch_go_no_go')
 const admissionBundleApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-evidence-admission-bundle-packet',
   admissionBundlePath,
   '--external-beta-worker-dispatch-smoke-proof',
   workerDispatchSmokeProofPath,
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
   ...launchApprovalArgs,
 ]), 'admission_bundle_approved_launch_go_no_go')
 const packetFedApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-launch-gap-report-packet',
   fullLaunchGapPath,
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
   ...launchApprovalArgs,
 ]), 'packet_fed_approved_launch_go_no_go')
 const weakenedLaunchGapOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-launch-gap-report-packet',
   weakenedLaunchGapPath,
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
   ...launchApprovalArgs,
 ]), 'weakened_launch_gap_launch_go_no_go')
 
@@ -487,6 +629,16 @@ if (defaultOutput.externalBetaLaunchCandidateToolsWithProvidedEvidence !== 0) {
 }
 if (defaultOutput.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 0) {
   fail('default_approved_tools_not_0')
+}
+
+if (fullEvidenceWithoutPreflightOutput.status !== 'missing_external_beta_service_role_queue_smoke_preflight') {
+  fail(`full_evidence_without_preflight_status_unexpected:${fullEvidenceWithoutPreflightOutput.status}`)
+}
+if (fullEvidenceWithoutPreflightOutput.externalBetaLaunchCandidateToolsWithProvidedEvidence !== 0) {
+  fail('full_evidence_without_preflight_candidate_tools_not_0')
+}
+if (!fullEvidenceWithoutPreflightOutput.missingLaunchGoNoGoEvidence?.includes('external_beta_service_role_queue_smoke_preflight_ready')) {
+  fail('full_evidence_without_preflight_missing_preflight_not_reported')
 }
 
 if (fullEvidenceOutput.status !== 'awaiting_external_beta_launch_go_no_go_approval') {
@@ -501,12 +653,15 @@ if (fullEvidenceOutput.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence
 if (!fullEvidenceOutput.missingLaunchGoNoGoEvidence?.includes('external_beta_launch_ref')) {
   fail('full_evidence_missing_launch_ref_not_reported')
 }
+if (fullEvidenceOutput.booleans?.sourceExternalBetaServiceRoleQueueSmokePreflightAccepted !== true) {
+  fail('full_evidence_service_role_preflight_boolean_not_true')
+}
 
-if (admissionBundleOutput.status !== 'awaiting_external_beta_launch_go_no_go_approval') {
+if (admissionBundleOutput.status !== 'missing_external_beta_service_role_queue_smoke_preflight') {
   fail(`admission_bundle_status_unexpected:${admissionBundleOutput.status}`)
 }
-if (admissionBundleOutput.externalBetaLaunchCandidateToolsWithProvidedEvidence !== 21) {
-  fail('admission_bundle_candidate_tools_not_21')
+if (admissionBundleOutput.externalBetaLaunchCandidateToolsWithProvidedEvidence !== 0) {
+  fail('admission_bundle_candidate_tools_not_0_without_preflight')
 }
 if (admissionBundleOutput.booleans?.sourceExternalBetaEvidenceAdmissionBundleAccepted !== true) {
   fail('admission_bundle_source_boolean_not_true')
@@ -516,6 +671,18 @@ if (admissionBundleOutput.booleans?.sourceExternalBetaLaunchGapAccepted !== fals
 }
 if (!admissionBundleOutput.missingLaunchGoNoGoEvidence?.includes('external_beta_launch_ref')) {
   fail('admission_bundle_missing_launch_ref_not_reported')
+}
+if (!admissionBundleOutput.missingLaunchGoNoGoEvidence?.includes('external_beta_service_role_queue_smoke_preflight_ready')) {
+  fail('admission_bundle_missing_preflight_not_reported')
+}
+if (admissionBundleWithPreflightOutput.status !== 'awaiting_external_beta_launch_go_no_go_approval') {
+  fail(`admission_bundle_with_preflight_status_unexpected:${admissionBundleWithPreflightOutput.status}`)
+}
+if (admissionBundleWithPreflightOutput.externalBetaLaunchCandidateToolsWithProvidedEvidence !== 21) {
+  fail('admission_bundle_with_preflight_candidate_tools_not_21')
+}
+if (admissionBundleWithPreflightOutput.booleans?.sourceExternalBetaServiceRoleQueueSmokePreflightAccepted !== true) {
+  fail('admission_bundle_with_preflight_service_role_boolean_not_true')
 }
 if (packetFedApprovedOutput.sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted !== true) {
   fail('packet_fed_source_runtime_bridge_not_accepted')
@@ -553,9 +720,11 @@ for (const [label, output] of Object.entries({
 
 for (const output of [
   defaultOutput,
+  fullEvidenceWithoutPreflightOutput,
   fullEvidenceOutput,
   approvedOutput,
   admissionBundleOutput,
+  admissionBundleWithPreflightOutput,
   admissionBundleApprovedOutput,
   packetFedApprovedOutput,
   weakenedLaunchGapOutput,

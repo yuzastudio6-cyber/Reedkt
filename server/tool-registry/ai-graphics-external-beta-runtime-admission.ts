@@ -140,6 +140,10 @@ function launchGoNoGoRuntimeProofBridgeAccepted(packet: AiGraphicsExternalBetaLa
 
 function sourceLaunchGoNoGoAccepted(packet: AiGraphicsExternalBetaLaunchGoNoGo): boolean {
   return launchGoNoGoRuntimeProofBridgeAccepted(packet) &&
+    packet.booleans.sourceExternalBetaServiceRoleQueueSmokePreflightAccepted === true &&
+    packet.sourceServiceRoleQueueSmokePreflight?.status ===
+      'ready_to_execute_non_production_service_role_queue_smoke' &&
+    packet.sourceServiceRoleQueueSmokePreflight?.readyToExecuteLiveNonProductionSmoke === true &&
     packet.status === 'external_beta_launch_go_no_go_approved_runtime_still_blocked' &&
     packet.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence === 21 &&
     packet.booleans.all21ToolsExternalBetaLaunchGoNoGoApprovedWithProvidedEvidence === true &&

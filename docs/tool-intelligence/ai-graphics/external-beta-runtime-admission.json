@@ -6,6 +6,7 @@
   "sourceEvidence": {
     "externalBetaLaunchGoNoGo": "docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json",
     "externalBetaLaunchGapReport": "docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.json",
+    "externalBetaServiceRoleQueueSmokePreflight": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json",
     "onDemandRuntimeAdmission": "docs/tool-intelligence/ai-graphics/on-demand-runtime-admission.json",
     "externalBetaReadinessGate": "docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json"
   },
@@ -29,8 +30,10 @@
     "productionReadyNowTools": 0
   },
   "sourceLaunchGoNoGoRuntimeProofBridgeAccepted": true,
+  "sourceLaunchGoNoGoServiceRoleQueueSmokePreflightAccepted": true,
   "requiredExternalRuntimeGates": [
     "external beta launch go/no-go approval",
+    "external beta service-role queue smoke preflight acceptance",
     "external beta feature flag approval",
     "external beta runtime admission reference",
     "external beta tool allowlist reference",

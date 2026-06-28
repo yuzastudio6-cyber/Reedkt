@@ -7,6 +7,9 @@ import type {
   ToolBetaExecutionReadinessBlocker,
   ToolBetaExecutionReadinessPlatformBlocker,
 } from './beta-readiness-types'
+import {
+  defaultAllowedForwardProgressScopes,
+} from './scoped-blocker-forward-progress-policy'
 
 export type BetaReadinessBlockerLedgerScope =
   | 'tool'
@@ -182,16 +185,9 @@ function buildGoNoGoRows(report: BetaReadinessReport): BetaReadinessBlockerLedge
 
 function allowedForwardProgressScopes(report: BetaReadinessReport): string[] {
   if (!report.toolExecutionReadiness.safeBlockerReductionAllowed) return []
-  return [
-    'source_review',
-    'local_dependency_install_proof',
-    'bounded_command_import_container_proof',
-    'safe_blocker_reduction_preview',
-    'diagnostics_and_qa_packets',
-    'deployment_preflight_and_platform_evidence_collection',
-    'owner_approval_packet_collection',
-    'rollback_monitoring_support_planning',
-  ]
+  return report.toolExecutionReadiness.allowedForwardProgressScopes.length > 0
+    ? report.toolExecutionReadiness.allowedForwardProgressScopes
+    : defaultAllowedForwardProgressScopes()
 }
 
 function scopedBlockerFields(safeForwardProgressScope: string): {

@@ -40,6 +40,7 @@
     "smoke:prod-full-e2e-workflow": "tsx server/smoke/production-full-e2e-workflow-smoke.ts",
     "smoke:prod-full-e2e-blockers": "tsx server/smoke/production-full-e2e-blockers-smoke.ts",
     "smoke:prod-hardening": "tsx server/smoke/production-hardening-smoke.ts",
+    "smoke:scoped-blocker-forward-progress-policy": "tsx server/smoke/scoped-blocker-forward-progress-policy-smoke.ts",
     "smoke:prod-security-privacy": "tsx server/smoke/production-security-privacy-smoke.ts",
     "smoke:prod-cost-controls": "tsx server/smoke/production-cost-control-smoke.ts",
     "smoke:tool-cost-metering": "tsx server/smoke/professional-tool-cost-metering-smoke.ts",

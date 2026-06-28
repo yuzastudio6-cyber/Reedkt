@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import {
+  assertScopedBlockerPolicyCarrier,
   buildToolBetaExecutionReadinessReport,
   type ToolBetaAcceptedExecutionEvidence,
   type ToolBetaPlatformReadinessEvidence,
@@ -7,6 +8,7 @@ import {
 import { PRODUCTION_TOOL_IDS } from '../tool-registry'
 
 const report = buildToolBetaExecutionReadinessReport()
+assertScopedBlockerPolicyCarrier(report, 'tool beta execution readiness report')
 
 assert.ok(report.reportId.startsWith('tool-beta-execution-readiness-'), 'tool beta execution readiness report should build')
 assert.equal(report.totalTools, PRODUCTION_TOOL_IDS.length, 'report must cover every production registry tool')
@@ -47,6 +49,8 @@ assert.equal(
   'blocker policy must require a next safe action for blockers',
 )
 assert.equal(report.safeBlockerReductionAllowed, true, 'safe blocker-reduction work must remain allowed')
+assert.ok(report.allowedForwardProgressScopes.includes('source_review'), 'source review must remain allowed forward progress')
+assert.ok(report.allowedForwardProgressScopes.includes('diagnostics_and_qa_packets'), 'diagnostics/QA must remain allowed forward progress')
 assert.deepEqual(
   report.blockedActionScope,
   ['external_beta_tool_execution', 'paid_production_tool_execution'],

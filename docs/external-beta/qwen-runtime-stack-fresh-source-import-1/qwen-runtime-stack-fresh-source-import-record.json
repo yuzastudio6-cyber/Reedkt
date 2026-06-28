@@ -1,0 +1,89 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-RUNTIME-STACK-FRESH-SOURCE-IMPORT-1",
+  "decision": "completed_qwen_runtime_stack_fresh_source_import_guard_ready_for_split_import",
+  "execution": "completed_docs_only_qwen_runtime_stack_import_guard_no_runtime_execution",
+  "integrationBase": "90f13932d89f3aa0975e825d3959f07801ce8347",
+  "repository": "yuzastudio6-cyber/Reedkt",
+  "sourceClosure": {
+    "singleTesterSafeGateBurndownPr": 1466,
+    "singleTesterFeedbackDrivenFixLoopPr": 1471,
+    "singleTesterFeedbackDrivenFixLoopMergeSha": "90f13932d89f3aa0975e825d3959f07801ce8347",
+    "qwenStackTopPr": 1465,
+    "qwenStackTopHead": "52bee9537d8c9d9fd26a595953f4ee362a213d22",
+    "qwenStackRootPr": 982,
+    "qwenStackRollup": "QWEN2_5_VL_EXTERNAL_BETA_STACK_INTEGRATION_ROLLUP_1",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "currentTester": {
+    "email": "aiediting@reeditpro.com",
+    "lane": "go_single_tester_only",
+    "status": "active_single_tester_external_beta_for_aiediting_reeditpro_com"
+  },
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging"
+  },
+  "diffReadback": {
+    "integrationToQwenStackTopChangedPaths": 4412,
+    "directStackMergeApproved": false,
+    "blindCherryPickApproved": false,
+    "freshSourceImportRequired": true,
+    "splitImportRequired": true
+  },
+  "nextMilestones": {
+    "firstSplitImport": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-BASELINE-SPLIT-IMPORT-1",
+    "localHarnessValidation": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-1",
+    "readinessRollup": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-READINESS-ROLLUP-1",
+    "productFlowRevalidation": "RP-EXTERNAL-BETA-QWEN-PRODUCT-FLOW-REVALIDATION-1"
+  },
+  "stillLocked": {
+    "additionalTesterExpansion": "blocked_no_additional_named_tester_list",
+    "broadExternalBetaAudience": "blocked",
+    "publicArtifacts": "blocked",
+    "signedUrlSourceOfTruth": "blocked",
+    "paidBilling": "blocked",
+    "finalDeliveryExport": "blocked",
+    "broadMedia": "blocked",
+    "productionUnlock": "blocked"
+  },
+  "readiness": {
+    "qwenRuntimeStackFreshImportGuard": "completed",
+    "splitImport": "ready_for_qwen_runtime_persistence_baseline_split_import_1",
+    "singleTesterExternalBetaLane": "active_single_tester_external_beta_for_aiediting_reeditpro_com",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "docsOnlyImportGuard": true,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "migrationApply": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "routeExecution": false,
+    "cloudRunInvocation": false,
+    "browserCapture": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "deployment": false,
+    "additionalTesterAccessGrant": false,
+    "broadExternalBetaUnlock": false,
+    "productionUnlock": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "mediaProcessing": false,
+    "privateUserMediaProcessing": false,
+    "qwenRuntimeExecution": false,
+    "dockerExecution": false,
+    "packageInstallation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

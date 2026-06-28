@@ -57,6 +57,17 @@ const requiredText = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 allowedChangedFiles.add('scripts/validation/rp-external-beta-single-tester-safe-gate-burndown-1-diagnostics.mjs')
+for (const file of [
+  'docs/external-beta/qwen-runtime-stack-fresh-source-import-1/source-audit.md',
+  'docs/external-beta/qwen-runtime-stack-fresh-source-import-1/import-guard.md',
+  'docs/external-beta/qwen-runtime-stack-fresh-source-import-1/split-import-plan.md',
+  'docs/external-beta/qwen-runtime-stack-fresh-source-import-1/safety-boundary.md',
+  'docs/external-beta/qwen-runtime-stack-fresh-source-import-1/validation-results.md',
+  'docs/external-beta/qwen-runtime-stack-fresh-source-import-1/qwen-runtime-stack-fresh-source-import-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-runtime-stack-fresh-source-import-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-baseline-split-import-1.md',
+  'scripts/validation/rp-external-beta-qwen-runtime-stack-fresh-source-import-1-diagnostics.mjs',
+]) allowedChangedFiles.add(file)
 const blockedPrefixes = [
   'package-lock.json',
   'supabase/',

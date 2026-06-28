@@ -68,6 +68,19 @@ for (const file of [
   'docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-baseline-split-import-1.md',
   'scripts/validation/rp-external-beta-qwen-runtime-stack-fresh-source-import-1-diagnostics.mjs',
 ]) allowedChangedFiles.add(file)
+for (const file of [
+  'docs/external-beta/active-lane-current-state-after-qwen-gate-1/source-audit.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-gate-1/current-state.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-gate-1/side-stack-policy.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-gate-1/safety-boundary.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-gate-1/validation-results.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-gate-1/active-lane-current-state-record.json',
+  'docs/activation-phase-rp-external-beta-active-lane-current-state-after-qwen-gate-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-feedback-issue-fix-1.md',
+  'docs/production-beta-blocker-inventory.md',
+  'scripts/validation/rp-external-beta-active-lane-current-state-after-qwen-gate-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1r-reconciliation-diagnostics.mjs',
+]) allowedChangedFiles.add(file)
 const blockedPrefixes = [
   'package-lock.json',
   'supabase/',

@@ -1,0 +1,92 @@
+{
+  "packet": "RP-EXTERNAL-BETA-ACTIVE-LANE-CURRENT-STATE-AFTER-QWEN-GATE-1",
+  "decision": "completed_external_beta_active_single_tester_lane_current_state_after_qwen_gate_reconciliation",
+  "execution": "completed_docs_only_active_lane_current_state_reconciliation_no_runtime_execution",
+  "integrationBase": "7ea19bbc90f384dc01a65567b62e1bdddbf9efd2",
+  "sourceClosure": {
+    "qwenRouteGateReconciliationPr": 1508,
+    "qwenRouteGateReconciliationMergeSha": "7ea19bbc90f384dc01a65567b62e1bdddbf9efd2",
+    "singleTesterFeedbackDrivenFixLoop": "RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-DRIVEN-FIX-LOOP-1",
+    "singleTesterSafeGateBurndown": "RP-EXTERNAL-BETA-SINGLE-TESTER-SAFE-GATE-BURNDOWN-1",
+    "namedInvitedTesterWalkthrough": "RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1",
+    "controlledOwnerGoNoGo": "RP-EXTERNAL-BETA-CONTROLLED-OWNER-GO-NO-GO-1",
+    "deployedBrowserUiSurface": "RP-EXTERNAL-BETA-DEPLOYED-BROWSER-UI-SURFACE-1R-STAGING-DEPLOY",
+    "controlledTesterProductFlowSmoke": "RP-EXTERNAL-BETA-CONTROLLED-TESTER-PRODUCT-FLOW-SMOKE-1",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "activeLane": {
+    "targetName": "Reeditpro",
+    "targetRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging",
+    "cloudRunService": "reeditpro-staging-api",
+    "scope": "controlled_private_preview",
+    "approvedGroup": "external-beta-testers@reeditpro.com",
+    "approvedTesterEmail": "aiediting@reeditpro.com",
+    "status": "active_single_tester_external_beta_for_aiediting_reeditpro_com",
+    "qwenRouteGateStatus": "satisfied_by_existing_qwen_route_readback_runtime_and_controlled_single_tester_qwen_product_flow_evidence",
+    "safeGateBurndown": "completed",
+    "feedbackLoop": "ready_for_safe_runtime_issue_intake"
+  },
+  "sideStackPolicy": {
+    "qwenPersistenceOpenPrStack": "fresh_source_import_required_no_blind_stack_merge",
+    "blindMergeApproved": false,
+    "activeLaneBlockerFromSideStack": "none_without_actionable_single_tester_feedback_issue"
+  },
+  "stillLocked": {
+    "additionalTesterExpansion": "blocked_no_additional_named_tester_list",
+    "broadExternalBetaAudience": "blocked",
+    "publicArtifacts": "blocked",
+    "signedUrlSourceOfTruth": "blocked",
+    "paidBilling": "blocked",
+    "finalDeliveryExport": "blocked",
+    "broadMedia": "blocked",
+    "productionUnlock": "blocked"
+  },
+  "readiness": {
+    "externalProductBeta": "active_single_tester_external_beta_for_aiediting_reeditpro_com",
+    "nextMilestones": [
+      "RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1",
+      "continue_controlled_owner_tester_usage_until_actionable_feedback_source_exists"
+    ],
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "docsOnlyReconciliation": true,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "migrationExecution": false,
+    "secretManagerPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "qwenRuntimeExecutionInThisPhase": false,
+    "serviceRoleRouteExecutionInThisPhase": false,
+    "routeHandlerExecutionInThisPhase": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "cloudRunInvocationInThisPhase": false,
+    "cloudRunDeployment": false,
+    "cloudRunIamMutation": false,
+    "googleGroupMembershipMutation": false,
+    "browserCapture": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "persistentCreditReservationCreation": false,
+    "stripePaymentProcessing": false,
+    "externalBetaBroadAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "mediaProcessing": false,
+    "privateUserMediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "dockerExecution": false,
+    "sideStackMerge": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

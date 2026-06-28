@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_validation_retry_after_credit_approval_snapshots_fix_required',
-  'Private invoke client status must record the backend runtime persistence local harness retry-after-credit-approval-snapshots blocker.',
+  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_credit_estimates_plan_version_baseline_fix_required',
+  'Private invoke client status must record the backend runtime persistence credit-estimates plan-version blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -168,8 +168,8 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_credit_approval_snapshots_fix_required') ||
-    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_validation_retry_after_credit_approval_snapshots_fix_required',
+    docText.includes('backend_runtime_persistence_credit_estimates_plan_version_baseline_fix_required') ||
+    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_credit_estimates_plan_version_baseline_fix_required',
   'Doc/data must record backend runtime persistence local harness validation-retry blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
@@ -263,9 +263,9 @@ check(
   'Doc must record the credit approval snapshots baseline migration blocker.',
 )
 check(
-  docText.includes('The credit approval snapshots baseline fix is recorded') &&
-    docText.includes('retry 6 proves whether the active baseline reaches Qwen draft SQL'),
-  'Doc must record the credit approval snapshots fix and retry-6 requirement.',
+  docText.includes('Retry 6 verified that the credit approval snapshots fix now advances') &&
+    docText.includes('credit_estimates.edit_plan_version_id'),
+  'Doc must record the credit estimates plan-version blocker after retry 6.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

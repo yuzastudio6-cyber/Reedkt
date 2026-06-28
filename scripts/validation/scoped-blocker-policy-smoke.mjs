@@ -4,6 +4,7 @@ import fs from 'node:fs'
 const requiredFiles = [
   'AGENTS.md',
   'docs/production-readiness-blocker-policy.md',
+  '.github/workflows/beta-readiness-api-staging-owner-prerequisite-audit.yml',
   '.github/workflows/beta-readiness-api-staging-owner-remediation.yml',
   'package.json',
 ]
@@ -16,6 +17,10 @@ const agents = fs.readFileSync('AGENTS.md', 'utf8')
 const policy = fs.readFileSync('docs/production-readiness-blocker-policy.md', 'utf8')
 const ownerRemediationWorkflow = fs.readFileSync(
   '.github/workflows/beta-readiness-api-staging-owner-remediation.yml',
+  'utf8',
+)
+const ownerPrerequisiteAuditWorkflow = fs.readFileSync(
+  '.github/workflows/beta-readiness-api-staging-owner-prerequisite-audit.yml',
   'utf8',
 )
 const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'))
@@ -57,8 +62,8 @@ assert.doesNotMatch(
 )
 assert.match(
   ownerRemediationWorkflow,
-  /deployer_secret_metadata_viewer_\$\{secret_name\}/,
-  'owner remediation workflow must grant deployer metadata-only fixed secret describe access',
+  /FIXED_STAGING_API_SECRET_NAMES_CSV: \$\{\{ secrets\.REEDITPRO_FIXED_STAGING_API_SECRET_NAMES_CSV \}\}/,
+  'owner remediation workflow must read fixed staging secret names from the staging environment secret',
 )
 assert.match(
   ownerRemediationWorkflow,
@@ -67,8 +72,13 @@ assert.match(
 )
 assert.match(
   ownerRemediationWorkflow,
-  /runtime_secret_accessor_\$\{secret_name\}/,
-  'owner remediation workflow must still grant runtime secret accessor on fixed entries',
+  /deployer_secret_metadata_viewer_\$\{secret_index\}/,
+  'owner remediation workflow must report deployer metadata bindings as redacted fixed secret entries',
+)
+assert.match(
+  ownerRemediationWorkflow,
+  /runtime_secret_accessor_\$\{secret_index\}/,
+  'owner remediation workflow must report runtime accessor bindings as redacted fixed secret entries',
 )
 assert.match(
   ownerRemediationWorkflow,
@@ -90,11 +100,65 @@ assert.match(
   /No Cloud Run deploy, Cloud Run role mutation/,
   'owner remediation workflow summary must state Cloud Run role mutation did not run',
 )
+assert.match(
+  ownerRemediationWorkflow,
+  /::add-mask::\$\{secret_name\}/,
+  'owner remediation workflow must mask owner-provided fixed secret names before gcloud calls',
+)
+assert.match(
+  ownerRemediationWorkflow,
+  /reported only as redacted numbered entries/,
+  'owner remediation workflow summary must keep fixed secret names out of durable logs',
+)
+
+assert.match(
+  ownerPrerequisiteAuditWorkflow,
+  /FIXED_STAGING_API_SECRET_NAMES_CSV: \$\{\{ secrets\.REEDITPRO_FIXED_STAGING_API_SECRET_NAMES_CSV \}\}/,
+  'owner prerequisite audit must read fixed staging secret names from the staging environment secret',
+)
+assert.match(
+  ownerPrerequisiteAuditWorkflow,
+  /fixed_staging_secret_entry_\$\{secret_index\}/,
+  'owner prerequisite audit must report Secret Manager checks as redacted fixed secret entries',
+)
+assert.match(
+  ownerPrerequisiteAuditWorkflow,
+  /::add-mask::\$\{secret_name\}/,
+  'owner prerequisite audit must mask owner-provided fixed secret names before gcloud calls',
+)
+assert.match(
+  ownerPrerequisiteAuditWorkflow,
+  /Secret Manager checks are fixed-entry existence-only/,
+  'owner prerequisite audit summary must describe fixed-entry existence-only checks',
+)
+
+for (const [label, workflow] of [
+  ['owner remediation workflow', ownerRemediationWorkflow],
+  ['owner prerequisite audit workflow', ownerPrerequisiteAuditWorkflow],
+]) {
+  for (const legacySecretName of [
+    'SUPABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'PROVIDER_GATEWAY_SHARED_SECRET',
+    'WORKER_WEBHOOK_SECRET',
+  ]) {
+    assert.ok(
+      !workflow.includes(legacySecretName),
+      `${label} must not hardcode legacy secret name ${legacySecretName}`,
+    )
+  }
+  assert.doesNotMatch(
+    workflow,
+    /secret_entry_exists_\$\{secret_name\}/,
+    `${label} must not report fixed secret checks by owner-provided name`,
+  )
+}
 
 console.log(JSON.stringify({
   ok: true,
   policy: 'intentional_blanket_blockers_disallowed',
-  ownerRemediationWorkflow: 'scoped_to_current_owner_command_packet',
+  ownerPrerequisiteAuditWorkflow: 'fixed_secret_inputs_masked_and_redacted',
+  ownerRemediationWorkflow: 'fixed_secret_inputs_masked_and_redacted',
   safeBlockerReductionAllowed: true,
   protectedGates: ['approval', 'credit', 'privacy', 'provider', 'worker', 'supabase', 'storage', 'beta', 'production'],
 }, null, 2))

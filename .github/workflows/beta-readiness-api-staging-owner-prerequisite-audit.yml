@@ -51,6 +51,7 @@ jobs:
       GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      FIXED_STAGING_API_SECRET_NAMES_CSV: ${{ secrets.REEDITPRO_FIXED_STAGING_API_SECRET_NAMES_CSV }}
       CONFIRM_OWNER_PREREQUISITE_AUDIT: ${{ inputs.confirm_staging_api_owner_prerequisite_audit }}
       ARTIFACT_REGION: ${{ inputs.artifact_region }}
       ARTIFACT_REPOSITORY: ${{ inputs.artifact_repository }}
@@ -72,6 +73,7 @@ jobs:
           test "${DEPLOYER_SERVICE_ACCOUNT}" = "${GCP_SERVICE_ACCOUNT}"
           test "${RUNTIME_SERVICE_ACCOUNT}" = "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com"
           test "${SERVICE_NAME}" = "reeditpro-api-staging"
+          test -n "${FIXED_STAGING_API_SECRET_NAMES_CSV}"
 
       - name: Authenticate to Google Cloud with OIDC/WIF
         uses: google-github-actions/auth@v3
@@ -232,8 +234,22 @@ jobs:
             "${project_url}" \
             run.services.get run.services.create run.services.update run.operations.get
 
-          for secret_name in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SECRET WORKER_WEBHOOK_SECRET; do
-            run_probe "secret_entry_exists_${secret_name}" \
+          IFS=',' read -r -a fixed_secret_names <<< "${FIXED_STAGING_API_SECRET_NAMES_CSV}"
+          if [ "${#fixed_secret_names[@]}" -ne 4 ]; then
+            record_result fixed_staging_secret_entry_set "failed" "expected_4_redacted_entries"
+          fi
+
+          secret_index=0
+          for secret_name in "${fixed_secret_names[@]}"; do
+            secret_index=$((secret_index + 1))
+            secret_name="${secret_name#"${secret_name%%[![:space:]]*}"}"
+            secret_name="${secret_name%"${secret_name##*[![:space:]]}"}"
+            echo "::add-mask::${secret_name}"
+            if [ -z "${secret_name}" ]; then
+              record_result "fixed_staging_secret_entry_${secret_index}" "failed" "empty_redacted_entry"
+              continue
+            fi
+            run_probe "fixed_staging_secret_entry_${secret_index}" \
               gcloud secrets describe "${secret_name}" \
                 --project="${GCP_PROJECT_ID}" \
                 --format="value(name)"
@@ -260,7 +276,8 @@ jobs:
             echo "- Artifact Registry repository: \`${artifact_resource}\`"
             echo "- Runtime service account: \`${RUNTIME_SERVICE_ACCOUNT}\`"
             echo "- Cloud Run service target: \`${SERVICE_NAME}\` in \`${GCP_REGION}\`"
-            echo "- Secret values were not read. Secret Manager checks are existence-only."
+            echo "- Fixed staging API secret names are owner-supplied through the staging environment secret \`REEDITPRO_FIXED_STAGING_API_SECRET_NAMES_CSV\`, masked before use, and reported only as redacted numbered entries."
+            echo "- Secret values were not read. Secret Manager checks are fixed-entry existence-only."
             echo "- Runtime secret access is not claimed by this read-only audit; deploy/runtime evidence must still prove it before product readiness."
             echo "- No Cloud Run deploy, Docker build/push, evidence collector, tool execution, media processing, Supabase/GCS write, external beta, or production action ran."
           } >> "${GITHUB_STEP_SUMMARY}"

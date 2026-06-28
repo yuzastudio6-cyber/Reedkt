@@ -51,6 +51,7 @@ jobs:
       GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      FIXED_STAGING_API_SECRET_NAMES_CSV: ${{ secrets.REEDITPRO_FIXED_STAGING_API_SECRET_NAMES_CSV }}
       CONFIRM_OWNER_REMEDIATION: ${{ inputs.confirm_staging_api_owner_remediation }}
       CONFIRM_IAM_MUTATION_SCOPE: ${{ inputs.confirm_iam_mutation_scope }}
       ARTIFACT_REGION: ${{ inputs.artifact_region }}
@@ -74,6 +75,7 @@ jobs:
           test "${DEPLOYER_SERVICE_ACCOUNT}" = "${GCP_SERVICE_ACCOUNT}"
           test "${RUNTIME_SERVICE_ACCOUNT}" = "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com"
           test "${SERVICE_NAME}" = "reeditpro-api-staging"
+          test -n "${FIXED_STAGING_API_SECRET_NAMES_CSV}"
 
       - name: Authenticate to Google Cloud with OIDC/WIF
         uses: google-github-actions/auth@v3
@@ -163,14 +165,31 @@ jobs:
             --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
             --role=roles/iam.serviceAccountUser
 
-          for secret_name in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SECRET WORKER_WEBHOOK_SECRET; do
-            run_required_command "deployer_secret_metadata_viewer_${secret_name}" \
+          IFS=',' read -r -a fixed_secret_names <<< "${FIXED_STAGING_API_SECRET_NAMES_CSV}"
+          if [ "${#fixed_secret_names[@]}" -ne 4 ]; then
+            printf '%s\n' fixed_staging_secret_entry_set >> "${failures_file}"
+            record_result fixed_staging_secret_entry_set "failure" "expected_4_redacted_entries"
+          fi
+
+          secret_index=0
+          for secret_name in "${fixed_secret_names[@]}"; do
+            secret_index=$((secret_index + 1))
+            secret_name="${secret_name#"${secret_name%%[![:space:]]*}"}"
+            secret_name="${secret_name%"${secret_name##*[![:space:]]}"}"
+            echo "::add-mask::${secret_name}"
+            if [ -z "${secret_name}" ]; then
+              printf '%s\n' "fixed_staging_secret_entry_${secret_index}" >> "${failures_file}"
+              record_result "fixed_staging_secret_entry_${secret_index}" "failure" "empty_redacted_entry"
+              continue
+            fi
+
+            run_required_command "deployer_secret_metadata_viewer_${secret_index}" \
               gcloud secrets add-iam-policy-binding "${secret_name}" \
               --project="${GCP_PROJECT_ID}" \
               --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
               --role=roles/secretmanager.viewer
 
-            run_required_command "runtime_secret_accessor_${secret_name}" \
+            run_required_command "runtime_secret_accessor_${secret_index}" \
               gcloud secrets add-iam-policy-binding "${secret_name}" \
               --project="${GCP_PROJECT_ID}" \
               --member="serviceAccount:${RUNTIME_SERVICE_ACCOUNT}" \
@@ -184,6 +203,7 @@ jobs:
             echo '| --- | --- | --- |'
             awk -F '\t' '{ printf "| `%s` | `%s` | `%s` |\n", $1, $2, $3 }' "${results_file}"
             echo ''
+            echo 'Fixed staging API secret names are owner-supplied through the staging environment secret `REEDITPRO_FIXED_STAGING_API_SECRET_NAMES_CSV`, masked before use, and reported only as redacted numbered entries.'
             echo 'This workflow still fails closed unless every required prerequisite and exact input verification passes.'
           } >> "${GITHUB_STEP_SUMMARY}"
 

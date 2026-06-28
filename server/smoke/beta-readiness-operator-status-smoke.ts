@@ -119,6 +119,7 @@ assert.ok(readyReport.nextActions.some((action) => action.includes('beta-readine
 assert.ok(readyReport.nextActions.some((action) => action.includes('higher-privilege GCP owner')), 'ready report should name the higher-privilege owner prerequisite')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta-readiness-api-staging-owner-remediation.yml')), 'ready report should name the owner remediation workflow as partial-results evidence')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta-readiness-api-staging-owner-prerequisite-audit.yml')), 'ready report should name the read-only owner prerequisite audit workflow')
+assert.ok(readyReport.nextActions.some((action) => action.includes('2026-06-28-api-staging-owner-remediation-command-packet.md')), 'ready report should name the owner command packet')
 assert.ok(readyReport.nextActions.some((action) => action.includes('28312122163')), 'ready report should name the latest read-only prerequisite audit run')
 assert.ok(readyReport.nextActions.some((action) => action.includes('28310853041')), 'ready report should name the latest owner-remediation partial-results run')
 assert.ok(readyReport.nextActions.some((action) => action.includes('exactRuntimeServiceAccount')), 'ready report should name the exact runtime service account blocker')
@@ -161,6 +162,7 @@ assert.ok(emptyReport.nextActions.some((action) => action.includes('deployer can
 assert.ok(emptyReport.nextActions.some((action) => action.includes('artifactregistry.repositories.get')), 'empty report should name the exact Artifact Registry permission blocker')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('artifactregistry.repositories.get/uploadArtifacts')), 'empty report should name the exact Artifact Registry get/upload blocker')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('secret-entry describe access')), 'empty report should name the fixed secret-entry describe blocker')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('metadata-only')), 'empty report should preserve metadata-only deployer secret guidance')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('beta-readiness-api-staging-owner-prerequisite-audit.yml')), 'empty report should name the read-only owner prerequisite audit rerun')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('gh workflow run beta-readiness-api-staging-deploy.yml')), 'empty report should name the guarded default-branch workflow before API deployment preflight')
 

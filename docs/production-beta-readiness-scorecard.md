@@ -1269,3 +1269,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: diagnostics generate the scaffold in a temp directory and verify four generated files, 10 operator steps, 8 GPU/model tools, 5 model-weight manifest tools, 6 native GPU proof profiles, and an explicit native GPU confirmation guard. The scaffold itself does not run the generated script.
 - GPU policy: the generated shell script refuses to run unless `REEDITPRO_AI_GRAPHICS_NATIVE_GPU_OPERATOR_CONFIRM=run-native-gpu-proof-on-approved-l4-host` and `REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT` are set. GPU remains on-demand only; no idle GPU runtime is approved and CPU fallback for heavy/model tools remains blocked.
 - Runtime/beta/production: no unlock; `gpuRuntimePerformed=false`, `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `modelWeightsDownloaded=false`, `modelWeightsLoaded=false`, `modelInferencePerformed=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta Native GPU Proof Operator Command Packet
+
+- Decision: `ai_graphics_external_beta_native_gpu_proof_operator_handoff_prepared_with_private_evidence_runtime_blocks`.
+- Scope: strengthens the committed operator-handoff JSON packet so all 10 operator steps include the exact command and local output path, matching the Markdown handoff and scaffold-generated shell script.
+- Result: the packet now proves `operatorStepsWithCommands=10`, `operatorStepsWithOutputPaths=10`, and only `run_native_gpu_profile_proof` performs runtime execution. All outputs remain under `.local-artifacts/ai-graphics/`.
+- Runtime/beta/production: no unlock; the packet still reports `gpuRuntimeShouldStartNow=false`, `agentCanExecuteToolsNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

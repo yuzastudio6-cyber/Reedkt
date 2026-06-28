@@ -209,13 +209,38 @@ assertSet('docs_model_weight_tools', docs.modelWeightManifestRequiredTools || []
 assertSet('docs_runtime_profiles', docs.runtimeProfilesRequired || [], runtimeProfiles)
 if ((docs.operatorSteps || []).length !== 10) fail(`operator_step_count_not_10:${(docs.operatorSteps || []).length}`)
 assertSet('docs_operator_steps', (docs.operatorSteps || []).map((step) => step.stepId), requiredStepIds)
+const docsRuntimeSteps = (docs.operatorSteps || []).filter((step) => step.performsRuntimeExecution === true)
+if (docsRuntimeSteps.length !== 1 || docsRuntimeSteps[0]?.stepId !== 'run_native_gpu_profile_proof') {
+  fail(`operator_runtime_step_not_exact:${docsRuntimeSteps.map((step) => step.stepId).join(',')}`)
+}
 for (const step of docs.operatorSteps || []) {
+  if (typeof step.command !== 'string' || step.command.trim().length === 0) {
+    fail(`operator_step_missing_command:${step.stepId}`)
+  }
+  if (typeof step.outputPath !== 'string' || step.outputPath.trim().length === 0) {
+    fail(`operator_step_missing_output_path:${step.stepId}`)
+  }
+  if (step.outputPath && !step.outputPath.startsWith('.local-artifacts/ai-graphics/')) {
+    fail(`operator_step_output_path_not_local:${step.stepId}:${step.outputPath}`)
+  }
   if (step.stepId === 'run_native_gpu_profile_proof' && step.performsRuntimeExecution !== true) {
     fail('native_gpu_profile_step_not_runtime_execution')
   }
   if (step.stepId !== 'run_native_gpu_profile_proof' && step.performsRuntimeExecution !== false) {
     fail(`non_runtime_step_performs_execution:${step.stepId}`)
   }
+}
+if (docs.counts?.operatorStepsWithCommands !== 10) {
+  fail(`operator_steps_with_commands_count_not_10:${docs.counts?.operatorStepsWithCommands}`)
+}
+if (docs.counts?.operatorStepsWithOutputPaths !== 10) {
+  fail(`operator_steps_with_output_paths_count_not_10:${docs.counts?.operatorStepsWithOutputPaths}`)
+}
+if (docs.commandSequence?.commandsIncludedInOperatorSteps !== true) {
+  fail('command_sequence_does_not_confirm_commands')
+}
+if (docs.commandSequence?.onlyRuntimeExecutingStep !== 'run_native_gpu_profile_proof') {
+  fail(`command_sequence_runtime_step_unexpected:${docs.commandSequence?.onlyRuntimeExecutingStep}`)
 }
 
 for (const key of [

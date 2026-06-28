@@ -56,60 +56,80 @@
   "operatorSteps": [
     {
       "stepId": "scaffold_private_checksum_evidence",
+      "command": "npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence",
+      "outputPath": ".local-artifacts/ai-graphics/model-weight-checksum-evidence",
       "mustRunOnNativeGpuHost": false,
       "requiresPrivateArtifacts": true,
       "performsRuntimeExecution": false
     },
     {
       "stepId": "validate_private_checksum_evidence",
+      "command": "npm run --silent ai-graphics:model-weight-checksum-evidence:validate -- --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence > .local-artifacts/ai-graphics/model-weight-checksum-evidence/model-weight-checksum-evidence-packet.json",
+      "outputPath": ".local-artifacts/ai-graphics/model-weight-checksum-evidence/model-weight-checksum-evidence-packet.json",
       "mustRunOnNativeGpuHost": false,
       "requiresPrivateArtifacts": true,
       "performsRuntimeExecution": false
     },
     {
       "stepId": "author_private_model_manifests",
+      "command": "npm run --silent ai-graphics:model-weight-manifest-authoring -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --out-dir .local-artifacts/ai-graphics/model-weight-manifests",
+      "outputPath": ".local-artifacts/ai-graphics/model-weight-manifests",
       "mustRunOnNativeGpuHost": false,
       "requiresPrivateArtifacts": true,
       "performsRuntimeExecution": false
     },
     {
       "stepId": "validate_private_model_manifests",
+      "command": "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests > .local-artifacts/ai-graphics/model-weight-manifests/model-weight-manifest-review-packet.json",
+      "outputPath": ".local-artifacts/ai-graphics/model-weight-manifests/model-weight-manifest-review-packet.json",
       "mustRunOnNativeGpuHost": false,
       "requiresPrivateArtifacts": true,
       "performsRuntimeExecution": false
     },
     {
       "stepId": "generate_native_gpu_command_plan",
+      "command": "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh > .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-command-plan-packet.json",
+      "outputPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-command-plan-packet.json",
       "mustRunOnNativeGpuHost": false,
       "requiresPrivateArtifacts": true,
       "performsRuntimeExecution": false
     },
     {
       "stepId": "verify_native_gpu_host",
+      "command": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible > .local-artifacts/ai-graphics/gpu-runtime-proof-results/native-gpu-host-preflight.json",
+      "outputPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/native-gpu-host-preflight.json",
       "mustRunOnNativeGpuHost": true,
       "requiresPrivateArtifacts": false,
       "performsRuntimeExecution": false
     },
     {
       "stepId": "run_native_gpu_profile_proof",
+      "command": "bash .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh",
+      "outputPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results",
       "mustRunOnNativeGpuHost": true,
       "requiresPrivateArtifacts": true,
       "performsRuntimeExecution": true
     },
     {
       "stepId": "validate_native_gpu_proof_results",
+      "command": "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results > .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json",
+      "outputPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json",
       "mustRunOnNativeGpuHost": false,
       "requiresPrivateArtifacts": true,
       "performsRuntimeExecution": false
     },
     {
       "stepId": "validate_native_gpu_proof_collection",
+      "command": "npm run --silent ai-graphics:external-beta-native-gpu-proof-collection -- --external-beta-per-tool-runtime-proof-packet docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json --gpu-runtime-proof-command-plan-packet .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-command-plan-packet.json --model-weight-checksum-evidence-packet .local-artifacts/ai-graphics/model-weight-checksum-evidence/model-weight-checksum-evidence-packet.json --model-weight-manifest-review-packet .local-artifacts/ai-graphics/model-weight-manifests/model-weight-manifest-review-packet.json --gpu-runtime-proof-result-packet .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json --external-beta-native-gpu-proof-collection-policy-ref private://ai-graphics/external-beta/native-gpu-proof/policy --external-beta-native-gpu-proof-collection-schema-ref private://ai-graphics/external-beta/native-gpu-proof/schema --external-beta-native-gpu-proof-collection-host-pool-ref private://ai-graphics/external-beta/native-gpu-proof/host-pool/l4 --external-beta-native-gpu-proof-collection-private-artifact-namespace-ref private://ai-graphics/model-weights --external-beta-native-gpu-proof-collection-telemetry-ref private://ai-graphics/external-beta/native-gpu-proof/telemetry --external-beta-native-gpu-proof-collection-rollback-ref private://ai-graphics/external-beta/native-gpu-proof/rollback > .local-artifacts/ai-graphics/gpu-runtime-proof-results/external-beta-native-gpu-proof-collection-packet.json",
+      "outputPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/external-beta-native-gpu-proof-collection-packet.json",
       "mustRunOnNativeGpuHost": false,
       "requiresPrivateArtifacts": true,
       "performsRuntimeExecution": false
     },
     {
       "stepId": "recheck_external_beta_per_tool_runtime_proof",
+      "command": "npm run --silent ai-graphics:external-beta-per-tool-runtime-proof -- --external-beta-tool-route-runtime-proof-packet docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json --node-runtime-proof-packet docs/tool-intelligence/ai-graphics/node-runtime-proof.json --browser-runtime-proof-packet docs/tool-intelligence/ai-graphics/browser-runtime-proof.json --satori-font-runtime-proof-packet docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json --gpu-runtime-proof-result-packet .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json --external-beta-per-tool-runtime-proof-policy-ref private://ai-graphics/external-beta/per-tool-runtime-proof/policy --external-beta-per-tool-runtime-proof-schema-ref private://ai-graphics/external-beta/per-tool-runtime-proof/schema --external-beta-runtime-proof-evidence-ref private://ai-graphics/external-beta/per-tool-runtime-proof/evidence --external-beta-runtime-proof-telemetry-ref private://ai-graphics/external-beta/per-tool-runtime-proof/telemetry --external-beta-runtime-proof-rollback-ref private://ai-graphics/external-beta/per-tool-runtime-proof/rollback > .local-artifacts/ai-graphics/gpu-runtime-proof-results/external-beta-per-tool-runtime-proof-recheck-packet.json",
+      "outputPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/external-beta-per-tool-runtime-proof-recheck-packet.json",
       "mustRunOnNativeGpuHost": false,
       "requiresPrivateArtifacts": true,
       "performsRuntimeExecution": false
@@ -177,5 +197,19 @@
     "gcsUploadPerformed": false,
     "publicArtifactCreated": false,
     "signedUrlCreated": false
+  },
+  "missingOperatorControls": [],
+  "sourceCollectionAccepted": true,
+  "counts": {
+    "operatorStepsWithCommands": 10,
+    "operatorStepsWithOutputPaths": 10
+  },
+  "commandSequence": {
+    "localOnly": true,
+    "committedForOperatorReview": true,
+    "commandsIncludedInOperatorSteps": true,
+    "operatorStepsWithCommands": 10,
+    "onlyRuntimeExecutingStep": "run_native_gpu_profile_proof",
+    "runtimeExecutingStepRequiresNativeGpuHost": true
   }
 }

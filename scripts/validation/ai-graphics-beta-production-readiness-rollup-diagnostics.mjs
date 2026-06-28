@@ -86,6 +86,15 @@ const expectedGpuRuntimeTargets = {
   transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
 }
 
+const runtimeProfiles = [
+  'native_linux_amd64_nvidia_l4_torch_torchvision_runtime',
+  'native_linux_amd64_nvidia_l4_transformers_runtime',
+  'native_linux_amd64_nvidia_l4_sam2_runtime',
+  'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  'native_linux_amd64_nvidia_l4_transparent_background_runtime',
+]
+
 const requiredFinalGoNoGoGates = [
   'accepted all-21 install and production mapping audit',
   'accepted cross-owner duplicate and reserved-tool coordination',
@@ -205,17 +214,24 @@ function writeAcceptedEvidencePackets() {
 function acceptedPerToolRuntimeProofFixture() {
   return {
     decision: 'external_beta_per_tool_runtime_proof_ready_with_gpu_blocks',
+    sourceToolRouteRuntimeProofBridgeAccepted: true,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
     runtimeProofRecordsPrepared: 21,
     runtimeProofAcceptedWithProvidedEvidenceTools: 13,
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
     jsRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
     nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 0,
     blockedPendingNativeGpuRuntimeProofTools: 8,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
+    records: allTools.map((toolId) => ({
+      toolId,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    })),
     booleans: {
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
       gpuRuntimeOnDemandOnly: true,
       gpuRuntimeShouldStartNow: false,
       agentCanExecuteToolsNow: false,
@@ -246,6 +262,25 @@ function acceptedChecksumEvidenceFixture() {
   }
 }
 
+function acceptedCloudRunResultCollectorFixture() {
+  return {
+    decision: 'ai_graphics_external_beta_native_gpu_proof_cloud_run_result_collector_prepared_local_only',
+    currentStatus: 'external_beta_native_gpu_proof_cloud_run_result_collector_prepared_pending_private_cloud_run_logs',
+    sourceCloudRunJobScaffoldBridgeAccepted: true,
+    runtimeProfilesRequired: runtimeProfiles,
+    counts: {
+      runtimeProfilesExtracted: 6,
+    },
+    booleans: {
+      sourceCloudRunJobScaffoldAccepted: true,
+      sourceNativeGpuProofCollectionBridgeAccepted: true,
+      gpuRuntimeApprovedNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
 function writeJsonPacket(root, fileName, packet) {
   const packetPath = path.join(root, fileName)
   fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
@@ -263,6 +298,11 @@ function writeAcceptedNativeGpuProofCollectionPacket(root, manifestPacketPath, g
     'accepted-model-weight-checksum-evidence.json',
     acceptedChecksumEvidenceFixture(),
   )
+  const cloudRunResultCollectorPath = writeJsonPacket(
+    root,
+    'accepted-cloud-run-result-collector.json',
+    acceptedCloudRunResultCollectorFixture(),
+  )
   const collectionOutput = parseJsonOutput(runNpm(nativeGpuProofCollectionScriptName, [
     '--external-beta-per-tool-runtime-proof-packet',
     perToolPath,
@@ -274,6 +314,8 @@ function writeAcceptedNativeGpuProofCollectionPacket(root, manifestPacketPath, g
     manifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     gpuPacketPath,
+    '--cloud-run-result-collector-packet',
+    cloudRunResultCollectorPath,
     '--external-beta-native-gpu-proof-collection-policy-ref',
     'external-beta-evidence://ai-graphics/native-gpu-proof/policy',
     '--external-beta-native-gpu-proof-collection-schema-ref',
@@ -419,6 +461,13 @@ if (!moduleSource.includes('sourceProductionWorkerGateReadinessPacket')) {
 if (!moduleSource.includes('sourceExternalBetaNativeGpuProofCollectionPacket')) {
   fail('module_missing_source_native_gpu_proof_collection_packet_input')
 }
+for (const bridgeNeedle of [
+  'cloudRunResultCollectorProfilesAccepted',
+  'sourceCloudRunResultCollectorBridgeAcceptedWithProvidedEvidence',
+  'sourceCloudRunResultCollectorAccepted',
+]) {
+  if (!moduleSource.includes(bridgeNeedle)) fail(`module_missing_cloud_run_collector_bridge:${bridgeNeedle}`)
+}
 if (!cliSource.includes('--internal-beta-production-worker-gate-readiness-packet')) {
   fail('cli_missing_production_worker_gate_readiness_packet_flag')
 }
@@ -559,6 +608,13 @@ const nativeGpuProofCollectionPacketPath = writeAcceptedNativeGpuProofCollection
   manifestPacketPath,
   gpuPacketPath,
 )
+const nativeGpuProofCollectionPacket = json(nativeGpuProofCollectionPacketPath)
+if (nativeGpuProofCollectionPacket.counts?.cloudRunResultCollectorProfilesAccepted !== 6) {
+  fail('native_gpu_collection_cloud_run_collector_profiles_not_6')
+}
+if (nativeGpuProofCollectionPacket.booleans?.sourceCloudRunResultCollectorAccepted !== true) {
+  fail('native_gpu_collection_cloud_run_collector_not_accepted')
+}
 let awaitingExited = false
 let awaitingOutputText = ''
 try {

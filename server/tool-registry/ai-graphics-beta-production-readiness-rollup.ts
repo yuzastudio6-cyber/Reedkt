@@ -186,8 +186,12 @@ function nativeGpuProofCollectionAccepted(
     packet?.decision === 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready' &&
     packet?.counts.nativeGpuRuntimeProofAcceptedTools === 8 &&
     packet?.counts.nativeGpuRuntimeProofProfilesAccepted === 6 &&
+    packet?.counts.cloudRunResultCollectorProfilesAccepted === 6 &&
+    packet?.counts.sourceCloudRunResultCollectorBridgeAcceptedWithProvidedEvidence === 6 &&
     packet?.counts.modelWeightManifestReviewAccepted === 5 &&
     packet?.counts.blockedPendingNativeGpuRuntimeProofTools === 0 &&
+    packet?.sourceCloudRunResultCollectorAccepted === true &&
+    packet?.booleans.sourceCloudRunResultCollectorAccepted === true &&
     packet?.booleans.readyForPerToolRuntimeProofRecheck === true &&
     packet?.booleans.gpuRuntimeOnDemandOnly === true &&
     packet?.booleans.noIdleGpuRuntimeApproved === true &&

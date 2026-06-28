@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_validation_required',
-  'Private invoke client status must record the backend runtime persistence local harness validation blocker.',
+  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_port_fix_required',
+  'Private invoke client status must record the backend runtime persistence local harness port-fix blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -168,9 +168,9 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_local_harness_validation_required') ||
-    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_validation_required',
-  'Doc/data must record backend runtime persistence local harness validation blocker status.',
+    docText.includes('backend_runtime_persistence_local_harness_port_fix_required') ||
+    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_port_fix_required',
+  'Doc/data must record backend runtime persistence local harness port-fix blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
 check(docText.includes('`schemaKeys=[]`'), 'Doc must record the empty schema-key metadata.')
@@ -223,8 +223,12 @@ check(
   'Doc must record local harness plan evidence.',
 )
 check(
-  docText.includes('User-facing readiness remains blocked until the approved local harness validation runs and passes'),
-  'Doc must record local harness validation as the remaining blocker.',
+  docText.includes('User-facing readiness remains blocked until the Qwen local harness uses non-conflicting loopback ports'),
+  'Doc must record local harness port fix as the remaining blocker.',
+)
+check(
+  docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),
+  'Doc must record the port-conflict validation result.',
 )
 check(
   docText.includes('contractSatisfiedForFutureRuntime=true') ||

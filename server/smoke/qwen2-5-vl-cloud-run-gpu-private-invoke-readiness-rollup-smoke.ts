@@ -40,6 +40,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT 
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PORT_FIX } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-port-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_MIGRATION_FIX } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-migration-fix'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_2_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-2-result'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -48,9 +49,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_baseline_migration_fix_recorded_retry_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_validation_retry_2_current_edit_session_fix_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58X-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-2: retry Qwen local harness validation after baseline migration fix, no deploy/no cloud/no assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58Y-BACKEND-RUNTIME-PERSISTENCE-BASELINE-CURRENT-EDIT-SESSION-FIX: fix ReEditPro local baseline current_edit_session_id prerequisite for Qwen harness validation, no deploy/no cloud/no assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -199,6 +200,7 @@ for (const file of [
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-config-create-report.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-config-verify-report.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-result.md',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-2-result.md',
   'database/migration-drafts/024_qwen2_5_vl_backend_runtime_persistence.draft.sql',
   'database/test-sql/022_qwen2_5_vl_backend_runtime_persistence_tests.sql',
   'supabase/config.toml',
@@ -226,6 +228,7 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-config-create.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-config-verify.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-2-result.ts',
   'src/backend/workers/qwen2-5-vl-backend-runtime-dispatch-coordinator.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client.ts',
   'src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-cpu-caller-deploy-result.ts',
@@ -237,6 +240,7 @@ for (const file of [
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-plan-smoke.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-config-create-smoke.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-config-verify-smoke.ts',
+  'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-2-result-smoke.ts',
   'server/smoke/qwen2-5-vl-approved-fixture-inference-service-deploy-result-smoke.ts',
   'server/smoke/qwen2-5-vl-approved-fixture-inference-smoke-execute-result-smoke.ts',
   'package.json',
@@ -295,6 +299,11 @@ assert.equal(
   'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-migration-fix-smoke.ts',
   'baseline migration fix package script mismatch',
 )
+assert.equal(
+  packageJson.scripts?.['smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-2-result'],
+  'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-2-result-smoke.ts',
+  'local harness validation retry 2 result package script mismatch',
+)
 
 const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md')
 for (const phrase of [
@@ -338,7 +347,8 @@ for (const phrase of [
   'backend runtime persistence local harness port fix: ready, non-conflicting ports configured',
   'backend runtime persistence local harness validation retry: ready, blocked baseline result recorded',
   'backend runtime persistence local harness baseline migration fix: ready, ambiguity fixed in source',
-  'backend runtime persistence local harness validation retry after baseline fix: blocked, retry required',
+  'backend runtime persistence local harness validation retry after baseline fix: ready, blocked result recorded',
+  'backend runtime persistence current edit session baseline fix: blocked, migration prerequisite fix required',
   'port `54322` is already allocated',
   '`55430`',
   '`55431`',
@@ -365,7 +375,12 @@ for (const phrase of [
   '`backendRuntimePersistenceBaselineMigrationFixRecorded=true`',
   '`activeBaselineMigrationEdited=true`',
   '`ambiguousDescriptionReferenceFixed=true`',
-  '`backendRuntimePersistenceLocalHarnessValidationRetryAfterBaselineFixRequired=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetryAfterBaselineFixRequired=false`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetry2ResultRecorded=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetry2Attempted=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetry2Passed=false`',
+  '`backendRuntimePersistenceBaselineAmbiguousDescriptionFixVerified=true`',
+  '`backendRuntimePersistenceCurrentEditSessionBaselineFixRequired=true`',
   '`qwenDraftSqlApplied=false`',
   '`qwenLocalSqlTestsExecuted=false`',
   '`privateInvokeReady=false`',
@@ -436,7 +451,12 @@ for (const phrase of [
   '`backendRuntimePersistenceLocalHarnessBaselineMigrationFixRequired=false`',
   '`backendRuntimePersistenceBaselineMigrationFixRecorded=true`',
   '`ambiguousDescriptionReferenceFixed=true`',
-  '`backendRuntimePersistenceLocalHarnessValidationRetryAfterBaselineFixRequired=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetryAfterBaselineFixRequired=false`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetry2ResultRecorded=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetry2Attempted=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetry2Passed=false`',
+  '`backendRuntimePersistenceBaselineAmbiguousDescriptionFixVerified=true`',
+  '`backendRuntimePersistenceCurrentEditSessionBaselineFixRequired=true`',
   '`qwenLocalContainersLeftBehind=false`',
   '`configTomlCreated=true`',
   '`configTomlExistsAfter=true`',
@@ -448,9 +468,16 @@ for (const phrase of [
   '`readyForLocalHarnessValidation=true`',
   '`approvedLocalHarnessExists=false`',
   '`readyForRealWorkerDispatch=false`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetry2ResultRecorded=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetry2Attempted=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetry2Passed=false`',
+  '`backendRuntimePersistenceBaselineAmbiguousDescriptionFixVerified=true`',
+  '`backendRuntimePersistenceCurrentEditSessionBaselineFixRequired=true`',
   '`structuredFixtureOutputSchemaValid=true`',
   '`structuredFixtureOutputParsedJson=true`',
   '`structuredFixtureOutputRawOutputStoredInRepo=false`',
+  '`202605180001_reeditpro_core_workspace_projects.sql`',
+  '`projects.current_edit_session_id`',
   NEXT_PROMPT,
 ]) {
   assert.ok(doc.includes(phrase), `Doc missing phrase: ${phrase}`)
@@ -562,6 +589,22 @@ assert.equal(
   rollup.upstreamBackendRuntimePersistenceLocalHarnessValidationResultDecision,
   QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT.decision,
 )
+assert.equal(
+  rollup.upstreamBackendRuntimePersistenceLocalHarnessPortFixDecision,
+  QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PORT_FIX.decision,
+)
+assert.equal(
+  rollup.upstreamBackendRuntimePersistenceLocalHarnessValidationRetryResultDecision,
+  QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_RESULT.decision,
+)
+assert.equal(
+  rollup.upstreamBackendRuntimePersistenceBaselineMigrationFixDecision,
+  QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_MIGRATION_FIX.decision,
+)
+assert.equal(
+  rollup.upstreamBackendRuntimePersistenceLocalHarnessValidationRetry2ResultDecision,
+  QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_2_RESULT.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -625,7 +668,7 @@ assert.equal(status.mayRunInference, false)
 assert.equal(status.mayDispatchWorker, false)
 
 const ui = getQwenVlPlannerRoutingUiData()
-assert.equal(ui.privateInvokeClient.currentStatus, 'backend_runtime_persistence_local_harness_validation_retry_after_baseline_fix_required')
+assert.equal(ui.privateInvokeClient.currentStatus, 'backend_runtime_persistence_current_edit_session_baseline_fix_required')
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
 assert.equal(ui.summary.dryRunPassedClaimed, false)
@@ -680,8 +723,9 @@ assert.deepEqual(gateIds, [
   'backend_runtime_persistence_local_harness_validation_retry',
   'backend_runtime_persistence_local_harness_baseline_migration_fix',
   'backend_runtime_persistence_local_harness_validation_retry_after_baseline_fix',
+  'backend_runtime_persistence_current_edit_session_baseline_fix',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 34)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 35)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -772,6 +816,10 @@ assert.equal(
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_baseline_fix_required').length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_current_edit_session_baseline_fix_required').length,
   1,
 )
 assert.equal(
@@ -935,7 +983,12 @@ assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessBaselineMi
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceBaselineMigrationFixRecorded, true)
 assert.equal(rollup.runtimeFlags.activeBaselineMigrationEdited, true)
 assert.equal(rollup.runtimeFlags.ambiguousDescriptionReferenceFixed, true)
-assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetryAfterBaselineFixRequired, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetryAfterBaselineFixRequired, false)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry2ResultRecorded, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry2Attempted, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry2Passed, false)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceBaselineAmbiguousDescriptionFixVerified, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceCurrentEditSessionBaselineFixRequired, true)
 assert.equal(rollup.runtimeFlags.qwenDraftSqlApplied, false)
 assert.equal(rollup.runtimeFlags.qwenLocalSqlTestsExecuted, false)
 assert.equal(rollup.runtimeFlags.existingLocalSupabaseProjectDetected, true)
@@ -1006,6 +1059,7 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-port-fix.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-migration-fix.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-2-result.ts',
 ]) {
   assertNoForbiddenText(file)
 }
@@ -1038,6 +1092,7 @@ const forbiddenDataFindings = scanValues({
   backendRuntimePersistenceLocalHarnessPortFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PORT_FIX,
   backendRuntimePersistenceLocalHarnessValidationRetryResult: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_RESULT,
   backendRuntimePersistenceBaselineMigrationFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_MIGRATION_FIX,
+  backendRuntimePersistenceLocalHarnessValidationRetry2Result: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_2_RESULT,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

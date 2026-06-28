@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_validation_retry_after_baseline_fix_required',
-  'Private invoke client status must record the backend runtime persistence retry-after-baseline-fix blocker.',
+  data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_current_edit_session_baseline_fix_required',
+  'Private invoke client status must record the backend runtime persistence current-edit-session baseline blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -168,8 +168,8 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_baseline_fix_required') ||
-    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_local_harness_validation_retry_after_baseline_fix_required',
+    docText.includes('backend_runtime_persistence_current_edit_session_baseline_fix_required') ||
+    data.privateInvokeClient.currentStatus === 'backend_runtime_persistence_current_edit_session_baseline_fix_required',
   'Doc/data must record backend runtime persistence local harness validation-retry blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
@@ -223,9 +223,14 @@ check(
   'Doc must record local harness plan evidence.',
 )
 check(
-  docText.includes('The baseline migration fix now qualifies `seed.description`') &&
-    docText.includes('User-facing readiness remains blocked until the Qwen local harness validation retry passes after that fix'),
-  'Doc must record the retry-after-baseline-fix blocker.',
+  docText.includes('The baseline migration fix qualifies `seed.description`') &&
+    docText.includes('Backend runtime persistence local harness validation retry 2 verified that the generation-provider baseline migration now advances'),
+  'Doc must record the retry-2 baseline blocker transition.',
+)
+check(
+  docText.includes('`202605180001_reeditpro_core_workspace_projects.sql`') &&
+    docText.includes('`projects.current_edit_session_id`'),
+  'Doc must record the current edit session baseline migration blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

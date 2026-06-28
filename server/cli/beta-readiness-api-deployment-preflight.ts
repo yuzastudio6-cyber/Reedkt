@@ -101,6 +101,7 @@ export function buildBetaReadinessApiDeploymentPreflight(
     secretLikeInputPaths,
     requiredEnvironmentVariables: requiredEnvironmentVariables(),
     recommendedCommands: [
+      'gh workflow run beta-readiness-api-staging-input-discovery.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_input_discovery=READ_STAGING_BETA_API_DEPLOY_INPUTS',
       'gh workflow run beta-readiness-api-staging-deploy.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_deploy=DEPLOY_STAGING_BETA_READINESS_API --field source_ref=codex/sound-music-audio-1abc-checkpoint --field source_sha=$REEDITPRO_BETA_API_DEPLOYMENT_SOURCE_SHA --field image_tag=$REEDITPRO_IMAGE_TAG --field artifact_region=$GCP_ARTIFACT_REGION --field artifact_repository=$REEDITPRO_ARTIFACT_REPOSITORY --field deployer_service_account=<owner-approved-deployer-service-account> --field runtime_service_account=$REEDITPRO_API_SERVICE_ACCOUNT --field service_name=reeditpro-api-staging',
       'npm run beta:readiness:api-deployment-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
@@ -115,6 +116,7 @@ export function buildBetaReadinessApiDeploymentPreflight(
     ],
     warnings: [
       'This preflight does not run gcloud, build images, deploy Cloud Run, read secrets, call the deployed backend, write evidence, write Supabase/GCS, run tools, process media, enable beta, or enable production.',
+      'Run the read-only default-branch staging input discovery workflow first; the latest source-truth run is blocked until Artifact Registry repository discovery and service-account discovery are owner-approved or exact values are owner-supplied.',
       'The guarded GitHub Actions staging API workflow is workflow_dispatch-only, must be run from the default branch, and requires an exact tools-branch source SHA plus owner-approved service-account inputs.',
       'Passing this preflight only means the API deployment handoff inputs are coherent enough to proceed to deployed evidence input validation.',
     ],

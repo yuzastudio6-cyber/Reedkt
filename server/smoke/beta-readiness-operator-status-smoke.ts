@@ -115,6 +115,7 @@ assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readine
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:scope-approval-evidence-preflight')), 'ready report should name later scope approval evidence preflight command')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:scope-approval-sequence')), 'ready report should name the all-up scope approval sequence')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:paid-production-evidence-collector')), 'ready report should name the final paid-production evidence collector')
+assert.ok(readyReport.nextActions.some((action) => action.includes('beta-readiness-api-staging-input-discovery.yml')), 'ready report should name read-only staging input discovery before deploy')
 assert.ok(readyReport.nextActions.some((action) => action.includes('gh workflow run beta-readiness-api-staging-deploy.yml')), 'ready report should name the guarded staging API workflow')
 assert.ok(readyReport.nextActions.some((action) => action.includes('--ref codex/reeditpro-web-ui-shell')), 'ready report should run the workflow from the default branch')
 assert.ok(readyReport.nextActions.some((action) => action.includes('service_name=reeditpro-api-staging')), 'ready report should lock workflow guidance to staging service name')
@@ -148,6 +149,7 @@ assert.ok(emptyReport.nextActions.some((action) => action.includes('external-bet
 assert.ok(emptyReport.nextActions.some((action) => action.includes('REEDITPRO_BETA_SCOPE_APPROVAL_MODE=real_user_media_beta')), 'empty report should preserve later scope approval lane guidance')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('scope-approval-sequence')), 'empty report should preserve all-up scope approval sequence guidance')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('paid-production-evidence-collector')), 'empty report should preserve final paid-production collector guidance')
+assert.ok(emptyReport.nextActions.some((action) => action.includes('beta-readiness-api-staging-input-discovery.yml')), 'empty report should name read-only input discovery before API deploy')
 assert.ok(emptyReport.nextActions.some((action) => action.includes('gh workflow run beta-readiness-api-staging-deploy.yml')), 'empty report should name the guarded default-branch workflow before API deployment preflight')
 
 console.log(JSON.stringify({

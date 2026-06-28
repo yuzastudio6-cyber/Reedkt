@@ -54,6 +54,7 @@
     "smoke:beta-readiness-operator-status-api": "tsx server/smoke/beta-readiness-operator-status-api-smoke.ts",
     "smoke:beta-readiness-api-deployment-preflight": "tsx server/smoke/beta-readiness-api-deployment-preflight-smoke.ts",
     "smoke:beta-readiness-api-staging-deploy-workflow": "tsx server/smoke/beta-readiness-api-staging-deploy-workflow-smoke.ts",
+    "smoke:beta-readiness-api-staging-input-discovery-blocker": "tsx server/smoke/beta-readiness-api-staging-input-discovery-blocker-smoke.ts",
     "smoke:beta-readiness-deployed-evidence-input-manifest": "tsx server/smoke/beta-readiness-deployed-evidence-input-manifest-smoke.ts",
     "smoke:beta-readiness-external-beta-evidence-collector": "tsx server/smoke/beta-readiness-external-beta-evidence-collector-smoke.ts",
     "smoke:beta-readiness-paid-production-evidence-collector": "tsx server/smoke/beta-readiness-paid-production-evidence-collector-smoke.ts",

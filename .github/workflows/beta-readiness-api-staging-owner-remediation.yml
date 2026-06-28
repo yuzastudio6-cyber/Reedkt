@@ -163,12 +163,13 @@ jobs:
             --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
             --role=roles/iam.serviceAccountUser
 
-          run_required_command cloud_run_admin_binding \
-            gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
-            --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
-            --role=roles/run.admin
-
           for secret_name in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SECRET WORKER_WEBHOOK_SECRET; do
+            run_required_command "deployer_secret_metadata_viewer_${secret_name}" \
+              gcloud secrets add-iam-policy-binding "${secret_name}" \
+              --project="${GCP_PROJECT_ID}" \
+              --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
+              --role=roles/secretmanager.viewer
+
             run_required_command "runtime_secret_accessor_${secret_name}" \
               gcloud secrets add-iam-policy-binding "${secret_name}" \
               --project="${GCP_PROJECT_ID}" \
@@ -273,7 +274,7 @@ jobs:
             echo '| --- | --- | --- |'
             awk -F '\t' '{ printf "| `%s` | `%s` | `%s` |\n", $1, $2, $3 }' "${results_file}"
             echo ''
-            echo 'No Cloud Run deploy, Docker build/push, evidence collector, tool execution, media processing, Supabase/GCS write, external beta, or production action was run by this workflow.'
+            echo 'No Cloud Run deploy, Cloud Run role mutation, Docker build/push, evidence collector, tool execution, media processing, Supabase/GCS write, external beta, or production action was run by this workflow.'
           } >> "${GITHUB_STEP_SUMMARY}"
 
           if [ "${status}" != "completed" ]; then

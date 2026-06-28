@@ -116,7 +116,7 @@ export function buildBetaReadinessApiDeploymentPreflight(
     ],
     warnings: [
       'This preflight does not run gcloud, build images, deploy Cloud Run, read secrets, call the deployed backend, write evidence, write Supabase/GCS, run tools, process media, enable beta, or enable production.',
-      'Run the read-only default-branch staging input discovery workflow first; the latest source-truth run is blocked until Artifact Registry repository discovery and service-account discovery are owner-approved or exact values are owner-supplied.',
+      'Run the read-only default-branch staging input discovery workflow first; the latest exact-input source-truth run is blocked until Artifact Registry repository access is granted or confirmed for reeditpro-staging-workers and the staging API runtime service account exists or is owner-selected.',
       'The guarded GitHub Actions staging API workflow is workflow_dispatch-only, must be run from the default branch, and requires an exact tools-branch source SHA plus owner-approved service-account inputs.',
       'Passing this preflight only means the API deployment handoff inputs are coherent enough to proceed to deployed evidence input validation.',
     ],

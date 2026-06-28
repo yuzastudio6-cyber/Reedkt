@@ -316,6 +316,7 @@
     "worker-runtime-jobs:sound-cpu-hyperframe-package-identity-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-hyperframe-package-identity-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-hyperframe-readiness-semantics-fix:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-hyperframe-readiness-semantics-fix-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-ffmpeg-ffprobe-libass-policy-closure-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-ffmpeg-ffprobe-libass-policy-closure-plan-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-ffmpeg-ffprobe-libass-container-source-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-ffmpeg-ffprobe-libass-container-source-plan-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

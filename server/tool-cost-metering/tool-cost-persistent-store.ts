@@ -157,10 +157,10 @@ function toolCostEventToRow(idempotencyKey: string, event: ToolCostEvent): ToolC
     output_frame_rate: event.outputFrameRate,
     rate_card_version: event.rateCardVersion,
     pricing_snapshot: event.pricingSnapshot,
-    estimated_internal_cost_cents: event.estimatedInternalCostCents,
-    actual_internal_cost_cents: event.actualInternalCostCents,
-    actual_internal_cost_micros: event.actualInternalCostMicros,
-    tool_cost_credits: event.toolCostCredits,
+    estimated_internal_cost_cents: integerValue(event.estimatedInternalCostCents),
+    actual_internal_cost_cents: integerValue(event.actualInternalCostCents),
+    actual_internal_cost_micros: integerValue(event.actualInternalCostMicros),
+    tool_cost_credits: integerValue(event.toolCostCredits),
     retry_attempt: event.retryAttempt,
     retry_reason: event.retryReason,
     failure_category: event.failureCategory,
@@ -218,6 +218,16 @@ function rowToToolCostEvent(row: ToolCostEventRow): ToolCostEvent {
     billableToUser: row.billable_to_user,
     metadata: recordValue(row.metadata),
   }
+}
+
+function integerValue(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, Math.round(value))
+  if (typeof value === 'bigint') return Number(value)
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value)
+    if (Number.isFinite(parsed)) return Math.max(0, Math.round(parsed))
+  }
+  return 0
 }
 
 function numericValue(value: unknown): number {

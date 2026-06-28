@@ -1,0 +1,10 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-WORKER-ROUTE-CONTRACT-1",
+  "privateArtifacts": [],
+  "publicArtifacts": [],
+  "signedUrls": [],
+  "committedMediaArtifacts": [],
+  "generatedOutputsCommitted": [],
+  "runtimeOutputs": [],
+  "notes": "Docs-only route contract. No runtime artifacts were generated or committed."
+}

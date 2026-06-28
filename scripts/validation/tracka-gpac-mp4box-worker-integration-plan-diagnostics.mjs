@@ -26,8 +26,26 @@ const packetFiles = [
   `${packetDir}/worker-integration-plan.md`
 ]
 
+const routeContractFiles = [
+  'docs/activation-phase-tracka-gpac-mp4box-worker-route-contract-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-mock-worker-interface-1.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/gpac-mp4box-worker-route-contract-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/gpac-mp4box-worker-route-contract-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/mock-worker-interface.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/mock-worker-interface.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/route-contract.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/route-contract.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-route-contract/validation-results.md',
+  'scripts/validation/tracka-gpac-mp4box-worker-route-contract-diagnostics.mjs'
+]
+
 const requiredFiles = [
   ...packetFiles,
+  ...routeContractFiles,
   'docs/activation-phase-tracka-gpac-mp4box-worker-integration-plan-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-worker-route-contract-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-worker-integration-plan-1.md',

@@ -1,0 +1,12 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-WORKER-ROUTE-CONTRACT-1",
+  "routeContractPassed": true,
+  "mockWorkerInterfacePacketReady": true,
+  "readyForRouteImplementation": false,
+  "readyForWorkerExecution": false,
+  "readyForProductRuntime": false,
+  "readyForExternalBetaProductUse": false,
+  "readyForProduction": false,
+  "productReadyLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-MOCK-WORKER-INTERFACE-1"
+}

@@ -205,6 +205,8 @@ for (const phrase of [
   'fixtureRowsPersistedAfterCleanup',
   'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
   'sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence',
+  'sourceRuntimeQueueServiceProofBridgeAccepted',
+  'sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence',
   'noWorkerDispatchByProofValidator',
   'noGpuRuntimeStartByProofValidator',
 ]) {
@@ -228,6 +230,9 @@ if (docs.acceptanceCriteria?.workerClaimsReturned !== 21) fail('docs_claims_not_
 if (docs.acceptanceCriteria?.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence !== 21) {
   fail('docs_source_modes_not_21')
 }
+if (docs.acceptanceCriteria?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
+  fail('docs_source_runtime_queue_service_proof_bridge_not_21')
+}
 if (docs.acceptanceCriteria?.sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence !== 1) {
   fail('docs_cpu_static_first_cohort_not_1')
 }
@@ -247,9 +252,11 @@ try {
     decision: 'external_beta_service_role_queue_smoke_prepared_not_executed',
     serviceRoleQueueSmokePreparedWithProvidedEvidence: true,
     sourceExternalBetaRuntimeQueueServiceBridgeAccepted: true,
+    sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted: true,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     booleans: {
+      sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,
@@ -264,6 +271,7 @@ try {
     jobIdsReturned: 21,
     workerClaimsReturned: 21,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
+    sourceRuntimeQueueServiceProofBridgeAccepted: true,
     liveServiceRoleQueueSmokeExecutedNow: true,
     liveSupabaseQueueWritesNow: 21,
     liveWorkerClaimRowsNow: 21,
@@ -304,6 +312,9 @@ try {
   if (accepted.counts?.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_source_modes_not_21')
   }
+  if (accepted.counts?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_not_21')
+  }
   if (accepted.counts?.sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence !== 1) {
     fail('accepted_cpu_static_first_cohort_not_1')
   }
@@ -312,6 +323,12 @@ try {
   }
   if (accepted.evidence?.sourceGatewayRuntimeAdmissionModesByTool?.d3 !== 'cpu_static_first_cohort') {
     fail('accepted_d3_source_mode_unexpected')
+  }
+  if (accepted.evidence?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== true) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_evidence_missing')
+  }
+  if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_boolean_missing')
   }
   if (accepted.counts?.sourceWorkerDispatchesAcceptedWithProvidedEvidence !== 0) {
     fail('accepted_dispatches_not_0')
@@ -349,6 +366,29 @@ try {
   }
   if (!JSON.stringify(rejected.rejectionReasons ?? []).includes('21 tools')) {
     fail('rejected_missing_21_tool_reason')
+  }
+  const strippedProofBridgeResultPath = writeTempJson(tmpRoot, 'stripped-proof-bridge-smoke-result.json', {
+    ...smokeResult,
+    sourceRuntimeQueueServiceProofBridgeAccepted: false,
+  })
+  const strippedProofBridge = parseOutput(runNpm(proofScriptName, [
+    '--',
+    '--external-beta-service-role-queue-smoke-readiness-packet',
+    readinessPath,
+    '--external-beta-service-role-queue-smoke-result',
+    strippedProofBridgeResultPath,
+    '--external-beta-service-role-queue-smoke-evidence-ref',
+    'private://ai-graphics/external-beta/service-role-queue-smoke/evidence.json',
+    '--external-beta-service-role-queue-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/service-role-queue-smoke/telemetry.json',
+    '--external-beta-service-role-queue-smoke-cleanup-proof-ref',
+    'private://ai-graphics/external-beta/service-role-queue-smoke/cleanup.json',
+  ]), 'stripped_proof_bridge')
+  if (strippedProofBridge.decision !== 'external_beta_service_role_queue_smoke_proof_rejected') {
+    fail(`stripped_proof_bridge_decision:${strippedProofBridge.decision}`)
+  }
+  if (!JSON.stringify(strippedProofBridge.rejectionReasons ?? []).includes('proof bridge')) {
+    fail('stripped_proof_bridge_missing_rejection_reason')
   }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })
@@ -440,6 +480,7 @@ console.log(JSON.stringify({
   sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
   sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
   cleanupPersistedRowsAfterSmoke: 0,
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
   liveSupabaseWriteByValidator: false,
   workerDispatchByValidator: false,
   toolExecutionByValidator: false,

@@ -231,6 +231,7 @@ for (const capability of capabilities) {
 for (const [key, expected] of Object.entries({
   sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
   sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
   sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
   sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
   sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -275,6 +276,8 @@ for (const phrase of [
   '--external-beta-private-artifact-policy-ref',
   'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
   'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
+  'sourceRuntimeQueueServiceProofBridgeAccepted',
+  'sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence',
   'noLiveWorkerLeaseByReadinessGate',
   'noLiveWorkerDispatchByReadinessGate',
   'noGpuRuntimeStartByReadinessGate',
@@ -308,6 +311,7 @@ try {
       serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: 21,
       sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
       sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
       sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
       sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
       sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -316,9 +320,11 @@ try {
     },
     evidence: {
       sourceGatewayRuntimeAdmissionModesByTool,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: true,
     },
     booleans: {
       agentCanExecuteToolsNow: false,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,
     },
@@ -351,6 +357,15 @@ try {
   if (accepted.gpuRuntimeTargetedTools !== 8) {
     fail(`accepted_gpu_tools_not_8:${accepted.gpuRuntimeTargetedTools}`)
   }
+  if (accepted.sourceServiceRoleQueueSmokeProofBridgeAccepted !== true) {
+    fail('accepted_source_service_role_queue_smoke_proof_bridge_not_true')
+  }
+  if (
+    accepted.acceptedSourceEvidence
+      ?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21
+  ) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_evidence_not_21')
+  }
   const d3Record = (accepted.records ?? []).find((record) => record.toolId === 'd3')
   if (d3Record?.sourceGatewayRuntimeAdmissionMode !== 'cpu_static_first_cohort') {
     fail('accepted_d3_source_mode_unexpected')
@@ -360,6 +375,12 @@ try {
   )
   if (sourceModeReady.length !== 21) {
     fail(`accepted_source_mode_record_count:${sourceModeReady.length}`)
+  }
+  const sourceProofBridgeReady = (accepted.records ?? []).filter(
+    (record) => record.sourceRuntimeQueueServiceProofBridgeAccepted === true,
+  )
+  if (sourceProofBridgeReady.length !== 21) {
+    fail(`accepted_source_proof_bridge_record_count:${sourceProofBridgeReady.length}`)
   }
   if (accepted.liveWorkerLeasesCreatedNow !== 0) fail('accepted_live_leases_not_0')
   if (accepted.liveWorkerDispatchesNow !== 0) fail('accepted_live_dispatches_not_0')
@@ -373,6 +394,58 @@ try {
   }
   for (const key of falseGateKeys) {
     if (accepted.booleans?.[key] !== false) fail(`accepted_false_gate_not_false:${key}`)
+  }
+
+  const strippedProofBridgePacketPath = writeJson(
+    path.join(tmpRoot, 'service-role-queue-smoke-proof-stripped-bridge.json'),
+    {
+      decision: 'external_beta_service_role_queue_smoke_proof_accepted_with_runtime_blocks',
+      proofAcceptedWithProvidedEvidence: true,
+      acceptedCpuStaticFirstCohortTools: ['d3'],
+      counts: {
+        serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: 21,
+        sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
+        sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
+        sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
+        sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
+        sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
+        sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
+        sourceToolExecutionsAcceptedWithProvidedEvidence: 0,
+        cleanupPersistedRowsAfterSmoke: 0,
+      },
+      evidence: {
+        sourceGatewayRuntimeAdmissionModesByTool,
+        sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: false,
+      },
+      booleans: {
+        agentCanExecuteToolsNow: false,
+        sourceRuntimeQueueServiceProofBridgeAccepted: false,
+        workerDispatchPerformed: false,
+        gpuRuntimeShouldStartNow: false,
+      },
+    },
+  )
+  const strippedProofBridge = parseJsonOutput(runNpm(runScriptName, [
+    '--external-beta-service-role-queue-smoke-proof-packet',
+    strippedProofBridgePacketPath,
+    '--external-beta-worker-lease-policy-ref',
+    'private://ai-graphics/external-beta/worker-lease-policy.json',
+    '--external-beta-worker-dispatch-policy-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-policy.json',
+    '--external-beta-worker-idempotency-namespace-ref',
+    'ai_graphics_external_beta_worker_dispatch',
+    '--external-beta-worker-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-telemetry.json',
+    '--external-beta-gpu-on-demand-policy-ref',
+    'private://ai-graphics/external-beta/gpu-on-demand-policy.json',
+    '--external-beta-private-artifact-policy-ref',
+    'private://ai-graphics/external-beta/private-artifact-policy.json',
+  ]), 'stripped_proof_bridge')
+  if (strippedProofBridge.decision !== 'external_beta_service_role_queue_smoke_proof_rejected') {
+    fail(`stripped_proof_bridge_decision:${strippedProofBridge.decision}`)
+  }
+  if (strippedProofBridge.sourceServiceRoleQueueSmokeProofBridgeAccepted !== false) {
+    fail('stripped_proof_bridge_unexpectedly_accepted')
   }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })
@@ -460,6 +533,7 @@ console.log(JSON.stringify({
   gpuToolsCovered: gpuTools.length,
   workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
   workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
   liveWorkerLeasesCreatedNow: 0,
   liveWorkerDispatchesNow: 0,
   liveToolExecutionsNow: 0,

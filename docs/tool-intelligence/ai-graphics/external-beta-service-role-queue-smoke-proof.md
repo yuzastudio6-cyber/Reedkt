@@ -24,6 +24,7 @@ The saved result must come from `ai-graphics:external-beta-service-role-queue-sm
 - Queue job IDs returned: 21
 - Worker claim rows returned: 21
 - GPU/model tools preserved: 8
+- Runtime queue service proof bridge accepted with provided evidence: 21
 - Source gateway runtime-admission modes accepted with provided evidence: 21
 - CPU/static first-cohort tools accepted with provided evidence: 1 (`d3`)
 - Source queue writes accepted with provided evidence: 21
@@ -39,7 +40,7 @@ The saved result must come from `ai-graphics:external-beta-service-role-queue-sm
 
 The validator can accept proof that the queue/claim path worked and cleaned itself up. It still keeps these gates false:
 
-The accepted proof also carries the source gateway runtime-admission map. Today that map marks `d3` as `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` and keeps the remaining accepted tools on the all-tools external-beta path. Worker-dispatch readiness uses that map to avoid confusing CPU/static first-cohort jobs with GPU/model jobs.
+The accepted proof also carries the source runtime queue service proof bridge and the source gateway runtime-admission map. Today that map marks `d3` as `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` and keeps the remaining accepted tools on the all-tools external-beta path. Worker-dispatch readiness uses those markers to avoid accepting disconnected smoke results or confusing CPU/static first-cohort jobs with GPU/model jobs.
 
 - `agentCanExecuteToolsNow`
 - `routeExecutionApprovedNow`

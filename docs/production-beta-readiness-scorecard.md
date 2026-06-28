@@ -324,13 +324,16 @@ performs no live smoke: `liveServiceRoleQueueSmokeExecutedNow=false`,
 `workerDispatchPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
 
 AI graphics external beta service-role queue smoke proof and worker-dispatch
-readiness now preserve the same source gateway runtime-admission map. The proof
-requires `sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence=21` and
+readiness now preserve the runtime queue service proof bridge and the same source
+gateway runtime-admission map. The proof requires
+`sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence=21`,
+`sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence=21`, and
 `sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence=1`, with `d3`
 marked as `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`. Worker
-dispatch readiness copies that marker into its records while keeping
-`workerLeaseCreated=false`, `workerDispatchPerformed=false`,
-`toolExecutionPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
+dispatch readiness rejects a proof packet with that bridge stripped and copies
+the accepted markers into its records while keeping `workerLeaseCreated=false`,
+`workerDispatchPerformed=false`, `toolExecutionPerformed=false`, and
+`gpuRuntimeShouldStartNow=false`.
 
 AI Graphics External-Beta Service-Role Queue Smoke Harness now requires a source
 service-role smoke readiness ref, a runtime queue service proof bridge ref, and
@@ -1262,7 +1265,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_proof_prepared_with_runtime_blocks`.
 - Scope: saved-result proof validator for the future non-production external-beta service-role queue/claim smoke across all 21 AI graphics tools and all 12 product-facing capabilities.
-- Result: the validator accepts a saved smoke result only when it proves 21 submitted tools, all 21 submitted tool ids, 21 returned job ids, 21 returned worker claims, 8 GPU/model tools preserved, 0 worker dispatches, 0 tool executions, `gpuRuntimeShouldStartNow=false`, and 0 persisted fixture rows after cleanup. The validator itself performs no live Supabase write.
+- Result: the validator accepts a saved smoke result only when it proves 21 submitted tools, all 21 submitted tool ids, 21 returned job ids, 21 returned worker claims, 8 GPU/model tools preserved, `sourceRuntimeQueueServiceProofBridgeAccepted=true`, 0 worker dispatches, 0 tool executions, `gpuRuntimeShouldStartNow=false`, and 0 persisted fixture rows after cleanup. The validator itself performs no live Supabase write.
 - GPU policy: the proof can accept that the eight GPU/model tools were targeted for future accepted jobs, but it still keeps GPU runtime off now and preserves on-demand-only startup through a later accepted worker/tool-call path.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `serviceRoleQueueSmokeApprovedNow=false`, `liveServiceRoleQueueSmokeExecutedNow=false`, `liveQueueWriteApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
@@ -1270,7 +1273,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks`.
 - Scope: external-beta worker lease/dispatch readiness gate for all 21 AI graphics tools and all 12 product-facing capabilities after a saved non-production service-role queue-smoke proof is accepted.
-- Result: the gate can prepare 21 worker dispatch readiness records and 12 capability scenarios from an accepted queue-smoke proof plus worker lease, dispatch, idempotency, telemetry, private artifact, and GPU on-demand policy refs. It creates no live leases and performs no worker dispatch.
+- Result: the gate can prepare 21 worker dispatch readiness records and 12 capability scenarios from an accepted queue-smoke proof plus worker lease, dispatch, idempotency, telemetry, private artifact, and GPU on-demand policy refs. It rejects source proof packets missing `sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence=21`, creates no live leases, and performs no worker dispatch.
 - GPU policy: all eight GPU/model tools remain native NVIDIA L4 targeted. GPU can be marked start-allowed only for accepted future worker jobs, while `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `workerDispatchPerformed=false`, and `toolExecutionPerformed=false` remain enforced.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `workerLeaseCreationApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 

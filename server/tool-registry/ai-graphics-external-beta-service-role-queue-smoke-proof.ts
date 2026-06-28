@@ -29,6 +29,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeResult {
   jobIdsReturned: number
   workerClaimsReturned: number
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: number
+  sourceRuntimeQueueServiceProofBridgeAccepted: true
   liveServiceRoleQueueSmokeExecutedNow: true
   liveSupabaseQueueWritesNow: number
   liveWorkerClaimRowsNow: number
@@ -66,6 +67,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeProof {
     serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: number
     sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: number
     sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: number
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
     sourceLiveQueueWritesAcceptedWithProvidedEvidence: number
     sourceWorkerClaimRowsAcceptedWithProvidedEvidence: number
     sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0
@@ -82,6 +84,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeProof {
     sanitizedSourceDecision: string | null
     sourceGatewayRuntimeAdmissionModesByTool:
       Record<AiGraphicsCanonicalToolId, AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode>
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: boolean
     sourceLiveServiceRoleQueueSmokeExecutedWithProvidedEvidence: boolean
     requiredExecutionEnvironment: 'non_production_external_beta'
     requiredWorkerMode: 'mock'
@@ -94,12 +97,14 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeProof {
     noWorkerDispatchByProofValidator: true
     noToolExecutionByProofValidator: true
     noGpuRuntimeStartByProofValidator: true
+    sourceRuntimeQueueServiceProofBridgeRequired: true
     cleanupMustPersistZeroRows: true
     nextGateRequiresWorkerLeaseAndDispatchProof: true
   }
   booleans: {
     externalBetaServiceRoleQueueSmokeProofPrepared: true
     sourceRuntimeQueueServiceBridgeAccepted: boolean
+    sourceRuntimeQueueServiceProofBridgeAccepted: boolean
     sourceServiceRoleQueueSmokeReadinessAccepted: boolean
     serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -200,6 +205,8 @@ function readinessAccepted(
     packet?.decision === 'external_beta_service_role_queue_smoke_prepared_not_executed' &&
     packet.serviceRoleQueueSmokePreparedWithProvidedEvidence === true &&
     packet.sourceExternalBetaRuntimeQueueServiceBridgeAccepted === true &&
+    packet.sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted === true &&
+    packet.booleans.sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted === true &&
     packet.externalBetaReadyNowTools === 0 &&
     packet.productionReadyNowTools === 0 &&
     packet.booleans.agentCanExecuteToolsNow === false &&
@@ -227,6 +234,9 @@ function validateSmokeResult(
     result.workerClaimsReturned !== 21 ? 'smoke result must return 21 worker claims' : undefined,
     result.gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools !== 8
       ? 'smoke result must preserve eight GPU-targeted tools'
+      : undefined,
+    result.sourceRuntimeQueueServiceProofBridgeAccepted !== true
+      ? 'smoke result must preserve the runtime queue service proof bridge'
       : undefined,
     result.liveServiceRoleQueueSmokeExecutedNow !== true
       ? 'smoke result must come from the explicit live non-production smoke'
@@ -263,11 +273,14 @@ function buildBooleans(input: {
   readiness: boolean
   sourceQueueWritesAccepted: boolean
   sourceWorkerClaimsAccepted: boolean
+  sourceRuntimeQueueServiceProofBridgeAccepted: boolean
   cleanupVerified: boolean
 }) {
   return {
     externalBetaServiceRoleQueueSmokeProofPrepared: true,
     sourceRuntimeQueueServiceBridgeAccepted: input.readiness,
+    sourceRuntimeQueueServiceProofBridgeAccepted:
+      input.sourceRuntimeQueueServiceProofBridgeAccepted,
     sourceServiceRoleQueueSmokeReadinessAccepted: input.readiness,
     serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence: input.accepted,
     all21ToolsCovered: true,
@@ -325,6 +338,9 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
     input.sourceExternalBetaServiceRoleQueueSmokeReadinessPacket,
   )
   const resultReasons = validateSmokeResult(input.serviceRoleQueueSmokeResult)
+  const sourceRuntimeQueueServiceProofBridgeAccepted =
+    readiness &&
+    input.serviceRoleQueueSmokeResult?.sourceRuntimeQueueServiceProofBridgeAccepted === true
   const evidenceRefsMissing = [
     !hasValue(input.serviceRoleQueueSmokeEvidenceRef)
       ? 'service-role queue smoke evidence ref is missing'
@@ -375,6 +391,8 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
         accepted ? tools.length : 0,
       sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence:
         cpuStaticFirstCohortTools.length,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
+        accepted ? tools.length : 0,
       sourceLiveQueueWritesAcceptedWithProvidedEvidence: accepted ? 21 : 0,
       sourceWorkerClaimRowsAcceptedWithProvidedEvidence: accepted ? 21 : 0,
       sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -393,6 +411,8 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
       sanitizedSourceStatus: input.serviceRoleQueueSmokeResult?.status ?? null,
       sanitizedSourceDecision: input.serviceRoleQueueSmokeResult?.decision ?? null,
       sourceGatewayRuntimeAdmissionModesByTool: sourceModes,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
+        accepted && sourceRuntimeQueueServiceProofBridgeAccepted,
       sourceLiveServiceRoleQueueSmokeExecutedWithProvidedEvidence: accepted,
       requiredExecutionEnvironment: 'non_production_external_beta',
       requiredWorkerMode: 'mock',
@@ -405,6 +425,7 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
       noWorkerDispatchByProofValidator: true,
       noToolExecutionByProofValidator: true,
       noGpuRuntimeStartByProofValidator: true,
+      sourceRuntimeQueueServiceProofBridgeRequired: true,
       cleanupMustPersistZeroRows: true,
       nextGateRequiresWorkerLeaseAndDispatchProof: true,
     },
@@ -413,6 +434,7 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
       readiness,
       sourceQueueWritesAccepted: accepted,
       sourceWorkerClaimsAccepted: accepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted,
       cleanupVerified: accepted,
     }),
   }

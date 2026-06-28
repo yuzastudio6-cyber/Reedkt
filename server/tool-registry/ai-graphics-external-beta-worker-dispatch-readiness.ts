@@ -40,6 +40,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadinessRecord {
   sourceGatewayRuntimeAdmissionMode: AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode
   capabilityIds: string[]
   sourceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence: boolean
+  sourceRuntimeQueueServiceProofBridgeAccepted: boolean
   workerLeaseReadinessPreparedWithProvidedEvidence: boolean
   workerDispatchReadinessPreparedWithProvidedEvidence: boolean
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
@@ -65,6 +66,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
   sourceDecision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_READINESS_DECISION
   sourceServiceRoleQueueSmokeProofAccepted: boolean
+  sourceServiceRoleQueueSmokeProofBridgeAccepted: boolean
   missingDispatchControls: string[]
   workerDispatchReadinessPreparedWithProvidedEvidence: boolean
   totalAiGraphicsTools: 21
@@ -83,6 +85,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
     serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence: boolean
     sourceLiveQueueWritesAcceptedWithProvidedEvidence: number
     sourceWorkerClaimRowsAcceptedWithProvidedEvidence: number
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
     sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0
     sourceToolExecutionsAcceptedWithProvidedEvidence: 0
     cleanupPersistedRowsAfterSmoke: 0
@@ -90,6 +93,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
   policy: {
     validatesDispatchReadinessOnly: true
     serviceRoleQueueSmokeProofRequired: true
+    serviceRoleQueueSmokeProofBridgeRequired: true
     workerLeasePolicyRequired: true
     workerDispatchPolicyRequired: true
     workerIdempotencyRequired: true
@@ -108,6 +112,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
   booleans: {
     externalBetaWorkerDispatchReadinessPrepared: true
     sourceServiceRoleQueueSmokeProofAccepted: boolean
+    sourceServiceRoleQueueSmokeProofBridgeAccepted: boolean
     externalBetaWorkerLeasePolicyAccepted: boolean
     externalBetaWorkerDispatchPolicyAccepted: boolean
     externalBetaWorkerIdempotencyNamespaceAccepted: boolean
@@ -192,16 +197,19 @@ function sourceProofAccepted(
     packet.counts.serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence === 21 &&
     packet.counts.sourceLiveQueueWritesAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceWorkerClaimRowsAcceptedWithProvidedEvidence === 21 &&
+    packet.counts.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence === 1 &&
     packet.acceptedCpuStaticFirstCohortTools?.length === 1 &&
     packet.acceptedCpuStaticFirstCohortTools[0] === 'd3' &&
     packet.evidence.sourceGatewayRuntimeAdmissionModesByTool?.d3 ===
       'cpu_static_first_cohort' &&
+    packet.evidence.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === true &&
     packet.counts.sourceWorkerDispatchesAcceptedWithProvidedEvidence === 0 &&
     packet.counts.sourceToolExecutionsAcceptedWithProvidedEvidence === 0 &&
     packet.counts.cleanupPersistedRowsAfterSmoke === 0 &&
     packet.booleans.agentCanExecuteToolsNow === false &&
+    packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
     packet.booleans.workerDispatchPerformed === false &&
     packet.booleans.gpuRuntimeShouldStartNow === false
 }
@@ -267,6 +275,7 @@ function buildRecords(input: {
       capabilityIds: [...record.capabilities],
       sourceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence:
         input.proofAccepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted: input.proofAccepted,
       workerLeaseReadinessPreparedWithProvidedEvidence: readyWithEvidence,
       workerDispatchReadinessPreparedWithProvidedEvidence: readyWithEvidence,
       gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
@@ -339,6 +348,7 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
     }),
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_READINESS_DECISION,
     sourceServiceRoleQueueSmokeProofAccepted: proofAccepted,
+    sourceServiceRoleQueueSmokeProofBridgeAccepted: proofAccepted,
     missingDispatchControls: missingControls,
     workerDispatchReadinessPreparedWithProvidedEvidence: controlsSatisfied,
     totalAiGraphicsTools: 21,
@@ -359,6 +369,8 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
       serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence: proofAccepted,
       sourceLiveQueueWritesAcceptedWithProvidedEvidence: proofAccepted ? 21 : 0,
       sourceWorkerClaimRowsAcceptedWithProvidedEvidence: proofAccepted ? 21 : 0,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
+        proofAccepted ? 21 : 0,
       sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
       sourceToolExecutionsAcceptedWithProvidedEvidence: 0,
       cleanupPersistedRowsAfterSmoke: 0,
@@ -366,6 +378,7 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
     policy: {
       validatesDispatchReadinessOnly: true,
       serviceRoleQueueSmokeProofRequired: true,
+      serviceRoleQueueSmokeProofBridgeRequired: true,
       workerLeasePolicyRequired: true,
       workerDispatchPolicyRequired: true,
       workerIdempotencyRequired: true,
@@ -384,6 +397,7 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
     booleans: {
       externalBetaWorkerDispatchReadinessPrepared: true,
       sourceServiceRoleQueueSmokeProofAccepted: proofAccepted,
+      sourceServiceRoleQueueSmokeProofBridgeAccepted: proofAccepted,
       externalBetaWorkerLeasePolicyAccepted: controlsSatisfied,
       externalBetaWorkerDispatchPolicyAccepted: controlsSatisfied,
       externalBetaWorkerIdempotencyNamespaceAccepted: controlsSatisfied,

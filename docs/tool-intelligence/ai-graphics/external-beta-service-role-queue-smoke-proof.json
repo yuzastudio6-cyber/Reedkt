@@ -74,6 +74,7 @@
     "jobIdsReturned": 21,
     "workerClaimsReturned": 21,
     "gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools": 8,
+    "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence": 21,
     "sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence": 1,
     "sourceLiveSupabaseQueueWritesAcceptedWithProvidedEvidence": 21,
@@ -91,6 +92,7 @@
   },
   "booleans": {
     "externalBetaServiceRoleQueueSmokeProofPrepared": true,
+    "sourceRuntimeQueueServiceProofBridgeAccepted": false,
     "serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence": false,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

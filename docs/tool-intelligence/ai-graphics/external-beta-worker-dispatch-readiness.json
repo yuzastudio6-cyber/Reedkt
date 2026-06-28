@@ -73,6 +73,7 @@
     "sourceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence": true,
     "sourceLiveQueueWritesAcceptedWithProvidedEvidence": 21,
     "sourceWorkerClaimRowsAcceptedWithProvidedEvidence": 21,
+    "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence": 21,
     "sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence": 1,
     "sourceWorkerDispatchesAcceptedWithProvidedEvidence": 0,
@@ -94,6 +95,7 @@
   "booleans": {
     "externalBetaWorkerDispatchReadinessPrepared": true,
     "sourceServiceRoleQueueSmokeProofAccepted": false,
+    "sourceServiceRoleQueueSmokeProofBridgeAccepted": false,
     "externalBetaWorkerLeasePolicyAccepted": false,
     "externalBetaWorkerDispatchPolicyAccepted": false,
     "externalBetaWorkerIdempotencyNamespaceAccepted": false,

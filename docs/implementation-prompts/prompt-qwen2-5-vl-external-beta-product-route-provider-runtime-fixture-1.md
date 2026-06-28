@@ -27,3 +27,13 @@ Run the first guarded QWEN product-route provider runtime fixture through the ba
 - No secret payloads.
 - No raw private media.
 - `/tmp` artifacts only unless a later docs packet records sanitized evidence.
+
+## Current Source-Derived Closure
+
+`QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1` recorded
+`blocked_pending_backend_job_handoff_wiring_for_product_route_provider_runtime_fixture`.
+The repo evidence closes the generic owner-approval blocker, but the product route still fails closed before provider runtime and does not yet contain backend job handoff wiring to the accepted private adapter runtime path.
+
+Do not add `gcloud` shellouts or route-triggered Cloud Run mutation directly inside the HTTP handler. Route runtime must move through the next backend-only handoff packet:
+
+`QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_1`

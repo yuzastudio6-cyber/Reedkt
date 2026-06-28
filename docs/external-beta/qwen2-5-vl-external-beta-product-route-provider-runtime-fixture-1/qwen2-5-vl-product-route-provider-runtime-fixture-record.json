@@ -1,0 +1,67 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1",
+  "decision": "blocked_pending_backend_job_handoff_wiring_for_product_route_provider_runtime_fixture",
+  "execution": "completed_docs_only_product_route_provider_runtime_fixture_blocker_no_provider_or_model_execution",
+  "integrationBase": "12b52c2f7fb33bee5dc391a9131a1f19576071e1",
+  "sourceEvidence": {
+    "productRouteReadbackRuntimeValidationPr": 1368,
+    "productRouteReadbackRuntimeValidationMergeSha": "d9f214786b40acef7664c1904130f0e4ac6bfc00",
+    "productRouteProviderRuntimeEnablementReviewPr": 1370,
+    "productRouteProviderRuntimeEnablementReviewMergeSha": "12b52c2f7fb33bee5dc391a9131a1f19576071e1",
+    "confirmedAdapterRuntimeFixtureAccepted": true,
+    "excludedPr": 577
+  },
+  "ownerDecision": {
+    "source": "source_derived_repo_evidence",
+    "genericOwnerApprovalBlockerClosed": true,
+    "result": "approved_to_continue_to_backend_job_handoff_wiring",
+    "scope": "product_route_provider_runtime_fixture_backend_handoff_only"
+  },
+  "route": {
+    "routeId": "providers.qwen25Vl.structuredVisualMetadataPlan",
+    "path": "/api/providers/qwen2-5-vl/structured-visual-metadata",
+    "currentStatus": "fail_closed_before_provider_runtime",
+    "routeBehaviorChangedInThisPhase": false,
+    "backendJobHandoffWiringPresent": false,
+    "providerRuntimeFixtureThroughProductRoute": "not_run_product_route_missing_backend_job_handoff"
+  },
+  "blocker": "blocked_product_route_provider_runtime_fixture_requires_backend_job_handoff_wiring",
+  "allowedNextStep": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_1",
+  "safety": {
+    "docsOnlyProductRouteProviderRuntimeFixtureBlocker": true,
+    "qwenRuntimeExecutedInThisPhase": false,
+    "remoteRouteExecution": false,
+    "productRouteProviderRuntimeExecution": false,
+    "cloudRunServiceUpdate": false,
+    "cloudRunJobExecution": false,
+    "identityTokenFetch": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "frontendProviderModelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "privateUserMediaProcessing": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "externalBetaUnlockAppliedToEnvironment": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "creditMutation": false,
+    "packageLockMutation": false,
+    "routeBehaviorChange": false
+  },
+  "readiness": {
+    "qwenProductRouteProviderRuntimeFixture": "blocked_pending_backend_job_handoff_wiring",
+    "externalBetaUnlockedInThisPhase": false,
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_1"
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

@@ -9,6 +9,10 @@ const SOURCE_HEAD = '8fbb24e7b774af81add1a587b386ad7f4e1941a3'
 const FUTURE_SOURCE_PATH = 'server/workers/sound-cpu/Dockerfile'
 const NEXT_PROMPT =
   'WORKER_RUNTIME_JOBS-SOUND-CPU-FFMPEG-FFPROBE-LIBASS-CONTAINER-SOURCE-CREATION: create FFmpeg/ffprobe/libass container source declarations, no media/no Docker build'
+const SOURCE_CREATION_DECISION =
+  'worker_runtime_jobs_sound_cpu_ffmpeg_ffprobe_libass_container_source_created_with_warnings_ready_for_static_validation_plan_no_media_no_docker_build'
+const SOURCE_CREATION_RESULT =
+  'docs/worker-runtime-jobs-sound-cpu-ffmpeg-ffprobe-libass-container-source-creation-result.md'
 
 const FILES = {
   review: {
@@ -130,9 +134,12 @@ const sourcePlan = read('docs/worker-runtime-jobs-sound-cpu-ffmpeg-ffprobe-libas
 assert(sourcePlan.includes(SOURCE_DECISION), 'source container plan decision missing')
 
 const dockerfile = read(FUTURE_SOURCE_PATH)
+const sourceCreationResultExists = existsSync(SOURCE_CREATION_RESULT) && read(SOURCE_CREATION_RESULT).includes(SOURCE_CREATION_DECISION)
 assert(dockerfile.includes('REEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0'), 'SOUND CPU Dockerfile must preserve disabled runtime flag')
-assert(!dockerfile.includes('apt-get install --no-install-recommends -y ffmpeg'), 'owner review must not edit Dockerfile to install ffmpeg')
-assert(!dockerfile.includes('libass9'), 'owner review must not edit Dockerfile to install libass')
+if (!sourceCreationResultExists) {
+  assert(!dockerfile.includes('apt-get install --no-install-recommends -y ffmpeg'), 'owner review must not edit Dockerfile to install ffmpeg')
+  assert(!dockerfile.includes('libass9'), 'owner review must not edit Dockerfile to install libass')
+}
 
 const parsed = Object.fromEntries(Object.entries(FILES).map(([name, info]) => [name, parseBlock(info)]))
 for (const [name, doc] of Object.entries(parsed)) {
@@ -191,8 +198,16 @@ assert(sourceCreationPrompt.blockedScope.dockerBuildRunPush === false, 'source c
 assert(sourceCreationPrompt.blockedScope.mediaProcessing === false, 'source creation prompt must block media')
 
 const staticPrompt = parsed.staticPrompt
-assert(staticPrompt.requiredSourceDecision === DECISION, 'static prompt must require owner review decision')
-assert(staticPrompt.requiredSourceCreationDecision === 'container_source_creation_gate_merges', 'static prompt must require source creation')
+assert(
+  [DECISION, SOURCE_CREATION_DECISION].includes(staticPrompt.requiredSourceDecision),
+  'static prompt must require owner review or source creation decision',
+)
+assert(
+  ['container_source_creation_gate_merges', SOURCE_CREATION_DECISION].includes(
+    staticPrompt.requiredSourceCreationDecision,
+  ),
+  'static prompt must require source creation',
+)
 assert(staticPrompt.blockedUntil.includes('actual_source_creation_gate_merges'), 'static prompt source creation blocker missing')
 
 const pkg = JSON.parse(read('package.json'))

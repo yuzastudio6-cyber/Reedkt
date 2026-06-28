@@ -11,6 +11,10 @@ const NEXT_PROMPT =
 const FUTURE_SOURCE_PATH = 'server/workers/sound-cpu/Dockerfile'
 const OWNER_REVIEW_DECISION =
   'worker_runtime_jobs_sound_cpu_ffmpeg_ffprobe_libass_container_source_owner_review_passed_with_warnings_ready_for_container_source_creation_no_media_no_docker_build'
+const SOURCE_CREATION_DECISION =
+  'worker_runtime_jobs_sound_cpu_ffmpeg_ffprobe_libass_container_source_created_with_warnings_ready_for_static_validation_plan_no_media_no_docker_build'
+const SOURCE_CREATION_RESULT =
+  'docs/worker-runtime-jobs-sound-cpu-ffmpeg-ffprobe-libass-container-source-creation-result.md'
 
 const FILES = {
   plan: {
@@ -141,9 +145,12 @@ const source = read('docs/worker-runtime-jobs-sound-cpu-ffmpeg-ffprobe-libass-po
 assert(source.includes(SOURCE_DECISION), 'source policy closure decision missing')
 
 const soundCpuDockerfile = read(FUTURE_SOURCE_PATH)
+const sourceCreationResultExists = existsSync(SOURCE_CREATION_RESULT) && read(SOURCE_CREATION_RESULT).includes(SOURCE_CREATION_DECISION)
 assert(soundCpuDockerfile.includes('REEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0'), 'SOUND CPU Dockerfile must retain disabled runtime flag')
-assert(!soundCpuDockerfile.includes('apt-get install --no-install-recommends -y ffmpeg'), 'SOUND CPU Dockerfile must not be edited to install ffmpeg in this plan')
-assert(!soundCpuDockerfile.includes('libass9'), 'SOUND CPU Dockerfile must not be edited to install libass in this plan')
+if (!sourceCreationResultExists) {
+  assert(!soundCpuDockerfile.includes('apt-get install --no-install-recommends -y ffmpeg'), 'SOUND CPU Dockerfile must not be edited to install ffmpeg in this plan')
+  assert(!soundCpuDockerfile.includes('libass9'), 'SOUND CPU Dockerfile must not be edited to install libass in this plan')
+}
 
 const ffmpegPolicy = read('docker/prod/ffmpeg-lgpl-build-policy.md')
 assert(ffmpegPolicy.includes('commercial LGPL verification remains pending manual review'), 'FFmpeg LGPL policy source mismatch')
@@ -220,7 +227,7 @@ assert(ownerPrompt.allowedScope.dockerBuildRunPush === false, 'owner prompt must
 
 const staticPrompt = parsed.staticPrompt
 assert(
-  [DECISION, OWNER_REVIEW_DECISION].includes(staticPrompt.requiredSourceDecision),
+  [DECISION, OWNER_REVIEW_DECISION, SOURCE_CREATION_DECISION].includes(staticPrompt.requiredSourceDecision),
   'static prompt source decision mismatch',
 )
 assert(staticPrompt.blockedUntil.includes('container_source_owner_review_passes'), 'static prompt owner gate missing')

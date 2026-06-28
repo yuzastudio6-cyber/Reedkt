@@ -275,6 +275,7 @@ function buildPayload(input: {
       aiGraphicsCapabilityId: input.candidate.capabilityId,
       aiGraphicsRuntimeTarget: input.candidate.runtimeTarget,
       sourceGatewayDecision: input.gateway.decision,
+      sourceGatewayRuntimeAdmissionMode: input.gateway.sourceRuntimeAdmissionMode,
       sourceGatewayCandidateRef: input.candidate.candidateRef,
       sourceGatewayTraceId: input.candidate.traceId,
       sourceGatewayIdempotencyKey: input.candidate.idempotencyKey,
@@ -326,6 +327,7 @@ function payloadShapeValid(
       payload.idempotencyKey &&
       payload.metadata?.aiGraphicsCanonicalToolId === candidate.toolId &&
       payload.metadata?.aiGraphicsRuntimeTarget === candidate.runtimeTarget &&
+      typeof payload.metadata?.sourceGatewayRuntimeAdmissionMode === 'string' &&
       payload.metadata?.gpuRuntimeShouldStartNow === false &&
       payload.metadata?.workerEnqueuePerformed === false,
   )

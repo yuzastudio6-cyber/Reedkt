@@ -213,7 +213,9 @@ AI graphics external beta worker enqueue adapter decision
 shapes a gateway-approved external beta request into a canonical
 `ProductionWorkerJobPayload` candidate for a future backend worker queue. The
 SAM2 example targets `native_linux_amd64_nvidia_l4_sam2_runtime` and the D3
-example targets `node_cpu_static`, both with `executionMode=production_blocked`.
+examples target `node_cpu_static`, including the CPU/static first-cohort gateway
+path with `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`. All
+examples keep `executionMode=production_blocked`.
 This is still an adapter contract only: `backendQueueSubmissionPerformed=false`,
 `workerEnqueuePerformed=false`, `workerLeaseCreated=false`,
 `workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,
@@ -226,7 +228,9 @@ AI graphics external beta backend queue submission decision
 prepares the external-beta batch/job/audit queue submission envelope after the
 worker enqueue adapter. With provided evidence, SAM2 and D3 can shape
 `ai_graphics_tool_runtime` queue job candidates whose status is
-`prepared_not_submitted`. SAM2 remains pointed at
+`prepared_not_submitted`; the CPU/static first-cohort D3 path preserves
+`sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` in the worker
+payload metadata. SAM2 remains pointed at
 `native_linux_amd64_nvidia_l4_sam2_runtime`; D3 remains pointed at
 `node_cpu_static`. This still does not write a backend queue row or run a
 service-role transaction: `backendQueueSubmissionPerformed=false`,

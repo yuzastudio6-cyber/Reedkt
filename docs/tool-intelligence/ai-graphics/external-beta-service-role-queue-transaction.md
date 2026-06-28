@@ -35,10 +35,11 @@ An external-beta backend queue submission envelope can become a service-role tra
 5. The transaction uses `enqueue_ai_graphics_tool_runtime_jobs`, `claim_ai_graphics_tool_runtime_job`, `record_ai_graphics_worker_event`, and `record_ai_graphics_audit_event`.
 6. The job batch, job, worker claim, worker event, and audit candidates remain prepared-only.
 7. The source gateway runtime-admission mode is preserved, including `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` for the CPU/static `d3` path.
+8. The native GPU runtime-proof bridge from the backend queue submission is preserved with `sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted=true`, `sourceAdapterProofBridgeAccepted=true`, and `sourceGatewayRuntimeAdmissionProofBridgeAccepted=true`.
 
 ## GPU Boundary
 
-GPU remains on-demand only. SAM2 can be marked as start-allowed for an accepted future external-beta worker job, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `serviceRoleTransactionPerformed=false`, and `workerDispatchPerformed=false` remain enforced. If no accepted worker job is inserted, claimed, and dispatched, no GPU runtime should be running.
+GPU remains on-demand only. SAM2 can be marked as start-allowed for an accepted future external-beta worker job, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `serviceRoleTransactionPerformed=false`, and `workerDispatchPerformed=false` remain enforced. If no accepted worker job is inserted, claimed, and dispatched, no GPU runtime should be running. A backend queue submission packet with the native GPU runtime-proof bridge stripped is rejected before service-role transaction readiness.
 
 ## Runtime Boundary
 

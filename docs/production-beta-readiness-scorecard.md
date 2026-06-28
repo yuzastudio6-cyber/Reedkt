@@ -263,7 +263,12 @@ uses `enqueue_ai_graphics_tool_runtime_jobs`, `claim_ai_graphics_tool_runtime_jo
 `record_ai_graphics_worker_event`, and `record_ai_graphics_audit_event`.
 The CPU/static D3 path preserves
 `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` through the
-service-role envelope.
+service-role envelope. The service-role transaction contract now also requires
+`sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted=true`,
+`sourceAdapterProofBridgeAccepted=true`, and
+`sourceGatewayRuntimeAdmissionProofBridgeAccepted=true`; a backend queue
+submission packet with that native GPU runtime-proof bridge stripped is rejected
+before transaction readiness.
 This still does not run a service-role transaction or write Supabase rows:
 `serviceRoleTransactionPerformed=false`, `liveQueueWriteApprovedNow=false`,
 `workerLeaseCreated=false`, `workerDispatchPerformed=false`,

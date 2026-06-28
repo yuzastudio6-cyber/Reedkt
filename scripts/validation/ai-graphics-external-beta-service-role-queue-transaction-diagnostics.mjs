@@ -196,6 +196,7 @@ function buildSourceQueueSubmissionPacket({
     executionMode: 'production_blocked',
     metadata: {
       sourceGatewayRuntimeAdmissionMode,
+      sourceGatewayRuntimeAdmissionProofBridgeAccepted: true,
       sourceGatewayTraceId: `trace-fixture-${toolId}`,
       backendQueueSubmissionPerformed: false,
       serviceRoleTransactionPerformed: false,
@@ -251,6 +252,7 @@ function buildSourceQueueSubmissionPacket({
     serviceRoleTransactionEnvelopeRef: 'external-beta-service-role://transaction-envelope',
     queueWriteAuthorizationRef: 'external-beta-service-role://queue-write-authorization',
     sourceAdapterCandidateRef: `external-beta-gateway://worker-enqueue-candidate/${toolId}`,
+    sourceAdapterProofBridgeAccepted: true,
     productionWorkerJobPayload: payload,
     queueBatchCandidate,
     queueJobCandidate,
@@ -278,6 +280,7 @@ function buildSourceQueueSubmissionPacket({
     requestedToolId: toolId,
     executionRequested: true,
     sourceExternalBetaWorkerEnqueueAdapterAccepted: true,
+    sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted: true,
     missingQueueSubmissionControls: [],
     externalBetaQueueSubmissionControlsSatisfied: true,
     externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence: true,
@@ -292,6 +295,7 @@ function buildSourceQueueSubmissionPacket({
     productionReadyNowTools: 0,
     booleans: {
       backendQueueSubmissionPerformed: false,
+      sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted: true,
       serviceRoleTransactionPerformed: false,
       workerEnqueuePerformed: false,
       workerLeaseCreated: false,
@@ -380,6 +384,7 @@ for (const rpc of [
 }
 for (const gate of [
   'accepted external-beta backend queue submission packet',
+  'accepted external-beta backend queue submission packet preserving native GPU runtime-proof bridge',
   'external beta service-role queue transaction reference',
   'external beta service-role RPC schema reference',
   'external beta queue write authorization reference',
@@ -397,6 +402,7 @@ for (const gate of [
 for (const key of [
   'externalBetaServiceRoleQueueTransactionEnvelopePrepared',
   'sourceExternalBetaBackendQueueSubmissionAccepted',
+  'sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted',
   'externalBetaServiceRoleTransactionControlsSatisfied',
   'externalBetaServiceRoleQueueTransactionEnvelopeReadyWithProvidedEvidence',
   'all21ToolsCovered',
@@ -441,6 +447,11 @@ for (const needle of [
   'AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_TRANSACTION_DECISION',
   'evaluateAiGraphicsExternalBetaServiceRoleQueueTransaction',
   'sourceExternalBetaBackendQueueSubmissionPacket',
+  'queueSubmissionProofBridgeAccepted',
+  'sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted',
+  'sourceQueueSubmissionProofBridgeAccepted',
+  'sourceAdapterProofBridgeAccepted',
+  'sourceGatewayRuntimeAdmissionProofBridgeAccepted',
   'AiGraphicsExternalBetaServiceRoleJobBatchRowCandidate',
   'AiGraphicsExternalBetaServiceRoleJobRowCandidate',
   'sourceGatewayRuntimeAdmissionMode',
@@ -479,6 +490,10 @@ for (const needle of [
   'External-Beta Service-Role Queue Transaction',
   'RPC/table row candidates',
   'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
+  'sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted=true',
+  'sourceAdapterProofBridgeAccepted=true',
+  'sourceGatewayRuntimeAdmissionProofBridgeAccepted=true',
+  'native GPU runtime-proof bridge stripped is rejected',
   'Live service-role transactions now: `0`',
   'Live job rows inserted now: `0`',
   'Live worker dispatches now: `0`',
@@ -494,27 +509,49 @@ for (const needle of [
   '`serviceRoleTransactionPerformed=false`',
   '`liveQueueWriteApprovedNow=false`',
   '`workerDispatchPerformed=false`',
+  '`sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted=true`',
+  '`sourceAdapterProofBridgeAccepted=true`',
 ]) {
   if (!scorecard.includes(needle)) fail(`scorecard_missing:${needle}`)
 }
 
 const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-service-role-queue-transaction-'))
-const sam2QueueSubmissionPath = writeJson(path.join(tmpRoot, 'sam2-queue-submission.json'), buildSourceQueueSubmissionPacket({
+const sam2QueueSubmission = buildSourceQueueSubmissionPacket({
   toolId: 'sam2',
   productionToolId: 'sam2',
   capabilityId: 'background_removal',
   workerType: 'gpu_ai_worker',
   runtimeTarget: 'native_linux_amd64_nvidia_l4_sam2_runtime',
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: true,
-}))
-const d3QueueSubmissionPath = writeJson(path.join(tmpRoot, 'd3-queue-submission.json'), buildSourceQueueSubmissionPacket({
+})
+const sam2QueueSubmissionPath = writeJson(
+  path.join(tmpRoot, 'sam2-queue-submission.json'),
+  sam2QueueSubmission,
+)
+const weakenedSam2QueueSubmission = JSON.parse(JSON.stringify(sam2QueueSubmission))
+weakenedSam2QueueSubmission.sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted = false
+weakenedSam2QueueSubmission.booleans.sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted = false
+weakenedSam2QueueSubmission.externalBetaBackendQueueSubmissionEnvelope.sourceAdapterProofBridgeAccepted = false
+weakenedSam2QueueSubmission.externalBetaBackendQueueSubmissionEnvelope
+  .productionWorkerJobPayload.metadata.sourceGatewayRuntimeAdmissionProofBridgeAccepted = false
+weakenedSam2QueueSubmission.externalBetaBackendQueueSubmissionEnvelope
+  .queueJobCandidate.payload.metadata.sourceGatewayRuntimeAdmissionProofBridgeAccepted = false
+const weakenedSam2QueueSubmissionPath = writeJson(
+  path.join(tmpRoot, 'sam2-weakened-queue-submission.json'),
+  weakenedSam2QueueSubmission,
+)
+const d3QueueSubmission = buildSourceQueueSubmissionPacket({
   toolId: 'd3',
   productionToolId: 'd3',
   capabilityId: 'chart_overlay',
   workerType: 'render_worker',
   runtimeTarget: 'node_cpu_static',
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: false,
-}))
+})
+const d3QueueSubmissionPath = writeJson(
+  path.join(tmpRoot, 'd3-queue-submission.json'),
+  d3QueueSubmission,
+)
 const d3CpuStaticQueueSubmissionPath = writeJson(
   path.join(tmpRoot, 'd3-cpu-static-queue-submission.json'),
   buildSourceQueueSubmissionPacket({
@@ -597,6 +634,31 @@ const readyD3CpuStaticTransaction = parseJsonOutput(runNpm(runScriptName, [
   '--execution-requested',
   ...transactionControls,
 ]), 'ready_d3_cpu_static_transaction')
+const blockedWeakenedSam2Transaction = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-backend-queue-submission-packet',
+  weakenedSam2QueueSubmissionPath,
+  '--execution-requested',
+  ...transactionControls,
+]), 'blocked_weakened_sam2_transaction')
+
+if (blockedWeakenedSam2Transaction.decision !== 'missing_external_beta_backend_queue_submission') {
+  fail(`blocked_weakened_sam2_transaction_decision:${blockedWeakenedSam2Transaction.decision}`)
+}
+if (blockedWeakenedSam2Transaction.sourceExternalBetaBackendQueueSubmissionAccepted !== false) {
+  fail('blocked_weakened_sam2_source_queue_submission_not_rejected')
+}
+if (
+  blockedWeakenedSam2Transaction
+    .sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted !== false
+) {
+  fail('blocked_weakened_sam2_source_queue_submission_proof_bridge_not_false')
+}
+if (
+  blockedWeakenedSam2Transaction
+    .externalBetaServiceRoleQueueTransactionEnvelopeReadyWithProvidedEvidence !== false
+) {
+  fail('blocked_weakened_sam2_transaction_ready_with_evidence')
+}
 
 for (const [label, output] of Object.entries({
   readySam2Transaction,
@@ -623,6 +685,26 @@ for (const [label, output] of Object.entries({
   if (envelope?.workerClaimInputCandidate?.status !== 'prepared_not_claimed') fail(`${label}_claim_status`)
   if (envelope?.workerEventCandidates?.length !== 2) fail(`${label}_worker_event_count`)
   if (envelope?.serviceRoleTransactionEnvelopeShapeValid !== true) fail(`${label}_shape_not_valid`)
+  if (envelope?.sourceQueueSubmissionProofBridgeAccepted !== true) {
+    fail(`${label}_source_queue_submission_proof_bridge_not_true`)
+  }
+  if (
+    envelope?.sourceQueueSubmissionEnvelope?.sourceAdapterProofBridgeAccepted !== true
+  ) {
+    fail(`${label}_source_adapter_proof_bridge_not_true`)
+  }
+  if (
+    envelope?.sourceQueueSubmissionEnvelope?.productionWorkerJobPayload?.metadata
+      ?.sourceGatewayRuntimeAdmissionProofBridgeAccepted !== true
+  ) {
+    fail(`${label}_source_gateway_runtime_admission_proof_bridge_not_true`)
+  }
+  if (
+    output.sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted !== true ||
+    output.booleans?.sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted !== true
+  ) {
+    fail(`${label}_source_backend_queue_submission_proof_bridge_not_true`)
+  }
   if (envelope?.canRunServiceRoleTransactionNow !== false) fail(`${label}_can_run_transaction_now`)
   if (envelope?.canDispatchWorkerNow !== false) fail(`${label}_can_dispatch_worker_now`)
   if (envelope?.canExecuteToolNow !== false) fail(`${label}_can_execute_tool_now`)
@@ -664,6 +746,7 @@ const combinedText = [
   JSON.stringify(readySam2Transaction),
   JSON.stringify(readyD3Transaction),
   JSON.stringify(readyD3CpuStaticTransaction),
+  JSON.stringify(blockedWeakenedSam2Transaction),
 ].join('\n')
 for (const pattern of [
   /agentCanExecuteToolsNow["'`\s:]*true/i,
@@ -773,11 +856,20 @@ console.log(JSON.stringify({
   planningTransactionDecision: planningTransaction.decision,
   blockedMissingQueueSubmissionDecision: blockedMissingQueueSubmission.decision,
   blockedMissingRpcSchemaDecision: blockedMissingRpcSchema.decision,
+  blockedWeakenedSam2TransactionDecision: blockedWeakenedSam2Transaction.decision,
+  blockedWeakenedSam2ProofBridgeAccepted:
+    blockedWeakenedSam2Transaction
+      .sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted,
   readySam2TransactionDecision: readySam2Transaction.decision,
   readyD3TransactionDecision: readyD3Transaction.decision,
   readyD3CpuStaticTransactionDecision: readyD3CpuStaticTransaction.decision,
   readySam2GpuRuntimeStartAllowedForAcceptedExternalBetaJob:
     readySam2Transaction.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+  readySam2SourceBackendQueueSubmissionProofBridgeAccepted:
+    readySam2Transaction.sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted,
+  readySam2ServiceRoleSourceQueueSubmissionProofBridgeAccepted:
+    readySam2Transaction.externalBetaServiceRoleQueueTransactionEnvelope
+      ?.sourceQueueSubmissionProofBridgeAccepted,
   readyD3GpuRuntimeStartAllowedForAcceptedExternalBetaJob:
     readyD3Transaction.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
   readyD3CpuStaticGatewaySourceMode:

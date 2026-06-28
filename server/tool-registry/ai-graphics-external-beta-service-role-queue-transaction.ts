@@ -108,6 +108,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueTransactionEnvelope {
   auditEventTableRef: string
   rollbackRef: string
   sourceQueueSubmissionEnvelope: AiGraphicsExternalBetaBackendQueueSubmissionEnvelope
+  sourceQueueSubmissionProofBridgeAccepted: boolean
   jobBatchRowCandidate: AiGraphicsExternalBetaServiceRoleJobBatchRowCandidate
   jobRowCandidate: AiGraphicsExternalBetaServiceRoleJobRowCandidate
   workerClaimInputCandidate: AiGraphicsExternalBetaServiceRoleWorkerClaimInputCandidate
@@ -141,6 +142,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueTransaction {
   executionRequested: boolean
   sourceExternalBetaBackendQueueSubmission: AiGraphicsExternalBetaBackendQueueSubmission
   sourceExternalBetaBackendQueueSubmissionAccepted: boolean
+  sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted: boolean
   missingServiceRoleTransactionControls: string[]
   externalBetaServiceRoleTransactionControlsSatisfied: boolean
   externalBetaServiceRoleQueueTransactionEnvelopeReadyWithProvidedEvidence: boolean
@@ -172,6 +174,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueTransaction {
   booleans: {
     externalBetaServiceRoleQueueTransactionEnvelopePrepared: true
     sourceExternalBetaBackendQueueSubmissionAccepted: boolean
+    sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted: boolean
     externalBetaServiceRoleTransactionControlsSatisfied: boolean
     externalBetaServiceRoleQueueTransactionEnvelopeReadyWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -249,8 +252,25 @@ function hasValue(value?: string): boolean {
   return typeof value === 'string' && value.trim().length > 0
 }
 
+function queueSubmissionProofBridgeAccepted(
+  packet: AiGraphicsExternalBetaBackendQueueSubmission,
+): boolean {
+  const envelope = packet.externalBetaBackendQueueSubmissionEnvelope
+  const metadata = envelope?.productionWorkerJobPayload.metadata
+  const queueJobMetadata = envelope?.queueJobCandidate?.payload?.metadata
+
+  return (
+    packet.sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted === true &&
+    packet.booleans.sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted === true &&
+    envelope?.sourceAdapterProofBridgeAccepted === true &&
+    metadata?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true &&
+    queueJobMetadata?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true
+  )
+}
+
 function queueSubmissionAccepted(packet: AiGraphicsExternalBetaBackendQueueSubmission): boolean {
   return packet.decision === 'external_beta_backend_queue_submission_envelope_ready' &&
+    queueSubmissionProofBridgeAccepted(packet) &&
     packet.externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence === true &&
     packet.externalBetaBackendQueueSubmissionEnvelope !== null &&
     packet.externalBetaReadyNowTools === 0 &&
@@ -322,6 +342,11 @@ function buildTransactionEnvelope(input: {
 }): AiGraphicsExternalBetaServiceRoleQueueTransactionEnvelope {
   const source = input.sourceEnvelope
   const payload = source.productionWorkerJobPayload
+  const sourceQueueSubmissionProofBridgeAccepted =
+    source.sourceAdapterProofBridgeAccepted === true &&
+    payload.metadata?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true &&
+    source.queueJobCandidate.payload.metadata
+      ?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true
   const sourceGatewayRuntimeAdmissionMode =
     typeof payload.metadata?.sourceGatewayRuntimeAdmissionMode === 'string'
       ? payload.metadata.sourceGatewayRuntimeAdmissionMode
@@ -408,6 +433,7 @@ function buildTransactionEnvelope(input: {
         event.status === 'prepared_not_inserted' &&
         event.liveInsertPerformed === false
       )) &&
+      sourceQueueSubmissionProofBridgeAccepted &&
       auditEventCandidate.auditEventRef &&
       auditEventCandidate.status === 'prepared_not_inserted' &&
       auditEventCandidate.liveInsertPerformed === false,
@@ -440,6 +466,7 @@ function buildTransactionEnvelope(input: {
     auditEventTableRef: input.input.externalBetaAuditEventTableRef ?? '',
     rollbackRef: input.input.externalBetaServiceRoleRollbackRef ?? '',
     sourceQueueSubmissionEnvelope: source,
+    sourceQueueSubmissionProofBridgeAccepted,
     jobBatchRowCandidate,
     jobRowCandidate,
     workerClaimInputCandidate,
@@ -471,6 +498,8 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueTransaction(
     evaluateAiGraphicsExternalBetaBackendQueueSubmission(input)
   const executionRequested =
     input.executionRequested === true || queueSubmission.executionRequested === true
+  const sourceQueueSubmissionProofBridgeAccepted =
+    queueSubmissionProofBridgeAccepted(queueSubmission)
   const sourceQueueSubmissionAccepted = queueSubmissionAccepted(queueSubmission)
   const missingControls = executionRequested ? missingTransactionControls(input) : []
   const controlsSatisfied =
@@ -503,6 +532,8 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueTransaction(
     executionRequested,
     sourceExternalBetaBackendQueueSubmission: queueSubmission,
     sourceExternalBetaBackendQueueSubmissionAccepted: sourceQueueSubmissionAccepted,
+    sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted:
+      sourceQueueSubmissionProofBridgeAccepted,
     missingServiceRoleTransactionControls: missingControls,
     externalBetaServiceRoleTransactionControlsSatisfied: controlsSatisfied,
     externalBetaServiceRoleQueueTransactionEnvelopeReadyWithProvidedEvidence:
@@ -523,6 +554,8 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueTransaction(
     booleans: {
       externalBetaServiceRoleQueueTransactionEnvelopePrepared: true,
       sourceExternalBetaBackendQueueSubmissionAccepted: sourceQueueSubmissionAccepted,
+      sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted:
+        sourceQueueSubmissionProofBridgeAccepted,
       externalBetaServiceRoleTransactionControlsSatisfied: controlsSatisfied,
       externalBetaServiceRoleQueueTransactionEnvelopeReadyWithProvidedEvidence:
         envelopeReady,

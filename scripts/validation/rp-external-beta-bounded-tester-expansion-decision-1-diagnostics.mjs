@@ -38,6 +38,16 @@ const followOnFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-additional-named-tester-list-decision-1.md',
   'scripts/validation/rp-external-beta-named-tester-expansion-readiness-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-controlled-single-tester-go-no-go-1-diagnostics.mjs',
+  'docs/external-beta/single-tester-active-lane-closure-1/source-audit.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/lane-decision.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/expansion-boundary.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/readiness-gate.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/safety-boundary.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/validation-results.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/single-tester-active-lane-closure-record.json',
+  'docs/activation-phase-rp-external-beta-single-tester-active-lane-closure-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-real-usage-qa-1.md',
+  'scripts/validation/rp-external-beta-single-tester-active-lane-closure-1-diagnostics.mjs',
 ]
 
 const allowedFiles = new Set([...requiredFiles, ...followOnFiles])

@@ -1,0 +1,72 @@
+{
+  "packet": "RP-EXTERNAL-BETA-SINGLE-TESTER-ACTIVE-LANE-CLOSURE-1",
+  "decision": "completed_single_tester_external_beta_active_lane_closure_keep_expansion_blocked",
+  "execution": "completed_docs_only_single_tester_active_lane_closure_no_access_mutation",
+  "integrationBase": "4712ff450b0e95deea7a63aa4d161c00d5ec8a44",
+  "sourceEvidence": {
+    "controlledSingleTesterGoNoGo": "go_controlled_single_tester_external_beta_lane_remains_open",
+    "namedTesterExpansionReadiness": "blocked_no_additional_named_tester_list_after_single_tester_go_no_go_reconciliation",
+    "boundedTesterExpansionDecision": "blocked_no_additional_named_tester_list",
+    "excludedPr": 577
+  },
+  "activeLane": {
+    "targetName": "Reeditpro",
+    "targetRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging",
+    "cloudRunService": "reeditpro-staging-api",
+    "approvedGroup": "external-beta-testers@reeditpro.com",
+    "approvedTesterEmail": "aiediting@reeditpro.com",
+    "status": "active_single_tester_external_beta_for_aiediting_reeditpro_com",
+    "readiness": "ready_for_single_tester_real_usage_qa"
+  },
+  "expansion": {
+    "additionalNamedTesterList": "not_present_in_source",
+    "approved": false,
+    "blocker": "blocked_no_additional_named_tester_list",
+    "blockingScope": "additional_tester_expansion_only"
+  },
+  "readiness": {
+    "externalProductBeta": "active_single_tester_external_beta_for_aiediting_reeditpro_com",
+    "broadExternalBetaAudience": "blocked",
+    "paidProduction": "blocked",
+    "publicArtifacts": "blocked",
+    "signedUrlSourceOfTruth": "blocked",
+    "finalDeliveryExport": "blocked",
+    "productionUnlock": "blocked",
+    "nextMilestone": "RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "docsOnlyClosure": true,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretManagerPayloadAccess": false,
+    "iamMutation": false,
+    "googleGroupMembershipMutation": false,
+    "cloudRunDeployment": false,
+    "cloudRunServiceUpdate": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "routeExecution": false,
+    "browserCapture": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "mediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "dockerExecution": false,
+    "internalBetaBroadUnlock": false,
+    "externalBetaBroadAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExportUnlock": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

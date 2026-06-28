@@ -21,6 +21,17 @@ const requiredFiles = [
   'package.json',
 ]
 
+const followOnProviderRuntimeEnablementReviewFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-enablement-review-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-enablement-review-1/provider-runtime-enablement-review.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-enablement-review-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-enablement-review-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-enablement-review-1/qwen2-5-vl-product-route-provider-runtime-enablement-review-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-provider-runtime-enablement-review-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1.md',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-enablement-review-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'completed_qwen2_5_vl_product_route_readback_runtime_validation_fail_closed',
@@ -243,6 +254,7 @@ if (
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
 const allowedFiles = new Set(requiredFiles)
+for (const file of followOnProviderRuntimeEnablementReviewFiles) allowedFiles.add(file)
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   if (forbiddenFilePatterns.some((pattern) => pattern.test(file))) fail(`forbidden file changed: ${file}`)

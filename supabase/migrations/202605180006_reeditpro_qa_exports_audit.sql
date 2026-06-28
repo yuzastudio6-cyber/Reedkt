@@ -88,10 +88,25 @@ create table if not exists public.license_review_snapshots (
 );
 
 comment on table public.qa_reports is 'QA reports tie back to approved snapshots and jobs when execution exists.';
+comment on column public.qa_reports.approved_plan_snapshot_id is 'Compatibility reference to immutable approved plan snapshots. Added nullable for older local baselines before QA project-snapshot indexes; no backfill is invented here.';
 comment on table public.final_exports is 'Final exports tie back to approved snapshots. Storage paths are private by default.';
 comment on table public.audit_events is 'Append-only audit events for approvals, worker/service activity, and security-relevant changes.';
 comment on table public.production_readiness_snapshots is 'Readiness snapshots are planning records and are not legal advice.';
 comment on table public.license_review_snapshots is 'Tool license/security review snapshots; provider models remain separate from open-source tools.';
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.qa_reports'::regclass
+      and conname = 'qa_reports_approved_plan_snapshot_id_fkey'
+  ) then
+    alter table public.qa_reports
+      add constraint qa_reports_approved_plan_snapshot_id_fkey
+      foreign key (approved_plan_snapshot_id) references public.approved_plan_snapshots(id) on delete set null;
+  end if;
+end $$;
 
 create or replace function public.prevent_audit_event_mutation()
 returns trigger

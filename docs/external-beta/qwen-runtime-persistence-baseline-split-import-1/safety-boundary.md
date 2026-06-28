@@ -1,0 +1,3 @@
+# Safety Boundary
+
+No Supabase remote execution, SQL execution, migration apply, Supabase CLI execution, Secret Manager payload access, provider call, model call, QWEN runtime execution, worker execution, worker dispatch, route execution, Cloud Run invocation, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, additional tester access grant, broad external beta unlock, production unlock, raw prompt execution, final render/export, private media processing, user media processing, Docker execution, package installation, dependency mutation, package-lock mutation, or broad service-role handler was enabled.

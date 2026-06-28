@@ -1,0 +1,207 @@
+name: Beta Readiness API Staging Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_staging_api_deploy:
+        description: "Type DEPLOY_STAGING_BETA_READINESS_API to deploy the guarded staging API service"
+        required: true
+        type: string
+      source_ref:
+        description: "Readiness source branch/ref to fetch"
+        required: true
+        default: "codex/sound-music-audio-1abc-checkpoint"
+        type: string
+      source_sha:
+        description: "Exact source commit SHA to check out and deploy"
+        required: true
+        type: string
+      image_tag:
+        description: "Immutable Artifact Registry image tag for this staging API deployment"
+        required: true
+        type: string
+      artifact_region:
+        description: "Artifact Registry region, for example us-central1"
+        required: true
+        type: string
+      artifact_repository:
+        description: "Artifact Registry repository name for staging images"
+        required: true
+        type: string
+      deployer_service_account:
+        description: "Workload Identity service account allowed to build, push, and deploy staging"
+        required: true
+        type: string
+      runtime_service_account:
+        description: "Cloud Run runtime service account for the staging API service"
+        required: true
+        type: string
+      service_name:
+        description: "Staging Cloud Run service name"
+        required: true
+        default: "reeditpro-api-staging"
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: beta-readiness-api-staging-deploy
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Guarded staging API deploy preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+    outputs:
+      image: ${{ steps.derive.outputs.image }}
+      service_name: ${{ steps.derive.outputs.service_name }}
+      registry_host: ${{ steps.derive.outputs.registry_host }}
+    steps:
+      - name: Fail closed unless this is the exact staging API lane
+        shell: bash
+        env:
+          CONFIRM_STAGING_API_DEPLOY: ${{ inputs.confirm_staging_api_deploy }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          SERVICE_NAME: ${{ inputs.service_name }}
+          ARTIFACT_REGION: ${{ inputs.artifact_region }}
+          ARTIFACT_REPOSITORY: ${{ inputs.artifact_repository }}
+          DEPLOYER_SERVICE_ACCOUNT: ${{ inputs.deployer_service_account }}
+          RUNTIME_SERVICE_ACCOUNT: ${{ inputs.runtime_service_account }}
+        run: |
+          set -euo pipefail
+          test "${CONFIRM_STAGING_API_DEPLOY}" = "DEPLOY_STAGING_BETA_READINESS_API"
+          test "${SOURCE_REF}" = "codex/sound-music-audio-1abc-checkpoint"
+          [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          [[ "${IMAGE_TAG}" =~ ^[A-Za-z0-9._-]+$ ]]
+          test "${IMAGE_TAG}" != "latest"
+          test "${SERVICE_NAME}" = "reeditpro-api-staging"
+          test "${GCP_PROJECT_ID}" = "reeditpro"
+          test -n "${GCP_REGION}"
+          test -n "${GCP_WORKLOAD_IDENTITY_PROVIDER}"
+          test -n "${ARTIFACT_REGION}"
+          test -n "${ARTIFACT_REPOSITORY}"
+          test -n "${DEPLOYER_SERVICE_ACCOUNT}"
+          test -n "${RUNTIME_SERVICE_ACCOUNT}"
+          case "${SERVICE_NAME} ${SOURCE_REF} ${IMAGE_TAG}" in
+            *prod*|*production*|*live*)
+              echo "Refusing production-looking staging API deploy target." >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Checkout requested source branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+
+      - name: Verify exact source commit and deployable API inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "${{ inputs.source_sha }}" HEAD
+          git checkout --detach "${{ inputs.source_sha }}"
+          actual="$(git rev-parse HEAD)"
+          test "${actual}" = "${{ inputs.source_sha }}"
+          test -f docker/prod/api/Dockerfile
+          test -f package-lock.json
+          git diff --exit-code -- package-lock.json .dockerignore docker/prod/api/Dockerfile
+
+      - name: Derive immutable staging API image
+        id: derive
+        shell: bash
+        env:
+          ARTIFACT_REGION: ${{ inputs.artifact_region }}
+          ARTIFACT_REPOSITORY: ${{ inputs.artifact_repository }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          SERVICE_NAME: ${{ inputs.service_name }}
+        run: |
+          set -euo pipefail
+          image="${ARTIFACT_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}/reeditpro-api:${IMAGE_TAG}"
+          registry_host="${ARTIFACT_REGION}-docker.pkg.dev"
+          echo "image=${image}" >> "${GITHUB_OUTPUT}"
+          echo "service_name=${SERVICE_NAME}" >> "${GITHUB_OUTPUT}"
+          echo "registry_host=${registry_host}" >> "${GITHUB_OUTPUT}"
+
+  build-and-deploy:
+    name: Build and deploy private staging API service
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: staging
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+    steps:
+      - name: Checkout requested source branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+
+      - name: Verify exact source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "${{ inputs.source_sha }}" HEAD
+          git checkout --detach "${{ inputs.source_sha }}"
+          actual="$(git rev-parse HEAD)"
+          test "${actual}" = "${{ inputs.source_sha }}"
+
+      - name: Authenticate to Google Cloud with OIDC/WIF
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ inputs.deployer_service_account }}
+          create_credentials_file: true
+          export_environment_variables: true
+          cleanup_credentials: true
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Build, push, and deploy private staging API service
+        shell: bash
+        env:
+          IMAGE: ${{ needs.preflight.outputs.image }}
+          REGISTRY_HOST: ${{ needs.preflight.outputs.registry_host }}
+          SERVICE_NAME: ${{ needs.preflight.outputs.service_name }}
+          RUNTIME_SERVICE_ACCOUNT: ${{ inputs.runtime_service_account }}
+        run: |
+          set -euo pipefail
+          gcloud auth configure-docker "${REGISTRY_HOST}" --quiet
+          docker build -f docker/prod/api/Dockerfile -t "${IMAGE}" .
+          docker push "${IMAGE}"
+          gcloud run deploy "${SERVICE_NAME}" \
+            --project="${GCP_PROJECT_ID}" \
+            --region="${GCP_REGION}" \
+            --image="${IMAGE}" \
+            --service-account="${RUNTIME_SERVICE_ACCOUNT}" \
+            --set-env-vars="REEDITPRO_ENV=staging" \
+            --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest,PROVIDER_GATEWAY_SHARED_SECRET=PROVIDER_GATEWAY_SHARED_SECRET:latest,WORKER_WEBHOOK_SECRET=WORKER_WEBHOOK_SECRET:latest" \
+            --no-allow-unauthenticated \
+            --quiet
+
+      - name: Report deployed private staging API URL
+        shell: bash
+        env:
+          SERVICE_NAME: ${{ needs.preflight.outputs.service_name }}
+        run: |
+          set -euo pipefail
+          service_url="$(
+            gcloud run services describe "${SERVICE_NAME}" \
+              --project="${GCP_PROJECT_ID}" \
+              --region="${GCP_REGION}" \
+              --format='value(status.url)'
+          )"
+          echo "Staging API deployed at ${service_url}"

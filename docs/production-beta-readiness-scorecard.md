@@ -1214,3 +1214,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: the accepted-path smoke uses the production worker dispatcher in dry-run metadata handoff mode, creates and releases in-memory leases for 21 tools, records dispatcher events, keeps routes `mockOnly=true`, and leaves tool runs, artifacts, and quality-gate records empty.
 - GPU policy: the eight GPU/model tools remain GPU-targeted but `gpuRuntimeShouldStartNow=false`; no idle GPU runtime is approved and no GPU starts without a later accepted worker job plus native runtime proof.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta Worker Dispatch Smoke Proof
+
+- Decision: `ai_graphics_external_beta_worker_dispatch_smoke_proof_prepared_with_runtime_blocks`.
+- Scope: saved-result proof validator for the controlled external-beta worker dispatch smoke across all 21 AI graphics tools and all 12 product-facing capabilities.
+- Result: the validator accepts a saved worker dispatch smoke result only when it proves 21 completed dry-run worker dispatcher jobs, 12 completed capability scenarios, 8 GPU-targeted tool records, 21 in-memory leases created and released, mock-only AI graphics handoff routes, and empty tool-run/artifact/quality-gate results. The validator itself runs no workers and creates no live leases.
+- GPU policy: the proof can accept that the eight GPU/model tools remained targeted to `gpu_ai_worker`, but `gpuRuntimeShouldStartNow=false` and no idle GPU runtime is approved. GPU can start only for a later accepted worker/tool call after native runtime proof and runtime gates pass.
+- Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

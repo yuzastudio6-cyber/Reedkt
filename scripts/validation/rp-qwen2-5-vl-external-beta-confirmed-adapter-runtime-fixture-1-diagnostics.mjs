@@ -51,10 +51,25 @@ const followOnProductWorkflowRouteIntegrationFiles = [
   'scripts/validation/rp-qwen2-5-vl-external-beta-product-workflow-route-integration-1-diagnostics.mjs',
 ]
 
+const followOnProductRouteReadbackValidationFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-1/route-readback-validation-gate.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-1/required-readback-references.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-1/qwen2-5-vl-product-route-readback-validation-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-readback-validation-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1.md',
+  'server/services/qwen2-5-vl-external-beta-product-route-readback-validation.ts',
+  'server/smoke/qwen2-5-vl-external-beta-product-route-readback-validation-1-smoke.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-validation-1-diagnostics.mjs',
+]
+
 const allowedFiles = new Set([
   ...requiredFiles,
   ...followOnProductWorkflowBindingFiles,
   ...followOnProductWorkflowRouteIntegrationFiles,
+  ...followOnProductRouteReadbackValidationFiles,
 ])
 
 const requiredText = [

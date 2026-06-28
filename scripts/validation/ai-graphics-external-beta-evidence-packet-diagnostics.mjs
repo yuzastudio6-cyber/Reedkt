@@ -35,6 +35,9 @@ const diagnosticScriptCommand = 'node scripts/validation/ai-graphics-external-be
 const scaffoldScriptName = 'ai-graphics:external-beta-evidence-scaffold'
 const scaffoldScriptCommand = 'tsx server/cli/ai-graphics-external-beta-evidence-scaffold.ts'
 const readinessScriptName = 'ai-graphics:external-beta-readiness-gate'
+const workerDispatchSmokeScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke'
+const workerDispatchSmokeProofScriptName =
+  'ai-graphics:external-beta-worker-dispatch-smoke-proof'
 
 const allTools = [
   'torch_torchvision',
@@ -280,6 +283,66 @@ const fullPacketPath = writeJson(
   'full-packet.json',
   parseJsonOutput(runNpm(validateScriptName, ['--evidence-records', fullRecordsPath]), 'full_packet_source'),
 )
+const workerDispatchReadinessPath = writeJson(
+  tempRoot,
+  'worker-dispatch-readiness.json',
+  {
+    decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
+    sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
+    workerDispatchReadinessPreparedWithProvidedEvidence: true,
+    workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
+    workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
+    gpuRuntimeTargetedTools: 8,
+    acceptedSourceEvidence: {
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+    },
+    records: allTools.map((toolId) => ({
+      toolId,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    })),
+    liveWorkerLeasesCreatedNow: 0,
+    liveWorkerDispatchesNow: 0,
+    liveToolExecutionsNow: 0,
+    booleans: {
+      sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
+      agentCanExecuteToolsNow: false,
+      workerDispatchPerformed: false,
+      gpuRuntimeShouldStartNow: false,
+    },
+  },
+)
+const workerDispatchSmokePath = writeJson(
+  tempRoot,
+  'worker-dispatch-smoke.json',
+  parseJsonOutput(runNpm(workerDispatchSmokeScriptName, [
+    '--external-beta-worker-dispatch-readiness-packet',
+    workerDispatchReadinessPath,
+    '--external-beta-worker-dispatch-smoke-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/report.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/cleanup.json',
+  ]), 'worker_dispatch_smoke_source'),
+)
+const workerDispatchSmokeProofPath = writeJson(
+  tempRoot,
+  'worker-dispatch-smoke-proof.json',
+  parseJsonOutput(runNpm(workerDispatchSmokeProofScriptName, [
+    '--external-beta-worker-dispatch-smoke-result',
+    workerDispatchSmokePath,
+    '--external-beta-worker-dispatch-smoke-evidence-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/evidence.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-proof-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
+  ]), 'worker_dispatch_smoke_proof_source'),
+)
 const unsafeRecordsPath = writeJson(tempRoot, 'unsafe-records.json', [
   {
     ...acceptedRecord('d3'),
@@ -302,6 +365,8 @@ const packetFedGateOutput = parseJsonOutput(runNpm(readinessScriptName, [
   '--model-weight-review-packet-accepted',
   '--external-beta-evidence-packet',
   fullPacketPath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
 ]), 'packet_fed_external_beta_gate')
 
 if (defaultOutput.records?.length !== 21) fail('default_output_record_count_not_21')
@@ -333,6 +398,9 @@ if (packetFedGateOutput.externalBetaReadyWithProvidedEvidenceTools !== 21) {
 if (packetFedGateOutput.externalBetaReadyNowTools !== 0) fail('packet_fed_gate_external_beta_ready_now_not_0')
 if (packetFedGateOutput.externalBetaBlockedNowTools !== 21) fail('packet_fed_gate_blocked_now_not_21')
 if (packetFedGateOutput.productionReadyNowTools !== 0) fail('packet_fed_gate_production_ready_now_not_0')
+if (packetFedGateOutput.booleans?.sourceExternalBetaWorkerDispatchSmokeProofAccepted !== true) {
+  fail('packet_fed_gate_worker_dispatch_smoke_proof_not_accepted')
+}
 
 for (const output of [defaultOutput, fullOutput, packetFedGateOutput]) {
   for (const key of falseGateKeys) {

@@ -1,0 +1,270 @@
+name: Beta Readiness API Staging Owner Prerequisite Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_staging_api_owner_prerequisite_audit:
+        description: "Type AUDIT_STAGING_BETA_API_OWNER_PREREQUISITES to run read-only staging API owner prerequisite audit"
+        required: true
+        type: string
+      artifact_region:
+        description: "Artifact Registry region; must be us-central1 for this first staging API lane"
+        required: true
+        default: "us-central1"
+        type: string
+      artifact_repository:
+        description: "Artifact Registry repository; must be reeditpro-staging-workers"
+        required: true
+        default: "reeditpro-staging-workers"
+        type: string
+      deployer_service_account:
+        description: "Deployer service account; must match the repo-configured GCP service account"
+        required: true
+        type: string
+      runtime_service_account:
+        description: "Runtime service account; must be reeditpro-api-staging@reeditpro.iam.gserviceaccount.com"
+        required: true
+        default: "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com"
+        type: string
+      service_name:
+        description: "Staging service name; must be reeditpro-api-staging"
+        required: true
+        default: "reeditpro-api-staging"
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: beta-readiness-api-staging-owner-prerequisite-audit
+  cancel-in-progress: false
+
+jobs:
+  audit-staging-api-owner-prerequisites:
+    name: Audit exact staging API owner prerequisites
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      CONFIRM_OWNER_PREREQUISITE_AUDIT: ${{ inputs.confirm_staging_api_owner_prerequisite_audit }}
+      ARTIFACT_REGION: ${{ inputs.artifact_region }}
+      ARTIFACT_REPOSITORY: ${{ inputs.artifact_repository }}
+      DEPLOYER_SERVICE_ACCOUNT: ${{ inputs.deployer_service_account }}
+      RUNTIME_SERVICE_ACCOUNT: ${{ inputs.runtime_service_account }}
+      SERVICE_NAME: ${{ inputs.service_name }}
+    steps:
+      - name: Fail closed unless this is exact read-only staging owner prerequisite audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${CONFIRM_OWNER_PREREQUISITE_AUDIT}" = "AUDIT_STAGING_BETA_API_OWNER_PREREQUISITES"
+          test "${GCP_PROJECT_ID}" = "reeditpro"
+          test "${GCP_REGION}" = "us-east1"
+          test -n "${GCP_WORKLOAD_IDENTITY_PROVIDER}"
+          test -n "${GCP_SERVICE_ACCOUNT}"
+          test "${ARTIFACT_REGION}" = "us-central1"
+          test "${ARTIFACT_REPOSITORY}" = "reeditpro-staging-workers"
+          test "${DEPLOYER_SERVICE_ACCOUNT}" = "${GCP_SERVICE_ACCOUNT}"
+          test "${RUNTIME_SERVICE_ACCOUNT}" = "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com"
+          test "${SERVICE_NAME}" = "reeditpro-api-staging"
+
+      - name: Authenticate to Google Cloud with OIDC/WIF
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+          cleanup_credentials: true
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Audit read-only staging API prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          results_file="${RUNNER_TEMP}/staging-api-owner-prerequisite-audit-results.tsv"
+          failures_file="${RUNNER_TEMP}/staging-api-owner-prerequisite-audit-failures.txt"
+          : > "${results_file}"
+          : > "${failures_file}"
+
+          sanitize_log() {
+            sed -E \
+              -e 's#authenticated as [^ ]+#authenticated as <redacted>#g' \
+              -e 's#/home/runner/work/[^ ]*/gha-creds-[^ ,]+#<github-oidc-credential-file>#g' \
+              -e 's#gha-creds-[A-Za-z0-9._-]+\\.json#<github-oidc-credential-file>#g' \
+              -e 's#ya29\\.[A-Za-z0-9._-]+#<redacted-oauth-token>#g'
+          }
+
+          record_result() {
+            local name="$1"
+            local status="$2"
+            local detail="$3"
+            printf '%s\t%s\t%s\n' "${name}" "${status}" "${detail}" >> "${results_file}"
+            if [ "${status}" != "passed" ]; then
+              printf '%s\n' "${name}" >> "${failures_file}"
+            fi
+          }
+
+          run_probe() {
+            local name="$1"
+            shift
+            local stdout_file="${RUNNER_TEMP}/${name}.stdout"
+            local stderr_file="${RUNNER_TEMP}/${name}.stderr"
+            echo "::group::${name}"
+            set +e
+            "$@" > "${stdout_file}" 2> "${stderr_file}"
+            local exit_code=$?
+            set -e
+            if [ "${exit_code}" -eq 0 ]; then
+              record_result "${name}" "passed" "verified"
+              sanitize_log < "${stdout_file}" | tail -20
+            else
+              record_result "${name}" "failed" "exit_${exit_code}"
+              echo "${name}: failed (${exit_code})" >&2
+              {
+                echo "stdout:"
+                sanitize_log < "${stdout_file}" | tail -40
+                echo "stderr:"
+                sanitize_log < "${stderr_file}" | tail -80
+              } >&2
+            fi
+            echo "::endgroup::"
+          }
+
+          permissions_json() {
+            python3 - "$@" <<'PY'
+          import json
+          import sys
+          print(json.dumps({"permissions": sys.argv[1:]}))
+          PY
+          }
+
+          post_test_iam_permissions() {
+            local name="$1"
+            local url="$2"
+            shift 2
+            local body_file="${RUNNER_TEMP}/${name}.body.json"
+            local response_file="${RUNNER_TEMP}/${name}.response.json"
+            local stderr_file="${RUNNER_TEMP}/${name}.stderr"
+            local token
+            token="$(gcloud auth print-access-token)"
+            permissions_json "$@" > "${body_file}"
+            echo "::group::${name}"
+            set +e
+            curl -fsS \
+              -X POST \
+              -H "Authorization: Bearer ${token}" \
+              -H "Content-Type: application/json" \
+              --data @"${body_file}" \
+              "${url}" > "${response_file}" 2> "${stderr_file}"
+            local curl_exit=$?
+            set -e
+            if [ "${curl_exit}" -ne 0 ]; then
+              record_result "${name}" "failed" "curl_exit_${curl_exit}"
+              sanitize_log < "${stderr_file}" | tail -80 >&2
+              echo "::endgroup::"
+              return 0
+            fi
+            set +e
+            python3 - "${response_file}" "$@" <<'PY'
+          import json
+          import pathlib
+          import sys
+          response = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          expected = sys.argv[2:]
+          allowed = set(response.get("permissions") or [])
+          missing = [permission for permission in expected if permission not in allowed]
+          print(json.dumps({"allowed": sorted(allowed), "missing": missing}, sort_keys=True))
+          raise SystemExit(1 if missing else 0)
+          PY
+            local permission_exit=$?
+            set -e
+            if [ "${permission_exit}" -eq 0 ]; then
+              record_result "${name}" "passed" "permissions_verified"
+            else
+              record_result "${name}" "failed" "permissions_missing"
+            fi
+            echo "::endgroup::"
+          }
+
+          artifact_resource="projects/${GCP_PROJECT_ID}/locations/${ARTIFACT_REGION}/repositories/${ARTIFACT_REPOSITORY}"
+          artifact_url="https://artifactregistry.googleapis.com/v1/${artifact_resource}:testIamPermissions"
+          project_url="https://cloudresourcemanager.googleapis.com/v3/projects/${GCP_PROJECT_ID}:testIamPermissions"
+          runtime_service_account_resource="$(
+            python3 - <<'PY'
+          import os
+          import urllib.parse
+          print("projects/{}/serviceAccounts/{}".format(
+              os.environ["GCP_PROJECT_ID"],
+              urllib.parse.quote(os.environ["RUNTIME_SERVICE_ACCOUNT"], safe=""),
+          ))
+          PY
+          )"
+          runtime_service_account_url="https://iam.googleapis.com/v1/${runtime_service_account_resource}:testIamPermissions"
+
+          run_probe artifact_registry_repository_exists \
+            gcloud artifacts repositories describe "${ARTIFACT_REPOSITORY}" \
+              --project="${GCP_PROJECT_ID}" \
+              --location="${ARTIFACT_REGION}" \
+              --format="value(name)"
+
+          post_test_iam_permissions artifact_registry_upload_permission \
+            "${artifact_url}" \
+            artifactregistry.repositories.uploadArtifacts
+
+          run_probe runtime_service_account_exists \
+            gcloud iam service-accounts describe "${RUNTIME_SERVICE_ACCOUNT}" \
+              --project="${GCP_PROJECT_ID}" \
+              --format="value(email)"
+
+          post_test_iam_permissions deployer_can_act_as_runtime_service_account \
+            "${runtime_service_account_url}" \
+            iam.serviceAccounts.actAs
+
+          post_test_iam_permissions cloud_run_deploy_permissions \
+            "${project_url}" \
+            run.services.get run.services.create run.services.update run.operations.get
+
+          for secret_name in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SECRET WORKER_WEBHOOK_SECRET; do
+            run_probe "secret_entry_exists_${secret_name}" \
+              gcloud secrets describe "${secret_name}" \
+                --project="${GCP_PROJECT_ID}" \
+                --format="value(name)"
+          done
+
+          failure_count=0
+          if [ -s "${failures_file}" ]; then
+            failure_count="$(wc -l < "${failures_file}" | tr -d ' ')"
+          fi
+          status="blocked"
+          if [ "${failure_count}" -eq 0 ]; then
+            status="passed"
+          fi
+
+          {
+            echo '# Beta Readiness API Staging Owner Prerequisite Audit'
+            echo ''
+            echo "Read-only prerequisite audit status: \`${status}\`."
+            echo ''
+            echo '| prerequisite | status | detail |'
+            echo '| --- | --- | --- |'
+            awk -F '\t' '{ printf "| `%s` | `%s` | `%s` |\n", $1, $2, $3 }' "${results_file}"
+            echo ''
+            echo "- Artifact Registry repository: \`${artifact_resource}\`"
+            echo "- Runtime service account: \`${RUNTIME_SERVICE_ACCOUNT}\`"
+            echo "- Cloud Run service target: \`${SERVICE_NAME}\` in \`${GCP_REGION}\`"
+            echo "- Secret values were not read. Secret Manager checks are existence-only."
+            echo "- Runtime secret access is not claimed by this read-only audit; deploy/runtime evidence must still prove it before product readiness."
+            echo "- No Cloud Run deploy, Docker build/push, evidence collector, tool execution, media processing, Supabase/GCS write, external beta, or production action ran."
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          if [ "${status}" != "passed" ]; then
+            exit 1
+          fi

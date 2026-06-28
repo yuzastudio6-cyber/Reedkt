@@ -1,10 +1,11 @@
 import fs from 'node:fs'
 import {
   buildAiGraphicsExternalBetaEndToEndReadiness,
+  type AiGraphicsExternalBetaEndToEndReadinessInput,
 } from '../tool-registry/ai-graphics-external-beta-end-to-end-readiness'
 import type { AiGraphicsExternalBetaEvidenceAdmissionBundle } from '../tool-registry/ai-graphics-external-beta-evidence-admission-bundle'
 import type { AiGraphicsExternalBetaEvidencePacket } from '../tool-registry/ai-graphics-external-beta-evidence-packet'
-import type { AiGraphicsExternalBetaReadinessEvidence } from '../tool-registry/ai-graphics-external-beta-readiness-gate'
+import type { AiGraphicsExternalBetaServiceRoleQueueSmokePreflight } from '../tool-registry/ai-graphics-external-beta-service-role-queue-smoke-preflight'
 import type { AiGraphicsExternalBetaWorkerDispatchSmokeProof } from '../tool-registry/ai-graphics-external-beta-worker-dispatch-smoke-proof'
 
 function hasFlag(flag: string): boolean {
@@ -30,7 +31,7 @@ function optionalBooleanFlag(flag: string, allFlagPassed = false): boolean | und
 const sharedGatesPassed = hasFlag('--all-shared-gates-passed')
 const allExternalBetaEvidencePassed = hasFlag('--all-external-beta-evidence-passed')
 
-const evidence: AiGraphicsExternalBetaReadinessEvidence = {
+const evidence: AiGraphicsExternalBetaEndToEndReadinessInput = {
   externalBetaEvidencePacket:
     readJsonFile<AiGraphicsExternalBetaEvidencePacket>('--external-beta-evidence-packet'),
   externalBetaEvidenceAdmissionBundle:
@@ -40,6 +41,10 @@ const evidence: AiGraphicsExternalBetaReadinessEvidence = {
   externalBetaWorkerDispatchSmokeProof:
     readJsonFile<AiGraphicsExternalBetaWorkerDispatchSmokeProof>(
       '--external-beta-worker-dispatch-smoke-proof',
+    ),
+  externalBetaServiceRoleQueueSmokePreflight:
+    readJsonFile<AiGraphicsExternalBetaServiceRoleQueueSmokePreflight>(
+      '--external-beta-service-role-queue-smoke-preflight-packet',
     ),
   approvedPlanSnapshotGatePassed:
     sharedGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
@@ -98,6 +103,8 @@ console.log(JSON.stringify({
       Boolean(stringFlag('--external-beta-evidence-admission-bundle')),
     externalBetaWorkerDispatchSmokeProofRead:
       Boolean(stringFlag('--external-beta-worker-dispatch-smoke-proof')),
+    externalBetaServiceRoleQueueSmokePreflightRead:
+      Boolean(stringFlag('--external-beta-service-role-queue-smoke-preflight-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

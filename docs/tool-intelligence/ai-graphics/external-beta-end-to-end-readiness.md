@@ -20,6 +20,8 @@ This packet is the single end-to-end checkpoint for the 21 AI graphics tools. It
 - Agent can execute tools now: false.
 - External-beta ready now: false.
 - Production ready now: false.
+- Service-role queue smoke payload previews prepared: 21 / 21.
+- Service-role queue smoke ready to execute in this committed/default environment: false.
 
 ## Runtime Split
 
@@ -42,19 +44,23 @@ Default committed evidence:
 
 - Beta technical evidence ready with provided evidence: 0 / 21.
 - External-beta candidate ready with provided evidence: 0 / 21.
+- Service-role queue smoke preflight payload previews prepared: 21 / 21.
+- Service-role queue smoke preflight ready to execute: false.
 - External-beta ready now: 0 / 21.
 
 Full evidence mode, using the CLI with all required proof flags:
 
 - Beta technical evidence ready with provided evidence: 21 / 21.
 - External-beta candidate ready with provided evidence: 21 / 21.
+- Service-role queue smoke preflight ready to execute: true, when a ready preflight packet is supplied with `--external-beta-service-role-queue-smoke-preflight-packet`.
 - External-beta ready now: 0 / 21.
 
-That means the evaluator can prove the complete candidate path when supplied with the required private/runtime evidence, while still refusing to claim live external-beta or production readiness from committed docs alone.
+That means the evaluator can prove the complete candidate path when supplied with the required private/runtime evidence and a ready service-role queue smoke preflight packet, while still refusing to claim live external-beta or production readiness from committed docs alone.
 
 ## Remaining End-to-End Gates
 
 - Internal beta runtime soak evidence.
+- Service-role queue smoke preflight in the non-production server environment.
 - External-beta worker dispatch smoke proof.
 - External-beta QA evidence.
 - External-beta cost, concurrency, privacy, and rollback evidence.

@@ -12,6 +12,10 @@ import {
   type AiGraphicsExternalBetaReadinessEvidence,
   type AiGraphicsExternalBetaReadinessGate,
 } from './ai-graphics-external-beta-readiness-gate'
+import {
+  buildAiGraphicsExternalBetaServiceRoleQueueSmokePreflight,
+  type AiGraphicsExternalBetaServiceRoleQueueSmokePreflight,
+} from './ai-graphics-external-beta-service-role-queue-smoke-preflight'
 import type {
   ProductionRegistryWorkerType,
   ProductionToolId,
@@ -23,6 +27,12 @@ export const AI_GRAPHICS_EXTERNAL_BETA_END_TO_END_READINESS_DECISION =
 export type AiGraphicsExternalBetaEndToEndReadinessStatus =
   | 'installed_and_mapped_runtime_blocked'
   | 'external_beta_candidate_with_provided_evidence_runtime_still_blocked'
+
+export interface AiGraphicsExternalBetaEndToEndReadinessInput
+  extends AiGraphicsExternalBetaReadinessEvidence {
+  externalBetaServiceRoleQueueSmokePreflight?:
+    AiGraphicsExternalBetaServiceRoleQueueSmokePreflight
+}
 
 export interface AiGraphicsExternalBetaEndToEndToolReadiness {
   toolId: AiGraphicsCanonicalToolId
@@ -63,6 +73,8 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     nonAiGraphicsReservedOverlaps: number
     betaTechnicalEvidenceReadyWithProvidedEvidenceTools: number
     externalBetaCandidateReadyWithProvidedEvidenceTools: number
+    serviceRoleQueueSmokePreflightPayloadsPrepared: number
+    serviceRoleQueueSmokePreflightReadyToExecute: 0 | 1
     externalBetaReadyNowTools: 0
     productionReadyNowTools: 0
   }
@@ -76,6 +88,7 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
   requiredEndToEndGates: string[]
   globalBlockers: string[]
   sourceExternalBetaReadinessGate: AiGraphicsExternalBetaReadinessGate
+  serviceRoleQueueSmokePreflight: AiGraphicsExternalBetaServiceRoleQueueSmokePreflight
   crossOwnerCoordination: AiGraphicsCrossOwnerCoordinationPacket
   tools: AiGraphicsExternalBetaEndToEndToolReadiness[]
   nextMilestones: string[]
@@ -92,6 +105,11 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     heavyToolsIncorrectlyTargetingCpuAbsent: true
     gpuRuntimeOnDemandOnly: true
     noIdleGpuRuntimeApproved: true
+    serviceRoleQueueSmokePreflightPrepared: true
+    serviceRoleQueueSmokePayloadsPreparedForAll21Tools: boolean
+    serviceRoleQueueSmokeEnvironmentReady: boolean
+    serviceRoleQueueSmokeFlagsReady: boolean
+    serviceRoleQueueSmokeReadyToExecute: boolean
     externalBetaCandidateReadyWithProvidedEvidence: boolean
     externalBetaReadyNow: false
     productionReadyNow: false
@@ -133,6 +151,7 @@ const requiredEndToEndGates = [
   'credit reservation gate accepted for every external-beta tool call',
   'private artifact boundary accepted for every external-beta tool call',
   'Tool Route and Worker gates accepted for every external-beta tool call',
+  'service-role queue smoke preflight ready with all 21 payload previews and non-production env/flags',
   'native NVIDIA L4 runtime proof accepted for all eight GPU/model tools',
   'private model-weight or model-cache manifests accepted for model-backed tools',
   'external-beta worker dispatch smoke proof accepted without tool execution',
@@ -142,6 +161,7 @@ const requiredEndToEndGates = [
 const nextMilestones = [
   'Collect or feed accepted native NVIDIA L4 runtime proof for the eight GPU/model tools; do not permit CPU fallback for heavy model paths.',
   'Feed accepted model-weight and private artifact manifests for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background.',
+  'Run the service-role queue smoke preflight in the non-production server environment; verify all env vars, flags, and 21 payload previews before live smoke.',
   'Run the non-production service-role queue and worker dispatch smokes, then validate saved proof packets without executing tools.',
   'Bind external-beta feature flag, rollout, cost/concurrency, privacy, rollback, incident, support, and owner approval refs.',
   'Only after those gates pass, promote tool calls through the approved worker path with on-demand GPU startup per accepted job.',
@@ -170,23 +190,33 @@ function buildToolMissingGates(input: {
   return [...new Set([...fromGate, ...extra])]
 }
 
-function statusFromGate(gate: AiGraphicsExternalBetaReadinessGate):
+function statusFromGate(input: {
+  gate: AiGraphicsExternalBetaReadinessGate
+  serviceRoleQueueSmokePreflight: AiGraphicsExternalBetaServiceRoleQueueSmokePreflight
+}):
   AiGraphicsExternalBetaEndToEndReadinessStatus {
-  return gate.externalBetaReadyWithProvidedEvidenceTools === 21
+  return input.gate.externalBetaReadyWithProvidedEvidenceTools === 21 &&
+    input.serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke === true
     ? 'external_beta_candidate_with_provided_evidence_runtime_still_blocked'
     : 'installed_and_mapped_runtime_blocked'
 }
 
 export function buildAiGraphicsExternalBetaEndToEndReadiness(
-  input: AiGraphicsExternalBetaReadinessEvidence = {},
+  input: AiGraphicsExternalBetaEndToEndReadinessInput = {},
 ): AiGraphicsExternalBetaEndToEndReadiness {
   const sourceExternalBetaReadinessGate = buildAiGraphicsExternalBetaReadinessGate(input)
+  const serviceRoleQueueSmokePreflight =
+    input.externalBetaServiceRoleQueueSmokePreflight ??
+    buildAiGraphicsExternalBetaServiceRoleQueueSmokePreflight()
   const crossOwnerCoordination = buildAiGraphicsCrossOwnerCoordinationPacket()
   const sourceGateToolsById = gateByTool(sourceExternalBetaReadinessGate)
   const readinessRecords = listAiGraphicsToolCallReadiness()
 
   const tools = readinessRecords.map((record): AiGraphicsExternalBetaEndToEndToolReadiness => {
     const sourceGateTool = sourceGateToolsById.get(record.toolId)
+    const externalBetaCandidateReadyWithProvidedEvidence =
+      sourceGateTool?.externalBetaReadyWithProvidedEvidence === true &&
+      serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke === true
     return {
       toolId: record.toolId,
       productionToolId: record.productionToolId,
@@ -200,8 +230,7 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       cpuFallbackAllowedForHeavyTool: false,
       betaTechnicalEvidenceReadyWithProvidedEvidence:
         sourceGateTool?.betaTestingReadyWithProvidedEvidence === true,
-      externalBetaCandidateReadyWithProvidedEvidence:
-        sourceGateTool?.externalBetaReadyWithProvidedEvidence === true,
+      externalBetaCandidateReadyWithProvidedEvidence,
       externalBetaReadyNow: false,
       productionReadyNow: false,
       missingEndToEndGates: buildToolMissingGates({
@@ -231,15 +260,31 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
     crossOwnerCoordination.booleans.nonAiGraphicsReservedToolIdsNotClaimed
       ? undefined
       : 'AI graphics overlaps with non-AI-graphics reserved production tool IDs',
+    serviceRoleQueueSmokePreflight.all21PayloadsPrepared
+      ? undefined
+      : 'service-role queue smoke preflight did not prepare all 21 payload previews',
+    serviceRoleQueueSmokePreflight.missingEnvironment.length === 0
+      ? undefined
+      : `service-role queue smoke preflight missing environment: ${serviceRoleQueueSmokePreflight.missingEnvironment.join(', ')}`,
+    serviceRoleQueueSmokePreflight.missingFlags.length === 0
+      ? undefined
+      : `service-role queue smoke preflight missing flags: ${serviceRoleQueueSmokePreflight.missingFlags.join(', ')}`,
+    serviceRoleQueueSmokePreflight.sourceRuntimeQueueServiceProofBridgeAccepted
+      ? undefined
+      : 'service-role queue smoke preflight missing accepted runtime queue service proof bridge',
   ].filter((blocker): blocker is string => Boolean(blocker))
 
   const externalBetaCandidateReadyWithProvidedEvidence =
     sourceExternalBetaReadinessGate.externalBetaReadyWithProvidedEvidenceTools === 21 &&
+    serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke === true &&
     globalBlockers.length === 0
 
   return {
     decision: AI_GRAPHICS_EXTERNAL_BETA_END_TO_END_READINESS_DECISION,
-    status: statusFromGate(sourceExternalBetaReadinessGate),
+    status: statusFromGate({
+      gate: sourceExternalBetaReadinessGate,
+      serviceRoleQueueSmokePreflight,
+    }),
     sourceExternalBetaReadinessGateDecision: sourceExternalBetaReadinessGate.decision,
     sourceCrossOwnerCoordinationDecision: crossOwnerCoordination.decision,
     counts: {
@@ -259,7 +304,13 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       betaTechnicalEvidenceReadyWithProvidedEvidenceTools:
         sourceExternalBetaReadinessGate.betaTestingReadyWithProvidedEvidenceTools,
       externalBetaCandidateReadyWithProvidedEvidenceTools:
-        sourceExternalBetaReadinessGate.externalBetaReadyWithProvidedEvidenceTools,
+        externalBetaCandidateReadyWithProvidedEvidence
+          ? sourceExternalBetaReadinessGate.externalBetaReadyWithProvidedEvidenceTools
+          : 0,
+      serviceRoleQueueSmokePreflightPayloadsPrepared:
+        serviceRoleQueueSmokePreflight.payloadPreviews.length,
+      serviceRoleQueueSmokePreflightReadyToExecute:
+        serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke ? 1 : 0,
       externalBetaReadyNowTools: 0,
       productionReadyNowTools: 0,
     },
@@ -273,6 +324,7 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
     requiredEndToEndGates,
     globalBlockers,
     sourceExternalBetaReadinessGate,
+    serviceRoleQueueSmokePreflight,
     crossOwnerCoordination,
     tools,
     nextMilestones,
@@ -294,6 +346,15 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       heavyToolsIncorrectlyTargetingCpuAbsent: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
+      serviceRoleQueueSmokePreflightPrepared: true,
+      serviceRoleQueueSmokePayloadsPreparedForAll21Tools:
+        serviceRoleQueueSmokePreflight.all21PayloadsPrepared,
+      serviceRoleQueueSmokeEnvironmentReady:
+        serviceRoleQueueSmokePreflight.missingEnvironment.length === 0,
+      serviceRoleQueueSmokeFlagsReady:
+        serviceRoleQueueSmokePreflight.missingFlags.length === 0,
+      serviceRoleQueueSmokeReadyToExecute:
+        serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke,
       externalBetaCandidateReadyWithProvidedEvidence,
       externalBetaReadyNow: false,
       productionReadyNow: false,

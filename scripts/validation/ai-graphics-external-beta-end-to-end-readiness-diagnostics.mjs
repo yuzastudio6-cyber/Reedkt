@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 const runScriptName = 'ai-graphics:external-beta-end-to-end-readiness'
 const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-end-to-end-readiness.ts'
@@ -115,6 +117,22 @@ function runCli(args = []) {
   return JSON.parse(output)
 }
 
+function runPreflight(args = [], env = {}) {
+  const output = execFileSync(
+    'npm',
+    ['run', '--silent', 'ai-graphics:external-beta-service-role-queue-smoke-preflight', '--', ...args],
+    {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+        ...env,
+      },
+    },
+  )
+  return JSON.parse(output)
+}
+
 function git(args) {
   return execFileSync('git', args, {
     encoding: 'utf8',
@@ -131,7 +149,7 @@ function assertCount(record, key, expected, label) {
   }
 }
 
-function assertBooleanMap(record, label) {
+function assertBooleanMap(record, label, expectedPreflightReady) {
   const booleans = record?.booleans ?? {}
   for (const key of falseBooleanKeys) {
     if (booleans[key] !== false) fail(`${label}_${key}_not_false`)
@@ -146,6 +164,18 @@ function assertBooleanMap(record, label) {
   }
   if (booleans.noDuplicateAiGraphicsProductionMappings !== true) {
     fail(`${label}_duplicate_mapping_guard_not_true`)
+  }
+  if (booleans.serviceRoleQueueSmokePreflightPrepared !== true) {
+    fail(`${label}_service_role_preflight_prepared_not_true`)
+  }
+  if (booleans.serviceRoleQueueSmokePayloadsPreparedForAll21Tools !== true) {
+    fail(`${label}_service_role_payloads_not_prepared`)
+  }
+  if (
+    typeof expectedPreflightReady === 'boolean' &&
+    booleans.serviceRoleQueueSmokeReadyToExecute !== expectedPreflightReady
+  ) {
+    fail(`${label}_service_role_ready_unexpected:${booleans.serviceRoleQueueSmokeReadyToExecute}`)
   }
 }
 
@@ -204,10 +234,32 @@ assertCount(docsJson, 'heavyToolsIncorrectlyTargetingCpu', 0, 'docs')
 assertCount(docsJson, 'duplicateAiGraphicsProductionToolIds', 0, 'docs')
 assertCount(docsJson, 'externalBetaReadyNowTools', 0, 'docs')
 assertCount(docsJson, 'productionReadyNowTools', 0, 'docs')
+if (docsJson.counts?.defaultServiceRoleQueueSmokePreflightPayloadsPrepared !== 21) {
+  fail('docs_default_service_role_payloads_not_21')
+}
+if (docsJson.counts?.defaultServiceRoleQueueSmokePreflightReadyToExecute !== 0) {
+  fail('docs_default_service_role_ready_not_0')
+}
+if (docsJson.counts?.fullEvidenceServiceRoleQueueSmokePreflightReadyToExecute !== 1) {
+  fail('docs_full_service_role_ready_not_1')
+}
 if (docsJson.counts?.fullEvidenceExternalBetaCandidateReadyWithProvidedEvidenceTools !== 21) {
   fail('docs_full_evidence_candidate_count_not_21')
 }
-assertBooleanMap(docsJson, 'docs')
+if (docsJson.sourceEvidence?.externalBetaServiceRoleQueueSmokePreflight !==
+  'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json') {
+  fail('docs_missing_service_role_preflight_source_evidence')
+}
+if (docsJson.booleans?.defaultServiceRoleQueueSmokePayloadsPreparedForAll21Tools !== true) {
+  fail('docs_default_service_role_payloads_not_true')
+}
+if (docsJson.booleans?.defaultServiceRoleQueueSmokeReadyToExecute !== false) {
+  fail('docs_default_service_role_ready_not_false')
+}
+if (docsJson.booleans?.fullEvidenceServiceRoleQueueSmokeReadyToExecute !== true) {
+  fail('docs_full_service_role_ready_not_true')
+}
+assertBooleanMap(docsJson, 'docs', undefined)
 
 const defaultReport = runCli()
 if (defaultReport.status !== 'installed_and_mapped_runtime_blocked') {
@@ -218,9 +270,51 @@ assertCount(defaultReport, 'installReadyTools', 21, 'default')
 assertCount(defaultReport, 'productionMappedTools', 21, 'default')
 assertCount(defaultReport, 'gpuRuntimeTargetedTools', 8, 'default')
 assertCount(defaultReport, 'externalBetaCandidateReadyWithProvidedEvidenceTools', 0, 'default')
+assertCount(defaultReport, 'serviceRoleQueueSmokePreflightPayloadsPrepared', 21, 'default')
+assertCount(defaultReport, 'serviceRoleQueueSmokePreflightReadyToExecute', 0, 'default')
 assertCount(defaultReport, 'externalBetaReadyNowTools', 0, 'default')
-assertBooleanMap(defaultReport, 'default')
+assertBooleanMap(defaultReport, 'default', false)
 assertTools(defaultReport, 'default')
+if (defaultReport.serviceRoleQueueSmokePreflight?.status !== 'missing_required_environment_or_flags') {
+  fail(`default_service_role_preflight_status:${defaultReport.serviceRoleQueueSmokePreflight?.status}`)
+}
+if (defaultReport.serviceRoleQueueSmokePreflight?.all21PayloadsPrepared !== true) {
+  fail('default_service_role_payloads_not_prepared')
+}
+if (defaultReport.serviceRoleQueueSmokePreflight?.readyToExecuteLiveNonProductionSmoke !== false) {
+  fail('default_service_role_preflight_ready_not_false')
+}
+
+const serviceRoleKeyEnvName = 'SUPABASE_' + 'SERVICE_ROLE_KEY'
+const redactionProbeToken = 'sb_placeholder_external_beta_preflight_redaction_check'
+const readyServiceRolePreflight = runPreflight([
+  '--workspace-id', 'workspace_external_beta_smoke',
+  '--project-id', 'project_external_beta_smoke',
+  '--approved-plan-snapshot-id', 'approved_snapshot_external_beta_smoke',
+  '--credit-reservation-id', 'credit_reservation_external_beta_smoke',
+  '--idempotency-prefix', 'ai-graphics-external-beta-smoke-test',
+  '--service-role-queue-smoke-readiness-ref',
+  'private://ai-graphics/external-beta/service-role-queue-smoke/readiness.json',
+  '--runtime-queue-service-proof-bridge-ref',
+  'private://ai-graphics/external-beta/runtime-queue-service-bridge/proof.json',
+  '--source-runtime-queue-service-proof-bridge-accepted',
+], {
+  REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE: 'true',
+  REEDITPRO_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_ENV: 'non_production',
+  SUPABASE_URL: 'https://external-beta-preflight.supabase.co',
+  [serviceRoleKeyEnvName]: redactionProbeToken,
+  E2E_RUNTIME_MODE: 'local',
+  WORKER_RUNTIME_MODE: 'mock',
+})
+if (readyServiceRolePreflight.readyToExecuteLiveNonProductionSmoke !== true) {
+  fail('ready_service_role_preflight_not_ready')
+}
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-e2e-readiness-'))
+const readyServiceRolePreflightPath = path.join(tmpDir, 'service-role-preflight.json')
+fs.writeFileSync(
+  readyServiceRolePreflightPath,
+  `${JSON.stringify(readyServiceRolePreflight, null, 2)}\n`,
+)
 
 const fullEvidenceReport = runCli([
   '--all-shared-gates-passed',
@@ -230,6 +324,8 @@ const fullEvidenceReport = runCli([
   '--model-weight-review-packet-accepted',
   '--internal-beta-owner-approval-granted',
   '--all-external-beta-evidence-passed',
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
 ])
 if (
   fullEvidenceReport.status !==
@@ -239,12 +335,17 @@ if (
 }
 assertCount(fullEvidenceReport, 'betaTechnicalEvidenceReadyWithProvidedEvidenceTools', 21, 'full')
 assertCount(fullEvidenceReport, 'externalBetaCandidateReadyWithProvidedEvidenceTools', 21, 'full')
+assertCount(fullEvidenceReport, 'serviceRoleQueueSmokePreflightPayloadsPrepared', 21, 'full')
+assertCount(fullEvidenceReport, 'serviceRoleQueueSmokePreflightReadyToExecute', 1, 'full')
 assertCount(fullEvidenceReport, 'externalBetaReadyNowTools', 0, 'full')
 assertCount(fullEvidenceReport, 'productionReadyNowTools', 0, 'full')
-assertBooleanMap(fullEvidenceReport, 'full')
+assertBooleanMap(fullEvidenceReport, 'full', true)
 assertTools(fullEvidenceReport, 'full')
 if (fullEvidenceReport.booleans?.externalBetaCandidateReadyWithProvidedEvidence !== true) {
   fail('full_evidence_candidate_boolean_not_true')
+}
+if (fullEvidenceReport.serviceRoleQueueSmokePreflight?.readyToExecuteLiveNonProductionSmoke !== true) {
+  fail('full_service_role_preflight_ready_not_true')
 }
 
 const claimScanFiles = requiredFiles.filter((filePath) => !filePath.endsWith('-diagnostics.mjs'))

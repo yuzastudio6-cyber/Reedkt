@@ -51,6 +51,14 @@ const requiredText = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-runtime-stack-fresh-source-import-1-diagnostics.mjs')
+allowedChangedFiles.add('docs/activation-phase-rp-external-beta-qwen-runtime-persistence-local-harness-validation-retry-11-results.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-local-harness-validation-retry-11/source-audit.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-local-harness-validation-retry-11/local-harness-result.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-local-harness-validation-retry-11/validation-results.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-local-harness-validation-retry-11/safety-boundary.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-local-harness-validation-retry-11/qwen-runtime-persistence-local-harness-validation-retry-11-record.json')
+allowedChangedFiles.add('docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-draft-source-split-import-1.md')
+allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-runtime-persistence-local-harness-validation-retry-11-diagnostics.mjs')
 
 const forbiddenPrefixes = [
   'package-lock.json',

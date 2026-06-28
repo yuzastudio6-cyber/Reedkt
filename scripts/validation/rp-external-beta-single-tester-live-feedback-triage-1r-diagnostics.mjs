@@ -57,6 +57,21 @@ const requiredText = [
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
+const followOnSafeGateBurnDownFiles = [
+  'docs/external-beta/single-tester-safe-gate-burndown-1/source-audit.md',
+  'docs/external-beta/single-tester-safe-gate-burndown-1/gate-burndown.md',
+  'docs/external-beta/single-tester-safe-gate-burndown-1/blocker-reclassification.md',
+  'docs/external-beta/single-tester-safe-gate-burndown-1/readiness-gate.md',
+  'docs/external-beta/single-tester-safe-gate-burndown-1/safety-boundary.md',
+  'docs/external-beta/single-tester-safe-gate-burndown-1/validation-results.md',
+  'docs/external-beta/single-tester-safe-gate-burndown-1/single-tester-safe-gate-burndown-record.json',
+  'docs/activation-phase-rp-external-beta-single-tester-safe-gate-burndown-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-feedback-driven-fix-loop-1.md',
+  'scripts/validation/rp-external-beta-single-tester-safe-gate-burndown-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-single-tester-live-feedback-triage-1r-diagnostics.mjs',
+  'package.json',
+]
+for (const file of followOnSafeGateBurnDownFiles) allowedChangedFiles.add(file)
 
 const blockedPrefixes = [
   'package-lock.json',

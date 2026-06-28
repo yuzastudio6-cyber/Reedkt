@@ -92,57 +92,161 @@ jobs:
         run: |
           set -euo pipefail
           runtime_account_id="${RUNTIME_SERVICE_ACCOUNT%@*}"
+          results_file="${RUNNER_TEMP}/staging-api-owner-remediation-results.tsv"
+          failures_file="${RUNNER_TEMP}/staging-api-owner-remediation-failures.txt"
+          : > "${results_file}"
+          : > "${failures_file}"
 
-          gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REPOSITORY}" \
+          sanitize_gcloud_log() {
+            sed -E \
+              -e 's#authenticated as [^ ]+#authenticated as <redacted>#g' \
+              -e 's#/home/runner/work/[^ ]*/gha-creds-[^ ,]+#<github-oidc-credential-file>#g' \
+              -e 's#gha-creds-[A-Za-z0-9._-]+\\.json#<github-oidc-credential-file>#g'
+          }
+
+          record_result() {
+            local name="$1"
+            local status="$2"
+            local exit_code="$3"
+            printf '%s\t%s\t%s\n' "${name}" "${status}" "${exit_code}" >> "${results_file}"
+          }
+
+          run_required_command() {
+            local name="$1"
+            shift
+            local stdout_file="${RUNNER_TEMP}/${name}.stdout"
+            local stderr_file="${RUNNER_TEMP}/${name}.stderr"
+
+            echo "::group::${name}"
+            set +e
+            "$@" >"${stdout_file}" 2>"${stderr_file}"
+            local exit_code=$?
+            set -e
+
+            if [ "${exit_code}" -eq 0 ]; then
+              record_result "${name}" "success" "0"
+              echo "${name}: success"
+            else
+              record_result "${name}" "failure" "${exit_code}"
+              printf '%s\n' "${name}" >> "${failures_file}"
+              echo "${name}: failure (${exit_code})"
+              {
+                echo "stdout:"
+                sanitize_gcloud_log < "${stdout_file}" | tail -40
+                echo "stderr:"
+                sanitize_gcloud_log < "${stderr_file}" | tail -80
+              }
+            fi
+            echo "::endgroup::"
+          }
+
+          run_required_command artifact_registry_writer_binding \
+            gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REPOSITORY}" \
             --project="${GCP_PROJECT_ID}" \
             --location="${ARTIFACT_REGION}" \
             --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
             --role=roles/artifactregistry.writer
 
           if ! gcloud iam service-accounts describe "${RUNTIME_SERVICE_ACCOUNT}" --project="${GCP_PROJECT_ID}" >/dev/null 2>&1; then
-            gcloud iam service-accounts create "${runtime_account_id}" \
+            run_required_command runtime_service_account_create \
+              gcloud iam service-accounts create "${runtime_account_id}" \
               --project="${GCP_PROJECT_ID}" \
               --display-name="ReEditPro API staging runtime"
+          else
+            record_result runtime_service_account_create "already_exists" "0"
+            echo "runtime_service_account_create: already_exists"
           fi
 
-          gcloud iam service-accounts add-iam-policy-binding "${RUNTIME_SERVICE_ACCOUNT}" \
+          run_required_command deployer_act_as_runtime_binding \
+            gcloud iam service-accounts add-iam-policy-binding "${RUNTIME_SERVICE_ACCOUNT}" \
             --project="${GCP_PROJECT_ID}" \
             --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
             --role=roles/iam.serviceAccountUser
 
-          gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
+          run_required_command cloud_run_admin_binding \
+            gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
             --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
             --role=roles/run.admin
 
           for secret_name in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SECRET WORKER_WEBHOOK_SECRET; do
-            gcloud secrets add-iam-policy-binding "${secret_name}" \
+            run_required_command "runtime_secret_accessor_${secret_name}" \
+              gcloud secrets add-iam-policy-binding "${secret_name}" \
               --project="${GCP_PROJECT_ID}" \
               --member="serviceAccount:${RUNTIME_SERVICE_ACCOUNT}" \
               --role=roles/secretmanager.secretAccessor
           done
 
+          {
+            echo '# Beta Readiness API Staging Owner Remediation Attempts'
+            echo ''
+            echo '| prerequisite | status | exit code |'
+            echo '| --- | --- | --- |'
+            awk -F '\t' '{ printf "| `%s` | `%s` | `%s` |\n", $1, $2, $3 }' "${results_file}"
+            echo ''
+            echo 'This workflow still fails closed unless every required prerequisite and exact input verification passes.'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
       - name: Verify exact staging API owner remediation inputs
         shell: bash
         run: |
           set -euo pipefail
-          repository_name="$(gcloud artifacts repositories describe "${ARTIFACT_REPOSITORY}" \
+          results_file="${RUNNER_TEMP}/staging-api-owner-remediation-results.tsv"
+          failures_file="${RUNNER_TEMP}/staging-api-owner-remediation-failures.txt"
+          verification_failures=0
+          repository_name=""
+          runtime_email=""
+
+          if repository_name="$(gcloud artifacts repositories describe "${ARTIFACT_REPOSITORY}" \
             --project="${GCP_PROJECT_ID}" \
             --location="${ARTIFACT_REGION}" \
-            --format='value(name)')"
-          runtime_email="$(gcloud iam service-accounts describe "${RUNTIME_SERVICE_ACCOUNT}" \
+            --format='value(name)')"; then
+            if [ "${repository_name}" != "projects/${GCP_PROJECT_ID}/locations/${ARTIFACT_REGION}/repositories/${ARTIFACT_REPOSITORY}" ]; then
+              echo "Artifact Registry repository mismatch: ${repository_name}"
+              verification_failures=$((verification_failures + 1))
+            fi
+          else
+            echo "Artifact Registry repository verification failed."
+            verification_failures=$((verification_failures + 1))
+          fi
+
+          if runtime_email="$(gcloud iam service-accounts describe "${RUNTIME_SERVICE_ACCOUNT}" \
             --project="${GCP_PROJECT_ID}" \
-            --format='value(email)')"
+            --format='value(email)')"; then
+            if [ "${runtime_email}" != "${RUNTIME_SERVICE_ACCOUNT}" ]; then
+              echo "Runtime service account mismatch: ${runtime_email}"
+              verification_failures=$((verification_failures + 1))
+            fi
+          else
+            echo "Runtime service account verification failed."
+            verification_failures=$((verification_failures + 1))
+          fi
 
-          test "${repository_name}" = "projects/${GCP_PROJECT_ID}/locations/${ARTIFACT_REGION}/repositories/${ARTIFACT_REPOSITORY}"
-          test "${runtime_email}" = "${RUNTIME_SERVICE_ACCOUNT}"
+          apply_failures=0
+          if [ -s "${failures_file}" ]; then
+            apply_failures="$(wc -l < "${failures_file}" | tr -d ' ')"
+          fi
 
+          status="failed"
+          if [ "${apply_failures}" -eq 0 ] && [ "${verification_failures}" -eq 0 ]; then
+            status="completed"
+          fi
           {
             echo '# Beta Readiness API Staging Owner Remediation'
             echo ''
-            echo 'Exact staging API owner remediation completed.'
+            echo "Exact staging API owner remediation ${status}."
             echo ''
-            echo "- Artifact Registry repository: ${repository_name}"
-            echo "- Runtime service account: ${runtime_email}"
+            echo "- Artifact Registry repository: ${repository_name:-not verified}"
+            echo "- Runtime service account: ${runtime_email:-not verified}"
+            echo "- Prerequisite command failures: ${apply_failures}"
+            echo "- Verification failures: ${verification_failures}"
+            echo ''
+            echo '| prerequisite | status | exit code |'
+            echo '| --- | --- | --- |'
+            awk -F '\t' '{ printf "| `%s` | `%s` | `%s` |\n", $1, $2, $3 }' "${results_file}"
             echo ''
             echo 'No Cloud Run deploy, Docker build/push, evidence collector, tool execution, media processing, Supabase/GCS write, external beta, or production action was run by this workflow.'
           } >> "${GITHUB_STEP_SUMMARY}"
+
+          if [ "${status}" != "completed" ]; then
+            exit 1
+          fi

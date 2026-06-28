@@ -86,7 +86,8 @@ export function buildProductionHardeningReport(options: BuildProductionHardening
     ],
     riskRegister: productionRiskRegister,
     nextActions: [
-      'Keep production_ready and external beta blocked until human-run deployment, readiness, model/license, security, cost, and legal approvals pass.',
+      'Keep production_ready, real-user media beta, and paid production blocked until human-run deployment, readiness, model/license, security, cost, and legal approvals pass.',
+      'Treat bounded external beta scorecard allowance as no-runtime/no-real-user-media only.',
       'Run the M16B E2E dry-run suite and M17 static smokes before internal testing.',
       'Do not process real user media or create public delivery links until storage/privacy/share policy is approved.',
     ],

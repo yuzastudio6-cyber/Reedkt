@@ -36,9 +36,12 @@ assert.ok(missingIncident.hardBlockers.some((blocker) => blocker.includes('Incid
 
 const betaReport = buildBetaReadinessReport({ e2eDryRunPassed: true, safetyDocsExist: true, costDocsExist: true })
 assert.equal(betaReport.goNoGo.internalDryRunTestingAllowed, true, 'internal dry-run testing can be allowed after E2E and safety docs')
-assert.equal(betaReport.goNoGo.externalBetaAllowed, false, 'external beta must remain blocked')
+assert.equal(betaReport.goNoGo.externalBetaAllowed, true, 'bounded external beta scorecard can be allowed')
+assert.equal(betaReport.goNoGo.realUserMediaBetaAllowed, false, 'real user media beta must remain blocked')
+assert.equal(betaReport.goNoGo.paidProductionAllowed, false, 'paid production must remain blocked')
 
 const betaNoGo = evaluateBetaGoNoGo({ e2eDryRunPassed: false, safetyDocsExist: true, costDocsExist: true })
 assert.equal(betaNoGo.internalDryRunTestingAllowed, false, 'internal dry-run testing should require E2E dry-run pass')
+assert.equal(betaNoGo.externalBetaAllowed, false, 'bounded external beta scorecard should require E2E dry-run pass')
 
 console.log('production-hardening-smoke passed')

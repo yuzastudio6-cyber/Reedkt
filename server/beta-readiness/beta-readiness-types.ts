@@ -20,7 +20,7 @@ export interface BetaScenarioReadiness {
 export interface BetaGoNoGoDecision {
   internalDryRunTestingAllowed: boolean
   limitedLocalDevInternalTestingAllowed: boolean
-  externalBetaAllowed: false
+  externalBetaAllowed: boolean
   realUserMediaBetaAllowed: false
   paidProductionAllowed: false
   blockers: string[]

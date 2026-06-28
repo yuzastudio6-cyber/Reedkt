@@ -261,6 +261,7 @@ for (const [key, expected] of Object.entries({
   defaultExternalBetaLaunchCandidateToolsWithProvidedEvidence: 0,
   fullEvidenceExternalBetaLaunchCandidateToolsWithProvidedEvidence: 21,
   admissionBundleExternalBetaLaunchCandidateToolsWithProvidedEvidence: 21,
+  sourceLaunchGapRuntimeProofBridgeAccepted: true,
   fullLaunchApprovalExternalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence: 21,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
@@ -282,6 +283,10 @@ for (const needle of [
   'buildAiGraphicsExternalBetaLaunchGoNoGo',
   'buildAiGraphicsExternalBetaLaunchGapReport',
   'evidenceAdmissionBundleAccepted',
+  'sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted',
+  'launchGapRuntimeProofBridgeAccepted',
+  'readyAfterNativeGpuCollectionRuntimeProofAcceptedWithProvidedEvidenceTools === 21',
+  'readyAfterNativeGpuCollectionBlockedPendingNativeGpuRuntimeProofTools === 0',
   'externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence',
   'externalBetaReadyNowTools: 0',
   'productionReadyNowTools: 0',
@@ -308,6 +313,7 @@ for (const needle of [
 for (const key of [
   'externalBetaLaunchGoNoGoContractPrepared',
   'sourceExternalBetaLaunchGapAccepted',
+  'sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted',
   'sourceExternalBetaEvidenceAdmissionBundleAccepted',
   'externalBetaLaunchCandidateWithProvidedEvidence',
   'externalBetaLaunchGoNoGoApprovalRecordAccepted',
@@ -324,8 +330,14 @@ for (const key of falseGateKeys) {
   if (docs.booleans?.[key] !== false) fail(`docs_required_false_not_false:${key}`)
 }
 if (!docsMd.includes('External-beta-ready now: `0`')) fail('markdown_missing_external_beta_ready_zero')
+if (!docsMd.includes('Source launch-gap runtime proof bridge accepted: `true`')) {
+  fail('markdown_missing_source_runtime_bridge_acceptance')
+}
 if (!scorecard.includes('ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks')) {
   fail('scorecard_missing_external_beta_launch_go_no_go_decision')
+}
+if (!scorecard.includes('Source launch-gap packets must preserve the runtime-proof bridge')) {
+  fail('scorecard_missing_launch_go_no_go_runtime_bridge_guard')
 }
 
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-launch-go-no-go-'))
@@ -401,18 +413,29 @@ const workerDispatchSmokeProofPath = writeJson(
     'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
   ]), 'external_beta_worker_dispatch_smoke_proof_source'),
 )
+const fullLaunchGapPacket = parseJsonOutput(
+  runNpm(launchGapScriptName, [
+    ...fullEvidenceArgs,
+    '--external-beta-evidence-packet',
+    fullPacketPath,
+    '--external-beta-worker-dispatch-smoke-proof',
+    workerDispatchSmokeProofPath,
+  ]),
+  'full_launch_gap_source',
+)
 const fullLaunchGapPath = writeJson(
   path.join(tempRoot, 'full-launch-gap-report.json'),
-  parseJsonOutput(
-    runNpm(launchGapScriptName, [
-      ...fullEvidenceArgs,
-      '--external-beta-evidence-packet',
-      fullPacketPath,
-      '--external-beta-worker-dispatch-smoke-proof',
-      workerDispatchSmokeProofPath,
-    ]),
-    'full_launch_gap_source',
-  ),
+  fullLaunchGapPacket,
+)
+const weakenedLaunchGapPath = writeJson(
+  path.join(tempRoot, 'weakened-launch-gap-report.json'),
+  {
+    ...fullLaunchGapPacket,
+    runtimeProofBridge: {
+      ...fullLaunchGapPacket.runtimeProofBridge,
+      readyAfterNativeGpuCollectionBlockedPendingNativeGpuRuntimeProofTools: 8,
+    },
+  },
 )
 
 const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_launch_go_no_go')
@@ -449,6 +472,11 @@ const packetFedApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
   fullLaunchGapPath,
   ...launchApprovalArgs,
 ]), 'packet_fed_approved_launch_go_no_go')
+const weakenedLaunchGapOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-launch-gap-report-packet',
+  weakenedLaunchGapPath,
+  ...launchApprovalArgs,
+]), 'weakened_launch_gap_launch_go_no_go')
 
 if (defaultOutput.status !== 'missing_external_beta_candidate_evidence') {
   fail(`default_status_unexpected:${defaultOutput.status}`)
@@ -488,6 +516,18 @@ if (admissionBundleOutput.booleans?.sourceExternalBetaLaunchGapAccepted !== fals
 if (!admissionBundleOutput.missingLaunchGoNoGoEvidence?.includes('external_beta_launch_ref')) {
   fail('admission_bundle_missing_launch_ref_not_reported')
 }
+if (packetFedApprovedOutput.sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted !== true) {
+  fail('packet_fed_source_runtime_bridge_not_accepted')
+}
+if (weakenedLaunchGapOutput.status !== 'missing_external_beta_candidate_evidence') {
+  fail(`weakened_launch_gap_status_unexpected:${weakenedLaunchGapOutput.status}`)
+}
+if (weakenedLaunchGapOutput.sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted !== false) {
+  fail('weakened_launch_gap_runtime_bridge_not_rejected')
+}
+if (weakenedLaunchGapOutput.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 0) {
+  fail('weakened_launch_gap_approved_tools_not_0')
+}
 
 for (const [label, output] of Object.entries({
   approvedOutput,
@@ -517,6 +557,7 @@ for (const output of [
   admissionBundleOutput,
   admissionBundleApprovedOutput,
   packetFedApprovedOutput,
+  weakenedLaunchGapOutput,
 ]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
@@ -658,6 +699,9 @@ console.log(JSON.stringify({
   admissionBundleStatus: admissionBundleOutput.status,
   admissionBundleApprovedStatus: admissionBundleApprovedOutput.status,
   packetFedApprovedStatus: packetFedApprovedOutput.status,
+  sourceLaunchGapRuntimeProofBridgeAccepted:
+    packetFedApprovedOutput.sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted,
+  weakenedLaunchGapStatus: weakenedLaunchGapOutput.status,
   externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence:
     approvedOutput.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence,
   externalBetaReadyNowTools: approvedOutput.externalBetaReadyNowTools,

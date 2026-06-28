@@ -25,6 +25,7 @@
     "defaultExternalBetaLaunchCandidateToolsWithProvidedEvidence": 0,
     "fullEvidenceExternalBetaLaunchCandidateToolsWithProvidedEvidence": 21,
     "admissionBundleExternalBetaLaunchCandidateToolsWithProvidedEvidence": 21,
+    "sourceLaunchGapRuntimeProofBridgeAccepted": true,
     "fullLaunchApprovalExternalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
@@ -99,6 +100,7 @@
   "booleans": {
     "externalBetaLaunchGoNoGoContractPrepared": true,
     "sourceExternalBetaLaunchGapAccepted": true,
+    "sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted": true,
     "sourceExternalBetaEvidenceAdmissionBundleAccepted": true,
     "externalBetaLaunchCandidateWithProvidedEvidence": true,
     "externalBetaLaunchGoNoGoApprovalRecordAccepted": true,

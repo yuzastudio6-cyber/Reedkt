@@ -14,6 +14,7 @@ It can also consume `external-beta-evidence-admission-bundle.json` directly. Tha
 - Default external-beta launch candidates with provided evidence: `0`
 - Full private/backend evidence launch candidates with provided evidence: `21`
 - Admission-bundle launch candidates with provided evidence: `21`
+- Source launch-gap runtime proof bridge accepted: `true`
 - Full launch approval tools with provided evidence: `21`
 - External-beta-ready now: `0`
 - Production-ready now: `0`

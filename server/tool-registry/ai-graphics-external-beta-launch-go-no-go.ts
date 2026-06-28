@@ -47,6 +47,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
   externalBetaLaunchCandidateToolsWithProvidedEvidence: number
   externalBetaLaunchCandidateCapabilitiesWithProvidedEvidence: number
   externalBetaLaunchGoNoGoApprovalRecordAccepted: boolean
+  sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted: boolean
   externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence: number
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
@@ -69,6 +70,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
   booleans: {
     externalBetaLaunchGoNoGoContractPrepared: true
     sourceExternalBetaLaunchGapAccepted: boolean
+    sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted: boolean
     sourceExternalBetaEvidenceAdmissionBundleAccepted: boolean
     externalBetaLaunchCandidateWithProvidedEvidence: boolean
     externalBetaLaunchGoNoGoApprovalRecordAccepted: boolean
@@ -173,9 +175,29 @@ function launchGapCandidateAccepted(
   sourceLaunchGapReport: AiGraphicsExternalBetaLaunchGapReport,
 ): boolean {
   return sourceLaunchGapReport.externalBetaCandidatesWithProvidedEvidenceTools === 21 &&
+    launchGapRuntimeProofBridgeAccepted(sourceLaunchGapReport) &&
     sourceLaunchGapReport.booleans.externalBetaCandidatesWithProvidedEvidence === true &&
     sourceLaunchGapReport.externalBetaReadyNowTools === 0 &&
     sourceLaunchGapReport.productionReadyNowTools === 0
+}
+
+function launchGapRuntimeProofBridgeAccepted(
+  sourceLaunchGapReport: AiGraphicsExternalBetaLaunchGapReport,
+): boolean {
+  return sourceLaunchGapReport.runtimeProofBridge?.checkedInRuntimeProofAcceptedWithProvidedEvidenceTools === 13 &&
+    sourceLaunchGapReport.runtimeProofBridge?.checkedInBlockedPendingNativeGpuRuntimeProofTools === 8 &&
+    sourceLaunchGapReport.runtimeProofBridge?.readyAfterNativeGpuCollectionRuntimeProofAcceptedWithProvidedEvidenceTools === 21 &&
+    sourceLaunchGapReport.runtimeProofBridge?.readyAfterNativeGpuCollectionNativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools === 8 &&
+    sourceLaunchGapReport.runtimeProofBridge?.readyAfterNativeGpuCollectionBlockedPendingNativeGpuRuntimeProofTools === 0 &&
+    sourceLaunchGapReport.runtimeProofBridge?.sourcePacketFlag === '--external-beta-native-gpu-proof-collection-packet' &&
+    sourceLaunchGapReport.runtimeProofBridge?.sourceCollectionDecision ===
+      'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready' &&
+    sourceLaunchGapReport.runtimeProofBridge?.perToolRecheckDecision ===
+      'external_beta_per_tool_runtime_proof_ready_with_runtime_blocks' &&
+    sourceLaunchGapReport.runtimeProofBridge?.gpuRuntimeShouldStartNow === false &&
+    sourceLaunchGapReport.launchCohorts?.cpuStaticAndBrowserCohortTools === 13 &&
+    sourceLaunchGapReport.launchCohorts?.nativeGpuModelCohortTools === 8 &&
+    sourceLaunchGapReport.launchCohorts?.allToolsCandidateAfterFullEvidence === 21
 }
 
 function evidenceAdmissionBundleAccepted(
@@ -207,6 +229,8 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     input.sourceExternalBetaLaunchGapReportPacket ??
     buildAiGraphicsExternalBetaLaunchGapReport(input)
   const sourceEvidenceAdmissionBundle = input.sourceExternalBetaEvidenceAdmissionBundlePacket ?? null
+  const sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted =
+    launchGapRuntimeProofBridgeAccepted(sourceLaunchGapReport)
   const sourceLaunchGapAccepted = launchGapCandidateAccepted(sourceLaunchGapReport)
   const sourceEvidenceAdmissionBundleAccepted = evidenceAdmissionBundleAccepted(
     input.sourceExternalBetaEvidenceAdmissionBundlePacket,
@@ -253,6 +277,7 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     externalBetaLaunchCandidateCapabilitiesWithProvidedEvidence:
       candidateWithProvidedEvidence ? 12 : 0,
     externalBetaLaunchGoNoGoApprovalRecordAccepted: approvalRecordAccepted,
+    sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted,
     externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence: approvedToolsWithProvidedEvidence,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
@@ -275,6 +300,7 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     booleans: {
       externalBetaLaunchGoNoGoContractPrepared: true,
       sourceExternalBetaLaunchGapAccepted: sourceLaunchGapAccepted,
+      sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted,
       sourceExternalBetaEvidenceAdmissionBundleAccepted:
         sourceEvidenceAdmissionBundleAccepted,
       externalBetaLaunchCandidateWithProvidedEvidence: candidateWithProvidedEvidence,

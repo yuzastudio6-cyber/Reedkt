@@ -7,6 +7,26 @@ on:
         description: "Type READ_STAGING_BETA_API_DEPLOY_INPUTS to run read-only staging API deploy input discovery"
         required: true
         type: string
+      artifact_region:
+        description: "Optional exact Artifact Registry region to validate without broad list permission"
+        required: false
+        type: string
+      artifact_repository:
+        description: "Optional exact Artifact Registry repository name to validate without broad list permission"
+        required: false
+        type: string
+      deployer_service_account:
+        description: "Optional exact deployer service account email to validate without broad list permission"
+        required: false
+        type: string
+      runtime_service_account:
+        description: "Optional exact Cloud Run runtime service account email to validate without broad list permission"
+        required: false
+        type: string
+      service_name:
+        description: "Optional staging service name; must remain reeditpro-api-staging when supplied"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -26,6 +46,11 @@ jobs:
       GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      EXACT_ARTIFACT_REGION: ${{ inputs.artifact_region }}
+      EXACT_ARTIFACT_REPOSITORY: ${{ inputs.artifact_repository }}
+      EXACT_DEPLOYER_SERVICE_ACCOUNT: ${{ inputs.deployer_service_account }}
+      EXACT_RUNTIME_SERVICE_ACCOUNT: ${{ inputs.runtime_service_account }}
+      EXACT_SERVICE_NAME: ${{ inputs.service_name }}
     steps:
       - name: Fail closed unless this is read-only staging input discovery
         shell: bash
@@ -36,6 +61,23 @@ jobs:
           test -n "${GCP_REGION}"
           test -n "${GCP_WORKLOAD_IDENTITY_PROVIDER}"
           test -n "${GCP_SERVICE_ACCOUNT}"
+          exact_inputs=0
+          for value in "${EXACT_ARTIFACT_REGION}" "${EXACT_ARTIFACT_REPOSITORY}" "${EXACT_DEPLOYER_SERVICE_ACCOUNT}" "${EXACT_RUNTIME_SERVICE_ACCOUNT}" "${EXACT_SERVICE_NAME}"; do
+            if test -n "${value}"; then
+              exact_inputs=$((exact_inputs + 1))
+            fi
+          done
+          if test "${exact_inputs}" -ne 0; then
+            test "${exact_inputs}" -eq 5
+            case "${EXACT_ARTIFACT_REGION}" in
+              us-central1|us-east1) ;;
+              *) echo "Exact artifact region must be us-central1 or us-east1." >&2; exit 1 ;;
+            esac
+            [[ "${EXACT_ARTIFACT_REPOSITORY}" =~ ^[a-z0-9][a-z0-9._-]{2,127}$ ]]
+            [[ "${EXACT_DEPLOYER_SERVICE_ACCOUNT}" =~ ^[a-z0-9._-]+@reeditpro\.iam\.gserviceaccount\.com$ ]]
+            [[ "${EXACT_RUNTIME_SERVICE_ACCOUNT}" =~ ^[a-z0-9._-]+@reeditpro\.iam\.gserviceaccount\.com$ ]]
+            test "${EXACT_SERVICE_NAME}" = "reeditpro-api-staging"
+          fi
 
       - name: Authenticate to Google Cloud with OIDC/WIF
         uses: google-github-actions/auth@v3
@@ -66,6 +108,14 @@ jobs:
             printf '%s' "${status}" > "${tmp}/${name}.status"
           }
 
+          skip() {
+            local name="$1"
+            local reason="$2"
+            : > "${tmp}/${name}.stdout"
+            printf '%s' "${reason}" > "${tmp}/${name}.stderr"
+            printf 'SKIPPED' > "${tmp}/${name}.status"
+          }
+
           capture artifact-us-central1 \
             gcloud artifacts repositories list \
               --project="${GCP_PROJECT_ID}" \
@@ -89,7 +139,36 @@ jobs:
               --region="${GCP_REGION}" \
               --format='value(metadata.name,status.url)'
 
-          python - "${tmp}" "${GCP_PROJECT_ID}" "${GCP_REGION}" "${GCP_SERVICE_ACCOUNT}" <<'PY'
+          if test -n "${EXACT_ARTIFACT_REGION}"; then
+            capture exact-artifact-repository \
+              gcloud artifacts repositories describe "${EXACT_ARTIFACT_REPOSITORY}" \
+                --project="${GCP_PROJECT_ID}" \
+                --location="${EXACT_ARTIFACT_REGION}" \
+                --format='value(name,format)'
+
+            capture exact-deployer-service-account \
+              gcloud iam service-accounts describe "${EXACT_DEPLOYER_SERVICE_ACCOUNT}" \
+                --project="${GCP_PROJECT_ID}" \
+                --format='value(email)'
+
+            capture exact-runtime-service-account \
+              gcloud iam service-accounts describe "${EXACT_RUNTIME_SERVICE_ACCOUNT}" \
+                --project="${GCP_PROJECT_ID}" \
+                --format='value(email)'
+
+            capture exact-cloud-run-service \
+              gcloud run services describe "${EXACT_SERVICE_NAME}" \
+                --project="${GCP_PROJECT_ID}" \
+                --region="${GCP_REGION}" \
+                --format='value(metadata.name,status.url)'
+          else
+            skip exact-artifact-repository 'exact artifact repository input not supplied'
+            skip exact-deployer-service-account 'exact deployer service account input not supplied'
+            skip exact-runtime-service-account 'exact runtime service account input not supplied'
+            skip exact-cloud-run-service 'exact Cloud Run service input not supplied'
+          fi
+
+          python - "${tmp}" "${GCP_PROJECT_ID}" "${GCP_REGION}" "${GCP_SERVICE_ACCOUNT}" "${EXACT_ARTIFACT_REGION}" "${EXACT_ARTIFACT_REPOSITORY}" "${EXACT_DEPLOYER_SERVICE_ACCOUNT}" "${EXACT_RUNTIME_SERVICE_ACCOUNT}" "${EXACT_SERVICE_NAME}" <<'PY'
           import json
           import pathlib
           import sys
@@ -98,17 +177,32 @@ jobs:
           project_id = sys.argv[2]
           region = sys.argv[3]
           wif_service_account = sys.argv[4]
+          exact_artifact_region = sys.argv[5]
+          exact_artifact_repository = sys.argv[6]
+          exact_deployer_service_account = sys.argv[7]
+          exact_runtime_service_account = sys.argv[8]
+          exact_service_name = sys.argv[9]
 
           def read_lines(path):
               return [line.strip() for line in path.read_text(encoding='utf-8').splitlines() if line.strip()]
 
           def probe(name):
-              status = int((root / f'{name}.status').read_text(encoding='utf-8'))
+              status_text = (root / f'{name}.status').read_text(encoding='utf-8')
               stdout = read_lines(root / f'{name}.stdout')
               stderr = (root / f'{name}.stderr').read_text(encoding='utf-8').strip()
+              if status_text == 'SKIPPED':
+                  return {
+                      'status': 'skipped',
+                      'ok': False,
+                      'skipped': True,
+                      'stdout': stdout,
+                      'stderr': stderr[-3000:],
+                  }
+              status = int(status_text)
               return {
                   'status': status,
                   'ok': status == 0,
+                  'skipped': False,
                   'stdout': stdout,
                   'stderr': stderr[-3000:],
               }
@@ -118,26 +212,61 @@ jobs:
               'artifactRepositoriesUsEast1': probe('artifact-us-east1'),
               'serviceAccounts': probe('service-accounts'),
               'cloudRunServices': probe('cloud-run-services'),
+              'exactArtifactRepository': probe('exact-artifact-repository'),
+              'exactDeployerServiceAccount': probe('exact-deployer-service-account'),
+              'exactRuntimeServiceAccount': probe('exact-runtime-service-account'),
+              'exactCloudRunService': probe('exact-cloud-run-service'),
           }
-          failures = [name for name, result in probes.items() if not result['ok']]
+          broad_probe_names = [
+              'artifactRepositoriesUsCentral1',
+              'artifactRepositoriesUsEast1',
+              'serviceAccounts',
+              'cloudRunServices',
+          ]
+          exact_probe_names = [
+              'exactArtifactRepository',
+              'exactDeployerServiceAccount',
+              'exactRuntimeServiceAccount',
+          ]
+          exact_inputs_provided = all([
+              exact_artifact_region,
+              exact_artifact_repository,
+              exact_deployer_service_account,
+              exact_runtime_service_account,
+              exact_service_name,
+          ])
+          broad_failures = [name for name in broad_probe_names if not probes[name]['ok']]
+          exact_failures = [name for name in exact_probe_names if not probes[name]['ok']]
+          required_failures = exact_failures if exact_inputs_provided else broad_failures
           artifact_repositories = {
               'us-central1': probes['artifactRepositoriesUsCentral1']['stdout'],
               'us-east1': probes['artifactRepositoriesUsEast1']['stdout'],
           }
 
           summary = {
-              'ok': not failures,
-              'mode': 'read_only_staging_api_deploy_input_discovery',
+              'ok': not required_failures,
+              'mode': 'read_only_staging_api_exact_input_validation' if exact_inputs_provided else 'read_only_staging_api_deploy_input_discovery',
               'projectId': project_id,
               'region': region,
               'wifServiceAccount': wif_service_account,
-              'probeFailures': failures,
+              'probeFailures': required_failures,
+              'broadProbeFailures': broad_failures,
+              'exactProbeFailures': exact_failures,
               'probes': probes,
               'artifactRepositories': artifact_repositories,
               'serviceAccounts': probes['serviceAccounts']['stdout'],
               'cloudRunServices': probes['cloudRunServices']['stdout'],
+              'exactInputsProvided': exact_inputs_provided,
+              'ownerSuppliedInputs': {
+                  'artifactRegion': exact_artifact_region,
+                  'artifactRepository': exact_artifact_repository,
+                  'deployerServiceAccount': exact_deployer_service_account,
+                  'runtimeServiceAccount': exact_runtime_service_account,
+                  'serviceName': exact_service_name,
+              } if exact_inputs_provided else None,
               'suggestedDeploySourceRef': 'codex/sound-music-audio-1abc-checkpoint',
               'candidateServiceName': 'reeditpro-api-staging',
+              'nextSafeAction': 'dispatch_beta_readiness_api_staging_deploy_after_exact_inputs_are_owner_approved' if exact_inputs_provided and not required_failures else 'resolve_read_only_iam_or_supply_exact_owner_approved_inputs',
               'blockedScopes': [
                   'cloud_run_deploy_not_run',
                   'docker_build_not_run',
@@ -157,6 +286,6 @@ jobs:
               '```json\\n' + json.dumps(summary, indent=2, sort_keys=True) + '\\n```\\n',
               encoding='utf-8',
           )
-          if failures:
-              raise SystemExit('Read-only staging API deploy input discovery is blocked: ' + ', '.join(failures))
+          if required_failures:
+              raise SystemExit('Read-only staging API deploy input discovery is blocked: ' + ', '.join(required_failures))
           PY

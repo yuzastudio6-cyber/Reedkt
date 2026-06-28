@@ -51,6 +51,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json',
   'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.md',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json',
 ]
 
 const falseBooleanKeys = [
@@ -149,6 +150,36 @@ function runProof(args = []) {
   return JSON.parse(output)
 }
 
+function runWorkerDispatchSmoke(args = []) {
+  const output = execFileSync(
+    'npm',
+    ['run', '--silent', 'ai-graphics:external-beta-worker-dispatch-smoke', '--', ...args],
+    {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      },
+    },
+  )
+  return JSON.parse(output)
+}
+
+function runWorkerDispatchProof(args = []) {
+  const output = execFileSync(
+    'npm',
+    ['run', '--silent', 'ai-graphics:external-beta-worker-dispatch-smoke-proof', '--', ...args],
+    {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      },
+    },
+  )
+  return JSON.parse(output)
+}
+
 function git(args) {
   return execFileSync('git', args, {
     encoding: 'utf8',
@@ -165,7 +196,13 @@ function assertCount(record, key, expected, label) {
   }
 }
 
-function assertBooleanMap(record, label, expectedPreflightReady, expectedProofAccepted) {
+function assertBooleanMap(
+  record,
+  label,
+  expectedPreflightReady,
+  expectedProofAccepted,
+  expectedWorkerDispatchProofAccepted,
+) {
   const booleans = record?.booleans ?? {}
   for (const key of falseBooleanKeys) {
     if (booleans[key] !== false) fail(`${label}_${key}_not_false`)
@@ -198,6 +235,12 @@ function assertBooleanMap(record, label, expectedPreflightReady, expectedProofAc
     booleans.serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence !== expectedProofAccepted
   ) {
     fail(`${label}_service_role_proof_unexpected:${booleans.serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence}`)
+  }
+  if (
+    typeof expectedWorkerDispatchProofAccepted === 'boolean' &&
+    booleans.workerDispatchSmokeProofAcceptedWithProvidedEvidence !== expectedWorkerDispatchProofAccepted
+  ) {
+    fail(`${label}_worker_dispatch_proof_unexpected:${booleans.workerDispatchSmokeProofAcceptedWithProvidedEvidence}`)
   }
 }
 
@@ -268,6 +311,33 @@ function serviceRoleQueueSmokeResultFixture() {
   }
 }
 
+function workerDispatchReadinessFixture() {
+  return {
+    decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
+    sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
+    workerDispatchReadinessPreparedWithProvidedEvidence: true,
+    workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
+    workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
+    gpuRuntimeTargetedTools: 8,
+    acceptedSourceEvidence: {
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+    },
+    records: allTools.map((toolId) => ({
+      toolId,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    })),
+    liveWorkerLeasesCreatedNow: 0,
+    liveWorkerDispatchesNow: 0,
+    liveToolExecutionsNow: 0,
+    booleans: {
+      sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
+      agentCanExecuteToolsNow: false,
+      workerDispatchPerformed: false,
+      gpuRuntimeShouldStartNow: false,
+    },
+  }
+}
+
 for (const filePath of requiredFiles) read(filePath)
 
 const packageJson = readJson('package.json')
@@ -305,14 +375,30 @@ if (docsJson.counts?.defaultServiceRoleQueueSmokePreflightReadyToExecute !== 0) 
 if (docsJson.counts?.defaultServiceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence !== 0) {
   fail('docs_default_service_role_proof_tools_not_0')
 }
+if (docsJson.counts?.defaultWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence !== 0) {
+  fail('docs_default_worker_dispatch_proof_tools_not_0')
+}
 if (docsJson.counts?.fullEvidenceServiceRoleQueueSmokePreflightReadyToExecute !== 1) {
   fail('docs_full_service_role_ready_not_1')
 }
 if (docsJson.counts?.fullEvidenceServiceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence !== 21) {
   fail('docs_full_service_role_proof_tools_not_21')
 }
+if (docsJson.counts?.fullEvidenceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('docs_full_worker_dispatch_proof_tools_not_21')
+}
+if (docsJson.counts?.fullEvidenceWorkerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence !== 21) {
+  fail('docs_full_worker_dispatch_smoke_jobs_not_21')
+}
+if (docsJson.counts?.fullEvidenceWorkerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence !== 21) {
+  fail('docs_full_worker_dispatch_leases_not_21')
+}
 if (docsJson.counts?.fullEvidenceExternalBetaCandidateReadyWithProvidedEvidenceTools !== 21) {
   fail('docs_full_evidence_candidate_count_not_21')
+}
+if (docsJson.sourceEvidence?.externalBetaWorkerDispatchSmokeProof !==
+  'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json') {
+  fail('docs_missing_worker_dispatch_proof_source_evidence')
 }
 if (docsJson.sourceEvidence?.externalBetaServiceRoleQueueSmokePreflight !==
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json') {
@@ -331,11 +417,17 @@ if (docsJson.booleans?.defaultServiceRoleQueueSmokeReadyToExecute !== false) {
 if (docsJson.booleans?.defaultServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence !== false) {
   fail('docs_default_service_role_proof_not_false')
 }
+if (docsJson.booleans?.defaultWorkerDispatchSmokeProofAcceptedWithProvidedEvidence !== false) {
+  fail('docs_default_worker_dispatch_proof_not_false')
+}
 if (docsJson.booleans?.fullEvidenceServiceRoleQueueSmokeReadyToExecute !== true) {
   fail('docs_full_service_role_ready_not_true')
 }
 if (docsJson.booleans?.fullEvidenceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence !== true) {
   fail('docs_full_service_role_proof_not_true')
+}
+if (docsJson.booleans?.fullEvidenceWorkerDispatchSmokeProofAcceptedWithProvidedEvidence !== true) {
+  fail('docs_full_worker_dispatch_proof_not_true')
 }
 assertBooleanMap(docsJson, 'docs', undefined)
 
@@ -351,8 +443,9 @@ assertCount(defaultReport, 'externalBetaCandidateReadyWithProvidedEvidenceTools'
 assertCount(defaultReport, 'serviceRoleQueueSmokePreflightPayloadsPrepared', 21, 'default')
 assertCount(defaultReport, 'serviceRoleQueueSmokePreflightReadyToExecute', 0, 'default')
 assertCount(defaultReport, 'serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence', 0, 'default')
+assertCount(defaultReport, 'workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence', 0, 'default')
 assertCount(defaultReport, 'externalBetaReadyNowTools', 0, 'default')
-assertBooleanMap(defaultReport, 'default', false, false)
+assertBooleanMap(defaultReport, 'default', false, false, false)
 assertTools(defaultReport, 'default')
 if (defaultReport.serviceRoleQueueSmokePreflight?.status !== 'missing_required_environment_or_flags') {
   fail(`default_service_role_preflight_status:${defaultReport.serviceRoleQueueSmokePreflight?.status}`)
@@ -424,6 +517,48 @@ fs.writeFileSync(
   serviceRoleQueueSmokeProofPath,
   `${JSON.stringify(serviceRoleQueueSmokeProof, null, 2)}\n`,
 )
+const workerDispatchReadinessPath = path.join(tmpDir, 'worker-dispatch-readiness.json')
+fs.writeFileSync(
+  workerDispatchReadinessPath,
+  `${JSON.stringify(workerDispatchReadinessFixture(), null, 2)}\n`,
+)
+const workerDispatchSmoke = runWorkerDispatchSmoke([
+  '--external-beta-worker-dispatch-readiness-packet',
+  workerDispatchReadinessPath,
+  '--external-beta-worker-dispatch-smoke-ref',
+  'private://ai-graphics/external-beta/worker-dispatch-smoke/report.json',
+  '--external-beta-worker-dispatch-smoke-telemetry-ref',
+  'private://ai-graphics/external-beta/worker-dispatch-smoke/telemetry.json',
+  '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+  'private://ai-graphics/external-beta/worker-dispatch-smoke/lease-audit.json',
+  '--external-beta-worker-dispatch-smoke-cleanup-ref',
+  'private://ai-graphics/external-beta/worker-dispatch-smoke/cleanup.json',
+])
+const workerDispatchSmokePath = path.join(tmpDir, 'worker-dispatch-smoke.json')
+fs.writeFileSync(
+  workerDispatchSmokePath,
+  `${JSON.stringify(workerDispatchSmoke, null, 2)}\n`,
+)
+const workerDispatchSmokeProof = runWorkerDispatchProof([
+  '--external-beta-worker-dispatch-smoke-result',
+  workerDispatchSmokePath,
+  '--external-beta-worker-dispatch-smoke-evidence-ref',
+  'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/evidence.json',
+  '--external-beta-worker-dispatch-smoke-telemetry-ref',
+  'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/telemetry.json',
+  '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+  'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/lease-audit.json',
+  '--external-beta-worker-dispatch-smoke-cleanup-proof-ref',
+  'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
+])
+if (workerDispatchSmokeProof.proofAcceptedWithProvidedEvidence !== true) {
+  fail('worker_dispatch_smoke_proof_not_accepted')
+}
+const workerDispatchSmokeProofPath = path.join(tmpDir, 'worker-dispatch-smoke-proof.json')
+fs.writeFileSync(
+  workerDispatchSmokeProofPath,
+  `${JSON.stringify(workerDispatchSmokeProof, null, 2)}\n`,
+)
 
 const preflightOnlyFullEvidenceReport = runCli([
   '--all-shared-gates-passed',
@@ -442,7 +577,29 @@ if (preflightOnlyFullEvidenceReport.status !== 'installed_and_mapped_runtime_blo
 assertCount(preflightOnlyFullEvidenceReport, 'externalBetaCandidateReadyWithProvidedEvidenceTools', 0, 'preflight_only_full')
 assertCount(preflightOnlyFullEvidenceReport, 'serviceRoleQueueSmokePreflightReadyToExecute', 1, 'preflight_only_full')
 assertCount(preflightOnlyFullEvidenceReport, 'serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence', 0, 'preflight_only_full')
-assertBooleanMap(preflightOnlyFullEvidenceReport, 'preflight_only_full', true, false)
+assertCount(preflightOnlyFullEvidenceReport, 'workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence', 0, 'preflight_only_full')
+assertBooleanMap(preflightOnlyFullEvidenceReport, 'preflight_only_full', true, false, false)
+
+const queueProofOnlyFullEvidenceReport = runCli([
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
+  '--internal-beta-owner-approval-granted',
+  '--all-external-beta-evidence-passed',
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
+  '--external-beta-service-role-queue-smoke-proof-packet',
+  serviceRoleQueueSmokeProofPath,
+])
+if (queueProofOnlyFullEvidenceReport.status !== 'installed_and_mapped_runtime_blocked') {
+  fail(`queue_proof_only_full_status:${queueProofOnlyFullEvidenceReport.status}`)
+}
+assertCount(queueProofOnlyFullEvidenceReport, 'externalBetaCandidateReadyWithProvidedEvidenceTools', 0, 'queue_proof_only_full')
+assertCount(queueProofOnlyFullEvidenceReport, 'serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence', 21, 'queue_proof_only_full')
+assertCount(queueProofOnlyFullEvidenceReport, 'workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence', 0, 'queue_proof_only_full')
+assertBooleanMap(queueProofOnlyFullEvidenceReport, 'queue_proof_only_full', true, true, false)
 
 const fullEvidenceReport = runCli([
   '--all-shared-gates-passed',
@@ -456,6 +613,8 @@ const fullEvidenceReport = runCli([
   readyServiceRolePreflightPath,
   '--external-beta-service-role-queue-smoke-proof-packet',
   serviceRoleQueueSmokeProofPath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
 ])
 if (
   fullEvidenceReport.status !==
@@ -469,15 +628,21 @@ assertCount(fullEvidenceReport, 'serviceRoleQueueSmokePreflightPayloadsPrepared'
 assertCount(fullEvidenceReport, 'serviceRoleQueueSmokePreflightReadyToExecute', 1, 'full')
 assertCount(fullEvidenceReport, 'serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence', 21, 'full')
 assertCount(fullEvidenceReport, 'serviceRoleQueueSmokeProofLiveQueueWritesAcceptedWithProvidedEvidence', 21, 'full')
+assertCount(fullEvidenceReport, 'workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence', 21, 'full')
+assertCount(fullEvidenceReport, 'workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence', 21, 'full')
+assertCount(fullEvidenceReport, 'workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence', 21, 'full')
 assertCount(fullEvidenceReport, 'externalBetaReadyNowTools', 0, 'full')
 assertCount(fullEvidenceReport, 'productionReadyNowTools', 0, 'full')
-assertBooleanMap(fullEvidenceReport, 'full', true, true)
+assertBooleanMap(fullEvidenceReport, 'full', true, true, true)
 assertTools(fullEvidenceReport, 'full')
 if (fullEvidenceReport.booleans?.externalBetaCandidateReadyWithProvidedEvidence !== true) {
   fail('full_evidence_candidate_boolean_not_true')
 }
 if (fullEvidenceReport.serviceRoleQueueSmokePreflight?.readyToExecuteLiveNonProductionSmoke !== true) {
   fail('full_service_role_preflight_ready_not_true')
+}
+if (fullEvidenceReport.workerDispatchSmokeProof?.proofAcceptedWithProvidedEvidence !== true) {
+  fail('full_worker_dispatch_proof_not_accepted')
 }
 
 const claimScanFiles = requiredFiles.filter((filePath) => !filePath.endsWith('-diagnostics.mjs'))
@@ -523,6 +688,8 @@ console.log(JSON.stringify({
     defaultReport.counts.externalBetaCandidateReadyWithProvidedEvidenceTools,
   fullEvidenceExternalBetaCandidateReadyWithProvidedEvidenceTools:
     fullEvidenceReport.counts.externalBetaCandidateReadyWithProvidedEvidenceTools,
+  fullEvidenceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence:
+    fullEvidenceReport.counts.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence,
   externalBetaReadyNowTools: defaultReport.counts.externalBetaReadyNowTools,
   productionReadyNowTools: defaultReport.counts.productionReadyNowTools,
   gpuRuntimeShouldStartNow: defaultReport.booleans.gpuRuntimeShouldStartNow,

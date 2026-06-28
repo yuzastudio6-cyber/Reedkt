@@ -19,6 +19,10 @@ import {
 import type {
   AiGraphicsExternalBetaServiceRoleQueueSmokeProof,
 } from './ai-graphics-external-beta-service-role-queue-smoke-proof'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_SMOKE_PROOF_DECISION,
+  type AiGraphicsExternalBetaWorkerDispatchSmokeProof,
+} from './ai-graphics-external-beta-worker-dispatch-smoke-proof'
 import type {
   ProductionRegistryWorkerType,
   ProductionToolId,
@@ -81,6 +85,9 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     serviceRoleQueueSmokePreflightReadyToExecute: 0 | 1
     serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: number
     serviceRoleQueueSmokeProofLiveQueueWritesAcceptedWithProvidedEvidence: number
+    workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence: number
+    workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence: number
+    workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence: number
     externalBetaReadyNowTools: 0
     productionReadyNowTools: 0
   }
@@ -96,6 +103,7 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
   sourceExternalBetaReadinessGate: AiGraphicsExternalBetaReadinessGate
   serviceRoleQueueSmokePreflight: AiGraphicsExternalBetaServiceRoleQueueSmokePreflight
   serviceRoleQueueSmokeProof: AiGraphicsExternalBetaServiceRoleQueueSmokeProof | null
+  workerDispatchSmokeProof: AiGraphicsExternalBetaWorkerDispatchSmokeProof | null
   crossOwnerCoordination: AiGraphicsCrossOwnerCoordinationPacket
   tools: AiGraphicsExternalBetaEndToEndToolReadiness[]
   nextMilestones: string[]
@@ -120,6 +128,9 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence: boolean
     serviceRoleQueueSmokeProofQueueWritesAcceptedWithProvidedEvidence: boolean
     serviceRoleQueueSmokeProofWorkerClaimsAcceptedWithProvidedEvidence: boolean
+    workerDispatchSmokeProofAcceptedWithProvidedEvidence: boolean
+    workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence: boolean
+    workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence: boolean
     externalBetaCandidateReadyWithProvidedEvidence: boolean
     externalBetaReadyNow: false
     productionReadyNow: false
@@ -205,11 +216,13 @@ function statusFromGate(input: {
   gate: AiGraphicsExternalBetaReadinessGate
   serviceRoleQueueSmokePreflight: AiGraphicsExternalBetaServiceRoleQueueSmokePreflight
   serviceRoleQueueSmokeProofAccepted: boolean
+  workerDispatchSmokeProofAccepted: boolean
 }):
   AiGraphicsExternalBetaEndToEndReadinessStatus {
   return input.gate.externalBetaReadyWithProvidedEvidenceTools === 21 &&
     input.serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke === true &&
-    input.serviceRoleQueueSmokeProofAccepted
+    input.serviceRoleQueueSmokeProofAccepted &&
+    input.workerDispatchSmokeProofAccepted
     ? 'external_beta_candidate_with_provided_evidence_runtime_still_blocked'
     : 'installed_and_mapped_runtime_blocked'
 }
@@ -237,6 +250,35 @@ function serviceRoleQueueSmokeProofAccepted(
   )
 }
 
+function workerDispatchSmokeProofAccepted(
+  packet: AiGraphicsExternalBetaWorkerDispatchSmokeProof | undefined,
+): packet is AiGraphicsExternalBetaWorkerDispatchSmokeProof {
+  return Boolean(
+    packet &&
+      packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_SMOKE_PROOF_DECISION &&
+      packet.decision === 'external_beta_worker_dispatch_smoke_proof_accepted_with_runtime_blocks' &&
+      packet.proofAcceptedWithProvidedEvidence === true &&
+      packet.counts.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence === 21 &&
+      packet.counts.sourceSmokeJobsCompletedWithProvidedEvidence === 21 &&
+      packet.counts.sourceCapabilityScenariosCompletedWithProvidedEvidence === 12 &&
+      packet.counts.sourceInMemoryLeaseRecordsCreated === 21 &&
+      packet.counts.sourceInMemoryLeaseRecordsReleased === 21 &&
+      packet.counts.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+      packet.counts.sourceLiveWorkerLeasesCreatedNow === 0 &&
+      packet.counts.sourceLiveWorkerDispatchesNow === 0 &&
+      packet.counts.sourceLiveToolExecutionsNow === 0 &&
+      packet.counts.externalBetaReadyNowTools === 0 &&
+      packet.counts.productionReadyNowTools === 0 &&
+      packet.evidence.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === true &&
+      packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+      packet.booleans.agentCanExecuteToolsNow === false &&
+      packet.booleans.workerDispatchPerformed === false &&
+      packet.booleans.gpuRuntimeShouldStartNow === false &&
+      packet.booleans.externalBetaReadyNow === false &&
+      packet.booleans.productionReadyNow === false,
+  )
+}
+
 export function buildAiGraphicsExternalBetaEndToEndReadiness(
   input: AiGraphicsExternalBetaEndToEndReadinessInput = {},
 ): AiGraphicsExternalBetaEndToEndReadiness {
@@ -247,6 +289,10 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
   const serviceRoleQueueSmokeProof = input.externalBetaServiceRoleQueueSmokeProof ?? null
   const sourceServiceRoleQueueSmokeProofAccepted = serviceRoleQueueSmokeProofAccepted(
     input.externalBetaServiceRoleQueueSmokeProof,
+  )
+  const workerDispatchSmokeProof = input.externalBetaWorkerDispatchSmokeProof ?? null
+  const sourceWorkerDispatchSmokeProofAccepted = workerDispatchSmokeProofAccepted(
+    input.externalBetaWorkerDispatchSmokeProof,
   )
   const crossOwnerCoordination = buildAiGraphicsCrossOwnerCoordinationPacket()
   const sourceGateToolsById = gateByTool(sourceExternalBetaReadinessGate)
@@ -316,12 +362,16 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
     sourceServiceRoleQueueSmokeProofAccepted
       ? undefined
       : 'saved service-role queue smoke proof is not accepted with provided evidence',
+    sourceWorkerDispatchSmokeProofAccepted
+      ? undefined
+      : 'saved worker-dispatch smoke proof is not accepted with provided evidence',
   ].filter((blocker): blocker is string => Boolean(blocker))
 
   const externalBetaCandidateReadyWithProvidedEvidence =
     sourceExternalBetaReadinessGate.externalBetaReadyWithProvidedEvidenceTools === 21 &&
     serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke === true &&
     sourceServiceRoleQueueSmokeProofAccepted &&
+    sourceWorkerDispatchSmokeProofAccepted &&
     globalBlockers.length === 0
 
   return {
@@ -330,6 +380,7 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       gate: sourceExternalBetaReadinessGate,
       serviceRoleQueueSmokePreflight,
       serviceRoleQueueSmokeProofAccepted: sourceServiceRoleQueueSmokeProofAccepted,
+      workerDispatchSmokeProofAccepted: sourceWorkerDispatchSmokeProofAccepted,
     }),
     sourceExternalBetaReadinessGateDecision: sourceExternalBetaReadinessGate.decision,
     sourceCrossOwnerCoordinationDecision: crossOwnerCoordination.decision,
@@ -365,6 +416,18 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
         sourceServiceRoleQueueSmokeProofAccepted && serviceRoleQueueSmokeProof
           ? serviceRoleQueueSmokeProof.counts.sourceLiveQueueWritesAcceptedWithProvidedEvidence
           : 0,
+      workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence:
+        sourceWorkerDispatchSmokeProofAccepted && workerDispatchSmokeProof
+          ? workerDispatchSmokeProof.counts.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence
+          : 0,
+      workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence:
+        sourceWorkerDispatchSmokeProofAccepted && workerDispatchSmokeProof
+          ? workerDispatchSmokeProof.counts.sourceSmokeJobsCompletedWithProvidedEvidence
+          : 0,
+      workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence:
+        sourceWorkerDispatchSmokeProofAccepted && workerDispatchSmokeProof
+          ? workerDispatchSmokeProof.counts.sourceInMemoryLeaseRecordsCreated
+          : 0,
       externalBetaReadyNowTools: 0,
       productionReadyNowTools: 0,
     },
@@ -380,6 +443,7 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
     sourceExternalBetaReadinessGate,
     serviceRoleQueueSmokePreflight,
     serviceRoleQueueSmokeProof,
+    workerDispatchSmokeProof,
     crossOwnerCoordination,
     tools,
     nextMilestones,
@@ -418,6 +482,15 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       serviceRoleQueueSmokeProofWorkerClaimsAcceptedWithProvidedEvidence:
         sourceServiceRoleQueueSmokeProofAccepted &&
         serviceRoleQueueSmokeProof?.counts.sourceWorkerClaimRowsAcceptedWithProvidedEvidence === 21,
+      workerDispatchSmokeProofAcceptedWithProvidedEvidence:
+        sourceWorkerDispatchSmokeProofAccepted,
+      workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence:
+        sourceWorkerDispatchSmokeProofAccepted &&
+        workerDispatchSmokeProof?.counts.sourceSmokeJobsCompletedWithProvidedEvidence === 21,
+      workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence:
+        sourceWorkerDispatchSmokeProofAccepted &&
+        workerDispatchSmokeProof?.counts.sourceInMemoryLeaseRecordsCreated === 21 &&
+        workerDispatchSmokeProof?.counts.sourceInMemoryLeaseRecordsReleased === 21,
       externalBetaCandidateReadyWithProvidedEvidence,
       externalBetaReadyNow: false,
       productionReadyNow: false,

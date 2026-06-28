@@ -38,6 +38,22 @@
     "external beta rollback and incident-response runbook is not approved for live users",
     "external beta private artifact retention and support ownership are not approved"
   ],
+  "runtimeProofBridge": {
+    "checkedInRuntimeProofAcceptedWithProvidedEvidenceTools": 13,
+    "checkedInBlockedPendingNativeGpuRuntimeProofTools": 8,
+    "readyAfterNativeGpuCollectionRuntimeProofAcceptedWithProvidedEvidenceTools": 21,
+    "readyAfterNativeGpuCollectionNativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools": 8,
+    "readyAfterNativeGpuCollectionBlockedPendingNativeGpuRuntimeProofTools": 0,
+    "sourcePacketFlag": "--external-beta-native-gpu-proof-collection-packet",
+    "sourceCollectionDecision": "external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready",
+    "perToolRecheckDecision": "external_beta_per_tool_runtime_proof_ready_with_runtime_blocks",
+    "gpuRuntimeShouldStartNow": false
+  },
+  "launchCohorts": {
+    "cpuStaticAndBrowserCohortTools": 13,
+    "nativeGpuModelCohortTools": 8,
+    "allToolsCandidateAfterFullEvidence": 21
+  },
   "externalBetaLaunchSequence": [
     "generate local-only external-beta evidence templates",
     "replace rejected placeholders with private/backend refs",

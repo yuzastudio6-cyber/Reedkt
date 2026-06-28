@@ -40,6 +40,24 @@ export interface AiGraphicsExternalBetaLaunchGapReport {
   planningSelectableTools: 21
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
   gpuRuntimeOnDemandOnly: true
+  runtimeProofBridge: {
+    checkedInRuntimeProofAcceptedWithProvidedEvidenceTools: 13
+    checkedInBlockedPendingNativeGpuRuntimeProofTools: 8
+    readyAfterNativeGpuCollectionRuntimeProofAcceptedWithProvidedEvidenceTools: 21
+    readyAfterNativeGpuCollectionNativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 8
+    readyAfterNativeGpuCollectionBlockedPendingNativeGpuRuntimeProofTools: 0
+    sourcePacketFlag: '--external-beta-native-gpu-proof-collection-packet'
+    sourceCollectionDecision:
+      'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready'
+    perToolRecheckDecision:
+      'external_beta_per_tool_runtime_proof_ready_with_runtime_blocks'
+    gpuRuntimeShouldStartNow: false
+  }
+  launchCohorts: {
+    cpuStaticAndBrowserCohortTools: 13
+    nativeGpuModelCohortTools: 8
+    allToolsCandidateAfterFullEvidence: 21
+  }
   externalBetaCandidatesWithProvidedEvidenceTools: number
   externalBetaReadyNowTools: 0
   externalBetaBlockedNowTools: 21
@@ -172,6 +190,24 @@ export function buildAiGraphicsExternalBetaLaunchGapReport(
     planningSelectableTools: readinessGate.planningSelectableTools,
     gpuRuntimeTargetedTools: readinessGate.gpuRuntimeTargetedTools,
     gpuRuntimeOnDemandOnly: true,
+    runtimeProofBridge: {
+      checkedInRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
+      checkedInBlockedPendingNativeGpuRuntimeProofTools: 8,
+      readyAfterNativeGpuCollectionRuntimeProofAcceptedWithProvidedEvidenceTools: 21,
+      readyAfterNativeGpuCollectionNativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 8,
+      readyAfterNativeGpuCollectionBlockedPendingNativeGpuRuntimeProofTools: 0,
+      sourcePacketFlag: '--external-beta-native-gpu-proof-collection-packet',
+      sourceCollectionDecision:
+        'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready',
+      perToolRecheckDecision:
+        'external_beta_per_tool_runtime_proof_ready_with_runtime_blocks',
+      gpuRuntimeShouldStartNow: false,
+    },
+    launchCohorts: {
+      cpuStaticAndBrowserCohortTools: 13,
+      nativeGpuModelCohortTools: 8,
+      allToolsCandidateAfterFullEvidence: 21,
+    },
     externalBetaCandidatesWithProvidedEvidenceTools,
     externalBetaReadyNowTools: 0,
     externalBetaBlockedNowTools: 21,

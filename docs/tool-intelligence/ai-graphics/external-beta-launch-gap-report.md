@@ -27,6 +27,21 @@ This report is the external launch view of the AI graphics tool lane. It starts 
 - External beta rollback and incident-response runbook is not approved for live users.
 - External beta private artifact retention and support ownership are not approved.
 
+## Runtime Proof Bridge
+
+- Checked-in per-tool runtime proof accepted with provided evidence: `13`
+- Checked-in GPU/model tools blocked pending native proof: `8`
+- Recheck after `--external-beta-native-gpu-proof-collection-packet`: `21` accepted with provided evidence
+- Native GPU/model tools accepted after collection: `8`
+- GPU/model tools blocked after collection: `0`
+- GPU runtime starts now: `false`
+
+The external launch split is `13` CPU/static/browser JavaScript tools plus `8`
+native GPU/model tools. The GPU/model cohort does not CPU-fallback; it becomes
+launch-candidate evidence only after the native linux/amd64 NVIDIA L4 collection
+packet is accepted, and GPU remains on-demand only for a later approved
+worker/tool call.
+
 ## Launch Sequence
 
 1. Generate local-only external-beta evidence templates with `ai-graphics:external-beta-evidence-scaffold`.

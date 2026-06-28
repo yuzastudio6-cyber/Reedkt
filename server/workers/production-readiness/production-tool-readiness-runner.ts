@@ -68,6 +68,16 @@ const sourceInstallReviewedToolIds = new Set<ProductionToolId>([
   'sharp',
   'remotion',
 ])
+const pendingManualReviewClosedToolIds = new Set<ProductionToolId>([
+  'duckdb',
+  'polars',
+  'opentimelineio',
+  'pyav',
+  'pyscenedetect',
+  'opencv',
+  'sharp',
+  'remotion',
+])
 
 function dryRunStatusForSpec(specStatus: ProductionReadinessStatus): ProductionReadinessStatus {
   if (specStatus === 'passed' || specStatus === 'warning') return 'not_checked'
@@ -138,7 +148,10 @@ function dryRunStatusForTool(
     manifestBackedToolIds.has(specToolId) &&
     (baseStatus === 'missing' || baseStatus === 'not_installed')
   ) {
-    if (sourceInstallReviewedToolIds.has(specToolId)) return 'pending_manual_review'
+    if (sourceInstallReviewedToolIds.has(specToolId)) {
+      if (pendingManualReviewClosedToolIds.has(specToolId)) return 'warning'
+      return 'pending_manual_review'
+    }
     return 'source_install_review_required'
   }
   return baseStatus
@@ -151,9 +164,13 @@ function buildDryRunWarnings(specToolId: ProductionToolId, manifestBackedToolIds
   ]
 
   if (manifestBackedToolIds.has(specToolId)) {
-    warnings.push(sourceInstallReviewedToolIds.has(specToolId)
-      ? 'Persistent launch-core manifest source passed source-install review; static readiness records pending_manual_review until runtime policy closes.'
-      : 'Persistent launch-core manifest source exists; static readiness records source_install_review_required until runtime/install policy closes.')
+    if (pendingManualReviewClosedToolIds.has(specToolId)) {
+      warnings.push('Persistent launch-core manifest source, controlled install/import proof, source-install review, and pending-manual owner review passed; static readiness records warning until runtime policy closes.')
+    } else {
+      warnings.push(sourceInstallReviewedToolIds.has(specToolId)
+        ? 'Persistent launch-core manifest source passed source-install review; static readiness records pending_manual_review until runtime policy closes.'
+        : 'Persistent launch-core manifest source exists; static readiness records source_install_review_required until runtime/install policy closes.')
+    }
   }
 
   if (profile?.modelWeightsRequired) {

@@ -148,5 +148,5 @@
     "publicArtifactCreated": false,
     "signedUrlCreated": false
   },
-  "nextExternalBetaGap": "Tie this accepted saved dispatch-smoke proof to the next real external beta runtime proof lane: private artifact manifest, tool route admission, worker dispatch approval, per-tool runtime proof, cost/rollback, and quality gates. Agent tool execution remains blocked until those gates pass."
+  "nextExternalBetaGap": "Use this accepted saved dispatch-smoke proof as the source packet for the private artifact manifest gate, then continue toward Tool Route admission, worker dispatch approval, per-tool runtime proof, cost/rollback, and quality gates. Agent tool execution remains blocked until those gates pass."
 }

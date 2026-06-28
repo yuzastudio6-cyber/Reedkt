@@ -1222,3 +1222,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: the validator accepts a saved worker dispatch smoke result only when it proves 21 completed dry-run worker dispatcher jobs, 12 completed capability scenarios, 8 GPU-targeted tool records, 21 in-memory leases created and released, mock-only AI graphics handoff routes, and empty tool-run/artifact/quality-gate results. The validator itself runs no workers and creates no live leases.
 - GPU policy: the proof can accept that the eight GPU/model tools remained targeted to `gpu_ai_worker`, but `gpuRuntimeShouldStartNow=false` and no idle GPU runtime is approved. GPU can start only for a later accepted worker/tool call after native runtime proof and runtime gates pass.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta Private Artifact Manifest
+
+- Decision: `ai_graphics_external_beta_private_artifact_manifest_prepared_with_runtime_blocks`.
+- Scope: private artifact manifest gate for all 21 AI graphics tools and all 12 product-facing capabilities after the saved worker-dispatch-smoke proof.
+- Result: the evaluator requires an accepted worker-dispatch-smoke proof plus private/backend refs for artifact policy, manifest schema, storage namespace, access boundary, encryption, retention, and telemetry. With those refs, it prepares 21 private per-tool manifest records for input, output, telemetry, lease audit, and GPU model/cache manifest refs where applicable. It performs no storage mutation.
+- Artifact policy: public refs, signed URL refs, raw HTTP(S), and raw `gs://`/`gcs://` refs are rejected. Future runtime proof must use private/backend artifact boundaries instead of public artifacts as source-of-truth.
+- Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `publicArtifactCreated=false`, `signedUrlCreated=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

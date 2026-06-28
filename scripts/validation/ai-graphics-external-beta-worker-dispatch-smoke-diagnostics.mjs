@@ -18,6 +18,14 @@ const proofDiagnosticScriptName =
   'ai-graphics:external-beta-worker-dispatch-smoke-proof:diagnostics'
 const proofDiagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-worker-dispatch-smoke-proof-diagnostics.mjs'
+const privateArtifactManifestScriptName =
+  'ai-graphics:external-beta-private-artifact-manifest'
+const privateArtifactManifestScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-private-artifact-manifest.ts'
+const privateArtifactManifestDiagnosticScriptName =
+  'ai-graphics:external-beta-private-artifact-manifest:diagnostics'
+const privateArtifactManifestDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-private-artifact-manifest-diagnostics.mjs'
 
 const allTools = [
   'torch_torchvision',
@@ -377,6 +385,8 @@ const allowedPackageAdditions = new Set([
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   `+    "${proofScriptName}": "${proofScriptCommand}",`,
   `+    "${proofDiagnosticScriptName}": "${proofDiagnosticScriptCommand}",`,
+  `+    "${privateArtifactManifestScriptName}": "${privateArtifactManifestScriptCommand}",`,
+  `+    "${privateArtifactManifestDiagnosticScriptName}": "${privateArtifactManifestDiagnosticScriptCommand}",`,
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

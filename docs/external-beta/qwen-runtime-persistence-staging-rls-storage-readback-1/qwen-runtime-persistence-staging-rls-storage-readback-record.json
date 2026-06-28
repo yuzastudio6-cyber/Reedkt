@@ -1,0 +1,65 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-RLS-STORAGE-READBACK-1",
+  "decision": "completed_qwen_runtime_persistence_staging_rls_storage_readback_validation",
+  "execution": "completed_read_only_staging_rls_storage_readback_no_remote_mutation",
+  "integrationBase": "10f9ee71e7d4ccd8f7750cc3d4983b13541f8467",
+  "sourceApplyPr": 1499,
+  "sourceApplyMergeSha": "10f9ee71e7d4ccd8f7750cc3d4983b13541f8467",
+  "sourceAlignmentPr": 1495,
+  "excludedPr": 577,
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging"
+  },
+  "readback": {
+    "commandClass": "psql_read_only_catalog_selects",
+    "result": "passed_read_only_rls_storage_catalog_readback",
+    "baselineRuntimeTablesPresent": 13,
+    "baselineRuntimeTablesRlsEnabled": 13,
+    "runtimeTablePolicyCount": 23,
+    "requiredPrivateBuckets": 8,
+    "publicReeditproBuckets": 0,
+    "storageObjectAuthenticatedPolicies": 6,
+    "storageObjectAnonPolicies": 0,
+    "workerTempUserPolicyMentions": 0,
+    "qwenConstraints": 6,
+    "qwenIndexes": 5,
+    "storageObjectSignedUrlColumns": 0,
+    "signedUrlEventUrlValueColumns": 0,
+    "runtimeRawPromptColumns": 0,
+    "storagePolicies": [
+      "reeditpro_project_editors_update_source_and_thumbnails",
+      "reeditpro_project_editors_update_workspace_source_and_thumbnail",
+      "reeditpro_project_editors_upload_source_and_thumbnails",
+      "reeditpro_project_editors_upload_workspace_source_and_thumbnail",
+      "reeditpro_project_members_read_project_objects",
+      "reeditpro_project_members_read_workspace_project_objects"
+    ]
+  },
+  "migrationDrift": {
+    "command": "supabase db push --db-url [redacted] --dry-run",
+    "result": "remote_database_is_up_to_date",
+    "remoteMutation": false,
+    "migrationApply": false
+  },
+  "safety": {
+    "secretManagerPayloadAccess": "ephemeral_db_url_only_not_printed_or_persisted",
+    "remoteSupabaseMutation": false,
+    "sqlMutation": false,
+    "remoteMigrationApply": false,
+    "providerModelCalls": false,
+    "qwenRuntimeExecution": false,
+    "workerDispatch": false,
+    "routeExecution": false,
+    "mediaProcessing": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "broadExternalBetaUnlock": false,
+    "productionFinalExportUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-SERVICE-ROLE-ROUTE-GATE-1"
+}

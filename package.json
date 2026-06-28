@@ -93,6 +93,7 @@
     "beta:readiness:operator-status-api": "tsx server/cli/beta-readiness-operator-status-api.ts",
     "beta:readiness:owner-approval-packet": "node server/cli/beta-readiness-owner-approval-packet.mjs",
     "beta:readiness:owner-approval-intake-preflight": "node server/cli/beta-readiness-owner-approval-intake-preflight.mjs",
+    "beta:readiness:owner-approval-env-template": "node server/cli/beta-readiness-owner-approval-intake-preflight.mjs --env-template",
     "beta:readiness:owner-command-handoff": "tsx server/cli/beta-readiness-owner-command-handoff.ts",
     "beta:readiness:api-deployment-preflight": "tsx server/cli/beta-readiness-api-deployment-preflight.ts",
     "beta:readiness:deployed-evidence-input-manifest": "tsx server/cli/beta-readiness-deployed-evidence-input-manifest.ts",

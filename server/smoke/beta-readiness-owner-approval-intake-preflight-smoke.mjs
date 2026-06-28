@@ -1,12 +1,19 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { buildBetaReadinessOwnerApprovalIntakePreflight } from '../cli/beta-readiness-owner-approval-intake-preflight.mjs'
+import {
+  buildBetaReadinessOwnerApprovalEnvTemplate,
+  buildBetaReadinessOwnerApprovalIntakePreflight,
+} from '../cli/beta-readiness-owner-approval-intake-preflight.mjs'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
 
 assert.equal(
   packageJson.scripts['beta:readiness:owner-approval-intake-preflight'],
   'node server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
+)
+assert.equal(
+  packageJson.scripts['beta:readiness:owner-approval-env-template'],
+  'node server/cli/beta-readiness-owner-approval-intake-preflight.mjs --env-template',
 )
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-owner-approval-intake-preflight'],
@@ -81,6 +88,16 @@ const widerScope = buildBetaReadinessOwnerApprovalIntakePreflight({
 })
 assert.equal(widerScope.readyForDeployedEvidenceInputManifest, false)
 assert.ok(widerScope.rejectedScopeInputs.includes('REEDITPRO_BETA_LAUNCH_APPROVE_PAID_PRODUCTION'))
+
+const template = buildBetaReadinessOwnerApprovalEnvTemplate()
+assert.ok(template.includes('REEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUNDARY=true'))
+assert.ok(template.includes('REEDITPRO_BETA_PLATFORM_RLS_READBACK_EVIDENCE="<non-secret owner evidence summary>"'))
+assert.ok(template.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE="<non-secret owner evidence summary>"'))
+assert.ok(template.includes('REEDITPRO_BETA_LAUNCH_APPROVE_PAID_PRODUCTION=false'))
+assert.equal((template.match(/^REEDITPRO_BETA_/gm) ?? []).length, 34)
+assert.equal(template.includes('Bearer '), false)
+assert.equal(template.includes('SERVICE_ROLE_KEY'), false)
+assert.equal(template.includes('x-goog-signature='), false)
 
 console.log(JSON.stringify({
   ok: true,

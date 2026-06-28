@@ -7,6 +7,7 @@
   "ownerApprovalPacket": "docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json",
   "manifestOwnerGapPacket": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-28-d997-technical-inputs-owner-approval-gap.json",
   "commands": {
+    "template": "npm run beta:readiness:owner-approval-env-template",
     "preflight": "npm run beta:readiness:owner-approval-intake-preflight",
     "smoke": "npm run smoke:beta-readiness-owner-approval-intake-preflight"
   },
@@ -45,5 +46,5 @@
     "sql": "none",
     "migration": "no"
   },
-  "nextSafeAction": "Owners provide non-secret approval booleans and evidence notes, run npm run beta:readiness:owner-approval-intake-preflight, then rerun npm run beta:readiness:deployed-evidence-input-manifest."
+  "nextSafeAction": "Generate the owner input template with npm run beta:readiness:owner-approval-env-template, owners provide non-secret approval booleans and evidence notes outside source control, run npm run beta:readiness:owner-approval-intake-preflight, then rerun npm run beta:readiness:deployed-evidence-input-manifest."
 }

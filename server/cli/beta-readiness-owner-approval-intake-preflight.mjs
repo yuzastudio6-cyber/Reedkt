@@ -30,6 +30,42 @@ const SECRET_PATTERNS = [
   /AIza[0-9A-Za-z_-]{20,}/,
 ]
 
+export function buildBetaReadinessOwnerApprovalEnvTemplate() {
+  const report = buildBetaReadinessOwnerApprovalIntakePreflight({})
+  const lines = [
+    '# ReEditPro beta owner approval intake template',
+    '# Fill values locally or in your secret manager/session only. Do not commit completed owner notes.',
+    '# Approval and attestation booleans must be exactly true. Evidence notes must be non-secret summaries.',
+    '# Do not paste service-role keys, bearer tokens, API keys, signed URLs, raw prompts, private media, or public artifact links.',
+    '',
+    '# Platform owner approvals',
+    ...templateLines(report.requiredInputs.filter((input) => input.name.startsWith('REEDITPRO_BETA_PLATFORM_APPROVE_'))),
+    '',
+    '# Platform attestations and evidence notes',
+    ...templateLines(report.requiredInputs.filter((input) => (
+      input.name.startsWith('REEDITPRO_BETA_PLATFORM_') &&
+      !input.name.startsWith('REEDITPRO_BETA_PLATFORM_APPROVE_')
+    ))),
+    '',
+    '# External-beta launch owner approvals',
+    ...templateLines(report.requiredInputs.filter((input) => input.name.startsWith('REEDITPRO_BETA_LAUNCH_APPROVE_'))),
+    '',
+    '# External-beta launch evidence notes',
+    ...templateLines(report.requiredInputs.filter((input) => (
+      input.name.startsWith('REEDITPRO_BETA_LAUNCH_') &&
+      !input.name.startsWith('REEDITPRO_BETA_LAUNCH_APPROVE_')
+    ))),
+    '',
+    '# Wider-scope flags intentionally stay unset/false in this external-beta intake lane.',
+    ...REJECTED_SCOPE_FLAGS.map((name) => `${name}=false`),
+    '',
+    '# Validate before any deployed evidence manifest or collector:',
+    '# npm run beta:readiness:owner-approval-intake-preflight',
+    '',
+  ]
+  return lines.join('\n')
+}
+
 export function buildBetaReadinessOwnerApprovalIntakePreflight(env = process.env) {
   const packet = buildBetaReadinessOwnerApprovalPacket()
   const platformApprovalInputs = packet.platformApprovalItems.map((item) => inputNameFromAssignment(item.approvalInput))
@@ -122,7 +158,18 @@ function containsSecretLike(value) {
   return SECRET_PATTERNS.some((pattern) => pattern.test(text))
 }
 
+function templateLines(inputs) {
+  return inputs.map((input) => {
+    if (input.explicitTrue !== undefined) return `${input.name}=true`
+    return `${input.name}="<non-secret owner evidence summary>"`
+  })
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
+  if (process.argv.includes('--env-template')) {
+    console.log(buildBetaReadinessOwnerApprovalEnvTemplate())
+    process.exit(0)
+  }
   const report = buildBetaReadinessOwnerApprovalIntakePreflight(process.env)
   console.log(JSON.stringify(report, null, 2))
   if (!report.readyForDeployedEvidenceInputManifest) {

@@ -21,7 +21,7 @@ Source SHA: `d997d567d40853f59741763c8e9ca8b2c361148a`
 
 This packet does not approve anything. It defines the exact non-secret owner evidence needed before the existing evidence collectors can run.
 
-Before rerunning the deployed evidence input manifest, validate owner-provided approval/attestation booleans are explicitly `true` and evidence notes are present with `npm run beta:readiness:owner-approval-intake-preflight`. The intake preflight rejects secret-like notes and wider-scope real-user-media or paid-production flags without echoing evidence note values.
+Generate an owner input template with `npm run beta:readiness:owner-approval-env-template`. Before rerunning the deployed evidence input manifest, validate owner-provided approval/attestation booleans are explicitly `true` and evidence notes are present with `npm run beta:readiness:owner-approval-intake-preflight`. The intake preflight rejects secret-like notes and wider-scope real-user-media or paid-production flags without echoing evidence note values.
 
 ## Platform Evidence Packet Approvals
 

@@ -17,6 +17,8 @@ const ownerIdentityScanBlockerJsonPath = 'docs/beta-readiness/api-staging-input-
 const ownerIdentityScanBlockerMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-identity-scan-blocker.md'
 const ownerPrerequisiteAuditResultBlockerJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-prerequisite-audit-result-blocker.json'
 const ownerPrerequisiteAuditResultBlockerMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-prerequisite-audit-result-blocker.md'
+const ownerRemediationCommandPacketJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.json'
+const ownerRemediationCommandPacketMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.md'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const report = JSON.parse(readFileSync(jsonPath, 'utf8')) as {
@@ -267,6 +269,44 @@ const ownerPrerequisiteAuditResultBlockerReport = JSON.parse(readFileSync(ownerP
   }
 }
 const ownerPrerequisiteAuditResultBlockerMarkdown = readFileSync(ownerPrerequisiteAuditResultBlockerMarkdownPath, 'utf8')
+const ownerRemediationCommandPacketReport = JSON.parse(readFileSync(ownerRemediationCommandPacketJsonPath, 'utf8')) as {
+  decision: string
+  sourceEvidence: {
+    ownerPrerequisiteAuditWorkflowPr: number
+    ownerPrerequisiteAuditRun: number
+    ownerPrerequisiteAuditRecordPr: number
+    ownerPrerequisiteAuditRecordMergeSha: string
+  }
+  alreadyProvenByAudit: Array<{
+    id: string
+    ownerCommandNeeded: boolean
+    allowedPermissions: string[]
+  }>
+  remainingOwnerCommands: Array<{
+    id: string
+    roleCandidate?: string
+    command?: string
+    commandTemplate?: string
+    target: string
+    expectedAuditProof: string[]
+  }>
+  blockedAlternatives: string[]
+  postOwnerValidation: string[]
+  blockedAction: string
+  notABlanketBlocker: boolean
+  safeForwardProgress: string[]
+  blockedScopes: string[]
+  productReadyLocalOssCount: number
+  externalBetaEnabled: boolean
+  productionEnabled: boolean
+  supabase: {
+    write: string
+    environment: string
+    sql: string
+    migration: string
+  }
+}
+const ownerRemediationCommandPacketMarkdown = readFileSync(ownerRemediationCommandPacketMarkdownPath, 'utf8')
 
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-api-staging-input-discovery-blocker'],
@@ -590,6 +630,52 @@ assert.ok(ownerPrerequisiteAuditResultBlockerMarkdown.includes('Secret values we
 assert.equal(JSON.stringify(ownerPrerequisiteAuditResultBlockerReport).includes('gha-creds'), false, 'owner prerequisite audit report must not include credential-file paths')
 assert.equal(JSON.stringify(ownerPrerequisiteAuditResultBlockerReport).includes('SERVICE_ROLE_KEY'), false, 'owner prerequisite audit report must not include secret names or values')
 
+assert.equal(ownerRemediationCommandPacketReport.decision, 'beta_readiness_api_staging_owner_remediation_command_packet_passed_ready_for_higher_privilege_owner_application')
+assert.equal(ownerRemediationCommandPacketReport.sourceEvidence.ownerPrerequisiteAuditWorkflowPr, 1398)
+assert.equal(ownerRemediationCommandPacketReport.sourceEvidence.ownerPrerequisiteAuditRun, 28312122163)
+assert.equal(ownerRemediationCommandPacketReport.sourceEvidence.ownerPrerequisiteAuditRecordPr, 1402)
+assert.equal(ownerRemediationCommandPacketReport.sourceEvidence.ownerPrerequisiteAuditRecordMergeSha, '1cae115558a33ea18e9dfd29693d4aa9176ed9d2')
+assert.ok(ownerRemediationCommandPacketReport.alreadyProvenByAudit.some((item) => item.id === 'cloud_run_deploy_permissions' && item.ownerCommandNeeded === false))
+assert.ok(ownerRemediationCommandPacketReport.alreadyProvenByAudit.some((item) => item.allowedPermissions.includes('run.services.update')))
+assert.deepEqual(ownerRemediationCommandPacketReport.remainingOwnerCommands.map((command) => command.id), [
+  'artifact_registry_writer_on_staging_repository',
+  'runtime_service_account_create_or_confirm',
+  'deployer_act_as_runtime_service_account',
+  'deployer_fixed_secret_metadata_describe',
+  'runtime_fixed_secret_payload_access',
+])
+assert.ok(ownerRemediationCommandPacketReport.remainingOwnerCommands.some((command) => command.command?.includes('roles/artifactregistry.writer')))
+assert.ok(ownerRemediationCommandPacketReport.remainingOwnerCommands.some((command) => command.command?.includes('roles/iam.serviceAccountUser')))
+assert.ok(ownerRemediationCommandPacketReport.remainingOwnerCommands.some((command) => command.commandTemplate?.includes('roles/secretmanager.viewer')))
+assert.ok(ownerRemediationCommandPacketReport.remainingOwnerCommands.some((command) => command.commandTemplate?.includes('roles/secretmanager.secretAccessor')))
+assert.ok(ownerRemediationCommandPacketReport.remainingOwnerCommands.every((command) => command.expectedAuditProof.length > 0))
+assert.ok(ownerRemediationCommandPacketReport.blockedAlternatives.includes('granting secret payload access to the deployer'))
+assert.ok(ownerRemediationCommandPacketReport.blockedAlternatives.includes('Cloud Run deploy before audit passes'))
+assert.ok(ownerRemediationCommandPacketReport.postOwnerValidation.some((item) => item.includes('AUDIT_STAGING_BETA_API_OWNER_PREREQUISITES')))
+assert.ok(ownerRemediationCommandPacketReport.postOwnerValidation.some((item) => item.includes('DEPLOY_STAGING_BETA_READINESS_API')))
+assert.equal(ownerRemediationCommandPacketReport.blockedAction, 'staging_api_deploy_until_higher_privilege_owner_applies_exact_remaining_prerequisite_commands_and_audit_passes')
+assert.equal(ownerRemediationCommandPacketReport.notABlanketBlocker, true)
+assert.ok(ownerRemediationCommandPacketReport.safeForwardProgress.includes('higher_privilege_owner_applies_command_packet'))
+assert.ok(ownerRemediationCommandPacketReport.safeForwardProgress.includes('rerun_read_only_owner_prerequisite_audit'))
+assert.ok(ownerRemediationCommandPacketReport.blockedScopes.includes('secret_values_not_read'))
+assert.ok(ownerRemediationCommandPacketReport.blockedScopes.includes('external_beta_not_enabled'))
+assert.equal(ownerRemediationCommandPacketReport.productReadyLocalOssCount, 0)
+assert.equal(ownerRemediationCommandPacketReport.externalBetaEnabled, false)
+assert.equal(ownerRemediationCommandPacketReport.productionEnabled, false)
+assert.deepEqual(ownerRemediationCommandPacketReport.supabase, {
+  write: 'no write',
+  environment: 'none',
+  sql: 'none',
+  migration: 'no',
+})
+assert.ok(ownerRemediationCommandPacketMarkdown.includes('Cloud Run deploy permissions'))
+assert.ok(ownerRemediationCommandPacketMarkdown.includes('roles/artifactregistry.writer'))
+assert.ok(ownerRemediationCommandPacketMarkdown.includes('roles/secretmanager.viewer'))
+assert.ok(ownerRemediationCommandPacketMarkdown.includes('roles/secretmanager.secretAccessor'))
+assert.ok(ownerRemediationCommandPacketMarkdown.includes('This packet is not a blanket blocker'))
+assert.equal(JSON.stringify(ownerRemediationCommandPacketReport).includes('gha-creds'), false, 'owner command packet must not include credential-file paths')
+assert.equal(JSON.stringify(ownerRemediationCommandPacketReport).includes('SERVICE_ROLE_KEY'), false, 'owner command packet must not include secret names or values')
+
 console.log(JSON.stringify({
   ok: true,
   decisions: [
@@ -601,6 +687,7 @@ console.log(JSON.stringify({
     ownerRemediationPartialResultsBlockerReport.decision,
     ownerIdentityScanBlockerReport.decision,
     ownerPrerequisiteAuditResultBlockerReport.decision,
+    ownerRemediationCommandPacketReport.decision,
   ],
   runId: report.defaultBranchWorkflow.latestRun.runId,
   exactRunId: exactReport.defaultBranchWorkflow.latestRun.runId,
@@ -617,6 +704,8 @@ console.log(JSON.stringify({
   ownerRemediationBlockedAction: ownerRemediationPermissionBlockerReport.blockedAction,
   ownerRemediationPartialBlockedAction: ownerRemediationPartialResultsBlockerReport.blockedAction,
   ownerPrerequisiteAuditBlockedAction: ownerPrerequisiteAuditResultBlockerReport.blockedAction,
+  ownerRemediationCommandPacketBlockedAction: ownerRemediationCommandPacketReport.blockedAction,
   ownerActions: remediationReport.requiredOwnerActions.map((action) => action.id),
+  remainingOwnerCommands: ownerRemediationCommandPacketReport.remainingOwnerCommands.map((command) => command.id),
   ownerWorkflow: workflowReadyReport.defaultBranchWorkflow.path,
 }, null, 2))

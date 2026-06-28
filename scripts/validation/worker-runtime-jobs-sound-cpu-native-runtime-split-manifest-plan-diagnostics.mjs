@@ -208,7 +208,9 @@ for (const path of [
   'server/workers/sound-cpu/requirements.launch-core.pyav.txt',
   'server/workers/sound-cpu/requirements.launch-core.opencv-scenedetect.txt',
 ]) {
-  assert(!existsSync(path), `${path} must not be created in the planning gate`)
+  const sourceCreationResultPath =
+    'docs/worker-runtime-jobs-sound-cpu-native-runtime-split-manifest-source-creation-result.md'
+  if (!existsSync(sourceCreationResultPath)) assert(!existsSync(path), `${path} must not be created in the planning gate`)
 }
 
 console.log(

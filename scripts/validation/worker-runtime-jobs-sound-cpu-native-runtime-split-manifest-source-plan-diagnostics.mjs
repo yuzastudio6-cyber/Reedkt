@@ -161,7 +161,14 @@ const paths = parsed.paths.plannedSourcePaths
 assert(paths.length === 3, 'planned source path count mismatch')
 for (const path of PLANNED_PATHS) {
   assert(paths.some((entry) => entry.path === path && entry.status === 'planned_not_created'), `${path} must be planned_not_created`)
-  assert(!existsSync(path), `${path} must not exist in source-plan gate`)
+}
+
+const sourceCreationResultPath =
+  'docs/worker-runtime-jobs-sound-cpu-native-runtime-split-manifest-source-creation-result.md'
+if (!existsSync(sourceCreationResultPath)) {
+  for (const path of PLANNED_PATHS) {
+    assert(!existsSync(path), `${path} must not exist before the source-creation gate`)
+  }
 }
 
 const contents = parsed.contents.plannedManifestContents

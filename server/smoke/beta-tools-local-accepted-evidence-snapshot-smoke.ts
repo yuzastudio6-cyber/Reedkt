@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-const reportPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-27-local-accepted-evidence-bundle.json'
-const markdownPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-27-local-accepted-evidence-bundle.md'
+const reportPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-28-current-source-local-accepted-evidence-bundle.json'
+const markdownPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-28-current-source-local-accepted-evidence-bundle.md'
 
 const report = JSON.parse(readFileSync(reportPath, 'utf8')) as {
   decision?: string
@@ -17,7 +17,6 @@ const report = JSON.parse(readFileSync(reportPath, 'utf8')) as {
   libassEvidence?: {
     containerImage?: string
     network?: string
-    filterProof?: { hasAssFilter?: boolean; hasSubtitlesFilter?: boolean }
     syntheticBurninQa?: {
       syntheticOnly?: boolean
       fontDiscoveryOk?: boolean
@@ -32,6 +31,8 @@ const report = JSON.parse(readFileSync(reportPath, 'utf8')) as {
   }
   remainingGateBlockers?: string[]
   nextSafeActions?: string[]
+  blockedActionScope?: string[]
+  allowedForwardProgressScopes?: string[]
   blockedScopeConfirmations?: Record<string, boolean>
   supabaseClassification?: { write?: string; environment?: string; sql?: string; migration?: string }
 }
@@ -54,8 +55,8 @@ const expectedTools = [
   'libass',
 ]
 
-assert.equal(report.decision, 'beta_tools_local_accepted_evidence_bundle_passed_ready_for_deployed_staging_evidence_recording')
-assert.equal(report.sourceSha, '5bc6abf0ef238d8038ea0b95877ca06dd73738fc')
+assert.equal(report.decision, 'beta_tools_current_source_local_accepted_evidence_bundle_passed_ready_for_deployed_staging_evidence_recording')
+assert.equal(report.sourceSha, 'a1943442b794f7ae5216adf501a617a9f4478185')
 assert.equal(report.previewOnly, true)
 assert.equal(report.noBackendEvidenceRecorded, true)
 assert.equal(report.readyToRecordDeployedEvidence, true)
@@ -65,8 +66,6 @@ assert.deepEqual(report.libassAcceptedToolIds, ['libass'])
 assert.equal(report.coreAcceptedToolIds?.includes('pyav'), true)
 assert.equal(report.coreAcceptedToolIds?.includes('pyscenedetect'), true)
 assert.equal(report.libassEvidence?.network, 'none')
-assert.equal(report.libassEvidence?.filterProof?.hasAssFilter, true)
-assert.equal(report.libassEvidence?.filterProof?.hasSubtitlesFilter, true)
 assert.equal(report.libassEvidence?.syntheticBurninQa?.syntheticOnly, true)
 assert.equal(report.libassEvidence?.syntheticBurninQa?.fontDiscoveryOk, true)
 assert.equal(report.libassEvidence?.syntheticBurninQa?.burninCommandOk, true)
@@ -94,6 +93,10 @@ assert.equal(report.nextSafeActions?.some((action) => action.includes('beta:tool
 assert.equal(report.nextSafeActions?.some((action) => action.includes('beta:platform:staging-evidence-preflight')), true)
 assert.equal(report.nextSafeActions?.some((action) => action.includes('beta:readiness:launch-approval-evidence-preflight')), true)
 assert.equal(report.nextSafeActions?.some((action) => action.includes('beta:readiness:operator-status-api')), true)
+assert.equal(report.blockedActionScope?.includes('external_beta_user_exposure'), true)
+assert.equal(report.blockedActionScope?.includes('paid_production'), true)
+assert.equal(report.allowedForwardProgressScopes?.includes('deployed_evidence_preflight'), true)
+assert.equal(report.allowedForwardProgressScopes?.includes('owner_approval_collection'), true)
 
 for (const [key, value] of Object.entries(report.blockedScopeConfirmations ?? {})) {
   assert.equal(value, false, `${key} must remain false`)

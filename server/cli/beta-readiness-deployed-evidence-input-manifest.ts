@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 
-const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-27-local-accepted-evidence-bundle.json'
-const DEFAULT_SOURCE_ID = 'beta-tools-local-accepted-evidence-after-libass-snapshot'
+const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-28-current-source-local-accepted-evidence-bundle.json'
+const DEFAULT_SOURCE_ID = 'beta-tools-current-source-local-accepted-evidence-bundle'
 
 export type BetaReadinessDeployedEvidenceInputManifestEnv = Record<string, string | undefined>
 

@@ -4,7 +4,7 @@ import {
   type BetaReadinessDeployedEvidenceInputManifestEnv,
 } from '../cli/beta-readiness-deployed-evidence-input-manifest'
 
-const expectedCurrentSourceSha = '716fa8ee0ab94c6f43361b73faa6af1bc2674beb'
+const expectedCurrentSourceSha = 'a1943442b794f7ae5216adf501a617a9f4478185'
 const expectedCoreToolIds = [
   'ffmpeg',
   'ffprobe',
@@ -28,7 +28,7 @@ assert.equal(emptyManifest.readyToRunExternalBetaEvidenceCollector, false, 'empt
 assert.equal(emptyManifest.decision, 'beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs')
 assert.equal(emptyManifest.sourceTruth.locallyAcceptedToolCount, 14)
 assert.equal(emptyManifest.sourceTruth.currentSourceSha, undefined)
-assert.equal(emptyManifest.sourceTruth.localAcceptedEvidenceSourceSha, '5bc6abf0ef238d8038ea0b95877ca06dd73738fc')
+assert.equal(emptyManifest.sourceTruth.localAcceptedEvidenceSourceSha, expectedCurrentSourceSha)
 assert.deepEqual([...emptyManifest.sourceTruth.coreToolIds].sort(), [...expectedCoreToolIds].sort())
 assert.deepEqual(emptyManifest.sourceTruth.libassToolIds, ['libass'])
 assert.equal(emptyManifest.fixedInputs.libassMode, 'docker')
@@ -57,7 +57,7 @@ const readyEnv: BetaReadinessDeployedEvidenceInputManifestEnv = {
   REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY: 'tool-core-idempotency-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY: 'tool-libass-idempotency-smoke',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID: 'beta-tools-local-accepted-evidence-after-libass-snapshot',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID: 'beta-tools-current-source-local-accepted-evidence-bundle',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA: expectedCurrentSourceSha,
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS: expectedCoreToolIds.join(','),
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS: 'true',

@@ -55,12 +55,12 @@ export async function runBetaPlatformBillingQa(
   const requestedEnvironment = input.environment ?? 'local_mock'
   const hasPersistentRuntime = Boolean(context.clients.admin && !context.env.mockOnly)
 
-  if (hasPersistentRuntime) {
+  if (hasPersistentRuntime && input.allowPersistentStoreQa !== true) {
     return buildBlockedPersistentReport(input, requestedEnvironment, createdAt)
   }
 
   const service = createToolCostMeteringService(context)
-  const eventInput = buildQaEventInput(input)
+  const eventInput = buildQaEventInput(input, hasPersistentRuntime)
   const first = await service.emitToolCostEvent(eventInput, `${idempotencyKey}:tool-cost-event`)
   const replay = await service.emitToolCostEvent(eventInput, `${idempotencyKey}:tool-cost-event`)
   const settlement = await settleToolCostWallet(context, {
@@ -98,6 +98,23 @@ export async function runBetaPlatformBillingQa(
   const summaryEvent = summary.summary.events.find((event) => event.id === first.event.id)
   const summaryHasSingleQaEvent = summary.summary.events.filter((event) => event.id === first.event.id).length === 1
   const serviceFeeExcluded = first.event.metadata.reeditproServiceFeeIncluded === false
+  const eventWritePassed = hasPersistentRuntime
+    ? !first.event.billableToUser &&
+      first.event.failureCategory === 'provider_error' &&
+      first.event.toolCostCredits === 0
+    : first.event.billableToUser && Boolean(first.event.creditEstimateId && first.event.creditReservationId)
+  const walletBoundaryPassed = hasPersistentRuntime
+    ? !first.event.billableToUser && first.event.metadata.walletSettlementPerformed === false
+    : first.event.billableToUser && first.event.metadata.walletSettlementPerformed === false
+  const explicitWalletSettlementPassed = hasPersistentRuntime
+    ? settlement.settlement.status === 'not_billable' &&
+      settlement.settlement.creditsDelta === 0 &&
+      settlementReplay.replayed &&
+      settlementReplay.settlement.id === settlement.settlement.id
+    : settlement.settlement.status === 'settled_mock' &&
+      settlement.settlement.creditsDelta === -first.event.toolCostCredits &&
+      settlementReplay.replayed &&
+      settlementReplay.settlement.id === settlement.settlement.id
 
   return {
     reportId: `beta-platform-billing-qa-${hashFragment(idempotencyKey, first.event.id)}`,
@@ -117,11 +134,13 @@ export async function runBetaPlatformBillingQa(
       check(
         'tool_cost_event_write',
         'Tool cost event write path accepts an approved estimate and reservation context',
-        first.event.billableToUser && Boolean(first.event.creditEstimateId && first.event.creditReservationId),
+        eventWritePassed,
         [
           `eventId=${first.event.id}`,
           `credits=${first.event.toolCostCredits}`,
           `persistenceMode=${hasPersistentRuntime ? 'supabase_service_role' : 'mock_memory'}`,
+          `billableToUser=${first.event.billableToUser}`,
+          `failureCategory=${first.event.failureCategory}`,
         ],
         'Deploy and run this QA against staging with service-role persistence before platform evidence can clear.',
       ),
@@ -149,25 +168,27 @@ export async function runBetaPlatformBillingQa(
       check(
         'wallet_settlement_boundary',
         'Wallet settlement is not silently performed by tool event recording',
-        first.event.billableToUser && first.event.metadata.walletSettlementPerformed === false,
+        walletBoundaryPassed,
         [
-          'tool cost event is billable metadata only',
+          hasPersistentRuntime
+            ? 'persistent QA fixture is explicitly non-billable and zero-credit'
+            : 'tool cost event is billable metadata only',
           'wallet settlement remains a separate transactional backend step',
         ],
         'Implement and verify wallet spend/release/refund settlement before platform evidence can clear.',
       ),
       check(
         'explicit_wallet_settlement',
-        'Explicit wallet settlement skeleton records an idempotent mock ledger effect',
-        settlement.settlement.status === 'settled_mock' &&
-          settlement.settlement.creditsDelta === -first.event.toolCostCredits &&
-          settlementReplay.replayed &&
-          settlementReplay.settlement.id === settlement.settlement.id,
+        hasPersistentRuntime
+          ? 'Explicit wallet settlement RPC records an idempotent non-billable settlement effect'
+          : 'Explicit wallet settlement skeleton records an idempotent mock ledger effect',
+        explicitWalletSettlementPassed,
         [
           `settlementId=${settlement.settlement.id}`,
           `creditsDelta=${settlement.settlement.creditsDelta}`,
           `replayed=${settlementReplay.replayed}`,
-          'walletMutationMode=mock_ledger_only',
+          `walletMutationMode=${settlement.settlement.walletMutationMode}`,
+          `settlementStatus=${settlement.settlement.status}`,
         ],
         'Replace mock settlement with a transactional Supabase wallet settlement RPC before platform evidence can clear.',
       ),
@@ -190,18 +211,22 @@ export async function runBetaPlatformBillingQa(
       ),
     ],
     missingPlatformEvidence: [
-      'staging or production migration deployment evidence',
-      'service-role write path evidence from deployed runtime',
-      'authenticated RLS member summary readback evidence',
-      'transactional wallet settlement evidence from deployed backend runtime',
+      ...(hasPersistentRuntime ? [] : [
+        'staging or production migration deployment evidence',
+        'service-role write path evidence from deployed runtime',
+        'authenticated RLS member summary readback evidence',
+        'transactional wallet settlement evidence from deployed backend runtime',
+      ]),
       'Stripe boundary owner approval evidence',
-      'monitoring and billing QA evidence from staging or production',
+      'monitoring evidence from staging or production',
       'deployment, security, storage, legal, and support approvals',
     ],
     notes: [
       ...(input.notes ?? []),
-      'This QA harness does not process media, call providers, call Stripe, settle real wallets, enable beta, or mark production ready.',
-      'The report is blocker-reduction evidence only; ToolBetaPlatformReadinessEvidence still requires staging or production proof.',
+      hasPersistentRuntime
+        ? 'Persistent QA ran a non-billable zero-credit event and idempotent settlement through deployed backend paths; it did not process media, call providers, call Stripe, enable beta, or mark production ready.'
+        : 'This QA harness does not process media, call providers, call Stripe, settle real wallets, enable beta, or mark production ready.',
+      'The report is blocker-reduction evidence only; ToolBetaPlatformReadinessEvidence still requires owner approvals and final recorded evidence.',
     ],
   }
 }
@@ -228,36 +253,36 @@ function buildBlockedPersistentReport(
     checks: [
       {
         id: 'persistent_store_qa_requires_explicit_approval',
-        label: 'Persistent platform billing QA requires transactional wallet settlement before non-mock writes',
+        label: 'Persistent platform billing QA requires explicit staging approval before non-mock writes',
         status: 'blocked',
         evidence: [
           'service-role runtime is available',
           'tool-cost event persistence exists',
-          'transactional wallet settlement RPC is not implemented yet',
+          'allowPersistentStoreQa=true was not supplied',
         ],
-        nextAction: 'Implement and verify transactional wallet spend/release/refund settlement before running persistent billing QA.',
+        nextAction: 'Re-run staging billing QA with allowPersistentStoreQa=true after confirming this is a staging-only non-runtime billing evidence probe.',
       },
     ],
     missingPlatformEvidence: [
-      'transactional wallet settlement RPC',
+      'explicit persistent staging billing QA approval',
       'staging or production billing QA evidence',
     ],
     notes: [
       ...(input.notes ?? []),
-      'No persistent write was attempted because non-mock platform billing QA requires a transactional settlement path first.',
+      'No persistent write was attempted because non-mock platform billing QA requires explicit staging approval.',
     ],
   }
 }
 
-function buildQaEventInput(input: BetaPlatformBillingQaInput): ToolCostEventInput {
+function buildQaEventInput(input: BetaPlatformBillingQaInput, persistentRuntime: boolean): ToolCostEventInput {
   return {
     id: `tool-cost-platform-qa-${hashFragment(input.workspaceId, input.projectId, input.sourceId)}`,
     workspaceId: input.workspaceId,
     projectId: input.projectId,
-    editPlanId: 'platform-billing-qa-edit-plan',
-    jobId: 'platform-billing-qa-job',
-    creditEstimateId: 'platform-billing-qa-credit-estimate',
-    creditReservationId: 'platform-billing-qa-credit-reservation',
+    editPlanId: null,
+    jobId: null,
+    creditEstimateId: persistentRuntime ? null : 'platform-billing-qa-credit-estimate',
+    creditReservationId: persistentRuntime ? null : 'platform-billing-qa-credit-reservation',
     toolId: 'ffmpeg',
     toolName: 'FFmpeg platform billing QA fixture',
     usageCategory: 'rendering',
@@ -266,17 +291,19 @@ function buildQaEventInput(input: BetaPlatformBillingQaInput): ToolCostEventInpu
     startedAt: smokeStartedAt,
     completedAt: smokeCompletedAt,
     wallClockMs: 8_000,
-    billableMs: 8_000,
+    billableMs: persistentRuntime ? 0 : 8_000,
     vcpuCount: 2,
     memoryGiB: 4,
-    renderDurationSeconds: 4,
+    renderDurationSeconds: persistentRuntime ? 0 : 4,
     outputResolution: '1920x1080',
     outputFrameRate: 30,
-    billableToUser: true,
-    approvedReservationRemainingCredits: 25,
+    billableToUser: !persistentRuntime,
+    failureCategory: persistentRuntime ? 'provider_error' : 'none',
+    approvedReservationRemainingCredits: persistentRuntime ? undefined : 25,
     metadata: {
       qaHarness: 'beta-platform-billing-qa',
       sourceId: input.sourceId,
+      persistentRuntime,
       walletSettlementPerformed: false,
       stripeCallAttempted: false,
       reeditproServiceFeeIncluded: false,

@@ -11,7 +11,7 @@ This bridge connects the external-beta local queue storage proof to ReeditPro's 
 
 The bridge runs in forced mock mode. It validates that all 21 AI graphics tools can be shaped as canonical `ai_graphics_tool_runtime` queue payloads through the real runtime queue service without writing to Supabase, claiming a worker, creating a lease, dispatching a worker, executing a tool, or starting GPU runtime.
 
-The CPU/static `d3` path preserves `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` into the runtime queue service bridge record and queue input payload. That keeps the first safe external-beta cohort traceable after local queue storage while all live queue and worker gates remain closed.
+The CPU/static `d3` path preserves `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` into the runtime queue service bridge record and queue input payload. The bridge also preserves `sourceExternalBetaLocalQueueStorageProofBridgeAccepted=true` and `sourceLocalQueueStorageProofBridgeAccepted=true` so the native GPU runtime-proof bridge remains visible after local queue storage. That keeps the first safe external-beta cohort traceable while all live queue and worker gates remain closed.
 
 ## External-Beta Result
 
@@ -31,17 +31,18 @@ The CPU/static `d3` path preserves `sourceGatewayRuntimeAdmissionMode=cpu_static
 
 ## GPU Cost Boundary
 
-GPU remains on-demand only. The eight GPU/model tools can carry `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=true` for future accepted worker/tool-call jobs, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `workerLeaseCreated=false`, and `workerDispatchPerformed=false` remain enforced. No idle GPU runtime is approved.
+GPU remains on-demand only. The eight GPU/model tools can carry `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=true` for future accepted worker/tool-call jobs, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `workerLeaseCreated=false`, and `workerDispatchPerformed=false` remain enforced. No idle GPU runtime is approved. A local queue storage packet with the native GPU runtime-proof bridge stripped is rejected before runtime queue service readiness.
 
 ## Runtime Queue Service Controls
 
 The bridge requires:
 
 1. Accepted source external-beta local queue storage packet.
-2. External-beta runtime queue service reference.
-3. Runtime queue RPC schema reference.
-4. Worker claim readiness reference.
-5. Queue telemetry reference.
+2. Accepted source external-beta local queue storage packet preserving the native GPU runtime-proof bridge.
+3. External-beta runtime queue service reference.
+4. Runtime queue RPC schema reference.
+5. Worker claim readiness reference.
+6. Queue telemetry reference.
 
 Without those controls, the bridge remains blocked. With those controls, it produces mock-only runtime queue service records and still does not approve live queue writes.
 

@@ -282,7 +282,11 @@ existing `createJobService` boundary in forced mock mode. Diagnostics prepare
 all 21 AI graphics tools as mock-only `ai_graphics_tool_runtime` job-service
 records, including the eight GPU/model tools on GPU-targeted runtime lanes.
 The CPU/static D3 local queue record carries
-`sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`.
+`sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`. Local queue storage
+now also requires `sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted=true`
+and `sourceServiceRoleTransactionProofBridgeAccepted=true`; a service-role
+transaction packet with the native GPU runtime-proof bridge stripped is rejected
+before mock job-service readiness.
 This is not a live Supabase write: `liveQueueWriteApprovedNow=false`,
 `supabaseMutationPerformed=false`, `workerLeaseCreated=false`,
 `workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,
@@ -297,8 +301,12 @@ that owns `enqueue_ai_graphics_tool_runtime_jobs` and
 `claim_ai_graphics_tool_runtime_job`, including the eight GPU/model tools on
 GPU-targeted runtime lanes and zero heavy-tool CPU fallbacks. The CPU/static D3
 queue service bridge record carries
-`sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`. This is still not a
-live Supabase queue write or worker claim: `liveQueueWriteApprovedNow=false`,
+`sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`. The bridge now also
+requires `sourceExternalBetaLocalQueueStorageProofBridgeAccepted=true` and
+`sourceLocalQueueStorageProofBridgeAccepted=true`; a local queue storage packet
+with the native GPU runtime-proof bridge stripped is rejected before runtime
+queue service readiness. This is still not a live Supabase queue write or worker
+claim: `liveQueueWriteApprovedNow=false`,
 `supabaseMutationPerformed=false`, `liveWorkerClaimInsertApprovedNow=false`,
 `workerLeaseCreated=false`, `workerDispatchPerformed=false`,
 `toolExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`,

@@ -182,6 +182,7 @@ function buildSourceTransactionPacket(profile) {
     executionMode: 'production_blocked',
     metadata: {
       sourceGatewayRuntimeAdmissionMode,
+      sourceGatewayRuntimeAdmissionProofBridgeAccepted: true,
       sourceGatewayTraceId: `trace-fixture-${toolId}`,
       backendQueueSubmissionPerformed: false,
       serviceRoleTransactionPerformed: false,
@@ -202,6 +203,7 @@ function buildSourceTransactionPacket(profile) {
     serviceRoleTransactionEnvelopeRef: 'external-beta-service-role://transaction-envelope',
     queueWriteAuthorizationRef: 'external-beta-service-role://queue-write-authorization',
     sourceAdapterCandidateRef: `external-beta-gateway://worker-enqueue-candidate/${toolId}`,
+    sourceAdapterProofBridgeAccepted: true,
     productionWorkerJobPayload: payload,
     queueBatchCandidate: {
       batchId: `external-beta-ai-graphics-batch-${workspaceId}-${projectId}`,
@@ -273,6 +275,7 @@ function buildSourceTransactionPacket(profile) {
     auditEventTableRef: 'service-role-table://audit_events',
     rollbackRef: 'external-beta-service-role://rollback-plan',
     sourceQueueSubmissionEnvelope,
+    sourceQueueSubmissionProofBridgeAccepted: true,
     jobBatchRowCandidate: {
       batchId: sourceQueueSubmissionEnvelope.queueBatchCandidate.batchId,
       workspaceId,
@@ -352,6 +355,7 @@ function buildSourceTransactionPacket(profile) {
     requestedToolId: toolId,
     executionRequested: true,
     sourceExternalBetaBackendQueueSubmissionAccepted: true,
+    sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted: true,
     missingServiceRoleTransactionControls: [],
     externalBetaServiceRoleTransactionControlsSatisfied: true,
     externalBetaServiceRoleQueueTransactionEnvelopeReadyWithProvidedEvidence: true,
@@ -368,6 +372,7 @@ function buildSourceTransactionPacket(profile) {
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     booleans: {
+      sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted: true,
       serviceRoleTransactionPerformed: false,
       liveQueueWriteApprovedNow: false,
       workerDispatchPerformed: false,
@@ -446,6 +451,7 @@ for (const tool of gpuTools) {
 }
 for (const gate of [
   'accepted external-beta service-role queue transaction packet',
+  'accepted external-beta service-role queue transaction packet preserving native GPU runtime-proof bridge',
   'external beta local queue storage reference',
   'external beta mock job service reference',
   'external beta local queue storage schema reference',
@@ -458,6 +464,7 @@ for (const gate of [
 for (const key of [
   'externalBetaLocalQueueStoragePrepared',
   'sourceExternalBetaServiceRoleQueueTransactionAccepted',
+  'sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted',
   'externalBetaLocalQueueStorageControlsSatisfied',
   'externalBetaLocalQueueStorageRecordReadyWithProvidedEvidence',
   'all21ToolsCovered',
@@ -501,6 +508,11 @@ for (const needle of [
   'AI_GRAPHICS_EXTERNAL_BETA_LOCAL_QUEUE_STORAGE_DECISION',
   'evaluateAiGraphicsExternalBetaLocalQueueStorage',
   'sourceExternalBetaServiceRoleQueueTransactionPacket',
+  'serviceRoleTransactionProofBridgeAccepted',
+  'sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted',
+  'sourceServiceRoleTransactionProofBridgeAccepted',
+  'sourceQueueSubmissionProofBridgeAccepted',
+  'sourceGatewayRuntimeAdmissionProofBridgeAccepted',
   'createMockQueueServiceContext',
   'createJobService',
   'ai_graphics_tool_runtime',
@@ -537,6 +549,9 @@ for (const needle of [
   'existing `createJobService` boundary',
   'All-tool local queue records ready with provided evidence in diagnostics: `21`',
   'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
+  'sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted=true',
+  'sourceServiceRoleTransactionProofBridgeAccepted=true',
+  'native GPU runtime-proof bridge stripped is rejected',
   'Live Supabase job writes now: `0`',
   'GPU remains on-demand only',
   'If no worker claim and dispatch occurs, no GPU runtime should be running',
@@ -548,6 +563,8 @@ for (const needle of [
   'existing `createJobService` boundary',
   'all 21 AI graphics tools as mock-only',
   'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
+  '`sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted=true`',
+  '`sourceServiceRoleTransactionProofBridgeAccepted=true`',
   '`liveQueueWriteApprovedNow=false`',
   '`supabaseMutationPerformed=false`',
   '`workerDispatchPerformed=false`',
@@ -623,6 +640,23 @@ if (blockedMissingTransaction.decision !== 'missing_external_beta_service_role_q
   fail(`blocked_missing_transaction_decision:${blockedMissingTransaction.decision}`)
 }
 const sam2PacketPath = path.join(tmpRoot, 'sam2-service-role-transaction.json')
+const weakenedSam2Transaction = JSON.parse(fs.readFileSync(sam2PacketPath, 'utf8'))
+weakenedSam2Transaction.sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted = false
+weakenedSam2Transaction.booleans.sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted = false
+weakenedSam2Transaction.externalBetaServiceRoleQueueTransactionEnvelope
+  .sourceQueueSubmissionProofBridgeAccepted = false
+weakenedSam2Transaction.externalBetaServiceRoleQueueTransactionEnvelope
+  .sourceQueueSubmissionEnvelope.sourceAdapterProofBridgeAccepted = false
+weakenedSam2Transaction.externalBetaServiceRoleQueueTransactionEnvelope
+  .sourceQueueSubmissionEnvelope.productionWorkerJobPayload
+  .metadata.sourceGatewayRuntimeAdmissionProofBridgeAccepted = false
+weakenedSam2Transaction.externalBetaServiceRoleQueueTransactionEnvelope
+  .sourceQueueSubmissionEnvelope.queueJobCandidate.payload
+  .metadata.sourceGatewayRuntimeAdmissionProofBridgeAccepted = false
+const weakenedSam2TransactionPath = writeJson(
+  path.join(tmpRoot, 'sam2-weakened-service-role-transaction.json'),
+  weakenedSam2Transaction,
+)
 const blockedMissingIsolation = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-service-role-queue-transaction-packet',
   sam2PacketPath,
@@ -632,6 +666,34 @@ const blockedMissingIsolation = parseJsonOutput(runNpm(runScriptName, [
 ]), 'blocked_missing_isolation')
 if (blockedMissingIsolation.decision !== 'missing_external_beta_local_queue_storage_controls') {
   fail(`blocked_missing_isolation_decision:${blockedMissingIsolation.decision}`)
+}
+const blockedWeakenedSam2Storage = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-service-role-queue-transaction-packet',
+  weakenedSam2TransactionPath,
+  '--execution-requested',
+  '--external-beta-local-queue-storage-ref',
+  'external-beta-local-queue://storage',
+  '--external-beta-mock-job-service-ref',
+  'external-beta-local-queue://mock-job-service',
+  '--external-beta-local-queue-storage-schema-ref',
+  'external-beta-local-queue://schema/v1',
+  '--external-beta-local-queue-storage-isolation-ref',
+  'external-beta-local-queue://isolated-diagnostics',
+]), 'blocked_weakened_sam2_storage')
+if (blockedWeakenedSam2Storage.decision !== 'missing_external_beta_service_role_queue_transaction') {
+  fail(`blocked_weakened_sam2_storage_decision:${blockedWeakenedSam2Storage.decision}`)
+}
+if (blockedWeakenedSam2Storage.sourceExternalBetaServiceRoleQueueTransactionAccepted !== false) {
+  fail('blocked_weakened_sam2_storage_source_transaction_not_rejected')
+}
+if (
+  blockedWeakenedSam2Storage
+    .sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted !== false
+) {
+  fail('blocked_weakened_sam2_storage_proof_bridge_not_false')
+}
+if (blockedWeakenedSam2Storage.externalBetaLocalQueueStorageRecord !== null) {
+  fail('blocked_weakened_sam2_storage_created_record')
 }
 
 const sam2Result = results.find(([profile]) => profile[0] === 'sam2')?.[1] ?? {}
@@ -655,6 +717,14 @@ for (const [profile, output] of results) {
   const [toolId] = profile
   if (output.localMockJobBatchRecordsCreatedNow !== 1) fail(`${toolId}_local_batch_count`)
   if (output.localMockJobRecordsCreatedNow !== 1) fail(`${toolId}_local_job_count`)
+  if (output.sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted !== true) {
+    fail(`${toolId}_source_service_role_transaction_proof_bridge_not_true`)
+  }
+  if (
+    output.externalBetaLocalQueueStorageRecord?.sourceServiceRoleTransactionProofBridgeAccepted !== true
+  ) {
+    fail(`${toolId}_local_record_source_proof_bridge_not_true`)
+  }
   if (output.liveSupabaseJobWritesNow !== 0) fail(`${toolId}_live_supabase_writes`)
   if (output.liveWorkerDispatchesNow !== 0) fail(`${toolId}_live_dispatches`)
   if (output.externalBetaReadyNowTools !== 0) fail(`${toolId}_external_beta_ready`)
@@ -671,6 +741,7 @@ const combinedText = [
   cli,
   scorecard,
   JSON.stringify(results.map(([, output]) => output)),
+  JSON.stringify(blockedWeakenedSam2Storage),
 ].join('\n')
 for (const pattern of [
   /agentCanExecuteToolsNow["'`\s:]*true/i,
@@ -778,6 +849,10 @@ console.log(JSON.stringify({
   planningStorageDecision: planningStorage.decision,
   blockedMissingTransactionDecision: blockedMissingTransaction.decision,
   blockedMissingIsolationDecision: blockedMissingIsolation.decision,
+  blockedWeakenedSam2StorageDecision: blockedWeakenedSam2Storage.decision,
+  blockedWeakenedSam2ProofBridgeAccepted:
+    blockedWeakenedSam2Storage
+      .sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted,
   allToolLocalQueueRecordsReadyWithProvidedEvidence: readyResults.length,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: gpuReady.length,
   heavyToolsIncorrectlyTargetingCpu: heavyCpuFallbacks.length,
@@ -787,6 +862,11 @@ console.log(JSON.stringify({
     d3Result.externalBetaLocalQueueStorageRecord?.sourceGatewayRuntimeAdmissionMode,
   sam2LocalQueueStatus: sam2Result.externalBetaLocalQueueStorageRecord?.localQueueStatus,
   sam2JobRecordMockOnly: sam2Result.externalBetaLocalQueueStorageRecord?.jobRecordMockOnly,
+  sam2SourceServiceRoleTransactionProofBridgeAccepted:
+    sam2Result.sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted,
+  sam2LocalRecordSourceProofBridgeAccepted:
+    sam2Result.externalBetaLocalQueueStorageRecord
+      ?.sourceServiceRoleTransactionProofBridgeAccepted,
   sam2GpuRuntimeStartAllowedForFutureAcceptedJob:
     gpuRuntimeStartAllowedForFutureAcceptedJob(sam2Result),
   liveSupabaseJobWritesNow: sam2Result.liveSupabaseJobWritesNow,

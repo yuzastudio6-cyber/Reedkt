@@ -41,6 +41,7 @@
   },
   "requiredLocalQueueStorageControls": [
     "accepted external-beta service-role queue transaction packet",
+    "accepted external-beta service-role queue transaction packet preserving native GPU runtime-proof bridge",
     "external beta local queue storage reference",
     "external beta mock job service reference",
     "external beta local queue storage schema reference",
@@ -128,6 +129,7 @@
       "jobType": "ai_graphics_tool_runtime",
       "localQueueStatus": "queued",
       "jobRecordMockOnly": true,
+      "sourceServiceRoleTransactionProofBridgeAccepted": true,
       "liveSupabaseJobWritesNow": 0,
       "workerDispatchPerformed": false,
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": true,
@@ -143,6 +145,7 @@
       "jobType": "ai_graphics_tool_runtime",
       "localQueueStatus": "queued",
       "jobRecordMockOnly": true,
+      "sourceServiceRoleTransactionProofBridgeAccepted": true,
       "liveSupabaseJobWritesNow": 0,
       "workerDispatchPerformed": false,
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
@@ -152,6 +155,7 @@
   "booleans": {
     "externalBetaLocalQueueStoragePrepared": true,
     "sourceExternalBetaServiceRoleQueueTransactionAccepted": true,
+    "sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted": true,
     "externalBetaLocalQueueStorageControlsSatisfied": true,
     "externalBetaLocalQueueStorageRecordReadyWithProvidedEvidence": true,
     "all21ToolsCovered": true,

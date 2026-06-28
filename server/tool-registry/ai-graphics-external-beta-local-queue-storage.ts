@@ -51,6 +51,7 @@ export interface AiGraphicsExternalBetaLocalQueueStorageRecord {
   jobRecordMockOnly: boolean
   jobServiceWarningCount: number
   sourceServiceRoleTransactionReadyWithProvidedEvidence: boolean
+  sourceServiceRoleTransactionProofBridgeAccepted: boolean
   localQueueRecordReadyWithProvidedEvidence: boolean
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
   gpuRuntimeShouldStartNow: false
@@ -71,6 +72,7 @@ export interface AiGraphicsExternalBetaLocalQueueStorage {
   executionRequested: boolean
   sourceExternalBetaServiceRoleQueueTransaction: AiGraphicsExternalBetaServiceRoleQueueTransaction
   sourceExternalBetaServiceRoleQueueTransactionAccepted: boolean
+  sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted: boolean
   missingLocalQueueStorageControls: string[]
   externalBetaLocalQueueStorageControlsSatisfied: boolean
   externalBetaLocalQueueStorageRecordReadyWithProvidedEvidence: boolean
@@ -100,6 +102,7 @@ export interface AiGraphicsExternalBetaLocalQueueStorage {
   booleans: {
     externalBetaLocalQueueStoragePrepared: true
     sourceExternalBetaServiceRoleQueueTransactionAccepted: boolean
+    sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted: boolean
     externalBetaLocalQueueStorageControlsSatisfied: boolean
     externalBetaLocalQueueStorageRecordReadyWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -179,10 +182,29 @@ function hasValue(value?: string): boolean {
   return typeof value === 'string' && value.trim().length > 0
 }
 
+function serviceRoleTransactionProofBridgeAccepted(
+  packet: AiGraphicsExternalBetaServiceRoleQueueTransaction,
+): boolean {
+  const envelope = packet.externalBetaServiceRoleQueueTransactionEnvelope
+  const sourceQueueEnvelope = envelope?.sourceQueueSubmissionEnvelope
+
+  return (
+    packet.sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted === true &&
+    packet.booleans.sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted === true &&
+    envelope?.sourceQueueSubmissionProofBridgeAccepted === true &&
+    sourceQueueEnvelope?.sourceAdapterProofBridgeAccepted === true &&
+    sourceQueueEnvelope?.productionWorkerJobPayload.metadata
+      ?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true &&
+    sourceQueueEnvelope?.queueJobCandidate?.payload?.metadata
+      ?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true
+  )
+}
+
 function serviceRoleTransactionAccepted(
   packet: AiGraphicsExternalBetaServiceRoleQueueTransaction,
 ): boolean {
   return packet.decision === 'external_beta_service_role_queue_transaction_envelope_ready' &&
+    serviceRoleTransactionProofBridgeAccepted(packet) &&
     packet.externalBetaServiceRoleQueueTransactionEnvelopeReadyWithProvidedEvidence === true &&
     packet.externalBetaServiceRoleQueueTransactionEnvelope !== null &&
     packet.externalBetaReadyNowTools === 0 &&
@@ -295,6 +317,8 @@ async function createLocalQueueStorageRecord(
       sourceGatewayRuntimeAdmissionMode: envelope.sourceGatewayRuntimeAdmissionMode,
       capabilityId: envelope.capabilityId,
       sourceTransactionId: envelope.transactionId,
+      sourceServiceRoleTransactionProofBridgeAccepted:
+        envelope.sourceQueueSubmissionProofBridgeAccepted,
       privateArtifactManifestRef: privateArtifactManifestRef(envelope),
       sourceServiceRoleTransactionReadyWithProvidedEvidence:
         envelope.serviceRoleTransactionEnvelopeReadyWithProvidedEvidence,
@@ -315,6 +339,7 @@ async function createLocalQueueStorageRecord(
       jobBatchMockOnly &&
       jobRecordMockOnly &&
       envelope.serviceRoleTransactionEnvelopeReadyWithProvidedEvidence &&
+      envelope.sourceQueueSubmissionProofBridgeAccepted &&
       privateManifest.startsWith('private://'),
   )
 
@@ -339,6 +364,8 @@ async function createLocalQueueStorageRecord(
     jobServiceWarningCount: batchResult.warnings.length + jobResult.warnings.length,
     sourceServiceRoleTransactionReadyWithProvidedEvidence:
       envelope.serviceRoleTransactionEnvelopeReadyWithProvidedEvidence,
+    sourceServiceRoleTransactionProofBridgeAccepted:
+      envelope.sourceQueueSubmissionProofBridgeAccepted,
     localQueueRecordReadyWithProvidedEvidence,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
       envelope.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
@@ -359,6 +386,8 @@ export async function evaluateAiGraphicsExternalBetaLocalQueueStorage(
     evaluateAiGraphicsExternalBetaServiceRoleQueueTransaction(input)
   const executionRequested =
     input.executionRequested === true || transaction.executionRequested === true
+  const sourceTransactionProofBridgeAccepted =
+    serviceRoleTransactionProofBridgeAccepted(transaction)
   const sourceTransactionAccepted = serviceRoleTransactionAccepted(transaction)
   const missingControls = executionRequested ? missingLocalQueueStorageControls(input) : []
   const controlsSatisfied =
@@ -401,6 +430,8 @@ export async function evaluateAiGraphicsExternalBetaLocalQueueStorage(
     executionRequested,
     sourceExternalBetaServiceRoleQueueTransaction: transaction,
     sourceExternalBetaServiceRoleQueueTransactionAccepted: sourceTransactionAccepted,
+    sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted:
+      sourceTransactionProofBridgeAccepted,
     missingLocalQueueStorageControls: missingControls,
     externalBetaLocalQueueStorageControlsSatisfied: controlsSatisfied,
     externalBetaLocalQueueStorageRecordReadyWithProvidedEvidence:
@@ -419,6 +450,8 @@ export async function evaluateAiGraphicsExternalBetaLocalQueueStorage(
     booleans: {
       externalBetaLocalQueueStoragePrepared: true,
       sourceExternalBetaServiceRoleQueueTransactionAccepted: sourceTransactionAccepted,
+      sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted:
+        sourceTransactionProofBridgeAccepted,
       externalBetaLocalQueueStorageControlsSatisfied: controlsSatisfied,
       externalBetaLocalQueueStorageRecordReadyWithProvidedEvidence:
         localQueueRecordReady,

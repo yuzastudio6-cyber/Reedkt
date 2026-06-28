@@ -52,6 +52,7 @@ export interface AiGraphicsExternalBetaRuntimeQueueServiceBridgeRecord {
   queueServiceWarningCount: number
   enqueueRpcName: 'enqueue_ai_graphics_tool_runtime_jobs'
   claimRpcName: 'claim_ai_graphics_tool_runtime_job'
+  sourceLocalQueueStorageProofBridgeAccepted: boolean
   runtimeQueueServicePayloadReadyWithProvidedEvidence: boolean
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
   gpuRuntimeShouldStartNow: false
@@ -72,6 +73,7 @@ export interface AiGraphicsExternalBetaRuntimeQueueServiceBridge {
   executionRequested: boolean
   sourceExternalBetaLocalQueueStorage: AiGraphicsExternalBetaLocalQueueStorage
   sourceExternalBetaLocalQueueStorageAccepted: boolean
+  sourceExternalBetaLocalQueueStorageProofBridgeAccepted: boolean
   missingRuntimeQueueServiceControls: string[]
   externalBetaRuntimeQueueServiceControlsSatisfied: boolean
   runtimeQueueServicePayloadReadyWithProvidedEvidence: boolean
@@ -105,6 +107,7 @@ export interface AiGraphicsExternalBetaRuntimeQueueServiceBridge {
   booleans: {
     externalBetaRuntimeQueueServiceBridgePrepared: true
     sourceExternalBetaLocalQueueStorageAccepted: boolean
+    sourceExternalBetaLocalQueueStorageProofBridgeAccepted: boolean
     externalBetaRuntimeQueueServiceControlsSatisfied: boolean
     runtimeQueueServicePayloadReadyWithProvidedEvidence: boolean
     canonicalRuntimeQueueServiceValidationPassed: boolean
@@ -188,10 +191,28 @@ function hasValue(value?: string): boolean {
   return typeof value === 'string' && value.trim().length > 0
 }
 
+function localQueueStorageProofBridgeAccepted(
+  packet: AiGraphicsExternalBetaLocalQueueStorage,
+): boolean {
+  const record = packet.externalBetaLocalQueueStorageRecord
+  const envelope = sourceEnvelope(packet)
+
+  return (
+    packet.sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted === true &&
+    packet.booleans.sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted === true &&
+    record?.sourceServiceRoleTransactionProofBridgeAccepted === true &&
+    envelope?.sourceQueueSubmissionProofBridgeAccepted === true &&
+    envelope?.sourceQueueSubmissionEnvelope?.sourceAdapterProofBridgeAccepted === true &&
+    envelope?.sourceQueueSubmissionEnvelope?.productionWorkerJobPayload.metadata
+      ?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true
+  )
+}
+
 function localQueueStorageAccepted(
   packet: AiGraphicsExternalBetaLocalQueueStorage,
 ): boolean {
   return packet.decision === 'external_beta_local_queue_storage_mock_record_ready' &&
+    localQueueStorageProofBridgeAccepted(packet) &&
     packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_LOCAL_QUEUE_STORAGE_DECISION &&
     packet.externalBetaLocalQueueStorageRecordReadyWithProvidedEvidence === true &&
     packet.externalBetaLocalQueueStorageRecord !== null &&
@@ -311,6 +332,8 @@ async function createRuntimeQueueServiceBridgeRecord(
         sourceLocalQueueJobBatchId: localRecord.jobBatchId,
         sourceLocalQueueJobId: localRecord.jobId,
         sourceGatewayRuntimeAdmissionMode: localRecord.sourceGatewayRuntimeAdmissionMode,
+        sourceLocalQueueStorageProofBridgeAccepted:
+          localRecord.sourceServiceRoleTransactionProofBridgeAccepted,
         runtimeTarget: localRecord.runtimeTarget,
         liveRuntimeAllowedNow: false,
         serviceRoleTransactionPerformed: false,
@@ -332,7 +355,9 @@ async function createRuntimeQueueServiceBridgeRecord(
       queueResult.jobIds.length === 1 &&
       queueResult.insertedJobCount === 1 &&
       localRecord.privateArtifactManifestRef.startsWith('private://') &&
-      packet.sourceExternalBetaServiceRoleQueueTransactionAccepted === true,
+      packet.sourceExternalBetaServiceRoleQueueTransactionAccepted === true &&
+      packet.sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted === true &&
+      localRecord.sourceServiceRoleTransactionProofBridgeAccepted === true,
   )
 
   return {
@@ -355,6 +380,8 @@ async function createRuntimeQueueServiceBridgeRecord(
     queueServiceWarningCount: queue.warnings.length,
     enqueueRpcName: 'enqueue_ai_graphics_tool_runtime_jobs',
     claimRpcName: 'claim_ai_graphics_tool_runtime_job',
+    sourceLocalQueueStorageProofBridgeAccepted:
+      localRecord.sourceServiceRoleTransactionProofBridgeAccepted,
     runtimeQueueServicePayloadReadyWithProvidedEvidence,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
       localRecord.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
@@ -375,6 +402,8 @@ export async function evaluateAiGraphicsExternalBetaRuntimeQueueServiceBridge(
     await evaluateAiGraphicsExternalBetaLocalQueueStorage(input)
   const executionRequested =
     input.executionRequested === true || localQueueStorage.executionRequested === true
+  const sourceLocalQueueProofBridgeAccepted =
+    localQueueStorageProofBridgeAccepted(localQueueStorage)
   const sourceLocalQueueAccepted = localQueueStorageAccepted(localQueueStorage)
   const missingControls = executionRequested
     ? missingRuntimeQueueServiceControls(input)
@@ -423,6 +452,8 @@ export async function evaluateAiGraphicsExternalBetaRuntimeQueueServiceBridge(
     executionRequested,
     sourceExternalBetaLocalQueueStorage: localQueueStorage,
     sourceExternalBetaLocalQueueStorageAccepted: sourceLocalQueueAccepted,
+    sourceExternalBetaLocalQueueStorageProofBridgeAccepted:
+      sourceLocalQueueProofBridgeAccepted,
     missingRuntimeQueueServiceControls: missingControls,
     externalBetaRuntimeQueueServiceControlsSatisfied: controlsSatisfied,
     runtimeQueueServicePayloadReadyWithProvidedEvidence:
@@ -444,6 +475,8 @@ export async function evaluateAiGraphicsExternalBetaRuntimeQueueServiceBridge(
     booleans: {
       externalBetaRuntimeQueueServiceBridgePrepared: true,
       sourceExternalBetaLocalQueueStorageAccepted: sourceLocalQueueAccepted,
+      sourceExternalBetaLocalQueueStorageProofBridgeAccepted:
+        sourceLocalQueueProofBridgeAccepted,
       externalBetaRuntimeQueueServiceControlsSatisfied: controlsSatisfied,
       runtimeQueueServicePayloadReadyWithProvidedEvidence:
         runtimeQueueServicePayloadReady,

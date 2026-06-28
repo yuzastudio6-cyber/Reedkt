@@ -74,6 +74,7 @@
   },
   "controlsRequired": [
     "source external-beta local queue storage packet",
+    "source external-beta local queue storage packet preserving native GPU runtime-proof bridge",
     "external beta runtime queue service reference",
     "external beta runtime queue RPC schema reference",
     "external beta worker claim readiness reference",
@@ -106,6 +107,7 @@
       "workerType": "gpu_ai_worker",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
       "runtimeQueueServicePayloadReadyWithProvidedEvidence": true,
+      "sourceLocalQueueStorageProofBridgeAccepted": true,
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": true,
       "gpuRuntimeShouldStartNow": false,
       "liveSupabaseQueueWritesNow": 0,
@@ -118,6 +120,7 @@
       "runtimeTarget": "node_cpu_static",
       "sourceGatewayRuntimeAdmissionMode": "cpu_static_first_cohort",
       "runtimeQueueServicePayloadReadyWithProvidedEvidence": true,
+      "sourceLocalQueueStorageProofBridgeAccepted": true,
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
       "gpuRuntimeShouldStartNow": false,
       "liveSupabaseQueueWritesNow": 0,
@@ -126,6 +129,8 @@
   ],
   "booleans": {
     "externalBetaRuntimeQueueServiceBridgePrepared": true,
+    "sourceExternalBetaLocalQueueStorageProofBridgeAccepted": true,
+    "sourceLocalQueueStorageProofBridgeAccepted": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all8GpuToolsTargetGpuRuntime": true,

@@ -32,10 +32,11 @@ An external-beta service-role transaction envelope can become a local queue stor
 3. The existing `createJobService` boundary creates mock-only job batch and job records.
 4. The job type remains `ai_graphics_tool_runtime`.
 5. The job carries approved snapshot, credit reservation, private artifact manifest, worker type, runtime target, source transaction metadata, and source gateway runtime-admission mode.
+6. The native GPU runtime-proof bridge from the service-role transaction is preserved with `sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted=true` and `sourceServiceRoleTransactionProofBridgeAccepted=true`.
 
 ## GPU Boundary
 
-GPU remains on-demand only. The eight GPU/model tools can carry `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=true` for future accepted jobs, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `workerLeaseCreated=false`, and `workerDispatchPerformed=false` remain enforced. If no worker claim and dispatch occurs, no GPU runtime should be running.
+GPU remains on-demand only. The eight GPU/model tools can carry `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=true` for future accepted jobs, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `workerLeaseCreated=false`, and `workerDispatchPerformed=false` remain enforced. If no worker claim and dispatch occurs, no GPU runtime should be running. A service-role transaction packet with the native GPU runtime-proof bridge stripped is rejected before local queue storage readiness.
 
 ## Runtime Boundary
 

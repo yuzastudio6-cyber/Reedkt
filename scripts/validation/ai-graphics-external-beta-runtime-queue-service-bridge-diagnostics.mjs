@@ -193,11 +193,13 @@ function buildLocalQueueStoragePacket(profile) {
       executionMode: 'production_blocked',
       metadata: {
         sourceGatewayRuntimeAdmissionMode,
+        sourceGatewayRuntimeAdmissionProofBridgeAccepted: true,
         serviceRoleTransactionPerformed: false,
         workerDispatchPerformed: false,
         gpuRuntimeShouldStartNow: false,
       },
     },
+    sourceAdapterProofBridgeAccepted: true,
     sourceAdapterPayloadReadyWithProvidedEvidence: true,
     submissionEnvelopeShapeValid: true,
     submissionEnvelopeReadyWithProvidedEvidence: true,
@@ -226,6 +228,7 @@ function buildLocalQueueStoragePacket(profile) {
     workerEventRpcName: 'record_ai_graphics_worker_event',
     auditEventRpcName: 'record_ai_graphics_audit_event',
     sourceQueueSubmissionEnvelope,
+    sourceQueueSubmissionProofBridgeAccepted: true,
     jobBatchRowCandidate: {
       batchId: `external-beta-ai-graphics-batch-${workspaceId}-${projectId}`,
       workspaceId,
@@ -267,9 +270,11 @@ function buildLocalQueueStoragePacket(profile) {
     executionRequested: true,
     externalBetaServiceRoleQueueTransactionEnvelope: envelope,
     externalBetaServiceRoleQueueTransactionEnvelopeReadyWithProvidedEvidence: true,
+    sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted: true,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     booleans: {
+      sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted: true,
       serviceRoleTransactionPerformed: false,
       liveQueueWriteApprovedNow: false,
       workerDispatchPerformed: false,
@@ -286,6 +291,7 @@ function buildLocalQueueStoragePacket(profile) {
     executionRequested: true,
     sourceExternalBetaServiceRoleQueueTransaction: sourceTransaction,
     sourceExternalBetaServiceRoleQueueTransactionAccepted: true,
+    sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted: true,
     missingLocalQueueStorageControls: [],
     externalBetaLocalQueueStorageControlsSatisfied: true,
     externalBetaLocalQueueStorageRecordReadyWithProvidedEvidence: true,
@@ -309,6 +315,7 @@ function buildLocalQueueStoragePacket(profile) {
       jobRecordMockOnly: true,
       jobServiceWarningCount: 2,
       sourceServiceRoleTransactionReadyWithProvidedEvidence: true,
+      sourceServiceRoleTransactionProofBridgeAccepted: true,
       localQueueRecordReadyWithProvidedEvidence: true,
       gpuRuntimeStartAllowedForAcceptedExternalBetaJob: gpu,
       gpuRuntimeShouldStartNow: false,
@@ -330,6 +337,7 @@ function buildLocalQueueStoragePacket(profile) {
     booleans: {
       externalBetaLocalQueueStoragePrepared: true,
       sourceExternalBetaServiceRoleQueueTransactionAccepted: true,
+      sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted: true,
       externalBetaLocalQueueStorageControlsSatisfied: true,
       externalBetaLocalQueueStorageRecordReadyWithProvidedEvidence: true,
       all21ToolsCovered: true,
@@ -481,11 +489,26 @@ for (const key of falseGateKeys) {
 if (docs.booleans?.usesExistingAiGraphicsRuntimeQueueService !== true) {
   fail('docs_missing_runtime_queue_service_bridge_true')
 }
+if (docs.booleans?.sourceExternalBetaLocalQueueStorageProofBridgeAccepted !== true) {
+  fail('docs_missing_source_local_queue_storage_proof_bridge_true')
+}
+if (docs.booleans?.sourceLocalQueueStorageProofBridgeAccepted !== true) {
+  fail('docs_missing_bridge_record_proof_bridge_true')
+}
 if (!docsMd.includes('createAiGraphicsToolRuntimeQueueService')) {
   fail('docs_md_missing_runtime_queue_service')
 }
 if (!docsMd.includes('sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort')) {
   fail('docs_md_missing_cpu_static_source_mode')
+}
+if (!docsMd.includes('sourceExternalBetaLocalQueueStorageProofBridgeAccepted=true')) {
+  fail('docs_md_missing_source_local_queue_storage_proof_bridge')
+}
+if (!docsMd.includes('sourceLocalQueueStorageProofBridgeAccepted=true')) {
+  fail('docs_md_missing_bridge_record_proof_bridge')
+}
+if (!docsMd.includes('native GPU runtime-proof bridge stripped is rejected')) {
+  fail('docs_md_missing_stripped_bridge_rejection')
 }
 if (!docsMd.includes('No idle GPU runtime is approved')) {
   fail('docs_md_missing_no_idle_gpu_policy')
@@ -495,6 +518,21 @@ if (!scorecard.includes('AI graphics external beta local queue storage decision'
 }
 if (!scorecard.includes('sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort')) {
   fail('scorecard_missing_cpu_static_runtime_queue_source_mode')
+}
+if (!scorecard.includes('`sourceExternalBetaLocalQueueStorageProofBridgeAccepted=true`')) {
+  fail('scorecard_missing_source_local_queue_storage_proof_bridge')
+}
+if (!scorecard.includes('`sourceLocalQueueStorageProofBridgeAccepted=true`')) {
+  fail('scorecard_missing_bridge_record_proof_bridge')
+}
+for (const needle of [
+  'localQueueStorageProofBridgeAccepted',
+  'sourceExternalBetaLocalQueueStorageProofBridgeAccepted',
+  'sourceLocalQueueStorageProofBridgeAccepted',
+  'sourceServiceRoleTransactionProofBridgeAccepted',
+  'sourceGatewayRuntimeAdmissionProofBridgeAccepted',
+]) {
+  if (!source.includes(needle)) fail(`source_missing:${needle}`)
 }
 
 const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-runtime-queue-service-bridge-'))
@@ -561,6 +599,28 @@ if (blockedMissingLocal.decision !== 'missing_external_beta_local_queue_storage'
   fail(`blocked_missing_local_decision:${blockedMissingLocal.decision}`)
 }
 const sam2PacketPath = path.join(tmpRoot, 'sam2-local-queue-storage.json')
+const weakenedSam2LocalQueueStorage = JSON.parse(fs.readFileSync(sam2PacketPath, 'utf8'))
+weakenedSam2LocalQueueStorage.sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted = false
+weakenedSam2LocalQueueStorage.booleans
+  .sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted = false
+weakenedSam2LocalQueueStorage.externalBetaLocalQueueStorageRecord
+  .sourceServiceRoleTransactionProofBridgeAccepted = false
+weakenedSam2LocalQueueStorage.sourceExternalBetaServiceRoleQueueTransaction
+  .sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted = false
+weakenedSam2LocalQueueStorage.sourceExternalBetaServiceRoleQueueTransaction
+  .booleans.sourceExternalBetaBackendQueueSubmissionProofBridgeAccepted = false
+weakenedSam2LocalQueueStorage.sourceExternalBetaServiceRoleQueueTransaction
+  .externalBetaServiceRoleQueueTransactionEnvelope.sourceQueueSubmissionProofBridgeAccepted = false
+weakenedSam2LocalQueueStorage.sourceExternalBetaServiceRoleQueueTransaction
+  .externalBetaServiceRoleQueueTransactionEnvelope.sourceQueueSubmissionEnvelope
+  .sourceAdapterProofBridgeAccepted = false
+weakenedSam2LocalQueueStorage.sourceExternalBetaServiceRoleQueueTransaction
+  .externalBetaServiceRoleQueueTransactionEnvelope.sourceQueueSubmissionEnvelope
+  .productionWorkerJobPayload.metadata.sourceGatewayRuntimeAdmissionProofBridgeAccepted = false
+const weakenedSam2LocalQueueStoragePath = writeJson(
+  path.join(tmpRoot, 'sam2-weakened-local-queue-storage.json'),
+  weakenedSam2LocalQueueStorage,
+)
 const blockedMissingControls = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-local-queue-storage-packet',
   sam2PacketPath,
@@ -570,6 +630,33 @@ const blockedMissingControls = parseJsonOutput(runNpm(runScriptName, [
 ]), 'blocked_missing_controls')
 if (blockedMissingControls.decision !== 'missing_external_beta_runtime_queue_service_controls') {
   fail(`blocked_missing_controls_decision:${blockedMissingControls.decision}`)
+}
+const blockedWeakenedSam2Bridge = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-local-queue-storage-packet',
+  weakenedSam2LocalQueueStoragePath,
+  '--execution-requested',
+  '--external-beta-runtime-queue-service-ref',
+  'external-beta-runtime-queue://service',
+  '--external-beta-runtime-queue-rpc-schema-ref',
+  'external-beta-runtime-queue://rpc-schema/v1',
+  '--external-beta-worker-claim-readiness-ref',
+  'external-beta-runtime-queue://worker-claim-readiness',
+  '--external-beta-queue-telemetry-ref',
+  'external-beta-runtime-queue://telemetry',
+]), 'blocked_weakened_sam2_bridge')
+if (blockedWeakenedSam2Bridge.decision !== 'missing_external_beta_local_queue_storage') {
+  fail(`blocked_weakened_sam2_bridge_decision:${blockedWeakenedSam2Bridge.decision}`)
+}
+if (blockedWeakenedSam2Bridge.sourceExternalBetaLocalQueueStorageAccepted !== false) {
+  fail('blocked_weakened_sam2_bridge_source_local_queue_not_rejected')
+}
+if (
+  blockedWeakenedSam2Bridge.sourceExternalBetaLocalQueueStorageProofBridgeAccepted !== false
+) {
+  fail('blocked_weakened_sam2_bridge_proof_bridge_not_false')
+}
+if (blockedWeakenedSam2Bridge.externalBetaRuntimeQueueServiceBridgeRecord !== null) {
+  fail('blocked_weakened_sam2_bridge_created_record')
 }
 
 const sam2Result = results.find(([profile]) => profile[0] === 'sam2')?.[1] ?? {}
@@ -604,6 +691,15 @@ for (const [profile, output] of results) {
   if (output.localMockRuntimeQueueServiceBatchesCreatedNow !== 1) fail(`${toolId}_local_runtime_batch_count`)
   if (output.localMockRuntimeQueueServiceJobsCreatedNow !== 1) fail(`${toolId}_local_runtime_job_count`)
   if (output.liveSupabaseQueueWritesNow !== 0) fail(`${toolId}_live_supabase_queue_writes`)
+  if (output.sourceExternalBetaLocalQueueStorageProofBridgeAccepted !== true) {
+    fail(`${toolId}_source_local_queue_storage_proof_bridge_not_true`)
+  }
+  if (
+    output.externalBetaRuntimeQueueServiceBridgeRecord
+      ?.sourceLocalQueueStorageProofBridgeAccepted !== true
+  ) {
+    fail(`${toolId}_bridge_record_source_proof_bridge_not_true`)
+  }
   if (output.liveWorkerClaimRowsNow !== 0) fail(`${toolId}_live_worker_claim_rows`)
   if (output.liveWorkerDispatchesNow !== 0) fail(`${toolId}_live_dispatches`)
   if (output.externalBetaReadyNowTools !== 0) fail(`${toolId}_external_beta_ready`)
@@ -621,6 +717,7 @@ const combinedText = [
   queueService,
   scorecard,
   JSON.stringify(results.map(([, output]) => output)),
+  JSON.stringify(blockedWeakenedSam2Bridge),
 ].join('\n')
 for (const pattern of [
   /agentCanExecuteToolsNow["'`\s:]*true/i,
@@ -726,6 +823,9 @@ console.log(JSON.stringify({
   planningBridgeDecision: planningBridge.decision,
   blockedMissingLocalQueueStorageDecision: blockedMissingLocal.decision,
   blockedMissingControlsDecision: blockedMissingControls.decision,
+  blockedWeakenedSam2BridgeDecision: blockedWeakenedSam2Bridge.decision,
+  blockedWeakenedSam2ProofBridgeAccepted:
+    blockedWeakenedSam2Bridge.sourceExternalBetaLocalQueueStorageProofBridgeAccepted,
   runtimeQueueServicePayloadsReadyWithProvidedEvidence: readyResults.length,
   canonicalRuntimeQueueServiceValidationPassedTools: readyResults.length,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: gpuReady.length,
@@ -735,6 +835,11 @@ console.log(JSON.stringify({
   d3SourceGatewayRuntimeAdmissionMode:
     d3Result.externalBetaRuntimeQueueServiceBridgeRecord?.sourceGatewayRuntimeAdmissionMode,
   sam2QueueServiceMockOnly: sam2Result.externalBetaRuntimeQueueServiceBridgeRecord?.queueServiceMockOnly,
+  sam2SourceLocalQueueStorageProofBridgeAccepted:
+    sam2Result.sourceExternalBetaLocalQueueStorageProofBridgeAccepted,
+  sam2BridgeRecordSourceProofBridgeAccepted:
+    sam2Result.externalBetaRuntimeQueueServiceBridgeRecord
+      ?.sourceLocalQueueStorageProofBridgeAccepted,
   sam2EnqueueRpcName: sam2Result.externalBetaRuntimeQueueServiceBridgeRecord?.enqueueRpcName,
   sam2ClaimRpcName: sam2Result.externalBetaRuntimeQueueServiceBridgeRecord?.claimRpcName,
   liveSupabaseQueueWritesNow: sam2Result.liveSupabaseQueueWritesNow,

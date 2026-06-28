@@ -1,0 +1,71 @@
+{
+  "packet": "RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-PRODUCT-WALKTHROUGH-QA-1",
+  "decision": "qa_passed_single_tester_qwen_product_flow_runtime_evidence",
+  "execution": "completed_docs_only_single_tester_walkthrough_qa_no_runtime_execution",
+  "integrationBase": "8ee164c9383c290f1272d43e64d2d0c7fda8d45c",
+  "sourceEvidence": {
+    "productFlowAfterQwenPr": 1423,
+    "productFlowAfterQwenMergeSha": "afde458c1967cc0f90bf7db6aebea0e5e6f9b544",
+    "qwenProductFlowRuntimePr": 1428,
+    "qwenProductFlowRuntimeMergeSha": "8ee164c9383c290f1272d43e64d2d0c7fda8d45c",
+    "excludedPr": 577
+  },
+  "acceptedRuntimeEvidence": {
+    "wrapperRunId": "single-tester-qwen-product-flow-runtime-1-2026-06-28T10-28-10-412Z-36e1bf2c",
+    "controlledTesterProductFlowRunId": "2026-06-28T10-28-10-870Z-daae948b",
+    "qwenWrapperRunId": "qwen25-approved-snapshot-job-orchestration-runtime-fixture-1-2026-06-28T10-28-26-132Z-44389d09",
+    "qwenRuntimeRunId": "qwen25-product-route-provider-runtime-fixture-1r-2026-06-28T10-28-30-250Z-3e4c842a",
+    "adapterRunId": "qwen25-adapter-runtime-fixture-2026-06-28T10-28-35-312Z-24693f06",
+    "cloudRunExecution": "reeditpro-qwen2-5-vl-private-caller-qn4q8",
+    "httpStatus": 200,
+    "serviceReason": "qwen_fixture_inference_smoke_completed",
+    "structuredMetadataAccepted": true,
+    "schemaValid": true,
+    "failClosedRestorePassed": true
+  },
+  "readiness": {
+    "singleTesterQwenProductFlow": "ready_for_controlled_external_beta_single_tester_go_no_go",
+    "nextMilestone": "RP-EXTERNAL-BETA-CONTROLLED-SINGLE-TESTER-GO-NO-GO-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "blockedNow": {
+    "additionalTesterExpansion": "blocked_no_additional_named_tester_list",
+    "publicArtifacts": "blocked",
+    "signedUrls": "blocked",
+    "persistentCreditSpend": "blocked",
+    "workerExecution": "blocked",
+    "broadMedia": "blocked",
+    "finalDeliveryExport": "blocked",
+    "paidProduction": "blocked",
+    "productionUnlock": "blocked"
+  },
+  "safety": {
+    "docsOnlyQaReview": true,
+    "qwenRuntimeExecutedInThisQaPacket": false,
+    "providerCallInThisQaPacket": false,
+    "modelCallInThisQaPacket": false,
+    "routeExecutionInThisQaPacket": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretManagerPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "persistentCreditMutation": false,
+    "creditSpend": false,
+    "stripePaymentProcessing": false,
+    "browserCapture": false,
+    "mediaProcessing": false,
+    "privateUserMediaProcessing": false,
+    "finalRenderExport": false,
+    "externalBetaGlobalUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "deployment": false,
+    "cloudRunServiceUpdate": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

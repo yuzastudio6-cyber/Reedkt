@@ -1284,3 +1284,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: the scaffold writes a local job plan, guarded deploy script, guarded execute script, and checklist under `.local-artifacts/ai-graphics/cloud-run-native-gpu-proof/`. The generated job shape uses one `nvidia-l4` GPU, `tasks=1`, `parallelism=1`, and `max-retries=0`, with one proof execution per native runtime profile.
 - GPU policy: GPU remains on-demand only. The generated scripts refuse to deploy or execute unless `REEDITPRO_AI_GRAPHICS_CLOUD_RUN_GPU_PROOF_CONFIRM=deploy-or-run-on-demand-l4-proof-job` is set by an operator in the private proof environment. No idle GPU service is approved and CPU fallback for heavy/model tools remains blocked.
 - Runtime/beta/production: no unlock; the scaffold reports `cloudRunDeploymentPerformed=false`, `cloudRunJobExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`, `agentCanExecuteToolsNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta Native GPU Proof Cloud Run Result Collector
+
+- Decision: `ai_graphics_external_beta_native_gpu_proof_cloud_run_result_collector_prepared_local_only`.
+- Scope: prepares the local-only bridge from saved Cloud Run proof logs to the existing GPU runtime proof result validator.
+- Result: the collector reads one saved log file per native proof profile, extracts exactly one approved `reeditpro_ai_graphics_gpu_runtime_readiness` JSON record for each profile, writes extracted JSON under `.local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results/`, and leaves final validation to `ai-graphics:gpu-runtime-proof-result:validate`.
+- GPU policy: the collector does not deploy Cloud Run, execute jobs, start GPU runtime, download/load models, run inference, or process media. It only parses already-saved local proof logs.
+- Runtime/beta/production: no unlock; the collector reports `cloudRunDeploymentPerformed=false`, `cloudRunJobExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`, `agentCanExecuteToolsNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

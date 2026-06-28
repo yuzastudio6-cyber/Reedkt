@@ -151,6 +151,15 @@ The generated scripts keep these runtime side-effect flags false inside the proo
 - \`GCS_UPLOAD_ENABLED=false\`
 
 Expected local outputs stay under \`.local-artifacts/ai-graphics/cloud-run-native-gpu-proof/\`. Do not stage them.
+
+After the proof job writes profile logs, run:
+
+\`\`\`sh
+npm run --silent ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector -- \\
+  --source-cloud-run-job-scaffold-packet docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-job-scaffold.json \\
+  --logs-dir .local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results \\
+  --out-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results
+\`\`\`
 `
 }
 

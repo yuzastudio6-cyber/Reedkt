@@ -104,6 +104,8 @@
     "ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics": "node scripts/validation/ai-graphics-external-beta-native-gpu-proof-operator-scaffold-diagnostics.mjs",
     "ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold": "node --experimental-strip-types server/cli/ai-graphics-external-beta-native-gpu-proof-cloud-run-job-scaffold.ts",
     "ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics": "node scripts/validation/ai-graphics-external-beta-native-gpu-proof-cloud-run-job-scaffold-diagnostics.mjs",
+    "ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector": "node --experimental-strip-types server/cli/ai-graphics-external-beta-native-gpu-proof-cloud-run-result-collector.ts",
+    "ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector:diagnostics": "node scripts/validation/ai-graphics-external-beta-native-gpu-proof-cloud-run-result-collector-diagnostics.mjs",
     "ai-graphics:beta-activation-gap-report": "tsx server/cli/ai-graphics-beta-activation-gap-report.ts",
     "ai-graphics:beta-activation-gap-report:diagnostics": "node scripts/validation/ai-graphics-beta-activation-gap-report-diagnostics.mjs",
     "ai-graphics:beta-evidence-bundle:validate": "tsx server/cli/ai-graphics-beta-evidence-bundle.ts",

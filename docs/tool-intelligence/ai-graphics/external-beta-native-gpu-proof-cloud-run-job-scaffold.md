@@ -50,6 +50,15 @@ The generated execute script runs one Cloud Run Job execution per native proof p
 - `rembg`
 - `transparent_background`
 
+After the job writes profile logs, the next local-only step is:
+
+```sh
+npm run --silent ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector -- \
+  --source-cloud-run-job-scaffold-packet docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-job-scaffold.json \
+  --logs-dir .local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results \
+  --out-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results
+```
+
 ## Private Model Policy
 
 Model-weight delivery must use a reviewed private image layer or an approved private runtime mount. Raw `gs://`, raw `gcs://`, `http://`, `https://`, `signed-url://`, and `public://` references are not accepted as committed proof evidence.

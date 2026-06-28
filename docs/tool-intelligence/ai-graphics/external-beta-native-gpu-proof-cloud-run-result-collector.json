@@ -1,0 +1,98 @@
+{
+  "decision": "ai_graphics_external_beta_native_gpu_proof_cloud_run_result_collector_prepared_local_only",
+  "currentStatus": "external_beta_native_gpu_proof_cloud_run_result_collector_prepared_pending_private_cloud_run_logs",
+  "summary": "Local-only collector for already-saved Cloud Run native GPU proof logs. It extracts approved GPU runtime readiness JSON records into local profile result JSON files that can be fed into the existing GPU runtime proof result validator. It does not deploy Cloud Run, execute jobs, start GPU runtime, download model weights, load models, run inference, process media, mutate storage, create signed URLs, create public artifacts, or unlock external beta/production.",
+  "sourceChain": {
+    "cloudRunJobScaffold": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-job-scaffold.json",
+    "operatorHandoff": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-operator-handoff.json",
+    "gpuRuntimeProofResultValidator": "server/tool-registry/ai-graphics-gpu-runtime-proof-result.ts",
+    "gpuRuntimeProofReadinessProbe": "docker/prod/ai-graphics-gpu-runtime-readiness.py"
+  },
+  "contractSurface": {
+    "toolRegistry": "server/tool-registry/ai-graphics-external-beta-native-gpu-proof-cloud-run-result-collector.ts",
+    "cli": "server/cli/ai-graphics-external-beta-native-gpu-proof-cloud-run-result-collector.ts",
+    "script": "ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector",
+    "diagnostic": "scripts/validation/ai-graphics-external-beta-native-gpu-proof-cloud-run-result-collector-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector:diagnostics"
+  },
+  "defaultInputDirectory": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results",
+  "defaultOutputDirectory": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results",
+  "expectedLogFiles": {
+    "gpu_worker_ai_graphics": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results/native-gpu-profile-gpu_worker_ai_graphics-logs.txt",
+    "sam2": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results/native-gpu-profile-sam2-logs.txt",
+    "birefnet": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results/native-gpu-profile-birefnet-logs.txt",
+    "real_esrgan": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results/native-gpu-profile-real_esrgan-logs.txt",
+    "rembg": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results/native-gpu-profile-rembg-logs.txt",
+    "transparent_background": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results/native-gpu-profile-transparent_background-logs.txt"
+  },
+  "outputFiles": {
+    "extractedProfileResultDirectory": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results",
+    "collectorPacket": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results/cloud-run-native-gpu-proof-result-collector-packet.json",
+    "gpuRuntimeProofResultPacket": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json"
+  },
+  "gpuRuntimeTargetedTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background"
+  ],
+  "runtimeProfilesRequired": [
+    "gpu_worker_ai_graphics",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "followUpValidationCommand": "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results > .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json",
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "gpuRuntimeTargetedTools": 8,
+    "runtimeProfilesRequired": 6,
+    "cloudRunDeploymentPerformed": 0,
+    "cloudRunJobExecutionPerformed": 0,
+    "externalBetaReadyNowTools": 0,
+    "productionReadyNowTools": 0
+  },
+  "booleans": {
+    "externalBetaNativeGpuProofCloudRunResultCollectorPrepared": true,
+    "sourceCloudRunJobScaffoldAccepted": true,
+    "all8GpuRuntimeToolsCovered": true,
+    "all6NativeGpuProfilesCovered": true,
+    "parsesCloudRunLogsOnly": true,
+    "writesLocalExtractedJsonOnly": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "cpuFallbackAllowedForHeavyTools": false,
+    "cloudRunDeploymentPerformed": false,
+    "cloudRunJobExecutionPerformed": false,
+    "localOnlyCollector": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

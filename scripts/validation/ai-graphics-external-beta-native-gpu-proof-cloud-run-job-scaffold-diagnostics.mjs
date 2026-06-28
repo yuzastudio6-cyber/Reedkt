@@ -331,7 +331,8 @@ for (const line of packageJsonDiff.split('\n')) {
     !line.startsWith('+++') &&
     !line.startsWith('---') &&
     !line.includes(runScriptName) &&
-    !line.includes(diagnosticScriptName)
+    !line.includes(diagnosticScriptName) &&
+    !line.includes('ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector')
   ) {
     fail(`unexpected_package_json_change:${line}`)
   }

@@ -18,6 +18,23 @@
     "platformTechnicalProbeTotalChecks": 9,
     "remainingPlatformTechnicalOrApprovalGap": "billing owner Stripe-boundary approval plus deployment/security/storage/legal/monitoring/support owner approvals"
   },
+  "currentD997ApiDeployReadback": {
+    "sourceSha": "d997d567d40853f59741763c8e9ca8b2c361148a",
+    "normalApiService": "reeditpro-api-staging",
+    "normalApiRegion": "us-east1",
+    "normalApiRevision": "reeditpro-api-staging-00010-c6h",
+    "normalApiServiceUrl": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app",
+    "normalApiCanonicalServiceUrl": "https://reeditpro-api-staging-390722338345.us-east1.run.app",
+    "normalApiImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-d997d567d408-20260628T2058Z",
+    "normalApiImageDigest": "sha256:b3c5a028ad5385683c9beed7ef8b8fc96a0c2b7342849864ceb843db60f323bf",
+    "deployWorkflowRunId": "28335776268",
+    "deployWorkflowRunUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28335776268",
+    "deployEvidenceReport": "docs/beta-readiness/api-staging-deploy-current-source/2026-06-28-d997-api-staging-deploy.json",
+    "publicUnauthenticatedHealthStatus": 403,
+    "authenticatedHealthReadback": "not_rerun_local_cloud_cli_auth_expired",
+    "platformTechnicalProbeAtD997": "not_rerun_owner_approval_and_authenticated_preflight_still_required",
+    "remainingPlatformTechnicalOrApprovalGap": "current-source API deploy is recorded, but owner approvals and current-source platform preflight/probe remain required before evidence collection"
+  },
   "localAcceptedEvidenceSnapshot": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-27-local-accepted-evidence-bundle.json",
   "localAcceptedEvidenceSourceSha": "5bc6abf0ef238d8038ea0b95877ca06dd73738fc",
   "locallyAcceptedToolCount": 14,

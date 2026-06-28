@@ -70,6 +70,8 @@ assert.ok(workflow.includes('WORKER_RUNTIME_MODE=disabled'), 'workflow must keep
 assert.ok(workflow.includes('STORAGE_MODE=gcs_disabled'), 'workflow must not enable GCS storage runtime in the API evidence deployment')
 assert.ok(workflow.includes('GOOGLE_CLOUD_PROJECT_ID=${GCP_PROJECT_ID}'), 'workflow must pass the GCP project reference without hardcoding it')
 assert.ok(workflow.includes('GOOGLE_CLOUD_REGION=${GCP_REGION}'), 'workflow must pass the GCP region reference without hardcoding it')
+assert.ok(workflow.includes('SUPABASE_ANON_KEY=SUPABASE_ANON_KEY:latest'), 'workflow must mount the Supabase anon key for server-side bearer token verification')
+assert.ok(workflow.includes('SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest'), 'workflow must keep service-role mounted only as a server-side secret')
 assert.equal(workflow.includes('REEDITPRO_ENV=production'), false, 'workflow must not deploy production runtime env')
 assert.ok(workflow.includes('google-github-actions/auth@v2'), 'workflow must use Workload Identity auth')
 assert.ok(workflow.includes('google-github-actions/setup-gcloud@v2'), 'workflow must install gcloud through the official action')

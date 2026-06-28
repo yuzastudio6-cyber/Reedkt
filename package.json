@@ -757,6 +757,7 @@
     "rp-external-beta-controlled-single-tester-qwen-product-flow-runtime-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-single-tester-qwen-product-flow-runtime-1-diagnostics.mjs",
     "rp-external-beta-single-tester-real-product-walkthrough-qa-1:diagnostics": "node scripts/validation/rp-external-beta-single-tester-real-product-walkthrough-qa-1-diagnostics.mjs",
     "rp-external-beta-controlled-single-tester-go-no-go-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-single-tester-go-no-go-1-diagnostics.mjs",
+    "rp-external-beta-named-tester-expansion-readiness-1:diagnostics": "node scripts/validation/rp-external-beta-named-tester-expansion-readiness-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-external-beta-product-route-handler-source-1": "tsx server/smoke/qwen2-5-vl-external-beta-product-route-handler-source-1-smoke.ts",
     "rp-qwen2-5-vl-external-beta-product-route-handler-source-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-product-route-handler-source-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1": "tsx server/smoke/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-smoke.ts",

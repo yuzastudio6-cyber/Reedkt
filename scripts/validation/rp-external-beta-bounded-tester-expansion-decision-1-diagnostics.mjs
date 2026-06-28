@@ -26,7 +26,21 @@ const requiredFiles = [
   'package.json',
 ]
 
-const allowedFiles = new Set(requiredFiles)
+const followOnFiles = [
+  'docs/external-beta/named-tester-expansion-readiness-1/source-chain-reconciliation.md',
+  'docs/external-beta/named-tester-expansion-readiness-1/readiness-decision.md',
+  'docs/external-beta/named-tester-expansion-readiness-1/expansion-boundary.md',
+  'docs/external-beta/named-tester-expansion-readiness-1/safety-boundary.md',
+  'docs/external-beta/named-tester-expansion-readiness-1/validation-results.md',
+  'docs/external-beta/named-tester-expansion-readiness-1/named-tester-expansion-readiness-record.json',
+  'docs/activation-phase-rp-external-beta-named-tester-expansion-readiness-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-named-tester-expansion-readiness-1.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-additional-named-tester-list-decision-1.md',
+  'scripts/validation/rp-external-beta-named-tester-expansion-readiness-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-single-tester-go-no-go-1-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([...requiredFiles, ...followOnFiles])
 
 const requiredText = [
   packet,

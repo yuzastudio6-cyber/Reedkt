@@ -1,0 +1,49 @@
+{
+  "contract": "gpac_mp4box_worker_contract",
+  "status": "worker_contract_review_passed_no_worker_execution",
+  "requiredInputs": [
+    "approvedSnapshotRef",
+    "approvalRecordRef",
+    "jobRef",
+    "workerLeaseRef",
+    "routeIdempotencyKey",
+    "sourceSequenceMapRef",
+    "compiledIntentRef",
+    "modelRoutingPolicyRef",
+    "qaPolicyRef",
+    "privateInputManifestRef",
+    "privateArtifactManifestRef",
+    "privateArtifactChecksumRef",
+    "toolRuntimePolicyRef",
+    "gpacMp4boxWorkerContractRef"
+  ],
+  "futureCommandScope": {
+    "generatedOrExplicitlyApprovedBoundedFixtureInputOnly": true,
+    "exactCommandTemplatesRequiredBeforeExecution": true,
+    "networkDisabledByDefault": true,
+    "ffmpegFfprobeHelperExpansion": false,
+    "finalRenderExport": false,
+    "publicArtifactWrite": false,
+    "signedUrlSourceOfTruth": false
+  },
+  "allowedFutureOutputs": [
+    "sanitized_manifest_json",
+    "file_names",
+    "byte_counts",
+    "sha256_checksums",
+    "command_exit_codes",
+    "bounded_stdout_stderr_snippets",
+    "qa_report",
+    "cleanup_status"
+  ],
+  "requiredFailureCategories": [
+    "blocked_missing_approved_snapshot",
+    "blocked_missing_private_input_manifest",
+    "blocked_unapproved_media_source",
+    "blocked_unapproved_command_template",
+    "blocked_mp4box_runtime_failure",
+    "blocked_artifact_manifest_mismatch",
+    "blocked_cleanup_failure",
+    "blocked_public_or_signed_artifact_attempt"
+  ]
+}

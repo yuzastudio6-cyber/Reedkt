@@ -26,8 +26,28 @@ const packetFiles = [
   `${packetDir}/validation-results.md`
 ]
 
+const workerContractReviewFiles = [
+  'docs/activation-phase-tracka-gpac-mp4box-worker-contract-review-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-worker-integration-plan-1.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/artifact-policy.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/artifact-policy.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/gpac-mp4box-worker-contract-review-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/gpac-mp4box-worker-contract-review-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/product-boundary.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/product-boundary.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/validation-results.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/worker-contract.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-contract-review/worker-contract.md',
+  'scripts/validation/tracka-gpac-mp4box-worker-contract-review-diagnostics.mjs'
+]
+
 const requiredFiles = [
   ...packetFiles,
+  ...workerContractReviewFiles,
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-worker-contract-review-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-controlled-synthetic-media-command-qa-1.md',
   'docs/track-a/native-container-render-tools/gpac-mp4box-controlled-synthetic-media-command-proof/gpac-mp4box-controlled-synthetic-media-command-proof-decision.json',

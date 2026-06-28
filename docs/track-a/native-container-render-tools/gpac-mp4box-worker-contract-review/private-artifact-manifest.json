@@ -1,0 +1,10 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-WORKER-CONTRACT-REVIEW-1",
+  "privateArtifacts": [],
+  "publicArtifacts": [],
+  "signedUrls": [],
+  "committedMediaArtifacts": [],
+  "generatedOutputsCommitted": [],
+  "runtimeOutputs": [],
+  "notes": "Docs-only worker contract review. No runtime artifacts were generated or committed."
+}

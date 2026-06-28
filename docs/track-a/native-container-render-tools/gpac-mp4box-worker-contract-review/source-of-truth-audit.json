@@ -1,0 +1,36 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-WORKER-CONTRACT-REVIEW-1",
+  "decision": "tracka_gpac_mp4box_worker_contract_review_passed_ready_for_worker_integration_plan",
+  "execution": "completed_docs_only_worker_contract_review_no_runtime_execution",
+  "integrationBase": "8356e741566d469e5a6038a00068d00b0b292a0f",
+  "acceptedSourceChain": [
+    "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-EXECUTION-1",
+    "TRACKA-GPAC-MP4BOX-OFFICIAL-APT-INSTALL-SOURCE-QA-1",
+    "TRACKA-GPAC-MP4BOX-CONTROLLED-RUNTIME-PROOF-1",
+    "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-PROOF-1",
+    "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1"
+  ],
+  "acceptedEvidence": {
+    "gpacPackage": "gpac=26.02-rev0-g118e60a90-HEAD",
+    "architecture": "arm64",
+    "mp4boxPath": "/usr/bin/MP4Box",
+    "nonMediaRuntimeProof": true,
+    "syntheticSubtitleOnlyCommandProof": true,
+    "acceptedOutputSha256": "afc4c7fc017f5d41d817284aa633355d587958416df02a71c0fdd66df7829bb8"
+  },
+  "notAccepted": {
+    "userPrivateRealMediaReadiness": true,
+    "arbitraryMediaProbing": true,
+    "ffmpegFfprobeOwnershipTransfer": true,
+    "renderExportReadiness": true,
+    "workerExecution": true,
+    "productRuntimeReadiness": true,
+    "betaReadiness": true,
+    "productionReadiness": true
+  },
+  "productReadyLocalOssTools": 0,
+  "trackBFFmpegFFprobeOwnershipPreserved": true,
+  "pr577Excluded": true,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-WORKER-INTEGRATION-PLAN-1"
+}

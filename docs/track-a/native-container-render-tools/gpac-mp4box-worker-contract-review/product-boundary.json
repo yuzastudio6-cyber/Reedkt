@@ -1,0 +1,23 @@
+{
+  "allowedByThisReview": {
+    "futureApprovedSnapshotWorkerContractPlanning": true,
+    "futureManifestAndQaReportPlanning": true,
+    "futureGeneratedOrExplicitlyApprovedBoundedFixturePlanning": true
+  },
+  "stillBlocked": {
+    "userPrivateRealMediaExecution": true,
+    "arbitraryMediaProbing": true,
+    "ffmpegFfprobeOwnershipTransfer": true,
+    "ffmpegFfprobeHelperExpansion": true,
+    "workerExecution": true,
+    "routeProviderExecution": true,
+    "productRuntimeExecution": true,
+    "renderExport": true,
+    "publicArtifacts": true,
+    "signedUrls": true,
+    "externalBetaExpansion": true,
+    "paidProduction": true,
+    "production": true
+  },
+  "trackBFFmpegFFprobeOwnershipPreserved": true
+}

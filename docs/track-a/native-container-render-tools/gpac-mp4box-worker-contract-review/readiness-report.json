@@ -1,0 +1,11 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-WORKER-CONTRACT-REVIEW-1",
+  "workerContractReview": "passed",
+  "readyForWorkerIntegrationPlan": true,
+  "readyForWorkerExecution": false,
+  "readyForProductRuntime": false,
+  "readyForExternalBetaProductUse": false,
+  "readyForProduction": false,
+  "productReadyLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-WORKER-INTEGRATION-PLAN-1"
+}

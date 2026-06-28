@@ -1,0 +1,48 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN2_5_VL_APPROVED_SNAPSHOT_JOB_ORCHESTRATION_RUNTIME_FIXTURE_1",
+  "decision": "completed_qwen2_5_vl_approved_snapshot_job_orchestration_runtime_fixture",
+  "execution": "completed_confirmed_qwen2_5_vl_approved_snapshot_job_orchestration_runtime_fixture",
+  "base": "8e4c79d11a41e9a6733eabcc00acfd5e7794eb88",
+  "sourceEvidence": {
+    "approvedSnapshotJobOrchestrationE2EPr": 1410,
+    "approvedSnapshotJobOrchestrationE2EMergeSha": "8e4c79d11a41e9a6733eabcc00acfd5e7794eb88",
+    "qwenProductRouteRuntimeReadinessRollupMergeSha": "71fe816d96135674bb634389ae08e2358806c33f",
+    "excludedPr": 577
+  },
+  "runtime": {
+    "confirmed": true,
+    "runId": "qwen25-approved-snapshot-job-orchestration-runtime-fixture-1-2026-06-28T07-37-02-997Z-a0b72404",
+    "outputDir": "/var/folders/y2/tffpcrt16qz6ndjsjrpqxrz40000gn/T/reeditpro-rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1/qwen25-approved-snapshot-job-orchestration-runtime-fixture-1-2026-06-28T07-37-02-997Z-a0b72404",
+    "qwenColdStartRetryRunId": "qwen25-product-route-provider-runtime-fixture-cold-start-retry-1-2026-06-28T07-37-03-392Z-e5ac2657",
+    "qwenRuntimeRunId": "qwen25-product-route-provider-runtime-fixture-1r-2026-06-28T07-37-03-448Z-a3702726",
+    "adapterRunId": "qwen25-adapter-runtime-fixture-2026-06-28T07-37-03-875Z-569ad1be",
+    "cloudRunExecution": "reeditpro-qwen2-5-vl-private-caller-4qv7m",
+    "httpStatus": 200,
+    "serviceReason": "qwen_fixture_inference_smoke_completed",
+    "structuredMetadataAccepted": true,
+    "schemaValid": true,
+    "objectCount": 3,
+    "textLikeRegionCount": 1,
+    "failClosedRestorePassed": true
+  },
+  "readiness": {
+    "qwenApprovedSnapshotJobOrchestrationRuntimeFixture": "ready_for_qwen2_5_vl_approved_snapshot_job_orchestration_qa_rollup",
+    "externalBetaUnlocked": false
+  },
+  "safety": {
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "creditMutation": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "finalRenderExport": false,
+    "externalBetaUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "RP-EXTERNAL-BETA-QWEN2_5_VL_APPROVED_SNAPSHOT_JOB_ORCHESTRATION_QA_ROLLUP_1"
+}

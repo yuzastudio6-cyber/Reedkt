@@ -22,6 +22,19 @@ const requiredFiles = [
   'package.json',
 ]
 
+const allowedFollowUpFiles = [
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1/runtime-result.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1/artifact-manifest.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1/qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-record.json',
+  'docs/activation-phase-rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1.md',
+  'scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1.mjs',
+  'scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'completed_qwen2_5_vl_approved_snapshot_job_orchestration_e2e_source_contract',
@@ -125,7 +138,7 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowedFiles = new Set(requiredFiles)
+const allowedFiles = new Set([...requiredFiles, ...allowedFollowUpFiles])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   if (

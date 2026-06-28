@@ -100,9 +100,13 @@ export async function runBetaPlatformBillingQa(
   const serviceFeeExcluded = first.event.metadata.reeditproServiceFeeIncluded === false
   const eventWritePassed = hasPersistentRuntime
     ? !first.event.billableToUser &&
-      first.event.failureCategory === 'provider_error' &&
-      first.event.toolCostCredits === 0
+      first.event.failureCategory === 'provider_error'
     : first.event.billableToUser && Boolean(first.event.creditEstimateId && first.event.creditReservationId)
+  const summaryReadbackPassed = hasPersistentRuntime
+    ? Boolean(summaryEvent) &&
+      summary.summary.billableEventCount === 0 &&
+      summary.summary.actualToolCostCredits === 0
+    : Boolean(summaryEvent) && summary.summary.actualToolCostCredits >= first.event.toolCostCredits
   const walletBoundaryPassed = hasPersistentRuntime
     ? !first.event.billableToUser && first.event.metadata.walletSettlementPerformed === false
     : first.event.billableToUser && first.event.metadata.walletSettlementPerformed === false
@@ -141,6 +145,7 @@ export async function runBetaPlatformBillingQa(
           `persistenceMode=${hasPersistentRuntime ? 'supabase_service_role' : 'mock_memory'}`,
           `billableToUser=${first.event.billableToUser}`,
           `failureCategory=${first.event.failureCategory}`,
+          ...(hasPersistentRuntime ? ['nonBillableInternalCreditsDoNotSettle=true'] : []),
         ],
         'Deploy and run this QA against staging with service-role persistence before platform evidence can clear.',
       ),
@@ -158,10 +163,11 @@ export async function runBetaPlatformBillingQa(
       check(
         'summary_readback',
         'Project tool-cost summary reads back the recorded event',
-        Boolean(summaryEvent) && summary.summary.actualToolCostCredits >= first.event.toolCostCredits,
+        summaryReadbackPassed,
         [
           `summaryEventCount=${summary.summary.events.length}`,
           `summaryCredits=${summary.summary.actualToolCostCredits}`,
+          `billableEventCount=${summary.summary.billableEventCount}`,
         ],
         'Verify authenticated RLS member readback in staging before platform evidence can clear.',
       ),
@@ -171,7 +177,7 @@ export async function runBetaPlatformBillingQa(
         walletBoundaryPassed,
         [
           hasPersistentRuntime
-            ? 'persistent QA fixture is explicitly non-billable and zero-credit'
+            ? 'persistent QA fixture is explicitly non-billable; internal estimate credits are not settled'
             : 'tool cost event is billable metadata only',
           'wallet settlement remains a separate transactional backend step',
         ],
@@ -224,7 +230,7 @@ export async function runBetaPlatformBillingQa(
     notes: [
       ...(input.notes ?? []),
       hasPersistentRuntime
-        ? 'Persistent QA ran a non-billable zero-credit event and idempotent settlement through deployed backend paths; it did not process media, call providers, call Stripe, enable beta, or mark production ready.'
+        ? 'Persistent QA ran a non-billable event and idempotent non-billable settlement through deployed backend paths; internal estimate credits were not settled, and it did not process media, call providers, call Stripe, enable beta, or mark production ready.'
         : 'This QA harness does not process media, call providers, call Stripe, settle real wallets, enable beta, or mark production ready.',
       'The report is blocker-reduction evidence only; ToolBetaPlatformReadinessEvidence still requires owner approvals and final recorded evidence.',
     ],
@@ -294,7 +300,7 @@ function buildQaEventInput(input: BetaPlatformBillingQaInput, persistentRuntime:
     billableMs: persistentRuntime ? 0 : 8_000,
     vcpuCount: 2,
     memoryGiB: 4,
-    renderDurationSeconds: persistentRuntime ? 0 : 4,
+    renderDurationSeconds: 4,
     outputResolution: '1920x1080',
     outputFrameRate: 30,
     billableToUser: !persistentRuntime,

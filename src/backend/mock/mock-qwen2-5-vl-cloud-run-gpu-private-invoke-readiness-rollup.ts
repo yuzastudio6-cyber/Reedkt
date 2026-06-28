@@ -22,6 +22,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_MIGRATION_DRAFT } from './mock-q
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_VALIDATION_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-validation-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PLAN } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-plan'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_CREATE } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-config-create'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_VERIFY } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-config-verify'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -50,6 +51,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_migration_draft_required'
   | 'blocked_backend_runtime_persistence_local_harness_config_required'
   | 'blocked_backend_runtime_persistence_local_harness_config_verify_required'
+  | 'blocked_backend_runtime_persistence_local_harness_validation_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -66,7 +68,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_config_created_verify_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_config_verified_harness_validation_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -115,6 +117,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_PLAN.decision,
   upstreamBackendRuntimePersistenceLocalHarnessConfigCreateDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_CREATE.decision,
+  upstreamBackendRuntimePersistenceLocalHarnessConfigVerifyDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_CONFIG_VERIFY.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -460,13 +464,24 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_local_harness_config_verify',
       label: 'Backend runtime persistence local harness config verification',
-      status: 'blocked_backend_runtime_persistence_local_harness_config_verify_required',
+      status: 'ready',
       evidence: [
-        'Config creation report is recorded.',
-        'No Supabase CLI command, Docker service, SQL, database, migration validation, Cloud Run request, inference, worker dispatch, or generated asset action has run.',
+        'Config verification report is recorded.',
+        'The repo-local config uses project id reeditpro_qwen_local_harness with loopback-only URLs and no remote refs, secrets, provider settings, worker settings, Cloud Run settings, GPU settings, or model runtime settings.',
+        'Local toolchain verification passed for arm64 host, native Homebrew, native Node, native Supabase CLI, and Docker CLI availability.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_local_harness_validation',
+      label: 'Backend runtime persistence local harness validation',
+      status: 'blocked_backend_runtime_persistence_local_harness_validation_required',
+      evidence: [
+        'Config and local toolchain prerequisites are verified for a future local harness validation prompt.',
+        'No Supabase runtime command, Docker service, SQL, database, migration validation, Cloud Run request, inference, worker dispatch, or generated asset action has run.',
       ],
       missingEvidence: [
-        'Verify the committed config text, local toolchain, repo state, and harness prerequisites before any SQL, Supabase runtime, Docker, Cloud Run, inference, generated assets, beta, or production action.',
+        'Run approved local Supabase harness validation: start only the approved local harness, load the ReEditPro baseline, apply only the Qwen draft SQL, run only the Qwen local SQL tests, record sanitized output, and verify cleanup.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -616,12 +631,18 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceLocalHarnessPlanRecorded: true,
     backendRuntimePersistenceLocalHarnessConfigRequired: false,
     backendRuntimePersistenceLocalHarnessConfigCreated: true,
-    backendRuntimePersistenceLocalHarnessConfigVerificationRequired: true,
-    backendRuntimePersistenceLocalHarnessConfigVerificationPassed: false,
+    backendRuntimePersistenceLocalHarnessConfigVerificationRequired: false,
+    backendRuntimePersistenceLocalHarnessConfigVerificationPassed: true,
+    backendRuntimePersistenceLocalHarnessValidationRequired: true,
+    backendRuntimePersistenceLocalHarnessValidationPassed: false,
     configTomlCreated: true,
     configTomlExistsAfter: true,
-    configVerificationRequired: true,
-    configVerificationPassed: false,
+    configVerificationRequired: false,
+    configVerificationPassed: true,
+    localToolchainVerificationPassed: true,
+    supabaseCliCompatible: true,
+    dockerCliAvailable: true,
+    readyForLocalHarnessValidation: true,
     approvedLocalHarnessExists: false,
     readyForRealWorkerDispatch: false,
     structuredFixtureOutputSchemaValid: true,
@@ -640,11 +661,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_local_harness_config_verify_required',
+    'backend_runtime_persistence_local_harness_validation_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58S-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-CONFIG-VERIFY: verify safe local Supabase config and Qwen persistence harness prerequisites, no SQL/no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58T-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION: run Qwen persistence draft validation in approved local Supabase harness, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

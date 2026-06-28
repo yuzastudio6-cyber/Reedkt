@@ -33,6 +33,14 @@ const allowedFollowUpFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1.md',
   'scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1.mjs',
   'scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1-diagnostics.mjs',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1/qa-rollup.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1/artifact-manifest-review.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-record.json',
+  'docs/activation-phase-rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-current-readiness-rollup-after-qwen-orchestration-1.md',
+  'scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1-diagnostics.mjs',
 ]
 
 const requiredText = [

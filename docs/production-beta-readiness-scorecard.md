@@ -1230,3 +1230,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: the evaluator requires an accepted worker-dispatch-smoke proof plus private/backend refs for artifact policy, manifest schema, storage namespace, access boundary, encryption, retention, and telemetry. With those refs, it prepares 21 private per-tool manifest records for input, output, telemetry, lease audit, and GPU model/cache manifest refs where applicable. It performs no storage mutation.
 - Artifact policy: public refs, signed URL refs, raw HTTP(S), and raw `gs://`/`gcs://` refs are rejected. Future runtime proof must use private/backend artifact boundaries instead of public artifacts as source-of-truth.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `publicArtifactCreated=false`, `signedUrlCreated=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta Tool Route Runtime Proof
+
+- Decision: `ai_graphics_external_beta_tool_route_runtime_proof_prepared_with_runtime_blocks`.
+- Scope: Tool Route runtime proof gate for all 21 AI graphics tools and all 12 product-facing capabilities after the private artifact manifest.
+- Result: the evaluator requires an accepted private artifact manifest plus private/backend refs for Tool Route policy, schema, admission, authorization, rate limiting, audit, and rollback. With those refs, it prepares 21 runtime-proof-only Tool Route records that carry private artifact refs and production worker/runtime metadata. It performs no Tool Route execution, Worker dispatch, storage mutation, or public artifact creation.
+- Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `publicArtifactCreated=false`, `signedUrlCreated=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

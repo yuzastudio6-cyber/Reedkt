@@ -26,6 +26,14 @@ const privateArtifactManifestDiagnosticScriptName =
   'ai-graphics:external-beta-private-artifact-manifest:diagnostics'
 const privateArtifactManifestDiagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-private-artifact-manifest-diagnostics.mjs'
+const toolRouteRuntimeProofScriptName =
+  'ai-graphics:external-beta-tool-route-runtime-proof'
+const toolRouteRuntimeProofScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts'
+const toolRouteRuntimeProofDiagnosticScriptName =
+  'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
+const toolRouteRuntimeProofDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
 
 const allTools = [
   'torch_torchvision',
@@ -387,6 +395,8 @@ const allowedPackageAdditions = new Set([
   `+    "${proofDiagnosticScriptName}": "${proofDiagnosticScriptCommand}",`,
   `+    "${privateArtifactManifestScriptName}": "${privateArtifactManifestScriptCommand}",`,
   `+    "${privateArtifactManifestDiagnosticScriptName}": "${privateArtifactManifestDiagnosticScriptCommand}",`,
+  `+    "${toolRouteRuntimeProofScriptName}": "${toolRouteRuntimeProofScriptCommand}",`,
+  `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
 ])
 for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

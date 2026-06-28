@@ -3,6 +3,14 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
+const toolRouteRuntimeProofScriptName =
+  'ai-graphics:external-beta-tool-route-runtime-proof'
+const toolRouteRuntimeProofScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts'
+const toolRouteRuntimeProofDiagnosticScriptName =
+  'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
+const toolRouteRuntimeProofDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const validateScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const validateScriptCommand = 'tsx server/cli/ai-graphics-external-beta-evidence-packet.ts'
@@ -374,6 +382,8 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
+  `+    "${toolRouteRuntimeProofScriptName}": "${toolRouteRuntimeProofScriptCommand}",`,
+  `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
   `+    "${validateScriptName}": "${validateScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   `+    "${scaffoldScriptName}": "${scaffoldScriptCommand}",`,

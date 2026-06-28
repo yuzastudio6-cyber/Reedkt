@@ -3,6 +3,14 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
+const toolRouteRuntimeProofScriptName =
+  'ai-graphics:external-beta-tool-route-runtime-proof'
+const toolRouteRuntimeProofScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts'
+const toolRouteRuntimeProofDiagnosticScriptName =
+  'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
+const toolRouteRuntimeProofDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:external-beta-backend-queue-submission'
 const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-backend-queue-submission.ts'
@@ -716,6 +724,8 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
+  `+    "${toolRouteRuntimeProofScriptName}": "${toolRouteRuntimeProofScriptCommand}",`,
+  `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
   '+    "ai-graphics:external-beta-worker-enqueue-adapter": "tsx server/cli/ai-graphics-external-beta-worker-enqueue-adapter.ts",',
   '+    "ai-graphics:external-beta-worker-enqueue-adapter:diagnostics": "node scripts/validation/ai-graphics-external-beta-worker-enqueue-adapter-diagnostics.mjs",',
   `+    "${runScriptName}": "${runScriptCommand}",`,

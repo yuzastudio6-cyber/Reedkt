@@ -1,6 +1,14 @@
 import { execFileSync, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 
+const toolRouteRuntimeProofScriptName =
+  'ai-graphics:external-beta-tool-route-runtime-proof'
+const toolRouteRuntimeProofScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts'
+const toolRouteRuntimeProofDiagnosticScriptName =
+  'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
+const toolRouteRuntimeProofDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:external-beta-service-role-queue-smoke'
 const runScriptCommand =
@@ -267,6 +275,8 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 }
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
+  `+    "${toolRouteRuntimeProofScriptName}": "${toolRouteRuntimeProofScriptCommand}",`,
+  `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
   '+    "ai-graphics:external-beta-service-role-queue-smoke-readiness": "tsx server/cli/ai-graphics-external-beta-service-role-queue-smoke-readiness.ts",',
   '+    "ai-graphics:external-beta-service-role-queue-smoke-readiness:diagnostics": "node scripts/validation/ai-graphics-external-beta-service-role-queue-smoke-readiness-diagnostics.mjs",',
   `+    "${runScriptName}": "${runScriptCommand}",`,

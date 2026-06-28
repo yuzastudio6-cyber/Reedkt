@@ -3,14 +3,6 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
-const manifestScriptName = 'ai-graphics:external-beta-private-artifact-manifest'
-const manifestScriptCommand =
-  'tsx server/cli/ai-graphics-external-beta-private-artifact-manifest.ts'
-const manifestDiagnosticScriptName =
-  'ai-graphics:external-beta-private-artifact-manifest:diagnostics'
-const manifestDiagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-private-artifact-manifest-diagnostics.mjs'
 const toolRouteRuntimeProofScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof'
 const toolRouteRuntimeProofScriptCommand =
@@ -19,8 +11,17 @@ const toolRouteRuntimeProofDiagnosticScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
 const toolRouteRuntimeProofDiagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
+const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
+const routeScriptName = 'ai-graphics:external-beta-tool-route-runtime-proof'
+const routeScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts'
+const routeDiagnosticScriptName =
+  'ai-graphics:external-beta-tool-route-runtime-proof:diagnostics'
+const routeDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-tool-route-runtime-proof-diagnostics.mjs'
 const sourceSmokeScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke'
 const sourceProofScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke-proof'
+const privateManifestScriptName = 'ai-graphics:external-beta-private-artifact-manifest'
 
 const allTools = [
   'torch_torchvision',
@@ -165,35 +166,44 @@ function writeJson(filePath, value) {
   return filePath
 }
 
+function refIsPrivate(value) {
+  return [
+    'private://',
+    'reeditpro-private://',
+    'backend-evidence://',
+    'external-beta-evidence://',
+  ].some((prefix) => String(value).startsWith(prefix))
+}
+
 const requiredFiles = [
+  'server/tool-registry/ai-graphics-external-beta-tool-route-runtime-proof.ts',
+  'server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts',
   'server/tool-registry/ai-graphics-external-beta-private-artifact-manifest.ts',
-  'server/cli/ai-graphics-external-beta-private-artifact-manifest.ts',
-  'server/tool-registry/ai-graphics-external-beta-worker-dispatch-smoke-proof.ts',
   'server/tool-registry/index.ts',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.md',
   'docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
 
 for (const file of requiredFiles) read(file)
 
 const pkg = json('package.json')
-const docs = json('docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.md')
-const source = read('server/tool-registry/ai-graphics-external-beta-private-artifact-manifest.ts')
-const cli = read('server/cli/ai-graphics-external-beta-private-artifact-manifest.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.md')
+const source = read('server/tool-registry/ai-graphics-external-beta-tool-route-runtime-proof.ts')
+const cli = read('server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts')
 const index = read('server/tool-registry/index.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
-if (pkg.scripts?.[manifestScriptName] !== manifestScriptCommand) fail(`missing_package_script:${manifestScriptName}`)
-if (pkg.scripts?.[manifestDiagnosticScriptName] !== manifestDiagnosticScriptCommand) {
-  fail(`missing_package_script:${manifestDiagnosticScriptName}`)
+if (pkg.scripts?.[routeScriptName] !== routeScriptCommand) fail(`missing_package_script:${routeScriptName}`)
+if (pkg.scripts?.[routeDiagnosticScriptName] !== routeDiagnosticScriptCommand) {
+  fail(`missing_package_script:${routeDiagnosticScriptName}`)
 }
-if (!index.includes("export * from './ai-graphics-external-beta-private-artifact-manifest'")) {
+if (!index.includes("export * from './ai-graphics-external-beta-tool-route-runtime-proof'")) {
   fail('missing_tool_registry_export')
 }
-if (docs.decision !== 'ai_graphics_external_beta_private_artifact_manifest_prepared_with_runtime_blocks') {
+if (docs.decision !== 'ai_graphics_external_beta_tool_route_runtime_proof_prepared_with_runtime_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
 
@@ -210,16 +220,21 @@ for (const namespace of ['private://', 'reeditpro-private://', 'backend-evidence
   if (!docs.acceptedPrivateRefNamespaces?.includes(namespace)) fail(`docs_missing_private_namespace:${namespace}`)
 }
 for (const forbidden of ['http://', 'https://', 'signed-url://', 'public://', 'gs://', 'gcs://']) {
-  if (!docs.forbiddenArtifactRefPatterns?.includes(forbidden)) fail(`docs_missing_forbidden_ref:${forbidden}`)
+  if (!docs.forbiddenRouteRefPatterns?.includes(forbidden)) fail(`docs_missing_forbidden_ref:${forbidden}`)
 }
 for (const [key, expected] of Object.entries({
-  manifestRecordsPrepared: 21,
-  manifestRecordsReadyWithProvidedEvidence: 21,
+  sourcePrivateArtifactManifestAccepted: true,
+  toolRouteRecordsPrepared: 21,
+  toolRouteRecordsReadyWithProvidedEvidence: 21,
   gpuRuntimeTargetedTools: 8,
-  privateInputArtifactsRequired: true,
-  privateOutputArtifactsRequired: true,
-  privateTelemetryRequired: true,
-  privateLeaseAuditRequired: true,
+  privateArtifactManifestAccepted: true,
+  toolRoutePolicyRequired: true,
+  toolRouteSchemaRequired: true,
+  toolRouteAdmissionRequired: true,
+  toolRouteAuthzRequired: true,
+  toolRouteRateLimitRequired: true,
+  toolRouteAuditRequired: true,
+  toolRouteRollbackRequired: true,
   publicArtifactRefsRejected: true,
   signedUrlRefsRejected: true,
   rawHttpRefsRejected: true,
@@ -232,16 +247,22 @@ for (const [key, expected] of Object.entries({
   }
 }
 for (const key of [
-  'externalBetaPrivateArtifactManifestPrepared',
+  'externalBetaToolRouteRuntimeProofPrepared',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
-  'all21PrivateArtifactManifestRecordsPrepared',
+  'all21ToolRouteRecordsPrepared',
   'privateInputArtifactsRequired',
   'privateOutputArtifactsRequired',
   'privateTelemetryRequired',
   'privateLeaseAuditRequired',
-  'privateOrBackendArtifactRefsRequired',
+  'toolRoutePolicyRequired',
+  'toolRouteSchemaRequired',
+  'toolRouteAdmissionRequired',
+  'toolRouteAuthzRequired',
+  'toolRouteRateLimitRequired',
+  'toolRouteAuditRequired',
+  'toolRouteRollbackRequired',
   'publicArtifactRefsRejected',
   'signedUrlRefsRejected',
   'rawHttpRefsRejected',
@@ -258,35 +279,35 @@ for (const key of falseGateKeys) {
 }
 
 for (const phrase of [
-  '--external-beta-worker-dispatch-smoke-proof-packet',
-  '--external-beta-private-artifact-policy-ref',
-  '--external-beta-artifact-manifest-schema-ref',
-  '--external-beta-storage-namespace-ref',
-  '--external-beta-access-boundary-ref',
-  '--external-beta-encryption-policy-ref',
-  '--external-beta-retention-policy-ref',
-  '--external-beta-artifact-telemetry-ref',
-  'external_beta_private_artifact_manifest_ready_with_runtime_blocks',
+  '--external-beta-private-artifact-manifest-packet',
+  '--external-beta-tool-route-policy-ref',
+  '--external-beta-tool-route-schema-ref',
+  '--external-beta-tool-route-admission-ref',
+  '--external-beta-tool-route-authz-ref',
+  '--external-beta-tool-route-rate-limit-ref',
+  '--external-beta-tool-route-audit-ref',
+  '--external-beta-tool-route-rollback-ref',
+  'external_beta_tool_route_runtime_proof_ready_with_runtime_blocks',
+  'runtimeProofOnlyNoRouteExecution',
   'publicArtifactAllowed: false',
   'signedUrlAllowed: false',
-  'manifestOnlyNoStorageMutation',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
   }
 }
-if (!scorecard.includes('AI Graphics External-Beta Private Artifact Manifest')) {
-  fail('scorecard_missing_external_beta_private_artifact_manifest')
+if (!scorecard.includes('AI Graphics External-Beta Tool Route Runtime Proof')) {
+  fail('scorecard_missing_external_beta_tool_route_runtime_proof')
 }
 
-const missingOutput = parseJsonOutput(runNpm(manifestScriptName), 'missing')
-if (missingOutput.decision !== 'missing_external_beta_worker_dispatch_smoke_proof') {
+const missingOutput = parseJsonOutput(runNpm(routeScriptName), 'missing')
+if (missingOutput.decision !== 'missing_external_beta_private_artifact_manifest') {
   fail(`missing_output_decision:${missingOutput.decision}`)
 }
-if (missingOutput.manifestRecordsPrepared !== 21) fail(`missing_records_not_21:${missingOutput.manifestRecordsPrepared}`)
-if (missingOutput.manifestRecordsReadyWithProvidedEvidence !== 0) fail('missing_records_ready_should_be_0')
+if (missingOutput.toolRouteRecordsPrepared !== 21) fail(`missing_records_not_21:${missingOutput.toolRouteRecordsPrepared}`)
+if (missingOutput.toolRouteRecordsReadyWithProvidedEvidence !== 0) fail('missing_records_ready_should_be_0')
 
-const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-private-artifact-manifest-'))
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-tool-route-runtime-proof-'))
 try {
   const readinessPacketPath = writeJson(path.join(tmpRoot, 'worker-dispatch-readiness.json'), {
     decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
@@ -329,7 +350,7 @@ try {
     'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
   ]), 'source-proof')
   const proofPath = writeJson(path.join(tmpRoot, 'worker-dispatch-smoke-proof.json'), proof)
-  const accepted = parseJsonOutput(runNpm(manifestScriptName, [
+  const manifest = parseJsonOutput(runNpm(privateManifestScriptName, [
     '--external-beta-worker-dispatch-smoke-proof-packet',
     proofPath,
     '--external-beta-private-artifact-policy-ref',
@@ -346,13 +367,32 @@ try {
     'private://ai-graphics/external-beta/artifacts/retention.json',
     '--external-beta-artifact-telemetry-ref',
     'external-beta-evidence://ai-graphics/artifacts/telemetry.json',
+  ]), 'private-manifest')
+  const manifestPath = writeJson(path.join(tmpRoot, 'private-artifact-manifest.json'), manifest)
+  const accepted = parseJsonOutput(runNpm(routeScriptName, [
+    '--external-beta-private-artifact-manifest-packet',
+    manifestPath,
+    '--external-beta-tool-route-policy-ref',
+    'private://ai-graphics/external-beta/tool-route/policy.json',
+    '--external-beta-tool-route-schema-ref',
+    'private://ai-graphics/external-beta/tool-route/schema.json',
+    '--external-beta-tool-route-admission-ref',
+    'backend-evidence://ai-graphics/external-beta/tool-route/admission.json',
+    '--external-beta-tool-route-authz-ref',
+    'backend-evidence://ai-graphics/external-beta/tool-route/authz.json',
+    '--external-beta-tool-route-rate-limit-ref',
+    'backend-evidence://ai-graphics/external-beta/tool-route/rate-limit.json',
+    '--external-beta-tool-route-audit-ref',
+    'external-beta-evidence://ai-graphics/tool-route/audit.json',
+    '--external-beta-tool-route-rollback-ref',
+    'private://ai-graphics/external-beta/tool-route/rollback.json',
   ]), 'accepted')
 
-  if (accepted.decision !== 'external_beta_private_artifact_manifest_ready_with_runtime_blocks') {
+  if (accepted.decision !== 'external_beta_tool_route_runtime_proof_ready_with_runtime_blocks') {
     fail(`accepted_decision:${accepted.decision}`)
   }
-  if (accepted.manifestRecordsReadyWithProvidedEvidence !== 21) {
-    fail(`accepted_ready_records_not_21:${accepted.manifestRecordsReadyWithProvidedEvidence}`)
+  if (accepted.toolRouteRecordsReadyWithProvidedEvidence !== 21) {
+    fail(`accepted_ready_records_not_21:${accepted.toolRouteRecordsReadyWithProvidedEvidence}`)
   }
   if (accepted.gpuRuntimeTargetedTools !== 8) fail(`accepted_gpu_tools_not_8:${accepted.gpuRuntimeTargetedTools}`)
   if (accepted.records?.length !== 21) fail(`accepted_records_not_21:${accepted.records?.length}`)
@@ -360,53 +400,61 @@ try {
     fail('accepted_gpu_record_count_not_8')
   }
   for (const record of accepted.records ?? []) {
-    if (record.manifestReadyWithProvidedEvidence !== true) fail(`record_not_ready:${record.toolId}`)
-    if (record.privateInputArtifactRequired !== true) fail(`record_input_not_required:${record.toolId}`)
-    if (record.privateOutputArtifactRequired !== true) fail(`record_output_not_required:${record.toolId}`)
+    if (record.toolRouteRuntimeProofReadyWithProvidedEvidence !== true) fail(`record_not_ready:${record.toolId}`)
+    if (record.privateArtifactManifestAccepted !== true) fail(`record_manifest_not_accepted:${record.toolId}`)
+    if (record.routeMode !== 'runtime_proof_only') fail(`record_route_mode_unexpected:${record.toolId}`)
     if (record.publicArtifactAllowed !== false) fail(`record_public_allowed:${record.toolId}`)
     if (record.signedUrlAllowed !== false) fail(`record_signed_allowed:${record.toolId}`)
-    if (record.toolExecutionApprovedNow !== false) fail(`record_tool_execution_not_false:${record.toolId}`)
+    if (record.routeExecutionApprovedNow !== false) fail(`record_route_execution_not_false:${record.toolId}`)
     if (record.workerDispatchApprovedNow !== false) fail(`record_worker_dispatch_not_false:${record.toolId}`)
+    if (record.toolExecutionApprovedNow !== false) fail(`record_tool_execution_not_false:${record.toolId}`)
     if (record.gpuRuntimeShouldStartNow !== false) fail(`record_gpu_start_not_false:${record.toolId}`)
     for (const ref of [
-      record.inputManifestRef,
-      record.outputManifestRef,
-      record.telemetryRef,
-      record.leaseAuditRef,
+      record.privateInputManifestRef,
+      record.privateOutputManifestRef,
+      record.privateTelemetryRef,
+      record.privateLeaseAuditRef,
       record.modelWeightOrCacheManifestRef,
+      record.toolRoutePolicyRef,
+      record.toolRouteSchemaRef,
+      record.toolRouteAdmissionRef,
+      record.toolRouteAuthzRef,
+      record.toolRouteRateLimitRef,
+      record.toolRouteAuditRef,
+      record.toolRouteRollbackRef,
     ].filter(Boolean)) {
-      if (!String(ref).startsWith('private://')) fail(`record_ref_not_private:${record.toolId}:${ref}`)
+      if (!refIsPrivate(ref)) fail(`record_ref_not_private:${record.toolId}:${ref}`)
     }
   }
   for (const key of falseGateKeys) {
     if (accepted.booleans?.[key] !== false) fail(`accepted_false_gate_not_false:${key}`)
   }
 
-  const publicBlocked = parseJsonOutput(runNpm(manifestScriptName, [
-    '--external-beta-worker-dispatch-smoke-proof-packet',
-    proofPath,
-    '--external-beta-private-artifact-policy-ref',
+  const publicBlocked = parseJsonOutput(runNpm(routeScriptName, [
+    '--external-beta-private-artifact-manifest-packet',
+    manifestPath,
+    '--external-beta-tool-route-policy-ref',
     'public://unsafe/policy.json',
-    '--external-beta-artifact-manifest-schema-ref',
-    'private://ai-graphics/external-beta/artifacts/schema.json',
-    '--external-beta-storage-namespace-ref',
-    'signed-url://unsafe/private-artifacts',
-    '--external-beta-access-boundary-ref',
-    'backend-evidence://ai-graphics/external-beta/artifacts/access-boundary.json',
-    '--external-beta-encryption-policy-ref',
-    'private://ai-graphics/external-beta/artifacts/encryption.json',
-    '--external-beta-retention-policy-ref',
-    'gs://unsafe-public-bucket/retention.json',
-    '--external-beta-artifact-telemetry-ref',
-    'https://example.invalid/telemetry.json',
+    '--external-beta-tool-route-schema-ref',
+    'private://ai-graphics/external-beta/tool-route/schema.json',
+    '--external-beta-tool-route-admission-ref',
+    'signed-url://unsafe/admission.json',
+    '--external-beta-tool-route-authz-ref',
+    'backend-evidence://ai-graphics/external-beta/tool-route/authz.json',
+    '--external-beta-tool-route-rate-limit-ref',
+    'gs://unsafe-public-bucket/rate-limit.json',
+    '--external-beta-tool-route-audit-ref',
+    'https://example.invalid/audit.json',
+    '--external-beta-tool-route-rollback-ref',
+    'private://ai-graphics/external-beta/tool-route/rollback.json',
   ]), 'public-blocked')
-  if (publicBlocked.decision !== 'missing_external_beta_private_artifact_manifest_controls') {
+  if (publicBlocked.decision !== 'missing_external_beta_tool_route_runtime_proof_controls') {
     fail(`public_blocked_decision:${publicBlocked.decision}`)
   }
-  if (publicBlocked.manifestRecordsReadyWithProvidedEvidence !== 0) {
+  if (publicBlocked.toolRouteRecordsReadyWithProvidedEvidence !== 0) {
     fail('public_blocked_records_ready_not_0')
   }
-  if (!JSON.stringify(publicBlocked.missingPrivateArtifactControls ?? []).includes('not private')) {
+  if (!JSON.stringify(publicBlocked.missingToolRouteRuntimeProofControls ?? []).includes('not private')) {
     fail('public_blocked_missing_not_private_reason')
   }
 } finally {
@@ -444,8 +492,8 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 }
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
-  `+    "${manifestScriptName}": "${manifestScriptCommand}",`,
-  `+    "${manifestDiagnosticScriptName}": "${manifestDiagnosticScriptCommand}",`,
+  `+    "${routeScriptName}": "${routeScriptCommand}",`,
+  `+    "${routeDiagnosticScriptName}": "${routeDiagnosticScriptCommand}",`,
   `+    "${toolRouteRuntimeProofScriptName}": "${toolRouteRuntimeProofScriptCommand}",`,
   `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
 ])
@@ -456,6 +504,12 @@ for (const line of packageDiff.split('\n')) {
 }
 const trackedLocalArtifacts = git(['ls-files', '.local-artifacts'])
 if (trackedLocalArtifacts) fail(`local_artifacts_tracked:${trackedLocalArtifacts}`)
+const changedFiles = git(['diff', '--name-only', baseRef]).split('\n').filter(Boolean)
+const trackedGenerated = changedFiles.filter((file) => (
+  /(^|\/)(generated|render|renders|canvas|webgl|public-artifacts)(\/|$)/i.test(file) ||
+  /\.(mp4|mov|webm|png|jpg|jpeg|gif|webp)$/i.test(file)
+))
+if (trackedGenerated.length) fail(`generated_output_tracked:${trackedGenerated.join(',')}`)
 
 if (failures.length) {
   console.error(JSON.stringify({ status: 'failed', failures }, null, 2))
@@ -465,16 +519,15 @@ if (failures.length) {
 console.log(JSON.stringify({
   status: 'passed',
   decision: docs.decision,
-  acceptedDecision: 'external_beta_private_artifact_manifest_ready_with_runtime_blocks',
+  acceptedDecision: 'external_beta_tool_route_runtime_proof_ready_with_runtime_blocks',
   toolsCovered: allTools.length,
   capabilitiesCovered: capabilities.length,
   gpuToolsCovered: gpuTools.length,
-  manifestRecordsReadyWithProvidedEvidence: 21,
-  publicArtifactRefsRejected: true,
-  signedUrlRefsRejected: true,
-  rawHttpRefsRejected: true,
-  rawGcsPublicRefsRejected: true,
-  storageMutationPerformed: false,
+  toolRouteRecordsReadyWithProvidedEvidence: 21,
+  routeExecutionApprovedNow: false,
+  workerDispatchApprovedNow: false,
+  toolExecutionApprovedNow: false,
+  gpuRuntimeShouldStartNow: false,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
 }, null, 2))

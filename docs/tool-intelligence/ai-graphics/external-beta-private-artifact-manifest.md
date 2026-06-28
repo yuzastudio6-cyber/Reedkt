@@ -51,3 +51,7 @@ The gate rejects `http://`, `https://`, `signed-url://`, `public://`, `gs://`, a
 ## Runtime Boundary
 
 Agent selection remains planning/study metadata only. Tool execution, Tool Route execution, Worker execution, provider/model runtime, browser/WebGL/canvas runtime, GPU runtime, model download/load, media processing, Supabase/GCS mutation, signed URL creation, public artifact creation, runtime readiness, external beta, and production all remain blocked.
+
+## Next External-Beta Gate
+
+The next external checkpoint is Tool Route runtime proof. That gate must accept this private artifact manifest plus private/backend route policy, schema, admission, authorization, rate-limit, audit, and rollback evidence before any Worker runtime proof or per-tool execution proof can proceed.

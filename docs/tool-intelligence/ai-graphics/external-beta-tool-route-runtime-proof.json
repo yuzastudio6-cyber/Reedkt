@@ -1,6 +1,6 @@
 {
-  "decision": "ai_graphics_external_beta_private_artifact_manifest_prepared_with_runtime_blocks",
-  "summary": "External-beta private artifact manifest gate for all 21 AI graphics tools. It requires an accepted saved worker-dispatch-smoke proof plus private/backend artifact policy refs before any future tool call can proceed toward runtime proof. It prepares manifest records only; it performs no storage mutation and creates no public artifact or signed URL.",
+  "decision": "ai_graphics_external_beta_tool_route_runtime_proof_prepared_with_runtime_blocks",
+  "summary": "External-beta Tool Route runtime proof gate for all 21 AI graphics tools. It accepts the private artifact manifest as source evidence, requires private/backend Tool Route policy controls, and prepares route records only. It does not execute Tool Routes, Workers, tools, providers, browser/WebGL/canvas runtimes, GPU/model runtimes, storage writes, signed URLs, or public artifacts.",
   "tools": [
     "torch_torchvision",
     "transformers",
@@ -48,24 +48,24 @@
     "tensor_image_ops",
     "model_runtime_foundation"
   ],
-  "manifestGate": {
-    "script": "ai-graphics:external-beta-private-artifact-manifest",
-    "implementation": "server/cli/ai-graphics-external-beta-private-artifact-manifest.ts",
-    "diagnostic": "ai-graphics:external-beta-private-artifact-manifest:diagnostics",
-    "sourceProof": "ai-graphics:external-beta-worker-dispatch-smoke-proof",
+  "routeGate": {
+    "script": "ai-graphics:external-beta-tool-route-runtime-proof",
+    "implementation": "server/cli/ai-graphics-external-beta-tool-route-runtime-proof.ts",
+    "diagnostic": "ai-graphics:external-beta-tool-route-runtime-proof:diagnostics",
+    "sourceManifest": "ai-graphics:external-beta-private-artifact-manifest",
     "requiredInputFlags": [
-      "--external-beta-worker-dispatch-smoke-proof-packet",
-      "--external-beta-private-artifact-policy-ref",
-      "--external-beta-artifact-manifest-schema-ref",
-      "--external-beta-storage-namespace-ref",
-      "--external-beta-access-boundary-ref",
-      "--external-beta-encryption-policy-ref",
-      "--external-beta-retention-policy-ref",
-      "--external-beta-artifact-telemetry-ref"
+      "--external-beta-private-artifact-manifest-packet",
+      "--external-beta-tool-route-policy-ref",
+      "--external-beta-tool-route-schema-ref",
+      "--external-beta-tool-route-admission-ref",
+      "--external-beta-tool-route-authz-ref",
+      "--external-beta-tool-route-rate-limit-ref",
+      "--external-beta-tool-route-audit-ref",
+      "--external-beta-tool-route-rollback-ref"
     ],
-    "acceptedSourceDecision": "external_beta_worker_dispatch_smoke_proof_accepted_with_runtime_blocks",
-    "acceptedDecision": "external_beta_private_artifact_manifest_ready_with_runtime_blocks",
-    "manifestOnlyNoStorageMutation": true
+    "acceptedSourceDecision": "external_beta_private_artifact_manifest_ready_with_runtime_blocks",
+    "acceptedDecision": "external_beta_tool_route_runtime_proof_ready_with_runtime_blocks",
+    "runtimeProofOnlyNoRouteExecution": true
   },
   "acceptedPrivateRefNamespaces": [
     "private://",
@@ -73,7 +73,7 @@
     "backend-evidence://",
     "external-beta-evidence://"
   ],
-  "forbiddenArtifactRefPatterns": [
+  "forbiddenRouteRefPatterns": [
     "http://",
     "https://",
     "signed-url://",
@@ -82,14 +82,18 @@
     "gcs://"
   ],
   "acceptanceCriteria": {
-    "sourceWorkerDispatchSmokeProofAccepted": true,
-    "manifestRecordsPrepared": 21,
-    "manifestRecordsReadyWithProvidedEvidence": 21,
+    "sourcePrivateArtifactManifestAccepted": true,
+    "toolRouteRecordsPrepared": 21,
+    "toolRouteRecordsReadyWithProvidedEvidence": 21,
     "gpuRuntimeTargetedTools": 8,
-    "privateInputArtifactsRequired": true,
-    "privateOutputArtifactsRequired": true,
-    "privateTelemetryRequired": true,
-    "privateLeaseAuditRequired": true,
+    "privateArtifactManifestAccepted": true,
+    "toolRoutePolicyRequired": true,
+    "toolRouteSchemaRequired": true,
+    "toolRouteAdmissionRequired": true,
+    "toolRouteAuthzRequired": true,
+    "toolRouteRateLimitRequired": true,
+    "toolRouteAuditRequired": true,
+    "toolRouteRollbackRequired": true,
     "publicArtifactRefsRejected": true,
     "signedUrlRefsRejected": true,
     "rawHttpRefsRejected": true,
@@ -98,20 +102,27 @@
     "productionReadyNowTools": 0
   },
   "booleans": {
-    "externalBetaPrivateArtifactManifestPrepared": true,
-    "sourceWorkerDispatchSmokeProofAccepted": false,
-    "privateArtifactManifestControlsAccepted": false,
-    "privateArtifactManifestReadyWithProvidedEvidence": false,
+    "externalBetaToolRouteRuntimeProofPrepared": true,
+    "sourcePrivateArtifactManifestAccepted": false,
+    "toolRouteRuntimeProofControlsAccepted": false,
+    "toolRouteRuntimeProofReadyWithProvidedEvidence": false,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all8GpuToolsTargetGpuRuntime": true,
-    "all21PrivateArtifactManifestRecordsPrepared": true,
-    "all21PrivateArtifactManifestRecordsReadyWithProvidedEvidence": false,
+    "all21ToolRouteRecordsPrepared": true,
+    "all21ToolRouteRecordsReadyWithProvidedEvidence": false,
+    "privateArtifactManifestAccepted": false,
     "privateInputArtifactsRequired": true,
     "privateOutputArtifactsRequired": true,
     "privateTelemetryRequired": true,
     "privateLeaseAuditRequired": true,
-    "privateOrBackendArtifactRefsRequired": true,
+    "toolRoutePolicyRequired": true,
+    "toolRouteSchemaRequired": true,
+    "toolRouteAdmissionRequired": true,
+    "toolRouteAuthzRequired": true,
+    "toolRouteRateLimitRequired": true,
+    "toolRouteAuditRequired": true,
+    "toolRouteRollbackRequired": true,
     "publicArtifactRefsRejected": true,
     "signedUrlRefsRejected": true,
     "rawHttpRefsRejected": true,
@@ -158,5 +169,5 @@
     "publicArtifactCreated": false,
     "signedUrlCreated": false
   },
-  "nextExternalBetaGap": "Tool Route runtime proof is the next external-beta gate. It must accept this private artifact manifest with private/backend route controls before Worker runtime proof, per-tool execution proof, cost/rollback, and QA gates can proceed. Agent tool execution remains blocked until those gates pass."
+  "nextExternalBetaGap": "Feed accepted Tool Route runtime proof into per-tool runtime execution proof, Worker runtime proof, cost/rollback, QA, and external-beta readiness gates. Agent tool execution remains blocked until those gates pass."
 }

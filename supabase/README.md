@@ -366,12 +366,30 @@ The migration adds helper functions for approved snapshot readiness and worker c
 
 This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, or spend credits.
 
+### Tool Cost Metering Event Ledger
+
+`migrations/202606270001_tool_cost_metering_events.sql` is a local/review-ready event ledger for backend-recorded ReEditPro tool metering events.
+
+It adds:
+
+- `tool_cost_events`
+- a unique backend idempotency key
+- workspace/project and tool summary indexes
+- credit reservation lookup index
+- RLS with authenticated select scoped to workspace/project membership
+
+The table is append-only from the user/API perspective. No authenticated insert, update, or delete policy is created; backend service-role code owns event writes and idempotent replay. ReEditPro service/edit fees are intentionally excluded from tool events.
+
+This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, settle wallet charges, integrate Stripe, call providers, execute tools, dispatch workers, render media, upload artifacts, add secrets, or make external beta/production billing ready.
+
 ## Future Migrations
 
 Later migrations should add, in order:
 
 - local/staging application and verification of RP-E2E-READY-01 runtime readiness tables
+- local/staging application and verification of the tool cost event ledger, service-role write path, and idempotent replay behavior
 - backend API service-role handlers for approved snapshots, idempotency, upload intents, storage records, signed URL events, worker claims, tool checks, provider attempts, and webhooks
+- backend wallet spend/release/refund settlement for approved tool cost events
 - signed storage route wiring
 - Cloud Run worker scaffolding for generation, media tools, QA, and rendering
 - Stripe and billing integration after the credit service boundary is implemented

@@ -1,0 +1,82 @@
+{
+  "reportId": "beta-readiness-api-staging-owner-remediation-permission-blocker-2026-06-28",
+  "decision": "beta_readiness_api_staging_owner_remediation_blocked_by_artifact_registry_iam_policy_permission",
+  "sourceSha": "05ca78dfca4468c0e88521e35f5286531732f91e",
+  "defaultBranchWorkflow": {
+    "path": ".github/workflows/beta-readiness-api-staging-owner-remediation.yml",
+    "branch": "codex/reeditpro-web-ui-shell",
+    "workflowPr": 1382,
+    "workflowMergeSha": "e818b5c6cdd200b6e6c06c517f5f2e3f557388f6",
+    "latestRun": {
+      "runId": 28310493040,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28310493040",
+      "headSha": "e818b5c6cdd200b6e6c06c517f5f2e3f557388f6",
+      "conclusion": "failure",
+      "createdAt": "2026-06-28T03:49:18Z",
+      "failedJob": "Apply exact staging API owner remediation",
+      "failedStep": "Apply staging API IAM and runtime account prerequisites"
+    },
+    "requiredConfirmations": [
+      "APPLY_STAGING_BETA_API_OWNER_REMEDIATION",
+      "MUTATE_STAGING_IAM_ONLY"
+    ]
+  },
+  "lockedInputs": {
+    "projectId": "reeditpro",
+    "region": "us-east1",
+    "artifactRegion": "us-central1",
+    "artifactRepository": "reeditpro-staging-workers",
+    "deployerServiceAccount": "sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com",
+    "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+    "serviceName": "reeditpro-api-staging"
+  },
+  "observedResult": {
+    "wifAuthSucceeded": true,
+    "setupGcloudSucceeded": true,
+    "firstFailedCommand": "gcloud artifacts repositories add-iam-policy-binding reeditpro-staging-workers --project=reeditpro --location=us-central1 --member=serviceAccount:sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com --role=roles/artifactregistry.writer",
+    "permissionDenied": "artifactregistry.repositories.getIamPolicy",
+    "resource": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers",
+    "reason": "IAM_PERMISSION_DENIED",
+    "verificationStepRan": false,
+    "runtimeServiceAccountCreatedByWorkflow": false,
+    "artifactRegistryWriterGrantedByWorkflow": false,
+    "runAdminGrantedByWorkflow": false,
+    "secretAccessorGrantedByWorkflow": false
+  },
+  "blockedAction": "staging_api_deploy_until_repository_iam_policy_admin_or_higher_privilege_owner_grants_exact_staging_permissions",
+  "notABlanketBlocker": true,
+  "safeForwardProgress": [
+    "owner_or_repository_iam_admin_grants_deployer_artifact_registry_writer_on_us_central1_reeditpro_staging_workers",
+    "owner_or_project_iam_admin_creates_or_confirms_reeditpro_api_staging_runtime_service_account",
+    "owner_grants_deployer_iam_service_account_user_on_runtime_service_account",
+    "owner_grants_deployer_run_admin_for_staging_api_deploy",
+    "owner_grants_runtime_service_account_secret_accessor_on_fixed_secret_names",
+    "rerun_exact_input_validation_after_owner_side_iam_remediation"
+  ],
+  "nextSafeActions": [
+    "A higher-privilege owner or repository IAM admin must apply the exact Artifact Registry IAM binding because the GitHub deployer lacks artifactregistry.repositories.getIamPolicy on the repository.",
+    "After owner-side IAM remediation, rerun beta-readiness-api-staging-input-discovery.yml with exact inputs before any staging API deploy.",
+    "Only after exact validation passes, dispatch beta-readiness-api-staging-deploy.yml with the immutable tools source SHA."
+  ],
+  "blockedScopes": [
+    "cloud_run_deploy_not_run",
+    "docker_build_not_run",
+    "artifact_registry_push_not_run",
+    "runtime_service_account_not_created_by_workflow",
+    "artifact_registry_writer_not_granted_by_workflow",
+    "run_admin_not_granted_by_workflow",
+    "secret_accessor_not_granted_by_workflow",
+    "evidence_collectors_not_run",
+    "external_beta_not_enabled",
+    "paid_production_not_enabled"
+  ],
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "productionEnabled": false
+}

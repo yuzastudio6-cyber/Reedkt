@@ -311,6 +311,6 @@ for (const term of [
 
 const packageJson = JSON.parse(readRepoFile('package.json')) as { scripts?: Record<string, string> }
 assert.equal(packageJson.scripts?.['smoke:rate-card'], 'tsx server/smoke/rate-card-smoke.ts')
-assert.equal(packageJson.scripts?.['smoke:tool-cost-metering'], 'tsx server/smoke/rate-card-smoke.ts')
+assert.equal(packageJson.scripts?.['smoke:tool-cost-metering'], 'tsx server/smoke/professional-tool-cost-metering-smoke.ts')
 
 console.log('rate-card-smoke passed')

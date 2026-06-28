@@ -1,181 +1,155 @@
-import type { ReEditProCanonicalEditLevel } from '../../src/types/edit-level'
-import type { CreditEstimateLineItemType, CreditUsageCategory, ID, ISODateString, JSONObject } from '../../src/types'
-
-export type ToolRuntimeComputeLevel = 'economy' | 'standard' | 'premium'
-
-export type ToolCostSourceKind =
-  | 'external_provider'
-  | 'infrastructure_runtime'
-  | 'deterministic_renderer'
-  | 'human_manual'
-  | 'mock_manual_entry'
-
-export type ToolCostRiskLevel = 'low' | 'medium' | 'high'
-
-export type ToolCostFailureCategory =
-  | 'none'
-  | 'provider_error'
-  | 'provider_variance_absorbed'
-  | 'reeditpro_error_absorbed'
-  | 'user_requested_retry'
-  | 'validation_error'
-  | 'timeout'
-  | 'cancelled'
-  | 'unknown'
-
-export type ToolCostUsageCategory =
-  | CreditUsageCategory
-  | 'transcription'
-  | 'media_analysis'
-  | 'captions'
-  | 'render_export'
-
 export const TOOL_COST_USAGE_CATEGORIES = [
-  'basic_edit',
-  'pro_edit',
-  'signature_edit',
-  'premium_signature_edit',
+  'admin',
+  'planning',
+  'transcription',
+  'media_analysis',
+  'captions',
   'stroke_motion',
   'graphic_design',
   'real_motion',
   'soundsync',
+  'music',
+  'sfx',
   'rendering',
+  'export',
+  'qa',
   'revision',
-  'admin',
   'other',
-  'transcription',
-  'media_analysis',
-  'captions',
-  'render_export',
-] as const satisfies readonly ToolCostUsageCategory[]
+] as const
 
-export const TOOL_COST_SOURCE_KINDS = [
-  'external_provider',
-  'infrastructure_runtime',
+export type ToolCostUsageCategory = typeof TOOL_COST_USAGE_CATEGORIES[number]
+
+export const TOOL_COST_COMPUTE_LEVELS = ['economy', 'standard', 'premium'] as const
+export type ToolCostComputeLevel = typeof TOOL_COST_COMPUTE_LEVELS[number]
+
+export const TOOL_COST_PROVIDER_TYPES = [
+  'external_api',
+  'cloud_run_request',
+  'cloud_run_job',
+  'compute_engine_vm',
+  'gpu_worker',
   'deterministic_renderer',
-  'human_manual',
-  'mock_manual_entry',
-] as const satisfies readonly ToolCostSourceKind[]
+  'human',
+  'unknown',
+] as const
+export type ToolCostProviderType = typeof TOOL_COST_PROVIDER_TYPES[number]
 
-export const TOOL_COST_RISK_LEVELS = [
-  'low',
-  'medium',
-  'high',
-] as const satisfies readonly ToolCostRiskLevel[]
+export const TOOL_COST_QUALITY_LEVELS = ['draft', 'preview', 'production', 'premium'] as const
+export type ToolCostQualityLevel = typeof TOOL_COST_QUALITY_LEVELS[number]
+
+export const TOOL_COST_RISK_LEVELS = ['low', 'medium', 'high'] as const
+export type ToolCostRiskLevel = typeof TOOL_COST_RISK_LEVELS[number]
 
 export const TOOL_COST_FAILURE_CATEGORIES = [
   'none',
   'provider_error',
-  'provider_variance_absorbed',
-  'reeditpro_error_absorbed',
-  'user_requested_retry',
-  'validation_error',
   'timeout',
-  'cancelled',
+  'invalid_prompt',
+  'unsafe_output',
+  'asset_missing',
+  'credit_not_reserved',
+  'approval_missing',
+  'worker_error',
+  'quality_failed',
+  'user_requested_retry',
+  'user_requested_revision',
   'unknown',
-] as const satisfies readonly ToolCostFailureCategory[]
+] as const
+export type ToolCostFailureCategory = typeof TOOL_COST_FAILURE_CATEGORIES[number]
 
-export type ToolCostMathErrorCode =
-  | 'invalid_cost_input'
-  | 'invalid_micros'
-  | 'invalid_cents'
-  | 'invalid_credits'
-  | 'invalid_milliseconds'
-  | 'invalid_seconds'
-  | 'invalid_count'
-  | 'invalid_compute_level'
-  | 'unsupported_cost_source'
-  | 'secret_like_pricing_snapshot'
-
-export interface ToolCostMathError {
-  code: ToolCostMathErrorCode
-  message: string
-  field: string
-  value: unknown
+export interface ToolCostEstimateInput {
+  toolId: string
+  toolName: string
+  usageCategory: ToolCostUsageCategory
+  computeLevel: ToolCostComputeLevel
+  providerType: ToolCostProviderType
+  providerName?: string | null
+  modelName?: string | null
+  qualityLevel: ToolCostQualityLevel
+  inputVideoSeconds?: number
+  outputVideoSeconds?: number
+  inputAudioSeconds?: number
+  outputAudioSeconds?: number
+  imageCount?: number
+  estimatedRuntimeSeconds?: number
+  resolution?: string
+  frameRate?: number
+  inputTokens?: number
+  outputTokens?: number
+  renderDurationSeconds?: number
+  vcpuCount?: number
+  memoryGiB?: number
+  gpuType?: string | null
+  gpuCount?: number
+  temporaryStorageGiBHours?: number
+  outputStorageGiBHours?: number
+  networkEgressMiB?: number
+  approvedReservationRemainingCredits?: number
+  providerOptions?: string[]
+  assumptions?: string[]
+  metadata?: Record<string, unknown>
 }
 
-export type ToolCostMathResult<TData> =
-  | {
-      ok: true
-      data: TData
-    }
-  | {
-      ok: false
-      error: ToolCostMathError
-    }
-
-export interface ToolCostPricingSnapshot extends JSONObject {
-  mockOnly: true
+export interface ToolCostEstimate {
+  toolId: string
+  toolName: string
+  usageCategory: ToolCostUsageCategory
+  computeLevel: ToolCostComputeLevel
+  providerType: ToolCostProviderType
+  providerName: string | null
+  modelName: string | null
+  qualityLevel: ToolCostQualityLevel
+  inputVideoSeconds: number
+  outputVideoSeconds: number
+  inputAudioSeconds: number
+  outputAudioSeconds: number
+  imageCount: number
+  estimatedRuntimeSeconds: number
+  resolution: string
+  frameRate: number
+  lowInternalCostCents: number
+  expectedInternalCostCents: number
+  highInternalCostCents: number
+  lowCredits: number
+  expectedCredits: number
+  highCredits: number
   rateCardVersion: string
-  creditValueCents: 10
+  pricingSnapshot: Record<string, unknown>
   serviceFeeIncluded: false
-  sourceKind: ToolCostSourceKind
-  provider: string | null
-  model: string | null
-  computeLevel: ToolRuntimeComputeLevel | null
-  riskLevel: ToolCostRiskLevel | null
-  pricingUnits: JSONObject
-  notes: string[]
+  assumptions: string[]
+  riskLevel: ToolCostRiskLevel
+  requiresExternalProvider: boolean
+  providerOptions: string[]
+  canRunWithinApprovedReservation: boolean
+  creditPrerequisiteStatus?: string
 }
 
-export interface ToolCostRateCardRoundingPolicy {
-  minimumBillableMilliseconds: number
-  roundingIncrementMilliseconds: number
-}
-
-export interface ToolCostProviderRates {
-  perRequestMicros: number
-  perInputTokenMicros: number
-  perOutputTokenMicros: number
-  perInputVideoSecondMicros: number
-  perOutputVideoSecondMicros: number
-  perInputAudioSecondMicros: number
-  perOutputAudioSecondMicros: number
-  perImageMicros: number
-}
-
-export interface ToolCostRuntimeRates {
-  perRenderSecondMicros: number
-  perVcpuSecondMicros: number
-  perMemoryGibSecondMicros: number
-  perGpuSecondMicros: number
-  perTempStorageGibHourMicros: number
-  perOutputStorageGibHourMicros: number
-  perNetworkEgressMibMicros: number
-}
-
-export interface ToolCostDeterministicRendererRates {
-  flatRequestMicros: number
-  perOutputSecondMicros: number
-  perMegapixelFrameMicros: number
-}
-
-export interface ToolCostHumanManualRates {
-  supported: false
-  hourlyRateMicros: null
-  notes: readonly string[]
-}
-
-export interface CanonicalToolCostRateCard {
-  rateCardVersion: string
-  creditValueCents: 10
-  serviceFeeIncluded: false
-  productEditLevelsAreSeparate: true
-  supportedProductEditLevels: readonly ReEditProCanonicalEditLevel[]
-  computeLevels: readonly ToolRuntimeComputeLevel[]
-  roundingPolicy: ToolCostRateCardRoundingPolicy
-  computeLevelMultipliersBasisPoints: Record<ToolRuntimeComputeLevel, number>
-  qualityMultipliersBasisPoints: Record<ToolRuntimeComputeLevel, number>
-  riskBuffersBasisPoints: Record<ToolCostRiskLevel, number>
-  provider: ToolCostProviderRates
-  runtime: ToolCostRuntimeRates
-  deterministicRenderer: ToolCostDeterministicRendererRates
-  humanManual: ToolCostHumanManualRates
-  notes: readonly string[]
-}
-
-export interface ExternalProviderCostInput {
-  requestCount?: number
+export interface ToolCostEventInput {
+  id?: string
+  workspaceId: string
+  projectId: string
+  editPlanId?: string | null
+  jobId?: string | null
+  jobBatchId?: string | null
+  generationRequestId?: string | null
+  renderJobId?: string | null
+  creditEstimateId?: string | null
+  creditReservationId?: string | null
+  toolId: string
+  toolName: string
+  usageCategory: ToolCostUsageCategory
+  providerType: ToolCostProviderType
+  providerName?: string | null
+  modelName?: string | null
+  qualityLevel: ToolCostQualityLevel
+  startedAt: string
+  completedAt: string
+  wallClockMs: number
+  billableMs?: number
+  vcpuCount?: number
+  memoryGiB?: number
+  gpuType?: string | null
+  gpuCount?: number
   inputTokens?: number
   outputTokens?: number
   inputVideoSeconds?: number
@@ -183,8 +157,129 @@ export interface ExternalProviderCostInput {
   inputAudioSeconds?: number
   outputAudioSeconds?: number
   imageCount?: number
+  renderDurationSeconds?: number
+  outputResolution?: string | null
+  outputFrameRate?: number
+  estimatedInternalCostCents?: number
+  retryAttempt?: number
+  retryReason?: string | null
+  failureCategory?: ToolCostFailureCategory
+  billableToUser?: boolean
+  approvedReservationRemainingCredits?: number
+  temporaryStorageGiBHours?: number
+  outputStorageGiBHours?: number
+  networkEgressMiB?: number
+  metadata?: Record<string, unknown>
+}
+
+export interface ToolCostEvent {
+  id: string
+  workspaceId: string
+  projectId: string
+  editPlanId: string | null
+  jobId: string | null
+  jobBatchId: string | null
+  generationRequestId: string | null
+  renderJobId: string | null
+  creditEstimateId: string | null
+  creditReservationId: string | null
+  toolId: string
+  toolName: string
+  usageCategory: ToolCostUsageCategory
+  providerType: ToolCostProviderType
+  providerName: string | null
+  modelName: string | null
+  qualityLevel: ToolCostQualityLevel
+  startedAt: string
+  completedAt: string
+  wallClockMs: number
+  billableMs: number
+  vcpuCount: number
+  memoryGiB: number
+  gpuType: string | null
+  gpuCount: number
+  inputTokens: number
+  outputTokens: number
+  inputVideoSeconds: number
+  outputVideoSeconds: number
+  inputAudioSeconds: number
+  outputAudioSeconds: number
+  imageCount: number
+  renderDurationSeconds: number
+  outputResolution: string | null
+  outputFrameRate: number
+  rateCardVersion: string
+  pricingSnapshot: Record<string, unknown>
+  estimatedInternalCostCents: number
+  actualInternalCostCents: number
+  actualInternalCostMicros: number
+  toolCostCredits: number
+  retryAttempt: number
+  retryReason: string | null
+  failureCategory: ToolCostFailureCategory
+  billableToUser: boolean
+  metadata: Record<string, unknown>
+}
+
+export interface ToolCostSummary {
+  workspaceId: string
+  projectId: string
+  rateCardVersion: string
+  billableEventCount: number
+  nonBillableEventCount: number
+  actualToolCostCents: number
+  actualToolCostCredits: number
+  byUsageCategory: Record<ToolCostUsageCategory, {
+    eventCount: number
+    actualInternalCostCents: number
+    credits: number
+  }>
+  events: ToolCostEvent[]
+  warnings: string[]
+}
+
+export type ToolRuntimeComputeLevel = ToolCostComputeLevel
+export type ToolCostSourceKind =
+  | 'external_provider'
+  | 'infrastructure_runtime'
+  | 'deterministic_renderer'
+  | 'mock_manual_entry'
+
+export type ToolCostMathErrorCode =
+  | 'invalid_cents'
+  | 'invalid_count'
+  | 'invalid_milliseconds'
+  | 'invalid_seconds'
+  | 'invalid_compute_level'
+  | 'secret_like_payload'
+  | 'invalid_source_kind'
+
+export type ToolCostMathResult<TData> =
+  | { ok: true; data: TData }
+  | { ok: false; error: { code: ToolCostMathErrorCode; message: string; field?: string } }
+
+export interface ToolCostPricingSnapshot {
+  rateCardVersion: string
+  sourceKind: ToolCostSourceKind
+  provider: string | null
+  model: string | null
+  computeLevel: ToolRuntimeComputeLevel | null
+  riskLevel: ToolCostRiskLevel | null
+  serviceFeeIncluded: false
+  pricingUnits: Record<string, unknown>
+}
+
+export interface ExternalProviderCostInput {
   provider?: string | null
   model?: string | null
+  requestCount?: number
+  inputTokens?: number
+  outputTokens?: number
+  imageCount?: number
+  inputVideoSeconds?: number
+  outputVideoSeconds?: number
+  inputAudioSeconds?: number
+  outputAudioSeconds?: number
 }
 
 export interface InfrastructureRuntimeCostInput {
@@ -206,58 +301,22 @@ export interface DeterministicRendererCostInput {
   computeLevel?: ToolRuntimeComputeLevel
 }
 
-export interface HumanManualCostInput {
-  hours?: number
-}
-
 export type CalculateToolActualCostMicrosInput =
-  | {
-      sourceKind: 'external_provider'
-      provider: ExternalProviderCostInput
-      computeLevel?: ToolRuntimeComputeLevel
-      riskLevel?: ToolCostRiskLevel
-    }
-  | {
-      sourceKind: 'infrastructure_runtime'
-      runtime: InfrastructureRuntimeCostInput
-      riskLevel?: ToolCostRiskLevel
-    }
-  | {
-      sourceKind: 'deterministic_renderer'
-      deterministicRenderer: DeterministicRendererCostInput
-      riskLevel?: ToolCostRiskLevel
-    }
-  | {
-      sourceKind: 'human_manual'
-      humanManual: HumanManualCostInput
-      riskLevel?: ToolCostRiskLevel
-    }
-  | {
-      sourceKind: 'mock_manual_entry'
-      actualInternalCostCents: number
-      riskLevel?: ToolCostRiskLevel
-    }
+  | ({ sourceKind: 'external_provider'; riskLevel?: ToolCostRiskLevel } & ExternalProviderCostInput)
+  | { sourceKind: 'infrastructure_runtime'; runtime: InfrastructureRuntimeCostInput; riskLevel?: ToolCostRiskLevel }
+  | { sourceKind: 'deterministic_renderer'; deterministicRenderer: DeterministicRendererCostInput; riskLevel?: ToolCostRiskLevel }
+  | { sourceKind: 'mock_manual_entry'; actualInternalCostCents?: number; actualInternalCostMicros?: number; riskLevel?: ToolCostRiskLevel }
 
 export interface ToolCostMicrosCalculation {
   actualInternalCostMicros: number
   sourceKind: ToolCostSourceKind
   rateCardVersion: string
-  billableMilliseconds?: number
-  provider?: string | null
-  model?: string | null
-  computeLevel?: ToolRuntimeComputeLevel | null
+  provider: string | null
+  model: string | null
+  computeLevel: ToolRuntimeComputeLevel | null
   pricingSnapshot: ToolCostPricingSnapshot
-  breakdownMicros: JSONObject
-}
-
-export interface ToolCostEstimateInput {
-  expectedInternalCostMicros: number
-  riskLevel?: ToolCostRiskLevel
-  approvedReservationCredits?: number
-  sourceKind?: ToolCostSourceKind
-  provider?: string | null
-  model?: string | null
-  computeLevel?: ToolRuntimeComputeLevel | null
+  breakdownMicros: Record<string, number>
+  billableMilliseconds?: number
 }
 
 export interface ToolCostEstimateRange {
@@ -269,20 +328,24 @@ export interface ToolCostEstimateRange {
   highCredits: number
   riskLevel: ToolCostRiskLevel
   rateCardVersion: string
+  sourceKind: ToolCostSourceKind
+  provider: string | null
+  model: string | null
+  computeLevel: ToolRuntimeComputeLevel | null
+  serviceFeeIncluded: false
   pricingSnapshot: ToolCostPricingSnapshot
   canRunWithinApprovedReservation: boolean | null
-  serviceFeeIncluded: false
 }
 
 export interface MockToolCostEvent {
-  id: ID
-  workspaceId: ID
-  projectId: ID
-  creditEstimateId?: ID | null
-  creditReservationId?: ID | null
+  id: string
+  workspaceId: string
+  projectId: string
+  creditEstimateId: string | null
+  creditReservationId: string | null
   label: string
   usageCategory: ToolCostUsageCategory
-  lineItemType?: CreditEstimateLineItemType | 'media_analysis'
+  lineItemType?: string
   computeLevel: ToolRuntimeComputeLevel
   billableToUser: boolean
   serviceFeeIncluded: false
@@ -293,51 +356,73 @@ export interface MockToolCostEvent {
   credits: number
   rateCardVersion: string
   pricingSnapshot: ToolCostPricingSnapshot
-  failureCategory: ToolCostFailureCategory
+  failureCategory: ToolCostFailureCategory | 'provider_variance_absorbed'
   retryAttempt: number
-  idempotencyKey?: string | null
+  idempotencyKey: string | null
   nonBillableReason?: string
-  createdAt: ISODateString
-  metadata: JSONObject
+  createdAt: string
+  metadata: Record<string, unknown>
 }
 
 export interface ToolCostEventAggregation {
-  eventCount: number
-  billableEventCount: number
-  nonBillableEventCount: number
   actualBillableCostCents: number
   actualBillableCostCredits: number
   nonBillableCostCents: number
   nonBillableCredits: number
-  billableEventIds: ID[]
-  nonBillableEventIds: ID[]
+  billableEventCount: number
+  nonBillableEventCount: number
+  billableEventIds: string[]
+  nonBillableEventIds: string[]
   nonBillableReasons: string[]
   byUsageCategory: Record<string, {
+    actualInternalCostCents: number
+    credits: number
     eventCount: number
     billableEventCount: number
     nonBillableEventCount: number
-    actualInternalCostCents: number
-    credits: number
-    billableCostCents: number
-    nonBillableCostCents: number
   }>
+}
+
+export interface CanonicalToolCostRateCard {
+  rateCardVersion: string
+  creditValueCents: number
+  serviceFeeIncluded: false
+  productEditLevelsAreSeparate: true
+  supportedProductEditLevels: readonly string[]
+  computeLevels: readonly ToolRuntimeComputeLevel[]
+  roundingPolicy: {
+    minimumBillableMilliseconds: number
+    roundingIncrementMilliseconds: number
+  }
+  computeLevelMultipliersBasisPoints: Record<ToolRuntimeComputeLevel, number>
+  qualityMultipliersBasisPoints: Record<ToolRuntimeComputeLevel, number>
+  riskBuffersBasisPoints: Record<ToolCostRiskLevel, number>
+  provider: Record<string, number>
+  runtime: Record<string, number>
+  deterministicRenderer: Record<string, number>
+  humanManual: {
+    supported: false
+    hourlyRateMicros: null
+    notes: string[]
+  }
+  notes: string[]
 }
 
 export interface ToolCostMeteringRateCardEntry {
   computeLevel: ToolRuntimeComputeLevel
-  creditValueCents: 10
+  creditValueCents: number
   serviceFeeIncluded: false
   productEditLevelsAreSeparate: true
-  supportedProductEditLevels: readonly ReEditProCanonicalEditLevel[]
-  notes: readonly string[]
+  supportedProductEditLevels: readonly string[]
+  notes: string[]
 }
 
 export interface ToolOwnerCostEventPolicy {
   ownerReportsActualInternalToolCostOnly: true
   serviceFeeIncluded: false
-  reeditproServiceFeeOwner: 'reeditpro_billing_policy'
+  reeditproServiceFeeOwner: string
   noWalletMutation: true
   noProviderCall: true
   noSettlement: true
-  notes: readonly string[]
+  notes: string[]
 }

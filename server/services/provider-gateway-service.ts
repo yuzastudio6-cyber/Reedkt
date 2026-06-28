@@ -1,6 +1,5 @@
 import { ApiError } from '../errors/api-error'
-import { estimateProductionToolCost, type ProductionToolCostEstimate } from '../tool-cost-metering'
-import type { ProductionToolId } from '../tool-registry'
+import { estimateToolCost } from '../tool-cost-metering'
 import type { ServiceContext } from '../types'
 import { createMockId, mockWarning, nowIso, sanitizeJson, throwOnSupabaseError } from './service-helpers'
 
@@ -13,6 +12,7 @@ export function createProviderGatewayService(context: ServiceContext) {
     async createProviderRequestAttempt(input: {
       workspaceId: string
       projectId?: string
+      toolId?: string
       providerRoute: string
       providerModel?: string
       generationRequestId?: string
@@ -20,11 +20,26 @@ export function createProviderGatewayService(context: ServiceContext) {
       approvedPlanSnapshotId?: string
       creditEstimateId?: string
       creditReservationId?: string
-      toolId?: ProductionToolId
-      approvedReservationRemainingCredits?: number
       requestPayloadHash: string
       mockOnly?: boolean
     }) {
+      const toolCostEstimate = estimateToolCost({
+        toolId: `provider:${input.providerRoute}`,
+        toolName: `${input.providerRoute} provider request`,
+        usageCategory: 'other',
+        computeLevel: 'premium',
+        providerType: 'external_api',
+        providerName: input.providerRoute,
+        modelName: input.providerModel ?? null,
+        qualityLevel: 'premium',
+        estimatedRuntimeSeconds: 60,
+        providerOptions: [input.providerRoute],
+        assumptions: [
+          'Provider request estimate is generated before transport.',
+          'Real provider calls remain disabled in this runtime skeleton.',
+        ],
+      })
+
       if (!input.mockOnly) {
         if (context.clients.admin && !context.env.mockOnly) {
           await recordBlockedAttempt(context, input)
@@ -33,7 +48,6 @@ export function createProviderGatewayService(context: ServiceContext) {
       }
 
       if (!context.clients.admin || context.env.mockOnly) {
-        const toolCostEstimate = buildProviderToolCostEstimate(input)
         return {
           providerRequestAttempt: {
             id: createMockId('provider_attempt'),
@@ -41,11 +55,9 @@ export function createProviderGatewayService(context: ServiceContext) {
             projectId: input.projectId,
             providerRoute: input.providerRoute,
             providerModel: input.providerModel,
-            toolId: input.toolId,
             generationRequestId: input.generationRequestId,
             jobId: input.jobId,
             approvedPlanSnapshotId: input.approvedPlanSnapshotId,
-            creditEstimateId: input.creditEstimateId,
             creditReservationId: input.creditReservationId,
             attemptStatus: 'blocked',
             idempotencyKey: context.requestId,
@@ -82,7 +94,7 @@ export function createProviderGatewayService(context: ServiceContext) {
         .single()
 
       throwOnSupabaseError(error)
-      return { providerRequestAttempt: data, warnings: ['Real provider execution remains disabled.'] }
+      return { providerRequestAttempt: data, toolCostEstimate, warnings: ['Real provider execution remains disabled.'] }
     },
 
     async recordProviderWebhook(input: {
@@ -139,43 +151,19 @@ export function createProviderGatewayService(context: ServiceContext) {
   }
 }
 
-function buildProviderToolCostEstimate(input: {
-  workspaceId: string
-  projectId?: string
-  approvedPlanSnapshotId?: string
-  creditEstimateId?: string
-  creditReservationId?: string
-  toolId?: ProductionToolId
-  approvedReservationRemainingCredits?: number
-}): ProductionToolCostEstimate | undefined {
-  if (!input.toolId) return undefined
-  const estimate = estimateProductionToolCost({
-    toolId: input.toolId,
-    workspaceId: input.workspaceId,
-    projectId: input.projectId ?? 'project-provider-gateway-mock',
-    approvedPlanSnapshotId: input.approvedPlanSnapshotId,
-    creditEstimateId: input.creditEstimateId,
-    creditReservationId: input.creditReservationId,
-    productEditLevel: 'normal',
-    approvedReservationRemainingCredits: input.approvedReservationRemainingCredits,
-    idempotencyKey: `provider-gateway:${input.toolId}`,
-    estimateOnlyWhenBlocked: true,
-  })
-
-  return estimate.ok ? estimate.data : undefined
-}
-
 async function recordBlockedAttempt(
   context: ServiceContext,
   input: {
     workspaceId: string
     projectId?: string
+    toolId?: string
     providerRoute: string
     providerModel?: string
     generationRequestId?: string
     jobId?: string
     approvedPlanSnapshotId?: string
     creditReservationId?: string
+    creditEstimateId?: string
     requestPayloadHash: string
   },
 ): Promise<void> {

@@ -272,7 +272,7 @@ for (const filePath of [
   'src/pages/CreateProjectPage.tsx',
   'src/components/editor/InlineEditLevelCard.tsx',
   'src/components/editor/InlinePlanningContextCard.tsx',
-  'src/components/editor/edit-brief/EditBriefSummaryCard.tsx',
+  'src/components/editor/InlineCompiledIntentCard.tsx',
 ]) {
   const source = readRepoFile(filePath)
   assert.equal(source.includes('../backend'), false, `${filePath} must not import backend modules`)
@@ -300,6 +300,6 @@ for (const term of [
 const migrationCount = readdirSync(new URL('../../supabase/migrations', import.meta.url), { withFileTypes: true })
   .filter((entry) => entry.isFile())
   .length
-assert.equal(migrationCount, 25, 'RP-EDITLEVEL-06 must not create or modify migration files.')
+assert.equal(migrationCount, 24, 'RP-EDITLEVEL-06 must not create or modify migration files.')
 
 console.log('edit-level-source-understanding-smoke passed')

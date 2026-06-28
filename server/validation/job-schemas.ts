@@ -14,6 +14,7 @@ export const createJobSchema = z.object({
   jobType: z.string().min(1),
   jobBatchId: idSchema.optional(),
   approvedPlanSnapshotId: idSchema.optional(),
+  creditEstimateId: idSchema.optional(),
   creditReservationId: idSchema.optional(),
   payloadJson: z.record(z.string(), z.unknown()).optional(),
 })

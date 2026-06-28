@@ -34,6 +34,7 @@ export const basicRenderSmokePreviewSchema = z.object({
   sourceStorageObjectId: idSchema,
   sourceStorageObject: basicRenderSmokeSourceObjectSchema.optional(),
   approvedPlanSnapshotId: idSchema,
+  creditEstimateId: idSchema.optional(),
   creditReservationId: idSchema,
   workerInstanceId: z.string().optional(),
   strict: z.boolean().optional(),

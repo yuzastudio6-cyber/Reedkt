@@ -1,0 +1,52 @@
+{
+  "reportId": "beta-readiness-api-staging-deploy-workflow-2026-06-28",
+  "decision": "beta_readiness_api_staging_deploy_workflow_passed_ready_for_manual_operator_dispatch",
+  "sourceSha": "669d31c5f4305f12e7767fe4a27e749770441447",
+  "workflowPath": ".github/workflows/beta-readiness-api-staging-deploy.yml",
+  "defaultBranchBridge": {
+    "pr": 1360,
+    "mergeSha": "363a5b69d0b09e296b4471593776b3bca0a6a871",
+    "defaultBranch": "codex/reeditpro-web-ui-shell",
+    "workflowDiscoverable": true
+  },
+  "smokeCommand": "npm run smoke:beta-readiness-api-staging-deploy-workflow",
+  "automaticTriggersAllowed": false,
+  "externalBetaEnabled": false,
+  "productionEnabled": false,
+  "workflowRunPerformed": false,
+  "requiredInputs": [
+    "confirm_staging_api_deploy",
+    "source_sha",
+    "image_tag",
+    "artifact_region",
+    "artifact_repository",
+    "deployer_service_account",
+    "runtime_service_account",
+    "service_name"
+  ],
+  "requiredGuards": [
+    "exact_confirmation_phrase",
+    "source_sha_required",
+    "immutable_image_tag_required",
+    "staging_service_name_only",
+    "workload_identity_required",
+    "no_allow_unauthenticated",
+    "secret_manager_names_only"
+  ],
+  "selectedService": "reeditpro-api-staging",
+  "selectedRuntimeEnvironment": "staging",
+  "artifactImageTemplate": "<artifact_region>-docker.pkg.dev/<project_id>/<artifact_repository>/reeditpro-api:<image_tag>",
+  "secretBindings": [
+    "SUPABASE_URL=SUPABASE_URL:latest",
+    "SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest",
+    "PROVIDER_GATEWAY_SHARED_SECRET=PROVIDER_GATEWAY_SHARED_SECRET:latest",
+    "WORKER_WEBHOOK_SECRET=WORKER_WEBHOOK_SECRET:latest"
+  ],
+  "blockedScopes": [
+    "external_beta_until_deployed_evidence_collector_and_operator_status_readback_pass",
+    "real_user_media_beta_until_separate_scope_approval_passes",
+    "paid_production_until_separate_paid_production_evidence_collector_passes",
+    "public_launch_claims_until_final_operator_status_proves_exact_scope"
+  ],
+  "nextSafeAction": "An authorized operator may manually dispatch the workflow from default branch codex/reeditpro-web-ui-shell with the exact confirmation phrase, source_ref=codex/sound-music-audio-1abc-checkpoint, immutable source SHA/image tag, Artifact Registry inputs, owner-approved deployer service account, runtime API service account, and service_name=reeditpro-api-staging; then run npm run beta:readiness:api-deployment-preflight against the deployed staging URL before any evidence collector."
+}

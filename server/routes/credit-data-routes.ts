@@ -14,6 +14,7 @@ import {
 } from '../validation/credit-data-schemas'
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute, getRouteParam, sendOk } from './route-helpers'
+import type { JSONObject } from '../../src/types'
 
 const creditDataStore = createMockCreditDataStore()
 
@@ -39,7 +40,10 @@ export function createCreditDataRoutes(): Router {
     const body = validateBody(createCreditRevisionActionSchema, request.body)
     const action = upsertCreditRevisionActionByIdempotencyKey(
       creditDataStore,
-      createCreditRevisionActionRecord(body),
+      createCreditRevisionActionRecord({
+        ...body,
+        metadata: body.metadata as JSONObject | undefined,
+      }),
     )
     sendOk(response, { action }, mockWarnings, 201)
   }))

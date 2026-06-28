@@ -21,10 +21,24 @@ Frontend code may display estimates and mock gate results. It must not be truste
 
 RP-FIX-10 uses the credit gate as one required input before mock worker queue items can dispatch. The production rule remains unchanged: no worker, provider, render, or export job may run without approved credits and a valid reservation.
 
+Tool-cost wallet settlement has a backend-owned settlement path for platform billing QA. `POST /v1/tool-costs/events/:toolCostEventId/settle` requires auth and idempotency, creates only a mock ledger effect in local/mock mode, keeps Stripe and ReEditPro service/edit fees out of tool owner cost events, and in non-mock runtime calls the `settle_tool_cost_event` RPC from `202606270003_tool_cost_wallet_settlement_rpc.sql`. Missing migration/RPC support fails closed with `TOOL_COST_BACKEND_REQUIRED`.
+
+`npm run smoke:tool-cost-wallet-settlement:service-role` verifies the non-mock service-role settlement path with a fake Supabase admin client. It proves replay lookup, RPC function/parameter shape, persistent row mapping, Stripe isolation, service-fee exclusion, and missing-RPC fail-closed behavior without touching remote Supabase.
+
+`npm run smoke:tool-cost-wallet-settlement:sql` verifies that RPC source against a disposable local Postgres database. The smoke creates only temporary prerequisite tables, applies the migration, proves billable spend, idempotent replay, non-billable provider-failure settlement, service-fee exclusion, Stripe isolation, and RLS policy presence, then drops the database. It is not a remote Supabase migration, live wallet mutation, Stripe operation, provider call, media operation, beta unlock, or production approval.
+
+`npm run smoke:beta-platform-rls-readback:sql` verifies local RLS/readback behavior for the billing platform tables against a disposable local Postgres database. It proves scoped authenticated reads for `tool_cost_events` and `tool_cost_wallet_settlements`, non-member denial, backend-only beta evidence read denial, and authenticated insert denial. It is not deployed Supabase evidence and does not clear the platform blocker by itself.
+
+`npm run smoke:beta-platform-monitoring-catalog` verifies source-only metric and alert templates for tool-cost event writes, idempotent replay, persistent write failures, wallet settlement, RLS readback, billing QA missing evidence, and Stripe-boundary violations. It does not deploy dashboards or alerts.
+
+`npm run smoke:beta-platform-stripe-boundary` verifies that tool-cost and beta billing surfaces do not depend on Stripe, import Stripe, instantiate Stripe, call Stripe APIs, or lose Stripe-isolation and service-fee-exclusion audit markers. It does not grant billing-owner approval or enable Stripe.
+
+`npm run smoke:beta-platform-evidence-manifest` verifies that remaining platform billing blocks are actionable evidence requirements, not permanent intentional stops. It connects local proof commands and source files to the staging deployment evidence, billing-owner approval, monitoring deployment, billing QA, and launch-owner approvals still required before external beta or production can open.
+
 ## Mock Status
 
 The mock gate returns allowed/blocked decisions and warnings. It does not call Stripe, provider APIs, workers, rendering, or remote Supabase.
 
 ## Remaining Work
 
-Production still needs a deployed backend route/runtime that performs credit checks and ledger writes transactionally before queueing jobs or provider requests.
+Production still needs deployed migration evidence, service-role runtime verification, authenticated RLS readback, billing-owner Stripe-boundary approval, billing-owner QA, monitoring, and owner approvals before this settlement path can clear the platform blocker.

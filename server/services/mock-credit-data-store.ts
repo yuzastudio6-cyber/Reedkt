@@ -277,10 +277,14 @@ export function previewCreditSettlement(
     failedAt: null,
   }
   const summary = buildEditCreditCostSummary(settlement, events)
-  settlement.receiptPayload = {
-    userFacingLines: summary.userFacingLines,
+  settlement.receiptPayload = asJsonObject({
+    userFacingLines: summary.userFacingLines.map((line): JSONObject => ({
+      label: line.label,
+      credits: line.credits,
+      ...(line.description ? { description: line.description } : {}),
+    })),
     warnings: summary.warnings,
-  }
+  })
 
   return {
     settlement,
@@ -403,4 +407,8 @@ function categoryCredits(
   keys: readonly string[],
 ): number {
   return keys.reduce((sum, key) => sum + (byUsageCategory[key]?.credits ?? 0), 0)
+}
+
+function asJsonObject(value: Record<string, unknown>): JSONObject {
+  return value as JSONObject
 }

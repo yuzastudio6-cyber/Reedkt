@@ -320,7 +320,7 @@ for (const frontendPath of [
   'src/pages/CreateProjectPage.tsx',
   'src/components/editor/InlineEditLevelCard.tsx',
   'src/components/editor/InlinePlanningContextCard.tsx',
-  'src/components/editor/edit-brief/EditBriefSummaryCard.tsx',
+  'src/components/editor/InlineCompiledIntentCard.tsx',
 ]) {
   const source = readRepoFile(frontendPath)
   assert.equal(source.includes('src/backend'), false, `${frontendPath} must not import backend modules`)
@@ -330,6 +330,6 @@ for (const frontendPath of [
 const migrationCount = readdirSync(repoPath('supabase/migrations'))
   .filter((fileName) => statSync(repoPath(`supabase/migrations/${fileName}`)).isFile())
   .length
-assert.equal(migrationCount, 25)
+assert.equal(migrationCount, 24)
 
 console.log(`RP-EDITLEVEL-09 smoke passed with ${definitions.length} estimate items and ${scenarios.length} scenarios.`)

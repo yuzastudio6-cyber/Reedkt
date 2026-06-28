@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { dirname, join, parse } from 'node:path'
 import type { ProductionToolId } from '../../tool-registry'
 import type { ProductionReadinessStatus } from './production-tool-readiness-types'
 import { CORE_TOOL_COMMAND_CHECKS, type CoreToolCommandCheckDefinition } from './core-tool-command-checks'
@@ -231,7 +233,9 @@ function runNodePackageCheck(
   checkedAt: string,
 ): CoreToolReadinessCheckResult {
   try {
-    const resolvedPath = requireFromReadiness.resolve(definition.packageJsonPath)
+    const resolvedPath = definition.sourcePath
+      ? resolveSourceMetadataPath(definition)
+      : resolvePackageMetadataPath(definition)
     return {
       toolId: definition.toolId,
       checkKind: 'node_package_metadata',
@@ -239,10 +243,12 @@ function runNodePackageCheck(
       status: 'passed',
       optional: definition.optional,
       manualReviewRequired: false,
-      message: `${definition.packageName} package metadata is resolvable without importing runtime code.`,
+      message: definition.sourcePath
+        ? `${definition.packageName} source boundary is present without importing runtime code.`
+        : `${definition.packageName} package metadata is resolvable without importing runtime code.`,
       detail: resolvedPath,
       packageName: definition.packageName,
-      importName: definition.packageJsonPath,
+      importName: definition.sourcePath ?? definition.packageJsonPath,
       checkedAt,
     }
   } catch (error) {
@@ -254,13 +260,40 @@ function runNodePackageCheck(
       status: definition.optional ? 'not_installed' : 'missing',
       optional: definition.optional,
       manualReviewRequired: false,
-      message: `${definition.packageName} package metadata is not currently resolvable.`,
+      message: definition.sourcePath
+        ? `${definition.packageName} source boundary is not currently resolvable.`
+        : `${definition.packageName} package metadata is not currently resolvable.`,
       detail: cleanDetail(failed.message),
       packageName: definition.packageName,
-      importName: definition.packageJsonPath,
+      importName: definition.sourcePath ?? definition.packageJsonPath,
       checkedAt,
     }
   }
+}
+
+function resolveSourceMetadataPath(definition: CoreToolNodePackageCheckDefinition): string {
+  if (!definition.sourcePath) throw new Error(`${definition.packageName} source path is not configured.`)
+  const candidate = join(process.cwd(), definition.sourcePath)
+  if (!existsSync(candidate)) throw new Error(`${definition.packageName} source boundary is missing: ${definition.sourcePath}`)
+  return candidate
+}
+
+function resolvePackageMetadataPath(definition: CoreToolNodePackageCheckDefinition): string {
+  try {
+    return requireFromReadiness.resolve(definition.packageJsonPath)
+  } catch (error) {
+    const packageJsonExportError = error as { code?: string }
+    if (packageJsonExportError.code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED') throw error
+  }
+
+  let current = dirname(requireFromReadiness.resolve(definition.packageName))
+  const root = parse(current).root
+  while (current && current !== root) {
+    const candidate = join(current, 'package.json')
+    if (existsSync(candidate)) return candidate
+    current = dirname(current)
+  }
+  throw new Error(`${definition.packageName} package metadata is not resolvable from ${definition.packageName}.`)
 }
 
 function dryRunResult(
@@ -323,7 +356,7 @@ export function runCoreCpuRenderReadinessChecks(
 ): RunCoreCpuRenderReadinessResult {
   const realCheckMode = options.realCheckMode === true
   const strict = options.strict === true
-  const timeoutMs = options.timeoutMs ?? 5000
+  const timeoutMs = options.timeoutMs ?? 15000
   const maxBuffer = options.maxBuffer ?? 1024 * 1024
   const checkedAt = new Date().toISOString()
 

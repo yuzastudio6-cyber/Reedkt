@@ -1,88 +1,169 @@
 import { z } from 'zod'
-import { REEDITPRO_EDIT_LEVELS } from '../../src/types'
-import { PRODUCTION_TOOL_IDS } from '../tool-registry'
-import { TOOL_CREDIT_PREREQUISITE_STATUSES } from '../tool-cost-metering/production-tool-cost'
 import {
-  TOOL_COST_RATE_CARD,
-  TOOL_COST_RATE_CARD_VERSION,
-  TOOL_RUNTIME_COMPUTE_LEVELS,
-} from '../tool-cost-metering/rate-card'
-import {
+  TOOL_COST_COMPUTE_LEVELS,
   TOOL_COST_FAILURE_CATEGORIES,
-  TOOL_COST_RISK_LEVELS,
-  TOOL_COST_SOURCE_KINDS,
+  TOOL_COST_PROVIDER_TYPES,
+  TOOL_COST_QUALITY_LEVELS,
   TOOL_COST_USAGE_CATEGORIES,
 } from '../tool-cost-metering/types'
+import { PRODUCTION_TOOL_IDS } from '../tool-registry/production-tool-types'
+import { TOOL_CREDIT_PREREQUISITE_STATUSES } from '../tool-cost-metering/production-tool-cost'
 import { validateToolCostNoSecretLikeFields } from '../tool-cost-metering/secret-safety'
 import { idSchema } from './common-schemas'
 
-export const nonNegativeIntegerMicrosSchema = z.number().int().nonnegative()
-export const nonNegativeIntegerCentsSchema = z.number().int().nonnegative()
-export const nonNegativeIntegerCreditsSchema = z.number().int().nonnegative()
-export const positiveBillableMillisecondsSchema = z.number().int().positive()
-export const nonNegativeDurationSecondsSchema = z.number().nonnegative().finite()
-export const positiveDurationSecondsSchema = z.number().positive().finite()
+const nullableStringSchema = z.string().min(1).nullable().optional()
+const nonnegativeNumberSchema = z.number().finite().nonnegative()
+const metadataSchema = z.record(z.string(), z.unknown()).optional()
 
-export const toolRuntimeComputeLevelSchema = z.enum(TOOL_RUNTIME_COMPUTE_LEVELS)
-export const toolCostUsageCategorySchema = z.enum(TOOL_COST_USAGE_CATEGORIES)
-export const toolCostSourceKindSchema = z.enum(TOOL_COST_SOURCE_KINDS)
-export const toolCostRiskLevelSchema = z.enum(TOOL_COST_RISK_LEVELS)
-export const toolCostFailureCategorySchema = z.enum(TOOL_COST_FAILURE_CATEGORIES)
-export const toolCostRateCardVersionSchema = z.literal(TOOL_COST_RATE_CARD_VERSION)
-export const toolCostProductEditLevelSchema = z.enum(REEDITPRO_EDIT_LEVELS)
+export const toolCostEstimateSchema = z.object({
+  toolId: z.string().min(1),
+  toolName: z.string().min(1),
+  usageCategory: z.enum(TOOL_COST_USAGE_CATEGORIES),
+  computeLevel: z.enum(TOOL_COST_COMPUTE_LEVELS),
+  providerType: z.enum(TOOL_COST_PROVIDER_TYPES),
+  providerName: nullableStringSchema,
+  modelName: nullableStringSchema,
+  qualityLevel: z.enum(TOOL_COST_QUALITY_LEVELS),
+  inputVideoSeconds: nonnegativeNumberSchema.optional(),
+  outputVideoSeconds: nonnegativeNumberSchema.optional(),
+  inputAudioSeconds: nonnegativeNumberSchema.optional(),
+  outputAudioSeconds: nonnegativeNumberSchema.optional(),
+  imageCount: z.number().int().nonnegative().optional(),
+  estimatedRuntimeSeconds: nonnegativeNumberSchema.optional(),
+  resolution: z.string().min(1).optional(),
+  frameRate: nonnegativeNumberSchema.optional(),
+  inputTokens: z.number().int().nonnegative().optional(),
+  outputTokens: z.number().int().nonnegative().optional(),
+  renderDurationSeconds: nonnegativeNumberSchema.optional(),
+  vcpuCount: nonnegativeNumberSchema.optional(),
+  memoryGiB: nonnegativeNumberSchema.optional(),
+  gpuType: nullableStringSchema,
+  gpuCount: z.number().int().nonnegative().optional(),
+  temporaryStorageGiBHours: nonnegativeNumberSchema.optional(),
+  outputStorageGiBHours: nonnegativeNumberSchema.optional(),
+  networkEgressMiB: nonnegativeNumberSchema.optional(),
+  approvedReservationRemainingCredits: z.number().int().nonnegative().optional(),
+  providerOptions: z.array(z.string().min(1)).optional(),
+  assumptions: z.array(z.string().min(1)).optional(),
+  metadata: metadataSchema,
+}).strict()
+
+export const toolCostEventSchema = z.object({
+  id: z.string().min(1).optional(),
+  workspaceId: idSchema,
+  projectId: idSchema,
+  editPlanId: idSchema.nullable().optional(),
+  jobId: idSchema.nullable().optional(),
+  jobBatchId: idSchema.nullable().optional(),
+  generationRequestId: idSchema.nullable().optional(),
+  renderJobId: idSchema.nullable().optional(),
+  creditEstimateId: idSchema.nullable().optional(),
+  creditReservationId: idSchema.nullable().optional(),
+  toolId: z.string().min(1),
+  toolName: z.string().min(1),
+  usageCategory: z.enum(TOOL_COST_USAGE_CATEGORIES),
+  providerType: z.enum(TOOL_COST_PROVIDER_TYPES),
+  providerName: nullableStringSchema,
+  modelName: nullableStringSchema,
+  qualityLevel: z.enum(TOOL_COST_QUALITY_LEVELS),
+  startedAt: z.string().min(1),
+  completedAt: z.string().min(1),
+  wallClockMs: nonnegativeNumberSchema,
+  billableMs: nonnegativeNumberSchema.optional(),
+  vcpuCount: nonnegativeNumberSchema.optional(),
+  memoryGiB: nonnegativeNumberSchema.optional(),
+  gpuType: nullableStringSchema,
+  gpuCount: z.number().int().nonnegative().optional(),
+  inputTokens: z.number().int().nonnegative().optional(),
+  outputTokens: z.number().int().nonnegative().optional(),
+  inputVideoSeconds: nonnegativeNumberSchema.optional(),
+  outputVideoSeconds: nonnegativeNumberSchema.optional(),
+  inputAudioSeconds: nonnegativeNumberSchema.optional(),
+  outputAudioSeconds: nonnegativeNumberSchema.optional(),
+  imageCount: z.number().int().nonnegative().optional(),
+  renderDurationSeconds: nonnegativeNumberSchema.optional(),
+  outputResolution: z.string().min(1).nullable().optional(),
+  outputFrameRate: nonnegativeNumberSchema.optional(),
+  estimatedInternalCostCents: z.number().int().nonnegative().optional(),
+  retryAttempt: z.number().int().nonnegative().optional(),
+  retryReason: nullableStringSchema,
+  failureCategory: z.enum(TOOL_COST_FAILURE_CATEGORIES).optional(),
+  billableToUser: z.boolean().optional(),
+  approvedReservationRemainingCredits: z.number().int().nonnegative().optional(),
+  temporaryStorageGiBHours: nonnegativeNumberSchema.optional(),
+  outputStorageGiBHours: nonnegativeNumberSchema.optional(),
+  networkEgressMiB: nonnegativeNumberSchema.optional(),
+  metadata: metadataSchema,
+}).strict()
+
+export const toolCostWalletSettlementSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  creditEstimateId: idSchema.nullable().optional(),
+  creditReservationId: idSchema.nullable().optional(),
+  toolCostCredits: z.number().int().nonnegative(),
+  billableToUser: z.boolean(),
+  failureCategory: z.enum(TOOL_COST_FAILURE_CATEGORIES).optional(),
+  settlementType: z.enum(['spend', 'release', 'refund']).optional(),
+  metadata: metadataSchema,
+}).strict()
+
+export const nonNegativeIntegerCentsSchema = z.number().int().nonnegative()
+export const nonNegativeIntegerMicrosSchema = z.number().int().nonnegative()
+export const toolRuntimeComputeLevelSchema = z.enum(TOOL_COST_COMPUTE_LEVELS)
+export const toolCostProductEditLevelSchema = z.enum(['normal', 'premium', 'ultra_premium'])
 export const productionToolIdSchema = z.enum(PRODUCTION_TOOL_IDS)
 export const toolCreditPrerequisiteStatusSchema = z.enum(TOOL_CREDIT_PREREQUISITE_STATUSES)
 
-export const secretSafeToolCostJsonObjectSchema = z.record(z.string(), z.unknown()).superRefine((value, context) => {
+export const toolCostPricingSnapshotSchema = z.object({
+  rateCardVersion: z.string().min(1),
+  sourceKind: z.enum(['external_provider', 'infrastructure_runtime', 'deterministic_renderer', 'mock_manual_entry']),
+  provider: z.string().nullable(),
+  model: z.string().nullable(),
+  computeLevel: z.enum(TOOL_COST_COMPUTE_LEVELS).nullable(),
+  riskLevel: z.enum(['low', 'medium', 'high']).nullable(),
+  serviceFeeIncluded: z.literal(false),
+  pricingUnits: z.record(z.string(), z.unknown()),
+}).strict().superRefine((value, ctx) => {
   const secretSafety = validateToolCostNoSecretLikeFields(value)
   if (!secretSafety.ok) {
-    context.addIssue({
-      code: 'custom',
-      message: `Tool-cost metadata contains secret-like fields: ${secretSafety.secretLikePaths.join(', ')}`,
-      path: ['secretLikePaths'],
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: secretSafety.error.message,
+      path: secretSafety.error.field?.split('.').slice(1) ?? ['pricingUnits'],
     })
   }
 })
 
-export const toolCostPricingSnapshotSchema = secretSafeToolCostJsonObjectSchema.and(z.object({
-  mockOnly: z.literal(true),
-  rateCardVersion: toolCostRateCardVersionSchema,
-  creditValueCents: z.literal(TOOL_COST_RATE_CARD.creditValueCents),
-  serviceFeeIncluded: z.literal(false),
-  sourceKind: toolCostSourceKindSchema,
-  provider: z.string().nullable(),
-  model: z.string().nullable(),
-  computeLevel: toolRuntimeComputeLevelSchema.nullable(),
-  riskLevel: toolCostRiskLevelSchema.nullable(),
-  pricingUnits: secretSafeToolCostJsonObjectSchema,
-  notes: z.array(z.string()),
-}))
-
 export const createToolCostEventSchema = z.object({
-  id: idSchema,
-  workspaceId: idSchema,
-  projectId: idSchema,
-  creditEstimateId: idSchema.nullish(),
-  creditReservationId: idSchema.nullish(),
+  id: z.string().min(1),
+  workspaceId: z.string().min(1),
+  projectId: z.string().min(1),
+  creditEstimateId: z.string().nullable().optional(),
+  creditReservationId: z.string().nullable().optional(),
   label: z.string().min(1),
-  usageCategory: toolCostUsageCategorySchema,
-  lineItemType: z.string().min(1).optional(),
-  computeLevel: toolRuntimeComputeLevelSchema.default('standard'),
-  billableToUser: z.boolean().default(true),
-  actualInternalCostMicros: nonNegativeIntegerMicrosSchema.optional(),
+  usageCategory: z.enum(TOOL_COST_USAGE_CATEGORIES),
+  lineItemType: z.string().optional(),
+  computeLevel: z.enum(TOOL_COST_COMPUTE_LEVELS).optional(),
+  billableToUser: z.boolean().optional(),
   actualInternalCostCents: nonNegativeIntegerCentsSchema.optional(),
+  actualInternalCostMicros: nonNegativeIntegerMicrosSchema.optional(),
   pricingSnapshot: toolCostPricingSnapshotSchema.optional(),
-  failureCategory: toolCostFailureCategorySchema.default('none'),
-  retryAttempt: z.number().int().nonnegative().default(0),
-  idempotencyKey: idSchema.nullish(),
-  nonBillableReason: z.string().min(1).optional(),
-  metadata: secretSafeToolCostJsonObjectSchema.default({}),
-}).superRefine((value, context) => {
-  if (value.actualInternalCostMicros === undefined && value.actualInternalCostCents === undefined) {
-    context.addIssue({
-      code: 'custom',
-      message: 'actualInternalCostMicros or actualInternalCostCents is required for mock route/storage validation.',
-      path: ['actualInternalCostCents'],
+  failureCategory: z.string().optional(),
+  retryAttempt: z.number().int().nonnegative().optional(),
+  idempotencyKey: z.string().nullable().optional(),
+  nonBillableReason: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+}).strict().superRefine((value, ctx) => {
+  const secretSafety = validateToolCostNoSecretLikeFields({
+    pricingSnapshot: value.pricingSnapshot,
+    metadata: value.metadata,
+  })
+  if (!secretSafety.ok) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: secretSafety.error.message,
+      path: secretSafety.error.field?.split('.').slice(1) ?? ['metadata'],
     })
   }
 })

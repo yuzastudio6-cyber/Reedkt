@@ -14,10 +14,7 @@ export function createRenderRoutes(): Router {
   router.post('/v1/render-jobs', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
     const body = validateBody(createRenderJobSchema, request.body)
     const result = await createRenderService(getServiceContext(request)).createRenderJob(body)
-    sendOk(response, {
-      renderJob: result.renderJob,
-      toolCostEstimate: result.toolCostEstimate,
-    }, result.warnings, 201)
+    sendOk(response, { renderJob: result.renderJob, toolCostEstimate: result.toolCostEstimate }, result.warnings, 201)
   }))
 
   router.get('/v1/renders/:renderId', requireAuth, asyncRoute(async (request, response) => {
@@ -67,6 +64,7 @@ export function createRenderRoutes(): Router {
       workerInstanceId: body.workerInstanceId,
       idempotencyKey: getIdempotencyKey(request),
       approvedPlanSnapshotId: body.approvedPlanSnapshotId,
+      creditEstimateId: body.creditEstimateId,
       creditReservationId: body.creditReservationId,
       storageObjectRecordId: body.sourceStorageObjectId,
       payloadJson: {

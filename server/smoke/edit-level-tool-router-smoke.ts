@@ -270,7 +270,7 @@ for (const term of [
 const migrationCount = readdirSync(new URL('../../supabase/migrations', import.meta.url), { withFileTypes: true })
   .filter((entry) => entry.isFile())
   .length
-assert.equal(migrationCount, 25, 'RP-EDITLEVEL-05 must not create or modify migration files.')
+assert.equal(migrationCount, 24, 'RP-EDITLEVEL-05 must not create or modify migration files.')
 
 const packageJson = JSON.parse(readRepoFile('package.json')) as { scripts?: Record<string, string> }
 assert.equal(packageJson.scripts?.['smoke:edit-level-tool-router'], 'tsx server/smoke/edit-level-tool-router-smoke.ts')

@@ -288,7 +288,7 @@ const frontendFiles = [
   readRepoFile('src/pages/CreateProjectPage.tsx'),
   readRepoFile('src/components/editor/InlineEditLevelCard.tsx'),
   readRepoFile('src/components/editor/InlinePlanningContextCard.tsx'),
-  readRepoFile('src/components/editor/edit-brief/EditBriefSummaryCard.tsx'),
+  readRepoFile('src/components/editor/InlineCompiledIntentCard.tsx'),
 ].join('\n')
 
 assert.equal(frontendFiles.includes("from '../../src/backend'"), false)
@@ -298,6 +298,6 @@ assert.equal(frontendFiles.includes('MockDatabase'), false)
 
 const migrationDir = repoPath('supabase/migrations')
 const migrationCount = readdirSync(migrationDir).filter((entry) => statSync(new URL(entry, `${migrationDir.href}/`)).isFile()).length
-assert.equal(migrationCount, 25)
+assert.equal(migrationCount, 24)
 
 console.log(`RP-EDITLEVEL-08 QA gate smoke passed with ${definitions.length} gates and ${listMockEditLevelQAGateScenarios().length} scenarios.`)

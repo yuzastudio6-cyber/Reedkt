@@ -1,0 +1,119 @@
+{
+  "reportId": "beta-tools-local-accepted-evidence-bundle-2026-06-27",
+  "createdAt": "2026-06-27T23:45:00Z",
+  "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+  "sourceSha": "5bc6abf0ef238d8038ea0b95877ca06dd73738fc",
+  "decision": "beta_tools_local_accepted_evidence_bundle_passed_ready_for_deployed_staging_evidence_recording",
+  "evidenceMode": "local_no_write_preview",
+  "previewOnly": true,
+  "noBackendEvidenceRecorded": true,
+  "readyToRecordDeployedEvidence": true,
+  "locallyAcceptedToolCount": 14,
+  "locallyAcceptedToolIds": [
+    "ffmpeg",
+    "ffprobe",
+    "pyav",
+    "opentimelineio",
+    "hyperframe",
+    "remotion",
+    "sharp",
+    "duckdb",
+    "polars",
+    "pyscenedetect",
+    "opencv",
+    "opencolorio",
+    "openimageio",
+    "libass"
+  ],
+  "coreAcceptedToolIds": [
+    "ffmpeg",
+    "ffprobe",
+    "pyav",
+    "opentimelineio",
+    "hyperframe",
+    "remotion",
+    "sharp",
+    "duckdb",
+    "polars",
+    "pyscenedetect",
+    "opencv",
+    "opencolorio",
+    "openimageio"
+  ],
+  "libassAcceptedToolIds": [
+    "libass"
+  ],
+  "libassEvidence": {
+    "containerImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001",
+    "mode": "docker",
+    "network": "none",
+    "filterProof": {
+      "hasAssFilter": true,
+      "hasSubtitlesFilter": true,
+      "observedFilterLines": [
+        "... ass               V->V       Render ASS subtitles onto input video using the libass library.",
+        "... subtitles         V->V       Render text subtitles onto input video using the libass library."
+      ]
+    },
+    "syntheticBurninQa": {
+      "runId": "libass-burnin-qa-2026-06-27T23-41-22-833Z",
+      "syntheticOnly": true,
+      "fontDiscoveryOk": true,
+      "burninCommandOk": true,
+      "decodeProbeOk": true,
+      "safeStylePresetAccepted": true,
+      "tempRootRemoved": true,
+      "noPrivateOrUserMedia": true,
+      "noNetwork": true,
+      "outputVideo": {
+        "fileName": "synthetic-libass-burnin-output.mp4",
+        "sizeBytes": 40771,
+        "checksumSha256": "301ee872212d00c243c8d220a0552157bdebc7766238cc178353089de6b912a8",
+        "durationSeconds": 1
+      }
+    }
+  },
+  "validation": {
+    "commandsPassed": [
+      "npm run tools:readiness:install-core-python",
+      "npm run smoke:prod-core-python-readiness",
+      "npm run beta:tools:libass-container-proof-preflight",
+      "npm run beta:tools:libass-synthetic-burnin-qa-preflight",
+      "npm run beta:tools:local-accepted-evidence-bundle"
+    ],
+    "transientObservation": "A concurrent prod-core-python smoke observed PyAV missing while the readiness venv was being reused; standalone rerun passed PyAV and PySceneDetect, and the final bundle rerun accepted all 13 core tools plus libass."
+  },
+  "remainingGateBlockers": [
+    "deployed_core_real_check_evidence_recording_pending",
+    "deployed_libass_qa_evidence_recording_pending",
+    "platform_billing_deployment_evidence_pending",
+    "launch_owner_approval_evidence_pending",
+    "final_operator_status_readback_pending"
+  ],
+  "nextSafeActions": [
+    "Run npm run beta:tools:core-real-check-evidence-preflight, then npm run beta:tools:core-real-check-evidence against deployed staging with the same accepted source SHA.",
+    "Run npm run beta:tools:libass-synthetic-burnin-qa-evidence-preflight, then npm run beta:tools:libass-synthetic-burnin-qa-evidence against deployed staging.",
+    "Run npm run beta:platform:staging-evidence-preflight after platform owner approvals and staging probe inputs exist.",
+    "Run npm run beta:readiness:launch-approval-evidence-preflight after launch owner approvals and evidence notes exist.",
+    "Rerun npm run beta:readiness:operator-status-api after deployed evidence is recorded; do not enable external beta or production from this local bundle alone."
+  ],
+  "blockedScopeConfirmations": {
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "supabaseWritesRan": false,
+    "gcsWritesRan": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "userMediaProcessed": false,
+    "productReadyClaimForAllRegistryTools": false
+  },
+  "supabaseClassification": {
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

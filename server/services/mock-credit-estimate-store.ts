@@ -328,19 +328,16 @@ function buildActualCostInput(
   if (hasProviderUsage(usage)) {
     return {
       sourceKind: 'external_provider',
-      provider: {
-        requestCount: usage.requestCount,
-        inputTokens: usage.inputTokens,
-        outputTokens: usage.outputTokens,
-        inputVideoSeconds: usage.inputVideoSeconds,
-        outputVideoSeconds: usage.outputVideoSeconds,
-        inputAudioSeconds: usage.inputAudioSeconds,
-        outputAudioSeconds: usage.outputAudioSeconds,
-        imageCount: usage.imageCount,
-        provider: usage.provider ?? null,
-        model: usage.model ?? null,
-      },
-      computeLevel: usage.toolComputeLevel ?? undefined,
+      requestCount: usage.requestCount,
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+      inputVideoSeconds: usage.inputVideoSeconds,
+      outputVideoSeconds: usage.outputVideoSeconds,
+      inputAudioSeconds: usage.inputAudioSeconds,
+      outputAudioSeconds: usage.outputAudioSeconds,
+      imageCount: usage.imageCount,
+      provider: usage.provider ?? null,
+      model: usage.model ?? null,
     }
   }
   if (hasRendererUsage(usage)) {
@@ -393,7 +390,7 @@ function mapToolEstimateSnapshot(
     expectedCredits: estimate.range.expectedCredits,
     highCredits: estimate.range.highCredits,
     rateCardVersion: estimate.rateCardVersion,
-    pricingSnapshot: estimate.pricingSnapshot,
+    pricingSnapshot: asJsonObject(estimate.pricingSnapshot),
     serviceFeeIncluded: false,
     warnings: estimate.warnings,
   }
@@ -687,13 +684,21 @@ function buildSafetyFlags(): EditCreditEstimateSafetyFlags {
 
 function mapToolUsageToLineItemType(usageCategory: ToolCostUsageCategory): CreditEstimateLineItemType {
   switch (usageCategory) {
+    case 'planning':
+      return 'planning'
     case 'transcription':
       return 'transcript'
     case 'captions':
       return 'captions'
+    case 'music':
+      return 'music'
+    case 'sfx':
+      return 'sfx'
     case 'rendering':
-    case 'render_export':
+    case 'export':
       return 'final_export'
+    case 'qa':
+      return 'other'
     case 'stroke_motion':
       return 'stroke_motion'
     case 'graphic_design':
@@ -706,10 +711,6 @@ function mapToolUsageToLineItemType(usageCategory: ToolCostUsageCategory): Credi
       return 'revision'
     case 'media_analysis':
       return 'other'
-    case 'basic_edit':
-    case 'pro_edit':
-    case 'signature_edit':
-    case 'premium_signature_edit':
     case 'admin':
     case 'other':
       return 'planning'
@@ -718,11 +719,16 @@ function mapToolUsageToLineItemType(usageCategory: ToolCostUsageCategory): Credi
 
 function mapToolUsageToCreditUsageCategory(usageCategory: ToolCostUsageCategory): CreditUsageCategory {
   switch (usageCategory) {
+    case 'media_analysis':
     case 'transcription':
     case 'captions':
-    case 'media_analysis':
-    case 'render_export':
-      return usageCategory === 'render_export' ? 'rendering' : 'other'
+    case 'planning':
+    case 'music':
+    case 'sfx':
+    case 'qa':
+      return 'other'
+    case 'export':
+      return 'rendering'
     default:
       return usageCategory
   }
@@ -781,6 +787,6 @@ function sum(values: readonly number[]): number {
   return values.reduce((total, value) => total + value, 0)
 }
 
-function asJsonObject(value: Record<string, unknown>): JSONObject {
+function asJsonObject(value: unknown): JSONObject {
   return value as JSONObject
 }

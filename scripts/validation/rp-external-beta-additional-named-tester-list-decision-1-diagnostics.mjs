@@ -2,72 +2,61 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-NAMED-TESTER-EXPANSION-READINESS-1'
-const packetDir = 'docs/external-beta/named-tester-expansion-readiness-1'
+const packet = 'RP-EXTERNAL-BETA-ADDITIONAL-NAMED-TESTER-LIST-DECISION-1'
+const packetDir = 'docs/external-beta/additional-named-tester-list-decision-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
-  `${packetDir}/source-chain-reconciliation.md`,
-  `${packetDir}/readiness-decision.md`,
-  `${packetDir}/expansion-boundary.md`,
+  `${packetDir}/source-audit.md`,
+  `${packetDir}/decision.md`,
+  `${packetDir}/access-boundary.md`,
+  `${packetDir}/readiness-gate.md`,
   `${packetDir}/safety-boundary.md`,
   `${packetDir}/validation-results.md`,
-  `${packetDir}/named-tester-expansion-readiness-record.json`,
-  'docs/activation-phase-rp-external-beta-named-tester-expansion-readiness-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-named-tester-expansion-readiness-1.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-additional-named-tester-list-decision-1.md',
-  'scripts/validation/rp-external-beta-named-tester-expansion-readiness-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-controlled-single-tester-go-no-go-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-bounded-tester-expansion-decision-1-diagnostics.mjs',
-  'package.json',
-]
-
-const followOnAdditionalNamedTesterListDecision1Files = [
-  'docs/external-beta/additional-named-tester-list-decision-1/source-audit.md',
-  'docs/external-beta/additional-named-tester-list-decision-1/decision.md',
-  'docs/external-beta/additional-named-tester-list-decision-1/access-boundary.md',
-  'docs/external-beta/additional-named-tester-list-decision-1/readiness-gate.md',
-  'docs/external-beta/additional-named-tester-list-decision-1/safety-boundary.md',
-  'docs/external-beta/additional-named-tester-list-decision-1/validation-results.md',
-  'docs/external-beta/additional-named-tester-list-decision-1/additional-named-tester-list-decision-record.json',
+  `${packetDir}/additional-named-tester-list-decision-record.json`,
   'docs/activation-phase-rp-external-beta-additional-named-tester-list-decision-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-single-tester-live-feedback-triage-1.md',
   'scripts/validation/rp-external-beta-additional-named-tester-list-decision-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-single-tester-active-lane-closure-1-diagnostics.mjs',
-  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
   'package.json',
 ]
 
-const allowedFiles = new Set([...requiredFiles, ...followOnAdditionalNamedTesterListDecision1Files])
+const relatedSourceFiles = [
+  'docs/external-beta/single-tester-real-product-walkthrough-qa-1/single-tester-real-product-walkthrough-qa-record.json',
+  'docs/external-beta/controlled-single-tester-go-no-go-1/controlled-single-tester-go-no-go-record.json',
+  'docs/external-beta/named-tester-expansion-readiness-1/named-tester-expansion-readiness-record.json',
+  'docs/external-beta/single-tester-active-lane-closure-1/single-tester-active-lane-closure-record.json',
+]
+
+const followOnAllowlist = [
+  'scripts/validation/rp-external-beta-controlled-single-tester-go-no-go-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-named-tester-expansion-readiness-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-single-tester-active-lane-closure-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+]
 
 const requiredText = [
   packet,
-  'blocked_no_additional_named_tester_list_after_single_tester_go_no_go_reconciliation',
-  'completed_docs_only_named_tester_expansion_readiness_reconciliation_no_access_mutation',
-  '3a2f193893a5d6fd672cb428eda8fe667aadfd31',
-  '6aba828d3fdbf6e8dd81cda29a14c42932fb0b20',
-  'e45dd929ef9de8b1451b0935217ad5386356c8cd',
-  '8ee164c9383c290f1272d43e64d2d0c7fda8d45c',
-  'a11a58686db53de1776053182825173b6129bb84',
-  '#1274',
-  '#1278',
-  '#1428',
+  'completed_source_derived_keep_single_tester_only_no_additional_tester_access',
+  'completed_docs_only_additional_named_tester_list_decision_no_access_mutation',
+  'f8afb9b4d015104a675e6622deebfefaee4929ee',
   '#1430',
   '#1434',
+  '#1438',
+  '#1445',
   '#577',
   'aiediting@reeditpro.com',
+  'external-beta-testers@reeditpro.com',
   'go_single_tester_only',
-  'qa_passed_single_tester_qwen_product_flow_runtime_evidence',
+  'active_single_tester_external_beta_for_aiediting_reeditpro_com',
   'not_present_in_source',
-  'Named tester expansion approved: `false`',
+  'Additional tester access approved: `false`',
   'blocked_no_additional_named_tester_list',
-  'additional_named_tester_expansion_not_approved_without_exact_named_identity_list',
-  'controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list',
-  'RP-EXTERNAL-BETA-ADDITIONAL-NAMED-TESTER-LIST-DECISION-1',
+  'keep_single_tester_only_until_exact_additional_named_tester_list_exists',
+  'ready_for_single_tester_live_feedback_triage',
+  'RP-EXTERNAL-BETA-SINGLE-TESTER-LIVE-FEEDBACK-TRIAGE-1',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  'No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution, worker dispatch, service-role route execution, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, internal beta broad unlock, external beta broad audience unlock, paid production unlock, production unlock, raw prompt execution, final render/export, private media processing, user media processing, Remotion execution, FFmpeg/FFprobe execution, Docker execution, package installation, dependency mutation, package-lock mutation, IAM mutation, Cloud Run deployment, Google Group membership mutation, or broad service-role handler was enabled.',
 ]
 
 const falseSafetyKeys = [
@@ -76,6 +65,7 @@ const falseSafetyKeys = [
   'cloudRunServiceUpdate',
   'deployment',
   'broadPublicInvokerGrant',
+  'additionalTesterAccessGrant',
   'supabaseMutation',
   'sqlExecution',
   'secretPayloadAccess',
@@ -122,7 +112,7 @@ const blockedPrefixes = [
 ]
 
 const forbiddenClaims = [
-  /\bNamed tester expansion approved:\s*`?true`?/i,
+  /\bAdditional tester access approved:\s*`?true`?/i,
   /\badditionalNamedTesterList"?\s*:\s*(?!\s*"not_present_in_source")/i,
   /\bapproved"?\s*:\s*true/i,
   /\bbroad external beta audience:\s*`?(enabled|approved|true|unlocked)/i,
@@ -169,36 +159,40 @@ function changedFiles() {
   ]
 }
 
-for (const file of requiredFiles) read(file)
+for (const file of [...requiredFiles, ...relatedSourceFiles]) read(file)
 
 const corpus = requiredFiles.map((file) => read(file)).join('\n')
 for (const text of requiredText) {
   if (!corpus.includes(text)) fail(`missing required text: ${text}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/named-tester-expansion-readiness-record.json`))
+const record = JSON.parse(read(`${packetDir}/additional-named-tester-list-decision-record.json`))
 if (record.packet !== packet) fail('packet mismatch')
-if (record.decision !== 'blocked_no_additional_named_tester_list_after_single_tester_go_no_go_reconciliation') fail('decision mismatch')
-if (record.execution !== 'completed_docs_only_named_tester_expansion_readiness_reconciliation_no_access_mutation') fail('execution mismatch')
-if (record.integrationBase !== '3a2f193893a5d6fd672cb428eda8fe667aadfd31') fail('integration base mismatch')
+if (record.decision !== 'completed_source_derived_keep_single_tester_only_no_additional_tester_access') fail('decision mismatch')
+if (record.execution !== 'completed_docs_only_additional_named_tester_list_decision_no_access_mutation') fail('execution mismatch')
+if (record.integrationBase !== 'f8afb9b4d015104a675e6622deebfefaee4929ee') fail('integration base mismatch')
+if (record.sourceClosure?.singleTesterActiveLaneClosurePr !== 1445) fail('missing #1445 source')
 if (record.sourceClosure?.controlledSingleTesterGoNoGoPr !== 1434) fail('missing #1434 source')
-if (record.sourceClosure?.boundedTesterExpansionDecisionPr !== 1278) fail('missing #1278 source')
-if (record.sourceClosure?.namedInvitedTesterWalkthroughPr !== 1274) fail('missing #1274 source')
+if (record.sourceClosure?.namedTesterExpansionReadinessPr !== 1438) fail('missing #1438 source')
 if (record.sourceClosure?.pr577 !== 'open_draft_blocked_excluded') fail('missing #577 exclusion')
 if (record.currentTester?.email !== 'aiediting@reeditpro.com') fail('tester mismatch')
+if (record.currentTester?.group !== 'external-beta-testers@reeditpro.com') fail('tester group mismatch')
 if (record.currentTester?.status !== 'go_single_tester_only') fail('single tester status mismatch')
-if (record.currentTester?.walkthroughStatus !== 'completed_named_invited_tester_walkthrough') fail('walkthrough status mismatch')
-if (record.namedTesterExpansion?.additionalNamedTesterList !== 'not_present_in_source') fail('additional tester list mismatch')
-if (record.namedTesterExpansion?.approved !== false) fail('expansion must not be approved')
-if (record.namedTesterExpansion?.blocker !== 'blocked_no_additional_named_tester_list') fail('expansion blocker mismatch')
+if (record.currentTester?.externalBetaReadiness !== 'active_single_tester_external_beta_for_aiediting_reeditpro_com') {
+  fail('single tester readiness mismatch')
+}
+if (record.additionalNamedTesterDecision?.additionalNamedTesterList !== 'not_present_in_source') fail('additional tester list mismatch')
+if (record.additionalNamedTesterDecision?.approved !== false) fail('additional tester access must not be approved')
+if (record.additionalNamedTesterDecision?.blocker !== 'blocked_no_additional_named_tester_list') fail('expansion blocker mismatch')
 if (record.readiness?.singleTesterLane !== 'go_single_tester_only') fail('single tester lane mismatch')
-if (record.readiness?.externalProductBeta !== 'controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list') fail('external product beta readiness mismatch')
+if (record.readiness?.singleTesterFeedbackTriage !== 'ready_for_single_tester_live_feedback_triage') fail('feedback triage mismatch')
 if (record.readiness?.broadExternalBetaAudience !== 'blocked') fail('broad audience must remain blocked')
 if (record.readiness?.paidProduction !== 'blocked') fail('paid production must remain blocked')
 if (record.readiness?.finalDeliveryExport !== 'blocked') fail('final delivery/export must remain blocked')
-if (record.readiness?.nextMilestone !== 'RP-EXTERNAL-BETA-ADDITIONAL-NAMED-TESTER-LIST-DECISION-1') fail('next milestone mismatch')
+if (record.readiness?.production !== 'blocked') fail('production must remain blocked')
+if (record.readiness?.nextMilestone !== 'RP-EXTERNAL-BETA-SINGLE-TESTER-LIVE-FEEDBACK-TRIAGE-1') fail('next milestone mismatch')
 if (record.readiness?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
-if (record.safety?.docsOnlyReconciliation !== true) fail('docsOnlyReconciliation must be true')
+if (record.safety?.docsOnlyDecision !== true) fail('docsOnlyDecision must be true')
 for (const key of falseSafetyKeys) {
   if (record.safety?.[key] !== false) fail(`safety flag must be false: ${key}`)
 }
@@ -209,21 +203,28 @@ const goNoGo = JSON.parse(read('docs/external-beta/controlled-single-tester-go-n
 if (goNoGo.decision !== 'go_controlled_single_tester_external_beta_lane_remains_open') fail('go/no-go source mismatch')
 if (goNoGo.goScope?.testerEmail !== record.currentTester.email) fail('go/no-go tester mismatch')
 
-const bounded = JSON.parse(read('docs/external-beta/bounded-tester-expansion-decision-1/bounded-tester-expansion-decision-record.json'))
-if (bounded.decision !== 'blocked_no_additional_named_tester_list') fail('bounded expansion source mismatch')
-if (bounded.boundedExpansion?.additionalNamedTesterList !== 'not_present_in_source') fail('bounded expansion tester list mismatch')
-if (bounded.boundedExpansion?.approved !== false) fail('bounded expansion approval mismatch')
+const namedExpansion = JSON.parse(read('docs/external-beta/named-tester-expansion-readiness-1/named-tester-expansion-readiness-record.json'))
+if (namedExpansion.namedTesterExpansion?.additionalNamedTesterList !== 'not_present_in_source') {
+  fail('named expansion source tester list mismatch')
+}
+if (namedExpansion.namedTesterExpansion?.approved !== false) fail('named expansion source approval mismatch')
+
+const activeLane = JSON.parse(read('docs/external-beta/single-tester-active-lane-closure-1/single-tester-active-lane-closure-record.json'))
+if (activeLane.decision !== 'completed_single_tester_external_beta_active_lane_closure_keep_expansion_blocked') {
+  fail('active lane closure source mismatch')
+}
 
 const packageJson = JSON.parse(read('package.json'))
 if (
-  packageJson.scripts?.['rp-external-beta-named-tester-expansion-readiness-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-named-tester-expansion-readiness-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-additional-named-tester-list-decision-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-additional-named-tester-list-decision-1-diagnostics.mjs'
 ) {
   fail('missing package diagnostics script')
 }
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
+const allowedFiles = new Set([...requiredFiles, ...followOnAllowlist])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   for (const blocked of blockedPrefixes) {
@@ -244,5 +245,5 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_no_additional_named_tester_list_after_single_tester_go_no_go_reconciliation')
-console.log('External product beta readiness: controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list')
+console.log('Decision: completed_source_derived_keep_single_tester_only_no_additional_tester_access')
+console.log('Next milestone: RP-EXTERNAL-BETA-SINGLE-TESTER-LIVE-FEEDBACK-TRIAGE-1')

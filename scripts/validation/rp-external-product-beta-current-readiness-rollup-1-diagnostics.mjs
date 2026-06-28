@@ -501,6 +501,22 @@ const followOnSingleTesterActiveLaneClosure1Files = [
   'package.json',
 ]
 
+const followOnAdditionalNamedTesterListDecision1Files = [
+  'docs/external-beta/additional-named-tester-list-decision-1/source-audit.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/decision.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/access-boundary.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/readiness-gate.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/safety-boundary.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/validation-results.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/additional-named-tester-list-decision-record.json',
+  'docs/activation-phase-rp-external-beta-additional-named-tester-list-decision-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-live-feedback-triage-1.md',
+  'scripts/validation/rp-external-beta-additional-named-tester-list-decision-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-named-tester-expansion-readiness-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-single-tester-active-lane-closure-1-diagnostics.mjs',
+  'package.json',
+]
+
 const followOnToolReadinessStatusReconciliation1Files = [
   'docs/external-beta/tool-readiness-status-reconciliation-1/source-audit.md',
   'docs/external-beta/tool-readiness-status-reconciliation-1/status-reconciliation.md',
@@ -1511,6 +1527,7 @@ const allowed = new Set([
   ...followOnNamedInvitedTesterWalkthrough1Files,
   ...followOnBoundedTesterExpansionDecision1Files,
   ...followOnSingleTesterActiveLaneClosure1Files,
+  ...followOnAdditionalNamedTesterListDecision1Files,
   ...followOnToolReadinessStatusReconciliation1Files,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,

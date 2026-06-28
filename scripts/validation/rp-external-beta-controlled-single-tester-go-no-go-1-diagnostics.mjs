@@ -43,6 +43,16 @@ const followOnFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-single-tester-real-usage-qa-1.md',
   'scripts/validation/rp-external-beta-single-tester-active-lane-closure-1-diagnostics.mjs',
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+  'docs/external-beta/additional-named-tester-list-decision-1/source-audit.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/decision.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/access-boundary.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/readiness-gate.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/safety-boundary.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/validation-results.md',
+  'docs/external-beta/additional-named-tester-list-decision-1/additional-named-tester-list-decision-record.json',
+  'docs/activation-phase-rp-external-beta-additional-named-tester-list-decision-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-live-feedback-triage-1.md',
+  'scripts/validation/rp-external-beta-additional-named-tester-list-decision-1-diagnostics.mjs',
 ]
 
 const requiredText = [

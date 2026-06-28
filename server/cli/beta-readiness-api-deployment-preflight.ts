@@ -101,8 +101,8 @@ export function buildBetaReadinessApiDeploymentPreflight(
     secretLikeInputPaths,
     requiredEnvironmentVariables: requiredEnvironmentVariables(),
     recommendedCommands: [
+      'gh workflow run beta-readiness-api-staging-deploy.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_deploy=DEPLOY_STAGING_BETA_READINESS_API --field source_ref=codex/sound-music-audio-1abc-checkpoint --field source_sha=$REEDITPRO_BETA_API_DEPLOYMENT_SOURCE_SHA --field image_tag=$REEDITPRO_IMAGE_TAG --field artifact_region=$GCP_ARTIFACT_REGION --field artifact_repository=$REEDITPRO_ARTIFACT_REPOSITORY --field deployer_service_account=<owner-approved-deployer-service-account> --field runtime_service_account=$REEDITPRO_API_SERVICE_ACCOUNT --field service_name=reeditpro-api-staging',
       'npm run beta:readiness:api-deployment-preflight',
-      'scripts/gcp/prod/08-deploy-api-service.example.sh',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',
@@ -115,7 +115,7 @@ export function buildBetaReadinessApiDeploymentPreflight(
     ],
     warnings: [
       'This preflight does not run gcloud, build images, deploy Cloud Run, read secrets, call the deployed backend, write evidence, write Supabase/GCS, run tools, process media, enable beta, or enable production.',
-      'The Cloud Run deploy template remains human-run and guarded by REEDITPRO_CONFIRM_PROD_SETUP=true.',
+      'The guarded GitHub Actions staging API workflow is workflow_dispatch-only, must be run from the default branch, and requires an exact tools-branch source SHA plus owner-approved service-account inputs.',
       'Passing this preflight only means the API deployment handoff inputs are coherent enough to proceed to deployed evidence input validation.',
     ],
   }

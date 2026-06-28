@@ -770,6 +770,7 @@
     "rp-external-beta-qwen-runtime-persistence-local-harness-validation-retry-11:diagnostics": "node scripts/validation/rp-external-beta-qwen-runtime-persistence-local-harness-validation-retry-11-diagnostics.mjs",
     "rp-external-beta-qwen-runtime-persistence-draft-source-split-import-1:diagnostics": "node scripts/validation/rp-external-beta-qwen-runtime-persistence-draft-source-split-import-1-diagnostics.mjs",
     "rp-external-beta-qwen-runtime-persistence-local-harness-validation-retry-12:diagnostics": "node scripts/validation/rp-external-beta-qwen-runtime-persistence-local-harness-validation-retry-12-diagnostics.mjs",
+    "rp-external-beta-qwen-runtime-persistence-active-migration-promotion-1:diagnostics": "node scripts/validation/rp-external-beta-qwen-runtime-persistence-active-migration-promotion-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-external-beta-product-route-handler-source-1": "tsx server/smoke/qwen2-5-vl-external-beta-product-route-handler-source-1-smoke.ts",
     "rp-qwen2-5-vl-external-beta-product-route-handler-source-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-product-route-handler-source-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1": "tsx server/smoke/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-smoke.ts",

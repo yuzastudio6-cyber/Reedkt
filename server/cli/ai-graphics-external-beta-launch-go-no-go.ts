@@ -8,6 +8,9 @@ import type { AiGraphicsExternalBetaLaunchGapReport } from '../tool-registry/ai-
 import type {
   AiGraphicsExternalBetaEvidenceAdmissionBundle,
 } from '../tool-registry/ai-graphics-external-beta-evidence-admission-bundle'
+import type {
+  AiGraphicsExternalBetaWorkerDispatchSmokeProof,
+} from '../tool-registry/ai-graphics-external-beta-worker-dispatch-smoke-proof'
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -40,6 +43,14 @@ const input: AiGraphicsExternalBetaLaunchGoNoGoInput = {
   sourceExternalBetaEvidenceAdmissionBundlePacket:
     readJsonFile<AiGraphicsExternalBetaEvidenceAdmissionBundle>(
       '--external-beta-evidence-admission-bundle-packet',
+    ),
+  externalBetaEvidenceAdmissionBundle:
+    readJsonFile<AiGraphicsExternalBetaEvidenceAdmissionBundle>(
+      '--external-beta-evidence-admission-bundle',
+    ),
+  externalBetaWorkerDispatchSmokeProof:
+    readJsonFile<AiGraphicsExternalBetaWorkerDispatchSmokeProof>(
+      '--external-beta-worker-dispatch-smoke-proof',
     ),
   externalBetaEvidencePacket:
     readJsonFile<AiGraphicsExternalBetaEvidencePacket>('--external-beta-evidence-packet'),
@@ -80,6 +91,10 @@ const input: AiGraphicsExternalBetaLaunchGoNoGoInput = {
     '--external-beta-owner-approval-granted',
     allExternalBetaEvidencePassed,
   ),
+  externalBetaWorkerDispatchSmokeProofAccepted: optionalBooleanFlag(
+    '--external-beta-worker-dispatch-smoke-proof-accepted',
+    allExternalBetaEvidencePassed,
+  ),
   externalBetaLaunchSwitchApproved:
     allExternalBetaLaunchGatesApproved ||
     hasFlag('--external-beta-launch-switch-approved'),
@@ -118,6 +133,10 @@ console.log(JSON.stringify({
       Boolean(stringFlag('--external-beta-launch-gap-report-packet')),
     sourceEvidenceAdmissionBundlePacketRead:
       Boolean(stringFlag('--external-beta-evidence-admission-bundle-packet')),
+    externalBetaEvidenceAdmissionBundleRead:
+      Boolean(stringFlag('--external-beta-evidence-admission-bundle')),
+    externalBetaWorkerDispatchSmokeProofRead:
+      Boolean(stringFlag('--external-beta-worker-dispatch-smoke-proof')),
     externalBetaEvidencePacketRead:
       Boolean(stringFlag('--external-beta-evidence-packet')),
     dependencyInstallPerformed: false,

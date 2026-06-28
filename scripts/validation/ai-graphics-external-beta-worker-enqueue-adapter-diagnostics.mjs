@@ -386,6 +386,7 @@ const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   ...fullEvidenceArgs,
   '--external-beta-evidence-packet',
   fullPacketPath,
+  '--external-beta-worker-dispatch-smoke-proof-accepted',
   ...launchApprovalArgs,
 ]), 'external_beta_launch_go_no_go')
 if (launchGoNoGo.status !== 'external_beta_launch_go_no_go_approved_runtime_still_blocked') {

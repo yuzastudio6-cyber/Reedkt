@@ -26,12 +26,15 @@ This gate is the product-facing external-beta checkpoint for the 21 AI graphics 
 
 The readiness gate can consume `--external-beta-evidence-packet` from `ai-graphics:external-beta-evidence-packet:validate`. That packet accepts only private/backend/owner evidence refs for internal runtime soak, external QA, cost/concurrency/privacy/rollback, incident response, and external-beta owner approval. Public URLs, signed URL refs, public artifact refs, and raw HTTP refs are rejected before the readiness gate can count a tool as an external-beta candidate with provided evidence.
 
+The readiness gate can also consume `--external-beta-evidence-admission-bundle` from `ai-graphics:external-beta-evidence-admission-bundle` and `--external-beta-worker-dispatch-smoke-proof` from `ai-graphics:external-beta-worker-dispatch-smoke-proof`. The admission bundle joins all-21 technical proof with private/backend external-beta evidence refs. The dispatch-smoke proof accepts the queue-to-worker handoff shape only when all 21 in-memory worker leases are created and released with no live worker dispatch, no tool execution, no GPU startup, and no public artifacts.
+
 ## Required External-Beta Gates
 
 - All 21 tools are properly installed for the planned ReeditPro surface.
 - All 21 tools map to production tool IDs with no duplicate AI graphics mappings.
 - Internal beta technical evidence is accepted for all 21 tools.
 - Internal beta runtime soak is accepted with real worker/tool-call evidence.
+- External-beta worker dispatch smoke proof is accepted without tool execution.
 - External-beta QA is accepted with rollback-ready evidence.
 - Cost, concurrency, privacy, rollback, and incident-response gates are accepted.
 - External-beta owner approval is granted after runtime soak.

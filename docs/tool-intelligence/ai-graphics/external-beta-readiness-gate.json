@@ -10,6 +10,8 @@
     "gpuModelRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
     "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json",
     "externalBetaEvidencePacket": "docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json",
+    "externalBetaEvidenceAdmissionBundle": "docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json",
+    "externalBetaWorkerDispatchSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json",
     "betaProductionReadinessRollup": "docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json"
   },
   "contractSurface": {
@@ -29,6 +31,8 @@
     "heavyToolsIncorrectlyTargetingCpu": 0,
     "defaultExternalBetaReadyWithProvidedEvidenceTools": 0,
     "fullEvidenceExternalBetaReadyWithProvidedEvidenceTools": 21,
+    "admissionBundleExternalBetaReadyWithProvidedEvidenceTools": 21,
+    "workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,
     "externalBetaBlockedNowTools": 21,
     "productionReadyNowTools": 0
@@ -38,6 +42,7 @@
     "all 21 tools mapped to production tool IDs with no duplicate AI graphics mappings",
     "internal beta technical evidence accepted for all 21 tools",
     "internal beta runtime soak accepted with real worker/tool-call evidence",
+    "external-beta worker dispatch smoke proof accepted without tool execution",
     "external-beta QA accepted with rollback-ready evidence",
     "cost, concurrency, privacy, rollback, and incident-response gates accepted",
     "external-beta owner approval granted after runtime soak"
@@ -86,6 +91,8 @@
     "externalBetaReadinessGatePrepared": true,
     "sourceBetaReadinessGateAccepted": true,
     "sourceBetaToolCallReadinessAccepted": true,
+    "sourceExternalBetaEvidenceAdmissionBundleAccepted": true,
+    "sourceExternalBetaWorkerDispatchSmokeProofAccepted": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all21ToolsInstalledForPlannedSurface": true,

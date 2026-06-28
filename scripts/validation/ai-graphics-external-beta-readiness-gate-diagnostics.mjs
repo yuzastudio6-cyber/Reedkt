@@ -10,6 +10,10 @@ const evaluatorScriptName = 'ai-graphics:external-beta-readiness-gate'
 const evaluatorScriptCommand = 'tsx server/cli/ai-graphics-external-beta-readiness-gate.ts'
 const evidencePacketScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const evidencePacketScriptCommand = 'tsx server/cli/ai-graphics-external-beta-evidence-packet.ts'
+const admissionBundleScriptName = 'ai-graphics:external-beta-evidence-admission-bundle'
+const workerDispatchSmokeScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke'
+const workerDispatchSmokeProofScriptName =
+  'ai-graphics:external-beta-worker-dispatch-smoke-proof'
 
 const allTools = [
   'torch_torchvision',
@@ -111,10 +115,37 @@ function acceptedExternalBetaEvidenceRecord(toolId) {
   }
 }
 
+function acceptedBetaEvidenceBundleFixture() {
+  return {
+    decision: 'ai_graphics_beta_evidence_bundle_validator_prepared_with_fail_closed_defaults',
+    totalAiGraphicsTools: 21,
+    all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+    evidenceSources: {
+      jsRuntimeProofsAccepted: true,
+      modelWeightManifestReviewPacketAccepted: true,
+      nativeGpuRuntimeProofResultPacketAccepted: true,
+      nativeGpuRuntimeProofTargetsExact: true,
+    },
+    booleans: {
+      gpuRuntimeOnDemandOnly: true,
+      agentCanExecuteToolsNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
+function writeJson(filePath, value) {
+  fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+  return filePath
+}
+
 const pkg = json('package.json')
 const docs = json('docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json')
 const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.md')
 const evidencePacketDocs = json('docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json')
+const admissionBundleDocs = json('docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json')
+const workerDispatchSmokeProofDocs = json('docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json')
 const betaGate = json('docs/tool-intelligence/ai-graphics/beta-readiness-gate.json')
 const betaToolCall = json('docs/tool-intelligence/ai-graphics/beta-tool-call-readiness.json')
 const installAudit = json('docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json')
@@ -132,6 +163,13 @@ if (pkg.scripts?.[evaluatorScriptName] !== evaluatorScriptCommand) {
 if (pkg.scripts?.[evidencePacketScriptName] !== evidencePacketScriptCommand) {
   fail(`missing_package_script:${evidencePacketScriptName}`)
 }
+if (!pkg.scripts?.[admissionBundleScriptName]) fail(`missing_package_script:${admissionBundleScriptName}`)
+if (!pkg.scripts?.[workerDispatchSmokeScriptName]) {
+  fail(`missing_package_script:${workerDispatchSmokeScriptName}`)
+}
+if (!pkg.scripts?.[workerDispatchSmokeProofScriptName]) {
+  fail(`missing_package_script:${workerDispatchSmokeProofScriptName}`)
+}
 if (!index.includes("export * from './ai-graphics-external-beta-readiness-gate'")) {
   fail('server_registry_index_missing_external_beta_gate_export')
 }
@@ -145,8 +183,20 @@ if (docs.decision !== 'ai_graphics_external_beta_readiness_gate_prepared_with_ru
 if (docs.sourceEvidence?.externalBetaEvidencePacket !== 'docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json') {
   fail('docs_missing_external_beta_evidence_packet_source')
 }
+if (docs.sourceEvidence?.externalBetaEvidenceAdmissionBundle !== 'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json') {
+  fail('docs_missing_external_beta_evidence_admission_bundle_source')
+}
+if (docs.sourceEvidence?.externalBetaWorkerDispatchSmokeProof !== 'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json') {
+  fail('docs_missing_external_beta_worker_dispatch_smoke_proof_source')
+}
 if (evidencePacketDocs.decision !== 'ai_graphics_external_beta_evidence_packet_prepared_with_runtime_blocks') {
   fail(`unexpected_evidence_packet_decision:${evidencePacketDocs.decision}`)
+}
+if (admissionBundleDocs.decision !== 'ai_graphics_external_beta_evidence_admission_bundle_prepared_with_runtime_blocks') {
+  fail(`unexpected_admission_bundle_decision:${admissionBundleDocs.decision}`)
+}
+if (workerDispatchSmokeProofDocs.decision !== 'ai_graphics_external_beta_worker_dispatch_smoke_proof_prepared_with_runtime_blocks') {
+  fail(`unexpected_worker_dispatch_smoke_proof_decision:${workerDispatchSmokeProofDocs.decision}`)
 }
 if (betaGate.decision !== 'ai_graphics_beta_readiness_gate_prepared_with_current_runtime_blocks') {
   fail(`unexpected_beta_gate_decision:${betaGate.decision}`)
@@ -182,6 +232,12 @@ for (const needle of [
   'externalBetaCostConcurrencyPrivacyRollbackAccepted',
   'externalBetaIncidentResponseAccepted',
   'externalBetaEvidencePacket',
+  'externalBetaEvidenceAdmissionBundle',
+  'externalBetaWorkerDispatchSmokeProof',
+  'AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION',
+  'AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_SMOKE_PROOF_DECISION',
+  'externalBetaEvidenceAdmissionBundleAccepted',
+  'externalBetaWorkerDispatchSmokeProofAccepted',
   'internalBetaRuntimeSoakAcceptedWithProvidedEvidence',
   'externalBetaQaAcceptedWithProvidedEvidence',
   'externalBetaOwnerApprovalGrantedWithProvidedEvidence',
@@ -198,6 +254,9 @@ for (const needle of [
   '--external-beta-incident-response-accepted',
   '--external-beta-owner-approval-granted',
   '--external-beta-evidence-packet',
+  '--external-beta-evidence-admission-bundle',
+  '--external-beta-worker-dispatch-smoke-proof',
+  '--external-beta-worker-dispatch-smoke-proof-accepted',
   'evaluatorOnly: true',
 ]) {
   if (!cli.includes(needle)) fail(`cli_missing:${needle}`)
@@ -215,6 +274,12 @@ if (docs.counts?.defaultExternalBetaReadyWithProvidedEvidenceTools !== 0) {
 if (docs.counts?.fullEvidenceExternalBetaReadyWithProvidedEvidenceTools !== 21) {
   fail('docs_full_external_beta_ready_with_evidence_not_21')
 }
+if (docs.counts?.admissionBundleExternalBetaReadyWithProvidedEvidenceTools !== 21) {
+  fail('docs_admission_bundle_external_beta_ready_with_evidence_not_21')
+}
+if (docs.counts?.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('docs_worker_dispatch_smoke_proof_accepted_tools_not_21')
+}
 if (docs.counts?.externalBetaReadyNowTools !== 0) fail('docs_external_beta_ready_now_not_0')
 if (docs.counts?.externalBetaBlockedNowTools !== 21) fail('docs_external_beta_blocked_now_not_21')
 if (docs.counts?.productionReadyNowTools !== 0) fail('docs_production_ready_now_not_0')
@@ -226,6 +291,8 @@ for (const key of [
   'externalBetaReadinessGatePrepared',
   'sourceBetaReadinessGateAccepted',
   'sourceBetaToolCallReadinessAccepted',
+  'sourceExternalBetaEvidenceAdmissionBundleAccepted',
+  'sourceExternalBetaWorkerDispatchSmokeProofAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all21ToolsInstalledForPlannedSurface',
@@ -295,6 +362,10 @@ if (fullOutput.externalBetaBlockedNowTools !== 21) fail('full_external_beta_bloc
 if (fullOutput.productionReadyNowTools !== 0) fail('full_production_ready_now_not_0')
 
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-gate-'))
+const betaEvidenceBundlePath = writeJson(
+  path.join(tempRoot, 'accepted-beta-evidence-bundle.json'),
+  acceptedBetaEvidenceBundleFixture(),
+)
 const fullEvidenceRecordsPath = path.join(tempRoot, 'full-external-beta-evidence-records.json')
 const fullEvidencePacketPath = path.join(tempRoot, 'full-external-beta-evidence-packet.json')
 fs.writeFileSync(
@@ -307,6 +378,63 @@ fs.writeFileSync(
   runNpm(evidencePacketScriptName, ['--evidence-records', fullEvidenceRecordsPath]),
   'utf8',
 )
+const admissionBundlePath = writeJson(
+  path.join(tempRoot, 'external-beta-evidence-admission-bundle.json'),
+  parseJsonOutput(runNpm(admissionBundleScriptName, [
+    '--beta-evidence-bundle-packet',
+    betaEvidenceBundlePath,
+    '--external-beta-evidence-packet',
+    fullEvidencePacketPath,
+  ]), 'external_beta_evidence_admission_bundle'),
+)
+const workerDispatchReadinessPath = writeJson(
+  path.join(tempRoot, 'worker-dispatch-readiness.json'),
+  {
+    decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
+    workerDispatchReadinessPreparedWithProvidedEvidence: true,
+    workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
+    workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
+    gpuRuntimeTargetedTools: 8,
+    liveWorkerLeasesCreatedNow: 0,
+    liveWorkerDispatchesNow: 0,
+    liveToolExecutionsNow: 0,
+    booleans: {
+      agentCanExecuteToolsNow: false,
+      workerDispatchPerformed: false,
+      gpuRuntimeShouldStartNow: false,
+    },
+  },
+)
+const workerDispatchSmokePath = writeJson(
+  path.join(tempRoot, 'worker-dispatch-smoke.json'),
+  parseJsonOutput(runNpm(workerDispatchSmokeScriptName, [
+    '--external-beta-worker-dispatch-readiness-packet',
+    workerDispatchReadinessPath,
+    '--external-beta-worker-dispatch-smoke-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/report.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/cleanup.json',
+  ]), 'external_beta_worker_dispatch_smoke'),
+)
+const workerDispatchSmokeProofPath = writeJson(
+  path.join(tempRoot, 'worker-dispatch-smoke-proof.json'),
+  parseJsonOutput(runNpm(workerDispatchSmokeProofScriptName, [
+    '--external-beta-worker-dispatch-smoke-result',
+    workerDispatchSmokePath,
+    '--external-beta-worker-dispatch-smoke-evidence-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/evidence.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-proof-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
+  ]), 'external_beta_worker_dispatch_smoke_proof'),
+)
 const packetFedOutput = parseJsonOutput(runEvaluator([
   '--all-shared-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
@@ -315,6 +443,8 @@ const packetFedOutput = parseJsonOutput(runEvaluator([
   '--model-weight-review-packet-accepted',
   '--external-beta-evidence-packet',
   fullEvidencePacketPath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
 ]), 'external_beta_packet_fed_evidence')
 if (packetFedOutput.betaTestingReadyWithProvidedEvidenceTools !== 21) {
   fail('packet_fed_beta_testing_ready_with_evidence_not_21')
@@ -325,8 +455,44 @@ if (packetFedOutput.externalBetaReadyWithProvidedEvidenceTools !== 21) {
 if (packetFedOutput.externalBetaReadyNowTools !== 0) fail('packet_fed_external_beta_ready_now_not_0')
 if (packetFedOutput.externalBetaBlockedNowTools !== 21) fail('packet_fed_external_beta_blocked_now_not_21')
 if (packetFedOutput.productionReadyNowTools !== 0) fail('packet_fed_production_ready_now_not_0')
+if (packetFedOutput.booleans?.sourceExternalBetaWorkerDispatchSmokeProofAccepted !== true) {
+  fail('packet_fed_worker_dispatch_smoke_proof_not_accepted')
+}
 
-for (const output of [defaultOutput, fullOutput, packetFedOutput]) {
+const admissionBundleFedOutput = parseJsonOutput(runEvaluator([
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
+  '--external-beta-evidence-admission-bundle',
+  admissionBundlePath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
+]), 'external_beta_admission_bundle_fed_evidence')
+if (admissionBundleFedOutput.betaTestingReadyWithProvidedEvidenceTools !== 21) {
+  fail('admission_bundle_fed_beta_testing_ready_with_evidence_not_21')
+}
+if (admissionBundleFedOutput.externalBetaReadyWithProvidedEvidenceTools !== 21) {
+  fail('admission_bundle_fed_external_beta_ready_with_evidence_not_21')
+}
+if (admissionBundleFedOutput.externalBetaReadyNowTools !== 0) {
+  fail('admission_bundle_fed_external_beta_ready_now_not_0')
+}
+if (admissionBundleFedOutput.externalBetaBlockedNowTools !== 21) {
+  fail('admission_bundle_fed_external_beta_blocked_now_not_21')
+}
+if (admissionBundleFedOutput.productionReadyNowTools !== 0) {
+  fail('admission_bundle_fed_production_ready_now_not_0')
+}
+if (admissionBundleFedOutput.booleans?.sourceExternalBetaEvidenceAdmissionBundleAccepted !== true) {
+  fail('admission_bundle_fed_admission_bundle_not_accepted')
+}
+if (admissionBundleFedOutput.booleans?.sourceExternalBetaWorkerDispatchSmokeProofAccepted !== true) {
+  fail('admission_bundle_fed_worker_dispatch_smoke_proof_not_accepted')
+}
+
+for (const output of [defaultOutput, fullOutput, packetFedOutput, admissionBundleFedOutput]) {
   for (const tool of allTools) {
     const row = output.tools?.find((entry) => entry.toolId === tool)
     if (!row) fail(`output_missing_tool:${tool}`)
@@ -444,6 +610,10 @@ console.log(JSON.stringify({
     fullOutput.externalBetaReadyWithProvidedEvidenceTools,
   packetFedExternalBetaReadyWithProvidedEvidenceTools:
     packetFedOutput.externalBetaReadyWithProvidedEvidenceTools,
+  admissionBundleFedExternalBetaReadyWithProvidedEvidenceTools:
+    admissionBundleFedOutput.externalBetaReadyWithProvidedEvidenceTools,
+  workerDispatchSmokeProofAccepted:
+    admissionBundleFedOutput.booleans?.sourceExternalBetaWorkerDispatchSmokeProofAccepted,
   externalBetaReadyNowTools: fullOutput.externalBetaReadyNowTools,
   externalBetaBlockedNowTools: fullOutput.externalBetaBlockedNowTools,
   agentCanExecuteToolsNow: fullOutput.booleans?.agentCanExecuteToolsNow,

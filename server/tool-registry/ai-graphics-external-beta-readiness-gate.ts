@@ -6,7 +6,15 @@ import {
   buildAiGraphicsBetaToolCallReadiness,
   type AiGraphicsBetaToolCallReadiness,
 } from './ai-graphics-beta-tool-call-readiness'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION,
+  type AiGraphicsExternalBetaEvidenceAdmissionBundle,
+} from './ai-graphics-external-beta-evidence-admission-bundle'
 import type { AiGraphicsExternalBetaEvidencePacket } from './ai-graphics-external-beta-evidence-packet'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_SMOKE_PROOF_DECISION,
+  type AiGraphicsExternalBetaWorkerDispatchSmokeProof,
+} from './ai-graphics-external-beta-worker-dispatch-smoke-proof'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_READINESS_GATE_DECISION =
@@ -14,16 +22,29 @@ export const AI_GRAPHICS_EXTERNAL_BETA_READINESS_GATE_DECISION =
 
 export interface AiGraphicsExternalBetaReadinessEvidence extends AiGraphicsBetaReadinessEvidence {
   externalBetaEvidencePacket?: AiGraphicsExternalBetaEvidencePacket
+  externalBetaEvidenceAdmissionBundle?: AiGraphicsExternalBetaEvidenceAdmissionBundle
+  externalBetaWorkerDispatchSmokeProof?: AiGraphicsExternalBetaWorkerDispatchSmokeProof
   internalBetaRuntimeSoakAccepted?: boolean
   externalBetaQaAccepted?: boolean
   externalBetaCostConcurrencyPrivacyRollbackAccepted?: boolean
   externalBetaIncidentResponseAccepted?: boolean
   externalBetaOwnerApprovalGranted?: boolean
+  externalBetaWorkerDispatchSmokeProofAccepted?: boolean
 }
 
-type NormalizedAiGraphicsExternalBetaReadinessEvidence =
-  Required<Omit<AiGraphicsExternalBetaReadinessEvidence, 'externalBetaEvidencePacket'>> & {
+type NormalizedAiGraphicsExternalBetaReadinessEvidence = Required<
+  Omit<
+    AiGraphicsExternalBetaReadinessEvidence,
+    | 'externalBetaEvidencePacket'
+    | 'externalBetaEvidenceAdmissionBundle'
+    | 'externalBetaWorkerDispatchSmokeProof'
+  >
+> & {
     externalBetaEvidencePacket?: AiGraphicsExternalBetaEvidencePacket
+    externalBetaEvidenceAdmissionBundle?: AiGraphicsExternalBetaEvidenceAdmissionBundle
+    externalBetaWorkerDispatchSmokeProof?: AiGraphicsExternalBetaWorkerDispatchSmokeProof
+    externalBetaEvidenceAdmissionBundleAccepted: boolean
+    externalBetaWorkerDispatchSmokeProofAccepted: boolean
   }
 
 export interface AiGraphicsExternalBetaReadinessToolGate {
@@ -67,6 +88,8 @@ export interface AiGraphicsExternalBetaReadinessGate {
     externalBetaReadinessGatePrepared: true
     sourceBetaReadinessGateAccepted: boolean
     sourceBetaToolCallReadinessAccepted: boolean
+    sourceExternalBetaEvidenceAdmissionBundleAccepted: boolean
+    sourceExternalBetaWorkerDispatchSmokeProofAccepted: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
     all21ToolsInstalledForPlannedSurface: boolean
@@ -105,7 +128,14 @@ export interface AiGraphicsExternalBetaReadinessGate {
   }
 }
 
-const defaultExternalEvidence: Required<Omit<AiGraphicsExternalBetaReadinessEvidence, 'externalBetaEvidencePacket'>> = {
+const defaultExternalEvidence: Required<
+  Omit<
+    AiGraphicsExternalBetaReadinessEvidence,
+    | 'externalBetaEvidencePacket'
+    | 'externalBetaEvidenceAdmissionBundle'
+    | 'externalBetaWorkerDispatchSmokeProof'
+  >
+> = {
   approvedPlanSnapshotGatePassed: false,
   creditReservationGatePassed: false,
   artifactBoundaryGatePassed: false,
@@ -121,6 +151,7 @@ const defaultExternalEvidence: Required<Omit<AiGraphicsExternalBetaReadinessEvid
   externalBetaCostConcurrencyPrivacyRollbackAccepted: false,
   externalBetaIncidentResponseAccepted: false,
   externalBetaOwnerApprovalGranted: false,
+  externalBetaWorkerDispatchSmokeProofAccepted: false,
 }
 
 const requiredExternalBetaGates = [
@@ -128,6 +159,7 @@ const requiredExternalBetaGates = [
   'all 21 tools mapped to production tool IDs with no duplicate AI graphics mappings',
   'internal beta technical evidence accepted for all 21 tools',
   'internal beta runtime soak accepted with real worker/tool-call evidence',
+  'external-beta worker dispatch smoke proof accepted without tool execution',
   'external-beta QA accepted with rollback-ready evidence',
   'cost, concurrency, privacy, rollback, and incident-response gates accepted',
   'external-beta owner approval granted after runtime soak',
@@ -137,29 +169,69 @@ function normalizeEvidence(
   evidence: AiGraphicsExternalBetaReadinessEvidence = {},
 ): NormalizedAiGraphicsExternalBetaReadinessEvidence {
   const packet = evidence.externalBetaEvidencePacket
+  const admissionBundle = evidence.externalBetaEvidenceAdmissionBundle
+  const workerDispatchSmokeProof = evidence.externalBetaWorkerDispatchSmokeProof
+  const externalBetaEvidenceAdmissionBundleAccepted =
+    admissionBundle?.decision ===
+      AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION &&
+    admissionBundle.status ===
+      'external_beta_admission_candidate_with_provided_evidence_runtime_still_blocked' &&
+    admissionBundle.externalBetaAdmissionCandidateToolsWithProvidedEvidence === 21 &&
+    admissionBundle.externalBetaReadyNowTools === 0 &&
+    admissionBundle.productionReadyNowTools === 0 &&
+    admissionBundle.booleans.externalBetaAdmissionCandidateWithProvidedEvidence === true &&
+    admissionBundle.booleans.agentCanExecuteToolsNow === false &&
+    admissionBundle.booleans.externalBetaReadyNow === false &&
+    admissionBundle.booleans.productionReadyNow === false
+  const externalBetaWorkerDispatchSmokeProofAcceptedFromPacket =
+    workerDispatchSmokeProof?.sourceDecision ===
+      AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_SMOKE_PROOF_DECISION &&
+    workerDispatchSmokeProof.decision ===
+      'external_beta_worker_dispatch_smoke_proof_accepted_with_runtime_blocks' &&
+    workerDispatchSmokeProof.proofAcceptedWithProvidedEvidence === true &&
+    workerDispatchSmokeProof.counts.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence === 21 &&
+    workerDispatchSmokeProof.counts.sourceCapabilityScenariosCompletedWithProvidedEvidence === 12 &&
+    workerDispatchSmokeProof.counts.sourceLiveWorkerLeasesCreatedNow === 0 &&
+    workerDispatchSmokeProof.counts.sourceLiveWorkerDispatchesNow === 0 &&
+    workerDispatchSmokeProof.counts.sourceLiveToolExecutionsNow === 0 &&
+    workerDispatchSmokeProof.booleans.agentCanExecuteToolsNow === false &&
+    workerDispatchSmokeProof.booleans.workerDispatchPerformed === false &&
+    workerDispatchSmokeProof.booleans.gpuRuntimeShouldStartNow === false
+  const externalBetaWorkerDispatchSmokeProofAccepted =
+    evidence.externalBetaWorkerDispatchSmokeProofAccepted ??
+    externalBetaWorkerDispatchSmokeProofAcceptedFromPacket ??
+    false
   return {
     ...defaultExternalEvidence,
     ...evidence,
     internalBetaRuntimeSoakAccepted:
       evidence.internalBetaRuntimeSoakAccepted ??
       packet?.booleans.internalBetaRuntimeSoakAcceptedWithProvidedEvidence ??
+      externalBetaEvidenceAdmissionBundleAccepted ??
       false,
     externalBetaQaAccepted:
       evidence.externalBetaQaAccepted ??
       packet?.booleans.externalBetaQaAcceptedWithProvidedEvidence ??
+      externalBetaEvidenceAdmissionBundleAccepted ??
       false,
     externalBetaCostConcurrencyPrivacyRollbackAccepted:
       evidence.externalBetaCostConcurrencyPrivacyRollbackAccepted ??
       packet?.booleans.externalBetaCostConcurrencyPrivacyRollbackAcceptedWithProvidedEvidence ??
+      externalBetaEvidenceAdmissionBundleAccepted ??
       false,
     externalBetaIncidentResponseAccepted:
       evidence.externalBetaIncidentResponseAccepted ??
       packet?.booleans.externalBetaIncidentResponseAcceptedWithProvidedEvidence ??
+      externalBetaEvidenceAdmissionBundleAccepted ??
       false,
     externalBetaOwnerApprovalGranted:
       evidence.externalBetaOwnerApprovalGranted ??
       packet?.booleans.externalBetaOwnerApprovalGrantedWithProvidedEvidence ??
+      externalBetaEvidenceAdmissionBundleAccepted ??
       false,
+    externalBetaEvidenceAdmissionBundleAccepted,
+    externalBetaWorkerDispatchSmokeProofAccepted:
+      externalBetaWorkerDispatchSmokeProofAccepted,
   }
 }
 
@@ -173,6 +245,9 @@ function buildExternalGlobalBlockers(
       : undefined,
     !evidence.internalBetaRuntimeSoakAccepted
       ? 'internal beta runtime soak evidence is not accepted'
+      : undefined,
+    !evidence.externalBetaWorkerDispatchSmokeProofAccepted
+      ? 'external-beta worker dispatch smoke proof is not accepted'
       : undefined,
     !evidence.externalBetaQaAccepted
       ? 'external-beta QA evidence is not accepted'
@@ -200,6 +275,9 @@ function buildToolMissingEvidence(
       : undefined,
     !evidence.internalBetaRuntimeSoakAccepted
       ? `${toolId}: real internal beta runtime soak evidence`
+      : undefined,
+    !evidence.externalBetaWorkerDispatchSmokeProofAccepted
+      ? `${toolId}: external-beta worker dispatch smoke proof without tool execution`
       : undefined,
     !evidence.externalBetaQaAccepted
       ? `${toolId}: external-beta QA acceptance`
@@ -303,6 +381,10 @@ export function buildAiGraphicsExternalBetaReadinessGate(
         betaReadiness.gpuRuntimeTargetedTools.length === 8 &&
         betaReadiness.heavyToolsIncorrectlyTargetingCpu === 0,
       sourceBetaToolCallReadinessAccepted: betaToolCallReadinessAccepted(betaToolCallReadiness),
+      sourceExternalBetaEvidenceAdmissionBundleAccepted:
+        evidence.externalBetaEvidenceAdmissionBundleAccepted,
+      sourceExternalBetaWorkerDispatchSmokeProofAccepted:
+        evidence.externalBetaWorkerDispatchSmokeProofAccepted,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all21ToolsInstalledForPlannedSurface: betaReadiness.installReadyTools === 21,

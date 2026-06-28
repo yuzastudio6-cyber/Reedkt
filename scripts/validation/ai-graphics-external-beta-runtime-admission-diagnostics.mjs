@@ -35,6 +35,9 @@ const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-runtime-admission-diagnostics.mjs'
 const packetScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const launchGoNoGoScriptName = 'ai-graphics:external-beta-launch-go-no-go'
+const workerDispatchSmokeScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke'
+const workerDispatchSmokeProofScriptName =
+  'ai-graphics:external-beta-worker-dispatch-smoke-proof'
 
 const allTools = [
   'torch_torchvision',
@@ -372,11 +375,61 @@ const fullPacketPath = writeJson(
   path.join(tmpRoot, 'external-beta-evidence-packet.json'),
   validatedPacket,
 )
+const workerDispatchReadinessPath = writeJson(
+  path.join(tmpRoot, 'worker-dispatch-readiness.json'),
+  {
+    decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
+    workerDispatchReadinessPreparedWithProvidedEvidence: true,
+    workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
+    workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
+    gpuRuntimeTargetedTools: 8,
+    liveWorkerLeasesCreatedNow: 0,
+    liveWorkerDispatchesNow: 0,
+    liveToolExecutionsNow: 0,
+    booleans: {
+      agentCanExecuteToolsNow: false,
+      workerDispatchPerformed: false,
+      gpuRuntimeShouldStartNow: false,
+    },
+  },
+)
+const workerDispatchSmokePath = writeJson(
+  path.join(tmpRoot, 'worker-dispatch-smoke.json'),
+  parseJsonOutput(runNpm(workerDispatchSmokeScriptName, [
+    '--external-beta-worker-dispatch-readiness-packet',
+    workerDispatchReadinessPath,
+    '--external-beta-worker-dispatch-smoke-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/report.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/cleanup.json',
+  ]), 'external_beta_worker_dispatch_smoke'),
+)
+const workerDispatchSmokeProofPath = writeJson(
+  path.join(tmpRoot, 'worker-dispatch-smoke-proof.json'),
+  parseJsonOutput(runNpm(workerDispatchSmokeProofScriptName, [
+    '--external-beta-worker-dispatch-smoke-result',
+    workerDispatchSmokePath,
+    '--external-beta-worker-dispatch-smoke-evidence-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/evidence.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-proof-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
+  ]), 'external_beta_worker_dispatch_smoke_proof'),
+)
 
 const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   ...fullEvidenceArgs,
   '--external-beta-evidence-packet',
   fullPacketPath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
   ...launchApprovalArgs,
 ]), 'external_beta_launch_go_no_go')
 if (launchGoNoGo.status !== 'external_beta_launch_go_no_go_approved_runtime_still_blocked') {

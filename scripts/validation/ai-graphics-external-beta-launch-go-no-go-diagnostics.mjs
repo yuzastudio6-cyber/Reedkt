@@ -36,6 +36,9 @@ const diagnosticScriptCommand =
 const packetScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const launchGapScriptName = 'ai-graphics:external-beta-launch-gap-report'
 const admissionBundleScriptName = 'ai-graphics:external-beta-evidence-admission-bundle'
+const workerDispatchSmokeScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke'
+const workerDispatchSmokeProofScriptName =
+  'ai-graphics:external-beta-worker-dispatch-smoke-proof'
 
 const allTools = [
   'torch_torchvision',
@@ -226,6 +229,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.md',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.json',
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json',
   'docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json',
 ]
 
@@ -290,6 +294,9 @@ for (const needle of [
 for (const needle of [
   '--external-beta-launch-gap-report-packet',
   '--external-beta-evidence-admission-bundle-packet',
+  '--external-beta-evidence-admission-bundle',
+  '--external-beta-worker-dispatch-smoke-proof',
+  '--external-beta-worker-dispatch-smoke-proof-accepted',
   '--external-beta-evidence-packet',
   '--all-external-beta-launch-gates-approved',
   '--external-beta-launch-ref',
@@ -346,6 +353,54 @@ const admissionBundlePath = writeJson(
     'external_beta_evidence_admission_bundle_source',
   ),
 )
+const workerDispatchReadinessPath = writeJson(
+  path.join(tempRoot, 'worker-dispatch-readiness.json'),
+  {
+    decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
+    workerDispatchReadinessPreparedWithProvidedEvidence: true,
+    workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
+    workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
+    gpuRuntimeTargetedTools: 8,
+    liveWorkerLeasesCreatedNow: 0,
+    liveWorkerDispatchesNow: 0,
+    liveToolExecutionsNow: 0,
+    booleans: {
+      agentCanExecuteToolsNow: false,
+      workerDispatchPerformed: false,
+      gpuRuntimeShouldStartNow: false,
+    },
+  },
+)
+const workerDispatchSmokePath = writeJson(
+  path.join(tempRoot, 'worker-dispatch-smoke.json'),
+  parseJsonOutput(runNpm(workerDispatchSmokeScriptName, [
+    '--external-beta-worker-dispatch-readiness-packet',
+    workerDispatchReadinessPath,
+    '--external-beta-worker-dispatch-smoke-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/report.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/cleanup.json',
+  ]), 'external_beta_worker_dispatch_smoke_source'),
+)
+const workerDispatchSmokeProofPath = writeJson(
+  path.join(tempRoot, 'worker-dispatch-smoke-proof.json'),
+  parseJsonOutput(runNpm(workerDispatchSmokeProofScriptName, [
+    '--external-beta-worker-dispatch-smoke-result',
+    workerDispatchSmokePath,
+    '--external-beta-worker-dispatch-smoke-evidence-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/evidence.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-proof-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
+  ]), 'external_beta_worker_dispatch_smoke_proof_source'),
+)
 const fullLaunchGapPath = writeJson(
   path.join(tempRoot, 'full-launch-gap-report.json'),
   parseJsonOutput(
@@ -353,6 +408,8 @@ const fullLaunchGapPath = writeJson(
       ...fullEvidenceArgs,
       '--external-beta-evidence-packet',
       fullPacketPath,
+      '--external-beta-worker-dispatch-smoke-proof',
+      workerDispatchSmokeProofPath,
     ]),
     'full_launch_gap_source',
   ),
@@ -363,20 +420,28 @@ const fullEvidenceOutput = parseJsonOutput(runNpm(runScriptName, [
   ...fullEvidenceArgs,
   '--external-beta-evidence-packet',
   fullPacketPath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
 ]), 'full_evidence_launch_go_no_go')
 const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   ...fullEvidenceArgs,
   '--external-beta-evidence-packet',
   fullPacketPath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
   ...launchApprovalArgs,
 ]), 'approved_launch_go_no_go')
 const admissionBundleOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-evidence-admission-bundle-packet',
   admissionBundlePath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
 ]), 'admission_bundle_launch_go_no_go')
 const admissionBundleApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-evidence-admission-bundle-packet',
   admissionBundlePath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
   ...launchApprovalArgs,
 ]), 'admission_bundle_approved_launch_go_no_go')
 const packetFedApprovedOutput = parseJsonOutput(runNpm(runScriptName, [

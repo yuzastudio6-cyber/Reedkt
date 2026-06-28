@@ -370,6 +370,7 @@ const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   '--model-weight-review-packet-accepted',
   '--external-beta-evidence-packet',
   fullPacketPath,
+  '--external-beta-worker-dispatch-smoke-proof-accepted',
   '--all-external-beta-launch-gates-approved',
   '--external-beta-launch-ref',
   'external-beta-launch://launch-switch-approved',

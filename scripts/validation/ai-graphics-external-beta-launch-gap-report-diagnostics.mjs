@@ -257,6 +257,8 @@ for (const needle of [
 }
 for (const needle of [
   '--external-beta-evidence-packet',
+  '--external-beta-worker-dispatch-smoke-proof',
+  '--external-beta-worker-dispatch-smoke-proof-accepted',
   '--all-shared-gates-passed',
   '--all-external-beta-evidence-passed',
   'reportOnly: true',
@@ -308,6 +310,7 @@ const fullOutput = parseJsonOutput(runNpm(runScriptName, [
   '--model-weight-review-packet-accepted',
   '--external-beta-evidence-packet',
   fullPacketPath,
+  '--external-beta-worker-dispatch-smoke-proof-accepted',
 ]), 'full_launch_gap_report')
 
 if (defaultOutput.externalBetaCandidatesWithProvidedEvidenceTools !== 0) {

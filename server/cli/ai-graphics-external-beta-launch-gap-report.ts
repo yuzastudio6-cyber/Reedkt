@@ -3,6 +3,8 @@ import {
   buildAiGraphicsExternalBetaLaunchGapReport,
 } from '../tool-registry/ai-graphics-external-beta-launch-gap-report'
 import type { AiGraphicsExternalBetaEvidencePacket } from '../tool-registry/ai-graphics-external-beta-evidence-packet'
+import type { AiGraphicsExternalBetaEvidenceAdmissionBundle } from '../tool-registry/ai-graphics-external-beta-evidence-admission-bundle'
+import type { AiGraphicsExternalBetaWorkerDispatchSmokeProof } from '../tool-registry/ai-graphics-external-beta-worker-dispatch-smoke-proof'
 import type { AiGraphicsExternalBetaReadinessEvidence } from '../tool-registry/ai-graphics-external-beta-readiness-gate'
 
 function hasFlag(flag: string): boolean {
@@ -26,11 +28,27 @@ function readExternalBetaEvidencePacket(): AiGraphicsExternalBetaEvidencePacket 
   return JSON.parse(fs.readFileSync(packetPath, 'utf8')) as AiGraphicsExternalBetaEvidencePacket
 }
 
+function readExternalBetaEvidenceAdmissionBundle():
+  AiGraphicsExternalBetaEvidenceAdmissionBundle | undefined {
+  const packetPath = stringFlag('--external-beta-evidence-admission-bundle')
+  if (!packetPath) return undefined
+  return JSON.parse(fs.readFileSync(packetPath, 'utf8')) as AiGraphicsExternalBetaEvidenceAdmissionBundle
+}
+
+function readExternalBetaWorkerDispatchSmokeProof():
+  AiGraphicsExternalBetaWorkerDispatchSmokeProof | undefined {
+  const packetPath = stringFlag('--external-beta-worker-dispatch-smoke-proof')
+  if (!packetPath) return undefined
+  return JSON.parse(fs.readFileSync(packetPath, 'utf8')) as AiGraphicsExternalBetaWorkerDispatchSmokeProof
+}
+
 const sharedGatesPassed = hasFlag('--all-shared-gates-passed')
 const allExternalBetaEvidencePassed = hasFlag('--all-external-beta-evidence-passed')
 
 const evidence: AiGraphicsExternalBetaReadinessEvidence = {
   externalBetaEvidencePacket: readExternalBetaEvidencePacket(),
+  externalBetaEvidenceAdmissionBundle: readExternalBetaEvidenceAdmissionBundle(),
+  externalBetaWorkerDispatchSmokeProof: readExternalBetaWorkerDispatchSmokeProof(),
   approvedPlanSnapshotGatePassed: sharedGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
   creditReservationGatePassed: sharedGatesPassed || hasFlag('--credit-reservation-gate-passed'),
   artifactBoundaryGatePassed: sharedGatesPassed || hasFlag('--artifact-boundary-gate-passed'),
@@ -62,6 +80,10 @@ const evidence: AiGraphicsExternalBetaReadinessEvidence = {
     '--external-beta-owner-approval-granted',
     allExternalBetaEvidencePassed,
   ),
+  externalBetaWorkerDispatchSmokeProofAccepted: optionalBooleanFlag(
+    '--external-beta-worker-dispatch-smoke-proof-accepted',
+    allExternalBetaEvidencePassed,
+  ),
 }
 
 const report = buildAiGraphicsExternalBetaLaunchGapReport(evidence)
@@ -70,6 +92,11 @@ console.log(JSON.stringify({
   ...report,
   input: {
     reportOnly: true,
+    externalBetaEvidencePacketRead: Boolean(stringFlag('--external-beta-evidence-packet')),
+    externalBetaEvidenceAdmissionBundleRead:
+      Boolean(stringFlag('--external-beta-evidence-admission-bundle')),
+    externalBetaWorkerDispatchSmokeProofRead:
+      Boolean(stringFlag('--external-beta-worker-dispatch-smoke-proof')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

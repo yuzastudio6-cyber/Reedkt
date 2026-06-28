@@ -1,6 +1,6 @@
 # Qwen2.5-VL 7B Cloud Run GPU Private Invoke Readiness Rollup
 
-Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_retry_10_recorded_qa_reports_fix_required`.
+Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_qa_reports_fix_recorded_retry_11_required`.
 
 This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded Cloud Run auth/IAM reverify, controlled private invoke smoke plan, private caller route, Direct VPC route config, CPU-only caller source, CPU-only caller deploy, CPU-only caller contract smoke, runtime readiness review, approved-fixture inference smoke plan, gated service source, service deploy, first fixture attempt, tuned fixture retry, structured output source fix, controlled structured-output retry, structured fixture output result review, private runtime readiness review result, approved worker integration readiness review, backend runtime dispatch implementation plan, fail-closed backend runtime dispatch coordinator, controlled backend dispatch dry-run review, backend runtime persistence plan, backend runtime persistence schema draft review, backend runtime persistence migration draft, backend runtime persistence local validation result, backend runtime persistence local harness plan, backend runtime persistence local harness config creation, backend runtime persistence local harness config verification, backend runtime persistence local harness validation result, backend runtime persistence local harness port fix, backend runtime persistence local harness validation retry result, backend runtime persistence baseline migration fix, backend runtime persistence local harness validation retry 2 result, backend runtime persistence current edit session baseline fix, backend runtime persistence local harness validation retry 3 result, backend runtime persistence media assets status baseline fix, backend runtime persistence local harness validation retry 4 result, backend runtime persistence edit plan segments version baseline fix, backend runtime persistence local harness validation retry 5 result, backend runtime persistence credit approval snapshots baseline fix, backend runtime persistence local harness validation retry 6 result, backend runtime persistence credit estimates plan version baseline fix, backend runtime persistence local harness validation retry 7 result, backend runtime persistence generation requests approved snapshot baseline fix, backend runtime persistence local harness validation retry 8 result, backend runtime persistence generated asset versions version baseline fix, backend runtime persistence local harness validation retry 9 result, backend runtime persistence QA check results reserved column baseline fix, and backend runtime persistence local harness validation retry 10 result are recorded.
 
@@ -63,7 +63,8 @@ This is evidence only. It does not enable persistent inference, dispatch a user-
 - backend runtime persistence local harness validation retry after generated asset versions version fix: ready, blocked QA check-results result recorded
 - backend runtime persistence QA check results reserved column baseline fix: ready, quoted reserved column guarded
 - backend runtime persistence local harness validation retry after QA check results check column fix: ready, blocked QA reports result recorded
-- backend runtime persistence QA reports approved snapshot baseline fix: blocked, compatibility guard required
+- backend runtime persistence QA reports approved snapshot baseline fix: ready, compatibility column guarded
+- backend runtime persistence local harness validation retry after QA reports approved snapshot fix: blocked, retry 11 required
 - private invoke runtime readiness: false
 - beta readiness: false
 - production readiness: false
@@ -134,7 +135,8 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 | Backend runtime persistence local harness validation retry after generated asset versions version fix | ready | Retry 9 is recorded. It verified `202605180005_reeditpro_generation_assets_jobs.sql` now applies past `idx_generated_asset_versions_asset_version`, then stopped before Qwen draft SQL because `202605180006_reeditpro_qa_exports_audit.sql` declared `qa_check_results.check` as an unquoted reserved column. Cleanup was verified. | none |
 | Backend runtime persistence QA check results reserved column baseline fix | ready | The active QA exports/audit migration now preserves `qa_check_results.check` as `"check" text` without renaming the column or inventing QA rows. | none |
 | Backend runtime persistence local harness validation retry after QA check results check column fix | ready | Retry 10 is recorded. It verified the `qa_check_results.check` parser fix, then stopped before Qwen draft SQL because `idx_qa_reports_project_snapshot` references missing `qa_reports.approved_plan_snapshot_id`. Cleanup was verified. | none |
-| Backend runtime persistence QA reports approved snapshot baseline fix | blocked backend runtime persistence QA reports approved snapshot baseline fix required | Retry 10 isolated the next blocker to `qa_reports.approved_plan_snapshot_id` in `202605180006_reeditpro_qa_exports_audit.sql`. | Add a narrow compatibility guard before `idx_qa_reports_project_snapshot`; do not create QA rows, approved snapshots, worker rows, generated assets, credit records, Qwen runtime records, beta, or production readiness. |
+| Backend runtime persistence QA reports approved snapshot baseline fix | ready | The active QA exports/audit migration now adds nullable idempotent `qa_reports.approved_plan_snapshot_id` before `idx_qa_reports_project_snapshot`; no backfill is performed because it must not invent QA reports, approved snapshots, worker rows, generated assets, credit records, provider outputs, or Qwen runtime records. | none |
+| Backend runtime persistence local harness validation retry after QA reports approved snapshot fix | blocked backend runtime persistence local harness validation retry after QA reports approved snapshot fix required | The QA reports approved-snapshot baseline fix is recorded, but no retry has run after that fix. Qwen draft SQL and Qwen local SQL tests remain unverified. | Run approved local harness validation retry 11; do not touch Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, credit records, beta, or production readiness. |
 
 ## Runtime Gates
 
@@ -324,7 +326,13 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `backendRuntimePersistenceLocalHarnessValidationRetry10Attempted=true`
 - `backendRuntimePersistenceLocalHarnessValidationRetry10Passed=false`
 - `backendRuntimePersistenceQaCheckResultsCheckReservedColumnFixVerified=true`
-- `backendRuntimePersistenceQaReportsApprovedPlanSnapshotFixRequired=true`
+- `backendRuntimePersistenceQaReportsApprovedPlanSnapshotFixRequired=false`
+- `backendRuntimePersistenceBaselineQaReportsApprovedSnapshotFixRecorded=true`
+- `qaReportsApprovedPlanSnapshotColumnGuarded=true`
+- `qaReportsApprovedPlanSnapshotForeignKeyGuarded=true`
+- `qaReportsProjectSnapshotIndexUnblocked=true`
+- `qaReportsApprovedSnapshotBackfillSkipped=true`
+- `backendRuntimePersistenceLocalHarnessValidationRetryAfterQaReportsApprovedSnapshotFixRequired=true`
 - `qwenDraftSqlApplied=false`
 - `qwenLocalSqlTestsExecuted=false`
 - `existingLocalSupabaseProjectDetected=true`
@@ -372,7 +380,7 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `dryRunPassedClaimed=false`
 - `generatedLocalFixturePassedClaimed=false`
 
-The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent user-facing runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the private runtime review is accepted only for metadata-only controlled fixture readiness. Approved worker integration review, backend runtime dispatch planning, fail-closed coordinator implementation, controlled backend dispatch dry-run review, backend runtime persistence planning, backend runtime persistence schema draft review, backend runtime persistence migration drafting, blocked local-validation result recording, local harness planning, config creation, config verification, blocked port-conflict local harness validation result, port fix, baseline compatibility fixes, retry 9, the QA check-results reserved-column fix, and retry 10 are recorded, but user-facing dispatch still requires the QA reports approved-snapshot baseline fix, another local harness validation retry, and later real runtime approval.
+The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent user-facing runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the private runtime review is accepted only for metadata-only controlled fixture readiness. Approved worker integration review, backend runtime dispatch planning, fail-closed coordinator implementation, controlled backend dispatch dry-run review, backend runtime persistence planning, backend runtime persistence schema draft review, backend runtime persistence migration drafting, blocked local-validation result recording, local harness planning, config creation, config verification, blocked port-conflict local harness validation result, port fix, baseline compatibility fixes, retry 9, the QA check-results reserved-column fix, retry 10, and the QA reports approved-snapshot baseline fix are recorded, but user-facing dispatch still requires local harness validation retry 11 and later real runtime approval.
 
 ## Scope Boundaries
 
@@ -382,8 +390,8 @@ Qwen2.5-VL must not generate B-roll video, replace Wan or LTX generation routes,
 
 ## Required Next Step
 
-The next action is the narrow active-baseline QA reports approved-snapshot compatibility fix. That future prompt must not touch Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, beta, production, or claim `generated_local_fixture_passed`.
+The next action is approved local harness validation retry 11 after the QA reports approved-snapshot baseline fix. That future prompt must not touch Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, beta, production, or claim `generated_local_fixture_passed`.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58AO-BACKEND-RUNTIME-PERSISTENCE-BASELINE-QA-REPORTS-APPROVED-SNAPSHOT-FIX: fix ReEditPro local baseline qa_reports approved_plan_snapshot_id for Qwen harness validation, no deploy/no cloud/no assets/no beta`
+`QWEN2_5_VL_STACK_TOOL_58AP-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-11: retry Qwen local harness validation after qa_reports approved-snapshot baseline fix, no deploy/no cloud/no assets/no beta`

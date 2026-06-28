@@ -8,6 +8,8 @@ const SOURCE_COMMIT = 'eb1d00386e74b2eb88e86616129633a499a8c3ab'
 const TYPE_FILE = 'server/beta-readiness/beta-readiness-types.ts'
 const PROMPT =
   'docs/implementation-prompts/prompt-worker-runtime-jobs-sound-cpu-bounded-external-beta-state-change-execution-after-plan.md'
+const CONSUMER_SCOPE_DECISION =
+  'worker_runtime_jobs_sound_cpu_bounded_external_beta_consumer_scope_fix_completed_with_warnings_ready_for_bounded_external_beta_state_change_execution'
 
 const FILES = {
   scopeFix: {
@@ -144,7 +146,10 @@ for (const [key, value] of Object.entries(claim.closedClaimsToday)) {
 assertSupabaseNoop(claim.supabaseClassification, 'claimPolicy')
 
 const prompt = read(PROMPT)
-assert(prompt.includes(DECISION), 'execution prompt must require scope-fix decision')
+assert(
+  prompt.includes(DECISION) || prompt.includes(CONSUMER_SCOPE_DECISION),
+  'execution prompt must require scope-fix or consumer-scope decision'
+)
 assert(prompt.includes(TYPE_FILE), 'execution prompt missing type file')
 assert(prompt.includes('no runtime/no production'), 'execution prompt missing no runtime/no production scope')
 assert(prompt.includes('No runtime execution'), 'execution prompt missing forbidden runtime statement')

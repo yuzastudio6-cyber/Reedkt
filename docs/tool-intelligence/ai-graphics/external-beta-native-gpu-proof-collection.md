@@ -1,0 +1,91 @@
+# AI Graphics External-Beta Native GPU Proof Collection
+
+Decision: `ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks`
+
+This checkpoint connects the external per-tool runtime proof gate to the native GPU proof path for the 8 heavy/model AI graphics tools:
+
+- `torch_torchvision`
+- `transformers`
+- `sam2`
+- `birefnet`
+- `real_esrgan`
+- `kornia`
+- `rembg`
+- `transparent_background`
+
+The current external-beta state remains blocked for these tools. The 13 JavaScript graphics tools already have accepted runtime proof evidence, but the 8 GPU/model tools still require private model-weight evidence and native linux/amd64 NVIDIA L4 proof before they can be rechecked by the per-tool runtime gate.
+
+## Runtime Targets
+
+| Tool | Runtime Target |
+| --- | --- |
+| `torch_torchvision` | `native_linux_amd64_nvidia_l4_gpu_worker` |
+| `transformers` | `native_linux_amd64_nvidia_l4_gpu_worker` |
+| `sam2` | `native_linux_amd64_nvidia_l4_sam2_runtime` |
+| `birefnet` | `native_linux_amd64_nvidia_l4_birefnet_runtime` |
+| `real_esrgan` | `native_linux_amd64_nvidia_l4_real_esrgan_runtime` |
+| `kornia` | `native_linux_amd64_nvidia_l4_gpu_worker` |
+| `rembg` | `native_linux_amd64_nvidia_l4_gpu_worker` |
+| `transparent_background` | `native_linux_amd64_nvidia_l4_gpu_worker` |
+
+GPU runtime is on-demand only. No idle GPU runtime is approved, and CPU fallback remains blocked for the heavy/model tools.
+
+## Required Private Evidence
+
+The five model-weight tools that need private checksum evidence and reviewed private manifests are:
+
+- `sam2`
+- `birefnet`
+- `real_esrgan`
+- `rembg`
+- `transparent_background`
+
+Current accepted private checksum evidence: `0 / 5`
+
+Current accepted reviewed private manifests: `0 / 5`
+
+Current accepted native GPU proof profiles: `0 / 6`
+
+Required native proof profiles:
+
+- `gpu_worker_ai_graphics`
+- `sam2`
+- `birefnet`
+- `real_esrgan`
+- `rembg`
+- `transparent_background`
+
+## Collection Commands
+
+These commands are the collection path for private/local evidence. The generated files must stay under `.local-artifacts/` and must not be committed.
+
+```sh
+npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence
+npm run --silent ai-graphics:model-weight-checksum-evidence:validate -- --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence
+npm run --silent ai-graphics:model-weight-manifest-authoring -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --out-dir .local-artifacts/ai-graphics/model-weight-manifests
+npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests
+npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh
+npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible
+npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results
+npm run --silent ai-graphics:external-beta-per-tool-runtime-proof -- --gpu-runtime-proof-result-packet .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json
+```
+
+## External Boundary
+
+This checkpoint performs no dependency install, package-lock mutation, Docker build, GPU runtime, model download, model load, inference, media processing, Tool Route execution, Worker dispatch, provider/model call, Supabase/GCS mutation, signed URL creation, public artifact creation, beta unlock, or production unlock.
+
+The only accepted ready state from this checkpoint is `external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready`, and only after all five private model manifest records and all six native GPU proof profile results validate.
+
+## Current Result
+
+- Source per-tool runtime proof accepted: `true`
+- GPU command plan accepted: `true`
+- Private checksum evidence accepted for all five model tools: `false`
+- Private model manifests accepted for all five model tools: `false`
+- Native GPU runtime proof results accepted for all six profiles: `false`
+- Ready for per-tool runtime proof recheck: `false`
+- Agent can select for planning: `true`
+- Agent can execute tools now: `false`
+- GPU runtime should start now: `false`
+- External beta ready now: `false`
+- Production ready now: `false`

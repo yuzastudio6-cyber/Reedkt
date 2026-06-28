@@ -1,0 +1,171 @@
+{
+  "decision": "ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks",
+  "summary": "External-beta native GPU proof collection gate for the 8 AI graphics GPU/model tools. It connects the accepted per-tool runtime proof gate to the existing GPU command plan, private checksum evidence, private model manifest review, and native GPU result validator. It does not execute Docker, start GPU runtime, load model weights, run inference, process media, call providers, mutate storage, create signed URLs, or unlock external beta/production.",
+  "sourceChain": {
+    "perToolRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json",
+    "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json",
+    "modelWeightChecksumEvidence": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json",
+    "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "gpuRuntimeProofResultPacket": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json"
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-external-beta-native-gpu-proof-collection.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "cli": "server/cli/ai-graphics-external-beta-native-gpu-proof-collection.ts",
+    "script": "ai-graphics:external-beta-native-gpu-proof-collection",
+    "diagnostic": "scripts/validation/ai-graphics-external-beta-native-gpu-proof-collection-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:external-beta-native-gpu-proof-collection:diagnostics"
+  },
+  "currentStatus": "external_beta_native_gpu_proof_collection_blocked_pending_private_manifests_and_runtime_results",
+  "readyAfterEvidenceStatus": "external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready",
+  "gpuRuntimeTargetedTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background"
+  ],
+  "modelWeightManifestRequiredTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "runtimeProfilesRequired": [
+    "gpu_worker_ai_graphics",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "expectedGpuRuntimeTargets": {
+    "torch_torchvision": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transformers": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "sam2": "native_linux_amd64_nvidia_l4_sam2_runtime",
+    "birefnet": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+    "real_esrgan": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+    "kornia": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "rembg": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
+  },
+  "gpuRuntimePolicy": {
+    "onDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "proofContainerIsEphemeral": true,
+    "cpuFallbackAllowedForHeavyTools": false
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "gpuRuntimeTargetedTools": 8,
+    "modelWeightChecksumEvidenceRequiredTools": 5,
+    "modelWeightChecksumEvidenceAccepted": 0,
+    "modelWeightManifestRequiredTools": 5,
+    "modelWeightManifestReviewAccepted": 0,
+    "nativeGpuRuntimeProofProfilesRequired": 6,
+    "nativeGpuRuntimeProofProfilesAccepted": 0,
+    "nativeGpuRuntimeProofAcceptedTools": 0,
+    "blockedPendingPrivateManifestTools": 5,
+    "blockedPendingNativeGpuRuntimeProofTools": 8,
+    "externalBetaReadyNowTools": 0,
+    "productionReadyNowTools": 0
+  },
+  "proofCollectionRequirements": [
+    {
+      "requirementId": "model_weight_checksum_evidence_for_5_model_tools",
+      "currentAccepted": 0,
+      "requiredAccepted": 5,
+      "status": "blocked_pending_private_evidence"
+    },
+    {
+      "requirementId": "private_model_manifest_review_for_5_model_tools",
+      "currentAccepted": 0,
+      "requiredAccepted": 5,
+      "status": "blocked_pending_private_evidence"
+    },
+    {
+      "requirementId": "native_gpu_runtime_proof_results_for_6_profiles",
+      "currentAccepted": 0,
+      "requiredAccepted": 6,
+      "status": "blocked_pending_native_gpu_result"
+    }
+  ],
+  "requiredCollectionCommands": {
+    "checksumEvidenceScaffold": "npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence",
+    "checksumEvidenceValidate": "npm run --silent ai-graphics:model-weight-checksum-evidence:validate -- --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence",
+    "manifestAuthoring": "npm run --silent ai-graphics:model-weight-manifest-authoring -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --out-dir .local-artifacts/ai-graphics/model-weight-manifests",
+    "manifestReviewValidate": "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests",
+    "nativeGpuProofScriptGenerate": "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh",
+    "nativeGpuHostPreflight": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible",
+    "nativeGpuProofResultValidate": "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
+    "externalPerToolRuntimeProofRecheck": "npm run --silent ai-graphics:external-beta-per-tool-runtime-proof -- --gpu-runtime-proof-result-packet .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json"
+  },
+  "localOnlyEvidencePaths": {
+    "checksumEvidenceDir": ".local-artifacts/ai-graphics/model-weight-checksum-evidence",
+    "privateManifestDir": ".local-artifacts/ai-graphics/model-weight-manifests",
+    "nativeGpuProofResultDir": ".local-artifacts/ai-graphics/gpu-runtime-proof-results"
+  },
+  "acceptedPrivateRefNamespaces": [
+    "private://",
+    "reeditpro-private://",
+    "backend-evidence://",
+    "external-beta-evidence://"
+  ],
+  "forbiddenRefPrefixes": [
+    "http://",
+    "https://",
+    "signed-url://",
+    "public://",
+    "gs://",
+    "gcs://"
+  ],
+  "nextExternalBetaGap": "Collect private checksum evidence, author/review private manifests for the five model-weight tools, run the six-profile native linux/amd64 NVIDIA L4 proof, validate the result packet, and re-run the external per-tool runtime proof gate.",
+  "booleans": {
+    "externalBetaNativeGpuProofCollectionPrepared": true,
+    "sourcePerToolRuntimeProofAccepted": true,
+    "commandPlanAccepted": true,
+    "checksumEvidenceAcceptedForAll5ModelTools": false,
+    "privateModelManifestsAcceptedForAll5ModelTools": false,
+    "nativeGpuRuntimeProofResultsAcceptedForAll6Profiles": false,
+    "all8GpuRuntimeToolsCovered": true,
+    "all5ModelWeightToolsCovered": true,
+    "all6NativeGpuProfilesCovered": true,
+    "gpuRuntimeTargetsExact": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuStartsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false,
+    "localOnlyEvidenceCollection": true,
+    "privateArtifactRefsRequired": true,
+    "privateArtifactRefsNotLogged": true,
+    "readyForPerToolRuntimeProofRecheck": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

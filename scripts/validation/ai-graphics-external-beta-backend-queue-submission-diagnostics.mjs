@@ -19,6 +19,14 @@ const perToolRuntimeProofDiagnosticScriptName =
   'ai-graphics:external-beta-per-tool-runtime-proof:diagnostics'
 const perToolRuntimeProofDiagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-per-tool-runtime-proof-diagnostics.mjs'
+const nativeGpuProofCollectionScriptName =
+  'ai-graphics:external-beta-native-gpu-proof-collection'
+const nativeGpuProofCollectionScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-native-gpu-proof-collection.ts'
+const nativeGpuProofCollectionDiagnosticScriptName =
+  'ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
+const nativeGpuProofCollectionDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-native-gpu-proof-collection-diagnostics.mjs'
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:external-beta-backend-queue-submission'
 const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-backend-queue-submission.ts'
@@ -734,6 +742,8 @@ const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${perToolRuntimeProofScriptName}": "${perToolRuntimeProofScriptCommand}",`,
   `+    "${perToolRuntimeProofDiagnosticScriptName}": "${perToolRuntimeProofDiagnosticScriptCommand}",`,
+  `+    "${nativeGpuProofCollectionScriptName}": "${nativeGpuProofCollectionScriptCommand}",`,
+  `+    "${nativeGpuProofCollectionDiagnosticScriptName}": "${nativeGpuProofCollectionDiagnosticScriptCommand}",`,
   `+    "${toolRouteRuntimeProofScriptName}": "${toolRouteRuntimeProofScriptCommand}",`,
   `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
   '+    "ai-graphics:external-beta-worker-enqueue-adapter": "tsx server/cli/ai-graphics-external-beta-worker-enqueue-adapter.ts",',

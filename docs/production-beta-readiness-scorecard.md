@@ -1245,3 +1245,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: the evaluator accepts the current Node, browser, and Satori runtime proof packets for 13 JavaScript graphics tools. The 8 GPU/model tools remain blocked pending native linux/amd64 NVIDIA L4 runtime proof results and private model/cache manifests.
 - GPU policy: GPU remains on-demand only. No idle GPU runtime is approved, and the blocked GPU/model tools cannot CPU-fallback into external beta.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta Native GPU Proof Collection
+
+- Decision: `ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks`.
+- Scope: external-beta collection gate for the 8 GPU/model AI graphics tools after the per-tool runtime proof gate.
+- Result: the gate accepts the external per-tool runtime proof source and GPU command plan, then exposes the remaining external blocker as concrete private evidence collection: 5 private checksum evidence records, 5 reviewed private model manifests, and 6 native linux/amd64 NVIDIA L4 proof result profiles. Current accepted counts remain 0/5 checksum evidence, 0/5 private manifests, and 0/6 native GPU proof profiles.
+- GPU policy: all 8 heavy/model tools stay targeted to native NVIDIA L4 GPU runtime paths, GPU remains on-demand only, no idle GPU runtime is approved, and CPU fallback remains blocked for heavy/model tools.
+- Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `modelWeightsLoaded=false`, `modelInferencePerformed=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

@@ -56,24 +56,38 @@ jobs:
           set -euo pipefail
           tmp="$(mktemp -d)"
 
-          gcloud artifacts repositories list \
-            --project="${GCP_PROJECT_ID}" \
-            --location=us-central1 \
-            --format='value(name)' > "${tmp}/artifact-us-central1.txt"
+          capture() {
+            local name="$1"
+            shift
+            set +e
+            "$@" > "${tmp}/${name}.stdout" 2> "${tmp}/${name}.stderr"
+            local status="$?"
+            set -e
+            printf '%s' "${status}" > "${tmp}/${name}.status"
+          }
 
-          gcloud artifacts repositories list \
-            --project="${GCP_PROJECT_ID}" \
-            --location=us-east1 \
-            --format='value(name)' > "${tmp}/artifact-us-east1.txt"
+          capture artifact-us-central1 \
+            gcloud artifacts repositories list \
+              --project="${GCP_PROJECT_ID}" \
+              --location=us-central1 \
+              --format='value(name)'
 
-          gcloud iam service-accounts list \
-            --project="${GCP_PROJECT_ID}" \
-            --format='value(email)' > "${tmp}/service-accounts.txt"
+          capture artifact-us-east1 \
+            gcloud artifacts repositories list \
+              --project="${GCP_PROJECT_ID}" \
+              --location=us-east1 \
+              --format='value(name)'
 
-          gcloud run services list \
-            --project="${GCP_PROJECT_ID}" \
-            --region="${GCP_REGION}" \
-            --format='value(metadata.name,status.url)' > "${tmp}/cloud-run-services.txt"
+          capture service-accounts \
+            gcloud iam service-accounts list \
+              --project="${GCP_PROJECT_ID}" \
+              --format='value(email)'
+
+          capture cloud-run-services \
+            gcloud run services list \
+              --project="${GCP_PROJECT_ID}" \
+              --region="${GCP_REGION}" \
+              --format='value(metadata.name,status.url)'
 
           python - "${tmp}" "${GCP_PROJECT_ID}" "${GCP_REGION}" "${GCP_SERVICE_ACCOUNT}" <<'PY'
           import json
@@ -85,25 +99,43 @@ jobs:
           region = sys.argv[3]
           wif_service_account = sys.argv[4]
 
-          def read_lines(name):
-              return [line.strip() for line in (root / name).read_text(encoding='utf-8').splitlines() if line.strip()]
+          def read_lines(path):
+              return [line.strip() for line in path.read_text(encoding='utf-8').splitlines() if line.strip()]
 
-          artifact_repositories = {
-              'us-central1': read_lines('artifact-us-central1.txt'),
-              'us-east1': read_lines('artifact-us-east1.txt'),
+          def probe(name):
+              status = int((root / f'{name}.status').read_text(encoding='utf-8'))
+              stdout = read_lines(root / f'{name}.stdout')
+              stderr = (root / f'{name}.stderr').read_text(encoding='utf-8').strip()
+              return {
+                  'status': status,
+                  'ok': status == 0,
+                  'stdout': stdout,
+                  'stderr': stderr[-3000:],
+              }
+
+          probes = {
+              'artifactRepositoriesUsCentral1': probe('artifact-us-central1'),
+              'artifactRepositoriesUsEast1': probe('artifact-us-east1'),
+              'serviceAccounts': probe('service-accounts'),
+              'cloudRunServices': probe('cloud-run-services'),
           }
-          service_accounts = read_lines('service-accounts.txt')
-          cloud_run_services = read_lines('cloud-run-services.txt')
+          failures = [name for name, result in probes.items() if not result['ok']]
+          artifact_repositories = {
+              'us-central1': probes['artifactRepositoriesUsCentral1']['stdout'],
+              'us-east1': probes['artifactRepositoriesUsEast1']['stdout'],
+          }
 
           summary = {
-              'ok': True,
+              'ok': not failures,
               'mode': 'read_only_staging_api_deploy_input_discovery',
               'projectId': project_id,
               'region': region,
               'wifServiceAccount': wif_service_account,
+              'probeFailures': failures,
+              'probes': probes,
               'artifactRepositories': artifact_repositories,
-              'serviceAccounts': service_accounts,
-              'cloudRunServices': cloud_run_services,
+              'serviceAccounts': probes['serviceAccounts']['stdout'],
+              'cloudRunServices': probes['cloudRunServices']['stdout'],
               'suggestedDeploySourceRef': 'codex/sound-music-audio-1abc-checkpoint',
               'candidateServiceName': 'reeditpro-api-staging',
               'blockedScopes': [
@@ -125,4 +157,6 @@ jobs:
               '```json\\n' + json.dumps(summary, indent=2, sort_keys=True) + '\\n```\\n',
               encoding='utf-8',
           )
+          if failures:
+              raise SystemExit('Read-only staging API deploy input discovery is blocked: ' + ', '.join(failures))
           PY

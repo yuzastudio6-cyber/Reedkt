@@ -1,0 +1,49 @@
+{
+  "reportId": "beta-readiness-owner-approval-intake-preflight-2026-06-28",
+  "createdAt": "2026-06-28T22:20:00Z",
+  "decision": "beta_readiness_owner_approval_intake_preflight_passed_ready_for_owner_input_collection",
+  "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+  "sourceSha": "2a5296d973d10ab374bca642f526711f763817ac",
+  "ownerApprovalPacket": "docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json",
+  "manifestOwnerGapPacket": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-28-d997-technical-inputs-owner-approval-gap.json",
+  "commands": {
+    "preflight": "npm run beta:readiness:owner-approval-intake-preflight",
+    "smoke": "npm run smoke:beta-readiness-owner-approval-intake-preflight"
+  },
+  "requiredInputCount": 29,
+  "requiredInputGroups": {
+    "platformApprovals": 7,
+    "platformAttestations": 8,
+    "launchApprovals": 7,
+    "launchEvidenceNotes": 7
+  },
+  "safetyRules": [
+    "Owner approval and attestation booleans must be explicitly true.",
+    "Evidence notes are presence/safety checked but not echoed in the report.",
+    "Secret-like evidence notes fail closed.",
+    "Real-user-media beta and paid-production approval flags fail closed in this external-beta intake.",
+    "The preflight does not grant owner approval by itself."
+  ],
+  "blockedScopeConfirmations": {
+    "deployedBackendCalled": false,
+    "backendEvidenceRecorded": false,
+    "supabaseWritesRan": false,
+    "sqlRan": false,
+    "gcsWritesRan": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "userMediaProcessed": false,
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextSafeAction": "Owners provide non-secret approval booleans and evidence notes, run npm run beta:readiness:owner-approval-intake-preflight, then rerun npm run beta:readiness:deployed-evidence-input-manifest."
+}

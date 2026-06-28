@@ -5,6 +5,8 @@ const jsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api
 const markdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-input-discovery-iam-blocker.md'
 const exactJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-exact-input-validation-blocker.json'
 const exactMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-exact-input-validation-blocker.md'
+const remediationJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-request.json'
+const remediationMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-request.md'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const report = JSON.parse(readFileSync(jsonPath, 'utf8')) as {
@@ -82,6 +84,22 @@ const exactReport = JSON.parse(readFileSync(exactJsonPath, 'utf8')) as {
   }
 }
 const exactMarkdown = readFileSync(exactMarkdownPath, 'utf8')
+const remediationReport = JSON.parse(readFileSync(remediationJsonPath, 'utf8')) as {
+  decision: string
+  requiredOwnerActions: Array<{ id: string; commandTemplate?: string; roleCandidate?: string; deploymentRoleCandidate?: string }>
+  postRemediationValidation: string[]
+  blockedScopes: string[]
+  productReadyLocalOssCount: number
+  externalBetaEnabled: boolean
+  productionEnabled: boolean
+  supabase: {
+    write: string
+    environment: string
+    sql: string
+    migration: string
+  }
+}
+const remediationMarkdown = readFileSync(remediationMarkdownPath, 'utf8')
 
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-api-staging-input-discovery-blocker'],
@@ -178,13 +196,46 @@ assert.ok(exactMarkdown.includes('reeditpro-api-staging@reeditpro.iam.gserviceac
 assert.equal(JSON.stringify(exactReport).includes('gha-creds'), false, 'exact report must not include credential-file paths')
 assert.equal(JSON.stringify(exactReport).includes('SERVICE_ROLE_KEY'), false, 'exact report must not include secret names or values')
 
+assert.equal(remediationReport.decision, 'beta_readiness_api_staging_owner_remediation_request_passed_ready_for_owner_iam_runtime_service_account_action')
+assert.deepEqual(remediationReport.requiredOwnerActions.map((action) => action.id), [
+  'artifact_registry_repository_access',
+  'runtime_service_account',
+  'deployer_act_as_runtime',
+  'cloud_run_deploy_permission',
+  'runtime_secret_access',
+])
+assert.ok(remediationReport.requiredOwnerActions.some((action) => action.deploymentRoleCandidate === 'roles/artifactregistry.writer'))
+assert.ok(remediationReport.requiredOwnerActions.some((action) => action.roleCandidate === 'roles/iam.serviceAccountUser'))
+assert.ok(remediationReport.requiredOwnerActions.some((action) => action.roleCandidate === 'roles/run.admin'))
+assert.ok(remediationReport.requiredOwnerActions.some((action) => action.roleCandidate === 'roles/secretmanager.secretAccessor'))
+assert.ok(remediationReport.postRemediationValidation.some((command) => command.includes('beta-readiness-api-staging-input-discovery.yml')))
+assert.ok(remediationReport.postRemediationValidation.some((command) => command.includes('beta-readiness-api-staging-deploy.yml')))
+assert.ok(remediationReport.blockedScopes.includes('iam_mutation_not_run'))
+assert.ok(remediationReport.blockedScopes.includes('service_account_creation_not_run'))
+assert.equal(remediationReport.productReadyLocalOssCount, 0)
+assert.equal(remediationReport.externalBetaEnabled, false)
+assert.equal(remediationReport.productionEnabled, false)
+assert.deepEqual(remediationReport.supabase, {
+  write: 'no write',
+  environment: 'none',
+  sql: 'none',
+  migration: 'no',
+})
+assert.ok(remediationMarkdown.includes('metadata only'))
+assert.ok(remediationMarkdown.includes('roles/artifactregistry.writer'))
+assert.ok(remediationMarkdown.includes('roles/iam.serviceAccountUser'))
+assert.ok(remediationMarkdown.includes('roles/secretmanager.secretAccessor'))
+assert.ok(remediationMarkdown.includes('Only after exact validation passes'))
+assert.equal(JSON.stringify(remediationReport).includes('gha-creds'), false, 'remediation report must not include credential-file paths')
+
 console.log(JSON.stringify({
   ok: true,
-  decisions: [report.decision, exactReport.decision],
+  decisions: [report.decision, exactReport.decision, remediationReport.decision],
   runId: report.defaultBranchWorkflow.latestRun.runId,
   exactRunId: exactReport.defaultBranchWorkflow.latestRun.runId,
   probeFailures: report.readOnlyPreflight.probeFailures,
   exactProbeFailures: exactReport.readOnlyPreflight.probeFailures,
   blockedAction: report.blockedAction,
   exactBlockedAction: exactReport.blockedAction,
+  ownerActions: remediationReport.requiredOwnerActions.map((action) => action.id),
 }, null, 2))

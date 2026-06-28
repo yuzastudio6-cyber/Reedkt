@@ -4,6 +4,8 @@ Decision: `beta_readiness_api_staging_owner_remediation_request_passed_ready_for
 
 This packet turns the exact-input validation failure into the smallest owner action set needed before the staging API deploy workflow can safely run. It is metadata only. It does not mutate IAM, create service accounts, deploy Cloud Run, build or push images, call evidence collectors, run tools, process media, write Supabase/GCS, enable external beta, or enable paid production.
 
+Current supersession note: later read-only owner prerequisite audits proved Cloud Run deploy permissions already pass, so Cloud Run role mutation is no longer part of the active remediation set. The current owner command packet and repaired workflow use only Artifact Registry writer, runtime service-account creation/confirmation, deployer act-as-runtime, deployer metadata-only fixed secret viewer, and runtime fixed secret accessor.
+
 ## Source Evidence
 
 - Exact validation run: [28309751101](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28309751101)
@@ -42,18 +44,21 @@ gcloud iam service-accounts add-iam-policy-binding reeditpro-api-staging@reeditp
   --role=roles/iam.serviceAccountUser
 ```
 
-The owner should ensure the deployer can deploy the staging Cloud Run API service:
+The owner should allow the deployer to describe only the fixed staging API Secret Manager entries without granting secret payload access:
 
 ```bash
-gcloud projects add-iam-policy-binding reeditpro \
-  --member=serviceAccount:<repo-configured-gcp-service-account> \
-  --role=roles/run.admin
+for secret in <fixed-staging-api-secret-name-1> <fixed-staging-api-secret-name-2> <fixed-staging-api-secret-name-3> <fixed-staging-api-secret-name-4>; do
+  gcloud secrets add-iam-policy-binding "$secret" \
+    --project=reeditpro \
+    --member=serviceAccount:<repo-configured-gcp-service-account> \
+    --role=roles/secretmanager.viewer
+done
 ```
 
-The owner should allow the runtime service account to read only the deploy workflow's bound Secret Manager names:
+The owner should allow the runtime service account to read only the deploy workflow's bound fixed Secret Manager names:
 
 ```bash
-for secret in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SECRET WORKER_WEBHOOK_SECRET; do
+for secret in <fixed-staging-api-secret-name-1> <fixed-staging-api-secret-name-2> <fixed-staging-api-secret-name-3> <fixed-staging-api-secret-name-4>; do
   gcloud secrets add-iam-policy-binding "$secret" \
     --project=reeditpro \
     --member=serviceAccount:reeditpro-api-staging@reeditpro.iam.gserviceaccount.com \
@@ -61,7 +66,7 @@ for secret in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SEC
 done
 ```
 
-If the owner has narrower custom roles for staging deploy, they can use those instead of broad predefined roles, as long as the exact validation and guarded deploy workflow requirements pass.
+If the owner has narrower custom roles for staging deploy, they can use those instead of broad predefined roles, as long as the read-only prerequisite audit and guarded deploy workflow requirements pass. Do not add a Cloud Run project role from this packet unless a later audit contradicts the proven Cloud Run deploy permissions.
 
 ## Post-Remediation Validation
 

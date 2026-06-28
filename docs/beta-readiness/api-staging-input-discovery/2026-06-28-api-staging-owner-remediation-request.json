@@ -8,6 +8,12 @@
     "workflowSupportPr": 1374,
     "exactBlockerRecordPr": 1375
   },
+  "supersededCloudRunRoleGuidance": {
+    "reason": "Later owner prerequisite audits proved Cloud Run deploy permissions pass, so roles/run.admin is no longer part of the active owner remediation set.",
+    "currentCommandPacket": "docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.md",
+    "workflowScopeFixPr": 1441,
+    "workflowScopeFixMergeSha": "1b08bb39378952ff0922e9c3535067a4fa583620"
+  },
   "requiredOwnerActions": [
     {
       "id": "artifact_registry_repository_access",
@@ -30,22 +36,17 @@
       "commandTemplate": "gcloud iam service-accounts add-iam-policy-binding reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --project=reeditpro --member=serviceAccount:<repo-configured-gcp-service-account> --role=roles/iam.serviceAccountUser"
     },
     {
-      "id": "cloud_run_deploy_permission",
-      "purpose": "Allow the deployer identity to deploy the staging API Cloud Run service.",
-      "roleCandidate": "roles/run.admin",
-      "commandTemplate": "gcloud projects add-iam-policy-binding reeditpro --member=serviceAccount:<repo-configured-gcp-service-account> --role=roles/run.admin"
+      "id": "deployer_fixed_secret_metadata_describe",
+      "purpose": "Allow the deployer identity to describe only the fixed staging API Secret Manager entries without secret payload access.",
+      "roleCandidate": "roles/secretmanager.viewer",
+      "commandTemplate": "for secret in <fixed-staging-api-secret-name-1> <fixed-staging-api-secret-name-2> <fixed-staging-api-secret-name-3> <fixed-staging-api-secret-name-4>; do gcloud secrets add-iam-policy-binding \"$secret\" --project=reeditpro --member=serviceAccount:<repo-configured-gcp-service-account> --role=roles/secretmanager.viewer; done"
     },
     {
       "id": "runtime_secret_access",
-      "purpose": "Allow the staging API runtime service account to read only the Secret Manager secrets bound by the guarded deploy workflow.",
+      "purpose": "Allow the staging API runtime service account to read only the fixed Secret Manager secrets bound by the guarded deploy workflow.",
       "roleCandidate": "roles/secretmanager.secretAccessor",
-      "secretNames": [
-        "SUPABASE_URL",
-        "SUPABASE_SERVICE_ROLE_KEY",
-        "PROVIDER_GATEWAY_SHARED_SECRET",
-        "WORKER_WEBHOOK_SECRET"
-      ],
-      "commandTemplate": "for secret in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SECRET WORKER_WEBHOOK_SECRET; do gcloud secrets add-iam-policy-binding \"$secret\" --project=reeditpro --member=serviceAccount:reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor; done"
+      "secretNames": "fixed_staging_api_secret_entries_redacted",
+      "commandTemplate": "for secret in <fixed-staging-api-secret-name-1> <fixed-staging-api-secret-name-2> <fixed-staging-api-secret-name-3> <fixed-staging-api-secret-name-4>; do gcloud secrets add-iam-policy-binding \"$secret\" --project=reeditpro --member=serviceAccount:reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor; done"
     }
   ],
   "postRemediationValidation": [

@@ -1,0 +1,56 @@
+{
+  "reportId": "beta-readiness-api-staging-owner-remediation-workflow-ready-2026-06-28",
+  "decision": "beta_readiness_api_staging_owner_remediation_workflow_ready_for_owner_dispatch",
+  "sourceSha": "5c54e048566867c4fc2f8e5e2c1c11d675691be7",
+  "defaultBranchWorkflow": {
+    "path": ".github/workflows/beta-readiness-api-staging-owner-remediation.yml",
+    "branch": "codex/reeditpro-web-ui-shell",
+    "workflowPr": 1382,
+    "workflowMergeSha": "e818b5c6cdd200b6e6c06c517f5f2e3f557388f6",
+    "workflowDispatchOnly": true,
+    "dispatchedInThisPhase": false,
+    "requiredConfirmations": [
+      "APPLY_STAGING_BETA_API_OWNER_REMEDIATION",
+      "MUTATE_STAGING_IAM_ONLY"
+    ]
+  },
+  "lockedInputs": {
+    "projectId": "reeditpro",
+    "region": "us-east1",
+    "artifactRegion": "us-central1",
+    "artifactRepository": "reeditpro-staging-workers",
+    "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+    "serviceName": "reeditpro-api-staging"
+  },
+  "plannedOwnerActions": [
+    "grant deployer Artifact Registry writer on reeditpro-staging-workers",
+    "create reeditpro-api-staging runtime service account if missing",
+    "grant deployer iam.serviceAccountUser on runtime service account",
+    "grant deployer run.admin for staging API deploy",
+    "grant runtime service account secretmanager.secretAccessor on the four fixed deploy workflow secret names"
+  ],
+  "recommendedCommandTemplate": "gh workflow run beta-readiness-api-staging-owner-remediation.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_owner_remediation=APPLY_STAGING_BETA_API_OWNER_REMEDIATION --field confirm_iam_mutation_scope=MUTATE_STAGING_IAM_ONLY --field artifact_region=us-central1 --field artifact_repository=reeditpro-staging-workers --field deployer_service_account=<repo-configured-gcp-service-account> --field runtime_service_account=reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --field service_name=reeditpro-api-staging",
+  "postRemediationValidation": [
+    "rerun beta-readiness-api-staging-input-discovery.yml with exact inputs",
+    "run npm run beta:readiness:api-deployment-preflight after staging API deployment has a URL and deployed source SHA",
+    "run npm run beta:readiness:deployed-evidence-input-manifest before deployed evidence collectors"
+  ],
+  "blockedScopes": [
+    "owner_workflow_not_dispatched_by_codex",
+    "cloud_run_deploy_not_run",
+    "docker_build_not_run",
+    "artifact_registry_push_not_run",
+    "evidence_collectors_not_run",
+    "external_beta_not_enabled",
+    "paid_production_not_enabled"
+  ],
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "productionEnabled": false
+}

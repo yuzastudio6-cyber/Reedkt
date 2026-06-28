@@ -7,6 +7,8 @@ const exactJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-2
 const exactMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-exact-input-validation-blocker.md'
 const remediationJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-request.json'
 const remediationMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-request.md'
+const workflowReadyJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-workflow-ready.json'
+const workflowReadyMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-workflow-ready.md'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const report = JSON.parse(readFileSync(jsonPath, 'utf8')) as {
@@ -100,6 +102,24 @@ const remediationReport = JSON.parse(readFileSync(remediationJsonPath, 'utf8')) 
   }
 }
 const remediationMarkdown = readFileSync(remediationMarkdownPath, 'utf8')
+const workflowReadyReport = JSON.parse(readFileSync(workflowReadyJsonPath, 'utf8')) as {
+  decision: string
+  defaultBranchWorkflow: {
+    path: string
+    workflowPr: number
+    workflowMergeSha: string
+    workflowDispatchOnly: boolean
+    dispatchedInThisPhase: boolean
+    requiredConfirmations: string[]
+  }
+  recommendedCommandTemplate: string
+  plannedOwnerActions: string[]
+  blockedScopes: string[]
+  productReadyLocalOssCount: number
+  externalBetaEnabled: boolean
+  productionEnabled: boolean
+}
+const workflowReadyMarkdown = readFileSync(workflowReadyMarkdownPath, 'utf8')
 
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-api-staging-input-discovery-blocker'],
@@ -228,9 +248,31 @@ assert.ok(remediationMarkdown.includes('roles/secretmanager.secretAccessor'))
 assert.ok(remediationMarkdown.includes('Only after exact validation passes'))
 assert.equal(JSON.stringify(remediationReport).includes('gha-creds'), false, 'remediation report must not include credential-file paths')
 
+assert.equal(workflowReadyReport.decision, 'beta_readiness_api_staging_owner_remediation_workflow_ready_for_owner_dispatch')
+assert.equal(workflowReadyReport.defaultBranchWorkflow.path, '.github/workflows/beta-readiness-api-staging-owner-remediation.yml')
+assert.equal(workflowReadyReport.defaultBranchWorkflow.workflowPr, 1382)
+assert.equal(workflowReadyReport.defaultBranchWorkflow.workflowMergeSha, 'e818b5c6cdd200b6e6c06c517f5f2e3f557388f6')
+assert.equal(workflowReadyReport.defaultBranchWorkflow.workflowDispatchOnly, true)
+assert.equal(workflowReadyReport.defaultBranchWorkflow.dispatchedInThisPhase, false)
+assert.deepEqual(workflowReadyReport.defaultBranchWorkflow.requiredConfirmations, [
+  'APPLY_STAGING_BETA_API_OWNER_REMEDIATION',
+  'MUTATE_STAGING_IAM_ONLY',
+])
+assert.ok(workflowReadyReport.recommendedCommandTemplate.includes('beta-readiness-api-staging-owner-remediation.yml'))
+assert.ok(workflowReadyReport.plannedOwnerActions.some((action) => action.includes('Artifact Registry writer')))
+assert.ok(workflowReadyReport.plannedOwnerActions.some((action) => action.includes('runtime service account')))
+assert.ok(workflowReadyReport.blockedScopes.includes('owner_workflow_not_dispatched_by_codex'))
+assert.equal(workflowReadyReport.productReadyLocalOssCount, 0)
+assert.equal(workflowReadyReport.externalBetaEnabled, false)
+assert.equal(workflowReadyReport.productionEnabled, false)
+assert.ok(workflowReadyMarkdown.includes('Codex did not dispatch it in this phase'))
+assert.ok(workflowReadyMarkdown.includes('APPLY_STAGING_BETA_API_OWNER_REMEDIATION'))
+assert.ok(workflowReadyMarkdown.includes('MUTATE_STAGING_IAM_ONLY'))
+assert.ok(workflowReadyMarkdown.includes('Product-ready local OSS count remains `0`'))
+
 console.log(JSON.stringify({
   ok: true,
-  decisions: [report.decision, exactReport.decision, remediationReport.decision],
+  decisions: [report.decision, exactReport.decision, remediationReport.decision, workflowReadyReport.decision],
   runId: report.defaultBranchWorkflow.latestRun.runId,
   exactRunId: exactReport.defaultBranchWorkflow.latestRun.runId,
   probeFailures: report.readOnlyPreflight.probeFailures,
@@ -238,4 +280,5 @@ console.log(JSON.stringify({
   blockedAction: report.blockedAction,
   exactBlockedAction: exactReport.blockedAction,
   ownerActions: remediationReport.requiredOwnerActions.map((action) => action.id),
+  ownerWorkflow: workflowReadyReport.defaultBranchWorkflow.path,
 }, null, 2))

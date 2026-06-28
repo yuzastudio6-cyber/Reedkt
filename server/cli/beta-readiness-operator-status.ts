@@ -217,7 +217,7 @@ function buildNextActions(
     actions.push('Run npm run beta:tools:core-real-check-preview locally first; use npm run beta:tools:core-real-check-preview:hydrated after npm run tools:readiness:install-core-python for Python-backed core tools. Then run npm run beta:tools:local-accepted-evidence-bundle before running npm run beta:tools:local-accepted-evidence-collector against deployed staging. If recording individually instead of as a bundle, run npm run beta:tools:core-real-check-evidence for core tools and npm run beta:tools:libass-synthetic-burnin-qa-evidence for libass.')
   }
 
-  actions.push('Use npm run beta:readiness:owner-approval-packet plus docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md as the current non-secret source for platform and launch owner approval inputs; the packet does not grant approval by itself.')
+  actions.push('Use npm run beta:readiness:owner-approval-packet plus docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md as the current non-secret source for platform and launch owner approval inputs; the packet does not grant approval by itself. Generate the exact local fill-in template with npm run beta:readiness:owner-approval-env-template.')
   actions.push('Before rerunning deployed evidence manifests or collectors with owner-provided values, run npm run beta:readiness:owner-approval-intake-preflight to require approval/attestation booleans to be explicitly true, reject secret-like owner notes, reject real-user-media or paid-production scope flags, and avoid echoing evidence note values.')
 
   if (!platformEvidence.readyToRecordEvidencePacket) {

@@ -1,0 +1,97 @@
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_6_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-6-result'
+
+export const QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_CREDIT_ESTIMATES_PLAN_VERSION_FIX = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_backend_runtime_persistence_baseline_credit_estimates_plan_version_fix_only',
+  decision:
+    'qwen2_5_vl_backend_runtime_persistence_baseline_credit_estimates_plan_version_fix_recorded',
+  upstreamBackendRuntimePersistenceLocalHarnessValidationRetry6ResultDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_6_RESULT.decision,
+  repairedMigration: {
+    path: 'supabase/migrations/202605180004_reeditpro_credits_approval_snapshots.sql',
+    failedStatementCategory: 'idx_credit_estimates_project_plan',
+    previousFailure:
+      'column_edit_plan_version_id_does_not_exist_on_public_credit_estimates_sqlstate_42703',
+    repair: 'add_idempotent_credit_estimates_edit_plan_version_compatibility_column',
+    compatibilityColumns: [
+      'public.credit_estimates.edit_plan_version_id',
+    ],
+    olderBaselineTables: [
+      'public.credit_estimates',
+    ],
+    compatibilityBackfills: [],
+    backfillPolicy:
+      'no_backfill_because_migration_must_not_invent_edit_plan_versions_or_credit_records',
+    constraintsUnblocked: [
+      'credit_estimates_edit_plan_version_id_fkey',
+    ],
+    indexesUnblocked: [
+      'idx_credit_estimates_project_plan',
+    ],
+  },
+  runtimeFlags: {
+    baselineCreditEstimatesPlanVersionFixRecorded: true,
+    activeBaselineMigrationEdited: true,
+    creditEstimatesEditPlanVersionColumnGuarded: true,
+    creditEstimatesEditPlanVersionForeignKeyGuarded: true,
+    creditEstimatesProjectPlanIndexUnblocked: true,
+    creditEstimatesPlanVersionBackfillSkipped: true,
+    newActiveMigrationCreated: false,
+    qwenActiveMigrationCreated: false,
+    supabaseCliExecuted: false,
+    dockerStarted: false,
+    sqlExecuted: false,
+    migrationDeployed: false,
+    qwenDraftSqlApplied: false,
+    qwenLocalSqlTestsExecuted: false,
+    localHarnessStarted: false,
+    localHarnessValidationAttemptedAfterFix: false,
+    localHarnessValidationPassedAfterFix: false,
+    readyForRealWorkerDispatch: false,
+    privateInvokeReady: false,
+    realJobCreated: false,
+    realLeaseClaimed: false,
+    idempotencyRowCreated: false,
+    jobEventCreated: false,
+    backendRuntimeMessageCreated: false,
+    workerClaimCreated: false,
+    storageObjectRecordCreated: false,
+    signedUrlEventCreated: false,
+    qaReportCreated: false,
+    auditEventCreated: false,
+    cloudRunInvocationAttempted: false,
+    serviceRuntimeRequestSent: false,
+    serviceUrlResolvedNow: false,
+    audienceResolvedNow: false,
+    identityTokenFetched: false,
+    authHeaderCreated: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    vllmEngineInitialized: false,
+    promptProcessed: false,
+    forwardPassRun: false,
+    inferenceRun: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseCloudTouched: false,
+    stagingTouched: false,
+    productionTouched: false,
+    generatedAssetsCreated: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    mediaProcessingRun: false,
+    renderExportRun: false,
+    creditMutationCreated: false,
+    betaReady: false,
+    productionReady: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt:
+    'QWEN2_5_VL_STACK_TOOL_58AH-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-7: retry Qwen local harness validation after credit estimates plan-version baseline fix, no deploy/no cloud/no assets/no beta',
+} as const
+
+export type Qwen25VlBackendRuntimePersistenceBaselineCreditEstimatesPlanVersionFix =
+  typeof QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_CREDIT_ESTIMATES_PLAN_VERSION_FIX

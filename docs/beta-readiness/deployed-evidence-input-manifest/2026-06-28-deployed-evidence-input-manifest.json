@@ -30,6 +30,8 @@
     "deployWorkflowRunId": "28335776268",
     "deployWorkflowRunUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28335776268",
     "deployEvidenceReport": "docs/beta-readiness/api-staging-deploy-current-source/2026-06-28-d997-api-staging-deploy.json",
+    "apiDeploymentPreflightReport": "docs/beta-readiness/api-deployment-preflight/2026-06-28-d997-api-deployment-preflight-passed.json",
+    "apiDeploymentPreflightDecision": "beta_readiness_api_deployment_preflight_passed_ready_for_deployed_evidence_input_manifest",
     "publicUnauthenticatedHealthStatus": 403,
     "authenticatedHealthReadback": "not_rerun_local_cloud_cli_auth_expired",
     "platformTechnicalProbeAtD997": "not_rerun_owner_approval_and_authenticated_preflight_still_required",

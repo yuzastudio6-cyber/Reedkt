@@ -2,6 +2,8 @@
 
 Decision: `beta_readiness_api_deployment_preflight_blocked_missing_staging_api_deployment_inputs`
 
+Current status: historical. The current-source `d997d567d40853f59741763c8e9ca8b2c361148a` API deployment preflight is now recorded in `docs/beta-readiness/api-deployment-preflight/2026-06-28-d997-api-deployment-preflight-passed.md` with decision `beta_readiness_api_deployment_preflight_passed_ready_for_deployed_evidence_input_manifest`.
+
 The 14-tool local accepted evidence snapshot is ready for deployed evidence recording, but the deployed beta-readiness API service is not yet proven/configured in this source truth.
 
 Live GitHub readback found repository variables for `GCP_PROJECT_ID`, `GCP_REGION`, render-canary URLs, and `STAGING_SUPABASE_PROJECT_REF`. It did not find a beta-readiness API base URL, deployed source SHA, API image tag/repository inputs, or API service account inputs. The original preflight checkout had no `.github/workflows` directory and no GitHub deployment records were returned.

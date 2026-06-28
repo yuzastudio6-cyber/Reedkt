@@ -12,6 +12,7 @@ const readyEnv: BetaReadinessApiDeploymentPreflightEnv = {
   REEDITPRO_ARTIFACT_REPOSITORY: 'reeditpro-staging-workers',
   REEDITPRO_IMAGE_TAG: 'beta-readiness-api-a63c6599',
   REEDITPRO_API_SERVICE_ACCOUNT: 'reeditpro-api-staging',
+  REEDITPRO_BETA_API_DEPLOYMENT_SERVICE_NAME: 'reeditpro-api-staging',
   REEDITPRO_BETA_API_DEPLOYMENT_SOURCE_SHA: 'a63c6599310cbcbd15746734924f1996d750997e',
   REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA: 'a63c6599310cbcbd15746734924f1996d750997e',
   REEDITPRO_BETA_EXTERNAL_API_BASE_URL: 'https://reeditpro-staging-api-abc123-ue.a.run.app',
@@ -39,7 +40,7 @@ assert.equal(ready.readyToVerifyDeployedApi, true)
 assert.equal(ready.readyForDeployedEvidenceCollectors, true)
 assert.equal(ready.decision, 'beta_readiness_api_deployment_preflight_passed_ready_for_deployed_evidence_input_manifest')
 assert.equal(ready.environment, 'staging')
-assert.equal(ready.plannedService.serviceName, 'reeditpro-api')
+assert.equal(ready.plannedService.serviceName, 'reeditpro-api-staging')
 assert.equal(ready.plannedService.region, 'us-east1')
 assert.equal(ready.plannedService.serviceAccount, 'reeditpro-api-staging@reeditpro.iam.gserviceaccount.com')
 assert.equal(ready.plannedService.image, 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:beta-readiness-api-a63c6599')
@@ -48,7 +49,7 @@ assert.ok(ready.recommendedCommands.some((command) => command.includes('gh workf
 assert.ok(ready.recommendedCommands.some((command) => command.includes('--ref codex/reeditpro-web-ui-shell')), 'workflow command should run from the default branch')
 assert.ok(ready.recommendedCommands.some((command) => command.includes('source_ref=codex/sound-music-audio-1abc-checkpoint')), 'workflow command should deploy the tools source branch')
 assert.equal(ready.recommendedCommands.some((command) => command.includes('scripts/gcp/prod/08-deploy-api-service.example.sh')), false, 'ready report should not point at the older local gcloud template as the primary deploy path')
-assert.ok(ready.warnings.some((warning) => warning.includes('Artifact Registry repository access')), 'ready report should warn that exact input discovery precedes deploy')
+assert.ok(ready.warnings.some((warning) => warning.includes('historical audit context')), 'ready report should classify older discovery blockers as historical after current deploy evidence exists')
 assert.ok(ready.warnings.some((warning) => warning.includes('workflow_dispatch-only')), 'ready report should describe the guarded workflow boundary')
 assert.deepEqual(ready.missingConfiguration, [])
 assert.deepEqual(ready.missingConfirmations, [])

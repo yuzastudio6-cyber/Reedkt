@@ -2,6 +2,8 @@
   "reportId": "beta-readiness-api-deployment-preflight-2026-06-28",
   "createdAt": "2026-06-28T02:10:00Z",
   "decision": "beta_readiness_api_deployment_preflight_blocked_missing_staging_api_deployment_inputs",
+  "currentStatus": "historical_after_current_source_d997_preflight_passed",
+  "supersededForCurrentSourceBy": "docs/beta-readiness/api-deployment-preflight/2026-06-28-d997-api-deployment-preflight-passed.json",
   "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
   "sourceSha": "a63c6599310cbcbd15746734924f1996d750997e",
   "liveGithubReadback": {

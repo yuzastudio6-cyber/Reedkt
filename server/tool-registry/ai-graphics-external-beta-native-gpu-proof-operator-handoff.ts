@@ -175,15 +175,17 @@ function sourceCollectionAccepted(
 ): boolean {
   const counts = packet?.counts
   const booleans = packet?.booleans
+  const sourceDecision = packet?.sourceDecision ?? packet?.decision
+  const statusDecision = packet?.sourceDecision ? packet?.decision : packet?.currentStatus
   return Boolean(packet) &&
-    packet?.sourceDecision === 'ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks' &&
+    sourceDecision === 'ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks' &&
     (
-      packet?.decision === 'external_beta_native_gpu_proof_collection_blocked_pending_private_manifests_and_runtime_results' ||
-      packet?.decision === 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready' ||
+      statusDecision === 'external_beta_native_gpu_proof_collection_blocked_pending_private_manifests_and_runtime_results' ||
+      statusDecision === 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready' ||
       packet?.currentStatus === 'external_beta_native_gpu_proof_collection_blocked_pending_private_manifests_and_runtime_results' ||
       packet?.readyAfterEvidenceStatus === 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready'
     ) &&
-    packet?.totalAiGraphicsTools === 21 &&
+    (packet?.totalAiGraphicsTools === 21 || counts?.totalAiGraphicsTools === 21) &&
     counts?.gpuRuntimeTargetedTools === 8 &&
     counts?.modelWeightManifestRequiredTools === 5 &&
     counts?.nativeGpuRuntimeProofProfilesRequired === 6 &&

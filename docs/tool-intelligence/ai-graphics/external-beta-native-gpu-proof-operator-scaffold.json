@@ -1,0 +1,97 @@
+{
+  "decision": "ai_graphics_external_beta_native_gpu_proof_operator_scaffold_prepared_local_only",
+  "summary": "Local-only scaffold generator for the native GPU proof operator handoff. It writes an operator handoff packet, guarded shell script, env example, and checklist into an ignored/local output directory. It does not execute Docker, start GPU runtime, download model weights, load models, run inference, process media, mutate storage, create signed URLs, create public artifacts, or unlock external beta/production.",
+  "sourceChain": {
+    "operatorHandoff": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-operator-handoff.json",
+    "nativeGpuProofCollection": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-collection.json"
+  },
+  "contractSurface": {
+    "cli": "server/cli/ai-graphics-external-beta-native-gpu-proof-operator-scaffold.ts",
+    "script": "ai-graphics:external-beta-native-gpu-proof-operator-scaffold",
+    "diagnostic": "scripts/validation/ai-graphics-external-beta-native-gpu-proof-operator-scaffold-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics"
+  },
+  "defaultOutputDirectory": ".local-artifacts/ai-graphics/native-gpu-proof-operator",
+  "generatedFiles": {
+    "handoffPacket": "operator-handoff-packet.json",
+    "runScript": "run-native-gpu-proof-operator.sh",
+    "envExample": "operator.env.example",
+    "checklist": "operator-checklist.md"
+  },
+  "gpuRuntimeTargetedTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background"
+  ],
+  "modelWeightManifestRequiredTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "runtimeProfilesRequired": [
+    "gpu_worker_ai_graphics",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "requiredConfirmationEnv": "REEDITPRO_AI_GRAPHICS_NATIVE_GPU_OPERATOR_CONFIRM=run-native-gpu-proof-on-approved-l4-host",
+  "requiredPrivateModelRootEnv": "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT",
+  "operatorScriptBehavior": {
+    "generatedOnlyByScaffold": true,
+    "refusesWithoutExplicitConfirmation": true,
+    "requiresPrivateModelWeightRoot": true,
+    "runsNativeGpuProofOnlyWhenOperatorExecutesScript": true,
+    "usesOnDemandGpuContainers": true,
+    "approvesIdleGpuRuntime": false,
+    "allowsCpuFallbackForHeavyTools": false
+  },
+  "booleans": {
+    "externalBetaNativeGpuProofOperatorScaffoldPrepared": true,
+    "all8GpuRuntimeToolsCovered": true,
+    "all5ModelWeightToolsCovered": true,
+    "all6NativeGpuProfilesCovered": true,
+    "operatorRunbookScaffoldCreated": true,
+    "guardedShellScriptCreated": true,
+    "envExampleCreated": true,
+    "operatorChecklistCreated": true,
+    "scriptRequiresExplicitNativeGpuOperatorConfirmation": true,
+    "scriptRequiresPrivateModelWeightRoot": true,
+    "localOnlyEvidenceCollection": true,
+    "privateArtifactRefsRequired": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "cpuFallbackAllowedForHeavyTools": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

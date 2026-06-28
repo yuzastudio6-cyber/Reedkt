@@ -28,6 +28,7 @@
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
+  "sourceLaunchGoNoGoRuntimeProofBridgeAccepted": true,
   "requiredExternalRuntimeGates": [
     "external beta launch go/no-go approval",
     "external beta feature flag approval",
@@ -120,6 +121,7 @@
   "booleans": {
     "externalBetaRuntimeAdmissionContractPrepared": true,
     "sourceExternalBetaLaunchGoNoGoAccepted": true,
+    "sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted": true,
     "sourceOnDemandRuntimeAdmissionAccepted": true,
     "externalBetaRuntimeAdmissionReadyWithProvidedEvidence": true,
     "externalBetaWorkerEnqueueAllowedWithProvidedEvidence": true,

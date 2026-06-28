@@ -46,6 +46,7 @@ export interface AiGraphicsExternalBetaRuntimeAdmission {
   requestedToolId: string | null
   executionRequested: boolean
   sourceLaunchGoNoGoAccepted: boolean
+  sourceLaunchGoNoGoRuntimeProofBridgeAccepted: boolean
   onDemandRuntimeAdmission: AiGraphicsOnDemandRuntimeAdmission
   sourceLaunchGoNoGo: AiGraphicsExternalBetaLaunchGoNoGo
   missingExternalBetaRuntimeGates: string[]
@@ -71,6 +72,7 @@ export interface AiGraphicsExternalBetaRuntimeAdmission {
   booleans: {
     externalBetaRuntimeAdmissionContractPrepared: true
     sourceExternalBetaLaunchGoNoGoAccepted: boolean
+    sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted: boolean
     sourceOnDemandRuntimeAdmissionAccepted: boolean
     externalBetaRuntimeAdmissionReadyWithProvidedEvidence: boolean
     externalBetaWorkerEnqueueAllowedWithProvidedEvidence: boolean
@@ -131,8 +133,14 @@ function hasValue(value?: string): boolean {
   return typeof value === 'string' && value.trim().length > 0
 }
 
+function launchGoNoGoRuntimeProofBridgeAccepted(packet: AiGraphicsExternalBetaLaunchGoNoGo): boolean {
+  return packet.sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted === true &&
+    packet.booleans.sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted === true
+}
+
 function sourceLaunchGoNoGoAccepted(packet: AiGraphicsExternalBetaLaunchGoNoGo): boolean {
-  return packet.status === 'external_beta_launch_go_no_go_approved_runtime_still_blocked' &&
+  return launchGoNoGoRuntimeProofBridgeAccepted(packet) &&
+    packet.status === 'external_beta_launch_go_no_go_approved_runtime_still_blocked' &&
     packet.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence === 21 &&
     packet.booleans.all21ToolsExternalBetaLaunchGoNoGoApprovedWithProvidedEvidence === true &&
     packet.externalBetaReadyNowTools === 0 &&
@@ -203,6 +211,8 @@ export function evaluateAiGraphicsExternalBetaRuntimeAdmission(
     input.sourceExternalBetaLaunchGoNoGoPacket ??
     buildAiGraphicsExternalBetaLaunchGoNoGo(input)
   const onDemandAdmission = evaluateAiGraphicsOnDemandRuntimeAdmission(input)
+  const launchRuntimeProofBridgeAccepted =
+    launchGoNoGoRuntimeProofBridgeAccepted(sourceLaunchGoNoGo)
   const launchAccepted = sourceLaunchGoNoGoAccepted(sourceLaunchGoNoGo)
   const missingExternalBetaRuntimeGates = input.executionRequested === true
     ? missingExternalRuntimeGates({ input, launchAccepted, onDemandAdmission })
@@ -230,6 +240,7 @@ export function evaluateAiGraphicsExternalBetaRuntimeAdmission(
     requestedToolId: input.requestedToolId ?? null,
     executionRequested: input.executionRequested === true,
     sourceLaunchGoNoGoAccepted: launchAccepted,
+    sourceLaunchGoNoGoRuntimeProofBridgeAccepted: launchRuntimeProofBridgeAccepted,
     onDemandRuntimeAdmission: onDemandAdmission,
     sourceLaunchGoNoGo,
     missingExternalBetaRuntimeGates,
@@ -244,6 +255,8 @@ export function evaluateAiGraphicsExternalBetaRuntimeAdmission(
     booleans: {
       externalBetaRuntimeAdmissionContractPrepared: true,
       sourceExternalBetaLaunchGoNoGoAccepted: launchAccepted,
+      sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted:
+        launchRuntimeProofBridgeAccepted,
       sourceOnDemandRuntimeAdmissionAccepted:
         onDemandAdmission.runtimeJobAdmissionReadyWithProvidedEvidence,
       externalBetaRuntimeAdmissionReadyWithProvidedEvidence,

@@ -194,6 +194,9 @@ unlock production. GPU runtime is only start-allowed for an accepted future
 external-beta worker job; `gpuRuntimeShouldStartNow=false`,
 `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
 GPU runtime is only start-allowed for an accepted future external-beta worker job.
+Runtime admission now also rejects source launch go/no-go packets that strip or
+weaken the native GPU runtime-proof bridge, so external-beta worker admission
+cannot bypass the all-21 runtime-proof bridge before enqueue.
 
 AI graphics external beta tool-call gateway decision
 `ai_graphics_external_beta_tool_call_gateway_contract_prepared_with_runtime_blocks`

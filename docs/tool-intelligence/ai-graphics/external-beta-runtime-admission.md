@@ -9,6 +9,7 @@ This contract is the external-beta runtime admission wrapper for AI graphics too
 - Tools covered: `21`
 - Product-facing capabilities covered: `12`
 - GPU runtime targeted tools: `8`
+- Source launch go/no-go runtime proof bridge accepted: `true`
 - Full external-beta runtime admission examples ready with provided evidence: `2`
 - GPU runtime start allowed for accepted external-beta job examples: `1`
 - GPU runtime should start now: `0`
@@ -19,7 +20,7 @@ This contract is the external-beta runtime admission wrapper for AI graphics too
 
 External beta runtime admission can become ready with provided evidence only when:
 
-1. External-beta launch go/no-go is approved with provided evidence.
+1. External-beta launch go/no-go is approved with provided evidence and preserves the native GPU runtime-proof bridge.
 2. The selected tool passes on-demand runtime admission with approved plan snapshot, credit reservation, Tool Route, Worker, runtime enqueue, owner runtime approval, private artifact manifest, and required runtime proof refs.
 3. External beta feature flag, tool allowlist, traffic scope, telemetry, support, cost guardrail, worker pool, and GPU concurrency controls are present.
 

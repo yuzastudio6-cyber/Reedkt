@@ -216,6 +216,9 @@ if (!index.includes("export * from './ai-graphics-external-beta-runtime-admissio
 if (docs.decision !== 'ai_graphics_external_beta_runtime_admission_contract_prepared_with_runtime_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
+if (docs.sourceLaunchGoNoGoRuntimeProofBridgeAccepted !== true) {
+  fail('docs_source_launch_go_no_go_runtime_proof_bridge_not_true')
+}
 
 for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
@@ -259,6 +262,7 @@ for (const gate of [
 for (const key of [
   'externalBetaRuntimeAdmissionContractPrepared',
   'sourceExternalBetaLaunchGoNoGoAccepted',
+  'sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted',
   'sourceOnDemandRuntimeAdmissionAccepted',
   'externalBetaRuntimeAdmissionReadyWithProvidedEvidence',
   'externalBetaWorkerEnqueueAllowedWithProvidedEvidence',
@@ -295,6 +299,9 @@ for (const needle of [
   'buildAiGraphicsExternalBetaRuntimeAdmissionExamples',
   'evaluateAiGraphicsOnDemandRuntimeAdmission',
   'buildAiGraphicsExternalBetaLaunchGoNoGo',
+  'launchGoNoGoRuntimeProofBridgeAccepted',
+  'sourceLaunchGoNoGoRuntimeProofBridgeAccepted',
+  'sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted',
   'externalBetaRuntimeAdmissionReadyWithProvidedEvidence',
   'externalBetaWorkerEnqueueAllowedWithProvidedEvidence',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJob',
@@ -321,6 +328,7 @@ for (const needle of [
 }
 for (const needle of [
   'External-Beta Runtime Admission',
+  'Source launch go/no-go runtime proof bridge accepted: `true`',
   'GPU remains on-demand only',
   'If no one is using the tool, no GPU runtime should be running',
   'External-beta-ready now: `0`',
@@ -330,6 +338,7 @@ for (const needle of [
 }
 for (const needle of [
   'AI graphics external beta runtime admission decision',
+  'rejects source launch go/no-go packets that strip or',
   'GPU runtime is only start-allowed for an accepted future external-beta worker job',
   '`gpuRuntimeShouldStartNow=false`',
 ]) {
@@ -439,6 +448,17 @@ if (launchGoNoGo.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 2
   fail('launch_go_no_go_approved_tools_not_21')
 }
 const launchGoNoGoPath = writeJson(path.join(tmpRoot, 'launch-go-no-go.json'), launchGoNoGo)
+const weakenedLaunchGoNoGoPath = writeJson(
+  path.join(tmpRoot, 'weakened-launch-go-no-go.json'),
+  {
+    ...launchGoNoGo,
+    sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted: false,
+    booleans: {
+      ...launchGoNoGo.booleans,
+      sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted: false,
+    },
+  },
+)
 
 const commonRuntimeArgs = [
   '--external-beta-launch-go-no-go-packet',
@@ -478,6 +498,11 @@ const commonRuntimeArgs = [
   '--external-beta-worker-pool-ref',
   'external-beta-runtime://worker-pool',
 ]
+const weakenedCommonRuntimeArgs = [
+  '--external-beta-launch-go-no-go-packet',
+  weakenedLaunchGoNoGoPath,
+  ...commonRuntimeArgs.slice(2),
+]
 
 const planningSam2 = parseJsonOutput(runNpm(runScriptName, [
   '--capability-id',
@@ -514,6 +539,19 @@ const readyD3 = parseJsonOutput(runNpm(runScriptName, [
   '--node-runtime-proof-ref',
   'private://ai-graphics/node-static-proof/d3.json',
 ]), 'ready_d3')
+const weakenedLaunchSam2 = parseJsonOutput(runNpm(runScriptName, [
+  ...weakenedCommonRuntimeArgs,
+  '--external-beta-gpu-concurrency-ref',
+  'external-beta-runtime://gpu-concurrency',
+  '--capability-id',
+  'background_removal',
+  '--requested-tool-id',
+  'sam2',
+  '--native-gpu-runtime-proof-ref',
+  'private://ai-graphics/gpu-proof/sam2-proof.json',
+  '--model-weight-manifest-ref',
+  'private://ai-graphics/model-manifests/sam2.json',
+]), 'weakened_launch_sam2')
 const blockedGpuConcurrency = parseJsonOutput(runNpm(runScriptName, [
   ...commonRuntimeArgs,
   '--capability-id',
@@ -563,6 +601,21 @@ if (readySam2.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
 }
 if (readyD3.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
   fail('ready_d3_gpu_start_allowed_not_false')
+}
+if (weakenedLaunchSam2.decision !== 'missing_external_beta_launch_go_no_go') {
+  fail(`weakened_launch_sam2_decision_unexpected:${weakenedLaunchSam2.decision}`)
+}
+if (weakenedLaunchSam2.sourceLaunchGoNoGoAccepted !== false) {
+  fail('weakened_launch_sam2_source_launch_go_no_go_accepted_not_false')
+}
+if (weakenedLaunchSam2.sourceLaunchGoNoGoRuntimeProofBridgeAccepted !== false) {
+  fail('weakened_launch_sam2_runtime_proof_bridge_not_false')
+}
+if (weakenedLaunchSam2.booleans?.sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted !== false) {
+  fail('weakened_launch_sam2_runtime_proof_bridge_boolean_not_false')
+}
+if (weakenedLaunchSam2.externalBetaWorkerEnqueueAllowedWithProvidedEvidence !== false) {
+  fail('weakened_launch_sam2_worker_enqueue_allowed_not_false')
 }
 if (blockedGpuConcurrency.decision !== 'external_beta_runtime_admission_blocked') {
   fail(`blocked_gpu_concurrency_decision_unexpected:${blockedGpuConcurrency.decision}`)
@@ -702,6 +755,7 @@ console.log(JSON.stringify({
   blockedSam2Decision: blockedSam2.decision,
   readySam2Decision: readySam2.decision,
   readyD3Decision: readyD3.decision,
+  weakenedLaunchSam2Decision: weakenedLaunchSam2.decision,
   blockedGpuConcurrencyDecision: blockedGpuConcurrency.decision,
   readySam2GpuRuntimeStartAllowedForAcceptedExternalBetaJob:
     readySam2.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,

@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'backend_runtime_persistence_rls_function_parameter_baseline_fix_required',
-  'Private invoke client status must record the RLS function parameter baseline blocker.',
+    'backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix_required',
+  'Private invoke client status must record the retry-after-RLS-function-parameter-fix blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -169,9 +169,9 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_rls_function_parameter_baseline_fix_required') ||
+    docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix_required') ||
     data.privateInvokeClient.currentStatus ===
-      'backend_runtime_persistence_rls_function_parameter_baseline_fix_required',
+      'backend_runtime_persistence_local_harness_validation_retry_after_rls_function_parameter_fix_required',
   'Doc/data must record backend runtime persistence local harness validation-retry blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
@@ -303,6 +303,12 @@ check(
     docText.includes('`target_workspace_id`') &&
     docText.includes('`workspace_uuid`'),
   'Doc must record the QA reports approved-snapshot fix and retry-11 RLS parameter blocker.',
+)
+check(
+  docText.includes('The RLS helper parameter compatibility fix is now recorded') &&
+    docText.includes('`public.is_workspace_owner_or_admin(uuid)`') &&
+    docText.includes('Retry 12 is required'),
+  'Doc must record the RLS helper parameter fix and retry-12 blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

@@ -23,6 +23,19 @@ const requiredFiles = [
 
 const allowedFiles = new Set(requiredFiles)
 
+const followOnSingleTesterRealProductWalkthroughQaFiles = [
+  'docs/external-beta/single-tester-real-product-walkthrough-qa-1/qa-review.md',
+  'docs/external-beta/single-tester-real-product-walkthrough-qa-1/blocker-matrix.md',
+  'docs/external-beta/single-tester-real-product-walkthrough-qa-1/safety-boundary.md',
+  'docs/external-beta/single-tester-real-product-walkthrough-qa-1/validation-results.md',
+  'docs/external-beta/single-tester-real-product-walkthrough-qa-1/single-tester-real-product-walkthrough-qa-record.json',
+  'docs/activation-phase-rp-external-beta-single-tester-real-product-walkthrough-qa-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-single-tester-go-no-go-1.md',
+  'scripts/validation/rp-external-beta-single-tester-real-product-walkthrough-qa-1-diagnostics.mjs',
+]
+
+for (const file of followOnSingleTesterRealProductWalkthroughQaFiles) allowedFiles.add(file)
+
 const requiredText = [
   packet,
   'REEDITPRO_CONFIRM_EXTERNAL_BETA_SINGLE_TESTER_QWEN_PRODUCT_FLOW_RUNTIME',

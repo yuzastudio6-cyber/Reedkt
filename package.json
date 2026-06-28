@@ -271,6 +271,7 @@
     "worker-runtime-jobs:sound-cpu-bounded-internal-beta-dry-run-plan-owner-review-after-planning:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-bounded-internal-beta-dry-run-plan-owner-review-after-planning-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-controlled-internal-dry-run-execution-after-plan-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-controlled-internal-dry-run-execution-after-plan-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-controlled-internal-dry-run-execution-owner-review-after-execution:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-controlled-internal-dry-run-execution-owner-review-after-execution-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-internal-beta-next-scope-review-after-dry-run:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-internal-beta-next-scope-review-after-dry-run-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

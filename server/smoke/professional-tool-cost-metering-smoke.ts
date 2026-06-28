@@ -403,7 +403,8 @@ function createFakeToolCostAdminClient(options: { missingMigration?: boolean } =
       this.storedRows = storedRows
     }
 
-    select(_columns = '*'): this {
+    select(columns = '*'): this {
+      void columns
       return this
     }
 
@@ -432,10 +433,12 @@ function createFakeToolCostAdminClient(options: { missingMigration?: boolean } =
       return { data: this.matchingRows()[0] ?? null, error: null }
     }
 
-    async order(_column: keyof ToolCostEventRow, _options: { ascending: boolean }): Promise<{
+    async order(column: keyof ToolCostEventRow, options: { ascending: boolean }): Promise<{
       data: ToolCostEventRow[]
       error: null
     }> {
+      void column
+      void options
       return { data: this.matchingRows(), error: null }
     }
 
@@ -445,15 +448,19 @@ function createFakeToolCostAdminClient(options: { missingMigration?: boolean } =
   }
 
   class MissingMigrationToolCostQuery {
-    select(_columns = '*'): this {
+    select(columns = '*'): this {
+      void columns
       return this
     }
 
-    eq(_column: string, _value: unknown): this {
+    eq(column: string, value: unknown): this {
+      void column
+      void value
       return this
     }
 
-    insert(_row: ToolCostEventRow): this {
+    insert(row: ToolCostEventRow): this {
+      void row
       return this
     }
 
@@ -468,10 +475,12 @@ function createFakeToolCostAdminClient(options: { missingMigration?: boolean } =
       return this.maybeSingle()
     }
 
-    async order(_column: string, _options: { ascending: boolean }): Promise<{
+    async order(column: string, options: { ascending: boolean }): Promise<{
       data: null
       error: { code: string; message: string }
     }> {
+      void column
+      void options
       return this.maybeSingle()
     }
   }

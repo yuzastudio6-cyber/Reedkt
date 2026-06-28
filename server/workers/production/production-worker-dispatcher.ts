@@ -1,4 +1,10 @@
 import type { ToolExecutionPlan } from '../../../src/backend/contracts/tool-execution-contracts'
+import {
+  createMockToolCostStore,
+  emitProductionToolCostEvent,
+  estimateProductionToolCost,
+  type ToolCreditPrerequisiteStatus,
+} from '../../tool-cost-metering'
 import { createProductionWorkerEvent } from './production-worker-events'
 import { getHardFailedGates, runProductionWorkerGates } from './production-worker-gates'
 import { detectDuplicateToolRun } from './production-worker-idempotency'
@@ -14,6 +20,7 @@ import type {
   ProductionWorkerExecutionResult,
   ProductionWorkerJobPayload,
   ProductionWorkerRuntimeState,
+  ProductionWorkerToolCostMetadata,
 } from './production-worker-types'
 
 function pushEvent(
@@ -117,7 +124,96 @@ export async function dispatchProductionWorkerJob(input: {
     gateChecks,
     events,
     output,
+    toolCostMetadata: buildWorkerToolCostMetadata(payload),
     warnings: collectGateWarnings(gateChecks),
     startedAt,
   })
+}
+
+function buildWorkerToolCostMetadata(payload: ProductionWorkerJobPayload): ProductionWorkerToolCostMetadata {
+  const store = createMockToolCostStore()
+  const estimateStatuses: Record<string, ToolCreditPrerequisiteStatus> = {}
+  const blockedEventStatuses: Record<string, ToolCreditPrerequisiteStatus> = {}
+  const warnings: string[] = []
+  const billableToUser = payload.executionMode === 'production_ready'
+  const creditEstimateId = readStringMetadata(payload.metadata, 'creditEstimateId')
+  const productEditLevel = readProductEditLevel(payload.metadata)
+
+  for (const toolId of payload.requestedToolIds) {
+    const estimate = estimateProductionToolCost({
+      toolId,
+      workspaceId: payload.workspaceId,
+      projectId: payload.projectId,
+      editPlanId: payload.editPlanId,
+      approvedPlanSnapshotId: payload.approvedSnapshotId,
+      jobId: payload.jobId,
+      creditEstimateId,
+      creditReservationId: payload.creditReservationId,
+      productEditLevel,
+      approvedReservationRemainingCredits: readNumberMetadata(payload.metadata, 'approvedReservationRemainingCredits'),
+      idempotencyKey: `${payload.idempotencyKey}:${toolId}`,
+      estimateOnlyWhenBlocked: true,
+    })
+
+    if (!estimate.ok) {
+      blockedEventStatuses[toolId] = estimate.error.status
+      warnings.push(estimate.error.message)
+      continue
+    }
+
+    estimateStatuses[toolId] = estimate.data.creditPrerequisiteStatus
+
+    const emitted = emitProductionToolCostEvent({
+      store,
+      toolId,
+      workspaceId: payload.workspaceId,
+      projectId: payload.projectId,
+      editPlanId: payload.editPlanId,
+      approvedPlanSnapshotId: payload.approvedSnapshotId,
+      jobId: payload.jobId,
+      creditEstimateId,
+      creditReservationId: payload.creditReservationId,
+      productEditLevel,
+      idempotencyKey: `${payload.idempotencyKey}:${toolId}`,
+      billableToUser,
+      nonBillableReason: billableToUser ? undefined : payload.executionMode,
+      metadata: {
+        workerExecutionMode: payload.executionMode,
+        workerType: payload.workerType,
+        renderMode: payload.renderMode ?? null,
+      },
+    })
+
+    if (emitted.ok) {
+      warnings.push(...emitted.data.warnings)
+    } else {
+      blockedEventStatuses[toolId] = emitted.error.status
+      warnings.push(emitted.error.message)
+    }
+  }
+
+  return {
+    mockOnly: true,
+    serviceFeeIncluded: false,
+    requestedToolCount: payload.requestedToolIds.length,
+    estimateStatuses,
+    emittedEvents: store.toolCostEvents,
+    blockedEventStatuses,
+    warnings: Array.from(new Set(warnings)),
+  }
+}
+
+function readStringMetadata(metadata: Record<string, unknown> | undefined, key: string): string | undefined {
+  const value = metadata?.[key]
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+function readNumberMetadata(metadata: Record<string, unknown> | undefined, key: string): number | undefined {
+  const value = metadata?.[key]
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function readProductEditLevel(metadata: Record<string, unknown> | undefined): 'normal' | 'premium' | 'ultra_premium' {
+  const value = readStringMetadata(metadata, 'productEditLevel')
+  return value === 'premium' || value === 'ultra_premium' ? value : 'normal'
 }

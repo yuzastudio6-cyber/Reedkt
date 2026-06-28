@@ -12,11 +12,13 @@ export function createProviderGatewayService(context: ServiceContext) {
     async createProviderRequestAttempt(input: {
       workspaceId: string
       projectId?: string
+      toolId?: string
       providerRoute: string
       providerModel?: string
       generationRequestId?: string
       jobId?: string
       approvedPlanSnapshotId?: string
+      creditEstimateId?: string
       creditReservationId?: string
       requestPayloadHash: string
       mockOnly?: boolean
@@ -154,12 +156,14 @@ async function recordBlockedAttempt(
   input: {
     workspaceId: string
     projectId?: string
+    toolId?: string
     providerRoute: string
     providerModel?: string
     generationRequestId?: string
     jobId?: string
     approvedPlanSnapshotId?: string
     creditReservationId?: string
+    creditEstimateId?: string
     requestPayloadHash: string
   },
 ): Promise<void> {

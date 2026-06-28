@@ -1,6 +1,6 @@
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 
-export interface BetaReadinessApiDeploymentPreflightEnv extends Record<string, string | undefined> {}
+export type BetaReadinessApiDeploymentPreflightEnv = Record<string, string | undefined>
 
 export interface BetaReadinessApiDeploymentPreflightReport {
   ok: boolean

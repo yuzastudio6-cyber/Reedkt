@@ -18,8 +18,8 @@ export function createRenderService(context: ServiceContext) {
         throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Render jobs require approved snapshot and credit reservation IDs.', 409)
       }
       const toolCostEstimate = estimateToolCost({
-        toolId: `render:${input.renderType}`,
-        toolName: `${input.renderType} deterministic render`,
+        toolId: 'remotion',
+        toolName: `Remotion ${input.renderType} deterministic render`,
         usageCategory: input.renderType === 'export' ? 'export' : 'rendering',
         computeLevel: input.renderQualityLevel === 'premium' ? 'premium' : 'standard',
         providerType: 'deterministic_renderer',
@@ -44,6 +44,7 @@ export function createRenderService(context: ServiceContext) {
             creditReservationId: input.creditReservationId,
             renderType: input.renderType,
             renderQualityLevel: input.renderQualityLevel ?? 'draft',
+            toolId: 'remotion',
             status: 'queued',
             createdAt: nowIso(),
             mockOnly: true,

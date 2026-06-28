@@ -1,16 +1,36 @@
 import { createHash } from 'node:crypto'
-import { getRateCardSnapshot, toolCostRateCard } from './rate-card'
+import {
+  COST_MICROS_PER_CENT,
+  TOOL_COST_RATE_CARD,
+  TOOL_COST_RATE_CARD_VERSION,
+  TOOL_RUNTIME_COMPUTE_LEVELS,
+  getRateCardSnapshot,
+  toolCostRateCard,
+} from './rate-card'
 import { assertNoSecretLikeCostPayload } from './secret-safety'
 import type {
+  CalculateToolActualCostMicrosInput,
+  DeterministicRendererCostInput,
+  ExternalProviderCostInput,
+  InfrastructureRuntimeCostInput,
+  MockToolCostEvent,
   ToolCostComputeLevel,
   ToolCostEstimate,
+  ToolCostEstimateRange,
   ToolCostEstimateInput,
   ToolCostEvent,
+  ToolCostEventAggregation,
   ToolCostEventInput,
   ToolCostFailureCategory,
+  ToolCostMathErrorCode,
+  ToolCostMathResult,
+  ToolCostMicrosCalculation,
+  ToolCostPricingSnapshot,
   ToolCostProviderType,
   ToolCostQualityLevel,
   ToolCostRiskLevel,
+  ToolCostSourceKind,
+  ToolRuntimeComputeLevel,
 } from './types'
 
 const MICROS_PER_CENT = 10_000
@@ -86,7 +106,8 @@ export function estimateToolCost(input: ToolCostEstimateInput): ToolCostEstimate
     expectedCredits,
     highCredits,
     rateCardVersion: toolCostRateCard.version,
-    pricingSnapshot: buildPricingSnapshot(input.providerType, input.computeLevel, input.qualityLevel, riskLevel),
+    pricingSnapshot: buildToolCostPricingSnapshot(input.providerType, input.computeLevel, input.qualityLevel, riskLevel),
+    serviceFeeIncluded: false,
     assumptions: [
       ...(input.assumptions ?? []),
       'ReEditPro service/edit fee is not included in tool costs.',
@@ -184,7 +205,7 @@ export function emitToolCostEvent(input: ToolCostEventInput): ToolCostEvent {
     outputResolution: input.outputResolution ?? null,
     outputFrameRate: input.outputFrameRate ?? 0,
     rateCardVersion: toolCostRateCard.version,
-    pricingSnapshot: buildPricingSnapshot(input.providerType, inferComputeLevel(input), input.qualityLevel, inferRiskLevel(input.providerType, input.gpuCount ?? 0, input)),
+    pricingSnapshot: buildToolCostPricingSnapshot(input.providerType, inferComputeLevel(input), input.qualityLevel, inferRiskLevel(input.providerType, input.gpuCount ?? 0, input)),
     estimatedInternalCostCents: input.estimatedInternalCostCents ?? actualInternalCostCents,
     actualInternalCostCents,
     actualInternalCostMicros,
@@ -271,7 +292,7 @@ export function calculateCostMicros(input: {
   return qualityMultiplier * defaults.qualityMultiplier * (computeMicros + storageMicros + networkMicros + overheadMicros + rendererMicros)
 }
 
-function buildPricingSnapshot(
+function buildToolCostPricingSnapshot(
   providerType: ToolCostProviderType,
   computeLevel: ToolCostComputeLevel,
   qualityLevel: ToolCostQualityLevel,
@@ -383,4 +404,360 @@ function resolveRuntimeOverhead(providerType: ToolCostProviderType): number {
   if (providerType === 'cloud_run_job') return toolCostRateCard.infrastructure.cloudRunJobOverheadMicros
   if (providerType === 'compute_engine_vm') return toolCostRateCard.infrastructure.computeEngineVmOverheadMicros
   return 0
+}
+
+export function centsToCreditsCeil(cents: number): ToolCostMathResult<number> {
+  if (!Number.isFinite(cents) || cents < 0 || !Number.isInteger(cents)) {
+    return failToolCost('invalid_cents', 'cents must be a non-negative integer.', 'cents')
+  }
+  return okToolCost(centsToCredits(cents))
+}
+
+export function calculateToolCostCredits(cents: number): ToolCostMathResult<number> {
+  return centsToCreditsCeil(cents)
+}
+
+export function createToolCostCredits(cents: number): number {
+  const result = centsToCreditsCeil(cents)
+  if (!result.ok) throw new Error(result.error.message)
+  return result.data
+}
+
+export function microsToCentsCeil(micros: number): ToolCostMathResult<number> {
+  if (!Number.isFinite(micros) || micros < 0 || !Number.isInteger(micros)) {
+    return failToolCost('invalid_cents', 'micros must be a non-negative integer.', 'micros')
+  }
+  return okToolCost(internalMicrosToCents(micros))
+}
+
+export function normalizeBillableMilliseconds(milliseconds: number): ToolCostMathResult<number> {
+  if (!Number.isFinite(milliseconds) || milliseconds <= 0 || !Number.isInteger(milliseconds)) {
+    return failToolCost('invalid_milliseconds', 'milliseconds must be a positive integer.', 'billableMilliseconds')
+  }
+  return okToolCost(milliseconds)
+}
+
+export function roundBillableMilliseconds(milliseconds: number): ToolCostMathResult<number> {
+  const normalized = normalizeBillableMilliseconds(milliseconds)
+  if (!normalized.ok) return normalized
+  const { minimumBillableMilliseconds, roundingIncrementMilliseconds } = TOOL_COST_RATE_CARD.roundingPolicy
+  const rounded = Math.ceil(normalized.data / roundingIncrementMilliseconds) * roundingIncrementMilliseconds
+  return okToolCost(Math.max(minimumBillableMilliseconds, rounded))
+}
+
+export function buildPricingSnapshot(input: {
+  sourceKind: ToolCostSourceKind
+  provider?: string | null
+  model?: string | null
+  computeLevel?: ToolRuntimeComputeLevel | null
+  riskLevel?: ToolCostRiskLevel | null
+  pricingUnits?: Record<string, unknown>
+}): ToolCostMathResult<ToolCostPricingSnapshot> {
+  const snapshot: ToolCostPricingSnapshot = {
+    rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
+    sourceKind: input.sourceKind,
+    provider: input.provider ?? null,
+    model: input.model ?? null,
+    computeLevel: input.computeLevel ?? null,
+    riskLevel: input.riskLevel ?? null,
+    serviceFeeIncluded: false,
+    pricingUnits: input.pricingUnits ?? {},
+  }
+  const secretSafety = validatePricingSnapshotHasNoSecrets(snapshot)
+  if (!secretSafety.ok) return secretSafety
+  return okToolCost(snapshot)
+}
+
+export function validatePricingSnapshotHasNoSecrets(snapshot: ToolCostPricingSnapshot | Record<string, unknown>): ToolCostMathResult<true> {
+  try {
+    assertNoSecretLikeCostPayload(snapshot, 'pricingSnapshot')
+    return okToolCost(true)
+  } catch (error) {
+    return failToolCost('secret_like_payload', error instanceof Error ? error.message : 'pricing snapshot contains secret-like fields')
+  }
+}
+
+export function calculateExternalProviderCostMicros(
+  input: ExternalProviderCostInput,
+): ToolCostMathResult<ToolCostMicrosCalculation> {
+  const requestCount = nonNegativeInteger(input.requestCount ?? 0, 'requestCount')
+  if (!requestCount.ok) return requestCount
+  const inputTokens = nonNegativeInteger(input.inputTokens ?? 0, 'inputTokens')
+  if (!inputTokens.ok) return inputTokens
+  const outputTokens = nonNegativeInteger(input.outputTokens ?? 0, 'outputTokens')
+  if (!outputTokens.ok) return outputTokens
+  const imageCount = nonNegativeInteger(input.imageCount ?? 0, 'imageCount')
+  if (!imageCount.ok) return imageCount
+  const inputVideoSeconds = nonNegativeFinite(input.inputVideoSeconds ?? 0, 'inputVideoSeconds')
+  if (!inputVideoSeconds.ok) return inputVideoSeconds
+  const outputVideoSeconds = nonNegativeFinite(input.outputVideoSeconds ?? 0, 'outputVideoSeconds')
+  if (!outputVideoSeconds.ok) return outputVideoSeconds
+  const inputAudioSeconds = nonNegativeFinite(input.inputAudioSeconds ?? 0, 'inputAudioSeconds')
+  if (!inputAudioSeconds.ok) return inputAudioSeconds
+  const outputAudioSeconds = nonNegativeFinite(input.outputAudioSeconds ?? 0, 'outputAudioSeconds')
+  if (!outputAudioSeconds.ok) return outputAudioSeconds
+
+  const rates = TOOL_COST_RATE_CARD.provider
+  const breakdownMicros = {
+    requestMicros: requestCount.data * rates.perRequestMicros,
+    inputTokenMicros: Math.ceil(inputTokens.data * rates.perInputTokenMicros),
+    outputTokenMicros: Math.ceil(outputTokens.data * rates.perOutputTokenMicros),
+    inputVideoMicros: Math.ceil(inputVideoSeconds.data * rates.perInputVideoSecondMicros),
+    outputVideoMicros: Math.ceil(outputVideoSeconds.data * rates.perOutputVideoSecondMicros),
+    inputAudioMicros: Math.ceil(inputAudioSeconds.data * rates.perInputAudioSecondMicros),
+    outputAudioMicros: Math.ceil(outputAudioSeconds.data * rates.perOutputAudioSecondMicros),
+    imageMicros: imageCount.data * rates.perImageMicros,
+  }
+  return calculation('external_provider', sumMicros(breakdownMicros), breakdownMicros, {
+    provider: input.provider ?? null,
+    model: input.model ?? null,
+    pricingUnits: { rates, units: input },
+  })
+}
+
+export function calculateInfrastructureRuntimeCostMicros(
+  input: InfrastructureRuntimeCostInput,
+): ToolCostMathResult<ToolCostMicrosCalculation> {
+  const computeLevel = input.computeLevel ?? 'standard'
+  if (!isRuntimeComputeLevel(computeLevel)) return failToolCost('invalid_compute_level', 'Invalid compute level.', 'computeLevel')
+  const billableMilliseconds = roundBillableMilliseconds(input.wallTimeMilliseconds)
+  if (!billableMilliseconds.ok) return billableMilliseconds
+  const billableSeconds = billableMilliseconds.data / 1_000
+  const renderSeconds = nonNegativeFinite(input.renderSeconds ?? billableSeconds, 'renderSeconds')
+  if (!renderSeconds.ok) return renderSeconds
+  const vcpuCount = nonNegativeFinite(input.vcpuCount ?? 0, 'vcpuCount')
+  if (!vcpuCount.ok) return vcpuCount
+  const memoryGib = nonNegativeFinite(input.memoryGib ?? 0, 'memoryGib')
+  if (!memoryGib.ok) return memoryGib
+  const gpuCount = nonNegativeFinite(input.gpuCount ?? 0, 'gpuCount')
+  if (!gpuCount.ok) return gpuCount
+  const tempStorageGibHours = nonNegativeFinite(input.tempStorageGibHours ?? 0, 'tempStorageGibHours')
+  if (!tempStorageGibHours.ok) return tempStorageGibHours
+  const outputStorageGibHours = nonNegativeFinite(input.outputStorageGibHours ?? 0, 'outputStorageGibHours')
+  if (!outputStorageGibHours.ok) return outputStorageGibHours
+  const networkEgressMib = nonNegativeFinite(input.networkEgressMib ?? 0, 'networkEgressMib')
+  if (!networkEgressMib.ok) return networkEgressMib
+
+  const rates = TOOL_COST_RATE_CARD.runtime
+  const breakdownMicros = {
+    renderMicros: Math.ceil(renderSeconds.data * rates.perRenderSecondMicros),
+    cpuMicros: Math.ceil(vcpuCount.data * billableSeconds * rates.perVcpuSecondMicros),
+    memoryMicros: Math.ceil(memoryGib.data * billableSeconds * rates.perMemoryGibSecondMicros),
+    gpuMicros: Math.ceil(gpuCount.data * billableSeconds * rates.perGpuSecondMicros),
+    tempStorageMicros: Math.ceil(tempStorageGibHours.data * rates.perTempStorageGibHourMicros),
+    outputStorageMicros: Math.ceil(outputStorageGibHours.data * rates.perOutputStorageGibHourMicros),
+    networkEgressMicros: Math.ceil(networkEgressMib.data * rates.perNetworkEgressMibMicros),
+  }
+  const result = calculation('infrastructure_runtime', sumMicros(breakdownMicros), breakdownMicros, {
+    computeLevel,
+    pricingUnits: { rates, units: { ...input, billableMilliseconds: billableMilliseconds.data } },
+  })
+  if (!result.ok) return result
+  return okToolCost({ ...result.data, computeLevel, billableMilliseconds: billableMilliseconds.data })
+}
+
+export function calculateDeterministicRendererCostMicros(
+  input: DeterministicRendererCostInput,
+): ToolCostMathResult<ToolCostMicrosCalculation> {
+  const requestCount = nonNegativeInteger(input.requestCount ?? 1, 'requestCount')
+  if (!requestCount.ok) return requestCount
+  const outputSeconds = nonNegativeFinite(input.outputSeconds ?? 0, 'outputSeconds')
+  if (!outputSeconds.ok) return outputSeconds
+  const megapixelFrames = nonNegativeFinite(input.megapixelFrames ?? 0, 'megapixelFrames')
+  if (!megapixelFrames.ok) return megapixelFrames
+  const computeLevel = input.computeLevel ?? 'standard'
+  if (!isRuntimeComputeLevel(computeLevel)) return failToolCost('invalid_compute_level', 'Invalid compute level.', 'computeLevel')
+  const rates = TOOL_COST_RATE_CARD.deterministicRenderer
+  const breakdownMicros = {
+    requestMicros: requestCount.data * rates.flatRequestMicros,
+    outputSecondMicros: Math.ceil(outputSeconds.data * rates.perOutputSecondMicros),
+    megapixelFrameMicros: Math.ceil(megapixelFrames.data * rates.perMegapixelFrameMicros),
+  }
+  const result = calculation('deterministic_renderer', sumMicros(breakdownMicros), breakdownMicros, {
+    computeLevel,
+    pricingUnits: { rates, units: input },
+  })
+  if (!result.ok) return result
+  return okToolCost({ ...result.data, computeLevel })
+}
+
+export function calculateToolActualCostMicros(
+  input: CalculateToolActualCostMicrosInput,
+): ToolCostMathResult<ToolCostMicrosCalculation> {
+  if (input.sourceKind === 'external_provider') return calculateExternalProviderCostMicros(input)
+  if (input.sourceKind === 'infrastructure_runtime') return calculateInfrastructureRuntimeCostMicros(input.runtime)
+  if (input.sourceKind === 'deterministic_renderer') return calculateDeterministicRendererCostMicros(input.deterministicRenderer)
+  if (input.sourceKind === 'mock_manual_entry') {
+    const micros = input.actualInternalCostMicros ?? (input.actualInternalCostCents ?? 0) * COST_MICROS_PER_CENT
+    if (!Number.isFinite(micros) || micros < 0 || !Number.isInteger(micros)) {
+      return failToolCost('invalid_cents', 'manual tool cost must be non-negative.', 'actualInternalCostMicros')
+    }
+    return calculation('mock_manual_entry', micros, { manualMicros: micros }, {
+      pricingUnits: {
+        actualInternalCostMicros: micros,
+        actualInternalCostCents: internalMicrosToCents(micros),
+      },
+    })
+  }
+  return failToolCost('invalid_source_kind', 'Unsupported tool cost source kind.', 'sourceKind')
+}
+
+export function calculateEstimateRangeFromExpectedCost(input: {
+  expectedInternalCostMicros: number
+  riskLevel?: ToolCostRiskLevel
+  approvedReservationCredits?: number
+  sourceKind?: ToolCostSourceKind
+  provider?: string | null
+  model?: string | null
+  computeLevel?: ToolRuntimeComputeLevel | null
+}): ToolCostMathResult<ToolCostEstimateRange> {
+  if (!Number.isFinite(input.expectedInternalCostMicros) || input.expectedInternalCostMicros < 0) {
+    return failToolCost('invalid_cents', 'expectedInternalCostMicros must be non-negative.', 'expectedInternalCostMicros')
+  }
+  const riskLevel = input.riskLevel ?? 'medium'
+  const riskBuffer = TOOL_COST_RATE_CARD.riskBuffersBasisPoints[riskLevel]
+  const lowInternalCostCents = internalMicrosToCents(Math.max(0, Math.floor(input.expectedInternalCostMicros * 0.8)))
+  const expectedInternalCostCents = internalMicrosToCents(Math.ceil(input.expectedInternalCostMicros))
+  const highInternalCostCents = internalMicrosToCents(Math.ceil(input.expectedInternalCostMicros + (input.expectedInternalCostMicros * riskBuffer / 10_000)))
+  const highCredits = centsToCredits(highInternalCostCents)
+  const pricingSnapshot = buildPricingSnapshot({
+    sourceKind: input.sourceKind ?? 'mock_manual_entry',
+    provider: input.provider ?? null,
+    model: input.model ?? null,
+    computeLevel: input.computeLevel ?? null,
+    riskLevel,
+    pricingUnits: { expectedInternalCostMicros: input.expectedInternalCostMicros },
+  })
+  if (!pricingSnapshot.ok) return pricingSnapshot
+  return okToolCost({
+    lowInternalCostCents,
+    expectedInternalCostCents,
+    highInternalCostCents,
+    lowCredits: centsToCredits(lowInternalCostCents),
+    expectedCredits: centsToCredits(expectedInternalCostCents),
+    highCredits,
+    riskLevel,
+    rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
+    sourceKind: input.sourceKind ?? 'mock_manual_entry',
+    provider: input.provider ?? null,
+    model: input.model ?? null,
+    computeLevel: input.computeLevel ?? null,
+    serviceFeeIncluded: false,
+    pricingSnapshot: pricingSnapshot.data,
+    canRunWithinApprovedReservation: input.approvedReservationCredits === undefined
+      ? null
+      : highCredits <= input.approvedReservationCredits,
+  })
+}
+
+export function summarizeMockToolCostEvents(events: readonly MockToolCostEvent[]): ToolCostEventAggregation {
+  const byUsageCategory: ToolCostEventAggregation['byUsageCategory'] = {}
+  let actualBillableCostCents = 0
+  let nonBillableCostCents = 0
+  const billableEventIds: string[] = []
+  const nonBillableEventIds: string[] = []
+  const nonBillableReasons = new Set<string>()
+
+  for (const event of events) {
+    const bucket = byUsageCategory[event.usageCategory] ?? {
+      actualInternalCostCents: 0,
+      credits: 0,
+      eventCount: 0,
+      billableEventCount: 0,
+      nonBillableEventCount: 0,
+    }
+    bucket.eventCount += 1
+    if (event.billableToUser) {
+      actualBillableCostCents += event.actualInternalCostCents
+      bucket.actualInternalCostCents += event.actualInternalCostCents
+      bucket.credits += event.toolCostCredits
+      bucket.billableEventCount += 1
+      billableEventIds.push(event.id)
+    } else {
+      nonBillableCostCents += event.actualInternalCostCents
+      bucket.nonBillableEventCount += 1
+      nonBillableEventIds.push(event.id)
+      if (event.nonBillableReason) nonBillableReasons.add(event.nonBillableReason)
+      else if (event.failureCategory && event.failureCategory !== 'none') nonBillableReasons.add(event.failureCategory)
+    }
+    byUsageCategory[event.usageCategory] = bucket
+  }
+
+  return {
+    actualBillableCostCents,
+    actualBillableCostCredits: centsToCredits(actualBillableCostCents),
+    nonBillableCostCents,
+    nonBillableCredits: centsToCredits(nonBillableCostCents),
+    billableEventCount: billableEventIds.length,
+    nonBillableEventCount: nonBillableEventIds.length,
+    billableEventIds,
+    nonBillableEventIds,
+    nonBillableReasons: Array.from(nonBillableReasons),
+    byUsageCategory,
+  }
+}
+
+function calculation(
+  sourceKind: ToolCostSourceKind,
+  actualInternalCostMicros: number,
+  breakdownMicros: Record<string, number>,
+  options: {
+    provider?: string | null
+    model?: string | null
+    computeLevel?: ToolRuntimeComputeLevel | null
+    pricingUnits?: Record<string, unknown>
+  } = {},
+): ToolCostMathResult<ToolCostMicrosCalculation> {
+  const pricingSnapshot = buildPricingSnapshot({
+    sourceKind,
+    provider: options.provider ?? null,
+    model: options.model ?? null,
+    computeLevel: options.computeLevel ?? null,
+    pricingUnits: options.pricingUnits ?? {},
+  })
+  if (!pricingSnapshot.ok) return pricingSnapshot
+  return okToolCost({
+    actualInternalCostMicros,
+    sourceKind,
+    rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
+    provider: options.provider ?? null,
+    model: options.model ?? null,
+    computeLevel: options.computeLevel ?? null,
+    pricingSnapshot: pricingSnapshot.data,
+    breakdownMicros,
+  })
+}
+
+function nonNegativeInteger(value: number, field: string): ToolCostMathResult<number> {
+  if (!Number.isFinite(value) || value < 0 || !Number.isInteger(value)) {
+    return failToolCost('invalid_count', `${field} must be a non-negative integer.`, field)
+  }
+  return okToolCost(value)
+}
+
+function nonNegativeFinite(value: number, field: string): ToolCostMathResult<number> {
+  if (!Number.isFinite(value) || value < 0) {
+    return failToolCost('invalid_seconds', `${field} must be a non-negative finite number.`, field)
+  }
+  return okToolCost(value)
+}
+
+function sumMicros(breakdown: Record<string, number>): number {
+  return Object.values(breakdown).reduce((sum, value) => sum + value, 0)
+}
+
+function isRuntimeComputeLevel(value: string): value is ToolRuntimeComputeLevel {
+  return (TOOL_RUNTIME_COMPUTE_LEVELS as readonly string[]).includes(value)
+}
+
+function okToolCost<TData>(data: TData): ToolCostMathResult<TData> {
+  return { ok: true, data }
+}
+
+function failToolCost(
+  code: ToolCostMathErrorCode,
+  message: string,
+  field?: string,
+): ToolCostMathResult<never> {
+  return { ok: false, error: { code, message, field } }
 }

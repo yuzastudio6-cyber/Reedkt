@@ -19,6 +19,11 @@ import type {
   BackendRuntimeMessageRecord,
   CutDecisionRecord,
   CutTimingPlanRecord,
+  EditLevelApplicationLogRecord,
+  EditLevelProfileCatalogRecord,
+  EditLevelReadinessRecord,
+  EditLevelRecommendationRecord,
+  EditLevelSelectionRecord,
   EditInstructionRecord,
   EditPlanRecord,
   EditPlanSegmentRecord,
@@ -189,6 +194,11 @@ export interface MockDatabase {
   creditApprovals: CreditApprovalRecord[]
   creditReservations: CreditReservationRecord[]
   creditRefunds: CreditRefundRecord[]
+  editLevelProfileCatalog: EditLevelProfileCatalogRecord[]
+  editLevelRecommendations: EditLevelRecommendationRecord[]
+  editLevelSelections: EditLevelSelectionRecord[]
+  editLevelReadiness: EditLevelReadinessRecord[]
+  editLevelApplicationLogs: EditLevelApplicationLogRecord[]
   backendRuntimeMessages: BackendRuntimeMessageRecord[]
   runtimeIdempotencyRecords: RuntimeIdempotencyRecord[]
   workerLeases: WorkerLeaseRecord[]
@@ -316,6 +326,11 @@ export function createMockDatabase(): MockDatabase {
     creditApprovals: [],
     creditReservations: [],
     creditRefunds: [],
+    editLevelProfileCatalog: [],
+    editLevelRecommendations: [],
+    editLevelSelections: [],
+    editLevelReadiness: [],
+    editLevelApplicationLogs: [],
     backendRuntimeMessages: [],
     runtimeIdempotencyRecords: [],
     workerLeases: [],

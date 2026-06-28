@@ -1,4 +1,5 @@
 import type { BaseRecord, CreditAmount, ID, ISODateString, JSONObject } from './shared'
+import type { ReEditProCanonicalEditLevel } from './edit-level'
 
 export type CreditWalletType = 'personal' | 'workspace' | 'business' | 'enterprise'
 
@@ -83,6 +84,387 @@ export type CreditRefundReason =
   | 'admin_adjustment'
   | 'duplicate_charge'
   | 'reservation_release'
+
+export const CREDIT_SETTLEMENT_STATUSES = [
+  'draft',
+  'previewed',
+  'pending',
+  'settled',
+  'requires_revised_estimate',
+  'requires_top_up_before_export',
+  'settled_with_absorbed_overage',
+  'failed',
+  'cancelled',
+] as const
+
+export type CreditSettlementStatus = typeof CREDIT_SETTLEMENT_STATUSES[number]
+
+export const CREDIT_SETTLEMENT_REASONS = [
+  'edit_completed',
+  'projected_overage',
+  'user_approved_overage',
+  'approved_but_unfunded',
+  'estimate_error_absorbed',
+  'provider_variance_absorbed',
+  'reeditpro_failed_to_pause_absorbed',
+  'user_cancelled',
+  'admin_adjustment',
+  'unknown',
+] as const
+
+export type CreditSettlementReason = typeof CREDIT_SETTLEMENT_REASONS[number]
+
+export const CREDIT_REVISION_ACTION_STATUSES = [
+  'action_required',
+  'approved',
+  'rejected',
+  'lower_cost_selected',
+  'cancelled',
+  'expired',
+  'resolved',
+] as const
+
+export type CreditRevisionActionStatus = typeof CREDIT_REVISION_ACTION_STATUSES[number]
+
+export const CREDIT_REVISION_PAUSE_REASONS = [
+  'projected_overage',
+  'user_requested_scope_increase',
+  'compute_level_upgrade_required',
+  'provider_route_changed',
+  'export_top_up_required',
+  'tool_cost_risk_increased',
+  'unknown',
+] as const
+
+export type CreditRevisionPauseReason = typeof CREDIT_REVISION_PAUSE_REASONS[number]
+
+export type CreditRevisionUserAction =
+  | 'approve_and_continue'
+  | 'choose_lower_cost_option'
+  | 'cancel_extra_work'
+  | 'add_credits_and_unlock_export'
+
+export interface CreditRevisionUserOption {
+  id: string
+  label: string
+  action: CreditRevisionUserAction
+}
+
+export interface CreditSettlementRecord {
+  id: ID
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  chatSessionId?: ID | null
+  jobBatchId?: ID | null
+  creditWalletId?: ID | null
+  creditEstimateId: ID
+  creditReservationId: ID
+  creditApprovalId?: ID | null
+  editComputeLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  status: CreditSettlementStatus
+  settlementReason: CreditSettlementReason
+  reservedCredits: CreditAmount
+  actualToolCostCents: number
+  actualToolCostCredits: CreditAmount
+  reeditproServiceFeeCredits: CreditAmount
+  finalChargeCredits: CreditAmount
+  releasedCredits: CreditAmount
+  absorbedOverageCredits: CreditAmount
+  outstandingCredits: CreditAmount
+  billableToolEventCount: number
+  nonBillableToolEventCount: number
+  toolCostEventIds: ID[]
+  rateCardVersion?: string | null
+  creditPolicyVersion?: string | null
+  serviceFeePolicyVersion?: string | null
+  idempotencyKey: string
+  settlementPayload: JSONObject
+  receiptPayload: JSONObject
+  metadata: JSONObject
+  createdAt: ISODateString
+  updatedAt: ISODateString
+  settledAt?: ISODateString | null
+  failedAt?: ISODateString | null
+}
+
+export interface CreditRevisionActionRecord {
+  id: ID
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  chatSessionId?: ID | null
+  jobBatchId?: ID | null
+  jobId?: ID | null
+  creditEstimateId: ID
+  creditReservationId: ID
+  previousCreditEstimateId?: ID | null
+  revisedCreditEstimateId?: ID | null
+  editComputeLevel: ReEditProCanonicalEditLevel
+  status: CreditRevisionActionStatus
+  pauseReason: CreditRevisionPauseReason
+  approvedMaxCredits: CreditAmount
+  usedOrCommittedCredits: CreditAmount
+  additionalLowCredits: CreditAmount
+  additionalExpectedCredits: CreditAmount
+  additionalHighCredits: CreditAmount
+  newMaximumEstimatedCredits: CreditAmount
+  reasonSummary: string
+  actionRequiredTitle: string
+  actionRequiredMessage: string
+  userOptions: CreditRevisionUserOption[]
+  selectedOptionId?: string | null
+  resolvedByUserId?: ID | null
+  resolvedAt?: ISODateString | null
+  idempotencyKey: string
+  metadata: JSONObject
+  createdAt: ISODateString
+  updatedAt: ISODateString
+  expiresAt?: ISODateString | null
+}
+
+export interface EditCreditCostSummaryUsageCategory {
+  eventCount: number
+  billableEventCount: number
+  nonBillableEventCount: number
+  actualInternalCostCents: number
+  credits: CreditAmount
+}
+
+export interface EditCreditCostSummaryLine {
+  label: string
+  credits: CreditAmount
+  description?: string
+}
+
+export interface EditCreditCostSummary {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  creditEstimateId: ID
+  creditReservationId: ID
+  creditSettlementId?: ID | null
+  editComputeLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  reservedCredits: CreditAmount
+  actualToolCostCents: number
+  actualToolCostCredits: CreditAmount
+  reeditproServiceFeeCredits: CreditAmount
+  finalChargeCredits: CreditAmount
+  releasedCredits: CreditAmount
+  absorbedOverageCredits: CreditAmount
+  outstandingCredits: CreditAmount
+  byUsageCategory: Record<string, EditCreditCostSummaryUsageCategory>
+  nonBillableAbsorbed?: {
+    eventCount: number
+    actualInternalCostCents: number
+    credits: CreditAmount
+    reasons: string[]
+  }
+  userFacingLines: EditCreditCostSummaryLine[]
+  warnings: string[]
+}
+
+export interface PreviewCreditSettlementRequest {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  creditEstimateId: ID
+  creditReservationId: ID
+  editComputeLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  reservedCredits: CreditAmount
+  toolCostEventIds?: ID[]
+  idempotencyKey: string
+}
+
+export interface PreviewCreditSettlementResponse {
+  settlement: CreditSettlementRecord
+  summary: EditCreditCostSummary
+  requiresAction: boolean
+  requiredActionType?: 'revised_estimate' | 'top_up_before_export' | 'none'
+  warnings: string[]
+}
+
+export const EDIT_CREDIT_ESTIMATE_TOOL_COMPUTE_LEVELS = [
+  'economy',
+  'standard',
+  'premium',
+] as const
+
+export type EditCreditEstimateToolComputeLevel = typeof EDIT_CREDIT_ESTIMATE_TOOL_COMPUTE_LEVELS[number]
+
+export const EDIT_CREDIT_ESTIMATE_READINESS_STATUSES = [
+  'ready_for_reservation',
+  'needs_top_up',
+  'custom_estimate_required',
+  'estimate_only_blocked',
+] as const
+
+export type EditCreditEstimateReadinessStatus = typeof EDIT_CREDIT_ESTIMATE_READINESS_STATUSES[number]
+
+export type EditCreditEstimateLowerCostAction =
+  | 'downgrade_product_edit_level'
+  | 'reduce_tool_scope'
+  | 'lower_render_quality'
+  | 'reduce_audio_scope'
+  | 'custom_estimate_review'
+
+export interface EditCreditEstimateToolUsageInput {
+  toolId: ID
+  toolComputeLevel?: EditCreditEstimateToolComputeLevel | null
+  qualityLevel?: EditCreditEstimateToolComputeLevel | null
+  estimatedRuntimeSeconds?: number
+  renderDurationSeconds?: number
+  outputDurationSeconds?: number
+  megapixelFrames?: number
+  requestCount?: number
+  inputTokens?: number
+  outputTokens?: number
+  inputVideoSeconds?: number
+  outputVideoSeconds?: number
+  inputAudioSeconds?: number
+  outputAudioSeconds?: number
+  imageCount?: number
+  provider?: string | null
+  model?: string | null
+  vcpuCount?: number
+  memoryGib?: number
+  gpuCount?: number
+  tempStorageGibHours?: number
+  outputStorageGibHours?: number
+  networkEgressMib?: number
+  actualInternalCostCents?: number
+  metadata?: JSONObject
+}
+
+export interface PreviewEditCreditEstimateRequest {
+  workspaceId: ID
+  projectId: ID
+  editPlanId: ID
+  productEditLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  plannedToolIds: ID[]
+  toolUsageInputs?: Record<string, EditCreditEstimateToolUsageInput>
+  availableCreditsSnapshot?: CreditAmount
+  reservedCreditsSnapshot?: CreditAmount
+  purchasedCreditsSnapshot?: CreditAmount
+  weeklyBonusCreditsSnapshot?: CreditAmount
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface EditCreditEstimateToolEstimateSnapshot {
+  toolId: ID
+  toolName: string
+  owner: string
+  usageCategory: string
+  lineItemType: CreditEstimateLineItemType
+  productEditLevel: ReEditProCanonicalEditLevel
+  toolComputeLevel: EditCreditEstimateToolComputeLevel
+  qualityLevel: EditCreditEstimateToolComputeLevel
+  prerequisiteStatus: string
+  lowInternalCostCents: number
+  expectedInternalCostCents: number
+  highInternalCostCents: number
+  lowCredits: CreditAmount
+  expectedCredits: CreditAmount
+  highCredits: CreditAmount
+  rateCardVersion: string
+  pricingSnapshot: JSONObject
+  serviceFeeIncluded: false
+  warnings: string[]
+}
+
+export interface EditCreditEstimateServiceFeeEstimate {
+  lowToolCostCredits: CreditAmount
+  expectedToolCostCredits: CreditAmount
+  highToolCostCredits: CreditAmount
+  lowServiceFeeCredits: CreditAmount
+  expectedServiceFeeCredits: CreditAmount
+  highServiceFeeCredits: CreditAmount
+  customEstimateRequired: boolean
+  durationBucket: string
+  creditPolicyVersion: string
+  serviceFeePolicyVersion: string
+  finalChargeFormula: string
+}
+
+export interface EditCreditEstimateTopUpSummary {
+  availableCreditsSnapshot?: CreditAmount
+  reservedCreditsSnapshot?: CreditAmount
+  purchasedCreditsSnapshot?: CreditAmount
+  weeklyBonusCreditsSnapshot?: CreditAmount
+  requiredHoldCredits: CreditAmount
+  requiredTopUpCredits: CreditAmount
+  canProceedToReservation: boolean
+  readinessStatus: EditCreditEstimateReadinessStatus
+}
+
+export interface EditCreditEstimateLowerCostOption {
+  id: string
+  label: string
+  description: string
+  action: EditCreditEstimateLowerCostAction
+  affectedToolIds: ID[]
+  targetProductEditLevel?: ReEditProCanonicalEditLevel
+  estimatedSavingsCredits?: CreditAmount
+}
+
+export interface EditCreditEstimateSafetyFlags {
+  estimateOnly: true
+  creditsReservedOrSpent: false
+  walletMutated: false
+  reservationMutated: false
+  ledgerWritten: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  supabaseWritten: false
+  serviceFeeIncludedInToolCosts: false
+}
+
+export interface EditCreditEstimatePreviewSummary {
+  workspaceId: ID
+  projectId: ID
+  editPlanId: ID
+  productEditLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  plannedToolCount: number
+  lowToolCostCredits: CreditAmount
+  expectedToolCostCredits: CreditAmount
+  highToolCostCredits: CreditAmount
+  lowServiceFeeCredits: CreditAmount
+  expectedServiceFeeCredits: CreditAmount
+  highServiceFeeCredits: CreditAmount
+  minimumEstimatedCredits: CreditAmount
+  totalEstimatedCredits: CreditAmount
+  maximumEstimatedCredits: CreditAmount
+  requiredHoldCredits: CreditAmount
+  requiredTopUpCredits: CreditAmount
+  canProceedToReservation: boolean
+  customEstimateRequired: boolean
+  readinessStatus: EditCreditEstimateReadinessStatus
+  userFacingLines: EditCreditCostSummaryLine[]
+}
+
+export interface EditCreditEstimatePreview {
+  estimate: CreditEstimateRecord
+  summary: EditCreditEstimatePreviewSummary
+  toolEstimates: EditCreditEstimateToolEstimateSnapshot[]
+  serviceFeeEstimate: EditCreditEstimateServiceFeeEstimate
+  topUpSummary: EditCreditEstimateTopUpSummary
+  lowerCostOptions: EditCreditEstimateLowerCostOption[]
+  safetyFlags: EditCreditEstimateSafetyFlags
+  idempotencyStatus: 'created' | 'duplicate_returned'
+  warnings: string[]
+}
+
+export interface PreviewEditCreditEstimateResponse {
+  preview: EditCreditEstimatePreview
+  warnings: string[]
+}
 
 export interface CreditWalletRecord extends BaseRecord {
   workspaceId: ID

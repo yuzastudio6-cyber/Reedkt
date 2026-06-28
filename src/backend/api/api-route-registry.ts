@@ -2,6 +2,7 @@ import type { ApiDomain, ApiRouteDefinition } from './api-runtime-contracts'
 import { ADMIN_API_ROUTES } from './routes/admin-api-routes'
 import { AUTH_BOOTSTRAP_API_ROUTES } from './routes/auth-bootstrap-api-routes'
 import { CREDIT_API_ROUTES } from './routes/credit-api-routes'
+import { EDIT_LEVEL_API_ROUTES } from './edit-level-api-route-registry'
 import { EDIT_PLANNING_API_ROUTES } from './routes/edit-planning-api-routes'
 import { GENERATION_API_ROUTES } from './routes/generation-api-routes'
 import { JOB_API_ROUTES } from './routes/job-api-routes'
@@ -30,6 +31,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...PROJECT_API_ROUTES,
   ...MEDIA_UPLOAD_API_ROUTES,
   ...EDIT_PLANNING_API_ROUTES,
+  ...EDIT_LEVEL_API_ROUTES,
   ...CREDIT_API_ROUTES,
   ...JOB_API_ROUTES,
   ...GENERATION_API_ROUTES,

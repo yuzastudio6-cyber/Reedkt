@@ -9,6 +9,7 @@ export const createRenderJobSchema = z.object({
   creditReservationId: idSchema,
   renderType: z.enum(['preview', 'export']),
   renderQualityLevel: z.string().optional(),
+  approvedReservationRemainingCredits: z.number().int().nonnegative().optional(),
 })
 
 export const previewReviewSchema = z.object({

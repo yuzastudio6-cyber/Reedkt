@@ -2,6 +2,7 @@ import type { QualityGateType, ProductionStorageBucketPurpose } from '../../../s
 import type { FallbackDecision, ToolRunResult } from '../../../src/backend/contracts/tool-execution-contracts'
 import type { QualityGateResult } from '../../../src/backend/contracts/quality-gate-contracts'
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
+import type { MockToolCostEvent, ToolCreditPrerequisiteStatus } from '../../tool-cost-metering'
 import type { ProductionToolId } from '../../tool-registry'
 
 export type ProductionWorkerRuntimeType =
@@ -153,6 +154,7 @@ export interface ProductionWorkerExecutionResult {
   events: ProductionWorkerEventRecord[]
   output?: ProductionWorkerRouteOutput
   toolRunResults: ToolRunResult[]
+  toolCostMetadata?: ProductionWorkerToolCostMetadata
   artifactRecords: ToolArtifact[]
   qualityGateResults: QualityGateResult[]
   fallbackDecisions: FallbackDecision[]
@@ -164,6 +166,16 @@ export interface ProductionWorkerExecutionResult {
   }
   startedAt: string
   completedAt: string
+}
+
+export interface ProductionWorkerToolCostMetadata {
+  mockOnly: true
+  serviceFeeIncluded: false
+  requestedToolCount: number
+  estimateStatuses: Record<string, ToolCreditPrerequisiteStatus>
+  emittedEvents: MockToolCostEvent[]
+  blockedEventStatuses: Record<string, ToolCreditPrerequisiteStatus>
+  warnings: string[]
 }
 
 export interface ProductionWorkerStorageReferenceInput {

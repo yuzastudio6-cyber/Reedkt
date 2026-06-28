@@ -169,6 +169,7 @@ const zeroCountByOwner: Record<ToolCostMeteringOwner, number> = {
 }
 
 const zeroCountByUsageCategory: Record<ToolCostUsageCategory, number> = {
+  admin: 0,
   planning: 0,
   transcription: 0,
   media_analysis: 0,

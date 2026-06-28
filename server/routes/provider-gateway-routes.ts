@@ -5,6 +5,7 @@ import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
 import { createProviderGatewayService } from '../services/provider-gateway-service'
 import { idSchema, validateBody } from '../validation/common-schemas'
+import { productionToolIdSchema } from '../validation/tool-cost-schemas'
 import { asyncRoute, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 
 const providerRequestSchema = z.object({
@@ -15,7 +16,10 @@ const providerRequestSchema = z.object({
   generationRequestId: idSchema.optional(),
   jobId: idSchema.optional(),
   approvedPlanSnapshotId: idSchema.optional(),
+  creditEstimateId: idSchema.optional(),
   creditReservationId: idSchema.optional(),
+  toolId: productionToolIdSchema.optional(),
+  approvedReservationRemainingCredits: z.number().int().nonnegative().optional(),
   requestPayload: z.record(z.string(), z.unknown()).optional(),
   mockOnly: z.boolean().optional(),
 })

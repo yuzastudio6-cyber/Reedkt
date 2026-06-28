@@ -255,7 +255,8 @@ try {
   assert.equal(settlementResponse.data.settlement.stripeCallAttempted, false, 'wallet settlement route must not call Stripe')
 
   const evidencePacketBody = buildCompleteEvidencePacketBody()
-  const { workspaceId: _workspaceId, ...evaluationBody } = evidencePacketBody
+  const { workspaceId, ...evaluationBody } = evidencePacketBody
+  assert.equal(typeof workspaceId, 'string')
   const schemaResult = betaReadinessEvidenceEvaluationSchema.safeParse(evaluationBody)
   assert.equal(schemaResult.success, true, 'complete evidence body should pass schema validation')
 
@@ -476,6 +477,7 @@ async function requestJson(
   url: string,
   init: RequestInit,
   expectedStatus = 200,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
   const response = await fetch(url, {
     ...init,

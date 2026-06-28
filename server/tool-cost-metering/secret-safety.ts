@@ -6,6 +6,7 @@ const SECRET_KEY_PATTERNS = [
   /(^|[_-])token($|[_-])/i,
   /authorization/i,
   /signed[_-]?url/i,
+  /signedUrl/,
   /raw[_-]?prompt/i,
 ]
 
@@ -28,6 +29,32 @@ export function collectSecretLikePaths(value: unknown, rootPath = 'payload'): st
   const matches: string[] = []
   visitSecretPaths(value, rootPath, matches)
   return matches
+}
+
+export function validateToolCostNoSecretLikeFields(value: unknown): {
+  ok: true
+  data: true
+  secretLikePaths: []
+} | {
+  ok: false
+  secretLikePaths: string[]
+  error: {
+    code: 'secret_like_payload'
+    message: string
+    field?: string
+  }
+} {
+  const matches = collectSecretLikePaths(value, 'payload')
+  if (matches.length === 0) return { ok: true, data: true, secretLikePaths: [] }
+  return {
+    ok: false,
+    secretLikePaths: matches,
+    error: {
+      code: 'secret_like_payload',
+      message: `Tool cost payload contains secret-like fields: ${matches.join(', ')}`,
+      field: matches[0],
+    },
+  }
 }
 
 function visitSecretPaths(value: unknown, path: string, matches: string[]): void {

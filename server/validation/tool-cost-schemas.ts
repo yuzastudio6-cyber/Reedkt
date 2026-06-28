@@ -6,6 +6,9 @@ import {
   TOOL_COST_QUALITY_LEVELS,
   TOOL_COST_USAGE_CATEGORIES,
 } from '../tool-cost-metering/types'
+import { PRODUCTION_TOOL_IDS } from '../tool-registry/production-tool-types'
+import { TOOL_CREDIT_PREREQUISITE_STATUSES } from '../tool-cost-metering/production-tool-cost'
+import { validateToolCostNoSecretLikeFields } from '../tool-cost-metering/secret-safety'
 import { idSchema } from './common-schemas'
 
 const nullableStringSchema = z.string().min(1).nullable().optional()
@@ -104,3 +107,63 @@ export const toolCostWalletSettlementSchema = z.object({
   settlementType: z.enum(['spend', 'release', 'refund']).optional(),
   metadata: metadataSchema,
 }).strict()
+
+export const nonNegativeIntegerCentsSchema = z.number().int().nonnegative()
+export const nonNegativeIntegerMicrosSchema = z.number().int().nonnegative()
+export const toolRuntimeComputeLevelSchema = z.enum(TOOL_COST_COMPUTE_LEVELS)
+export const toolCostProductEditLevelSchema = z.enum(['normal', 'premium', 'ultra_premium'])
+export const productionToolIdSchema = z.enum(PRODUCTION_TOOL_IDS)
+export const toolCreditPrerequisiteStatusSchema = z.enum(TOOL_CREDIT_PREREQUISITE_STATUSES)
+
+export const toolCostPricingSnapshotSchema = z.object({
+  rateCardVersion: z.string().min(1),
+  sourceKind: z.enum(['external_provider', 'infrastructure_runtime', 'deterministic_renderer', 'mock_manual_entry']),
+  provider: z.string().nullable(),
+  model: z.string().nullable(),
+  computeLevel: z.enum(TOOL_COST_COMPUTE_LEVELS).nullable(),
+  riskLevel: z.enum(['low', 'medium', 'high']).nullable(),
+  serviceFeeIncluded: z.literal(false),
+  pricingUnits: z.record(z.string(), z.unknown()),
+}).strict().superRefine((value, ctx) => {
+  const secretSafety = validateToolCostNoSecretLikeFields(value)
+  if (!secretSafety.ok) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: secretSafety.error.message,
+      path: secretSafety.error.field?.split('.').slice(1) ?? ['pricingUnits'],
+    })
+  }
+})
+
+export const createToolCostEventSchema = z.object({
+  id: z.string().min(1),
+  workspaceId: z.string().min(1),
+  projectId: z.string().min(1),
+  creditEstimateId: z.string().nullable().optional(),
+  creditReservationId: z.string().nullable().optional(),
+  label: z.string().min(1),
+  usageCategory: z.enum(TOOL_COST_USAGE_CATEGORIES),
+  lineItemType: z.string().optional(),
+  computeLevel: z.enum(TOOL_COST_COMPUTE_LEVELS).optional(),
+  billableToUser: z.boolean().optional(),
+  actualInternalCostCents: nonNegativeIntegerCentsSchema.optional(),
+  actualInternalCostMicros: nonNegativeIntegerMicrosSchema.optional(),
+  pricingSnapshot: toolCostPricingSnapshotSchema.optional(),
+  failureCategory: z.string().optional(),
+  retryAttempt: z.number().int().nonnegative().optional(),
+  idempotencyKey: z.string().nullable().optional(),
+  nonBillableReason: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+}).strict().superRefine((value, ctx) => {
+  const secretSafety = validateToolCostNoSecretLikeFields({
+    pricingSnapshot: value.pricingSnapshot,
+    metadata: value.metadata,
+  })
+  if (!secretSafety.ok) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: secretSafety.error.message,
+      path: secretSafety.error.field?.split('.').slice(1) ?? ['metadata'],
+    })
+  }
+})

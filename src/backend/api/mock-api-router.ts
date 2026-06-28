@@ -6,6 +6,7 @@ import type {
 } from './api-runtime-contracts'
 import { createApiBackendRequiredResponse, createApiErrorResponse, createApiMockResponse, createApiNotImplementedResponse } from './api-response'
 import { createApiRouteMapSummary, getApiRouteById, getMockReadyRoutes } from './api-route-registry'
+import { EDIT_LEVEL_MOCK_ROUTE_HANDLERS } from './edit-level-mock-route-handlers'
 import type { ChatNativePlanningInput } from '../backend-types'
 import { runAuthBootstrapFlow } from '../auth/auth-bootstrap-orchestrator'
 import { getAuthClientStatus } from '../auth/auth-client-service'
@@ -226,6 +227,7 @@ const DEFAULT_MOCK_HANDLERS: Record<string, ApiRouteHandler> = {
   'storytiming.signature.run': handleMockStoryTimingPlan,
   'storytiming.qa.run': handleMockStoryTimingQA,
   'storytiming.renderManifest.create': handleMockStoryTimingPlan,
+  ...EDIT_LEVEL_MOCK_ROUTE_HANDLERS,
 }
 
 function handleAuthBootstrapStatus(): ApiResponseEnvelope {

@@ -4,7 +4,7 @@ import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-27-local-accepted-evidence-bundle.json'
 const DEFAULT_SOURCE_ID = 'beta-tools-local-accepted-evidence-after-libass-snapshot'
 
-export interface BetaReadinessDeployedEvidenceInputManifestEnv extends Record<string, string | undefined> {}
+export type BetaReadinessDeployedEvidenceInputManifestEnv = Record<string, string | undefined>
 
 export interface DeployedEvidenceInputRecord {
   name: string

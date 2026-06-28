@@ -1254,6 +1254,14 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - GPU policy: GPU remains on-demand only. No idle GPU runtime is approved, and GPU may start only for a later accepted worker/tool call after native proof and runtime gates pass.
 - Runtime/beta/production: no unlock; `externalBetaCallableNowTools=0`, `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `workerDispatchApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics External-Beta CPU/Static Runtime Admission
+
+- Decision: `ai_graphics_external_beta_cpu_static_runtime_admission_prepared_with_gpu_blocks`.
+- Scope: first-cohort runtime admission bridge for the 13 JavaScript/static AI graphics tools, after CPU/static cohort admission.
+- Result: the evaluator can prepare a selected CPU/static tool, such as `d3`, for future worker enqueue when approved snapshot, credit, private artifact, Tool Route, Worker, runtime enqueue, owner runtime approval, runtime proof, feature flag, allowlist, traffic, telemetry, support, cost guardrail, and worker pool refs are provided. It rejects `sam2` and the other 7 GPU/model tools from this first cohort until native GPU proof is accepted.
+- GPU policy: this first cohort never starts GPU runtime. GPU remains on-demand only and blocked for the 8 GPU/model tools until native linux/amd64 NVIDIA L4 proof and private model manifests pass.
+- Runtime/beta/production: no unlock; `externalBetaWorkerEnqueueAllowedWithProvidedEvidence` may be true for a fully referenced CPU/static example, but `externalBetaCallableNowTools=0`, `agentCanExecuteToolsNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics External-Beta Native GPU Proof Collection
 
 - Decision: `ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks`.

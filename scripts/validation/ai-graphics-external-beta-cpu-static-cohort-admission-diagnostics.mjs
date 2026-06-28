@@ -452,6 +452,8 @@ const pkgDiffLines = git(['diff', '--', 'package.json']).split('\n').filter(Bool
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-beta-cpu-static-runtime-admission": "tsx server/cli/ai-graphics-external-beta-cpu-static-runtime-admission.ts",',
+  '+    "ai-graphics:external-beta-cpu-static-runtime-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-cpu-static-runtime-admission-diagnostics.mjs",',
 ])
 for (const line of pkgDiffLines) {
   if (line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

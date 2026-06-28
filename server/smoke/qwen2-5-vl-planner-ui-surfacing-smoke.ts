@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'backend_runtime_persistence_storage_buckets_comment_baseline_fix_required',
-  'Private invoke client status must record the storage buckets comment baseline blocker.',
+    'backend_runtime_persistence_local_harness_validation_retry_after_storage_buckets_comment_fix_required',
+  'Private invoke client status must record the retry-13 blocker after the storage buckets comment baseline fix.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -169,9 +169,9 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_storage_buckets_comment_baseline_fix_required') ||
+    docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_storage_buckets_comment_fix_required') ||
     data.privateInvokeClient.currentStatus ===
-      'backend_runtime_persistence_storage_buckets_comment_baseline_fix_required',
+      'backend_runtime_persistence_local_harness_validation_retry_after_storage_buckets_comment_fix_required',
   'Doc/data must record backend runtime persistence local harness validation-retry blocker status.',
 )
 check(
@@ -315,8 +315,10 @@ check(
   docText.includes('The RLS helper parameter compatibility fix is now recorded') &&
     docText.includes('`public.is_workspace_owner_or_admin(uuid)`') &&
     docText.includes('Retry 12 verified that RLS migration now applies') &&
-    docText.includes('storage buckets comment ownership baseline fix is required'),
-  'Doc must record the RLS helper parameter fix and retry-12 storage buckets blocker.',
+    docText.includes('The storage buckets comment ownership baseline fix is now recorded') &&
+    docText.includes('`insufficient_privilege`') &&
+    docText.includes('retry 13 is required'),
+  'Doc must record the RLS helper parameter fix, storage buckets comment fix, and retry-13 blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

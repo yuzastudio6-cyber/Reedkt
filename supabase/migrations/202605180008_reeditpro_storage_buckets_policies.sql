@@ -17,7 +17,14 @@ on conflict (id) do update
 set public = false,
     name = excluded.name;
 
-comment on table storage.buckets is 'ReeditPro buckets are private by default. Object paths should start with <project_id>/... for project-scoped access.';
+do $$
+begin
+  comment on table storage.buckets is
+    'ReeditPro buckets are private by default. Object paths should start with <project_id>/... for project-scoped access.';
+exception
+  when insufficient_privilege then
+    raise notice 'Skipping storage.buckets table comment because the local migration role does not own the Supabase platform table.';
+end $$;
 
 drop policy if exists "reeditpro_project_members_read_project_objects" on storage.objects;
 create policy "reeditpro_project_members_read_project_objects" on storage.objects

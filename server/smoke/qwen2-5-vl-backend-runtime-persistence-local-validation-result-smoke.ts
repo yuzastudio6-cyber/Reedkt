@@ -49,13 +49,26 @@ function assertNoForbiddenText(relativePath: string) {
   assert.deepEqual(findings, [], `Forbidden value in ${relativePath}: ${findings.join('; ')}`)
 }
 
+function collectUrls(text: string): string[] {
+  return text.match(/\bhttps?:\/\/[^\s"',\]]+/gi) ?? []
+}
+
 function assertConfigTextSafeIfPresent() {
   const configPath = path.join(ROOT, 'supabase/config.toml')
   if (!fs.existsSync(configPath)) return
   const text = fs.readFileSync(configPath, 'utf8')
   const findings = forbiddenConcretePatterns
-    .filter(([, pattern]) => pattern.test(text))
+    .filter(([name, pattern]) => name !== 'concrete URL' && pattern.test(text))
     .map(([name]) => name)
+  const nonLoopbackUrls = collectUrls(text).filter((url) => {
+    try {
+      const parsed = new URL(url)
+      return parsed.hostname !== '127.0.0.1' && parsed.hostname !== 'localhost'
+    } catch {
+      return true
+    }
+  })
+  findings.push(...nonLoopbackUrls.map((url) => `non-loopback URL ${url}`))
   assert.deepEqual(findings, [], `Forbidden value in supabase/config.toml: ${findings.join('; ')}`)
 }
 

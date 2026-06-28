@@ -52,6 +52,7 @@ export interface AiGraphicsExternalBetaServiceRoleJobRowCandidate {
   toolExecutionPlanId: string
   workerType: ProductionWorkerRuntimeType
   runtimeTarget: string
+  sourceGatewayRuntimeAdmissionMode: string
   idempotencyKey: string
   status: 'prepared_not_inserted'
   liveInsertPerformed: false
@@ -90,6 +91,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueTransactionEnvelope {
   productionToolId: ProductionToolId
   workerType: ProductionWorkerRuntimeType
   runtimeTarget: string
+  sourceGatewayRuntimeAdmissionMode: string
   capabilityId: string
   queueName: string
   transactionId: string
@@ -320,6 +322,10 @@ function buildTransactionEnvelope(input: {
 }): AiGraphicsExternalBetaServiceRoleQueueTransactionEnvelope {
   const source = input.sourceEnvelope
   const payload = source.productionWorkerJobPayload
+  const sourceGatewayRuntimeAdmissionMode =
+    typeof payload.metadata?.sourceGatewayRuntimeAdmissionMode === 'string'
+      ? payload.metadata.sourceGatewayRuntimeAdmissionMode
+      : 'unknown'
   const transactionId = `external-beta-service-role-queue-tx-${source.queueJobCandidate.jobId}`
   const jobBatchRowCandidate: AiGraphicsExternalBetaServiceRoleJobBatchRowCandidate = {
     batchId: source.queueBatchCandidate.batchId,
@@ -340,6 +346,7 @@ function buildTransactionEnvelope(input: {
     toolExecutionPlanId: source.queueJobCandidate.toolExecutionPlanId,
     workerType: source.queueJobCandidate.workerType,
     runtimeTarget: source.queueJobCandidate.runtimeTarget,
+    sourceGatewayRuntimeAdmissionMode,
     idempotencyKey: source.queueJobCandidate.idempotencyKey,
     status: 'prepared_not_inserted',
     liveInsertPerformed: false,
@@ -387,6 +394,8 @@ function buildTransactionEnvelope(input: {
       jobRowCandidate.jobType === 'ai_graphics_tool_runtime' &&
       jobRowCandidate.approvedSnapshotId === payload.approvedSnapshotId &&
       jobRowCandidate.toolExecutionPlanId === payload.toolExecutionPlanId &&
+      jobRowCandidate.sourceGatewayRuntimeAdmissionMode === sourceGatewayRuntimeAdmissionMode &&
+      sourceGatewayRuntimeAdmissionMode !== 'unknown' &&
       jobRowCandidate.idempotencyKey === payload.idempotencyKey &&
       jobRowCandidate.status === 'prepared_not_inserted' &&
       jobRowCandidate.liveInsertPerformed === false &&
@@ -413,6 +422,7 @@ function buildTransactionEnvelope(input: {
     productionToolId: source.productionToolId,
     workerType: source.workerType,
     runtimeTarget: source.runtimeTarget,
+    sourceGatewayRuntimeAdmissionMode,
     capabilityId: source.capabilityId,
     queueName: source.queueName,
     transactionId,

@@ -7,6 +7,8 @@
     "externalBetaServiceRoleQueueTransaction": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-transaction.json",
     "externalBetaBackendQueueSubmission": "docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.json",
     "externalBetaWorkerEnqueueAdapter": "docs/tool-intelligence/ai-graphics/external-beta-worker-enqueue-adapter.json",
+    "externalBetaCpuStaticRuntimeAdmission": "docs/tool-intelligence/ai-graphics/external-beta-cpu-static-runtime-admission.json",
+    "externalBetaCpuStaticCohortAdmission": "docs/tool-intelligence/ai-graphics/external-beta-cpu-static-cohort-admission.json",
     "existingJobServiceBoundary": "server/services/job-service.ts",
     "internalBetaBackendQueueStorageReadiness": "docs/tool-intelligence/ai-graphics/internal-beta-backend-queue-storage-readiness.json"
   },
@@ -24,6 +26,7 @@
     "gpuRuntimeTargetedTools": 8,
     "defaultLocalQueueReadyExamples": 0,
     "allToolLocalQueueRecordsReadyWithProvidedEvidence": 21,
+    "cpuStaticFirstCohortLocalQueueRecordsReadyWithProvidedEvidence": 1,
     "gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools": 8,
     "localMockJobBatchRecordsCreatedInDiagnostic": 21,
     "localMockJobRecordsCreatedInDiagnostic": 21,
@@ -133,6 +136,8 @@
     {
       "id": "accepted_future_d3_local_queue_storage_record",
       "decision": "external_beta_local_queue_storage_mock_record_ready",
+      "sourceRuntimeAdmissionMode": "cpu_static_first_cohort",
+      "sourceGatewayRuntimeAdmissionMode": "cpu_static_first_cohort",
       "runtimeTarget": "node_cpu_static",
       "workerType": "render_worker",
       "jobType": "ai_graphics_tool_runtime",

@@ -158,6 +158,8 @@ function writeJson(filePath, value) {
 
 function buildSourceTransactionPacket(profile) {
   const [toolId, productionToolId, capabilityId, workerType, runtimeTarget, gpu] = profile
+  const sourceGatewayRuntimeAdmissionMode =
+    toolId === 'd3' ? 'cpu_static_first_cohort' : 'all_tools_external_beta'
   const jobId = `external-beta-job-${toolId}`
   const workspaceId = 'workspace-fixture'
   const projectId = 'project-fixture'
@@ -179,6 +181,7 @@ function buildSourceTransactionPacket(profile) {
     idempotencyKey,
     executionMode: 'production_blocked',
     metadata: {
+      sourceGatewayRuntimeAdmissionMode,
       sourceGatewayTraceId: `trace-fixture-${toolId}`,
       backendQueueSubmissionPerformed: false,
       serviceRoleTransactionPerformed: false,
@@ -220,6 +223,7 @@ function buildSourceTransactionPacket(profile) {
       toolExecutionPlanId,
       workerType,
       runtimeTarget,
+      sourceGatewayRuntimeAdmissionMode,
       idempotencyKey,
       payload,
       status: 'prepared_not_submitted',
@@ -252,6 +256,7 @@ function buildSourceTransactionPacket(profile) {
     productionToolId,
     workerType,
     runtimeTarget,
+    sourceGatewayRuntimeAdmissionMode,
     capabilityId,
     queueName,
     transactionId: `external-beta-service-role-queue-tx-${jobId}`,
@@ -287,6 +292,7 @@ function buildSourceTransactionPacket(profile) {
       toolExecutionPlanId,
       workerType,
       runtimeTarget,
+      sourceGatewayRuntimeAdmissionMode,
       idempotencyKey,
       status: 'prepared_not_inserted',
       liveInsertPerformed: false,
@@ -379,6 +385,8 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-local-queue-storage.json',
   'docs/tool-intelligence/ai-graphics/external-beta-local-queue-storage.md',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-transaction.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-cpu-static-runtime-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-cpu-static-cohort-admission.json',
   'docs/tool-intelligence/ai-graphics/internal-beta-backend-queue-storage-readiness.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
@@ -415,6 +423,7 @@ for (const [key, expected] of Object.entries({
   gpuRuntimeTargetedTools: 8,
   defaultLocalQueueReadyExamples: 0,
   allToolLocalQueueRecordsReadyWithProvidedEvidence: 21,
+  cpuStaticFirstCohortLocalQueueRecordsReadyWithProvidedEvidence: 1,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
   localMockJobBatchRecordsCreatedInDiagnostic: 21,
   localMockJobRecordsCreatedInDiagnostic: 21,
@@ -495,6 +504,7 @@ for (const needle of [
   'createMockQueueServiceContext',
   'createJobService',
   'ai_graphics_tool_runtime',
+  'sourceGatewayRuntimeAdmissionMode',
   'localMockRecordsOnly: true',
   'noSupabaseWrites: true',
   'canWriteSupabaseJobNow: false',
@@ -526,6 +536,7 @@ for (const needle of [
   'External-Beta Local Queue Storage',
   'existing `createJobService` boundary',
   'All-tool local queue records ready with provided evidence in diagnostics: `21`',
+  'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
   'Live Supabase job writes now: `0`',
   'GPU remains on-demand only',
   'If no worker claim and dispatch occurs, no GPU runtime should be running',
@@ -536,6 +547,7 @@ for (const needle of [
   'AI graphics external beta local queue storage decision',
   'existing `createJobService` boundary',
   'all 21 AI graphics tools as mock-only',
+  'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
   '`liveQueueWriteApprovedNow=false`',
   '`supabaseMutationPerformed=false`',
   '`workerDispatchPerformed=false`',
@@ -629,6 +641,12 @@ if (sam2Result.externalBetaLocalQueueStorageRecord?.runtimeTarget !== 'native_li
 }
 if (d3Result.externalBetaLocalQueueStorageRecord?.runtimeTarget !== 'node_cpu_static') {
   fail('d3_runtime_target_unexpected')
+}
+if (
+  d3Result.externalBetaLocalQueueStorageRecord?.sourceGatewayRuntimeAdmissionMode !==
+  'cpu_static_first_cohort'
+) {
+  fail('d3_source_gateway_runtime_admission_mode_unexpected')
 }
 if (!gpuRuntimeStartAllowedForFutureAcceptedJob(sam2Result)) fail('sam2_gpu_not_start_allowed_for_future_job')
 if (gpuRuntimeStartAllowedForFutureAcceptedJob(d3Result)) fail('d3_gpu_start_allowed_unexpected')
@@ -765,6 +783,8 @@ console.log(JSON.stringify({
   heavyToolsIncorrectlyTargetingCpu: heavyCpuFallbacks.length,
   sam2RuntimeTarget: sam2Result.externalBetaLocalQueueStorageRecord?.runtimeTarget,
   d3RuntimeTarget: d3Result.externalBetaLocalQueueStorageRecord?.runtimeTarget,
+  d3SourceGatewayRuntimeAdmissionMode:
+    d3Result.externalBetaLocalQueueStorageRecord?.sourceGatewayRuntimeAdmissionMode,
   sam2LocalQueueStatus: sam2Result.externalBetaLocalQueueStorageRecord?.localQueueStatus,
   sam2JobRecordMockOnly: sam2Result.externalBetaLocalQueueStorageRecord?.jobRecordMockOnly,
   sam2GpuRuntimeStartAllowedForFutureAcceptedJob:

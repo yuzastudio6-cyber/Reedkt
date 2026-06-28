@@ -10,6 +10,7 @@ This contract bridges the external-beta service-role queue transaction envelope 
 - Product-facing capabilities covered: `12`
 - GPU runtime targeted tools: `8`
 - All-tool local queue records ready with provided evidence in diagnostics: `21`
+- CPU/static first-cohort local queue records ready with provided evidence: `1`
 - GPU runtime start allowed for accepted external-beta job tools: `8`
 - Local mock job batch records created in diagnostics: `21`
 - Local mock job records created in diagnostics: `21`
@@ -30,12 +31,16 @@ An external-beta service-role transaction envelope can become a local queue stor
 2. A local queue storage ref, mock job service ref, schema ref, and isolation ref are present.
 3. The existing `createJobService` boundary creates mock-only job batch and job records.
 4. The job type remains `ai_graphics_tool_runtime`.
-5. The job carries approved snapshot, credit reservation, private artifact manifest, worker type, runtime target, and source transaction metadata.
+5. The job carries approved snapshot, credit reservation, private artifact manifest, worker type, runtime target, source transaction metadata, and source gateway runtime-admission mode.
 
 ## GPU Boundary
 
 GPU remains on-demand only. The eight GPU/model tools can carry `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=true` for future accepted jobs, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `workerLeaseCreated=false`, and `workerDispatchPerformed=false` remain enforced. If no worker claim and dispatch occurs, no GPU runtime should be running.
 
 ## Runtime Boundary
+
+## CPU/Static First Cohort
+
+The local queue record now carries `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` for the CPU/static `d3` path. This proves the safe first cohort can reach the existing job-service boundary in mock-only form while keeping `liveSupabaseJobWritesNow=0`, `workerDispatchPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
 
 This bridge creates mock-only local job-service records in diagnostics. It does not run service-role transactions, insert Supabase rows, create worker claims, create worker leases, dispatch workers, execute tools, start GPU runtime, call providers, create signed URLs, create public artifacts, process media, mutate Supabase/GCS, unlock external beta traffic, or unlock production.

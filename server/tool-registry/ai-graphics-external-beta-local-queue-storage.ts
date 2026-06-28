@@ -36,6 +36,7 @@ export interface AiGraphicsExternalBetaLocalQueueStorageRecord {
   productionToolId: ProductionToolId
   workerType: ProductionWorkerRuntimeType
   runtimeTarget: string
+  sourceGatewayRuntimeAdmissionMode: string
   capabilityId: string
   sourceTransactionId: string
   sourceJobId: string
@@ -291,6 +292,7 @@ async function createLocalQueueStorageRecord(
       productionToolId: envelope.productionToolId,
       workerType: envelope.workerType,
       runtimeTarget: envelope.runtimeTarget,
+      sourceGatewayRuntimeAdmissionMode: envelope.sourceGatewayRuntimeAdmissionMode,
       capabilityId: envelope.capabilityId,
       sourceTransactionId: envelope.transactionId,
       privateArtifactManifestRef: privateArtifactManifestRef(envelope),
@@ -321,6 +323,7 @@ async function createLocalQueueStorageRecord(
     productionToolId: envelope.productionToolId,
     workerType: envelope.workerType,
     runtimeTarget: envelope.runtimeTarget,
+    sourceGatewayRuntimeAdmissionMode: envelope.sourceGatewayRuntimeAdmissionMode,
     capabilityId: envelope.capabilityId,
     sourceTransactionId: envelope.transactionId,
     sourceJobId: envelope.jobRowCandidate.jobId,

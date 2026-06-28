@@ -173,6 +173,7 @@ function buildSourceQueueSubmissionPacket({
   workerType,
   runtimeTarget,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+  sourceGatewayRuntimeAdmissionMode = 'all_tools_external_beta',
 }) {
   const jobId = `external-beta-job-${toolId}`
   const workspaceId = 'workspace-fixture'
@@ -194,6 +195,7 @@ function buildSourceQueueSubmissionPacket({
     idempotencyKey,
     executionMode: 'production_blocked',
     metadata: {
+      sourceGatewayRuntimeAdmissionMode,
       sourceGatewayTraceId: `trace-fixture-${toolId}`,
       backendQueueSubmissionPerformed: false,
       serviceRoleTransactionPerformed: false,
@@ -222,6 +224,7 @@ function buildSourceQueueSubmissionPacket({
     toolExecutionPlanId,
     workerType,
     runtimeTarget,
+    sourceGatewayRuntimeAdmissionMode,
     idempotencyKey,
     payload,
     status: 'prepared_not_submitted',
@@ -306,6 +309,8 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-transaction.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-transaction.md',
   'docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-cpu-static-runtime-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-cpu-static-cohort-admission.json',
   'docs/tool-intelligence/ai-graphics/internal-beta-service-role-queue-transaction-readiness.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
@@ -336,13 +341,14 @@ for (const [key, expected] of Object.entries({
   totalProductFacingCapabilities: 12,
   gpuRuntimeTargetedTools: 8,
   defaultTransactionReadyExamples: 0,
-  fullTransactionEnvelopeReadyExamples: 2,
+  fullTransactionEnvelopeReadyExamples: 3,
+  cpuStaticFirstCohortTransactionEnvelopeReadyExamples: 1,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobExamples: 1,
-  serviceRoleJobBatchRowsPreparedExamples: 2,
-  serviceRoleJobRowsPreparedExamples: 2,
-  serviceRoleWorkerClaimInputsPreparedExamples: 2,
-  serviceRoleWorkerEventRowsPreparedExamples: 4,
-  serviceRoleAuditEventRowsPreparedExamples: 2,
+  serviceRoleJobBatchRowsPreparedExamples: 3,
+  serviceRoleJobRowsPreparedExamples: 3,
+  serviceRoleWorkerClaimInputsPreparedExamples: 3,
+  serviceRoleWorkerEventRowsPreparedExamples: 6,
+  serviceRoleAuditEventRowsPreparedExamples: 3,
   liveServiceRoleTransactionsNow: 0,
   liveJobBatchRowsInsertedNow: 0,
   liveJobRowsInsertedNow: 0,
@@ -423,6 +429,8 @@ for (const [id, expected] of Object.entries({
     'external_beta_service_role_queue_transaction_envelope_ready',
   accepted_future_d3_service_role_transaction_envelope:
     'external_beta_service_role_queue_transaction_envelope_ready',
+  accepted_future_d3_cpu_static_service_role_transaction_envelope:
+    'external_beta_service_role_queue_transaction_envelope_ready',
 })) {
   const entry = docs.exampleEvaluations?.find((example) => example.id === id)
   if (!entry) fail(`docs_missing_example:${id}`)
@@ -435,6 +443,7 @@ for (const needle of [
   'sourceExternalBetaBackendQueueSubmissionPacket',
   'AiGraphicsExternalBetaServiceRoleJobBatchRowCandidate',
   'AiGraphicsExternalBetaServiceRoleJobRowCandidate',
+  'sourceGatewayRuntimeAdmissionMode',
   'AiGraphicsExternalBetaServiceRoleWorkerClaimInputCandidate',
   'AiGraphicsExternalBetaServiceRoleWorkerEventCandidate',
   'AiGraphicsExternalBetaServiceRoleAuditEventCandidate',
@@ -469,6 +478,7 @@ for (const needle of [
 for (const needle of [
   'External-Beta Service-Role Queue Transaction',
   'RPC/table row candidates',
+  'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
   'Live service-role transactions now: `0`',
   'Live job rows inserted now: `0`',
   'Live worker dispatches now: `0`',
@@ -480,6 +490,7 @@ for (const needle of [
 for (const needle of [
   'AI graphics external beta service-role queue transaction decision',
   'prepared-only job batch, job, worker claim, worker event, and audit event',
+  'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
   '`serviceRoleTransactionPerformed=false`',
   '`liveQueueWriteApprovedNow=false`',
   '`workerDispatchPerformed=false`',
@@ -504,6 +515,18 @@ const d3QueueSubmissionPath = writeJson(path.join(tmpRoot, 'd3-queue-submission.
   runtimeTarget: 'node_cpu_static',
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: false,
 }))
+const d3CpuStaticQueueSubmissionPath = writeJson(
+  path.join(tmpRoot, 'd3-cpu-static-queue-submission.json'),
+  buildSourceQueueSubmissionPacket({
+    toolId: 'd3',
+    productionToolId: 'd3',
+    capabilityId: 'chart_overlay',
+    workerType: 'render_worker',
+    runtimeTarget: 'node_cpu_static',
+    gpuRuntimeStartAllowedForAcceptedExternalBetaJob: false,
+    sourceGatewayRuntimeAdmissionMode: 'cpu_static_first_cohort',
+  }),
+)
 
 const planningTransaction = parseJsonOutput(runNpm(runScriptName, [
   '--capability-id',
@@ -568,10 +591,17 @@ const readyD3Transaction = parseJsonOutput(runNpm(runScriptName, [
   '--execution-requested',
   ...transactionControls,
 ]), 'ready_d3_transaction')
+const readyD3CpuStaticTransaction = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-backend-queue-submission-packet',
+  d3CpuStaticQueueSubmissionPath,
+  '--execution-requested',
+  ...transactionControls,
+]), 'ready_d3_cpu_static_transaction')
 
 for (const [label, output] of Object.entries({
   readySam2Transaction,
   readyD3Transaction,
+  readyD3CpuStaticTransaction,
 })) {
   if (output.decision !== 'external_beta_service_role_queue_transaction_envelope_ready') {
     fail(`${label}_decision:${output.decision}`)
@@ -584,6 +614,12 @@ for (const [label, output] of Object.entries({
   if (envelope?.enqueueRpcName !== 'enqueue_ai_graphics_tool_runtime_jobs') fail(`${label}_enqueue_rpc`)
   if (envelope?.claimRpcName !== 'claim_ai_graphics_tool_runtime_job') fail(`${label}_claim_rpc`)
   if (envelope?.jobRowCandidate?.status !== 'prepared_not_inserted') fail(`${label}_job_row_status`)
+  if (typeof envelope?.sourceGatewayRuntimeAdmissionMode !== 'string') {
+    fail(`${label}_missing_source_gateway_runtime_admission_mode`)
+  }
+  if (envelope?.jobRowCandidate?.sourceGatewayRuntimeAdmissionMode !== envelope?.sourceGatewayRuntimeAdmissionMode) {
+    fail(`${label}_job_row_source_mode_mismatch`)
+  }
   if (envelope?.workerClaimInputCandidate?.status !== 'prepared_not_claimed') fail(`${label}_claim_status`)
   if (envelope?.workerEventCandidates?.length !== 2) fail(`${label}_worker_event_count`)
   if (envelope?.serviceRoleTransactionEnvelopeShapeValid !== true) fail(`${label}_shape_not_valid`)
@@ -600,11 +636,23 @@ if (readySam2Transaction.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== tr
 if (readyD3Transaction.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
   fail('d3_gpu_start_allowed_not_false')
 }
+if (readyD3CpuStaticTransaction.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
+  fail('d3_cpu_static_gpu_start_allowed_not_false')
+}
 if (readySam2Transaction.externalBetaServiceRoleQueueTransactionEnvelope?.runtimeTarget !== 'native_linux_amd64_nvidia_l4_sam2_runtime') {
   fail('sam2_runtime_target_unexpected')
 }
 if (readyD3Transaction.externalBetaServiceRoleQueueTransactionEnvelope?.runtimeTarget !== 'node_cpu_static') {
   fail('d3_runtime_target_unexpected')
+}
+if (readyD3CpuStaticTransaction.externalBetaServiceRoleQueueTransactionEnvelope?.runtimeTarget !== 'node_cpu_static') {
+  fail('d3_cpu_static_runtime_target_unexpected')
+}
+if (
+  readyD3CpuStaticTransaction.externalBetaServiceRoleQueueTransactionEnvelope
+    ?.sourceGatewayRuntimeAdmissionMode !== 'cpu_static_first_cohort'
+) {
+  fail('d3_cpu_static_source_mode_unexpected')
 }
 
 const combinedText = [
@@ -615,6 +663,7 @@ const combinedText = [
   scorecard,
   JSON.stringify(readySam2Transaction),
   JSON.stringify(readyD3Transaction),
+  JSON.stringify(readyD3CpuStaticTransaction),
 ].join('\n')
 for (const pattern of [
   /agentCanExecuteToolsNow["'`\s:]*true/i,
@@ -726,14 +775,20 @@ console.log(JSON.stringify({
   blockedMissingRpcSchemaDecision: blockedMissingRpcSchema.decision,
   readySam2TransactionDecision: readySam2Transaction.decision,
   readyD3TransactionDecision: readyD3Transaction.decision,
+  readyD3CpuStaticTransactionDecision: readyD3CpuStaticTransaction.decision,
   readySam2GpuRuntimeStartAllowedForAcceptedExternalBetaJob:
     readySam2Transaction.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
   readyD3GpuRuntimeStartAllowedForAcceptedExternalBetaJob:
     readyD3Transaction.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+  readyD3CpuStaticGatewaySourceMode:
+    readyD3CpuStaticTransaction.externalBetaServiceRoleQueueTransactionEnvelope
+      ?.sourceGatewayRuntimeAdmissionMode,
   sam2RuntimeTarget:
     readySam2Transaction.externalBetaServiceRoleQueueTransactionEnvelope?.runtimeTarget,
   d3RuntimeTarget:
     readyD3Transaction.externalBetaServiceRoleQueueTransactionEnvelope?.runtimeTarget,
+  d3CpuStaticRuntimeTarget:
+    readyD3CpuStaticTransaction.externalBetaServiceRoleQueueTransactionEnvelope?.runtimeTarget,
   enqueueRpcName:
     readySam2Transaction.externalBetaServiceRoleQueueTransactionEnvelope?.enqueueRpcName,
   claimRpcName:

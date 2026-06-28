@@ -246,6 +246,9 @@ prepared-only job batch, job, worker claim, worker event, and audit event
 candidates for `ai_graphics_tool_runtime` without inserting rows. The envelope
 uses `enqueue_ai_graphics_tool_runtime_jobs`, `claim_ai_graphics_tool_runtime_job`,
 `record_ai_graphics_worker_event`, and `record_ai_graphics_audit_event`.
+The CPU/static D3 path preserves
+`sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` through the
+service-role envelope.
 This still does not run a service-role transaction or write Supabase rows:
 `serviceRoleTransactionPerformed=false`, `liveQueueWriteApprovedNow=false`,
 `workerLeaseCreated=false`, `workerDispatchPerformed=false`,
@@ -258,6 +261,8 @@ bridges the external-beta service-role queue transaction envelope into the
 existing `createJobService` boundary in forced mock mode. Diagnostics prepare
 all 21 AI graphics tools as mock-only `ai_graphics_tool_runtime` job-service
 records, including the eight GPU/model tools on GPU-targeted runtime lanes.
+The CPU/static D3 local queue record carries
+`sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`.
 This is not a live Supabase write: `liveQueueWriteApprovedNow=false`,
 `supabaseMutationPerformed=false`, `workerLeaseCreated=false`,
 `workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,

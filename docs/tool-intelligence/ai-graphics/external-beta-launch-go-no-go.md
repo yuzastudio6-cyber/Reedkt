@@ -4,6 +4,8 @@ Decision: `ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runt
 
 This contract is the live-user launch decision layer for the 21 AI graphics tools. It consumes the external-beta launch gap report, the external-beta readiness gate, and private/backend evidence packet state, then requires explicit launch controls before any external beta candidate can be launch-approved with provided evidence.
 
+It can also consume `external-beta-evidence-admission-bundle.json` directly. That packet is the preferred bridge from all-21 technical proof plus all-21 private external-beta evidence refs into this launch go/no-go layer.
+
 ## Current Result
 
 - Tools covered: `21`
@@ -11,6 +13,7 @@ This contract is the live-user launch decision layer for the 21 AI graphics tool
 - GPU runtime targeted tools: `8`
 - Default external-beta launch candidates with provided evidence: `0`
 - Full private/backend evidence launch candidates with provided evidence: `21`
+- Admission-bundle launch candidates with provided evidence: `21`
 - Full launch approval tools with provided evidence: `21`
 - External-beta-ready now: `0`
 - Production-ready now: `0`

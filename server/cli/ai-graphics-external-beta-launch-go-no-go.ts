@@ -5,6 +5,9 @@ import {
 } from '../tool-registry/ai-graphics-external-beta-launch-go-no-go'
 import type { AiGraphicsExternalBetaEvidencePacket } from '../tool-registry/ai-graphics-external-beta-evidence-packet'
 import type { AiGraphicsExternalBetaLaunchGapReport } from '../tool-registry/ai-graphics-external-beta-launch-gap-report'
+import type {
+  AiGraphicsExternalBetaEvidenceAdmissionBundle,
+} from '../tool-registry/ai-graphics-external-beta-evidence-admission-bundle'
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -34,6 +37,10 @@ const allExternalBetaLaunchGatesApproved = hasFlag('--all-external-beta-launch-g
 const input: AiGraphicsExternalBetaLaunchGoNoGoInput = {
   sourceExternalBetaLaunchGapReportPacket:
     readJsonFile<AiGraphicsExternalBetaLaunchGapReport>('--external-beta-launch-gap-report-packet'),
+  sourceExternalBetaEvidenceAdmissionBundlePacket:
+    readJsonFile<AiGraphicsExternalBetaEvidenceAdmissionBundle>(
+      '--external-beta-evidence-admission-bundle-packet',
+    ),
   externalBetaEvidencePacket:
     readJsonFile<AiGraphicsExternalBetaEvidencePacket>('--external-beta-evidence-packet'),
   approvedPlanSnapshotGatePassed:
@@ -109,6 +116,8 @@ console.log(JSON.stringify({
     evaluatorOnly: true,
     sourceLaunchGapReportPacketRead:
       Boolean(stringFlag('--external-beta-launch-gap-report-packet')),
+    sourceEvidenceAdmissionBundlePacketRead:
+      Boolean(stringFlag('--external-beta-evidence-admission-bundle-packet')),
     externalBetaEvidencePacketRead:
       Boolean(stringFlag('--external-beta-evidence-packet')),
     dependencyInstallPerformed: false,

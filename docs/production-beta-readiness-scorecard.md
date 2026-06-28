@@ -1110,7 +1110,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks`.
 - Scope: external launch go/no-go contract for all 21 AI graphics tools and all 12 capabilities after private/backend evidence is accepted by the external-beta readiness gate.
-- Result: default launch candidates remain 0. With complete private/backend evidence plus launch switch, rollout cohort, cost/concurrency ceiling, rollback/incident runbook, private artifact retention, support ownership, and `AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER` metadata, the contract can mark 21 tools launch-approved with provided evidence, while `externalBetaReadyNowTools=0` and `productionReadyNowTools=0` remain enforced.
+- Result: default launch candidates remain 0. With complete private/backend evidence or the external-beta evidence admission bundle plus launch switch, rollout cohort, cost/concurrency ceiling, rollback/incident runbook, private artifact retention, support ownership, and `AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER` metadata, the contract can mark 21 tools launch-approved with provided evidence, while `externalBetaReadyNowTools=0` and `productionReadyNowTools=0` remain enforced.
 - Runtime/beta/production: no committed unlock; GPU remains on-demand only for accepted future jobs; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## AI Graphics Internal Beta Owner Approval

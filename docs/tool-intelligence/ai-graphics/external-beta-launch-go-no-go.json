@@ -5,6 +5,7 @@
   "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
   "sourceEvidence": {
     "externalBetaLaunchGapReport": "docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.json",
+    "externalBetaEvidenceAdmissionBundle": "docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json",
     "externalBetaReadinessGate": "docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json",
     "externalBetaEvidencePacket": "docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json",
     "externalBetaEvidenceScaffold": "docs/tool-intelligence/ai-graphics/external-beta-evidence-scaffold.json"
@@ -23,6 +24,7 @@
     "gpuRuntimeTargetedTools": 8,
     "defaultExternalBetaLaunchCandidateToolsWithProvidedEvidence": 0,
     "fullEvidenceExternalBetaLaunchCandidateToolsWithProvidedEvidence": 21,
+    "admissionBundleExternalBetaLaunchCandidateToolsWithProvidedEvidence": 21,
     "fullLaunchApprovalExternalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
@@ -97,6 +99,7 @@
   "booleans": {
     "externalBetaLaunchGoNoGoContractPrepared": true,
     "sourceExternalBetaLaunchGapAccepted": true,
+    "sourceExternalBetaEvidenceAdmissionBundleAccepted": true,
     "externalBetaLaunchCandidateWithProvidedEvidence": true,
     "externalBetaLaunchGoNoGoApprovalRecordAccepted": true,
     "all21ToolsCovered": true,

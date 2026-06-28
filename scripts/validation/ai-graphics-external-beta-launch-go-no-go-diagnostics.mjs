@@ -35,6 +35,7 @@ const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-launch-go-no-go-diagnostics.mjs'
 const packetScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const launchGapScriptName = 'ai-graphics:external-beta-launch-gap-report'
+const admissionBundleScriptName = 'ai-graphics:external-beta-evidence-admission-bundle'
 
 const allTools = [
   'torch_torchvision',
@@ -171,6 +172,26 @@ function acceptedRecord(toolId) {
   }
 }
 
+function acceptedBetaEvidenceBundleFixture() {
+  return {
+    decision: 'ai_graphics_beta_evidence_bundle_validator_prepared_with_fail_closed_defaults',
+    totalAiGraphicsTools: 21,
+    all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+    evidenceSources: {
+      jsRuntimeProofsAccepted: true,
+      modelWeightManifestReviewPacketAccepted: true,
+      nativeGpuRuntimeProofResultPacketAccepted: true,
+      nativeGpuRuntimeProofTargetsExact: true,
+    },
+    booleans: {
+      gpuRuntimeOnDemandOnly: true,
+      agentCanExecuteToolsNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
 const fullEvidenceArgs = [
   '--all-shared-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
@@ -204,6 +225,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.md',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json',
   'docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json',
 ]
 
@@ -234,6 +256,7 @@ for (const [key, expected] of Object.entries({
   gpuRuntimeTargetedTools: 8,
   defaultExternalBetaLaunchCandidateToolsWithProvidedEvidence: 0,
   fullEvidenceExternalBetaLaunchCandidateToolsWithProvidedEvidence: 21,
+  admissionBundleExternalBetaLaunchCandidateToolsWithProvidedEvidence: 21,
   fullLaunchApprovalExternalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence: 21,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
@@ -251,8 +274,10 @@ for (const field of requiredLaunchFields) {
 }
 for (const needle of [
   'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GO_NO_GO_DECISION',
+  'AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION',
   'buildAiGraphicsExternalBetaLaunchGoNoGo',
   'buildAiGraphicsExternalBetaLaunchGapReport',
+  'evidenceAdmissionBundleAccepted',
   'externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence',
   'externalBetaReadyNowTools: 0',
   'productionReadyNowTools: 0',
@@ -264,6 +289,7 @@ for (const needle of [
 }
 for (const needle of [
   '--external-beta-launch-gap-report-packet',
+  '--external-beta-evidence-admission-bundle-packet',
   '--external-beta-evidence-packet',
   '--all-external-beta-launch-gates-approved',
   '--external-beta-launch-ref',
@@ -275,6 +301,7 @@ for (const needle of [
 for (const key of [
   'externalBetaLaunchGoNoGoContractPrepared',
   'sourceExternalBetaLaunchGapAccepted',
+  'sourceExternalBetaEvidenceAdmissionBundleAccepted',
   'externalBetaLaunchCandidateWithProvidedEvidence',
   'externalBetaLaunchGoNoGoApprovalRecordAccepted',
   'all21ToolsCovered',
@@ -303,6 +330,22 @@ const fullPacketPath = writeJson(
     'full_packet_source',
   ),
 )
+const betaEvidenceBundlePath = writeJson(
+  path.join(tempRoot, 'accepted-beta-evidence-bundle.json'),
+  acceptedBetaEvidenceBundleFixture(),
+)
+const admissionBundlePath = writeJson(
+  path.join(tempRoot, 'external-beta-evidence-admission-bundle.json'),
+  parseJsonOutput(
+    runNpm(admissionBundleScriptName, [
+      '--beta-evidence-bundle-packet',
+      betaEvidenceBundlePath,
+      '--external-beta-evidence-packet',
+      fullPacketPath,
+    ]),
+    'external_beta_evidence_admission_bundle_source',
+  ),
+)
 const fullLaunchGapPath = writeJson(
   path.join(tempRoot, 'full-launch-gap-report.json'),
   parseJsonOutput(
@@ -327,6 +370,15 @@ const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   fullPacketPath,
   ...launchApprovalArgs,
 ]), 'approved_launch_go_no_go')
+const admissionBundleOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-evidence-admission-bundle-packet',
+  admissionBundlePath,
+]), 'admission_bundle_launch_go_no_go')
+const admissionBundleApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-evidence-admission-bundle-packet',
+  admissionBundlePath,
+  ...launchApprovalArgs,
+]), 'admission_bundle_approved_launch_go_no_go')
 const packetFedApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-launch-gap-report-packet',
   fullLaunchGapPath,
@@ -356,8 +408,25 @@ if (!fullEvidenceOutput.missingLaunchGoNoGoEvidence?.includes('external_beta_lau
   fail('full_evidence_missing_launch_ref_not_reported')
 }
 
+if (admissionBundleOutput.status !== 'awaiting_external_beta_launch_go_no_go_approval') {
+  fail(`admission_bundle_status_unexpected:${admissionBundleOutput.status}`)
+}
+if (admissionBundleOutput.externalBetaLaunchCandidateToolsWithProvidedEvidence !== 21) {
+  fail('admission_bundle_candidate_tools_not_21')
+}
+if (admissionBundleOutput.booleans?.sourceExternalBetaEvidenceAdmissionBundleAccepted !== true) {
+  fail('admission_bundle_source_boolean_not_true')
+}
+if (admissionBundleOutput.booleans?.sourceExternalBetaLaunchGapAccepted !== false) {
+  fail('admission_bundle_launch_gap_source_boolean_not_false')
+}
+if (!admissionBundleOutput.missingLaunchGoNoGoEvidence?.includes('external_beta_launch_ref')) {
+  fail('admission_bundle_missing_launch_ref_not_reported')
+}
+
 for (const [label, output] of Object.entries({
   approvedOutput,
+  admissionBundleApprovedOutput,
   packetFedApprovedOutput,
 })) {
   if (output.status !== 'external_beta_launch_go_no_go_approved_runtime_still_blocked') {
@@ -376,7 +445,14 @@ for (const [label, output] of Object.entries({
   }
 }
 
-for (const output of [defaultOutput, fullEvidenceOutput, approvedOutput, packetFedApprovedOutput]) {
+for (const output of [
+  defaultOutput,
+  fullEvidenceOutput,
+  approvedOutput,
+  admissionBundleOutput,
+  admissionBundleApprovedOutput,
+  packetFedApprovedOutput,
+]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`output_required_false_not_false:${key}`)
@@ -387,6 +463,7 @@ for (const output of [defaultOutput, fullEvidenceOutput, approvedOutput, packetF
 const combinedText = [
   'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.md',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json',
   'server/tool-registry/ai-graphics-external-beta-launch-go-no-go.ts',
   'server/cli/ai-graphics-external-beta-launch-go-no-go.ts',
   'docs/production-beta-readiness-scorecard.md',
@@ -509,6 +586,8 @@ console.log(JSON.stringify({
   defaultStatus: defaultOutput.status,
   fullEvidenceStatus: fullEvidenceOutput.status,
   approvedStatus: approvedOutput.status,
+  admissionBundleStatus: admissionBundleOutput.status,
+  admissionBundleApprovedStatus: admissionBundleApprovedOutput.status,
   packetFedApprovedStatus: packetFedApprovedOutput.status,
   externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence:
     approvedOutput.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence,

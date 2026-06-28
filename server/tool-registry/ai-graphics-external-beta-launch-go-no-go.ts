@@ -3,6 +3,10 @@ import {
   buildAiGraphicsExternalBetaLaunchGapReport,
   type AiGraphicsExternalBetaLaunchGapReport,
 } from './ai-graphics-external-beta-launch-gap-report'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION,
+  type AiGraphicsExternalBetaEvidenceAdmissionBundle,
+} from './ai-graphics-external-beta-evidence-admission-bundle'
 import type { AiGraphicsExternalBetaReadinessEvidence } from './ai-graphics-external-beta-readiness-gate'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GO_NO_GO_DECISION =
@@ -16,6 +20,7 @@ export type AiGraphicsExternalBetaLaunchGoNoGoStatus =
 export interface AiGraphicsExternalBetaLaunchGoNoGoInput
   extends AiGraphicsExternalBetaReadinessEvidence {
   sourceExternalBetaLaunchGapReportPacket?: AiGraphicsExternalBetaLaunchGapReport
+  sourceExternalBetaEvidenceAdmissionBundlePacket?: AiGraphicsExternalBetaEvidenceAdmissionBundle
   externalBetaLaunchSwitchApproved?: boolean
   externalBetaLaunchRef?: string
   externalBetaRolloutCohortApproved?: boolean
@@ -32,6 +37,8 @@ export interface AiGraphicsExternalBetaLaunchGoNoGoInput
 export interface AiGraphicsExternalBetaLaunchGoNoGo {
   decision: typeof AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GO_NO_GO_DECISION
   sourceExternalBetaLaunchGapDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GAP_REPORT_DECISION
+  sourceExternalBetaEvidenceAdmissionBundleDecision:
+    typeof AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION
   status: AiGraphicsExternalBetaLaunchGoNoGoStatus
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
@@ -44,6 +51,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
   sourceLaunchGapReport: AiGraphicsExternalBetaLaunchGapReport
+  sourceEvidenceAdmissionBundle: AiGraphicsExternalBetaEvidenceAdmissionBundle | null
   requiredLaunchApprovalRecord: {
     required: true
     approverRole: 'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER'
@@ -61,6 +69,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
   booleans: {
     externalBetaLaunchGoNoGoContractPrepared: true
     sourceExternalBetaLaunchGapAccepted: boolean
+    sourceExternalBetaEvidenceAdmissionBundleAccepted: boolean
     externalBetaLaunchCandidateWithProvidedEvidence: boolean
     externalBetaLaunchGoNoGoApprovalRecordAccepted: boolean
     all21ToolsCovered: true
@@ -160,17 +169,50 @@ function statusFromInput(input: {
   return 'external_beta_launch_go_no_go_approved_runtime_still_blocked'
 }
 
+function launchGapCandidateAccepted(
+  sourceLaunchGapReport: AiGraphicsExternalBetaLaunchGapReport,
+): boolean {
+  return sourceLaunchGapReport.externalBetaCandidatesWithProvidedEvidenceTools === 21 &&
+    sourceLaunchGapReport.booleans.externalBetaCandidatesWithProvidedEvidence === true &&
+    sourceLaunchGapReport.externalBetaReadyNowTools === 0 &&
+    sourceLaunchGapReport.productionReadyNowTools === 0
+}
+
+function evidenceAdmissionBundleAccepted(
+  packet: AiGraphicsExternalBetaEvidenceAdmissionBundle | undefined,
+): packet is AiGraphicsExternalBetaEvidenceAdmissionBundle {
+  return Boolean(
+    packet &&
+      packet.decision === AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION &&
+      packet.status === 'external_beta_admission_candidate_with_provided_evidence_runtime_still_blocked' &&
+      packet.totalAiGraphicsTools === 21 &&
+      packet.totalProductFacingCapabilities === 12 &&
+      packet.externalBetaAdmissionCandidateToolsWithProvidedEvidence === 21 &&
+      packet.externalBetaReadyNowTools === 0 &&
+      packet.productionReadyNowTools === 0 &&
+      packet.booleans?.externalBetaAdmissionCandidateWithProvidedEvidence === true &&
+      packet.booleans?.agentCanExecuteToolsNow === false &&
+      packet.booleans?.routeExecutionApprovedNow === false &&
+      packet.booleans?.workerExecutionApprovedNow === false &&
+      packet.booleans?.gpuRuntimeApprovedNow === false &&
+      packet.booleans?.externalBetaReadyNow === false &&
+      packet.booleans?.productionReadyNow === false,
+  )
+}
+
 export function buildAiGraphicsExternalBetaLaunchGoNoGo(
   input: AiGraphicsExternalBetaLaunchGoNoGoInput = {},
 ): AiGraphicsExternalBetaLaunchGoNoGo {
   const sourceLaunchGapReport =
     input.sourceExternalBetaLaunchGapReportPacket ??
     buildAiGraphicsExternalBetaLaunchGapReport(input)
+  const sourceEvidenceAdmissionBundle = input.sourceExternalBetaEvidenceAdmissionBundlePacket ?? null
+  const sourceLaunchGapAccepted = launchGapCandidateAccepted(sourceLaunchGapReport)
+  const sourceEvidenceAdmissionBundleAccepted = evidenceAdmissionBundleAccepted(
+    input.sourceExternalBetaEvidenceAdmissionBundlePacket,
+  )
   const candidateWithProvidedEvidence =
-    sourceLaunchGapReport.externalBetaCandidatesWithProvidedEvidenceTools === 21 &&
-    sourceLaunchGapReport.booleans.externalBetaCandidatesWithProvidedEvidence === true &&
-    sourceLaunchGapReport.externalBetaReadyNowTools === 0 &&
-    sourceLaunchGapReport.productionReadyNowTools === 0
+    sourceLaunchGapAccepted || sourceEvidenceAdmissionBundleAccepted
   const approvalRecordAccepted = launchApprovalRecordAccepted(input)
   const status = statusFromInput({
     candidateWithProvidedEvidence,
@@ -199,6 +241,8 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
   return {
     decision: AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GO_NO_GO_DECISION,
     sourceExternalBetaLaunchGapDecision: AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GAP_REPORT_DECISION,
+    sourceExternalBetaEvidenceAdmissionBundleDecision:
+      AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION,
     status,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
@@ -213,6 +257,7 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     sourceLaunchGapReport,
+    sourceEvidenceAdmissionBundle,
     requiredLaunchApprovalRecord: {
       required: true,
       approverRole: 'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER',
@@ -229,7 +274,9 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     nextMilestones,
     booleans: {
       externalBetaLaunchGoNoGoContractPrepared: true,
-      sourceExternalBetaLaunchGapAccepted: candidateWithProvidedEvidence,
+      sourceExternalBetaLaunchGapAccepted: sourceLaunchGapAccepted,
+      sourceExternalBetaEvidenceAdmissionBundleAccepted:
+        sourceEvidenceAdmissionBundleAccepted,
       externalBetaLaunchCandidateWithProvidedEvidence: candidateWithProvidedEvidence,
       externalBetaLaunchGoNoGoApprovalRecordAccepted: approvalRecordAccepted,
       all21ToolsCovered: true,

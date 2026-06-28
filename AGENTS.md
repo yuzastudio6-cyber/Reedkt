@@ -41,6 +41,11 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Do not imply subscription includes unlimited AI editing.
 - Failed ReeditPro generation should be refunded according to `pricing-and-credits.md`.
 - Real Motion is premium and credit-heavy.
+- Blockers are evidence gaps, not permanent stop signs. A blocker must name the unsafe action it protects, the exact missing proof or approval, and the next smallest safe lane that can reduce or retire it.
+- Hard rule: intentional blanket blockers are not allowed. Do not use broad "production blocked", "backend-required", or "product-ready false" language to freeze unrelated safe work.
+- Keep approval, credit, privacy, provider, worker, Supabase, storage, beta, and production gates strict. Safe blocker-reduction work should continue through source reviews, local proofs, mock-safe backend skeletons, diagnostics, QA packets, owner-approval packets, deployment preflights, rollback plans, or monitoring/support plans.
+- If a blocker report cannot name a safe next action, repair the blocker metadata first. The missing next action is not permission to stop unrelated safe implementation work.
+- Readiness reports should expose this split in machine-readable form when possible: `intentionalBlanketBlocksAllowed: false`, `safeBlockerReductionAllowed: true`, `blockedActionScope`, and `allowedForwardProgressScopes`.
 
 ## Backend And Database Architecture
 

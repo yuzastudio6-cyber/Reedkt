@@ -568,6 +568,18 @@ Product-ready local OSS tools remain `0`. Track B FFmpeg/FFprobe ownership remai
 
 Next prompt: `TRACKA-GPAC-MP4BOX-WORKER-CONTRACT-REVIEW-1`.
 
+## Track A GPAC/MP4Box Worker Contract Review
+
+`TRACKA-GPAC-MP4BOX-WORKER-CONTRACT-REVIEW-1` records decision `tracka_gpac_mp4box_worker_contract_review_passed_ready_for_worker_integration_plan`.
+
+The accepted GPAC/MP4Box source chain now has a reviewed worker contract boundary. Future worker integration must require approved snapshot references, approval records, job and worker lease references, idempotency keys, private input manifests, private artifact manifests, checksums, cleanup policy, QA report references, and exact command template allowlists before any route or worker runtime path can use GPAC/MP4Box.
+
+This phase is docs/status/diagnostics only. It does not approve GPAC/MP4Box worker execution, route/provider execution, user/private/real media, arbitrary media probing, render/export, signed URLs, public artifacts, external beta GPAC/MP4Box product use, or production.
+
+Product-ready local OSS tools remain `0`. Track B FFmpeg/FFprobe ownership remains preserved. #577 remains excluded. Supabase classification: no write / environment none / SQL none / migration no.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-WORKER-INTEGRATION-PLAN-1`.
+
 Qwen/DeepSeek repo audit does not remove these blockers.
 
 ## Track A Post-PR706 PR708 Metadata Reconciliation

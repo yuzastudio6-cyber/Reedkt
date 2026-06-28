@@ -1,0 +1,20 @@
+{
+  "artifactPolicy": "gpac_mp4box_worker_artifact_policy",
+  "generatedProofFixtures": "local_only_until_guarded_private_storage_prefix_approval",
+  "privateUserMediaRequirement": "named_source_checksum_purpose_retention_cleanup_owner_authorization_required",
+  "publicArtifacts": "blocked",
+  "signedUrls": "blocked_as_source_of_truth",
+  "manifestRequiredBeforeDownstreamConsumption": true,
+  "manifestFields": [
+    "fileName",
+    "byteCount",
+    "sha256",
+    "sourceClass",
+    "commandTemplateId",
+    "cleanupStatus"
+  ],
+  "cleanupRecordedOnFailure": true,
+  "committedMediaArtifacts": [],
+  "generatedArtifactsCommitted": [],
+  "productRuntimeArtifactHandoff": "blocked_pending_worker_integration_plan"
+}

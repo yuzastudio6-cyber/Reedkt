@@ -21,6 +21,31 @@ create table if not exists public.media_assets (
   updated_at timestamptz not null default now()
 );
 
+-- Compatibility guard for older active baselines where public.media_assets
+-- already exists with processing_status but not the newer text status column.
+alter table public.media_assets
+  add column if not exists status text not null default 'uploaded';
+
+do $reeditpro_media_assets_status_compatibility$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'media_assets'
+      and column_name = 'processing_status'
+  ) then
+    update public.media_assets
+    set status = processing_status::text
+    where status = 'uploaded'
+      and processing_status is not null;
+  end if;
+end
+$reeditpro_media_assets_status_compatibility$;
+
+comment on column public.media_assets.status is
+'Compatibility status column for RP-DATA-04 media source sequence indexes. Backfilled from processing_status when the older active baseline table is present.';
+
 create table if not exists public.uploaded_clips (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(id) on delete cascade,

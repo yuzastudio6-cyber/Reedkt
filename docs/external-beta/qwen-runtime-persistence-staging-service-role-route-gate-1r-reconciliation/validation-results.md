@@ -1,0 +1,26 @@
+# Validation Results
+
+Validation status: `full_validation_passed`
+
+Validation commands passed:
+
+- `npm ci --no-audit --no-fund --progress=false`
+- `git diff --check`
+- `npm run lint`
+- `npm run typecheck:server`
+- `npm run build`
+- `npm run build:server`
+- `npm run --silent rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1:diagnostics`
+- `npm run --silent rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1r-reconciliation:diagnostics`
+- `git diff --cached --check`
+- non-executing changed/staged file-content safety scan
+
+Package-lock: `unchanged`
+
+Generated artifacts committed: `none`
+
+Runtime execution in this phase: `false`
+
+Remote Supabase mutation: `false`
+
+SQL execution: `false`

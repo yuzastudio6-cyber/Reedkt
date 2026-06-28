@@ -73,6 +73,19 @@ const requiredText = [
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
+for (const file of [
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1r-reconciliation/source-audit.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1r-reconciliation/reconciliation.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1r-reconciliation/safety-boundary.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1r-reconciliation/validation-results.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1r-reconciliation/qwen-route-gate-1r-reconciliation-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1r-reconciliation-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1-confirmed.md',
+  'docs/production-beta-blocker-inventory.md',
+  'scripts/validation/rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1r-reconciliation-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
 
 const forbiddenChangedFilePatterns = [
   /^package-lock\.json$/,

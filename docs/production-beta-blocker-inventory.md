@@ -1320,6 +1320,20 @@ Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Genera
 
 Next recommended milestone: `RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-SERVICE-ROLE-ROUTE-GATE-1-CONFIRMED`.
 
+## RP External Beta QWEN Runtime Persistence Staging Service-Role Route Gate 1R Reconciliation
+
+`RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-SERVICE-ROLE-ROUTE-GATE-1R-RECONCILIATION` records decision `completed_post_1505_qwen_staging_service_role_route_gate_reconciliation` and execution `completed_docs_only_post_1505_qwen_route_gate_reconciliation_no_runtime_execution`.
+
+#1505 remains source-of-truth for the QWEN staging persistence service-role route-gate plan. The post-#1505 reconciliation records the route-gate source packet as `satisfied_by_existing_qwen_route_readback_runtime_and_controlled_single_tester_qwen_product_flow_evidence`, based on #1368, #1407, #1410, #1414, #1417, #1419, #1428, #1430, and #1434.
+
+Current controlled external beta lane: `go_single_tester_only`. Current approved tester: `aiediting@reeditpro.com`. Current expansion blocker: `blocked_no_additional_named_tester_list`.
+
+No remote Supabase mutation, SQL execution, service-role route execution in this phase, route handler execution in this phase, service-role secret payload access, provider/model call in this phase, QWEN runtime execution in this phase, worker dispatch, Cloud Run invocation in this phase, signed URL creation, public artifact creation, broad external beta unlock, paid production unlock, production unlock, final render/export, dependency mutation, or package-lock mutation was enabled.
+
+Product-ready end-to-end local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next recommended milestone: `RP-EXTERNAL-BETA-NAMED-TESTER-EXPANSION-READINESS-1`.
+
 ## ReEditPro End-To-End Internal Beta Readiness 1
 
 `REEDITPRO-INTERNAL-BETA-READINESS-1` records decision `blocked_pending_backend_worker_render_storage_billing_and_tool_runtime_gates` and execution `completed_docs_only_internal_beta_readiness_source_of_truth_no_runtime_unlock`.

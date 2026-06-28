@@ -1,0 +1,162 @@
+{
+  "decision": "ai_graphics_external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_local_only",
+  "currentStatus": "external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_pending_private_cloud_run_execution",
+  "summary": "Local-only scaffold for an on-demand Google Cloud Run Jobs NVIDIA L4 native GPU proof path. It writes a job plan, guarded deploy script, guarded execute script, and checklist under an ignored local output directory. It does not deploy Cloud Run, execute a job, start GPU runtime, download model weights, load models, run inference, process media, mutate storage, create signed URLs, create public artifacts, or unlock external beta/production.",
+  "sourceChain": {
+    "operatorHandoff": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-operator-handoff.json",
+    "operatorScaffold": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-operator-scaffold.json",
+    "nativeGpuProofCollection": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-collection.json",
+    "perToolRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json",
+    "properInstallAudit": "docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json"
+  },
+  "contractSurface": {
+    "toolRegistry": "server/tool-registry/ai-graphics-external-beta-native-gpu-proof-cloud-run-job-scaffold.ts",
+    "cli": "server/cli/ai-graphics-external-beta-native-gpu-proof-cloud-run-job-scaffold.ts",
+    "script": "ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold",
+    "diagnostic": "scripts/validation/ai-graphics-external-beta-native-gpu-proof-cloud-run-job-scaffold-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics"
+  },
+  "defaultOutputDirectory": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof",
+  "generatedFiles": {
+    "jobPlan": "cloud-run-native-gpu-proof-job-plan.json",
+    "deployScript": "deploy-cloud-run-native-gpu-proof-job.sh",
+    "executeScript": "execute-cloud-run-native-gpu-proof-job.sh",
+    "checklist": "cloud-run-native-gpu-proof-operator-checklist.md"
+  },
+  "gpuRuntimeTargetedTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background"
+  ],
+  "modelWeightManifestRequiredTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "runtimeProfilesRequired": [
+    "gpu_worker_ai_graphics",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "cloudRunRuntimeTarget": {
+    "platform": "google_cloud_run_jobs",
+    "gpuType": "nvidia-l4",
+    "gpuCount": 1,
+    "cpu": "4",
+    "memory": "16Gi",
+    "tasks": 1,
+    "parallelism": 1,
+    "maxRetries": 0,
+    "startsGpuOnlyDuringJobExecution": true,
+    "idleGpuServiceApproved": false
+  },
+  "privateModelWeightDelivery": {
+    "allowedModes": [
+      "prebaked_private_image_layer",
+      "approved_private_runtime_mount"
+    ],
+    "defaultMode": "prebaked_private_image_layer",
+    "rawGcsRefsAllowedAsEvidence": false,
+    "publicRefsAllowedAsEvidence": false,
+    "signedUrlsAllowedAsEvidence": false
+  },
+  "cloudRunCommands": [
+    {
+      "commandId": "write_local_job_plan",
+      "performsCloudRunDeployment": false,
+      "performsCloudRunExecution": false,
+      "requiresExplicitConfirmation": false,
+      "outputPath": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/cloud-run-native-gpu-proof-job-plan.json"
+    },
+    {
+      "commandId": "deploy_on_demand_l4_proof_job",
+      "performsCloudRunDeployment": true,
+      "performsCloudRunExecution": false,
+      "requiresExplicitConfirmation": true,
+      "outputPath": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/cloud-run-job-deploy-output.json"
+    },
+    {
+      "commandId": "execute_l4_proof_job_per_profile",
+      "performsCloudRunDeployment": false,
+      "performsCloudRunExecution": true,
+      "requiresExplicitConfirmation": true,
+      "outputPath": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results"
+    },
+    {
+      "commandId": "validate_assembled_native_gpu_result_packet",
+      "performsCloudRunDeployment": false,
+      "performsCloudRunExecution": false,
+      "requiresExplicitConfirmation": false,
+      "outputPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json"
+    }
+  ],
+  "expectedLocalOutputPaths": {
+    "jobPlanPacket": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/cloud-run-native-gpu-proof-job-plan.json",
+    "profileResultDirectory": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results",
+    "profileResultPrefix": ".local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results/native-gpu-profile",
+    "assembledGpuProofResultPacket": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "gpuRuntimeTargetedTools": 8,
+    "modelWeightManifestRequiredTools": 5,
+    "runtimeProfilesRequired": 6,
+    "cloudRunCommands": 4,
+    "cloudRunDeploymentCommands": 1,
+    "cloudRunExecutionCommands": 1,
+    "externalBetaReadyNowTools": 0,
+    "productionReadyNowTools": 0
+  },
+  "booleans": {
+    "externalBetaNativeGpuProofCloudRunJobScaffoldPrepared": true,
+    "sourceOperatorHandoffAccepted": true,
+    "all8GpuRuntimeToolsCovered": true,
+    "all5ModelWeightToolsCovered": true,
+    "all6NativeGpuProfilesCovered": true,
+    "cloudRunJobUsesNvidiaL4": true,
+    "cloudRunJobUsesOneGpuPerExecution": true,
+    "cloudRunJobUsesTasksOneParallelismOne": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuStartsOnlyForApprovedProofJob": true,
+    "cpuFallbackAllowedForHeavyTools": false,
+    "cloudRunDeploymentPerformed": false,
+    "cloudRunJobExecutionPerformed": false,
+    "localOnlyScaffoldGenerated": true,
+    "privateModelWeightDeliveryRequired": true,
+    "privateArtifactRefsRequired": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

@@ -1276,3 +1276,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: strengthens the committed operator-handoff JSON packet so all 10 operator steps include the exact command and local output path, matching the Markdown handoff and scaffold-generated shell script.
 - Result: the packet now proves `operatorStepsWithCommands=10`, `operatorStepsWithOutputPaths=10`, and only `run_native_gpu_profile_proof` performs runtime execution. All outputs remain under `.local-artifacts/ai-graphics/`.
 - Runtime/beta/production: no unlock; the packet still reports `gpuRuntimeShouldStartNow=false`, `agentCanExecuteToolsNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta Native GPU Proof Cloud Run Job Scaffold
+
+- Decision: `ai_graphics_external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_local_only`.
+- Scope: prepares an external-beta on-demand Google Cloud Run Jobs NVIDIA L4 proof path for the 8 GPU/model AI graphics tools after the native GPU operator handoff.
+- Result: the scaffold writes a local job plan, guarded deploy script, guarded execute script, and checklist under `.local-artifacts/ai-graphics/cloud-run-native-gpu-proof/`. The generated job shape uses one `nvidia-l4` GPU, `tasks=1`, `parallelism=1`, and `max-retries=0`, with one proof execution per native runtime profile.
+- GPU policy: GPU remains on-demand only. The generated scripts refuse to deploy or execute unless `REEDITPRO_AI_GRAPHICS_CLOUD_RUN_GPU_PROOF_CONFIRM=deploy-or-run-on-demand-l4-proof-job` is set by an operator in the private proof environment. No idle GPU service is approved and CPU fallback for heavy/model tools remains blocked.
+- Runtime/beta/production: no unlock; the scaffold reports `cloudRunDeploymentPerformed=false`, `cloudRunJobExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`, `agentCanExecuteToolsNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

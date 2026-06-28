@@ -78,6 +78,9 @@ const pendingManualReviewClosedToolIds = new Set<ProductionToolId>([
   'sharp',
   'remotion',
 ])
+const internalPreviewBoundaryWarningToolIds = new Set<ProductionToolId>([
+  'hyperframe',
+])
 
 function dryRunStatusForSpec(specStatus: ProductionReadinessStatus): ProductionReadinessStatus {
   if (specStatus === 'passed' || specStatus === 'warning') return 'not_checked'
@@ -144,6 +147,7 @@ function dryRunStatusForTool(
   manifestBackedToolIds: Set<ProductionToolId>,
 ): ProductionReadinessStatus {
   const baseStatus = dryRunStatusForSpec(specStatus)
+  if (internalPreviewBoundaryWarningToolIds.has(specToolId)) return 'warning'
   if (
     manifestBackedToolIds.has(specToolId) &&
     (baseStatus === 'missing' || baseStatus === 'not_installed')
@@ -171,6 +175,10 @@ function buildDryRunWarnings(specToolId: ProductionToolId, manifestBackedToolIds
         ? 'Persistent launch-core manifest source passed source-install review; static readiness records pending_manual_review until runtime policy closes.'
         : 'Persistent launch-core manifest source exists; static readiness records source_install_review_required until runtime/install policy closes.')
     }
+  }
+
+  if (internalPreviewBoundaryWarningToolIds.has(specToolId)) {
+    warnings.push('Hyperframe package identity review concluded this is an internal preview boundary; static readiness records warning and does not require hyperframe/package.json or install guessed package names.')
   }
 
   if (profile?.modelWeightsRequired) {

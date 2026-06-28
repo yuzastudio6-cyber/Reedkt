@@ -231,6 +231,21 @@ function runNodePackageCheck(
   definition: CoreToolNodePackageCheckDefinition,
   checkedAt: string,
 ): CoreToolReadinessCheckResult {
+  if (definition.internalBoundary) {
+    return {
+      toolId: definition.toolId,
+      checkKind: 'registry_policy',
+      checkName: definition.checkName,
+      status: definition.boundaryStatus ?? 'warning',
+      optional: definition.optional,
+      manualReviewRequired: true,
+      message: definition.boundaryMessage ?? `${definition.packageName} is represented as an internal boundary, not a package metadata check.`,
+      packageName: definition.packageName,
+      importName: definition.packageJsonPath,
+      checkedAt,
+    }
+  }
+
   try {
     const resolvedPath = resolveNodePackageMetadataPath(definition)
     return {

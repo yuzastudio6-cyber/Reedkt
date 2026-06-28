@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'backend_runtime_persistence_storage_objects_policy_comment_baseline_fix_required',
-  'Private invoke client status must record the storage.objects policy-comment baseline blocker after retry 13.',
+    'backend_runtime_persistence_local_harness_validation_retry_after_storage_objects_policy_comment_fix_required',
+  'Private invoke client status must record the local harness retry blocker after the storage.objects policy-comment fix.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -169,9 +169,9 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_storage_objects_policy_comment_baseline_fix_required') ||
+    docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_storage_objects_policy_comment_fix_required') ||
     data.privateInvokeClient.currentStatus ===
-      'backend_runtime_persistence_storage_objects_policy_comment_baseline_fix_required',
+      'backend_runtime_persistence_local_harness_validation_retry_after_storage_objects_policy_comment_fix_required',
   'Doc/data must record backend runtime persistence local harness validation-retry blocker status.',
 )
 check(
@@ -313,14 +313,21 @@ check(
 )
 check(
     docText.includes('The RLS helper parameter compatibility fix is now recorded') &&
-    docText.includes('`public.is_workspace_owner_or_admin(uuid)`') &&
+    docText.includes('public.is_workspace_owner_or_admin(uuid)') &&
     docText.includes('Retry 12 verified that RLS migration now applies') &&
     docText.includes('The storage buckets comment baseline fix is now recorded') &&
-    docText.includes('`insufficient_privilege`') &&
+    docText.includes('insufficient_privilege') &&
     docText.includes('Retry 13 verified') &&
-    docText.includes('`storage.objects`') &&
-    docText.includes('`must be owner of relation objects (SQLSTATE 42501)`'),
+    docText.includes('storage.objects') &&
+    docText.includes('comment on policy "reeditpro_project_members_read_project_objects" on storage.objects'),
   'Doc must record the RLS helper parameter fix, storage buckets comment fix, retry-13 evidence, and storage.objects blocker.',
+)
+check(
+  docText.includes('The storage.objects policy-comment baseline fix is now recorded') &&
+    docText.includes('documentation-only policy comments') &&
+    docText.includes('approved local harness validation retry 14') &&
+    docText.includes('QWEN2_5_VL_STACK_TOOL_58AV-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-14'),
+  'Doc must record the storage.objects policy-comment fix and retry-14 blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

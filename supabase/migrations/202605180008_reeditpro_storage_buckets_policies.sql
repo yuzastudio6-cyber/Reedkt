@@ -62,10 +62,16 @@ with check (
   and public.is_project_editor(public.safe_uuid((storage.foldername(name))[1]))
 );
 
-comment on policy "reeditpro_project_members_read_project_objects" on storage.objects is
-  'Reads are project-scoped by first path segment. Previews and exports still use private buckets and should prefer signed URLs in the app.';
-comment on policy "reeditpro_project_editors_upload_source_and_thumbnails" on storage.objects is
-  'Initial testing allows authenticated project editors to upload source media and thumbnails only.';
+do $$
+begin
+  comment on policy "reeditpro_project_members_read_project_objects" on storage.objects is
+    'Reads are project-scoped by first path segment. Previews and exports still use private buckets and should prefer signed URLs in the app.';
+  comment on policy "reeditpro_project_editors_upload_source_and_thumbnails" on storage.objects is
+    'Initial testing allows authenticated project editors to upload source media and thumbnails only.';
+exception
+  when insufficient_privilege then
+    raise notice 'Skipping storage.objects policy comments because the local migration role does not own the Supabase platform table.';
+end $$;
 
 -- No normal user policy is created for worker-temp. Backend workers should use service role only.
 -- No anonymous policy is created. Source media, browser capture artifacts, generated assets, QA artifacts, previews, and exports remain private.

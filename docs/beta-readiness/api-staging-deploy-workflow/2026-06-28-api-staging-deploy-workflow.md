@@ -4,6 +4,8 @@ Decision: `beta_readiness_api_staging_deploy_workflow_passed_ready_for_manual_op
 
 This packet adds a guarded manual GitHub Actions workflow for the staging API deployment gap. It does not run the workflow, deploy Cloud Run, read secrets, call the deployed backend, record evidence, enable external beta, enable real-user-media beta, enable paid production, or change product-ready status.
 
+PR #1360 landed the same workflow path on the repository default branch `codex/reeditpro-web-ui-shell` at `363a5b69d0b09e296b4471593776b3bca0a6a871`, so `gh workflow view beta-readiness-api-staging-deploy.yml --repo yuzastudio6-cyber/Reedkt --yaml` now succeeds. Operators must dispatch the workflow from the default branch while supplying the tools source ref `codex/sound-music-audio-1abc-checkpoint` and exact deployed source SHA.
+
 ## Workflow
 
 - Path: `.github/workflows/beta-readiness-api-staging-deploy.yml`

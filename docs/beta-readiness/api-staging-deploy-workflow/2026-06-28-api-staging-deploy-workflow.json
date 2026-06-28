@@ -3,6 +3,12 @@
   "decision": "beta_readiness_api_staging_deploy_workflow_passed_ready_for_manual_operator_dispatch",
   "sourceSha": "669d31c5f4305f12e7767fe4a27e749770441447",
   "workflowPath": ".github/workflows/beta-readiness-api-staging-deploy.yml",
+  "defaultBranchBridge": {
+    "pr": 1360,
+    "mergeSha": "363a5b69d0b09e296b4471593776b3bca0a6a871",
+    "defaultBranch": "codex/reeditpro-web-ui-shell",
+    "workflowDiscoverable": true
+  },
   "smokeCommand": "npm run smoke:beta-readiness-api-staging-deploy-workflow",
   "automaticTriggersAllowed": false,
   "externalBetaEnabled": false,
@@ -42,5 +48,5 @@
     "paid_production_until_separate_paid_production_evidence_collector_passes",
     "public_launch_claims_until_final_operator_status_proves_exact_scope"
   ],
-  "nextSafeAction": "An authorized operator may manually dispatch the workflow with the exact confirmation phrase and immutable source SHA/image tag, then run npm run beta:readiness:api-deployment-preflight against the deployed staging URL before any evidence collector."
+  "nextSafeAction": "An authorized operator may manually dispatch the workflow from default branch codex/reeditpro-web-ui-shell with the exact confirmation phrase, source_ref=codex/sound-music-audio-1abc-checkpoint, immutable source SHA/image tag, Artifact Registry inputs, owner-approved deployer service account, runtime API service account, and service_name=reeditpro-api-staging; then run npm run beta:readiness:api-deployment-preflight against the deployed staging URL before any evidence collector."
 }

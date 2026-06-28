@@ -63,6 +63,15 @@ allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-draft-sourc
 allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-draft-source-split-import-1/qwen-runtime-persistence-draft-source-split-import-record.json')
 allowedChangedFiles.add('docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-local-harness-validation-retry-12.md')
 allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-runtime-persistence-draft-source-split-import-1-diagnostics.mjs')
+allowedChangedFiles.add('docs/activation-phase-rp-external-beta-qwen-runtime-persistence-active-migration-promotion-1-results.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-active-migration-promotion-1/source-audit.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-active-migration-promotion-1/local-validation-result.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-active-migration-promotion-1/validation-results.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-active-migration-promotion-1/safety-boundary.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-active-migration-promotion-1/qwen-runtime-persistence-active-migration-promotion-record.json')
+allowedChangedFiles.add('docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-staging-migration-validation-1.md')
+allowedChangedFiles.add('supabase/migrations/20260628000100_qwen2_5_vl_backend_runtime_persistence.sql')
+allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-runtime-persistence-active-migration-promotion-1-diagnostics.mjs')
 
 const blockedPrefixes = [
   'package-lock.json',

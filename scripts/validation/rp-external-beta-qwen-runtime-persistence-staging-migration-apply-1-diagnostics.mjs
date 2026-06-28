@@ -56,6 +56,19 @@ const requiredText = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 allowedChangedFiles.add('docs/activation-phase-rp-external-beta-qwen-runtime-persistence-staging-migration-apply-1-results.md')
+for (const file of [
+  'docs/external-beta/qwen-runtime-persistence-staging-rls-storage-readback-1/source-audit.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-rls-storage-readback-1/rls-storage-readback-result.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-rls-storage-readback-1/migration-drift-result.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-rls-storage-readback-1/validation-results.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-rls-storage-readback-1/safety-boundary.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-rls-storage-readback-1/qwen-runtime-persistence-staging-rls-storage-readback-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-runtime-persistence-staging-rls-storage-readback-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1.md',
+  'scripts/validation/rp-external-beta-qwen-runtime-persistence-staging-rls-storage-readback-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
 
 const forbiddenChangedPrefixes = [
   'package-lock.json',

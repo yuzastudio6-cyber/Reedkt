@@ -20,6 +20,20 @@ const requiredFiles = [
   'package.json',
 ]
 
+const followOnFiles = [
+  'docs/external-beta/named-tester-expansion-readiness-1/source-chain-reconciliation.md',
+  'docs/external-beta/named-tester-expansion-readiness-1/readiness-decision.md',
+  'docs/external-beta/named-tester-expansion-readiness-1/expansion-boundary.md',
+  'docs/external-beta/named-tester-expansion-readiness-1/safety-boundary.md',
+  'docs/external-beta/named-tester-expansion-readiness-1/validation-results.md',
+  'docs/external-beta/named-tester-expansion-readiness-1/named-tester-expansion-readiness-record.json',
+  'docs/activation-phase-rp-external-beta-named-tester-expansion-readiness-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-named-tester-expansion-readiness-1.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-additional-named-tester-list-decision-1.md',
+  'scripts/validation/rp-external-beta-named-tester-expansion-readiness-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-bounded-tester-expansion-decision-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'go_controlled_single_tester_external_beta_lane_remains_open',
@@ -114,7 +128,7 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowedFiles = new Set(requiredFiles)
+const allowedFiles = new Set([...requiredFiles, ...followOnFiles])
 const forbiddenFile = /^(package-lock\.json|supabase\/|database\/|docker\/|\.github\/|\.dockerignore$|\.env|requirements|src\/|server\/|dist\/|dist-server\/|node_modules\/)/
 const forbiddenText = [
   /External beta global unlock:\s*`?true`?/i,

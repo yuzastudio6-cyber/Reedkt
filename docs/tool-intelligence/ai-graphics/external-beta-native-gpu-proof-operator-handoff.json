@@ -1,0 +1,181 @@
+{
+  "decision": "ai_graphics_external_beta_native_gpu_proof_operator_handoff_prepared_with_private_evidence_runtime_blocks",
+  "summary": "Operator-facing handoff for collecting the remaining private/native GPU evidence needed before the 8 GPU/model AI graphics tools can be rechecked by the external-beta per-tool runtime proof gate. This handoff prepares exact local-only commands and packet paths; it does not download model weights, run Docker, start GPU runtime, load models, run inference, process media, mutate storage, create signed URLs, create public artifacts, or unlock beta/production.",
+  "sourceChain": {
+    "nativeGpuProofCollection": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-collection.json",
+    "perToolRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json",
+    "toolRouteRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json",
+    "nodeRuntimeProof": "docs/tool-intelligence/ai-graphics/node-runtime-proof.json",
+    "browserRuntimeProof": "docs/tool-intelligence/ai-graphics/browser-runtime-proof.json",
+    "satoriFontRuntimeProof": "docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json"
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-external-beta-native-gpu-proof-operator-handoff.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "cli": "server/cli/ai-graphics-external-beta-native-gpu-proof-operator-handoff.ts",
+    "script": "ai-graphics:external-beta-native-gpu-proof-operator-handoff",
+    "diagnostic": "scripts/validation/ai-graphics-external-beta-native-gpu-proof-operator-handoff-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:external-beta-native-gpu-proof-operator-handoff:diagnostics"
+  },
+  "currentStatus": "external_beta_native_gpu_proof_operator_handoff_prepared_with_pending_private_evidence_and_native_gpu_results",
+  "readyAfterEvidenceStatus": "external_beta_native_gpu_proof_operator_handoff_ready_for_per_tool_recheck_not_beta_ready",
+  "gpuRuntimeTargetedTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background"
+  ],
+  "modelWeightManifestRequiredTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "runtimeProfilesRequired": [
+    "gpu_worker_ai_graphics",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "expectedPacketPaths": {
+    "checksumEvidencePacket": ".local-artifacts/ai-graphics/model-weight-checksum-evidence/model-weight-checksum-evidence-packet.json",
+    "modelWeightManifestReviewPacket": ".local-artifacts/ai-graphics/model-weight-manifests/model-weight-manifest-review-packet.json",
+    "gpuRuntimeProofCommandPlanPacket": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-command-plan-packet.json",
+    "nativeGpuHostPreflight": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/native-gpu-host-preflight.json",
+    "gpuRuntimeProofResultPacket": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json",
+    "nativeGpuProofCollectionPacket": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/external-beta-native-gpu-proof-collection-packet.json",
+    "perToolRuntimeProofRecheckPacket": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/external-beta-per-tool-runtime-proof-recheck-packet.json"
+  },
+  "operatorSteps": [
+    {
+      "stepId": "scaffold_private_checksum_evidence",
+      "mustRunOnNativeGpuHost": false,
+      "requiresPrivateArtifacts": true,
+      "performsRuntimeExecution": false
+    },
+    {
+      "stepId": "validate_private_checksum_evidence",
+      "mustRunOnNativeGpuHost": false,
+      "requiresPrivateArtifacts": true,
+      "performsRuntimeExecution": false
+    },
+    {
+      "stepId": "author_private_model_manifests",
+      "mustRunOnNativeGpuHost": false,
+      "requiresPrivateArtifacts": true,
+      "performsRuntimeExecution": false
+    },
+    {
+      "stepId": "validate_private_model_manifests",
+      "mustRunOnNativeGpuHost": false,
+      "requiresPrivateArtifacts": true,
+      "performsRuntimeExecution": false
+    },
+    {
+      "stepId": "generate_native_gpu_command_plan",
+      "mustRunOnNativeGpuHost": false,
+      "requiresPrivateArtifacts": true,
+      "performsRuntimeExecution": false
+    },
+    {
+      "stepId": "verify_native_gpu_host",
+      "mustRunOnNativeGpuHost": true,
+      "requiresPrivateArtifacts": false,
+      "performsRuntimeExecution": false
+    },
+    {
+      "stepId": "run_native_gpu_profile_proof",
+      "mustRunOnNativeGpuHost": true,
+      "requiresPrivateArtifacts": true,
+      "performsRuntimeExecution": true
+    },
+    {
+      "stepId": "validate_native_gpu_proof_results",
+      "mustRunOnNativeGpuHost": false,
+      "requiresPrivateArtifacts": true,
+      "performsRuntimeExecution": false
+    },
+    {
+      "stepId": "validate_native_gpu_proof_collection",
+      "mustRunOnNativeGpuHost": false,
+      "requiresPrivateArtifacts": true,
+      "performsRuntimeExecution": false
+    },
+    {
+      "stepId": "recheck_external_beta_per_tool_runtime_proof",
+      "mustRunOnNativeGpuHost": false,
+      "requiresPrivateArtifacts": true,
+      "performsRuntimeExecution": false
+    }
+  ],
+  "completionCriteria": {
+    "checksumEvidenceAccepted": 5,
+    "privateModelManifestsAccepted": 5,
+    "nativeGpuProofProfilesAccepted": 6,
+    "nativeGpuToolsAcceptedAfterPerToolRecheck": 8,
+    "externalBetaReadyNowTools": 0,
+    "productionReadyNowTools": 0
+  },
+  "acceptedPrivateRefNamespaces": [
+    "private://",
+    "reeditpro-private://",
+    "backend-evidence://",
+    "external-beta-evidence://"
+  ],
+  "forbiddenRefPrefixes": [
+    "http://",
+    "https://",
+    "signed-url://",
+    "public://",
+    "gs://",
+    "gcs://"
+  ],
+  "nextExternalBetaGap": "Run the handoff on the private artifact environment and native linux/amd64 NVIDIA L4 proof host, then feed the completed packets back into the external-beta per-tool runtime proof recheck.",
+  "booleans": {
+    "externalBetaNativeGpuProofOperatorHandoffPrepared": true,
+    "sourceNativeGpuProofCollectionAccepted": true,
+    "all8GpuRuntimeToolsCovered": true,
+    "all5ModelWeightToolsCovered": true,
+    "all6NativeGpuProfilesCovered": true,
+    "operatorRunbookDeterministic": true,
+    "fullPerToolRuntimeProofRecheckCommandPrepared": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuStartsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false,
+    "localOnlyEvidenceCollection": true,
+    "privateArtifactRefsRequired": true,
+    "privateArtifactRefsNotLogged": true,
+    "readyForPerToolRuntimeProofRecheck": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

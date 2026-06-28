@@ -72,6 +72,7 @@ export interface AiGraphicsExternalBetaWorkerEnqueueAdapter {
   executionRequested: boolean
   sourceExternalBetaToolCallGateway: AiGraphicsExternalBetaToolCallGateway
   sourceExternalBetaToolCallGatewayAccepted: boolean
+  sourceExternalBetaToolCallGatewayProofBridgeAccepted: boolean
   missingAdapterControls: string[]
   externalBetaAdapterControlsSatisfied: boolean
   externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence: boolean
@@ -98,6 +99,7 @@ export interface AiGraphicsExternalBetaWorkerEnqueueAdapter {
   booleans: {
     externalBetaWorkerEnqueueAdapterPrepared: true
     sourceExternalBetaToolCallGatewayAccepted: boolean
+    sourceExternalBetaToolCallGatewayProofBridgeAccepted: boolean
     externalBetaAdapterControlsSatisfied: boolean
     externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -183,6 +185,8 @@ function asWorkerType(value: string): ProductionWorkerRuntimeType {
 
 function gatewayAccepted(packet: AiGraphicsExternalBetaToolCallGateway): boolean {
   return packet.decision === 'external_beta_worker_enqueue_candidate_ready' &&
+    packet.sourceExternalBetaRuntimeAdmissionProofBridgeAccepted === true &&
+    packet.booleans.sourceExternalBetaRuntimeAdmissionProofBridgeAccepted === true &&
     packet.externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence === true &&
     packet.externalBetaWorkerEnqueueCandidate !== null &&
     packet.externalBetaReadyNowTools === 0 &&
@@ -276,6 +280,8 @@ function buildPayload(input: {
       aiGraphicsRuntimeTarget: input.candidate.runtimeTarget,
       sourceGatewayDecision: input.gateway.decision,
       sourceGatewayRuntimeAdmissionMode: input.gateway.sourceRuntimeAdmissionMode,
+      sourceGatewayRuntimeAdmissionProofBridgeAccepted:
+        input.gateway.sourceExternalBetaRuntimeAdmissionProofBridgeAccepted,
       sourceGatewayCandidateRef: input.candidate.candidateRef,
       sourceGatewayTraceId: input.candidate.traceId,
       sourceGatewayIdempotencyKey: input.candidate.idempotencyKey,
@@ -328,6 +334,7 @@ function payloadShapeValid(
       payload.metadata?.aiGraphicsCanonicalToolId === candidate.toolId &&
       payload.metadata?.aiGraphicsRuntimeTarget === candidate.runtimeTarget &&
       typeof payload.metadata?.sourceGatewayRuntimeAdmissionMode === 'string' &&
+      payload.metadata?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true &&
       payload.metadata?.gpuRuntimeShouldStartNow === false &&
       payload.metadata?.workerEnqueuePerformed === false,
   )
@@ -382,6 +389,9 @@ export function evaluateAiGraphicsExternalBetaWorkerEnqueueAdapter(
     evaluateAiGraphicsExternalBetaToolCallGateway(input)
   const executionRequested =
     input.executionRequested === true || gateway.executionRequested === true
+  const sourceGatewayProofBridgeAccepted =
+    gateway.sourceExternalBetaRuntimeAdmissionProofBridgeAccepted === true &&
+    gateway.booleans.sourceExternalBetaRuntimeAdmissionProofBridgeAccepted === true
   const sourceGatewayAccepted = gatewayAccepted(gateway)
   const missingControls = executionRequested ? missingAdapterControls(input) : []
   const controlsSatisfied =
@@ -412,6 +422,8 @@ export function evaluateAiGraphicsExternalBetaWorkerEnqueueAdapter(
     executionRequested,
     sourceExternalBetaToolCallGateway: gateway,
     sourceExternalBetaToolCallGatewayAccepted: sourceGatewayAccepted,
+    sourceExternalBetaToolCallGatewayProofBridgeAccepted:
+      sourceGatewayProofBridgeAccepted,
     missingAdapterControls: missingControls,
     externalBetaAdapterControlsSatisfied: controlsSatisfied,
     externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence: payloadReady,
@@ -427,6 +439,8 @@ export function evaluateAiGraphicsExternalBetaWorkerEnqueueAdapter(
     booleans: {
       externalBetaWorkerEnqueueAdapterPrepared: true,
       sourceExternalBetaToolCallGatewayAccepted: sourceGatewayAccepted,
+      sourceExternalBetaToolCallGatewayProofBridgeAccepted:
+        sourceGatewayProofBridgeAccepted,
       externalBetaAdapterControlsSatisfied: controlsSatisfied,
       externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence: payloadReady,
       all21ToolsCovered: true,

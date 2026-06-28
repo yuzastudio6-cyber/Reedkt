@@ -36,8 +36,10 @@
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
+  "sourceToolCallGatewayProofBridgeAccepted": true,
   "requiredAdapterControls": [
     "accepted external-beta tool-call gateway packet",
+    "accepted external-beta tool-call gateway packet preserving the native GPU runtime-proof bridge",
     "external beta project id",
     "external beta tool execution plan id",
     "external beta backend queue adapter reference",
@@ -169,6 +171,7 @@
   "booleans": {
     "externalBetaWorkerEnqueueAdapterPrepared": true,
     "sourceExternalBetaToolCallGatewayAccepted": true,
+    "sourceExternalBetaToolCallGatewayProofBridgeAccepted": true,
     "externalBetaAdapterControlsSatisfied": true,
     "externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence": true,
     "all21ToolsCovered": true,

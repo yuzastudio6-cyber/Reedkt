@@ -248,6 +248,9 @@ if (!index.includes("export * from './ai-graphics-external-beta-worker-enqueue-a
 if (docs.decision !== 'ai_graphics_external_beta_worker_enqueue_adapter_contract_prepared_with_runtime_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
+if (docs.sourceToolCallGatewayProofBridgeAccepted !== true) {
+  fail('docs_source_tool_call_gateway_proof_bridge_not_true')
+}
 
 for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
@@ -275,6 +278,7 @@ for (const tool of gpuTools) {
 }
 for (const gate of [
   'accepted external-beta tool-call gateway packet',
+  'accepted external-beta tool-call gateway packet preserving the native GPU runtime-proof bridge',
   'external beta project id',
   'external beta tool execution plan id',
   'external beta backend queue adapter reference',
@@ -290,6 +294,7 @@ for (const gate of [
 for (const key of [
   'externalBetaWorkerEnqueueAdapterPrepared',
   'sourceExternalBetaToolCallGatewayAccepted',
+  'sourceExternalBetaToolCallGatewayProofBridgeAccepted',
   'externalBetaAdapterControlsSatisfied',
   'externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence',
   'all21ToolsCovered',
@@ -333,9 +338,12 @@ for (const needle of [
   'AI_GRAPHICS_EXTERNAL_BETA_WORKER_ENQUEUE_ADAPTER_DECISION',
   'evaluateAiGraphicsExternalBetaWorkerEnqueueAdapter',
   'sourceExternalBetaToolCallGatewayPacket',
+  'sourceExternalBetaToolCallGatewayProofBridgeAccepted',
+  'sourceExternalBetaRuntimeAdmissionProofBridgeAccepted',
   'ProductionWorkerJobPayload',
   'buildWorkerIdempotencyKey',
   'sourceGatewayRuntimeAdmissionMode',
+  'sourceGatewayRuntimeAdmissionProofBridgeAccepted',
   "executionMode: 'production_blocked'",
   'backendQueueSubmissionPerformed: false',
   'workerEnqueuePerformed: false',
@@ -375,6 +383,7 @@ for (const needle of [
   'External-Beta Worker Enqueue Adapter',
   'ProductionWorkerJobPayload',
   'sourceGatewayRuntimeAdmissionMode',
+  'sourceGatewayRuntimeAdmissionProofBridgeAccepted',
   'Live backend queue submissions now: `0`',
   'Worker enqueue performed now: `0`',
   'GPU remains on-demand only',
@@ -386,6 +395,8 @@ for (const needle of [
   'AI graphics external beta worker enqueue adapter decision',
   'ProductionWorkerJobPayload',
   'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
+  'rejects source tool-call gateway packets that strip',
+  '`sourceGatewayRuntimeAdmissionProofBridgeAccepted=true`',
   '`backendQueueSubmissionPerformed=false`',
   '`workerEnqueuePerformed=false`',
   '`workerLeaseCreated=false`',
@@ -618,6 +629,17 @@ const readyD3CpuStaticGateway = parseJsonOutput(runNpm(gatewayScriptName, [
   ...gatewayControls('d3-cpu-static'),
 ]), 'ready_d3_cpu_static_gateway')
 const readySam2GatewayPath = writeJson(path.join(tmpRoot, 'sam2-gateway.json'), readySam2Gateway)
+const weakenedSam2GatewayPath = writeJson(
+  path.join(tmpRoot, 'weakened-sam2-gateway.json'),
+  {
+    ...readySam2Gateway,
+    sourceExternalBetaRuntimeAdmissionProofBridgeAccepted: false,
+    booleans: {
+      ...readySam2Gateway.booleans,
+      sourceExternalBetaRuntimeAdmissionProofBridgeAccepted: false,
+    },
+  },
+)
 const readyD3GatewayPath = writeJson(path.join(tmpRoot, 'd3-gateway.json'), readyD3Gateway)
 const readyD3CpuStaticGatewayPath = writeJson(
   path.join(tmpRoot, 'd3-cpu-static-gateway.json'),
@@ -676,6 +698,11 @@ const blockedMissingServiceRole = parseJsonOutput(runNpm(runScriptName, [
   readySam2GatewayPath,
   ...adapterControlsWithoutServiceRole,
 ]), 'blocked_missing_service_role_adapter')
+const weakenedGatewayAdapter = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-tool-call-gateway-packet',
+  weakenedSam2GatewayPath,
+  ...adapterControlsFor('sam2'),
+]), 'weakened_gateway_adapter')
 const readySam2Adapter = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-tool-call-gateway-packet',
   readySam2GatewayPath,
@@ -704,6 +731,18 @@ if (blockedMissingServiceRole.decision !== 'missing_external_beta_enqueue_adapte
 if (!blockedMissingServiceRole.missingAdapterControls?.includes('external beta service-role boundary reference is missing')) {
   fail('blocked_missing_service_role_not_reported')
 }
+if (weakenedGatewayAdapter.decision !== 'missing_external_beta_tool_call_gateway') {
+  fail(`weakened_gateway_adapter_decision_unexpected:${weakenedGatewayAdapter.decision}`)
+}
+if (weakenedGatewayAdapter.sourceExternalBetaToolCallGatewayAccepted !== false) {
+  fail('weakened_gateway_adapter_source_gateway_accepted_not_false')
+}
+if (weakenedGatewayAdapter.sourceExternalBetaToolCallGatewayProofBridgeAccepted !== false) {
+  fail('weakened_gateway_adapter_proof_bridge_not_false')
+}
+if (weakenedGatewayAdapter.externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence !== false) {
+  fail('weakened_gateway_adapter_payload_ready_not_false')
+}
 
 for (const [label, output] of Object.entries({
   readySam2Adapter,
@@ -721,6 +760,9 @@ for (const [label, output] of Object.entries({
   if (adapterPayload?.adapterPayloadShapeValid !== true) fail(`${label}_payload_shape_not_valid`)
   if (adapterPayload?.productionWorkerJobPayload?.executionMode !== 'production_blocked') {
     fail(`${label}_payload_execution_mode_not_production_blocked`)
+  }
+  if (adapterPayload?.productionWorkerJobPayload?.metadata?.sourceGatewayRuntimeAdmissionProofBridgeAccepted !== true) {
+    fail(`${label}_payload_runtime_proof_bridge_not_true`)
   }
   if (!adapterPayload?.productionWorkerJobPayload?.idempotencyKey?.startsWith('prod-worker:')) {
     fail(`${label}_payload_idempotency_key_unexpected`)
@@ -908,6 +950,7 @@ console.log(JSON.stringify({
   planningAdapterDecision: planningAdapter.decision,
   blockedMissingGatewayDecision: blockedMissingGateway.decision,
   blockedMissingServiceRoleDecision: blockedMissingServiceRole.decision,
+  weakenedGatewayAdapterDecision: weakenedGatewayAdapter.decision,
   readySam2AdapterDecision: readySam2Adapter.decision,
   readyD3AdapterDecision: readyD3Adapter.decision,
   readyD3CpuStaticAdapterDecision: readyD3CpuStaticAdapter.decision,

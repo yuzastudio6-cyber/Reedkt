@@ -229,6 +229,10 @@ This is still an adapter contract only: `backendQueueSubmissionPerformed=false`,
 `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
 The GPU path remains on-demand only: a GPU runtime is start-allowed only for a
 future accepted worker/tool-call job, never as an idle service.
+The adapter also rejects source tool-call gateway packets that strip or weaken
+the native GPU runtime-proof bridge, and preserves
+`sourceGatewayRuntimeAdmissionProofBridgeAccepted=true` in worker payload
+metadata before any future backend queue submission.
 
 AI graphics external beta backend queue submission decision
 `ai_graphics_external_beta_backend_queue_submission_envelope_prepared_with_runtime_blocks`

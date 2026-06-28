@@ -9,6 +9,7 @@ This contract is the external-beta backend queue adapter boundary for AI graphic
 - Tools covered: `21`
 - Product-facing capabilities covered: `12`
 - GPU runtime targeted tools: `8`
+- Source tool-call gateway proof bridge accepted: `true`
 - Full adapter payload examples ready with provided evidence: `3`
 - CPU/static first-cohort adapter payload examples ready with provided evidence: `1`
 - GPU runtime start allowed for accepted external-beta job examples: `1`
@@ -24,7 +25,7 @@ This contract is the external-beta backend queue adapter boundary for AI graphic
 
 An external-beta gateway candidate can become a worker enqueue adapter payload with provided evidence only when:
 
-1. The source external-beta tool-call gateway packet is accepted.
+1. The source external-beta tool-call gateway packet is accepted and preserves the native GPU runtime-proof bridge.
 2. The source gateway packet contains a worker enqueue candidate.
 3. The request has external beta project and tool execution plan IDs.
 4. Backend queue adapter, queue name, service-role boundary, worker payload schema, private storage policy, retry policy, and dead-letter policy refs are present.
@@ -38,6 +39,6 @@ GPU remains on-demand only. SAM2 can be marked as start-allowed for an accepted 
 
 ## CPU/Static First Cohort
 
-The adapter now preserves `sourceGatewayRuntimeAdmissionMode` inside the `ProductionWorkerJobPayload` metadata. `d3` can be prepared through the CPU/static first-cohort gateway path with `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`, `runtimeTarget=node_cpu_static`, and `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=false`.
+The adapter now preserves `sourceGatewayRuntimeAdmissionMode` and `sourceGatewayRuntimeAdmissionProofBridgeAccepted` inside the `ProductionWorkerJobPayload` metadata. `d3` can be prepared through the CPU/static first-cohort gateway path with `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`, `runtimeTarget=node_cpu_static`, and `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=false`.
 
 This adapter does not submit backend queues, create worker leases, dispatch workers, execute tools, start GPU runtime, call providers, create signed URLs, create public artifacts, process media, mutate Supabase/GCS, unlock external beta traffic, or unlock production.

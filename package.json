@@ -68,6 +68,7 @@
     "smoke:beta-tools-core-real-check-evidence-cli": "tsx server/smoke/beta-tools-core-real-check-evidence-cli-smoke.ts",
     "smoke:beta-tools-core-real-check-evidence-preflight": "tsx server/smoke/beta-tools-core-real-check-evidence-preflight-smoke.ts",
     "smoke:beta-tools-local-accepted-evidence-bundle": "tsx server/smoke/beta-tools-local-accepted-evidence-bundle-smoke.ts",
+    "smoke:beta-tools-local-accepted-evidence-snapshot": "tsx server/smoke/beta-tools-local-accepted-evidence-snapshot-smoke.ts",
     "smoke:beta-tools-local-accepted-evidence-collector": "tsx server/smoke/beta-tools-local-accepted-evidence-collector-smoke.ts",
     "smoke:beta-platform-rls-readback:sql": "tsx server/smoke/beta-platform-rls-readback-sql-smoke.ts",
     "smoke:beta-platform-monitoring-catalog": "tsx server/smoke/beta-platform-monitoring-catalog-smoke.ts",

@@ -1,6 +1,6 @@
 # Qwen2.5-VL 7B Cloud Run GPU Private Invoke Readiness Rollup
 
-Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_retry_14_recorded_storage_upload_pipeline_policy_comment_fix_required`.
+Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_storage_upload_pipeline_policy_comment_fix_recorded_retry_15_required`.
 
 This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded Cloud Run auth/IAM reverify, controlled private invoke smoke plan, private caller route, Direct VPC route config, CPU-only caller source, CPU-only caller deploy, CPU-only caller contract smoke, runtime readiness review, approved-fixture inference smoke plan, gated service source, service deploy, first fixture attempt, tuned fixture retry, structured output source fix, controlled structured-output retry, structured fixture output result review, private runtime readiness review result, approved worker integration readiness review, backend runtime dispatch implementation plan, fail-closed backend runtime dispatch coordinator, controlled backend dispatch dry-run review, backend runtime persistence plan, backend runtime persistence schema draft review, backend runtime persistence migration draft, backend runtime persistence local validation result, backend runtime persistence local harness plan, backend runtime persistence local harness config creation, backend runtime persistence local harness config verification, backend runtime persistence local harness validation result, backend runtime persistence local harness port fix, backend runtime persistence local harness validation retry result, backend runtime persistence baseline migration fix, backend runtime persistence local harness validation retry 2 result, backend runtime persistence current edit session baseline fix, backend runtime persistence local harness validation retry 3 result, backend runtime persistence media assets status baseline fix, backend runtime persistence local harness validation retry 4 result, backend runtime persistence edit plan segments version baseline fix, backend runtime persistence local harness validation retry 5 result, backend runtime persistence credit approval snapshots baseline fix, backend runtime persistence local harness validation retry 6 result, backend runtime persistence credit estimates plan version baseline fix, backend runtime persistence local harness validation retry 7 result, backend runtime persistence generation requests approved snapshot baseline fix, backend runtime persistence local harness validation retry 8 result, backend runtime persistence generated asset versions version baseline fix, backend runtime persistence local harness validation retry 9 result, backend runtime persistence QA check results reserved column baseline fix, backend runtime persistence local harness validation retry 10 result, backend runtime persistence QA reports approved snapshot baseline fix, backend runtime persistence local harness validation retry 11 result, backend runtime persistence RLS function parameter baseline fix, backend runtime persistence local harness validation retry 12 result, backend runtime persistence baseline storage buckets comment fix, backend runtime persistence local harness validation retry 13 result, backend runtime persistence baseline storage objects policy comment fix, and backend runtime persistence local harness validation retry 14 result are recorded.
 
@@ -71,7 +71,8 @@ This is evidence only. It does not enable persistent inference, dispatch a user-
 - backend runtime persistence local harness validation retry after storage buckets comment fix: ready, retry 13 recorded with storage.objects policy-comment blocker
 - backend runtime persistence storage objects policy comment baseline fix: ready, policy comments guarded with `insufficient_privilege`
 - backend runtime persistence local harness validation retry after storage objects policy comment fix: ready, retry 14 recorded with storage upload pipeline blocker
-- backend runtime persistence storage upload pipeline policy comment baseline fix: blocked, ownership guard required
+- backend runtime persistence storage upload pipeline policy comment baseline fix: ready, policy comments guarded with `insufficient_privilege`
+- backend runtime persistence local harness validation retry after storage upload pipeline policy comment fix: blocked, retry 15 required
 - private invoke runtime readiness: false
 - beta readiness: false
 - production readiness: false
@@ -381,7 +382,13 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `backendRuntimePersistenceLocalHarnessValidationRetry14Attempted=true`
 - `backendRuntimePersistenceLocalHarnessValidationRetry14Passed=false`
 - `backendRuntimePersistenceStorageObjectsPolicyCommentFixVerified=true`
-- `backendRuntimePersistenceStorageUploadPipelinePolicyCommentBaselineFixRequired=true`
+- `backendRuntimePersistenceStorageUploadPipelinePolicyCommentBaselineFixRequired=false`
+- `backendRuntimePersistenceBaselineStorageUploadPipelinePolicyCommentFixRecorded=true`
+- `activeBaselineStorageUploadPipelineReadinessMigrationEdited=true`
+- `storageUploadPipelinePolicyCommentInsufficientPrivilegeGuarded=true`
+- `storageUploadPipelinePolicyCommentsSkippedWhenNotOwner=true`
+- `storageUploadPipelinePolicySemanticsChanged=false`
+- `backendRuntimePersistenceLocalHarnessValidationRetryAfterStorageUploadPipelinePolicyCommentFixRequired=true`
 - `qwenDraftSqlApplied=false`
 - `qwenLocalSqlTestsExecuted=false`
 - `existingLocalSupabaseProjectDetected=true`
@@ -429,7 +436,7 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `dryRunPassedClaimed=false`
 - `generatedLocalFixturePassedClaimed=false`
 
-The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent user-facing runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the private runtime review is accepted only for metadata-only controlled fixture readiness. Approved worker integration review, backend runtime dispatch planning, fail-closed coordinator implementation, controlled backend dispatch dry-run review, backend runtime persistence planning, backend runtime persistence schema draft review, backend runtime persistence migration drafting, blocked local-validation result recording, local harness planning, config creation, config verification, blocked port-conflict local harness validation result, port fix, baseline compatibility fixes, retry 9, the QA check-results reserved-column fix, retry 10, the QA reports approved-snapshot baseline fix, retry 11, the RLS helper parameter compatibility fix, retry 12, the storage buckets comment baseline fix, retry 13, the storage.objects policy-comment baseline fix, and retry 14 are recorded, but user-facing dispatch still requires the storage upload pipeline policy-comment baseline fix and later real runtime approval.
+The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent user-facing runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the private runtime review is accepted only for metadata-only controlled fixture readiness. Approved worker integration review, backend runtime dispatch planning, fail-closed coordinator implementation, controlled backend dispatch dry-run review, backend runtime persistence planning, backend runtime persistence schema draft review, backend runtime persistence migration drafting, blocked local-validation result recording, local harness planning, config creation, config verification, blocked port-conflict local harness validation result, port fix, baseline compatibility fixes, retry 9, the QA check-results reserved-column fix, retry 10, the QA reports approved-snapshot baseline fix, retry 11, the RLS helper parameter compatibility fix, retry 12, the storage buckets comment baseline fix, retry 13, the storage.objects policy-comment baseline fix, retry 14, and the storage upload pipeline policy-comment baseline fix are recorded, but user-facing dispatch still requires retry 15 and later real runtime approval.
 
 ## Scope Boundaries
 
@@ -439,8 +446,8 @@ Qwen2.5-VL must not generate B-roll video, replace Wan or LTX generation routes,
 
 ## Required Next Step
 
-The next action is the storage upload pipeline storage.objects policy-comment baseline fix after retry 14. That future prompt must not touch Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, beta, production, or claim `generated_local_fixture_passed`.
+The next action is approved local harness validation retry 15 after the storage upload pipeline storage.objects policy-comment baseline fix. That future prompt must not touch Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, beta, production, or claim `generated_local_fixture_passed`.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58AW-BACKEND-RUNTIME-PERSISTENCE-BASELINE-STORAGE-UPLOAD-PIPELINE-POLICY-COMMENT-FIX: fix ReEditPro local baseline storage upload pipeline storage.objects policy comment ownership for Qwen harness validation, no deploy/no cloud/no assets/no beta`
+`QWEN2_5_VL_STACK_TOOL_58AX-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-15: retry Qwen local harness validation after storage upload pipeline policy comment baseline fix, no deploy/no cloud/no assets/no beta`

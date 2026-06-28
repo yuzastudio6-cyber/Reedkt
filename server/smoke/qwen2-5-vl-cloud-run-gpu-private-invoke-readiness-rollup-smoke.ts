@@ -65,6 +65,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_BUCKETS_COMMENT
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_13_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-13-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_OBJECTS_POLICY_COMMENT_FIX } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-storage-objects-policy-comment-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_14_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-14-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_UPLOAD_PIPELINE_POLICY_COMMENT_FIX } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-storage-upload-pipeline-policy-comment-fix'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -73,9 +74,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_retry_14_recorded_storage_upload_pipeline_policy_comment_fix_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_storage_upload_pipeline_policy_comment_fix_recorded_retry_15_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58AW-BACKEND-RUNTIME-PERSISTENCE-BASELINE-STORAGE-UPLOAD-PIPELINE-POLICY-COMMENT-FIX: fix ReEditPro local baseline storage upload pipeline storage.objects policy comment ownership for Qwen harness validation, no deploy/no cloud/no assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58AX-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-15: retry Qwen local harness validation after storage upload pipeline policy comment baseline fix, no deploy/no cloud/no assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -514,6 +515,11 @@ assert.equal(
   'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-14-result-smoke.ts',
   'local harness validation retry 14 package script mismatch',
 )
+assert.equal(
+  packageJson.scripts?.['smoke:qwen2-5-vl-backend-runtime-persistence-baseline-storage-upload-pipeline-policy-comment-fix'],
+  'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-storage-upload-pipeline-policy-comment-fix-smoke.ts',
+  'storage upload pipeline policy comment baseline fix package script mismatch',
+)
 
 const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md')
 for (const phrase of [
@@ -728,7 +734,13 @@ for (const phrase of [
   '`backendRuntimePersistenceLocalHarnessValidationRetry14Attempted=true`',
   '`backendRuntimePersistenceLocalHarnessValidationRetry14Passed=false`',
   '`backendRuntimePersistenceStorageObjectsPolicyCommentFixVerified=true`',
-  '`backendRuntimePersistenceStorageUploadPipelinePolicyCommentBaselineFixRequired=true`',
+  '`backendRuntimePersistenceStorageUploadPipelinePolicyCommentBaselineFixRequired=false`',
+  '`backendRuntimePersistenceBaselineStorageUploadPipelinePolicyCommentFixRecorded=true`',
+  '`activeBaselineStorageUploadPipelineReadinessMigrationEdited=true`',
+  '`storageUploadPipelinePolicyCommentInsufficientPrivilegeGuarded=true`',
+  '`storageUploadPipelinePolicyCommentsSkippedWhenNotOwner=true`',
+  '`storageUploadPipelinePolicySemanticsChanged=false`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetryAfterStorageUploadPipelinePolicyCommentFixRequired=true`',
   '`insufficient_privilege`',
   'retry 13',
   'retry 14',
@@ -945,7 +957,13 @@ for (const phrase of [
   '`backendRuntimePersistenceLocalHarnessValidationRetry14Attempted=true`',
   '`backendRuntimePersistenceLocalHarnessValidationRetry14Passed=false`',
   '`backendRuntimePersistenceStorageObjectsPolicyCommentFixVerified=true`',
-  '`backendRuntimePersistenceStorageUploadPipelinePolicyCommentBaselineFixRequired=true`',
+  '`backendRuntimePersistenceStorageUploadPipelinePolicyCommentBaselineFixRequired=false`',
+  '`backendRuntimePersistenceBaselineStorageUploadPipelinePolicyCommentFixRecorded=true`',
+  '`activeBaselineStorageUploadPipelineReadinessMigrationEdited=true`',
+  '`storageUploadPipelinePolicyCommentInsufficientPrivilegeGuarded=true`',
+  '`storageUploadPipelinePolicyCommentsSkippedWhenNotOwner=true`',
+  '`storageUploadPipelinePolicySemanticsChanged=false`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetryAfterStorageUploadPipelinePolicyCommentFixRequired=true`',
   '`structuredFixtureOutputSchemaValid=true`',
   '`structuredFixtureOutputParsedJson=true`',
   '`structuredFixtureOutputRawOutputStoredInRepo=false`',
@@ -1210,6 +1228,10 @@ assert.equal(
   rollup.upstreamBackendRuntimePersistenceLocalHarnessValidationRetry14ResultDecision,
   QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_14_RESULT.decision,
 )
+assert.equal(
+  rollup.upstreamBackendRuntimePersistenceBaselineStorageUploadPipelinePolicyCommentFixDecision,
+  QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_UPLOAD_PIPELINE_POLICY_COMMENT_FIX.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -1275,7 +1297,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'backend_runtime_persistence_storage_upload_pipeline_policy_comment_baseline_fix_required',
+  'backend_runtime_persistence_local_harness_validation_retry_after_storage_upload_pipeline_policy_comment_fix_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -1356,8 +1378,9 @@ assert.deepEqual(gateIds, [
   'backend_runtime_persistence_storage_objects_policy_comment_baseline_fix',
   'backend_runtime_persistence_local_harness_validation_retry_after_storage_objects_policy_comment_fix',
   'backend_runtime_persistence_storage_upload_pipeline_policy_comment_baseline_fix',
+  'backend_runtime_persistence_local_harness_validation_retry_after_storage_upload_pipeline_policy_comment_fix',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 59)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 60)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -1548,6 +1571,10 @@ assert.equal(
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_storage_upload_pipeline_policy_comment_baseline_fix_required').length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_storage_upload_pipeline_policy_comment_fix_required').length,
   1,
 )
 assert.equal(
@@ -1880,7 +1907,16 @@ assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidation
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry14Attempted, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry14Passed, false)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceStorageObjectsPolicyCommentFixVerified, true)
-assert.equal(rollup.runtimeFlags.backendRuntimePersistenceStorageUploadPipelinePolicyCommentBaselineFixRequired, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceStorageUploadPipelinePolicyCommentBaselineFixRequired, false)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceBaselineStorageUploadPipelinePolicyCommentFixRecorded, true)
+assert.equal(rollup.runtimeFlags.activeBaselineStorageUploadPipelineReadinessMigrationEdited, true)
+assert.equal(rollup.runtimeFlags.storageUploadPipelinePolicyCommentInsufficientPrivilegeGuarded, true)
+assert.equal(rollup.runtimeFlags.storageUploadPipelinePolicyCommentsSkippedWhenNotOwner, true)
+assert.equal(rollup.runtimeFlags.storageUploadPipelinePolicySemanticsChanged, false)
+assert.equal(
+  rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetryAfterStorageUploadPipelinePolicyCommentFixRequired,
+  true,
+)
 assert.equal(rollup.runtimeFlags.qwenDraftSqlApplied, false)
 assert.equal(rollup.runtimeFlags.qwenLocalSqlTestsExecuted, false)
 assert.equal(rollup.runtimeFlags.existingLocalSupabaseProjectDetected, true)
@@ -1984,6 +2020,8 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-storage-objects-policy-comment-fix.ts',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-14-result.md',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-14-result.ts',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-baseline-storage-upload-pipeline-policy-comment-fix.md',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-storage-upload-pipeline-policy-comment-fix.ts',
 ]) {
   assertNoForbiddenText(file)
 }
@@ -2041,6 +2079,7 @@ const forbiddenDataFindings = scanValues({
   backendRuntimePersistenceLocalHarnessValidationRetry13Result: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_13_RESULT,
   backendRuntimePersistenceBaselineStorageObjectsPolicyCommentFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_OBJECTS_POLICY_COMMENT_FIX,
   backendRuntimePersistenceLocalHarnessValidationRetry14Result: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_14_RESULT,
+  backendRuntimePersistenceBaselineStorageUploadPipelinePolicyCommentFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_UPLOAD_PIPELINE_POLICY_COMMENT_FIX,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

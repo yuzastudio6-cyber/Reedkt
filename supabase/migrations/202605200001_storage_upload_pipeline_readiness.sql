@@ -61,10 +61,16 @@ with check (
   and public.is_project_editor(public.safe_uuid((storage.foldername(name))[4]))
 );
 
-comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects is
-  'RP-FIX-07 read policy for workspace/{workspace_id}/project/{project_id}/... paths. Reads require project membership.';
-comment on policy "reeditpro_project_editors_upload_workspace_source_and_thumbnails" on storage.objects is
-  'RP-FIX-07 direct browser uploads are limited to source-media and thumbnails for project editors.';
+do $$
+begin
+  comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects is
+    'RP-FIX-07 read policy for workspace/{workspace_id}/project/{project_id}/... paths. Reads require project membership.';
+  comment on policy "reeditpro_project_editors_upload_workspace_source_and_thumbnails" on storage.objects is
+    'RP-FIX-07 direct browser uploads are limited to source-media and thumbnails for project editors.';
+exception
+  when insufficient_privilege then
+    raise notice 'Skipping storage upload pipeline storage.objects policy comments because the local migration role does not own the Supabase platform table.';
+end $$;
 
 -- Generated assets, preview renders, final exports, QA artifacts, and worker-temp writes
 -- should be created by future backend workers or signed upload routes.

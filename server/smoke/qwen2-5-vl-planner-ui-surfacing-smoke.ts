@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'backend_runtime_persistence_storage_upload_pipeline_policy_comment_baseline_fix_required',
-  'Private invoke client status must record the storage upload pipeline policy-comment blocker after retry 14.',
+    'backend_runtime_persistence_local_harness_validation_retry_after_storage_upload_pipeline_policy_comment_fix_required',
+  'Private invoke client status must record the retry-15 blocker after the storage upload pipeline policy-comment fix.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -170,9 +170,9 @@ check(
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
     docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_storage_objects_policy_comment_fix_required') ||
-    docText.includes('backend_runtime_persistence_storage_upload_pipeline_policy_comment_baseline_fix_required') ||
+    docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_storage_upload_pipeline_policy_comment_fix_required') ||
     data.privateInvokeClient.currentStatus ===
-      'backend_runtime_persistence_storage_upload_pipeline_policy_comment_baseline_fix_required',
+      'backend_runtime_persistence_local_harness_validation_retry_after_storage_upload_pipeline_policy_comment_fix_required',
   'Doc/data must record backend runtime persistence local harness validation-retry blocker status.',
 )
 check(
@@ -327,8 +327,9 @@ check(
   docText.includes('Retry 14 verified that fix') &&
     docText.includes('202605200001_storage_upload_pipeline_readiness.sql') &&
     docText.includes('comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects') &&
-    docText.includes('QWEN2_5_VL_STACK_TOOL_58AW-BACKEND-RUNTIME-PERSISTENCE-BASELINE-STORAGE-UPLOAD-PIPELINE-POLICY-COMMENT-FIX'),
-  'Doc must record retry-14 evidence and the storage upload pipeline policy-comment blocker.',
+    docText.includes('The storage upload pipeline storage.objects policy-comment baseline fix is now recorded') &&
+    docText.includes('QWEN2_5_VL_STACK_TOOL_58AX-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-15'),
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, and retry-15 blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

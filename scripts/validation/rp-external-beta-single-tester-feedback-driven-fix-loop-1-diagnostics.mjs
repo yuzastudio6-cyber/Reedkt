@@ -2,70 +2,61 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-SINGLE-TESTER-SAFE-GATE-BURNDOWN-1'
-const packetDir = 'docs/external-beta/single-tester-safe-gate-burndown-1'
+const packet = 'RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-DRIVEN-FIX-LOOP-1'
+const packetDir = 'docs/external-beta/single-tester-feedback-driven-fix-loop-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/gate-burndown.md`,
-  `${packetDir}/blocker-reclassification.md`,
-  `${packetDir}/readiness-gate.md`,
+  `${packetDir}/fix-loop.md`,
+  `${packetDir}/runtime-stack-routing.md`,
   `${packetDir}/safety-boundary.md`,
   `${packetDir}/validation-results.md`,
-  `${packetDir}/single-tester-safe-gate-burndown-record.json`,
-  'docs/activation-phase-rp-external-beta-single-tester-safe-gate-burndown-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-feedback-driven-fix-loop-1.md',
-  'scripts/validation/rp-external-beta-single-tester-safe-gate-burndown-1-diagnostics.mjs',
+  `${packetDir}/single-tester-feedback-driven-fix-loop-record.json`,
+  'docs/activation-phase-rp-external-beta-single-tester-feedback-driven-fix-loop-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-stack-fresh-source-import-1.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-feedback-issue-fix-1.md',
+  'scripts/validation/rp-external-beta-single-tester-feedback-driven-fix-loop-1-diagnostics.mjs',
   'package.json',
 ]
 
 const sourceFiles = [
-  'docs/external-beta/staging-flag-application-1r-after-gcloud-reauth/staging-flag-application-record.json',
+  'docs/external-beta/single-tester-safe-gate-burndown-1/single-tester-safe-gate-burndown-record.json',
   'docs/external-beta/single-tester-active-lane-closure-1/single-tester-active-lane-closure-record.json',
-  'docs/external-beta/single-tester-live-feedback-triage-1r/single-tester-live-feedback-triage-1r-record.json',
+  'docs/external-beta/single-tester-real-product-walkthrough-qa-1/single-tester-real-product-walkthrough-qa-record.json',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/current-readiness-rollup-record.json',
+  'docs/external-beta/qwen2-5-vl-external-beta-stack-integration-rollup-1/qwen2-5-vl-stack-rollup-record.json',
 ]
 
 const requiredText = [
   packet,
-  'completed_single_tester_safe_gate_burndown_active_lane_ready_for_feedback_driven_iteration',
-  'completed_docs_only_safe_gate_burndown_no_runtime_execution',
-  'ee2feb240247cea0a996ca7fb005b7fbe6451c1a',
+  'completed_single_tester_feedback_driven_fix_loop_ready_for_safe_runtime_issue_intake',
+  'completed_docs_only_feedback_fix_loop_no_runtime_execution',
+  'a7fc278d4cdbd0a1be340362681baa14dcc8640a',
   '#1417',
   '#1428',
   '#1430',
   '#1434',
   '#1445',
-  '#1450',
   '#1457',
   '#1461',
+  '#1466',
   '#577',
   'aiediting@reeditpro.com',
-  'external-beta-testers@reeditpro.com',
   'wmyyttnynmteqgcdishd',
   'go_single_tester_only',
   'active_single_tester_external_beta_for_aiediting_reeditpro_com',
-  'ready_for_single_tester_feedback_driven_fix_loop',
-  'RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-DRIVEN-FIX-LOOP-1',
+  'no_new_actionable_single_tester_defect_source_in_this_packet',
+  'fresh_source_import_required_no_blind_stack_merge',
+  'RP-EXTERNAL-BETA-QWEN-RUNTIME-STACK-FRESH-SOURCE-IMPORT-1',
+  'RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
-allowedChangedFiles.add('scripts/validation/rp-external-beta-single-tester-live-feedback-triage-1r-diagnostics.mjs')
-for (const file of [
-  'docs/external-beta/single-tester-feedback-driven-fix-loop-1/source-audit.md',
-  'docs/external-beta/single-tester-feedback-driven-fix-loop-1/fix-loop.md',
-  'docs/external-beta/single-tester-feedback-driven-fix-loop-1/runtime-stack-routing.md',
-  'docs/external-beta/single-tester-feedback-driven-fix-loop-1/safety-boundary.md',
-  'docs/external-beta/single-tester-feedback-driven-fix-loop-1/validation-results.md',
-  'docs/external-beta/single-tester-feedback-driven-fix-loop-1/single-tester-feedback-driven-fix-loop-record.json',
-  'docs/activation-phase-rp-external-beta-single-tester-feedback-driven-fix-loop-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-stack-fresh-source-import-1.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-feedback-issue-fix-1.md',
-  'scripts/validation/rp-external-beta-single-tester-feedback-driven-fix-loop-1-diagnostics.mjs',
-]) allowedChangedFiles.add(file)
+allowedChangedFiles.add('scripts/validation/rp-external-beta-single-tester-safe-gate-burndown-1-diagnostics.mjs')
 const blockedPrefixes = [
   'package-lock.json',
   'supabase/',
@@ -106,6 +97,7 @@ const falseSafetyKeys = [
   'renderExecution',
   'mediaProcessing',
   'privateUserMediaProcessing',
+  'qwenRuntimeExecution',
   'remotionExecution',
   'ffmpegExecution',
   'ffprobeExecution',
@@ -147,44 +139,45 @@ for (const file of [...requiredFiles, ...sourceFiles]) read(file)
 const corpus = requiredFiles.map((file) => read(file)).join('\n')
 for (const text of requiredText) if (!corpus.includes(text)) fail(`missing required text: ${text}`)
 
-const record = JSON.parse(read(`${packetDir}/single-tester-safe-gate-burndown-record.json`))
+const record = JSON.parse(read(`${packetDir}/single-tester-feedback-driven-fix-loop-record.json`))
 if (record.packet !== packet) fail('packet mismatch')
-if (record.decision !== 'completed_single_tester_safe_gate_burndown_active_lane_ready_for_feedback_driven_iteration') fail('decision mismatch')
-if (record.execution !== 'completed_docs_only_safe_gate_burndown_no_runtime_execution') fail('execution mismatch')
-if (record.integrationBase !== 'ee2feb240247cea0a996ca7fb005b7fbe6451c1a') fail('integration base mismatch')
+if (record.decision !== 'completed_single_tester_feedback_driven_fix_loop_ready_for_safe_runtime_issue_intake') fail('decision mismatch')
+if (record.execution !== 'completed_docs_only_feedback_fix_loop_no_runtime_execution') fail('execution mismatch')
+if (record.integrationBase !== 'a7fc278d4cdbd0a1be340362681baa14dcc8640a') fail('integration base mismatch')
 if (record.currentTester?.email !== 'aiediting@reeditpro.com') fail('tester email mismatch')
 if (record.currentTester?.lane !== 'go_single_tester_only') fail('tester lane mismatch')
 if (record.currentTester?.status !== 'active_single_tester_external_beta_for_aiediting_reeditpro_com') fail('tester status mismatch')
 if (record.target?.projectRef !== 'wmyyttnynmteqgcdishd') fail('target ref mismatch')
-if (record.target?.historicalIsolatedProjectStatus !== 'historical_sandbox_evidence_only_not_active') fail('historical isolated project status mismatch')
-if (record.sourceClosure?.singleTesterLiveFeedbackTriage1rPr !== 1461) fail('missing #1461 source')
-if (record.sourceClosure?.singleTesterLiveFeedbackTriage1rMergeSha !== 'ee2feb240247cea0a996ca7fb005b7fbe6451c1a') fail('missing #1461 merge SHA')
+if (record.sourceClosure?.singleTesterSafeGateBurndownPr !== 1466) fail('missing #1466 source')
+if (record.sourceClosure?.singleTesterSafeGateBurndownMergeSha !== 'a7fc278d4cdbd0a1be340362681baa14dcc8640a') fail('missing #1466 merge SHA')
 if (record.sourceClosure?.pr577 !== 'open_draft_blocked_excluded') fail('missing #577 exclusion')
-
-for (const [key, value] of Object.entries(record.burnedDownForCurrentTester || {})) {
-  if (!String(value).startsWith('closed_')) fail(`burn-down gate is not closed: ${key}`)
-}
+if (record.feedbackLoop?.status !== 'ready_for_safe_runtime_issue_intake') fail('feedback loop status mismatch')
+if (record.feedbackLoop?.feedbackIssueQueue !== 'no_new_actionable_single_tester_defect_source_in_this_packet') fail('feedback queue mismatch')
+if (record.runtimeStackRouting?.qwenOpenStackDirectMergeApproved !== false) fail('direct QWEN stack merge must be false')
+if (record.runtimeStackRouting?.qwenOpenStackBlindCherryPickApproved !== false) fail('blind QWEN cherry-pick must be false')
+if (record.runtimeStackRouting?.qwenStackRoute !== 'fresh_source_import_required_no_blind_stack_merge') fail('QWEN stack route mismatch')
 if (record.stillLocked?.additionalTesterExpansion !== 'blocked_no_additional_named_tester_list') fail('additional tester expansion lock mismatch')
 for (const key of ['broadExternalBetaAudience', 'publicArtifacts', 'signedUrlSourceOfTruth', 'paidBilling', 'finalDeliveryExport', 'broadMedia', 'productionUnlock']) {
   if (record.stillLocked?.[key] !== 'blocked') fail(`locked gate mismatch: ${key}`)
 }
-if (record.readiness?.safeGateBurnDown !== 'completed') fail('safe-gate status mismatch')
-if (record.readiness?.nextMilestone !== 'RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-DRIVEN-FIX-LOOP-1') fail('next milestone mismatch')
+if (record.readiness?.feedbackDrivenFixLoop !== 'ready_for_safe_runtime_issue_intake') fail('readiness mismatch')
+if (!record.readiness?.nextMilestones?.includes('RP-EXTERNAL-BETA-QWEN-RUNTIME-STACK-FRESH-SOURCE-IMPORT-1')) fail('missing QWEN import milestone')
+if (!record.readiness?.nextMilestones?.includes('RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1')) fail('missing feedback issue milestone')
 if (record.readiness?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
-if (record.safety?.docsOnlyBurnDown !== true) fail('docsOnlyBurnDown must be true')
+if (record.safety?.docsOnlyFixLoop !== true) fail('docsOnlyFixLoop must be true')
 for (const key of falseSafetyKeys) if (record.safety?.[key] !== false) fail(`safety flag must be false: ${key}`)
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifact status mismatch')
 
-const activeLane = JSON.parse(read('docs/external-beta/single-tester-active-lane-closure-1/single-tester-active-lane-closure-record.json'))
-if (activeLane.activeLane?.status !== record.currentTester.status) fail('active lane source mismatch')
-const flags = JSON.parse(read('docs/external-beta/staging-flag-application-1r-after-gcloud-reauth/staging-flag-application-record.json'))
-if (flags.readiness?.externalBetaEnabledInThisPhase !== true) fail('staging flag source mismatch')
-const triage = JSON.parse(read('docs/external-beta/single-tester-live-feedback-triage-1r/single-tester-live-feedback-triage-1r-record.json'))
-if (triage.readiness?.safeGateBurnDown !== 'ready_for_single_tester_safe_gate_burndown') fail('triage source mismatch')
+const safeGate = JSON.parse(read('docs/external-beta/single-tester-safe-gate-burndown-1/single-tester-safe-gate-burndown-record.json'))
+if (safeGate.readiness?.nextMilestone !== packet) fail('safe-gate source does not route to this packet')
+const qwenStack = JSON.parse(read('docs/external-beta/qwen2-5-vl-external-beta-stack-integration-rollup-1/qwen2-5-vl-stack-rollup-record.json'))
+if (qwenStack.integrationRisk?.freshSourceImportRequired !== true) fail('QWEN stack source does not require fresh import')
+if (qwenStack.integrationRisk?.directStackMergeApproved !== false) fail('QWEN stack source unexpectedly approves direct merge')
+if (qwenStack.integrationRisk?.blindCherryPickApproved !== false) fail('QWEN stack source unexpectedly approves blind cherry-pick')
 
 const packageJson = JSON.parse(read('package.json'))
-if (packageJson.scripts?.['rp-external-beta-single-tester-safe-gate-burndown-1:diagnostics'] !== 'node scripts/validation/rp-external-beta-single-tester-safe-gate-burndown-1-diagnostics.mjs') fail('missing package diagnostics script')
+if (packageJson.scripts?.['rp-external-beta-single-tester-feedback-driven-fix-loop-1:diagnostics'] !== 'node scripts/validation/rp-external-beta-single-tester-feedback-driven-fix-loop-1-diagnostics.mjs') fail('missing package diagnostics script')
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
 const changed = [
@@ -208,5 +201,5 @@ for (const file of changed) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_single_tester_safe_gate_burndown_active_lane_ready_for_feedback_driven_iteration')
-console.log('Next milestone: RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-DRIVEN-FIX-LOOP-1')
+console.log('Decision: completed_single_tester_feedback_driven_fix_loop_ready_for_safe_runtime_issue_intake')
+console.log('Next milestone: RP-EXTERNAL-BETA-QWEN-RUNTIME-STACK-FRESH-SOURCE-IMPORT-1')

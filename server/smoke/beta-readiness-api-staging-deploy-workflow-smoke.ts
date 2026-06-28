@@ -3,8 +3,10 @@ import { readFileSync } from 'node:fs'
 
 const workflowPath = '.github/workflows/beta-readiness-api-staging-deploy.yml'
 const apiDockerfilePath = 'docker/prod/api/Dockerfile'
+const serverBuildConfigPath = 'vite.server.config.ts'
 const workflow = readFileSync(workflowPath, 'utf8')
 const apiDockerfile = readFileSync(apiDockerfilePath, 'utf8')
+const serverBuildConfig = readFileSync(serverBuildConfigPath, 'utf8')
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const report = JSON.parse(readFileSync('docs/beta-readiness/api-staging-deploy-workflow/2026-06-28-api-staging-deploy-workflow.json', 'utf8')) as {
   decision: string
@@ -63,6 +65,11 @@ assert.ok(workflow.includes('[[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]'), 'workflo
 assert.ok(workflow.includes('test "${IMAGE_TAG}" != "latest"'), 'workflow must reject latest image tags')
 assert.ok(workflow.includes('environment: staging'), 'workflow must use the staging GitHub environment')
 assert.ok(workflow.includes('REEDITPRO_ENV=staging'), 'workflow must deploy with staging runtime env')
+assert.ok(workflow.includes('E2E_RUNTIME_MODE=cloud_run'), 'workflow must deploy the API in Cloud Run runtime mode')
+assert.ok(workflow.includes('WORKER_RUNTIME_MODE=disabled'), 'workflow must keep worker dispatch disabled during API evidence deployment')
+assert.ok(workflow.includes('STORAGE_MODE=gcs_disabled'), 'workflow must not enable GCS storage runtime in the API evidence deployment')
+assert.ok(workflow.includes('GOOGLE_CLOUD_PROJECT_ID=${GCP_PROJECT_ID}'), 'workflow must pass the GCP project reference without hardcoding it')
+assert.ok(workflow.includes('GOOGLE_CLOUD_REGION=${GCP_REGION}'), 'workflow must pass the GCP region reference without hardcoding it')
 assert.equal(workflow.includes('REEDITPRO_ENV=production'), false, 'workflow must not deploy production runtime env')
 assert.ok(workflow.includes('google-github-actions/auth@v2'), 'workflow must use Workload Identity auth')
 assert.ok(workflow.includes('google-github-actions/setup-gcloud@v2'), 'workflow must install gcloud through the official action')
@@ -84,6 +91,8 @@ assert.ok(apiDockerfile.includes('RUN npm ci --include=dev'), 'API Dockerfile bu
 assert.ok(apiDockerfile.includes('FROM base AS runtime'), 'API Dockerfile must keep a dedicated runtime stage')
 assert.ok(apiDockerfile.includes('COPY --from=deps /app/node_modules ./node_modules'), 'API runtime stage must still copy production deps from deps stage')
 assert.equal(apiDockerfile.includes('RUN npm ci --omit=dev'), true, 'API deps stage must still install production dependencies only')
+assert.ok(serverBuildConfig.includes("ssr: 'server/index.ts'"), 'API server build must use the real Express API entrypoint')
+assert.equal(serverBuildConfig.includes("ssr: 'src/server/server.ts'"), false, 'API server build must not deploy the legacy mock runtime entrypoint')
 
 console.log(JSON.stringify({
   ok: true,

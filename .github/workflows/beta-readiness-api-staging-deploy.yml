@@ -146,7 +146,7 @@ jobs:
             --region="${GCP_REGION}" \
             --image="${IMAGE}" \
             --service-account="${RUNTIME_SERVICE_ACCOUNT}" \
-            --set-env-vars="REEDITPRO_ENV=staging" \
+            --set-env-vars="REEDITPRO_ENV=staging,E2E_RUNTIME_MODE=cloud_run,WORKER_RUNTIME_MODE=disabled,STORAGE_MODE=gcs_disabled,GOOGLE_CLOUD_PROJECT_ID=${GCP_PROJECT_ID},GOOGLE_CLOUD_REGION=${GCP_REGION}" \
             --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest,PROVIDER_GATEWAY_SHARED_SECRET=PROVIDER_GATEWAY_SHARED_SECRET:latest,WORKER_WEBHOOK_SECRET=WORKER_WEBHOOK_SECRET:latest" \
             --no-allow-unauthenticated \
             --quiet

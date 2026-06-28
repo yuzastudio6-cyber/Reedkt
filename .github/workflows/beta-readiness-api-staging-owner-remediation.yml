@@ -1,0 +1,148 @@
+name: Beta Readiness API Staging Owner Remediation
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_staging_api_owner_remediation:
+        description: "Type APPLY_STAGING_BETA_API_OWNER_REMEDIATION to mutate only staging API IAM/service-account prerequisites"
+        required: true
+        type: string
+      confirm_iam_mutation_scope:
+        description: "Type MUTATE_STAGING_IAM_ONLY to confirm this is not deploy/build/runtime execution"
+        required: true
+        type: string
+      artifact_region:
+        description: "Artifact Registry region; must be us-central1 for this first staging API lane"
+        required: true
+        type: string
+      artifact_repository:
+        description: "Artifact Registry repository; must be reeditpro-staging-workers"
+        required: true
+        type: string
+      deployer_service_account:
+        description: "Deployer service account; must match the repo-configured GCP service account"
+        required: true
+        type: string
+      runtime_service_account:
+        description: "Runtime service account; must be reeditpro-api-staging@reeditpro.iam.gserviceaccount.com"
+        required: true
+        type: string
+      service_name:
+        description: "Staging service name; must be reeditpro-api-staging"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: beta-readiness-api-staging-owner-remediation
+  cancel-in-progress: false
+
+jobs:
+  remediate-staging-api-owner-inputs:
+    name: Apply exact staging API owner remediation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      CONFIRM_OWNER_REMEDIATION: ${{ inputs.confirm_staging_api_owner_remediation }}
+      CONFIRM_IAM_MUTATION_SCOPE: ${{ inputs.confirm_iam_mutation_scope }}
+      ARTIFACT_REGION: ${{ inputs.artifact_region }}
+      ARTIFACT_REPOSITORY: ${{ inputs.artifact_repository }}
+      DEPLOYER_SERVICE_ACCOUNT: ${{ inputs.deployer_service_account }}
+      RUNTIME_SERVICE_ACCOUNT: ${{ inputs.runtime_service_account }}
+      SERVICE_NAME: ${{ inputs.service_name }}
+    steps:
+      - name: Fail closed unless this is exact staging owner remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${CONFIRM_OWNER_REMEDIATION}" = "APPLY_STAGING_BETA_API_OWNER_REMEDIATION"
+          test "${CONFIRM_IAM_MUTATION_SCOPE}" = "MUTATE_STAGING_IAM_ONLY"
+          test "${GCP_PROJECT_ID}" = "reeditpro"
+          test "${GCP_REGION}" = "us-east1"
+          test -n "${GCP_WORKLOAD_IDENTITY_PROVIDER}"
+          test -n "${GCP_SERVICE_ACCOUNT}"
+          test "${ARTIFACT_REGION}" = "us-central1"
+          test "${ARTIFACT_REPOSITORY}" = "reeditpro-staging-workers"
+          test "${DEPLOYER_SERVICE_ACCOUNT}" = "${GCP_SERVICE_ACCOUNT}"
+          test "${RUNTIME_SERVICE_ACCOUNT}" = "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com"
+          test "${SERVICE_NAME}" = "reeditpro-api-staging"
+
+      - name: Authenticate to Google Cloud with OIDC/WIF
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+          cleanup_credentials: true
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Apply staging API IAM and runtime account prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime_account_id="${RUNTIME_SERVICE_ACCOUNT%@*}"
+
+          gcloud artifacts repositories add-iam-policy-binding "${ARTIFACT_REPOSITORY}" \
+            --project="${GCP_PROJECT_ID}" \
+            --location="${ARTIFACT_REGION}" \
+            --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
+            --role=roles/artifactregistry.writer
+
+          if ! gcloud iam service-accounts describe "${RUNTIME_SERVICE_ACCOUNT}" --project="${GCP_PROJECT_ID}" >/dev/null 2>&1; then
+            gcloud iam service-accounts create "${runtime_account_id}" \
+              --project="${GCP_PROJECT_ID}" \
+              --display-name="ReEditPro API staging runtime"
+          fi
+
+          gcloud iam service-accounts add-iam-policy-binding "${RUNTIME_SERVICE_ACCOUNT}" \
+            --project="${GCP_PROJECT_ID}" \
+            --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
+            --role=roles/iam.serviceAccountUser
+
+          gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
+            --member="serviceAccount:${DEPLOYER_SERVICE_ACCOUNT}" \
+            --role=roles/run.admin
+
+          for secret_name in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SECRET WORKER_WEBHOOK_SECRET; do
+            gcloud secrets add-iam-policy-binding "${secret_name}" \
+              --project="${GCP_PROJECT_ID}" \
+              --member="serviceAccount:${RUNTIME_SERVICE_ACCOUNT}" \
+              --role=roles/secretmanager.secretAccessor
+          done
+
+      - name: Verify exact staging API owner remediation inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          repository_name="$(gcloud artifacts repositories describe "${ARTIFACT_REPOSITORY}" \
+            --project="${GCP_PROJECT_ID}" \
+            --location="${ARTIFACT_REGION}" \
+            --format='value(name)')"
+          runtime_email="$(gcloud iam service-accounts describe "${RUNTIME_SERVICE_ACCOUNT}" \
+            --project="${GCP_PROJECT_ID}" \
+            --format='value(email)')"
+
+          test "${repository_name}" = "projects/${GCP_PROJECT_ID}/locations/${ARTIFACT_REGION}/repositories/${ARTIFACT_REPOSITORY}"
+          test "${runtime_email}" = "${RUNTIME_SERVICE_ACCOUNT}"
+
+          {
+            echo '# Beta Readiness API Staging Owner Remediation'
+            echo ''
+            echo 'Exact staging API owner remediation completed.'
+            echo ''
+            echo "- Artifact Registry repository: ${repository_name}"
+            echo "- Runtime service account: ${runtime_email}"
+            echo ''
+            echo 'No Cloud Run deploy, Docker build/push, evidence collector, tool execution, media processing, Supabase/GCS write, external beta, or production action was run by this workflow.'
+          } >> "${GITHUB_STEP_SUMMARY}"

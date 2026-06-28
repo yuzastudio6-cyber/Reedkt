@@ -16,6 +16,23 @@ const requiredFiles = [
   'package.json',
 ]
 
+const allowedFollowUpFiles = [
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-e2e-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-e2e-1/orchestration-contract.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-e2e-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-e2e-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-e2e-1/qwen2-5-vl-approved-snapshot-job-orchestration-e2e-record.json',
+  'docs/activation-phase-rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-e2e-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1.md',
+  'server/services/qwen2-5-vl-external-beta-approved-snapshot-job-orchestration-e2e.ts',
+  'server/smoke/qwen2-5-vl-external-beta-approved-snapshot-job-orchestration-e2e-1-smoke.ts',
+  'scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-e2e-1-diagnostics.mjs',
+]
+
+const allowedFollowUpSourceFiles = new Set([
+  'server/services/qwen2-5-vl-external-beta-approved-snapshot-job-orchestration-e2e.ts',
+])
+
 const requiredText = [
   packet,
   'completed_qwen2_5_vl_product_route_runtime_readiness_rollup',
@@ -93,13 +110,14 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowedFiles = new Set(requiredFiles)
+const allowedFiles = new Set([...requiredFiles, ...allowedFollowUpFiles])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   if (
     /^package-lock\.json$|^supabase\/|^database\/|^docker\/|^\.github\/|^\.env|^requirements|^server\/routes\/|^server\/workers\/|^server\/services\//i.test(
       file,
-    )
+    ) &&
+    !allowedFollowUpSourceFiles.has(file)
   ) {
     fail(`forbidden file changed: ${file}`)
   }

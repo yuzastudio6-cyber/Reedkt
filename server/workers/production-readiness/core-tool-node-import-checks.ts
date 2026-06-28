@@ -1,4 +1,5 @@
 import type { ProductionToolId } from '../../tool-registry'
+import type { ProductionReadinessStatus } from './production-tool-readiness-types'
 
 export interface CoreToolNodePackageCheckDefinition {
   toolId: Extract<ProductionToolId, 'sharp' | 'remotion' | 'hyperframe'>
@@ -7,6 +8,9 @@ export interface CoreToolNodePackageCheckDefinition {
   packageJsonPath: string
   optional: boolean
   metadataOnly: boolean
+  internalBoundary?: boolean
+  boundaryStatus?: ProductionReadinessStatus
+  boundaryMessage?: string
   notes: string[]
 }
 
@@ -36,7 +40,10 @@ export const CORE_TOOL_NODE_PACKAGE_CHECKS: CoreToolNodePackageCheckDefinition[]
     packageJsonPath: 'hyperframe/package.json',
     optional: true,
     metadataOnly: true,
-    notes: ['Hyperframe remains a timeline/preview boundary; do not import browser runtime.'],
+    internalBoundary: true,
+    boundaryStatus: 'warning',
+    boundaryMessage: 'Hyperframe is an internal timeline/preview boundary; no literal npm package metadata is required until a package or implementation is approved.',
+    notes: ['Hyperframe remains a timeline/preview boundary; do not import browser runtime or install guessed package names.'],
   },
 ]
 

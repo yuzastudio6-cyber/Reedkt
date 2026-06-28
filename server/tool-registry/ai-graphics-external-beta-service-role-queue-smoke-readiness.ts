@@ -50,6 +50,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeReadinessRecord {
   claimRpcName: 'claim_ai_graphics_tool_runtime_job'
   recordWorkerEventRpcName: 'record_ai_graphics_worker_event'
   recordAuditEventRpcName: 'record_ai_graphics_audit_event'
+  sourceRuntimeQueueServiceProofBridgeAccepted: boolean
   requiredServerEnv: readonly [
     'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE=true',
     'REEDITPRO_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_ENV=non_production',
@@ -83,6 +84,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeReadiness {
   sourceExternalBetaRuntimeQueueServiceBridge:
     AiGraphicsExternalBetaRuntimeQueueServiceBridge
   sourceExternalBetaRuntimeQueueServiceBridgeAccepted: boolean
+  sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted: boolean
   missingServiceRoleQueueSmokeControls: string[]
   externalBetaServiceRoleQueueSmokeControlsSatisfied: boolean
   serviceRoleQueueSmokePreparedWithProvidedEvidence: boolean
@@ -100,6 +102,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeReadiness {
   serviceRoleQueueSmokePolicy: {
     sideEffectFreeReadinessCheck: true
     sourceRuntimeQueueServiceBridgePacketRequired: true
+    sourceRuntimeQueueServiceProofBridgeRequired: true
     nonProductionEnvironmentRequired: true
     explicitSmokeConfirmationRequired: true
     serviceRoleCredentialsServerOnly: true
@@ -116,6 +119,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeReadiness {
   booleans: {
     externalBetaServiceRoleQueueSmokeReadinessPrepared: true
     sourceExternalBetaRuntimeQueueServiceBridgeAccepted: boolean
+    sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted: boolean
     externalBetaServiceRoleQueueSmokeControlsSatisfied: boolean
     serviceRoleQueueSmokePreparedWithProvidedEvidence: boolean
     serviceRoleQueueSmokeNonProductionOnly: boolean
@@ -195,6 +199,7 @@ const requiredServerEnv = [
 const serviceRoleQueueSmokePolicy = {
   sideEffectFreeReadinessCheck: true,
   sourceRuntimeQueueServiceBridgePacketRequired: true,
+  sourceRuntimeQueueServiceProofBridgeRequired: true,
   nonProductionEnvironmentRequired: true,
   explicitSmokeConfirmationRequired: true,
   serviceRoleCredentialsServerOnly: true,
@@ -213,10 +218,30 @@ function hasValue(value?: string): boolean {
   return typeof value === 'string' && value.trim().length > 0
 }
 
+function runtimeQueueServiceProofBridgeAccepted(
+  packet: AiGraphicsExternalBetaRuntimeQueueServiceBridge,
+): boolean {
+  const localQueueStorage = packet.sourceExternalBetaLocalQueueStorage
+
+  return (
+    packet.sourceExternalBetaLocalQueueStorageProofBridgeAccepted === true &&
+    packet.booleans?.sourceExternalBetaLocalQueueStorageProofBridgeAccepted === true &&
+    packet.externalBetaRuntimeQueueServiceBridgeRecord
+      ?.sourceLocalQueueStorageProofBridgeAccepted === true &&
+    localQueueStorage
+      ?.sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted === true &&
+    localQueueStorage?.booleans
+      .sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted === true &&
+    localQueueStorage?.externalBetaLocalQueueStorageRecord
+      ?.sourceServiceRoleTransactionProofBridgeAccepted === true
+  )
+}
+
 function bridgeAccepted(
   packet: AiGraphicsExternalBetaRuntimeQueueServiceBridge,
 ): boolean {
   return packet.decision === 'external_beta_runtime_queue_service_payload_ready' &&
+    runtimeQueueServiceProofBridgeAccepted(packet) &&
     packet.sourceDecision ===
       AI_GRAPHICS_EXTERNAL_BETA_RUNTIME_QUEUE_SERVICE_BRIDGE_DECISION &&
     packet.runtimeQueueServicePayloadReadyWithProvidedEvidence === true &&
@@ -306,6 +331,8 @@ function createServiceRoleQueueSmokeReadinessRecord(
     claimRpcName: 'claim_ai_graphics_tool_runtime_job',
     recordWorkerEventRpcName: 'record_ai_graphics_worker_event',
     recordAuditEventRpcName: 'record_ai_graphics_audit_event',
+    sourceRuntimeQueueServiceProofBridgeAccepted:
+      bridgeRecord.sourceLocalQueueStorageProofBridgeAccepted,
     requiredServerEnv,
     serviceRoleQueueSmokePreparedWithProvidedEvidence: true,
     cleanupRequiredBeforeReady: true,
@@ -332,6 +359,8 @@ export async function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeReadine
   const executionRequested =
     input.executionRequested === true || bridge.executionRequested === true
   const sourceBridgeAccepted = bridgeAccepted(bridge)
+  const sourceBridgeProofBridgeAccepted =
+    runtimeQueueServiceProofBridgeAccepted(bridge)
   const missingControls = executionRequested
     ? missingServiceRoleQueueSmokeControls(input)
     : []
@@ -372,6 +401,8 @@ export async function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeReadine
     executionRequested,
     sourceExternalBetaRuntimeQueueServiceBridge: bridge,
     sourceExternalBetaRuntimeQueueServiceBridgeAccepted: sourceBridgeAccepted,
+    sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted:
+      sourceBridgeProofBridgeAccepted,
     missingServiceRoleQueueSmokeControls: missingControls,
     externalBetaServiceRoleQueueSmokeControlsSatisfied: controlsSatisfied,
     serviceRoleQueueSmokePreparedWithProvidedEvidence: smokePrepared,
@@ -389,6 +420,8 @@ export async function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeReadine
     booleans: {
       externalBetaServiceRoleQueueSmokeReadinessPrepared: true,
       sourceExternalBetaRuntimeQueueServiceBridgeAccepted: sourceBridgeAccepted,
+      sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted:
+        sourceBridgeProofBridgeAccepted,
       externalBetaServiceRoleQueueSmokeControlsSatisfied: controlsSatisfied,
       serviceRoleQueueSmokePreparedWithProvidedEvidence: smokePrepared,
       serviceRoleQueueSmokeNonProductionOnly: smokePrepared,

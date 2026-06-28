@@ -315,7 +315,11 @@ claim: `liveQueueWriteApprovedNow=false`,
 AI Graphics External-Beta Service-Role Queue Smoke Readiness now carries that
 CPU/static D3 source mode into the non-production smoke readiness record:
 `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`. The readiness layer
-still performs no live smoke: `liveServiceRoleQueueSmokeExecutedNow=false`,
+also requires `sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted=true`
+and preserves `sourceRuntimeQueueServiceProofBridgeAccepted=true`; a runtime
+queue service bridge packet with the native GPU runtime-proof bridge stripped is
+rejected before any service-role smoke readiness record can be prepared. It still
+performs no live smoke: `liveServiceRoleQueueSmokeExecutedNow=false`,
 `liveSupabaseQueueWritesNow=0`, `liveWorkerClaimRowsNow=0`,
 `workerDispatchPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
 
@@ -1235,7 +1239,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_readiness_prepared_with_runtime_blocks`.
 - Scope: external-beta, non-production service-role queue/claim smoke readiness across all 21 AI graphics tools and all 12 product-facing capabilities.
-- Result: the packet defines the live smoke controls, server-only service-role credential boundary, Supabase RPC names, cleanup, rollback, and telemetry requirements. The committed evaluator prepares 21 readiness records from the existing runtime queue service bridge and keeps live service-role queue smoke executions at 0.
+- Result: the packet defines the live smoke controls, server-only service-role credential boundary, Supabase RPC names, cleanup, rollback, and telemetry requirements. The committed evaluator prepares 21 readiness records from the existing runtime queue service bridge only when `sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted=true` and `sourceRuntimeQueueServiceProofBridgeAccepted=true`; a source runtime queue service bridge packet with the native GPU runtime-proof bridge stripped is rejected before smoke readiness. Live service-role queue smoke executions remain 0.
 - GPU policy: all eight GPU/model tools remain targeted to native NVIDIA L4 runtime paths for future accepted jobs, with `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=true` only in that future accepted-job context. `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `workerLeaseCreated=false`, and `workerDispatchPerformed=false` remain enforced.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `serviceRoleQueueSmokeApprovedNow=false`, `liveServiceRoleQueueSmokeExecutedNow=false`, `liveQueueWriteApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 

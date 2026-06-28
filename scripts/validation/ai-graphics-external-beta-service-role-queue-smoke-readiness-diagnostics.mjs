@@ -190,8 +190,16 @@ function buildRuntimeQueueServiceBridgePacket(profile) {
     sourceExternalBetaLocalQueueStorage: {
       decision: 'external_beta_local_queue_storage_mock_record_ready',
       sourceDecision: 'ai_graphics_external_beta_local_queue_storage_mock_write_prepared_with_runtime_blocks',
+      sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted: true,
+      externalBetaLocalQueueStorageRecord: {
+        sourceServiceRoleTransactionProofBridgeAccepted: true,
+      },
+      booleans: {
+        sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted: true,
+      },
     },
     sourceExternalBetaLocalQueueStorageAccepted: true,
+    sourceExternalBetaLocalQueueStorageProofBridgeAccepted: true,
     missingRuntimeQueueServiceControls: [],
     externalBetaRuntimeQueueServiceControlsSatisfied: true,
     runtimeQueueServicePayloadReadyWithProvidedEvidence: true,
@@ -215,6 +223,7 @@ function buildRuntimeQueueServiceBridgePacket(profile) {
       queueServiceWarningCount: 1,
       enqueueRpcName: 'enqueue_ai_graphics_tool_runtime_jobs',
       claimRpcName: 'claim_ai_graphics_tool_runtime_job',
+      sourceLocalQueueStorageProofBridgeAccepted: true,
       runtimeQueueServicePayloadReadyWithProvidedEvidence: true,
       gpuRuntimeStartAllowedForAcceptedExternalBetaJob: gpu,
       gpuRuntimeShouldStartNow: false,
@@ -237,6 +246,7 @@ function buildRuntimeQueueServiceBridgePacket(profile) {
     booleans: {
       runtimeQueueServicePayloadReadyWithProvidedEvidence: true,
       canonicalRuntimeQueueServiceValidationPassed: true,
+      sourceExternalBetaLocalQueueStorageProofBridgeAccepted: true,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,
@@ -296,6 +306,8 @@ for (const phrase of [
   'record_ai_graphics_audit_event',
   'liveServiceRoleQueueSmokeExecutedNow: false',
   'serviceRoleCredentialsServerOnly: true',
+  'sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted',
+  'sourceRuntimeQueueServiceProofBridgeAccepted',
 ]) {
   if (!source.includes(phrase) && !docsMd.includes(phrase)) fail(`missing_source_phrase:${phrase}`)
 }
@@ -321,6 +333,7 @@ for (const [key, expected] of Object.entries({
   serviceRoleQueueSmokeReadinessRecordsPreparedWithProvidedEvidence: 21,
   cpuStaticFirstCohortServiceRoleQueueSmokeReadinessRecordsPreparedWithProvidedEvidence: 1,
   canonicalRuntimeQueueServiceValidationAcceptedTools: 21,
+  sourceRuntimeQueueServiceProofBridgeAcceptedTools: 21,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
   heavyToolsIncorrectlyTargetingCpu: 0,
   liveServiceRoleQueueSmokeExecutedNow: 0,
@@ -350,11 +363,22 @@ for (const key of falseGateKeys) {
 if (docs.booleans?.externalBetaServiceRoleQueueSmokeReadinessPrepared !== true) {
   fail('docs_missing_service_role_queue_smoke_readiness_true')
 }
+if (docs.booleans?.sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted !== true) {
+  fail('docs_missing_source_runtime_queue_service_proof_bridge_true')
+}
 if (docs.booleans?.runtimeQueueServiceUsesServiceRoleRpcNames !== true) {
   fail('docs_missing_runtime_queue_service_rpc_true')
 }
+if (!docs.serviceRoleQueueSmoke?.requiredControls?.includes(
+  'accepted external-beta runtime queue service bridge packet preserving native GPU runtime-proof bridge',
+)) {
+  fail('docs_missing_required_proof_bridge_control')
+}
 if (!docsMd.includes('non-production service-role queue/claim smoke')) {
   fail('docs_md_missing_external_beta_non_production_scope')
+}
+if (!docsMd.includes('native GPU runtime-proof bridge stripped')) {
+  fail('docs_md_missing_stripped_runtime_proof_bridge_rejection')
 }
 if (!docsMd.includes('sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort')) {
   fail('docs_md_missing_cpu_static_source_mode')
@@ -452,6 +476,49 @@ if (blockedMissingControls.decision !== 'missing_external_beta_service_role_queu
   fail(`blocked_missing_controls_decision:${blockedMissingControls.decision}`)
 }
 
+const forgedSam2Profile = toolProfiles.find(([toolId]) => toolId === 'sam2')
+const forgedSam2Packet = buildRuntimeQueueServiceBridgePacket(forgedSam2Profile)
+forgedSam2Packet.sourceExternalBetaLocalQueueStorageProofBridgeAccepted = false
+forgedSam2Packet.booleans.sourceExternalBetaLocalQueueStorageProofBridgeAccepted = false
+forgedSam2Packet.externalBetaRuntimeQueueServiceBridgeRecord
+  .sourceLocalQueueStorageProofBridgeAccepted = false
+forgedSam2Packet.sourceExternalBetaLocalQueueStorage
+  .sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted = false
+forgedSam2Packet.sourceExternalBetaLocalQueueStorage.booleans
+  .sourceExternalBetaServiceRoleQueueTransactionProofBridgeAccepted = false
+forgedSam2Packet.sourceExternalBetaLocalQueueStorage.externalBetaLocalQueueStorageRecord
+  .sourceServiceRoleTransactionProofBridgeAccepted = false
+const forgedSam2PacketPath = writeJson(
+  path.join(tmpRoot, 'sam2-runtime-queue-service-bridge-stripped-proof.json'),
+  forgedSam2Packet,
+)
+const blockedStrippedProofBridge = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-runtime-queue-service-bridge-packet',
+  forgedSam2PacketPath,
+  '--execution-requested',
+  '--external-beta-service-role-queue-smoke-ref',
+  'external-beta-service-role://queue-smoke',
+  '--external-beta-service-role-queue-smoke-environment-ref',
+  'external-beta-service-role://non-production-environment',
+  '--external-beta-service-role-queue-smoke-owner-approval-ref',
+  'external-beta-service-role://queue-smoke-owner-approval',
+  '--external-beta-service-role-queue-smoke-rollback-ref',
+  'external-beta-service-role://rollback',
+  '--external-beta-service-role-queue-smoke-cleanup-ref',
+  'external-beta-service-role://cleanup',
+  '--external-beta-service-role-queue-smoke-telemetry-ref',
+  'external-beta-service-role://telemetry',
+]), 'blocked_stripped_proof_bridge')
+if (blockedStrippedProofBridge.decision !== 'missing_external_beta_runtime_queue_service_bridge') {
+  fail(`blocked_stripped_proof_bridge_decision:${blockedStrippedProofBridge.decision}`)
+}
+if (blockedStrippedProofBridge.sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted !== false) {
+  fail('blocked_stripped_proof_bridge_unexpectedly_accepted')
+}
+if (blockedStrippedProofBridge.externalBetaServiceRoleQueueSmokeReadinessRecord !== null) {
+  fail('blocked_stripped_proof_bridge_created_readiness_record')
+}
+
 const sam2Result = results.find(([profile]) => profile[0] === 'sam2')?.[1] ?? {}
 const d3Result = results.find(([profile]) => profile[0] === 'd3')?.[1] ?? {}
 if (sam2Result.externalBetaServiceRoleQueueSmokeReadinessRecord?.runtimeTarget !== 'native_linux_amd64_nvidia_l4_sam2_runtime') {
@@ -487,6 +554,15 @@ for (const [profile, output] of results) {
   if (output.liveWorkerDispatchesNow !== 0) fail(`${toolId}_live_dispatches`)
   if (output.externalBetaReadyNowTools !== 0) fail(`${toolId}_external_beta_ready`)
   if (output.productionReadyNowTools !== 0) fail(`${toolId}_production_ready`)
+  if (output.sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted !== true) {
+    fail(`${toolId}_source_runtime_queue_service_proof_bridge_not_accepted`)
+  }
+  if (
+    output.externalBetaServiceRoleQueueSmokeReadinessRecord
+      ?.sourceRuntimeQueueServiceProofBridgeAccepted !== true
+  ) {
+    fail(`${toolId}_record_runtime_queue_service_proof_bridge_not_accepted`)
+  }
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false) fail(`${toolId}_false_gate_not_false:${key}`)
   }
@@ -605,8 +681,10 @@ console.log(JSON.stringify({
   planningSmokeDecision: planningSmoke.decision,
   blockedMissingBridgeDecision: blockedMissingBridge.decision,
   blockedMissingControlsDecision: blockedMissingControls.decision,
+  blockedStrippedProofBridgeDecision: blockedStrippedProofBridge.decision,
   serviceRoleQueueSmokeReadinessRecordsPreparedWithProvidedEvidence: readyResults.length,
   canonicalRuntimeQueueServiceValidationAcceptedTools: readyResults.length,
+  sourceRuntimeQueueServiceProofBridgeAcceptedTools: readyResults.length,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: gpuReady.length,
   heavyToolsIncorrectlyTargetingCpu: heavyCpuFallbacks.length,
   sam2RuntimeTarget: sam2Result.externalBetaServiceRoleQueueSmokeReadinessRecord?.runtimeTarget,

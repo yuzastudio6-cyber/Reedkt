@@ -24,6 +24,7 @@ export type ProductionReadinessStatus =
   | 'evaluation_only'
   | 'needs_license_review'
   | 'pending_manual_review'
+  | 'source_install_review_required'
   | 'not_checked'
 
 export type ProductionContainerImageRole =

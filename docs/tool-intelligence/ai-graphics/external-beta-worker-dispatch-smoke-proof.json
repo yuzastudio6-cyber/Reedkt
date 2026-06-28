@@ -70,6 +70,7 @@
   },
   "acceptanceCriteria": {
     "sourceWorkerDispatchSmokeAcceptedWithProvidedEvidence": true,
+    "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "smokeJobsPrepared": 21,
     "smokeJobsCompletedWithProvidedEvidence": 21,
     "smokeCapabilityScenariosPrepared": 12,
@@ -93,6 +94,7 @@
   "booleans": {
     "externalBetaWorkerDispatchSmokeProofPrepared": true,
     "sourceWorkerDispatchSmokeAcceptedWithProvidedEvidence": false,
+    "sourceRuntimeQueueServiceProofBridgeAccepted": false,
     "workerDispatchSmokeProofAcceptedWithProvidedEvidence": false,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

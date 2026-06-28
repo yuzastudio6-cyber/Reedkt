@@ -327,14 +327,23 @@ const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-tool-route-ru
 try {
   const readinessPacketPath = writeJson(path.join(tmpRoot, 'worker-dispatch-readiness.json'), {
     decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
+    sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
     workerDispatchReadinessPreparedWithProvidedEvidence: true,
     workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
     workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
     gpuRuntimeTargetedTools: 8,
+    acceptedSourceEvidence: {
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+    },
+    records: allTools.map((toolId) => ({
+      toolId,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    })),
     liveWorkerLeasesCreatedNow: 0,
     liveWorkerDispatchesNow: 0,
     liveToolExecutionsNow: 0,
     booleans: {
+      sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,

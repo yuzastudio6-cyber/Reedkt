@@ -69,6 +69,7 @@
   },
   "acceptanceCriteria": {
     "sourceWorkerDispatchReadinessAcceptedWithProvidedEvidence": true,
+    "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "smokeJobsPrepared": 21,
     "smokeJobsCompletedWithProvidedEvidence": 21,
     "smokeCapabilityScenariosPrepared": 12,
@@ -90,6 +91,7 @@
   "booleans": {
     "externalBetaWorkerDispatchSmokePrepared": true,
     "sourceExternalBetaWorkerDispatchReadinessAccepted": false,
+    "sourceRuntimeQueueServiceProofBridgeAccepted": false,
     "externalBetaWorkerDispatchSmokeControlsAccepted": false,
     "mockDispatcherSmokeCompletedWithProvidedEvidence": false,
     "all21ToolsCovered": true,

@@ -238,6 +238,7 @@ for (const capability of capabilities) {
   if (!docs.capabilities?.includes(capability)) fail(`docs_missing_capability:${capability}`)
 }
 for (const [key, expected] of Object.entries({
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
   smokeJobsPrepared: 21,
   smokeJobsCompletedWithProvidedEvidence: 21,
   smokeCapabilityScenariosPrepared: 12,
@@ -286,6 +287,7 @@ for (const phrase of [
   'noLiveWorkerLeaseBySmoke',
   'noToolExecutionBySmoke',
   'noGpuRuntimeStartBySmoke',
+  'sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
@@ -310,14 +312,23 @@ const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-worker-dispat
 try {
   const readinessPacketPath = writeJson(path.join(tmpRoot, 'worker-dispatch-readiness.json'), {
     decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
+    sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
     workerDispatchReadinessPreparedWithProvidedEvidence: true,
     workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
     workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
     gpuRuntimeTargetedTools: 8,
+    acceptedSourceEvidence: {
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+    },
+    records: allTools.map((toolId) => ({
+      toolId,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    })),
     liveWorkerLeasesCreatedNow: 0,
     liveWorkerDispatchesNow: 0,
     liveToolExecutionsNow: 0,
     booleans: {
+      sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,
@@ -345,6 +356,12 @@ try {
     fail(`accepted_capabilities_not_12:${accepted.smokeCapabilityScenariosCompletedWithProvidedEvidence}`)
   }
   if (accepted.gpuRuntimeTargetedTools !== 8) fail(`accepted_gpu_tools_not_8:${accepted.gpuRuntimeTargetedTools}`)
+  if (accepted.sourceWorkerDispatchReadinessProofBridgeAccepted !== true) {
+    fail('accepted_source_worker_dispatch_readiness_proof_bridge_not_true')
+  }
+  if (accepted.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_count_not_21')
+  }
   if (accepted.inMemoryLeaseRecordsCreated !== 21) fail(`accepted_leases_created_not_21:${accepted.inMemoryLeaseRecordsCreated}`)
   if (accepted.inMemoryLeaseRecordsReleased !== 21) fail(`accepted_leases_released_not_21:${accepted.inMemoryLeaseRecordsReleased}`)
   if (accepted.liveWorkerLeasesCreatedNow !== 0) fail('accepted_live_leases_not_0')
@@ -364,12 +381,57 @@ try {
     if (record.toolRunResultsCreated !== 0) fail(`record_tool_runs_created:${record.toolId}`)
     if (record.artifactRecordsCreated !== 0) fail(`record_artifacts_created:${record.toolId}`)
     if (record.qualityGateResultsCreated !== 0) fail(`record_quality_gates_created:${record.toolId}`)
+    if (record.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+      fail(`record_source_runtime_queue_service_proof_bridge_not_true:${record.toolId}`)
+    }
     if (record.gpuRuntimeShouldStartNow !== false) fail(`record_gpu_start_now_not_false:${record.toolId}`)
     if (record.liveWorkerLeaseCreatedNow !== false) fail(`record_live_lease_not_false:${record.toolId}`)
     if (record.liveWorkerDispatchPerformedNow !== false) fail(`record_live_dispatch_not_false:${record.toolId}`)
   }
   for (const key of falseGateKeys) {
     if (accepted.booleans?.[key] !== false) fail(`accepted_false_gate_not_false:${key}`)
+  }
+  if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+    fail('accepted_boolean_source_runtime_queue_service_proof_bridge_not_true')
+  }
+
+  const strippedBridgePacketPath = writeJson(
+    path.join(tmpRoot, 'stripped-worker-dispatch-readiness.json'),
+    {
+      ...JSON.parse(fs.readFileSync(readinessPacketPath, 'utf8')),
+      sourceServiceRoleQueueSmokeProofBridgeAccepted: false,
+      acceptedSourceEvidence: {
+        sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
+      },
+      records: allTools.map((toolId) => ({
+        toolId,
+        sourceRuntimeQueueServiceProofBridgeAccepted: false,
+      })),
+      booleans: {
+        sourceServiceRoleQueueSmokeProofBridgeAccepted: false,
+        agentCanExecuteToolsNow: false,
+        workerDispatchPerformed: false,
+        gpuRuntimeShouldStartNow: false,
+      },
+    },
+  )
+  const strippedBridge = parseJsonOutput(runNpm(runScriptName, [
+    '--external-beta-worker-dispatch-readiness-packet',
+    strippedBridgePacketPath,
+    '--external-beta-worker-dispatch-smoke-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/report.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke/cleanup.json',
+  ]), 'stripped-bridge')
+  if (strippedBridge.decision !== 'external_beta_worker_dispatch_readiness_rejected') {
+    fail(`stripped_bridge_decision:${strippedBridge.decision}`)
+  }
+  if (strippedBridge.sourceWorkerDispatchReadinessProofBridgeAccepted !== false) {
+    fail('stripped_bridge_source_proof_bridge_not_false')
   }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })

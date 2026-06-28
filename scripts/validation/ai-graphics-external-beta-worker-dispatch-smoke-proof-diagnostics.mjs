@@ -232,6 +232,7 @@ for (const capability of capabilities) {
   if (!docs.capabilities?.includes(capability)) fail(`docs_missing_capability:${capability}`)
 }
 for (const [key, expected] of Object.entries({
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
   smokeJobsPrepared: 21,
   smokeJobsCompletedWithProvidedEvidence: 21,
   smokeCapabilityScenariosPrepared: 12,
@@ -283,6 +284,7 @@ for (const phrase of [
   'noLiveProductionWorkerDispatchByProofValidator',
   'noToolExecutionByProofValidator',
   'noGpuRuntimeStartByProofValidator',
+  'sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
@@ -301,14 +303,23 @@ const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-worker-dispat
 try {
   const readinessPacketPath = writeJson(path.join(tmpRoot, 'worker-dispatch-readiness.json'), {
     decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
+    sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
     workerDispatchReadinessPreparedWithProvidedEvidence: true,
     workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
     workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
     gpuRuntimeTargetedTools: 8,
+    acceptedSourceEvidence: {
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+    },
+    records: allTools.map((toolId) => ({
+      toolId,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    })),
     liveWorkerLeasesCreatedNow: 0,
     liveWorkerDispatchesNow: 0,
     liveToolExecutionsNow: 0,
     booleans: {
+      sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,
@@ -359,13 +370,24 @@ try {
   if (accepted.counts?.sourceInMemoryLeaseRecordsReleased !== 21) {
     fail('accepted_leases_released_not_21')
   }
+  if (accepted.counts?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_count_not_21')
+  }
   if (accepted.counts?.sourceLiveWorkerLeasesCreatedNow !== 0) fail('accepted_live_leases_not_0')
   if (accepted.counts?.sourceLiveWorkerDispatchesNow !== 0) fail('accepted_live_dispatches_not_0')
   if (accepted.counts?.sourceLiveToolExecutionsNow !== 0) fail('accepted_live_tool_exec_not_0')
   if (accepted.evidence?.sourceAllRoutesMockOnly !== true) fail('accepted_routes_not_mock_only')
   if (accepted.evidence?.sourceAllRoutesAiGraphicsToolCallHandoff !== true) fail('accepted_routes_not_handoff')
+  if (
+    accepted.evidence?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== true
+  ) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_evidence_not_true')
+  }
   if (accepted.policy?.validatesSavedWorkerDispatchSmokeResultOnly !== true) {
     fail('accepted_not_saved_result_only')
+  }
+  if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_boolean_not_true')
   }
   for (const key of falseGateKeys) {
     if (accepted.booleans?.[key] !== false) fail(`accepted_false_gate_not_false:${key}`)
@@ -393,6 +415,47 @@ try {
   }
   if (!JSON.stringify(rejected.rejectionReasons ?? []).includes('21 jobs')) {
     fail('rejected_missing_21_job_reason')
+  }
+
+  const strippedBridgeResultPath = writeJson(
+    path.join(tmpRoot, 'stripped-bridge-worker-dispatch-smoke-result.json'),
+    {
+      ...smokeResult,
+      sourceWorkerDispatchReadinessProofBridgeAccepted: false,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
+      records: smokeResult.records.map((record) => ({
+        ...record,
+        sourceRuntimeQueueServiceProofBridgeAccepted: false,
+      })),
+      booleans: {
+        ...smokeResult.booleans,
+        sourceRuntimeQueueServiceProofBridgeAccepted: false,
+      },
+    },
+  )
+  const strippedBridgeRejected = parseJsonOutput(runNpm(proofScriptName, [
+    '--external-beta-worker-dispatch-smoke-result',
+    strippedBridgeResultPath,
+    '--external-beta-worker-dispatch-smoke-evidence-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/evidence.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-proof-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
+  ]), 'stripped-bridge-rejected')
+  if (
+    strippedBridgeRejected.decision !==
+      'external_beta_worker_dispatch_smoke_proof_rejected'
+  ) {
+    fail(`stripped_bridge_rejected_decision:${strippedBridgeRejected.decision}`)
+  }
+  if (
+    !JSON.stringify(strippedBridgeRejected.rejectionReasons ?? [])
+      .includes('proof bridge')
+  ) {
+    fail('stripped_bridge_rejected_missing_proof_bridge_reason')
   }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })

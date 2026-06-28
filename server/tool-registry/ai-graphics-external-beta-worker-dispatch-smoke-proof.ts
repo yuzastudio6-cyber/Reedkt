@@ -42,6 +42,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeProof {
     sourceCapabilityScenariosCompletedWithProvidedEvidence: number
     sourceInMemoryLeaseRecordsCreated: number
     sourceInMemoryLeaseRecordsReleased: number
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
     sourceLiveWorkerLeasesCreatedNow: 0
     sourceLiveWorkerDispatchesNow: 0
     sourceLiveToolExecutionsNow: 0
@@ -59,6 +60,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeProof {
     sourceAllRoutesAiGraphicsToolCallHandoff: boolean
     sourceAllInMemoryLeasesCreated: boolean
     sourceAllInMemoryLeasesReleased: boolean
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: boolean
     requiredExecutionEnvironment: 'non_production_external_beta'
     requiredWorkerMode: 'mock'
     requiredE2eRuntimeMode: 'local'
@@ -78,6 +80,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeProof {
   booleans: {
     externalBetaWorkerDispatchSmokeProofPrepared: true
     sourceWorkerDispatchSmokeAcceptedWithProvidedEvidence: boolean
+    sourceRuntimeQueueServiceProofBridgeAccepted: boolean
     workerDispatchSmokeProofAcceptedWithProvidedEvidence: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
@@ -250,6 +253,9 @@ function validateRecord(
     record.qualityGateResultsCreated !== 0
       ? `quality gate results were created for ${record.toolId}`
       : undefined,
+    record.sourceRuntimeQueueServiceProofBridgeAccepted !== true
+      ? `source runtime queue service proof bridge missing for ${record.toolId}`
+      : undefined,
     record.gpuRuntimeShouldStartNow !== false
       ? `GPU runtime should not start for ${record.toolId}`
       : undefined,
@@ -309,6 +315,9 @@ function validateSmokeResult(
     result.sourceExternalBetaWorkerDispatchReadinessAccepted !== true
       ? 'source worker dispatch readiness was not accepted'
       : undefined,
+    result.sourceWorkerDispatchReadinessProofBridgeAccepted !== true
+      ? 'source worker dispatch readiness proof bridge was not accepted'
+      : undefined,
     result.totalAiGraphicsTools !== 21 ? 'smoke result must cover 21 tools' : undefined,
     result.totalProductFacingCapabilities !== 12
       ? 'smoke result must cover 12 product-facing capabilities'
@@ -334,6 +343,9 @@ function validateSmokeResult(
     result.inMemoryLeaseRecordsReleased !== 21
       ? 'smoke result must release 21 in-memory leases'
       : undefined,
+    result.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21
+      ? 'smoke result must preserve the 21-tool runtime queue service proof bridge'
+      : undefined,
     result.liveWorkerLeasesCreatedNow !== 0
       ? 'smoke result must not create live worker leases'
       : undefined,
@@ -356,6 +368,11 @@ function validateSmokeResult(
     records.filter((record) => record.workerType === 'gpu_ai_worker').length !== 8
       ? 'smoke result must target eight GPU worker records'
       : undefined,
+    records.filter((record) => (
+      record.sourceRuntimeQueueServiceProofBridgeAccepted === true
+    )).length !== 21
+      ? 'smoke result must preserve runtime queue service proof bridge on all 21 records'
+      : undefined,
     capabilityScenarios.length !== 12
       ? 'smoke result must include 12 capability scenarios'
       : undefined,
@@ -371,6 +388,7 @@ function validateSmokeResult(
 function buildBooleans(input: {
   accepted: boolean
   sourceAccepted: boolean
+  sourceRuntimeQueueServiceProofBridgeAccepted: boolean
   allJobsAccepted: boolean
   allCapabilityScenariosAccepted: boolean
   allLeasesCreated: boolean
@@ -384,6 +402,8 @@ function buildBooleans(input: {
   return {
     externalBetaWorkerDispatchSmokeProofPrepared: true,
     sourceWorkerDispatchSmokeAcceptedWithProvidedEvidence: input.sourceAccepted,
+    sourceRuntimeQueueServiceProofBridgeAccepted:
+      input.sourceRuntimeQueueServiceProofBridgeAccepted,
     workerDispatchSmokeProofAcceptedWithProvidedEvidence: input.accepted,
     all21ToolsCovered: true,
     all12CapabilitiesCovered: true,
@@ -475,6 +495,13 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
     result?.smokeCapabilityScenariosCompletedWithProvidedEvidence === 12
   const allLeasesCreated = result?.inMemoryLeaseRecordsCreated === 21
   const allLeasesReleased = result?.inMemoryLeaseRecordsReleased === 21
+  const sourceRuntimeQueueServiceProofBridgeAccepted =
+    result?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    records.length === 21 &&
+    records.every((record) => (
+      record.sourceRuntimeQueueServiceProofBridgeAccepted === true
+    )) &&
+    result?.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted === true
   const allRoutesMockOnly =
     records.length === 21 && records.every((record) => record.mockOnlyRoute)
   const allRoutesHandoff =
@@ -518,6 +545,10 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
         accepted && result ? result.inMemoryLeaseRecordsCreated : 0,
       sourceInMemoryLeaseRecordsReleased:
         accepted && result ? result.inMemoryLeaseRecordsReleased : 0,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
+        accepted && result
+          ? result.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence
+          : 0,
       sourceLiveWorkerLeasesCreatedNow: 0,
       sourceLiveWorkerDispatchesNow: 0,
       sourceLiveToolExecutionsNow: 0,
@@ -540,6 +571,8 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
       sourceAllRoutesAiGraphicsToolCallHandoff: allRoutesHandoff,
       sourceAllInMemoryLeasesCreated: allLeasesCreated,
       sourceAllInMemoryLeasesReleased: allLeasesReleased,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
+        sourceRuntimeQueueServiceProofBridgeAccepted,
       requiredExecutionEnvironment: 'non_production_external_beta',
       requiredWorkerMode: 'mock',
       requiredE2eRuntimeMode: 'local',
@@ -559,6 +592,7 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
     booleans: buildBooleans({
       accepted,
       sourceAccepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted,
       allJobsAccepted,
       allCapabilityScenariosAccepted,
       allLeasesCreated,

@@ -10,6 +10,7 @@ This is a saved-result proof validator for the external-beta AI graphics worker 
 - Product-facing capabilities covered: `12`
 - GPU/model tools covered: `8`
 - Source worker dispatch smoke accepted in committed docs: `false`
+- Source runtime queue service proof bridge accepted in committed docs: `false`
 - Worker dispatch smoke proof accepted in committed docs: `false`
 - Live worker leases created now: `0`
 - Live worker dispatches now: `0`
@@ -28,7 +29,7 @@ The CLI can report `external_beta_worker_dispatch_smoke_proof_accepted_with_runt
 4. `--external-beta-worker-dispatch-smoke-lease-audit-ref`
 5. `--external-beta-worker-dispatch-smoke-cleanup-proof-ref`
 
-The saved source result must have decision `external_beta_worker_dispatch_smoke_completed_without_tool_execution`.
+The saved source result must have decision `external_beta_worker_dispatch_smoke_completed_without_tool_execution` and must preserve the 21-tool runtime queue service proof bridge from dispatch readiness.
 
 ## What The Proof Accepts
 
@@ -37,6 +38,7 @@ The saved source result must have decision `external_beta_worker_dispatch_smoke_
 - `8` GPU/model tools targeted to `gpu_ai_worker`.
 - `21` in-memory leases created and `21` released.
 - All routes stayed `mockOnly=true` and used AI graphics tool-call handoff metadata.
+- The runtime queue service proof bridge is present on all 21 saved smoke records.
 - `toolRunResults`, artifact records, and quality-gate result arrays stayed empty.
 - `liveWorkerLeasesCreatedNow=0`, `liveWorkerDispatchesNow=0`, and `liveToolExecutionsNow=0`.
 

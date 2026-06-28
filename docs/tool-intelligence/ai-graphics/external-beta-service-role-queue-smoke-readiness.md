@@ -10,6 +10,7 @@ This packet defines the next external-beta step after the runtime queue service 
 - Product-facing capabilities covered: 12
 - GPU/model tools covered: 8
 - Service-role queue smoke readiness records prepared with provided evidence: 21
+- CPU/static first-cohort service-role smoke readiness records: 1
 - Canonical runtime queue service validation accepted: 21
 - Heavy/model tools incorrectly targeting CPU: 0
 - Live service-role queue smoke executions now: 0
@@ -43,6 +44,8 @@ Required server-only environment values for that later smoke are:
 - `WORKER_RUNTIME_MODE=mock`
 
 Service-role credentials must remain server-only. The smoke uses the runtime queue service RPC boundary names `enqueue_ai_graphics_tool_runtime_jobs`, `claim_ai_graphics_tool_runtime_job`, `record_ai_graphics_worker_event`, and `record_ai_graphics_audit_event`.
+
+The CPU/static `d3` path preserves `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` into the service-role queue smoke readiness record. That lets the later non-production smoke distinguish the first safe CPU/static cohort from GPU/model worker lanes without approving live execution.
 
 ## GPU Cost Boundary
 

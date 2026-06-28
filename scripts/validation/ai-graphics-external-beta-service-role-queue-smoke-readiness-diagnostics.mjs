@@ -174,6 +174,8 @@ function writeJson(filePath, value) {
 
 function buildRuntimeQueueServiceBridgePacket(profile) {
   const [toolId, productionToolId, capabilityId, workerType, runtimeTarget, gpu] = profile
+  const sourceGatewayRuntimeAdmissionMode =
+    toolId === 'd3' ? 'cpu_static_first_cohort' : 'all_tools_external_beta'
   const approvedSnapshotId = 'approved_snapshot_external_beta_fixture'
   const creditReservationId = 'credit_reservation_external_beta_fixture'
   const privateArtifactManifestRef = `private://ai-graphics/external-beta/${toolId}/artifact-manifest.json`
@@ -198,6 +200,7 @@ function buildRuntimeQueueServiceBridgePacket(profile) {
       productionToolId,
       workerType,
       runtimeTarget,
+      sourceGatewayRuntimeAdmissionMode,
       capabilityIds: [capabilityId],
       sourceLocalQueueJobBatchId: `mock-job-batch-${toolId}`,
       sourceLocalQueueJobId: `mock-job-${toolId}`,
@@ -316,6 +319,7 @@ for (const [key, expected] of Object.entries({
   totalProductFacingCapabilities: 12,
   gpuRuntimeTargetedTools: 8,
   serviceRoleQueueSmokeReadinessRecordsPreparedWithProvidedEvidence: 21,
+  cpuStaticFirstCohortServiceRoleQueueSmokeReadinessRecordsPreparedWithProvidedEvidence: 1,
   canonicalRuntimeQueueServiceValidationAcceptedTools: 21,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
   heavyToolsIncorrectlyTargetingCpu: 0,
@@ -352,11 +356,17 @@ if (docs.booleans?.runtimeQueueServiceUsesServiceRoleRpcNames !== true) {
 if (!docsMd.includes('non-production service-role queue/claim smoke')) {
   fail('docs_md_missing_external_beta_non_production_scope')
 }
+if (!docsMd.includes('sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort')) {
+  fail('docs_md_missing_cpu_static_source_mode')
+}
 if (!docsMd.includes('No idle GPU runtime is approved')) {
   fail('docs_md_missing_no_idle_gpu_policy')
 }
 if (!scorecard.includes('AI Graphics External-Beta Service-Role Queue Smoke Readiness')) {
   fail('scorecard_missing_service_role_queue_smoke_readiness_checkpoint')
+}
+if (!scorecard.includes('sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort')) {
+  fail('scorecard_missing_cpu_static_service_role_smoke_source_mode')
 }
 
 const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-service-role-queue-smoke-'))
@@ -449,6 +459,12 @@ if (sam2Result.externalBetaServiceRoleQueueSmokeReadinessRecord?.runtimeTarget !
 }
 if (d3Result.externalBetaServiceRoleQueueSmokeReadinessRecord?.runtimeTarget !== 'node_cpu_static') {
   fail('d3_runtime_target_unexpected')
+}
+if (
+  d3Result.externalBetaServiceRoleQueueSmokeReadinessRecord
+    ?.sourceGatewayRuntimeAdmissionMode !== 'cpu_static_first_cohort'
+) {
+  fail('d3_source_gateway_runtime_admission_mode_unexpected')
 }
 if (sam2Result.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
   fail('sam2_gpu_not_start_allowed_for_future_job')
@@ -595,6 +611,9 @@ console.log(JSON.stringify({
   heavyToolsIncorrectlyTargetingCpu: heavyCpuFallbacks.length,
   sam2RuntimeTarget: sam2Result.externalBetaServiceRoleQueueSmokeReadinessRecord?.runtimeTarget,
   d3RuntimeTarget: d3Result.externalBetaServiceRoleQueueSmokeReadinessRecord?.runtimeTarget,
+  d3SourceGatewayRuntimeAdmissionMode:
+    d3Result.externalBetaServiceRoleQueueSmokeReadinessRecord
+      ?.sourceGatewayRuntimeAdmissionMode,
   sam2ServiceRoleQueueSmokeEnvironment:
     sam2Result.externalBetaServiceRoleQueueSmokeReadinessRecord?.serviceRoleQueueSmokeEnvironment,
   sam2EnqueueRpcName:

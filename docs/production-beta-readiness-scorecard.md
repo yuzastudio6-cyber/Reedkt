@@ -284,6 +284,13 @@ live Supabase queue write or worker claim: `liveQueueWriteApprovedNow=false`,
 `toolExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`,
 `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
 
+AI Graphics External-Beta Service-Role Queue Smoke Readiness now carries that
+CPU/static D3 source mode into the non-production smoke readiness record:
+`sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`. The readiness layer
+still performs no live smoke: `liveServiceRoleQueueSmokeExecutedNow=false`,
+`liveSupabaseQueueWritesNow=0`, `liveWorkerClaimRowsNow=0`,
+`workerDispatchPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
+
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
 shapes the all-21 queue-admission packets into backend queue adapter submission

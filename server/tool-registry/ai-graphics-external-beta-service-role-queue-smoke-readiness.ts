@@ -36,6 +36,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeReadinessRecord {
   productionToolId: ProductionToolId
   workerType: ProductionWorkerRuntimeType
   runtimeTarget: string
+  sourceGatewayRuntimeAdmissionMode: string
   capabilityIds: string[]
   sourceRuntimeQueueJobBatchId: string
   sourceRuntimeQueueJobIds: string[]
@@ -288,6 +289,7 @@ function createServiceRoleQueueSmokeReadinessRecord(
     productionToolId: bridgeRecord.productionToolId,
     workerType: bridgeRecord.workerType,
     runtimeTarget: bridgeRecord.runtimeTarget,
+    sourceGatewayRuntimeAdmissionMode: bridgeRecord.sourceGatewayRuntimeAdmissionMode,
     capabilityIds: bridgeRecord.capabilityIds,
     sourceRuntimeQueueJobBatchId: bridgeRecord.runtimeQueueJobBatchId,
     sourceRuntimeQueueJobIds: bridgeRecord.runtimeQueueJobIds,

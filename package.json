@@ -516,6 +516,7 @@
     "smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-config-verify": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-config-verify-smoke.ts",
     "smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result-smoke.ts",
     "smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-port-fix": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-port-fix-smoke.ts",
+    "smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-result": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-result-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-verify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-verify-result-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-reverify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-reverify-result-smoke.ts",

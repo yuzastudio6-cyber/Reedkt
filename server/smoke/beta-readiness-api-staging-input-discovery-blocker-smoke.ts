@@ -21,6 +21,8 @@ const currentSourceOwnerPrerequisiteAuditJsonPath = 'docs/beta-readiness/api-sta
 const currentSourceOwnerPrerequisiteAuditMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-post-current-source-bundle-owner-prerequisite-audit-rerun.md'
 const ownerRemediationCommandPacketJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.json'
 const ownerRemediationCommandPacketMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.md'
+const ownerRemediationAfterWorkflowScopeFixJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-after-workflow-scope-fix.json'
+const ownerRemediationAfterWorkflowScopeFixMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-after-workflow-scope-fix.md'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const report = JSON.parse(readFileSync(jsonPath, 'utf8')) as {
@@ -349,6 +351,66 @@ const ownerRemediationCommandPacketReport = JSON.parse(readFileSync(ownerRemedia
   }
 }
 const ownerRemediationCommandPacketMarkdown = readFileSync(ownerRemediationCommandPacketMarkdownPath, 'utf8')
+const ownerRemediationAfterWorkflowScopeFixReport = JSON.parse(readFileSync(ownerRemediationAfterWorkflowScopeFixJsonPath, 'utf8')) as {
+  decision: string
+  toolsSourceSha: string
+  defaultBranchWorkflow: {
+    path: string
+    branch: string
+    workflowScopeFixPr: number
+    workflowScopeFixMergeSha: string
+    workflowDispatchOnly: boolean
+    requiredConfirmations: string[]
+    latestRun: {
+      runId: number
+      jobId: number
+      url: string
+      headSha: string
+      conclusion: string
+      failedStep: string
+    }
+  }
+  workflowScopeFix: {
+    removedStaleCloudRunRoleMutation: boolean
+    removedRole: string
+    addedDeployerMetadataOnlySecretViewer: boolean
+    deployerSecretRole: string
+    runtimeSecretRole: string
+    cloudRunDeployPermissionAlreadyProvenByAudit: boolean
+  }
+  prerequisiteResults: Array<{
+    id: string
+    status: string
+    permission?: string
+    resource?: string
+    reason: string
+    detail?: string
+  }>
+  verificationResults: Array<{
+    id: string
+    status: string
+    permission?: string
+    resource?: string
+    reason: string
+    detail?: string
+  }>
+  notABlanketBlocker: boolean
+  blockedAction: string
+  safeForwardProgress: string[]
+  blockedScopes: string[]
+  nextSafeActions: string[]
+  secretValuesRead: boolean
+  productReadyLocalOssCount: number
+  externalBetaEnabled: boolean
+  productionEnabled: boolean
+  supabase: {
+    write: string
+    environment: string
+    sql: string
+    migration: string
+  }
+}
+const ownerRemediationAfterWorkflowScopeFixMarkdown = readFileSync(ownerRemediationAfterWorkflowScopeFixMarkdownPath, 'utf8')
 
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-api-staging-input-discovery-blocker'],
@@ -450,13 +512,18 @@ assert.deepEqual(remediationReport.requiredOwnerActions.map((action) => action.i
   'artifact_registry_repository_access',
   'runtime_service_account',
   'deployer_act_as_runtime',
-  'cloud_run_deploy_permission',
+  'deployer_fixed_secret_metadata_describe',
   'runtime_secret_access',
 ])
 assert.ok(remediationReport.requiredOwnerActions.some((action) => action.deploymentRoleCandidate === 'roles/artifactregistry.writer'))
 assert.ok(remediationReport.requiredOwnerActions.some((action) => action.roleCandidate === 'roles/iam.serviceAccountUser'))
-assert.ok(remediationReport.requiredOwnerActions.some((action) => action.roleCandidate === 'roles/run.admin'))
+assert.ok(remediationReport.requiredOwnerActions.some((action) => action.roleCandidate === 'roles/secretmanager.viewer'))
 assert.ok(remediationReport.requiredOwnerActions.some((action) => action.roleCandidate === 'roles/secretmanager.secretAccessor'))
+assert.equal(
+  remediationReport.requiredOwnerActions.some((action) => action.roleCandidate === 'roles/run.admin'),
+  false,
+  'active owner remediation request must not ask for stale Cloud Run admin role',
+)
 assert.ok(remediationReport.postRemediationValidation.some((command) => command.includes('beta-readiness-api-staging-input-discovery.yml')))
 assert.ok(remediationReport.postRemediationValidation.some((command) => command.includes('beta-readiness-api-staging-deploy.yml')))
 assert.ok(remediationReport.blockedScopes.includes('iam_mutation_not_run'))
@@ -473,9 +540,13 @@ assert.deepEqual(remediationReport.supabase, {
 assert.ok(remediationMarkdown.includes('metadata only'))
 assert.ok(remediationMarkdown.includes('roles/artifactregistry.writer'))
 assert.ok(remediationMarkdown.includes('roles/iam.serviceAccountUser'))
+assert.ok(remediationMarkdown.includes('roles/secretmanager.viewer'))
 assert.ok(remediationMarkdown.includes('roles/secretmanager.secretAccessor'))
 assert.ok(remediationMarkdown.includes('Only after exact validation passes'))
+assert.ok(remediationMarkdown.includes('Cloud Run role mutation is no longer part of the active remediation set'))
+assert.equal(remediationMarkdown.includes('roles/run.admin'), false, 'active remediation markdown must not request roles/run.admin')
 assert.equal(JSON.stringify(remediationReport).includes('gha-creds'), false, 'remediation report must not include credential-file paths')
+assert.equal(JSON.stringify(remediationReport).includes('SERVICE_ROLE_KEY'), false, 'remediation report must not include secret names or values')
 
 assert.equal(workflowReadyReport.decision, 'beta_readiness_api_staging_owner_remediation_workflow_ready_for_owner_dispatch')
 assert.equal(workflowReadyReport.defaultBranchWorkflow.path, '.github/workflows/beta-readiness-api-staging-owner-remediation.yml')
@@ -765,6 +836,72 @@ assert.ok(ownerRemediationCommandPacketMarkdown.includes('This packet is not a b
 assert.equal(JSON.stringify(ownerRemediationCommandPacketReport).includes('gha-creds'), false, 'owner command packet must not include credential-file paths')
 assert.equal(JSON.stringify(ownerRemediationCommandPacketReport).includes('SERVICE_ROLE_KEY'), false, 'owner command packet must not include secret names or values')
 
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.decision, 'beta_readiness_api_staging_owner_remediation_after_workflow_scope_fix_blocked_by_higher_privilege_owner_permissions')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.toolsSourceSha, '22c9ee6277eaf0f4ff3f8bdb3d96990a78671579')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.path, '.github/workflows/beta-readiness-api-staging-owner-remediation.yml')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.branch, 'codex/reeditpro-web-ui-shell')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.workflowScopeFixPr, 1441)
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.workflowScopeFixMergeSha, '1b08bb39378952ff0922e9c3535067a4fa583620')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.workflowDispatchOnly, true)
+assert.deepEqual(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.requiredConfirmations, [
+  'APPLY_STAGING_BETA_API_OWNER_REMEDIATION',
+  'MUTATE_STAGING_IAM_ONLY',
+])
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.latestRun.runId, 28321557589)
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.latestRun.jobId, 83904265484)
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.latestRun.headSha, '1b08bb39378952ff0922e9c3535067a4fa583620')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.latestRun.conclusion, 'failure')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.latestRun.failedStep, 'Verify exact staging API owner remediation inputs')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.workflowScopeFix.removedStaleCloudRunRoleMutation, true)
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.workflowScopeFix.removedRole, 'roles/run.admin')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.workflowScopeFix.addedDeployerMetadataOnlySecretViewer, true)
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.workflowScopeFix.deployerSecretRole, 'roles/secretmanager.viewer')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.workflowScopeFix.runtimeSecretRole, 'roles/secretmanager.secretAccessor')
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.workflowScopeFix.cloudRunDeployPermissionAlreadyProvenByAudit, true)
+assert.deepEqual(ownerRemediationAfterWorkflowScopeFixReport.prerequisiteResults.map((result) => `${result.id}:${result.status}`), [
+  'artifact_registry_writer_binding:failure',
+  'runtime_service_account_create:failure',
+  'deployer_act_as_runtime_binding:failure',
+  'deployer_secret_metadata_viewer_fixed_entries:failure',
+  'runtime_secret_accessor_fixed_entries:failure',
+])
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.prerequisiteResults.some((result) => result.permission === 'artifactregistry.repositories.getIamPolicy'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.prerequisiteResults.some((result) => result.permission === 'iam.serviceAccounts.create'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.prerequisiteResults.some((result) => result.permission === 'secretmanager.secrets.getIamPolicy'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.prerequisiteResults.some((result) => result.reason === 'NOT_FOUND'))
+assert.deepEqual(ownerRemediationAfterWorkflowScopeFixReport.verificationResults.map((result) => `${result.id}:${result.status}`), [
+  'artifact_registry_repository_describe:failure',
+  'runtime_service_account_describe:failure',
+])
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.verificationResults.some((result) => result.permission === 'artifactregistry.repositories.get'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.verificationResults.some((result) => result.reason === 'NOT_FOUND'))
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.notABlanketBlocker, true)
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.blockedAction, 'staging_api_deploy_until_higher_privilege_owner_applies_exact_iam_runtime_and_secret_policy_prerequisites')
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.safeForwardProgress.includes('higher_privilege_owner_applies_exact_owner_command_packet'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.safeForwardProgress.includes('rerun_read_only_owner_prerequisite_audit_after_owner_side_remediation'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.nextSafeActions.some((action) => action.includes('Artifact Registry writer')))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.nextSafeActions.some((action) => action.includes('metadata-only viewer')))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.blockedScopes.includes('cloud_run_deploy_not_run'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.blockedScopes.includes('cloud_run_role_mutation_not_run'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.blockedScopes.includes('docker_build_not_run'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixReport.blockedScopes.includes('external_beta_not_enabled'))
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.secretValuesRead, false)
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.productReadyLocalOssCount, 0)
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.externalBetaEnabled, false)
+assert.equal(ownerRemediationAfterWorkflowScopeFixReport.productionEnabled, false)
+assert.deepEqual(ownerRemediationAfterWorkflowScopeFixReport.supabase, {
+  write: 'no write',
+  environment: 'none',
+  sql: 'none',
+  migration: 'no',
+})
+assert.ok(ownerRemediationAfterWorkflowScopeFixMarkdown.includes('PR #1441'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixMarkdown.includes('removed stale Cloud Run role mutation'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixMarkdown.includes('This is not a blanket blocker.'))
+assert.ok(ownerRemediationAfterWorkflowScopeFixMarkdown.includes('Product-ready local OSS count remains `0`'))
+assert.equal(JSON.stringify(ownerRemediationAfterWorkflowScopeFixReport).includes('gha-creds'), false, 'workflow scope fix report must not include credential-file paths')
+assert.equal(JSON.stringify(ownerRemediationAfterWorkflowScopeFixReport).includes('SERVICE_ROLE_KEY'), false, 'workflow scope fix report must not include secret names or values')
+
 console.log(JSON.stringify({
   ok: true,
   decisions: [
@@ -778,6 +915,7 @@ console.log(JSON.stringify({
     ownerPrerequisiteAuditResultBlockerReport.decision,
     currentSourceOwnerPrerequisiteAuditReport.decision,
     ownerRemediationCommandPacketReport.decision,
+    ownerRemediationAfterWorkflowScopeFixReport.decision,
   ],
   runId: report.defaultBranchWorkflow.latestRun.runId,
   exactRunId: exactReport.defaultBranchWorkflow.latestRun.runId,
@@ -796,7 +934,9 @@ console.log(JSON.stringify({
   ownerRemediationPartialBlockedAction: ownerRemediationPartialResultsBlockerReport.blockedAction,
   ownerPrerequisiteAuditBlockedAction: ownerPrerequisiteAuditResultBlockerReport.blockedAction,
   ownerRemediationCommandPacketBlockedAction: ownerRemediationCommandPacketReport.blockedAction,
+  ownerRemediationAfterWorkflowScopeFixBlockedAction: ownerRemediationAfterWorkflowScopeFixReport.blockedAction,
   ownerActions: remediationReport.requiredOwnerActions.map((action) => action.id),
   remainingOwnerCommands: ownerRemediationCommandPacketReport.remainingOwnerCommands.map((command) => command.id),
+  ownerRemediationAfterWorkflowScopeFixRunId: ownerRemediationAfterWorkflowScopeFixReport.defaultBranchWorkflow.latestRun.runId,
   ownerWorkflow: workflowReadyReport.defaultBranchWorkflow.path,
 }, null, 2))

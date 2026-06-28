@@ -1,0 +1,76 @@
+{
+  "reportId": "beta-readiness-api-staging-owner-remediation-request-2026-06-28",
+  "decision": "beta_readiness_api_staging_owner_remediation_request_passed_ready_for_owner_iam_runtime_service_account_action",
+  "sourceSha": "a33d911d3cff4174ef9b6f51f3dd98c486423825",
+  "sourceEvidence": {
+    "exactValidationRun": 28309751101,
+    "exactValidationDecision": "beta_readiness_api_staging_exact_input_validation_blocked_by_artifact_registry_get_and_runtime_service_account",
+    "workflowSupportPr": 1374,
+    "exactBlockerRecordPr": 1375
+  },
+  "requiredOwnerActions": [
+    {
+      "id": "artifact_registry_repository_access",
+      "purpose": "Allow the deployer identity to validate and push the staging API image to the exact staging repository.",
+      "target": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers",
+      "minimumValidationPermission": "artifactregistry.repositories.get",
+      "deploymentRoleCandidate": "roles/artifactregistry.writer",
+      "commandTemplate": "gcloud artifacts repositories add-iam-policy-binding reeditpro-staging-workers --project=reeditpro --location=us-central1 --member=serviceAccount:<repo-configured-gcp-service-account> --role=roles/artifactregistry.writer"
+    },
+    {
+      "id": "runtime_service_account",
+      "purpose": "Create or select a dedicated staging API runtime service account before Cloud Run deploy.",
+      "preferredEmail": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+      "commandTemplate": "gcloud iam service-accounts create reeditpro-api-staging --project=reeditpro --display-name='ReEditPro API staging runtime'"
+    },
+    {
+      "id": "deployer_act_as_runtime",
+      "purpose": "Allow the deployer identity to deploy Cloud Run using the staging API runtime service account.",
+      "roleCandidate": "roles/iam.serviceAccountUser",
+      "commandTemplate": "gcloud iam service-accounts add-iam-policy-binding reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --project=reeditpro --member=serviceAccount:<repo-configured-gcp-service-account> --role=roles/iam.serviceAccountUser"
+    },
+    {
+      "id": "cloud_run_deploy_permission",
+      "purpose": "Allow the deployer identity to deploy the staging API Cloud Run service.",
+      "roleCandidate": "roles/run.admin",
+      "commandTemplate": "gcloud projects add-iam-policy-binding reeditpro --member=serviceAccount:<repo-configured-gcp-service-account> --role=roles/run.admin"
+    },
+    {
+      "id": "runtime_secret_access",
+      "purpose": "Allow the staging API runtime service account to read only the Secret Manager secrets bound by the guarded deploy workflow.",
+      "roleCandidate": "roles/secretmanager.secretAccessor",
+      "secretNames": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "PROVIDER_GATEWAY_SHARED_SECRET",
+        "WORKER_WEBHOOK_SECRET"
+      ],
+      "commandTemplate": "for secret in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SECRET WORKER_WEBHOOK_SECRET; do gcloud secrets add-iam-policy-binding \"$secret\" --project=reeditpro --member=serviceAccount:reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor; done"
+    }
+  ],
+  "postRemediationValidation": [
+    "gh workflow run beta-readiness-api-staging-input-discovery.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_input_discovery=READ_STAGING_BETA_API_DEPLOY_INPUTS --field artifact_region=us-central1 --field artifact_repository=reeditpro-staging-workers --field deployer_service_account=<repo-configured-gcp-service-account> --field runtime_service_account=reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --field service_name=reeditpro-api-staging",
+    "npm run beta:readiness:api-deployment-preflight",
+    "only after exact validation passes, dispatch beta-readiness-api-staging-deploy.yml with an immutable image tag and matching source SHA"
+  ],
+  "blockedScopes": [
+    "owner_actions_not_performed_by_codex",
+    "cloud_run_deploy_not_run",
+    "docker_build_not_run",
+    "artifact_registry_push_not_run",
+    "iam_mutation_not_run",
+    "service_account_creation_not_run",
+    "evidence_collectors_not_run",
+    "external_beta_not_enabled",
+    "paid_production_not_enabled"
+  ],
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "productionEnabled": false
+}

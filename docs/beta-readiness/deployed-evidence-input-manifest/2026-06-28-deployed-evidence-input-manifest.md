@@ -26,6 +26,8 @@ Current evidence after source `a735228445fc267784fa561188cd4721b4d12fff` uses tw
 
 The latest report-only platform probe is recorded at `docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.md`: 8 of 9 technical checks passed on the normal API, and the remaining non-passing probe is billing-owner Stripe-boundary approval. The platform packet still must not be recorded until every owner approval is present.
 
+Current owner approval collection should start with `npm run beta:readiness:owner-approval-packet` or `docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md`. That packet names every platform and launch owner approval input and the non-secret evidence notes required before this manifest can become ready.
+
 Run `npm run beta:readiness:deployed-evidence-input-manifest` first. It prints only input presence, expected non-secret values, gaps, and blocked scopes. It does not print bearer tokens and it fails closed until all required inputs and approvals are present.
 
 After the manifest is ready, run `npm run beta:readiness:external-beta-evidence-collector`, then verify with `npm run beta:readiness:operator-status-api`.

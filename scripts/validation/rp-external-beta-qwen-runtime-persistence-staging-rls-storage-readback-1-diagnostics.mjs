@@ -65,6 +65,23 @@ const requiredText = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 allowedChangedFiles.add('docs/activation-phase-rp-external-beta-qwen-runtime-persistence-staging-rls-storage-readback-1-results.md')
+for (const file of [
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1/source-audit.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1/route-gate-contract.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1/confirmation-gate.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1/service-role-secret-boundary.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1/readiness-gate.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1/safety-boundary.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1/validation-results.md',
+  'docs/external-beta/qwen-runtime-persistence-staging-service-role-route-gate-1/qwen-runtime-persistence-staging-service-role-route-gate-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1-confirmed.md',
+  'docs/production-beta-blocker-inventory.md',
+  'scripts/validation/rp-external-beta-qwen-runtime-persistence-staging-service-role-route-gate-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
 
 const forbiddenChangedPrefixes = [
   'package-lock.json',

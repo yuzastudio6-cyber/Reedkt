@@ -26,8 +26,28 @@ const packetFiles = [
   `${packetDir}/worker-contract.md`
 ]
 
+const workerIntegrationPlanFiles = [
+  'docs/activation-phase-tracka-gpac-mp4box-worker-integration-plan-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-worker-route-contract-1.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/artifact-policy.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/artifact-policy.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/gpac-mp4box-worker-integration-plan-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/gpac-mp4box-worker-integration-plan-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/route-boundary.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/route-boundary.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/validation-results.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/worker-integration-plan.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-worker-integration-plan/worker-integration-plan.md',
+  'scripts/validation/tracka-gpac-mp4box-worker-integration-plan-diagnostics.mjs'
+]
+
 const requiredFiles = [
   ...packetFiles,
+  ...workerIntegrationPlanFiles,
   'docs/activation-phase-tracka-gpac-mp4box-worker-contract-review-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-worker-integration-plan-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-worker-contract-review-1.md',

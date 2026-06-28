@@ -75,6 +75,14 @@ create table if not exists public.edit_plan_segments (
   created_at timestamptz not null default now()
 );
 
+-- Compatibility guard for older active baselines where public.edit_plan_segments
+-- already exists with edit_plan_id but not the newer versioned plan column.
+alter table public.edit_plan_segments
+  add column if not exists edit_plan_version_id uuid references public.edit_plan_versions(id) on delete cascade;
+
+comment on column public.edit_plan_segments.edit_plan_version_id is
+'Compatibility column for RP-DATA-04 versioned plan indexes. Older edit_plan_id rows are not backfilled here because this migration must not invent edit_plan_versions records.';
+
 create table if not exists public.edit_operations (
   id uuid primary key default gen_random_uuid(),
   edit_plan_segment_id uuid not null references public.edit_plan_segments(id) on delete cascade,

@@ -34,6 +34,21 @@ const followOnAllowlist = [
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
 ]
 
+const followOnSingleTesterLiveFeedbackTriage1Files = [
+  'docs/external-beta/single-tester-live-feedback-triage-1/source-audit.md',
+  'docs/external-beta/single-tester-live-feedback-triage-1/feedback-triage.md',
+  'docs/external-beta/single-tester-live-feedback-triage-1/support-and-rollback.md',
+  'docs/external-beta/single-tester-live-feedback-triage-1/readiness-gate.md',
+  'docs/external-beta/single-tester-live-feedback-triage-1/safety-boundary.md',
+  'docs/external-beta/single-tester-live-feedback-triage-1/validation-results.md',
+  'docs/external-beta/single-tester-live-feedback-triage-1/single-tester-live-feedback-triage-record.json',
+  'docs/activation-phase-rp-external-beta-single-tester-live-feedback-triage-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-feedback-source-capture-1.md',
+  'scripts/validation/rp-external-beta-single-tester-live-feedback-triage-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-additional-named-tester-list-decision-1-diagnostics.mjs',
+  'package.json',
+]
+
 const requiredText = [
   packet,
   'completed_source_derived_keep_single_tester_only_no_additional_tester_access',
@@ -224,7 +239,7 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowedFiles = new Set([...requiredFiles, ...followOnAllowlist])
+const allowedFiles = new Set([...requiredFiles, ...followOnAllowlist, ...followOnSingleTesterLiveFeedbackTriage1Files])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   for (const blocked of blockedPrefixes) {

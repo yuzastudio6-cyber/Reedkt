@@ -32,6 +32,8 @@
     "deployEvidenceReport": "docs/beta-readiness/api-staging-deploy-current-source/2026-06-28-d997-api-staging-deploy.json",
     "apiDeploymentPreflightReport": "docs/beta-readiness/api-deployment-preflight/2026-06-28-d997-api-deployment-preflight-passed.json",
     "apiDeploymentPreflightDecision": "beta_readiness_api_deployment_preflight_passed_ready_for_deployed_evidence_input_manifest",
+    "technicalInputOwnerApprovalGapReport": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-28-d997-technical-inputs-owner-approval-gap.json",
+    "technicalInputOwnerApprovalGapDecision": "beta_deployed_evidence_input_manifest_blocked_only_by_owner_approvals_and_attestations",
     "publicUnauthenticatedHealthStatus": 403,
     "authenticatedHealthReadback": "not_rerun_local_cloud_cli_auth_expired",
     "platformTechnicalProbeAtD997": "not_rerun_owner_approval_and_authenticated_preflight_still_required",

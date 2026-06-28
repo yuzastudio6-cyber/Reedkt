@@ -142,6 +142,7 @@ export interface ToolBetaExecutionReadinessReport {
   }
   safeBlockerReductionAllowed: boolean
   blockedActionScope: string[]
+  allowedForwardProgressScopes: string[]
   tools: ToolBetaExecutionReadinessRecord[]
   platformBlockers: ToolBetaExecutionReadinessPlatformBlocker[]
   blockers: ToolBetaExecutionReadinessBlocker[]

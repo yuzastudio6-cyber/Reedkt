@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { buildBetaReadinessReport, evaluateBetaGoNoGo } from '../beta-readiness'
+import { assertScopedBlockerPolicyCarrier, buildBetaReadinessReport, evaluateBetaGoNoGo } from '../beta-readiness'
 import {
   buildProductionHardeningReport,
   classifyProductionLaunchBlockers,
@@ -8,6 +8,7 @@ import {
 import { buildProductionReadinessReport } from '../workers/readiness-validation'
 
 const report = buildProductionHardeningReport()
+assertScopedBlockerPolicyCarrier(report, 'production hardening report')
 assert.equal(report.overallStatus, 'blocked', 'production hardening should default to blocked')
 assert.equal(report.productionReadyAllowed, false, 'productionReadyAllowed must remain false by default')
 assert.equal(report.blockerForwardProgressPolicy.intentionalBlanketBlocksAllowed, false, 'production blockers must not allow intentional blanket freezes')

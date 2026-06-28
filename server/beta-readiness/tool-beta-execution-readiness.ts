@@ -22,6 +22,10 @@ import type {
   ToolBetaExecutionReadinessReport,
   ToolBetaPlatformReadinessEvidence,
 } from './beta-readiness-types'
+import {
+  SCOPED_BLOCKER_FORWARD_PROGRESS_POLICY,
+  defaultAllowedForwardProgressScopes,
+} from './scoped-blocker-forward-progress-policy'
 import { buildAcceptedToolEvidenceMap } from './tool-beta-execution-evidence'
 
 const executableStatuses = new Set<ProductionReadinessStatus>(['passed', 'warning'])
@@ -80,14 +84,10 @@ export function buildToolBetaExecutionReadinessReport(
     externalBetaToolExecutionAllowed,
     productionToolExecutionAllowed,
     blockerPolicy: 'evidence_driven_block_unsafe_actions_only',
-    blockerForwardProgressPolicy: {
-      intentionalBlanketBlocksAllowed: false,
-      blockerScope: 'named_unsafe_action_only',
-      safeForwardProgressRequired: true,
-      nextSafeActionRequiredForBlockers: true,
-    },
+    blockerForwardProgressPolicy: SCOPED_BLOCKER_FORWARD_PROGRESS_POLICY,
     safeBlockerReductionAllowed: true,
     blockedActionScope,
+    allowedForwardProgressScopes: defaultAllowedForwardProgressScopes(),
     tools,
     platformBlockers,
     blockers: uniqueBlockers(blockers),

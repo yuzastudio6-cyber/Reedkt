@@ -4,7 +4,7 @@ Internal dry-run testing may use static reports and generated mock artifacts. Lo
 
 Real user media beta requires human approval for deployment, storage, security, cost controls, retention/deletion, model weights, licenses, monitoring, and support.
 
-External beta and paid production remain blocked by default in M17.
+External beta and paid production remain blocked by default in M17 only for the unsafe launch/runtime surfaces they protect. That default does not block bounded source review, local proof, no-write previews, diagnostics, QA, owner remediation, monitoring, rollback planning, or other blocker-reduction work that keeps beta/production gates closed while collecting the missing evidence.
 
 ## Tools Evidence Handoff
 

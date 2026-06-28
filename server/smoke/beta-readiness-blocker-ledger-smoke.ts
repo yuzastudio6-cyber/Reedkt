@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import {
+  assertScopedBlockerLedgerRows,
+  assertScopedBlockerPolicyCarrier,
   buildBetaReadinessBlockerLedger,
   buildToolBetaExecutionReadinessReport,
   type ToolBetaAcceptedExecutionEvidence,
@@ -9,6 +11,13 @@ import { PRODUCTION_TOOL_IDS } from '../tool-registry'
 
 const defaultLedger = buildBetaReadinessBlockerLedger()
 const defaultReadiness = buildToolBetaExecutionReadinessReport()
+assertScopedBlockerPolicyCarrier({
+  blockerForwardProgressPolicy: defaultLedger.blockerPolicy,
+  safeBlockerReductionAllowed: true,
+  blockedActionScope: defaultLedger.blockedActionScope,
+  allowedForwardProgressScopes: defaultLedger.allowedForwardProgressScopes,
+}, 'default beta readiness blocker ledger')
+assertScopedBlockerLedgerRows(defaultLedger.rows, 'default beta readiness blocker ledger rows')
 
 assert.ok(defaultLedger.reportId.startsWith('beta-readiness-blocker-ledger-'), 'ledger report should build')
 assert.equal(defaultLedger.duplicateRowKeys.length, 0, 'default blocker ledger must not contain duplicate row keys')

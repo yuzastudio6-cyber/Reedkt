@@ -125,7 +125,9 @@ export function buildBetaReadinessOperatorStatus(
       blockerForwardProgressPolicy: readiness.blockerForwardProgressPolicy,
       safeBlockerReductionAllowed: readiness.safeBlockerReductionAllowed,
       blockedActionScope: readiness.blockedActionScope,
-      allowedForwardProgressScopes: buildAllowedForwardProgressScopes(readiness.safeBlockerReductionAllowed),
+      allowedForwardProgressScopes: readiness.safeBlockerReductionAllowed
+        ? readiness.allowedForwardProgressScopes
+        : [],
     },
     toolEvidence: toolEvidenceSummary(toolEvidence),
     platformEvidence: platformEvidenceSummary(platformEvidence),
@@ -144,21 +146,6 @@ export function buildBetaReadinessOperatorStatus(
       'Bearer tokens and service-role secrets are never printed; the report uses preflight summaries only.',
     ],
   }
-}
-
-function buildAllowedForwardProgressScopes(safeBlockerReductionAllowed: boolean): string[] {
-  if (!safeBlockerReductionAllowed) return []
-
-  return [
-    'source_review',
-    'local_dependency_install_proof',
-    'bounded_command_import_container_proof',
-    'safe_blocker_reduction_preview',
-    'diagnostics_and_qa_packets',
-    'deployment_preflight_and_platform_evidence_collection',
-    'owner_approval_packet_collection',
-    'rollback_monitoring_support_planning',
-  ]
 }
 
 function toolEvidenceSummary(

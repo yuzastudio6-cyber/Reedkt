@@ -24,4 +24,6 @@ Production hardening reports must carry the same contract as the beta tool block
 
 If a future blocker says beta or production is blocked but omits this split, treat the report as incomplete. Repair the blocker metadata first, then keep reducing the named blocker through the smallest safe lane. Do not use the missing metadata as a reason to stop all safe work.
 
+`npm run smoke:scoped-blocker-forward-progress-policy` is the focused regression check for this contract. It validates the tool beta readiness report, blocker ledger, backend operator status, and production hardening report against one shared source-level policy: `intentionalBlanketBlocksAllowed: false`, `safeBlockerReductionAllowed: true`, named blocked action scopes, and named allowed forward-progress scopes. If the smoke fails, fix the blocker metadata or safe-lane mapping before adding new readiness blockers.
+
 Workers execute approved plan snapshots and private artifact references. Raw chat, signed URLs, and evaluation-only tools cannot become production execution inputs.

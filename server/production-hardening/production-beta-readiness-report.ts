@@ -1,4 +1,8 @@
 import { buildBetaReadinessReport } from '../beta-readiness'
+import {
+  SCOPED_BLOCKER_FORWARD_PROGRESS_POLICY,
+  defaultAllowedForwardProgressScopes,
+} from '../beta-readiness/scoped-blocker-forward-progress-policy'
 import { buildCostControlSummary } from '../cost-controls'
 import { buildSecurityReviewReport } from '../security-review'
 import { buildProductionReadinessReport, type ProductionReadinessReport } from '../workers/readiness-validation'
@@ -75,24 +79,12 @@ export function buildProductionHardeningReport(options: BuildProductionHardening
     overallStatus: 'blocked',
     categories: productionHardeningCategories,
     scorecard,
-    blockerForwardProgressPolicy: {
-      intentionalBlanketBlocksAllowed: false,
-      blockerScope: 'named_unsafe_action_only',
-      safeForwardProgressRequired: true,
-      nextSafeActionRequiredForBlockers: true,
-    },
+    blockerForwardProgressPolicy: SCOPED_BLOCKER_FORWARD_PROGRESS_POLICY,
     safeBlockerReductionAllowed: true,
     blockedActionScope,
     allowedForwardProgressScopes: [
-      'source_review',
-      'local_dependency_install_proof',
-      'bounded_command_import_container_proof',
-      'safe_blocker_reduction_preview',
-      'diagnostics_and_qa_packets',
-      'deployment_preflight_and_platform_evidence_collection',
-      'owner_approval_packet_collection',
+      ...defaultAllowedForwardProgressScopes(),
       'security_privacy_review',
-      'rollback_monitoring_support_planning',
     ],
     blockers: [...new Set(blockers)],
     warnings: [...new Set(warnings)],

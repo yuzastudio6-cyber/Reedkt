@@ -43,6 +43,9 @@ const jobTempEnvStatic = {
   QWEN_CPU_CALLER_USE_CASE: 'visual_understanding',
 }
 
+const maxAttempts = boundedIntegerEnv('QWEN_ADAPTER_RUNTIME_FIXTURE_MAX_ATTEMPTS', 1, 1, 3)
+const coldStartWaitSeconds = boundedIntegerEnv('QWEN_ADAPTER_RUNTIME_FIXTURE_COLD_START_WAIT_SECONDS', 0, 0, 600)
+
 const serviceRemoveEnv = [
   'QWEN_VLLM_MAX_MODEL_LEN',
   'QWEN_VLLM_MAX_NUM_BATCHED_TOKENS',
@@ -71,6 +74,19 @@ function ensureConfirmed() {
     console.error(`${packet} blocked_pending_qwen2_5_vl_external_beta_confirmed_adapter_runtime_fixture_confirmation`)
     process.exit(2)
   }
+}
+
+function boundedIntegerEnv(name, fallback, min, max) {
+  const value = Number.parseInt(process.env[name] ?? '', 10)
+  if (!Number.isFinite(value)) return fallback
+  return Math.max(min, Math.min(max, value))
+}
+
+function sleepSeconds(seconds) {
+  if (seconds <= 0) return
+  const buffer = new SharedArrayBuffer(4)
+  const view = new Int32Array(buffer)
+  Atomics.wait(view, 0, 0, seconds * 1000)
 }
 
 function run(command, args, options = {}) {
@@ -323,6 +339,16 @@ function executionSucceeded(execution) {
   return conditions.some((condition) => condition.type === 'Completed' && condition.status === 'True')
 }
 
+function isColdStartRetryCandidate(attempt) {
+  const callerResult = attempt?.callerResult
+  return (
+    callerResult?.httpStatus === 502 &&
+    callerResult?.fixtureInferenceSmokePassed === false &&
+    callerResult?.runtimeSideEffects?.serviceRuntimeRequestSent === true &&
+    callerResult?.runtimeSideEffects?.inferenceRun === false
+  )
+}
+
 function validateRestore(serviceAfter, jobAfter) {
   const serviceEnv = envMap(serviceAfter, 'service')
   const jobEnv = envMap(jobAfter, 'job')
@@ -360,6 +386,11 @@ const report = {
   jobName,
   decision: 'blocked_pending_runtime_result',
   execution: 'confirmed_adapter_runtime_fixture_attempted',
+  retryPolicy: {
+    maxAttempts,
+    coldStartWaitSeconds,
+    retryableHttpStatuses: [502],
+  },
   safety: {
     supabaseMutation: false,
     sqlExecution: false,
@@ -387,6 +418,7 @@ let execution = null
 let executionDescription = null
 let logs = []
 let callerResult = null
+const attempts = []
 let restore = { attempted: false, passed: false }
 
 try {
@@ -403,38 +435,61 @@ try {
   updateServiceTemp()
   updateJobTemp(serviceUrl)
 
-  execution = executeJob()
-  const name = executionName(execution)
-  if (!name) throw new Error('blocked_qwen_execution_name_missing')
-  executionDescription = describeExecution(name)
-  logs = readExecutionLogs(name)
-  callerResult = extractCallerJson(logs)
+  let success = false
+  for (let attemptNumber = 1; attemptNumber <= maxAttempts; attemptNumber += 1) {
+    execution = executeJob()
+    const name = executionName(execution)
+    if (!name) throw new Error('blocked_qwen_execution_name_missing')
+    executionDescription = describeExecution(name)
+    logs = readExecutionLogs(name)
+    callerResult = extractCallerJson(logs)
 
-  const metadata = callerResult?.metadataOutput ?? {}
-  const success =
-    executionSucceeded(executionDescription) &&
-    callerResult?.ok === true &&
-    callerResult?.httpStatus === 200 &&
-    callerResult?.serviceReason === 'qwen_fixture_inference_smoke_completed' &&
-    callerResult?.fixtureInferenceSmokePassed === true &&
-    callerResult?.structuredMetadataOutputAccepted === true &&
-    callerResult?.modelInferenceEnabled === true &&
-    callerResult?.runtimeContractExecutesNow === true &&
-    metadata?.parsedJson === true &&
-    metadata?.schemaValid === true &&
-    metadata?.objectCount === 3 &&
-    metadata?.textLikeRegionCount === 1 &&
-    metadata?.rawOutputStoredInRepo === false &&
-    callerResult?.runtimeSideEffects?.generatedAssetsCreated === false &&
-    callerResult?.runtimeSideEffects?.publicArtifactsCreated === false &&
-    callerResult?.runtimeSideEffects?.signedUrlsCreated === false &&
-    callerResult?.runtimeSideEffects?.supabaseTouched === false &&
-    callerResult?.runtimeSideEffects?.sqlExecuted === false
+    const metadata = callerResult?.metadataOutput ?? {}
+    success =
+      executionSucceeded(executionDescription) &&
+      callerResult?.ok === true &&
+      callerResult?.httpStatus === 200 &&
+      callerResult?.serviceReason === 'qwen_fixture_inference_smoke_completed' &&
+      callerResult?.fixtureInferenceSmokePassed === true &&
+      callerResult?.structuredMetadataOutputAccepted === true &&
+      callerResult?.modelInferenceEnabled === true &&
+      callerResult?.runtimeContractExecutesNow === true &&
+      metadata?.parsedJson === true &&
+      metadata?.schemaValid === true &&
+      metadata?.objectCount === 3 &&
+      metadata?.textLikeRegionCount === 1 &&
+      metadata?.rawOutputStoredInRepo === false &&
+      callerResult?.runtimeSideEffects?.generatedAssetsCreated === false &&
+      callerResult?.runtimeSideEffects?.publicArtifactsCreated === false &&
+      callerResult?.runtimeSideEffects?.signedUrlsCreated === false &&
+      callerResult?.runtimeSideEffects?.supabaseTouched === false &&
+      callerResult?.runtimeSideEffects?.sqlExecuted === false
+
+    const attempt = {
+      attemptNumber,
+      executionName: name,
+      executionSucceeded: executionSucceeded(executionDescription),
+      callerResult,
+      coldStartRetryCandidate: false,
+      waitBeforeNextAttemptSeconds: 0,
+    }
+    attempt.coldStartRetryCandidate = isColdStartRetryCandidate(attempt)
+    attempts.push(attempt)
+
+    if (success) break
+    if (attemptNumber < maxAttempts && attempt.coldStartRetryCandidate) {
+      attempt.waitBeforeNextAttemptSeconds = coldStartWaitSeconds
+      sleepSeconds(coldStartWaitSeconds)
+      continue
+    }
+    break
+  }
 
   report.runtime = {
-    executionName: name,
-    executionSucceeded: executionSucceeded(executionDescription),
+    executionName: attempts.at(-1)?.executionName ?? null,
+    executionSucceeded: attempts.at(-1)?.executionSucceeded ?? false,
     callerResult,
+    attempts,
   }
   report.decision = success
     ? 'completed_qwen2_5_vl_external_beta_confirmed_adapter_runtime_fixture'

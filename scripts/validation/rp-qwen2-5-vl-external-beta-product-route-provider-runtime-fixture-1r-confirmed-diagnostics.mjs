@@ -22,6 +22,20 @@ const requiredFiles = [
   'package.json',
 ]
 
+const followupAllowedFiles = [
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/artifact-manifest.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/fail-closed-restore.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/qwen2-5-vl-product-route-provider-runtime-fixture-1r-cold-start-retry-record.json',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/runtime-result.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/validation-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen2-5-vl-product-route-runtime-readiness-rollup-1.md',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1-confirmed.mjs',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1.mjs',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'blocked_qwen_adapter_runtime_fixture_http_502_during_model_cold_start',
@@ -95,7 +109,7 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowedFiles = new Set(requiredFiles)
+const allowedFiles = new Set([...requiredFiles, ...followupAllowedFiles])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   if (/^package-lock\.json$|^supabase\/|^server\/routes\/|^server\/workers\/|^docker\/|^\.env|^requirements/i.test(file)) {

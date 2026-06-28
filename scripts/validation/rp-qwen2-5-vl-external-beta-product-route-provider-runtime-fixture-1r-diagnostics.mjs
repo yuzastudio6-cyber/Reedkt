@@ -32,6 +32,17 @@ const followupAllowedFiles = [
   'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-confirmed/validation-results.md',
   'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1.md',
   'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-confirmed-diagnostics.mjs',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/artifact-manifest.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/fail-closed-restore.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/qwen2-5-vl-product-route-provider-runtime-fixture-1r-cold-start-retry-record.json',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/runtime-result.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1/validation-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen2-5-vl-product-route-runtime-readiness-rollup-1.md',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1-confirmed.mjs',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1.mjs',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1-diagnostics.mjs',
 ]
 
 const requiredText = [

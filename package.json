@@ -289,6 +289,7 @@
     "worker-runtime-jobs:sound-cpu-bounded-external-beta-state-change-execution:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-beta-state-change-execution-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-real-user-media-beta-readiness-after-bounded-external-beta:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-real-user-media-beta-readiness-after-bounded-external-beta-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-real-user-media-beta-blocker-resolution-after-bounded-external-beta:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-real-user-media-beta-blocker-resolution-after-bounded-external-beta-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-launch-core-real-check-plan-after-real-user-media-beta-blocker-resolution:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-real-check-plan-after-real-user-media-beta-blocker-resolution-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",
